@@ -214,6 +214,16 @@ class SphericalWeb(Element):
         Implement the abstract method :meth:`check` of :class:`ClonableElement`.
 
         Check ``self`` is a valid web.
+
+        EXAMPLES::
+
+            sage: a = halfedge()
+            sage: SphericalSpider('plain')({a:a},dict(),[a],check=False)
+            The plain spherical web with c = (0,) and e = ().
+            sage: SphericalSpider('plain')({a:a},dict(),[a])
+            Traceback (most recent call last):
+            ...
+            ValueError: the mapping c has at least one fixed point
         """
         c = self.cp
         e = self.e
@@ -235,18 +245,16 @@ class SphericalWeb(Element):
             raise ValueError("the boundary must be a subset of the domain of c")
         if not set(e.keys()).isdisjoint(set(b)):
             raise ValueError("the domain of e must not intersect the boundary")
-        for i,a in enumerate(b):
-            u = a
-            while c[u] in e:
-                u = e[c[u]]
-            j = b.index(c[u])
-            if 0 < j < i:
-                raise ValueError("boundary is inconsistent")
+        #for i,a in enumerate(b):
+        #    u = a
+        #    while c[u] in e:
+        #        u = e[c[u]]
+        #    j = b.index(c[u])
+        #    if 0 < j < i:
+        #        raise ValueError("boundary is inconsistent")
 
     def normalize(self):
         r"""
-        Overload the :meth:`normalize` of :class:`ClonableElement`.
-
         This removes nearly all vertices of degree two.
 
         EXAMPLES::
@@ -412,6 +420,8 @@ class SphericalWeb(Element):
             sage: w = SphericalSpider('plain').vertex(3)
             sage: w._traversal(w.boundary)
             <generator object SphericalWeb._traversal at ...>
+            sage: w._traversal(w.boundary[0])
+            <generator object SphericalWeb._traversal at ...>
         """
         if isinstance(initial,halfedge):
             initial = tuple([initial])
@@ -471,6 +481,8 @@ class SphericalWeb(Element):
             sage: v = SphericalSpider('plain').vertex(3)
             sage: u.glue(v,1)
             The plain spherical web with c = (1, 4, 3, 5, 0, 2) and e = (5, 4).
+            sage: u.glue(v,0)
+            The plain spherical web with c = (1, 2, 0, 4, 5, 3) and e = ().
         """
         if n < 0:
             raise ValueError(f"n={n} cannot be negative")
@@ -480,36 +492,31 @@ class SphericalWeb(Element):
         if n > len(self.boundary) or n > len(other.boundary):
             raise ValueError(f"n={n} is too large")
 
-        Ds = {a:halfedge() for a in self.cp}
-        c = {Ds[a]:Ds[self.cp[a]] for a in self.cp}
-        e = {Ds[a]:Ds[self.e[a]] for a in self.e}
-        bs = [Ds[a] for a in self.boundary]
+        ns = self.__copy__()
+        no = other.__copy__()
 
-        Do = {a:halfedge() for a in other.cp}
-        c.update({Do[a]:Do[other.cp[a]] for a in other.cp})
-        e.update({Ds[a]:Ds[other.e[a]] for a in other.e})
-        bo = [Do[a] for a in other.boundary]
+        bs = ns.boundary
+        bo = no.boundary
+        if n == 0:
+            b = bs+bo
+        else:
+            b = bs[:-n]+bo[n:]
 
-        b = bs[:-n]+bo[n:]
+        c = {**ns.cp, **no.cp}
+        e = {**ns.e, **no.e}
 
-        topL = [halfedge() for i in range(n)]
-        botL = [halfedge() for i in range(n)]
-        topR = [halfedge() for i in range(n)]
-        botR = [halfedge() for i in range(n)]
+        top = [halfedge() for i in range(n)]
+        bot = [halfedge() for i in range(n)]
 
-        e.update({topR[i]:botL[i] for i in range(n)})
-        e.update({botL[i]:topR[i] for i in range(n)})
-        e.update({x:y for x,y in zip(bs[-n:],topL)})
-        e.update({y:x for x,y in zip(bs[-n:],topL)})
-        e.update({x:y for x,y in zip(bo[:n],reversed(botR))})
-        e.update({y:x for x,y in zip(bo[:n],reversed(botR))})
+        e.update({x:y for x,y in zip(bs[-n:],top)})
+        e.update({y:x for x,y in zip(bs[-n:],top)})
+        e.update({x:y for x,y in zip(bo[:n],reversed(bot))})
+        e.update({y:x for x,y in zip(bo[:n],reversed(bot))})
 
-        c.update({topR[i]:topL[i] for i in range(n)})
-        c.update({topL[i]:topR[i] for i in range(n)})
-        c.update({botR[i]:botL[i] for i in range(n)})
-        c.update({botL[i]:botR[i] for i in range(n)})
+        c.update({top[i]:bot[i] for i in range(n)})
+        c.update({bot[i]:top[i] for i in range(n)})
 
-        return self.parent()(c,e,b)
+        return parent(c,e,b)
 
     def mirror_image(self):
         r"""
@@ -638,20 +645,27 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
+            sage: u = SphericalSpider('plain').vertex(3)
+            sage: u.components()
+            False
+            sage: u.glue(u,0)
+            The plain spherical web with c = (1, 2, 0, 4, 5, 3) and e = ().
+            sage: u.glue(u,0).components()
+            True
         """
-        Dn = {a:halfedge() for a in self.boundary}
-        for a in self._traversal(self.boundary):
+        Dn = {a:halfedge() for a in self.boundary[0]}
+        for a in self._traversal(self.boundary[0]):
             Dn[a] = halfedge()
 
         cn = {Dn[a]:Dn[self.cp[a]] for a in self.cp}
         en = {Dn[a]:Dn[self.e[a]] for a in self.e}
         bn = [Dn[a] for a in self.boundary]
-        wb = SphericalWeb(cn,en,bn)
+        wb = self.parent()(cn,en,bn)
 
         Dc = {a:halfedge() for a in self.cp if not a in Dn}
         cc = {Dc[a]:Dc[self.cp[a]] for a in self.cp}
         ec = {Dc[a]:Dc[self.e[a]] for a in self.e}
-        wc = SphericalWeb(cc,ec,[])
+        wc = self.parent()(cc,ec,[])
 
         return wb, wc
 
@@ -667,6 +681,11 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
+            sage: u = SphericalSpider('plain').vertex(3)
+            sage: u.is_decomposable()
+            False
+            sage: u.glue(u,0).is_decomposable()
+            True
         """
         if len(self.boundary) == 0:
             raise ValueError("not implemented for a closed web")
@@ -863,22 +882,21 @@ class SphericalWeb(Element):
 
             sage: S = SphericalSpider('plain')
             sage: S.vertex(4).glue(S.vertex(2),2)._latex_()
-            ...
+            '\\begin{tikzpicture}\n\\draw (0,0) circle (1cm);\n\\draw (-1.0000,-1.0000) -- ... -- (1.0000,1.0000);\n\\end{tikzpicture}\n'
 
             If there are no boundary points only the boundary circle is drawn.
 
             sage: S.loop()._latex_()
-            '\\begin{tikzpicture}\n\\draw (0,0) circle (3cm);\n\\end{tikzpicture}\n'
+            '\\begin{tikzpicture}\n\\draw (0,0) circle (1cm);\n\\end{tikzpicture}\n'
         """
         lines = self._layout()
 
-        result = r"\begin{tikzpicture}" + "\n"
-        result += r"\draw (0,0) circle (3cm);" + "\n"
-
+        result = "\\begin{tikzpicture}\n"
+        result += "\\draw (0,0) circle (1cm);\n"
         for a in lines:
-            result += f"\draw ({a[0][0]},{a[0][1]}) -- ({a[1][0]},{a[1][1]});\n"
-            # DeprecationWarning: invalid escape sequence \d
-        result += r"\end{tikzpicture}" + "\n"
+            result += "\\draw ({0:1.4f},{0:1.4f}) -- ({0:1.4f},{0:1.4f});\n".format(a[0][0],a[1][0],a[1][0],a[1][1])
+        result += "\\end{tikzpicture}\n"
+
         return result
 
 #### End of methods for working with webs ####
@@ -1037,14 +1055,14 @@ class SphericalSpider(Parent,UniqueRepresentation):
         """
         return f"The {self._name} spherical spider."
 
-    def _element_constructor_(self,c,e,b):
+    def _element_constructor_(self,c,e,b,check=True):
         r"""
         Construct an element of ``self``.
 
         EXAMPLES::
 
         """
-        return self.element_class(c,e,b,self)
+        return self.element_class(c,e,b,self,check=check)
 
     def _an_element_(self):
         """
@@ -1111,7 +1129,7 @@ class SphericalSpider(Parent,UniqueRepresentation):
             sage: S = SphericalSpider('plain')
             sage: π = Permutation([5,3,4,9,7,8,10,6,1,2])
             sage: S.from_permutation(π)
-            A closed plain spherical web with 7 edges.
+            The plain spherical web with c = (1, 3, 6, 4, 5, 0, 7, 2, 10, 8, 9) and e = (7, 8, 9, 10, 3, 4, 5, 6).
 
             sage: π = Permutation([2,4,1,3])
             sage: S.from_permutation(π)
@@ -1119,7 +1137,7 @@ class SphericalSpider(Parent,UniqueRepresentation):
             ...
             ValueError: [2, 4, 1, 3] is not a Baxter permutation
             sage: S.from_permutation(π,baxter=False)
-            A closed plain spherical web with 1 edges.
+            The plain spherical web with c = (1, 0) and e = ().
         """
         if baxter:
             if not π in BaxterPermutations():
@@ -1168,7 +1186,18 @@ class SphericalSpider(Parent,UniqueRepresentation):
             else:
                 raise RuntimeError("this can't happen")
 
-        return self.element_class(c,e,[],self)
+        g = (1/2,1/2)
+        inco = [a for (w,a) in Ddn if w == g]
+        inco.sort(key=lambda t: t[0]-t[1])
+        b =  [e[Ddn[(g,x)]] for x in inco]
+        for a in inco:
+            x = Ddn[(g,a)]
+            e.pop(e[x])
+            #c.pop(e[x])
+            e.pop(x)
+            c.pop(x)
+
+        return self.element_class(c,e,b,self)
 
 #### End of Parent ####
 
@@ -1276,29 +1305,3 @@ def polygon_web(n: int):
     e = {b1[i-1]:b2[i] for i in range(n)}
     e.update({b2[i]:b1[i-1] for i in range(n)})
     return SphericalSpider('plain')(c,e,a)
-
-
-
-def enumerate_diagrams(generators,max: int,forbidden=[],connected=False):
-    """
-    Enumerate diagrams.
-    """
-    old = set(generators)
-    new = set()
-    diagrams = old
-    while len(old) != 0:
-        for a in old:
-            for b in generators:
-                la = len(a.boundary)
-                lb = len(b.boundary)
-                r = 1 if connected else 0
-                s = max(r,(la+lb-max)/2)
-                p = min(la,lb)
-                for k in range(r,s):
-                    c = a.glue(b,k)
-                    # Check c
-                    new.add(c)
-        diagrams.update(new)
-        old = new
-        new = set()
-    return diagrams
