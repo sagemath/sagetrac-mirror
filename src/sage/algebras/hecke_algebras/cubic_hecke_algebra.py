@@ -3403,10 +3403,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         from sage.functions.generalized import sign
         mtr = self._markov_trace_irr_coeffs()
-        mtr_list = [(mtr(g), sum( sign(i) for i in g.Tietze())) for g in self.basis()]
+        mtr_list = [mtr(self(g)) for g in self.get_order()]
         E = self.extension_ring()
         PE = E[('s',) + tuple(all_vars)]
-        EC3 = mtr_list[0][0].parent().base_ring()
+        EC3 = mtr_list[0].parent().base_ring()
         EZ = ZZ[EC3.variable_names()]
         img = tuple(self.cubic_equation_roots()) + PE.gens()
         emb_EZ = EZ.hom(img)
@@ -3415,19 +3415,15 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         from sage.misc.sage_eval import sage_eval
         spe = PE.gen(0)
 
-        def convert_coeff(cf, writhe):
+        def convert_coeff(cf):
             num = cf.numerator()
             den = cf.denominator()
             num_PE = emb_EZ(EZ(num.dict()))
             den_PE = emb_EZ(EZ(den.dict()))
-            if writhe >= 0:
-                den_PE *= spe**(writhe)
-            else:
-                num_PE *= spe**(-writhe)
             num_L = sage_eval(str(num_PE), locals=subs_dict)
             den_L = sage_eval(str(den_PE), locals=subs_dict)
             return num_L/den_L
-        return [convert_coeff(cf, writhe) for cf, writhe in mtr_list]
+        return [convert_coeff(cf) for cf in mtr_list]
 
 
     @cached_method
@@ -3445,7 +3441,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         all_vars, new_vars = self._markov_vars()
 
         sub = self.cubic_hecke_subalgebra()
-        sub_basis = list(sub.basis())
+        sub_basis = [sub(g) for g in sub.get_order()]
         sub_dim = sub.dimension()
         subR = sub._markov_trace_coeffs()[0].parent()
         sub_var = subR.base_ring().variable_names()
