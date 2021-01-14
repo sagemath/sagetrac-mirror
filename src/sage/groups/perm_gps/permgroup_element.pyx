@@ -1465,6 +1465,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         Return a hash for this permutation.
 
+        The algorithm is a variant of Fowler–Noll–Vo hash function that is also
+        used for examples in Python tuples. See
+        :wikipedia:`Fowler–Noll–Vo_hash_function`.
+
         EXAMPLES::
 
             sage: G = SymmetricGroup(5)
