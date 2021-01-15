@@ -92,7 +92,7 @@ Group Theory: Birdtracks, Lie's, and Exceptional Groups
 Princeton University Press, 2008
 ISBN    0691118361, 9780691118369
 
-.. [2] E Gretzler, MM Kapranov
+.. [2] E Getzler, MM Kapranov
 Cyclic operads and cyclic homology
 http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.146.2678&rep=rep1&type=pdf
 
@@ -138,6 +138,41 @@ from sage.graphs.graph import Graph
 from sage.combinat.permutation import Permutation
 from sage.combinat.baxter_permutations import BaxterPermutations
 from sage.structure.richcmp import richcmp, op_EQ, op_NE
+from typing import NamedTuple
+
+class Strand(NamedTuple):
+    """
+    Record the information used to draw an edge.
+
+    EXAMPLES::
+
+        sage: Strand(1,'black',False)
+        Strand(oriented=1, colour='black', crossing=False)
+    """
+    oriented: int
+    colour: str
+    crossing: bool
+
+    def dual(self):
+        """
+        Return the dual of ``self``.
+
+        EXAMPLES::
+
+            sage: Strand(1,'black',False).dual()
+            Strand(oriented=-1, colour='black', crossing=False)
+        """
+        return Strand(-self.oriented, self.colour, self.crossing)
+
+Vector = Strand(0,'black',False)
+"""
+A default strand.
+
+EXAMPLES::
+
+    sage: Vector
+    Strand(oriented=0, colour='black', crossing=False)
+"""
 
 class halfedge():
     """
@@ -145,13 +180,14 @@ class halfedge():
 
     This should probably be an attribute either of SphericalWeb or SphericalSpider
     """
-    def __init__(self):
+    def __init__(self, st: Strand=Vector):
         """
         EXAMPLES::
 
             sage: halfedge()
             <sage.combinat.spherical_spider.halfedge object at ...>
         """
+        self.strand = st
 
 class SphericalWeb(Element):
     r"""The class of webs.
@@ -1118,7 +1154,7 @@ class SphericalSpider(Parent,UniqueRepresentation):
         """
         return self.element_class({},{},[],self)
 
-    def from_permutation(self,π: Permutation,baxter=True):
+    def from_permutation(self, pi: Permutation,baxter=True):
         r"""
         Construct a planar map from a two stack sorted permutation.
 
@@ -1140,14 +1176,14 @@ class SphericalSpider(Parent,UniqueRepresentation):
             The plain spherical web with c = (1, 0) and e = ().
         """
         if baxter:
-            if not π in BaxterPermutations():
-                raise ValueError(f"{π} is not a Baxter permutation")
-        black = set((i+1,a) for i, a in enumerate(π))
-        n = len(π)
+            if not pi in BaxterPermutations():
+                raise ValueError(f"{pi} is not a Baxter permutation")
+        black = set((i+1,a) for i, a in enumerate(pi))
+        n = len(pi)
         white = set([(1/2,1/2),(n+1/2,n+1/2)])
-        ascents = [i+1 for i,a in enumerate(zip(π,π[1:])) if a[0] < a[1]]
+        ascents = [i+1 for i,a in enumerate(zip(pi,pi[1:])) if a[0] < a[1]]
         for a in ascents:
-            l = max(π[i] for i in range(a) if π[i] < π[a])
+            l = max(pi[i] for i in range(a) if pi[i] < pi[a])
             white.add((a+1/2,l+1/2))
 
         Dup = {}
@@ -1200,90 +1236,6 @@ class SphericalSpider(Parent,UniqueRepresentation):
         return self.element_class(c,e,b,self)
 
 #### End of Parent ####
-
-#### Start of generators (work in progress) ####
-
-############################################################
-# I am not clear on how this should be implemented.
-#
-# The intuition comes from the spiders which arise from the
-# category of finite dimensional representations of a quantised
-# enveloping algebra. Here a strand is modelled on an irreducible
-# representation has a 'name', and probably
-# a 'grading' which is either 'odd' or 'even'. Each instance of
-# the parent class SphericalSpider should have an attribute
-# which defines a (finite) set of strands and this set has an involution.
-# This involution is modelled on taking the dual of a representaion.
-# A strand is self-dual if it is fixed by this involution and a
-# self-dual representation is either 'orthogonal' or 'symplectic'.
-#
-# Each halfedge() of a web will have an attribute which
-# is an instance of the Decoration class. One of the entries of the
-# Decoration class is a Strand. We require that this is an element
-# of the strand set of the parent of the web. The mechanism for
-# enforcing this is that we only construct vertices that satisfy
-# this condition and we only construct webs using rotate and glue.
-# For example, :func:``polygon_web`` should be rewritten to become a
-# method that uses rotate and glue to build the polygon.
-#
-# In python we have @dataclass, nametuple, NamedTuple
-# which all seem similar.
-#
-# In Sage we have set, Set, FiniteEnumeratedSet, FiniteFamily, ...
-# and I am not clear what benefits there are to each of these.
-#
-# I should probably steal ideas from IndexedFreeMonoid
-###############################################################
-
-@dataclass
-class Strand:
-    name: str
-    grading: bool
-    parity: bool
-
-class Strands():
-    """
-    This defines a set with involution.
-    """
-    def __init__(self,objs: set, duals: dict=None):
-        if any(not isinstance(a,Strand) for a in objs):
-            raise ValueError(f"entries of {objs} must all be a Strand")
-        duals = {str(x):str(y) for x,y in duals.items()}
-        objs = set(str(a) for a in objs)
-        if not duals.keys().issubset(objs):
-            raise ValueError("domain of dual map is not a subset of halfedges")
-        if not duals.values().issubset(objs):
-            raise ValueError("range of dual map is not a subset of halfedges")
-        if any(duals[duals[a]] != a):
-            raise ValueError("the dual map must be an involution")
-
-        self.objects = objs
-        duals.update({a:a for a in objs if not a in duals})
-        self.duals = duals
-
-@dataclass
-class Decoration:
-    r"""
-    This class that should probably follow IndexedGenerators.
-
-    This should record the following information.
-
-    - a direction, either 'in' or 'out'.
-    - a label, an instance of :class:``Strand``.
-    - possibly some marking to deal with symmetry
-    """
-    label: Strand
-    direction: bool
-    marking: int
-
-#### End of generators (work in progress) ####
-
-#### Start of functions ####
-
-############################################################
-# These should all be moved to become become parent methods.
-# I have not done this because glue is not working properly;
-# these functions use glue and are not used elsewhere.
 
 def polygon_web(n: int):
     r"""Construct a polygon with n sides.
