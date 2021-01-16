@@ -129,7 +129,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from dataclasses import dataclass
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -238,7 +237,7 @@ class SphericalWeb(Element):
             sage: SphericalSpider('plain').vertex(3).__copy__()
             The plain spherical web with c = (1, 2, 0) and e = ().
         """
-        D = {a:halfedge() for a in self.cp}
+        D = {a:halfedge(a.strand) for a in self.cp}
         c = {D[a]:D[self.cp[a]] for a in self.cp}
         e = {D[a]:D[self.e[a]] for a in self.e}
         b = [D[a] for a in self.boundary]
@@ -493,6 +492,25 @@ class SphericalWeb(Element):
             new = list()
         return
 
+    @staticmethod
+    def _stitch(c,e,x,y):
+        """
+        Connect `x` and `y`.
+
+        This is a low level method that is not intended to be called directly.
+        It was written to comply with the DRY principle.
+        """
+        u = halfedge(x.strand.dual())
+        v = halfedge(y.strand.dual())
+        c[u] = v
+        c[v] = u
+        e[x] = u
+        e[u] = x
+        e[y] = v
+        e[v] = y
+
+        return c, e
+
     def rotate(self,k: int):
         r"""Rotate the boundary anticlockwise `k` steps.
 
@@ -541,16 +559,8 @@ class SphericalWeb(Element):
         c = {**ns.cp, **no.cp}
         e = {**ns.e, **no.e}
 
-        top = [halfedge() for i in range(n)]
-        bot = [halfedge() for i in range(n)]
-
-        e.update({x:y for x,y in zip(bs[-n:],top)})
-        e.update({y:x for x,y in zip(bs[-n:],top)})
-        e.update({x:y for x,y in zip(bo[:n],reversed(bot))})
-        e.update({y:x for x,y in zip(bo[:n],reversed(bot))})
-
-        c.update({top[i]:bot[i] for i in range(n)})
-        c.update({bot[i]:top[i] for i in range(n)})
+        for x,y in zip(reversed(bs[-n:]),bo[:n]):
+            c, e =  self._stitch(c,e,x,y)
 
         return parent(c,e,b)
 
@@ -689,6 +699,7 @@ class SphericalWeb(Element):
             sage: u.glue(u,0).components()
             True
         """
+        # This looks stupid
         Dn = {a:halfedge() for a in self.boundary[0]}
         for a in self._traversal(self.boundary[0]):
             Dn[a] = halfedge()
@@ -774,6 +785,7 @@ class SphericalWeb(Element):
         c = self.cp
         e = self.e
         G = Graph({a:[c[a]] for a in c})
+        # This adds each edge twice.
         for a in e:
             G.add_edge(a,e[a],'e')
         return G
@@ -817,7 +829,6 @@ class SphericalWeb(Element):
             set()
         """
         from sage.matrix.all import matrix
-        from sage.rings.all import RealField
         from sage.functions.trig import sin, cos
         from sage.all import pi
 
@@ -888,6 +899,10 @@ class SphericalWeb(Element):
 
             sage: S.loop().plot()
             Graphics object consisting of 1 graphics primitive
+
+        TODO:
+
+        Add colour, direction, under crossing.
         """
         from sage.plot.circle import circle
         from sage.plot.line import line
@@ -924,6 +939,10 @@ class SphericalWeb(Element):
 
             sage: S.loop()._latex_()
             '\\begin{tikzpicture}\n\\draw (0,0) circle (1cm);\n\\end{tikzpicture}\n'
+
+        TODO:
+
+            Add colour, direction, under crossing.
         """
         lines = self._layout()
 
@@ -1034,16 +1053,9 @@ class SphericalWeb(Element):
 
         for a in h.boundary:
             if D[a] in self.e:
-                s = halfedge()
-                t = halfedge()
-                c[s] = t
-                c[t] = s
                 x = Ds[self.e[D[a]]]
                 y = Dk[Db[a]]
-                e[x] = s
-                e[s] = x
-                e[y] = t
-                e[t] = y
+                c, e = self._stitch(c,e,x,y)
             else:
                 i = self.boundary.index(D[a])
                 b[i] = Dk[Db[a]]
@@ -1154,6 +1166,50 @@ class SphericalSpider(Parent,UniqueRepresentation):
         """
         return self.element_class({},{},[],self)
 
+    def polygon(self,corners):
+        """
+        Construct a polygon from a list of webs.
+
+        EXAMPLES::
+
+            sage: S = SphericalSpider('plain')
+            sage: u = S.vertex(3)
+            sage: S.polygon([u,u,u])
+            The plain spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).
+            sage: S.polygon([])
+            A closed plain spherical web with 0 edges.
+        """
+        from functools import reduce
+
+        if len(corners) == 0:
+            return self.empty()
+
+        if any(a.parent() != self for a in corners):
+            raise ValueError(f"all entries must have parent {self}")
+
+        # Avoid duplicates.
+        cn = copy(corners)
+        for i,u in enumerate(corners):
+            for j,v in enumerate(corners[:i]):
+                if u == v:
+                    cn[i] = copy(u)
+        corners = cn
+
+        c = reduce(lambda r, s: {**r, **s}, [a.cp for a in corners])
+        e = reduce(lambda r, s: {**r, **s}, [a.e for a in corners])
+
+        for u,v in zip(corners,corners[1:]):
+            x = u.boundary[-1]
+            y = v.boundary[0]
+            c,e = SphericalWeb._stitch(c,e,x,y)
+
+        x = corners[-1].boundary[-1]
+        y = corners[0].boundary[0]
+        c,e = SphericalWeb._stitch(c,e,x,y)
+
+        b = sum([list(a.boundary[1:-1]) for a in corners],[])
+        return self(c,e,b)
+
     def from_permutation(self, pi: Permutation,baxter=True):
         r"""
         Construct a planar map from a two stack sorted permutation.
@@ -1163,16 +1219,16 @@ class SphericalSpider(Parent,UniqueRepresentation):
         EXAMPLES::
 
             sage: S = SphericalSpider('plain')
-            sage: π = Permutation([5,3,4,9,7,8,10,6,1,2])
-            sage: S.from_permutation(π)
+            sage: pi = Permutation([5,3,4,9,7,8,10,6,1,2])
+            sage: S.from_permutation(pi)
             The plain spherical web with c = (1, 3, 6, 4, 5, 0, 7, 2, 10, 8, 9) and e = (7, 8, 9, 10, 3, 4, 5, 6).
 
-            sage: π = Permutation([2,4,1,3])
-            sage: S.from_permutation(π)
+            sage: pi = Permutation([2,4,1,3])
+            sage: S.from_permutation(pi)
             Traceback (most recent call last):
             ...
             ValueError: [2, 4, 1, 3] is not a Baxter permutation
-            sage: S.from_permutation(π,baxter=False)
+            sage: S.from_permutation(pi,baxter=False)
             The plain spherical web with c = (1, 0) and e = ().
         """
         if baxter:
@@ -1236,24 +1292,3 @@ class SphericalSpider(Parent,UniqueRepresentation):
         return self.element_class(c,e,b,self)
 
 #### End of Parent ####
-
-def polygon_web(n: int):
-    r"""Construct a polygon with n sides.
-
-    EXAMPLES::
-
-        sage: polygon_web(3)
-        The plain spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).
-        sage: polygon_web(1)
-        The plain spherical web with c = (1, 2, 0) and e = (2, 1).
-    """
-    if n<1: raise ValueError
-    a =  [halfedge() for i in range(n)]
-    b1 = [halfedge() for i in range(n)]
-    b2 = [halfedge() for i in range(n)]
-    c = {a[i]:b1[i] for i in range(n)}
-    c.update({b1[i]:b2[i] for i in range(n)})
-    c.update({b2[i]:a[i] for i in range(n)})
-    e = {b1[i-1]:b2[i] for i in range(n)}
-    e.update({b2[i]:b1[i-1] for i in range(n)})
-    return SphericalSpider('plain')(c,e,a)
