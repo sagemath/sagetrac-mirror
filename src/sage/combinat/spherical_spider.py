@@ -138,6 +138,7 @@ from sage.combinat.permutation import Permutation
 from sage.combinat.baxter_permutations import BaxterPermutations
 from sage.structure.richcmp import richcmp, op_EQ, op_NE
 from typing import NamedTuple
+from copy import copy
 
 class Strand(NamedTuple):
     """
@@ -345,7 +346,9 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: polygon_web(3)._repr_()
+            sage: S = SphericalSpider('plain')
+            sage: u = S.vertex(3)
+            sage: S.polygon([u,u,u])._repr_()
             'The plain spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).'
         """
         if len(self.boundary) > 0:
@@ -360,7 +363,9 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: str(polygon_web(4))
+            sage: S = SphericalSpider('plain')
+            sage: u = S.vertex(3)
+            sage: str(S.polygon([u,u,u,u]))
             'A plain spherical web with 4 internal edges and 4 boundary edges.'
         """
         return f"A {self.parent()._name} spherical web with {int(len(self.e)/2)} internal edges and {len(self.boundary)} boundary edges."
@@ -379,7 +384,9 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: cn, en = polygon_web(4).canonical()
+            sage: S = SphericalSpider('plain')
+            sage: u = S.vertex(3)
+            sage: cn, en = S.polygon([u,u,u,u]).canonical()
             sage: cn
             (4, 6, 8, 10, 5, 0, 7, 1, 9, 2, 11, 3)
             sage: en
@@ -406,13 +413,15 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: polygon_web(4).__hash__()  # random
+            sage: S = SphericalSpider('plain')
+            sage: u = S.vertex(3)
+            sage: v = S.polygon([u,u,u,u])
+            sage: v.__hash__()  # random
 
-            sage: hash(polygon_web(4)) # random
+            sage: hash(v) # random
 
-            sage: u = SphericalSpider('plain').vertex(3)
-            sage: v = SphericalSpider('plain').vertex(3)
-            sage: set([u,v]) # indirect doctest
+            sage: w = SphericalSpider('plain').vertex(3)
+            sage: set([u,w]) # indirect doctest
             {The plain spherical web with c = (1, 2, 0) and e = ().}
         """
         return hash((self.parent(),*self.canonical()))
@@ -423,8 +432,9 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: u = polygon_web(4)
-            sage: v = polygon_web(4)
+            sage: S = SphericalSpider('plain')
+            sage: u = S.polygon([S.vertex(3)]*4)
+            sage: v = S.polygon([S.vertex(3)]*4)
             sage: u is v, u == v, u != v # indirect doctest
             (False, True, False)
             sage: u < v # indirect doctest
@@ -516,9 +526,11 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: polygon_web(5).rotate(3)
+            sage: S = SphericalSpider('plain')
+            sage: u = S.polygon([S.vertex(3)]*5)
+            sage: u.rotate(3)
             The plain spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4) and e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11).
-            sage: polygon_web(5).rotate(-1)
+            sage: u.rotate(-1)
             The plain spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4) and e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11).
         """
         result = self.__copy__()
@@ -593,7 +605,9 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: [len(a) for a in polygon_web(4).vertices()]
+            sage: S = SphericalSpider('plain')
+            sage: u = S.polygon([S.vertex(3)]*4)
+            sage: [len(a) for a in u.vertices()]
             [3, 3, 3, 3]
         """
         c = self.cp
@@ -777,9 +791,10 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: SphericalSpider('plain').vertex(3).to_graph()
+            sage: S = SphericalSpider('plain')
+            sage: S.vertex(3).to_graph()
             Graph on 3 vertices
-            sage: polygon_web(3).to_graph()
+            sage: S.polygon([S.vertex(3)]*3).to_graph()
             Graph on 9 vertices
         """
         c = self.cp
@@ -810,16 +825,16 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: len(polygon_web(3)._layout())
-            6
             sage: S = SphericalSpider('plain')
+            sage: len(S.polygon([S.vertex(3)]*3)._layout())
+            6
+
             sage: u = S.vertex(3)
             sage: len(u.glue(u,1)._layout())
             5
 
             If the graph is not simple the diagram will degenerate.
 
-            sage: S = SphericalSpider('plain')
             sage: len(S.vertex(4).glue(S.vertex(2),2)._layout())
             2
 
@@ -881,7 +896,8 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: polygon_web(3).plot()
+            sage: S = SphericalSpider('plain')
+            sage: S.polygon([S.vertex(3)]*3).plot()
             Graphics object consisting of 7 graphics primitives
 
             sage: S = SphericalSpider('plain')
@@ -921,17 +937,15 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: polygon_web(3)._latex_()
-            ...
-
             sage: S = SphericalSpider('plain')
             sage: u = S.vertex(3)
+            sage: S.polygon([u]*3)._latex_()
+            ...
             sage: u.glue(u,1)._latex_()
             ...
 
             If the graph is not simple the diagram will degenerate.
 
-            sage: S = SphericalSpider('plain')
             sage: S.vertex(4).glue(S.vertex(2),2)._latex_()
             '\\begin{tikzpicture}\n\\draw (0,0) circle (1cm);\n\\draw (-1.0000,-1.0000) -- ... -- (1.0000,1.0000);\n\\end{tikzpicture}\n'
 
@@ -964,7 +978,9 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: len(list(polygon_web(4).search(SphericalSpider('plain').vertex(3))))
+            sage: S = SphericalSpider('plain')
+            sage: u = S.vertex(3)
+            sage: len(list(S.polygon([u]*4).search(u)))
             12
 
         TODO::
@@ -1022,11 +1038,12 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: g = polygon_web(4)
-            sage: h = SphericalSpider('plain').vertex(3)
+            sage: S = SphericalSpider('plain')
+            sage: h = S.vertex(3)
+            sage: g = S.polygon([h]*3)
             sage: D = next(g.search(h))
-            sage: g.replace(polygon_web(3),D,h)
-            The plain spherical web with c = (4, 6, 8, ... 13, 15, 12) and e = (12, 13, 9, ... 10, 17, 16).
+            sage: g.replace(g,D,h)
+            The plain spherical web with c = (3, 5, ... 12, 9) and e = (9, 10, ... 14, 13).
         """
         parent = self.parent()
         if parent != k.parent():
