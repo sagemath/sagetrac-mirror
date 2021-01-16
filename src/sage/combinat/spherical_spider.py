@@ -81,9 +81,19 @@ boundaries match. Then we fill in each hole by attaching the object. For example
 glueing has two punched out holes corresponding to the two inputs of the glueing operation.
 However we could also fill in a punched out hole by the picture of an operation.
 This gives the picture of some operation. This means that these operations have the structure
-of an operad. In fact this is a cyclic operad as defined in [2]_ and _[4]. Furthermore a spider
+of an operad. In fact this is a cyclic operad as defined in [2]_ and [4]_. Furthermore a spider
 is a cyclic algebra for this cyclic operad. Taking the glueing operation as basic and
-building up operations is the componential approach to cyclic operads given in
+building up operations is the componential approach to cyclic operads given in [4]_.
+
+### Implemented
+
+This file has two main classes: the Element class :class:`SphericalWeb` and the Parent class
+:class:`SphericalSpider`. Then :meth:`vertex` is the basic construction of a web. Then
+:meth:`glue` has input two webs and an integer and output a web; and :meth:`polygon`
+has input a list of webs and output a web. These operations build more complicated webs
+starting with vertices. Once you have constructed a web you can see a picture using
+:meth:`plot`. This takes the combinatorial data for a web and outputs a graphics object.
+
 
 REFERENCES:
 
@@ -287,7 +297,7 @@ class SphericalWeb(Element):
         #        u = e[c[u]]
         #    j = b.index(c[u])
         #    if 0 < j < i:
-        #        raise ValueError("boundary is inconsistent")
+        #       raise ValueError("boundary is inconsistent")
 
     def normalize(self):
         r"""
@@ -509,7 +519,18 @@ class SphericalWeb(Element):
 
         This is a low level method that is not intended to be called directly.
         It was written to comply with the DRY principle.
+
+        EXAMPLES::
+
+            sage: S = SphericalSpider('plain')
+            sage: u = S.vertex(3)
+            sage: c,e = u._stitch(u.cp,u.e,u.boundary[0],u.boundary[-1])
+            sage: len(c),len(e)
+            (5, 4)
         """
+        if x.strand.dual() != y.strand:
+            raise ValueError(f"{x.strand} and {y.strand} must be dual")
+
         u = halfedge(x.strand.dual())
         v = halfedge(y.strand.dual())
         c[u] = v
@@ -630,8 +651,15 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: len(SphericalSpider('plain').vertex(4).faces())
+            sage: S = SphericalSpider('plain')
+            sage: len(S.vertex(3).faces())
+            3
+            sage: len(S.vertex(4).faces())
             4
+            sage: u = SphericalSpider('plain').vertex(3)
+            sage: v = SphericalSpider('plain').vertex(3)
+            sage: len(u.glue(v,0).faces())
+            6
         """
         c = self.cp
         e = self.e
@@ -693,7 +721,7 @@ class SphericalWeb(Element):
             sage: u = SphericalSpider('plain').vertex(3)
             sage: v = SphericalSpider('plain').vertex(3)
             sage: u.glue(v,0).is_connected()
-            False
+            True
         """
         return len(self.cp) == len(self.canonical()[0])
 
@@ -707,25 +735,26 @@ class SphericalWeb(Element):
 
             sage: u = SphericalSpider('plain').vertex(3)
             sage: u.components()
-            False
+            (The plain spherical web with c = (1, 2, 0) and e = ().,
+            A closed plain spherical web with 0 edges.)
             sage: u.glue(u,0)
             The plain spherical web with c = (1, 2, 0, 4, 5, 3) and e = ().
             sage: u.glue(u,0).components()
-            True
+            (The plain spherical web with c = (1, 2, 0, 4, 5, 3) and e = ().,
+            A closed plain spherical web with 0 edges.)
         """
-        # This looks stupid
-        Dn = {a:halfedge() for a in self.boundary[0]}
+        Dn = {a:halfedge(a.strand) for a in self.boundary}
         for a in self._traversal(self.boundary[0]):
-            Dn[a] = halfedge()
+            Dn[a] = halfedge(a.strand)
 
         cn = {Dn[a]:Dn[self.cp[a]] for a in self.cp}
         en = {Dn[a]:Dn[self.e[a]] for a in self.e}
         bn = [Dn[a] for a in self.boundary]
         wb = self.parent()(cn,en,bn)
 
-        Dc = {a:halfedge() for a in self.cp if not a in Dn}
-        cc = {Dc[a]:Dc[self.cp[a]] for a in self.cp}
-        ec = {Dc[a]:Dc[self.e[a]] for a in self.e}
+        Dc = {a:halfedge(a.strand) for a in self.cp if not a in Dn}
+        cc = {Dc[a]:Dc[self.cp[a]] for a in Dc}
+        ec = {Dc[a]:Dc[self.e[a]] for a in Dc}
         wc = self.parent()(cc,ec,[])
 
         return wb, wc
@@ -750,7 +779,7 @@ class SphericalWeb(Element):
         """
         if len(self.boundary) == 0:
             raise ValueError("not implemented for a closed web")
-        return len(self.cp) == len(list(self._traversal(self.boundary[0])))
+        return len(self.cp) != len(list(self._traversal(self.boundary[0])))+1
 
     def is_separable(self):
         r"""
@@ -1050,12 +1079,14 @@ class SphericalWeb(Element):
             raise ValueError(f"the two parents {self.parent()} and {k.parent()} are different")
         if parent != h.parent():
             raise ValueError(f"the two parents {self.parent()} and {h.parent()} are different")
-        n = len(k.boundary)
-        if len(h.boundary) != n:
-            raise ValueError("boundaries of k and h must have the same length")
 
-        Ds = {a:halfedge() for a in self.cp if not a in D.values()}
-        Dk = {a:halfedge() for a in k.cp}
+        hb = [a.strand for a in h.boundary]
+        kb = [a.strand.dual() for a in k.boundary]
+        if hb != kb:
+            raise ValueError(f"boundaries of {k} and {h} must match")
+
+        Ds = {a:halfedge(a.strand) for a in self.cp if not a in D.values()}
+        Dk = {a:halfedge(a.strand) for a in k.cp}
         c = {Ds[a]:Ds[self.cp[a]] for a in Ds}
         c.update({Dk[a]:Dk[k.cp[a]] for a in Dk})
 
