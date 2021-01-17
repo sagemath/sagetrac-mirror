@@ -1465,24 +1465,33 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         Return a hash for this permutation.
 
-        The algorithm is a variant of Fowler–Noll–Vo hash function that is also
-        used for examples in Python tuples. See
-        :wikipedia:`Fowler–Noll–Vo_hash_function`.
+        The algorithm hashes each pair ``(i, p(i))`` with ``i`` not a fixed
+        point and multiply these hash values together. In particular, the
+        hash value of the identity is one.
 
         EXAMPLES::
 
             sage: G = SymmetricGroup(5)
             sage: hash(G([2,1,5,3,4]))
-            469834019             # 32-bit
-            8254696460688365859   # 64-bit
+            -2118201183           # 32-bit
+            -7490086752007303007  # 64-bit
             sage: hash(G([1,2,3,4,5]))
             1
 
         Check that the hash looks reasonable::
 
-            sage: for n in range(1, 8):
+            sage: for n in range(1, 10):
+            ....:    G = SymmetricGroup(n)
             ....:    assert hash(G.one()) == 1
-            ....:    assert len(set(map(hash, SymmetricGroup(n)))) == factorial(n)
+            ....:    assert len(set(map(hash, G))) == factorial(n)
+
+            sage: p = [(i,i+1) for i in range(1,601,2)]
+            sage: q = [tuple(range(1+i,601,3)) for i in range(3)]
+            sage: A = PermutationGroup([p,q])
+            sage: assert len(set(map(hash, A))) == A.cardinality()
+
+            sage: D = DihedralGroup(1024)
+            sage: assert len(set(map(hash, D))) == D.cardinality()
 
         Compatibility with natural embeddings :trac:`31236`::
 
@@ -1495,14 +1504,60 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: p = S4("(1,3,4)")
             sage: hash(p) == hash(S5(p)) == hash(S6(p))
             True
+
+        Symmetric group with same but differently ordered ground sets::
+
+            sage: S1 = SymmetricGroup(4)
+            sage: S2 = SymmetricGroup([4,1,3,2])
+            sage: s1 = S1("(1,2,4,3)")
+            sage: s1
+            (1,2,4,3)
+            sage: s2 = S2("(1,2,4,3)")
+            sage: s2
+            (4,3,1,2)
+            sage: s1 == s2
+            True
+            sage: hash(s1) == hash(s2)
+            True
+            sage: assert all(hash(s) == hash(S2(s)) for s in S1)
+
+            sage: S1 = SymmetricGroup(FiniteEnumeratedSet(['a', 'b', 'c', 'd']))
+            sage: S2 = SymmetricGroup(FiniteEnumeratedSet(['c' ,'a', 'd', 'b']))
+            sage: assert all(hash(s) == hash(S2(s)) for s in S1)
+
+        Hashing elements from subgroups::
+
+            sage: P = PermutationGroup(["(1,2,3)", "(3,4,5)"])
+            sage: assert hash(P.an_element()) == hash(SymmetricGroup(5)(P.an_element()))
+
+            sage: D = DihedralGroup(4)
+            sage: E = D.subgroup([D.an_element()])
+            sage: assert hash(E.an_element()) == hash(D(E.an_element()))
         """
         cdef size_t i
         cdef long ans = 1
-        cdef long mult = 145623773L
+        cdef long hash_pair
+        cdef long mask1 = 9223372036854775837L
+        cdef long mask2 = 4611686018428627757L
+        cdef long mult1 = 13426746373773L
+        cdef long mult2 = 11283478275841L
+
+        P = self._parent
+        domain = P._domain
+        cdef bint has_natural_domain = P._has_natural_domain()
+
         for i in range(self.n):
             if i != self.perm[i]:
-                ans = (ans ^ (self.perm[i])) * mult
-            mult += 1000033L
+                if has_natural_domain:
+                    hash_pair = ((mask1 ^ (i + 1)) * mult1) ^ ((mask2 ^ (self.perm[i] + 1)) * mult2)
+                else:
+                    hash_pair = ((mask1 ^ <long> hash(domain[i])) * mult1) ^ ((mask2 ^ <long> hash(domain[self.perm[i]])) * mult2)
+
+                # NOTE: multiples of 2 induce dramatic cancellations
+                hash_pair |= 1
+
+                ans *= hash_pair
+
         return ans
 
     def tuple(self):
