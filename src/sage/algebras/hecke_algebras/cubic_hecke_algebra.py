@@ -3363,8 +3363,13 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         r"""
         """
         def class_function(ele):
-            m = ele.matrix()
-            return m[irr].trace()
+            if isinstance(ele, self.element_class):
+                m = ele.matrix()
+                return m[irr].trace()
+            else:
+                mone = self.one().matrix().parent().irriducible_block(irr)
+                mele = ele*mone
+                return mele.trace()
         return class_function
 
     def _markov_vars(self):
@@ -3373,13 +3378,29 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         B = self.braid_group()
         if    self.strands() == 2:
             sub_vars = {'U1':None}   # U1 belongs to the 1 strand algebra which isn't implemented
-            new_vars = {'U2':B(())}
+            new_vars = {'U2':self.one()}
         else:
             sub_vars, new_vars = self.cubic_hecke_subalgebra()._markov_vars()
             if  self.strands() == 3:
-                new_vars = {'U3':B(()), 'K4':B((1, -2, 1, -2))} # K4 := K4_1
+                new_vars = {'U3':self.one(), 'K4':self(B((1, -2, 1, -2)))} # K4 := K4_1
             else:
-                new_vars = {'U4':B(())} # ToDo
+                gA, gB, gC = self.gens()
+                tAm = gA*~gB + gB*~gA
+                tAp = ~gA*gB + ~gB*gA
+                tCm = gC*~gB + gB*~gC
+                tCp = ~gC*gB + ~gB*gC
+                tA = tAp - tAm
+                tC = tCp - tCm
+                mtA = tA.matrix()
+                mtC = tC.matrix()
+                mtACA1 = mtA*mtC*mtA
+                mtACA2 = mtACA1*mtACA1
+                mtACA4 = mtACA2*mtACA2
+                mtACA6 = mtACA4*mtACA2
+                mtACA8 = mtACA6*mtACA2
+                new_vars = {'U4':self.one(), 'W1':mtACA1, 'W2':mtACA2, 'W3':mtACA4, 'W4':mtACA6, 'W5':mtACA8}
+                from sage.misc.persist import save
+                save(new_vars, 'markov_new_vars.sobj')
         sub_vars.update(new_vars)
         return sub_vars, new_vars
 
@@ -3387,6 +3408,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     def _markov_trace_coeffs(self):
         r"""
         """
+        if self.strands() == 3:
+            from sage.misc.persist import load
+            return load('/home/sebastian/devel/prepare/markov_trace_coeffs.sobj')
         B = self.base_ring(generic=True)
         BB = B.base_ring()
         var = B.variable_names() + BB.variable_names()
@@ -3404,6 +3428,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         from sage.functions.generalized import sign
         mtr = self._markov_trace_irr_coeffs()
         mtr_list = [mtr(self(g)) for g in self.get_order()]
+        mtr_list_v = vector(mtr_list)
+        mtr_list_v.save('markov_mtr_list.sobj')
         E = self.extension_ring()
         PE = E[('s',) + tuple(all_vars)]
         EC3 = mtr_list[0].parent().base_ring()
@@ -3464,10 +3490,14 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         eq_p = matrix(F, sub_dim, dClF, lambda i,j: emb_ER(ClF[j](self(sub_basis[i])*g)))
         eq_m = matrix(F, sub_dim, dClF, lambda i,j: emb_ER(ClF[j](self(sub_basis[i])*~g)))
         eq_b = eq_p.stack(eq_m)
+        eq_b.save('markov_eq_b.sobj')
         mtr_sub = [F(emb_subR(b.formal_markov_trace())) for b in sub_basis]
         mtr_sub_b = vector(F, [s*mtr for mtr in mtr_sub] + [~s*mtr for mtr in mtr_sub])
+        mtr_sub_b.save('markov_sub_b.sobj')
         sol = eq_b.solve_right(mtr_sub_b)
+        sol.save('markov_sol.sobj')
         ker = eq_b.right_kernel()
+        ker.save('markov_ker.sobj')
 
         # adjusting kernel to new variables
 
@@ -3482,13 +3512,16 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         vars_dict = F.gens_dict_recursive()
         new_variables = [vars_dict[v] for v in new_vars.keys()]
-        new_var_braids = list(new_vars.values())
-        new_var_elements = [self(braid) for braid in new_var_braids]
+        new_var_elements = list(new_vars.values())
         M = matrix(F, dk, dk, lambda i, j: genClF(new_var_elements[i], j))
+        M.save('markov_M.sobj')
         v = vector(F, [genClF(new_var_elements[i]) for i in range(dk)])
+        v.save('markov_v.sobj')
         w = vector(F, new_variables)
+        w.save('markov_w.sobj')
         cfs = M.solve_right(w-v)
         irr_coeff = sol + cfs*kerm
+        irr_coeff.save('markov_irr_coeff.sobj')
 
         # find minimal coefficient ring
 

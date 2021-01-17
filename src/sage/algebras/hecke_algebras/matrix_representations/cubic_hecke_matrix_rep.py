@@ -464,8 +464,6 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
             sage: c1.matrix()[CHA2.irred_repr.W2_001]  # indirect doctest
             [b]
         """
-
-
         if isinstance(item, AbsIrreducibeRep):
             representation_type = self.parent()._representation_type
             if not representation_type.is_split():
@@ -952,6 +950,48 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         o._cubic_hecke_element = self._cubic_hecke_algebra.one()
         o.set_immutable()
         return o
+
+    def irriducible_block(self, irr):
+        r"""
+        Return the one element of ``self``.
+
+        EXAMPLES::
+
+            sage: CHA2.<c1> = algebras.CubicHecke(2)
+            sage: m1   = c1.matrix()
+            sage: m1rl = c1.matrix(representation_type = CHA2.repr_type.RegularLeft)
+            sage: o   = m1.parent().one()
+            sage: orl = m1rl.parent().one()
+            sage: matrix(o) == matrix(orl), o.is_one(), orl.is_one()
+            (True, True, True)
+            sage: o.block_diagonal_list()
+            [[1], [1], [1]]
+            sage: orl.block_diagonal_list()
+            [
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            ]
+        """
+        block_list = self.zero().block_diagonal_list()
+        if isinstance(irr, AbsIrreducibeRep):
+            representation_type = self._representation_type
+            if not representation_type.is_split():
+                raise TypeError( "representation type is non split" )
+
+            ch_algebra = self._cubic_hecke_algebra
+            if ch_algebra.strands() != irr.number_gens() +1 :
+                raise TypeError( "representation must have %d generators" %(ch_algebra.strands()-1 ) )
+
+            ind = irr.gap_index()
+            if  representation_type == RepresentationType.SplitIrredMarin:
+                ind = irr.internal_index()
+        elif isinstance(irr, (Integer,int)):
+            ind = irr
+        one_sub = self.one()[irr]
+        block_list[ind] = one_sub
+        matrix  = block_diagonal_matrix(block_list, subdivide=self._subdivide, sparse=True)
+        return  matrix
 
     def _an_element_(self):
         r"""
