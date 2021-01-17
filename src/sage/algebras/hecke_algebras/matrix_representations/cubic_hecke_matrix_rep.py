@@ -438,6 +438,39 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
                 return matrix(self.submatrix(s, s, d, d))
         raise ValueError('no irreducible representation for this index')
 
+    @cached_method
+    def _irr_to_ind(self, irr):
+        r"""
+        Return the index if the given split irreducible representation of ``self``.
+
+        INPUT:
+
+        - ``irr`` -- an instance of :class:`AbsIrreducibeRep` specifying an absolute irreducible
+          representation of the cubic Hecke algebra
+
+        EXAMPLES::
+
+            sage: CHA2.<c1> = algebras.CubicHecke(2)
+            sage: m1 = c1.matrix()
+            sage: m1._irr_to_ind(CHA2.irred_repr.W2_001)
+            1
+            sage: m1._irr_to_ind(CHA2.irred_repr.W3_001)
+            Traceback (most recent call last):
+            ...
+            TypeError: representation must have 1 generators
+        """
+        representation_type = self.parent()._representation_type
+        if not representation_type.is_split():
+            raise TypeError( "representation type is non split" )
+
+        ch_algebra = self.parent()._cubic_hecke_algebra
+        if ch_algebra.strands() != irr.number_gens() +1 :
+            raise TypeError( "representation must have %d generators" %(ch_algebra.strands()-1 ) )
+
+        ind = irr.gap_index()
+        if  representation_type == RepresentationType.SplitIrredMarin:
+            ind = irr.internal_index()
+        return ind
 
     @cached_method
     def __getitem__(self, item):
@@ -459,24 +492,14 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
         EXAMPLES::
 
             sage: CHA2.<c1> = algebras.CubicHecke(2)
-            sage: c1.matrix()[0]                      # indirect doctest
+            sage: m1 = c1.matrix()
+            sage: m1[0]                       # indirect doctest
             [a]
-            sage: c1.matrix()[CHA2.irred_repr.W2_001]  # indirect doctest
+            sage: m1[CHA2.irred_repr.W2_001]  # indirect doctest
             [b]
         """
         if isinstance(item, AbsIrreducibeRep):
-            representation_type = self.parent()._representation_type
-            if not representation_type.is_split():
-                raise TypeError( "representation type is non split" )
-
-            ch_algebra = self.parent()._cubic_hecke_algebra
-            if ch_algebra.strands() != item.number_gens() +1 :
-                raise TypeError( "representation must have %d generators" %(ch_algebra.strands()-1 ) )
-
-            ind = item.gap_index()
-            if  representation_type == RepresentationType.SplitIrredMarin:
-                ind = item.internal_index()
-            return self._get_block(ind)
+            return self._get_block(self._irr_to_ind(item))
         elif isinstance(item, (Integer,int)):
             return self._get_block(item)
 
@@ -502,6 +525,48 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
         n = self.parent()._cubic_hecke_algebra.strands()
         l = representation_type.number_of_representations(n)
         return [self._get_block(i) for i in range(l)]
+
+    @cached_method
+    def reduce_to_irr_block(self, irr):
+        r"""
+        Return a copy of ``self`` with zeroes outside the block corresponding to
+        ``irr`` but the block according to the input identical to that of ``self``.
+
+        INPUT:
+
+        - ``irr`` -- an instance of :class:`AbsIrreducibeRep` specifying an
+          absolute irreducible representation of the cubic Hecke algebra.
+          Alternatively, it can be specified by list index (see
+          :meth:`internal_index` repectively :meth:`gap_index`)
+
+        OUTPUT:
+
+        An instance of :class:`Matrix_generic_dense` with exactly one non zero block
+        according to ``irr``.
+
+
+        EXAMPLES::
+
+            sage: CHA2.<c1> = algebras.CubicHecke(2)
+            sage: m1 = c1.matrix()
+            sage: m1.reduce_to_irr_block(0)
+            [a 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: m1.reduce_to_irr_block(CHA2.irred_repr.W2_001)
+            [0 0 0]
+            [0 b 0]
+            [0 0 0]
+        """
+        if isinstance(irr, AbsIrreducibeRep):
+            ind = self._irr_to_ind(irr)
+        else:
+            ind = Integer(irr)
+        from copy import copy
+        mat_list = copy(self.parent().zero().block_diagonal_list())
+        mat_list[ind] = self[ind]
+        return block_diagonal_matrix(mat_list, subdivide=self.parent()._subdivide, sparse=True)
+
 
 
 
@@ -950,48 +1015,6 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         o._cubic_hecke_element = self._cubic_hecke_algebra.one()
         o.set_immutable()
         return o
-
-    def irriducible_block(self, irr):
-        r"""
-        Return the one element of ``self``.
-
-        EXAMPLES::
-
-            sage: CHA2.<c1> = algebras.CubicHecke(2)
-            sage: m1   = c1.matrix()
-            sage: m1rl = c1.matrix(representation_type = CHA2.repr_type.RegularLeft)
-            sage: o   = m1.parent().one()
-            sage: orl = m1rl.parent().one()
-            sage: matrix(o) == matrix(orl), o.is_one(), orl.is_one()
-            (True, True, True)
-            sage: o.block_diagonal_list()
-            [[1], [1], [1]]
-            sage: orl.block_diagonal_list()
-            [
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-            ]
-        """
-        block_list = self.zero().block_diagonal_list()
-        if isinstance(irr, AbsIrreducibeRep):
-            representation_type = self._representation_type
-            if not representation_type.is_split():
-                raise TypeError( "representation type is non split" )
-
-            ch_algebra = self._cubic_hecke_algebra
-            if ch_algebra.strands() != irr.number_gens() +1 :
-                raise TypeError( "representation must have %d generators" %(ch_algebra.strands()-1 ) )
-
-            ind = irr.gap_index()
-            if  representation_type == RepresentationType.SplitIrredMarin:
-                ind = irr.internal_index()
-        elif isinstance(irr, (Integer,int)):
-            ind = irr
-        one_sub = self.one()[irr]
-        block_list[ind] = one_sub
-        matrix  = block_diagonal_matrix(block_list, subdivide=self._subdivide, sparse=True)
-        return  matrix
 
     def _an_element_(self):
         r"""

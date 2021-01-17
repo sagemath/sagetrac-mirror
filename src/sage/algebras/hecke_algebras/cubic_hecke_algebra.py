@@ -2005,7 +2005,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     # -------------------------------------------------------------------------------------------------------------
     # _braid_image_from_former_calculations
     # -------------------------------------------------------------------------------------------------------------
-    @cached_method
     def _braid_image_from_former_calculations(self, braid_tietze):
         r"""
         Return the image of a braid in ``self`` as far as this can be done by use of former calculations and is sure not to
@@ -3367,9 +3366,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 m = ele.matrix()
                 return m[irr].trace()
             else:
-                mone = self.one().matrix().parent().irriducible_block(irr)
-                mele = ele*mone
-                return mele.trace()
+                # if ele is given by the representation matrix
+                mone_irr = self.one().matrix().reduce_to_irr_block(irr)
+                m_irr = ele*mone_irr
+                return m_irr.trace()
         return class_function
 
     def _markov_vars(self):
