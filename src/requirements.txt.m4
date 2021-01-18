@@ -26,8 +26,7 @@ jupyter_core==esyscmd(`printf $(sed "s/[.]p.*//;" ../jupyter_core/package-versio
 numpy==esyscmd(`printf $(sed "s/[.]p.*//;" ../numpy/package-version.txt)')
 dnl ... already needed by sage.env
 pkgconfig==esyscmd(`printf $(sed "s/[.]p.*//;" ../pkgconfig/package-version.txt)')
-dnl pplpy==esyscmd(`printf $(sed "s/[.]p.*//;" ../pplpy/package-version.txt)')
-esyscmd(`echo $(sed "s/[.]p.*//;" ../pplpy/install-requires.txt)')
+pplpy==esyscmd(`printf $(sed "s/[.]p.*//;" ../pplpy/package-version.txt)')
 pycygwin==esyscmd(`printf $(sed "s/[.]p.*//;" ../pycygwin/package-version.txt)'); sys_platform == 'cygwin'
 dnl pynac       # after converting to a pip-installable package
 
@@ -52,5 +51,5 @@ ipywidgets==esyscmd(`printf $(sed "s/[.]p.*//;" ../ipywidgets/package-version.tx
 dnl Other Python packages that are standard spkg, used in doctests
 cvxopt==esyscmd(`printf $(sed "s/[.]p.*//;" ../cvxopt/package-version.txt)')
 rpy2==esyscmd(`printf $(sed "s/[.]p.*//;" ../rpy2/package-version.txt)')
-dnl fpylll       # does not install because it does not declare its build dependencies correctly. Reported upstream: https://github.com/fplll/fpylll/issues/185
+fpylll==esyscmd(`printf $(sed "s/[.]p.*//;" ../fpylll/package-version.txt)')
 dnl pycryptosat  # Sage distribution installs it as part of cryptominisat. According to its README on https://pypi.org/project/pycryptosat/: "The pycryptosat python package compiles while compiling CryptoMiniSat. It cannot be compiled on its own, it must be compiled at the same time as CryptoMiniSat."
