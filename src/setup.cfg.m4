@@ -66,6 +66,6 @@ dnl Other Python packages that are standard spkg, used in doctests
     esyscmd(`sage-get-system-packages install-requires \
         cvxopt         \
         rpy2           \
+        fpylll         \
         | sed "2,\$s/^/    /;"')dnl
-dnl fpylll       # does not install because it does not declare its build dependencies correctly. Reported upstream: https://github.com/fplll/fpylll/issues/185
 dnl pycryptosat  # Sage distribution installs it as part of cryptominisat. According to its README on https://pypi.org/project/pycryptosat/: "The pycryptosat python package compiles while compiling CryptoMiniSat. It cannot be compiled on its own, it must be compiled at the same time as CryptoMiniSat."
