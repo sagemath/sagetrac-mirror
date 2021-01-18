@@ -665,8 +665,8 @@ class SagePickler(_BasePickler):
     - ``py2compat`` -- on Python 3 only, this creates pickles that have a
       better chance of being read on Python 2, by using protocol version 2
       (instead of 4) and fixing up imports of standard library modules and
-      types whose names changed between Python 2 and 3.  This is enabled by
-      default for the best chances of cross-Python compatibility.
+      types whose names changed between Python 2 and 3.  This is disabled by
+      default since Python 2 is not supported anymore.
 
     - Further arguments are passed to :func:`pickle.load`, where in Python-3
       Sage sets the default ``encoding='latin1'``. This is essential to make
@@ -731,7 +731,7 @@ class SagePickler(_BasePickler):
 
     """
 
-    def __init__(self, file_obj, persistent_id=None, py2compat=True):
+    def __init__(self, file_obj, persistent_id=None, py2compat=False):
         protocol = _DEFAULT_PROTOCOL_VERSION
 
         if py2compat:
