@@ -3382,8 +3382,18 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         else:
             sub_vars, new_vars = self.cubic_hecke_subalgebra()._markov_vars()
             if  self.strands() == 3:
-                new_vars = {'U3':self.one(), 'K4':self(B((1, -2, 1, -2)))} # K4 := K4_1
+                K4_1 = B((1, -2, 1, -2))
+                new_vars = {'U3':self.one(), 'K4':self(K4_1)}
             else:
+                #K4_1_U = B((1, -2, 1, -2))
+                #m1, m2, m3 = [g.matrix() for g in self.gens()]
+                #L6a1_0 = B((1, -2, 3, -2, 1, -2, -3, -2))         # writhe -2
+                #L8a1_0 = B((1, -2, 3, -2, -1, -2, 3, -2, 3, -2))  # writhe -2
+                #flecht1 = m1*~m2*m3*m3*~m2 *m1                    # writhe  2
+                #flecht2 = flecht1**2                              # writhe  4
+                #flecht3 = flecht2*flecht1                         # writhe  6
+                #new_vars = {'U4':self.one(), 'K4U':self(K4_1_U), 'L6':self(L6a1_0), 'L8':self(L8a1_0), 'F2':flecht2, 'F3':flecht3}
+
                 gA, gB, gC = self.gens()
                 tAm = gA*~gB + gB*~gA
                 tAp = ~gA*gB + ~gB*gA
@@ -3398,7 +3408,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 mtACA4 = mtACA2*mtACA2
                 mtACA6 = mtACA4*mtACA2
                 mtACA8 = mtACA6*mtACA2
-                new_vars = {'U4':self.one(), 'W1':mtACA1, 'W2':mtACA2, 'W3':mtACA4, 'W4':mtACA6, 'W5':mtACA8}
+                mtACA10 = mtACA8*mtACA2
+                new_vars = {'U4':self.one(), 'W1':mtACA2, 'W2':mtACA4, 'W3':mtACA6, 'W4':mtACA8, 'W5':mtACA10}
                 from sage.misc.persist import save
                 save(new_vars, 'markov_new_vars.sobj')
         sub_vars.update(new_vars)
