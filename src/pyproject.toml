@@ -1,0 +1,4 @@
+[build-system]
+# Minimum requirements for the build system to execute.
+requires = ['Cython>=0.29.17', 'setuptools>=40.8.0', 'wheel', 'jinja2 >=2.11.2', 'pkgconfig >=1.5.1']
+build-backend = "setuptools.build_meta"
