@@ -25,6 +25,7 @@
 
 /src/setup.cfg
 /src/requirements.txt
+/src/pyproject.toml
 /src/Pipfile
 /src/Pipfile.lock
 /Pipfile
