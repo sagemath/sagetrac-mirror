@@ -103,6 +103,8 @@ We create element of a permutation group of large degree::
 import copy
 import random
 
+from cpython cimport array
+
 import sage.groups.old as group
 
 from libc.stdlib cimport qsort
@@ -1542,21 +1544,34 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         cdef long mult1 = 13426746373773L
         cdef long mult2 = 11283478275841L
 
+        cdef array.array hash_array
+
         P = self._parent
-        domain = P._domain
-        cdef bint has_natural_domain = P._has_natural_domain()
+        if P._has_natural_domain():
 
-        for i in range(self.n):
-            if i != self.perm[i]:
-                if has_natural_domain:
+            for i in range(self.n):
+                if i != self.perm[i]:
                     hash_pair = ((mask1 ^ (i + 1)) * mult1) ^ ((mask2 ^ (self.perm[i] + 1)) * mult2)
-                else:
-                    hash_pair = ((mask1 ^ <long> hash(domain[i])) * mult1) ^ ((mask2 ^ <long> hash(domain[self.perm[i]])) * mult2)
 
-                # NOTE: multiples of 2 induce dramatic cancellations
-                hash_pair |= 1
+                    # NOTE: multiples of 2 induce dramatic cancellations
+                    hash_pair |= 1
 
-                ans *= hash_pair
+                    ans *= hash_pair
+
+        else:
+            try:
+                hash_array = P._domain_hash_array
+            except AttributeError:
+                hash_array = P._domain_hash_array = array.array('l', [hash(x) for x in P._domain])
+
+            for i in range(self.n):
+                if i != self.perm[i]:
+                    hash_pair = ((mask1 ^ hash_array.data.as_longs[i]) * mult1) ^ ((mask2 ^ hash_array.data.as_longs[self.perm[i]]) * mult2)
+
+                    # NOTE: multiples of 2 induce dramatic cancellations
+                    hash_pair |= 1
+
+                    ans *= hash_pair
 
         return ans
 
