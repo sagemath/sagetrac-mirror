@@ -10,6 +10,7 @@ cd src
 echo "Configuring cgal_swig_bindings."
 
 sdh_cmake \
+-DPython_EXECUTABLE="$SAGE_VENV/bin/python3" \
 -DBUILD_PYTHON=ON \
 -DBUILD_JAVA=OFF
 
