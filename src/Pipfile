@@ -14,7 +14,6 @@ pytest = "*"
 ipywidgets = "*"
 sphinx = "*"
 rope = "*"
-six = "*"
 jupyter-core = "*"
 rstcheck = "*"
 
@@ -34,6 +33,7 @@ cvxopt = "==1.2.5"
 rpy2 = "*"
 networkx = "*"
 fpylll = "==0.5.2dev"
+six = "*"
 
 [requires]
 python_version = "3.8"
