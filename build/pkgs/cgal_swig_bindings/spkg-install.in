@@ -2,13 +2,14 @@
 #
 # cgal-swig-bindings Sage install script
 #
+#-DCGAL_DIR=/usr/local/opt/cgal/lib/cmake/CGAL \
 ###############################################################################
 
 cd src
 
 echo "Configuring cgal_swig_bindings."
 
-sdh_cmake -DCGAL_DIR=/usr/local/opt/cgal/lib/cmake/CGAL \
+sdh_cmake \
 -DBUILD_PYTHON=ON \
 -DBUILD_JAVA=OFF
 
