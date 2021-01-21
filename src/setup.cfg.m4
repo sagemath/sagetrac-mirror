@@ -1,7 +1,7 @@
 # -*- conf-unix -*-
 [metadata]
 name = sagemath-standard
-version = file: VERSION.txt
+version = include(`src/VERSION.txt')
 description = Sage: Open Source Mathematics Software: Standard Python Library
 long_description = file: README.rst
 long_description_content_type = text/x-rst
