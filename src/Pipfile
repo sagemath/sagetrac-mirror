@@ -4,7 +4,6 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-cython = "*"
 pycodestyle = "*"
 ipykernel = "*"
 tox = "*"
@@ -17,6 +16,7 @@ jupyter-core = "*"
 rstcheck = "*"
 
 [packages]
+cython = "*"
 numpy = "*"
 cysignals = "*"
 cypari2 = "*"
@@ -38,7 +38,7 @@ pkgconfig = "*"
 [requires]
 python_version = "3.8"
 
-[dev-packages.8c46424]
+[packages.8c46424]
 path = "./../build/pkgs/sage_conf/src"
 editable = true
 
