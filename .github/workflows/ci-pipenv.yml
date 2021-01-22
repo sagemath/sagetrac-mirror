@@ -73,7 +73,7 @@ jobs:
       - name: Create virtual environment
         run: |
           mkdir -p .venv
-          pipenv install --verbose
+          pipenv install --verbose --dev
           pipenv run pip list
         working-directory: src
         env:
