@@ -110,10 +110,8 @@ obtained by modding out the commutator subgroup of the free group::
 .. WARNING::
 
     Sage does not "normalize" elements of finitely generated groups.
-    Thus, one will run into trouble when trying to put group elements
-    into a set or use them as keys for a dictionary.
-
-.. EXAMPLES::
+    Thus, trying to put group elements into a set or to use them
+    as keys for a dictionary may lead to trouble.
 
 The following example shows that two different representations of the
 same element can be two distinct elements of a set.
@@ -122,34 +120,33 @@ same element can be two distinct elements of a set.
     sage: gr = tetrahedral_group = G / (r^2, s^3, t^3, r*s*t)
     sage: gr.order()
     12
-    sage: a,b = gr(r*s),gr(~t) # ~t is an alternative for t^-1
+    sage: a,b = gr(r*s),gr(~t) # ~t is an alternative notation for t^-1
     sage: set2 = {a,b}
     sage: print(set2, len(set2)) # a two-element set
     {r*s, t^-1} 2
-    sage: a==b # the same element!
+    sage: a==b # a and b are the same element!
     True
 
 As a consequence, the 
 :meth:`~sage.categories.magmas.ParentMethods.multiplication_table`
-method fails:
+method fails::
 
-    sage: gr.multiplication_table()
-    Error in lines 1-1
+    sage: gr.multiplication_table() # not tested
+    Traceback (most recent call last):
     ...
     KeyError: t^2
-
+    <BLANKLINE>
     During handling of the above exception, another exception occurred:
-
     Traceback (most recent call last):
     ...
     ValueError: t*t=t^2, and so the set is not closed
 
-After converting the group to permutation group, these problems
-are go away:
+The multiplication table can be constructed after converting the group
+to a permutation group::
 
     sage: gr_p = gr.as_permutation_group()
     sage: gr_p.multiplication_table()
-    *  a b c d e f g h i j k l    
+    *  a b c d e f g h i j k l
      +------------------------
     a| a b c d e f g h i j k l
     b| b a f g h c d e k l i j
@@ -178,6 +175,18 @@ AUTHOR:
 
 - Miguel Angel Marco Buzunariz
 """
+
+# G. Rote, 2021-01-22.
+# The failed multiplication table is not tested automatically
+# as a doctest. Apparently doctest cannot handle
+# multiple exceptions:
+# From https://docs.python.org/release/3.6.9/library/doctest.html#id2
+#
+# Examples containing both expected output and an exception
+# are not supported. Trying to guess where one ends and the
+# other begins is too error-prone, and that also makes for
+# a confusing test.
+
 
 # ****************************************************************************
 #       Copyright (C) 2012 Miguel Angel Marco Buzunariz <mmarco@unizar.es>
