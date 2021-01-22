@@ -93,4 +93,4 @@ jobs:
           SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-sudo-standard/local
       - name: Print memory usage
         if: always()
-          run: cat ./memory_usage.txt
+        run: cat ./memory_usage.txt
