@@ -114,21 +114,21 @@ obtained by modding out the commutator subgroup of the free group::
     as keys for a dictionary may lead to trouble.
 
 The following example shows that two different representations of the
-same element can be two distinct elements of a set::
+same element can result in two distinct elements of a "set"::
 
     sage: G.<r,s,t> = FreeGroup()
     sage: gr = tetrahedral_group = G / (r^2, s^3, t^3, r*s*t)
     sage: gr.order()
     12
     sage: a,b = gr(r*s),gr(~t) # ~t is an alternative notation for t^-1
-    sage: set2 = {a,b}
-    sage: print(set2, len(set2)) # a two-element set
+    sage: set_of_2 = {a,b}
+    sage: print(set_of_2, len(set_of_2)) # two-element set
     {r*s, t^-1} 2
     sage: a==b # a and b are the same element!
     True
 
 As a consequence, the 
-:meth:`~sage.categories.magmas.ParentMethods.multiplication_table`
+:meth:`~sage.categories.magmas.Magmas.ParentMethods.multiplication_table`
 method fails::
 
     sage: gr.multiplication_table() # not tested
@@ -161,8 +161,8 @@ to a permutation group::
     k| k f e j l g b a d i h c
     l| l j i h g k e d c b f a
     sage: a_p,b_p = gr_p(r*s),gr_p(~t)
-    sage: set2_p = {a_p,b_p} # Now, this is a one-element set
-    sage: print(set2_p, len(set2_p))
+    sage: set_p = {a_p,b_p} # Now, this is a one-element set
+    sage: print(set_p, len(set_p))
     {(1,6,5)(2,3,8)(4,10,9)(7,12,11)} 1
 
 REFERENCES:
