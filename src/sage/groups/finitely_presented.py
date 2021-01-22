@@ -114,7 +114,7 @@ obtained by modding out the commutator subgroup of the free group::
     as keys for a dictionary may lead to trouble.
 
 The following example shows that two different representations of the
-same element can be two distinct elements of a set.
+same element can be two distinct elements of a set::
 
     sage: G.<r,s,t> = FreeGroup()
     sage: gr = tetrahedral_group = G / (r^2, s^3, t^3, r*s*t)
@@ -161,7 +161,7 @@ to a permutation group::
     k| k f e j l g b a d i h c
     l| l j i h g k e d c b f a
     sage: a_p,b_p = gr_p(r*s),gr_p(~t)
-    sage: set2_p = {a_p,b_p} # a one-element set
+    sage: set2_p = {a_p,b_p} # Now, this is a one-element set
     sage: print(set2_p, len(set2_p))
     {(1,6,5)(2,3,8)(4,10,9)(7,12,11)} 1
 
