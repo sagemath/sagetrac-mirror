@@ -85,7 +85,7 @@ jobs:
         if: always()
       - name: Test
         run: |
-          ../github/workflows/print_memory_usage.sh &
+          ../.github/workflows/print_memory_usage.sh &
           pipenv run sage-runtests --all --timeout=300
         working-directory: src
         env:
@@ -93,4 +93,4 @@ jobs:
           SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-sudo-standard/local
       - name: Print memory usage
         if: always()
-        run: cat ./memory_usage.txt
+        run: cat ./src/memory_usage.txt
