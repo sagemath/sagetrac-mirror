@@ -35,5 +35,7 @@ cvxopt = "==esyscmd(`printf $(sed "s/[.]p.*//;" ../cvxopt/package-version.txt)')
 rpy2 = "==esyscmd(`printf $(sed "s/[.]p.*//;" ../rpy2/package-version.txt)')"
 networkx = "==esyscmd(`printf $(sed "s/[.]p.*//;" ../networkx/package-version.txt)')"
 
+sagemath-standard = { path = "src" }
+
 [requires]
 python_version = "3.8"
