@@ -82,6 +82,9 @@ from sage.structure.sequence import Sequence
 from sage.structure.coerce cimport coercion_model
 from sage.structure.element import is_Vector
 from sage.structure.element cimport have_same_parent
+from sage.numerical.backends import cvxopt_backend
+from cvxopt import cholmod
+from cvxopt.base import spmatrix
 from sage.misc.verbose import verbose, get_verbose
 from sage.categories.all import Fields, IntegralDomains
 from sage.rings.ring import is_Ring
@@ -12403,11 +12406,12 @@ cdef class Matrix(Matrix1):
         method for matrices of that type. ::
 
             sage: F = RealField(100)
-            sage: A = matrix(F, [[1.0, 3.0], [3.0, -6.0]])
+            sage: A = matrix(F, [[ 78, -30, -37,  -2], [-30, 102, 179, -18], [-37, 179, 326, -38], [ -2, -18, -38,  15]], sparse=True) 
             sage: A.cholesky()
-            Traceback (most recent call last):
-            ...
-            TypeError: base ring of the matrix must be exact, not Real Field with 100 bits of precision
+            [  8.8317608663278477365565777291  0.00000000000000000000000000000  0.00000000000000000000000000000  0.00000000000000000000000000000]
+            [ -3.3968311024337869419298385765   9.5111270868146053913960713544  0.00000000000000000000000000000  0.00000000000000000000000000000]
+            [ -4.1894250263350034657605647226   17.323838622412313981158149545   2.8867513459481353166324879567  0.00000000000000000000000000000]
+            [-0.22645540682891912576124582301  -1.9733971166520096751639812283  -1.6495721976846429157603779458   2.8867513459481299875619697559]
 
         The base ring may not have a fraction field.  ::
 
@@ -12502,8 +12506,23 @@ cdef class Matrix(Matrix1):
                 msg = "matrix must be square, not {0} x {1}"
                 raise ValueError(msg.format(self.nrows(), self.ncols()))
             if not self.base_ring().is_exact():
-                msg = 'base ring of the matrix must be exact, not {0}'
-                raise TypeError(msg.format(self.base_ring()))
+                # TODO: use different code path for dense.
+                nonzero = self.nonzero_positions()
+                rs = [r for (r, c) in nonzero]
+                cs = [c for (r, c) in nonzero]
+                vs = [float(self[ix]) for ix in nonzero]
+                Acvx = spmatrix(vs, rs, cs)
+                Fcvx = cholmod.symbolic(Acvx)
+                numeric = cholmod.numeric(Acvx,Fcvx)
+                cholcvx = cholmod.getfactor(Fcvx)
+                Cvals = {}
+                for i in range(len(cholcvx.I)):
+                    Cvals[(cholcvx.I[i], cholcvx.J[i])] = cholcvx.V[i]
+                from sage.matrix.constructor import matrix
+                C = matrix(self.base_ring(), cholcvx.size[0], cholcvx.size[1], Cvals, sparse=True)
+                C.set_immutable()
+                self.cache('cholesky', C)
+                return C
             if not self.is_positive_definite():
                 msg = 'matrix is not positive definite, so cannot compute Cholesky decomposition'
                 raise ValueError(msg)
