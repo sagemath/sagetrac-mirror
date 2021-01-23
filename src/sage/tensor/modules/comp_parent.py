@@ -1,5 +1,5 @@
 r"""
-
+Collection of components as indexed sets of ring elements
 """
 
 #******************************************************************************
@@ -201,6 +201,9 @@ class CompParentWithSym(CompParent):
 
 
         """
+        if sym is None and antisym is None:
+            # if no symmetries are imposed, return components without symmetry
+            return CompParent(dim, nb_indices, start_index=start_index)
         if isinstance(sym, list):
             sym = tuple(sym)
         if isinstance(antisym, list):
