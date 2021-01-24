@@ -278,6 +278,11 @@ cdef class SymbolicRing(CommutativeRing):
             sage: bool(si == CC.0)
             True
 
+        Test that :trac:`27897` is fixed::
+
+            sage: sqrt(abs(1+I)^2 + 14)
+            4
+
         Polynomial ring element factorizations::
 
             sage: R.<x> = QQ[]
