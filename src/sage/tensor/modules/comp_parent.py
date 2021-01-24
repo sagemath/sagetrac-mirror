@@ -1,5 +1,6 @@
 r"""
-Collection of components as indexed sets of ring elements
+Collection of components as indexed sets of ring elements w.r.t to certain
+indices and symmetries
 """
 
 #******************************************************************************
@@ -15,6 +16,7 @@ Collection of components as indexed sets of ring elements
 #******************************************************************************
 
 from sage.structure.parent import Parent
+from .comp_element import Components_generic, CompWithSym, CompFullySym, CompFullyAntiSym
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
@@ -23,10 +25,31 @@ class CompParent(Parent, UniqueRepresentation):
     r"""
 
     """
+
+    Element = Components_generic
+
+    @staticmethod
+    def __classcall_private__(cls, dim, nb_indices, start_index=0):
+        r"""
+        Determine the correct class to return based upon the input.
+
+        TODO: Remove this method as soon as :trac:`14167` is solved.
+
+        TESTS::
+
+            sage: from sage.tensor.modules.comp_parent import CompParent
+            sage: CompParent(ZZ, 4, 2) is CompParent(ZZ, 4, 2, start_index=0)
+            True
+
+        """
+        return super(cls, CompParentWithSym).__classcall__(cls, dim,
+                                            nb_indices, start_index=start_index)
+
     def __init__(self, dim, nb_indices, start_index=0):
         r"""
 
         """
+        Parent.__init__(self)
         self._dim = dim
         self._nid = nb_indices
         self._sindex = start_index
@@ -51,15 +74,34 @@ class CompParent(Parent, UniqueRepresentation):
         description += " components"
         return description
 
+    def _element_constructor_(self, *args, **kwargs):
+        r"""
+        Construct an indexed set of components w.r.t. ``frame`` over the ring
+        ``ring``.
+        """
+        if isinstance(args[0], Components_generic):
+            c = args[0]
+            if not isinstance(c, Components_generic):
+                TypeError("cannot coerce {} into an element of {}".format(c, self))
+            else:
+                return c
+        else:
+            if len(args) != 2:
+                ValueError("{} missing {} required positional arguments".format(type(self), len(args)))
+            ring = args[0]
+            frame = args[1]
+            output_formatter = kwargs.pop('output_formatter', None)
+        return self.element_class(self, ring, frame,
+                                  output_formatter=output_formatter)
+
     @cached_method
-    def _check_indices(self, indices):
+    def _check_indices(self, ind):
         r"""
         Check the validity of a list of indices and returns a tuple from it
 
         INPUT:
 
-        - ``indices`` -- list of indices (possibly a single integer if
-          self is a 1-index object)
+        - ``ind`` -- tuple of indices
 
         OUTPUT:
 
@@ -89,10 +131,6 @@ class CompParent(Parent, UniqueRepresentation):
             ValueError: wrong number of indices: 2 expected, while 3 are provided
 
         """
-        if isinstance(indices, (int, Integer)):
-            ind = (indices,)
-        else:
-            ind = tuple(indices)
         if len(ind) != self._nid:
             raise ValueError(("wrong number of indices: {} expected,"
                              " while {} are provided").format(self._nid, len(ind)))
@@ -184,6 +222,43 @@ class CompParent(Parent, UniqueRepresentation):
         for ind in self.index_generator():
             yield ind
 
+    @cached_method
+    def symmetrize(self, *pos):
+        r"""
+
+        """
+        if not pos:
+            pos = tuple(range(self._nid))
+        else:
+            if len(pos) < 2:
+                raise ValueError("at least two index positions must be given")
+            if len(pos) > self._nid:
+                raise ValueError("number of index positions larger than the "
+                                 "total number of indices")
+        n_sym = len(pos) # number of indices involved in the symmetry
+        if n_sym == self._nid:
+            return CompParentFullySym(self._nid, start_index=self._sindex)
+        return CompParentWithSym(self._nid, start_index=self._sindex, sym=pos)
+
+    @cached_method
+    def antisymmetrize(self, *pos):
+        r"""
+
+        """
+        if not pos:
+            pos = tuple(range(self._nid))
+        else:
+            if len(pos) < 2:
+                raise ValueError("at least two index positions must be given")
+            if len(pos) > self._nid:
+                raise ValueError("number of index positions larger than the "
+                                 "total number of indices")
+        n_sym = len(pos)  # number of indices involved in the antisymmetry
+        if n_sym == self._nid:
+            return CompParentFullyAntiSym(self._nid, start_index=self._sindex)
+        return CompParentWithSym(self._nid, start_index=self._sindex,
+                                 antisym=pos)
+
 class CompParentWithSym(CompParent):
     r"""
 
@@ -194,7 +269,8 @@ class CompParentWithSym(CompParent):
                               antisym=None):
         r"""
         Determine the correct class to return based upon the input. In
-        particular, convert lists of symmetries to tuples.
+        particular, convert lists of symmetries to tuples and delegate to
+        parent with correct symmetry.
 
         TESTS:
 
@@ -202,15 +278,23 @@ class CompParentWithSym(CompParent):
 
         """
         if sym is None and antisym is None:
-            # if no symmetries are imposed, return components without symmetry
-            return CompParent(dim, nb_indices, start_index=start_index)
-        if isinstance(sym, list):
-            sym = tuple(sym)
-        if isinstance(antisym, list):
-            sym = tuple(sym)
+            raise TypeError("for components without symmetries, please use "
+                            "'CompParent' instead")
+        if sym is not None:
+            if any(len(s) == nb_indices for s in sym):
+                return CompParentFullySym(dim, nb_indices,
+                                          start_index=start_index)
+        if antisym is not None:
+            if any(len(s) == nb_indices for s in antisym):
+                return CompParentFullyAntiSym(dim, nb_indices,
+                                              start_index=start_index)
+        sym = tuple(sorted(sym))
+        antisym = tuple(sorted(antisym))
         return super(cls, CompParentWithSym).__classcall__(cls, dim, nb_indices,
                                                        start_index=start_index,
                                                        sym=sym, antisym=antisym)
+
+    Element = CompWithSym
 
     def __init__(self, dim, nb_indices, start_index=0, sym=None,
                  antisym=None):
@@ -300,8 +384,7 @@ class CompParentWithSym(CompParent):
 
         INPUT:
 
-        - ``indices`` -- list of indices (possibly a single integer if
-          self is a 1-index object)
+        - ``indices`` -- tuple of indices
 
         OUTPUT:
 
@@ -557,8 +640,8 @@ class CompParentWithSym(CompParent):
         if common_sym != [] or common_antisym != []:
             # convert to tuples
             result = CompParentWithSym(self._dim, self._nid,
-                                 start_index=self._sindex,
-                                 sym=common_sym, antisym=common_antisym)
+                                       start_index=self._sindex,
+                                       sym=common_sym, antisym=common_antisym)
         else:
             # no common symmetry -> result is collection of generic components:
             result = CompParent(self._dim, self._nid, start_index=self._sindex)
@@ -592,80 +675,34 @@ class CompParentWithSym(CompParent):
         Return the collection of components built from contracting ``pos1``
         with ``pos2``.
         """
-        si = self._sindex
-        nsi = si + self._dim
-        if self._nid == 2:
-            res = 0
-            for i in range(si, nsi):
-                res += self[[i,i]]
-            return res
-        else:
-            # More than 2 indices
-            if pos1 > pos2:
-                pos1, pos2 = (pos2, pos1)
-            # Determination of the remaining symmetries:
-            sym_res = list(self._sym)
-            for isym in self._sym:
-                isym_res = list(isym)
-                if pos1 in isym:
-                    isym_res.remove(pos1)
-                if pos2 in isym:
-                    isym_res.remove(pos2)
-                if len(isym_res) < 2:       # the symmetry is lost
-                    sym_res.remove(isym)
-                else:
-                    sym_res[sym_res.index(isym)] = tuple(isym_res)
-            antisym_res = list(self._antisym)
-            for isym in self._antisym:
-                isym_res = list(isym)
-                if pos1 in isym:
-                    isym_res.remove(pos1)
-                if pos2 in isym:
-                    isym_res.remove(pos2)
-                if len(isym_res) < 2:       # the symmetry is lost
-                    antisym_res.remove(isym)
-                else:
-                    antisym_res[antisym_res.index(isym)] = tuple(isym_res)
-            # Shift of the index positions to take into account the
-            # suppression of 2 indices:
-            max_sym = 0
-            for k in range(len(sym_res)):
-                isym_res = []
-                for pos in sym_res[k]:
-                    if pos < pos1:
-                        isym_res.append(pos)
-                    elif pos < pos2:
-                        isym_res.append(pos-1)
-                    else:
-                        isym_res.append(pos-2)
-                max_sym = max(max_sym, len(isym_res))
-                sym_res[k] = tuple(isym_res)
-            max_antisym = 0
-            for k in range(len(antisym_res)):
-                isym_res = []
-                for pos in antisym_res[k]:
-                    if pos < pos1:
-                        isym_res.append(pos)
-                    elif pos < pos2:
-                        isym_res.append(pos-1)
-                    else:
-                        isym_res.append(pos-2)
-                max_antisym = max(max_antisym, len(isym_res))
-                antisym_res[k] = tuple(isym_res)
-            # Construction of the appropriate object in view of the
-            # remaining symmetries:
-            nid_res = self._nid - 2
-            if max_sym == 0 and max_antisym == 0:
-                result = CompParent(self._dim, nid_res, start_index=self._sindex)
-            # elif max_sym == nid_res:
-            #     result = CompFullySym(self._ring, self._frame, nid_res,
-            #                           self._sindex, self._output_formatter)
-            # elif max_antisym == nid_res:
-            #     result = CompFullyAntiSym(self._ring, self._frame, nid_res,
-            #                               self._sindex, self._output_formatter)
-            else:
-                result = CompParentWithSym(self._dim, nid_res,
-                                           start_index=self._sindex,
-                                           sym=sym_res, antisym=antisym_res)
+        pass
 
-            return result
+class CompParentFullySym(CompParentWithSym):
+    r"""
+
+    """
+
+    Element = CompFullySym
+
+    def __init__(self, dim, nb_indices, start_index=0):
+        r"""
+
+        """
+        CompParentWithSym.__init__(self, dim, nb_indices,
+                                   start_index=start_index,
+                                   sym=range(nb_indices))
+
+class CompParentFullyAntiSym(CompParentWithSym):
+    r"""
+
+    """
+
+    Element = CompFullyAntiSym
+
+    def __init__(self, dim, nb_indices, start_index=0):
+        r"""
+
+        """
+        CompParentWithSym.__init__(self, dim, nb_indices,
+                                   start_index=start_index,
+                                   antisym=range(nb_indices))
