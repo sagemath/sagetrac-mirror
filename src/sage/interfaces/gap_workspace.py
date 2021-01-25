@@ -56,10 +56,10 @@ def gap_workspace_file(system="gap", name="workspace", dir=None):
         sage: name2 = Popen([sys.executable, '-c', cmd], stdout=PIPE).communicate()[0]
         sage: assert name1 == name2
     """
-    if dir is None:
-        dir = os.path.join(DOT_SAGE, 'gap')
+    if dir is None and DOT_SAGE is not None:
+        dir = DOT_SAGE / 'gap'
 
-    h = hashlib.sha1(SAGE_LOCAL.encode('utf-8')).hexdigest()
+    h = hashlib.sha1(str(SAGE_LOCAL).encode('utf-8')).hexdigest()
     return os.path.join(dir, '%s-%s-%s' % (system, name, h))
 
 

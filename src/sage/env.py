@@ -28,7 +28,8 @@ environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from typing import List, Optional
+from __future__ import annotations
+from typing import Callable, List, Optional, TypeVar, Union
 import sage
 import os
 import socket
@@ -42,7 +43,7 @@ from pathlib import Path
 SAGE_ENV = dict()
 
 
-def join(*args):
+def join(root: Optional[Path], *other: Union[str, os.PathLike[str]]) -> Optional[Path]:
     """
     Join paths like ``os.path.join`` except that the result is ``None``
     if any of the components is ``None``.
@@ -50,27 +51,80 @@ def join(*args):
     EXAMPLES::
 
         sage: from sage.env import join
-        sage: print(join("hello", "world"))
-        hello/world
-        sage: print(join("hello", None))
+        sage: from pathlib import Path
+        sage: join(Path("hello"), "world")
+        PosixPath('hello/world')
+        sage: print(join(Path("hello"), None))
         None
     """
-    if any(a is None for a in args):
+    if root is None or any(segment is None for segment in other):
         return None
-    return os.path.join(*args)
+    return root.joinpath(*other)
 
-def get_variable(key: str, ignore_env_variable: bool = False) -> Optional[str]:
-    if ignore_env_variable:
+
+VarType = TypeVar('VarType')
+
+
+def _var(key: str, *fallbacks: Optional[VarType], force: bool = False, converter: Callable[[Optional[str]], Optional[VarType]]) -> Optional[VarType]:
+    """
+    Set ``SAGE_ENV[key]`` and return the value.
+
+    If ``key`` is an environment variable, this is the value.
+    Otherwise, the ``fallbacks`` are tried until one is found which
+    is not ``None``. If the environment variable is not set and all
+    fallbacks are ``None``, then the final value is ``None``.
+
+    INPUT:
+
+    - ``key`` -- string.
+
+    - ``fallbacks`` -- tuple containing ``str`` or ``None`` values.
+
+    - ``force`` -- boolean (optional, default is ``False``). If
+      ``True``, skip the environment variable and only use the
+      fallbacks.
+    
+    - ``converter`` -- parses the value and converts it. If the 
+      value is not valid, ``None` should be returned. 
+
+    OUTPUT:
+
+    The value of the environment variable or its fallbacks.
+
+    EXAMPLES::
+
+        sage: import os, sage.env
+        sage: sage.env.SAGE_ENV = dict()
+        sage: os.environ['SAGE_FOO'] = 'foo'
+        sage: sage.env.var('SAGE_FOO', 'unused', false)
+        'foo'
+        sage: sage.env.SAGE_FOO
+        'foo'
+        sage: sage.env.SAGE_ENV['SAGE_FOO']
+        'foo'
+    """
+    if force:
         value = None
     else:
-        value = os.environ.get(key)
+        value = converter(os.environ.get(key))
+
     if value is None:
         try:
             import sage_conf
-            value = getattr(sage_conf, key, None)
+            value = converter(getattr(sage_conf, key, None))
         except ImportError:
             pass
+
+    # Try all fallbacks in order as long as we don't have a value
+    for f in fallbacks:
+        if value is not None:
+            break
+        value = f
+
+    SAGE_ENV[key] = value
+    globals()[key] = value
     return value
+
 
 def var(key: str, *fallbacks: Optional[str], force: bool = False) -> Optional[str]:
     """
@@ -146,24 +200,62 @@ def var(key: str, *fallbacks: Optional[str], force: bool = False) -> Optional[st
         sage: sage.env.SAGE_FOO
         'foo'
     """
-    if force:
-        value = None
-    else:
-        value = os.environ.get(key)
-    if value is None:
-        try:
-            import sage_conf
-            value = getattr(sage_conf, key, None)
-        except ImportError:
-            pass
-    # Try all fallbacks in order as long as we don't have a value
-    for f in fallbacks:
-        if value is not None:
-            break
-        value = f
-    SAGE_ENV[key] = value
-    globals()[key] = value
-    return value
+    def converter(value: Optional[str]) -> Optional[str]:
+        return value
+    return _var(key, *fallbacks, force=force, converter=converter)
+
+
+def var_as_path(key: str, *fallbacks: Optional[Path], force: bool = False) -> Optional[Path]:
+    """
+    Set ``SAGE_ENV[key]`` and return the value as a ``Path``.
+
+    If ``key`` is an environment variable and the specified path is valid and exists, this is the value.
+    Otherwise, the ``fallbacks`` are tried until one is found which
+    is not ``None`` and pointing to an existing path. If the environment variable is not set and all
+    fallbacks are invalid, then the final value is ``None``.
+    Thus, either an existing path is returned, or ``None``.
+
+    INPUT:
+
+    - ``key`` -- string.
+
+    - ``fallbacks`` -- tuple containing ``str`` or ``None`` values.
+
+    - ``force`` -- boolean (optional, default is ``False``). If
+      ``True``, skip the environment variable and only use the
+      fallbacks.
+
+    OUTPUT:
+
+    The value of the environment variable or its fallbacks.
+
+    EXAMPLES::
+
+        sage: import os, sage.env
+        sage: from pathlib import Path
+        sage: os.environ['SAGE_FOO'] = '.'
+        sage: sage.env.var_as_path('SAGE_FOO', Path('unused'))
+        PosixPath('.')
+
+    If the path specified in the environment variable does not exist, the fallbacks (if any)
+    are used.
+
+        sage: import os, sage.env
+        sage: from pathlib import Path
+        sage: os.environ['SAGE_FOO'] = 'foo'
+        sage: sage.env.var_as_path('SAGE_FOO', Path('.'))
+        PosixPath('.')
+    """
+    def converter(value: Optional[str]) -> Optional[Path]:
+        if value is None:
+            return None
+
+        path = Path(value)
+        if path.exists():
+            return path
+        else:
+            return None
+    return _var(key, *fallbacks, force=force, converter=converter)
 
 
 # system info
@@ -177,45 +269,45 @@ SAGE_DATE = var("SAGE_DATE", version.date)
 SAGE_VERSION_BANNER = var("SAGE_VERSION_BANNER", version.banner)
 
 # virtual environment where sagelib is installed
-SAGE_VENV = var("SAGE_VENV", os.path.abspath(sys.prefix))
-SAGE_LIB = var("SAGE_LIB", os.path.dirname(os.path.dirname(sage.__file__)))
-SAGE_EXTCODE = var("SAGE_EXTCODE", join(SAGE_LIB, "sage", "ext_data"))
+SAGE_VENV = var_as_path("SAGE_VENV", Path(sys.prefix).resolve())
+SAGE_LIB = var_as_path("SAGE_LIB", Path(sage.__file__).parents[1])
+SAGE_EXTCODE = var_as_path("SAGE_EXTCODE", join(SAGE_LIB, "sage", "ext_data"))
 
 # prefix hierarchy where non-Python packages are installed
-SAGE_LOCAL = var("SAGE_LOCAL", SAGE_VENV)
-SAGE_ETC = var("SAGE_ETC", join(SAGE_LOCAL, "etc"))
-SAGE_INC = var("SAGE_INC", join(SAGE_LOCAL, "include"))
-SAGE_SHARE = var("SAGE_SHARE", join(SAGE_LOCAL, "share"))
-SAGE_DOC = var("SAGE_DOC", join(SAGE_SHARE, "doc", "sage"))
-SAGE_SPKG_INST = var("SAGE_SPKG_INST", join(SAGE_LOCAL, "var", "lib", "sage", "installed"))
+SAGE_LOCAL = var_as_path("SAGE_LOCAL", SAGE_VENV)
+SAGE_ETC = var_as_path("SAGE_ETC", join(SAGE_LOCAL, "etc"))
+SAGE_INC = var_as_path("SAGE_INC", join(SAGE_LOCAL, "include"))
+SAGE_SHARE = var_as_path("SAGE_SHARE", join(SAGE_LOCAL, "share"))
+SAGE_DOC = var_as_path("SAGE_DOC", join(SAGE_SHARE, "doc", "sage"))
+SAGE_SPKG_INST = var_as_path("SAGE_SPKG_INST", join(SAGE_LOCAL, "var", "lib", "sage", "installed"))
 
 # source tree of the Sage distribution
-SAGE_ROOT = var("SAGE_ROOT")  # no fallback for SAGE_ROOT
-SAGE_SRC = var("SAGE_SRC", join(SAGE_ROOT, "src"), SAGE_LIB)
-SAGE_DOC_SRC = var("SAGE_DOC_SRC", join(SAGE_ROOT, "src", "doc"), SAGE_DOC)
-SAGE_PKGS = var("SAGE_PKGS", join(SAGE_ROOT, "build", "pkgs"))
-SAGE_ROOT_GIT = var("SAGE_ROOT_GIT", join(SAGE_ROOT, ".git"))
+SAGE_ROOT = var_as_path("SAGE_ROOT")  # no fallback for SAGE_ROOT
+SAGE_SRC = var_as_path("SAGE_SRC", join(SAGE_ROOT, "src"), SAGE_LIB)
+SAGE_DOC_SRC = var_as_path("SAGE_DOC_SRC", join(SAGE_ROOT, "src", "doc"), SAGE_DOC)
+SAGE_PKGS = var_as_path("SAGE_PKGS", join(SAGE_ROOT, "build", "pkgs"))
+SAGE_ROOT_GIT = var_as_path("SAGE_ROOT_GIT", join(SAGE_ROOT, ".git"))
 
 # ~/.sage
-DOT_SAGE = var("DOT_SAGE", join(os.environ.get("HOME"), ".sage"))
-SAGE_STARTUP_FILE = var("SAGE_STARTUP_FILE", join(DOT_SAGE, "init.sage"))
+DOT_SAGE = var_as_path("DOT_SAGE", Path.home() / ".sage")
+SAGE_STARTUP_FILE = var_as_path("SAGE_STARTUP_FILE", join(DOT_SAGE, "init.sage"))
 
 # installation directories for various packages
-CONWAY_POLYNOMIALS_DATA_DIR = var("CONWAY_POLYNOMIALS_DATA_DIR", join(SAGE_SHARE, "conway_polynomials"))
-GRAPHS_DATA_DIR = var("GRAPHS_DATA_DIR", join(SAGE_SHARE, "graphs"))
-ELLCURVE_DATA_DIR = var("ELLCURVE_DATA_DIR", join(SAGE_SHARE, "ellcurves"))
-POLYTOPE_DATA_DIR = var("POLYTOPE_DATA_DIR", join(SAGE_SHARE, "reflexive_polytopes"))
-GAP_ROOT_DIR = var("GAP_ROOT_DIR", join(SAGE_SHARE, "gap"))
-THEBE_DIR = var("THEBE_DIR", join(SAGE_SHARE, "thebe"))
-COMBINATORIAL_DESIGN_DATA_DIR = var("COMBINATORIAL_DESIGN_DATA_DIR", join(SAGE_SHARE, "combinatorial_designs"))
-CREMONA_MINI_DATA_DIR = var("CREMONA_MINI_DATA_DIR", join(SAGE_SHARE, "cremona"))
-CREMONA_LARGE_DATA_DIR = var("CREMONA_LARGE_DATA_DIR", join(SAGE_SHARE, "cremona"))
-JMOL_DIR = var("JMOL_DIR", join(SAGE_SHARE, "jmol"))
-MATHJAX_DIR = var("MATHJAX_DIR", join(SAGE_SHARE, "mathjax"))
-MTXLIB = var("MTXLIB", join(SAGE_SHARE, "meataxe"))
-THREEJS_DIR = var("THREEJS_DIR", join(SAGE_SHARE, "threejs"))
-SINGULARPATH = var("SINGULARPATH", join(SAGE_SHARE, "singular"))
-PPLPY_DOCS = var("PPLPY_DOCS", join(SAGE_SHARE, "doc", "pplpy"))
+CONWAY_POLYNOMIALS_DATA_DIR = var_as_path("CONWAY_POLYNOMIALS_DATA_DIR", join(SAGE_SHARE, "conway_polynomials"))
+GRAPHS_DATA_DIR = var_as_path("GRAPHS_DATA_DIR", join(SAGE_SHARE, "graphs"))
+ELLCURVE_DATA_DIR = var_as_path("ELLCURVE_DATA_DIR", join(SAGE_SHARE, "ellcurves"))
+POLYTOPE_DATA_DIR = var_as_path("POLYTOPE_DATA_DIR", join(SAGE_SHARE, "reflexive_polytopes"))
+GAP_ROOT_DIR = var_as_path("GAP_ROOT_DIR", join(SAGE_SHARE, "gap"))
+THEBE_DIR = var_as_path("THEBE_DIR", join(SAGE_SHARE, "thebe"))
+COMBINATORIAL_DESIGN_DATA_DIR = var_as_path("COMBINATORIAL_DESIGN_DATA_DIR", join(SAGE_SHARE, "combinatorial_designs"))
+CREMONA_MINI_DATA_DIR = var_as_path("CREMONA_MINI_DATA_DIR", join(SAGE_SHARE, "cremona"))
+CREMONA_LARGE_DATA_DIR = var_as_path("CREMONA_LARGE_DATA_DIR", join(SAGE_SHARE, "cremona"))
+JMOL_DIR = var_as_path("JMOL_DIR", join(SAGE_SHARE, "jmol"))
+MATHJAX_DIR = var_as_path("MATHJAX_DIR", join(SAGE_SHARE, "mathjax"))
+MTXLIB = var_as_path("MTXLIB", join(SAGE_SHARE, "meataxe"))
+THREEJS_DIR = var_as_path("THREEJS_DIR", join(SAGE_SHARE, "threejs"))
+SINGULARPATH = var_as_path("SINGULARPATH", join(SAGE_SHARE, "singular"))
+PPLPY_DOCS = var_as_path("PPLPY_DOCS", join(SAGE_SHARE, "doc", "pplpy"))
 MAXIMA = var("MAXIMA", "maxima")
 MAXIMA_FAS = var("MAXIMA_FAS")
 SAGE_NAUTY_BINS_PREFIX = var("SAGE_NAUTY_BINS_PREFIX", "")
@@ -226,17 +318,6 @@ CBLAS_PC_MODULES = var("CBLAS_PC_MODULES", "cblas:openblas:blas")
 SAGE_BANNER = var("SAGE_BANNER", "")
 SAGE_IMPORTALL = var("SAGE_IMPORTALL", "yes")
 
-def get_ellcurve_data_dir() -> Path:
-    """
-    Return the data directory for ellCurve.
-    """
-    path = None
-    if path_str := get_variable('ELLCURVE_DATA_DIR') is not None:
-        path = Path(path_str)
-    if path is None or not path.exists():
-        path = Path(SAGE_SHARE) / 'ellcurves'
-    
-    return path
 
 def _get_shared_lib_path(*libnames: str) -> Optional[str]:
     """
@@ -322,17 +403,18 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
 # On Debian it's libsingular-Singular so try that as well
 SINGULAR_SO = var("SINGULAR_SO", _get_shared_lib_path("Singular", "singular-Singular"))
 
+
 # locate libgap shared object
 GAP_SO = var("GAP_SO", _get_shared_lib_path("gap", ""))
 
 # post process
-if ' ' in DOT_SAGE:
+if ' ' in str(DOT_SAGE):
     if UNAME[:6] == 'CYGWIN':
         # on windows/cygwin it is typical for the home directory
         # to have a space in it.  Fortunately, users also have
         # write privileges to c:\cygwin\home, so we just put
         # .sage there.
-        DOT_SAGE = var("DOT_SAGE", "/home/.sage", force=True)
+        DOT_SAGE = var_as_path("DOT_SAGE", Path.home() / ".sage", force=True)
     else:
         print("Your home directory has a space in it.  This")
         print("will probably break some functionality of Sage.  E.g.,")
@@ -390,11 +472,12 @@ def sage_include_directories(use_sources=False):
     import numpy
     import distutils.sysconfig
 
-    TOP = SAGE_SRC if use_sources else SAGE_LIB
+    TOP = str(SAGE_SRC) if use_sources else str(SAGE_LIB)
 
     return [TOP,
             distutils.sysconfig.get_python_inc(),
             numpy.get_include()]
+
 
 def get_cblas_pc_module_name() -> str:
     """
@@ -403,6 +486,7 @@ def get_cblas_pc_module_name() -> str:
     import pkgconfig
     cblas_pc_modules = CBLAS_PC_MODULES.split(':')
     return next((blas_lib for blas_lib in cblas_pc_modules if pkgconfig.exists(blas_lib)))
+
 
 def cython_aliases():
     """

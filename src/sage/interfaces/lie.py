@@ -331,7 +331,7 @@ class LiE(ExtraTabCompletion, Expect):
                         prompt = '> ',
 
                         # This is the command that starts up your program
-                        command = "bash "+ SAGE_LOCAL + "/bin/lie",
+                        command = f"bash { SAGE_LOCAL / 'bin' / 'lie' }",
 
                         server=server,
                         script_subdirectory = script_subdirectory,
