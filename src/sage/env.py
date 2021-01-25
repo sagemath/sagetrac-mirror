@@ -250,11 +250,7 @@ def var_as_path(key: str, *fallbacks: Optional[Path], force: bool = False) -> Op
         if value is None:
             return None
 
-        path = Path(value)
-        if path.exists():
-            return path
-        else:
-            return None
+        return Path(value).resolve()
     return _var(key, *fallbacks, force=force, converter=converter)
 
 
