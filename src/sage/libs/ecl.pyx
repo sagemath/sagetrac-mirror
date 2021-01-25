@@ -961,9 +961,12 @@ cdef class EclObject:
 
         """
         cdef cl_object o
-        o=ecl_safe_eval(self.obj)
+        try:
+            o = ecl_safe_eval(self.obj)
+        except RuntimeError as err:
+            raise RuntimeError(f"{err} while evaluating {self}").with_traceback(err.__traceback__)
         if o == NULL:
-            raise RuntimeError("ECL runtime error")
+            raise RuntimeError(f"ECL runtime error while evaluating {self}")
         return ecl_wrap(o)
 
     def cons(self,EclObject d):
@@ -1394,7 +1397,11 @@ cpdef EclObject ecl_eval(str s):
 
     """
     cdef cl_object o
-    o=ecl_safe_eval(python_to_ecl(s, True))
+    try:
+        o = ecl_safe_eval(python_to_ecl(s, True))
+    except RuntimeError as err:
+        raise RuntimeError(f"{err} while evaluating {s}").with_traceback(err.__traceback__)
+
     return ecl_wrap(o)
 
 init_ecl()
