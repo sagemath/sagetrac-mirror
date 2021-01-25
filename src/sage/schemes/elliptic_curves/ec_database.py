@@ -128,8 +128,11 @@ class EllipticCurves:
             sage: elliptic_curves.rank(6, n=3, labels=True)
             []
         """
-        from sage.env import get_ellcurve_data_dir
-        data_path = get_ellcurve_data_dir() / f"rank{rank}"
+        from sage.env import ELLCURVE_DATA_DIR
+        if ELLCURVE_DATA_DIR is None:
+            return []
+
+        data_path = ELLCURVE_DATA_DIR / f"rank{rank}"
 
         try:
             v = []
