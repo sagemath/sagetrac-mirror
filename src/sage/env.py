@@ -237,20 +237,19 @@ def var_as_path(key: str, *fallbacks: Optional[Path], force: bool = False) -> Op
         sage: sage.env.var_as_path('SAGE_FOO', Path('unused'))
         PosixPath('.')
 
-    If the path specified in the environment variable does not exist, the fallbacks (if any)
+    If the environment variable does not exist, the fallbacks (if any)
     are used.
 
         sage: import os, sage.env
         sage: from pathlib import Path
-        sage: os.environ['SAGE_FOO'] = 'foo'
-        sage: sage.env.var_as_path('SAGE_FOO', Path('.'))
+        sage: sage.env.var_as_path('SAGE_BAR', Path('.'))
         PosixPath('.')
     """
     def converter(value: Optional[str]) -> Optional[Path]:
         if value is None:
             return None
 
-        return Path(value).resolve()
+        return Path(value)
     return _var(key, *fallbacks, force=force, converter=converter)
 
 
