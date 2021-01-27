@@ -1888,48 +1888,9 @@ class PermutationGroup_generic(FiniteGroup):
                 raise ValueError("the optional argument 'base_of_group'"
                                  " (='%s') must be None if 'implementation'='gap'" % base_of_group)
 
-            gap_cosets = libgap.function_factory("""function ( S0 )
-                local   CosetsStabChain;
-                CosetsStabChain := function(S)  # for the recursive call
-                local   cosets,             # element list, result
-                        new_coset,          # new coset computed along the way
-                        pnt,                # point in the orbit of <S>
-                        rep;                # inverse representative for that point
-
-                # if <S> is trivial then it is easy
-                if Length(S.generators) = 0  then
-                    cosets := [ [S.identity] ];
-
-                # otherwise
-                else
-
-                    # compute the elements of the stabilizer
-                    cosets := CosetsStabChain( S.stabilizer );
-
-                    # loop over all points in the orbit
-                    new_coset := [];
-                    for pnt  in S.orbit  do
-
-                        # add the corresponding coset to the set of elements
-                        rep := S.identity;
-                        while S.orbit[1] ^ rep <> pnt  do
-                             rep := LeftQuotient( S.transversal[pnt/rep], rep );
-                        od;
-                        Add( new_coset, rep );
-                    od;
-                    Add( cosets, new_coset );
-               fi;
-
-               # return the result
-               return cosets;
-               end;
-               return CosetsStabChain(S0);
-            end;""")
-            G = libgap.Group(self.gens())  # G = libgap(self)
-            S = G.StabChain()
-            cosets = gap_cosets(S)
+            cosets = self._stab_chain_cosets_gap()
             one = self.one()
-            return [[one._generate_new_GAP(libgap.ListPerm(elt))
+            return [[one._generate_new_GAP(elt.ListPerm())
                      for elt in coset] for coset in cosets]
 
         if implementation == "sage":
@@ -1945,6 +1906,55 @@ class PermutationGroup_generic(FiniteGroup):
         else:
             raise ValueError("the optional argument 'implementation'"
                              " (='%s') must be 'sage' or 'gap'" % implementation)
+
+    @libgap.gap_function
+    def _stab_chain_cosets_gap(self):
+        """
+        Use GAP to compute cosets for the subgroups in the stabilizer chain
+        of the permutation group in order to compute a strong generating set.
+
+        Used for the GAP implementation of
+        `PermutationGroup_generic.strong_generating_system`.  See the docstring
+        of that method for examples.
+
+        function ( S0 )
+            local   CosetsStabChain;
+            CosetsStabChain := function(S)  # for the recursive call
+            local   cosets,             # element list, result
+                    new_coset,          # new coset computed along the way
+                    pnt,                # point in the orbit of <S>
+                    rep;                # inverse representative for that point
+
+            # if <S> is trivial then it is easy
+            if Length(S.generators) = 0  then
+                cosets := [ [S.identity] ];
+
+            # otherwise
+            else
+
+                # compute the elements of the stabilizer
+                cosets := CosetsStabChain( S.stabilizer );
+
+                # loop over all points in the orbit
+                new_coset := [];
+                for pnt  in S.orbit  do
+
+                    # add the corresponding coset to the set of elements
+                    rep := S.identity;
+                    while S.orbit[1] ^ rep <> pnt  do
+                         rep := LeftQuotient( S.transversal[pnt/rep], rep );
+                    od;
+                    Add( new_coset, rep );
+                od;
+                Add( cosets, new_coset );
+           fi;
+
+           # return the result
+           return cosets;
+           end;
+           return CosetsStabChain(StabChain(S0));
+        end;
+        """
 
     def _repr_(self):
         r"""

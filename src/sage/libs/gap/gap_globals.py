@@ -10,39 +10,9 @@
 #                   http://www.gnu.org/licenses/
 ###############################################################################
 
-
-from .gap_functions import common_gap_functions
-
-
-# selected gap globals to use in tab completion
-common_gap_globals = set([
-  'Assert',
-  'Cyclotomics',
-  'GaussianIntegers',
-  'GaussianRationals',
-  'GlobalMersenneTwister',
-  'GlobalRandomSource',
-  'InfoAlgebra',
-  'InfoAttributes',
-  'InfoBckt',
-  'InfoCharacterTable',
-  'InfoCoh',
-  'InfoComplement',
-  'InfoCoset',
-  'InfoFpGroup',
-  'InfoGroebner',
-  'InfoGroup',
-  'InfoLattice',
-  'InfoMatrix',
-  'InfoMonomial',
-  'InfoNumtheor',
-  'InfoOptions',
-  'InfoPackageLoading',
-  'InfoPcSubgroup',
-  'InfoWarning',
-  'Integers',
-  'NiceBasisFiltersInfo',
-  'Primes',
-  'Rationals',
-  'TableOfMarksComponents'
-]) | common_gap_functions
+# TODO: As mentioned in sage.libs.gap.gap_functions, gappy should provide an
+# interface for extending the list of common GAP global variables.
+from sage.misc.superseded import deprecation
+from gappy.gap_globals import *
+deprecation(31297,
+    'this module has been subsumed by the gappy package and will be removed')

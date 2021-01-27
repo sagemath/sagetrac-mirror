@@ -27,6 +27,10 @@ from sage.libs.gap.libgap import libgap
 from sage.libs.gap.saved_workspace import workspace
 
 
+# TODO: These functions should be deprecated and/or where possible rewritten
+# as methods on the Gap class.
+
+
 NamesGVars = libgap.function_factory('NamesGVars')
 Filtered = libgap.function_factory('Filtered')
 ValueGlobal = libgap.function_factory('ValueGlobal')

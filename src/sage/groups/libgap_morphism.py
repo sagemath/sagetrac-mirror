@@ -689,8 +689,7 @@ class GroupHomset_libgap(HomsetWithBase):
                 if phi.is_bool():     # check we did not fail
                     raise ValueError("images do not define a group homomorphism")
             else:
-                ByImagesNC = libgap.function_factory("GroupHomomorphismByImagesNC")
-                phi = ByImagesNC(dom.gap(), codom.gap(), gens, imgs)
+                phi = libgap.GroupHomomorphismByImagesNC(dom.gap(), codom.gap(), gens, imgs)
             return self.element_class(self, phi, check=check, **options)
         if isinstance(x, GapElement):
             try:

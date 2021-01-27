@@ -152,13 +152,41 @@ cdef class Matrix(Matrix0):
 
         EXAMPLES::
 
-            sage: libgap(identity_matrix(ZZ,2))
+            sage: M = libgap(identity_matrix(ZZ,2)); M
             [ [ 1, 0 ], [ 0, 1 ] ]
-            sage: libgap(matrix(GF(3),2,2,[4,5,6,7]))
+            sage: M.IsMatrix()
+            true
+            sage: M = libgap(matrix(GF(3),2,2,[4,5,6,7])); M
             [ [ Z(3)^0, Z(3) ], [ 0*Z(3), Z(3)^0 ] ]
+            sage: M.IsMatrix()
+            true
+            sage: x = polygen(QQ, 'x')
+            sage: M = libgap(matrix(QQ['x'],2,2,[x,5,6,7])); M
+            [ [ x, 5 ], [ 6, 7 ] ]
+            sage: M.IsMatrix()
+            true
+
+        TESTS:
+
+        We gracefully handle the case that the conversion fails (:trac:`18039`)::
+
+            sage: F.<a> = GF(9, modulus="first_lexicographic")
+            sage: libgap(Matrix(F, [[a]]))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion of (Givaro) finite field element to
+            GAP not implemented except for fields defined by Conway
+            polynomials.
         """
         from sage.libs.gap.libgap import libgap
-        return libgap._construct_matrix(self)
+        ring = self.base_ring()
+        try:
+            gap_ring = libgap(ring)
+        except ValueError:
+            raise TypeError('base ring is not supported by GAP')
+
+        one = gap_ring.One()
+        return libgap([libgap(row) * one for row in self.rows()])
 
     def _fricas_init_(self):
         """

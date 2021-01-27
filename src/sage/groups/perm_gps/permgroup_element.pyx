@@ -126,13 +126,8 @@ from sage.interfaces.gap import GapElement as PExpectGapElement
 from sage.interfaces.gp import GpElement
 
 from sage.libs.gap.libgap import libgap
-from sage.libs.gap.gap_includes cimport (UInt, UInt2, UInt4, T_PERM2, T_PERM4,
-        NEW_PERM2, NEW_PERM4, TNUM_OBJ, DEG_PERM2, DEG_PERM4, CONST_ADDR_PERM2,
-        CONST_ADDR_PERM4, ADDR_PERM2, ADDR_PERM4)
-from sage.libs.gap.util cimport initialize
 from sage.libs.gap.element cimport (GapElement, GapElement_List,
-        GapElement_String, GapElement_Permutation, make_GapElement_Permutation)
-from sage.libs.gap.gap_includes cimport Obj, INT_INTOBJ, ELM_LIST
+        GapElement_String, GapElement_Permutation)
 
 import operator
 
@@ -581,31 +576,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             ...
             ValueError: invalid data to initialize a permutation
         """
-        cdef UInt2* p2
-        cdef UInt4* p4
-        cdef int i
-        cdef UInt d
-
-        if TNUM_OBJ(p.value) == T_PERM2:
-            d = DEG_PERM2(p.value)
-            if d > self.n:
-                d = self.n
-            else:
-                for i in range(d, self.n):
-                    self.perm[i] = i
-            p2 = CONST_ADDR_PERM2(p.value)
-            for i in range(d):
-                self.perm[i] = p2[i]
-        elif TNUM_OBJ(p.value) == T_PERM4:
-            d = DEG_PERM4(p.value)
-            if d > self.n:
-                d = self.n
-            else:
-                for i in range(d, self.n):
-                    self.perm[i] = i
-            p4 = CONST_ADDR_PERM4(p.value)
-            for i in range(d):
-                self.perm[i] = p4[i]
+        if isinstance(p, GapElement_Permutation):
+            try:
+                self._set_list_images(p.ListPerm(), False)
+            except AssertionError:
+                raise ValueError("invalid data to initialize a permutation")
         else:
             raise TypeError("not a gap permutation")
 
@@ -787,7 +762,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
             i = j + 1
 
-
     def __reduce__(self):
         """
         Returns a function and its arguments needed to create this
@@ -879,14 +853,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         if self._libgap is not None:
             return self._libgap
-        initialize()
 
-        cdef Obj res = NEW_PERM2(self.n)
-        cdef UInt2* p = ADDR_PERM2(res)
-        cdef UInt i
-        for i in range(self.n):
-            p[i] = self.perm[i]
-        self._libgap = make_GapElement_Permutation(libgap, res)
+        # TODO: Again, there is probably a more efficient way to do this but
+        # the libgap API does not provide direct access to permutation objects
+        self._libgap = libgap.PermList(self._gap_list())
         return self._libgap
 
     # for compatibility with sage.groups.libgap_wrapper.ElementLibGAP
@@ -1348,15 +1318,13 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             (1,4)(2,3)
         """
         cdef GapElement_List lst = <GapElement_List?> lst_in
-        cdef Obj obj = lst.value
-
         cdef PermutationGroupElement new = self._new_c()
         cdef Py_ssize_t i, j, vn = len(lst)
 
         assert vn <= self.n
 
         for i in range(vn):
-            j = INT_INTOBJ(ELM_LIST(obj, i+1))
+            j = lst[i]
             new.perm[i] = j - 1
         for i in range(vn, self.n):
             new.perm[i] = i
@@ -2053,8 +2021,8 @@ cdef class SymmetricGroupElement(PermutationGroupElement):
         EXAMPLES::
 
             sage: S = SymmetricGroup(3)
-            sage: [x.absolute_length() for x in S]
-            [0, 2, 2, 1, 1, 1]
+            sage: sorted([x.absolute_length() for x in S])
+            [0, 1, 1, 1, 2, 2]
         """
         from sage.combinat.permutation import Permutation
         return Permutation(self).absolute_length()

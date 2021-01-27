@@ -3514,6 +3514,25 @@ cdef class Vector(ModuleElementWithMutability):
             return right.solve_left(self)
         raise bin_op_exception('/', self, right)
 
+    def _libgap_(self):
+        """
+        Conversion of vectors to a GAP-compatible object.
+
+        EXAMPLES::
+
+            sage: libgap(vector((0,1,2)))
+            [ 0, 1, 2 ]
+            sage: libgap(vector((1/3,2/3,4/5)))
+            [ 1/3, 2/3, 4/5 ]
+            sage: libgap(vector((1/3, 0.8, 3)))
+            [ 0.333333, 0.8, 3. ]
+        """
+
+        # In this case it suffices to simply convert the vector to a tuple,
+        # and the libgap interface will handle converting the elements when
+        # possible.
+        return tuple(self)
+
     def _magma_init_(self, magma):
         """
         Return string that evaluates in Magma to something equivalent
