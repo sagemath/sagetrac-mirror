@@ -8,6 +8,7 @@ workspaces.
 
 import os
 import glob
+import warnings
 from sage.env import GAP_ROOT_DIR
 from sage.interfaces.gap_workspace import gap_workspace_file
 
@@ -34,7 +35,7 @@ def timestamp():
     gap_packages = glob.glob(os.path.join(GAP_ROOT_DIR, 'pkg', '*'))
     files = libgap_files + gap_packages
     if len(files) == 0:
-        print('Unable to find LibGAP files.')
+        warnings.warn('Unable to find LibGAP files.')
         return float('inf')
     return max(map(os.path.getmtime, files))
 

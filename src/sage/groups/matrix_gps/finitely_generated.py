@@ -553,7 +553,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
         A finite subgroup of  GL(12,Z) as a permutation group::
 
-            sage: imf = libgap.function_factory('ImfMatrixGroup')
+            sage: imf = libgap.ImfMatrixGroup
             sage: GG = imf( 12, 3 )
             sage: G = MatrixGroup(GG.GeneratorsOfGroup())
             sage: G.cardinality()
@@ -680,8 +680,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         # initializing list of mats by which the gens act on self
         mats_gap = libgap(mats)
         M = mats_gap.GModuleByMats(F)
-        compo = libgap.function_factory('MTX.CompositionFactors')
-        MCFs = compo(M)
+        MCFs = libgap.MTX.CompositionFactors(M)
         if algorithm == "verbose":
             print(str(MCFs) + "\n")
         return sorted((MCF['field'].sage(),

@@ -211,24 +211,67 @@ AUTHORS:
 #
 ##############################################################################
 
-from .gap_includes cimport *
-from .util cimport *
-from .element cimport *
 
-from sage.structure.parent cimport Parent
-from sage.structure.element cimport Vector
-from sage.rings.all import ZZ
+import os
+
+from gappy.core cimport Gap as Gappy
+from gappy.exceptions import GAPError
+from gappy.gapobj cimport make_GapList
+from gappy.gapobj import GapObj
+from gappy.gap_includes cimport Obj
+
+import sage.env
+from sage.interfaces.gap_workspace import prepare_workspace_dir
 from sage.misc.cachefunc import cached_method
 from sage.misc.randstate cimport current_randstate
+from sage.misc.superseded import deprecation
+from sage.misc.temporary_file import atomic_write
+from sage.rings.all import ZZ
+from sage.structure.parent cimport Parent
+from sage.structure.sage_object import SageObject
+
+from .element cimport GapElement, make_any_gap_element, make_GapElement_Function
+from .element import GapElement, _sageobject_to_gapobj, _gapelement_to_gapobj
+from .saved_workspace import workspace as get_workspace
+from .util import gap_root
 
 
 ############################################################################
 ### Gap  ###################################################################
 ############################################################################
 # The libGap interpreter object Gap is the parent of the GapElements
+# Provides a wrapper to gappy.core.Gap, which we can't subclass directly
+# since it has an incompatible binary layout with Parent.
+cdef class SageGappy(Gappy):
+    """
+    Subclasses `gappy.core.Gap` to provide some Sage-specific default
+    behaviors.
+    """
+
+    def __init__(self):
+        workspace, _ = get_workspace()
+        Gappy.__init__(self, gap_root=gap_root(), workspace=workspace,
+                       autoload=True, libgap_soname=sage.env.GAP_SO)
+
+    cpdef initialize(self):
+        initializing = Gappy.initialize(self)
+
+        if initializing:
+            # These steps are only performed if Gappy has just been initialized
+            # for the first time; if we don't check this then we'll cause an
+            # infinite recursion
+            workspace, workspace_is_up_to_date = get_workspace()
+            if self.workspace == os.path.normpath(workspace):
+                # Save a new workspace if necessary
+                if not workspace_is_up_to_date:
+                    prepare_workspace_dir()
+                    with atomic_write(workspace) as f:
+                        self.SaveWorkspace(f.name)
+
+        return initializing
 
 
-class Gap(Parent):
+cdef class Gap(Parent):
     r"""
     The libgap interpreter object.
 
@@ -248,9 +291,11 @@ class Gap(Parent):
         sage: TestSuite(libgap).run(skip=['_test_category', '_test_elements', '_test_pickling'])
     """
 
+    cdef readonly SageGappy gap
+
     Element = GapElement
 
-    def _coerce_map_from_(self, S):
+    cpdef _coerce_map_from_(self, S):
         """
         Whether a coercion from `S` exists.
 
@@ -265,6 +310,7 @@ class Gap(Parent):
             sage: libgap.has_coerce_map_from(CyclotomicField(5)['x','y'])
             True
         """
+        # TODO: This seems wrong to me...
         return True
 
     def _element_constructor_(self, x):
@@ -293,83 +339,27 @@ class Gap(Parent):
             [ 1/3, 2/3, 4/5 ]
             sage: libgap(vector((1/3, 0.8, 3)))
             [ 0.333333, 0.8, 3. ]
-
+            sage: v = _
+            sage: libgap(v) is v
+            True
         """
-        initialize()
+        # TODO: It might be good to implement a "fast lane" for some built-in
+        # Sage types like Integer (e.g. currently Sage Integers are first
+        # converted to Python ints, and then to GAP Integers, whereas it would
+        # be much faster to convert Sage Integers directly to GAP Integers since
+        # they are both basically mpz_t limbs under the hood).
+
+        # If already a GapElement just return it directly
         if isinstance(x, GapElement):
             return x
-        elif isinstance(x, (list, tuple, Vector)):
-            return make_GapElement_List(self, make_gap_list(x))
-        elif isinstance(x, dict):
-            return make_GapElement_Record(self, make_gap_record(x))
-        elif isinstance(x, bool):
-            # attention: must come before int
-            return make_GapElement_Boolean(self, GAP_True if x else GAP_False)
-        elif isinstance(x, int):
-            return make_GapElement_Integer(self, make_gap_integer(x))
-        elif isinstance(x, basestring):
-            return make_GapElement_String(self, make_gap_string(x))
-        else:
-            try:
-                return x._libgap_()
-            except AttributeError:
-                pass
-            x = str(x._libgap_init_())
-            return make_any_gap_element(self, gap_eval(x))
+        elif isinstance(x, SageObject):
+            # Fast lane for all SageObjects
+            x = x._libgap_()
+            if isinstance(x, GapElement):
+                return x
+            # Otherwise, pass through self.gap() to convert
 
-    def _construct_matrix(self, M):
-        """
-        Construct a LibGAP matrix.
-
-        INPUT:
-
-        - ``M`` -- a matrix.
-
-        OUTPUT:
-
-        A GAP matrix, that is, a list of lists with entries over a
-        common ring.
-
-        EXAMPLES::
-
-            sage: M = libgap._construct_matrix(identity_matrix(ZZ,2)); M
-            [ [ 1, 0 ], [ 0, 1 ] ]
-            sage: M.IsMatrix()
-            true
-
-            sage: M = libgap(identity_matrix(ZZ,2)); M  # syntactic sugar
-            [ [ 1, 0 ], [ 0, 1 ] ]
-            sage: M.IsMatrix()
-            true
-
-            sage: M = libgap(matrix(GF(3),2,2,[4,5,6,7])); M
-            [ [ Z(3)^0, Z(3) ], [ 0*Z(3), Z(3)^0 ] ]
-            sage: M.IsMatrix()
-            true
-
-            sage: x = polygen(QQ, 'x')
-            sage: M = libgap(matrix(QQ['x'],2,2,[x,5,6,7])); M
-            [ [ x, 5 ], [ 6, 7 ] ]
-            sage: M.IsMatrix()
-            true
-
-        TESTS:
-
-        We gracefully handle the case that the conversion fails (:trac:`18039`)::
-
-            sage: F.<a> = GF(9, modulus="first_lexicographic")
-            sage: libgap(Matrix(F, [[a]]))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: conversion of (Givaro) finite field element to GAP not implemented except for fields defined by Conway polynomials.
-        """
-        ring = M.base_ring()
-        try:
-            gap_ring = self(ring)
-        except ValueError:
-            raise TypeError('base ring is not supported by GAP')
-        M_list = map(list, M.rows())
-        return make_GapElement_List(self, make_gap_matrix(M_list, gap_ring))
+        return make_any_gap_element(self, self.gap(x))
 
     def eval(self, gap_command):
         """
@@ -391,19 +381,11 @@ class Gap(Parent):
             sage: libgap.eval('"string"')
             "string"
         """
-        cdef GapElement elem
 
         if not isinstance(gap_command, basestring):
             gap_command = str(gap_command._libgap_init_())
 
-        initialize()
-        elem = make_any_gap_element(self, gap_eval(gap_command))
-
-        # If the element is NULL just return None instead
-        if elem.value == NULL:
-            return None
-
-        return elem
+        return make_any_gap_element(self, self.gap.eval(gap_command))
 
     def load_package(self, pkg):
         """
@@ -415,32 +397,33 @@ class Gap(Parent):
             Traceback (most recent call last):
             ...
             RuntimeError: Error loading GAP package chevie. You may want to
-            install gap_packages SPKG.
+            install the gap_packages SPKG.
         """
-        load_package = self.function_factory('LoadPackage')
-        # Note: For some reason the default package loading error messages are
-        # controlled with InfoWarning and not InfoPackageLoading
-        prev_infolevel = libgap.InfoLevel(libgap.InfoWarning)
-        libgap.SetInfoLevel(libgap.InfoWarning, 0)
-        ret = load_package(pkg)
-        libgap.SetInfoLevel(libgap.InfoWarning, prev_infolevel)
-        if str(ret) == 'fail':
-            raise RuntimeError(f"Error loading GAP package {pkg}.  "
-                               f"You may want to install gap_packages SPKG.")
-        return ret
+        try:
+            return self.gap.load_package(pkg)
+        except RuntimeError as exc:
+            # Catch the exception from gappy and amend it with a Sage-specific
+            # hint.
+            if exc.args[0].startswith('Error loading GAP package'):
+                raise RuntimeError(
+                    exc.args[0] + ' You may want to install the gap_packages '
+                    'SPKG.')
+            else:
+                raise exc
 
     @cached_method
-    def function_factory(self, function_name):
+    def function_factory(self, function):
         """
         Return a GAP function wrapper
 
-        This is almost the same as calling
-        ``libgap.eval(function_name)``, but faster and makes it
-        obvious in your code that you are wrapping a function.
+        This is almost the same as calling ``libgap.eval(function)``, but
+        faster and makes it obvious in your code that you are wrapping a
+        function.
 
         INPUT:
 
-        - ``function_name`` -- string. The name of a GAP function.
+        - ``function`` -- string. The name of a GAP function or a GAP
+          function definition.
 
         OUTPUT:
 
@@ -452,10 +435,106 @@ class Gap(Parent):
         EXAMPLES::
 
             sage: libgap.function_factory('Print')
-            <Gap function "Print">
+            doctest:warning
+            ...
+            DeprecationWarning: use libgap.Print instead...
+            <GAP function "Print">
         """
-        initialize()
-        return make_GapElement_Function(self, gap_eval(function_name))
+        if ';' not in function:
+            deprecation_msg = (
+                f'use libgap.{function} instead; you can reduce overhead by '
+                f'assigning {function} = libgap.{function} if the '
+                f'function will be used repeatedly in your code'
+            )
+        else:
+            # This method has also been used to create and cache anonymous
+            # functions in which case there should be a ';' at least
+            # somewhere in the string
+            deprecation_msg = f'use the libgap.gap_function decorator instead'
+        # TODO: Set correct issue number
+        deprecation(31297, deprecation_msg)
+        return self.eval(function)
+
+    def gap_function(self, func):
+        """
+        Create GAP functions from decorated Sage functions.
+
+        EXAMPLES:
+
+        The code for the GAP function is actually written in the Python
+        function's docstring like so::
+
+            sage: @libgap.gap_function
+            ....: def one():
+            ....:     '''
+            ....:     Returns the multiplicative identity of the ring of integers.
+            ....:
+            ....:     function()
+            ....:         return 1;
+            ....:     end;
+            ....:     '''
+            sage: one
+            <GAP function "one">
+            sage: one()
+            1
+
+        Any text in the docstring before the first line beginning the text
+        ``function()`` is used as the function's docstring.  Any following
+        text is considered part of the function definition:
+
+            sage: one.__doc__
+            'Returns the multiplicative identity of the ring of integers.'
+
+        Note that using this decorator does *not* cause the GAP interpreter
+        to be initialized, so it can be used in module or class-level code.
+        The GAP interpreter will only be initialized (if needed) the first time
+        the function is called.
+
+        Any Python code in the function's body will be disregarded, so this is
+        in effect syntactic sugar for::
+
+            sage: one = libgap.eval('function() return 1; end;')
+
+        with the difference being that it can be used to pre-define GAP
+        functions without invoking the GAP interpreter directly.
+
+        This decorator may also be used on methods in classes.  In this case
+        the ``self``--the instance of the class on which it is defined, is
+        always passed as the first argument to the GAP function, *if* it has
+        a conversion to a GAP type::
+
+            sage: class MyInt(int):
+            ....:     @libgap.gap_function
+            ....:     def n_partitions(self):
+            ....:         '''
+            ....:         Compute the number of integer partitions.
+            ....:
+            ....:         function(n)
+            ....:             local np;
+            ....:             if n < 0 then
+            ....:                 Error("must be a non-negative integer");
+            ....:             fi;
+            ....:             np:= function(n, m)
+            ....:                local i, res;
+            ....:                if n = 0 then
+            ....:                   return 1;
+            ....:                fi;
+            ....:                res:= 0;
+            ....:                for i in [1..Minimum(n,m)] do
+            ....:                   res:= res + np(n-i, i);
+            ....:                od;
+            ....:                return res;
+            ....:             end;
+            ....:             return np(n,n);
+            ....:         end;
+            ....:         '''
+            ....:
+            sage: ten = MyInt(10)
+            sage: ten.n_partitions()
+            42
+        """
+
+        return make_GapElement_Function(self, self.gap.gap_function(func))
 
     def set_global(self, variable, value):
         """
@@ -476,13 +555,9 @@ class Gap(Parent):
             sage: libgap.get_global('FooBar')
             Traceback (most recent call last):
             ...
-            GAPError: Error, VAL_GVAR: No value bound to FooBar
+            GAPError: no value bound to FooBar
         """
-        is_bound = self.function_factory('IsBoundGlobal')
-        bind_global = self.function_factory('BindGlobal')
-        if is_bound(variable):
-            self.unset_global(variable)
-        bind_global(variable, value)
+        return self.gap.set_global(variable, value)
 
     def unset_global(self, variable):
         """
@@ -501,14 +576,18 @@ class Gap(Parent):
             sage: libgap.get_global('FooBar')
             Traceback (most recent call last):
             ...
-            GAPError: Error, VAL_GVAR: No value bound to FooBar
+            GAPError: no value bound to FooBar
         """
-        is_readonlyglobal = self.function_factory('IsReadOnlyGlobal')
-        make_readwrite = self.function_factory('MakeReadWriteGlobal')
-        unbind_global = self.function_factory('UnbindGlobal')
-        if is_readonlyglobal(variable):
-            make_readwrite(variable)
-        unbind_global(variable)
+        if self.gap.IsReadOnlyGlobal(variable):
+            # TODO: Set correct ticket number
+            deprecation(31297,
+                f'{variable} is a read-only global; unsetting of read-only '
+                f'globals is deprecated and will be removed in a future '
+                f'version; if you need to unset a read-only global manually '
+                f'call libgap.MakeReadWriteGlobal({variable!r}) first')
+            self.gap.MakeReadWriteGlobal(variable)
+
+        return self.gap.unset_global(variable)
 
     def get_global(self, variable):
         """
@@ -533,10 +612,15 @@ class Gap(Parent):
             sage: libgap.get_global('FooBar')
             Traceback (most recent call last):
             ...
-            GAPError: Error, VAL_GVAR: No value bound to FooBar
+            GAPError: no value bound to FooBar
         """
-        value_global = self.function_factory('ValueGlobal')
-        return value_global(variable)
+        # TODO: Should this return None like gappy does or still raise a GAP
+        # error?  Perhaps we could raise a DeprecationWarning on the GAPError
+        # case?
+        val = make_any_gap_element(self, self.gap.get_global(variable))
+        if val is None:
+            raise GAPError(f'no value bound to {variable}')
+        return val
 
     def global_context(self, variable, value):
         """
@@ -561,9 +645,7 @@ class Gap(Parent):
             sage: libgap.get_global('FooBar')
             1
         """
-        from sage.libs.gap.context_managers import GlobalVariableContext
-        initialize()
-        return GlobalVariableContext(variable, value)
+        return self.gap.global_context(variable, value)
 
     def set_seed(self, seed=None):
         """
@@ -582,10 +664,7 @@ class Gap(Parent):
         if seed is None:
             seed = current_randstate().ZZ_seed()
 
-        Reset = self.function_factory("Reset")
-        Reset(self.GlobalMersenneTwister, seed)
-        Reset(self.GlobalRandomSource, seed)
-        return seed
+        return self.gap.set_seed(seed)
 
     def _an_element_(self):
         r"""
@@ -630,6 +709,9 @@ class Gap(Parent):
         """
         return self(1)
 
+    def __cinit__(self):
+        self.gap = SageGappy()
+
     def __init__(self):
         r"""
         The Python constructor.
@@ -673,7 +755,7 @@ class Gap(Parent):
 
     def __getattr__(self, name):
         r"""
-        The attributes of the Gap object are the Gap functions, and in some
+        The attributes of the Gap object are the GAP functions, and in some
         cases other global variables from GAP.
 
         INPUT:
@@ -689,20 +771,26 @@ class Gap(Parent):
         EXAMPLES::
 
             sage: libgap.List
-            <Gap function "List">
+            <GAP function "List">
             sage: libgap.GlobalRandomSource
             <RandomSource in IsGlobalRandomSource>
         """
-        if name in dir(self.__class__):
-            return getattr(self.__class__, name)
 
+        # First try to get attributes from the category which is necessary
+        # for coercion to work; for some reason when this is a pure Python
+        # class we don't need this, but for cdef classes it doesn't go
+        # through CategoryObject's __getattr__
         try:
-            g = self.eval(name)
-        except ValueError:
-            raise AttributeError(f'No such attribute: {name}.')
+            return self.getattr_from_category(name)
+        except AttributeError:
+            pass
 
-        self.__dict__[name] = g
-        return g
+        val = getattr(self.gap, name)
+        if isinstance(val, GapObj):
+            # Wrap GapObjs as GapElements
+            val = make_any_gap_element(self, val)
+
+        return val
 
     def show(self):
         """
@@ -746,10 +834,7 @@ class Gap(Parent):
              'nelements': 23123,
              'total_alloc': 3234234}
         """
-        d = {'nelements': self.count_GAP_objects()}
-        d['total_alloc'] = self.eval('TotalMemoryAllocated()').sage()
-        d['gasman_stats'] = self.eval('GasmanStatistics()').sage()
-        return d
+        return self.gap.show()
 
     def count_GAP_objects(self):
         """
@@ -765,7 +850,7 @@ class Gap(Parent):
             sage: libgap.count_GAP_objects()   # random output
             5
         """
-        return len(get_owned_objects())
+        return self.gap.count_GAP_objects()
 
     def collect(self):
         """
@@ -777,10 +862,9 @@ class Gap(Parent):
             sage: del a
             sage: libgap.collect()
         """
-        initialize()
-        rc = CollectBags(0, 1)
-        if rc != 1:
-            raise RuntimeError('Garbage collection failed.')
+        return self.gap.collect()
 
 
 libgap = Gap()
+libgap.gap.register_converter(GapElement, _gapelement_to_gapobj)
+libgap.gap.register_converter(SageObject, _sageobject_to_gapobj)

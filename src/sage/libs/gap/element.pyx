@@ -16,265 +16,27 @@ elements. For general information about GAP, you should read the
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
-from cysignals.signals cimport sig_on, sig_off
+import warnings
 
-from .gap_includes cimport *
-from .libgap import libgap
-from .util cimport *
-from .util import GAPError
-from sage.cpython.string cimport str_to_bytes, char_to_str
-from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object cimport SageObject
-from sage.structure.parent import Parent
 from sage.rings.all import ZZ, QQ, RDF
 
 from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
 from sage.combinat.permutation import Permutation
 from sage.structure.coerce cimport coercion_model as cm
 
-decode_type_number = {
-    0: 'T_INT (integer)',
-    T_INTPOS: 'T_INTPOS (positive integer)',
-    T_INTNEG: 'T_INTNEG (negative integer)',
-    T_RAT: 'T_RAT (rational number)',
-    T_CYC: 'T_CYC (universal cyclotomic)',
-    T_FFE: 'T_FFE (finite field element)',
-    T_PERM2: 'T_PERM2',
-    T_PERM4: 'T_PERM4',
-    T_BOOL: 'T_BOOL',
-    T_CHAR: 'T_CHAR',
-    T_FUNCTION: 'T_FUNCTION',
-    T_PLIST: 'T_PLIST',
-    T_PLIST_CYC: 'T_PLIST_CYC',
-    T_BLIST: 'T_BLIST',
-    T_STRING: 'T_STRING',
-    T_MACFLOAT: 'T_MACFLOAT (hardware floating point number)',
-    T_COMOBJ: 'T_COMOBJ (component object)',
-    T_POSOBJ: 'T_POSOBJ (positional object)',
-    T_DATOBJ: 'T_DATOBJ (data object)',
-    T_WPOBJ:  'T_WPOBJ (weak pointer object)',
-    }
-
-############################################################################
-### helper functions to construct lists and records ########################
-############################################################################
-
-cdef Obj make_gap_list(sage_list) except NULL:
-    """
-    Convert Sage lists into Gap lists
-
-    INPUT:
-
-    - ``a`` -- list of :class:`GapElement`.
-
-    OUTPUT:
-
-    The list of the elements in ``a`` as a Gap ``Obj``.
-    """
-    cdef GapElement l = libgap.eval('[]')
-    cdef GapElement elem
-    for x in sage_list:
-        if not isinstance(x, GapElement):
-            elem = <GapElement>libgap(x)
-        else:
-            elem = <GapElement>x
-
-        AddList(l.value, elem.value)
-    return l.value
-
-
-cdef Obj make_gap_matrix(sage_list, gap_ring) except NULL:
-    """
-    Convert Sage lists into Gap matrices
-
-    INPUT:
-
-    - ``sage_list`` -- list of :class:`GapElement`.
-
-    - ``gap_ring`` -- the base ring
-
-    If ``gap_ring`` is ``None``, nothing is made to make sure
-    that all coefficients live in the same Gap ring. The resulting Gap list
-    may not be recognized as a matrix by Gap.
-
-    OUTPUT:
-
-    The list of the elements in ``sage_list`` as a Gap ``Obj``.
-    """
-    cdef GapElement l = libgap.eval('[]')
-    cdef GapElement elem
-    cdef GapElement one
-    if gap_ring is not None:
-        one = <GapElement>gap_ring.One()
-    else:
-        one = <GapElement>libgap(1)
-    for x in sage_list:
-        if not isinstance(x, GapElement):
-            elem = <GapElement>libgap(x)
-            elem = elem * one
-        else:
-            elem = <GapElement>x
-
-        AddList(l.value, elem.value)
-    return l.value
-
-
-cdef char *capture_stdout(Obj func, Obj obj):
-    """
-    Call a single-argument GAP function ``func`` with the argument ``obj``
-    and return the stdout from that function call.
-
-    This can be used to capture the output of GAP functions that are used to
-    print objects such as ``Print()`` and ``ViewObj()``.
-    """
-    cdef Obj s, stream, output_text_string
-    cdef UInt res
-    # The only way to get a string representation of an object that is truly
-    # consistent with how it would be represented at the GAP REPL is to call
-    # ViewObj on it.  Unfortunately, ViewObj *prints* to the output stream,
-    # and there is no equivalent that simply returns the string that would be
-    # printed.  The closest approximation would be DisplayString, but this
-    # bypasses any type-specific overrides for ViewObj so for many objects
-    # that does not give consistent results.
-    # TODO: This is probably needlessly slow, but we might need better
-    # support from GAP to improve this...
-    try:
-        GAP_Enter()
-        s = NEW_STRING(0)
-        output_text_string = GAP_ValueGlobalVariable("OutputTextString")
-        stream = CALL_2ARGS(output_text_string, s, GAP_True)
-
-        if not OpenOutputStream(stream):
-            raise GAPError("failed to open output capture stream for "
-                           "representing GAP object")
-
-        CALL_1ARGS(func, obj)
-        CloseOutput()
-        return CSTR_STRING(s)
-    finally:
-        GAP_Leave()
-
-
-cdef char *gap_element_repr(Obj obj):
-    """
-    Implement ``repr()`` of ``GapElement``s using the ``ViewObj()`` function,
-    which is by default closest to what you get when displaying an object in
-    GAP on the command-line (i.e. when evaluating an expression that returns
-    that object.
-    """
-
-    cdef Obj func = GAP_ValueGlobalVariable("ViewObj")
-    return capture_stdout(func, obj)
-
-
-cdef char *gap_element_str(Obj obj):
-    """
-    Implement ``str()`` of ``GapElement``s using the ``Print()`` function.
-
-    This mirrors somewhat how Python uses ``str()`` on an object when passing
-    it to the ``print()`` function.  This is also how the GAP pexpect interface
-    has traditionally repr'd objects; for the libgap interface we take a
-    slightly different approach more closely mirroring Python's str/repr
-    difference (though this does not map perfectly onto GAP).
-    """
-    cdef Obj func = GAP_ValueGlobalVariable("Print")
-    return capture_stdout(func, obj)
-
-
-cdef Obj make_gap_record(sage_dict) except NULL:
-    """
-    Convert Sage lists into Gap lists
-
-    INPUT:
-
-    - ``a`` -- list of :class:`GapElement`.
-
-    OUTPUT:
-
-    The list of the elements in ``a`` as a Gap ``Obj``.
-
-    TESTS::
-
-        sage: libgap({'a': 1, 'b':123})   # indirect doctest
-        rec( a := 1, b := 123 )
-    """
-    data = [ (str(key), libgap(value)) for key, value in sage_dict.iteritems() ]
-
-    cdef Obj rec
-    cdef GapElement val
-    cdef UInt rnam
-
-    try:
-        GAP_Enter()
-        rec = NEW_PREC(len(data))
-        for d in data:
-            key, val = d
-            rnam = RNamName(str_to_bytes(key))
-            AssPRec(rec, rnam, val.value)
-        return rec
-    finally:
-        GAP_Leave()
-
-
-cdef Obj make_gap_integer(sage_int) except NULL:
-    """
-    Convert Sage integer into Gap integer
-
-    INPUT:
-
-    - ``sage_int`` -- a Sage integer.
-
-    OUTPUT:
-
-    The integer as a GAP ``Obj``.
-
-    TESTS::
-
-        sage: libgap(1)   # indirect doctest
-        1
-    """
-    cdef Obj result
-    try:
-        GAP_Enter()
-        result = INTOBJ_INT(<int>sage_int)
-        return result
-    finally:
-        GAP_Leave()
-
-
-cdef Obj make_gap_string(sage_string) except NULL:
-    """
-    Convert a Python string to a Gap string
-
-    INPUT:
-
-    - ``sage_string`` -- a Python str.
-
-    OUTPUT:
-
-    The string as a GAP ``Obj``.
-
-    TESTS::
-
-        sage: libgap('string')   # indirect doctest
-        "string"
-    """
-    cdef Obj result
-    try:
-        GAP_Enter()
-        b = str_to_bytes(sage_string)
-        C_NEW_STRING(result, len(b), b)
-        return result
-    finally:
-        GAP_Leave()
+from gappy import gapobj
+from gappy.gapobj import GapObj
+from gappy.gapobj cimport GapObj
+from gappy.gap_includes cimport GAP_NewPlist, GAP_AssList
+from gappy.operations import OperationInspector
 
 
 ############################################################################
 ### generic construction of GapElements ####################################
 ############################################################################
 
-cdef GapElement make_any_gap_element(parent, Obj obj):
+cdef GapElement make_any_gap_element(parent, GapObj obj):
     """
     Return the GAP element wrapper of ``obj``
 
@@ -310,59 +72,22 @@ cdef GapElement make_any_gap_element(parent, Obj obj):
         sage: irr[1]
         0
     """
-    cdef int num
+    cdef GapElement elem
 
-    try:
-        GAP_Enter()
-        if obj is NULL:
-            return make_GapElement(parent, obj)
-        num = TNUM_OBJ(obj)
-        if IS_INT(obj):
-            return make_GapElement_Integer(parent, obj)
-        elif num == T_MACFLOAT:
-            return make_GapElement_Float(parent, obj)
-        elif num == T_CYC:
-            return make_GapElement_Cyclotomic(parent, obj)
-        elif num == T_FFE:
-            return make_GapElement_FiniteField(parent, obj)
-        elif num == T_RAT:
-            return make_GapElement_Rational(parent, obj)
-        elif num == T_BOOL:
-            return make_GapElement_Boolean(parent, obj)
-        elif num == T_FUNCTION:
-            return make_GapElement_Function(parent, obj)
-        elif num == T_PERM2 or num == T_PERM4:
-            return make_GapElement_Permutation(parent, obj)
-        elif IS_REC(obj):
-            return make_GapElement_Record(parent, obj)
-        elif IS_LIST(obj) and LEN_LIST(obj) == 0:
-            # Empty lists are lists and not strings in Python
-            return make_GapElement_List(parent, obj)
-        elif IsStringConv(obj):
-            # GAP strings are lists, too. Make sure this comes before non-empty make_GapElement_List
-            return make_GapElement_String(parent, obj)
-        elif IS_LIST(obj):
-            return make_GapElement_List(parent, obj)
-        elif num == T_CHAR:
-            ch = make_GapElement(parent, obj).IntChar().sage()
-            return make_GapElement_String(parent, make_gap_string(chr(ch)))
-        result = make_GapElement(parent, obj)
-        if num == T_POSOBJ:
-            if result.IsZmodnZObj():
-                return make_GapElement_IntegerMod(parent, obj)
-        if num == T_COMOBJ:
-            if result.IsRing():
-                return make_GapElement_Ring(parent, obj)
-        return result
-    finally:
-        GAP_Leave()
+    if obj is None:
+        return obj
+
+    elem_cls = _gapobj_to_element.get(type(obj), GapElement)
+    elem = elem_cls.__new__(elem_cls)
+    elem._initialize(parent, obj)
+    return elem
 
 
 ############################################################################
 ### GapElement #############################################################
 ############################################################################
 
-cdef GapElement make_GapElement(parent, Obj obj):
+cdef GapElement make_GapElement(parent, GapObj obj):
     r"""
     Turn a Gap C object (of type ``Obj``) into a Cython ``GapElement``.
 
@@ -386,9 +111,7 @@ cdef GapElement make_GapElement(parent, Obj obj):
 
         sage: libgap.eval('')
         sage: libgap(None)
-        Traceback (most recent call last):
-        ...
-        AttributeError: 'NoneType' object has no attribute '_libgap_init_'
+        NULL
     """
     cdef GapElement r = GapElement.__new__(GapElement)
     r._initialize(parent, obj)
@@ -400,6 +123,8 @@ cpdef _from_sage(elem):
     Currently just used for unpickling; equivalent to calling ``libgap(elem)``
     to convert a Sage object to a `GapElement` where possible.
     """
+    from sage.libs.gap.libgap import libgap
+
     if isinstance(elem, str):
         return libgap.eval(elem)
 
@@ -447,7 +172,7 @@ cdef class GapElement(RingElement):
             sage: libgap.eval('1')
             1
         """
-        self.value = NULL
+        self.obj = None
         self._compare_by_id = False
 
     def __init__(self):
@@ -468,7 +193,7 @@ cdef class GapElement(RingElement):
         """
         raise TypeError('this class cannot be instantiated from Python')
 
-    cdef _initialize(self, parent, Obj obj):
+    cdef _initialize(self, parent, GapObj obj):
         r"""
         Initialize the GapElement.
 
@@ -490,32 +215,9 @@ cdef class GapElement(RingElement):
             sage: n_after - n_before
             3
         """
-        assert self.value is NULL
+        assert self.obj is None
         self._parent = parent
-        self.value = obj
-        if obj is NULL:
-            return
-        reference_obj(obj)
-
-    def __dealloc__(self):
-        r"""
-        The Cython destructor
-
-        TESTS::
-
-            sage: pre_refcount = libgap.count_GAP_objects()
-            sage: def f():
-            ....:     local_variable = libgap.eval('"This is a new string"')
-            sage: f()
-            sage: f()
-            sage: f()
-            sage: post_refcount = libgap.count_GAP_objects()
-            sage: post_refcount - pre_refcount
-            0
-        """
-        if self.value is NULL:
-            return
-        dereference_obj(self.value)
+        self.obj = obj
 
     def __copy__(self):
         r"""
@@ -547,10 +249,11 @@ cdef class GapElement(RingElement):
             sage: a
             [ [ 0, -2 ], [ 2, 3, 4 ] ]
         """
-        if IS_MUTABLE_OBJ(self.value):
-            return make_any_gap_element(self.parent(), SHALLOW_COPY_OBJ(self.value))
-        else:
+        copy = self.obj.__copy__()
+        if copy is self.obj:
             return self
+        else:
+            return make_any_gap_element(self.parent(), copy)
 
     cpdef GapElement deepcopy(self, bint mut):
         r"""
@@ -579,10 +282,7 @@ cdef class GapElement(RingElement):
             sage: l.deepcopy(1).IsMutable()
             true
         """
-        if IS_MUTABLE_OBJ(self.value):
-            return make_any_gap_element(self.parent(), CopyObj(self.value, mut))
-        else:
-            return self
+        return make_any_gap_element(self.parent(), self.obj.deepcopy(mut))
 
     def __deepcopy__(self, memo):
         r"""
@@ -652,29 +352,7 @@ cdef class GapElement(RingElement):
             ...
             GAPError: Error, no method found! Error, no 1st choice method found for `in' on 2 arguments
         """
-        GAP_IN = libgap.eval(r'\in')
-        return GAP_IN(other, self).sage()
-
-    cpdef _type_number(self):
-        """
-        Return the GAP internal type number.
-
-        This is only useful for libgap development purposes.
-
-        OUTPUT:
-
-        Integer.
-
-        EXAMPLES::
-
-            sage: x = libgap(1)
-            sage: x._type_number()
-            (0, 'T_INT (integer)')
-        """
-        n = TNUM_OBJ(self.value)
-        global decode_type_number
-        name = decode_type_number.get(n, 'unknown')
-        return (n, name)
+        return self.obj.__contains__(other)
 
     def __dir__(self):
         """
@@ -691,8 +369,7 @@ cdef class GapElement(RingElement):
             sage: len(dir(x)) > 100
             True
         """
-        from sage.libs.gap.operations import OperationInspector
-        ops = OperationInspector(self).op_names()
+        ops = OperationInspector(self.obj).op_names()
         return dir(self.__class__) + ops
 
     def __getattr__(self, name):
@@ -720,7 +397,7 @@ cdef class GapElement(RingElement):
             sage: lst.Adddddd(1)
             Traceback (most recent call last):
             ...
-            AttributeError: 'Adddddd' is not defined in GAP
+            AttributeError: no GAP global variable bound to 'Adddddd'
 
             sage: libgap.eval('some_name := 1')
             1
@@ -729,16 +406,18 @@ cdef class GapElement(RingElement):
             ...
             AttributeError: 'some_name' does not define a GAP function
         """
+        # TODO: I don't think this is needed but keeping it in case there is
+        # some weird backwards-compat need for it.  Try removing this later
+        # and see if it breaks anything.
         if name in ('__dict__', '_getAttributeNames', '__custom_name', 'keys'):
             raise AttributeError('Python special name, not a GAP function.')
-        try:
-            proxy = make_GapElement_MethodProxy\
-                (self.parent(), gap_eval(name), self)
-        except GAPError:
-            raise AttributeError(f"'{name}' is not defined in GAP")
-        if not proxy.is_function():
+
+        func = self.obj.__getattr__(name)
+
+        if not func.is_function():
             raise AttributeError(f"'{name}' does not define a GAP function")
-        return proxy
+
+        return make_GapElement_MethodProxy(self.parent(), func, self)
 
     def __str__(self):
         r"""
@@ -757,11 +436,7 @@ cdef class GapElement(RingElement):
             sage: libgap(0).__str__()
             '0'
         """
-        if  self.value == NULL:
-            return 'NULL'
-
-        s = char_to_str(gap_element_str(self.value))
-        return s.strip()
+        return self.obj.__str__()
 
     def _repr_(self):
         r"""
@@ -779,11 +454,7 @@ cdef class GapElement(RingElement):
             sage: libgap(0)._repr_()
             '0'
         """
-        if  self.value == NULL:
-            return 'NULL'
-
-        s = char_to_str(gap_element_repr(self.value))
-        return s.strip()
+        return self.obj.__repr__()
 
     cpdef _set_compare_by_id(self):
         """
@@ -821,7 +492,7 @@ cdef class GapElement(RingElement):
             sage: F1 != F2
             True
         """
-        self._compare_by_id = True
+        self.obj._set_compare_by_id()
 
     cpdef _assert_compare_by_id(self):
         """
@@ -846,8 +517,7 @@ cdef class GapElement(RingElement):
             sage: x._set_compare_by_id()
             sage: x._assert_compare_by_id()
         """
-        if not self._compare_by_id:
-            raise ValueError('this requires a GAP object whose comparison is by "id"')
+        self.obj._assert_compare_by_id()
 
     def __hash__(self):
         """
@@ -858,7 +528,7 @@ cdef class GapElement(RingElement):
             sage: hash(libgap(123))   # random output
             163512108404620371
         """
-        return hash(str(self))
+        return hash((type(self), str(self)))
 
     cpdef _richcmp_(self, other, int op):
         """
@@ -921,66 +591,7 @@ cdef class GapElement(RingElement):
             sage: libgap(1) >= 1
             True
         """
-        if self._compare_by_id != (<GapElement>other)._compare_by_id:
-            raise ValueError("comparison style must be the same for both operands")
-        if op==Py_LT:
-            return self._compare_less(other)
-        elif op==Py_LE:
-            return self._compare_equal(other) or self._compare_less(other)
-        elif op == Py_EQ:
-            return self._compare_equal(other)
-        elif op == Py_GT:
-            return not self._compare_less(other) and not self._compare_equal(other)
-        elif op == Py_GE:
-            return not self._compare_less(other)
-        elif op == Py_NE:
-            return not self._compare_equal(other)
-        else:
-            assert False  # unreachable
-
-    cdef bint _compare_equal(self, Element other) except -2:
-        """
-        Compare ``self`` with ``other``.
-
-        Helper for :meth:`_richcmp_`
-
-        EXAMPLES::
-
-            sage: libgap(1) == libgap(1)   # indirect doctest
-            True
-        """
-        if self._compare_by_id:
-            return id(self) == id(other)
-        cdef GapElement c_other = <GapElement>other
-        sig_on()
-        try:
-            GAP_Enter()
-            return EQ(self.value, c_other.value)
-        finally:
-            GAP_Leave()
-            sig_off()
-
-    cdef bint _compare_less(self, Element other) except -2:
-        """
-        Compare ``self`` with ``other``.
-
-        Helper for :meth:`_richcmp_`
-
-        EXAMPLES::
-
-            sage: libgap(1) < libgap(2)   # indirect doctest
-            True
-        """
-        if self._compare_by_id:
-            return id(self) < id(other)
-        cdef GapElement c_other = <GapElement>other
-        sig_on()
-        try:
-            GAP_Enter()
-            return LT(self.value, c_other.value)
-        finally:
-            GAP_Leave()
-            sig_off()
+        return self.obj._richcmp_((<GapElement>other).obj, op)
 
     cpdef _add_(self, right):
         r"""
@@ -1001,15 +612,9 @@ cdef class GapElement(RingElement):
             GAPError: Error, no method found!
             Error, no 1st choice method found for `+' on 2 arguments
         """
-        cdef Obj result
-        try:
-            sig_GAP_Enter()
-            sig_on()
-            result = SUM(self.value, (<GapElement>right).value)
-            sig_off()
-        finally:
-            GAP_Leave()
-        return make_any_gap_element(self.parent(), result)
+        cdef GapObj res
+        res = self.obj._add_((<GapElement>right).obj)
+        return make_any_gap_element(self.parent(), res)
 
     cpdef _sub_(self, right):
         r"""
@@ -1029,16 +634,9 @@ cdef class GapElement(RingElement):
             ...
             GAPError: Error, no method found! ...
         """
-        cdef Obj result
-        try:
-            sig_GAP_Enter()
-            sig_on()
-            result = DIFF(self.value, (<GapElement>right).value)
-            sig_off()
-        finally:
-            GAP_Leave()
-        return make_any_gap_element(self.parent(), result)
-
+        cdef GapObj res
+        res = self.obj._sub_((<GapElement>right).obj)
+        return make_any_gap_element(self.parent(), res)
 
     cpdef _mul_(self, right):
         r"""
@@ -1059,15 +657,9 @@ cdef class GapElement(RingElement):
             GAPError: Error, no method found!
             Error, no 1st choice method found for `*' on 2 arguments
         """
-        cdef Obj result
-        try:
-            sig_GAP_Enter()
-            sig_on()
-            result = PROD(self.value, (<GapElement>right).value)
-            sig_off()
-        finally:
-            GAP_Leave()
-        return make_any_gap_element(self.parent(), result)
+        cdef GapObj res
+        res = self.obj._mul_((<GapElement>right).obj)
+        return make_any_gap_element(self.parent(), res)
 
     cpdef _div_(self, right):
         r"""
@@ -1093,15 +685,9 @@ cdef class GapElement(RingElement):
             ...
             GAPError: Error, Rational operations: <divisor> must not be zero
         """
-        cdef Obj result
-        try:
-            sig_GAP_Enter()
-            sig_on()
-            result = QUO(self.value, (<GapElement>right).value)
-            sig_off()
-        finally:
-            GAP_Leave()
-        return make_any_gap_element(self.parent(), result)
+        cdef GapObj res
+        res = self.obj._div_((<GapElement>right).obj)
+        return make_any_gap_element(self.parent(), res)
 
     cpdef _mod_(self, right):
         r"""
@@ -1120,15 +706,9 @@ cdef class GapElement(RingElement):
             GAPError: Error, no method found!
             Error, no 1st choice method found for `mod' on 2 arguments
         """
-        cdef Obj result
-        try:
-            sig_GAP_Enter()
-            sig_on()
-            result = MOD(self.value, (<GapElement>right).value)
-            sig_off()
-        finally:
-            GAP_Leave()
-        return make_any_gap_element(self.parent(), result)
+        cdef GapObj res
+        res = self.obj._mod_((<GapElement>right).obj)
+        return make_any_gap_element(self.parent(), res)
 
     cpdef _pow_(self, other):
         r"""
@@ -1170,14 +750,9 @@ cdef class GapElement(RingElement):
             GAPError: Error, no method found! Error, no 1st choice
             method found for `InverseMutable' on 1 arguments
         """
-        try:
-            sig_GAP_Enter()
-            sig_on()
-            result = POW(self.value, (<GapElement>other).value)
-            sig_off()
-        finally:
-            GAP_Leave()
-        return make_any_gap_element(self._parent, result)
+        cdef GapObj res
+        res = self.obj._pow_((<GapElement>other).obj)
+        return make_any_gap_element(self.parent(), res)
 
     cpdef _pow_int(self, other):
         """
@@ -1205,7 +780,7 @@ cdef class GapElement(RingElement):
             sage: a.is_function()
             False
         """
-        return IS_FUNC(self.value)
+        return self.obj.is_function()
 
     def is_list(self):
         r"""
@@ -1222,7 +797,7 @@ cdef class GapElement(RingElement):
             sage: libgap.eval('3/2').is_list()
             False
         """
-        return IS_LIST(self.value)
+        return self.obj.is_list()
 
     def is_record(self):
         r"""
@@ -1239,7 +814,7 @@ cdef class GapElement(RingElement):
             sage: libgap.eval('rec(a:=1, b:=3)').is_record()
             True
         """
-        return IS_REC(self.value)
+        return self.obj.is_record()
 
     cpdef is_bool(self):
         r"""
@@ -1254,10 +829,7 @@ cdef class GapElement(RingElement):
             sage: libgap(True).is_bool()
             True
         """
-        libgap = self.parent()
-        cdef GapElement r_sage = libgap.IsBool(self)
-        cdef Obj r_gap = r_sage.value
-        return r_gap == GAP_True
+        return self.obj.is_bool()
 
     def is_string(self):
         r"""
@@ -1272,7 +844,7 @@ cdef class GapElement(RingElement):
             sage: libgap('this is a string').is_string()
             True
         """
-        return IS_STRING(self.value)
+        return self.obj.is_string()
 
     def is_permutation(self):
         r"""
@@ -1291,8 +863,7 @@ cdef class GapElement(RingElement):
             sage: libgap('this is a string').is_permutation()
             False
         """
-        return (TNUM_OBJ(self.value) == T_PERM2 or
-                TNUM_OBJ(self.value) == T_PERM4)
+        return self.obj.is_permutation()
 
     def sage(self):
         r"""
@@ -1360,7 +931,7 @@ cdef class GapElement(RingElement):
             sage: p.sage()
             x^2 - 2*x
         """
-        if self.value is NULL:
+        if self.obj is None:
             return None
 
         if self.IsInfinity():
@@ -1410,7 +981,7 @@ cdef class GapElement(RingElement):
 ### GapElement_Integer #####################################################
 ############################################################################
 
-cdef GapElement_Integer make_GapElement_Integer(parent, Obj obj):
+cdef GapElement_Integer make_GapElement_Integer(parent, GapObj obj):
     r"""
     Turn a Gap integer object into a GapElement_Integer Sage object
 
@@ -1469,7 +1040,10 @@ cdef class GapElement_Integer(GapElement):
             sage: N.IsInt()
             true
         """
-        return IS_INTOBJ(self.value)
+        # TODO: Maybe deprecate this method?  It's really only used internally
+        # (in fact not even anymore since its functionality is delegated to
+        # gappy) and shouldn't be a detail any other code needs to care about.
+        return self.obj.is_C_int()
 
     def _rational_(self):
         r"""
@@ -1519,15 +1093,8 @@ cdef class GapElement_Integer(GapElement):
         """
         if ring is None:
             ring = ZZ
-        if self.is_C_int():
-            return ring(INT_INTOBJ(self.value))
-        else:
-            # TODO: waste of time!
-            # gap integers are stored as a mp_limb_t and we have a much more direct
-            # conversion implemented in mpz_get_pylong(mpz_srcptr z)
-            # (see sage.libs.gmp.pylong)
-            string = self.String().sage()
-            return ring(string)
+
+        return ring(int(self.obj))
 
     _integer_ = sage
 
@@ -1566,7 +1133,7 @@ cdef class GapElement_Integer(GapElement):
 ### GapElement_Float #####################################################
 ##########################################################################
 
-cdef GapElement_Float make_GapElement_Float(parent, Obj obj):
+cdef GapElement_Float make_GapElement_Float(parent, GapObj obj):
     r"""
     Turn a Gap macfloat object into a GapElement_Float Sage object
 
@@ -1622,7 +1189,7 @@ cdef class GapElement_Float(GapElement):
         """
         if ring is None:
             ring = RDF
-        return ring(VAL_MACFLOAT(self.value))
+        return ring(float(self.obj))
 
     def __float__(self):
         r"""
@@ -1631,15 +1198,14 @@ cdef class GapElement_Float(GapElement):
             sage: float(libgap.eval("Float(3.5)"))
             3.5
         """
-        return VAL_MACFLOAT(self.value)
-
+        return float(self.obj)
 
 
 ############################################################################
 ### GapElement_IntegerMod #####################################################
 ############################################################################
 
-cdef GapElement_IntegerMod make_GapElement_IntegerMod(parent, Obj obj):
+cdef GapElement_IntegerMod make_GapElement_IntegerMod(parent, GapObj obj):
     r"""
     Turn a Gap integer object into a :class:`GapElement_IntegerMod` Sage object
 
@@ -1686,7 +1252,6 @@ cdef class GapElement_IntegerMod(GapElement):
         """
         return self.Int()
 
-
     def sage(self, ring=None):
         r"""
         Return the Sage equivalent of the :class:`GapElement_IntegerMod`
@@ -1720,7 +1285,7 @@ cdef class GapElement_IntegerMod(GapElement):
 ### GapElement_FiniteField #####################################################
 ############################################################################
 
-cdef GapElement_FiniteField make_GapElement_FiniteField(parent, Obj obj):
+cdef GapElement_FiniteField make_GapElement_FiniteField(parent, GapObj obj):
     r"""
     Turn a GAP finite field object into a :class:`GapElement_FiniteField` Sage object
 
@@ -1775,7 +1340,6 @@ cdef class GapElement_FiniteField(GapElement):
             return self.IntFFE()
         else:
             raise TypeError('not in prime subfield')
-
 
     def sage(self, ring=None, var='a'):
         r"""
@@ -1860,7 +1424,8 @@ cdef class GapElement_FiniteField(GapElement):
         if deg == 1 and char == ring.characteristic():
             return ring(self.lift().sage())
         else:
-            gap_field = make_GapElement_Ring(self.parent(), gap_eval(ring._gap_init_()))
+            gap_field = make_GapElement_Ring(self.parent(),
+                                             self.parent().gap(ring))
             exp = self.LogFFE(gap_field.PrimitiveRoot())
             return ring.multiplicative_generator() ** exp.sage()
 
@@ -1887,7 +1452,7 @@ cdef class GapElement_FiniteField(GapElement):
 ### GapElement_Cyclotomic #####################################################
 ############################################################################
 
-cdef GapElement_Cyclotomic make_GapElement_Cyclotomic(parent, Obj obj):
+cdef GapElement_Cyclotomic make_GapElement_Cyclotomic(parent, GapObj obj):
     r"""
     Turn a Gap cyclotomic object into a :class:`GapElement_Cyclotomic` Sage
     object.
@@ -1975,7 +1540,7 @@ cdef class GapElement_Cyclotomic(GapElement):
 ### GapElement_Rational ####################################################
 ############################################################################
 
-cdef GapElement_Rational make_GapElement_Rational(parent, Obj obj):
+cdef GapElement_Rational make_GapElement_Rational(parent, GapObj obj):
     r"""
     Turn a Gap Rational number (of type ``Obj``) into a Cython ``GapElement_Rational``.
 
@@ -2047,7 +1612,7 @@ cdef class GapElement_Rational(GapElement):
 ### GapElement_Ring #####################################################
 ############################################################################
 
-cdef GapElement_Ring make_GapElement_Ring(parent, Obj obj):
+cdef GapElement_Ring make_GapElement_Ring(parent, GapObj obj):
     r"""
     Turn a Gap integer object into a :class:`GapElement_Ring` Sage
     object.
@@ -2211,7 +1776,7 @@ cdef class GapElement_Ring(GapElement):
 ### GapElement_Boolean #####################################################
 ############################################################################
 
-cdef GapElement_Boolean make_GapElement_Boolean(parent, Obj obj):
+cdef GapElement_Boolean make_GapElement_Boolean(parent, GapObj obj):
     r"""
     Turn a Gap Boolean number (of type ``Obj``) into a Cython ``GapElement_Boolean``.
 
@@ -2266,13 +1831,12 @@ cdef class GapElement_Boolean(GapElement):
             ...
             ValueError: the GAP boolean value "fail" cannot be represented in Sage
         """
-        if self.value == GAP_True:
-            return True
-        if self.value == GAP_False:
-            return False
-        raise ValueError('the GAP boolean value "fail" cannot be represented in Sage')
+        if repr(self) == 'fail':
+            raise ValueError(
+                'the GAP boolean value "fail" cannot be represented in Sage')
+        return self.obj.__bool__()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Check that the boolean is "true".
 
@@ -2296,14 +1860,14 @@ cdef class GapElement_Boolean(GapElement):
             false <type 'sage.libs.gap.element.GapElement_Boolean'>
             fail <type 'sage.libs.gap.element.GapElement_Boolean'>
         """
-        return self.value == GAP_True
+        return self.obj.__bool__()
 
 
 ############################################################################
 ### GapElement_String ####################################################
 ############################################################################
 
-cdef GapElement_String make_GapElement_String(parent, Obj obj):
+cdef GapElement_String make_GapElement_String(parent, GapObj obj):
     r"""
     Turn a Gap String (of type ``Obj``) into a Cython ``GapElement_String``.
 
@@ -2354,8 +1918,7 @@ cdef class GapElement_String(GapElement):
             sage: type(_)
             <type 'str'>
         """
-        s = char_to_str(CSTR_STRING(self.value))
-        return s
+        return self.obj.__str__()
 
     sage = __str__
 
@@ -2363,7 +1926,7 @@ cdef class GapElement_String(GapElement):
 ### GapElement_Function ####################################################
 ############################################################################
 
-cdef GapElement_Function make_GapElement_Function(parent, Obj obj):
+cdef GapElement_Function make_GapElement_Function(parent, GapObj obj):
     r"""
     Turn a Gap C function object (of type ``Obj``) into a Cython ``GapElement_Function``.
 
@@ -2380,7 +1943,7 @@ cdef GapElement_Function make_GapElement_Function(parent, Obj obj):
     EXAMPLES::
 
         sage: libgap.CycleLength
-        <Gap function "CycleLength">
+        <GAP function "CycleLength">
         sage: type(_)
         <type 'sage.libs.gap.element.GapElement_Function'>
     """
@@ -2400,7 +1963,6 @@ cdef class GapElement_Function(GapElement):
         <type 'sage.libs.gap.element.GapElement_Function'>
     """
 
-
     def __repr__(self):
         r"""
         Return a string representation
@@ -2412,13 +1974,38 @@ cdef class GapElement_Function(GapElement):
         EXAMPLES::
 
             sage: libgap.Orbits
-            <Gap function "Orbits">
+            <GAP function "Orbits">
         """
-        libgap = self.parent()
-        name = libgap.NameFunction(self)
-        s = '<Gap function "'+name.sage()+'">'
-        return s
+        return self.obj.__repr__()
 
+    def __get__(self, obj, cls):
+        """
+        Descriptor protocol for functions.
+
+        When a `GapElement_Function` is defined at the class level, this
+        returns a `GapElement_MethodProxy` wrapping it.  The class to which
+        the "method" belongs must be convertable to GAP elements.
+
+        INPUT:
+
+        - ``obj`` -- The instance of the class on which the descriptor has
+           been accessed, or `None` if it is accessed directly on the class.
+
+        - ``cls`` -- The class on which the descriptor was accessed, or the
+          class of the instance on which it was accessed.
+
+        EXAMPLES:
+
+        See the examples in `~sage.libs.gap.libgap.Gap.gap_function`.
+
+        """
+
+        if obj is None:
+            return self
+
+        return make_GapElement_MethodProxy(self.parent(),
+                                           self.obj.__get__(obj, cls),
+                                           self.parent(obj))
 
     def __call__(self, *args):
         """
@@ -2440,7 +2027,7 @@ cdef class GapElement_Function(GapElement):
             sage: b = libgap.SymmetricGroup(4)
             sage: libgap.collect()
             sage: a
-            <Gap function "NormalSubgroups">
+            <GAP function "NormalSubgroups">
             sage: b
             Sym( [ 1 .. 4 ] )
             sage: sorted(a(b))
@@ -2450,7 +2037,7 @@ cdef class GapElement_Function(GapElement):
              Group([ (1,4)(2,3), (1,2)(3,4) ])]
 
             sage: libgap.eval("a := NormalSubgroups")
-            <Gap function "NormalSubgroups">
+            <GAP function "NormalSubgroups">
             sage: libgap.eval("b := SymmetricGroup(4)")
             Sym( [ 1 .. 4 ] )
             sage: libgap.collect()
@@ -2512,64 +2099,11 @@ cdef class GapElement_Function(GapElement):
             sage: libgap_exec('echo hello from the shell')
             hello from the shell
         """
-        cdef Obj result = NULL
-        cdef Obj arg_list
-        cdef int i, n = len(args)
 
-        if n > 0:
-            libgap = self.parent()
-            a = [x if isinstance(x, GapElement) else libgap(x) for x in args]
+        args = [x if isinstance(x, GapElement) else self.parent(x)
+                for x in args]
 
-        try:
-            sig_GAP_Enter()
-            sig_on()
-            if n == 0:
-                result = CALL_0ARGS(self.value)
-            elif n == 1:
-                result = CALL_1ARGS(self.value,
-                                           (<GapElement>a[0]).value)
-            elif n == 2:
-                result = CALL_2ARGS(self.value,
-                                           (<GapElement>a[0]).value,
-                                           (<GapElement>a[1]).value)
-            elif n == 3:
-                result = CALL_3ARGS(self.value,
-                                           (<GapElement>a[0]).value,
-                                           (<GapElement>a[1]).value,
-                                           (<GapElement>a[2]).value)
-            elif n == 4:
-                result = CALL_4ARGS(self.value,
-                                           (<GapElement>a[0]).value,
-                                           (<GapElement>a[1]).value,
-                                           (<GapElement>a[2]).value,
-                                           (<GapElement>a[3]).value)
-            elif n == 5:
-                result = CALL_5ARGS(self.value,
-                                           (<GapElement>a[0]).value,
-                                           (<GapElement>a[1]).value,
-                                           (<GapElement>a[2]).value,
-                                           (<GapElement>a[3]).value,
-                                           (<GapElement>a[4]).value)
-            elif n == 6:
-                result = CALL_6ARGS(self.value,
-                                           (<GapElement>a[0]).value,
-                                           (<GapElement>a[1]).value,
-                                           (<GapElement>a[2]).value,
-                                           (<GapElement>a[3]).value,
-                                           (<GapElement>a[4]).value,
-                                           (<GapElement>a[5]).value)
-            elif n >= 7:
-                arg_list = make_gap_list(args)
-                result = CALL_XARGS(self.value, arg_list)
-            sig_off()
-        finally:
-            GAP_Leave()
-        if result == NULL:
-            # We called a procedure that does not return anything
-            return None
-        return make_any_gap_element(self.parent(), result)
-
-
+        return make_any_gap_element(self.parent(), self.obj(*args))
 
     def _instancedoc_(self):
         r"""
@@ -2583,18 +2117,14 @@ cdef class GapElement_Function(GapElement):
 
         You would get the full help by typing ``f?`` in the command line.
         """
-        libgap = self.parent()
-        from sage.interfaces.gap import gap
-        return gap.help(libgap.NameFunction(self).sage(), pager=False)
-
-
+        return self.obj.help()
 
 
 ############################################################################
 ### GapElement_MethodProxy #################################################
 ############################################################################
 
-cdef GapElement_MethodProxy make_GapElement_MethodProxy(parent, Obj function, GapElement base_object):
+cdef GapElement_MethodProxy make_GapElement_MethodProxy(parent, GapObj function, GapElement base_object):
     r"""
     Turn a Gap C rec object (of type ``Obj``) into a Cython ``GapElement_Record``.
 
@@ -2639,7 +2169,7 @@ cdef class GapElement_MethodProxy(GapElement_Function):
 
         sage: lst = libgap([])
         sage: lst.Add
-        <Gap function "Add">
+        <GAP function "Add">
         sage: type(_)
         <type 'sage.libs.gap.element.GapElement_MethodProxy'>
         sage: lst.Add(1)
@@ -2673,18 +2203,14 @@ cdef class GapElement_MethodProxy(GapElement_Function):
             sage: lst
             [ 1,, 3, 4, 5 ]
         """
-        if len(args) > 0:
-            return GapElement_Function.__call__(self, * ([self.first_argument] + list(args)))
-        else:
-            return GapElement_Function.__call__(self, self.first_argument)
-
+        return make_any_gap_element(self.parent(), self.obj.__call__(*args))
 
 
 ############################################################################
 ### GapElement_List ########################################################
 ############################################################################
 
-cdef GapElement_List make_GapElement_List(parent, Obj obj):
+cdef GapElement_List make_GapElement_List(parent, GapObj obj):
     r"""
     Turn a Gap C List object (of type ``Obj``) into a Cython ``GapElement_List``.
 
@@ -2765,7 +2291,7 @@ cdef class GapElement_List(GapElement):
             sage: len(lst)
             4
         """
-        return LEN_LIST(self.value)
+        return self.obj.__len__()
 
     def __getitem__(self, i):
         r"""
@@ -2808,24 +2334,7 @@ cdef class GapElement_List(GapElement):
             ...
             ValueError: too many indices
         """
-        cdef int j
-        cdef Obj obj = self.value
-
-        if isinstance(i, tuple):
-            for j in i:
-                if not IS_LIST(obj):
-                    raise ValueError('too many indices')
-                if j < 0 or j >= LEN_LIST(obj):
-                    raise IndexError('index out of range')
-                obj = ELM_LIST(obj, j+1)
-
-        else:
-            j = i
-            if j < 0 or j >= LEN_LIST(obj):
-                raise IndexError('index out of range.')
-            obj = ELM_LIST(obj, j+1)
-
-        return make_any_gap_element(self.parent(), obj)
+        return make_any_gap_element(self.parent(), self.obj.__getitem__(i))
 
     def __setitem__(self, i, elt):
         r"""
@@ -2864,7 +2373,7 @@ cdef class GapElement_List(GapElement):
             sage: u[0] = 5
             Traceback (most recent call last):
             ...
-            TypeError: immutable Gap object does not support item assignment
+            TypeError: immutable GAP object does not support item assignment
 
         TESTS::
 
@@ -2876,35 +2385,7 @@ cdef class GapElement_List(GapElement):
             sage: m
             [ [ 1, 2 ], [ 3, 4 ] ]
         """
-        if not IS_MUTABLE_OBJ(self.value):
-            raise TypeError('immutable Gap object does not support item assignment')
-
-        cdef int j
-        cdef Obj obj = self.value
-
-        if isinstance(i, tuple):
-            for j in i[:-1]:
-                if not IS_LIST(obj):
-                    raise ValueError('too many indices')
-                if j < 0 or j >= LEN_LIST(obj):
-                    raise IndexError('index out of range')
-                obj = ELM_LIST(obj, j+1)
-            if not IS_LIST(obj):
-                raise ValueError('too many indices')
-            j = i[-1]
-        else:
-            j = i
-
-        if j < 0:
-            raise IndexError('index out of range.')
-
-        cdef GapElement celt
-        if isinstance(elt, GapElement):
-            celt = <GapElement> elt
-        else:
-            celt= self.parent()(elt)
-
-        ASS_LIST(obj, j+1, celt.value)
+        self.obj.__setitem__(i, elt)
 
     def sage(self, **kwds):
         r"""
@@ -2921,8 +2402,7 @@ cdef class GapElement_List(GapElement):
             sage: all( x in ZZ for x in _ )
             True
         """
-        return [ x.sage(**kwds) for x in self ]
-
+        return [x.sage(**kwds) for x in self]
 
     def matrix(self, ring=None):
         """
@@ -3022,7 +2502,7 @@ cdef class GapElement_List(GapElement):
 ############################################################################
 
 
-cdef GapElement_Permutation make_GapElement_Permutation(parent, Obj obj):
+cdef GapElement_Permutation make_GapElement_Permutation(parent, GapObj obj):
     r"""
     Turn a Gap C permutation object (of type ``Obj``) into a Cython ``GapElement_Permutation``.
 
@@ -3087,7 +2567,7 @@ cdef class GapElement_Permutation(GapElement):
 ### GapElement_Record ######################################################
 ############################################################################
 
-cdef GapElement_Record make_GapElement_Record(parent, Obj obj):
+cdef GapElement_Record make_GapElement_Record(parent, GapObj obj):
     r"""
     Turn a Gap C rec object (of type ``Obj``) into a Cython ``GapElement_Record``.
 
@@ -3129,7 +2609,7 @@ cdef class GapElement_Record(GapElement):
         sage: rec['no_such_element']
         Traceback (most recent call last):
         ...
-        GAPError: Error, Record Element: '<rec>.no_such_element' must have an assigned value
+        KeyError: 'no_such_element'
     """
 
     def __len__(self):
@@ -3146,7 +2626,7 @@ cdef class GapElement_Record(GapElement):
             sage: len(rec)
             3
         """
-        return LEN_PREC(self.value)
+        return self.obj.__len__()
 
     def __iter__(self):
         r"""
@@ -3161,36 +2641,14 @@ cdef class GapElement_Record(GapElement):
             sage: rec = libgap.eval('rec(a:=123, b:=456)')
             sage: iter = rec.__iter__()
             sage: type(iter)
-            <type 'sage.libs.gap.element.GapElement_RecordIterator'>
+            <class 'generator'>
             sage: sorted(rec)
             [('a', 123), ('b', 456)]
         """
-        return GapElement_RecordIterator(self)
-
-    cpdef UInt record_name_to_index(self, name):
-        r"""
-        Convert string to GAP record index.
-
-        INPUT:
-
-        - ``py_name`` -- a python string.
-
-        OUTPUT:
-
-        A ``UInt``, which is a GAP hash of the string. If this is the
-        first time the string is encountered, a new integer is
-        returned(!)
-
-        EXAMPLES::
-
-            sage: rec = libgap.eval('rec(first:=123, second:=456)')
-            sage: rec.record_name_to_index('first')   # random output
-            1812L
-            sage: rec.record_name_to_index('no_such_name') # random output
-            3776L
-        """
-        name = str_to_bytes(name)
-        return RNamName(name)
+        for k, v in self.obj.__iter__():
+            # Convert GapObjs to GapElements
+            v = make_any_gap_element(self.parent(), v)
+            yield k, v
 
     def __getitem__(self, name):
         r"""
@@ -3210,16 +2668,7 @@ cdef class GapElement_Record(GapElement):
             sage: rec['first']
             123
         """
-        cdef UInt i = self.record_name_to_index(name)
-        cdef Obj result
-        sig_on()
-        try:
-            GAP_Enter()
-            result = ELM_REC(self.value, i)
-        finally:
-            GAP_Leave()
-            sig_off()
-        return make_any_gap_element(self.parent(), result)
+        return make_any_gap_element(self.parent(), self.obj.__getitem__(name))
 
     def sage(self):
         r"""
@@ -3248,71 +2697,65 @@ cdef class GapElement_Record(GapElement):
         return result
 
 
-cdef class GapElement_RecordIterator(object):
+cdef _gapobj_to_element = {}
+"""Maps GapObj subclasses from gappy to Sage GapElement subclasses."""
+
+
+for name, cls in vars(gapobj).items():
+    if name[0] == '_':
+        continue
+
+    if not (isinstance(cls, type) and issubclass(cls, gapobj.GapObj)):
+        continue
+
+    elem_name = 'GapElement'
+    sub = name[3:]  # strip 'Gap' prefix
+    if sub and sub != 'Obj':
+        elem_name += '_' + sub
+
+    try:
+        _gapobj_to_element[cls] = locals()[elem_name]
+    except KeyError:
+        warnings.warn(
+            f'gappy class {name} does not have a corresponding GapElement '
+            f'subclass; it may not be possible to convert these objects to '
+            f'their equivalent Sage objects')
+
+
+cpdef GapObj _sageobject_to_gapobj(SageObject obj, Gap gap):
     r"""
-    Iterator for :class:`GapElement_Record`
+    gappy converter for converting generic `.SageObject`\s to their
+    corresponding `~gappy.gapobj.GapObj` if any.
 
-    Since Cython does not support generators yet, we implement the
-    older iterator specification with this auxiliary class.
-
-    INPUT:
-
-    - ``rec`` -- the :class:`GapElement_Record` to iterate over.
-
-    EXAMPLES::
-
-        sage: rec = libgap.eval('rec(a:=123, b:=456)')
-        sage: sorted(rec)
-        [('a', 123), ('b', 456)]
-        sage: dict(rec)
-        {'a': 123, 'b': 456}
+    This implements the libgap conversion functions already documented for
+    `.SageObject`\s: `.SageObject._libgap_` and `.SageObject._libgap_init_`.
     """
 
-    def __cinit__(self, rec):
-        r"""
-        The Cython constructor.
-
-        INPUT:
-
-        - ``rec`` -- the :class:`GapElement_Record` to iterate over.
-
-        EXAMPLES::
-
-            sage: libgap.eval('rec(a:=123, b:=456)')
-            rec( a := 123, b := 456 )
-        """
-        self.rec = rec
-        self.i = 1
+    # NOTE: In the default implementation of SageObject._libgap_ it defers
+    # to _libgap_init_, so we just need to try calling _libgap_
+    ret = obj._libgap_()
+    if isinstance(ret, GapElement):
+        return (<GapElement>ret).obj
+    elif isinstance(ret, gap.supported_builtins):
+        return gap(ret)
+    elif isinstance(ret, GapObj):
+        return ret
+    else:
+        raise RuntimeError(
+            f'{type(obj).__name__}._libgap_ returned something that cannot '
+            f'be converted to a GAP object: {ret!r}')
 
 
-    def __next__(self):
-        r"""
-        Return the next element in the record.
+cpdef GapObj _gapelement_to_gapobj(GapElement elem, Gap gap):
+    r"""
+    gappy converter function for converting `GapElement`\s to their
+    corresponding `~gappy.gapobj.GapObj`.
 
-        OUTPUT:
+    In this case it simply returns the `~gappy.gapobj.GapObj` wrapped by the
+    `GapElement`.  This allows seamlessly passing `GapElement`\s to gappy.
+    """
 
-        A tuple ``(key, value)`` where ``key`` is a string and
-        ``value`` is the corresponding :class:`GapElement`.
-
-        EXAMPLES::
-
-            sage: rec = libgap.eval('rec(a:=123, b:=456)')
-            sage: iter = rec.__iter__()
-            sage: a = iter.__next__()
-            sage: b = next(iter)
-            sage: sorted([a, b])
-            [('a', 123), ('b', 456)]
-        """
-        cdef UInt i = self.i
-        if i>len(self.rec):
-            raise StopIteration
-        # note the abs: negative values mean the rec keys are not sorted
-        key_index = abs(GET_RNAM_PREC(self.rec.value, i))
-        key = char_to_str(CSTR_STRING(NAME_RNAM(key_index)))
-        cdef Obj result = GET_ELM_PREC(self.rec.value,i)
-        val = make_any_gap_element(self.rec.parent(), result)
-        self.i += 1
-        return (key, val)
+    return elem.obj
 
 
 # Add support for _instancedoc_
