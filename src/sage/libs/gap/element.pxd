@@ -8,46 +8,39 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .gap_includes cimport Obj, UInt
-from sage.structure.sage_object cimport SageObject
+from gappy.core cimport Gap
+from gappy.gapobj cimport GapObj
+from gappy.gap_includes cimport Obj
+
 from sage.structure.element cimport Element, ModuleElement, RingElement
+from sage.structure.sage_object cimport SageObject
 
-cdef Obj make_gap_list(sage_list) except NULL
-cdef Obj make_gap_matrix(sage_list, gap_ring) except NULL
-cdef Obj make_gap_record(sage_dict) except NULL
-cdef Obj make_gap_integer(sage_dict) except NULL
-cdef Obj make_gap_string(sage_string) except NULL
+cdef GapElement make_any_gap_element(parent, GapObj obj)
+cdef GapElement make_GapElement(parent, GapObj obj)
+cdef GapElement_List make_GapElement_List(parent, GapObj obj)
+cdef GapElement_Record make_GapElement_Record(parent, GapObj obj)
+cdef GapElement_Integer make_GapElement_Integer(parent, GapObj obj)
+cdef GapElement_Rational make_GapElement_Rational(parent, GapObj obj)
+cdef GapElement_String make_GapElement_String(parent, GapObj obj)
+cdef GapElement_Boolean make_GapElement_Boolean(parent, GapObj obj)
+cdef GapElement_Function make_GapElement_Function(parent, GapObj obj)
+cdef GapElement_Permutation make_GapElement_Permutation(parent, GapObj obj)
 
-cdef GapElement make_any_gap_element(parent, Obj obj)
-cdef GapElement make_GapElement(parent, Obj obj)
-cdef GapElement_List make_GapElement_List(parent, Obj obj)
-cdef GapElement_Record make_GapElement_Record(parent, Obj obj)
-cdef GapElement_Integer make_GapElement_Integer(parent, Obj obj)
-cdef GapElement_Rational make_GapElement_Rational(parent, Obj obj)
-cdef GapElement_String make_GapElement_String(parent, Obj obj)
-cdef GapElement_Boolean make_GapElement_Boolean(parent, Obj obj)
-cdef GapElement_Function make_GapElement_Function(parent, Obj obj)
-cdef GapElement_Permutation make_GapElement_Permutation(parent, Obj obj)
-
-cdef char *capture_stdout(Obj, Obj)
-cdef char *gap_element_str(Obj)
-cdef char *gap_element_repr(Obj)
+cpdef GapObj _sageobject_to_gapobj(SageObject obj, Gap gap)
+cpdef GapObj _gapelement_to_gapobj(GapElement elem, Gap gap)
 
 
 cdef class GapElement(RingElement):
 
-    # the pointer to the GAP object (memory managed by GASMAN)
-    cdef Obj value
+    # the pointer to the gappy GapObj
+    cdef GapObj obj
 
     # comparison
     cdef bint _compare_by_id
-    cdef bint _compare_equal(self, Element other) except -2
-    cdef bint _compare_less(self, Element other) except -2
     cpdef _set_compare_by_id(self)
     cpdef _assert_compare_by_id(self)
 
-    cdef _initialize(self, parent, Obj obj)
-    cpdef _type_number(self)
+    cdef _initialize(self, parent, GapObj obj)
     cpdef is_bool(self)
     cpdef _add_(self, other)
     cpdef _mul_(self, other)
@@ -87,11 +80,7 @@ cdef class GapElement_MethodProxy(GapElement_Function):
     cdef GapElement first_argument
 
 cdef class GapElement_Record(GapElement):
-    cpdef UInt record_name_to_index(self, name)
-
-cdef class GapElement_RecordIterator(object):
-    cdef GapElement_Record rec
-    cdef UInt i
+    pass
 
 cdef class GapElement_List(GapElement):
     pass
