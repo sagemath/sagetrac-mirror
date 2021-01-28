@@ -328,6 +328,15 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
         Traceback (most recent call last):
         ...
         RuntimeError: ECL says: Console interrupt.
+
+
+    Prints error message if eval fails::
+
+        sage: from sage.libs.ecl import ecl_eval
+        sage: ecl_eval("(setf i 0")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: ECL says: Unexpected end of file on ... while evaluating (setf i 0
     """
     cdef cl_object ret, error = NULL
 
