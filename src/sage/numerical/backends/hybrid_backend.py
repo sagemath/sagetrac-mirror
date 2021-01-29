@@ -22,7 +22,7 @@ AUTHORS:
 from sage.numerical.mip import MIPSolverException
 from sage.modules.all import vector
 
-cdef class HybridBackend:
+class HybridBackend:
 
     """
     A backend that delegates to a sequence of other backends.
@@ -32,9 +32,9 @@ cdef class HybridBackend:
 
     """
 
-    def __cinit__(self, maximization = True, backends = []):
+    def __init__(self, maximization = True, backends = []):
         """
-        Cython constructor
+        Constructor
 
         EXAMPLE::
 
@@ -53,7 +53,7 @@ cdef class HybridBackend:
         else:
             self.set_sense(-1)
 
-    cpdef base_ring(self):
+    def base_ring(self):
         """
         Return the base ring.
 
@@ -70,9 +70,9 @@ cdef class HybridBackend:
         """
         return self.backends[-1].base_ring()
 
-    cpdef int add_variable(self, lower_bound=0, upper_bound=None,
+    def add_variable(self, lower_bound=0, upper_bound=None,
                            binary=False, continuous=True, integer=False,
-                           obj=None, name=None) except -1:
+                           obj=None, name=None):
         """
         Add a variable.
 
@@ -126,7 +126,7 @@ cdef class HybridBackend:
             result = b.add_variable(lower_bound, upper_bound, binary, continuous, integer, obj, name)
         return result
 
-    cpdef int add_variables(self, int n, lower_bound=0, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None) except -1:
+    def add_variables(self, n, lower_bound=0, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None):
         """
         Add ``n`` variables.
 
@@ -170,7 +170,7 @@ cdef class HybridBackend:
             result = b.add_variables(n, lower_bound, upper_bound, binary, continuous, integer, obj, names)
         return result
 
-    cpdef set_variable_type(self, int variable, int vtype):
+    def set_variable_type(self, variable, vtype):
         """
         Set the type of a variable
 
@@ -199,7 +199,7 @@ cdef class HybridBackend:
         for b in self.backends:
             b.set_variable_type(variable, vtype)
 
-    cpdef set_sense(self, int sense):
+    def set_sense(self, sense):
         """
         Set the direction (maximization/minimization).
 
@@ -223,7 +223,7 @@ cdef class HybridBackend:
         for b in self.backends:
             b.set_sense(sense)
 
-    cpdef objective_coefficient(self, int variable, coeff=None):
+    def objective_coefficient(self, variable, coeff=None):
         """
         Set or get the coefficient of a variable in the objective
         function
@@ -252,7 +252,7 @@ cdef class HybridBackend:
             for b in self.backends:
                 b.objective_coefficient(variable, coeff)
 
-    cpdef set_objective(self, list coeff, d = 0):
+    def set_objective(self, coeff, d = 0):
         """
         Set the objective function.
 
@@ -286,7 +286,7 @@ cdef class HybridBackend:
         for b in self.backends:
             b.set_objective(coeff, d)
 
-    cpdef set_verbosity(self, int level):
+    def set_verbosity(self, level):
         """
         Set the log (verbosity) level
 
@@ -303,7 +303,7 @@ cdef class HybridBackend:
         for b in self.backends:
             b.set_verbosity(level)
 
-    cpdef remove_constraint(self, int i):
+    def remove_constraint(self, i):
         r"""
         Remove a constraint.
 
@@ -330,7 +330,7 @@ cdef class HybridBackend:
         for b in self.backends:
             b.remove_constraint(i)
 
-    cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
+    def add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """
         Add a linear constraint.
 
@@ -366,7 +366,7 @@ cdef class HybridBackend:
         for b in self.backends:
             b.add_linear_constraint(coefficients, lower_bound, upper_bound, name)
 
-    cpdef add_col(self, list indices, list coeffs):
+    def add_col(self, indices, coeffs):
         """
         Add a column.
 
@@ -403,7 +403,7 @@ cdef class HybridBackend:
         for b in self.backends:
             b.add_col(indices, coeffs)
 
-    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
+    def add_linear_constraints(self, number, lower_bound, upper_bound, names=None):
         """
         Add constraints.
 
@@ -432,7 +432,7 @@ cdef class HybridBackend:
         for b in self.backends:
             b.add_linear_constraints(number, lower_bound, upper_bound, names)
 
-    cpdef int solve(self) except -1:
+    def solve(self):
         """
         Solve the problem.
 
@@ -459,7 +459,7 @@ cdef class HybridBackend:
         ## FIXME: Call backends, copy bases, ...
         return self.backends[-1].solve()
 
-    cpdef get_objective_value(self):
+    def get_objective_value(self):
         """
         Return the value of the objective function.
 
@@ -486,7 +486,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].get_objective_value()
 
-    cpdef get_variable_value(self, int variable):
+    def get_variable_value(self, variable):
         """
         Return the value of a variable given by the solver.
 
@@ -513,7 +513,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].get_variable_value(variable)
 
-    cpdef int ncols(self):
+    def ncols(self):
         """
         Return the number of columns/variables.
 
@@ -530,7 +530,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].ncols()
 
-    cpdef int nrows(self):
+    def nrows(self):
         """
         Return the number of rows/constraints.
 
@@ -546,7 +546,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].nrows()
 
-    cpdef bint is_maximization(self):
+    def is_maximization(self):
         """
         Test whether the problem is a maximization
 
@@ -562,14 +562,14 @@ cdef class HybridBackend:
         """
         return self.backends[-1].is_maximization()
 
-    cpdef problem_name(self, char * name = NULL):
+    def problem_name(self, name = None):
         """
         Return or define the problem's name
 
         INPUT:
 
         - ``name`` (``char *``) -- the problem's name. When set to
-          ``NULL`` (default), the method returns the problem's name.
+          ``None`` (default), the method returns the problem's name.
 
         EXAMPLE::
 
@@ -579,13 +579,13 @@ cdef class HybridBackend:
             sage: print p.problem_name()
             There_once_was_a_french_fry
         """
-        if name == NULL:
+        if name == None:
             return self.backends[-1].problem_name()
         else:
             for b in self.backends:
                 b.problem_name(name)
 
-    ## cpdef write_lp(self, char * name):
+    ## def write_lp(self, name):
     ##     """
     ##     Write the problem to a ``.lp`` file
 
@@ -605,7 +605,7 @@ cdef class HybridBackend:
     ##     """
     ##     raise NotImplementedError()
 
-    ## cpdef write_mps(self, char * name, int modern):
+    ## def write_mps(self, name, modern):
     ##     """
     ##     Write the problem to a ``.mps`` file
 
@@ -625,7 +625,7 @@ cdef class HybridBackend:
     ##     """
     ##     raise NotImplementedError()
 
-    cpdef row(self, int i):
+    def row(self, i):
         """
         Return a row
 
@@ -652,7 +652,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].row(i)
 
-    cpdef row_bounds(self, int index):
+    def row_bounds(self, index):
         """
         Return the bounds of a specific constraint.
 
@@ -678,7 +678,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].row_bounds(index)
 
-    cpdef col_bounds(self, int index):
+    def col_bounds(self, index):
         """
         Return the bounds of a specific variable.
 
@@ -706,7 +706,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].col_bounds(index)
 
-    cpdef bint is_variable_binary(self, int index):
+    def is_variable_binary(self, index):
         """
         Test whether the given variable is of binary type.
 
@@ -728,7 +728,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].is_variable_binary(index)
 
-    cpdef bint is_variable_integer(self, int index):
+    def is_variable_integer(self, index):
         """
         Test whether the given variable is of integer type.
 
@@ -749,7 +749,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].is_variable_integer(index)
 
-    cpdef bint is_variable_continuous(self, int index):
+    def is_variable_continuous(self, index):
         """
         Test whether the given variable is of continuous/real type.
 
@@ -771,7 +771,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].is_variable_continuous(index)
 
-    cpdef row_name(self, int index):
+    def row_name(self, index):
         """
         Return the ``index`` th row name
 
@@ -790,16 +790,13 @@ cdef class HybridBackend:
         """
         return self.backends[-1].row_name(index)
 
-    cpdef col_name(self, int index):
+    def col_name(self, index):
         """
         Return the ``index``-th column name
 
         INPUT:
 
         - ``index`` (integer) -- the column id
-
-        - ``name`` (``char *``) -- its name. When set to ``NULL``
-          (default), the method returns the current name.
 
         EXAMPLE::
 
@@ -812,7 +809,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].col_name(index)
 
-    cpdef variable_upper_bound(self, int index, value = False):
+    def variable_upper_bound(self, index, value = False):
         """
         Return or define the upper bound on a variable
 
@@ -849,7 +846,7 @@ cdef class HybridBackend:
             for b in self.backends:
                 b.variable_upper_bound(index, value)
 
-    cpdef variable_lower_bound(self, int index, value = False):
+    def variable_lower_bound(self, index, value = False):
         """
         Return or define the lower bound on a variable
 
@@ -886,7 +883,7 @@ cdef class HybridBackend:
             for b in self.backends:
                 b.variable_lower_bound(index, value)
 
-    ## cpdef solver_parameter(self, name, value = None):
+    ## def solver_parameter(self, name, value = None):
     ##     """
     ##     Return or define a solver parameter
 
@@ -912,7 +909,7 @@ cdef class HybridBackend:
     ##     """
     ##     raise NotImplementedError()
 
-    cpdef bint is_variable_basic(self, int index):
+    def is_variable_basic(self, index):
         """
         Test whether the given variable is basic.
 
@@ -942,7 +939,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].is_variable_basic(index)
 
-    cpdef bint is_variable_nonbasic_at_lower_bound(self, int index):
+    def is_variable_nonbasic_at_lower_bound(self, index):
         """
         Test whether the given variable is nonbasic at lower bound.
 
@@ -972,7 +969,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].is_variable_nonbasic_at_lower_bound(index)
 
-    cpdef bint is_slack_variable_basic(self, int index):
+    def is_slack_variable_basic(self, index):
         """
         Test whether the slack variable of the given row is basic.
 
@@ -1002,7 +999,7 @@ cdef class HybridBackend:
         """
         return self.backends[-1].is_slack_variable_basic(index)
 
-    cpdef bint is_slack_variable_nonbasic_at_lower_bound(self, int index):
+    def is_slack_variable_nonbasic_at_lower_bound(self, index):
         """
         Test whether the given variable is nonbasic at lower bound.
 
