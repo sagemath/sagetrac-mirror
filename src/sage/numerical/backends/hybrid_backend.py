@@ -1,5 +1,5 @@
 r"""
-COIN Backend
+Hybrid Backend
 
 AUTHORS:
 
@@ -21,8 +21,9 @@ AUTHORS:
 
 from sage.numerical.mip import MIPSolverException
 from sage.modules.all import vector
+from sage.numerical.backends.generic_backend import GenericBackend
 
-class HybridBackend:
+class HybridBackend(GenericBackend):
 
     """
     A backend that delegates to a sequence of other backends.
