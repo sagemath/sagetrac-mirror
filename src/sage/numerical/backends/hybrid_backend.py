@@ -577,7 +577,7 @@ class HybridBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
             sage: p.problem_name("There_once_was_a_french_fry")
-            sage: print p.problem_name()
+            sage: print(p.problem_name())
             There_once_was_a_french_fry
         """
         if name == None:
@@ -594,7 +594,7 @@ class HybridBackend(GenericBackend):
 
     ##     - ``filename`` (string)
 
-    ##     EXAMPLE::
+    ##     EXAMPLES::
 
     ##         sage: from sage.numerical.backends.generic_backend import get_solver
     ##         sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -614,7 +614,7 @@ class HybridBackend(GenericBackend):
 
     ##     - ``filename`` (string)
 
-    ##     EXAMPLE::
+    ##     EXAMPLES::
 
     ##         sage: from sage.numerical.backends.generic_backend import get_solver
     ##         sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -641,7 +641,7 @@ class HybridBackend(GenericBackend):
         associates their coefficient on the model of the
         ``add_linear_constraint`` method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -667,7 +667,7 @@ class HybridBackend(GenericBackend):
         to ``None`` if the constraint is not bounded in the
         corresponding direction, and is a real value otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -693,7 +693,7 @@ class HybridBackend(GenericBackend):
         to ``None`` if the variable is not bounded in the
         corresponding direction, and is a real value otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -715,7 +715,7 @@ class HybridBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -737,7 +737,7 @@ class HybridBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -758,7 +758,7 @@ class HybridBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -780,7 +780,7 @@ class HybridBackend(GenericBackend):
 
         - ``index`` (integer) -- the row's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -799,7 +799,7 @@ class HybridBackend(GenericBackend):
 
         - ``index`` (integer) -- the column id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -822,7 +822,7 @@ class HybridBackend(GenericBackend):
           variable has not upper bound. When set to ``None``
           (default), the method returns the current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -859,7 +859,7 @@ class HybridBackend(GenericBackend):
           variable has no lower bound. When set to ``None``
           (default), the method returns the current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -900,7 +900,7 @@ class HybridBackend(GenericBackend):
     ##        The list of available parameters is available at
     ##        :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solver_parameter`.
 
-    ##     EXAMPLE::
+    ##     EXAMPLES::
 
     ##         sage: from sage.numerical.backends.generic_backend import get_solver
     ##         sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -921,7 +921,7 @@ class HybridBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(maximization=True,\
                                                 solver=("GLPK", "InteractiveLP"))
@@ -951,7 +951,7 @@ class HybridBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(maximization=True,\
                                                 solver=("GLPK", "InteractiveLP"))
@@ -981,7 +981,7 @@ class HybridBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(maximization=True,\
                                                 solver=("GLPK", "InteractiveLP"))
@@ -1011,7 +1011,7 @@ class HybridBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(maximization=True,\
                                                 solver=("GLPK", "InteractiveLP"))
