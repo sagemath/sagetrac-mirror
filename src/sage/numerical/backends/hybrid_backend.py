@@ -355,6 +355,8 @@ class HybridBackend(GenericBackend):
         for b in self.backends:
             b.remove_constraint(i)
 
+    ## def remove_constraints(self, constraints): # inherite from generic_backend
+
     def add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """
         Add a linear constraint.
@@ -388,8 +390,11 @@ class HybridBackend(GenericBackend):
             sage: p.row_name(1)
             'foo'
         """
+        coefficients = list(coefficients)
         for b in self.backends:
             b.add_linear_constraint(coefficients, lower_bound, upper_bound, name)
+
+    ## def add_linear_constraint_vector(self, degree, coefficients, lower_bound, upper_bound, name=None):  # inherite from generic_backend
 
     def add_col(self, indices, coeffs):
         """
