@@ -1042,6 +1042,9 @@ cdef class LookupNameMaker:
         self.names = names
         self.fallback = fallback
 
+    def set_names(self, new_names):
+        self.names = new_names
+
     def __call__(self, name):
         """
         TESTS::
