@@ -253,7 +253,31 @@ class HybridBackend(GenericBackend):
             for b in self.backends:
                 b.objective_coefficient(variable, coeff)
 
-    def set_objective(self, coeff, d = 0):
+    def objective_constant_term(self, d=None):
+        """
+        Set or get the constant term in the objective function
+
+        INPUT:
+
+        - ``d`` (double) -- its coefficient.  If `None` (default), return the current value.
+
+        EXAMPLES::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
+            sage: p.objective_constant_term()
+            0
+            sage: p.objective_constant_term(42)
+            sage: p.objective_constant_term()
+            42
+        """
+        if d is None:
+            return self.backends[-1].objective_constant_term()
+        else:
+            for b in self.backends:
+                b.objective_constant_term(d)
+
+    def set_objective(self, coeff, d=0):
         """
         Set the objective function.
 
