@@ -213,7 +213,6 @@ from sage.rings.power_series_ring import PowerSeriesRing, PowerSeriesRing_generi
 
 from sage.rings.infinity import infinity
 import sage.misc.latex as latex
-from sage.structure.nonexact import Nonexact
 
 from sage.rings.multi_power_series_ring_element import MPowerSeries
 from sage.categories.commutative_rings import CommutativeRings
@@ -245,7 +244,7 @@ def is_MPowerSeriesRing(x):
     return isinstance(x, MPowerSeriesRing_generic)
 
 
-class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
+class MPowerSeriesRing_generic(PowerSeriesRing_generic):
     r"""
     A multivariate power series ring.  This class is implemented as a
     single variable power series ring in the variable ``T`` over a
@@ -364,11 +363,16 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
         self._has_singular = False #cannot convert to Singular by default
         # Multivariate power series rings inherit from power series rings. But
         # apparently we can not call their initialisation. Instead, initialise
-        # CommutativeRing and Nonexact:
+        # CommutativeRing:
         CommutativeRing.__init__(self, base_ring, name_list, category =
                                  _IntegralDomains if base_ring in
                                  _IntegralDomains else _CommutativeRings)
-        Nonexact.__init__(self, default_prec)
+
+        # set default precision
+        if default_prec < 0:
+            raise ValueError(f"default_prec (={default_prec}) must be "
+                             "non-negative")
+        self.__default_prec = default_prec
 
         # underlying polynomial ring in which to represent elements
         self._poly_ring_ = PolynomialRing(base_ring, self.variable_names(), order=order)
@@ -562,8 +566,6 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             Multivariate Power Series Ring in x, y over Finite Field of size 5
         """
         return PowerSeriesRing(R, names = self.variable_names(), default_prec = self.default_prec())
-
-
 
     def remove_var(self, *var):
         """
@@ -821,7 +823,6 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
 
         return self._poly_ring().has_coerce_map_from(P)
 
-
     def _element_constructor_(self,f,prec=None):
         """
         TESTS::
@@ -1073,6 +1074,37 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             4 + 4*f0 + 4*f2
         """
         return self._poly_ring(f.polynomial().subs({self._bg_indeterminate:1}))
+
+    def default_prec(self):
+        r"""
+        Return the default precision for self.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = PowerSeriesRing(QQ, default_prec=10)
+            sage: P.default_prec()
+            10
+
+        """
+        return self.__default_prec
+
+    def set_default_prec(self, prec):
+        r"""
+        Set the default precision of ``self``.
+
+        .. WARNING::
+
+            This method is deprecated and will be removed in a future version
+            Sage. Use with precaution.
+
+        """
+        # TODO: Remove `set_default_prec` in Sage 9.4
+        from sage.misc.superseded import deprecation
+        msg = "the method 'set_default_prec' is outdated and will be removed " \
+              "in a future version of Sage"
+        deprecation(18416, msg)
+        from sage.rings.integer import Integer
+        self.__default_prec = Integer(prec)
 
 
 def unpickle_multi_power_series_ring_v0(base_ring, num_gens, names, order, default_prec, sparse):

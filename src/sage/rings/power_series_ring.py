@@ -136,7 +136,6 @@ from . import integer
 from . import ring
 from .infinity import infinity
 import sage.misc.latex as latex
-from sage.structure.nonexact import Nonexact
 
 from sage.interfaces.magma import MagmaElement
 from sage.rings.fraction_field_element import FractionFieldElement
@@ -458,7 +457,7 @@ def is_PowerSeriesRing(R):
     else:
         return False
 
-class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexact):
+class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing):
     """
     A power series ring.
     """
@@ -543,10 +542,12 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         self.__is_sparse = sparse
         if default_prec is None:
             from sage.misc.defaults import series_precision
-            default_prec = series_precision()
+            self.__default_prec = series_precision()
         elif default_prec < 0:
-            raise ValueError("default_prec (= %s) must be non-negative"
-                             % default_prec)
+            raise ValueError(f"default_prec (= {default_prec}) must be "
+                             "non-negative")
+        else:
+            self.__default_prec = default_prec
 
         if implementation == 'poly':
             self.Element = power_series_poly.PowerSeries_poly
@@ -564,7 +565,6 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         ring.CommutativeRing.__init__(self, base_ring, names=name,
                                       category=getattr(self, '_default_category',
                                                        _CommutativeRings))
-        Nonexact.__init__(self, default_prec)
         if self.Element is PowerSeries_pari:
             self.__generator = self.element_class(self, R.gen().__pari__())
         else:
@@ -904,8 +904,6 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         except AttributeError:
             pass
         return self._coerce_try(x, [self.base_ring(), self.__poly_ring])
-
-
 
     def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         r"""
@@ -1252,6 +1250,37 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             self.__laurent_series_ring = laurent_series_ring.LaurentSeriesRing(
                                                  self.base_ring(), self.variable_name(), default_prec=self.default_prec(), sparse=self.is_sparse())
             return self.__laurent_series_ring
+
+    def default_prec(self):
+        r"""
+        Return the default precision for self.
+
+        EXAMPLES::
+
+            sage: P.<x> = PowerSeriesRing(QQ, default_prec=10)
+            sage: P.default_prec()
+            10
+
+        """
+        return self.__default_prec
+
+    def set_default_prec(self, prec):
+        r"""
+        Set the default precision of ``self``.
+
+        .. WARNING::
+
+            This method is deprecated and will be removed in a future version
+            Sage. Use with precaution.
+
+        """
+        # TODO: Remove `set_default_prec` in Sage 9.4
+        from sage.misc.superseded import deprecation
+        msg = "the method 'set_default_prec' is outdated and will be removed " \
+              "in a future version of Sage"
+        deprecation(18416, msg)
+        from sage.rings.integer import Integer
+        self.__default_prec = Integer(prec)
 
 class PowerSeriesRing_domain(PowerSeriesRing_generic, ring.IntegralDomain):
     def fraction_field(self):
