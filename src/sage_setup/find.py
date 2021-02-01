@@ -274,11 +274,12 @@ def installed_files_by_module(site_packages, modules=('sage',)):
         sage: from sage.misc.sageinspect import loadable_module_extension
         sage: (f,) = files_by_module['sage.structure.sage_object']; f
         'sage/structure/sage_object...'
-        sage: (f1, f2) = sorted(files_by_module['sage.structure'])
+        sage: from os.path import basename
+        sage: (f1, f2) = sorted(files_by_module['sage.structure'], key=basename)
         sage: f1
         'sage/structure/__init__.py'
         sage: f2
-        'sage/structure/....pyc'
+        '...sage/structure/....pyc'
 
     This takes about 30ms with warm cache:
 
