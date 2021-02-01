@@ -3385,32 +3385,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 K4_1 = B((1, -2, 1, -2))
                 new_vars = {'U3':self.one(), 'K4':self(K4_1)}
             else:
-                #K4_1_U = B((1, -2, 1, -2))
-                #m1, m2, m3 = [g.matrix() for g in self.gens()]
-                #L6a1_0 = B((1, -2, 3, -2, 1, -2, -3, -2))         # writhe -2
-                #L8a1_0 = B((1, -2, 3, -2, -1, -2, 3, -2, 3, -2))  # writhe -2
-                #flecht1 = m1*~m2*m3*m3*~m2 *m1                    # writhe  2
-                #flecht2 = flecht1**2                              # writhe  4
-                #flecht3 = flecht2*flecht1                         # writhe  6
-                #new_vars = {'U4':self.one(), 'K4U':self(K4_1_U), 'L6':self(L6a1_0), 'L8':self(L8a1_0), 'F2':flecht2, 'F3':flecht3}
-
-                gA, gB, gC = self.gens()
-                tAm = gA*~gB + gB*~gA
-                tAp = ~gA*gB + ~gB*gA
-                tCm = gC*~gB + gB*~gC
-                tCp = ~gC*gB + ~gB*gC
-                tA = tAp - tAm
-                tC = tCp - tCm
-                mtA = tA.matrix()
-                mtC = tC.matrix()
-                mtACA1 = mtA*mtC*mtA
-                mtACA2 = mtACA1*mtACA1
-                mtACA4 = mtACA2*mtACA2
-                mtACA6 = mtACA4*mtACA2
-                mtACA8 = mtACA6*mtACA2
-                mtACA10 = mtACA8*mtACA2
-                new_vars = {'U4':self.one(), 'W1':mtACA2, 'W2':mtACA4, 'W3':mtACA6, 'W4':mtACA8, 'W5':mtACA10}
-                from sage.misc.persist import save
+                K4_1_U = B((1, -2, 1, -2))
+                K6_1 = B((1, 1, 2, -1, -3, 2, -3))
+                K7_4 = B((1, 1, 2, -1, 2, 2, 3, -2, 3))
+                K9_29 = B((1, -2, -2, 3, -2, 1, -2, 3, -2))
+                K9_34 = B((-1, 2, -1, 2, -3, 2, -1, 2, -3))
+                new_vars = {'U4':self.one(), 'K4U':self(K4_1_U), 'K6':self(K6_1), 'K7':self(K7_4), 'K91':self(K9_29), 'K92':self(K9_34)}
                 save(new_vars, 'markov_new_vars.sobj')
         sub_vars.update(new_vars)
         return sub_vars, new_vars
@@ -3438,12 +3418,13 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         from sage.functions.generalized import sign
         mtr = self._markov_trace_irr_coeffs()
-        mtr_list = [mtr(self(g)) for g in self.get_order()]
-        mtr_list_v = vector(mtr_list)
-        mtr_list_v.save('markov_mtr_list.sobj')
+        mtr_one = mtr(self.one())
+        #mtr_list = [mtr(self(g)) for g in self.get_order()]
+        #mtr_list_v = vector(mtr_list)
+        #mtr_list_v.save('markov_mtr_list.sobj')
         E = self.extension_ring()
         PE = E[('s',) + tuple(all_vars)]
-        EC3 = mtr_list[0].parent().base_ring()
+        EC3 = mtr_one.parent().base_ring()
         EZ = ZZ[EC3.variable_names()]
         img = tuple(self.cubic_equation_roots()) + PE.gens()
         emb_EZ = EZ.hom(img)
@@ -3452,7 +3433,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         from sage.misc.sage_eval import sage_eval
         spe = PE.gen(0)
 
-        def convert_coeff(cf):
+        def convert_coeff(g):
+            print(g)
+            cf = mtr(self(g))
             num = cf.numerator()
             den = cf.denominator()
             num_PE = emb_EZ(EZ(num.dict()))
@@ -3460,7 +3443,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             num_L = sage_eval(str(num_PE), locals=subs_dict)
             den_L = sage_eval(str(den_PE), locals=subs_dict)
             return num_L/den_L
-        return [convert_coeff(cf) for cf in mtr_list]
+        return [convert_coeff(g) for g in self.get_order()]
 
 
     @cached_method
@@ -3556,9 +3539,11 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             L = P.localization(denoms)
             irr_coeff = irr_coeff.change_ring(L)
             c3 = L(C3.gen())
+            irr_coeff.save('markov_irr_coeffL.sobj')
 
         a, b, c, s, *remain, = L.gens()
         emb_ER = ER.hom((c3, a, b, c))
+        emb_ER.save('markov_emb_ER.sobj')
 
         def mtr_ext(ele):
             return sum(irr_coeff[j]*emb_ER(ClF[j](ele)) for j in range(dClF))
