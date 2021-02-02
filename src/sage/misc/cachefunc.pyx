@@ -1437,7 +1437,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
 
 def weak_cached_function(classmethod=False, name=None, key=None, **kwds):
-    def deco(func)
+    def deco(func):
         return decorate(func, WeakCachedFunction(func, classmethod=classmethod, name=name, key=key, **kwds))
     return deco
 
