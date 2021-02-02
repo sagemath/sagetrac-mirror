@@ -9,7 +9,7 @@ Semirngs
 #******************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
-from magmas_and_additive_magmas import MagmasAndAdditiveMagmas
+from .magmas_and_additive_magmas import MagmasAndAdditiveMagmas
 
 class Semirings(CategoryWithAxiom):
     """
@@ -21,7 +21,9 @@ class Semirings(CategoryWithAxiom):
     `(S,+)` and a multiplicative monoid `(S,*)`, where `*` distributes
     over `+`.
 
-    .. SEEALSO: :wikipedia:`Semiring`
+    .. SEEALSO::
+
+        :wikipedia:`Semiring`
 
     EXAMPLES::
 

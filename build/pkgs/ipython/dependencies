@@ -1,5 +1,5 @@
-$(INST)/$(PYTHON) $(INST)/$(JINJA2) $(INST)/$(TORNADO) $(INST)/$(PYZMQ)
+$(PYTHON) jinja2 tornado pyzmq pickleshare simplegeneric traitlets | $(PYTHON_TOOLCHAIN) wcwidth prompt_toolkit pygments pexpect appnope backcall jedi
 
 ----------
 All lines of this file are ignored except the first.
-It is copied by SAGE_ROOT/build/install into SAGE_ROOT/build/Makefile.
+It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.

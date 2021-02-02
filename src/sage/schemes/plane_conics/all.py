@@ -1,10 +1,9 @@
 """
 Plane conics
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <was@math.harvard.edu>
 #
@@ -17,9 +16,6 @@ Plane conics
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from constructor import Conic
-
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from .constructor import Conic

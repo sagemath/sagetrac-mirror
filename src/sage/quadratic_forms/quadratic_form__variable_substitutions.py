@@ -26,9 +26,11 @@ def swap_variables(self, r, s, in_place = False):
     (replacing the original form if the in_place flag is True).
 
     INPUT:
+
         `r`, `s` -- integers >= 0
 
     OUTPUT:
+
         a QuadraticForm (by default, otherwise none)
 
     EXAMPLES::
@@ -58,7 +60,7 @@ def swap_variables(self, r, s, in_place = False):
         [ * * * 10 ]
 
     """
-    if (in_place == False):
+    if not in_place:
         Q = copy.deepcopy(self)
         Q.__init__(self.base_ring(), self.dim(), self.coefficients())
         Q.swap_variables(r,s,in_place=True)
@@ -87,11 +89,13 @@ def multiply_variable(self, c, i, in_place = False):
     quadratic form.
 
     INPUT:
+
         `c` -- an element of Q.base_ring()
 
         `i` -- an integer >= 0
 
     OUTPUT:
+
         a QuadraticForm (by default, otherwise none)
 
     EXAMPLES::
@@ -105,7 +109,7 @@ def multiply_variable(self, c, i, in_place = False):
         [ * * * 7 ]
 
     """
-    if (in_place == False):
+    if not in_place:
         Q = copy.deepcopy(self)
         Q.__init__(self.base_ring(), self.dim(), self.coefficients())
         Q.multiply_variable(c,i,in_place=True)
@@ -133,11 +137,13 @@ def divide_variable(self, c, i, in_place = False):
     ring.
 
     INPUT:
+
         `c` -- an element of Q.base_ring()
 
         `i` -- an integer >= 0
 
     OUTPUT:
+
         a QuadraticForm (by default, otherwise none)
 
     EXAMPLES::
@@ -151,7 +157,7 @@ def divide_variable(self, c, i, in_place = False):
         [ * * * 7 ]
 
     """
-    if (in_place == False):
+    if not in_place:
         Q = copy.deepcopy(self)
         Q.__init__(self.base_ring(), self.dim(), self.coefficients())
         Q.divide_variable(c,i,in_place=True)
@@ -178,9 +184,11 @@ def scale_by_factor(self, c, change_value_ring_flag=False):
     to be the field of fractions of the original ring (if necessary).
 
     INPUT:
+
         `c` -- a scalar in the fraction field of the value ring of the form.
 
     OUTPUT:
+
         A quadratic form of the same dimension
 
     EXAMPLES::
@@ -199,7 +207,6 @@ def scale_by_factor(self, c, change_value_ring_flag=False):
         [ * 3 0 0 ]
         [ * * 6 0 ]
         [ * * * 9 ]
-
     """
     ## Try to scale the coefficients while staying in the ring of values.
     new_coeff_list = [x*c  for x in self.coefficients()]
@@ -213,12 +220,12 @@ def scale_by_factor(self, c, change_value_ring_flag=False):
         Q = self.__class__(R, self.dim(), list2)
         return Q
     except Exception:
-        if (change_value_ring_flag == False):
+        if not change_value_ring_flag:
             raise TypeError("Oops! We could not rescale the lattice in this way and preserve its defining ring.")
         else:
-            raise UntestedCode("This code is not tested by current doctests!")
+            raise RuntimeError("This code is not tested by current doctests!")
             F = R.fraction_field()
-            list2 = [F(x)  for x in new_coeff_list]
+            list2 = [F(x) for x in new_coeff_list]
             Q = copy.deepcopy(self)
             Q.__init__(self.dim(), F, list2, R)  ## DEFINE THIS!  IT WANTS TO SET THE EQUIVALENCE RING TO R, BUT WITH COEFFS IN F.
             #Q.set_equivalence_ring(R)
@@ -231,9 +238,11 @@ def extract_variables(self, var_indices):
     var_indices, to give a new quadratic form.
 
     INPUT:
+
         var_indices -- a list of integers >= 0
 
     OUTPUT:
+
         a QuadraticForm
 
     EXAMPLES::
@@ -267,11 +276,13 @@ def elementary_substitution(self, c, i, j, in_place = False):     ## CHECK THIS!
     original form if the in_place flag is True).
 
     INPUT:
+
         `c` -- an element of Q.base_ring()
 
         `i`, `j` -- integers >= 0
 
     OUTPUT:
+
         a QuadraticForm (by default, otherwise none)
 
     EXAMPLES::
@@ -317,7 +328,7 @@ def elementary_substitution(self, c, i, j, in_place = False):     ## CHECK THIS!
         [ * * * 15 ]
 
     """
-    if (in_place == False):
+    if not in_place:
         Q = copy.deepcopy(self)
         Q.__init__(self.base_ring(), self.dim(), self.coefficients())
         Q.elementary_substitution(c, i, j, True)
@@ -329,7 +340,7 @@ def elementary_substitution(self, c, i, j, in_place = False):     ## CHECK THIS!
         for k in range(self.dim()):
             if (k != i) and (k != j):
                 ans = self[j,k] + c*self[i,k]
-                self.__setitem__((j,k), ans)
+                self[j,k] = ans
             elif (k == j):
                 ans = self[j,k] + c*ij_old + c*c*self[i,i]
                 self[j,k] = ans
@@ -351,11 +362,13 @@ def add_symmetric(self, c, i, j, in_place = False):
 
 
     INPUT:
+
         `c` -- an element of Q.base_ring()
 
         `i`, `j` -- integers >= 0
 
     OUTPUT:
+
         a QuadraticForm (by default, otherwise none)
 
     EXAMPLES::
@@ -373,7 +386,7 @@ def add_symmetric(self, c, i, j, in_place = False):
         sage: Q.add_symmetric(-3/2, 2, 0)     ## ERROR: -3/2 isn't in the base ring ZZ
         Traceback (most recent call last):
         ...
-        RuntimeError: Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form.
+        RuntimeError: Oops!  This coefficient can...t be coerced to an element of the base ring for the quadratic form.
 
     ::
 

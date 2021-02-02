@@ -38,7 +38,7 @@ PARI interpreter)::
 
 ::
 
-    sage: print gp("taylor(sin(x),x)")
+    sage: print(gp("taylor(sin(x),x)"))
     x - 1/6*x^3 + 1/120*x^5 - 1/5040*x^7 + 1/362880*x^9 - 1/39916800*x^11 + 1/6227020800*x^13 - 1/1307674368000*x^15 + O(x^16)
 
 GP has a powerful very efficient algorithm for numerical
@@ -58,7 +58,7 @@ computation of integrals.
 
 Note that gp ASCII plots *do* work in Sage, as follows::
 
-    sage: print gp.eval("plot(x=0,6,sin(x))")
+    sage: print(gp.eval("plot(x=0,6,sin(x))"))
     <BLANKLINE>
     0.9988963 |''''''''''''_x...x_''''''''''''''''''''''''''''''''''''''''''|
               |          x"        "x                                        |
@@ -139,13 +139,15 @@ AUTHORS:
 #
 ##########################################################################
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
-from sage.misc.misc import verbose
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from sage.misc.verbose import verbose
+from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.libs.pari.all import pari
-import sage.rings.complex_field
-## import sage.rings.all
+import sage.rings.complex_mpfr
+from sage.docs.instancedoc import instancedoc
 
-class Gp(Expect):
+
+class Gp(ExtraTabCompletion, Expect):
     """
     Interface to the PARI gp interpreter.
 
@@ -159,12 +161,12 @@ class Gp(Expect):
 
         - ``stacksize`` (int, default 10000000) -- the initial PARI
           stacksize in bytes (default 10MB)
-        - ``maxread`` (int, default 100000) -- ??
         - ``script_subdirectory`` (string, default None) -- name of the subdirectory of SAGE_EXTCODE/pari from which to read scripts
         - ``logfile`` (string, default None) -- log file for the pexpect interface
         - ``server`` -- name of remote server
         - ``server_tmpdir`` -- name of temporary directory on remote server
         - ``init_list_length`` (int, default 1024) -- length of initial list of local variables.
+        - ``seed`` (int, default random) -- random number generator seed for pari
 
         EXAMPLES::
 
@@ -172,11 +174,12 @@ class Gp(Expect):
             PARI/GP interpreter
     """
     def __init__(self, stacksize=10000000,   # 10MB
-                 maxread=100000, script_subdirectory=None,
+                 maxread=None, script_subdirectory=None,
                  logfile=None,
                  server=None,
                  server_tmpdir=None,
-                 init_list_length=1024):
+                 init_list_length=1024,
+                 seed=None):
         """
         Initialization of this PARI gp interpreter.
 
@@ -184,12 +187,12 @@ class Gp(Expect):
 
         - ``stacksize`` (int, default 10000000) -- the initial PARI
           stacksize in bytes (default 10MB)
-        - ``maxread`` (int, default 100000) -- ??
         - ``script_subdirectory`` (string, default None) -- name of the subdirectory of SAGE_EXTCODE/pari from which to read scripts
         - ``logfile`` (string, default None) -- log file for the pexpect interface
         - ``server`` -- name of remote server
         - ``server_tmpdir`` -- name of temporary directory on remote server
         - ``init_list_length`` (int, default 1024) -- length of initial list of local variables.
+        - ``seed`` (int,default random nonzero 31 bit integer) -- value of random seed
 
         EXAMPLES::
 
@@ -212,21 +215,46 @@ class Gp(Expect):
         self.__seq = 0
         self.__var_store_len = 0
         self.__init_list_length = init_list_length
+        self._seed = seed
+
+    def set_seed(self, seed=None):
+        """
+        Set the seed for gp interpreter.
+
+        The seed should be an integer.
+
+        EXAMPLES::
+
+            sage: g = Gp()
+            sage: g.set_seed(1)
+            1
+            sage: [g.random() for i in range(5)]
+            [1546275796, 879788114, 1745191708, 771966234, 1247963869]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval("setrand(%d)" % seed)
+        self._seed = seed
+        return seed
 
     def _start(self, alt_message=None, block_during_init=True):
         Expect._start(self, alt_message, block_during_init)
+        # disable memory debugging: those warnings can only confuse our
+        # interface
+        self._eval_line('default(debugmem,0);')
         # disable timer
         self._eval_line('default(timer,0);')
         # disable the break loop, otherwise gp will seem to hang on errors
         self._eval_line('default(breakloop,0);')
         # list of directories where gp will look for scripts (only current working directory)
         self._eval_line('default(path,".");')
-        # location of elldata, seadata, galdata
-        self._eval_line('default(datadir, "$SAGE_LOCAL/share/pari");')
         # executable for gp ?? help
-        self._eval_line('default(help, "$SAGE_LOCAL/bin/gphelp -detex");')
+        self._eval_line('default(help, "gphelp -detex");')
         # logfile disabled since Expect already logs
         self._eval_line('default(log,0);')
+        self._eval_line("default(nbthreads,1);")
+        # set random seed
+        self.set_seed(self._seed)
 
     def _repr_(self):
         """
@@ -258,9 +286,9 @@ class Gp(Expect):
         EXAMPLES::
 
             sage: gp._function_class()
-            <class 'sage.interfaces.gp.GpFunction'>
+            <class 'sage.interfaces.expect.ExpectFunction'>
             sage: type(gp.gcd)
-            <class 'sage.interfaces.gp.GpFunction'>
+            <class 'sage.interfaces.expect.ExpectFunction'>
         """
         return GpFunction
 
@@ -298,7 +326,7 @@ class Gp(Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('x = 22;\n')
+            sage: _ = f.write('x = 22;\n')
             sage: f.close()
             sage: gp.read(filename)
             sage: gp.get('x').strip()
@@ -306,11 +334,11 @@ class Gp(Expect):
         """
         return 'read("%s")'%filename
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
-            sage: c = gp.trait_names()
+            sage: c = gp._tab_completion()
             sage: len(c) > 100
             True
             sage: 'gcd' in c
@@ -402,9 +430,9 @@ class Gp(Expect):
 
         TESTS:
 
-        We verify that trac 11617 is fixed::
+        We verify that :trac:`11617` is fixed::
 
-            sage: gp._eval_line('a='+str(range(2*10^5)))[:70]
+            sage: gp._eval_line('a='+str(list(range(2*10^5))))[:70]
             '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,'
         """
         line = line.strip()
@@ -501,7 +529,7 @@ class Gp(Expect):
             sage: gp.get_default('log')
             0
             sage: gp.get_default('datadir')
-            '.../local/share/pari'
+            '.../share/pari'
             sage: gp.get_default('seriesprecision')
             16
             sage: gp.get_default('realprecision')
@@ -618,23 +646,22 @@ class Gp(Expect):
                 verbose("doubling PARI/sage object vector: %s"%self.__var_store_len)
         return 'sage[%s]'%self.__seq
 
-    def quit(self, verbose=False, timeout=0.25):
+    def _reset_expect(self):
         """
-        Terminate the GP process.
+        Reset state of the GP interface.
 
         EXAMPLES::
 
             sage: a = gp('10'); a
             10
-            sage: gp.quit()
+            sage: gp.quit()  # indirect doctest
             sage: a
-            <repr(<sage.interfaces.gp.GpElement at 0x...>) failed: ValueError: The pari session in which this object was defined is no longer running.>
-            sage: gp(pi)
-            3.1415926535897932384626433832795028842    # 64-bit
-            3.141592653589793238462643383              # 32-bit
+            (invalid PARI/GP interpreter object -- The pari session in which this object was defined is no longer running.)
+            sage: gp("30!")
+            265252859812191058636308480000000
         """
         self.__var_store_len = 0
-        Expect.quit(self, verbose=verbose, timeout=timeout)
+        Expect._reset_expect(self)
 
     def console(self):
         """
@@ -681,12 +708,9 @@ class Gp(Expect):
         EXAMPLES::
 
             sage: gp._function_element_class()
-            <class 'sage.interfaces.gp.GpFunctionElement'>
-
-        ::
-
+            <class 'sage.interfaces.expect.FunctionElement'>
             sage: type(gp(2).gcd)
-            <class 'sage.interfaces.gp.GpFunctionElement'>
+            <class 'sage.interfaces.expect.FunctionElement'>
         """
         return GpFunctionElement
 
@@ -809,6 +833,7 @@ class Gp(Expect):
         return x
 
 
+@instancedoc
 class GpElement(ExpectElement):
     """
     EXAMPLES: This example illustrates dumping and loading GP elements
@@ -840,6 +865,23 @@ class GpElement(ExpectElement):
     The two elliptic curves look the same, but internally the floating
     point numbers are slightly different.
     """
+    def _reduce(self):
+        """
+        Return the string representation of self, for pickling.
+
+        Because the internal representation of a gp element is richer
+        than the corresponding sage object, we use the string representation
+        for pickling.
+
+        EXAMPLES::
+
+            sage: E = gp('ellinit([1,2,3,4,5])')
+            sage: loads(dumps(E)) == E # indirect doctest
+            True
+            sage: gp(E.sage()) == E
+            False
+        """
+        return repr(self)
 
     def _sage_(self):
         """
@@ -847,10 +889,10 @@ class GpElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: gp(I).sage()
+            sage: gp(SR(I)).sage()
             i
-            sage: gp(I).sage().parent()
-            Maximal Order in Number Field in i with defining polynomial x^2 + 1
+            sage: gp(SR(I)).sage().parent()
+            Number Field in i with defining polynomial x^2 + 1 with i = 1*I
 
         ::
 
@@ -864,19 +906,31 @@ class GpElement(ExpectElement):
             [3 4]
             sage: gp(M).sage() == M
             True
-        """
-        return pari(str(self)).python()
 
-    def __long__(self):
+        Conversion of strings::
+
+           sage: s = gp('"foo"')
+           sage: s.sage()
+           'foo'
+           sage: type(s.sage())
+           <type 'str'>
         """
-        Return Python long.
+        if self.is_string():
+            return str(self)
+        return pari(str(self)).sage()
+
+    def is_string(self):
+        """
+        Tell whether this element is a string.
 
         EXAMPLES::
 
-            sage: long(gp(10))
-            10L
+            sage: gp('"abc"').is_string()
+            True
+            sage: gp('[1,2,3]').is_string()
+            False
         """
-        return long(str(self))
+        return repr(self.type()) == 't_STR'
 
     def __float__(self):
         """
@@ -889,7 +943,7 @@ class GpElement(ExpectElement):
         """
         return float(pari(str(self)))
 
-    def bool(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -903,6 +957,8 @@ class GpElement(ExpectElement):
         P = self._check_valid()
         return P.eval('%s != 0'%(self.name())) == '1'
 
+    __nonzero__ = __bool__
+
     def _complex_mpfr_field_(self, CC):
         """
         Return ComplexField element of self.
@@ -913,7 +969,7 @@ class GpElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: z = gp(1+15*I); z
+            sage: z = gp(SR(1+15*I)); z
             1 + 15*I
             sage: z._complex_mpfr_field_(CC)
             1.00000000000000 + 15.0000000000000*I
@@ -927,8 +983,7 @@ class GpElement(ExpectElement):
         # Multiplying by CC(1) is necessary here since
         # sage: pari(gp(1+I)).sage().parent()
         # Maximal Order in Number Field in i with defining polynomial x^2 + 1
-
-        return CC((CC(1)*pari(self))._sage_())
+        return CC((CC(1)*pari(self)).sage())
 
     def _complex_double_(self, CDF):
         """
@@ -941,7 +996,7 @@ class GpElement(ExpectElement):
         """
         # Retrieving values from another computer algebra system is
         # slow anyway, right?
-        cc_val = self._complex_mpfr_field_(sage.rings.complex_field.ComplexField())
+        cc_val = self._complex_mpfr_field_(sage.rings.complex_mpfr.ComplexField())
         return CDF(cc_val)
 
     def __len__(self):
@@ -980,22 +1035,18 @@ class GpElement(ExpectElement):
     #    P = self._check_valid()
     #    return P.eval('printtex(%s)'%self.name())
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
-            sage: 'gcd' in gp(2).trait_names()
+            sage: 'gcd' in gp(2)._tab_completion()
             True
         """
-        return self.parent().trait_names()
+        return self.parent()._tab_completion()
 
 
-class GpFunctionElement(FunctionElement):
-    pass
-
-class GpFunction(ExpectFunction):
-    pass
-
+GpFunctionElement = FunctionElement
+GpFunction = ExpectFunction
 
 
 def is_GpElement(x):
@@ -1042,6 +1093,9 @@ def gp_console():
         compiled: Jul 21 2010, gcc-4.6.0 20100705 (experimental) (GCC)
         (readline v6.0 enabled, extended help enabled)
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%gp magics instead.')
     os.system('gp')
 
 

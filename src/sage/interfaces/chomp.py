@@ -11,6 +11,7 @@ AUTHOR:
 
 - John H. Palmieri
 """
+
 import re
 
 _have_chomp = {}
@@ -44,8 +45,9 @@ def have_chomp(program='homsimpl'):
         _have_chomp[program] = have_program(program)
     return _have_chomp[program]
 
+
 class CHomP:
-    """
+    r"""
     Interface to the CHomP package.
 
     :param program: which CHomP program to use
@@ -112,8 +114,8 @@ class CHomP:
         EXAMPLES::
 
             sage: from sage.interfaces.chomp import CHomP
-            sage: CHomP().__repr__()
-            'CHomP interface'
+            sage: CHomP()           # indirect doctest
+            CHomP interface
         """
         return "CHomP interface"
 
@@ -126,10 +128,10 @@ class CHomP:
 
         EXAMPLES::
 
-        sage: from sage.interfaces.chomp import CHomP
-        sage: T = cubical_complexes.Torus()
-        sage: CHomP()('homcubes', T) # indirect doctest, optional - CHomP
-        {0: 0, 1: Z x Z, 2: Z}
+            sage: from sage.interfaces.chomp import CHomP
+            sage: T = cubical_complexes.Torus()
+            sage: CHomP()('homcubes', T) # indirect doctest, optional - CHomP
+            {0: 0, 1: Z x Z, 2: Z}
         """
         from sage.misc.temporary_file import tmp_filename
         from sage.homology.all import CubicalComplex, cubical_complexes
@@ -166,16 +168,16 @@ class CHomP:
             original_complex = complex
             complex = edge.product(complex)
             if verbose:
-                print "Cubical complex"
+                print("Cubical complex")
         elif isinstance(complex, SimplicialComplex):
             simplicial = True
             if verbose:
-                print "Simplicial complex"
+                print("Simplicial complex")
         else:
             chain = True
             base_ring = kwds.get('base_ring', complex.base_ring())
             if verbose:
-                print "Chain complex over %s" % base_ring
+                print("Chain complex over %s" % base_ring)
 
         if base_ring == QQ:
             raise ValueError("CHomP doesn't compute over the rationals, only over Z or F_p.")
@@ -192,12 +194,11 @@ class CHomP:
         try:
             data = complex._chomp_repr_()
         except AttributeError:
-            raise AttributeError("Complex can not be converted to use with CHomP.")
+            raise AttributeError("Complex cannot be converted to use with CHomP.")
 
         datafile = tmp_filename()
-        f = open(datafile, 'w')
-        f.write(data)
-        f.close()
+        with open(datafile, 'w') as f:
+            f.write(data)
 
         #
         #    subcomplex
@@ -227,19 +228,18 @@ class CHomP:
             try:
                 sub = subcomplex._chomp_repr_()
             except AttributeError:
-                raise AttributeError("Subcomplex can not be converted to use with CHomP.")
+                raise AttributeError("Subcomplex cannot be converted to use with CHomP.")
             subfile = tmp_filename()
-            f = open(subfile, 'w')
-            f.write(sub)
-            f.close()
+            with open(subfile, 'w') as f:
+                f.write(sub)
         else:
             subfile = ''
         if verbose:
-            print "Popen called with arguments",
-            print [program, datafile, subfile] + extra_opts
-            print
-            print "CHomP output:"
-            print
+            print("Popen called with arguments", end="")
+            print([program, datafile, subfile] + extra_opts)
+            print("")
+            print("CHomP output:")
+            print("")
         # output = Popen([program, datafile, subfile, extra_opts],
         cmd = [program, datafile]
         if subfile:
@@ -248,18 +248,20 @@ class CHomP:
             cmd.extend(extra_opts)
         output = Popen(cmd, stdout=PIPE).communicate()[0]
         if verbose:
-            print output
-            print "End of CHomP output"
-            print
+            print(output)
+            print("End of CHomP output")
+            print("")
         if generators:
-            gens = open(genfile, 'r').read()
+            with open(genfile, 'r') as f:
+                gens = f.read()
             if verbose:
-                print "Generators:"
-                print gens
-
+                print("Generators:")
+                print(gens)
         #
         #    process output
         #
+        if output.find('ERROR') != -1:
+            raise RuntimeError('error inside CHomP')
         # output contains substrings of one of the forms
         # "H_1 = Z", "H_1 = Z_2 + Z", "H_1 = Z_2 + Z^2",
         # "H_1 = Z + Z_2 + Z"
@@ -276,7 +278,7 @@ class CHomP:
         #
         for m in h.finditer(output):
             if verbose:
-                print m.groups()
+                print(m.groups())
             # dim is the dimension of the homology group
             dim = int(m.group(1))
             # hom_str is the right side of the equation "H_n = Z^r + Z_k + ..."
@@ -292,11 +294,11 @@ class CHomP:
                 if hom_str.find("^") != -1:
                     rk_srch = re.search(r'\^([0-9]*)\s?', hom_str)
                     rk = int(rk_srch.group(1))
-                rk += len(re.findall("(Z$)|(Z\s)", hom_str))
+                rk += len(re.findall(r"(Z$)|(Z\s)", hom_str))
                 if mod_p:
                     rk = rk if rk != 0 else 1
                     if verbose:
-                        print "dimension = %s, rank of homology = %s" % (dim, rk)
+                        print("dimension = %s, rank of homology = %s" % (dim, rk))
                     hom = VectorSpace(base_ring, rk)
                 else:
                     n = rk
@@ -307,7 +309,7 @@ class CHomP:
                     for i in range(rk):
                         invts.append(0)
                     if verbose:
-                        print "dimension = %s, number of factors = %s, invariants = %s" %(dim, n, invts)
+                        print("dimension = %s, number of factors = %s, invariants = %s" % (dim, n, invts))
                     hom = HomologyGroup(n, ZZ, invts)
 
             #
@@ -317,7 +319,7 @@ class CHomP:
                 if cubical:
                     g = process_generators_cubical(gens, dim)
                     if verbose:
-                        print "raw generators: %s" % g
+                        print("raw generators: %s" % g)
                     if g:
                         module = CombinatorialFreeModule(base_ring,
                                                          original_complex.n_cells(dim),
@@ -334,7 +336,7 @@ class CHomP:
                 elif simplicial:
                     g = process_generators_simplicial(gens, dim, complex)
                     if verbose:
-                        print "raw generators: %s" % gens
+                        print("raw generators: %s" % gens)
                     if g:
                         module = CombinatorialFreeModule(base_ring,
                                                          complex.n_cells(dim),
@@ -356,7 +358,7 @@ class CHomP:
                 elif chain:
                     g = process_generators_chain(gens, dim, base_ring)
                     if verbose:
-                        print "raw generators: %s" % gens
+                        print("raw generators: %s" % gens)
                 if g:
                     if not mod_p:
                         # sort generators to match up with corresponding invariant
@@ -416,7 +418,8 @@ class CHomP:
             HOMCUBES, ver. ... Copyright (C) ... by Pawel Pilarczyk...
         """
         from subprocess import Popen, PIPE
-        print Popen([program, '-h'], stdout=PIPE).communicate()[0]
+        print(Popen([program, '-h'], stdout=PIPE).communicate()[0])
+
 
 def homsimpl(complex=None, subcomplex=None, **kwds):
     r"""
@@ -494,6 +497,8 @@ def homcubes(complex=None, subcomplex=None, **kwds):
 
     :param complex: a cubical complex
     :param subcomplex: a subcomplex of ``complex`` or None (the default)
+    :param base_ring: ring over which to perform computations -- must be `\ZZ` or `\GF{p}`.
+    :type base_ring: ring; optional, default `\ZZ`
     :param generators: if True, also return list of generators
     :type generators: boolean; optional, default False
     :param verbose: if True, print helpful messages as the computation progresses
@@ -534,6 +539,7 @@ def homcubes(complex=None, subcomplex=None, **kwds):
         return CHomP()('homcubes', complex, subcomplex=subcomplex, **kwds)
     else:
         raise TypeError("Complex and/or subcomplex are not cubical complexes.")
+
 
 def homchain(complex=None, **kwds):
     r"""
@@ -588,6 +594,7 @@ def homchain(complex=None, **kwds):
         return CHomP()('homchain', complex, **kwds)
     else:
         raise TypeError("Complex is not a chain complex.")
+
 
 def process_generators_cubical(gen_string, dim):
     r"""
@@ -657,7 +664,7 @@ def process_generators_cubical(gen_string, dim):
         # drop the first coordinate and eliminate duplicates, at least
         # in positive dimensions, drop any line containing a
         # degenerate cube
-        g = re.sub('\([01],', '(', g)
+        g = re.sub(r'\([01],', '(', g)
         if dim > 0:
             lines = g.splitlines()
             newlines = []

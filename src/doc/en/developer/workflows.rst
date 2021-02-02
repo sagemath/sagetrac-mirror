@@ -1,3 +1,5 @@
+.. highlight:: shell-session
+
 .. _chapter-workflows:
 
 =======================
@@ -24,7 +26,7 @@ third person.
 Simple Workflow
 ===============
 
-.. image:: static/flowchart.*
+.. IMAGE:: static/flowchart.*
     :align: center
 
 
@@ -141,7 +143,7 @@ course free to use a different one::
     Unpacking objects: 100% (74/74), done.
     From github.com:github_user_name/sage
     * [new branch]      master     -> github/master
-    
+
 
 Develop
 -------
@@ -172,7 +174,7 @@ particular, your choices are
 * Have every coauthor create their own fork and send you (the lead
   author) pull requests to your GitHub fork.
 
-* Use the GitHub web page editing & commiting feature, that way you
+* Use the GitHub web page editing & committing feature, that way you
   can make changes without ever using your local machine.
 
 

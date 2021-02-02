@@ -1,1 +1,2 @@
-import dynamic_class # allows for sage.structure.dynamic_class?
+# Resolve a cyclic import
+import sage.structure.element

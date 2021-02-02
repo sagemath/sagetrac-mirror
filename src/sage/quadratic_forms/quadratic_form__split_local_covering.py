@@ -14,32 +14,35 @@ from sage.quadratic_forms.quadratic_form import QuadraticForm__constructor, is_Q
 from sage.rings.real_mpfr import RealField_class, RealField
 from sage.rings.real_double import RDF
 from sage.matrix.matrix_space import MatrixSpace
-#from sage.matrix.matrix import Matrix
 from sage.matrix.constructor import matrix
 from sage.functions.all import floor
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import GCD
+from sage.arith.all import GCD
 
 
 def cholesky_decomposition(self, bit_prec = 53):
-    """
+    r"""
     Give the Cholesky decomposition of this quadratic form `Q` as a real matrix
     of precision ``bit_prec``.
 
     RESTRICTIONS:
+
         Q must be given as a QuadraticForm defined over `\ZZ`, `\QQ`, or some
         real field. If it is over some real field, then an error is raised if
         the precision given is not less than the defined precision of the real
         field defining the quadratic form!
 
     REFERENCE:
+
         From Cohen's "A Course in Computational Algebraic Number Theory" book,
         p 103.
 
     INPUT:
+
         ``bit_prec`` -- a natural number (default 53).
 
     OUTPUT:
+
         an upper triangular real matrix of precision ``bit_prec``.
 
 
@@ -78,7 +81,6 @@ def cholesky_decomposition(self, bit_prec = 53):
         [ 1.00000000000000  1.00000000000000  1.50000000000000]
         [0.000000000000000  3.00000000000000 0.333333333333333]
         [0.000000000000000 0.000000000000000  3.41666666666667]
-
     """
 
     ## Check that the precision passed is allowed.
@@ -92,7 +94,6 @@ def cholesky_decomposition(self, bit_prec = 53):
     Q = MS(R(0.5)) * MS(self.matrix())               ## Initialize the real symmetric matrix A with the matrix for Q(x) = x^t * A * x
 
     ## DIAGNOSTIC
-    #print "After 1:  Q is \n" + str(Q)
 
     ## 2. Loop on i
     for i in range(n):
@@ -122,9 +123,11 @@ def vectors_by_length(self, bound):
     but does not use the LLL-reduction algorithm.
 
     INPUT:
+
        bound -- an integer >= 0
 
     OUTPUT:
+
         A list L of length (bound + 1) whose entry L `[i]` is a list of
         all vectors of length `i`.
 
@@ -162,13 +165,13 @@ def vectors_by_length(self, bound):
     ::
 
         sage: Q = QuadraticForm(ZZ, 4, [1,1,1,1, 1,0,0, 1,0, 1])
-        sage: map(len, Q.vectors_by_length(2))
+        sage: list(map(len, Q.vectors_by_length(2)))
         [1, 12, 12]
 
     ::
 
         sage: Q = QuadraticForm(ZZ, 4, [1,-1,-1,-1, 1,0,0, 4,-3, 4])
-        sage: map(len, Q.vectors_by_length(3))
+        sage: list(map(len, Q.vectors_by_length(3)))
         [1, 3, 0, 3]
     """
     # pari uses eps = 1e-6 ; nothing bad should happen if eps is too big
@@ -253,8 +256,8 @@ def vectors_by_length(self, bound):
 
         ## SANITY CHECK: Roundoff Error is < 0.001
         if abs(Q_val_double -  Q_val) > 0.001:
-            print " x = ", x
-            print " Float = ", Q_val_double, "   Long = ", Q_val
+            print(" x = ", x)
+            print(" Float = ", Q_val_double, "   Long = ", Q_val)
             raise RuntimeError("The roundoff error is bigger than 0.001, so we should use more precision somewhere...")
 
         #print " Float = ", Q_val_double, "   Long = ", Q_val, "  XX "
@@ -302,9 +305,11 @@ def complementary_subform_to_vector(self, v):
     now extend `v` to a unimodular matrix.
 
     INPUT:
+
         `v` -- a list of self.dim() integers
 
     OUTPUT:
+
         a QuadraticForm over `ZZ`
 
 
@@ -349,15 +354,13 @@ def complementary_subform_to_vector(self, v):
         raise TypeError("Oops, v cannot be the zero vector! =(")
 
     ## Make the change of basis matrix
-    new_basis = extend_to_primitive(matrix(ZZ,n,1,v))
+    new_basis = extend_to_primitive(matrix(ZZ, n, 1, v))
 
     ## Change Q (to Q1) to have v as its nz-th basis vector
     Q1 = Q(new_basis)
 
     ## Pick out the value Q(v) of the vector
     d = Q1[0, 0]
-
-    #print Q1
 
     ## For each row/column, perform elementary operations to cancel them out.
     for i in range(1,n):
@@ -367,14 +370,8 @@ def complementary_subform_to_vector(self, v):
         if Q1[i,0] % d != 0:
             Q1 = Q1.multiply_variable(d / GCD(d, Q1[i, 0]//2), i)
 
-        #print "After scaling at i =", i
-        #print Q1
-
         ## Now perform the (symmetric) elementary operations to cancel out the (i,0) entries/
         Q1 = Q1.add_symmetric(-(Q1[i,0]/2) / (GCD(d, Q1[i,0]//2)), i, 0)
-
-        #print "After cancelling at i =", i
-        #print Q1
 
     ## Check that we're done!
     done_flag = True
@@ -382,7 +379,7 @@ def complementary_subform_to_vector(self, v):
         if Q1[0,i] != 0:
             done_flag = False
 
-    if done_flag == False:
+    if not done_flag:
         raise RuntimeError("There is a problem cancelling out the matrix entries! =O")
 
 
@@ -396,7 +393,7 @@ def split_local_cover(self):
     Tries to find subform of the given (positive definite quaternary)
     quadratic form Q of the form
 
-    .. math::
+    .. MATH::
 
         d*x^2 + T(y,z,w)
 
@@ -407,9 +404,11 @@ def split_local_cover(self):
     lattice and the original quadratic form Q.
 
     INPUT:
+
         none
 
     OUTPUT:
+
         a QuadraticForm over ZZ
 
     EXAMPLES::
@@ -426,7 +425,7 @@ def split_local_cover(self):
     if hasattr(self, "__split_local_cover"):
         if is_QuadraticForm(self.__split_local_cover):  ## Here the computation has been done.
             return self.__split_local_cover
-        elif isinstance(self.__split_local_cover, Integer):    ## Here it indexes the values already tried!
+        elif self.__split_local_cover in ZZ:    ## Here it indexes the values already tried!
             current_length = self.__split_local_cover + 1
             Length_Max = current_length + 5
     else:
@@ -442,10 +441,7 @@ def split_local_cover(self):
 
         ## 2. Check if any of the primitive ones produce a split local cover
         for v in current_vectors:
-            #print "current length = ", current_length
-            #print "v = ", v
             Q = QuadraticForm__constructor(ZZ, 1, [current_length]) + self.complementary_subform_to_vector(v)
-            #print Q
             if Q.local_representation_conditions() == self.local_representation_conditions():
                 self.__split_local_cover = Q
                 return Q

@@ -13,7 +13,7 @@ AUTHORS:
 - Stefan van Zwam (2011-06-24): initial version
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Rudi Pendavingh <rudi.pendavingh@gmail.com>
 #       Copyright (C) 2013 Stefan van Zwam <stefanvanzwam@gmail.com>
 #
@@ -21,14 +21,16 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.matrix.constructor import Matrix
-from sage.rings.all import ZZ, QQ, FiniteField, GF
-from sage.graphs.all import BipartiteGraph
-from pprint import pformat
+from sage.rings.all import ZZ, QQ, GF
+from sage.graphs.all import BipartiteGraph, Graph
 from sage.structure.all import SageObject
+from sage.graphs.spanning_tree import kruskal
+from operator import itemgetter
+from sage.rings.number_field.number_field import NumberField
 
 
 def setprint(X):
@@ -60,10 +62,12 @@ def setprint(X):
 
         sage: from sage.matroids.advanced import setprint
         sage: L = [{1, 2, 3}, {1, 2, 4}, {2, 3, 4}, {4, 1, 3}]
-        sage: print(L)
+        sage: print(L)  # py2
         [set([1, 2, 3]), set([1, 2, 4]), set([2, 3, 4]), set([1, 3, 4])]
-        sage: setprint(L)
+        sage: print(L)  # py3
         [{1, 2, 3}, {1, 2, 4}, {2, 3, 4}, {1, 3, 4}]
+        sage: setprint(L)
+        [{1, 2, 3}, {1, 2, 4}, {1, 3, 4}, {2, 3, 4}]
 
     Note that for iterables, the effect can be undesirable::
 
@@ -72,7 +76,7 @@ def setprint(X):
         sage: M.bases()
         Iterator over a system of subsets
         sage: setprint(M.bases())
-        [{'a', 'b', 'c'}, {'a', 'c', 'd'}, {'a', 'b', 'd'}]
+        [{'a', 'b', 'c'}, {'a', 'b', 'd'}, {'a', 'c', 'd'}]
 
     An exception was made for subclasses of SageObject::
 
@@ -83,7 +87,7 @@ def setprint(X):
         sage: setprint(G)
         Petersen graph: Graph on 10 vertices
     """
-    print setprint_s(X, toplevel=True)
+    print(setprint_s(X, toplevel=True))
 
 
 def setprint_s(X, toplevel=False):
@@ -106,7 +110,7 @@ def setprint_s(X, toplevel=False):
         sage: from sage.matroids.utilities import setprint_s
         sage: L = [{1, 2, 3}, {1, 2, 4}, {2, 3, 4}, {4, 1, 3}]
         sage: setprint_s(L)
-        '[{1, 2, 3}, {1, 2, 4}, {2, 3, 4}, {1, 3, 4}]'
+        '[{1, 2, 3}, {1, 2, 4}, {1, 3, 4}, {2, 3, 4}]'
 
     The ``toplevel`` argument only affects strings, to mimic ``print``'s
     behavior::
@@ -118,16 +122,17 @@ def setprint_s(X, toplevel=False):
         'abcd'
     """
     if isinstance(X, frozenset) or isinstance(X, set):
-        return '{' + ', '.join([setprint_s(x) for x in sorted(X)]) + '}'
+        return '{' + ', '.join(sorted(setprint_s(x) for x in X)) + '}'
     elif isinstance(X, dict):
-        return '{' + ', '.join([setprint_s(key) + ': ' + setprint_s(val) for key, val in sorted(X.iteritems())]) + '}'
+        return '{' + ', '.join(sorted(setprint_s(key) + ': ' + setprint_s(val)
+                                      for key, val in X.items())) + '}'
     elif isinstance(X, str):
         if toplevel:
             return X
         else:
             return "'" + X + "'"
     elif hasattr(X, '__iter__') and not isinstance(X, SageObject):
-        return '[' + ', '.join([setprint_s(x) for x in sorted(X)]) + ']'
+        return '[' + ', '.join(sorted(setprint_s(x) for x in X)) + ']'
     else:
         return repr(X)
 
@@ -212,32 +217,30 @@ def sanitize_contractions_deletions(matroid, contractions, deletions):
         sage: setprint(sanitize_contractions_deletions(M, 'abc', 'defg'))
         [{'a', 'b', 'c'}, {'d', 'e', 'f', 'g'}]
         sage: setprint(sanitize_contractions_deletions(M, 'defg', 'abc'))
-        [{'d', 'e', 'g'}, {'a', 'b', 'c', 'f'}]
+        [{'a', 'b', 'c', 'f'}, {'d', 'e', 'g'}]
         sage: setprint(sanitize_contractions_deletions(M, [1, 2, 3], 'efg'))
         Traceback (most recent call last):
         ...
-        ValueError: input contractions is not a subset of the groundset.
+        ValueError: [1, 2, 3] is not a subset of the groundset
         sage: setprint(sanitize_contractions_deletions(M, 'efg', [1, 2, 3]))
         Traceback (most recent call last):
         ...
-        ValueError: input deletions is not a subset of the groundset.
+        ValueError: [1, 2, 3] is not a subset of the groundset
         sage: setprint(sanitize_contractions_deletions(M, 'ade', 'efg'))
         Traceback (most recent call last):
         ...
         ValueError: contraction and deletion sets are not disjoint.
 
     """
-    if contractions is None:
-        contractions = frozenset([])
-    contractions = frozenset(contractions)
-    if not matroid.groundset().issuperset(contractions):
-        raise ValueError("input contractions is not a subset of the groundset.")
+    if not contractions:
+        contractions = frozenset()
+    else:
+        contractions = matroid._subset(contractions)
 
-    if deletions is None:
-        deletions = frozenset([])
-    deletions = frozenset(deletions)
-    if not matroid.groundset().issuperset(deletions):
-        raise ValueError("input deletions is not a subset of the groundset.")
+    if not deletions:
+        deletions = frozenset()
+    else:
+        deletions = matroid._subset(deletions)
 
     if not contractions.isdisjoint(deletions):
         raise ValueError("contraction and deletion sets are not disjoint.")
@@ -295,13 +298,13 @@ def make_regular_matroid_from_matroid(matroid):
         for f in C.difference([e]):
             A[dB[f], dNB[e]] = 1
     # Change some entries from -1 to 1
-    entries = BipartiteGraph(A.transpose()).edges(labels=False)
-    while len(entries) > 0:
+    entries = list(BipartiteGraph(A.transpose()).edges(labels=False, sort=False))
+    while entries:
         L = [G.shortest_path(u, v) for u, v in entries]
         mindex, minval = min(enumerate(L), key=lambda x: len(x[1]))
 
         # if minval = 0, there is an edge not spanned by the current subgraph. Its entry is free to be scaled any way.
-        if len(minval) > 0:
+        if len(minval) > 0:  # DUBIOUS !!
             # Check the subdeterminant
             S = frozenset(L[mindex])
             rows = []
@@ -354,3 +357,437 @@ def get_nonisomorphic_matroids(MSet):
         if not seen:
             OutSet.append(M)
     return OutSet
+
+
+def spanning_forest(M):
+    r"""
+    Return a list of edges of a spanning forest of the bipartite
+    graph defined by `M`
+
+    INPUT:
+
+    - ``M`` -- a matrix defining a bipartite graph G. The vertices are the
+      rows and columns, if `M[i,j]` is non-zero, then there is an edge
+      between row `i` and column `j`.
+
+    OUTPUT:
+
+    A list of tuples `(r_i,c_i)` representing edges between row `r_i` and column `c_i`.
+
+    EXAMPLES::
+
+        sage: len(sage.matroids.utilities.spanning_forest(matrix([[1,1,1],[1,1,1],[1,1,1]])))
+        5
+        sage: len(sage.matroids.utilities.spanning_forest(matrix([[0,0,1],[0,1,0],[0,1,0]])))
+        3
+    """
+    # Given a matrix, produce a spanning tree
+    G = Graph()
+    m = M.ncols()
+    for (x, y) in M.dict():
+        G.add_edge(x + m, y)
+    T = []
+    # find spanning tree in each component
+    for component in G.connected_components():
+        spanning_tree = kruskal(G.subgraph(component))
+        for (x, y, z) in spanning_tree:
+            if x < m:
+                t = x
+                x = y
+                y = t
+            T.append((x - m, y))
+    return T
+
+
+def spanning_stars(M):
+    r"""
+    Return the edges of a connected subgraph that is a union of
+    all edges incident some subset of vertices.
+
+    INPUT:
+
+    - ``M`` -- a matrix defining a bipartite graph G. The vertices are the
+      rows and columns, if `M[i,j]` is non-zero, then there is an edge
+      between row i and column 0.
+
+    OUTPUT:
+
+    A list of tuples `(row,column)` in a spanning forest of the bipartite graph defined by ``M``
+
+    EXAMPLES::
+
+        sage: edges = sage.matroids.utilities.spanning_stars(matrix([[1,1,1],[1,1,1],[1,1,1]]))
+        sage: Graph([(x+3, y) for x,y in edges]).is_connected()
+        True
+    """
+
+    G = Graph()
+    m = M.ncols()
+    for x, y in M.dict():
+        G.add_edge(x + m, y)
+
+    delta = (M.nrows() + m)**0.5
+    # remove low degree vertices
+    H = []
+    # candidate vertices
+    V_0 = set([])
+    d = 0
+    while G.order():
+        x, d = min(G.degree_iterator(labels=True), key=itemgetter(1))
+        if d < delta:
+            V_0.add(x)
+            H.extend(G.edges_incident(x, False))
+            G.delete_vertex(x)
+        else:
+            break
+
+    # min degree is at least sqrt(n)
+    # greedily remove vertices
+    G2 = G.copy()
+    # set of picked vertices
+    V_1 = set([])
+    while G2.order():
+        # choose vertex with maximum degree in G2
+        x, d = max(G2.degree_iterator(labels=True), key=itemgetter(1))
+        V_1.add(x)
+        G2.delete_vertices(G2.neighbors(x))
+        G2.delete_vertex(x)
+
+    # G2 is a graph of all edges incident to V_1
+    G2 = Graph()
+    for v in V_1:
+        for u in G.neighbors(v):
+            G2.add_edge(u, v)
+
+    V = V_0 | V_1
+    # compute a spanning tree
+    T = spanning_forest(M)
+    for x, y in T:
+        if x not in V and y not in V:
+            V.add(v)
+
+    for v in V:
+        if G.has_vertex(v):  # some vertices are not in G
+            H.extend(G.edges_incident(v, False))
+
+    # T contain all edges in some spanning tree
+    T = []
+    for x, y in H:
+        if x < m:
+            t = x
+            x = y
+            y = t
+        T.append((x - m, y))
+    return T
+
+# Partial fields and lifting
+
+
+def lift_cross_ratios(A, lift_map=None):
+    r"""
+    Return a matrix which arises from the given matrix by lifting cross ratios.
+
+    INPUT:
+
+    - ``A`` -- a matrix over a ring ``source_ring``.
+    - ``lift_map`` -- a python dictionary, mapping each cross ratio of ``A`` to some element
+      of a target ring, and such that ``lift_map[source_ring(1)] = target_ring(1)``.
+
+    OUTPUT:
+
+    - ``Z`` -- a matrix over the ring ``target_ring``.
+
+    The intended use of this method is to create a (reduced) matrix representation of a
+    matroid ``M`` over a ring ``target_ring``, given a (reduced) matrix representation of
+    ``A`` of ``M`` over a ring ``source_ring`` and a map ``lift_map`` from ``source_ring``
+    to ``target_ring``.
+
+    This method will create a unique candidate representation ``Z``, but will not verify
+    if ``Z`` is indeed a representation of ``M``. However, this is guaranteed if the
+    conditions of the lift theorem (see [PvZ2010]_) hold for the lift map in combination with
+    the matrix ``A``.
+
+    For a lift map `f` and a matrix `A` these conditions are as follows. First of all
+    `f: S \rightarrow T`, where `S` is a set of invertible elements of the source ring and
+    `T` is a set of invertible elements of the target ring. The matrix `A` has entries
+    from the source ring, and each cross ratio of `A` is contained in `S`. Moreover:
+
+    - `1 \in S`, `1 \in T`;
+    - for all `x \in S`: `f(x) = 1` if and only if `x = 1`;
+    - for all `x, y \in S`: if `x + y = 0` then `f(x) + f(y) = 0`;
+    - for all `x, y \in S`: if `x + y = 1` then `f(x) + f(y) = 1`;
+    - for all `x, y, z \in S`: if  `xy = z` then `f(x)f(y) = f(z)`.
+
+    Any ring homomorphism `h: P \rightarrow R` induces a lift map from the set of units `S` of
+    `P` to the set of units `T` of `R`. There exist lift maps which do not arise in
+    this manner. Several such maps can be created by the function
+    :meth:`lift_map() <sage.matroids.utilities.lift_map>`.
+
+    .. SEEALSO::
+
+        :meth:`lift_map() <sage.matroids.utilities.lift_map>`
+
+    EXAMPLES::
+
+        sage: from sage.matroids.advanced import lift_cross_ratios, lift_map, LinearMatroid
+        sage: R = GF(7)
+        sage: to_sixth_root_of_unity = lift_map('sru')
+        sage: A = Matrix(R, [[1, 0, 6, 1, 2],[6, 1, 0, 0, 1],[0, 6, 3, 6, 0]])
+        sage: A
+        [1 0 6 1 2]
+        [6 1 0 0 1]
+        [0 6 3 6 0]
+        sage: Z = lift_cross_ratios(A, to_sixth_root_of_unity)
+        sage: Z # py2
+        [ 1  0  1  1  1]
+        [ 1  1  0  0  z]
+        [ 0  1 -z -1  0]
+        sage: Z # py3
+        [ 1  0  1  1  1]
+        [ 1  1  0  0  z]
+        [ 0 -1  z  1  0]
+        sage: M = LinearMatroid(reduced_matrix = A)
+        sage: sorted(M.cross_ratios())
+        [3, 5]
+        sage: N = LinearMatroid(reduced_matrix = Z)
+        sage: sorted(N.cross_ratios())
+        [-z + 1, z]
+        sage: M.is_isomorphism(N, {e:e for e in M.groundset()})
+        True
+
+    """
+    for s, t in lift_map.items():
+        source_ring = s.parent()
+        target_ring = t.parent()
+        break
+    plus_one1 = source_ring(1)
+    minus_one1 = source_ring(-1)
+    plus_one2 = target_ring(1)
+    minus_one2 = target_ring(-1)
+
+    G = Graph([((r, 0), (c, 1), (r, c)) for r, c in A.nonzero_positions()])
+    # write the entries of (a scaled version of) A as products of cross ratios of A
+    T = set()
+    for C in G.connected_components():
+        T.update(G.subgraph(C).min_spanning_tree())
+    # - fix a tree of the support graph G to units (= empty dict, product of 0 terms)
+    F = {entry[2]: dict() for entry in T}
+    W = set(G.edge_iterator()) - set(T)
+    H = G.subgraph(edges=T)
+    while W:
+        # - find an edge in W to process, closing a circuit in H which is induced in G
+        edge = W.pop()
+        path = H.shortest_path(edge[0], edge[1])
+        retry = True
+        while retry:
+            retry = False
+            for edge2 in W:
+                if edge2[0] in path and edge2[1] in path:
+                    W.add(edge)
+                    edge = edge2
+                    W.remove(edge)
+                    path = H.shortest_path(edge[0], edge[1])
+                    retry = True
+                    break
+        entry = edge[2]
+        entries = []
+        for i in range(len(path) - 1):
+            v = path[i]
+            w = path[i + 1]
+            if v[1] == 0:
+                entries.append((v[0], w[0]))
+            else:
+                entries.append((w[0], v[0]))
+        # - compute the cross ratio `cr` of this whirl
+        cr = source_ring(A[entry])
+        div = True
+        for entry2 in entries:
+            if div:
+                cr /= A[entry2]
+            else:
+                cr *= A[entry2]
+            div = not div
+
+        monomial = {}
+        if len(path) % 4 == 0:
+            if not cr == plus_one1:
+                monomial[cr] = 1
+        else:
+            cr = -cr
+            if cr != plus_one1:
+                monomial[cr] = 1
+            if minus_one1 in monomial:
+                monomial[minus_one1] = monomial[minus_one1] + 1
+            else:
+                monomial[minus_one1] = 1
+
+        if cr != plus_one1 and cr not in lift_map:
+            raise ValueError("Input matrix has a cross ratio " + str(cr) + ", which is not in the lift_map")
+        # - write the entry as a product of cross ratios of A
+        div = True
+        for entry2 in entries:
+            if div:
+                for cr, degree in F[entry2].items():
+                    if cr in monomial:
+                        monomial[cr] = monomial[cr] + degree
+                    else:
+                        monomial[cr] = degree
+            else:
+                for cr, degree in F[entry2].items():
+                    if cr in monomial:
+                        monomial[cr] = monomial[cr] - degree
+                    else:
+                        monomial[cr] = -degree
+            div = not div
+        F[entry] = monomial
+        # - current edge is done, can be used in next iteration
+        H.add_edge(edge)
+
+    # compute each entry of Z as the product of lifted cross ratios
+    Z = Matrix(target_ring, A.nrows(), A.ncols())
+    for entry, monomial in F.items():
+        Z[entry] = plus_one2
+        for cr, degree in monomial.items():
+            if cr == minus_one1:
+                Z[entry] = Z[entry] * (minus_one2**degree)
+            else:
+                Z[entry] = Z[entry] * (lift_map[cr]**degree)
+
+    return Z
+
+
+def lift_map(target):
+    r"""
+    Create a lift map, to be used for lifting the cross ratios of a matroid
+    representation.
+
+    .. SEEALSO::
+
+        :meth:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`
+
+    INPUT:
+
+    - ``target`` -- a string describing the target (partial) field.
+
+    OUTPUT:
+
+    - a dictionary
+
+    Depending on the value of ``target``, the following lift maps will be created:
+
+    - "reg": a lift map from `\GF3` to the regular partial field `(\ZZ, <-1>)`.
+
+    - "sru": a lift map from `\GF7` to the
+      sixth-root-of-unity partial field `(\QQ(z), <z>)`, where `z` is a sixth root
+      of unity. The map sends 3 to `z`.
+
+    - "dyadic": a lift map from `\GF{11}` to the dyadic partial field `(\QQ, <-1, 2>)`.
+
+    - "gm": a lift map from `\GF{19}` to the golden mean partial field
+      `(\QQ(t), <-1,t>)`, where `t` is a root of `t^2-t-1`. The map sends `5` to `t`.
+
+    The example below shows that the latter map satisfies three necessary conditions stated in
+    :meth:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`
+
+    EXAMPLES::
+
+        sage: from sage.matroids.utilities import lift_map
+        sage: lm = lift_map('gm')
+        sage: for x in lm:
+        ....:     if (x == 1) is not (lm[x] == 1):
+        ....:         print('not a proper lift map')
+        ....:     for y in lm:
+        ....:         if (x+y == 0) and not (lm[x]+lm[y] == 0):
+        ....:             print('not a proper lift map')
+        ....:         if (x+y == 1) and not (lm[x]+lm[y] == 1):
+        ....:             print('not a proper lift map')
+        ....:         for z in lm:
+        ....:             if (x*y==z) and not (lm[x]*lm[y]==lm[z]):
+        ....:                 print('not a proper lift map')
+
+    """
+    if target == "reg":
+        R = GF(3)
+        return {R(1): ZZ(1)}
+
+    if target == "sru":
+        R = GF(7)
+        z = ZZ['z'].gen()
+        S = NumberField(z * z - z + 1, 'z')
+        z = S(z)
+        return {R.one(): S.one(), R(3): z, R(3)**(-1): z**5}
+
+    if target == "dyadic":
+        R = GF(11)
+        return {R(1): QQ(1), R(-1): QQ(-1), R(2): QQ(2), R(6): QQ((1, 2))}
+
+    if target == "gm":
+        R = GF(19)
+        t = QQ['t'].gen()
+        G = NumberField(t * t - t - 1, 't')
+        return {R(1): G(1), R(5): G(t),
+                R(1) / R(5): G(1) / G(t), R(-5): G(-t),
+                R(-5)**(-1): G(-t)**(-1), R(5)**2: G(t)**2,
+                R(5)**(-2): G(t)**(-2)}
+
+    raise NotImplementedError(target)
+
+
+def split_vertex(G, u, v=None, edges=None):
+    """
+    Split a vertex in a graph.
+
+    If an edge is inserted between the vertices after splitting, this
+    corresponds to a graphic coextension of a matroid.
+
+    INPUT:
+
+    - ``G`` -- A SageMath Graph.
+    - ``u`` -- A vertex in ``G``.
+    - ``v`` -- (optional) The name of the new vertex after the splitting. If
+      ``v`` is specified and already in the graph, it must be an isolated vertex.
+    - ``edges`` -- (optional) An iterable container of edges on ``u`` that
+      move to ``v`` after the splitting. If ``None``, ``v`` will be an isolated
+      vertex. The edge labels must be specified.
+
+    EXAMPLES::
+
+        sage: from sage.matroids.utilities import split_vertex
+        sage: G = graphs.BullGraph()
+        sage: split_vertex(G, u=1, v=55, edges=[(1, 3)])
+        Traceback (most recent call last):
+        ...
+        ValueError: the edges are not all incident with u
+        sage: split_vertex(G, u=1, v=55, edges=[(1, 3, None)])
+        sage: list(G.edges(sort=True))
+        [(0, 1, None), (0, 2, None), (1, 2, None), (2, 4, None), (3, 55, None)]
+    """
+    if v is None:
+        v = G.add_vertex()
+    elif v not in G:
+        G.add_vertex(v)
+    elif G.degree(v):
+        raise ValueError("v must be a new vertex or an isolated vertex")
+    if edges is None:
+        edges = []
+
+    edges_on_u = G.edges_incident(u)
+
+    for e in edges:
+        if e not in edges_on_u:
+            # if e is a loop, put it on u and v
+            # otherwise raise an error
+            if e[0] == e[1]:
+                G.add_edge(u, v, e[2])
+                G.delete_edge(e)
+            else:
+                raise ValueError("the edges are not all incident with u")
+
+        elif e[0] == u:
+            G.add_edge(v, e[1], e[2])
+        elif e[1] == u:
+            G.add_edge(e[0], v, e[2])
+        G.delete_edge(e)
+
+    # This modifies the graph without needing to return anything
+    return

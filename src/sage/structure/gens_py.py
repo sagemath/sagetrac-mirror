@@ -25,12 +25,11 @@ def multiplicative_iterator(M):
         yield M(1)
         return
 
-    stop = list(M.generator_orders())
+    stop = [g.multiplicative_order() for g in G]
     for i in range(len(stop)):
         if stop[i] is infinity:
             raise ArithmeticError("%s is not finite."%M)
         stop[i] = stop[i] - 1
-    n = 0
     z = M(1)
     yield z
     cnt = [0] * len(G)
@@ -42,8 +41,9 @@ def multiplicative_iterator(M):
             cnt[i] = 0
             cnt[i+1] = cnt[i+1] + 1
             z = z * G[i+1]
-            i = i + 1
+            i += 1
         yield z
+
 
 def abelian_iterator(M):
     from sage.rings.all import infinity
@@ -57,7 +57,6 @@ def abelian_iterator(M):
         if stop[i] is infinity:
             raise ArithmeticError("%s is not finite."%M)
         stop[i] = stop[i] - 1
-    n = 0
     z = M(0)
     yield z
     cnt = [0] * len(G)
@@ -69,7 +68,5 @@ def abelian_iterator(M):
             cnt[i] = 0
             cnt[i+1] = cnt[i+1] + 1
             z = z + G[i+1]
-            i = i + 1
+            i += 1
         yield z
-
-

@@ -10,8 +10,8 @@ Matrix algebras
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_over_base_ring
-from algebras import Algebras
+from .category_types import Category_over_base_ring
+from .algebras import Algebras
 
 class MatrixAlgebras(Category_over_base_ring):
     """

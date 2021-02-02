@@ -1,5 +1,5 @@
 r"""
-Bijection classes for type `B_n^{(1)}`.
+Bijection classes for type `B_n^{(1)}`
 
 Part of the (internal) classes which runs the bijection between rigged
 configurations and KR tableaux of type `B_n^{(1)}`.
@@ -78,6 +78,15 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
             <BLANKLINE>
             0[]0
             <BLANKLINE>
+
+        TESTS:
+
+        Check that :trac:`19384` is fixed::
+
+            sage: RC = RiggedConfigurations(['B',3,1], [[3,1],[3,1]])
+            sage: RC._test_bijection()
+            sage: RC = RiggedConfigurations(['B',3,1], [[1,1],[3,1],[1,1]])
+            sage: RC._test_bijection()
         """
         if verbose:
             from sage.combinat.rigged_configurations.tensor_product_kr_tableaux_element \
@@ -95,7 +104,7 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
                 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
 
                 if verbose:
-                    print "===================="
+                    print("====================")
                     if len(self.cur_path) == 0:
                         print(repr([])) # Special case for displaying when the rightmost factor is a spinor
                     else:
@@ -113,7 +122,9 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
                 self.ret_rig_con[-1] = RiggedPartition(self.ret_rig_con[-1]._list,
                                                        self.ret_rig_con[-1].rigging,
                                                        self.ret_rig_con[-1].vacancy_numbers)
-                bij = KRTToRCBijectionTypeA2Odd(KRT.module_generators[0]) # Placeholder element
+                # Placeholder element
+                elt = KRT(*[C.module_generators[0] for C in KRT.crystals])
+                bij = KRTToRCBijectionTypeA2Odd(elt)
                 bij.ret_rig_con = KRT.rigged_configurations()(*self.ret_rig_con, use_vacancy_numbers=True)
                 bij.cur_path = self.cur_path
                 bij.cur_dims = self.cur_dims
@@ -180,7 +191,7 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
                         bij.ret_rig_con[i]._list[j] //= 2
                         bij.ret_rig_con[i].rigging[j] //= 2
                         bij.ret_rig_con[i].vacancy_numbers[j] //= 2
-                self.ret_rig_con = self.tp_krt.parent().rigged_configurations()(*bij.ret_rig_con)
+                self.ret_rig_con = self.tp_krt.parent().rigged_configurations()(*bij.ret_rig_con, use_vacancy_numbers=True)
                 # Make it mutable so we don't have to keep making copies, at the
                 #   end of the bijection, we will make it immutable again
                 self.ret_rig_con._set_mutable()
@@ -266,7 +277,10 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
             max_width = max_width // 2
 
             # Check to see if we need to make the new string quasi-singular
-            max_width = self.ret_rig_con[n-2].insert_cell(max_width)
+            if tableau_height != n-1:
+                max_width = self.ret_rig_con[n-2].insert_cell(max_width)
+            else:
+                max_width = -1
             self._update_vacancy_nums(n - 1)
             self._update_partition_values(n - 1)
 
@@ -394,7 +408,10 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
         max_width = max_width // 2
 
         # We need to do the next partition in order to determine the step at n
-        max_width = self.ret_rig_con[n-2].insert_cell(max_width)
+        if tableau_height != n-1:
+            max_width = self.ret_rig_con[n-2].insert_cell(max_width)
+        else:
+            max_width = -1
 
         self._update_vacancy_nums(n - 1)
         self._update_partition_values(n - 1)
@@ -601,16 +618,16 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                 if build_graph:
                     y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
                     self._graph.append([self._graph[-1][1], (y, len(self._graph)), '2x'])
-        
+
                 # Perform the type A_{2n-1}^{(2)} bijection
-        
+
                 # Iterate over each column
                 for dummy_var in range(dim[1]):
                     # Split off a new column if necessary
                     if bij.cur_dims[0][1] > 1:
                         bij.cur_dims[0][1] -= 1
                         bij.cur_dims.insert(0, [dim[0], 1])
-        
+
                         # Perform the corresponding splitting map on rigged configurations
                         # All it does is update the vacancy numbers on the RC side
                         for a in range(self.n):
@@ -619,8 +636,8 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                         if build_graph:
                             y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
                             self._graph.append([self._graph[-1][1], (y, len(self._graph)), 'ls'])
-        
-                    while bij.cur_dims[0][0] > 0:
+
+                    while bij.cur_dims[0][0]: # > 0:
                         if verbose:
                             print("====================")
                             print(repr(RC(*bij.cur_partitions, use_vacancy_numbers=True)))
@@ -628,8 +645,9 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                             print(ret_crystal_path)
                             print("--------------------\n")
 
-                        bij.cur_dims[0][0] -= 1 # This takes care of the indexing
-                        b = bij.next_state(bij.cur_dims[0][0])
+                        ht = bij.cur_dims[0][0]
+                        bij.cur_dims[0][0] = bij._next_index(ht)
+                        b = bij.next_state(ht)
                         # Make sure we have a crystal letter
                         ret_crystal_path[-1].append(letters(b)) # Append the rank
 
@@ -690,7 +708,7 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                             y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
                             self._graph.append([self._graph[-1][1], (y, len(self._graph)), '2x'])
 
-                    while self.cur_dims[0][0] > 0:
+                    while self.cur_dims[0][0]: #> 0:
                         if verbose:
                             print("====================")
                             print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))

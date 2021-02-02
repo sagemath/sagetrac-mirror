@@ -10,8 +10,9 @@ Weight lattices and weight spaces
 
 from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from weight_lattice_realizations import WeightLatticeRealizations
+from sage.combinat.free_module import CombinatorialFreeModule
+from .weight_lattice_realizations import WeightLatticeRealizations
+import functools
 
 class WeightSpace(CombinatorialFreeModule):
     r"""
@@ -28,7 +29,7 @@ class WeightSpace(CombinatorialFreeModule):
 
     This class is also used for coweight spaces (or lattices).
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`RootSystem`
         - :meth:`RootSystem.weight_lattice` and :meth:`RootSystem.weight_space`
@@ -129,12 +130,12 @@ class WeightSpace(CombinatorialFreeModule):
     TESTS::
 
         sage: for ct in CartanType.samples(crystallographic=True)+[CartanType(["A",2],["C",5,1])]:
-        ...       TestSuite(ct.root_system().weight_lattice()).run()
-        ...       TestSuite(ct.root_system().weight_space()).run()
+        ....:     TestSuite(ct.root_system().weight_lattice()).run()
+        ....:     TestSuite(ct.root_system().weight_space()).run()
         sage: for ct in CartanType.samples(affine=True):
-        ...       if ct.is_implemented():
-        ...           P = ct.root_system().weight_space(extended=True)
-        ...           TestSuite(P).run()
+        ....:     if ct.is_implemented():
+        ....:         P = ct.root_system().weight_space(extended=True)
+        ....:         TestSuite(P).run()
     """
 
     @staticmethod
@@ -142,7 +143,7 @@ class WeightSpace(CombinatorialFreeModule):
         """
         Guarantees Unique representation
 
-        .. seealso:: :class:`UniqueRepresentation`
+        .. SEEALSO:: :class:`UniqueRepresentation`
 
         TESTS::
 
@@ -177,11 +178,18 @@ class WeightSpace(CombinatorialFreeModule):
                                  " implemented for affine root systems")
             basis_keys = tuple(basis_keys) + ("delta",)
 
+            def sortkey(x):
+                return (1 if isinstance(x, str) else 0, x)
+        else:
+            def sortkey(x):
+                return x
+
         self.root_system = root_system
         CombinatorialFreeModule.__init__(self, base_ring,
                                          basis_keys,
                                          prefix = "Lambdacheck" if root_system.dual_side else "Lambda",
                                          latex_prefix = "\\Lambda^\\vee" if root_system.dual_side else "\\Lambda",
+                                         sorting_key=sortkey,
                                          category = WeightLatticeRealizations(base_ring))
 
         if root_system.cartan_type().is_affine() and not extended:
@@ -194,9 +202,9 @@ class WeightSpace(CombinatorialFreeModule):
 
     def is_extended(self):
         """
-        Returns whether this is an extended weight lattice
+        Return whether this is an extended weight lattice.
 
-        .. seealso: :meth:`~sage.combinat.root_sytem.weight_lattice_realization.ParentMethods.is_extended`
+        .. SEEALSO:: :meth:`~sage.combinat.root_system.weight_lattice_realization.ParentMethods.is_extended`
 
         EXAMPLES::
 
@@ -236,7 +244,7 @@ class WeightSpace(CombinatorialFreeModule):
 
     @cached_method
     def fundamental_weight(self, i):
-        """
+        r"""
         Returns the `i`-th fundamental weight
 
         INPUT:
@@ -247,7 +255,7 @@ class WeightSpace(CombinatorialFreeModule):
         also accepts ``"delta"`` as input, and returns the image of
         `\delta` of the extended weight lattice in this realization.
 
-        .. seealso: :meth:`~sage.combinat.root_sytem.weight_lattice_realization.ParentMethods.fundamental_weight`
+        .. SEEALSO:: :meth:`~sage.combinat.root_system.weight_lattice_realization.ParentMethods.fundamental_weight`
 
         EXAMPLES::
 
@@ -302,7 +310,7 @@ class WeightSpace(CombinatorialFreeModule):
 
     @cached_method
     def simple_root(self, j):
-        """
+        r"""
         Returns the `j^{th}` simple root
 
         EXAMPLES::
@@ -423,8 +431,31 @@ class WeightSpace(CombinatorialFreeModule):
         else:
             return self.classical().monomial(i)
 
+    @cached_method
+    def to_ambient_space_morphism(self):
+        r"""
+        The morphism from ``self`` to its associated ambient space.
 
-class WeightSpaceElement(CombinatorialFreeModuleElement):
+        EXAMPLES::
+
+            sage: CartanType(['A',2]).root_system().weight_lattice().to_ambient_space_morphism()
+            Generic morphism:
+            From: Weight lattice of the Root system of type ['A', 2]
+            To:   Ambient space of the Root system of type ['A', 2]
+
+        .. warning::
+
+            Implemented only for finite Cartan type.
+        """
+        if self.root_system.dual_side:
+            raise TypeError("No implemented map from the coweight space to the ambient space")
+        L = self.cartan_type().root_system().ambient_space()
+        basis = L.fundamental_weights()
+        def basis_value(basis, i):
+            return basis[i]
+        return self.module_morphism(on_basis = functools.partial(basis_value, basis), codomain=L)
+
+class WeightSpaceElement(CombinatorialFreeModule.Element):
 
     def scalar(self, lambdacheck):
         """
@@ -451,8 +482,8 @@ class WeightSpaceElement(CombinatorialFreeModuleElement):
         The fundamental weights and the simple coroots are dual bases::
 
             sage: matrix([ [ Lambda[i].scalar(alphacheck[j])
-            ...              for i in L.index_set() ]
-            ...            for j in L.index_set() ])
+            ....:            for i in L.index_set() ]
+            ....:          for j in L.index_set() ])
             [1 0 0 0 0]
             [0 1 0 0 0]
             [0 0 1 0 0]
@@ -509,5 +540,41 @@ class WeightSpaceElement(CombinatorialFreeModuleElement):
 
         """
         return all(self.coefficient(i) >= 0 for i in self.parent().index_set())
+
+    def to_ambient(self):
+        r"""
+        Maps ``self`` to the ambient space.
+
+        EXAMPLES::
+
+            sage: mu = CartanType(['B',2]).root_system().weight_lattice().an_element(); mu
+            2*Lambda[1] + 2*Lambda[2]
+            sage: mu.to_ambient()
+            (3, 1)
+
+        .. WARNING::
+
+            Only implemented in finite Cartan type.
+            Does not work for coweight lattices because there is no implemented map
+            from the coweight lattice to the ambient space.
+
+        """
+        return self.parent().to_ambient_space_morphism()(self)
+
+    def to_weight_space(self):
+        r"""
+        Map ``self`` to the weight space.
+
+        Since `self.parent()` is the weight space, this map just returns ``self``.
+        This overrides the generic method in `WeightSpaceRealizations`.
+
+        EXAMPLES::
+
+            sage: mu = CartanType(['A',2]).root_system().weight_lattice().an_element(); mu
+            2*Lambda[1] + 2*Lambda[2]
+            sage: mu.to_weight_space()
+            2*Lambda[1] + 2*Lambda[2]
+        """
+        return self
 
 WeightSpace.Element = WeightSpaceElement

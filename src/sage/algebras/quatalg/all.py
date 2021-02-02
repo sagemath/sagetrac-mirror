@@ -1,1 +1,1 @@
-from quaternion_algebra import QuaternionAlgebra
+from .quaternion_algebra import QuaternionAlgebra

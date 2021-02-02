@@ -8,7 +8,7 @@ Right modules
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_over_base_ring
+from .category_types import Category_over_base_ring
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 
 ##?class RightModules(Category_over_base_rng):
@@ -16,7 +16,7 @@ class RightModules(Category_over_base_ring):
     """
     The category of right modules
     right modules over an rng (ring not necessarily with unit), i.e.
-    an abelian group with right multiplation by elements of the rng
+    an abelian group with right multiplication by elements of the rng
 
     EXAMPLES::
 

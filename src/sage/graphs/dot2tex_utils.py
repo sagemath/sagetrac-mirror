@@ -51,15 +51,15 @@ and check the installation of graphviz and the dot2tex spkg.
 For support, please contact <sage-combinat-devel at googlegroups.com>.
 """
     import_error_string = """
-An error occured when importing dot2tex.
+An error occurred when importing dot2tex.
 
 Please see :meth:`sage.graphs.generic_graph.GenericGraph.layout_graphviz`
 for installation instructions.
 """
     try:
         import dot2tex
-    except ImportError as e:
-        print import_error_string
+    except ImportError:
+        print(import_error_string)
         raise # re-raise current exception
     else:
         if dot2tex.dot2tex("graph {}", format = "positions") != {}:
@@ -87,7 +87,7 @@ def quoted_str(x):
 
         sage: sage.graphs.dot2tex_utils.quoted_str(matrix([[1,1],[0,1],[0,0]]))
         '[1 1]\\n\\\n[0 1]\\n\\\n[0 0]'
-        sage: print sage.graphs.dot2tex_utils.quoted_str(matrix([[1,1],[0,1],[0,0]]))
+        sage: print(sage.graphs.dot2tex_utils.quoted_str(matrix([[1,1],[0,1],[0,0]])))
         [1 1]\n\
         [0 1]\n\
         [0 0]

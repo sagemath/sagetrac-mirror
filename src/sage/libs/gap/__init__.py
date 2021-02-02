@@ -1,2 +1,2 @@
 # libgap
-import all
+from . import all

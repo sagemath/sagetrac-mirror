@@ -8,8 +8,8 @@ Scheme obtained by gluing two other schemes
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-import morphism
-import scheme
+from . import morphism
+from . import scheme
 
 class GluedScheme(scheme.Scheme):
     r"""

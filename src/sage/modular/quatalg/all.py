@@ -1,2 +1,2 @@
 
-from brandt import BrandtModule
+from .brandt import BrandtModule

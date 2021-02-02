@@ -16,18 +16,18 @@ AUTHORS:
 Methods
 =======
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Rudi Pendavingh <rudi.pendavingh@gmail.com>
 #       Copyright (C) 2013 Stefan van Zwam <stefanvanzwam@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
-include 'sage/data_structures/bitset.pxi'
+from cysignals.memory cimport check_allocarray, check_reallocarray, sig_free
+from sage.data_structures.bitset_base cimport *
 
 # SetSystem
 
@@ -89,7 +89,7 @@ cdef class SetSystem:
         self._groundset_size = len(groundset)
         self._bitset_size = max(self._groundset_size, 1)
         self._capacity = capacity
-        self._subsets = <bitset_t*> sage_malloc(self._capacity * sizeof(bitset_t))
+        self._subsets = <bitset_t*>check_allocarray(self._capacity, sizeof(bitset_t))
         bitset_init(self._temp, self._bitset_size)
         self._len = 0
 
@@ -113,7 +113,7 @@ cdef class SetSystem:
             Iterator over a system of subsets
             sage: sorted(S[1])
             [3, 4]
-            sage: for s in S: print sorted(s)
+            sage: for s in S: print(sorted(s))
             [1, 2]
             [3, 4]
             [1, 2, 4]
@@ -127,7 +127,7 @@ cdef class SetSystem:
         cdef long i
         for i in xrange(self._len):
             bitset_free(self._subsets[i])
-        sage_free(self._subsets)
+        sig_free(self._subsets)
         bitset_free(self._temp)
 
     def __len__(self):
@@ -153,7 +153,7 @@ cdef class SetSystem:
 
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
-            sage: for s in S: print sorted(s)
+            sage: for s in S: print(sorted(s))
             [1, 2]
             [3, 4]
             [1, 2, 4]
@@ -245,7 +245,7 @@ cdef class SetSystem:
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
             sage: T = S._complements()
-            sage: for t in T: print sorted(t)
+            sage: for t in T: print(sorted(t))
             [3, 4]
             [1, 2]
             [3]
@@ -270,7 +270,7 @@ cdef class SetSystem:
             bitset_free(self._subsets[i])
         self._len = min(self._len, k)
         k2 = max(k, 1)
-        self._subsets = <bitset_t*> sage_realloc(self._subsets, k2 * sizeof(bitset_t))
+        self._subsets = <bitset_t*>check_reallocarray(self._subsets, k2, sizeof(bitset_t))
         self._capacity = k2
 
     cdef inline _append(self, bitset_t X):
@@ -292,7 +292,7 @@ cdef class SetSystem:
         bitset_init(self._subsets[self._len], self._bitset_size)
         bitset_clear(self._subsets[self._len])
         for x in X:
-            bitset_add(self._subsets[self._len], self._idx[x])
+            bitset_add(self._subsets[self._len], <mp_bitcnt_t> self._idx[x])
         self._len += 1
 
     cdef inline _subset(self, long k):
@@ -325,6 +325,59 @@ cdef class SetSystem:
             [1, 2, 3, 4]
         """
         return frozenset(self._groundset)
+
+    cpdef is_connected(self):
+        """
+        Test if the :class:`SetSystem` is connected.
+
+        A :class:`SetSystem` is connected if there is no nonempty proper subset
+        ``X`` of the ground set so the each subset is either contained in ``X``
+        or disjoint from ``X``.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.set_system import SetSystem
+            sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
+            sage: S.is_connected()
+            True
+            sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4]])
+            sage: S.is_connected()
+            False
+            sage: S = SetSystem([1], [])
+            sage: S.is_connected()
+            True
+
+        """
+        if self._groundset_size <= 1:
+            return True
+        cdef long i
+        bitset_clear(self._temp)
+        cdef bitset_t active
+        bitset_init(active, self._len)
+        bitset_complement(active, active)
+
+        # We compute the union of all sets containing 0, and deactivate them.
+        for i in xrange(self._len):
+            if bitset_in(self._subsets[i], 0):
+                bitset_union(self._temp, self._subsets[i], self._temp)
+                bitset_discard(active, i)
+
+        cdef bint closed = False
+        while not closed:
+            closed = True
+
+            # We update _temp with all active sets that intersects it. If there
+            # is no such set, then _temp is closed (i.e. a connected component).
+            i = bitset_first(active)
+            while i>=0:
+                if not bitset_are_disjoint(self._temp, self._subsets[i]):
+                    bitset_union(self._temp, self._subsets[i], self._temp)
+                    bitset_discard(active, i)
+                    closed = False
+                i = bitset_next(active, i+1)
+        bitset_free(active)
+        bitset_complement(self._temp, self._temp)
+        return bitset_isempty(self._temp)
 
     # isomorphism
 
@@ -426,7 +479,7 @@ cdef class SetSystem:
         EP.append(ep)
         return EP, hash(tuple(eh))
 
-    cdef _distinguish(self, v):
+    cdef _distinguish(self, Py_ssize_t v):
         """
         Helper method for partition methods below.
         """
@@ -491,12 +544,12 @@ cdef class SetSystem:
 
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
-            sage: for p in S._equitable_partition()[0]: print sorted(p)
+            sage: for p in S._equitable_partition()[0]: print(sorted(p))
             [3]
             [4]
             [1, 2]
             sage: T = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 3, 4]])
-            sage: for p in T._equitable_partition()[0]: print sorted(p)
+            sage: for p in T._equitable_partition()[0]: print(sorted(p))
             [2]
             [1]
             [3, 4]
@@ -546,7 +599,7 @@ cdef class SetSystem:
         partition ``P``, and while ``P`` has a partition element ``p`` with
         more than one element, select an arbitrary ``e`` from the first such
         ``p`` and split ``p`` into ``p-e``. Then replace ``P`` with
-        the equitabele refinement of this partition.
+        the equitable refinement of this partition.
 
         INPUT:
 
@@ -567,13 +620,13 @@ cdef class SetSystem:
 
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
-            sage: for p in S._heuristic_partition()[0]: print sorted(p)
+            sage: for p in S._heuristic_partition()[0]: print(sorted(p))
             [3]
             [4]
             [2]
             [1]
             sage: T = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 3, 4]])
-            sage: for p in T._heuristic_partition()[0]: print sorted(p)
+            sage: for p in T._heuristic_partition()[0]: print(sorted(p))
             [2]
             [1]
             [4]
@@ -614,7 +667,7 @@ cdef class SetSystem:
             sage: S._isomorphism(S)
             {}
         """
-        cdef long l, p
+        cdef long l, p, v
         if SP is None or OP is None:
             SP, SEP, sh = self._equitable_partition()
             OP, OEP, oh = other._equitable_partition()
@@ -675,7 +728,7 @@ cdef class SetSystem:
             sage: S._equivalence(lambda self, other, morph:True, T)
             {1: 'c', 2: 'd', 3: 'b', 4: 'a'}
 
-        Check that Trac #15189 is fixed::
+        Check that :trac:`15189` is fixed::
 
             sage: M = Matroid(ring=GF(5), reduced_matrix=[[1,0,3],[0,1,1],[1,1,0]])
             sage: N = Matroid(ring=GF(5), reduced_matrix=[[1,0,1],[0,1,1],[1,1,0]])
@@ -684,6 +737,7 @@ cdef class SetSystem:
             sage: any(M.is_field_isomorphism(N, p) for p in Permutations(range(6)))
             False
         """
+        cdef long v
         if SP is None or OP is None:
             SP, SEP, sh = self._equitable_partition()
             OP, OEP, oh = other._equitable_partition()
@@ -723,7 +777,7 @@ cdef class SetSystemIterator:
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
             sage: type(S.__iter__())
-            <type 'sage.matroids.set_system.SetSystemIterator'>
+            <... 'sage.matroids.set_system.SetSystemIterator'>
         """
         self._H = H
         self._pointer = -1

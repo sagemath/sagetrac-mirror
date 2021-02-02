@@ -1,26 +1,72 @@
+Polynomials
+===========
+
 Polynomial Rings
-================
+----------------
 
 .. toctree::
    :maxdepth: 2
 
    sage/rings/polynomial/polynomial_ring_constructor
 
+Univariate Polynomials
+----------------------
+
+.. toctree::
+   :maxdepth: 2
+
    polynomial_rings_univar
-
-   polynomial_rings_multivar
-
-   polynomial_rings_infinite
-
-   polynomial_rings_laurent
-
-   sage/rings/polynomial/pbori
-
-   polynomial_rings_toy_implementations
-
    sage/rings/polynomial/convolution
    sage/rings/polynomial/cyclotomic
 
-   sage/rings/polynomial/plural
+Multivariate Polynomials
+------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   polynomial_rings_multivar
+   invariant_theory
+   polynomial_rings_toy_implementations
+
+Rational Functions
+------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/rings/fraction_field
+   sage/rings/fraction_field_element
+   sage/rings/fraction_field_FpT
+
+Laurent Polynomials
+-------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/rings/polynomial/laurent_polynomial_ring
+   sage/rings/polynomial/laurent_polynomial
+   sage/rings/polynomial/omega
+
+Infinite Polynomial Rings
+-------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/rings/polynomial/infinite_polynomial_ring
+   sage/rings/polynomial/infinite_polynomial_element
+
+   sage/rings/polynomial/symmetric_ideal
+   sage/rings/polynomial/symmetric_reduction
+
+Boolean Polynomials
+-------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/rings/polynomial/pbori/pbori
 
 .. include:: ../footer.txt

@@ -1,4 +1,6 @@
 """
+Lazy real and complex numbers
+
 These classes are very lazy, in the sense that it doesn't really do anything
 but simply sits between exact rings of characteristic 0 and the real numbers.
 The values are actually computed when they are cast into a field of fixed
@@ -9,24 +11,25 @@ number fields) to embed for the coercion model (as only one embedding can be
 specified in the forward direction).
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #     Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import math
+import cmath
 
-cdef add, sub, mul, div, pow, neg, inv
-from operator import add, sub, mul, div, pow, neg, inv
+cdef add, sub, mul, truediv, pow, neg, inv
+from operator import add, sub, mul, pow, neg, inv, truediv
 
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion
-from sage.structure.all import parent
+from sage.structure.element cimport parent
+from sage.structure.richcmp cimport richcmp
 
 import sage.categories.map
 from sage.categories.morphism cimport Morphism
@@ -37,7 +40,7 @@ from sage.rings.integer import Integer
 cdef QQ, RR, CC, RealField, ComplexField
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR, RealField
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 CC = ComplexField(53)
 
 cdef _QQx = None
@@ -93,6 +96,8 @@ cdef class LazyField(Field):
         """
         Field.__init__(self,base or self, names=names, normalize=normalize, category=category)
 
+    Element = LazyWrapper
+
     def __getattr__(self, name):
         """
         Simulates a list of methods found on the real/complex rings.
@@ -109,7 +114,7 @@ cdef class LazyField(Field):
         elif name == 'I' and self == CLF:
             return LazyConstant(self, name)
         else:
-            raise AttributeError, name
+            raise AttributeError(name)
 
     cpdef _coerce_map_from_(self, R):
         r"""
@@ -153,7 +158,7 @@ cdef class LazyField(Field):
         """
         if isinstance(R, type):
             if R in [int, long]:
-                from sage.structure.parent import Set_PythonType
+                from sage.sets.pythonclass import Set_PythonType
                 return LazyWrapperMorphism(Set_PythonType(R), self)
         elif R.is_exact():
             ivf = self.interval_field()
@@ -162,7 +167,7 @@ cdef class LazyField(Field):
             # discovery algorithm and when trying to convert LazyWrappers,
             # so we only consider direct coercions.
             if mor is not None and not isinstance(mor, sage.categories.map.FormalCompositeMap):
-                mor = ivf._middle_field().coerce_map_from(R)
+                mor = ivf.middle_field().coerce_map_from(R)
                 if mor is not None and not isinstance(mor, sage.categories.map.FormalCompositeMap):
                     return LazyWrapperMorphism(R, self)
             # We can skip the test for a coercion to RDF/CDF since RR/CC
@@ -192,7 +197,7 @@ cdef class LazyField(Field):
             sage: RLF.interval_field() # indirect doctest
             Real Interval Field with 53 bits of precision
         """
-        raise NotImplementedError, "subclasses must override this method"
+        raise NotImplementedError("subclasses must override this method")
 
 
 class RealLazyField_class(LazyField):
@@ -222,25 +227,17 @@ class RealLazyField_class(LazyField):
         sage: RealField(100)(a+5)
         5.3333333333333333333333333333
 
+    ::
+
+        sage: CC.0 + RLF(1/3)
+        0.333333333333333 + 1.00000000000000*I
+        sage: ComplexField(200).0 + RLF(1/3)
+        0.33333333333333333333333333333333333333333333333333333333333 + 1.0000000000000000000000000000000000000000000000000000000000*I
+
     TESTS::
 
         sage: TestSuite(RLF).run()
     """
-
-    def __init__(self):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: CC.0 + RLF(1/3)
-            0.333333333333333 + 1.00000000000000*I
-            sage: ComplexField(200).0 + RLF(1/3)
-            0.33333333333333333333333333333333333333333333333333333333333 + 1.0000000000000000000000000000000000000000000000000000000000*I
-        """
-        LazyField.__init__(self)
-        self._populate_coercion_lists_(element_constructor=LazyWrapper)
-
     def interval_field(self, prec=None):
         """
         Returns the interval field that represents the same mathematical
@@ -299,7 +296,7 @@ class RealLazyField_class(LazyField):
         if i == 0:
             return self(Integer(1))
         else:
-            raise ValueError, "RLF has only one generator."
+            raise ValueError("RLF has only one generator.")
 
     def _repr_(self):
         """
@@ -318,7 +315,7 @@ class RealLazyField_class(LazyField):
 
         EXAMPLES::
 
-            sage: hash(RLF) % 2^32 == hash(str(RLF)) % 2^32
+            sage: hash(RLF) == hash(RealLazyField())
             True
         """
         return 1501555429
@@ -374,41 +371,22 @@ class ComplexLazyField_class(LazyField):
 
     TESTS::
 
-        sage: TestSuite(CLF).run(skip=["_test_prod"])
-
-    .. NOTE::
-
-        The following ``TestSuite`` failure::
-
-            sage: CLF._test_prod()
-            Traceback (most recent call last):
-            ...
-            AssertionError: False is not true
-
-        is due to (acceptable?) numerical noise::
-
-            sage: x = CLF.I
-            sage: x*x == x^2
-            False
-            sage: x*x
-            -1
-            sage: x^2
-            -0.9999999999999999? + 0.?e-15*I
+        sage: TestSuite(CLF).run()
     """
-
     def __init__(self):
         """
-        This lazy field doesn't evaluate its elements until they are cast into
+        This lazy field does not evaluate its elements until they are cast into
         a field of fixed precision.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RLF(1/3); a
             0.3333333333333334?
             sage: Reals(200)(a)
             0.33333333333333333333333333333333333333333333333333333333333
         """
         LazyField.__init__(self, base=RLF)
-        self._populate_coercion_lists_(coerce_list=[LazyWrapperMorphism(RLF, self)], element_constructor=LazyWrapper)
+        self._populate_coercion_lists_(coerce_list=[LazyWrapperMorphism(RLF, self)])
 
     def interval_field(self, prec=None):
         """
@@ -445,7 +423,7 @@ class ComplexLazyField_class(LazyField):
             from sage.rings.complex_double import CDF
             return LazyAlgebraic(self, [1, 0, 1], CDF.gen())
         else:
-            raise ValueError, "CLF has only one generator."
+            raise ValueError("CLF has only one generator.")
 
     def construction(self):
         """
@@ -490,7 +468,8 @@ class ComplexLazyField_class(LazyField):
 
         EXAMPLES::
 
-            sage: hash(CLF) % 2^32 == hash(str(CLF)) % 2^32
+            sage: from sage.rings.real_lazy import ComplexLazyField_class
+            sage: hash(CLF) == hash(ComplexLazyField_class())
             True
         """
         return -1382606040
@@ -543,7 +522,7 @@ cdef int get_new_prec(R, int depth) except -1:
 
 cdef class LazyFieldElement(FieldElement):
 
-    cpdef ModuleElement _add_(left, ModuleElement right):
+    cpdef _add_(left, right):
         """
         Add ``left`` with ``right``.
 
@@ -559,7 +538,7 @@ cdef class LazyFieldElement(FieldElement):
                 pass
         return left._new_binop(left, right, add)
 
-    cpdef ModuleElement _sub_(left, ModuleElement right):
+    cpdef _sub_(left, right):
         """
         Subtract ``right`` from ``left``.
 
@@ -575,9 +554,9 @@ cdef class LazyFieldElement(FieldElement):
                 pass
         return left._new_binop(left, right, sub)
 
-    cpdef RingElement _mul_(left, RingElement right):
+    cpdef _mul_(left, right):
         """
-        Mutliply ``left`` with ``right``.
+        Multiply ``left`` with ``right``.
 
         EXAMPLES::
 
@@ -591,7 +570,7 @@ cdef class LazyFieldElement(FieldElement):
                 pass
         return left._new_binop(left, right, mul)
 
-    cpdef RingElement _div_(left, RingElement right):
+    cpdef _div_(left, right):
         """
         Divide ``left`` by ``right``.
 
@@ -607,7 +586,7 @@ cdef class LazyFieldElement(FieldElement):
                 return left._new_wrapper((<LazyWrapper?>left)._value / (<LazyWrapper?>right)._value)
             except TypeError:
                 pass
-        return left._new_binop(left, right, div)
+        return left._new_binop(left, right, truediv)
 
     def __pow__(left, right, dummy):
         """
@@ -655,7 +634,7 @@ cdef class LazyFieldElement(FieldElement):
         """
         return self._new_unop(self, inv)
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef _richcmp_(self, other, int op):
         """
         If things are being wrapped, tries to compare values. That failing, it
         tries to compare intervals, which may return a false negative.
@@ -666,27 +645,36 @@ cdef class LazyFieldElement(FieldElement):
             True
             sage: RLF(3) == RLF(4)
             False
+            sage: RLF(3) < RLF(5/3)
+            False
+
+        TESTS::
+
+            sage: from sage.rings.real_lazy import LazyBinop
+            sage: RLF(3) < LazyBinop(RLF, 5, 3, operator.truediv)
+            False
+            sage: from sage.rings.real_lazy import LazyWrapper
+            sage: LazyWrapper(RLF, 3) < LazyWrapper(RLF, 5/3)
+            False
+            sage: from sage.rings.real_lazy import LazyUnop
+            sage: RLF(3) < LazyUnop(RLF, 2, sqrt)
+            False
+            sage: from sage.rings.real_lazy import LazyNamedUnop
+            sage: RLF(3) < LazyNamedUnop(RLF, 0, 'sin')
+            False
+            sage: from sage.rings.real_lazy import LazyConstant
+            sage: RLF(3) < LazyConstant(RLF, 'e')
+            False
         """
         left = self
         try:
             if isinstance(self, LazyWrapper) and isinstance(other, LazyWrapper):
                 left, right = canonical_coercion((<LazyWrapper>self)._value, (<LazyWrapper>other)._value)
-                return cmp(left, right)
+                return richcmp(left, right, op)
         except TypeError:
             pass
         left, right = self.approx(), other.approx()
-        return cmp(left, right)
-
-    def __richcmp__(left, right, int op):
-        """
-        Perform a rich comparison between ``left`` and ``right``.
-
-        EXAMPLES::
-
-            sage: RLF(3) < RLF(5/3)
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
+        return richcmp(left.endpoints(), right.endpoints(), op)
 
     def __hash__(self):
         """
@@ -800,7 +788,7 @@ cdef class LazyFieldElement(FieldElement):
         """
         return self.eval(R)
 
-    _mpfi_ = _mpfr_ = _complex_mpfr_field_ = _complex_mpfi_field_ = _generic_
+    _real_mpfi_ = _complex_mpfi_ =_mpfr_ = _complex_mpfr_field_ = _generic_
 
     def __complex__(self):
         """
@@ -814,7 +802,7 @@ cdef class LazyFieldElement(FieldElement):
         try:
             return self.eval(complex)
         except Exception:
-            from complex_field import ComplexField
+            from .complex_mpfr import ComplexField
             return complex(self.eval(ComplexField(53)))
 
     cpdef eval(self, R):
@@ -855,8 +843,8 @@ cdef class LazyFieldElement(FieldElement):
 
         TESTS::
 
-        sage: "log" in RLF(sqrt(8)).__dir__()
-        True
+            sage: "log" in RLF(sqrt(8)).__dir__()
+            True
 
         """
         return FieldElement.__dir__(self) + named_unops
@@ -904,7 +892,7 @@ def make_element(parent, *args):
     EXAMPLES::
 
         sage: a = RLF(pi) + RLF(sqrt(1/2)) # indirect doctest
-        sage: loads(dumps(a)) == a
+        sage: bool(loads(dumps(a)) == a)
         True
     """
     return parent(*args)
@@ -991,18 +979,6 @@ cdef class LazyWrapper(LazyFieldElement):
         """
         return not not self._value
 
-    def __richcmp__(left, right, int op):
-        """
-        Perform a rich comparison between ``left`` and ``right``.
-
-        EXAMPLES::
-
-            sage: from sage.rings.real_lazy import LazyWrapper
-            sage: LazyWrapper(RLF, 3) < LazyWrapper(RLF, 5/3)
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
-
     def __hash__(self):
         """
         Return the hash value of ``self``.
@@ -1035,7 +1011,7 @@ cdef class LazyWrapper(LazyFieldElement):
         if mor is not None and self.parent() not in mor.domains():
             return mor(self._value)
         else:
-            raise TypeError("unable to convert {} to an element of {}".format(self._value, R))
+            raise TypeError("unable to convert {!r} to an element of {}".format(self._value, R))
 
     def __reduce__(self):
         """
@@ -1139,7 +1115,7 @@ cdef class LazyBinop(LazyFieldElement):
             return left * right
         elif self._op is sub:
             return left - right
-        elif self._op is div:
+        elif self._op is truediv:
             return left / right
         elif self._op is pow:
             return left ** right
@@ -1156,7 +1132,7 @@ cdef class LazyBinop(LazyFieldElement):
             sage: float(a)
             2.5
             sage: type(float(a))
-            <type 'float'>
+            <... 'float'>
         """
         cdef double left = self._left
         cdef double right = self._right
@@ -1166,25 +1142,13 @@ cdef class LazyBinop(LazyFieldElement):
             return left * right
         elif self._op is sub:
             return left - right
-        elif self._op is div:
+        elif self._op is truediv:
             return left / right
         elif self._op is pow:
             return left ** right
         else:
             # We only do a call here because it is a python call.
             return self._op(left, right)
-
-    def __richcmp__(left, right, int op):
-        """
-        Perform a rich comparison between ``left`` and ``right``.
-
-        EXAMPLES::
-
-            sage: from sage.rings.real_lazy import LazyBinop
-            sage: RLF(3) < LazyBinop(RLF, 5, 3, operator.div)
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
 
     def __hash__(self):
         """
@@ -1194,8 +1158,9 @@ cdef class LazyBinop(LazyFieldElement):
 
             sage: from sage.rings.real_lazy import LazyBinop
             sage: a = LazyBinop(RLF, 5, 1/2, operator.sub)
-            sage: hash(a)
-            2
+            sage: b = LazyBinop(RLF, 4, 1/2, operator.add)
+            sage: hash(a) == hash(b)
+            False
         """
         return hash(self._op(hash(self._left), hash(self._right)))
 
@@ -1203,9 +1168,10 @@ cdef class LazyBinop(LazyFieldElement):
         """
         For pickling.
 
-        TEST:
+        TESTS::
+
             sage: from sage.rings.real_lazy import LazyBinop
-            sage: a = LazyBinop(CLF, 3, 2, operator.div)
+            sage: a = LazyBinop(CLF, 3, 2, operator.truediv)
             sage: loads(dumps(a)) == a
             True
         """
@@ -1278,18 +1244,6 @@ cdef class LazyUnop(LazyFieldElement):
             return ~arg
         return self._op(self._arg.eval(R))
 
-    def __richcmp__(left, right, int op):
-        """
-        Perform a rich comparison between ``left`` and ``right``.
-
-        EXAMPLES::
-
-            sage: from sage.rings.real_lazy import LazyUnop
-            sage: RLF(3) < LazyUnop(RLF, 2, sqrt)
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
-
     def __hash__(self):
         """
         Return the hash value of ``self``.
@@ -1318,7 +1272,8 @@ cdef class LazyUnop(LazyFieldElement):
         """
         For pickling.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.real_lazy import LazyUnop
             sage: a = LazyUnop(RLF, 7, sqrt)
             sage: float(loads(dumps(a))) == float(a)
@@ -1347,7 +1302,7 @@ cdef class LazyNamedUnop(LazyUnop):
         """
         LazyUnop.__init__(self, parent, arg, op)
         if extra_args is not None and not isinstance(extra_args, tuple):
-            raise TypeError, "extra args must be a tuple"
+            raise TypeError("extra args must be a tuple")
         self._extra_args = extra_args
 
     cpdef eval(self, R):
@@ -1407,19 +1362,7 @@ cdef class LazyNamedUnop(LazyUnop):
             # not everything defined on interval fields
             # this is less info though, but mostly just want to print it
             interval_field = self._parent.interval_field()
-            return self.eval(interval_field._middle_field())
-
-    def __richcmp__(left, right, int op):
-        """
-        Perform a rich comparison between ``left`` and ``right``.
-
-        EXAMPLES::
-
-            sage: from sage.rings.real_lazy import LazyNamedUnop
-            sage: RLF(3) < LazyNamedUnop(RLF, 0, 'sin')
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
+            return self.eval(interval_field.middle_field())
 
     def __hash__(self):
         """
@@ -1429,8 +1372,9 @@ cdef class LazyNamedUnop(LazyUnop):
 
             sage: from sage.rings.real_lazy import LazyNamedUnop
             sage: a = LazyNamedUnop(RLF, 1, 'sin')
-            sage: hash(a)
-            2110729788
+            sage: b = LazyNamedUnop(RLF, 1, 'cos')
+            sage: hash(a) == hash(b)
+            False
         """
         return hash(complex(self))
 
@@ -1482,7 +1426,6 @@ cdef class LazyConstant(LazyFieldElement):
 
     cdef readonly _name
     cdef readonly _extra_args
-    cdef readonly bint _is_special
 
     def __init__(self, LazyField parent, name, extra_args=None):
         """
@@ -1504,7 +1447,6 @@ cdef class LazyConstant(LazyFieldElement):
         LazyFieldElement.__init__(self, parent)
         self._name = name
         self._extra_args = extra_args
-        self._is_special = name in ['e', 'I']
 
     cpdef eval(self, R):
         """
@@ -1519,21 +1461,60 @@ cdef class LazyConstant(LazyFieldElement):
             sage: a = LazyConstant(CLF, 'I')
             sage: CC(a)
             1.00000000000000*I
+
+        TESTS:
+
+        Check that :trac:`26839` is fixed::
+
+            sage: RLF.pi().eval(float)
+            3.141592653589793
+            sage: type(RLF.pi().eval(float)) is float
+            True
+
+            sage: RLF.pi().eval(complex)
+            (3.141592653589793+0j)
+            sage: type(RLF.pi().eval(complex)) is complex
+            True
+
+            sage: RLF.pi().eval(RealBallField(128))
+            [3.1415926535897932384626433832795028842 +/- 1.06e-38]
+
+            sage: float(sin(RLF.pi()))
+            1.2246467991473532e-16
         """
-        if self._is_special:
-            if self._name == 'e':
-                return R(1).exp()
-            elif self._name == 'I':
+        # special handling of e and I
+        if self._name == 'I':
+            if R is float:
+                raise ValueError('I is not a real number')
+            elif R is complex:
+                return 1j
+            else:
                 I = R.gen()
-                if I*I < 0:
-                    return I
-                else:
-                    raise TypeError, "The complex constant I is not in this real field."
-        f = getattr(R, self._name)
-        if self._extra_args is None:
-            return f()
+                if I*I != -R.one():
+                    raise TypeError("The complex constant I is not in this complex field.")
+                return I
+
+        elif self._name == 'e':
+            if R is float:
+                return math.e
+            elif R is complex:
+                return complex(math.e)
+            else:
+                return R(1).exp()
+
+        elif R is float:
+            # generic float
+            return getattr(math, self._name)
+        elif R is complex:
+            # generic complex
+            return complex(getattr(cmath, self._name))
         else:
-            return f(*self._extra_args)
+            # generic Sage parent
+            f = getattr(R, self._name)
+            if self._extra_args is None:
+                return f()
+            else:
+                return f(*self._extra_args)
 
     def __call__(self, *args):
         """
@@ -1547,18 +1528,6 @@ cdef class LazyConstant(LazyFieldElement):
         self._extra_args = args
         return self
 
-    def __richcmp__(left, right, int op):
-        """
-        Perform a rich comparison between ``left`` and ``right``.
-
-        EXAMPLES::
-
-            sage: from sage.rings.real_lazy import LazyConstant
-            sage: RLF(3) < LazyConstant(RLF, 'e')
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
-
     def __hash__(self):
         """
         Return the hash value of ``self``.
@@ -1567,8 +1536,8 @@ cdef class LazyConstant(LazyFieldElement):
 
             sage: from sage.rings.real_lazy import LazyConstant
             sage: a = LazyConstant(RLF, 'e')
-            sage: hash(a)
-            2141977644
+            sage: hash(a) == hash(1)
+            False
         """
         return hash(complex(self))
 
@@ -1582,7 +1551,7 @@ cdef class LazyConstant(LazyFieldElement):
             3.141592653589793
         """
         interval_field = self._parent.interval_field()
-        return <double>self.eval(interval_field._middle_field())
+        return <double>self.eval(interval_field.middle_field())
 
     def __reduce__(self):
         """
@@ -1629,7 +1598,7 @@ cdef class LazyAlgebraic(LazyFieldElement):
         if isinstance(parent, RealLazyField_class):
             from sage.rings.real_double import RDF
             if len(self._poly.roots(RDF)) == 0:
-                raise ValueError, "%s has no real roots" % self._poly
+                raise ValueError("%s has no real roots" % self._poly)
             approx = (RR if prec == 0 else RealField(prec))(approx)
         else:
             approx = (CC if prec == 0 else ComplexField(prec))(approx)
@@ -1678,7 +1647,7 @@ cdef class LazyAlgebraic(LazyFieldElement):
 #                 self._prec = R.prec()
 #                 return R(self._root_approx)
             if self._root is None:
-                # This could be done much more efficiently with newton iteration,
+                # This could be done much more efficiently with Newton iteration,
                 # but will require some care to make sure we get the right root, and
                 # to the correct precision.
                 from sage.rings.qqbar import AA, QQbar

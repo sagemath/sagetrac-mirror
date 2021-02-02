@@ -1,3 +1,3 @@
 # quaternion algebra init file
 
-import all
+from . import all

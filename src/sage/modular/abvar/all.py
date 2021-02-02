@@ -4,4 +4,4 @@
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
-from constructor import J0, J1, JH, AbelianVariety
+from .constructor import J0, J1, JH, AbelianVariety

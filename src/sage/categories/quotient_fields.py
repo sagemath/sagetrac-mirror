@@ -101,9 +101,9 @@ class QuotientFields(Category_singleton):
                 sage: gcd(t, i)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: Maximal Order in Number Field in i with defining polynomial x^2 + 1 does not provide a gcd implementation for univariate polynomials
+                NotImplementedError: Gaussian Integers in Number Field in i with defining polynomial x^2 + 1 does not provide a gcd implementation for univariate polynomials
                 sage: q = t/(t+1); q.parent()
-                Fraction Field of Univariate Polynomial Ring in t over Maximal Order in Number Field in i with defining polynomial x^2 + 1
+                Fraction Field of Univariate Polynomial Ring in t over Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
                 sage: gcd(q, q)
                 1
                 sage: q.gcd(0)
@@ -199,9 +199,9 @@ class QuotientFields(Category_singleton):
                 sage: lcm(t, i)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: Maximal Order in Number Field in i with defining polynomial x^2 + 1 does not provide a gcd implementation for univariate polynomials
+                NotImplementedError: Gaussian Integers in Number Field in i with defining polynomial x^2 + 1 does not provide a gcd implementation for univariate polynomials
                 sage: q = t/(t+1); q.parent()
-                Fraction Field of Univariate Polynomial Ring in t over Maximal Order in Number Field in i with defining polynomial x^2 + 1
+                Fraction Field of Univariate Polynomial Ring in t over Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
                 sage: lcm(q, q)
                 1
                 sage: q.lcm(0)
@@ -343,7 +343,7 @@ class QuotientFields(Category_singleton):
                 sage: f.factor()
                 (x - 3)^-1 * x * (x^2 + 1)
 
-            Here is an example to show that ticket #7868 has been resolved::
+            Here is an example to show that :trac:`7868` has been resolved::
 
                 sage: R.<x,y> = GF(2)[]
                 sage: f = x*y/(x+y)
@@ -362,7 +362,7 @@ class QuotientFields(Category_singleton):
 
             INPUT:
 
-            - decompose_powers - whether to decompose prime power
+            - decompose_powers -- whether to decompose prime power
                                  denominators as opposed to having a single
                                  term for each irreducible factor of the
                                  denominator (default: True)
@@ -392,7 +392,7 @@ class QuotientFields(Category_singleton):
                 sage: q = 2*t / (t + 3)^2
                 sage: q.partial_fraction_decomposition()
                 (0, [2/(t + 3), -6/(t^2 + 6*t + 9)])
-                sage: for p in q.partial_fraction_decomposition()[1]: print p.factor()
+                sage: for p in q.partial_fraction_decomposition()[1]: print(p.factor())
                 (2) * (t + 3)^-1
                 (-6) * (t + 3)^-2
                 sage: q.partial_fraction_decomposition(decompose_powers=False)
@@ -463,7 +463,7 @@ class QuotientFields(Category_singleton):
                 sage: whole + sum(parts) == q
                 True
 
-            And also over finite fields (see trac #6052, #9945)::
+            And also over finite fields (see :trac:`6052`, :trac:`9945`)::
 
                 sage: R.<x> = GF(2)[]
                 sage: q = (x+1)/(x^3+x+1)
@@ -583,7 +583,7 @@ class QuotientFields(Category_singleton):
             documentation for the global derivative() function for more
             details.
 
-            .. seealso::
+            .. SEEALSO::
 
                :meth:`_derivative`
 
@@ -625,7 +625,7 @@ class QuotientFields(Category_singleton):
 
             - Derivative of ``self`` with respect to ``var``
 
-            .. seealso::
+            .. SEEALSO::
 
                :meth:`derivative`
 

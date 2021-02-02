@@ -75,7 +75,6 @@ Find the full syntax parse tree of a boolean formula from a list of tokens::
     sage: logicparser.tree_parse(r, polish = True)
     ['|', ['~', ['~', 'a']], 'b']
 """
-
 #*****************************************************************************
 #       Copyright (C) 2007 Chris Gorecki <chris.k.gorecki@gmail.com>
 #       Copyright (C) 2013 Paul Scurek <scurek86@gmail.com>
@@ -87,11 +86,11 @@ Find the full syntax parse tree of a boolean formula from a list of tokens::
 #*****************************************************************************
 
 import string
-import propcalc
-import boolformula
+
 
 __symbols = '()&|~<->^'
 __op_list = ['~', '&', '|', '^', '->', '<->']
+
 
 def parse(s):
     r"""
@@ -103,10 +102,10 @@ def parse(s):
 
     OUTPUT:
 
-    A list containing the prase tree and a list containing the
+    A list containing the parse tree and a list containing the
     variables in a boolean formula in this order:
 
-    1. the list containing the pase tree
+    1. the list containing the parse tree
     2. the list containing the variables
 
     EXAMPLES:
@@ -126,6 +125,7 @@ def parse(s):
     if isinstance(tree, str):
         return ['&', tree, tree], vars_order
     return tree, vars_order
+
 
 def polish_parse(s):
     r"""
@@ -210,7 +210,7 @@ def get_trees(*statements):
     - Paul Scurek (2013-08-06)
     """
     trees = []
-
+    from . import boolformula
     for statement in statements:
         if not isinstance(statement, boolformula.BooleanFormula):
             try:
@@ -220,6 +220,7 @@ def get_trees(*statements):
         else:
             trees.append(statement.full_tree())
     return trees
+
 
 def recover_formula(prefix_tree):
     r"""
@@ -327,15 +328,14 @@ def recover_formula_internal(prefix_tree):
 
     - Paul Scurek (2013-08-06)
     """
-    formula = ''
-
+    from .propcalc import formula as propcalc_formula
     if len(prefix_tree) == 3:
         bool_formula = '(' + prefix_tree[1] + prefix_tree[0] + prefix_tree[2] + ')'
     else:
         bool_formula = ''.join(prefix_tree)
 
     try:
-        bool_formula = propcalc.formula(bool_formula)
+        bool_formula = propcalc_formula(bool_formula)
     except (SyntaxError, NameError):
         raise SyntaxError
 
@@ -497,10 +497,10 @@ def tokenize(s):
             i += 1
 
         if len(tok) > 0:
-            if tok[0] not in string.letters:
+            if tok[0] not in string.ascii_letters:
                 valid = 0
             for c in tok:
-                if c not in string.letters and c not in string.digits and c != '_':
+                if c not in string.ascii_letters and c not in string.digits and c != '_':
                     valid = 0
 
         if valid == 1:

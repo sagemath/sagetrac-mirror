@@ -2,20 +2,24 @@
 H(yperplane) and V(ertex) representation objects for polyhedra
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
 
 
 from sage.structure.sage_object import SageObject
 from sage.structure.element import is_Vector
-from sage.rings.all import QQ, ZZ, RDF
+from sage.structure.richcmp import richcmp_method, richcmp
+from sage.rings.all import ZZ
 from sage.modules.free_module_element import vector
+from copy import copy
 
 
 
@@ -28,10 +32,12 @@ from sage.modules.free_module_element import vector
 #                  /       \               /      |    \
 #           Inequality  Equation        Vertex   Ray   Line
 
+
+@richcmp_method
 class PolyhedronRepresentation(SageObject):
     """
     The internal base class for all representation objects of
-    ``Polyhedron`` (vertices/rays/lines and inequalites/equations)
+    ``Polyhedron`` (vertices/rays/lines and inequalities/equations)
 
     .. note::
 
@@ -40,9 +46,9 @@ class PolyhedronRepresentation(SageObject):
 
     TESTS::
 
-            sage: import sage.geometry.polyhedron.representation as P
-            sage: P.PolyhedronRepresentation()
-            <class 'sage.geometry.polyhedron.representation.PolyhedronRepresentation'>
+        sage: import sage.geometry.polyhedron.representation as P
+        sage: P.PolyhedronRepresentation()
+        <sage.geometry.polyhedron.representation.PolyhedronRepresentation object at ...>
     """
 
     # Numeric values for the output of the type() method
@@ -78,7 +84,22 @@ class PolyhedronRepresentation(SageObject):
         """
         return self._vector[i]
 
-    def __cmp__(self, other):
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.representation import Hrepresentation
+            sage: pr = Hrepresentation(Polyhedron(vertices = [[1,2,3]]).parent())
+            sage: hash(pr) == hash(tuple([0,0,0,0]))
+            True
+        """
+        # TODO: ideally the argument self._vector of self should be immutable.
+        # So that we could change the line below by hash(self._vector). The
+        # mutability is kept because this argument might be reused (see e.g.
+        # Hrepresentation._set_data below).
+        return hash(tuple(self._vector))
+
+    def __richcmp__(self, other, op):
         """
         Compare two representation objects
 
@@ -92,8 +113,7 @@ class PolyhedronRepresentation(SageObject):
 
         OUTPUT:
 
-        One of `-1`, `0`, `+1`.  ``True`` if and only if ``other`` represents the same
-        H-representation object.
+        boolean
 
         EXAMPLES::
 
@@ -102,26 +122,79 @@ class PolyhedronRepresentation(SageObject):
             An inequality (1, 0) x + 0 >= 0
             sage: ieq == copy(ieq)
             True
-            sage: cmp(ieq, copy(ieq))
-            0
-
-            sage: cmp(ieq, 'a string')
-            -1
 
             sage: square = Polyhedron([(0,0), (1,0), (0,1), (1,1)], base_ring=QQ)
-            sage: cmp(square.Vrepresentation(0), triangle.Vrepresentation(0))
-            0
+            sage: square.Vrepresentation(0) == triangle.Vrepresentation(0)
+            True
 
-            sage: ieq = square.Hrepresentation(0);  ieq.vector()
+            sage: ieq = square.Hrepresentation(0); ieq.vector()
             (0, 1, 0)
-            sage: abs(cmp(ieq, Polyhedron([(0,1,0)]).Vrepresentation(0)))
-            1
+            sage: ieq != Polyhedron([(0,1,0)]).Vrepresentation(0)
+            True
+
+        TESTS:
+
+        Check :trac:`30954`::
+
+            sage: P = (1/2)*polytopes.cube()
+            sage: Q = (1/2)*polytopes.cube(backend='field')
+            sage: for p in P.inequalities():
+            ....:     assert p in Q.inequalities()
         """
         if not isinstance(other, PolyhedronRepresentation):
-            return -1
-        type_cmp = cmp(type(self), type(other))
-        if (type_cmp != 0): return type_cmp
-        return cmp(self._vector, other._vector)
+            return NotImplemented
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp(self._vector*self._comparison_scalar(), other._vector*other._comparison_scalar(), op)
+
+    def _comparison_scalar(self):
+        r"""
+        Return a number ``a`` such that ``a*self._vector`` is canonical.
+
+        Except for vertices, ``self._vector`` is only unique up to a positive scalar.
+
+        This is overwritten for the vertex class.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[0,0],[1,5]], rays=[[3,4]])
+            sage: P.Vrepresentation()
+            (A vertex at (0, 0), A vertex at (1, 5), A ray in the direction (3, 4))
+            sage: P.Vrepresentation()[0]._comparison_scalar()
+            1
+            sage: P.Vrepresentation()[1]._comparison_scalar()
+            1
+            sage: P.Vrepresentation()[2]._comparison_scalar()
+            1/4
+            sage: P.Hrepresentation()
+            (An inequality (5, -1) x + 0 >= 0,
+             An inequality (-4, 3) x + 0 >= 0,
+             An inequality (4, -3) x + 11 >= 0)
+            sage: P.Hrepresentation()[0]._comparison_scalar()
+            1
+            sage: P.Hrepresentation()[1]._comparison_scalar()
+            1/3
+            sage: P.Hrepresentation()[2]._comparison_scalar()
+            1/3
+
+        ::
+
+            sage: P = Polyhedron(vertices=[[1,3]], lines=[[-1,3]])
+            sage: P.Vrepresentation()
+            (A line in the direction (1, -3), A vertex at (2, 0))
+            sage: P.Vrepresentation()[0]._comparison_scalar()
+            -1/3
+            sage: P.Vrepresentation()[1]._comparison_scalar()
+            1
+        """
+        if self.type() == self.VERTEX:
+            return 1
+
+        lcf = self._vector.leading_coefficient()
+        if self.type() == self.EQUATION or self.type() == self.LINE:
+            return 1/lcf
+        else:
+            return 1/lcf.abs()
 
     def vector(self, base_ring=None):
         """
@@ -158,9 +231,18 @@ class PolyhedronRepresentation(SageObject):
             (-1.0, -1.0, 0.0)
             sage: vector(RDF, v)
             (-1.0, -1.0, 0.0)
+
+        TESTS:
+
+        Checks that :trac:`27709` is fixed::
+
+            sage: C = polytopes.cube()
+            sage: C.vertices()[0].vector()[0] = 3
+            sage: C.vertices()[0]
+            A vertex at (1, -1, -1)
         """
         if (base_ring is None) or (base_ring is self._base_ring):
-            return self._vector
+            return copy(self._vector)
         else:
             return vector(base_ring, self._vector)
 
@@ -191,18 +273,18 @@ class PolyhedronRepresentation(SageObject):
             sage: v.__call__()
             (1, 2, 3)
         """
-        return self._vector
+        return copy(self._vector)
 
     def index(self):
         """
-        Returns an arbitrary but fixed number according to the internal
+        Return an arbitrary but fixed number according to the internal
         storage order.
 
         NOTES:
 
         H-representation and V-representation objects are enumerated
         independently. That is, amongst all vertices/rays/lines there
-        will be one with ``index()==0``, and amongs all
+        will be one with ``index()==0``, and amongst all
         inequalities/equations there will be one with ``index()==0``,
         unless the polyhedron is empty or spans the whole space.
 
@@ -285,7 +367,7 @@ class PolyhedronRepresentation(SageObject):
             sage: v.count(1)
             3
         """
-        return sum([1 for j in self if i==j])
+        return sum([1 for j in self if i == j])
 
 
 class Hrepresentation(PolyhedronRepresentation):
@@ -396,8 +478,17 @@ class Hrepresentation(PolyhedronRepresentation):
             sage: pH = p.Hrepresentation(2)
             sage: pH.A()
             (1, 0)
+
+        TESTS:
+
+        Checks that :trac:`27709` is fixed::
+
+            sage: C = polytopes.cube()
+            sage: C.inequalities()[0].A()[2] = 5
+            sage: C.inequalities()[0]
+            An inequality (-1, 0, 0) x + 1 >= 0
         """
-        return self._A
+        return copy(self._A)
 
     def b(self):
         r"""
@@ -414,23 +505,50 @@ class Hrepresentation(PolyhedronRepresentation):
 
     def neighbors(self):
         """
-        Iterate over the adjacent facets (i.e. inequalities/equations)
+        Iterate over the adjacent facets (i.e. inequalities).
+
+        Only defined for inequalities.
 
         EXAMPLES::
 
             sage: p = Polyhedron(ieqs = [[0,0,0,1],[0,0,1,0,],[0,1,0,0],
-            ...                          [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
+            ....:                        [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
             sage: pH = p.Hrepresentation(0)
             sage: a = list(pH.neighbors())
             sage: a[0]
             An inequality (0, -1, 0) x + 1 >= 0
             sage: list(a[0])
             [1, 0, -1, 0]
+
+        TESTS:
+
+        Checking that :trac:`28463` is fixed::
+
+            sage: P = polytopes.simplex()
+            sage: F1 = P.Hrepresentation()[1]
+            sage: list(F1.neighbors())
+            [An inequality (0, 1, 0, 0) x + 0 >= 0,
+             An inequality (0, 0, 1, 0) x + 0 >= 0,
+             An inequality (0, 0, 0, 1) x + 0 >= 0]
+
+        Does not work for equalities::
+
+            sage: F0 = P.Hrepresentation()[0]
+            sage: list(F0.neighbors())
+            Traceback (most recent call last):
+            ...
+            TypeError: must be inequality
         """
+        # The adjacency matrix does not include equations.
+        n_eqs = self.polyhedron().n_equations()
+        if not self.is_inequality():
+            raise TypeError("must be inequality")
+
         adjacency_matrix = self.polyhedron().facet_adjacency_matrix()
         for x in self.polyhedron().Hrep_generator():
-            if adjacency_matrix[self.index(), x.index()] == 1:
-                yield x
+            if not x.is_equation():
+                if adjacency_matrix[self.index()-n_eqs, x.index()-n_eqs] == 1:
+                    yield x
 
     def adjacent(self):
         """
@@ -439,7 +557,7 @@ class Hrepresentation(PolyhedronRepresentation):
         TESTS::
 
             sage: p = Polyhedron(ieqs = [[0,0,0,2],[0,0,1,0,],[0,10,0,0],
-            ...       [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
+            ....:     [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
             sage: pH = p.Hrepresentation(0)
             sage: a = list(pH.neighbors())
             sage: b = list(pH.adjacent())
@@ -455,7 +573,7 @@ class Hrepresentation(PolyhedronRepresentation):
         EXAMPLES::
 
             sage: p = Polyhedron(ieqs = [[0,0,0,1],[0,0,1,0,],[0,1,0,0],
-            ...       [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
+            ....:     [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
             sage: pH = p.Hrepresentation(0)
             sage: pH.is_incident(p.Vrepresentation(1))
             True
@@ -471,7 +589,7 @@ class Hrepresentation(PolyhedronRepresentation):
         EXAMPLES::
 
             sage: p = Polyhedron(ieqs = [[0,0,0,1],[0,0,1,0,],[0,1,0,0],
-            ...        [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
+            ....:      [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
             sage: pH = p.Hrepresentation(0)
             sage: pH*p.Vrepresentation(5)
             1
@@ -538,6 +656,54 @@ class Hrepresentation(PolyhedronRepresentation):
             if incidence_matrix[V.index(), self.index()] == 1:
                 yield V
 
+    def repr_pretty(self, **kwds):
+        r"""
+        Return a pretty representation of this equality/inequality.
+
+        INPUT:
+
+        - ``prefix`` -- a string
+
+        - ``indices`` -- a tuple or other iterable
+
+        - ``latex`` -- a boolean
+
+        OUTPUT:
+
+        A string
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(ieqs=[(0, 1, 0, 0), (1, 2, 1, 0)],
+            ....:                eqns=[(1, -1, -1, 1)])
+            sage: for h in P.Hrepresentation():
+            ....:     print(h.repr_pretty())
+            x0 + x1 - x2 == 1
+            x0 >= 0
+            2*x0 + x1 >= -1
+        """
+        return repr_pretty(self.vector(), self.type(), **kwds)
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX-representation of this equality/inequality.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(ieqs=[(0, 1, 0, 0), (1, 2, 1, 0)],
+            ....:                eqns=[(1, -1, -1, 1)])
+            sage: for h in P.Hrepresentation():
+            ....:     print(latex(h))
+            x_{0} + x_{1} - x_{2} = 1
+            x_{0} \geq 0
+            2 \, x_{0} + x_{1} \geq -1
+        """
+        return self.repr_pretty(latex=True)
+
 
 class Inequality(Hrepresentation):
     """
@@ -588,6 +754,113 @@ class Inequality(Hrepresentation):
         """
         return True
 
+    def is_facet_defining_inequality(self, other):
+        r"""
+        Check if ``self`` defines a facet of ``other``.
+
+        INPUT:
+
+        - ``other`` -- a polyhedron
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.slack_matrix`
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[0,0,0],[0,1,0]], rays=[[1,0,0]])
+            sage: P.inequalities()
+            (An inequality (1, 0, 0) x + 0 >= 0,
+             An inequality (0, 1, 0) x + 0 >= 0,
+             An inequality (0, -1, 0) x + 1 >= 0)
+            sage: Q = Polyhedron(ieqs=[[0,1,0,0]])
+            sage: Q.inequalities()[0].is_facet_defining_inequality(P)
+            True
+            sage: Q = Polyhedron(ieqs=[[0,2,0,3]])
+            sage: Q.inequalities()[0].is_facet_defining_inequality(P)
+            True
+            sage: Q = Polyhedron(ieqs=[[0,AA(2).sqrt(),0,3]])
+            sage: Q.inequalities()[0].is_facet_defining_inequality(P)
+            True
+            sage: Q = Polyhedron(ieqs=[[1,1,0,0]])
+            sage: Q.inequalities()[0].is_facet_defining_inequality(P)
+            False
+
+        ::
+
+            sage: P = Polyhedron(vertices=[[0,0,0],[0,1,0]], lines=[[1,0,0]])
+            sage: P.inequalities()
+            (An inequality (0, 1, 0) x + 0 >= 0, An inequality (0, -1, 0) x + 1 >= 0)
+            sage: Q = Polyhedron(ieqs=[[0,1,0,0]])
+            sage: Q.inequalities()[0].is_facet_defining_inequality(P)
+            False
+            sage: Q = Polyhedron(ieqs=[[0,-1,0,0]])
+            sage: Q.inequalities()[0].is_facet_defining_inequality(P)
+            False
+            sage: Q = Polyhedron(ieqs=[[0,0,1,3]])
+            sage: Q.inequalities()[0].is_facet_defining_inequality(P)
+            True
+
+        TESTS::
+
+            sage: p1 = Polyhedron(backend='normaliz', base_ring=QQ, vertices=[  # optional - pynormaliz
+            ....:     (2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3),
+            ....:     (1, 1, 1, 9/10, 4/5, 7/10, 3/5, 0, 0),
+            ....:     (1, 1, 1, 1, 4/5, 3/5, 1/2, 1/10, 0),
+            ....:     (1, 1, 1, 1, 9/10, 1/2, 2/5, 1/5, 0),
+            ....:     (1, 1, 1, 1, 1, 2/5, 3/10, 1/5, 1/10)])
+            sage: p2 = Polyhedron(backend='ppl', base_ring=QQ, vertices=[
+            ....:     (2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3),
+            ....:     (1, 1, 1, 9/10, 4/5, 7/10, 3/5, 0, 0),
+            ....:     (1, 1, 1, 1, 4/5, 3/5, 1/2, 1/10, 0),
+            ....:     (1, 1, 1, 1, 9/10, 1/2, 2/5, 1/5, 0),
+            ....:     (1, 1, 1, 1, 1, 2/5, 3/10, 1/5, 1/10)])
+            sage: p2 == p1                                                      # optional - pynormaliz
+            True
+            sage: for ieq in p1.inequalities():                                 # optional - pynormaliz
+            ....:     assert ieq.is_facet_defining_inequality(p2)
+            sage: for ieq in p2.inequalities():                                 # optional - pynormaliz
+            ....:     assert ieq.is_facet_defining_inequality(p1)
+        """
+        from sage.geometry.polyhedron.base import Polyhedron_base
+        if not isinstance(other, Polyhedron_base):
+            raise ValueError("other must be a polyhedron")
+
+        if not other.n_Vrepresentation():
+            # An empty polytope does not have facets.
+            return False
+
+        # We evaluate ``self`` on the Vrepresentation of other.
+
+        from sage.matrix.constructor import matrix
+        Vrep_matrix = matrix(other.base_ring(), other.Vrepresentation())
+
+        # Getting homogeneous coordinates of the Vrepresentation.
+        hom_helper = matrix(other.base_ring(), [1 if v.is_vertex() else 0 for v in other.Vrepresentation()])
+        hom_Vrep = hom_helper.stack(Vrep_matrix.transpose())
+
+        self_matrix = matrix(self.vector())
+
+        cross_slack_matrix = self_matrix * hom_Vrep
+
+        # First of all ``self`` should not evaluate negative on anything.
+        # If it has the same incidences as an inequality of ``other``,
+        # all ``Vrepresentatives`` lie on the same (closed) side.
+        if not any(x > 0 for x in cross_slack_matrix):
+            return False
+
+        # Also it should evaluate ``0`` on all lines.
+        if any(self.A() * line.vector() for line in other.lines()):
+            return False
+
+        incidences = cross_slack_matrix.zero_pattern_matrix(ZZ)
+
+        # See if ``self`` has the same incidences as an inequality of ``other``.
+        # If this is the case, then the above check suffices to guarantee that all
+        # entries of ``cross_slack_matrix`` are non-negative.
+        return incidences.row(0) in other.incidence_matrix().columns()
+
     def _repr_(self):
         """
         The string representation of the inequality.
@@ -604,12 +877,22 @@ class Inequality(Hrepresentation):
             (An equation -1 == 0,)
             sage: Polyhedron(eqns=[(-1,0)]).Hrepresentation()
             (An equation -1 == 0,)
+
+        TESTS:
+
+        Test that :trac:`21105` has been fixed::
+
+            sage: K.<cbrt2> = NumberField(x^3 - 2, 'a', embedding=1.26)
+            sage: P = Polyhedron(vertices=[(1,1,cbrt2),(cbrt2,1,1)])
+            sage: P.inequalities()
+            (An inequality (-cbrt2^2 - cbrt2 - 1, 0, 0) x + cbrt2^2 + cbrt2 + 2 >= 0,
+             An inequality (cbrt2^2 + cbrt2 + 1, 0, 0) x - cbrt2^2 + cbrt2 + 1 >= 0)
         """
         s = 'An inequality '
         have_A = not self.A().is_zero()
         if have_A:
             s += repr(self.A()) + ' x '
-        if self.b()>=0:
+        if self.b() >= 0:
             if have_A:
                 s += '+'
         else:
@@ -632,7 +915,7 @@ class Inequality(Hrepresentation):
             [True, True, True, True, True, True]
             sage: p2 = 3*polytopes.hypercube(3)
             sage: [i1.contains(q) for q in p2.vertex_generator()]
-            [True, False, False, False, True, True, True, False]
+            [True, True, False, True, False, True, False, False]
         """
         try:
             if Vobj.is_vector(): # assume we were passed a point
@@ -659,7 +942,7 @@ class Inequality(Hrepresentation):
             [False, True, True, False, False, True]
             sage: p2 = 3*polytopes.hypercube(3)
             sage: [i1.interior_contains(q) for q in p2.vertex_generator()]
-            [True, False, False, False, True, True, True, False]
+            [True, True, False, True, False, True, False, False]
 
         If you pass a vector, it is assumed to be the coordinate vector of a point::
 
@@ -680,6 +963,23 @@ class Inequality(Hrepresentation):
             return self.polyhedron()._is_positive( self.eval(Vobj) )
         else: # Vobj.is_ray()
             return self.polyhedron()._is_nonneg( self.eval(Vobj) )
+
+    def outer_normal(self):
+        r"""
+        Return the outer normal vector of ``self``.
+
+        OUTPUT:
+
+        The normal vector directed away from the interior of the polyhedron.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices = [[0,0,0],[1,1,0],[1,2,0]])
+            sage: a = next(p.inequality_generator())
+            sage: a.outer_normal()
+            (1, -1, 0)
+        """
+        return -self.A()
 
 
 class Equation(Hrepresentation):
@@ -848,6 +1148,7 @@ class Vrepresentation(PolyhedronRepresentation):
             sage: TestSuite(pV).run(skip='_test_pickling')
         """
         assert polyhedron.parent() is self._polyhedron_parent
+        data = list(data)
         if len(data) != self._vector.degree():
             raise ValueError('V-representation data requires a list of length ambient_dim')
 
@@ -968,12 +1269,12 @@ class Vrepresentation(PolyhedronRepresentation):
             sage: p = polytopes.hypercube(3)
             sage: h1 = next(p.inequality_generator())
             sage: h1
-            An inequality (0, 0, -1) x + 1 >= 0
+            An inequality (-1, 0, 0) x + 1 >= 0
             sage: v1 = next(p.vertex_generator())
             sage: v1
-            A vertex at (-1, -1, -1)
+            A vertex at (1, -1, -1)
             sage: v1.is_incident(h1)
-            False
+            True
         """
         return self.polyhedron().incidence_matrix()[self.index(), Hobj.index()] == 1
 
@@ -987,7 +1288,7 @@ class Vrepresentation(PolyhedronRepresentation):
             sage: h1 = next(p.inequality_generator())
             sage: v1 = next(p.vertex_generator())
             sage: v1.__mul__(h1)
-            2
+            0
         """
         return self.evaluated_on(Hobj)
 
@@ -1053,7 +1354,6 @@ class Vertex(Vrepresentation):
         """
         return self.VERTEX
 
-
     def is_vertex(self):
         """
         Tests if this object is a vertex.  By construction it always is.
@@ -1084,6 +1384,28 @@ class Vertex(Vrepresentation):
         """
         return 'A vertex at ' + repr(self.vector());
 
+    def homogeneous_vector(self, base_ring=None):
+        """
+        Return homogeneous coordinates for this vertex.
+
+        Since a vertex is given by an affine point, this is the vector
+        with a 1 appended.
+
+        INPUT:
+
+        - ``base_ring`` -- the base ring of the vector.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(2,0)], rays=[(1,0)], lines=[(3,2)])
+            sage: P.vertices()[0].homogeneous_vector()
+            (2, 0, 1)
+            sage: P.vertices()[0].homogeneous_vector(RDF)
+            (2.0, 0.0, 1.0)
+        """
+        v = list(self._vector) + [1]
+        return vector(base_ring or self._base_ring, v)
+
     def evaluated_on(self, Hobj):
         r"""
         Returns `A\vec{x}+b`
@@ -1094,11 +1416,11 @@ class Vertex(Vrepresentation):
             sage: v = next(p.vertex_generator())
             sage: h = next(p.inequality_generator())
             sage: v
-            A vertex at (-1, -1, -1)
+            A vertex at (1, -1, -1)
             sage: h
-            An inequality (0, 0, -1) x + 1 >= 0
+            An inequality (-1, 0, 0) x + 1 >= 0
             sage: v.evaluated_on(h)
-            2
+            0
         """
         return Hobj.A() * self.vector() + Hobj.b()
 
@@ -1153,7 +1475,6 @@ class Ray(Vrepresentation):
         """
         return self.RAY
 
-
     def is_ray(self):
         """
         Tests if this object is a ray.  Always True by construction.
@@ -1179,6 +1500,28 @@ class Ray(Vrepresentation):
             'A ray in the direction (0, 1)'
         """
         return 'A ray in the direction ' + repr(self.vector());
+
+    def homogeneous_vector(self, base_ring=None):
+        """
+        Return homogeneous coordinates for this ray.
+
+        Since a ray is given by a direction, this is the vector with a
+        0 appended.
+
+        INPUT:
+
+        - ``base_ring`` -- the base ring of the vector.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(2,0)], rays=[(1,0)], lines=[(3,2)])
+            sage: P.rays()[0].homogeneous_vector()
+            (1, 0, 0)
+            sage: P.rays()[0].homogeneous_vector(RDF)
+            (1.0, 0.0, 0.0)
+        """
+        v = list(self._vector) + [0]
+        return vector(base_ring or self._base_ring, v)
 
     def evaluated_on(self, Hobj):
         r"""
@@ -1256,6 +1599,28 @@ class Line(Vrepresentation):
         """
         return 'A line in the direction ' + repr(self.vector());
 
+    def homogeneous_vector(self, base_ring=None):
+        """
+        Return homogeneous coordinates for this line.
+
+        Since a line is given by a direction, this is the vector with a
+        0 appended.
+
+        INPUT:
+
+        - ``base_ring`` -- the base ring of the vector.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(2,0)], rays=[(1,0)], lines=[(3,2)])
+            sage: P.lines()[0].homogeneous_vector()
+            (3, 2, 0)
+            sage: P.lines()[0].homogeneous_vector(RDF)
+            (3.0, 2.0, 0.0)
+        """
+        v = list(self._vector) + [0]
+        return vector(base_ring or self._base_ring, v)
+
     def evaluated_on(self, Hobj):
         r"""
         Returns `A\vec{\ell}`
@@ -1271,3 +1636,83 @@ class Line(Vrepresentation):
         return Hobj.A() * self.vector()
 
 
+def repr_pretty(coefficients, type, prefix='x', indices=None,
+                latex=False, style='>=', split=False):
+    r"""
+    Return a pretty representation of equation/inequality represented
+    by the coefficients.
+
+    INPUT:
+
+    - ``coefficients`` -- a tuple or other iterable
+
+    - ``type`` -- either ``0`` (``PolyhedronRepresentation.INEQUALITY``)
+      or ``1`` (``PolyhedronRepresentation.EQUATION``)
+
+    - ``prefix`` -- a string
+
+    - ``indices`` -- a tuple or other iterable
+
+    - ``latex`` -- a boolean
+
+    - ``split`` -- a boolean; (Default: ``False``). If set to ``True``,
+                   the output is split into a 3-tuple containing the left-hand side,
+                   the relation, and the right-hand side of the object.
+
+    - ``style`` -- either ``"positive"`` (making all coefficients positive), or
+                   ``"<="`` or ``">="``.
+
+    OUTPUT:
+
+    A string or 3-tuple of strings (depending on ``split``).
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.representation import repr_pretty
+        sage: from sage.geometry.polyhedron.representation import PolyhedronRepresentation
+        sage: print(repr_pretty((0, 1, 0, 0), PolyhedronRepresentation.INEQUALITY))
+        x0 >= 0
+        sage: print(repr_pretty((1, 2, 1, 0), PolyhedronRepresentation.INEQUALITY))
+        2*x0 + x1 >= -1
+        sage: print(repr_pretty((1, -1, -1, 1), PolyhedronRepresentation.EQUATION))
+        -x0 - x1 + x2 == -1
+    """
+    from sage.misc.latex import latex as latex_function
+    from sage.modules.free_module_element import vector
+    from sage.symbolic.ring import SR
+
+    coeffs = vector(coefficients)
+    if indices is None:
+        indices = range(len(coeffs)-1)
+    vars = vector([1] + list(SR(prefix + '{}'.format(i)) for i in indices))
+    f = latex_function if latex else repr
+    if type == PolyhedronRepresentation.EQUATION:
+        rel = '=' if latex else '=='
+    elif type == PolyhedronRepresentation.INEQUALITY:
+        if style == '<=':
+            rel = r'\leq' if latex else '<='
+        else:
+            rel = r'\geq' if latex else '>='
+    else:
+        raise NotImplementedError(
+            'no pretty printing available: wrong type {}'.format(type))
+
+    if style == 'positive':
+        pos_part = vector([max(c, 0) for c in coeffs])
+        neg_part = pos_part - coeffs
+        assert coeffs == pos_part - neg_part
+        left_part = f(pos_part*vars)
+        right_part = f(neg_part*vars)
+    elif style == '>=':
+        left_part = f(coeffs[1:]*vars[1:])
+        right_part = f(-coeffs[0])
+    elif style == '<=':
+        left_part = f(-coeffs[1:]*vars[1:])
+        right_part = f(coeffs[0])
+    else:
+        raise NotImplementedError('no pretty printing available: wrong style {}'.format(style))
+
+    if not split:
+        return '{} {} {}'.format(left_part, rel, right_part)
+    else:
+        return (str(left_part), rel, str(right_part))

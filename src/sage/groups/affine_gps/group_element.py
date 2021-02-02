@@ -1,4 +1,5 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 Elements of Affine Groups
 
 The class in this module is used to represent the elements of
@@ -31,19 +32,23 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
+#       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.misc.cachefunc import cached_method
-from sage.groups.matrix_gps.group_element import MatrixGroupElement_base
+from sage.structure.element import MultiplicativeGroupElement
+from sage.structure.richcmp import richcmp, richcmp_not_equal
 
-class AffineGroupElement(MatrixGroupElement_base):
-    """
+
+class AffineGroupElement(MultiplicativeGroupElement):
+    r"""
     An affine group element.
 
     INPUT:
@@ -78,12 +83,26 @@ class AffineGroupElement(MatrixGroupElement_base):
         sage: G = AffineGroup(2, GF(3))
         sage: g = G.random_element()
         sage: type(g)
-        <class 'sage.groups.affine_gps.group_element.AffineGroup_with_category.element_class'>
+        <class 'sage.groups.affine_gps.affine_group.AffineGroup_with_category.element_class'>
         sage: G(g.matrix()) == g
         True
         sage: G(2)
               [2 0]     [0]
         x |-> [0 2] x + [0]
+
+    Conversion from a matrix and a matrix group element::
+
+        sage: M = Matrix(4, 4, [0, 0, -1, 1, 0, -1, 0, 1, -1, 0, 0, 1, 0, 0, 0, 1])
+        sage: A = AffineGroup(3, ZZ)
+        sage: A(M)
+              [ 0  0 -1]     [1]
+        x |-> [ 0 -1  0] x + [1]
+              [-1  0  0]     [1]
+        sage: G = MatrixGroup([M])
+        sage: A(G.0)
+              [ 0  0 -1]     [1]
+        x |-> [ 0 -1  0] x + [1]
+              [-1  0  0]     [1]
     """
     def __init__(self, parent, A, b=0, convert=True, check=True):
         r"""
@@ -95,10 +114,14 @@ class AffineGroupElement(MatrixGroupElement_base):
             sage: g = G.random_element()
             sage: TestSuite(g).run()
         """
+        try:
+            A = A.matrix()
+        except AttributeError:
+            pass
         if is_Matrix(A) and A.nrows() == A.ncols() == parent.degree()+1:
             g = A
-            A = g.submatrix(0,0,2,2)
             d = parent.degree()
+            A = g.submatrix(0, 0, d, d)
             b = [ g[i,d] for i in range(d) ]
             convert = True
         if convert:
@@ -249,6 +272,56 @@ class AffineGroupElement(MatrixGroupElement_base):
         """
         return r'\vec{x}\mapsto '+self.A()._latex_()+r'\vec{x} + '+self.b().column()._latex_()
 
+    def _ascii_art_(self):
+        r"""
+        Return an ascii art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G2 = AffineGroup(2, QQ)
+            sage: g2 = G2([[1, 1], [0, 1]], [3,4])
+            sage: ascii_art(g2)
+            x |-> [1 1] x + [3]
+                  [0 1]     [4]
+
+            sage: G3 = AffineGroup(3, QQ)
+            sage: g3 = G3([[1,1,-1], [0,1,2], [0,10,2]], [3,4,5/2])
+            sage: ascii_art(g3)
+                  [ 1  1 -1]     [  3]
+            x |-> [ 0  1  2] x + [  4]
+                  [ 0 10  2]     [5/2]
+        """
+        from sage.typeset.ascii_art import ascii_art
+        deg = self.parent().degree()
+        A = ascii_art(self._A, baseline=deg//2)
+        b = ascii_art(self._b.column(), baseline=deg//2)
+        return ascii_art("x |-> ") + A + ascii_art(" x + ") + b
+
+    def _unicode_art_(self):
+        r"""
+        Return a unicode art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G2 = AffineGroup(2, QQ)
+            sage: g2 = G2([[1, 1], [0, 1]], [3,4])
+            sage: unicode_art(g2)
+            x ↦ ⎛1 1⎞ x + ⎛3⎞
+                ⎝0 1⎠     ⎝4⎠
+
+            sage: G3 = AffineGroup(3, QQ)
+            sage: g3 = G3([[1,1,-1], [0,1,2], [0,10,2]], [3,4,5/2])
+            sage: unicode_art(g3)
+                ⎛ 1  1 -1⎞     ⎛  3⎞
+            x ↦ ⎜ 0  1  2⎟ x + ⎜  4⎟
+                ⎝ 0 10  2⎠     ⎝5/2⎠
+        """
+        from sage.typeset.unicode_art import unicode_art
+        deg = self.parent().degree()
+        A = unicode_art(self._A, baseline=deg//2)
+        b = unicode_art(self._b.column(), baseline=deg//2)
+        return unicode_art("x ↦ ") + A + unicode_art(" x + ") + b
+
     def _mul_(self, other):
         """
         Return the composition of ``self`` and ``other``.
@@ -285,8 +358,8 @@ class AffineGroupElement(MatrixGroupElement_base):
 
         INPUT:
 
-        - ``v`` -- a multivariate polynomial, a vector, or anything
-          that can be converted into a vector.
+        - ``v`` -- a polynomial, a multivariate polynomial, a polyhedron, a
+          vector, or anything that can be converted into a vector.
 
         OUTPUT:
 
@@ -323,18 +396,41 @@ class AffineGroupElement(MatrixGroupElement_base):
             sage: R.<z> = QQ[]
             sage: h(z+1)
             3*z + 2
+
+        The action on a polyhedron is defined (see :trac:`30327`)::
+
+            sage: F = AffineGroup(3, QQ)
+            sage: M = matrix(3, [-1, -2, 0, 0, 0, 1, -2, 1, -1])
+            sage: v = vector(QQ,(1,2,3))
+            sage: f = F(M, v)
+            sage: cube = polytopes.cube()
+            sage: f(cube)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
+
         """
-        from sage.rings.polynomial.polynomial_element import is_Polynomial
-        from sage.rings.polynomial.multi_polynomial import is_MPolynomial
         parent = self.parent()
+
+        # start with the most probable case, i.e., v is in the vector space
+        if v in parent.vector_space():
+            return self._A*v + self._b
+
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
         if is_Polynomial(v) and parent.degree() == 1:
             ring = v.parent()
             return ring([self._A[0,0], self._b[0]])
+
+        from sage.rings.polynomial.multi_polynomial import is_MPolynomial
         if is_MPolynomial(v) and parent.degree() == v.parent().ngens():
             ring = v.parent()
             from sage.modules.all import vector
             image_coords = self._A * vector(ring, ring.gens()) + self._b
             return v(*image_coords)
+
+        from sage.geometry.polyhedron.base import is_Polyhedron
+        if is_Polyhedron(v):
+            return self._A*v + self._b
+
+        # otherwise, coerce v into the vector space
         v = parent.vector_space()(v)
         return self._A*v + self._b
 
@@ -357,7 +453,7 @@ class AffineGroupElement(MatrixGroupElement_base):
             True
         """
         if self_on_left:
-            return self.__call__(x)
+            return self(x)
 
     def inverse(self):
         """
@@ -390,13 +486,13 @@ class AffineGroupElement(MatrixGroupElement_base):
 
     __invert__ = inverse
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare ``self`` with ``other``.
 
         OUTPUT:
 
-        -1, 0, or +1.
+        boolean
 
         EXAMPLES::
 
@@ -407,12 +503,34 @@ class AffineGroupElement(MatrixGroupElement_base):
             False
             sage: g == g
             True
-            sage: abs(cmp(g, 'anything'))
-            1
         """
-        assert self.parent() is other.parent()
-        c = cmp(self._A, other._A)
-        if (c != 0):
-            return c
-        return cmp(self._b, other._b)
+        lx = self._A
+        rx = other._A
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self._b, other._b, op)
+
+    def list(self):
+        """
+        Return list representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = AffineGroup(3, QQ)
+            sage: g = F([1,2,3,4,5,6,7,8,0], [10,11,12])
+            sage: g
+                  [1 2 3]     [10]
+            x |-> [4 5 6] x + [11]
+                  [7 8 0]     [12]
+            sage: g.matrix()
+            [ 1  2  3|10]
+            [ 4  5  6|11]
+            [ 7  8  0|12]
+            [--------+--]
+            [ 0  0  0| 1]
+            sage: g.list()
+            [[1, 2, 3, 10], [4, 5, 6, 11], [7, 8, 0, 12], [0, 0, 0, 1]]
+        """
+        return [r.list() for r in self.matrix().rows()]
 

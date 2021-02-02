@@ -1,3 +1,3 @@
 # do nothing
 
-import all
+from . import all

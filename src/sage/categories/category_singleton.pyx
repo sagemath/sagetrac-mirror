@@ -1,13 +1,13 @@
 r"""
 Singleton categories
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
 #                     Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.constant_function import ConstantFunction
@@ -89,12 +89,12 @@ class Category_singleton(Category):
 
     A *singleton* category is a category whose class takes no
     parameters like ``Fields()`` or ``Rings()``. See also the
-    `Singleton design pattern <http://en.wikipedia.org/wiki/Singleton_pattern>`_.
+    `Singleton design pattern <https://en.wikipedia.org/wiki/Singleton_pattern>`_.
 
     This is a subclass of :class:`Category`, with a couple
     optimizations for singleton categories.
 
-    The main purpose is to make the idioms:
+    The main purpose is to make the idioms::
 
         sage: QQ in Fields()
         True
@@ -224,7 +224,7 @@ class Category_singleton(Category):
              <class 'sage.categories.sets_cat.Sets.subcategory_class'>,
              <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.subcategory_class'>,
              <class 'sage.categories.objects.Objects.subcategory_class'>,
-             <type 'object'>]
+             <... 'object'>]
             sage: R() is R()
             True
             sage: R() is R().__class__()
@@ -287,7 +287,7 @@ class Category_singleton(Category):
             sage: MyRingsSingleton()
             Category of my rings singleton
 
-        Instanciating :class:`Category_singleton` triggers an assertion error::
+        Instantiating :class:`Category_singleton` triggers an assertion error::
 
             sage: Category_singleton()
             Traceback (most recent call last):
@@ -305,7 +305,7 @@ class Category_singleton(Category):
             ...
             AssertionError: <class '__main__.MySubStuff'> is not a direct subclass of <class 'sage.categories.category_singleton.Category_singleton'>
 
-        even if ``MyStuff`` has already been instanciated::
+        even if ``MyStuff`` has already been instantiated::
 
             sage: MyStuff()
             Category of my stuff
@@ -319,7 +319,7 @@ class Category_singleton(Category):
         # TODO: find a better way to check that cls is an abstract class
         from sage.categories.category_with_axiom import CategoryWithAxiom_singleton
         assert (cls.__mro__[1] is Category_singleton or cls.__mro__[1] is CategoryWithAxiom_singleton), \
-            "%s is not a direct subclass of %s"%(cls, Category_singleton)
+            "{} is not a direct subclass of {}".format(cls, Category_singleton)
         obj = super(Category_singleton, cls).__classcall__(cls, *args)
         cls._set_classcall(ConstantFunction(obj))
         obj.__class__._set_classcall(ConstantFunction(obj))

@@ -19,7 +19,8 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
-from algebraic_scheme import AlgebraicScheme_subscheme_projective, AlgebraicScheme_subscheme_affine
+from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
+from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
 
 def is_Hypersurface(self):
     """

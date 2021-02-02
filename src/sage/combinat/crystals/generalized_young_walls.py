@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Crystals of Generalized Young Walls
 
@@ -10,20 +11,13 @@ AUTHORS:
 - Travis Scrimshaw: Initial version
 
 Generalized Young walls are certain generalizations of Young tableaux
-introduced in [KS10]_ and designed to be a realization of the crystals
+introduced in [KS2010]_ and designed to be a realization of the crystals
 `\mathcal{B}(\infty)` and `\mathcal{B}(\lambda)` in type `A_n^{(1)}`.
 
 REFERENCES:
 
-.. [KS10] J.-A. Kim and D.-U. Shin.
-   Generalized Young walls and crystal bases for quantum affine algebra
-   of type `A`.
-   Proc. Amer. Math. Soc. 138(11), pp. 3877--3889, 2010.
-
-.. [KLRS] S.-J. Kang, K.-H. Lee, H. Ryu, and B. Salisbury.
-   A combinatorial description of the affine Gindikin-Karpelevich formula of
-   type `A_n^{(1)}`.
-   :arXiv:`1203.1640`.
+- [KLRS2016]_
+- [KS2010]_
 """
 
 #******************************************************************************
@@ -47,7 +41,6 @@ from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.root_system import RootSystem
-from sage.rings.infinity import Infinity
 
 class GeneralizedYoungWall(CombinatorialElement):
     r"""
@@ -66,7 +59,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         0|1|
            |
     """
-    def __init__(self,parent,data):
+    def __init__(self, parent, data):
         r"""
         EXAMPLES::
 
@@ -75,14 +68,14 @@ class GeneralizedYoungWall(CombinatorialElement):
             sage: TestSuite(mg).run()
         """
         i = len(data)-1
-        while i >= 0 and len(data[i]) == 0:
+        while i >= 0 and not data[i]:
             data.pop()
             i -= 1
         self.rows = len(data)
-        if data == []:
+        if not data:
             self.cols = 0
         else:
-            self.cols = max([len(r) for r in data])
+            self.cols = max(len(r) for r in data)
         self.data = data
         CombinatorialElement.__init__(self, parent, data)
 
@@ -94,9 +87,105 @@ class GeneralizedYoungWall(CombinatorialElement):
             sage: y
             [[0], [1, 0, 3, 2], [2, 1], [3, 2, 1, 0, 3, 2], [0], [], [2]]
         """
-        return self.data.__repr__()
+        return repr(self.data)
 
-    def __eq__(self,other):
+    def _repr_diagram(self):
+        r"""
+        Return a string representation of the diagram of ``self``.
+
+        EXAMPLES::
+
+            sage: y = crystals.infinity.GeneralizedYoungWalls(2)([[0,2,1],[1,0,2,1,0],[],[0],[1,0,2],[],[],[1]])
+            sage: print(y._repr_diagram())
+                    1|
+                     |
+                     |
+                2|0|1|
+                    0|
+                     |
+            0|1|2|0|1|
+                1|2|0|
+        """
+        if not self.data:
+            return '0'
+        ret = ""
+        for row in reversed(self.data):
+            wall = ''
+            for elem in reversed(row):
+                wall += str(elem)
+                wall += '|'
+            if row == []:
+                wall += '|'
+            ret += wall.rjust(2*self.cols+1) + "\n"
+        return ret
+
+    def _ascii_art_(self):
+        r"""
+        Return an ascii art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: y = crystals.infinity.GeneralizedYoungWalls(2)([[0,2,1],[1,0,2,1,0],[],[0],[1,0,2],[],[],[1]])
+            sage: ascii_art(y)
+                    1|
+                     |
+                     |
+                2|0|1|
+                    0|
+                     |
+            0|1|2|0|1|
+                1|2|0|
+        """
+        from sage.typeset.ascii_art import AsciiArt
+        return AsciiArt(self._repr_diagram().splitlines())
+
+    def _unicode_art_(self):
+        """
+        Return a unicode art representation of ``self``.
+
+        TESTS::
+
+            sage: y = crystals.infinity.GeneralizedYoungWalls(2)([[0,2,1],[1,0,2,1,0],[],[0],[1,0,2],[],[],[1]])
+            sage: unicode_art(y)
+                            ┌───┐
+                            │ 1 │
+                            └───┘
+                                │
+                                ┤
+                                │
+                    ┌───┬───┬───┐
+                    │ 1 │ 0 │ 2 │
+                    └───┴───┼───┤
+                            │ 0 │
+                            └───┘
+                                │
+            ┌───┬───┬───┬───┬───┐
+            │ 1 │ 0 │ 2 │ 1 │ 0 │
+            └───┴───┼───┼───┼───┤
+                    │ 0 │ 2 │ 1 │
+                    └───┴───┴───┘
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        if not self.data:
+            return UnicodeArt(["0"])
+
+        from sage.combinat.output import ascii_art_table
+        import unicodedata
+        v = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL')
+        vl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND LEFT')
+        table = [[None]*(self.cols-len(row)) + row for row in reversed(self)]
+        ret = []
+        for i,row in enumerate(ascii_art_table(table, use_unicode=True).splitlines()):
+            if row[-1] == " ":
+                if i % 2 == 0:
+                    ret.append(row[:-1] + vl)
+                else:
+                    ret.append(row[:-1] + v)
+            else:
+                ret.append(row)
+        return UnicodeArt(ret)
+
+    def __eq__(self, other):
         r"""
         EXAMPLES::
 
@@ -112,6 +201,17 @@ class GeneralizedYoungWall(CombinatorialElement):
         if isinstance(other, GeneralizedYoungWall):
             return self.data == other.data
         return self.data == other
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: GYW = crystals.infinity.GeneralizedYoungWalls(2)
+            sage: h = hash(GYW)
+        """
+        return hash(tuple(tuple(u) for u in self.data))
 
     def raw_signature(self, i):
         r"""
@@ -210,7 +310,7 @@ class GeneralizedYoungWall(CombinatorialElement):
 
     def pp(self):
         r"""
-        Return an ASCII drawing of ``self``.
+        Pretty print ``self``.
 
         EXAMPLES::
 
@@ -225,16 +325,7 @@ class GeneralizedYoungWall(CombinatorialElement):
             0|1|2|0|1|
                 1|2|0|
         """
-        for row in reversed(self.data):
-            wall = ''
-            for elem in reversed(row):
-                wall += str(elem)
-                wall += '|'
-            if row == []:
-                wall += '|'
-            print(wall.rjust(2*self.cols+1))
-        if self.data==[]:
-            print '0'
+        print(self._repr_diagram())
 
     def content(self):
         r"""
@@ -256,7 +347,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         r"""
         Return the value of `\mathscr{N}` on ``self``.
 
-        In [KLRS]_, the statistic `\mathscr{N}` was defined on elements in
+        In [KLRS2016]_, the statistic `\mathscr{N}` was defined on elements in
         `\mathcal{Y}(\infty)` which counts how many parts are in the
         corresponding Kostant partition.  Specifically, the computation of
         `\mathscr{N}(Y)` is done using the following algorithm:
@@ -272,8 +363,8 @@ class GeneralizedYoungWall(CombinatorialElement):
           is a proper wall.  (Note that the resulting wall may no longer be
           reduced.) Repeat the search and replace process for all other rows of
           the above form for each `k' < k`.  Then `\mathscr{N}(Y)` is the number
-          of distinct rows, not counting multipicity, in the wall resulting from
-          this process.
+          of distinct rows, not counting multiplicity, in the wall resulting
+          from this process.
 
         EXAMPLES::
 
@@ -331,17 +422,17 @@ class GeneralizedYoungWall(CombinatorialElement):
             sage: y.sum_of_weighted_row_lengths()
             15
         """
-        n = self.parent().cartan_type().rank()-1
-        m = lambda i : len([r for r in self.data if r!=[] if r[0]==(i-1)%(n+1)])
+        n = self.parent().cartan_type().rank() - 1
+        m = lambda i: len([1 for r in self.data if r and r[0] == (i-1)%(n+1)])
         for r in self.data:
-            if r != [] and r[0] == n:
+            if r and r[0] == n:
                 raise ValueError('Statistic only valid for generalized Young walls in Y_0')
-        return sum((i+1)*m(i) for i in range(1,n+1))
+        return sum((i + 1) * m(i) for i in range(1, n + 1))
 
-    def e(self,i):
+    def e(self, i):
         r"""
         Return the application of the Kashiwara raising operator
-        `\widetilde{e}_i` on ``self``.
+        `e_i` on ``self``.
 
         This will remove the `i`-colored box corresponding to the
         rightmost `+` in ``self.signature(i)``.
@@ -375,7 +466,7 @@ class GeneralizedYoungWall(CombinatorialElement):
     def f(self,i):
         r"""
         Return the application of the Kashiwara lowering operator
-        `\widetilde{f}_i` on ``self``.
+        `f_i` on ``self``.
 
         This will add an `i`-colored colored box to the site corresponding
         to the leftmost plus in ``self.signature(i)``.
@@ -422,7 +513,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         else:
             s += "\\begin{tikzpicture}[baseline=5,scale=.45] \n \\foreach \\x [count=\\s from 0] in \n"
             s += "{" + ','.join("{" + ','.join( str(i) for i in r ) + "}" for r in self.data ) + "} \n"
-            s += "{\\foreach \\y [count=\\t from 0] in \\x {  \\node[font=\\scriptsize] at (-\\t,\\s) {$\\y$}; \n \draw (-\\t+.5,\\s+.5) to (-\\t-.5,\\s+.5); \n \draw (-\\t+.5,\\s-.5) to (-\\t-.5,\\s-.5); \n \draw (-\\t-.5,\\s-.5) to (-\\t-.5,\\s+.5);  } \n \draw[-,thick] (.5,\\s+1) to (.5,-.5) to (-\\t-1,-.5); } \n \\end{tikzpicture} \n"
+            s += "{\\foreach \\y [count=\\t from 0] in \\x {  \\node[font=\\scriptsize] at (-\\t,\\s) {$\\y$}; \n \\draw (-\\t+.5,\\s+.5) to (-\\t-.5,\\s+.5); \n \\draw (-\\t+.5,\\s-.5) to (-\\t-.5,\\s-.5); \n \\draw (-\\t-.5,\\s-.5) to (-\\t-.5,\\s+.5);  } \n \\draw[-,thick] (.5,\\s+1) to (.5,-.5) to (-\\t-1,-.5); } \n \\end{tikzpicture} \n"
         return s
 
     def _latex_(self):
@@ -441,26 +532,35 @@ class GeneralizedYoungWall(CombinatorialElement):
         else:
             s += "\\begin{tikzpicture}[baseline=5,scale=.25] \\foreach \\x [count=\\s from 0] in \n"
             s += "{" + ','.join("{" + ','.join( str(i) for i in r ) + "}" for r in self.data ) + "} \n"
-            s += "{\\foreach \\y [count=\\t from 0] in \\x {  \\node[font=\\tiny] at (-\\t,\\s) {$\\y$}; \n \draw (-\\t+.5,\\s+.5) to (-\\t-.5,\\s+.5); \n \draw (-\\t+.5,\\s-.5) to (-\\t-.5,\\s-.5); \n \draw (-\\t-.5,\\s-.5) to (-\\t-.5,\\s+.5);  } \n \draw[-] (.5,\\s+1) to (.5,-.5) to (-\\t-1,-.5); } \n \\end{tikzpicture} \n"
+            s += "{\\foreach \\y [count=\\t from 0] in \\x {  \\node[font=\\tiny] at (-\\t,\\s) {$\\y$}; \n \\draw (-\\t+.5,\\s+.5) to (-\\t-.5,\\s+.5); \n \\draw (-\\t+.5,\\s-.5) to (-\\t-.5,\\s-.5); \n \\draw (-\\t-.5,\\s-.5) to (-\\t-.5,\\s+.5);  } \n \\draw[-] (.5,\\s+1) to (.5,-.5) to (-\\t-1,-.5); } \n \\end{tikzpicture} \n"
         return s
 
-    def weight(self):
+    def weight(self, root_lattice=False):
         r"""
-        Returns the weight of ``self`` as an element of the root lattice
-        `\bigoplus_{i=0}^n \ZZ \alpha_i`.
+        Return the weight of ``self``.
+
+        INPUT:
+
+        - ``root_lattice`` -- boolean determining whether weight should appear
+          in root lattice or not in extended affine weight lattice.
 
         EXAMPLES::
 
             sage: x = crystals.infinity.GeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
             sage: x.weight()
+            2*Lambda[0] + Lambda[1] - 4*Lambda[2] + Lambda[3] - 2*delta
+            sage: x.weight(root_lattice=True)
             -2*alpha[0] - 3*alpha[1] - 5*alpha[2] - 3*alpha[3]
         """
         W = []
+        E = self.cartan_type().root_system().weight_lattice(extended=True)
         L = self.cartan_type().root_system().root_lattice()
         alpha = L.simple_roots()
         for r in self.data:
             for i in r:
                 W.append(-1*alpha[i])
+        if not root_lattice:
+            return E(sum(w for w in W))
         return L(sum(w for w in W))
 
     def epsilon(self, i):
@@ -479,7 +579,7 @@ class GeneralizedYoungWall(CombinatorialElement):
             0
         """
         if i not in self.index_set():
-            raise ValueError("i must in in the index set")
+            raise ValueError("i must be in the index set")
         eps = 0
         while True:
             self = self.e(i)
@@ -501,7 +601,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         La = self.cartan_type().root_system().weight_lattice().fundamental_weights()
         return sum(self.epsilon(i)*La[i] for i in self.index_set())
 
-    def phi(self,i):
+    def phi(self, i):
         r"""
         Return the value `\varepsilon_i(Y) + \langle h_i,
         \mathrm{wt}(Y)\rangle`, where `h_i` is the `i`-th simple
@@ -516,7 +616,7 @@ class GeneralizedYoungWall(CombinatorialElement):
             -1
         """
         h = self.parent().weight_lattice_realization().simple_coroots()
-        return self.epsilon(i) + self.weight().scalar(h[i])
+        return self.epsilon(i) + self.weight(root_lattice=False).scalar(h[i])
 
     def Phi(self):
         r"""
@@ -532,7 +632,7 @@ class GeneralizedYoungWall(CombinatorialElement):
             sage: x.Phi()
             2*Lambda[0] + Lambda[1] - Lambda[2] + Lambda[3]
             """
-        La = self.cartan_type().root_system().weight_lattice().fundamental_weights()
+        La = self.cartan_type().root_system().weight_lattice(extended=True).fundamental_weights()
         return sum(self.phi(i)*La[i] for i in self.index_set())
 
     def column(self, k):
@@ -584,7 +684,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         is in the highest weight crystal cut out by the given highest weight
         ``La``.
 
-        By Theorem 4.1 of [KS10]_, a generalized Young wall `Y` represents a
+        By Theorem 4.1 of [KS2010]_, a generalized Young wall `Y` represents a
         vertex in the highest weight crystal `Y(\lambda)`, with
         `\lambda = \Lambda_{i_1} + \Lambda_{i_2} + \cdots + \Lambda_{i_\ell}`
         a dominant integral weight of level `\ell > 0`, if it satisfies the
@@ -602,7 +702,7 @@ class GeneralizedYoungWall(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[1]
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()[1]
             sage: GYW = crystals.infinity.GeneralizedYoungWalls(2)
             sage: y = GYW([[],[1,0],[2,1]])
             sage: y.in_highest_weight_crystal(La)
@@ -615,13 +715,14 @@ class GeneralizedYoungWall(CombinatorialElement):
             raise TypeError("Must be an element in the weight lattice realization")
         ac = self.parent().weight_lattice_realization().simple_coroots()
         n = self.cartan_type().classical().rank()
+        index_set = self.index_set()
         for k in range(1,self.cols+1):
-            for j in self.index_set():
+            for j in index_set:
                 if self.a(j,k) - self.a( (j-1) % (n+1) ,k) <= 0:
                     continue
                 else:
                     p_not_found = True
-                    for p in self.index_set():
+                    for p in index_set:
                         if (j+k) % (n+1)  == (p+1) % (n+1) and self.a(j,k) - self.a( (j-1) % (n+1) ,k) <= La.scalar(ac[p]):
                             p_not_found = False
                             continue
@@ -632,10 +733,10 @@ class GeneralizedYoungWall(CombinatorialElement):
         return True
 
 
-class InfinityCrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
+class InfinityCrystalOfGeneralizedYoungWalls(UniqueRepresentation, Parent):
     r"""
     The crystal `\mathcal{Y}(\infty)` of generalized Young walls of
-    type `A_n^{(1)}` as defined in [KS10]_.
+    type `A_n^{(1)}` as defined in [KS2010]_.
 
     A generalized Young wall is a collection of boxes stacked on a fixed board,
     such that color of the box at the site located in the `j`-th row from the
@@ -658,12 +759,12 @@ class InfinityCrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
 
     .. MATH::
 
-        \widetilde{e}_i,\ \widetilde{f}_i \colon \mathcal{Y}(\infty)
+        e_i,\ f_i \colon \mathcal{Y}(\infty)
         \longrightarrow \mathcal{Y}(\infty) \sqcup \{0\}, \qquad
         \varepsilon_i,\ \varphi_i \colon \mathcal{Y}(\infty)
         \longrightarrow \ZZ, \qquad
         \mathrm{wt}\colon \mathcal{Y}(\infty) \longrightarrow
-        \bigoplus_{i=0}^n \ZZ \Lambda_i,
+        \bigoplus_{i=0}^n \ZZ \Lambda_i \oplus \ZZ \delta,
 
     by
 
@@ -680,7 +781,7 @@ class InfinityCrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
 
     See :meth:`GeneralizedYoungWall.e()`, :meth:`GeneralizedYoungWall.f()`,
     and :meth:`GeneralizedYoungWall.signature()` for more about
-    `\widetilde{e}_i`, `\widetilde{f}_i`, and `i`-signatures.
+    `e_i`, `f_i`, and `i`-signatures.
 
 
     INPUT:
@@ -698,7 +799,7 @@ class InfinityCrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
                |
         2|3|0|1|
               0|
-        sage: y.weight()
+        sage: y.weight(root_lattice=True)
         -4*alpha[0] - 3*alpha[1] - 2*alpha[2] - 2*alpha[3]
         sage: y.f(0)
         [[0], [1, 0, 3, 2], [], [3, 2, 1], [0], [1, 0], [], [], [0]]
@@ -714,7 +815,7 @@ class InfinityCrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
 
         sage: S = Yinf.subcrystal(max_depth=3)
         sage: G = Yinf.digraph(subset=S) # long time
-        sage: view(G, tightpage=True) # not tested
+        sage: view(G) # not tested
     """
 
     @staticmethod
@@ -777,20 +878,6 @@ class InfinityCrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
         """
         return "Crystal of generalized Young walls of type {}".format(self._cartan_type)
 
-    def subset(self, max_depth=4):
-        r"""
-        Construct the subcrystal of ``self`` trucated at depth ``max_depth``.
-
-        EXAMPLES::
-
-            sage: Y = crystals.infinity.GeneralizedYoungWalls(2)
-            sage: S = Y.subset(max_depth=2)
-            sage: S
-            [[], [[], [1]], [[], [], [2]], [[0]], [[0, 2]], [[0], [1]], [[], [], [2], [], [], [2]],
-            [[], [1], [2]], [[0], [], [], [0]], [[0], [], [2]], [[], [], [2, 1]], [[], [1], [], [], [1]], [[], [1, 0]]]
-        """
-        return [c for c in self.subcrystal(max_depth=max_depth, direction='lower')]
-
 
 ########################
 ## Highest weight GYW ##
@@ -803,11 +890,11 @@ class CrystalOfGeneralizedYoungWallsElement(GeneralizedYoungWall):
 
     def e(self,i):
         r"""
-        Compute the action of `\widetilde{e}_i` restricted to the highest weight crystal.
+        Compute the action of `e_i` restricted to the highest weight crystal.
 
         EXAMPLES::
 
-            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[1]
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()[1]
             sage: hwy = crystals.GeneralizedYoungWalls(2,La)([[],[1,0],[2,1]])
             sage: hwy.e(1)
             [[], [1, 0], [2]]
@@ -823,11 +910,11 @@ class CrystalOfGeneralizedYoungWallsElement(GeneralizedYoungWall):
 
     def f(self,i):
         r"""
-        Compute the action of `\widetilde{f}_i` restricted to the highest weight crystal.
+        Compute the action of `f_i` restricted to the highest weight crystal.
 
         EXAMPLES::
 
-            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[1]
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()[1]
             sage: GYW = crystals.infinity.GeneralizedYoungWalls(2)
             sage: y = GYW([[],[1,0],[2,1]])
             sage: y.f(1)
@@ -847,12 +934,30 @@ class CrystalOfGeneralizedYoungWallsElement(GeneralizedYoungWall):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[1]
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()[1]
             sage: hwy = crystals.GeneralizedYoungWalls(2,La)([[],[1,0],[2,1]])
             sage: hwy.weight()
-            Lambda[0] - Lambda[1] + Lambda[2]
+            Lambda[0] - Lambda[1] + Lambda[2] - delta
         """
         return self.parent().weight_lattice_realization()(self.parent().hw + GeneralizedYoungWall.weight(self))
+
+    def phi(self,i):
+        r"""
+        Return the value `\varepsilon_i(Y) + \langle h_i,
+        \mathrm{wt}(Y)\rangle`, where `h_i` is the `i`-th simple
+        coroot and `Y` is ``self``.
+
+        EXAMPLES::
+
+            sage: La = RootSystem(['A',3,1]).weight_lattice(extended=True).fundamental_weights()
+            sage: y = crystals.GeneralizedYoungWalls(3,La[0])([])
+            sage: y.phi(1)
+            0
+            sage: y.phi(2)
+            0
+        """
+        h = self.parent().weight_lattice_realization().simple_coroots()
+        return self.epsilon(i) + self.weight().scalar(h[i])
 
 
 class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
@@ -860,7 +965,7 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
     The crystal `\mathcal{Y}(\lambda)` of generalized Young walls of the given
     type with highest weight `\lambda`.
 
-    These were characterized in Theorem 4.1 of [KS10]_.
+    These were characterized in Theorem 4.1 of [KS2010]_.
     See :meth:`GeneralizedYoungWall.in_highest_weight_crystal()`.
 
     INPUT:
@@ -871,7 +976,7 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
 
     EXAMPLES::
 
-        sage: La = RootSystem(['A',3,1]).weight_lattice().fundamental_weights()[1]
+        sage: La = RootSystem(['A',3,1]).weight_lattice(extended=True).fundamental_weights()[1]
         sage: YLa = crystals.GeneralizedYoungWalls(3,La)
         sage: y = YLa([[0],[1,0,3,2,1],[2,1,0],[3]])
         sage: y.pp()
@@ -880,7 +985,7 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
         1|2|3|0|1|
                 0|
         sage: y.weight()
-        -Lambda[0] + Lambda[2] + Lambda[3]
+        -Lambda[0] + Lambda[2] + Lambda[3] - 3*delta
         sage: y.in_highest_weight_crystal(La)
         True
         sage: y.f(1)
@@ -896,7 +1001,7 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
         sage: LS = crystals.LSPaths(['A',3,1],[1,0,0,0])
         sage: C = LS.subcrystal(max_depth=4)
         sage: G = LS.digraph(subset=C)
-        sage: P = LS.weight_lattice_realization()
+        sage: P = RootSystem(['A',3,1]).weight_lattice(extended=True)
         sage: La = P.fundamental_weights()
         sage: YW = crystals.GeneralizedYoungWalls(3,La[0])
         sage: CW = YW.subcrystal(max_depth=4)
@@ -906,34 +1011,30 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
 
     To display the crystal down to a specified depth::
 
-        sage: S = YLa.subset(max_depth=4)
-        sage: sorted(list(S))
-        [[], [[], [1]], [[], [1], [2]], [[], [1], [2], [3]], [[], [1, 0]],
-         [[], [1, 0], [2]], [[], [1, 0], [2], [3]], [[], [1, 0], [2, 1]],
-         [[], [1, 0, 3]], [[], [1, 0, 3], [2]], [[], [1, 0, 3, 2]]]
+        sage: S = YLa.subcrystal(max_depth=4)
         sage: G = YLa.digraph(subset=S)
-        sage: view(G, tightpage=True) # not tested
+        sage: view(G) # not tested
     """
     @staticmethod
     def __classcall_private__(cls, n, La):
         r"""
         EXAMPLES::
 
-            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[2]
-            sage: Al = RootSystem(['A',2,1]).weight_lattice().monomial(2)
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()[2]
+            sage: Al = RootSystem(['A',2,1]).weight_lattice(extended=True).monomial(2)
             sage: Y = crystals.GeneralizedYoungWalls(2,La)
             sage: Y1 = crystals.GeneralizedYoungWalls(int(2),Al)
             sage: Y is Y1
             True
         """
-        La = RootSystem(['A',n,1]).weight_lattice()(La)
+        La = RootSystem(['A',n,1]).weight_lattice(extended=True)(La)
         return super(CrystalOfGeneralizedYoungWalls, cls).__classcall__(cls, n, La)
 
     def __init__(self, n, La):
         r"""
         EXAMPLES::
 
-            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[1]
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()[1]
             sage: YLa = crystals.GeneralizedYoungWalls(2,La)
 
         We skip the two tests because they take a very long time::
@@ -950,7 +1051,7 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
         r"""
         EXAMPLES::
 
-            sage: La = RootSystem(['A',5,1]).weight_lattice().fundamental_weights()[2]
+            sage: La = RootSystem(['A',5,1]).weight_lattice(extended=True).fundamental_weights()[2]
             sage: Y = crystals.GeneralizedYoungWalls(5,La)
             sage: Y
             Highest weight crystal of generalized Young walls of Cartan type ['A', 5, 1] and highest weight Lambda[2]
@@ -966,21 +1067,6 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
             sage: next(x)
             [0]
         """
-        for c in self.subcrystal(direction='lower'):
-            if c.in_highest_weight_crystal(self.hw) :
+        for c in super(CrystalOfGeneralizedYoungWalls, self).__iter__():
+            if c.in_highest_weight_crystal(self.hw):
                 yield c
-
-    def subset(self, max_depth=4):
-        r"""
-        Return a subset of ``self`` up to ``max_depth``.
-
-        EXAMPLES::
-
-            sage: Y = crystals.GeneralizedYoungWalls(2,RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[0])
-            sage: S = Y.subset(max_depth=3)
-            sage: S
-            [[], [[0]], [[0, 2]], [[0], [1]], [[0, 2, 1]], [[0, 2], [1]]]
-        """
-        return [c for c in self.subcrystal(max_depth=max_depth, direction='lower')
-                if c.in_highest_weight_crystal(self.hw)]
-

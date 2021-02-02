@@ -1,28 +1,27 @@
 # -*- coding: utf-8 -*-
 """
-Representations of objects.
+Representations of objects
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import types
+from io import StringIO
 
 from IPython.lib.pretty import (
-    _safe_getattr, _baseclass_reprs,
+    _safe_getattr,
     _type_pprinters,
 )
 
-from IPython.lib import pretty
-
 from sage.repl.display.util import format_list
+
+_baseclass_reprs = (object.__repr__,)
 
 
 class ObjectReprABC(object):
@@ -46,7 +45,7 @@ class ObjectReprABC(object):
             sage: ObjectReprABC()
             ObjectReprABC pretty printer
         """
-        return('{0} pretty printer'.format(self.__class__.__name__))
+        return '{0} pretty printer'.format(self.__class__.__name__)
 
     def __call__(self, obj, p, cycle):
         r"""
@@ -93,8 +92,7 @@ class ObjectReprABC(object):
             'Error: ObjectReprABC.__call__ is abstract'
         """
         from sage.repl.display.pretty_print import SagePrettyPrinter
-        import StringIO
-        stream = StringIO.StringIO()
+        stream = StringIO()
         p = SagePrettyPrinter(stream, 79, '\n')
         ok = self(obj, p, False)
         if ok:
@@ -119,8 +117,7 @@ class SomeIPythonRepr(ObjectReprABC):
         .. automethod:: __call__
         """
         type_repr = _type_pprinters.copy()
-        del type_repr[types.TypeType]
-        del type_repr[types.ClassType]
+        del type_repr[type]
         del type_repr[types.BuiltinFunctionType]
         del type_repr[types.FunctionType]
         del type_repr[str]
@@ -203,17 +200,19 @@ class LargeMatrixHelpRepr(ObjectReprABC):
         if not p.toplevel():
             # Do not print the help for matrices inside containers
             return False
-        from sage.matrix.matrix1 import Matrix
+        try:
+            from sage.matrix.matrix1 import Matrix
+        except ModuleNotFoundError:
+            return False
         if not isinstance(obj, Matrix):
             return False
-        from sage.matrix.matrix0 import max_rows, max_cols
-        if obj.nrows() < max_rows and obj.ncols() < max_cols:
+        from sage.matrix.constructor import options
+        if obj.nrows() <= options.max_rows() and obj.ncols() <= options.max_cols():
             return False
         p.text(
-            str(obj) + " (use the '.str()' method to see the entries)"
+            repr(obj) + " (use the '.str()' method to see the entries)"
         )
         return True
-
 
 
 class PlainPythonRepr(ObjectReprABC):
@@ -251,7 +250,7 @@ class PlainPythonRepr(ObjectReprABC):
         a custom representer. Note that it is undesirable to have a
         trailing newline, and if we don't display it you can't fix
         it::
-    
+
             sage: class Newline(object):
             ....:     def __repr__(self):
             ....:         return 'newline\n'
@@ -275,7 +274,8 @@ class PlainPythonRepr(ObjectReprABC):
             try:
                 output = repr(obj)
             except Exception:
-                import sys, traceback
+                import sys
+                import traceback
                 objrepr = object.__repr__(obj).replace("object at", "at")
                 exc = traceback.format_exception_only(sys.exc_info()[0], sys.exc_info()[1])
                 exc = (''.join(exc)).strip()
@@ -317,11 +317,36 @@ class TallListRepr(ObjectReprABC):
             sage: format_list = TallListRepr().format_string
             sage: format_list([1, 2, identity_matrix(2)])
             '[\n      [1 0]\n1, 2, [0 1]\n]'
+
+        Check that :trac:`18743` is fixed::
+
+            sage: class Foo(object):
+            ....:     def __repr__(self):
+            ....:         return '''BBB    AA   RRR
+            ....: B  B  A  A  R  R
+            ....: BBB   AAAA  RRR
+            ....: B  B  A  A  R  R
+            ....: BBB   A  A  R   R'''
+            ....:     def _repr_option(self, key):
+            ....:         return key == 'ascii_art'
+            sage: F = Foo()
+            sage: [F, F]
+            [
+            BBB    AA   RRR    BBB    AA   RRR
+            B  B  A  A  R  R   B  B  A  A  R  R
+            BBB   AAAA  RRR    BBB   AAAA  RRR
+            B  B  A  A  R  R   B  B  A  A  R  R
+            BBB   A  A  R   R, BBB   A  A  R   R
+            ]
         """
         if not (isinstance(obj, (tuple, list)) and len(obj) > 0):
             return False
         ascii_art_repr = False
         for o in obj:
+            try:
+                ascii_art_repr = ascii_art_repr or o._repr_option('ascii_art')
+            except (AttributeError, TypeError):
+                pass
             try:
                 ascii_art_repr = ascii_art_repr or o.parent()._repr_option('element_ascii_art')
             except (AttributeError, TypeError):
@@ -333,5 +358,3 @@ class TallListRepr(ObjectReprABC):
             return False
         p.text(output)
         return True
-
-            

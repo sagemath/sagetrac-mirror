@@ -1,6 +1,14 @@
 r"""
 Hyperelliptic curves over a finite field
 
+EXAMPLES::
+
+    sage: K.<a> = GF(9, 'a')
+    sage: x = polygen(K)
+    sage: C = HyperellipticCurve(x^7 - x^5 - 2, x^2 + a)
+    sage: C._points_fast_sqrt()
+    [(0 : 1 : 0), (a + 1 : a : 1), (a + 1 : a + 1 : 1), (2 : a + 1 : 1), (2*a : 2*a + 2 : 1), (2*a : 2*a : 1), (1 : a + 1 : 1)]
+
 AUTHORS:
 
 - David Kohel (2006)
@@ -13,16 +21,12 @@ AUTHORS:
 
 - Jean-Pierre Flori, Jan Tuitman (2013)
 
-EXAMPLES::
+- Kiran Kedlaya (2016)
 
-    sage: K.<a> = GF(9, 'a')
-    sage: x = polygen(K)
-    sage: C = HyperellipticCurve(x^7 - x^5 - 2, x^2 + a)
-    sage: C._points_fast_sqrt()
-    [(0 : 1 : 0), (a + 1 : a : 1), (a + 1 : a + 1 : 1), (2 : a + 1 : 1), (2*a : 2*a + 2 : 1), (2*a : 2*a : 1), (1 : a + 1 : 1)]
+- Dean Bisogno (2017): Fixed Hasse-Witt computation
+
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
 #  Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #  Copyright (C) 2010 Alyson Deines <aly.deines@gmail.com>, Marina Gresham
@@ -30,6 +34,7 @@ EXAMPLES::
 #  Copyright (C) 2011 Daniel Krenn
 #  Copyright (C) 2013 Jean-Pierre Flori <jean-pierre.flori@ssi.gouv.fr>,
 #  Jan Tuitman <jan.tuitman@wis.kuleuven.be>
+#  Copyright (C) 2016 Kiran Kedlaya <kedlaya@ucsd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -40,27 +45,39 @@ EXAMPLES::
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.all import ZZ, RR, QQ, GF
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.power_series_ring import PowerSeriesRing
-import hyperelliptic_generic
+from . import hyperelliptic_generic
 from sage.schemes.hyperelliptic_curves.hypellfrob import hypellfrob
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import identity_matrix, matrix
 from sage.misc.functional import rank
+from sage.libs.all import pari
+
+from sage.schemes.curves.projective_curve import ProjectivePlaneCurve_finite_field
 
 
-class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_generic):
+class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_generic,
+                                      ProjectivePlaneCurve_finite_field):
     def _frobenius_coefficient_bound_charpoly(self):
-        """
-        Computes bound on number of ``p``-adic digits needed to recover
+        r"""
+        Computes bound on number of `p`-adic digits needed to recover
         frobenius polynomial computing the characteristic polynomial
-        of the frobenius matrix, i.e. returns ``B`` so that knowledge of
-        ``a_1``, ..., ``a_g`` modulo ``p^B`` determine frobenius polynomial
+        of the frobenius matrix, i.e. returns `B` so that knowledge of
+        `a_1`, ..., `a_g` modulo `p^B` determine frobenius polynomial
         uniquely.
+
+        The bound used here stems from the expression of the coefficients
+        of the characteristic polynomial of the Frobenius as sums
+        of products of its eigenvalues:
+
+        .. MATH::
+
+            \| a_i \| \leq \binom{2g}{i} \sqrt{q}^i
 
         EXAMPLES::
 
@@ -101,12 +118,19 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         return B
 
     def _frobenius_coefficient_bound_traces(self, n=1):
-        """
-        Computes bound on number of ``p``-adic digits needed to recover
-        the number of rational points on ``n`` extensions computing
-        traces of the frobenius matrix powers, i.e. returns ``B`` so that
-        knowledge of ``\tr(M^1)``, ..., ``\tr(M^n)`` modulo ``p^B`` determine
-        ``N_1``, ..., ``N_n`` uniquely.
+        r"""
+        Computes bound on number of `p`-adic digits needed to recover
+        the number of rational points on `n` extensions computing
+        traces of the frobenius matrix powers, i.e. returns `B` so that
+        knowledge of `\tr(M^1)`, ..., `\tr(M^n)` modulo `p^B` determine
+        `N_1`, ..., `N_n` uniquely.
+
+        The formula stems from the expression of the trace of the Frobenius
+        as a sum of `i`-th powers of its eigenvalues.
+
+        .. MATH::
+
+            \| \tr(M^i) \| \leq 2 g \sqrt{q}^i
 
         EXAMPLES::
 
@@ -114,9 +138,9 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: HyperellipticCurve(t^3 + t + 1)._frobenius_coefficient_bound_traces()
             1
             sage: HyperellipticCurve(t^5 + t + 1)._frobenius_coefficient_bound_traces()
-            1
+            2
             sage: HyperellipticCurve(t^7 + t + 1)._frobenius_coefficient_bound_traces()
-            1
+            2
 
             sage: R.<t> = PolynomialRing(GF(next_prime(10^9)))
             sage: HyperellipticCurve(t^3 + t + 1)._frobenius_coefficient_bound_traces()
@@ -131,21 +155,33 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             2
             sage: HyperellipticCurve(t^13 + t + 1)._frobenius_coefficient_bound_traces(n=5)
             3
+
+            sage: R.<t> = PolynomialRing(GF(11))
+            sage: H = HyperellipticCurve(t^5 - t + 1)
+            sage: H._frobenius_coefficient_bound_traces()
+            2
         """
-        g = self.genus()
         p = self.base_ring().characteristic()
-        return (ZZ(4*g).exact_log(p) + n//2).floor() + 1
+        q = self.base_ring().order()
+        sqrtq = RR(q).sqrt()
+        g = self.genus()
+
+        M = 4 * g * sqrtq**n
+        B = ZZ(M.ceil()).exact_log(p)
+        if p**B < M:
+            B += 1
+        return B
 
     def frobenius_matrix_hypellfrob(self, N=None):
-        """
-        Compute ``p``-adic frobenius matrix to precision ``p^N``.
-        If ``N`` not supplied, a default value is selected, which is the
+        r"""
+        Compute `p`-adic frobenius matrix to precision `p^N`.
+        If `N` not supplied, a default value is selected, which is the
         minimum needed to recover the charpoly unambiguously.
 
         .. note::
 
-            Currently only implemented using hypellfrob, which means only works
-            over the prime field ``GF(p)``, and must have ``p > (2g+1)(2N-1)``.
+            Implemented using ``hypellfrob``, which means it only works
+            over the prime field `GF(p)`, and requires `p > (2g+1)(2N-1)`.
 
         EXAMPLES::
 
@@ -157,7 +193,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             [1258 + O(37^2) 1184 + O(37^2) 1105 + O(37^2)  482 + O(37^2)]
             [1073 + O(37^2)  999 + O(37^2)  772 + O(37^2)  929 + O(37^2)]
 
-        The `hypellfrob` program doesn't support non-prime fields::
+        The ``hypellfrob`` program doesn't support non-prime fields::
 
             sage: K.<z> = GF(37**3)
             sage: R.<t> = PolynomialRing(K)
@@ -211,15 +247,16 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         return matrix_of_frobenius
 
     def frobenius_matrix(self, N=None, algorithm='hypellfrob'):
-        """
-        Compute ``p``-adic frobenius matrix to precision ``p^N``.
-        If ``N`` not supplied, a default value is selected, which is the
+        r"""
+        Compute `p`-adic frobenius matrix to precision `p^N`.
+        If `N` not supplied, a default value is selected, which is the
         minimum needed to recover the charpoly unambiguously.
 
         .. note::
 
-            Currently only implemented using hypellfrob, which means only works
-            over the prime field ``GF(p)``, and must have ``p > (2g+1)(2N-1)``.
+            Currently only implemented using ``hypellfrob``,
+            which means it only works over the prime field `GF(p)`,
+            and requires `p > (2g+1)(2N-1)`.
 
         EXAMPLES::
 
@@ -231,7 +268,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             [1258 + O(37^2) 1184 + O(37^2) 1105 + O(37^2)  482 + O(37^2)]
             [1073 + O(37^2)  999 + O(37^2)  772 + O(37^2)  929 + O(37^2)]
 
-        The `hypellfrob` program doesn't support non-prime fields::
+        The ``hypellfrob`` program doesn't support non-prime fields::
 
             sage: K.<z> = GF(37**3)
             sage: R.<t> = PolynomialRing(K)
@@ -262,10 +299,10 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         return self.frobenius_matrix_hypellfrob(N=N)
 
     def frobenius_polynomial_cardinalities(self, a=None):
-        """
-        Compute the charpoly of frobenius, as an element of ``\ZZ[x]``,
-        by computing the number of points on the curve over ``g`` extensions
-        of the base field where ``g`` is the genus of the curve.
+        r"""
+        Compute the charpoly of frobenius, as an element of `\ZZ[x]`,
+        by computing the number of points on the curve over `g` extensions
+        of the base field where `g` is the genus of the curve.
 
         .. WARNING::
 
@@ -318,22 +355,22 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         # computation of the reciprocal polynomial
         s = [ai - q**(i+1) - 1 for i, ai in enumerate(a)]
         coeffs = [1]
-        for i in xrange(1,g+1):
+        for i in range(1, g + 1):
             c = 0
-            for j in xrange(i):
+            for j in range(i):
                 c += s[i-1-j]*coeffs[j]
             coeffs.append(c/i)
-        coeffs = coeffs + [coeffs[g-i] * q**(i) for i in xrange(1,g+1)]
+        coeffs = coeffs + [coeffs[g-i] * q**(i) for i in range(1, g + 1)]
 
         return ZZ['x'](coeffs).reverse()
 
     def frobenius_polynomial_matrix(self, M=None, algorithm='hypellfrob'):
-        """
-        Compute the charpoly of frobenius, as an element of ``\ZZ[x]``,
+        r"""
+        Compute the charpoly of frobenius, as an element of `\ZZ[x]`,
         by computing the charpoly of the frobenius matrix.
 
         This is currently only supported when the base field is prime
-        and large enough using the `hypellfrob` library.
+        and large enough using the ``hypellfrob`` library.
 
         EXAMPLES::
 
@@ -359,7 +396,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H.frobenius_polynomial_matrix() # long time, 8s on a Corei7
             x^14 - 76*x^13 + 220846*x^12 - 12984372*x^11 + 24374326657*x^10 - 1203243210304*x^9 + 1770558798515792*x^8 - 74401511415210496*x^7 + 88526169366991084208*x^6 - 3007987702642212810304*x^5 + 3046608028331197124223343*x^4 - 81145833008762983138584372*x^3 + 69007473838551978905211279154*x^2 - 1187357507124810002849977200076*x + 781140631562281254374947500349999
 
-        This `hypellfrob` program doesn't support non-prime fields::
+        This ``hypellfrob`` program doesn't support non-prime fields::
 
             sage: K.<z> = GF(37**3)
             sage: R.<t> = PolynomialRing(K)
@@ -374,7 +411,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         q = K.cardinality()
         g = self.genus()
         N = self._frobenius_coefficient_bound_charpoly()
-        # compute chapoly over ZZ and then reduce back
+        # compute charpoly over ZZ and then reduce back
         # (because charpoly of p-adic matrices sometimes loses precision)
         M = self.frobenius_matrix(N=N, algorithm=algorithm).change_ring(ZZ)
 
@@ -389,10 +426,71 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         return ZZ['x'](f)
 
+    def frobenius_polynomial_pari(self):
+        r"""
+        Compute the charpoly of frobenius, as an element of `\ZZ[x]`,
+        by calling the PARI function ``hyperellcharpoly``.
+
+        EXAMPLES::
+
+            sage: R.<t> = PolynomialRing(GF(37))
+            sage: H = HyperellipticCurve(t^5 + t + 2)
+            sage: H.frobenius_polynomial_pari()
+            x^4 + x^3 - 52*x^2 + 37*x + 1369
+
+        A quadratic twist::
+
+            sage: H = HyperellipticCurve(2*t^5 + 2*t + 4)
+            sage: H.frobenius_polynomial_pari()
+            x^4 - x^3 - 52*x^2 - 37*x + 1369
+
+        Slightly larger example::
+
+            sage: K = GF(2003)
+            sage: R.<t> = PolynomialRing(K)
+            sage: H = HyperellipticCurve(t^7 + 487*t^5 + 9*t + 1)
+            sage: H.frobenius_polynomial_pari()
+            x^6 - 14*x^5 + 1512*x^4 - 66290*x^3 + 3028536*x^2 - 56168126*x + 8036054027
+
+        Curves defined over a non-prime field are supported as well::
+
+            sage: K.<a> = GF(7^2)
+            sage: R.<t> = PolynomialRing(K)
+            sage: H = HyperellipticCurve(t^5 + a*t + 1)
+            sage: H.frobenius_polynomial_pari()
+            x^4 + 4*x^3 + 84*x^2 + 196*x + 2401
+
+            sage: K.<z> = GF(23**3)
+            sage: R.<t> = PolynomialRing(K)
+            sage: H = HyperellipticCurve(t^3 + z*t + 4)
+            sage: H.frobenius_polynomial_pari()
+            x^2 - 15*x + 12167
+
+        Over prime fields of odd characteristic, `h` may be non-zero::
+
+            sage: K = GF(101)
+            sage: R.<t> = PolynomialRing(K)
+            sage: H = HyperellipticCurve(t^5 + 27*t + 3, t)
+            sage: H.frobenius_polynomial_pari()
+            x^4 + 2*x^3 - 58*x^2 + 202*x + 10201
+
+        TESTS:
+
+        Check that :trac:`28789` is fixed::
+
+            sage: P.<x> = PolynomialRing(GF(3))
+            sage: u = x^10 + x^9 + x^8 + x
+            sage: C = HyperellipticCurve(u)
+            sage: C.frobenius_polynomial_pari()
+            x^8 + 2*x^7 + 6*x^6 + 9*x^5 + 18*x^4 + 27*x^3 + 54*x^2 + 54*x + 81
+        """
+        f, h = self.hyperelliptic_polynomials()
+        return ZZ['x'](pari([f, h]).hyperellcharpoly())
+
     @cached_method
     def frobenius_polynomial(self):
-        """
-        Compute the charpoly of frobenius, as an element of ZZ[x].
+        r"""
+        Compute the charpoly of frobenius, as an element of `\ZZ[x]`.
 
         EXAMPLES::
 
@@ -415,14 +513,14 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H.frobenius_polynomial()
             x^6 - 14*x^5 + 1512*x^4 - 66290*x^3 + 3028536*x^2 - 56168126*x + 8036054027
 
-        Curves defined over a non-prime field are supported as well,
-        but a naive algorithm is used; especially when  ``g = 1``,
-        fast point counting on elliptic curves should be used::
+        Curves defined over a non-prime field of odd characteristic,
+        or an odd prime field which is too small compared to the genus,
+        are supported via PARI::
 
             sage: K.<z> = GF(23**3)
             sage: R.<t> = PolynomialRing(K)
             sage: H = HyperellipticCurve(t^3 + z*t + 4)
-            sage: H.frobenius_polynomial() # long time, 4s on a Corei7
+            sage: H.frobenius_polynomial()
             x^2 - 15*x + 12167
 
             sage: K.<z> = GF(3**3)
@@ -431,15 +529,19 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H.frobenius_polynomial()
             x^4 - 3*x^3 + 10*x^2 - 81*x + 729
 
-        Over prime fields of odd characteristic, when ``h`` is non-zero,
-        this naive algorithm is currently used as well, whereas we should
-        rather use another defining equation::
+        Over prime fields of odd characteristic, `h` may be non-zero::
 
             sage: K = GF(101)
             sage: R.<t> = PolynomialRing(K)
             sage: H = HyperellipticCurve(t^5 + 27*t + 3, t)
-            sage: H.frobenius_polynomial() # long time, 3s on a Corei7
+            sage: H.frobenius_polynomial()
             x^4 + 2*x^3 - 58*x^2 + 202*x + 10201
+
+        Over prime fields of odd characteristic, `f` may have even degree::
+
+            sage: H = HyperellipticCurve(t^6 + 27*t + 3)
+            sage: H.frobenius_polynomial()
+            x^4 + 25*x^3 + 322*x^2 + 2525*x + 10201
 
         In even characteristic, the naive algorithm could cover all cases
         because we can easily check for squareness in quotient rings of
@@ -451,6 +553,16 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H = HyperellipticCurve(t^5 + z*t + z**3, t)
             sage: H.frobenius_polynomial()
             x^4 - x^3 + 16*x^2 - 32*x + 1024
+
+        TESTS:
+
+        Check that :trac:`28789` is fixed::
+
+            sage: P.<x> = PolynomialRing(GF(3))
+            sage: u = x^10 + x^9 + x^8 + x
+            sage: C = HyperellipticCurve(u)
+            sage: C.frobenius_polynomial()
+            x^8 + 2*x^7 + 6*x^6 + 9*x^5 + 18*x^4 + 27*x^3 + 54*x^2 + 54*x + 81
         """
         K = self.base_ring()
         e = K.degree()
@@ -459,8 +571,12 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         g = self.genus()
         f, h = self.hyperelliptic_polynomials()
 
-        if e == 1 and q >= (2*g+1)*(2*self._frobenius_coefficient_bound_charpoly()-1) and h == 0:
+        if (e == 1 and
+            q >= (2*g+1)*(2*self._frobenius_coefficient_bound_charpoly()-1) and
+            h == 0 and f.degree() % 2):
             return self.frobenius_polynomial_matrix()
+        elif q % 2 == 1:
+            return self.frobenius_polynomial_pari()
         else:
             return self.frobenius_polynomial_cardinalities()
 
@@ -686,7 +802,8 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: len(C.points())
             122
 
-        Conics are allowed (the issue reported at #11800 has been resolved)::
+        Conics are allowed (the issue reported at :trac:`11800`
+        has been resolved)::
 
             sage: R.<x> = GF(7)[]
             sage: H = HyperellipticCurve(3*x^2 + 5*x + 1)
@@ -718,10 +835,11 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         $\mathbb{P}(1,3,1)$. The latter model has two points at infinity:
         $(1:1:0)$ and $(1:-1:0)$.
         """
-        from sage.rings.finite_rings.constructor import zech_log_bound
+        from sage.rings.finite_rings.finite_field_constructor import zech_log_bound
         try:
             return self.__points
-        except AttributeError: pass
+        except AttributeError:
+            pass
 
         if self.base_ring().is_prime_field():
             self.__points = self._points_cache_sqrt()
@@ -735,11 +853,11 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
     def count_points_matrix_traces(self, n=1, M=None, N=None):
         r"""
-        Count the number of points on the curve over the first ``n`` extensions
+        Count the number of points on the curve over the first `n` extensions
         of the base field by computing traces of powers of the frobenius
         matrix.
-        This requires less ``p``-adic precision than computing the charpoly
-        of the matrix when ``n < g`` where ``g`` is the genus of the curve.
+        This requires less `p`-adic precision than computing the charpoly
+        of the matrix when `n < g` where `g` is the genus of the curve.
 
         EXAMPLES::
 
@@ -748,6 +866,17 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H = HyperellipticCurve(t^19 + t + 1)
             sage: H.count_points_matrix_traces(3)
             [49491, 2500024375, 124992509154249]
+
+        TESTS:
+
+        Check that :trac:`18831` is fixed::
+
+            sage: R.<t> = PolynomialRing(GF(11))
+            sage: H = HyperellipticCurve(t^5 - t + 1)
+            sage: H.count_points_matrix_traces()
+            Traceback (most recent call last):
+            ...
+            ValueError: In the current implementation, p must be greater than (2g+1)(2N-1) = 15
         """
         if N is None:
             N = self._frobenius_coefficient_bound_traces(n=n)
@@ -762,18 +891,18 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         t = []
         Mpow = 1
-        for i in xrange(n):
+        for i in range(n):
             Mpow *= M
             t.append(Mpow.trace())
 
         t = [x.lift() for x in t]
         t = [x if 2*x < ppow else x - ppow for x in t]
 
-        return [q**(i+1) + 1 - t[i] for i in xrange(n)]
+        return [q**(i+1) + 1 - t[i] for i in range(n)]
 
     def count_points_frobenius_polynomial(self, n=1, f=None):
         r"""
-        Count the number of points on the curve over the first n extensions
+        Count the number of points on the curve over the first `n` extensions
         of the base field by computing the frobenius polynomial.
 
         EXAMPLES::
@@ -822,15 +951,15 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         # non-zero coefficients so let us use the list() method but
         # this does not work for zero which gives the empty list
         flog = S(frev).log()
-        return [q**(i+1) + 1 + ZZ((i+1)*flog[i+1]) for i in xrange(n)]
+        return [q**(i+1) + 1 + ZZ((i+1)*flog[i+1]) for i in range(n)]
 
     def count_points_exhaustive(self, n=1, naive=False):
         r"""
-        Count the number of points on the curve over the first ``n`` extensions
-        of the base field by exhaustive search if ``n`` if smaller than ``g``,
+        Count the number of points on the curve over the first `n` extensions
+        of the base field by exhaustive search if `n` if smaller than `g`,
         the genus of the curve, and by computing the frobenius polynomial
-        after performing exhaustive search on the first ``g`` extensions if
-        ``n > g`` (unless `naive == True`).
+        after performing exhaustive search on the first `g` extensions if
+        `n > g` (unless ``naive == True``).
 
         EXAMPLES::
 
@@ -840,10 +969,10 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H.count_points_exhaustive(n=5)
             [9, 27, 108, 675, 3069]
 
-        When ``n > g``, the frobenius polynomial is computed from the numbers
-        of points of the curve over the first ``g`` extension, so that computing
-        the number of points on extensions of degree ``n > g`` is not much more
-        expensive than for ``n == g``::
+        When `n > g`, the frobenius polynomial is computed from the numbers
+        of points of the curve over the first `g` extension, so that computing
+        the number of points on extensions of degree `n > g` is not much more
+        expensive than for `n == g`::
 
             sage: H.count_points_exhaustive(n=15)
             [9,
@@ -862,21 +991,21 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             6103414827,
             30517927308]
 
-        This behavior can be disabled by passing `naive=True`::
+        This behavior can be disabled by passing ``naive=True``::
 
            sage: H.count_points_exhaustive(n=6, naive=True) # long time, 7s on a Corei7
            [9, 27, 108, 675, 3069, 16302]
         """
         g = self.genus()
         a = []
-        for i in xrange(1, min(n, g)+1):
+        for i in range(1, min(n, g) + 1):
             a.append(self.cardinality_exhaustive(extension_degree=i))
 
         if n <= g:
             return a
 
         if naive:
-            for i in xrange(g+1,n+1):
+            for i in range(g + 1, n + 1):
                 a.append(self.cardinality_exhaustive(extension_degree=i))
 
         # let's not be too naive and compute the frobenius polynomial
@@ -885,8 +1014,8 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
     def count_points_hypellfrob(self, n=1, N=None, algorithm=None):
         r"""
-        Count the number of points on the curve over the first ``n``` extensions
-        of the base field using the `hypellfrob` program.
+        Count the number of points on the curve over the first `n` extensions
+        of the base field using the ``hypellfrob`` program.
 
         This only supports prime fields of large enough characteristic.
 
@@ -1029,6 +1158,13 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H = HyperellipticCurve(x^5+a*x^2+1, x+a+1)
             sage: H.count_points(6)
             [2, 24, 74, 256, 1082, 4272]
+
+        This example shows that :trac:`20391` is resolved::
+
+            sage: x = polygen(GF(4099))
+            sage: H = HyperellipticCurve(x^6 + x + 1)
+            sage: H.count_points(1)
+            [4106]
         """
         K = self.base_ring()
         q = K.cardinality()
@@ -1036,7 +1172,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         g = self.genus()
         f, h = self.hyperelliptic_polynomials()
 
-        if e == 1 and h == 0:
+        if e == 1 and h == 0 and f.degree() % 2 == 1:
             N1 = self._frobenius_coefficient_bound_traces(n)
             N2 = self._frobenius_coefficient_bound_charpoly()
             if n < g and q > (2*g+1)*(2*N1-1):
@@ -1048,7 +1184,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         return self.count_points_exhaustive(n)
 
     def cardinality_exhaustive(self, extension_degree=1, algorithm=None):
-        """
+        r"""
         Count points on a single extension of the base field
         by enumerating over x and solving the resulting quadratic
         equation for y.
@@ -1076,6 +1212,25 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H = HyperellipticCurve(x^5+a*x^2+1, x+a+1)
             sage: H.count_points(6)
             [2, 24, 74, 256, 1082, 4272]
+
+        TESTS:
+
+        Check for :trac:`19122`::
+
+            sage: x = polygen(GF(19), 'x')
+            sage: f = 15*x^4 + 7*x^3 + 3*x^2 + 7*x + 18
+            sage: HyperellipticCurve(f).cardinality_exhaustive(1)
+            19
+
+        Points at infinity on general curves of genus 1 are counted
+        correctly (see :trac:`21195`)::
+
+            sage: S.<z> = PolynomialRing(ZZ)
+            sage: C = HyperellipticCurve(-z^2 + z, z^2)
+            sage: C.base_extend(GF(2)).count_points_exhaustive()
+            [5]
+            sage: C.base_extend(GF(3)).count_points_exhaustive()
+            [5]
         """
         K = self.base_ring()
         g = self.genus()
@@ -1083,66 +1238,58 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         if g == 0:
             # here is the projective line
-            return K.cardinality()**n + 1
+            return K.cardinality() ** n + 1
 
         f, h = self.hyperelliptic_polynomials()
         a = 0
 
-        # begin with points at infinity (on the smooth model)
-        if g == 1:
-            # elliptic curves always have one smooth point at infinity
-            a += 1
-        else:
-            # g > 1
-            # solve y^2 + y*h[g+1] == f[2*g+2], i.e., y^2 + r*y - s == 0
-            s = f[2*g+2]
-            r = h[g+1]
-            if K.characteristic() == 2:
-                if r == 0:
-                    # one unique solution
-                    a += 1
-                elif n % 2 == 0 or (s/r**2).trace() == 0:
-                    # artin-schreier equation t^2 + t = s/r^2
-                    # it always has a solution in extensions of even degree
-                    a += 2
-            else:
-                # compute the usual discriminant
-                d = r**2 + 4*s
-                if d == 0:
-                    a += 1
-                elif n % 2 == 0 or d.is_square():
-                    a += 2
-
-        # affine points
         if n == 1:
             # the base field
             L = K
             fext = f
             hext = h
         else:
-            # extension of the prime field
+            # extension of the base field
             from sage.categories.homset import Hom
             L = GF(K.cardinality()**n, names='z')
             P = L['t']
             emb = Hom(K, L)[0]
             fext = P([emb(c) for c in f])
-
             hext = P([emb(c) for c in h])
 
+        # We solve equations of the form y^2 + r*y - s == 0.
+        # For the points at infinity (on the smooth model),
+        # solve y^2 + h[g+1]*y == f[2*g+2].
+        # For the affine points with given x-coordinate,
+        # solve y^2 + h(x)*y == f(x).
+
         if K.characteristic() == 2:
+            # points at infinity
+            r = h[g+1]
+            if not r:
+                a += 1
+            elif n % 2 == 0 or (f[2*g+2]/r**2).trace() == 0:
+                # Artin-Schreier equation t^2 + t = s/r^2
+                # always has a solution in extensions of even degree
+                a += 2
+            # affine points
             for x in L:
-                s = fext(x)
                 r = hext(x)
-                if r == 0:
+                if not r:
                     a += 1
-                elif (s/r**2).trace() == 0:
+                elif (fext(x)/r**2).trace() == 0:
                     a += 2
         else:
+            # points at infinity
+            d = h[g+1]**2 + 4*f[2*g+2]
+            if not d:
+                a += 1
+            elif n % 2 == 0 or d.is_square():
+                a += 2
+            # affine points
             for x in L:
-                s = fext(x)
-                r = hext(x)
-                d = r**2 + 4*s
-                if d.is_zero():
+                d = hext(x)**2 + 4*fext(x)
+                if not d:
                     a += 1
                 elif d.is_square():
                     a += 2
@@ -1152,7 +1299,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
     def cardinality_hypellfrob(self, extension_degree=1, algorithm=None):
         r"""
         Count points on a single extension of the base field
-        using the hypellfrob prgoram.
+        using the ``hypellfrob`` program.
 
         EXAMPLES::
 
@@ -1200,6 +1347,14 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             1408
             sage: H.cardinality(3)
             50116
+
+        The following example shows that :trac:`20391` has been resolved::
+
+            sage: F=GF(23)
+            sage: x=polygen(F)
+            sage: C=HyperellipticCurve(x^8+1)
+            sage: C.cardinality()
+            24
         """
         K = self.base_ring()
         q = K.cardinality()
@@ -1210,7 +1365,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         # We may:
         # - check for actual field of definition of the curve (up to isomorphism)
-        if e == 1 and h == 0:
+        if e == 1 and h == 0  and f.degree() % 2 == 1:
             N1 = self._frobenius_coefficient_bound_traces(n)
             N2 = self._frobenius_coefficient_bound_charpoly()
             if n < g and q > (2*g+1)*(2*N1-1):
@@ -1223,7 +1378,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
     def zeta_function(self):
         r"""
-        Gives the zeta function of the hyperelliptic curve.
+        Compute the zeta function of the hyperelliptic curve.
 
         EXAMPLES::
 
@@ -1259,14 +1414,15 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         x = P.parent().gen(0)
         return P.reverse() / ((1-x)*(1-q*x))
 
-    #This where Cartier Matrix is actually computed. This is either called by E.Cartier_matrix, E.a_number, or E.Hasse_Witt
+    # This where Cartier Matrix is actually computed. This is either called by
+    # E.Cartier_matrix, E.a_number, or E.Hasse_Witt.
     @cached_method
     def _Cartier_matrix_cached(self):
         r"""
         INPUT:
 
         - 'E' - Hyperelliptic Curve of the form `y^2 = f(x)` over a
-          finite field, `\mathbb{F}_q`
+          finite field, `\GF{q}`
 
         OUTPUT:
 
@@ -1390,25 +1546,26 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         # compute each row of matrix as list and then M=list of lists(rows)
 
-        M=[];
+        M=[]
         for j in range(1,g+1):
             H=[Coeff[i] for i in range((p*j-1), (p*j-g-1),-1)]
-            M.append(H);
+            M.append(H)
         return matrix(Fq,M), Coeff, g, Fq,p, self
 
-    #This is what is called from command line
+    # This is what is called from command line
     def Cartier_matrix(self):
         r"""
         INPUT:
 
-        - ``E`` : Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+        - ``E`` : Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\GF{q}`
 
         OUTPUT:
 
+        - ``M``: The matrix `M = (c_{pi-j})`, where `c_i` are the coefficients of  `f(x)^{(p-1)/2} = \sum c_i x^i`
 
-        - ``M``: The matrix `M = (c_{pi-j})`, where `c_i` are the coeffients of  `f(x)^{(p-1)/2} = \sum c_i x^i`
+        REFERENCES:
 
-        Reference-N. Yui. On the Jacobian varieties of hyperelliptic curves over fields of characteristic `p > 2`.
+        N. Yui. On the Jacobian varieties of hyperelliptic curves over fields of characteristic `p > 2`.
 
         EXAMPLES::
 
@@ -1486,23 +1643,29 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             M, Coeffs,g, Fq, p, E= self._Cartier_matrix_cached()
         return M
 
-    #This where Hasse_Witt is actually computed. This is either called by E.Hasse_Witt or p_rank
     @cached_method
     def _Hasse_Witt_cached(self):
         r"""
+        This is where Hasse_Witt is actually computed.
+
+        This is either called by E.Hasse_Witt or E.p_rank.
+
         INPUT:
 
-        - ``E`` : Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+        - ``E`` -- hyperelliptic Curve of the form `y^2 = f(x)` over
+          a finite field, `\GF{q}`
 
         OUTPUT:
 
-        - ``N`` : The matrix `N = M M^p \dots M^{p^{g-1}}` where `M = c_{pi-j}, f(x)^{(p-1)/2} = \sum c_i x^i`
-        - ``E`` : The initial curve to check some caching conditions.
+        - ``N`` -- the matrix `N = M M^p \dots M^{p^{g-1}}` where
+          `M = c_{pi-j}, f(x)^{(p-1)/2} = \sum c_i x^i`
+
+        - ``E`` -- the initial curve to check some caching conditions
 
         EXAMPLES::
 
-            sage: K.<x>=GF(9,'x')[]
-            sage: C=HyperellipticCurve(x^7-1,0)
+            sage: K.<x> = GF(9,'x')[]
+            sage: C = HyperellipticCurve(x^7-1,0)
             sage: C._Hasse_Witt_cached()
             (
             [0 0 0]
@@ -1510,16 +1673,16 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             [0 0 0], Hyperelliptic Curve over Finite Field in x of size 3^2 defined by y^2 = x^7 + 2
             )
 
-            sage: K.<x>=GF(49,'x')[]
-            sage: C=HyperellipticCurve(x^5+1,0)
+            sage: K.<x> = GF(49,'x')[]
+            sage: C = HyperellipticCurve(x^5+1,0)
             sage: C._Hasse_Witt_cached()
             (
             [0 0]
             [0 0], Hyperelliptic Curve over Finite Field in x of size 7^2 defined by y^2 = x^5 + 1
             )
 
-            sage: P.<x>=GF(9,'a')[]
-            sage: C=HyperellipticCurve(x^29+1,0)
+            sage: P.<x> = GF(9,'a')[]
+            sage: C = HyperellipticCurve(x^29+1,0)
             sage: C._Hasse_Witt_cached()
             (
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
@@ -1537,6 +1700,17 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0], Hyperelliptic Curve over Finite Field in a of size 3^2 defined by y^2 = x^29 + 1
             )
+
+        TESTS:
+
+        This shows that the bug at :trac:`23181` is fixed::
+
+            sage: K.<z> = PolynomialRing(GF(5))
+            sage: L.<a> = GF(5).extension(z^3+3*z+3,'a')
+            sage: H.<x> = L[]
+            sage: E = HyperellipticCurve(x^5+x^4+a^92*x^3+a^18*x^2+a^56*x,0)
+            sage: E.p_rank()
+            0
         """
         # If Cartier Matrix is already cached for this curve, use that or evaluate it to get M,
         #Coeffs, genus, Fq=base field of self, p=char(Fq). This is so we have one less matrix to
@@ -1560,15 +1734,15 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         def frob_mat(Coeffs, k):
             a = p ** k
             mat = []
-            Coeffs_pow = [c ** a for c in Coeffs]  # not used ??
+            Coeffs_pow = [c ** a for c in Coeffs]
             for i in range(1, g + 1):
-                H = [(Coeffs[j]) for j in range((p*i-1), (p*i - g-1), -1)]
+                H = [(Coeffs_pow[j]) for j in range((p*i-1), (p*i - g-1), -1)]
                 mat.append(H)
             return matrix(Fq, mat)
 
         #Computes all the different possible action of frobenius on matrix M and stores in list Mall
         Mall = [M] + [frob_mat(Coeffs, k) for k in range(1, g)]
-
+        Mall = reversed(Mall)
         #initial N=I, so we can go through Mall and multiply all matrices with I and
         #get the Hasse-Witt matrix.
         N = identity_matrix(Fq, g)
@@ -1576,12 +1750,12 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             N = N * l
         return N, E
 
-    #This is the function which is actually called by command line
+    # This is the function which is actually called by command line
     def Hasse_Witt(self):
         r"""
         INPUT:
 
-        - ``E`` : Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+        - ``E`` : Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\GF{q}`
 
         OUTPUT:
 
@@ -1640,7 +1814,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         r"""
         INPUT:
 
-        - ``E``: Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+        - ``E``: Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\GF{q}`
 
         OUTPUT:
 
@@ -1683,7 +1857,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         r"""
         INPUT:
 
-        - ``E`` : Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+        - ``E`` : Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\GF{q}`
 
         OUTPUT:
 

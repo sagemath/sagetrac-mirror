@@ -63,6 +63,7 @@ typedef struct column_struct {
 
 class dancing_links {
     int nr_columns;
+    bool search_started;
 
     column *root;
     column * smallest_column()
@@ -251,6 +252,20 @@ public:
         nr_columns = -1;
         current_node = NULL;
         best_col = NULL;
+        search_started = false;
+    }
+
+    ~dancing_links()
+    {
+        for (vector<column*>::iterator i = col_array.begin(); i != col_array.end(); i++)
+            free(*i);
+
+        for (vector<node*>::iterator i = node_array.begin(); i != node_array.end(); i++)
+            free(*i);
+    }
+
+    int number_of_columns() {
+        return nr_columns;
     }
 
     void add_rows(vector<vector<int> > rows) {
@@ -265,6 +280,10 @@ public:
 
         nr_columns++;
 
+        if (nr_columns == 0) {
+            return;
+        }
+
         setup_columns();
 
         // Add each row
@@ -275,9 +294,22 @@ public:
         }
     }
 
+    bool search_is_started()
+    {
+        return search_started;
+    }
+
     bool search()
     {
-        assert(nr_columns > 0);
+        search_started = true;
+
+        if (nr_columns <= 0) {
+            return false;
+        }
+
+        if (mode == SEARCH_DONE) {
+            return false;
+        }
 
         // If current_node or best_col have changed from being NULL
         // then we must have already found a solution and we are
@@ -343,35 +375,4 @@ public:
             }
         }
     }
-
-    void freemem() {
-        for(vector<column*>::iterator i = col_array.begin(); i != col_array.end(); i++) {
-            free(*i);
-        }
-
-        for(vector<node*>::iterator i = node_array.begin(); i != node_array.end(); i++) {
-            free(*i);
-        }
-    }
- };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+};

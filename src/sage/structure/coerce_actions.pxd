@@ -1,7 +1,3 @@
-
-from element cimport Element, RingElement, ModuleElement
-from parent cimport Parent
-
 from sage.categories.action cimport Action
 from sage.categories.map cimport Map
 
@@ -14,10 +10,17 @@ cdef class LeftModuleAction(ModuleAction):
     pass
 
 cdef class RightModuleAction(ModuleAction):
-    cdef public bint is_inplace
+    pass
 
 cdef class PyScalarAction(Action):
     cdef Action _action
 
-cdef class IntegerMulAction(Action):
+
+cdef class IntegerAction(Action):
+    pass
+
+cdef class IntegerMulAction(IntegerAction):
+    pass
+
+cdef class IntegerPowAction(IntegerAction):
     pass

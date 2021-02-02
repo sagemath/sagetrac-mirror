@@ -12,5 +12,5 @@ of groups implemented as affine groups.
 # entry to the list in the module-level
 # docstring of groups/groups_catalog.py
 
-from affine_group import AffineGroup as Affine
-from euclidean_group import EuclideanGroup as Euclidean
+from .affine_group import AffineGroup as Affine
+from .euclidean_group import EuclideanGroup as Euclidean

@@ -11,6 +11,7 @@ decorator to help write random testers that meet these goals.
 
 from functools import wraps
 
+
 def random_testing(fn):
     r"""
     This decorator helps create random testers.  These can be run as
@@ -53,7 +54,7 @@ def random_testing(fn):
     fails (raises an exception).
 
     If you want a very long-running test using this setup, you should do
-    something like::
+    something like (in Python 2)::
 
         for _ in xrange(10^10): test_foo(100)
 
@@ -87,11 +88,11 @@ def random_testing(fn):
 
         sage: from sage.misc.random_testing import random_testing
         sage: def foo(verbose=False):
-        ...       'oh look, a docstring'
-        ...       n = ZZ.random_element(2^50)
-        ...       if verbose:
-        ...           print "Random value: %s" % n
-        ...       assert(n == 49681376900427)
+        ....:     'oh look, a docstring'
+        ....:     n = ZZ.random_element(2^50)
+        ....:     if verbose:
+        ....:         print("Random value: %s" % n)
+        ....:     assert(n == 49681376900427)
         sage: foo = random_testing(foo)
         sage: foo(seed=0, verbose=True)
         Random value: 49681376900427
@@ -121,6 +122,7 @@ def random_testing(fn):
     """
     from sage.misc.randstate import seed, initial_seed
     from sys import stdout
+
     @wraps(fn)
     def wrapped_fun(*args, **kwargs):
         arg_seed = None
@@ -156,6 +158,7 @@ def random_testing(fn):
                 print(repr(e))
     return wrapped_fun
 
+
 @random_testing
 def test_add_commutes(trials, verbose=False):
     r"""
@@ -176,14 +179,15 @@ def test_add_commutes(trials, verbose=False):
         sage: test_add_commutes(1000) # long time
     """
     from sage.rings.all import QQ
-    for _ in xrange(trials):
+    for _ in range(trials):
         a = QQ.random_element()
         b = QQ.random_element()
         if verbose:
             print("a == {}, b == {} ...".format(a, b))
-        assert(a+b == b+a)
+        assert(a + b == b + a)
         if verbose:
             print("Passes!")
+
 
 @random_testing
 def test_add_is_mul(trials, verbose=False):
@@ -249,12 +253,11 @@ def test_add_is_mul(trials, verbose=False):
         AssertionError()
     """
     from sage.rings.all import QQ
-    for _ in xrange(trials):
+    for _ in range(trials):
         a = QQ.random_element()
         b = QQ.random_element()
         if verbose:
             print("a == {}, b == {} ...".format(a, b))
-        assert(a+b == a*b)
+        assert(a + b == a * b)
         if verbose:
             print("Passes!")
-

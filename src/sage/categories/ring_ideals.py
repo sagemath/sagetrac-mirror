@@ -10,8 +10,8 @@ Ring ideals
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_ideal
-from modules import Modules
+from .category_types import Category_ideal
+from .modules import Modules
 from sage.categories.rings import Rings
 _Rings = Rings()
 
@@ -31,12 +31,13 @@ class RingIdeals(Category_ideal):
 
     See also: :class:`CommutativeRingIdeals`.
 
-    TODO:
-     - If useful, implement RingLeftIdeals and RingRightIdeals
-       of which RingIdeals would be a subcategory
+    .. TODO::
 
-     - Make RingIdeals(R), return CommutativeRingIdeals(R) when R is
-       commutative
+         - If useful, implement ``RingLeftIdeals`` and ``RingRightIdeals``
+           of which ``RingIdeals`` would be a subcategory.
+
+         - Make ``RingIdeals(R)``, return ``CommutativeRingIdeals(R)``
+           when ``R`` is commutative.
     """
     def __init__(self, R):
         """

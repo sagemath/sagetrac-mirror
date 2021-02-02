@@ -8,7 +8,7 @@ Root system data for type I
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cartan_type import CartanType_standard_finite, CartanType_simple
+from .cartan_type import CartanType_standard_finite, CartanType_simple
 class CartanType(CartanType_standard_finite, CartanType_simple):
     def __init__(self, n):
         """
@@ -22,7 +22,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
             sage: ct.rank()
             2
             sage: ct.index_set()
-            [1, 2]
+            (1, 2)
 
             sage: ct.is_irreducible()
             True
@@ -42,25 +42,38 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
         assert n >= 1
         CartanType_standard_finite.__init__(self, "I", n)
 
-    def rank(self):
-        """
-        Type `I_p` is of rank 2
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
 
         EXAMPLES::
+
+            sage: latex(CartanType(['I',5]))
+            I_2(5)
+        """
+        return "I_2({})".format(self.n)
+
+    def rank(self):
+        """
+        Type `I_2(p)` is of rank 2.
+
+        EXAMPLES::
+
             sage: CartanType(['I', 5]).rank()
             2
         """
         return 2
 
     def index_set(self):
-        """
-        Type `I_p` is of rank 2
+        r"""
+        Type `I_2(p)` is indexed by `\{1,2\}`.
 
         EXAMPLES::
+
             sage: CartanType(['I', 5]).index_set()
-            [1, 2]
+            (1, 2)
         """
-        return [1, 2]
+        return (1, 2)
 
     def coxeter_diagram(self):
         """
@@ -92,3 +105,4 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
             12
         """
         return self.n
+
