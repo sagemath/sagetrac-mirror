@@ -353,14 +353,14 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: L = LieAlgebra(associative=S)
                 sage: L.structure_coefficients()
                 Finite family {((2,3), (1,2)): (1,2,3) - (1,3,2),
-                               ((2,3), (1,3)): -(1,2,3) + (1,3,2),
+                               ((2,3), (1,3,2)): -(1,2) + (1,3),
                                ((1,2,3), (2,3)): -(1,2) + (1,3),
                                ((1,2,3), (1,2)): (2,3) - (1,3),
-                               ((1,2,3), (1,3)): -(2,3) + (1,2),
-                               ((1,3,2), (2,3)): (1,2) - (1,3),
                                ((1,3,2), (1,2)): -(2,3) + (1,3),
-                               ((1,3,2), (1,3)): (2,3) - (1,2),
-                               ((1,3), (1,2)): -(1,2,3) + (1,3,2)}
+                               ((1,3), (2,3)): (1,2,3) - (1,3,2),
+                               ((1,3), (1,2)): -(1,2,3) + (1,3,2),
+                               ((1,3), (1,2,3)): (2,3) - (1,2),
+                               ((1,3), (1,3,2)): -(2,3) + (1,2)}
             """
             d = {}
             B = self.basis()
@@ -832,7 +832,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  the 0-dimensional abelian Lie algebra over Rational Field
                  with basis matrix:
                 []
-            
+
             If ``self`` is semisimple, then the derived subalgebra is ``self``::
 
                 sage: sl3 = LieAlgebra(QQ, cartan_type=['A',2])
