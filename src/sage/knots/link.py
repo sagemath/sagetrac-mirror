@@ -3460,7 +3460,7 @@ class Link(SageObject):
     @cached_method
     def _knotinfo_matching_list(self):
         r"""
-        Return a list of links from the KontInfo and LinkInfo databases which match
+        Return a list of links from the KnotInfo and LinkInfo databases which match
         the properties of ``self`` as much as possible.
 
         OUTPUT:
@@ -3549,7 +3549,7 @@ class Link(SageObject):
 
     def get_knotinfo(self, mirror_version=True, unique=True):
         r"""
-        Identify this link as an item of the KontInfo database (if possible).
+        Identify this link as an item of the KnotInfo database (if possible).
 
         INPUT:
 
@@ -3780,6 +3780,9 @@ class Link(SageObject):
              (<KnotInfo.L10a171_1_1_0: 'L10a171{1,1,0}'>, False),
              (<KnotInfo.L10a171_1_1_1: 'L10a171{1,1,1}'>, False)]
         """
+        # ToDo: extension to non prime links in which case an element of the monoid
+        # over :class:`KnotInfo` should be returned
+
         non_unique_hint = '\nuse keyword argument `unique` to obtain more details'
         def answer(L):
             r"""
