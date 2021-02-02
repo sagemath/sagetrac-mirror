@@ -35,9 +35,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division
 from decorator import decorator
-
 from sage.all import *
 x = SR.var('x')
 

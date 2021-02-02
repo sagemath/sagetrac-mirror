@@ -12,11 +12,11 @@ Bindable classes
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
 
 import functools
 from sage.misc.nested_class import NestedClassMetaclass
 from sage.misc.classcall_metaclass import ClasscallMetaclass
+
 
 class BindableClass(metaclass=ClasscallMetaclass):
     """
@@ -155,6 +155,7 @@ class BindableClass(metaclass=ClasscallMetaclass):
             return cls
         return BoundClass(cls, instance)
 
+
 class BoundClass(functools.partial):
     """
     TESTS::
@@ -227,7 +228,7 @@ class BoundClass(functools.partial):
         sage: g()
         8
     """
-    __doc__ = None # See warning above
+    __doc__ = None  # See warning above
 
     def __init__(self, *args):
         super(BoundClass, self).__init__()
@@ -243,7 +244,8 @@ class BoundClass(functools.partial):
             sage: x.Inner
             <bound class 'sage.misc.bindable_class.Outer.Inner' of <sage.misc.bindable_class.Outer object at ...>>
         """
-        return "<bound %s of %s>"%(repr(self.func)[1:-1], self.args[0])
+        return "<bound %s of %s>" % (repr(self.func)[1:-1], self.args[0])
+
 
 ##############################################################################
 # Test classes
@@ -253,6 +255,7 @@ class Inner2(BindableClass):
     """
     Some documentation for Inner2
     """
+
 
 # We need NestedClassMetaclass to work around a Python pickling bug
 class Outer(metaclass=NestedClassMetaclass):

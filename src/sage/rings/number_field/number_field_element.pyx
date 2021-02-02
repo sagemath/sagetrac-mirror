@@ -1801,7 +1801,7 @@ cdef class NumberFieldElement(FieldElement):
             raise ValueError("L (=%s) must be a relative number field with base field K (=%s) in rnfisnorm" % (L, K))
 
         rnf_data = K.pari_rnfnorm_data(L, proof=proof)
-        x, q = self.__pari__().rnfisnorm(rnf_data)
+        x, q = pari.rnfisnorm(rnf_data, self)
         return L(x, check=False), K(q, check=False)
 
     def _mpfr_(self, R):
@@ -2324,7 +2324,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: 2^a
             Traceback (most recent call last):
             ...
-            TypeError: an embedding into RR or CC must be specified
+            TypeError: no canonical coercion from Number Field in a with defining polynomial x^2 + 1 to Symbolic Ring
         """
         if (isinstance(base, NumberFieldElement) and
             (isinstance(exp, Integer) or type(exp) is int or exp in ZZ)):
