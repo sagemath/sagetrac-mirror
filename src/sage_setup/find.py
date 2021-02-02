@@ -159,6 +159,8 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
                     return distribution in distributions
 
                 for filename in filenames:
+                    if filename.startswith('.#'):
+                        continue
                     base, ext = os.path.splitext(filename)
                     if ext == PYMOD_EXT and base != '__init__':
                         if is_in_distributions(filename):
