@@ -83,7 +83,7 @@ cdef class InteractiveLPBackend:
 
     cpdef __copy__(self):
         """
-        Returns a copy of self.
+        Return a copy of self.
 
         EXAMPLES::
 
@@ -264,7 +264,7 @@ cdef class InteractiveLPBackend:
 
         - ``variable`` (integer) -- the variable's id
 
-        - ``vtype`` (integer) :
+        - ``vtype`` (integer)
 
             *  1  Integer
             *  0  Binary
@@ -312,7 +312,7 @@ cdef class InteractiveLPBackend:
 
         INPUT:
 
-        - ``sense`` (integer) :
+        - ``sense`` (integer)
 
             * +1 => Maximization
             * -1 => Minimization

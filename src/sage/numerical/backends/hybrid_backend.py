@@ -37,7 +37,7 @@ class HybridBackend(GenericBackend):
         """
         Constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -66,6 +66,9 @@ class HybridBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
+            sage: p.base_ring()
+            Rational Field
+            sage: p = get_solver(solver = ("GLPK", "InteractiveLP"), base_ring=AA)
             sage: p.base_ring()
             Algebraic Real Field
         """
@@ -96,13 +99,9 @@ class HybridBackend(GenericBackend):
 
         - ``name`` - an optional name for the newly added variable (default: ``None``).
 
-        - ``coefficients`` -- (optional) an iterable of pairs ``(i, v)``. In each
-          pair, ``i`` is a variable index (integer) and ``v`` is a
-          value (element of :meth:`base_ring`).
-
         OUTPUT: The index of the newly created variable
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -154,7 +153,7 @@ class HybridBackend(GenericBackend):
 
         OUTPUT: The index of the variable created last.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -179,13 +178,13 @@ class HybridBackend(GenericBackend):
 
         - ``variable`` (integer) -- the variable's id
 
-        - ``vtype`` (integer) :
+        - ``vtype`` (integer)
 
             *  1  Integer
             *  0  Binary
             *  -1  Continuous
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -206,12 +205,12 @@ class HybridBackend(GenericBackend):
 
         INPUT:
 
-        - ``sense`` (integer) :
+        - ``sense`` (integer)
 
             * +1 => Maximization
             * -1 => Minimization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -235,7 +234,7 @@ class HybridBackend(GenericBackend):
 
         - ``coeff`` (double) -- its coefficient
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -288,19 +287,19 @@ class HybridBackend(GenericBackend):
 
         - ``d`` (real) -- the constant term in the linear function (set to `0` by default)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
             sage: p.add_variables(5)
             4
             sage: p.set_objective([1, 1, 2, 1, 3])
-            sage: map(lambda x :p.objective_coefficient(x), range(5))
+            sage: [p.objective_coefficient(x) for x in range(5)]
             [1, 1, 2, 1, 3]
 
         Constants in the objective function are respected::
 
-            sage: p = MixedIntegerLinearProgram(solver='InteractiveLP')
+            sage: p = MixedIntegerLinearProgram(solver = ("GLPK", "InteractiveLP"))
             sage: x,y = p[0], p[1]
             sage: p.add_constraint(2*x + 3*y, max = 6)
             sage: p.add_constraint(3*x + 2*y, max = 6)
@@ -319,7 +318,7 @@ class HybridBackend(GenericBackend):
 
         - ``level`` (integer) -- From 0 (no verbosity) to 3.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -336,7 +335,7 @@ class HybridBackend(GenericBackend):
 
         - ``i`` -- index of the constraint to remove.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver=("GLPK", "InteractiveLP"))
             sage: v = p.new_variable(nonnegative=True)
@@ -375,7 +374,7 @@ class HybridBackend(GenericBackend):
 
         - ``name`` -- string or ``None``. Optional name for this row.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -417,7 +416,7 @@ class HybridBackend(GenericBackend):
             ``indices`` and ``coeffs`` are expected to be of the same
             length.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -447,7 +446,7 @@ class HybridBackend(GenericBackend):
 
         - ``names`` - an optional list of names (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -472,7 +471,7 @@ class HybridBackend(GenericBackend):
             the solution can not be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -497,7 +496,7 @@ class HybridBackend(GenericBackend):
 
            Behavior is undefined unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -524,7 +523,7 @@ class HybridBackend(GenericBackend):
 
            Behavior is undefined unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -547,7 +546,7 @@ class HybridBackend(GenericBackend):
         """
         Return the number of columns/variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -564,7 +563,7 @@ class HybridBackend(GenericBackend):
         """
         Return the number of rows/constraints.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -580,7 +579,7 @@ class HybridBackend(GenericBackend):
         """
         Test whether the problem is a maximization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -601,7 +600,7 @@ class HybridBackend(GenericBackend):
         - ``name`` (``char *``) -- the problem's name. When set to
           ``None`` (default), the method returns the problem's name.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = ("GLPK", "InteractiveLP"))
@@ -615,6 +614,8 @@ class HybridBackend(GenericBackend):
             for b in self.backends:
                 b.problem_name(name)
 
+    ## def best_known_objective_bound(self)
+    ## def get_relative_objective_gap(self)
     ## def write_lp(self, name):
     ##     """
     ##     Write the problem to a ``.lp`` file
