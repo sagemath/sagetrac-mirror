@@ -591,15 +591,27 @@ cdef class InteractiveLPBackend:
         """
         self.add_variable(coefficients=zip(indices, coeffs))
 
-    cpdef int solve(self) except -1:
+    cpdef int solve(self,  basic_variables=[]) except -1:
         """
         Solve the problem.
+
+        INPUT:
+
+        - ``basic_variables`` -- optional list of basic variables for warm-start; The provided basis must be feasible.
 
         .. NOTE::
 
             This method raises ``MIPSolverException`` exceptions when
             the solution cannot be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
+
+            ``basic_variables`` can be one of the following:
+
+            - a list of indices. The indices (starting at 1) correspond to that of the vector formed by `self.interactive_lp_problem().decision_variables()` and `self.interactive_lp_problem().slack_variables()`. Remark that `self.interactive_lp_problem()` can have more variables and constraints than that of `self` if `self` has free variables or `==` constraints.
+
+            - a list of the names of the variables in `self.interactive_lp_problem()`.
+
+            If ``basic_variables`` is provided but is infeasible, then ValueError will be raised.
 
         EXAMPLES::
 
@@ -619,7 +631,7 @@ cdef class InteractiveLPBackend:
         ## FIXME: Perhaps also pass the problem name as objective name
         lp_std_form, transformation = self.lp.standard_form(transformation=True)
         self.lp_std_form, self.std_form_transformation = lp_std_form, transformation
-        output = lp_std_form.run_revised_simplex_method()
+        output = lp_std_form.run_revised_simplex_method(basic_variables)
         ## FIXME: Display output as a side effect if verbosity is high enough
         d = self.final_dictionary = lp_std_form.final_revised_dictionary()
         if d.is_optimal():
