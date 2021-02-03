@@ -5,6 +5,7 @@ AUTHORS:
 
 - Nathann Cohen (2010-10)      : generic_backend template
 - Matthias Koeppe (2016-03)    : this backend
+- Yuan Zhou (2020-02)          : this backend
 
 """
 
@@ -484,8 +485,82 @@ class HybridBackend(GenericBackend):
             Traceback (most recent call last):
             ...
             MIPSolverException: ...
+
+        Test on LPs with non-negative variables.
+        The first LP has a unique optimal solution; the second one is unbounded; the third one is infeasible::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True, solver=("GLPK","InteractiveLP"))
+            sage: v = p.new_variable(nonnegative=True)
+            sage: x, y = v[0], v[1]
+            sage: p.add_constraint(-2*x + y <= 1)
+            sage: p.add_constraint(x - y <= 1)
+            sage: p.add_constraint(x + y >= 2)
+            sage: p.set_objective(-y)
+            sage: p.solve()
+            -1/2
+            sage: p.set_objective(y)
+            sage: p.solve()
+            Traceback (most recent call last):
+            ...
+            MIPSolverException: InteractiveLP: Problem is unbounded
+            sage: p.add_constraint(x + y <= 0)
+            sage: p.solve()
+            Traceback (most recent call last):
+            ...
+            MIPSolverException: ...
+
+        Test on LP that has free varialbe or equality constraint::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: h = get_solver(solver = ("GLPK", "InteractiveLP"))
+            sage: h.add_variables(1, lower_bound=None, upper_bound=None)
+            0
+            sage: h.add_variables(1, lower_bound=0, upper_bound=None)
+            1
+            sage: h.add_linear_constraint([(0,2),(1,-1)],-1,None)
+            sage: h.add_linear_constraint([(0,1),(1,-1)],None, 1)
+            sage: h.add_linear_constraint([(0,1),(1,1)],2,2)
+            sage: h.set_objective([0,-1])
+            sage: h.solve()
+            0
+            sage: h.get_objective_value()
+            -1/2
         """
-        ## FIXME: Call backends, copy bases, ...
+        from sage.numerical.backends.interactivelp_backend import InteractiveLPBackend
+        if self.backends[-1].parent() is InteractiveLPBackend:
+            for b in self.backends[:-1]:
+                try:
+                    b.solve()
+                except MIPSolverException:
+                    # infeasilbe or unbounded LP.
+                    return self.backends[-1].solve()
+                try:
+                    basic_variables = []
+                    k = 1
+                    for i in range(b.ncols()):
+                        is_free_variable = bool(b.col_bounds(i) == (None, None))
+                        if b.is_variable_basic(i):
+                            if is_free_variable and (b.get_variable_value(i) < 0):
+                                basic_variables.append(k+1)
+                            else:
+                                basic_variables.append(k)
+                        if is_free_variable:
+                            k += 2
+                        else:
+                            k += 1
+                    for i in range(b.nrows()):
+                        is_equality_constraint = not ((b.row_bounds(i)[0] == None) or (b.row_bounds(i)[1] == None))
+                        if b.is_slack_variable_basic(i):
+                            basic_variables.append(k)
+                        if is_equality_constraint:
+                            k += 1
+                            basic_variables.append(k)
+                        k += 1
+                except NotImplementedError:
+                    # no basis information is available in this backend. continue to the next backend.
+                    continue
+                else:
+                    return self.backends[-1].solve(basic_variables=basic_variables)
         return self.backends[-1].solve()
 
     def get_objective_value(self):
