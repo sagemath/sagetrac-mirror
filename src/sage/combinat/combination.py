@@ -416,8 +416,7 @@ class Combinations_msetk(Parent):
         """
         from sage.libs.gap.libgap import libgap
         items = [self.mset.index(_) for _ in self.mset]
-        nc = libgap.function_factory('NrCombinations')
-        return ZZ(nc(items, ZZ(self.k)))
+        return ZZ(libgap.NrCombinations(items, ZZ(self.k)))
 
 
 class Combinations_setk(Combinations_msetk):
