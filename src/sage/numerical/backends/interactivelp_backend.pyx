@@ -22,6 +22,7 @@ AUTHORS:
 from sage.numerical.mip import MIPSolverException
 from sage.numerical.interactive_simplex_method import InteractiveLPProblem, default_variable_name
 from sage.modules.free_module_element import vector
+from sage.rings.all import ZZ
 from copy import copy
 
 
@@ -631,9 +632,22 @@ cdef class InteractiveLPBackend:
         ## FIXME: Perhaps also pass the problem name as objective name
         lp_std_form, transformation = self.lp.standard_form(transformation=True)
         self.lp_std_form, self.std_form_transformation = lp_std_form, transformation
-        output = lp_std_form.run_revised_simplex_method(basic_variables)
-        ## FIXME: Display output as a side effect if verbosity is high enough
-        d = self.final_dictionary = lp_std_form.final_revised_dictionary()
+        var_names = lp_std_form.coordinate_ring().gens()
+        x_B = [var_names[v] if v in ZZ else v for v in basic_variables]
+        current_dictionary = lp_std_form.revised_dictionary(*x_B)
+        output = [current_dictionary.run_simplex_method()]
+        ## FIXME: Display output as a side effect if verbosity is high enough. We don't care about output for now.
+        # if current_dictionary.is_optimal():
+        #     if lp_std_form.auxiliary_variable() in current_dictionary.basic_variables():
+        #         output.append("The problem is infeasible.")
+        #     else:
+        #         v = current_dictionary.objective_value()
+        #         if lp_std_form._is_negative:
+        #             v = - v
+        #         output.append(("The optimal value: ${}$. "
+        #                        "An optimal solution: ${}$.").format(
+        #                        latex(v), latex(current_dictionary.basic_solution())))
+        d = self.final_dictionary = lp_std_form._final_revised_dictionary = current_dictionary
         if d.is_optimal():
             if lp_std_form.auxiliary_variable() in d.basic_variables():
                 raise MIPSolverException("InteractiveLP: Problem has no feasible solution")
