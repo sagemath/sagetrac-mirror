@@ -219,6 +219,7 @@ from gappy.exceptions import GAPError
 from gappy.gapobj cimport make_GapList
 from gappy.gapobj import GapObj
 from gappy.gap_includes cimport Obj
+from gappy.gap_globals import common_gap_globals
 
 import sage.env
 from sage.interfaces.gap_workspace import prepare_workspace_dir
@@ -750,7 +751,6 @@ cdef class Gap(Parent):
            sage: 'OctaveAlgebra' in dir(libgap)
            True
         """
-        from sage.libs.gap.gap_globals import common_gap_globals
         return dir(self.__class__) + sorted(common_gap_globals)
 
     def __getattr__(self, name):

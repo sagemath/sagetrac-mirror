@@ -383,25 +383,26 @@ def orbits_lines_mod_p(self, p):
     # but in gap we act from the right!! --> transpose
     gens = self.automorphism_group().gens()
     gens = [g.matrix().transpose().change_ring(GF(p)) for g in gens]
-    orbs = libgap.function_factory(
-    """function(gens, p)
-        local one, G, reps, V, n, orb;
-        one:= One(GF(p));
-        G:=Group(List(gens, g -> g*one));
-        n:= Size(gens[1]);
-        V:= GF(p)^n;
-        orb:= OrbitsDomain(G, V, OnLines);
-        reps:= List(orb, g->g[1]);
-        return reps;
-        end;""")
     # run this at startup if you need more memory...
     #from sage.interfaces.gap import get_gap_memory_pool_size, set_gap_memory_pool_size
     #memory_gap = get_gap_memory_pool_size()
     #set_gap_memory_pool_size(1028*memory_gap)
+    @libgap.gap_function
+    def orbs(gens, p):
+        """
+        function(gens, p)
+            local one, G, reps, V, n, orb;
+            one:= One(GF(p));
+            G:=Group(List(gens, g -> g*one));
+            n:= Size(gens[1]);
+            V:= GF(p)^n;
+            orb:= OrbitsDomain(G, V, OnLines);
+            reps:= List(orb, g->g[1]);
+            return reps;
+        end;
+        """
+
     orbs_reps = orbs(gens, p)
     #set_gap_memory_pool_size(memory_gap)
     M = GF(p)**self.dim()
     return [M(m.sage()) for m in orbs_reps if not m.IsZero()]
-
-
-

@@ -4609,13 +4609,17 @@ def BIBD_79_13_2():
     libgap.set_global("p23Act", P23Action)
     libgap.set_global("p4Act", P4Action)
 
-    action = libgap.function_factory("""function(pair, g)
-        local i, C, homs;
-        i := pair[1];
-        C := pair[2];
-        homs := [p1Act, p23Act, p23Act, p4Act];
-        return [i, C^(ImageElm(homs[i],g))];
-    end;""")
+    @libgap.gap_function
+    def action(pair, g):
+        """
+        function(pair, g)
+            local i, C, homs;
+            i := pair[1];
+            C := pair[2];
+            homs := [p1Act, p23Act, p23Act, p4Act];
+            return [i, C^(ImageElm(homs[i],g))];
+        end;
+        """
 
     p1 = (1,1)
     p2 = (2,1)
