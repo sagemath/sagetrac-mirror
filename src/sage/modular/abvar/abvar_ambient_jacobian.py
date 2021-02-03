@@ -12,16 +12,19 @@ TESTS::
 import weakref
 from sage.structure.sequence import Sequence
 
-from abvar             import (ModularAbelianVariety_modsym_abstract, ModularAbelianVariety,
-                               simple_factorization_of_modsym_space, modsym_lattices,
-                               ModularAbelianVariety_modsym)
-from sage.rings.all    import QQ
+from .abvar import (ModularAbelianVariety_modsym_abstract,
+                    simple_factorization_of_modsym_space, modsym_lattices,
+                    ModularAbelianVariety_modsym)
+from sage.rings.all import QQ
 
 from sage.modular.modsym.modsym import ModularSymbols
-import morphism
+from sage.modular.modform.constructor import Newforms
+from sage.modular.arithgroup.all import is_Gamma0, is_Gamma1
+from . import morphism
 
 
 _cache = {}
+
 
 def ModAbVar_ambient_jacobian(group):
     """
@@ -58,13 +61,14 @@ def ModAbVar_ambient_jacobian(group):
     """
     try:
         X = _cache[group]()
-        if not X is None:
+        if X is not None:
             return X
     except KeyError:
         pass
     X = ModAbVar_ambient_jacobian_class(group)
     _cache[group] = weakref.ref(X)
     return X
+
 
 class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
     """
@@ -131,12 +135,13 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
             sage: import sage.modular.abvar.abvar_ambient_jacobian as abvar_ambient_jacobian
             sage: abvar_ambient_jacobian._cache = {}
         """
-        return 'Abelian variety %s of dimension %s%s'%(self._ambient_repr(), self.dimension(),
-                                    '' if self.base_field() == QQ else ' over %s'%self.base_field())
+        return 'Abelian variety %s of dimension %s%s' % (self._ambient_repr(),
+                                                         self.dimension(),
+                                    '' if self.base_field() == QQ else ' over %s' % self.base_field())
 
     def _latex_(self):
         """
-        Return Latex representation of self.
+        Return Latex representation of ``self``.
 
         EXAMPLES::
 
@@ -234,14 +239,14 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
             n2 = to_newform.complementary_isogeny().matrix()
             f_gens = to_newform.codomain()._calculate_endomorphism_generators()
             small_space = to_newform.parent().matrix_space()
-            f_gens = [ small_space(x.list()) for x in f_gens ]
+            f_gens = [small_space(x.list()) for x in f_gens]
             for m in f_gens:
                 mat = H.matrix_space()(0)
-                mat.set_block(ind, ind, n1 * m * n2 )
+                mat.set_block(ind, ind, n1 * m * n2)
                 ls.append((m1 * mat * m2).list())
-            ind += 2*d.dimension()
+            ind += 2 * d.dimension()
 
-        return [ H( morphism.Morphism(H, M(x)) ) for x in ls ]
+        return [H(morphism.Morphism(H, M(x))) for x in ls]
 
     def degeneracy_map(self, level, t=1, check=True):
         """
@@ -287,11 +292,10 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         if check:
             if (level % self.level()) and (self.level() % level):
                 raise ValueError("level must be divisible by level of self")
-            if (max(level,self.level()) // min(self.level(),level)) % t:
+            if (max(level, self.level()) // min(self.level(), level)) % t:
                 raise ValueError("t must divide the quotient of the two levels")
 
         Mself = self.modular_symbols()
-        #Jdest = Mself.ambient_module().modular_symbols_of_level(level).cuspidal_subspace().abelian_variety()
         Jdest = (type(Mself.group()))(level).modular_abelian_variety()
         Mdest = Jdest.modular_symbols()
 
@@ -368,14 +372,14 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         factors = modsym_lattices(M, factors)
 
         D = []
+        is_simple = True if simple else None
         for newform_level, isogeny_number, number, modsym, lattice in factors:
-            if simple:
-                is_simple = True
-            else:
-                is_simple = None
             A = ModularAbelianVariety_modsym(modsym, lattice=lattice,
-                               newform_level = (newform_level, group), is_simple=is_simple,
-                               isogeny_number=isogeny_number, number=(number, level), check=False)
+                               newform_level=(newform_level, group),
+                                             is_simple=is_simple,
+                                             isogeny_number=isogeny_number,
+                                             number=(number, level),
+                                             check=False)
             D.append(A)
 
             # This line below could be safely deleted.  It basically creates a circular
@@ -384,12 +388,36 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
             # import gc; gc.collect().
             A._ambient = self
 
-
         D.sort()
         D = Sequence(D, immutable=True, cr=True, universe=self.category())
         self.__decomposition[simple] = D
         return D
 
+    def newform_decomposition(self, names=None):
+        """
+        Return the newforms of the simple subvarieties in the decomposition of
+        self as a product of simple subvarieties, up to isogeny.
 
+        OUTPUT:
 
+        - an array of newforms
 
+        EXAMPLES::
+
+            sage: J0(81).newform_decomposition('a')
+            [q - 2*q^4 + O(q^6), q - 2*q^4 + O(q^6), q + a0*q^2 + q^4 - a0*q^5 + O(q^6)]
+
+            sage: J1(19).newform_decomposition('a')
+            [q - 2*q^3 - 2*q^4 + 3*q^5 + O(q^6),
+             q + a1*q^2 + (-1/9*a1^5 - 1/3*a1^4 - 1/3*a1^3 + 1/3*a1^2 - a1 - 1)*q^3 + (4/9*a1^5 + 2*a1^4 + 14/3*a1^3 + 17/3*a1^2 + 6*a1 + 2)*q^4 + (-2/3*a1^5 - 11/3*a1^4 - 10*a1^3 - 14*a1^2 - 15*a1 - 9)*q^5 + O(q^6)]
+        """
+        if self.dimension() == 0:
+            return []
+        G = self.group()
+        if not (is_Gamma0(G) or is_Gamma1(G)):
+            return [S.newform(names=names) for S in self.decomposition()]
+        Gtype = G.parent()
+        N = G.level()
+        preans = [Newforms(Gtype(d), names=names) * len((N // d).divisors())
+                  for d in N.divisors()]
+        return [newform for l in preans for newform in l]

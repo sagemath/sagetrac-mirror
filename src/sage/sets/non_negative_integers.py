@@ -32,9 +32,9 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
         sage: NN.list()
         Traceback (most recent call last):
         ...
-        NotImplementedError: infinite list
+        NotImplementedError: cannot list an infinite set
         sage: NN.element_class
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
         sage: it = iter(NN)
         sage: [next(it), next(it), next(it), next(it), next(it)]
         [0, 1, 2, 3, 4]
@@ -45,7 +45,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
     plain Sage ``Integers`` with ``Integer Ring`` as parent::
 
         sage: x = NN(15); type(x)
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
         sage: x.parent()
         Integer Ring
         sage: x+3
@@ -95,7 +95,6 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-            sage: NN = NonNegativeIntegers()
             sage: 1 in NN
             True
             sage: -1 in NN
@@ -104,11 +103,19 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
             False
             sage: None in NN
             False
+            sage: QQbar(sqrt(2)) in NN
+            False
+            sage: RIF(1,2) in NN
+            False
+            sage: QQbar(2) in NN
+            True
+            sage: RIF(2) in NN
+            True
         """
         try:
             i = Integer(elt)
             return  i >= Integer(0) and i == elt
-        except TypeError:
+        except (TypeError, ValueError):
             return False
 
     def _element_constructor_(self, i):
@@ -135,7 +142,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
             sage: n = NN(42); n                  # indirect doctest
             42
             sage: type(n)
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
             sage: n.parent()
             Integer Ring
             sage: NN(-1)

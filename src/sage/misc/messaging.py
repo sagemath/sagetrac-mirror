@@ -11,7 +11,12 @@ AUTHORS:
 
 - Martin Albrecht (2012) - initial implementation
 """
+
+import http.client as httplib
+from urllib.parse import urlencode
+
 pushover_defaults = {"token": "Eql67F14ohOZJ0AtEBJJU7FiLAk8wK"}
+
 
 def pushover(message, **kwds):
     """
@@ -52,7 +57,7 @@ def pushover(message, **kwds):
 
       - ``token`` - your application's API token (default: Sage's default App token)
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: import sage.misc.messaging
         sage: sage.misc.messaging.pushover("Hi, how are you?", user="XXX") # not tested
@@ -67,14 +72,12 @@ def pushover(message, **kwds):
         You may want to populate ``sage.misc.messaging.pushover_defaults`` with default values such
         as the default user in ``$HOME/.sage/init.sage``.
     """
-    import httplib, urllib
-
     request = {"message": message}
     request.update(pushover_defaults)
     request.update(kwds)
 
     conn = httplib.HTTPSConnection("api.pushover.net:443")
     conn.request("POST", "/1/messages.json",
-                 urllib.urlencode(request),
-                 { "Content-type": "application/x-www-form-urlencoded" })
+                 urlencode(request),
+                 {"Content-type": "application/x-www-form-urlencoded"})
     return conn.getresponse().status == 200

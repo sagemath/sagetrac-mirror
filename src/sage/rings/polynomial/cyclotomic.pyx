@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Fast calculation of cyclotomic polynomials
 
@@ -9,7 +10,7 @@ method of univariate polynomial ring objects and the top-level
 :func:`~sage.misc.functional.cyclotomic_polynomial` function.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -21,43 +22,43 @@ method of univariate polynomial ring objects and the top-level
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import sys
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
-from libc.string cimport memset
+from cysignals.memory cimport sig_malloc, check_calloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
-from sage.structure.element cimport parent_c
+from sage.structure.element cimport parent
 
-from sage.rings.arith import factor
-from sage.rings.infinity import infinity
+from sage.arith.all import factor
 from sage.rings.integer_ring import ZZ
 from sage.misc.all import prod, subsets
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.libs.pari.all import pari
 
+
 def cyclotomic_coeffs(nn, sparse=None):
     u"""
-    This calculates the coefficients of the n-th cyclotomic polynomial
+    Return the coefficients of the n-th cyclotomic polynomial
     by using the formula
 
-    .. math::
+    .. MATH::
 
         \\Phi_n(x) = \\prod_{d|n} (1-x^{n/d})^{\\mu(d)}
 
-    where `\\mu(d)` is the Moebius function that is 1 if d has an even
+    where `\\mu(d)` is the Möbius function that is 1 if d has an even
     number of distinct prime divisors, -1 if it has an odd number of
     distinct prime divisors, and 0 if d is not squarefree.
 
     Multiplications and divisions by polynomials of the
     form `1-x^n` can be done very quickly in a single pass.
 
-    If sparse is True, the result is returned as a dictionary of the non-zero
-    entries, otherwise the result is returned as a list of python ints.
+    If sparse is ``True``, the result is returned as a dictionary of
+    the non-zero entries, otherwise the result is returned as a list
+    of python ints.
 
     EXAMPLES::
 
@@ -102,21 +103,25 @@ def cyclotomic_coeffs(nn, sparse=None):
 
     - Robert Bradshaw (2007-10-27): initial version (inspired by work of Andrew
       Arnold and Michael Monagan)
+
+    REFERENCE:
+
+    - http://www.cecm.sfu.ca/~ada26/cyclotomic/
     """
     factors = factor(nn)
-    if any([e != 1 for p, e in factors]):
+    if any(e != 1 for _, e in factors):
         # If there are primes that occur in the factorization with multiplicity
         # greater than one we use the fact that Phi_ar(x) = Phi_r(x^a) when all
         # primes dividing a divide r.
-        rad = prod([p for p, e in factors])
+        rad = prod(p for p, _ in factors)
         rad_coeffs = cyclotomic_coeffs(rad, sparse=True)
         pow = int(nn // rad)
         if sparse is None or sparse:
             L = {}
         else:
-            L = [0] * (1 + pow * prod([p-1 for p, e in factors]))
+            L = [0] * (1 + pow * prod(p - 1 for p, _ in factors))
         for mon, c in rad_coeffs.items():
-            L[mon*pow] = c
+            L[mon * pow] = c
         return L
 
     elif len(factors) == 1 and not sparse:
@@ -131,27 +136,21 @@ def cyclotomic_coeffs(nn, sparse=None):
     cdef long fits_long_limit = 169828113 if sizeof(long) >= 8 else 10163195
     if nn >= fits_long_limit and bateman_bound(nn) > sys.maxsize:
         # Do this to avoid overflow.
-        print "Warning: using PARI (slow!)"
-        from sage.interfaces.gp import pari
+        print("Warning: using PARI (slow!)")
         return [int(a) for a in pari.polcyclo(nn).Vecrev()]
 
     cdef long d, max_deg = 0, n = nn
-    primes = [int(p) for p, e in factors]
+    primes = [int(p) for p, _ in factors]
     prime_subsets = list(subsets(primes))
     if n > 5000:
-        prime_subsets.sort(my_cmp)
+        prime_subsets.sort(key=lambda a: -prod(a))
 
     for s in prime_subsets:
         if len(s) % 2 == 0:
             d = prod(s)
             max_deg += n / d
 
-    if (<object>max_deg)*sizeof(long) > sys.maxsize:
-        raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
-    cdef long* coeffs = <long*>sage_malloc(sizeof(long) * (max_deg+1))
-    if coeffs == NULL:
-        raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
-    memset(coeffs, 0, sizeof(long) * (max_deg+1))
+    cdef long* coeffs = <long*>check_calloc(max_deg + 1, sizeof(long))
     coeffs[0] = 1
 
     cdef long k, dd, offset = 0, deg = 0
@@ -159,61 +158,63 @@ def cyclotomic_coeffs(nn, sparse=None):
         if len(s) % 2 == 0:
             d = prod(s)
             dd = n / d
-#            f *= (1-x^dd)
+            # f *= (1-x^dd)
             sig_on()
-            for k from deg+dd >= k >= dd:
-                coeffs[k] -= coeffs[k-dd]
+            for k from deg + dd >= k >= dd:
+                coeffs[k] -= coeffs[k - dd]
             deg += dd
             sig_off()
 
     prime_subsets.reverse()
     for s in prime_subsets:
-        if len(s) % 2 == 1:
+        if len(s) % 2:
             d = prod(s)
             dd = n / d
-#            f /= (1-x^dd)
+            # f /= (1-x^dd)
             sig_on()
-            for k from deg >= k > deg-dd:
+            for k from deg >= k > deg - dd:
                 coeffs[k] = -coeffs[k]
-            for k from deg-dd >= k >= offset:
-                coeffs[k] = coeffs[k+dd] - coeffs[k]
+            for k from deg - dd >= k >= offset:
+                coeffs[k] = coeffs[k + dd] - coeffs[k]
             offset += dd
             sig_off()
 
     cdef long non_zero = 0
     if sparse is None:
-        for k from offset <= k <= deg:
+        for k in range(offset, deg + 1):
             non_zero += coeffs[k] != 0
-        sparse = non_zero < 0.25*(deg-offset)
+        sparse = (4 * non_zero) < (deg - offset)
 
     if sparse:
         L = {}
-        for k from offset <= k <= deg:
+        for k in range(offset, deg + 1):
             if coeffs[k]:
-                L[k-offset] = coeffs[k]
+                L[k - offset] = coeffs[k]
     else:
-        L = [coeffs[k] for k from offset <= k <= deg]
+        L = [coeffs[k] for k in range(offset, deg + 1)]
 
-    sage_free(coeffs)
+    sig_free(coeffs)
     return L
 
+
 def cyclotomic_value(n, x):
-    """
-    Returns the value of the `n`-th cyclotomic polynomial evaulated at `x`.
+    r"""
+    Return the value of the `n`-th cyclotomic polynomial evaluated at `x`.
 
     INPUT:
 
-    - n -- an Integer, specifying which cyclotomic polynomial is to be
-      evaluated.
-    - x -- an element of a ring.
+    - `n` -- an Integer, specifying which cyclotomic polynomial is to be
+      evaluated
+
+    - `x` -- an element of a ring
 
     OUTPUT:
 
-    - the value of the cyclotomic polynomial `\Phi_n` at `x`.
+    - the value of the cyclotomic polynomial `\Phi_n` at `x`
 
     ALGORITHM:
 
-    - Reduce to the case that n is squarefree: use the identity
+    - Reduce to the case that `n` is squarefree: use the identity
 
     .. MATH::
 
@@ -227,10 +228,10 @@ def cyclotomic_value(n, x):
 
         \Phi_n(x) = \prod_{d | n} (x^d - 1)^{\mu(n / d)},
 
-    where `\mu` is the Moebius function.
+    where `\mu` is the Möbius function.
 
-    - Handles the case that x^d = 1 for some d, but not the case that
-      x^d - 1 is non-invertible: in this case polynomial evaluation is
+    - Handles the case that `x^d = 1` for some `d`, but not the case that
+      `x^d - 1` is non-invertible: in this case polynomial evaluation is
       used instead.
 
     EXAMPLES::
@@ -256,9 +257,9 @@ def cyclotomic_value(n, x):
         ....:         val1 = cyclotomic_value(n, y)
         ....:         val2 = cyclotomic_polynomial(n)(y)
         ....:         if val1 != val2:
-        ....:             print "Wrong value for cyclotomic_value(%s, %s) in %s"%(n,y,parent(y))
+        ....:             print("Wrong value for cyclotomic_value(%s, %s) in %s"%(n,y,parent(y)))
         ....:         if val1.parent() is not val2.parent():
-        ....:             print "Wrong parent for cyclotomic_value(%s, %s) in %s"%(n,y,parent(y))
+        ....:             print("Wrong parent for cyclotomic_value(%s, %s) in %s"%(n,y,parent(y)))
 
         sage: cyclotomic_value(20, I)
         5
@@ -282,10 +283,8 @@ def cyclotomic_value(n, x):
     Check that the issue with symbolic element in :trac:`14982` is fixed::
 
         sage: a = cyclotomic_value(3, I)
-        sage: a.pyobject()
-        I
-        sage: parent(_)
-        Number Field in I with defining polynomial x^2 + 1
+        sage: parent(a)
+        Number Field in I with defining polynomial x^2 + 1 with I = 1*I
     """
     n = ZZ(n)
     if n < 3:
@@ -295,9 +294,9 @@ def cyclotomic_value(n, x):
             return x + ZZ.one()
         raise ValueError("n must be positive")
 
-    P = parent_c(x)
+    P = parent(x)
     try:
-        return P(pari.polcyclo_eval(n, x).sage())
+        return P(pari.polcyclo(n, x).sage())
     except Exception:
         pass
     one = P(1)
@@ -311,25 +310,25 @@ def cyclotomic_value(n, x):
 
     factors = n.factor()
     cdef Py_ssize_t i, j, ti, L, root_of_unity = -1
-    primes = [p for p, e in factors]
+    primes = [p for p, _ in factors]
     L = len(primes)
-    if any(e != 1 for p, e in factors):
+    if any(e != 1 for _, e in factors):
         # If there are primes that occur in the factorization with multiplicity
         # greater than one we use the fact that Phi_ar(x) = Phi_r(x^a) when all
         # primes dividing a divide r.
         rad = prod(primes)
         pow = n // rad
-        x = x**pow
+        x = x ** pow
         n = rad
     if x == 1:
         # if n is prime, return n
         if L == 1:
-            return n * x # in case the parent of x has nonzero characteristic
+            return n * x  # in case the parent of x has nonzero characteristic
         else:
             return x
-    xd = [x] # the x^d for d | n
+    xd = [x]  # the x^d for d | n
     cdef char mu
-    cdef char* md = <char*>sage_malloc(sizeof(char) * (1 << L)) # the mu(d) for d | n
+    cdef char* md = <char*>sig_malloc(sizeof(char) * (1 << L))  # the mu(d) for d | n
     try:
         md[0] = 1
         if L & 1:
@@ -340,24 +339,24 @@ def cyclotomic_value(n, x):
             mu = 1
             num = x - 1
             den = 1
-        for i in range(L):
+        for i in xrange(L):
             ti = 1 << i
             p = primes[i]
-            for j in range(ti):
+            for j in xrange(ti):
                 xpow = xd[j]**p
                 xd.append(xpow)
-                md[ti+j] = -md[j]
+                md[ti + j] = -md[j]
                 # if xpow = 1, we record such smallest index,
                 # and deal with the corresponding factors at the end.
                 if xpow == one:
                     if root_of_unity == -1:
-                        root_of_unity = ti+j
-                elif mu == md[ti+j]:
+                        root_of_unity = ti + j
+                elif mu == md[ti + j]:
                     num *= xpow - one
                 else:
                     den *= xpow - one
     finally:
-        sage_free(md)
+        sig_free(md)
     try:
         ans = num / den
     except ZeroDivisionError:
@@ -369,22 +368,32 @@ def cyclotomic_value(n, x):
         # x is a root of unity.  If root_of_unity=2^L, x is a primitive
         # root of unity and the value is zero
         if root_of_unity == (1 << L) - 1:
-            return x - x # preserves the parent, as well as precision for p-adic x
+            return x - x  # preserves the parent, as well as precision for p-adic x
         # x is a primitive d-th root of unity, where d|n and d<n.
         # If root_of_unity = (1<<L) - (1<<(i-1)) - 1 for some i < L,
         # then n/d == primes[i] and we need to multiply by primes[i],
         # otherwise n/d is composite and nothing more needs to be done.
-        for i in range(L):
+        for i in xrange(L):
             if root_of_unity + (1 << i) + 1 == 1 << L:
                 ans *= primes[i]
                 break
     return x.parent()(ans)
 
+
 def bateman_bound(nn):
+    """
+    Reference:
+
+    Bateman, P. T.; Pomerance, C.; Vaughan, R. C.
+    *On the size of the coefficients of the cyclotomic polynomial.*
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.cyclotomic import bateman_bound
+        sage: bateman_bound(2**8*1234567893377)
+        66944986927
+    """
     _, n = nn.val_unit(2)
     primes = [p for p, _ in factor(n)]
     j = len(primes)
-    return prod([primes[k]^(2^(j-k-2)-1) for k in range(j-2)])
-
-def my_cmp(a, b):
-    return int(prod(b) - prod(a))
+    return prod(primes[k] ** (2 ** (j - k - 2) - 1) for k in xrange(j - 2))

@@ -12,23 +12,23 @@ your code. First, let us set a dummy global variable for our example::
 Then, if you want to switch the value momentarily you can write::
 
     sage: with libgap.global_context('FooBar', 'test'):
-    ....:     print libgap.get_global('FooBar')
-    "test"
+    ....:     print(libgap.get_global('FooBar'))
+    test
 
 Afterward, the global variable reverts to the previous value::
 
-    sage: print libgap.get_global('FooBar')
+    sage: print(libgap.get_global('FooBar'))
     123
 
 The value is reset even if exceptions occur::
 
     sage: with libgap.global_context('FooBar', 'test'):
-    ....:     print libgap.get_global('FooBar')
+    ....:     print(libgap.get_global('FooBar'))
     ....:     raise ValueError(libgap.get_global('FooBar'))
     Traceback (most recent call last):
     ...
-    ValueError: "test"
-    sage: print libgap.get_global('FooBar')
+    ValueError: test
+    sage: print(libgap.get_global('FooBar'))
     123
 """
 
@@ -65,7 +65,7 @@ class GlobalVariableContext():
 
             sage: libgap.set_global('FooBar', 1)
             sage: with libgap.global_context('FooBar', 2):
-            ....:     print libgap.get_global('FooBar')
+            ....:     print(libgap.get_global('FooBar'))
             2
             sage: libgap.get_global('FooBar')
             1
@@ -81,7 +81,7 @@ class GlobalVariableContext():
 
             sage: libgap.set_global('FooBar', 1)
             sage: with libgap.global_context('FooBar', 2):
-            ....:     print libgap.get_global('FooBar')
+            ....:     print(libgap.get_global('FooBar'))
             2
             sage: libgap.get_global('FooBar')
             1
@@ -97,7 +97,7 @@ class GlobalVariableContext():
 
             sage: libgap.set_global('FooBar', 1)
             sage: with libgap.global_context('FooBar', 2):
-            ....:     print libgap.get_global('FooBar')
+            ....:     print(libgap.get_global('FooBar'))
             2
             sage: libgap.get_global('FooBar')
             1

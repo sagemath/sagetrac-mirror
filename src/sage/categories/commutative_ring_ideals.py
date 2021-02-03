@@ -10,9 +10,9 @@ Commutative ring ideals
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_ideal
+from .category_types import Category_ideal
 from sage.categories.commutative_rings import CommutativeRings
-from ring_ideals import RingIdeals
+from .ring_ideals import RingIdeals
 
 class CommutativeRingIdeals(Category_ideal):
     """

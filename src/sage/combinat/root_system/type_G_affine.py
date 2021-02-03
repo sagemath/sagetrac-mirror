@@ -10,7 +10,7 @@ Root system data for (untwisted) type G affine
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cartan_type import CartanType_standard_untwisted_affine
+from .cartan_type import CartanType_standard_untwisted_affine
 class CartanType(CartanType_standard_untwisted_affine):
     def __init__(self):
         """
@@ -62,7 +62,7 @@ class CartanType(CartanType_standard_untwisted_affine):
             sage: sorted(g.edges())
             [(0, 2, 1), (1, 2, 1), (2, 0, 1), (2, 1, 3)]
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self)
         g.add_edge(1, 2)
         g.set_edge_label(2,1,3)
@@ -75,7 +75,7 @@ class CartanType(CartanType_standard_untwisted_affine):
 
         EXAMPLES::
 
-            sage: print CartanType(['G',2,1])._latex_dynkin_diagram()
+            sage: print(CartanType(['G',2,1])._latex_dynkin_diagram())
             \draw (2 cm,0) -- (4.0 cm,0);
             \draw (0, 0.15 cm) -- +(2 cm,0);
             \draw (0, -0.15 cm) -- +(2 cm,0);
@@ -103,7 +103,7 @@ class CartanType(CartanType_standard_untwisted_affine):
 
         EXAMPLES::
 
-            sage: print CartanType(['G',2,1]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['G',2,1]).ascii_art(label = lambda x: x+2))
               3
             O=<=O---O
             3   4   2

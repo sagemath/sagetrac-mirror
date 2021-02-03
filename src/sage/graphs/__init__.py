@@ -1,1 +1,2 @@
-import dot2tex_utils
+
+from . import dot2tex_utils

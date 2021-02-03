@@ -1,1 +1,1 @@
-from constructor import FunctionField
+from .constructor import FunctionField

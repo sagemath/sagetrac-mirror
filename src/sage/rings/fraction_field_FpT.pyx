@@ -1,14 +1,18 @@
+# distutils: libraries = gmp ntl zn_poly
+# distutils: language = c++
 "Univariate rational functions over prime fields"
 
 import sys
 
-include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
+from sage.rings.finite_rings.stdint cimport INTEGER_MOD_INT32_LIMIT
+
+from sage.libs.gmp.mpz cimport *
 from sage.rings.all import GF
 from sage.libs.flint.nmod_poly cimport *
 from sage.libs.flint.ulong_extras cimport n_jacobi
-from sage.structure.element cimport Element, ModuleElement, RingElement
+from sage.structure.element cimport Element, ModuleElement, FieldElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.fraction_field import FractionField_generic, FractionField_1poly_field
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int
@@ -16,11 +20,13 @@ from sage.rings.integer cimport Integer
 from sage.rings.polynomial.polynomial_zmod_flint cimport Polynomial_zmod_flint, get_cparent
 import sage.algebras.algebra
 
-from sage.rings.finite_rings.integer_mod cimport jacobi_int, mod_inverse_int, mod_pow_int
+from sage.structure.richcmp cimport rich_to_bool
+from sage.rings.finite_rings.integer_mod cimport mod_inverse_int
+
 
 class FpT(FractionField_1poly_field):
-    """
-    This class represents the fraction field GF(p)(T) for `2 < p < 2^16`.
+    r"""
+    This class represents the fraction field GF(p)(T) for `2 < p < \sqrt{2^31-1}`.
 
     EXAMPLES::
 
@@ -32,6 +38,8 @@ class FpT(FractionField_1poly_field):
         sage: parent(1-1/T) is K
         True
     """
+    INTEGER_LIMIT = INTEGER_MOD_INT32_LIMIT
+
     def __init__(self, R, names=None):  # we include names so that one can use the syntax K.<t> = FpT(GF(5)['t']).  It's actually ignored
         """
         INPUT:
@@ -45,15 +53,15 @@ class FpT(FractionField_1poly_field):
             Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 31
         """
         cdef long p = R.base_ring().characteristic()
-        assert 2 < p < 2**16
+        assert 2 < p < FpT.INTEGER_LIMIT
         self.p = p
         self.poly_ring = R
-        FractionField_1poly_field.__init__(self, R, element_class = FpTElement)
+        FractionField_1poly_field.__init__(self, R, element_class=FpTElement)
         self._populate_coercion_lists_(coerce_list=[Polyring_FpT_coerce(self), Fp_FpT_coerce(self), ZZ_FpT_coerce(self)])
 
     def __iter__(self):
         """
-        Returns an iterator over this fraction field.
+        Return an iterator over this fraction field.
 
         EXAMPLES::
 
@@ -78,9 +86,18 @@ class FpT(FractionField_1poly_field):
         """
         return FpT_iter(self, bound, start)
 
-cdef class FpTElement(RingElement):
+
+cdef class FpTElement(FieldElement):
     """
     An element of an FpT fraction field.
+
+    TESTS::
+
+        sage: R.<t> = GF(5)[]
+        sage: K = R.fraction_field()
+        sage: A.<x> = K[]
+        sage: x.divides(x)  # Testing ticket #27064
+        True
     """
 
     def __init__(self, parent, numer, denom=1, coerce=True, reduce=True):
@@ -98,14 +115,14 @@ cdef class FpTElement(RingElement):
             sage: R(7)
             2
         """
-        RingElement.__init__(self, parent)
+        super().__init__(parent)
         if coerce:
             numer = parent.poly_ring(numer)
             denom = parent.poly_ring(denom)
         self.p = parent.p
         nmod_poly_init(self._numer, self.p)
         nmod_poly_init(self._denom, self.p)
-        self.initalized = True
+        self.initialized = True
         cdef long n
         for n, a in enumerate(numer):
             nmod_poly_set_coeff_ui(self._numer, n, a)
@@ -124,7 +141,7 @@ cdef class FpTElement(RingElement):
             sage: t = K.gen()
             sage: del t # indirect doctest
         """
-        if self.initalized:
+        if self.initialized:
             nmod_poly_clear(self._numer)
             nmod_poly_clear(self._denom)
 
@@ -152,7 +169,7 @@ cdef class FpTElement(RingElement):
         x.p = self.p
         nmod_poly_init_preinv(x._numer, x.p, self._numer.mod.ninv)
         nmod_poly_init_preinv(x._denom, x.p, self._numer.mod.ninv)
-        x.initalized = True
+        x.initialized = True
         return x
 
     cdef FpTElement _copy_c(self):
@@ -166,12 +183,12 @@ cdef class FpTElement(RingElement):
         nmod_poly_init2_preinv(x._denom, x.p, self._denom.mod.ninv, self._denom.length)
         nmod_poly_set(x._numer, self._numer)
         nmod_poly_set(x._denom, self._denom)
-        x.initalized = True
+        x.initialized = True
         return x
 
     def numer(self):
         """
-        Returns the numerator of this element, as an element of the polynomial ring.
+        Return the numerator of this element, as an element of the polynomial ring.
 
         EXAMPLES::
 
@@ -184,7 +201,7 @@ cdef class FpTElement(RingElement):
 
     cpdef numerator(self):
         """
-        Returns the numerator of this element, as an element of the polynomial ring.
+        Return the numerator of this element, as an element of the polynomial ring.
 
         EXAMPLES::
 
@@ -202,7 +219,7 @@ cdef class FpTElement(RingElement):
 
     def denom(self):
         """
-        Returns the denominator of this element, as an element of the polynomial ring.
+        Return the denominator of this element, as an element of the polynomial ring.
 
         EXAMPLES::
 
@@ -215,7 +232,7 @@ cdef class FpTElement(RingElement):
 
     cpdef denominator(self):
         """
-        Returns the denominator of this element, as an element of the polynomial ring.
+        Return the denominator of this element, as an element of the polynomial ring.
 
         EXAMPLES::
 
@@ -267,7 +284,7 @@ cdef class FpTElement(RingElement):
 
     def valuation(self, v):
         """
-        Returns the valuation of self at `v`.
+        Return the valuation of self at `v`.
 
         EXAMPLES::
 
@@ -296,7 +313,7 @@ cdef class FpTElement(RingElement):
 
     def _repr_(self):
         """
-        Returns a string representation of this element.
+        Return a string representation of this element.
 
         EXAMPLES::
 
@@ -326,7 +343,7 @@ cdef class FpTElement(RingElement):
 
     def _latex_(self):
         r"""
-        Returns a latex representation of this element.
+        Return a latex representation of this element.
 
         EXAMPLES::
 
@@ -341,23 +358,13 @@ cdef class FpTElement(RingElement):
         else:
             return "\\frac{%s}{%s}" % (self.numer()._latex_(), self.denom()._latex_())
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(self, other, int op):
         """
-        EXAMPLES::
+        Compare this with another element.
 
-            sage: K = Frac(GF(5)['t']); t = K.gen()
-            sage: t == 1
-            False
-            sage: t + 1 < t^2
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(self, Element other) except -2:
-        """
-        Compares this with another element.  The ordering is arbitrary,
-        but it is an ordering, and it is consistent between runs.  It has
-        nothing to do with the algebra structure.
+        The ordering is arbitrary, but it is an ordering, and it is
+        consistent between runs.  It has nothing to do with the
+        algebra structure.
 
         TESTS::
 
@@ -387,15 +394,25 @@ cdef class FpTElement(RingElement):
             True
             sage: b < 1/a
             False
+
+        ::
+
+            sage: K = Frac(GF(5)['t']); t = K.gen()
+            sage: t == 1
+            False
+            sage: t + 1 < t^2
+            True
         """
         # They are normalized.
         cdef int j = sage_cmp_nmod_poly_t(self._numer, (<FpTElement>other)._numer)
-        if j: return j
-        return sage_cmp_nmod_poly_t(self._denom, (<FpTElement>other)._denom)
+        if j:
+            return rich_to_bool(op, j)
+        j = sage_cmp_nmod_poly_t(self._denom, (<FpTElement>other)._denom)
+        return rich_to_bool(op, j)
 
     def __hash__(self):
         """
-        Returns a hash value for this element.
+        Return a hash value for this element.
 
         TESTS::
 
@@ -431,7 +448,7 @@ cdef class FpTElement(RingElement):
 
     def __invert__(self):
         """
-        Returns the multiplicative inverse of this element.
+        Return the multiplicative inverse of this element.
 
         EXAMPLES::
 
@@ -446,9 +463,9 @@ cdef class FpTElement(RingElement):
         nmod_poly_swap(x._numer, x._denom)
         return x
 
-    cpdef ModuleElement _add_(self, ModuleElement _other):
+    cpdef _add_(self, _other):
         """
-        Returns the sum of this fraction field element and another.
+        Return the sum of this fraction field element and another.
 
         EXAMPLES::
 
@@ -468,15 +485,15 @@ cdef class FpTElement(RingElement):
         cdef FpTElement other = <FpTElement>_other
         cdef FpTElement x = self._new_c()
         nmod_poly_mul(x._numer, self._numer, other._denom)
-        nmod_poly_mul(x._denom, self._denom, other._numer) # use x._denom as a temp
+        nmod_poly_mul(x._denom, self._denom, other._numer)  # use x._denom as a temp
         nmod_poly_add(x._numer, x._numer, x._denom)
         nmod_poly_mul(x._denom, self._denom, other._denom)
         normalize(x._numer, x._denom, self.p)
         return x
 
-    cpdef ModuleElement _sub_(self, ModuleElement _other):
+    cpdef _sub_(self, _other):
         """
-        Returns the difference of this fraction field element and another.
+        Return the difference of this fraction field element and another.
 
         EXAMPLES::
 
@@ -490,15 +507,15 @@ cdef class FpTElement(RingElement):
         cdef FpTElement other = <FpTElement>_other
         cdef FpTElement x = self._new_c()
         nmod_poly_mul(x._numer, self._numer, other._denom)
-        nmod_poly_mul(x._denom, self._denom, other._numer) # use x._denom as a temp
+        nmod_poly_mul(x._denom, self._denom, other._numer)  # use x._denom as a temp
         nmod_poly_sub(x._numer, x._numer, x._denom)
         nmod_poly_mul(x._denom, self._denom, other._denom)
         normalize(x._numer, x._denom, self.p)
         return x
 
-    cpdef RingElement _mul_(self, RingElement _other):
+    cpdef _mul_(self, _other):
         """
-        Returns the product of this fraction field element and another.
+        Return the product of this fraction field element and another.
 
         EXAMPLES::
 
@@ -516,9 +533,9 @@ cdef class FpTElement(RingElement):
         normalize(x._numer, x._denom, self.p)
         return x
 
-    cpdef RingElement _div_(self, RingElement _other):
+    cpdef _div_(self, _other):
         """
-        Returns the quotient of this fraction field element and another.
+        Return the quotient of this fraction field element and another.
 
         EXAMPLES::
 
@@ -565,9 +582,8 @@ cdef class FpTElement(RingElement):
             sage: R.<t> = FpT(GF(3)['t'])
             sage: a = R(0)
             sage: for _ in range(30):
-            ...       a = a.next()
-            ...       print a
-            ...
+            ....:     a = a.next()
+            ....:     print(a)
             1
             2
             1/t
@@ -649,7 +665,9 @@ cdef class FpTElement(RingElement):
 
     cpdef _sqrt_or_None(self):
         """
-        Returns the squre root of self, or None. Differs from sqrt() by not raising an exception.
+        Return the square root of ``self``, or ``None``.
+
+        Differs from sqrt() by not raising an exception.
 
         TESTS::
 
@@ -719,7 +737,7 @@ cdef class FpTElement(RingElement):
 
     cpdef bint is_square(self):
         """
-        Returns True if this element is the square of another element of the fraction field.
+        Return True if this element is the square of another element of the fraction field.
 
         EXAMPLES::
 
@@ -735,7 +753,7 @@ cdef class FpTElement(RingElement):
 
     def sqrt(self, extend=True, all=False):
         """
-        Returns the square root of this element.
+        Return the square root of this element.
 
         INPUT:
 
@@ -759,9 +777,9 @@ cdef class FpTElement(RingElement):
         s = self._sqrt_or_None()
         if s is None:
             if extend:
-                raise NotImplementedError, "function fields not yet implemented"
+                raise NotImplementedError("function fields not yet implemented")
             else:
-                raise ValueError, "not a perfect square"
+                raise ValueError("not a perfect square")
         else:
             if all:
                 if not s:
@@ -772,8 +790,8 @@ cdef class FpTElement(RingElement):
                 return s
 
     def __pow__(FpTElement self, Py_ssize_t e, dummy):
-        """
-        Returns the ``e``th power of this element.
+        r"""
+        Return the ``e``th power of this element.
 
         EXAMPLES::
 
@@ -818,7 +836,7 @@ cdef class FpTElement(RingElement):
 
 cdef class FpT_iter:
     """
-    Returns a class that iterates over all elements of an FpT.
+    Return a class that iterates over all elements of an FpT.
 
     EXAMPLES::
 
@@ -855,7 +873,7 @@ cdef class FpT_iter:
     """
     def __init__(self, parent, degree=None, FpTElement start=None):
         """
-        INPUTS:
+        INPUT:
 
         - parent -- The FpT that we're iterating over.
 
@@ -868,12 +886,12 @@ cdef class FpT_iter:
             sage: K = GF(11)['t'].fraction_field()
             sage: I = K.iter(2) # indirect doctest
             sage: for a in I:
-            ...       if a.denom()[0] == 3 and a.numer()[1] == 2:
-            ...           print a; break
+            ....:     if a.denom()[0] == 3 and a.numer()[1] == 2:
+            ....:         print(a); break
             2*t/(t + 3)
         """
-        #if degree is None:
-        #    raise NotImplementedError
+        # if degree is None:
+        #     raise NotImplementedError
         self.parent = parent
         self.cur = start
         self.degree = -2 if degree is None else degree
@@ -907,7 +925,7 @@ cdef class FpT_iter:
 
     def __iter__(self):
         """
-        Returns this iterator.
+        Return this iterator.
 
         TESTS::
 
@@ -915,15 +933,15 @@ cdef class FpT_iter:
             sage: K = GF(3)['t'].fraction_field()
             sage: I = FpT_iter(K, 3)
             sage: for a in I: # indirect doctest
-            ...       if a.numer()[1] == 1 and a.denom()[1] == 2 and a.is_square():
-            ...            print a; break
+            ....:     if a.numer()[1] == 1 and a.denom()[1] == 2 and a.is_square():
+            ....:          print(a); break
             (t^2 + t + 1)/(t^2 + 2*t + 1)
         """
         return self
 
     def __next__(self):
         """
-        Returns the next element to iterate over.
+        Return the next element to iterate over.
 
         This is achieved by iterating over monic denominators, and for each denominator,
         iterating over all numerators relatively prime to the given denominator.
@@ -998,7 +1016,7 @@ cdef class FpT_iter:
             self.cur = next_
         return self.cur
 
-cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
+cdef class Polyring_FpT_coerce(RingHomomorphism):
     """
     This class represents the coercion map from GF(p)[t] to GF(p)(t)
 
@@ -1007,17 +1025,22 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
         sage: R.<t> = GF(5)[]
         sage: K = R.fraction_field()
         sage: f = K.coerce_map_from(R); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Univariate Polynomial Ring in t over Finite Field of size 5
           To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
         sage: type(f)
         <type 'sage.rings.fraction_field_FpT.Polyring_FpT_coerce'>
+
+    TESTS::
+
+        TestSuite(f).run()
+
     """
     cdef long p
 
     def __init__(self, R):
         """
-        INPUTS:
+        INPUT:
 
         - R -- An FpT
 
@@ -1026,10 +1049,10 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             sage: R.<t> = GF(next_prime(2000))[]
             sage: K = R.fraction_field() # indirect doctest
         """
-        RingHomomorphism_coercion.__init__(self, R.ring_of_integers().Hom(R), check=False)
+        RingHomomorphism.__init__(self, R.ring_of_integers().Hom(R))
         self.p = R.base_ring().characteristic()
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1041,8 +1064,9 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             sage: f(t^2 + 1)
             t^2 + 1
         """
-        _slots['p'] = self.p
-        return RingHomomorphism_coercion._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1057,7 +1081,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             t^2 + 1
         """
         self.p = _slots['p']
-        RingHomomorphism_coercion._update_slots(self, _slots)
+        RingHomomorphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, _x):
         """
@@ -1079,7 +1103,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
         nmod_poly_init(ans._denom, ans.p)
         nmod_poly_set(ans._numer, &x.x)
         nmod_poly_set_coeff_ui(ans._denom, 0, 1)
-        ans.initalized = True
+        ans.initialized = True
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1102,7 +1126,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             sage: f(2*t + 2, 2, reduce=False)
             (2*t + 2)/2
 
-        TEST:
+        TESTS:
 
         Check that :trac:`12217` and :trac:`16811` are fixed::
 
@@ -1154,12 +1178,12 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
                 normalize(ans._numer, ans._denom, ans.p)
         else:
             raise TypeError("FpT only supports two positional arguments")
-        ans.initalized = True
+        ans.initialized = True
         return ans
 
     def section(self):
         """
-        Returns the section of this inclusion: the partially defined map from ``GF(p)(t)``
+        Return the section of this inclusion: the partially defined map from ``GF(p)(t)``
         back to ``GF(p)[t]``, defined on elements with unit denominator.
 
         EXAMPLES::
@@ -1195,12 +1219,29 @@ cdef class FpT_Polyring_section(Section):
           To:   Univariate Polynomial Ring in t over Finite Field of size 5
         sage: type(f)
         <type 'sage.rings.fraction_field_FpT.FpT_Polyring_section'>
+
+    .. WARNING::
+
+        Comparison of ``FpT_Polyring_section`` objects is not currently
+        implemented. See :trac:`23469`. ::
+
+            sage: fprime = loads(dumps(f))
+            sage: fprime == f
+            False
+
+            sage: fprime(1+t) == f(1+t)
+            True
+
+    TESTS::
+
+        sage: TestSuite(f).run(skip='_test_pickling')
+
     """
     cdef long p
 
     def __init__(self, Polyring_FpT_coerce f):
         """
-        INPUTS:
+        INPUT:
 
         - f -- A Polyring_FpT_coerce homomorphism
 
@@ -1214,7 +1255,7 @@ cdef class FpT_Polyring_section(Section):
         self.p = f.p
         Section.__init__(self, f)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1232,8 +1273,9 @@ cdef class FpT_Polyring_section(Section):
             ...
             ValueError: not integral
         """
-        _slots['p'] = self.p
-        return Section._extra_slots(self, _slots)
+        slots = Section._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1282,7 +1324,7 @@ cdef class FpT_Polyring_section(Section):
         if nmod_poly_degree(x._denom) != 0:
             normalize(x._numer, x._denom, self.p)
             if nmod_poly_degree(x._denom) != 0:
-                raise ValueError, "not integral"
+                raise ValueError("not integral")
         ans = Polynomial_zmod_flint.__new__(Polynomial_zmod_flint)
         if nmod_poly_get_coeff_ui(x._denom, 0) != 1:
             normalize(x._numer, x._denom, self.p)
@@ -1292,7 +1334,7 @@ cdef class FpT_Polyring_section(Section):
         ans._cparent = get_cparent(ans._parent)
         return ans
 
-cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
+cdef class Fp_FpT_coerce(RingHomomorphism):
     """
     This class represents the coercion map from GF(p) to GF(p)(t)
 
@@ -1301,17 +1343,22 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
         sage: R.<t> = GF(5)[]
         sage: K = R.fraction_field()
         sage: f = K.coerce_map_from(GF(5)); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Finite Field of size 5
           To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
         sage: type(f)
         <type 'sage.rings.fraction_field_FpT.Fp_FpT_coerce'>
+
+    TESTS::
+
+        sage: TestSuite(f).run()
+
     """
     cdef long p
 
     def __init__(self, R):
         """
-        INPUTS:
+        INPUT:
 
         - R -- An FpT
 
@@ -1320,10 +1367,10 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
             sage: R.<t> = GF(next_prime(3000))[]
             sage: K = R.fraction_field() # indirect doctest
         """
-        RingHomomorphism_coercion.__init__(self, R.base_ring().Hom(R), check=False)
+        RingHomomorphism.__init__(self, R.base_ring().Hom(R))
         self.p = R.base_ring().characteristic()
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1338,8 +1385,9 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
             sage: g(GF(5)(2)) == f(GF(5)(2))
             True
         """
-        _slots['p'] = self.p
-        return RingHomomorphism_coercion._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1357,7 +1405,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
             True
         """
         self.p = _slots['p']
-        RingHomomorphism_coercion._update_slots(self, _slots)
+        RingHomomorphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, _x):
         """
@@ -1379,7 +1427,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
         nmod_poly_init(ans._denom, ans.p)
         nmod_poly_set_coeff_ui(ans._numer, 0, x.ivalue)
         nmod_poly_set_coeff_ui(ans._denom, 0, 1)
-        ans.initalized = True
+        ans.initialized = True
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1425,15 +1473,15 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
                     y = R(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
         else:
-            raise ValueError, "FpT only supports two positional arguments"
+            raise ValueError("FpT only supports two positional arguments")
         if 'reduce' not in kwds or kwds['reduce']:
             normalize(ans._numer, ans._denom, ans.p)
-        ans.initalized = True
+        ans.initialized = True
         return ans
 
     def section(self):
         """
-        Returns the section of this inclusion: the partially defined map from ``GF(p)(t)``
+        Return the section of this inclusion: the partially defined map from ``GF(p)(t)``
         back to ``GF(p)``, defined on constant elements.
 
         EXAMPLES::
@@ -1473,12 +1521,30 @@ cdef class FpT_Fp_section(Section):
           To:   Finite Field of size 5
         sage: type(f)
         <type 'sage.rings.fraction_field_FpT.FpT_Fp_section'>
+
+    .. WARNING::
+
+        Comparison of ``FpT_Fp_section`` objects is not currently
+        implemented. See :trac:`23469`. ::
+
+            sage: fprime = loads(dumps(f))
+            sage: fprime == f
+            False
+
+            sage: fprime(3) == f(3)
+            True
+
+    TESTS::
+
+        sage: TestSuite(f).run(skip='_test_pickling')
+
+
     """
     cdef long p
 
     def __init__(self, Fp_FpT_coerce f):
         """
-        INPUTS:
+        INPUT:
 
         - f -- An Fp_FpT_coerce homomorphism
 
@@ -1492,7 +1558,7 @@ cdef class FpT_Fp_section(Section):
         self.p = f.p
         Section.__init__(self, f)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1516,8 +1582,9 @@ cdef class FpT_Fp_section(Section):
             sage: g(K(0))
             0
         """
-        _slots['p'] = self.p
-        return Section._extra_slots(self, _slots)
+        slots = Section._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1578,9 +1645,9 @@ cdef class FpT_Fp_section(Section):
         if nmod_poly_degree(x._denom) != 0 or nmod_poly_degree(x._numer) > 0:
             normalize(x._numer, x._denom, self.p)
             if nmod_poly_degree(x._denom) != 0:
-                raise ValueError, "not integral"
+                raise ValueError("not integral")
             if nmod_poly_degree(x._numer) > 0:
-                raise ValueError, "not constant"
+                raise ValueError("not constant")
         ans = IntegerMod_int.__new__(IntegerMod_int)
         ans._parent = self.codomain()
         ans.__modulus = ans._parent._pyx_order
@@ -1589,7 +1656,7 @@ cdef class FpT_Fp_section(Section):
         ans.ivalue = nmod_poly_get_coeff_ui(x._numer, 0)
         return ans
 
-cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
+cdef class ZZ_FpT_coerce(RingHomomorphism):
     """
     This class represents the coercion map from ZZ to GF(p)(t)
 
@@ -1598,17 +1665,22 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
         sage: R.<t> = GF(17)[]
         sage: K = R.fraction_field()
         sage: f = K.coerce_map_from(ZZ); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Integer Ring
           To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 17
         sage: type(f)
         <type 'sage.rings.fraction_field_FpT.ZZ_FpT_coerce'>
+
+    TESTS::
+
+        sage: TestSuite(f).run()
+
     """
     cdef long p
 
     def __init__(self, R):
         """
-        INPUTS:
+        INPUT:
 
         - R -- An FpT
 
@@ -1617,10 +1689,10 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             sage: R.<t> = GF(next_prime(3000))[]
             sage: K = R.fraction_field() # indirect doctest
         """
-        RingHomomorphism_coercion.__init__(self, ZZ.Hom(R), check=False)
+        RingHomomorphism.__init__(self, ZZ.Hom(R))
         self.p = R.base_ring().characteristic()
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1637,8 +1709,9 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             sage: g(0) == f(0)
             True
         """
-        _slots['p'] = self.p
-        return RingHomomorphism_coercion._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1658,7 +1731,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             True
         """
         self.p = _slots['p']
-        RingHomomorphism_coercion._update_slots(self, _slots)
+        RingHomomorphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, _x):
         """
@@ -1680,7 +1753,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
         nmod_poly_init(ans._denom, ans.p)
         nmod_poly_set_coeff_ui(ans._numer, 0, mpz_fdiv_ui(x.value, self.p))
         nmod_poly_set_coeff_ui(ans._denom, 0, 1)
-        ans.initalized = True
+        ans.initialized = True
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1728,15 +1801,15 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
                     y = R(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
         else:
-            raise ValueError, "FpT only supports two positional arguments"
+            raise ValueError("FpT only supports two positional arguments")
         if 'reduce' not in kwds or kwds['reduce']:
             normalize(ans._numer, ans._denom, ans.p)
-        ans.initalized = True
+        ans.initialized = True
         return ans
 
     def section(self):
         """
-        Returns the section of this inclusion: the partially defined map from ``GF(p)(t)``
+        Return the section of this inclusion: the partially defined map from ``GF(p)(t)``
         back to ``ZZ``, defined on constant elements.
 
         EXAMPLES::
@@ -1771,11 +1844,11 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
 
 cdef inline bint normalize(nmod_poly_t numer, nmod_poly_t denom, long p):
     """
-    Puts numer/denom into a normal form: denominator monic and sharing no common factor with the numerator.
+    Put numer/denom into a normal form: denominator monic and sharing no common factor with the numerator.
 
     The normalized form of 0 is 0/1.
 
-    Returns True if numer and denom were changed.
+    Return True if numer and denom were changed.
     """
     cdef long a
     cdef bint changed
@@ -1813,15 +1886,17 @@ cdef inline bint normalize(nmod_poly_t numer, nmod_poly_t denom, long p):
     finally:
         nmod_poly_clear(g)
 
+
 cdef inline unsigned long nmod_poly_leading(nmod_poly_t poly):
     """
-    Returns the leading coefficient of ``poly``.
+    Return the leading coefficient of ``poly``.
     """
     return nmod_poly_get_coeff_ui(poly, nmod_poly_degree(poly))
 
+
 cdef inline void nmod_poly_inc(nmod_poly_t poly, bint monic):
     """
-    Sets poly to the "next" polynomial: this is just counting in base p.
+    Set poly to the "next" polynomial: this is just counting in base p.
 
     If monic is True then will only iterate through monic polynomials.
     """
@@ -1837,11 +1912,12 @@ cdef inline void nmod_poly_inc(nmod_poly_t poly, bint monic):
             break
     if monic and a == 2 and n == nmod_poly_degree(poly):
         nmod_poly_set_coeff_ui(poly, n, 0)
-        nmod_poly_set_coeff_ui(poly, n+1, 1)
+        nmod_poly_set_coeff_ui(poly, n + 1, 1)
+
 
 cdef inline long nmod_poly_cmp(nmod_poly_t a, nmod_poly_t b):
     """
-    Compares `a` and `b`, returning 0 if they are equal.
+    Compare `a` and `b`, returning 0 if they are equal.
 
     - If the degree of `a` is less than that of `b`, returns -1.
 
@@ -1866,16 +1942,18 @@ cdef inline long nmod_poly_cmp(nmod_poly_t a, nmod_poly_t b):
         d -= 1
     return 0
 
+
 cdef bint nmod_poly_sqrt_check(nmod_poly_t poly):
-     """
-     Quick check to see if poly could possibly be a square.
-     """
-     # We could use Sage's jacobi_int which is for 32 bits integers rather
-     # than FLINT's n_jacobi which is for longs as the FpT class is crafted
-     # for primes 2 < p < 2^16
-     return (nmod_poly_degree(poly) % 2 == 0
-         and n_jacobi(nmod_poly_leading(poly), poly.mod.n) == 1
-         and n_jacobi(nmod_poly_get_coeff_ui(poly, 0), poly.mod.n) != -1)
+    """
+    Quick check to see if poly could possibly be a square.
+    """
+    # We could use Sage's jacobi_int which is for 32 bits integers rather
+    # than FLINT's n_jacobi which is for longs as the FpT class is crafted
+    # for primes 2 < p < 2^16
+    return (nmod_poly_degree(poly) % 2 == 0
+            and n_jacobi(nmod_poly_leading(poly), poly.mod.n) == 1
+            and n_jacobi(nmod_poly_get_coeff_ui(poly, 0), poly.mod.n) != -1)
+
 
 def unpickle_FpT_element(K, numer, denom):
     """
@@ -1903,14 +1981,18 @@ cdef int sage_cmp_nmod_poly_t(nmod_poly_t L, nmod_poly_t R):
 
     # First compare the degrees
     j = nmod_poly_degree(L) - nmod_poly_degree(R)
-    if j<0: return -1
-    elif j>0: return 1
+    if j < 0:
+        return -1
+    elif j > 0:
+        return 1
 
     # Same degree, so compare coefficients, term by term
-    for i in range(nmod_poly_degree(L)+1):
-        j = nmod_poly_get_coeff_ui(L,i) - nmod_poly_get_coeff_ui(R,i)
-        if j<0: return -1
-        elif j>0: return 1
+    for i in range(nmod_poly_degree(L) + 1):
+        j = nmod_poly_get_coeff_ui(L, i) - nmod_poly_get_coeff_ui(R, i)
+        if j < 0:
+            return -1
+        elif j > 0:
+            return 1
 
     # Two polynomials are equal
     return 0

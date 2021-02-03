@@ -1,14 +1,5 @@
-###############################################################################
-#
-#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-#
-###############################################################################
-
 """
-Homogeneous ideals of free algebras.
+Homogeneous ideals of free algebras
 
 For twosided ideals and when the base ring is a field, this
 implementation also provides Groebner bases and ideal containment
@@ -39,11 +30,21 @@ AUTHOR:
 
 """
 
+# ****************************************************************************
+#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 from sage.rings.noncommutative_ideals import Ideal_nc
 from sage.libs.singular.function import lib, singular_function
 from sage.algebras.letterplace.free_algebra_letterplace cimport FreeAlgebra_letterplace
 from sage.algebras.letterplace.free_algebra_element_letterplace cimport FreeAlgebraElement_letterplace
-from sage.all import Infinity
+from sage.rings.infinity import Infinity
 
 #####################
 # Define some singular functions
@@ -161,7 +162,7 @@ class LetterplaceIdeal(Ideal_nc):
           is a left, right or twosided ideal. Groebner bases or
           only supported in the twosided case.
 
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: from sage.algebras.letterplace.letterplace_ideal import LetterplaceIdeal
@@ -177,6 +178,7 @@ class LetterplaceIdeal(Ideal_nc):
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
             sage: TestSuite(I).run(skip=['_test_category'],verbose=True)
             running ._test_eq() . . . pass
+            running ._test_new() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_pickling() . . . pass
 
@@ -200,24 +202,24 @@ class LetterplaceIdeal(Ideal_nc):
         ideals, and the ring of coefficients must be a field. A
         `TypeError` is raised if one of these conditions is violated.
 
-        NOTES:
+        .. NOTE::
 
-        - The result is cached. The same Groebner basis is returned
-          if a smaller degree bound than the known one is requested.
-        - If the degree bound Infinity is requested, it is attempted to
-          compute a complete Groebner basis. But we can not guarantee
-          that the computation will terminate, since not all twosided
-          homogeneous ideals of a free algebra have a finite Groebner
-          basis.
+            - The result is cached. The same Groebner basis is returned
+              if a smaller degree bound than the known one is requested.
+            - If the degree bound ``Infinity`` is requested, it is attempted to
+              compute a complete Groebner basis. But we cannot guarantee
+              that the computation will terminate, since not all twosided
+              homogeneous ideals of a free algebra have a finite Groebner
+              basis.
 
         EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
 
-        Since `F` was cached and since its degree bound can not be
+        Since `F` was cached and since its degree bound cannot be
         decreased, it may happen that, as a side effect of other tests,
-        it already has a degree bound bigger than 3. So, we can not
+        it already has a degree bound bigger than 3. So, we cannot
         test against the output of ``I.groebner_basis()``::
 
             sage: F.set_degbound(3)
@@ -247,9 +249,8 @@ class LetterplaceIdeal(Ideal_nc):
             sage: J.groebner_basis()
             [b*a^2 - c^3, b^2*a + c*a^2, c*a^3 + c^3*b, c^3*b^2 + c^4*a]
 
-        Aparently, the results are compatible, by sending `a` to `x`, `b`
+        Apparently, the results are compatible, by sending `a` to `x`, `b`
         to `y` and `c` to `z`.
-
         """
         cdef FreeAlgebra_letterplace A = self.ring()
         cdef FreeAlgebraElement_letterplace x
@@ -258,9 +259,9 @@ class LetterplaceIdeal(Ideal_nc):
         if self.__uptodeg >= degbound:
             return self.__GB
         if not A.base().is_field():
-            raise TypeError, "Currently, we can only compute Groebner bases if the ring of coefficients is a field"
+            raise TypeError("Currently, we can only compute Groebner bases if the ring of coefficients is a field")
         if self.side()!='twosided':
-            raise TypeError, "This ideal is not two-sided. We can only compute two-sided Groebner bases"
+            raise TypeError("This ideal is not two-sided. We can only compute two-sided Groebner bases")
         if degbound == Infinity:
             while self.__uptodeg<Infinity:
                 test_bound = 2*max([x._poly.degree() for x in self.__GB.gens()])

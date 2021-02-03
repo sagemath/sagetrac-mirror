@@ -10,7 +10,7 @@ the local components of modular forms.
 This module contains classes to represent such characters when `F` is `\QQ_p`
 or a quadratic extension. In the latter case, we choose a quadratic extension
 `K` of `\QQ` whose completion at `p` is `F`, and use Sage's wrappers of the
-Pari ``idealstar`` and ``ideallog`` methods to work in the finite group
+Pari :pari:`idealstar` and :pari:`ideallog` methods to work in the finite group
 `\mathcal{O}_K / p^c` for `c \ge 0`.
 
 An example with characters of `\QQ_7`::
@@ -40,19 +40,19 @@ Characters are themselves group elements, and basic arithmetic on them works::
     sage: chi.multiplicative_order()
     +Infinity
 """
-
 import operator
+
 from sage.structure.element import MultiplicativeGroupElement, parent
 from sage.structure.parent_base import ParentWithBase
-from sage.structure.sequence    import Sequence
-from sage.rings.all             import QQ, ZZ, Zmod, NumberField
-from sage.rings.ring import is_Ring
-from sage.misc.cachefunc        import cached_method
-from sage.misc.abstract_method  import abstract_method
-from sage.misc.misc_c           import prod
-from sage.categories.groups     import Groups
-from sage.functions.other       import ceil
-from sage.misc.mrange           import xmrange
+from sage.structure.sequence import Sequence
+from sage.structure.richcmp import richcmp_not_equal, richcmp
+from sage.rings.all import QQ, ZZ, Zmod, NumberField
+from sage.misc.cachefunc import cached_method
+from sage.misc.abstract_method import abstract_method
+from sage.misc.misc_c import prod
+from sage.categories.groups import Groups
+from sage.categories.rings import Rings
+from sage.misc.mrange import xmrange
 
 
 class SmoothCharacterGeneric(MultiplicativeGroupElement):
@@ -93,21 +93,30 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             sage: SmoothCharacterGroupQp(5, QQ).character(5, [-1, 7]) # indirect doctest
             Character of Q_5*, of level 1, mapping 2 |--> -1, 5 |--> 7
         """
-        if self.level() == 0: return
+        if self.level() == 0:
+            return
         v = self.parent().subgroup_gens(self.level())
-        if all([self(x) == 1 for x in v]):
+        if all(self(x) == 1 for x in v):
             new_gens = self.parent().unit_gens(self.level() - 1)
             new_values = [self(x) for x in new_gens]
             self._values_on_gens = Sequence(new_values, universe=self.base_ring(), immutable=True)
             self._c = self._c - 1
             self._check_level()
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Compare self and other. Note that this only gets called when the
-        parents of self and other are identical.
+        Compare ``self`` and ``other``.
 
-        EXAMPLE::
+        Note that this only gets called when the
+        parents of ``self`` and ``other`` are identical.
+
+        INPUT:
+
+        - ``other`` -- another smooth character
+
+        - ``op`` -- a comparison operator (see :mod:`sage.structure.richcmp`)
+
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp, SmoothCharacterGroupUnramifiedQuadratic
             sage: SmoothCharacterGroupQp(7, Zmod(3)).character(1, [2, 1]) == SmoothCharacterGroupQp(7, ZZ).character(1, [-1, 1])
@@ -121,14 +130,18 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             sage: chi1 == loads(dumps(chi1))
             True
         """
-        assert other.parent() is self.parent()
-        return cmp(self.level(), other.level()) or cmp(self._values_on_gens, other._values_on_gens)
+        lx = self.level()
+        rx = other.level()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self._values_on_gens, other._values_on_gens, op)
 
     def multiplicative_order(self):
         r"""
         Return the order of this character as an element of the character group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
             sage: K.<z> = CyclotomicField(42)
@@ -142,7 +155,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             sage: G.character(0, [1]).multiplicative_order()
             1
         """
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         from sage.rings.infinity import Infinity
         if self._values_on_gens[-1].multiplicative_order() == Infinity:
             return Infinity
@@ -180,7 +193,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             sage: chi(QuadraticField(-1,'i').gen())
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Number Field in i with defining polynomial x^2 + 1 to Rational Field
+            TypeError: no canonical coercion from Number Field in i with defining polynomial x^2 + 1 with i = 1*I to Rational Field
             sage: chi(0)
             Traceback (most recent call last):
             ...
@@ -204,7 +217,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             -z^3
         """
         v = self.parent().discrete_log(self.level(), x)
-        return prod([self._values_on_gens[i] ** v[i] for i in xrange(len(v))])
+        return prod([self._values_on_gens[i] ** v[i] for i in range(len(v))])
 
     def _repr_(self):
         r"""
@@ -271,7 +284,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
         Return the restriction of this character to `\QQ_p^\times`, embedded as
         a subfield of `F^\times`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupRamifiedQuadratic
             sage: SmoothCharacterGroupRamifiedQuadratic(3, 0, QQ).character(0, [2]).restrict_to_Qp()
@@ -289,7 +302,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
         Note that this is the Galois operation on the *domain*, not on the
         *codomain*.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupUnramifiedQuadratic
             sage: K.<w> = CyclotomicField(3)
@@ -303,9 +316,9 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             sage: chi * chi2 == chi.parent().compose_with_norm(chi.restrict_to_Qp())
             True
         """
-        K,s = self.parent().number_field().objgen()
+        K, s = self.parent().number_field().objgen()
         if K.absolute_degree() != 2:
-            raise ValueError( "Character must be defined on a quadratic extension" )
+            raise ValueError("Character must be defined on a quadratic extension")
         sigs = K.embeddings(K)
         sig = [x for x in sigs if x(s) != s][0]
         return self.parent().character(self.level(), [self(sig(x)) for x in self.parent().unit_gens(self.level())])
@@ -331,9 +344,10 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             ...
             TypeError: base ring (=hello) must be a ring
         """
-        if not is_Ring(base_ring):
-            raise TypeError( "base ring (=%s) must be a ring" % base_ring )
-        ParentWithBase.__init__(self, base=base_ring, category=Groups())
+        if base_ring not in Rings():
+            raise TypeError("base ring (=%s) must be a ring" % base_ring)
+        ParentWithBase.__init__(self, base=base_ring,
+                                category=Groups().Commutative())
         if not (p in ZZ and ZZ(p).is_prime()):
             raise ValueError( "p (=%s) must be a prime integer" % p )
         self._p = ZZ.coerce(p)
@@ -359,7 +373,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: G(GK.character(0, [i])) # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce i to a rational
+            TypeError: unable to convert i to an element of Rational Field
         """
         if x == 1:
             return self.character(0, [1])
@@ -370,7 +384,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         else:
             raise TypeError
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         TESTS::
 
@@ -385,14 +399,52 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: G == SmoothCharacterGroupQp(3, QQ)
             True
         """
-        return cmp(type(self), type(other)) \
-            or cmp(self.prime(), other.prime()) \
-            or cmp(self.number_field(), other.number_field()) \
-            or cmp(self.base_ring(), other.base_ring())
+        if not isinstance(other, SmoothCharacterGroupGeneric):
+            return False
+
+        return (self.prime() == other.prime() and
+                self.number_field() == other.number_field() and
+                self.base_ring() == other.base_ring())
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
+            sage: G = SmoothCharacterGroupQp(3, QQ)
+            sage: G != SmoothCharacterGroupQp(3, QQ[I])
+            True
+            sage: G != 7
+            True
+            sage: G != SmoothCharacterGroupQp(7, QQ)
+            True
+            sage: G != SmoothCharacterGroupQp(3, QQ)
+            False
+        """
+        return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        TESTS::
+
+            sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
+            sage: G = SmoothCharacterGroupQp(3, QQ)
+            sage: hash(G) == hash(SmoothCharacterGroupQp(3, QQ[I]))
+            False
+            sage: hash(G) == hash(SmoothCharacterGroupQp(7, QQ))
+            False
+            sage: hash(G) == hash(SmoothCharacterGroupQp(3, QQ))
+            True
+        """
+        return hash((self.prime(), self.number_field(), self.base_ring()))
 
     def _coerce_map_from_(self, other):
         r"""
-        Return True if self has a canonical coerce map from other.
+        Return ``True`` if ``self`` has a canonical coerce map from ``other``.
 
         EXAMPLES::
 
@@ -409,7 +461,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: G.coerce(GK.character(0, [4]))
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Group of smooth characters of Q_3* with values in Number Field in i with defining polynomial x^2 + 1 to Group of smooth characters of Q_3* with values in Rational Field
+            TypeError: no canonical coercion from Group of smooth characters of Q_3* with values in Number Field in i with defining polynomial x^2 + 1 with i = 1*I to Group of smooth characters of Q_3* with values in Rational Field
             sage: G.character(0, [4]) in GK # indirect doctest
             True
 
@@ -422,18 +474,15 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             Character of unramified extension Q_3(s)* (s^2 + 2*s + 2 = 0), of level 0, mapping 3 |--> 1
 
         """
-        if isinstance(other, SmoothCharacterGroupGeneric) \
-          and other.number_field() == self.number_field() \
-          and self.base_ring().has_coerce_map_from(other.base_ring()):
-            return True
-        else:
-            return False
+        return (isinstance(other, SmoothCharacterGroupGeneric)
+                and other.number_field() == self.number_field()
+                and self.base_ring().has_coerce_map_from(other.base_ring()))
 
     def prime(self):
         r"""
         The residue characteristic of the underlying field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupGeneric
             sage: SmoothCharacterGroupGeneric(3, QQ).prime()
@@ -448,7 +497,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         different coefficient ring. To be implemented by all derived classes
         (since the generic base class can't know the parameters).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupGeneric
             sage: SmoothCharacterGroupGeneric(3, QQ).change_ring(ZZ)
@@ -465,7 +514,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         will be raised if there is no coercion map from the old coefficient
         ring to the new one.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
             sage: G = SmoothCharacterGroupQp(3, QQ)
@@ -477,7 +526,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             TypeError: no canonical coercion from Rational Field to Ring of integers modulo 3
 
         """
-        if not ring.has_coerce_map_from(self.base_ring()) :
+        if not ring.has_coerce_map_from(self.base_ring()):
             ring.coerce(self.base_ring().an_element())
             # this is here to flush out errors
 
@@ -489,7 +538,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         A string representing the name of the p-adic field of which this is the
         character group. To be overridden by derived subclasses.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupGeneric
             sage: SmoothCharacterGroupGeneric(3, QQ)._field_name()
@@ -503,7 +552,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         r"""
         String representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
             sage: SmoothCharacterGroupQp(7, QQ)._repr_()
@@ -519,7 +568,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         field arithmetic, what is actually returned is an ideal in a number
         field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupGeneric
             sage: SmoothCharacterGroupGeneric(3, QQ).ideal(3)
@@ -539,7 +588,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         convention that the final generator `x_d` is a uniformiser (and `n_d =
         0`).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupGeneric
             sage: SmoothCharacterGroupGeneric(3, QQ).unit_gens(3)
@@ -555,7 +604,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         The orders `n_1, \dots, n_d` of the generators `x_i` of `F^\times / (1
         + \mathfrak{p}^c)^\times` returned by :meth:`unit_gens`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupGeneric
             sage: SmoothCharacterGroupGeneric(3, QQ).exponents(3)
@@ -572,7 +621,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         generating the kernel of the reduction map to `(\mathcal{O}_F /
         \mathfrak{p}^{c-1})^\times`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupGeneric
             sage: SmoothCharacterGroupGeneric(3, QQ).subgroup_gens(3)
@@ -594,7 +643,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         first attempt to canonically coerce `x` into ``self.number_field()``,
         and check that the result is not zero.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupGeneric
             sage: SmoothCharacterGroupGeneric(3, QQ).discrete_log(3)
@@ -664,7 +713,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         S = Sequence(values_on_gens, universe=self.base_ring(), immutable=True)
         assert len(S) == len(self.unit_gens(level)), "{0} images must be given".format(len(self.unit_gens(level)))
         n = self.exponents(level)
-        for i in xrange(len(S)):
+        for i in range(len(S)):
             if n[i] != 0 and not S[i]**n[i] == 1:
                 raise ValueError( "value on generator %s (=%s) should be a root of unity of order %s" % (self.unit_gens(level)[i], S[i], n[i]) )
             elif n[i] == 0 and not S[i].is_unit():
@@ -675,7 +724,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         r"""
         Return an element of this group. Required by the coercion machinery.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
             sage: K.<z> = CyclotomicField(42)
@@ -685,65 +734,63 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         """
         return self.character(0, [self.base_ring().an_element()])
 
-
-
     def _test_unitgens(self, **options):
         r"""
         Test that the generators returned by ``unit_gens`` are consistent with
         the exponents returned by ``exponents``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupUnramifiedQuadratic
             sage: SmoothCharacterGroupUnramifiedQuadratic(2, Zmod(8))._test_unitgens()
         """
         T = self._tester(**options)
-        for c in xrange(6):
+        for c in range(6):
             gens = self.unit_gens(c)
             exps = self.exponents(c)
-            T.assert_(exps[-1] == 0)
-            T.assert_(all([u != 0 for u in exps[:-1]]))
-            T.assert_(all([u.parent() is self.number_field() for u in gens]))
+            T.assertEqual(exps[-1], 0)
+            T.assertTrue(all(u != 0 for u in exps[:-1]))
+            T.assertTrue(all(u.parent() is self.number_field() for u in gens))
 
             I = self.ideal(c)
-            for i in xrange(len(exps[:-1])):
+            for i in range(len(exps[:-1])):
                 g = gens[i]
-                for m in xrange(1, exps[i]):
+                for m in range(1, exps[i]):
                     if (g - 1 in I):
                         T.fail("For generator g=%s, g^%s = %s = 1 mod I, but order should be %s" % (gens[i], m, g, exps[i]))
                     g = g * gens[i]
                     # reduce g mod I
                     if hasattr(I, "small_residue"):
                         g = I.small_residue(g)
-                    else: # I is an ideal of ZZ
+                    else:  # I is an ideal of ZZ
                         g = g % (I.gen())
                 if not (g - 1 in I):
                     T.fail("For generator g=%s, g^%s = %s, which is not 1 mod I" % (gens[i], exps[i], g))
             I = self.prime() if self.number_field() == QQ else self.ideal(1)
-            T.assert_(gens[-1].valuation(I) == 1)
+            T.assertEqual(gens[-1].valuation(I), 1)
 
             # This implicitly tests that the gens really are gens!
-            _ = self.discrete_log(c, -1)
+            self.discrete_log(c, -1)
 
     def _test_subgroupgens(self, **options):
         r"""
         Test that the values returned by :meth:`~subgroup_gens` are valid.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
             sage: SmoothCharacterGroupQp(2, CC)._test_subgroupgens()
         """
         T = self._tester(**options)
-        for c in xrange(1, 6):
+        for c in range(1, 6):
             sgs = self.subgroup_gens(c)
-            I2 = self.ideal(c-1)
-            T.assert_(all([x-1 in I2 for x in sgs]), "Kernel gens at level %s not in kernel!" % c)
+            I2 = self.ideal(c - 1)
+            T.assertTrue(all(x - 1 in I2 for x in sgs), "Kernel gens at level %s not in kernel!" % c)
 
             # now find the exponent of the kernel
 
             n1 = prod(self.exponents(c)[:-1])
-            n2 = prod(self.exponents(c-1)[:-1])
+            n2 = prod(self.exponents(c - 1)[:-1])
             n = n1 // n2
             # if c > 1, n will be a prime here, so that logs below gets calculated correctly
 
@@ -753,14 +800,14 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
                 L = tuple(self.discrete_log(c, y))
                 if L not in logs:
                     logs.append(L)
-            T.assert_(n2 * len(logs) == n1, "Kernel gens at level %s don't generate everything!" % c)
+            T.assertTrue(n2 * len(logs) == n1, "Kernel gens at level %s don't generate everything!" % c)
 
     def compose_with_norm(self, chi):
         r"""
         Calculate the character of `K^\times` given by `\chi \circ \mathrm{Norm}_{K/\QQ_p}`.
         Here `K` should be a quadratic extension and `\chi` a character of `\QQ_p^\times`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         When `K` is the unramified quadratic extension, the level of the new character is the same as the old::
 
@@ -793,12 +840,15 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: H.compose_with_norm(chi)
             Character of ramified extension Q_3(s)* (s^2 - 3 = 0), of level 0, mapping s |--> 1
         """
-        if chi.parent().number_field() != QQ: raise ValueError
-        if self.number_field().absolute_degree() != 2: raise ValueError
+        if chi.parent().number_field() != QQ:
+            raise ValueError
+        if self.number_field().absolute_degree() != 2:
+            raise ValueError
         n = chi.level()
         P = chi.parent().prime() ** n
         m = self.number_field()(P).valuation(self.ideal(1))
         return self.character(m, [chi(x.norm(QQ)) for x in self.unit_gens(m)])
+
 
 class SmoothCharacterGroupQp(SmoothCharacterGroupGeneric):
     r"""
@@ -821,7 +871,7 @@ class SmoothCharacterGroupQp(SmoothCharacterGroupGeneric):
         are no relations between them other than relations of the form
         `x_i^{n_i} = 1`. They need not, however, be in Smith normal form.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
             sage: SmoothCharacterGroupQp(7, QQ).unit_gens(3)
@@ -838,7 +888,7 @@ class SmoothCharacterGroupQp(SmoothCharacterGroupGeneric):
         r"""
         Return the exponents of the generators returned by :meth:`unit_gens`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
             sage: SmoothCharacterGroupQp(7, QQ).exponents(3)
@@ -846,7 +896,8 @@ class SmoothCharacterGroupQp(SmoothCharacterGroupGeneric):
             sage: SmoothCharacterGroupQp(2, QQ).exponents(4)
             [2, 4, 0]
         """
-        if level == 0: return [0]
+        if level == 0:
+            return [0]
         return [x.multiplicative_order() for x in Zmod(self.prime()**level).unit_gens()] + [0]
 
     def change_ring(self, ring):
@@ -857,7 +908,7 @@ class SmoothCharacterGroupQp(SmoothCharacterGroupGeneric):
         from self to the new group -- use
         :meth:`~SmoothCharacterGroupGeneric.base_extend` if you want this.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
             sage: SmoothCharacterGroupQp(7, Zmod(3)).change_ring(CC)
@@ -871,7 +922,7 @@ class SmoothCharacterGroupQp(SmoothCharacterGroupGeneric):
         local field of which this is the character group). In this case, this
         is always the rational field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
             sage: SmoothCharacterGroupQp(7, Zmod(3)).number_field()
@@ -885,7 +936,7 @@ class SmoothCharacterGroupQp(SmoothCharacterGroupGeneric):
         approximate by using rational arithmetic, what is actually returned is
         an ideal of `\ZZ`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
             sage: SmoothCharacterGroupQp(7, Zmod(3)).ideal(2)
@@ -898,7 +949,7 @@ class SmoothCharacterGroupQp(SmoothCharacterGroupGeneric):
         Return a string representation of the field unit group of which this is
         the character group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
             sage: SmoothCharacterGroupQp(7, Zmod(3))._field_name()
@@ -911,7 +962,7 @@ class SmoothCharacterGroupQp(SmoothCharacterGroupGeneric):
         Express the class of `x` in `\QQ_p^\times / (1 + p^c)^\times` in terms
         of the generators returned by :meth:`unit_gens`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
             sage: G = SmoothCharacterGroupQp(7, QQ)
@@ -923,7 +974,8 @@ class SmoothCharacterGroupQp(SmoothCharacterGroupGeneric):
             [9308, 1]
         """
         x = self.number_field().coerce(x)
-        if x == 0: raise ValueError( "cannot evaluate at zero" )
+        if x == 0:
+            raise ValueError( "cannot evaluate at zero" )
         s = x.valuation(self.prime())
         return Zmod(self.prime()**level)(x / self.prime()**s).generalised_log() + [s]
 
@@ -960,6 +1012,7 @@ class SmoothCharacterGroupQp(SmoothCharacterGroupGeneric):
         else:
             return [1 + self.prime()**(level - 1)]
 
+
 class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
     r"""
     The group of smooth characters of `\QQ_{p^2}^\times`, where `\QQ_{p^2}` is
@@ -968,7 +1021,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
     quadratic number field, defined by (the obvious lift to `\ZZ` of) the
     Conway polynomial modulo `p` of degree 2.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupUnramifiedQuadratic
         sage: G = SmoothCharacterGroupUnramifiedQuadratic(3, QQ); G
@@ -983,7 +1036,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
         r"""
         Standard initialisation function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupUnramifiedQuadratic
             sage: G = SmoothCharacterGroupUnramifiedQuadratic(3, QQ, 'foo'); G
@@ -1002,7 +1055,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
         coercion map from self to the new group -- use
         :meth:`~SmoothCharacterGroupGeneric.base_extend` if you want this.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupUnramifiedQuadratic
             sage: SmoothCharacterGroupUnramifiedQuadratic(7, Zmod(3), names='foo').change_ring(CC)
@@ -1022,7 +1075,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
         r"""
         A string representing the unit group of which this is the character group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupUnramifiedQuadratic
             sage: SmoothCharacterGroupUnramifiedQuadratic(7, Zmod(3), 'a')._field_name()
@@ -1047,7 +1100,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
         """
         from sage.rings.all import conway_polynomial, PolynomialRing
         fbar = conway_polynomial(self.prime(), 2)
-        f = PolynomialRing(QQ,'x')([a.lift() for a in fbar])
+        f = PolynomialRing(QQ, 'x')([a.lift() for a in fbar])
         return NumberField(f, self._name)
 
     @cached_method
@@ -1081,7 +1134,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
 
         ALGORITHM: Use Teichmueller lifts.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupUnramifiedQuadratic
             sage: SmoothCharacterGroupUnramifiedQuadratic(7, QQ).unit_gens(0)
@@ -1134,7 +1187,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
         The orders `n_1, \dots, n_d` of the generators `x_i` of `F^\times / (1
         + \mathfrak{p}^c)^\times` returned by :meth:`unit_gens`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupUnramifiedQuadratic
             sage: SmoothCharacterGroupUnramifiedQuadratic(7, QQ).exponents(2)
@@ -1145,11 +1198,14 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
             [3, 2, 2, 0]
         """
         p = self.prime()
-        if c == 0: return [0]
-        elif c == 1: return [p**2 - 1, 0]
+        if c == 0:
+            return [0]
+        elif c == 1:
+            return [p**2 - 1, 0]
         elif p == 2 and c >= 3:
             return [p**2 - 1, p**(c-1), p**(c-2), 2, 0]
-        else: return [p**2 - 1, p**(c-1), p**(c-1),0]
+        else:
+            return [p**2 - 1, p**(c-1), p**(c-1), 0]
 
     def subgroup_gens(self, level):
         r"""
@@ -1157,7 +1213,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
         generating the kernel of the reduction map to `(\mathcal{O}_F /
         \mathfrak{p}^{c-1})^\times`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupUnramifiedQuadratic
             sage: SmoothCharacterGroupUnramifiedQuadratic(7, QQ).subgroup_gens(1)
@@ -1178,13 +1234,13 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
         r"""
         Find an element generating the quotient
 
-        .. math::
+        .. MATH::
 
             \mathcal{O}_F^\times / \ZZ_p^\times \cdot (1 + p^c \mathcal{O}_F),
 
         where `c` is the given level.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupUnramifiedQuadratic
             sage: G = SmoothCharacterGroupUnramifiedQuadratic(7,QQ)
@@ -1301,7 +1357,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
         values_on_other_gens = [x] + [chi(u) for u in other_gens[1:]]
         for s in self.unit_gens(level)[:-1]:
             t = self.ideal(level).ideallog(s, other_gens)
-            values_on_standard_gens.append( prod([values_on_other_gens[i] ** t[i] for i in xrange(len(t))]) )
+            values_on_standard_gens.append( prod([values_on_other_gens[i] ** t[i] for i in range(len(t))]) )
         values_on_standard_gens.append(chi(self.prime()))
         chiE = self.character(level, values_on_standard_gens)
 
@@ -1317,7 +1373,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
         Express the class of `x` in `F^\times / (1 + \mathfrak{p}^c)^\times` in
         terms of the generators returned by ``self.unit_gens(level)``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupUnramifiedQuadratic
             sage: G = SmoothCharacterGroupUnramifiedQuadratic(2, QQ)
@@ -1340,7 +1396,8 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
             True
         """
         x = self.number_field().coerce(x)
-        if x == 0: raise ValueError( "cannot evaluate at zero" )
+        if x == 0:
+            raise ValueError("cannot evaluate at zero")
         n1 = x.valuation(self.number_field().ideal(self.prime()))
         x1 = x / self.prime() ** n1
         if level == 0:
@@ -1370,7 +1427,7 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
         extension `\QQ_p(\sqrt{dp})`, where `d` is `-1` (if `p = 3 \pmod 4`) or
         the smallest positive quadratic nonresidue mod `p` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupRamifiedQuadratic
             sage: G1 = SmoothCharacterGroupRamifiedQuadratic(3, 0, QQ); G1
@@ -1390,11 +1447,12 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
             sage: TestSuite(G2).run()
             sage: TestSuite(G3).run()
         """
-        if prime == 2: raise NotImplementedError( "Wildly ramified extensions not supported" )
+        if prime == 2:
+            raise NotImplementedError("Wildly ramified extensions not supported")
         SmoothCharacterGroupGeneric.__init__(self, prime, base_ring)
         self._name = names
         if flag not in [0, 1]:
-            raise ValueError( "Flag must be 0 (for Qp(sqrt(p)) ) or 1 (for the other ramified extension)" )
+            raise ValueError("Flag must be 0 (for Qp(sqrt(p)) ) or 1 (for the other ramified extension)")
         self._flag = flag
         if flag == 0:
             self._unif_sqr = self.prime()
@@ -1412,7 +1470,7 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
         coercion map from self to the new group -- use
         :meth:`~SmoothCharacterGroupGeneric.base_extend` if you want this.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupRamifiedQuadratic
             sage: SmoothCharacterGroupRamifiedQuadratic(7, 1, Zmod(3), names='foo').change_ring(CC)
@@ -1424,7 +1482,7 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
         r"""
         A string representing the unit group of which this is the character group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupRamifiedQuadratic
             sage: SmoothCharacterGroupRamifiedQuadratic(7, 0, Zmod(3), 'a')._field_name()
@@ -1478,7 +1536,7 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
         integers `n_i` are returned by :meth:`exponents`). We adopt the
         convention that the final generator `x_d` is a uniformiser.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupRamifiedQuadratic
             sage: G = SmoothCharacterGroupRamifiedQuadratic(5, 0, QQ)
@@ -1489,9 +1547,9 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
             sage: G.unit_gens(8)
             [2, s + 1, s]
         """
-        d = ceil(ZZ(c) / 2)
+        d = ZZ(c + 1) // 2
         p = self.prime()
-        K,s = self.number_field().objgen()
+        K, s = self.number_field().objgen()
         zpgens = [K(ZZ(x)) for x in Zmod(p**d).unit_gens()]
         if c == 0:
             return [s]
@@ -1512,7 +1570,7 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
         Return the orders of the independent generators of the unit group
         returned by :meth:`~unit_gens`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupRamifiedQuadratic
             sage: G = SmoothCharacterGroupRamifiedQuadratic(5, 0, QQ)
@@ -1524,14 +1582,14 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
             (500, 625, 0)
         """
         c = ZZ(c)
-        d = ceil(c / 2)
         p = self.prime()
         if c == 0:
             return tuple([0])
         elif c == 1:
             return tuple([p - 1, 0])
         elif p > 3 or self._unif_sqr == 3 or c <= 3:
-            return tuple([p**(d-1)*(p - 1), p**ceil((c - 1)/2), 0])
+            d = (c + 1) // 2
+            return tuple([p**(d - 1) * (p - 1), p**(c // 2), 0])
         else:
             # awkward case, see above
             return self.ideal(c).idealstar(2).gens_orders() + (0,)
@@ -1542,7 +1600,7 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
         generating the kernel of the reduction map to `(\mathcal{O}_F /
         \mathfrak{p}^{c-1})^\times`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupRamifiedQuadratic
             sage: G = SmoothCharacterGroupRamifiedQuadratic(3, 1, QQ)
@@ -1560,18 +1618,19 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
         r"""
         Solve the discrete log problem in the unit group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupRamifiedQuadratic
             sage: G = SmoothCharacterGroupRamifiedQuadratic(3, 1, QQ)
             sage: s = G.number_field().gen()
             sage: G.discrete_log(4, 3 + 2*s)
-            [5, 2, 1, 1]
-            sage: gs = G.unit_gens(4); gs[0]^5 * gs[1]^2 * gs[2] * gs[3] - (3 + 2*s) in G.ideal(4)
+            [5, 1, 1, 1]
+            sage: gs = G.unit_gens(4); gs[0]^5 * gs[1] * gs[2] * gs[3] - (3 + 2*s) in G.ideal(4)
             True
         """
         x = self.number_field().coerce(x)
-        if x == 0: raise ValueError("cannot evaluate at zero")
+        if x == 0:
+            raise ValueError("cannot evaluate at zero")
         n1 = x.valuation(self.ideal(1))
         x1 = x / self.number_field().gen()**n1
         if level == 0:

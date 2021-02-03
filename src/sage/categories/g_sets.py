@@ -11,7 +11,7 @@ G-Sets
 #******************************************************************************
 
 from sage.categories.category import Category
-from sets_cat import Sets
+from .sets_cat import Sets
 
 #############################################################
 # GSets
