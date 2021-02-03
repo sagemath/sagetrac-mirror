@@ -600,7 +600,7 @@ class PermutationGroup_generic(FiniteGroup):
         if self._libgap is not None:
             return self._libgap
 
-        return super(PermutationGroup_generic, self)._libgap_()
+        return libgap.Group(self.gens())
 
     # Override the default _libgap_ to use the caching as self._libgap
     _libgap_ = gap
