@@ -2542,9 +2542,13 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                 x_B[self.b().list().index(bm)] = self.auxiliary_variable()
         return LPRevisedDictionary(self, x_B)
 
-    def run_revised_simplex_method(self):
+    def run_revised_simplex_method(self, basic_variables=[]):
         r"""
         Apply the revised simplex method and return all steps.
+
+        INPUT:
+
+        - ``basic_variables`` -- optional list of basic variables for warm-start; The provided basis must be feasible.
 
         OUTPUT:
 
@@ -2552,6 +2556,14 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
           all encountered dictionaries
 
         .. NOTE::
+
+            ``basic_variables`` can be one of the following:
+
+            - a list of indices. The indices (starting at 1) correspond to that of the vector formed by `self.interactive_lp_problem().decision_variables()` and `self.interactive_lp_problem().slack_variables()`.  Remark that `self.interactive_lp_problem()` can have more variables and constraints than that of `self` if `self` has free variables or `==` constraints.
+
+            - a list of the names of the variables.
+
+            if ``basic_variables`` is provided but is infeasible, then ValueError will be raised.
 
             You can access the :meth:`final_revised_dictionary`, which can be
             one of the following:
@@ -2590,8 +2602,28 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             ...
             \end{equation*}
             The optimal value: $6250$. An optimal solution: $\left(250,\,750\right)$.
+
+        Check that running revised simplex method starting from the provided basis works::
+
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P.run_revised_simplex_method(basic_variables=[P.decision_variables()[0], P.decision_variables()[1], P.slack_variables()[2]])
+            \begin{equation*}
+            ...
+            \end{equation*}
+            The optimal value: $6250$. An optimal solution: $\left(250,\,750\right)$.
+
+        The above is the same as providing basic_variables as a list of indices. (Note that the first variable `x1` has index 1)::
+
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P.run_revised_simplex_method(basic_variables=[1,2,5])
+            \begin{equation*}
+            ...
+            \end{equation*}
+            The optimal value: $6250$. An optimal solution: $\left(250,\,750\right)$.
         """
-        d = self.revised_dictionary()
+        var_names = self.coordinate_ring().gens()
+        x_B = [var_names[v] if v in ZZ else v for v in basic_variables]
+        d = self.revised_dictionary(*x_B)
         output = [d.run_simplex_method()]
         if d.is_optimal():
             if self.auxiliary_variable() in d.basic_variables():
