@@ -297,8 +297,7 @@ includes a shared library version of the GAP kernel, available as
 `libgap` in Sage. The libgap analogue of the first example in
 :ref:`section-gap` is::
 
-    sage: SimpleLieAlgebra = libgap.function_factory('SimpleLieAlgebra')
-    sage: L = SimpleLieAlgebra('G', 2, QQ)
+    sage: L = libgap.SimpleLieAlgebra('G', 2, QQ)
     sage: R = L.RootSystem();  R
     <root system of rank 2>
     sage: R.CartanMatrix()    # output is a GAP matrix
