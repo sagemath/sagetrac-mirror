@@ -281,7 +281,7 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
                 search_directories.append(libdir)
 
                 multiarchlib = sysconfig.get_config_var('MULTIARCH')
-                if multiarchlib is not None: 
+                if multiarchlib is not None:
                     search_directories.append(libdir / multiarchlib),
 
             patterns = [f'lib{libname}.{ext}']
@@ -299,8 +299,6 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
 # On Debian it's libsingular-Singular so try that as well
 SINGULAR_SO = var("SINGULAR_SO", _get_shared_lib_path("Singular", "singular-Singular"))
 
-# locate libgap shared object
-GAP_SO = var("GAP_SO", _get_shared_lib_path("gap", ""))
 
 # post process
 if ' ' in DOT_SAGE:
