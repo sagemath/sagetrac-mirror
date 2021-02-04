@@ -1204,6 +1204,36 @@ See the files in ``SAGE_ROOT/src/doc/en/tutorial/`` for many
 examples of how to include automated testing in reST documentation for
 Sage.
 
+.. _chapter-virtual-environments:
+
+Virtual Environments
+==========================
+
+A very convient setup for developing is through virtual environments.
+Support for this is still in an early phase, so feedback and improvements
+are very welcome.
+
+.. _section-pipenv:
+
+Pipenv
+---------------------------------
+
+After following the normal procedure of setting up your local development
+environment, you can use Pipenv as follows:
+
+* Install Pipenv by running ``pip install --user pipenv``, see the 
+  `official documentation <https://pipenv.pypa.io/en/latest/install/#installing-pipenv>`_ 
+  for more details.
+
+* Create a new directory named ``.venv`` in ``src``, e.g. by running ``cd src && mkdir .venv``.
+
+* Create the virtual environment by ``pipenv install``.
+
+Now you have a virtual environment in ``src/.venv`` that contains all necessary libraries
+and an editable install of Sage.
+This means that any changes to Python files will automatically show up every time you 
+run a Python project that uses it.
+The virtual environment can be activated by running ``pipenv shell`` (from the ``src`` folder).
 
 .. _section-coding-general-whitespace:
 
