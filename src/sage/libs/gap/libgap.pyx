@@ -221,7 +221,6 @@ from gappy.gapobj import GapObj
 from gappy.gap_includes cimport Obj
 from gappy.gap_globals import common_gap_globals
 
-import sage.env
 from sage.interfaces.gap_workspace import prepare_workspace_dir
 from sage.misc.cachefunc import cached_method
 from sage.misc.randstate cimport current_randstate
@@ -252,7 +251,7 @@ cdef class SageGappy(Gappy):
     def __init__(self):
         workspace, _ = get_workspace()
         Gappy.__init__(self, gap_root=gap_root(), workspace=workspace,
-                       autoload=True, libgap_soname=sage.env.GAP_SO)
+                       autoload=True)
 
     cpdef initialize(self):
         initializing = Gappy.initialize(self)
