@@ -277,6 +277,28 @@ class SymmetricGroup(PermutationGroup_symalt):
         self._gens = [self.element_class(g, self, check=False)
                       for g in gens]
 
+    @cached_method
+    def _libgap_(self, gap=None):
+        """
+        Return the libgap representation (as a `~sage.libs.gap.element.GapElement`) of this
+        group.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroup(3)
+            sage: S._libgap_()
+            Sym( [ 1 .. 3 ] )
+            sage: type(_)
+            <class 'sage.libs.gap.element.GapElement'>
+            sage: S = SymmetricGroup(['a', 'b', 'c'])
+            sage: S._libgap_()
+            Sym( [ 1 .. 3 ] )
+        """
+        if gap is None:
+            gap = libgap
+
+        return gap.SymmetricGroup(self.degree())
+
     def _gap_init_(self, gap=None):
         """
         Return the string used to create this group in GAP.
@@ -670,6 +692,28 @@ class AlternatingGroup(PermutationGroup_symalt):
         """
         return "Alternating group of order %s!/2 as a permutation group"%self.degree()
 
+    @cached_method
+    def _libgap_(self, gap=None):
+        """
+        Return the libgap representation (as a `~sage.libs.gap.element.GapElement`) of this
+        group.
+
+        EXAMPLES::
+
+            sage: A = AlternatingGroup(3)
+            sage: A._libgap_()
+            Alt( [ 1 .. 3 ] )
+            sage: type(_)
+            <class 'sage.libs.gap.element.GapElement'>
+            sage: A = AlternatingGroup(['a', 'b', 'c'])
+            sage: A._libgap_()
+            Alt( [ 1 .. 3 ] )
+        """
+        if gap is None:
+            gap = libgap
+
+        return gap.AlternatingGroup(self.degree())
+
     def _gap_init_(self, gap=None):
         """
         Returns the string used to create this group in GAP.
@@ -684,6 +728,7 @@ class AlternatingGroup(PermutationGroup_symalt):
             'AlternatingGroup(3)'
         """
         return 'AlternatingGroup(%s)' % self.degree()
+
 
 class CyclicPermutationGroup(PermutationGroup_unique):
     def __init__(self, n):
