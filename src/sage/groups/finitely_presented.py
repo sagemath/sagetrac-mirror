@@ -163,18 +163,6 @@ AUTHOR:
 
 """
 
-# G. Rote, 2021-01-22.
-# The failed multiplication table is not tested automatically
-# as a doctest. Apparently doctest cannot handle
-# multiple exceptions:
-# From https://docs.python.org/release/3.6.9/library/doctest.html#id2
-#
-# Examples containing both expected output and an exception
-# are not supported. Trying to guess where one ends and the
-# other begins is too error-prone, and that also makes for
-# a confusing test.
-
-
 # ****************************************************************************
 #       Copyright (C) 2012 Miguel Angel Marco Buzunariz <mmarco@unizar.es>
 #
