@@ -1,5 +1,4 @@
-"""
-Finitely Presented Groups
+"""Finitely Presented Groups
 
 Finitely presented groups are constructed as quotients of
 :mod:`~sage.groups.free_group`::
@@ -25,25 +24,34 @@ as in the case of free groups::
     sage: a.parent()
     Finitely presented group < a, b, c | a^2, b^2, c^2, (a*b*c)^2 >
 
-Notice that the elements of a finitely presented group and the
+The elements of a finitely presented group and the
 elements of the corresponding free group are not the same thing,
 even if they are displayed in the same way.  However, they can be
 converted from one parent to the other::
 
-    sage: F.<a,b,c> = FreeGroup()
-    sage: G = F / [a^2,b^2,c^2,a*b*c*a*b*c]
+    sage: F.<r,s,t> = FreeGroup()
+    sage: G = F / (r^2, s^3, t^3, r*s*t) # the tetrahedral group
     sage: F([1])
-    a
+    r
     sage: G([1])
-    a
+    r
     sage: F([1]) == G([1])
     False
-    sage: abc_G = G(a*b/c); abc_G
-    a*b*c^-1
-    sage: F(abc_G)
-    a*b*c^-1
-    sage: F(abc_G) == a*b/c
+    sage: rst_G = G(r*s/t); rst_G
+    r*s*t^-1
+    sage: F(rst_G)
+    r*s*t^-1
+    sage: F(rst_G) == r*s/t
     True
+
+Beware that this conversion to the free group ``F`` is
+not a one-to-one operation::
+
+    sage: rr = G(r*r)
+    sage: rr == G.one()
+    True
+    sage: F(rr) == F(G.one()) # == F.one()
+    False
 
 .. WARNING::
 
@@ -54,79 +62,39 @@ converted from one parent to the other::
 
 .. WARNING::
 
-    Sage does not completely "normalize" elements
-    of finitely generated groups.
-    Thus, trying to put group elements into a set or to use them
-    as keys for a dictionary may lead to trouble.
+    Even if Sage can recognize that the group is finite, Sage
+    does not completely "normalize" elements of finitely generated groups.
+    Thus, trying to put group elements into a set or to use them as keys
+    for a dictionary may lead to trouble.
 
 The following example shows that two different representations of the
-same element can result in two distinct elements of a "set"::
+same element can result in two distinct elements of a ``set`` although
+Sage regognizes them as being equal::
 
-    sage: F.<r,s,t> = FreeGroup()
-    sage: G = F / (r^2, s^3, t^3, r*s*t) # the tetrahedral group
     sage: G.order()
     12
-    sage: a,b = G(r*s),G(~t) # ~t is an alternative notation for t^-1
-    sage: set_of_2 = {a,b}
+    sage: a1,a2 = G(r*s),G(~t) # ~t is an alternative notation for t^-1
+    sage: set_of_2 = {a1,a2}
     sage: print(set_of_2, len(set_of_2)) # two-element set
     {r*s, t^-1} 2
-    sage: a==b # a and b are the same element!
+    sage: a1==a2 # a and b are the same element!
     True
 
-As a consequence, the 
-:meth:`~sage.categories.magmas.Magmas.ParentMethods.multiplication_table`
-method fails::
+..    sage: hash(a1),hash(a2) # random, distinct hashcodes
+..    (-3550055125485641917, 1571038762487017940)
 
-    sage: G.multiplication_table() # not tested
-    Traceback (most recent call last):
-    ...
-    KeyError: t^2
-    <BLANKLINE>
-    During handling of the above exception, another exception occurred:
-    Traceback (most recent call last):
-    ...
-    ValueError: t*t=t^2, and so the set is not closed
-
-Converting elements to the free group is not a one-to-one operation::
-
-    sage: r_s_t = G(r*s*t)
-    sage: r_s_t == G.one()
-    True
-    sage: F(r_s_t) == F(G.one()) # == F.one()
-    False
-
-As a workaround, one can converting the group
-to a permutation group::
+To use group elements in a ``set`` or ``dict``
+in the case of finite groups, one can convert the group
+to a :meth:`~sage.groups.perm_gps.permgroup.PermutationGroup`::
 
     sage: GP = G.as_permutation_group()
-    sage: GP.multiplication_table()
-    *  a b c d e f g h i j k l
-     +------------------------
-    a| a b c d e f g h i j k l
-    b| b a f g h c d e k l i j
-    c| c i d a b h l j e f g k
-    d| d e a c i j k f b h l g
-    e| e d j k f a c i l g b h
-    f| f k g b a e j l h c d i
-    g| g h b f k l i c a e j d
-    h| h g l i c b f k j d a e
-    i| i c h l j d a b g k e f
-    j| j l k e d i h g f a c b
-    k| k f e j l g b a d i h c
-    l| l j i h g k e d c b f a
-
-As elements of a permutation group, the group elements work as expected
-when they are used in a set (or as keys in a dictionary)::
-
     sage: r_p, s_p, t_p = GP(r), GP(s), GP(t)
-    sage: a_p, b_p = GP(r*s), GP(~t)
-    sage: set_p = {a_p, b_p, r_p*s_p, t_p^-1} # Now, a one-element set
+    sage: a1_p, a2_p = GP(r*s), GP(~t)
+    sage: set_p = {a1_p, a2_p, r_p*s_p, t_p^-1} # Now, a one-element set
     sage: print(set_p, len(set_p))
     {(1,6,5)(2,3,8)(4,10,9)(7,12,11)} 1
-    sage: G(set_p.pop()), G(a_p), G(r_p*s_p), G(r_p)*G(s_p)
+    sage: G(set_p.pop()), G(a1_p), G(r_p*s_p), G(r_p)*G(s_p)
     (t^-1, t^-1, t^-1, r^-1*s)
-    sage: F(GP(r_s_t)) == F.one()
-    True
 
 Finitely presented groups are implemented via GAP. You can use the
 :meth:`~sage.groups.libgap_wrapper.ParentLibGAP.gap` method to access
@@ -192,6 +160,7 @@ REFERENCES:
 AUTHOR:
 
 - Miguel Angel Marco Buzunariz
+
 """
 
 # G. Rote, 2021-01-22.
