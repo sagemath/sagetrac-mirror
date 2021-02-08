@@ -16,25 +16,48 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install tools
-      run: brew install pipenv tox
     - name: Install dependencies
       run: |
-        tox -e local-homebrew-macos-standard sagelib-build-deps
+        brew install pipenv tox
+        tox -e local-homebrew-macos-standard configure.ac
       env:
-        EXTRA_CONFIGURE_ARGS: --enable-build-as-root
-        MAKE: make -j6
-    - name: Create virtual environment
-      run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock && pipenv run pip list
-      env:
-          PKG_CONFIG_PATH: "/usr/local/opt/openblas/lib/pkgconfig"
-    - name: Install editable manually
-      run: cd src && pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
-      if: always()
-      env:
-          PKG_CONFIG_PATH: "/usr/local/opt/openblas/lib/pkgconfig"
-    - name: Test
-      run: cd src && pipenv run python -c 'import sage.all; import sage.doctest.control; sage.doctest.control.run_doctests(sage)'
+          SKIP_BOOTSTRAP: yes
+          SKIP_CONFIGURE: yes
+     - name: Build dependencies
+        run: |
+          tox -e llocal-homebrew-macos-standard sagelib-build-deps
+          make maxima conway_polynomials jmol conway_polynomials elliptic_curves combinatorial_designs polytopes_db graphs threejs
+          echo "$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/bin" >> $GITHUB_PATH
+        env:
+          MAKE: make -j2
+          SKIP_SYSTEM_PKG_INSTALL: yes
+          # Tox runs everything as root, so we have to enable build as root user
+          EXTRA_CONFIGURE_ARGS: "--enable-build-as-root"
+    - name: Set up cache
+        uses: actions/cache@v1
+        with:
+          path: src/.venv
+          key: venv-runner.os-${{ hashFiles('src/Pipfile.lock') }}
+      - name: Create virtual environment
+        run: |
+          mkdir -p .venv
+          pipenv install --verbose --dev
+          pipenv run pip list
+        working-directory: src
+        env:
+          PIP_NO_BUILD_ISOLATION: false
+      # The following is for testing purposes in case the pipenv install above fails
+      - name: Install editable manually
+        run: pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
+        working-directory: src
+        if: always()
+      - name: Test
+        run: |
+          pipenv run sage-runtests --all --timeout=300
+        working-directory: src
+        env:
+          # Set SAGE_LOCAL (required for gap)
+          SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-sudo-standard/local
  
   linux:
     name: "Ubuntu: Python ${{ matrix.python-version }}"
