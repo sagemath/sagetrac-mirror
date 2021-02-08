@@ -34,10 +34,10 @@ jobs:
         # Tox runs everything as root, so we have to enable build as root user
         EXTRA_CONFIGURE_ARGS: "--enable-build-as-root"
     - name: Set up cache
-        uses: actions/cache@v1
-        with:
-          path: src/.venv
-          key: venv-runner.os-${{ hashFiles('src/Pipfile.lock') }}
+      uses: actions/cache@v1
+      with:
+        path: src/.venv
+        key: venv-runner.os-${{ hashFiles('src/Pipfile.lock') }}
     - name: Create virtual environment
       run: |
         mkdir -p .venv
