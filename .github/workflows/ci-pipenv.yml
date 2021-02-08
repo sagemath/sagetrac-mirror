@@ -4,6 +4,7 @@ on: [push, pull_request]
   
 jobs:
   mac:
+    name: "MacOS: Python ${{ matrix.python-version }}"
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -36,6 +37,7 @@ jobs:
       run: cd src && pipenv run python -c 'import sage.all; import sage.doctest.control; sage.doctest.control.run_doctests(sage)'
  
   linux:
+    name: "Ubuntu: Python ${{ matrix.python-version }}"
     runs-on: ubuntu-latest
     container: 
       image: ubuntu:20.10
