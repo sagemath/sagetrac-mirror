@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-from distutils.command.build_ext import build_ext
 
 import os
 import platform
@@ -12,6 +11,7 @@ from setuptools import setup, find_namespace_packages
 from sage_setup.cython_options import compiler_directives, compile_time_env_variables
 from sage_setup.extensions import create_extension
 import multiprocessing.pool
+from sage_setup.command.sage_build_ext_minimal import sage_build_ext_minimal
 
 # Work around a Cython problem in Python 3.8.x on macOS
 # https://github.com/cython/cython/issues/3262
@@ -93,38 +93,9 @@ log.debug(f"aliases = {aliases}")
 
 log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} seconds.")
 
-#########################################################
-### Distutils
-#########################################################
-
-
-class sage_build_ext(build_ext):
-
-    def initialize_options(self):
-        build_ext.initialize_options(self)
-        self.parallel = self.get_num_build_jobs()
-
-    @staticmethod
-    def get_num_build_jobs() -> int:
-        """
-        Get number of parallel build jobs used by default, i.e. unless explicitly
-        set by the --parallel command line argument of setup.py.
-
-        First, the environment variable `SAGE_NUM_THREADS` is checked.
-        If that is unset, return the number of processors on the system,
-        with a maximum of 10 (to prevent overloading the system if there a lot of CPUs).
-
-        OUTPUT:
-            number of parallel jobs that should be run
-        """
-        try:
-            cpu_count = len(os.sched_getaffinity(0))
-        except AttributeError:
-            cpu_count = multiprocessing.cpu_count()
-        cpu_count = min(cpu_count, 10)
-        return int(os.environ.get("SAGE_NUM_THREADS", cpu_count))
-
-
+# ########################################################
+# ## Distutils
+# ########################################################
 code = setup(name = 'sage',
       version     =  SAGE_VERSION,
       description = 'Sage: Open Source Mathematics Software',
@@ -213,7 +184,7 @@ code = setup(name = 'sage',
                  'bin/sage-update-version',
                  ],
         cmdclass={
-           "build_ext": sage_build_ext
+           "build_ext": sage_build_ext_minimal
         },
         ext_modules=cythonize(cython_modules,
                               exclude=files_to_exclude,
