@@ -1,4 +1,5 @@
-"""Finitely Presented Groups
+"""
+Finitely Presented Groups
 
 Finitely presented groups are constructed as quotients of
 :mod:`~sage.groups.free_group`::
@@ -24,10 +25,11 @@ as in the case of free groups::
     sage: a.parent()
     Finitely presented group < a, b, c | a^2, b^2, c^2, (a*b*c)^2 >
 
-The elements of a finitely presented group and the
-elements of the corresponding free group are not the same thing,
-even if they are displayed in the same way.  However, they can be
-converted from one parent to the other::
+Internally, the elements of a finitely presented group are represented
+and manipulated like the elements of the underlying free group,
+and they are displayed in the same way.
+Nevertheless, element of the two groups are not regarded as equal, but
+they can be converted from one parent to the other::
 
     sage: F.<r,s,t> = FreeGroup()
     sage: G = F / (r^2, s^3, t^3, r*s*t) # the tetrahedral group
@@ -44,15 +46,6 @@ converted from one parent to the other::
     sage: F(rst_G) == r*s/t
     True
 
-Beware that this conversion to the free group ``F`` is
-not a one-to-one operation::
-
-    sage: rr = G(r*r)
-    sage: rr == G.one()
-    True
-    sage: F(rr) == F(G.one()) # == F.one()
-    False
-
 .. WARNING::
 
     Some methods are not guaranteed to finish since the word problem
@@ -62,14 +55,16 @@ not a one-to-one operation::
 
 .. WARNING::
 
-    Even if Sage can recognize that the group is finite, Sage
-    does not completely "normalize" elements of finitely generated groups.
-    Thus, trying to put group elements into a set or to use them as keys
-    for a dictionary may lead to trouble.
+    Sage can sometimes recognize when two words represent the same
+    element in a finitely presented group. Nevertheless, sage performs
+    no "normalization" towards a canonical representation beyond
+    the normalizations of the underlying free group.
+    Thus, putting group elements into a ``set`` or to use them as keys
+    for a ``dict`` may not work, even for finite groups.
 
 The following example shows that two different representations of the
 same element can result in two distinct elements of a ``set`` although
-Sage regognizes them as being equal::
+Sage recognizes them as being equal::
 
     sage: G.order()
     12
