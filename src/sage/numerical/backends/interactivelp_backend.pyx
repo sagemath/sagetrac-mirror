@@ -488,8 +488,10 @@ cdef class InteractiveLPBackend:
         """
         A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
         A = A.delete_rows((i,))
-        b = list(b); del b[i]
-        constraint_types=list(constraint_types); del constraint_types[i]
+        b = list(b)
+        del b[i]
+        constraint_types=list(constraint_types)
+        del constraint_types[i]
         self.lp = InteractiveLPProblem(A, b, c, x,
                                        constraint_types, variable_types,
                                        problem_type, ring, objective_constant_term=d)
@@ -592,27 +594,63 @@ cdef class InteractiveLPBackend:
         """
         self.add_variable(coefficients=zip(indices, coeffs))
 
-    cpdef int solve(self,  basic_variables=[]) except -1:
+    cpdef set_dictionary(self, basic_variables=[]):
         """
-        Solve the problem.
+        Set the current dictionary.
 
         INPUT:
 
-        - ``basic_variables`` -- optional list of basic variables for warm-start; The provided basis must be feasible.
+        - ``basic_variables`` -- (optional) a list of indices or names of the variables 
+          in the ``coordinate_ring`` of ``self.interactive_lp_problem().standard_form()``.
+          If not provided, then the current dictionary is set to the initial dictionary.
 
         .. NOTE::
+
+            ``self.interactive_lp_problem().standard_form()`` has more variables and
+            constraints than that of ``self``, if `self` has free variables
+            or `==` constraints. In addition, because the ``standard_form`` has the
+            ``auxiliary_variable`` `x_0`, the first variable `x_1` or `x_1_p` of the LP
+            is indexed by `1` in the ``coordinate_ring`` of variables.
+
+
+        EXAMPLES::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: h = get_solver(solver = ("InteractiveLP"))
+            sage: h.add_variables(1, lower_bound=None, upper_bound=None);
+            0
+            sage: h.add_variables(1, lower_bound=0, upper_bound=None);
+            1
+            sage: h.add_linear_constraint([(0,2),(1,-1)],-1,None)
+            sage: h.add_linear_constraint([(0,1),(1,-1)],None, 1)
+            sage: h.add_linear_constraint([(0,1),(1,1)],2,2)
+            sage: h.set_objective([0,-1])
+            sage: h.interactive_lp_problem().standard_form().coordinate_ring().gens()
+            (x0, x1_p, x1_n, x2, x4, x5, x6, x7)
+            sage: h.set_dictionary([1, 3, 4, 6])
+            sage: h.dictionary().basic_variables()
+            (x1_p, x2, x4, x6)
+        """
+        ## FIXME: standard_form should allow to pass slack names (which we would take from row_names).
+        ## FIXME: Perhaps also pass the problem name as objective name
+        if not hasattr(self, "lp_std_form"):
+            self.lp_std_form, self.std_form_transformation = self.lp.standard_form(transformation=True)
+        var_names = self.lp_std_form.coordinate_ring().gens()
+        x_B = [var_names[v] if v in ZZ else v for v in basic_variables]
+        self.current_dictionary = self.lp_std_form.revised_dictionary(*x_B)
+
+    cpdef int solve(self) except -1:
+        """
+        Solve the problem.
+
+        .. NOTE::
+
+            If the current dictionary is infeasible, then ValueError will be raised.
 
             This method raises ``MIPSolverException`` exceptions when
             the solution cannot be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
-            ``basic_variables`` can be one of the following:
-
-            - a list of indices. The indices (starting at 1) correspond to that of the vector formed by `self.interactive_lp_problem().decision_variables()` and `self.interactive_lp_problem().slack_variables()`. Remark that `self.interactive_lp_problem()` can have more variables and constraints than that of `self` if `self` has free variables or `==` constraints.
-
-            - a list of the names of the variables in `self.interactive_lp_problem()`.
-
-            If ``basic_variables`` is provided but is infeasible, then ValueError will be raised.
 
         EXAMPLES::
 
@@ -628,28 +666,13 @@ cdef class InteractiveLPBackend:
             ...
             MIPSolverException: ...
         """
-        ## FIXME: standard_form should allow to pass slack names (which we would take from row_names).
-        ## FIXME: Perhaps also pass the problem name as objective name
-        lp_std_form, transformation = self.lp.standard_form(transformation=True)
-        self.lp_std_form, self.std_form_transformation = lp_std_form, transformation
-        var_names = lp_std_form.coordinate_ring().gens()
-        x_B = [var_names[v] if v in ZZ else v for v in basic_variables]
-        current_dictionary = lp_std_form.revised_dictionary(*x_B)
-        output = [current_dictionary.run_simplex_method()]
+        if not hasattr(self, "current_dictionary"):
+            self.set_dictionary()
+        output = [self.current_dictionary.run_simplex_method()]
         ## FIXME: Display output as a side effect if verbosity is high enough. We don't care about output for now.
-        # if current_dictionary.is_optimal():
-        #     if lp_std_form.auxiliary_variable() in current_dictionary.basic_variables():
-        #         output.append("The problem is infeasible.")
-        #     else:
-        #         v = current_dictionary.objective_value()
-        #         if lp_std_form._is_negative:
-        #             v = - v
-        #         output.append(("The optimal value: ${}$. "
-        #                        "An optimal solution: ${}$.").format(
-        #                        latex(v), latex(current_dictionary.basic_solution())))
-        d = self.final_dictionary = lp_std_form._final_revised_dictionary = current_dictionary
+        d = self.final_dictionary = self.lp_std_form._final_revised_dictionary = self.current_dictionary
         if d.is_optimal():
-            if lp_std_form.auxiliary_variable() in d.basic_variables():
+            if self.lp_std_form.auxiliary_variable() in d.basic_variables():
                 raise MIPSolverException("InteractiveLP: Problem has no feasible solution")
             else:
                 return 0
@@ -1242,7 +1265,9 @@ cdef class InteractiveLPBackend:
             (17/8, 0)
 
         """
-        return self.final_dictionary
+        if not hasattr(self, "current_dictionary"):
+            self.set_dictionary()
+        return self.current_dictionary
 
     cpdef interactive_lp_problem(self):
 

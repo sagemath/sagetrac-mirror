@@ -560,7 +560,8 @@ class HybridBackend(GenericBackend):
                     # no basis information is available in this backend. continue to the next backend.
                     continue
                 else:
-                    return self.backends[-1].solve(basic_variables=basic_variables)
+                    self.backends[-1].set_dictionary(basic_variables=basic_variables)
+                    return self.backends[-1].solve()
         return self.backends[-1].solve()
 
     def get_objective_value(self):

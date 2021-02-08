@@ -28,6 +28,7 @@ Linear Optimization (LP) and Mixed Integer Linear Optimization (MIP) Solver back
    sage/numerical/backends/glpk_graph_backend
    sage/numerical/backends/ppl_backend
    sage/numerical/backends/cvxopt_backend
+   sage/numerical/backends/hybrid_backend
 
 .. backends depending on optional packages
 ..   sage/numerical/backends/coin_backend
