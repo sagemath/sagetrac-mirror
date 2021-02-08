@@ -35,9 +35,6 @@ six = "*"
 pkgconfig = "*"
 ipywidgets = "*"
 
-[requires]
-python_version = "3.8"
-
 [packages.8c46424]
 path = "./../build/pkgs/sage_conf/src"
 editable = true
