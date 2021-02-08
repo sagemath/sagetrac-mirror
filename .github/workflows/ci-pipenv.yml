@@ -19,7 +19,6 @@ jobs:
       run: brew install pipenv tox
     - name: Install dependencies
       run: |
-        brew install pari
         tox -e local-homebrew-macos-standard sagelib-build-deps
       env:
         EXTRA_CONFIGURE_ARGS: --enable-build-as-root
