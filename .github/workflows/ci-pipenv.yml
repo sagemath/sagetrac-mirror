@@ -77,12 +77,10 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update -y
-          apt-get install -y tox sudo
+          apt-get install -y sudo
           apt-get install -y tzdata keyboard-configuration libfplll-dev fplll-tools singular-data
-          python -m pip install -U pip
-          python -m pip install pipenv
+          pip install pipenv tox
           tox -e local-sudo-standard configure.ac
-          apt-get remove -y ecl maxima
         env:
           # Needed since otherwise the installation of tzdata/keyboard-configuration hangs
           DEBIAN_FRONTEND: noninteractive
@@ -106,20 +104,20 @@ jobs:
       - name: Create virtual environment
         run: |
           mkdir -p .venv
-          python -m pipenv install --verbose --dev
-          python -m pipenv run pip list
+          pipenv install --verbose --dev
+          pipenv run pip list
         working-directory: src
         env:
           PIP_NO_BUILD_ISOLATION: false
       # The following is for testing purposes in case the pipenv install above fails
       - name: Install editable manually
-        run: python -m pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
+        run: pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
         working-directory: src
         if: always()
       - name: Test
         run: |
           sudo ../.github/workflows/print_memory_usage.sh &
-          python -m pipenv run sage-runtests --all --timeout=300
+          pipenv run sage-runtests --all --timeout=300
         working-directory: src
         env:
           # Set SAGE_LOCAL (required for gap)
