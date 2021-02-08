@@ -79,6 +79,7 @@ jobs:
           apt-get update -y
           apt-get install -y tox sudo
           apt-get install -y tzdata keyboard-configuration libfplll-dev fplll-tools singular-data
+          python -m pip install -U pip
           pip install pipenv
           tox -e local-sudo-standard configure.ac
           apt-get remove -y ecl maxima
