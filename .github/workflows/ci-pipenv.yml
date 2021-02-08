@@ -80,7 +80,7 @@ jobs:
           apt-get install -y tox sudo
           apt-get install -y tzdata keyboard-configuration libfplll-dev fplll-tools singular-data
           python -m pip install -U pip
-          pip install pipenv
+          python -m pip install pipenv
           tox -e local-sudo-standard configure.ac
           apt-get remove -y ecl maxima
         env:
@@ -106,20 +106,20 @@ jobs:
       - name: Create virtual environment
         run: |
           mkdir -p .venv
-          pipenv install --verbose --dev
-          pipenv run pip list
+          python -m pipenv install --verbose --dev
+          python -m pipenv run pip list
         working-directory: src
         env:
           PIP_NO_BUILD_ISOLATION: false
       # The following is for testing purposes in case the pipenv install above fails
       - name: Install editable manually
-        run: pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
+        run: python -m pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
         working-directory: src
         if: always()
       - name: Test
         run: |
           sudo ../.github/workflows/print_memory_usage.sh &
-          pipenv run sage-runtests --all --timeout=300
+          python -m pipenv run sage-runtests --all --timeout=300
         working-directory: src
         env:
           # Set SAGE_LOCAL (required for gap)
