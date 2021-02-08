@@ -28,8 +28,8 @@ as in the case of free groups::
 Internally, the elements of a finitely presented group are represented
 and manipulated like the elements of the underlying free group,
 and they are displayed in the same way.
-Nevertheless, element of the two groups are not regarded as equal, but
-they can be converted from one parent to the other::
+Nevertheless, elements of the two different groups are not regarded as equal,
+but they can be converted from one parent to the other::
 
     sage: F.<r,s,t> = FreeGroup()
     sage: G = F / (r^2, s^3, t^3, r*s*t) # the tetrahedral group
@@ -45,6 +45,16 @@ they can be converted from one parent to the other::
     r*s*t^-1
     sage: F(rst_G) == r*s/t
     True
+
+Beware that the conversion from ``G`` to ``F`` is not a function
+in the mathematical sense, because it depends on the internal
+representation of an element::
+
+    sage: r_s_t = G(r*s*t)
+    sage: r_s_t == G.one()
+    True
+    sage: F(r_s_t) == F(G.one()) # == F.one()
+    False
 
 .. WARNING::
 
@@ -79,7 +89,7 @@ Sage recognizes them as being equal::
 ..    (-3550055125485641917, 1571038762487017940)
 
 To use group elements in a ``set`` or ``dict``
-in the case of finite groups, one can convert the group
+in the case of a finite group, one can convert the group
 to a :meth:`~sage.groups.perm_gps.permgroup.PermutationGroup`::
 
     sage: GP = G.as_permutation_group()
