@@ -25,9 +25,9 @@ jobs:
         SKIP_CONFIGURE: yes
     - name: Build dependencies
       run: |
-        tox -e llocal-homebrew-macos-standard sagelib-build-deps
+        tox -e local-homebrew-macos-standard sagelib-build-deps
         make maxima conway_polynomials jmol conway_polynomials elliptic_curves combinatorial_designs polytopes_db graphs threejs
-        echo "$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/bin" >> $GITHUB_PATH
+        echo "$GITHUB_WORKSPACE/.tox/local-homebrew-macos-standard/local/bin" >> $GITHUB_PATH
       env:
         MAKE: make -j2
         SKIP_SYSTEM_PKG_INSTALL: yes
@@ -57,7 +57,7 @@ jobs:
       working-directory: src
       env:
         # Set SAGE_LOCAL (required for gap)
-        SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-sudo-standard/local
+        SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-homebrew-macos-standard/local
  
   linux:
     name: "Ubuntu: Python ${{ matrix.python-version }}"
