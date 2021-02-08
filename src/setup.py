@@ -12,6 +12,7 @@ from sage_setup.cython_options import compiler_directives, compile_time_env_vari
 from sage_setup.extensions import create_extension
 import multiprocessing.pool
 from sage_setup.command.sage_build_ext_minimal import sage_build_ext_minimal
+from sage_setup.command.sage_build import sage_build
 
 # Work around a Cython problem in Python 3.8.x on macOS
 # https://github.com/cython/cython/issues/3262
@@ -56,10 +57,6 @@ from sage.env import cython_aliases, sage_include_directories
 ### Discovering Sources
 #########################################################
 
-# Generate code
-import sage_setup.autogen
-sage_setup.autogen.autogen_all()
-
 log.info("Discovering Python/Cython source code....")
 t = time.time()
 
@@ -80,18 +77,20 @@ log.debug(f"files_to_exclude = {files_to_exclude}")
 
 python_packages = find_namespace_packages(where=SAGE_SRC)
 log.debug(f"python_packages = {python_packages}")
-cython_modules = ["**/*.pyx"]
-log.debug(f"cython_modules = {cython_modules}")
-
-include_directories = sage_include_directories(use_sources=True)
-include_directories += ['.']
-
-log.debug(f"include_directories = {include_directories}")
-
-aliases = cython_aliases()
-log.debug(f"aliases = {aliases}")
 
 log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} seconds.")
+
+try:
+    extensions = cythonize(["**/*.pyx"],
+            exclude=files_to_exclude,
+            include_path=sage_include_directories(use_sources=True) + ['.'],
+            compile_time_env=compile_time_env_variables(),
+            compiler_directives=compiler_directives(False),
+            aliases=cython_aliases(),
+            create_extension=create_extension,
+            nthreads=4)
+except:
+    extensions = None
 
 # ########################################################
 # ## Distutils
@@ -184,13 +183,8 @@ code = setup(name = 'sage',
                  'bin/sage-update-version',
                  ],
         cmdclass={
-           "build_ext": sage_build_ext_minimal
+           "build_ext": sage_build_ext_minimal,
+           "build": sage_build
         },
-        ext_modules=cythonize(cython_modules,
-                              exclude=files_to_exclude,
-                              include_path=include_directories,
-                              compile_time_env=compile_time_env_variables(),
-                              compiler_directives=compiler_directives(False),
-                              aliases=aliases,
-                              create_extension=create_extension,
-                              nthreads=4))
+        ext_modules=extensions
+)
