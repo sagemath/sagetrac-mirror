@@ -2969,6 +2969,9 @@ REFERENCES:
 .. [Huy2005] \D. Huybrechts : *Complex Geometry*, Springer (Berlin)
              (2005).
 
+.. [HY2017] Akinari Hoshi and Aiichi Yamasaki, "Rationality Problem for Algebraic Tori",
+            Mem. AMS 248, no. 1176 (2017).
+
 .. [HZ1999] \C. Holton, L. Q. Zamboni, *Descendants of primitive
             substitutions*, Theory Comput. Syst. 32 (1999) 133-157.
 
