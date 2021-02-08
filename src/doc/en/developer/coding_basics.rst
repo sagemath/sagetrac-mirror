@@ -1227,7 +1227,7 @@ environment, including a full built of the Sage distribution, you can use Pipenv
 
 * Create a new directory named ``.venv`` in ``src``, e.g. by running ``cd src && mkdir .venv``.
 
-* Create the virtual environment by ``pipenv install``.
+* Create the virtual environment by ``pipenv install --dev``.
 
 Now you have a virtual environment in ``src/.venv`` that contains all necessary libraries
 and an editable install of Sage.
