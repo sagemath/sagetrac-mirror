@@ -99,13 +99,6 @@ except Exception as exception:
 # ## Distutils
 # ########################################################
 code = setup(
-    name='sage',
-    version=SAGE_VERSION,
-    description='Sage: Open Source Mathematics Software',
-    license='GNU Public License (GPL)',
-    author='William Stein et al.',
-    author_email='https://groups.google.com/group/sage-support',
-    url='https://www.sagemath.org',
     packages=python_packages,
     package_data={
           'sage.libs.gap': ['sage.gaprc'],
