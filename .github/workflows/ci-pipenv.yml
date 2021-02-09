@@ -41,6 +41,7 @@ jobs:
         key: venv-runner.os-${{ hashFiles('src/Pipfile.lock') }}
     - name: Create virtual environment
       run: |
+        source ../.homebrew-build-env
         mkdir -p .venv
         pipenv install --verbose
         pipenv run pip list
