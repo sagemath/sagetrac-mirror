@@ -64,11 +64,11 @@ not_installed_packages = [package for package in optional_packages
 
 distributions_to_exclude = [f"sage-{pkg}"
                             for pkg in not_installed_packages]
-files_to_exclude = filter_cython_sources(SAGE_SRC, distributions_to_exclude)
+files_to_exclude = filter_cython_sources(sage.env.SAGE_SRC, distributions_to_exclude)
 
 log.debug(f"files_to_exclude = {files_to_exclude}")
 
-python_packages = find_namespace_packages(where=SAGE_SRC)
+python_packages = find_namespace_packages(where=sage.env.SAGE_SRC)
 log.debug(f"python_packages = {python_packages}")
 
 log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} seconds.")
@@ -98,7 +98,7 @@ except Exception as exception:
 # ########################################################
 code = setup(
     name='sage',
-    version=SAGE_VERSION,
+    version=sage.env.SAGE_VERSION,
     description='Sage: Open Source Mathematics Software',
     license='GNU Public License (GPL)',
     author='William Stein et al.',
