@@ -26,8 +26,7 @@ jobs:
         SKIP_CONFIGURE: yes
     - name: Build dependencies
       run: |
-        tox -e local-homebrew-macos-usrlocal sagelib-build-deps
-        make maxima conway_polynomials jmol conway_polynomials elliptic_curves combinatorial_designs polytopes_db graphs threejs
+        tox -e local-homebrew-macos-usrlocal build-local
         echo "$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/bin" >> $GITHUB_PATH
       env:
         MAKE: make -j2
@@ -92,8 +91,7 @@ jobs:
           SKIP_CONFIGURE: yes
       - name: Build dependencies
         run: |
-          tox -e local-sudo-standard sagelib-build-deps
-          make maxima conway_polynomials jmol conway_polynomials elliptic_curves combinatorial_designs polytopes_db graphs threejs
+          tox -e local-sudo-standard build-local
           
           export PKG_CONFIG_PATH=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/lib/pkgconfig:PKG_CONFIG_PATH
           export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/lib:$LD_LIBRARY_PATH
