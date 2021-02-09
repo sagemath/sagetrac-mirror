@@ -18,7 +18,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        brew install pipenv tox
+        python -m pip install --upgrade pip pipenv tox
+        brew install fplll
         tox -e local-homebrew-macos-standard configure.ac
       env:
         SKIP_BOOTSTRAP: yes
