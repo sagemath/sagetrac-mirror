@@ -8,11 +8,15 @@ import sys
 import time
 from distutils import log
 from setuptools import setup, find_namespace_packages
+import multiprocessing.pool
+import sage.misc.lazy_import_cache
+import sage.env
+from sage_setup.optional_extension import is_package_installed_and_updated
+from sage_setup.command.sage_build_ext_minimal import sage_build_ext_minimal
+from sage_setup.find import filter_cython_sources
 from sage_setup.cython_options import compiler_directives, compile_time_env_variables
 from sage_setup.extensions import create_extension
-import multiprocessing.pool
-from sage_setup.command.sage_build_ext_minimal import sage_build_ext_minimal
-from sage_setup.command.sage_build import sage_build
+from sage_setup.excepthook import excepthook
 
 # Work around a Cython problem in Python 3.8.x on macOS
 # https://github.com/cython/cython/issues/3262
@@ -20,50 +24,39 @@ if platform.system() == 'Darwin':
     import multiprocessing
     multiprocessing.set_start_method('fork', force=True)
 
-#########################################################
-### Set source directory
-#########################################################
+# ########################################################
+# ## Set source directory
+# ########################################################
 
-import sage.env
 sage.env.SAGE_SRC = os.getcwd()
-from sage.env import *
-
-from sage_setup.excepthook import excepthook
 sys.excepthook = excepthook
 
-#########################################################
-### Configuration
-#########################################################
+# ########################################################
+# ## Configuration
+# ########################################################
 
 if len(sys.argv) > 1 and sys.argv[1] == "sdist":
     sdist = True
 else:
     sdist = False
 
-#########################################################
-### Testing related stuff
-#########################################################
+# ########################################################
+# ## Testing related stuff
+# ########################################################
 
 # Remove (potentially invalid) star import caches
-import sage.misc.lazy_import_cache
 if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
     os.unlink(sage.misc.lazy_import_cache.get_cache_file())
 
-from Cython.Build import cythonize
-from sage.env import cython_aliases, sage_include_directories
 
-
-#########################################################
-### Discovering Sources
-#########################################################
+# ########################################################
+# ## Discovering Sources
+# ########################################################
 
 log.info("Discovering Python/Cython source code....")
 t = time.time()
 
 # Exclude a few files if the corresponding distribution is not loaded
-from sage_setup.optional_extension import is_package_installed_and_updated
-from sage_setup.find import filter_cython_sources
-
 optional_packages = ['mcqd', 'bliss', 'tdlib', 'primecount',
                      'coxeter3', 'fes', 'sirocco', 'meataxe']
 not_installed_packages = [package for package in optional_packages
@@ -81,29 +74,38 @@ log.debug(f"python_packages = {python_packages}")
 log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} seconds.")
 
 try:
-    extensions = cythonize(["**/*.pyx"],
-            exclude=files_to_exclude,
-            include_path=sage_include_directories(use_sources=True) + ['.'],
-            compile_time_env=compile_time_env_variables(),
-            compiler_directives=compiler_directives(False),
-            aliases=cython_aliases(),
-            create_extension=create_extension,
-            nthreads=4)
-except:
+    log.info("Generating auto-generated sources")
+    from sage_setup.autogen import autogen_all
+    autogen_all()
+
+    from Cython.Build import cythonize
+    from sage.env import cython_aliases, sage_include_directories
+    extensions = cythonize(
+        ["**/*.pyx"],
+        exclude=files_to_exclude,
+        include_path=sage_include_directories(use_sources=True) + ['.'],
+        compile_time_env=compile_time_env_variables(),
+        compiler_directives=compiler_directives(False),
+        aliases=cython_aliases(),
+        create_extension=create_extension,
+        nthreads=4)
+except Exception as exception:
+    log.warn(f"Exception while generating and cythonizing source files: {exception}")
     extensions = None
 
 # ########################################################
 # ## Distutils
 # ########################################################
-code = setup(name = 'sage',
-      version     =  SAGE_VERSION,
-      description = 'Sage: Open Source Mathematics Software',
-      license     = 'GNU Public License (GPL)',
-      author      = 'William Stein et al.',
-      author_email= 'https://groups.google.com/group/sage-support',
-      url         = 'https://www.sagemath.org',
-      packages    = python_packages,
-      package_data = {
+code = setup(
+    name='sage',
+    version=SAGE_VERSION,
+    description='Sage: Open Source Mathematics Software',
+    license='GNU Public License (GPL)',
+    author='William Stein et al.',
+    author_email='https://groups.google.com/group/sage-support',
+    url='https://www.sagemath.org',
+    packages=python_packages,
+    package_data={
           'sage.libs.gap': ['sage.gaprc'],
           'sage.interfaces': ['sage-maxima.lisp'],
           'sage.doctest':  ['tests/*'],
@@ -132,59 +134,59 @@ code = setup(name = 'sage',
                    'ext_data/valgrind/*',
                    'ext_data/threejs/*']
       },
-      scripts = [## The sage script
-                 'bin/sage',
-                 ## Other scripts that should be in the path also for OS packaging of sage:
-                 'bin/sage-eval',
-                 'bin/sage-runtests',          # because it is useful for doctesting user scripts too
-                 'bin/sage-fixdoctests',       # likewise
-                 'bin/sage-coverage',          # because it is useful for coverage-testing user scripts too
-                 'bin/sage-coverageall',       # likewise
-                 'bin/sage-cython',            # deprecated, might be used in user package install scripts
-                 ## Helper scripts invoked by sage script
-                 ## (they would actually belong to something like libexec)
-                 'bin/sage-cachegrind',
-                 'bin/sage-callgrind',
-                 'bin/sage-massif',
-                 'bin/sage-omega',
-                 'bin/sage-valgrind',
-                 'bin/sage-venv-config',
-                 'bin/sage-version.sh',
-                 'bin/sage-cleaner',
-                 ## Only makes sense in sage-the-distribution. TODO: Move to another installation script.
-                 'bin/sage-list-packages',
-                 'bin/sage-location',
-                 ## Uncategorized scripts in alphabetical order
-                 'bin/math-readline',
-                 'bin/sage-env',
-                 # sage-env-config -- installed by sage_conf
-                 # sage-env-config.in -- not to be installed
-                 'bin/sage-gdb-commands',
-                 'bin/sage-grep',
-                 'bin/sage-grepdoc',
-                 'bin/sage-inline-fortran',
-                 'bin/sage-ipynb2rst',
-                 'bin/sage-ipython',
-                 'bin/sage-native-execute',
-                 'bin/sage-notebook',
-                 'bin/sage-num-threads.py',
-                 'bin/sage-open',
-                 'bin/sage-preparse',
-                 'bin/sage-python',
-                 'bin/sage-rebase.bat',
-                 'bin/sage-rebase.sh',
-                 'bin/sage-rebaseall.bat',
-                 'bin/sage-rebaseall.sh',
-                 'bin/sage-rst2txt',
-                 'bin/sage-run',
-                 'bin/sage-run-cython',
-                 'bin/sage-startuptime.py',
-                 'bin/sage-update-src',
-                 'bin/sage-update-version',
-                 ],
-        cmdclass={
-           "build_ext": sage_build_ext_minimal,
-           "build": sage_build
-        },
-        ext_modules=extensions
+    scripts=[
+        # The sage script
+        'bin/sage',
+        # Other scripts that should be in the path also for OS packaging of sage:
+        'bin/sage-eval',
+        'bin/sage-runtests',          # because it is useful for doctesting user scripts too
+        'bin/sage-fixdoctests',       # likewise
+        'bin/sage-coverage',          # because it is useful for coverage-testing user scripts too
+        'bin/sage-coverageall',       # likewise
+        'bin/sage-cython',            # deprecated, might be used in user package install scripts
+        # Helper scripts invoked by sage script
+        # (they would actually belong to something like libexec)
+        'bin/sage-cachegrind',
+        'bin/sage-callgrind',
+        'bin/sage-massif',
+        'bin/sage-omega',
+        'bin/sage-valgrind',
+        'bin/sage-venv-config',
+        'bin/sage-version.sh',
+        'bin/sage-cleaner',
+        # Only makes sense in sage-the-distribution. TODO: Move to another installation script.
+        'bin/sage-list-packages',
+        'bin/sage-location',
+        # Uncategorized scripts in alphabetical order
+        'bin/math-readline',
+        'bin/sage-env',
+        # sage-env-config -- installed by sage_conf
+        # sage-env-config.in -- not to be installed
+        'bin/sage-gdb-commands',
+        'bin/sage-grep',
+        'bin/sage-grepdoc',
+        'bin/sage-inline-fortran',
+        'bin/sage-ipynb2rst',
+        'bin/sage-ipython',
+        'bin/sage-native-execute',
+        'bin/sage-notebook',
+        'bin/sage-num-threads.py',
+        'bin/sage-open',
+        'bin/sage-preparse',
+        'bin/sage-python',
+        'bin/sage-rebase.bat',
+        'bin/sage-rebase.sh',
+        'bin/sage-rebaseall.bat',
+        'bin/sage-rebaseall.sh',
+        'bin/sage-rst2txt',
+        'bin/sage-run',
+        'bin/sage-run-cython',
+        'bin/sage-startuptime.py',
+        'bin/sage-update-src',
+        'bin/sage-update-version',
+    ],
+    cmdclass={
+        "build_ext": sage_build_ext_minimal
+    },
+    ext_modules=extensions
 )
