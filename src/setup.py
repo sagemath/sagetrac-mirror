@@ -10,7 +10,6 @@ from distutils import log
 from setuptools import setup, find_namespace_packages
 import multiprocessing.pool
 import sage.misc.lazy_import_cache
-import sage.env
 from sage_setup.optional_extension import is_package_installed_and_updated
 from sage_setup.command.sage_build_ext_minimal import sage_build_ext_minimal
 from sage_setup.find import filter_cython_sources
@@ -28,7 +27,10 @@ if platform.system() == 'Darwin':
 # ## Set source directory
 # ########################################################
 
+import sage.env
 sage.env.SAGE_SRC = os.getcwd()
+from sage.env import *
+
 sys.excepthook = excepthook
 
 # ########################################################
@@ -64,11 +66,11 @@ not_installed_packages = [package for package in optional_packages
 
 distributions_to_exclude = [f"sage-{pkg}"
                             for pkg in not_installed_packages]
-files_to_exclude = filter_cython_sources(sage.env.SAGE_SRC, distributions_to_exclude)
+files_to_exclude = filter_cython_sources(SAGE_SRC, distributions_to_exclude)
 
 log.debug(f"files_to_exclude = {files_to_exclude}")
 
-python_packages = find_namespace_packages(where=sage.env.SAGE_SRC)
+python_packages = find_namespace_packages(where=SAGE_SRC)
 log.debug(f"python_packages = {python_packages}")
 
 log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} seconds.")
@@ -98,7 +100,7 @@ except Exception as exception:
 # ########################################################
 code = setup(
     name='sage',
-    version=sage.env.SAGE_VERSION,
+    version=SAGE_VERSION,
     description='Sage: Open Source Mathematics Software',
     license='GNU Public License (GPL)',
     author='William Stein et al.',
