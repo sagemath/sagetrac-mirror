@@ -94,7 +94,12 @@ jobs:
         run: |
           tox -e local-sudo-standard sagelib-build-deps
           make maxima conway_polynomials jmol conway_polynomials elliptic_curves combinatorial_designs polytopes_db graphs threejs
+          
+          export PKG_CONFIG_PATH=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/lib/pkgconfig:PKG_CONFIG_PATH
+          export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/lib:$LD_LIBRARY_PATH
           echo "$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/bin" >> $GITHUB_PATH
+          echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
         env:
           MAKE: make -j2
           SKIP_SYSTEM_PKG_INSTALL: yes
