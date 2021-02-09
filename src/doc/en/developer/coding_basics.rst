@@ -1219,7 +1219,8 @@ Pipenv
 ---------------------------------
 
 After following the normal procedure of setting up your local development
-environment, including a full built of the Sage distribution, you can use Pipenv as follows:
+environment, including a full built of the Sage distribution and all recommended system packages installed, 
+you can use Pipenv as follows:
 
 * Install Pipenv by running ``pip install --user pipenv``, see the 
   `official documentation <https://pipenv.pypa.io/en/latest/install/#installing-pipenv>`_ 
