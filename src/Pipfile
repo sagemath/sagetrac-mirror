@@ -39,7 +39,7 @@ version = "*"
 sys_platform = "== 'darwin'"
 
 [packages.1a43973]
-file = "https://files.pythonhosted.org/packages/2c/6b/aaab3357e133e522c4ff335a5c868e4179d5dbc6aa099e282d89028681ec/fpylll-0.5.2dev.tar.gz"
+file = "https://files.pythonhosted.org/packages/2c/6b/aaab3357e133e522c4ff335a5c868e4179d5dbc6aa099e282d89028681ec/fpylll-0.5.2dev.tar.gz#egg=fpylll"
 sys_platform = "== 'linux'"
 
 [packages.8c46424]
