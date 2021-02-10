@@ -82,6 +82,8 @@ jobs:
           apt-get install -y tzdata keyboard-configuration libfplll-dev fplll-tools singular-data wget
           wget http://es.archive.ubuntu.com/ubuntu/pool/main/libf/libffi/libffi6_3.2.1-8_amd64.deb
           sudo dpkg -i libffi6_3.2.1-8_amd64.deb
+          wget http://es.archive.ubuntu.com/ubuntu/pool/main/r/readline/libreadline7_7.0-3_amd64.deb
+          sudo dpkg -i libreadline7_7.0-3_amd64.deb
           python -m pip install --upgrade pip pipenv tox
           tox -e local-sudo-standard configure.ac
         env:
