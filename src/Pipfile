@@ -41,6 +41,7 @@ sys_platform = "== 'linux'"
 [packages.fpylll-recent]
 file = "https://files.pythonhosted.org/packages/ad/c5/f30f354dcce03b928702414fdbdd916d60915c6b144360c88707784385bb/fpylll-0.5.4.tar.gz"
 sys_platform = "== 'darwin'"
+name = "fpylll"
 
 [packages.8c46424]
 path = "./../build/pkgs/sage_conf/src"

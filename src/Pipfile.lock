@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "605706f940cc3f072e84dcc62c7db56d0494b380dc4c23b3ed09d950b294cfd5"
+            "sha256": "6355ba1e2c986c10ba37d0bf9e9228ac6a961d8033f7b3cc36eb034df606dda6"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -235,6 +235,7 @@
         },
         "fpylll-recent": {
             "file": "https://files.pythonhosted.org/packages/ad/c5/f30f354dcce03b928702414fdbdd916d60915c6b144360c88707784385bb/fpylll-0.5.4.tar.gz",
+            "name": "fpylll",
             "sys_platform": "== 'darwin'"
         },
         "gmpy2": {
@@ -257,6 +258,7 @@
                 "sha256:1923af00820a8cf58e91d56b89efc59780a6e81363b94464a0f17c039dffff9e"
             ],
             "index": "pypi",
+            "markers": "python_version >= '3.3'",
             "version": "==7.20.0"
         },
         "ipython-genutils": {
@@ -677,7 +679,6 @@
                 "sha256:4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35",
                 "sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220"
             ],
-            "markers": "os_name != 'nt'",
             "version": "==0.7.0"
         },
         "pycparser": {
@@ -1024,6 +1025,7 @@
                 "sha256:1923af00820a8cf58e91d56b89efc59780a6e81363b94464a0f17c039dffff9e"
             ],
             "index": "pypi",
+            "markers": "python_version >= '3.3'",
             "version": "==7.20.0"
         },
         "ipython-genutils": {
@@ -1167,7 +1169,6 @@
                 "sha256:4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35",
                 "sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220"
             ],
-            "markers": "os_name != 'nt'",
             "version": "==0.7.0"
         },
         "py": {
