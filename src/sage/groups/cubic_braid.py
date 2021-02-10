@@ -89,6 +89,7 @@ from sage.rings.integer import Integer
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.structure.element import Element
 
 from enum import Enum
 
@@ -105,7 +106,7 @@ def _reduce_tietze(tietze_list):
     easily possible using the second braid relation and degree reduction.
 
     EXAMPLES::
- 
+
         sage: from sage.groups.cubic_braid import _reduce_tietze
         sage: _reduce_tietze((2, 2, -3, 5, 3, 1, 1, 5))
         [-2, -5, -1]
@@ -1306,9 +1307,9 @@ class CubicBraidGroup(FinitelyPresentedGroup):
             sage: S3(g)  # indirect doctest
             s0*s1*s0^-1
         """
-        if hasattr(x, 'parent'):
+        if isinstance(x, Element):
             parent = x.parent()
-            map_to   = parent.convert_map_from(self)
+            map_to = parent.convert_map_from(self)
             if map_to is not None:
                 if hasattr(map_to, 'lift'):
                     return map_to.lift(x)
