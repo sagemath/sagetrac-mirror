@@ -121,7 +121,9 @@ jobs:
       - name: Create virtual environment
         run: |
           mkdir -p .venv
-          pipenv install --verbose
+          pipenv install --verbose &
+          pipenv install fpylll==0.5.2dev --verbose &
+          pipenv install --verbose &
           pipenv run pip list
         working-directory: src
         env:
