@@ -79,7 +79,7 @@ jobs:
           apt-get install -y sudo
           apt-get install -y python${{ matrix.python-version }} python${{ matrix.python-version }}-dev
           apt-get install -y tzdata keyboard-configuration libfplll-dev fplll-tools singular-data wget
-          python -m pip install --upgrade pip pipenv tox
+          python3 -m pip install --upgrade pip pipenv tox
           tox -e local-sudo-standard configure.ac
         env:
           # Needed since otherwise the installation of tzdata/keyboard-configuration hangs
