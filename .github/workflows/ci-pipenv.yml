@@ -19,7 +19,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip pipenv tox
-        brew install fplll pari r
+        brew install fplll pari r tree
+        tree -a /usr/local/opt/r/
         tox -e local-homebrew-macos-usrlocal configure.ac
       env:
         SKIP_BOOTSTRAP: yes
