@@ -38,11 +38,6 @@ ipywidgets = "*"
 version = "*"
 sys_platform = "== 'darwin'"
 
-[packages.1a43973]
-git = "git@github.com:fplll/fpylll.git#egg=fpylll"
-ref = "0.5.2dev"
-sys_platform = "== 'linux'"
-
 [packages.8c46424]
 path = "./../build/pkgs/sage_conf/src"
 editable = true

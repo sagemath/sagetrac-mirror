@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "620c27edde42e7b9430bc8c330d239e0f9796fd07cff9799a0b7f08cb0d5e8e4"
+            "sha256": "79469ac17eef10219ff0db719d90fa4b56bfdd265f4901bfcf605c281903b619"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -14,10 +14,6 @@
         ]
     },
     "default": {
-        "1a43973": {
-            "file": "https://files.pythonhosted.org/packages/2c/6b/aaab3357e133e522c4ff335a5c868e4179d5dbc6aa099e282d89028681ec/fpylll-0.5.2dev.tar.gz#egg=fpylll",
-            "sys_platform": "== 'linux'"
-        },
         "8c46424": {
             "editable": true,
             "path": "./../build/pkgs/sage_conf/src"
@@ -257,7 +253,6 @@
                 "sha256:1923af00820a8cf58e91d56b89efc59780a6e81363b94464a0f17c039dffff9e"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.3'",
             "version": "==7.20.0"
         },
         "ipython-genutils": {
@@ -634,10 +629,10 @@
         },
         "prompt-toolkit": {
             "hashes": [
-                "sha256:1411dc3c26dfbfb55b88d8239484b2f2a9df4e69e67965711b187c8917bff872",
-                "sha256:4ccd91f540ef57732d38451889b915ab75a78e04f427e9f2811ff9da0332a174"
+                "sha256:0fa02fa80363844a4ab4b8d6891f62dd0645ba672723130423ca4037b80c1974",
+                "sha256:62c811e46bd09130fb11ab759012a4ae385ce4fb2073442d1898867a824183bd"
             ],
-            "version": "==3.0.15"
+            "version": "==3.0.16"
         },
         "psutil": {
             "hashes": [
@@ -678,6 +673,7 @@
                 "sha256:4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35",
                 "sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220"
             ],
+            "markers": "os_name != 'nt'",
             "version": "==0.7.0"
         },
         "pycparser": {
@@ -1024,7 +1020,6 @@
                 "sha256:1923af00820a8cf58e91d56b89efc59780a6e81363b94464a0f17c039dffff9e"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.3'",
             "version": "==7.20.0"
         },
         "ipython-genutils": {
@@ -1158,16 +1153,17 @@
         },
         "prompt-toolkit": {
             "hashes": [
-                "sha256:1411dc3c26dfbfb55b88d8239484b2f2a9df4e69e67965711b187c8917bff872",
-                "sha256:4ccd91f540ef57732d38451889b915ab75a78e04f427e9f2811ff9da0332a174"
+                "sha256:0fa02fa80363844a4ab4b8d6891f62dd0645ba672723130423ca4037b80c1974",
+                "sha256:62c811e46bd09130fb11ab759012a4ae385ce4fb2073442d1898867a824183bd"
             ],
-            "version": "==3.0.15"
+            "version": "==3.0.16"
         },
         "ptyprocess": {
             "hashes": [
                 "sha256:4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35",
                 "sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220"
             ],
+            "markers": "os_name != 'nt'",
             "version": "==0.7.0"
         },
         "py": {

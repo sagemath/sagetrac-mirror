@@ -1230,6 +1230,8 @@ you can use Pipenv as follows:
 
 * Create the virtual environment by ``pipenv install --dev``.
 
+* On Linux, you need to additional run ``pipenv install fpylll==0.5.2dev``.
+
 Now you have a virtual environment in ``src/.venv`` that contains all necessary libraries
 and an editable install of Sage.
 This means that any changes to Python files will automatically show up every time you 
