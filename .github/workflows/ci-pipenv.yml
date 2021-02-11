@@ -29,7 +29,18 @@ jobs:
     - name: Build dependencies
       run: |
         tox -e local-homebrew-macos-usrlocal build-local
+        
+        export PKG_CONFIG_PATH=$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/lib/pkgconfig:PKG_CONFIG_PATH
+        export LIBRARY_PATH=$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/lib:$LIBRARY_PATH
+        export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/lib:$LD_LIBRARY_PATH
+        export CPATH=$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/include:$CPATH
+        export SAGE_SHARE=$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/share
         echo "$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/bin" >> $GITHUB_PATH
+        echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
+        echo "LIBRARY_PATH=$LIBRARY_PATH" >> $GITHUB_ENV
+        echo "CPATH=$CPATH" >> $GITHUB_ENV
+        echo "SAGE_SHARE=$SAGE_SHARE" >> $GITHUB_ENV
       env:
         MAKE: make -j2
         SKIP_SYSTEM_PKG_INSTALL: yes
