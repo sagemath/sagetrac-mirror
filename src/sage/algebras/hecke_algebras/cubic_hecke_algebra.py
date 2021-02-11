@@ -2005,6 +2005,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     # -------------------------------------------------------------------------------------------------------------
     # _braid_image_from_former_calculations
     # -------------------------------------------------------------------------------------------------------------
+    @cached_method
     def _braid_image_from_former_calculations(self, braid_tietze):
         r"""
         Return the image of a braid in ``self`` as far as this can be done by use of former calculations and is sure not to
