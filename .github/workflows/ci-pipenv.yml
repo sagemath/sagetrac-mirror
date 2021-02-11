@@ -80,7 +80,6 @@ jobs:
           apt-get install -y python${{ matrix.python-version }} python${{ matrix.python-version }}-dev python3-pip
           apt-get install -y tzdata keyboard-configuration libfplll-dev fplll-tools singular-data wget
           python3 -m pip install --upgrade pip pipenv tox
-          pipenv install --python python3
           tox -e local-sudo-standard configure.ac
         env:
           # Needed since otherwise the installation of tzdata/keyboard-configuration hangs
@@ -115,7 +114,7 @@ jobs:
       - name: Create virtual environment
         run: |
           mkdir -p .venv
-          pipenv install --verbose &
+          pipenv install --verbose --python /usr/bin/python${{ matrix.python-version }} &
           pipenv install fpylll==0.5.2dev --verbose &
           pipenv install --verbose &
           pipenv run pip list
