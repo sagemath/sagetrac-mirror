@@ -702,6 +702,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         return CubicHeckeMatrixSpace, (self._cubic_hecke_algebra, self._representation_type, self._subdivide, original)
 
 
+    @cached_method
     def _element_constructor_(self, x):
         r"""
         INPUT:
@@ -757,6 +758,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
         return self.element_class(self, matrix)
 
+    @cached_method
     def __call__(self, entries=None, coerce=True, copy=None):
         r"""
         Perform the instance call. This method needs to be overloaded here
@@ -785,6 +787,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
 
 
+    @cached_method
     def _specialize_matrix(self, mat):
         r"""
         Return the given matrix specializing the original coefficients
@@ -962,6 +965,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         mat =  block_diagonal_matrix(matrix_list, subdivide=self._subdivide, sparse=True)
         return self._specialize_matrix(mat)
 
+    @cached_method
     def zero(self):
         r"""
         Return the zero element of ``self``.
@@ -989,6 +993,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         z.set_immutable()
         return z
 
+    @cached_method
     def one(self):
         r"""
         Return the one element of ``self``.
@@ -1016,6 +1021,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         o.set_immutable()
         return o
 
+    @cached_method
     def _an_element_(self):
         r"""
         Return an element of ``self``.
@@ -1035,6 +1041,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         x = self._cubic_hecke_algebra.an_element()
         return self(x)
 
+    @cached_method
     def some_elements(self):
         r"""
         Return a generator of elements of ``self``.
