@@ -55,30 +55,30 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
 # ## Discovering Sources
 # ########################################################
 
-log.info("Discovering Python/Cython source code....")
-t = time.time()
-
-# Exclude a few files if the corresponding distribution is not loaded
-optional_packages = ['mcqd', 'bliss', 'tdlib', 'primecount',
-                     'coxeter3', 'fes', 'sirocco', 'meataxe']
-not_installed_packages = [package for package in optional_packages
-                          if not is_package_installed_and_updated(package)]
-
-distributions_to_exclude = [f"sage-{pkg}"
-                            for pkg in not_installed_packages]
-files_to_exclude = filter_cython_sources(SAGE_SRC, distributions_to_exclude)
-
-log.debug(f"files_to_exclude = {files_to_exclude}")
-
-python_packages = find_namespace_packages(where=SAGE_SRC)
-log.debug(f"python_packages = {python_packages}")
-
-log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} seconds.")
-
 try:
     log.info("Generating auto-generated sources")
     from sage_setup.autogen import autogen_all
     autogen_all()
+    
+    log.info("Discovering Python/Cython source code....")
+    t = time.time()
+
+    # Exclude a few files if the corresponding distribution is not loaded
+    optional_packages = ['mcqd', 'bliss', 'tdlib', 'primecount',
+                         'coxeter3', 'fes', 'sirocco', 'meataxe']
+    not_installed_packages = [package for package in optional_packages
+                              if not is_package_installed_and_updated(package)]
+
+    distributions_to_exclude = [f"sage-{pkg}"
+                                for pkg in not_installed_packages]
+    files_to_exclude = filter_cython_sources(SAGE_SRC, distributions_to_exclude)
+
+    log.debug(f"files_to_exclude = {files_to_exclude}")
+
+    python_packages = find_namespace_packages(where=SAGE_SRC)
+    log.debug(f"python_packages = {python_packages}")
+
+    log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} seconds.")
 
     from Cython.Build import cythonize
     from sage.env import cython_aliases, sage_include_directories
