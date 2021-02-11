@@ -92,7 +92,7 @@ try:
         create_extension=create_extension,
         nthreads=4)
 except Exception as exception:
-    log.warn(f"Exception while generating and cythonizing source files: {exception}")
+    log.warn(f"Exception while generating and cythonizing source files: {repr(exception)}")
     extensions = None
 
 # ########################################################
