@@ -954,7 +954,7 @@ class CubicHeckeFileCache(SageObject):
         - ``monomial_tietze`` -- tuple representing the braid in Tietze form
 
         - ``ring_of_definition`` -- instance of :class:`CubicHeckeRingOfDefinition` resp.
-          :class:`CubicHeckeExtensionRing` (depending wether ``representation_type``
+          :class:`CubicHeckeExtensionRing` (depending whether ``representation_type``
           is split or not)
 
         OUTPUT:
