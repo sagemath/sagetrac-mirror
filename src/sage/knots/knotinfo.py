@@ -2034,9 +2034,9 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
     - ``crossing_number`` -- integer giving the crossing numer of this series
       of links
-    - ``is_knot``         -- boolean wether this series is a series of knots
+    - ``is_knot``         -- boolean whether this series is a series of knots
       or proper links
-    - ``is_alternating``  -- boolean wether this series is restriced to
+    - ``is_alternating``  -- boolean whether this series is restriced to
       alternating links or not
       This is not relevant for knots with less than 11 crossings
     - ``name_unoriented`` -- string restricting the series to all links with
