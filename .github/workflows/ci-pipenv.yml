@@ -114,6 +114,9 @@ jobs:
           echo "LIBRARY_PATH=$LIBRARY_PATH" >> $GITHUB_ENV
           echo "CPATH=$CPATH" >> $GITHUB_ENV
           echo "SAGE_SHARE=$SAGE_SHARE" >> $GITHUB_ENV
+          echo "$CFLAGS"
+          find /usr /opt -name "gmp.h"
+          echo "CFLAGS=-I/usr/local/include -L/usr/local/lib" >> $GITHUB_ENV
         env:
           MAKE: make -j2
           SKIP_SYSTEM_PKG_INSTALL: yes
