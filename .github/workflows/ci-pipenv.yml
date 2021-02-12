@@ -40,7 +40,7 @@ jobs:
         echo "CPATH=$CPATH" >> $GITHUB_ENV
         echo "SAGE_SHARE=$SAGE_SHARE" >> $GITHUB_ENV   
         echo "$CFLAGS"
-        echo "CFLAGS=-I/usr/local/include -L/usr/local/lib" >> $GITHUB_ENV
+        echo "CFLAGS=-I/usr/local/Cellar/gmp/6.2.1/include -L/usr/local/Cellar/gmp/6.2.1/lib" >> $GITHUB_ENV
       env:
         MAKE: make -j2
         SKIP_SYSTEM_PKG_INSTALL: yes
