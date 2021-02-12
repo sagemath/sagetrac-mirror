@@ -19,11 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip pipenv tox
-        brew install fplll pari r tree
-        echo "$R_HOME"
-        tree -a /usr/local/Cellar/r/
-        find /usr /opt -name "gmp.h"
-        echo "$CFLAGS"
+        brew install fplll pari r
         tox -e local-homebrew-macos-usrlocal configure.ac
       env:
         SKIP_BOOTSTRAP: yes
@@ -44,7 +40,6 @@ jobs:
         echo "CPATH=$CPATH" >> $GITHUB_ENV
         echo "SAGE_SHARE=$SAGE_SHARE" >> $GITHUB_ENV   
         echo "$CFLAGS"
-        find /usr /opt -name "gmp.h"
         echo "CFLAGS=-I/usr/local/include -L/usr/local/lib" >> $GITHUB_ENV
       env:
         MAKE: make -j2
