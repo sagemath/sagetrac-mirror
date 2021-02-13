@@ -421,14 +421,9 @@ def cython_aliases():
                 pc = defaultdict(list, {'libraries': ['z']})
                 libs = "-lz"
         else:
-            try:
-                aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
-                pc = pkgconfig.parse(lib)
-                libs = pkgconfig.libs(lib)
-            except pkgconfig.PackageNotFoundError:
-                from distutils import log
-                log.warn('Package {0} not installed'.format(lib))
-                continue
+            aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
+            pc = pkgconfig.parse(lib)
+            libs = pkgconfig.libs(lib)
 
         # It may seem that INCDIR is redundant because the -I options are also
         # passed in CFLAGS.  However, "extra_compile_args" are put at the end
@@ -461,8 +456,7 @@ def cython_aliases():
     # file (possibly because of confusion between CFLAGS and CXXFLAGS?).
     # This is not a problem in practice since LinBox depends on
     # fflas-ffpack and fflas-ffpack does add such a C++11 flag.
-    if "LINBOX_CFLAGS" in aliases:
-        aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
+    aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
 
     aliases["ARB_LIBRARY"] = ARB_LIBRARY
 
@@ -472,7 +466,7 @@ def cython_aliases():
 
     try:
         aliases["M4RI_CFLAGS"].remove("-pedantic")
-    except (ValueError, KeyError):
+    except ValueError:
         pass
 
     # Determine ecl-specific compiler arguments using the ecl-config script
