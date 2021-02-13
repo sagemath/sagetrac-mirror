@@ -25,10 +25,12 @@ as in the case of free groups::
     sage: a.parent()
     Finitely presented group < a, b, c | a^2, b^2, c^2, (a*b*c)^2 >
 
-Internally, the elements of a finitely presented group are represented
-and manipulated like the elements of the underlying free group,
-and they are displayed in the same way.
-Nevertheless, elements of the two different groups are not regarded as equal,
+Sage treats the elements of a finitely presented group
+just like the elements of the underlying free group
+(namely as words over the generators and their inverses,
+modulo the trivial reductions $a*a^{-1}=a^{-1}*a=1$).
+Nevertheless, elements of the two groups
+are considered to be different,
 but they can be converted from one parent to the other::
 
     sage: F.<r,s,t> = FreeGroup()
@@ -47,11 +49,11 @@ but they can be converted from one parent to the other::
     True
 
 Beware that the conversion from ``G`` to ``F`` is not a function
-in the mathematical sense, because it depends on the internal
-representation of an element::
+in the mathematical sense, because it depends on the
+representation of an element as a word::
 
     sage: r_s_t = G(r*s*t)
-    sage: r_s_t == G.one()
+    sage: r_s_t == G.one() # This is in general not guaranteed to terminate.
     True
     sage: F(r_s_t) == F(G.one()) # == F.one()
     False
@@ -65,40 +67,41 @@ representation of an element::
 
 .. WARNING::
 
-    Sage can sometimes recognize when two words represent the same
-    element in a finitely presented group. Nevertheless, sage performs
+    Sage tries to recognize when two words represent the same
+    element when the elements are compared with
+    ``==`` or ``!=``. In other circumstances, Sage performs
     no "normalization" towards a canonical representation beyond
     the normalizations of the underlying free group.
-    Thus, putting group elements into a ``set`` or to use them as keys
-    for a ``dict`` may not work, even for finite groups.
+    Thus, putting group elements into a ``set`` or using them as keys
+    for a ``dict`` may not work as expected, even if the group is finite.
 
-The following example shows that two different representations of the
+The following example shows that different words representing the
 same element can result in two distinct elements of a ``set`` although
 Sage recognizes them as being equal::
 
     sage: G.order()
     12
-    sage: a1,a2 = G(r*s),G(~t) # ~t is an alternative notation for t^-1
-    sage: set_of_2 = {a1,a2}
+    sage: a1, a2, a3 = G(r*s), G(r*s^2*~s), G(~t) # ~t is an alternative notation for t^-1
+    sage: set_of_2 = {a1, a2, a3} # a1 and a2 are the same, a3 is different
     sage: print(set_of_2, len(set_of_2)) # two-element set
     {r*s, t^-1} 2
-    sage: a1==a2 # a and b are the same element!
+    sage: a1==a3 # a1 and a3 are equal!
     True
 
-..    sage: hash(a1),hash(a2) # random, distinct hashcodes
+..    sage: hash(a1),hash(a3) # random, distinct hashcodes
 ..    (-3550055125485641917, 1571038762487017940)
 
 To use group elements in a ``set`` or ``dict``
 in the case of a finite group, one can convert the group
 to a :meth:`~sage.groups.perm_gps.permgroup.PermutationGroup`::
 
-    sage: GP = G.as_permutation_group()
-    sage: r_p, s_p, t_p = GP(r), GP(s), GP(t)
-    sage: a1_p, a2_p = GP(r*s), GP(~t)
-    sage: set_p = {a1_p, a2_p, r_p*s_p, t_p^-1} # Now, a one-element set
-    sage: print(set_p, len(set_p))
+    sage: G_P = G.as_permutation_group()
+    sage: r_P, s_P, t_P = G_P(r), G_P(s), G_P(t)
+    sage: a1_P, a2_P, a3_P = G_P(r*s), G_P(r*s^2*~s), G_P(~t)
+    sage: set_P = {a1_P, a2_P, a3_P, r_P*s_P, t_P^-1} # Now, a one-element set
+    sage: print(set_P, len(set_P))
     {(1,6,5)(2,3,8)(4,10,9)(7,12,11)} 1
-    sage: G(set_p.pop()), G(a1_p), G(r_p*s_p), G(r_p)*G(s_p)
+    sage: G(set_P.pop()), G(a1_P), G(r_P*s_P), G(r_P)*G(s_P)
     (t^-1, t^-1, t^-1, r^-1*s)
 
 Finitely presented groups are implemented via GAP. You can use the
@@ -952,7 +955,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     @cached_method
     def cardinality(self, limit=4096000):
         """
-        Compute the cardinality of ``self``.
+        Compute the order (cardinality) of the group.
 
         INPUT:
 
@@ -967,12 +970,12 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
             sage: G.<a,b> = FreeGroup('a, b')
             sage: H = G / (a^2, b^3, a*b*~a*~b)
-            sage: H.cardinality()
+            sage: H.order()
             6
 
             sage: F.<a,b,c> = FreeGroup()
             sage: J = F / (F([1]), F([2, 2, 2]))
-            sage: J.cardinality()
+            sage: J.order()
             +Infinity
 
         ALGORITHM:
@@ -981,7 +984,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         .. WARNING::
 
-            This is in general not a decidable problem, so it is not
+            This is in general not a computable problem, so it is not
             guaranteed to give an answer. If the group is infinite, or
             too big, you should be prepared for a long computation
             that consumes all the memory without finishing if you do
@@ -1038,9 +1041,9 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         .. WARNING::
 
-            This is in general not a decidable problem (in fact, it is
-            not even possible to check if the group is finite or
-            not). If the group is infinite, or too big, you should be
+            This is in general not a computable problem (in fact, it is
+            not even decidable whether the group is finite).
+            If the group is infinite, or too big, you should be
             prepared for a long computation that consumes all the
             memory without finishing if you do not set a sensible
             ``limit``.
@@ -1058,7 +1061,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
     def direct_product(self, H, reduced=False, new_names=True):
         r"""
-        Return the direct product of ``self`` with finitely presented
+        Return the direct product with finitely presented
         group ``H``.
 
         Calls GAP function ``DirectProduct``, which returns the direct
@@ -1087,7 +1090,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         OUTPUT:
 
-        The direct product of ``self`` with ``H`` as a finitely
+        The direct product with ``H`` as a finitely
         presented group.
 
         EXAMPLES::
@@ -1102,7 +1105,8 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: klein.order(), klein.as_permutation_group().is_cyclic()
             (4, False)
 
-        We can keep the variable names from ``self`` and ``H`` to examine how
+        We can keep the variable names from the original group
+        and ``H`` to examine how
         new relations are formed::
 
             sage: F = FreeGroup("a"); G = FreeGroup("g")
@@ -1175,7 +1179,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
     def semidirect_product(self, H, hom, check=True, reduced=False):
         r"""
-        The semidirect product of ``self`` with ``H`` via ``hom``.
+        The semidirect product with ``H`` via ``hom``.
 
         If there exists a homomorphism `\phi` from a group `G` to the
         automorphism group of a group `H`, then we can define the semidirect
@@ -1379,7 +1383,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     @cached_method
     def abelian_invariants(self):
         r"""
-        Return the abelian invariants of ``self``.
+        Return the abelian invariants of the group.
 
         The abelian invariants are given by a list of integers
         `(i_1, \ldots, i_j)`, such that the abelianization of the group is
@@ -1403,7 +1407,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
     def simplification_isomorphism(self):
         """
-        Return an isomorphism from ``self`` to a finitely presented group with
+        Return an isomorphism from the group to a finitely presented group with
         a (hopefully) simpler presentation.
 
         EXAMPLES::
@@ -1479,7 +1483,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     
     def epimorphisms(self, H):
         r"""
-        Return the epimorphisms from `self` to `H`, up to automorphism of `H`.
+        Return the epimorphisms from the group to ``H``, up to automorphism of ``H``.
         
         INPUT:
         
