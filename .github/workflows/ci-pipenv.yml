@@ -69,6 +69,9 @@ jobs:
       run: pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
       working-directory: src
       if: always()
+      env:
+        # Fix udl.h:18:1: error: unknown type name 'constexpr'
+        CXXFLAGS: -std=c++11
     - name: Test
       run: |
         pipenv run sage-runtests --all --timeout=300
