@@ -53,7 +53,7 @@ in the mathematical sense, because it depends on the
 representation of an element as a word::
 
     sage: r_s_t = G(r*s*t)
-    sage: r_s_t == G.one() # This is in general not guaranteed to terminate.
+    sage: r_s_t == G.one() # Such a comparison is in general not guaranteed to terminate.
     True
     sage: F(r_s_t) == F(G.one()) # == F.one()
     False
@@ -61,7 +61,7 @@ representation of an element as a word::
 .. WARNING::
 
     Some methods are not guaranteed to finish since the word problem
-    for finitely presented groups is, in general, undecidable. In
+    for finitely presented groups is undecidable. In
     those cases the process may run until the available memory is
     exhausted.
 
@@ -81,14 +81,16 @@ Sage recognizes them as being equal::
 
     sage: G.order()
     12
-    sage: a1, a2, a3 = G(r*s), G(r*s^2*~s), G(~t) # ~t is an alternative notation for t^-1
-    sage: set_of_2 = {a1, a2, a3} # a1 and a2 are the same, a3 is different
-    sage: print(set_of_2, len(set_of_2)) # two-element set
+    sage: a, b, c = G(r*s), G(r*s^2)*G(~ s), G(~t) # ~t is an alternative notation for t^-1
+    sage: print({a, b}) # a and b are the same
+    {r*s}
+    sage: set_of_2 = {a, b, c} # c is different
+    sage: print(set_of_2, len(set_of_2)) # a two-element set
     {r*s, t^-1} 2
-    sage: a1==a3 # a1 and a3 are equal!
+    sage: a==c # a and c are equal!
     True
 
-..    sage: hash(a1),hash(a3) # random, distinct hashcodes
+..    sage: hash(a),hash(c) # random, distinct hashcodes
 ..    (-3550055125485641917, 1571038762487017940)
 
 To use group elements in a ``set`` or ``dict``
@@ -97,12 +99,12 @@ to a :meth:`~sage.groups.perm_gps.permgroup.PermutationGroup`::
 
     sage: G_P = G.as_permutation_group()
     sage: r_P, s_P, t_P = G_P(r), G_P(s), G_P(t)
-    sage: a1_P, a2_P, a3_P = G_P(r*s), G_P(r*s^2*~s), G_P(~t)
-    sage: set_P = {a1_P, a2_P, a3_P, r_P*s_P, t_P^-1} # Now, a one-element set
+    sage: a_P, b_P, c_P = G_P(a), G_P(b), G_P(c)
+    sage: set_P = {a_P, b_P, c_P, r_P*s_P, t_P^-1} # Now, a one-element set
     sage: print(set_P, len(set_P))
     {(1,6,5)(2,3,8)(4,10,9)(7,12,11)} 1
-    sage: G(set_P.pop()), G(a1_P), G(r_P*s_P), G(r_P)*G(s_P)
-    (t^-1, t^-1, t^-1, r^-1*s)
+    sage: G(set_P.pop()), G(a_P), G(b_P), G(c_P), G(r_P*s_P), G(r_P)*G(s_P)
+    (t^-1, t^-1, t^-1, t^-1, t^-1, r^-1*s)
 
 Finitely presented groups are implemented via GAP. You can use the
 :meth:`~sage.groups.libgap_wrapper.ParentLibGAP.gap` method to access
