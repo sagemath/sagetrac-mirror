@@ -59,7 +59,7 @@ try:
     log.info("Generating auto-generated sources")
     from sage_setup.autogen import autogen_all
     autogen_all()
-    
+
     log.info("Discovering Python/Cython source code....")
     t = time.time()
 
@@ -91,7 +91,7 @@ try:
         aliases=cython_aliases(),
         create_extension=create_extension,
         nthreads=4)
-except Exception as exception:
+except ImportError as exception:
     log.warn(f"Exception while generating and cythonizing source files: {repr(exception)}")
     extensions = None
 
