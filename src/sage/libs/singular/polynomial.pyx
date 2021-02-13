@@ -1,3 +1,5 @@
+# distutils: language = c++
+
 """
 Wrapper for Singular's Polynomial Arithmetic
 

@@ -1,3 +1,5 @@
+# distutils: language = c++
+
 """
 Singular's Groebner Strategy Objects
 

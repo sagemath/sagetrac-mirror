@@ -1,3 +1,5 @@
+# distutils: language = c++
+
 """
 libSingular: Conversion Routines and Initialisation
 

@@ -1,9 +1,11 @@
+# distutils: language = c++
+
 """
 Wrapper for Singular's Polynomial Arithmetic
 
 AUTHOR:
 
-- Martin Albrecht (2009-07): initial implementation
+- Martin Albrecht (2009-07): initial implementationF
 """
 #*****************************************************************************
 #       Copyright (C) 2009 Martin Albrecht <malb@informatik.uni-bremen.de>

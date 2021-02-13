@@ -1,3 +1,5 @@
+# distutils: language = c++
+
 from sage.libs.singular.decl cimport ring, poly, number, intvec
 
 from sage.rings.rational cimport Rational
