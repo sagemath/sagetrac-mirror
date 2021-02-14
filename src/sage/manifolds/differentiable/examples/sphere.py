@@ -80,14 +80,15 @@ Gaussian curvature::
     S^2_r --> R
     on A: (theta, phi) |--> r^(-2)
 
-As we have seen, spherical coordinates are initialized by default. To
-initialize stereographic coordinates retrospectively, we can use the following
-command::
+By default, spheres are initialized with spherical coordinates. Even though
+spherical coordinates are internally defined periodically, they do not
+constitute a full atlas in the mathematical sense. To retrospectively
+initialize stereographic coordinates, we can use the following command::
 
     sage: S2_r.stereographic_coordinates()
     Chart (S^2_r-{NP}, (y1, y2))
 
-To get all charts corresponding to stereographic coordinates, we can use the
+To return the full atlas constituted by stereographic coordinates, we can use the
 :meth:`~sage.manifolds.differentiable.examples.sphere.Sphere.coordinate_charts`::
 
     sage: stereoN, stereoS = S2_r.coordinate_charts('stereographic')
@@ -809,6 +810,15 @@ class Sphere(PseudoRiemannianSubmanifold):
             the :wikipedia:`N-sphere#Spherical_coordinates`. The definition
             above ensures that the conventions for the most common cases
             `n=1` and `n=2` are maintained.
+
+        .. WARNING::
+
+            Even though spherical coordinates are internally defined as
+            periodic, keep noticed that they are,
+            in a mathematical sense, only defined on
+            the open subset `A` and do *not* cover the whole sphere
+            `\mathbb{S}^n_r(c)`. To get charts leading to a fully defined atlas,
+            use :meth:`Sphere.stereographic_coordinates` instead.
 
         EXAMPLES:
 
