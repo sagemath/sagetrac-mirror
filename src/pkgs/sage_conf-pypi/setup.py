@@ -16,6 +16,8 @@ class build_py(distutils_build_py):
         HERE = os.path.dirname(__file__)
         with open(os.path.join(HERE, 'VERSION.txt')) as f:
             sage_version = f.read().strip()
+        # For convenience, set up the homebrew env automatically. This is a no-op if homebrew is not present.
+        SETENV = '. .homebrew-build-env 2>&1; :'
         # Until pynac is repackaged as a pip-installable package (#30534), SAGE_LOCAL still has to be specific to
         # the Python version.  Note that as of pynac-0.7.26.sage-2020-04-03, on Cygwin, pynac is linked through
         # to libpython; whereas on all other platforms, it is not linked through, so we only key it to the SOABI.
@@ -38,7 +40,7 @@ class build_py(distutils_build_py):
                 shutil.copytree('sage_root', SAGE_ROOT)  # will fail if already exists
             except Exception:
                 raise DistutilsSetupError(f"the directory SAGE_ROOT={SAGE_ROOT} already exists but it is not configured.  Please remove it and try again.")
-            cmd = f"cd {SAGE_ROOT} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --with-system-python3=force"
+            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --with-system-python3=force"
             print(f"Running {cmd}")
             if os.system(cmd) != 0:
                 raise DistutilsSetupError("configure failed")
@@ -48,7 +50,8 @@ class build_py(distutils_build_py):
         # but a user could use "make build-venv" to build compatible wheels for all Python packages.
         # TODO: A target to only build wheels of tricky packages
         # (that use native libraries shared with other packages).
-        cmd = f"cd {SAGE_ROOT} && make V=0 build-local"
+        SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads | cut -d" " -f 2)"; fi'
+        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 build-local'
         if os.system(cmd) != 0:
             raise DistutilsSetupError("make build-local failed")
 
