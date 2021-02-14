@@ -1,1 +1,1 @@
-../../../../../configure.ac
+../../../../configure.ac

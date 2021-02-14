@@ -1,7 +1,11 @@
+include VERSION.txt
+include pyproject.toml
+graft bin
 graft sage_root
 # These sources are not needed because individual distributions of these are made.
 prune sage_root/build/pkgs/*/src*
-prune sage_root/build/pkgs/sage_conf
+# Except for this one because config.status writes there
+graft sage_root/build/pkgs/sage_conf/src
 #
 global-exclude .tox
 global-exclude *~*
