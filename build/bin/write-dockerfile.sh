@@ -189,6 +189,7 @@ WORKDIR /sage
 ADD Makefile VERSION.txt README.md bootstrap configure.ac sage ./
 ADD src/doc/bootstrap src/doc/bootstrap
 ADD src/bin src/bin
+ADD src/pkgs/sage_conf src/pkgs/sage_conf
 ADD m4 ./m4
 ADD build ./build
 ARG BOOTSTRAP=./bootstrap
