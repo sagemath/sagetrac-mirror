@@ -6,11 +6,11 @@ import sysconfig
 
 from setuptools import setup
 from distutils.command.build_scripts import build_scripts as distutils_build_scripts
-from distutils.command.build_py import build_py as distutils_build_py
+from setuptools.command.build_py import build_py as setuptools_build_py
 from distutils.errors import (DistutilsSetupError, DistutilsModuleError,
                               DistutilsOptionError)
 
-class build_py(distutils_build_py):
+class build_py(setuptools_build_py):
 
     def run(self):
         HERE = os.path.dirname(__file__)
@@ -55,7 +55,7 @@ class build_py(distutils_build_py):
         # (that use native libraries shared with other packages).
         SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads | cut -d" " -f 2)"; fi'
         #cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 build-local'
-        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 config.status'
+        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 ppl'
         if os.system(cmd) != 0:
             raise DistutilsSetupError("make build-local failed")
 
@@ -68,6 +68,8 @@ class build_py(distutils_build_py):
         shutil.copyfile(os.path.join(SAGE_ROOT, 'src', 'bin', 'sage-env-config'),
                         os.path.join(HERE, 'bin', 'sage-env-config'))
         # Install built SAGE_ROOT as package data
+        ## if 'data_files' in self.__dict__:
+        ##     del self.__dict__['data_files']
         if not self.packages:
             self.packages = self.distribution.packages = ['']
         if not self.distribution.package_data:
@@ -75,7 +77,7 @@ class build_py(distutils_build_py):
         os.symlink(SAGE_ROOT, os.path.join(HERE, 'sage_root'))
         self.distribution.package_data[''] = glob.glob('sage_root/**', recursive=True)
         #
-        distutils_build_py.run(self)
+        setuptools_build_py.run(self)
 
 class build_scripts(distutils_build_scripts):
 
