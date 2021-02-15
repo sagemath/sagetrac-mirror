@@ -43,7 +43,7 @@ class build_py(setuptools_build_py):
             shutil.copyfile(os.path.join(HERE, 'sage_conf.py.in'),
                             os.path.join(SAGE_ROOT, 'build', 'pkgs', 'sage_conf', 'src', 'sage_conf.py.in'))
 
-            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --with-system-python3=force"
+            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --with-system-python3=force --without-system-gmp --without-system-mpfr"
             print(f"Running {cmd}")
             if os.system(cmd) != 0:
                 raise DistutilsSetupError("configure failed")
@@ -54,8 +54,7 @@ class build_py(setuptools_build_py):
         # TODO: A target to only build wheels of tricky packages
         # (that use native libraries shared with other packages).
         SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads | cut -d" " -f 2)"; fi'
-        #cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 build-local'
-        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 ppl'
+        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 build-local'
         if os.system(cmd) != 0:
             raise DistutilsSetupError("make build-local failed")
 
@@ -68,14 +67,23 @@ class build_py(setuptools_build_py):
         shutil.copyfile(os.path.join(SAGE_ROOT, 'src', 'bin', 'sage-env-config'),
                         os.path.join(HERE, 'bin', 'sage-env-config'))
         # Install built SAGE_ROOT as package data
-        ## if 'data_files' in self.__dict__:
-        ##     del self.__dict__['data_files']
         if not self.packages:
             self.packages = self.distribution.packages = ['']
         if not self.distribution.package_data:
             self.package_data = self.distribution.package_data = {}
         os.symlink(SAGE_ROOT, os.path.join(HERE, 'sage_root'))
-        self.distribution.package_data[''] = glob.glob('sage_root/**', recursive=True)
+        # We do not include lib64 (a symlink) because all symlinks are followed,
+        # causing another copy to be installed.
+        self.distribution.package_data[''] = (
+            glob.glob('sage_root/*')
+            + glob.glob('sage_root/build/**', recursive=True)
+            + glob.glob('sage_root/local/*')
+            + glob.glob('sage_root/local/bin/**', recursive=True)
+            + glob.glob('sage_root/local/include/**', recursive=True)
+            + glob.glob('sage_root/local/lib/**', recursive=True)
+            + glob.glob('sage_root/local/share/**', recursive=True)
+            + glob.glob('sage_root/local/var/**', recursive=True)
+            )
         #
         setuptools_build_py.run(self)
 
@@ -92,4 +100,6 @@ class build_scripts(distutils_build_scripts):
 
 setup(
     cmdclass=dict(build_py=build_py, build_scripts=build_scripts),
+    # Do not mark the wheel as pure
+    has_ext_modules=lambda: True
 )

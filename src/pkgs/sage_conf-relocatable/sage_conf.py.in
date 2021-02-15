@@ -22,6 +22,8 @@ THREEJS_DIR = "@prefix@/share/threejs"
 SAGE_LOCAL = "@prefix@"
 SAGE_ROOT = "@SAGE_ROOT@"
 
+SAGE_SPKG_WHEELS = "@prefix@/var/lib/sage/wheels"
+
 # Relocation.  SAGE_ROOT is typically configured to a directory in /var/tmp (sticky).
 import os as _os
 SAGE_ROOT_ABS = _os.path.join(_os.path.dirname(__file__), 'sage_root')
