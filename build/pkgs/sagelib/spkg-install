@@ -4,6 +4,17 @@ if [ "$SAGE_EDITABLE" = yes ]; then
 else
     cd src
 fi
+
+# For type=script packages, the build rule in build/make/Makefile sources
+# sage-env but not sage-dist-helpers.
+lib="$SAGE_ROOT/build/bin/sage-dist-helpers"
+. "$lib"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: failed to source $lib"
+    echo >&2 "Is $SAGE_ROOT the correct SAGE_ROOT?"
+    exit 1
+fi
+
 ## All sagelib-building is done by setup.py.
 ## This is so that sagelib can be installed by standard Python procedures,
 ## such as "./setup.py install" or "pip install ."
@@ -54,7 +65,17 @@ if [ "$SAGE_EDITABLE" = yes ]; then
 else
     # Likewise, we should remove the egg-link that may have been installed previously.
     (cd "$SITEPACKAGESDIR" && rm -f sagemath-standard.egg-link)
-    time python3 -u setup.py --no-user-cfg build install || exit 1
+
+    if [ -n "$SAGE_CONF_WHEEL_URL" ]; then
+        # We are in wheel building mode.
+        # Need to build the wheel manually because pip does not
+        # follow symlinks.
+        sdh_setup_bdist_wheel
+        sdh_store_and_pip_install_wheel .
+    else
+        # Traditional incremental install
+        time python3 -u setup.py --no-user-cfg build install || exit 1
+    fi
 fi
 
 if [ "$UNAME" = "CYGWIN" ]; then

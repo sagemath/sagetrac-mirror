@@ -228,6 +228,10 @@ OPENMP_CXXFLAGS = var("OPENMP_CXXFLAGS", "")
 SAGE_BANNER = var("SAGE_BANNER", "")
 SAGE_IMPORTALL = var("SAGE_IMPORTALL", "yes")
 
+# sage_setup's compatible wheels mechanism (sage_setup.command.sage_egg_info).
+# If set, it should be the full URL to a sage_conf wheel, for example
+# https://github.com/sagemath/sage-wheels/releases/download/9.3.rc1/sage_conf-9.3rc1-cp38-cp38-macosx_10_15_x86_64.whl
+SAGE_CONF_WHEEL_URL = var("SAGE_CONF_WHEEL_URL")
 
 def _get_shared_lib_path(*libnames: str) -> Optional[str]:
     """

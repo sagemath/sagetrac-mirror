@@ -89,8 +89,8 @@ log.debug('python_packages = {0}'.format(python_packages))
 
 print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
 
-
 from sage_setup.command.sage_install import sage_install_and_clean
+from sage_setup.command.sage_egg_info import sage_egg_info
 
 #########################################################
 ### Distutils
@@ -179,5 +179,6 @@ code = setup(
       cmdclass = dict(build=sage_build,
                       build_cython=sage_build_cython,
                       build_ext=sage_build_ext,
-                      install=sage_install_and_clean),
+                      install=sage_install_and_clean,
+                      egg_info=sage_egg_info),
       ext_modules = cython_modules)

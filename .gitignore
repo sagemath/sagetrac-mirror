@@ -180,6 +180,9 @@ src/*.egg-info/
 /src/bin/sage-env-config
 /src/bin/sage-src-env-config
 
+/src/pkgs/sage_conf-pypi/bin/sage-env-config
+/src/pkgs/sage_conf-relocatable/sage_root
+
 # Virtual environments
 src/.env
 src/.venv
