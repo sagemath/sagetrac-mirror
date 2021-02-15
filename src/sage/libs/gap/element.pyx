@@ -18,7 +18,6 @@ elements. For general information about GAP, you should read the
 
 import warnings
 
-from sage.structure.sage_object cimport SageObject
 from sage.rings.all import ZZ, QQ, RDF
 
 from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
@@ -2720,42 +2719,6 @@ for name, cls in vars(gapobj).items():
             f'gappy class {name} does not have a corresponding GapElement '
             f'subclass; it may not be possible to convert these objects to '
             f'their equivalent Sage objects')
-
-
-cpdef GapObj _sageobject_to_gapobj(SageObject obj, Gap gap):
-    r"""
-    gappy converter for converting generic `.SageObject`\s to their
-    corresponding `~gappy.gapobj.GapObj` if any.
-
-    This implements the libgap conversion functions already documented for
-    `.SageObject`\s: `.SageObject._libgap_` and `.SageObject._libgap_init_`.
-    """
-
-    # NOTE: In the default implementation of SageObject._libgap_ it defers
-    # to _libgap_init_, so we just need to try calling _libgap_
-    ret = obj._libgap_()
-    if isinstance(ret, GapElement):
-        return (<GapElement>ret).obj
-    elif isinstance(ret, gap.supported_builtins):
-        return gap(ret)
-    elif isinstance(ret, GapObj):
-        return ret
-    else:
-        raise RuntimeError(
-            f'{type(obj).__name__}._libgap_ returned something that cannot '
-            f'be converted to a GAP object: {ret!r}')
-
-
-cpdef GapObj _gapelement_to_gapobj(GapElement elem, Gap gap):
-    r"""
-    gappy converter function for converting `GapElement`\s to their
-    corresponding `~gappy.gapobj.GapObj`.
-
-    In this case it simply returns the `~gappy.gapobj.GapObj` wrapped by the
-    `GapElement`.  This allows seamlessly passing `GapElement`\s to gappy.
-    """
-
-    return elem.obj
 
 
 # Add support for _instancedoc_
