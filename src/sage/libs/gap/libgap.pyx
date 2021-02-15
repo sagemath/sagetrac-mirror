@@ -231,7 +231,6 @@ from sage.structure.parent cimport Parent
 from sage.structure.sage_object import SageObject
 
 from .element cimport GapElement, make_any_gap_element, make_GapElement_Function
-from .element import GapElement, _sageobject_to_gapobj, _gapelement_to_gapobj
 from .saved_workspace import workspace as get_workspace
 from .util import gap_root
 
@@ -865,5 +864,41 @@ cdef class Gap(Parent):
 
 
 libgap = Gap()
-libgap.gap.register_converter(GapElement, _gapelement_to_gapobj)
-libgap.gap.register_converter(SageObject, _sageobject_to_gapobj)
+
+
+@libgap.gap.convert_from(SageObject)
+def _sageobject_to_gapobj(gap, obj):
+    r"""
+    gappy converter for converting generic `.SageObject`\s to their
+    corresponding `.GapObj` if any.
+
+    This implements the libgap conversion functions already documented for
+    `.SageObject`\s: `.SageObject._libgap_` and `.SageObject._libgap_init_`.
+    """
+
+    # NOTE: In the default implementation of SageObject._libgap_ it defers
+    # to _libgap_init_, so we just need to try calling _libgap_
+    ret = obj._libgap_()
+    if isinstance(ret, GapElement):
+        return (<GapElement>ret).obj
+    elif isinstance(ret, gap.supported_builtins):
+        return gap(ret)
+    elif isinstance(ret, GapObj):
+        return ret
+    else:
+        raise RuntimeError(
+            f'{type(obj).__name__}._libgap_ returned something that cannot '
+            f'be converted to a GAP object: {ret!r}')
+
+
+@libgap.gap.convert_from(GapElement)
+def _gapelement_to_gapobj(gap, elem):
+    r"""
+    gappy converter function for converting `.GapElement`\s to their
+    corresponding `.GapObj`.
+
+    In this case it simply returns the `~gappy.gapobj.GapObj` wrapped by the
+    `.GapElement`.  This allows seamlessly passing `.GapElement`\s to gappy.
+    """
+
+    return (<GapElement>elem).obj
