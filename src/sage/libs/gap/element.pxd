@@ -26,9 +26,6 @@ cdef GapElement_Boolean make_GapElement_Boolean(parent, GapObj obj)
 cdef GapElement_Function make_GapElement_Function(parent, GapObj obj)
 cdef GapElement_Permutation make_GapElement_Permutation(parent, GapObj obj)
 
-cpdef GapObj _sageobject_to_gapobj(SageObject obj, Gap gap)
-cpdef GapObj _gapelement_to_gapobj(GapElement elem, Gap gap)
-
 
 cdef class GapElement(RingElement):
 
