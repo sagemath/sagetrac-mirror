@@ -180,29 +180,10 @@ from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
 from sage.rings.qqbar import AA, QQbar
 
-libgap = GapElement_Integer = GapElement_Rational = GapElement_Cyclotomic = None
-gap = gap3 = None
+from sage.interfaces import gap, gap3
+from sage.libs.gap.libgap import libgap
 
-
-def late_import():
-    r"""
-    This function avoids importing libgap on startup. It is called once through
-    the constructor of :class:`UniversalCyclotomicField`.
-
-    EXAMPLES::
-
-        sage: import sage.rings.universal_cyclotomic_field as ucf
-        sage: _ = UniversalCyclotomicField()   # indirect doctest
-        sage: ucf.libgap is None               # indirect doctest
-        False
-    """
-    global gap, gap3, libgap
-    global GapElement_Integer, GapElement_Rational, GapElement_Cyclotomic
-    from sage.libs.gap.libgap import libgap
-    from sage.libs.gap.element import (GapElement_Integer,
-                                       GapElement_Rational,
-                                       GapElement_Cyclotomic)
-    from sage.interfaces import (gap, gap3)
+from gappy.gapobj import GapInteger, GapRational, GapCyclotomic
 
 
 def UCF_sqrt_int(N, UCF):
@@ -1277,7 +1258,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             (see :trac:`18266`). It would be faster/safer to not use string to
             construct the polynomial.
         """
-        gap_p = libgap.MinimalPolynomial(libgap.eval("Rationals"), self._obj)
+        gap_p = libgap.MinimalPolynomial(libgap.Rationals, self._obj)
         return QQ[var](QQ['x_1'](str(gap_p)))
 
 
@@ -1320,7 +1301,6 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         from sage.categories.fields import Fields
         Field.__init__(self, base_ring=QQ, category=Fields().Infinite())
         self._populate_coercion_lists_(embedding=UCFtoQQbar(self))
-        late_import()
 
     def _first_ngens(self, n):
         r"""
@@ -1477,7 +1457,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             Traceback (most recent call last):
             ...
             TypeError: [ [ 0, 1 ], [ 0, 2 ] ]
-            of type <type 'sage.libs.gap.element.GapElement_List'> not valid
+            of type <class 'gappy.gapobj.GapList'> not valid
             to initialize an element of the universal cyclotomic field
 
         Some conversions from symbolic functions are possible::
@@ -1516,7 +1496,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
 
         if isinstance(elt, (Integer, Rational)):
             return self.element_class(self, libgap(elt))
-        elif isinstance(elt, (GapElement_Integer, GapElement_Rational, GapElement_Cyclotomic)):
+        elif isinstance(elt, (GapInteger, GapRational, GapCyclotomic)):
             return self.element_class(self, elt)
         elif not elt:
             return self.zero()
@@ -1529,7 +1509,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         elif isinstance(elt, str):
             obj = libgap.eval(elt)
         if obj is not None:
-            if not isinstance(obj, (GapElement_Integer, GapElement_Rational, GapElement_Cyclotomic)):
+            if not isinstance(obj, (GapInteger, GapRational, GapCyclotomic)):
                 raise TypeError("{} of type {} not valid to initialize an element of the universal cyclotomic field".format(obj, type(obj)))
             return self.element_class(self, obj)
 

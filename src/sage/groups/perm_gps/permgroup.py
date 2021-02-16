@@ -145,7 +145,6 @@ from sage.rings.all import QQ, Integer
 from sage.interfaces.expect import is_ExpectElement
 from sage.interfaces.gap import GapElement
 from sage.libs.gap.libgap import libgap
-from sage.libs.gap.element import GapElement as LibGapElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.groups.perm_gps.constructor import PermutationGroupElement as PermutationConstructor, standardize_generator
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
@@ -156,6 +155,8 @@ from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
 from sage.structure.richcmp import (richcmp_method,
                                     richcmp, rich_to_bool, op_EQ, op_NE)
+
+from gappy.gapobj import GapObj
 
 
 def load_hap():
@@ -341,37 +342,13 @@ def PermutationGroup(gens=None, *args, **kwds):
         sage: PermutationGroup(SymmetricGroup(5))
         Traceback (most recent call last):
         ...
-        TypeError: gens must be a tuple, list, or GapElement
-
-    This will raise an error after the deprecation period::
-
-        sage: G = PermutationGroup([(1,2,3,4)], [(1,7,3,5)])
-        doctest:warning
-        ...
-        DeprecationWarning: gap_group, domain, canonicalize, category will become keyword only
-        See https://trac.sagemath.org/31510 for details.
+        TypeError: gens must be a tuple, list, GapElement, or GapObj
     """
     if not is_ExpectElement(gens) and hasattr(gens, '_permgroup_'):
         return gens._permgroup_()
-    if gens is not None and not isinstance(gens, (tuple, list, GapElement)):
-        raise TypeError("gens must be a tuple, list, or GapElement")
-    gap_group = kwds.get("gap_group", None)
-    domain = kwds.get("domain", None)
-    canonicalize = kwds.get("canonicalize", True)
-    category = kwds.get("category", None)
-    if args:
-        from sage.misc.superseded import deprecation
-        deprecation(31510, "gap_group, domain, canonicalize, category will become keyword only")
-        if len(args) > 4:
-            raise ValueError("invalid input")
-        args = list(args)
-        gap_group = args.pop(0)
-        if args:
-            domain = args.pop(0)
-            if args:
-                canonicalize = args.pop(0)
-                if args:
-                    category = args.pop(0)
+    if gens is not None and not isinstance(gens, (tuple, list, GapElement,
+                                                  GapObj)):
+        raise TypeError("gens must be a tuple, list, GapElement, or GapObj")
     return PermutationGroup_generic(gens=gens, gap_group=gap_group, domain=domain,
                                     canonicalize=canonicalize, category=category)
 
@@ -450,16 +427,16 @@ class PermutationGroup_generic(FiniteGroup):
             # lists of long generators (example PSp(8,3), see :trac:`26750`
             gap_group = libgap.eval(gap_group)
 
-        if isinstance(gap_group, LibGapElement):
+        if isinstance(gap_group, GapObj):
             self._libgap_.set_cache(gap_group)
 
         #Handle the case where only the GAP group is specified.
         if gens is None:
-            if not isinstance(gap_group, (GapElement, LibGapElement)):
+            if not isinstance(gap_group, (GapObj, GapElement)):
                 raise ValueError(
-                    'the gap_group argument must be provided either a'
-                    'GapElement or a valid string for constructing the group '
-                    'with GAP if gens are not provided')
+                    'the gap_group argument must be provided either a GapObj '
+                    'or a valid string for constructing the group with GAP '
+                    'if gens are not provided')
 
             gens = [gen for gen in gap_group.GeneratorsOfGroup()]
 
@@ -583,8 +560,7 @@ class PermutationGroup_generic(FiniteGroup):
     @cached_method
     def _libgap_(self, gap=None):
         """
-        Returns a :class:`~sage.libs.gap.element.GapElement` representing the
-        group.
+        Returns a :class:`~gappy.gapobj.GapObj` represeting the group.
 
         The return value is cached, and may be overridden when initializing
         this class with the ``gap_group`` argument.
@@ -609,8 +585,7 @@ class PermutationGroup_generic(FiniteGroup):
 
         OUTPUT:
 
-        an instance of :class:`sage.libs.gap.element.GapElement` representing
-        this group
+        an instance of :class:`gappy.gapobj.GapObj` representing this group
 
         EXAMPLES::
 
@@ -618,12 +593,12 @@ class PermutationGroup_generic(FiniteGroup):
             sage: P8.gap()
             <permutation group of size 65784756654489600 with 2 generators>
             sage: gap(P8) == P8.gap()
-            False
+            True
             sage: S3 = SymmetricGroup(3)
             sage: S3.gap()
             Sym( [ 1 .. 3 ] )
             sage: gap(S3) == S3.gap()
-            False
+            True
 
         TESTS:
 
@@ -1884,22 +1859,26 @@ class PermutationGroup_generic(FiniteGroup):
             [[()], [()], [(), (3,4), (3,5,4)], [(), (4,5)], [()], [()], [(), (7,8)], [()]]
             sage: G = PermutationGroup([[(1,2,3,4)],[(1,2)]])
             sage: G.strong_generating_system()
-                [[(), (1,2)(3,4), (1,3)(2,4), (1,4)(2,3)],
-                 [(), (2,4,3), (2,3,4)],
-                 [(), (3,4)],
-                 [()]]
+            [[(), (1,2)(3,4), (1,3)(2,4), (1,4)(2,3)],
+             [(), (2,4), (2,3,4)],
+             [(), (3,4)],
+             [()]]
             sage: G = PermutationGroup([[(1,2,3)],[(4,5,7)],[(1,4,6)]])
             sage: G.strong_generating_system()
             [[(), (1,2,3), (1,4,6), (1,3,2), (1,5,7,4,6), (1,6,4), (1,7,5,4,6)],
              [(), (2,3,6), (2,6,3), (2,7,5,6,3), (2,5,6,3)(4,7), (2,4,5,6,3)],
-             [(), (3,5,6), (3,4,7,5,6), (3,6)(5,7), (3,7,4,5,6)],
-             [(), (4,7,5), (4,5,7), (4,6,7)],
-             [(), (5,6,7), (5,7,6)], [()], [()]]
+             [(), (3,7,6), (3,5,6), (3,6,7), (3,4,7,5,6)],
+             [(), (4,7,5), (4,5)(6,7), (4,6,5)],
+             [(), (5,6,7), (5,7,6)],
+             [()],
+             [()]]
             sage: G = PermutationGroup([[(1,2,3)],[(2,3,4)],[(3,4,5)]])
             sage: G.strong_generating_system([5,4,3,2,1])
             [[(), (1,5,3,4,2), (1,5,4,3,2), (1,5)(2,3), (1,5,2)],
              [(1,4)(2,3), (1,4,3), (1,4,2), ()],
-             [(1,2,3), (1,3,2), ()], [()], [()]]
+             [(1,2,3), (), (1,3,2)],
+             [()],
+             [()]]
             sage: G = PermutationGroup([[(3,4)]])
             sage: G.strong_generating_system()
             [[()], [()], [(), (3,4)], [()]]
@@ -2868,7 +2847,7 @@ class PermutationGroup_generic(FiniteGroup):
 
         INPUT:
 
-        - ``libgap_group`` -- an instance of :class:`sage.libs.gap.element.GapElement`
+        - ``libgap_group`` -- an instance of :class:`gappy.gapobj.GapObj`
           representing a GAP group whose generators belong to ``self.gap()``
 
         OUTPUT:
@@ -2883,7 +2862,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: g = g1*g2
             sage: Hgap = G.gap().Subgroup([g.gap()])
             sage: type(Hgap)
-            <type 'sage.libs.gap.element.GapElement'>
+            <class 'gappy.gapobj.GapObj'>
             sage: H = G._subgroup_constructor(Hgap); H
             Subgroup generated by [(1,6,21,12,20,17)(2,10,15,9,11,5)(3,14,8)(4,18)(7,16)] of (The projective general unitary group of degree 3 over Finite Field of size 2)
         """

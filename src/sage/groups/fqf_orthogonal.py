@@ -55,6 +55,8 @@ from sage.rings.all import ZZ
 from sage.matrix.all import matrix
 from sage.categories.action import Action
 
+from gappy.gapobj import GapObj
+
 
 class FqfIsometry(AbelianGroupAutomorphism):
     r"""
@@ -251,8 +253,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
             sage: assert Oq(OL.0) == Oq(OL.0.matrix())
             sage: assert Oq(Oq.0.matrix()) == Oq.0
         """
-        from sage.libs.gap.element import GapElement
-        if not isinstance(x, GapElement):
+        if not isinstance(x, GapObj):
             try:
                 # if there is an action try that
                 gen = self.invariant_form().smith_form_gens()

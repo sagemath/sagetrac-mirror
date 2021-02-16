@@ -32,8 +32,9 @@ from sage.categories.homset import HomsetWithBase
 from sage.categories.morphism import Morphism
 from sage.rings.integer_ring import ZZ
 from sage.groups.libgap_wrapper import ParentLibGAP
-from sage.libs.gap.element import GapElement
 from sage.misc.latex import latex
+
+from gappy.gapobj import GapObj
 
 
 class GroupMorphism_libgap(Morphism):
@@ -46,7 +47,7 @@ class GroupMorphism_libgap(Morphism):
     INPUT:
 
     - ``homset`` -- the parent
-    - ``gap_hom`` -- a :class:`sage.libs.gap.element.GapElement` consisting of a group homomorphism
+    - ``gap_hom`` -- a :class:`gappy.gapobj.GapObj` consisting of a group homomorphism
     - ``check`` -- (default: ``True``) check if the ``gap_hom`` is a group
       homomorphism; this can be expensive
 
@@ -133,7 +134,7 @@ class GroupMorphism_libgap(Morphism):
         CompositionMapping( [ (6,7,8,10,9)(11,13,14,12,15)(16,19,20,18,17)(21,25,22,24,23) ]
         -> [ [ [ Z(5)^0, 0*Z(5) ], [ Z(5)^0, Z(5)^0 ] ] ], <action isomorphism> )
         sage: type(_)
-        <type 'sage.libs.gap.element.GapElement'>
+        <class 'gappy.gapobj.GapObj'>
 
         sage: F = GF(7); MS = MatrixSpace(F,2,2)
         sage: F.multiplicative_generator()
@@ -691,7 +692,7 @@ class GroupHomset_libgap(HomsetWithBase):
             else:
                 phi = libgap.GroupHomomorphismByImagesNC(dom.gap(), codom.gap(), gens, imgs)
             return self.element_class(self, phi, check=check, **options)
-        if isinstance(x, GapElement):
+        if isinstance(x, GapObj):
             try:
                 return self.element_class(self, x, check=True, **options)
             except ValueError:

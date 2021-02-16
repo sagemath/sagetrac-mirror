@@ -128,6 +128,8 @@ from sage.categories.morphism cimport Morphism
 from sage.misc.superseded import deprecation_cython as deprecation
 from sage.misc.cachefunc import cached_method
 
+from gappy.gapobj cimport GapObj
+
 
 cpdef is_Polynomial(f):
     """
@@ -774,12 +776,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # This can save lots of coercions when the common parent is the
         # polynomial's base ring (e.g., for evaluations at integers).
         if not have_same_parent(a, cst):
-            cst, aa = coercion_model.canonical_coercion(cst, a)
-            # Use fast multiplication actions like matrix × scalar.
-            # If there is no action, replace a by an element of the
-            # target parent.
-            if coercion_model.get_action(parent(aa), parent(a)) is None:
-                a = aa
+            if isinstance(a, GapObj):
+                # Don't try to find a coercion to GapObjs since they are not
+                # Elements (yet).  Instead just convert cst directly to GAP
+                # and evaluate the polynomial on the GapObj
+                # TODO: Remove this workaround once a better way can be found
+                # to extend the coercion model to non-Parents
+                cst = a.parent(cst)
+            else:
+                cst, aa = coercion_model.canonical_coercion(cst, a)
+                # Use fast multiplication actions like matrix × scalar.
+                # If there is no action, replace a by an element of the
+                # target parent.
+                if coercion_model.get_action(parent(aa), parent(a)) is None:
+                    a = aa
 
         d = pol.degree()
 
@@ -6364,7 +6374,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         var = list(R.IndeterminatesOfPolynomialRing())[0]
         return self(var)
 
-    def _libgap_(self):
+    def _libgap_(self, gap=None):
         r"""
         TESTS::
 
@@ -6374,8 +6384,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: libgap(R.zero())     # indirect doctest
             0
         """
-        from sage.libs.gap.libgap import libgap
-        return self._gap_(libgap)
+        if gap is None:
+            from sage.libs.gap.libgap import libgap as gap
+
+        return self._gap_(gap)
 
     def _giac_init_(self):
         r"""

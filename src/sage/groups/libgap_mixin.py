@@ -12,11 +12,13 @@ just raise ``NotImplementedError``.
 """
 
 from sage.libs.gap.libgap import libgap
-from sage.libs.gap.element import GapElement
 from sage.structure.element import parent
 from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction_libgap
 from sage.groups.libgap_wrapper import ElementLibGAP
+
+from gappy.gapobj import GapObj
+
 
 class GroupMixinLibGAP(object):
     def __contains__(self, elt):
@@ -39,7 +41,7 @@ class GroupMixinLibGAP(object):
         """
         if parent(elt) is self:
             return True
-        elif isinstance(elt, GapElement):
+        elif isinstance(elt, GapObj):
             return elt in self.gap()
         elif isinstance(elt, ElementLibGAP):
             return elt.gap() in self.gap()

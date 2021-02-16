@@ -164,7 +164,7 @@ cdef class Matrix_gap(Matrix_dense):
         """
         return self._parent, (self.list(),)
 
-    cpdef GapElement gap(self):
+    cpdef GapObj gap(self):
         r"""
         Return the underlying gap object.
 
@@ -175,7 +175,7 @@ cdef class Matrix_gap(Matrix_dense):
             sage: m
             [ [ 1, 2 ], [ 2, 1 ] ]
             sage: type(m)
-            <type 'sage.libs.gap.element.GapElement_List'>
+            <class 'gappy.gapobj.GapList'>
 
             sage: m.MatrixAutomorphisms()
             Group([ (1,2) ])
@@ -327,7 +327,7 @@ cdef class Matrix_gap(Matrix_dense):
     def transpose(self):
         r"""
         Return the transpose of this matrix.
-        
+
         EXAMPLES::
 
             sage: M = MatrixSpace(QQ, 2, implementation='gap')

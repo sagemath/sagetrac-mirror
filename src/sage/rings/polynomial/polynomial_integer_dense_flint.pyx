@@ -75,6 +75,8 @@ from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
 from sage.rings.polynomial.evaluation_flint cimport fmpz_poly_evaluation_mpfr, fmpz_poly_evaluation_mpfi
 
+from gappy.gapobj cimport GapObj
+
 
 cdef class Polynomial_integer_dense_flint(Polynomial):
     r"""

@@ -149,6 +149,9 @@ from sage.structure.proof.proof import get_flag
 from . import maps
 from . import structure
 from . import number_field_morphisms
+
+from gappy.gapobj import GapObj
+
 from itertools import count
 from collections import Counter
 from builtins import zip
@@ -1795,7 +1798,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             if self.variable_name() in s:
                 return self._convert_from_str(s)
             return self._convert_from_str(s.replace('!', ''))
-        elif isinstance(x,str):
+        elif isinstance(x, str):
             return self._convert_from_str(x)
         elif (isinstance(x, (tuple, list)) or
                 isinstance(x, sage.modules.free_module_element.FreeModuleElement)):
@@ -4490,10 +4493,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: k.GeneratorsOfDivisionRing()
             [ zeta ]
 
-        The following tests that it is possible to use a defining
-        polynomial in the variable ``E``, even though by default
-        ``E`` is used as a local variable in the above GAP
-        ``CallFuncList``::
+        The following tests that it is possible to use a defining polynomial in
+        the variable ``E``, even though by default ``E`` is used as a local
+        variable in the above GAP ``CallFuncList``::
 
             sage: P.<E> = QQ[]
             sage: L.<tau> = NumberField(E^3 - 2)
@@ -4506,13 +4508,52 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         """
         if not self.is_absolute():
-            raise NotImplementedError("Currently, only simple algebraic extensions are implemented in gap")
+            raise NotImplementedError(
+                "Currently, only simple algebraic extensions are implemented "
+                "in gap")
         G = sage.interfaces.gap.gap
         q = self.polynomial()
-        if q.variable_name()!='E':
-            return 'CallFuncList(function() local %s,E; %s:=Indeterminate(%s,"%s"); E:=AlgebraicExtension(%s,%s,"%s"); return E; end,[])'%(q.variable_name(),q.variable_name(),G(self.base_ring()).name(),q.variable_name(),G(self.base_ring()).name(),repr(self.polynomial()),str(self.gen()))
-        else:
-            return 'CallFuncList(function() local %s,F; %s:=Indeterminate(%s,"%s"); F:=AlgebraicExtension(%s,%s,"%s"); return F; end,[])'%(q.variable_name(),q.variable_name(),G(self.base_ring()).name(),q.variable_name(),G(self.base_ring()).name(),repr(self.polynomial()),str(self.gen()))
+        x = q.variable_name()
+        q_x = q.change_variable_name('x')
+        R = G(self.base_ring()).name()
+        # Honestly not sure why this is implemented like this, but I cleaned
+        # up the original code and used an f-string to make it more legible
+        # - embray
+        return f"""\
+            CallFuncList(function()
+                local x, E;
+                x := Indeterminate({R}, "{x}");
+                E := AlgebraicExtension({R}, {q_x!r}, "{self.gen()}");
+                return E;
+            end, [])"""
+
+    def _libgap_(self, gap=None):
+        """
+        Create a libgap object representing self
+
+        EXAMPLES::
+
+            sage: z = QQ['z'].0
+            sage: K.<zeta> = NumberField(z^2 - 2)
+            sage: k = libgap(K)
+            sage: k
+            <algebraic extension over the Rationals of degree 2>
+            sage: k.GeneratorsOfDivisionRing()
+            [ zeta ]
+        """
+        if not self.is_absolute():
+            raise NotImplementedError(
+                "Currently, only simple algebraic extensions are implemented "
+                "in gap")
+
+        if gap is None:
+            from sage.libs.gap.libgap import libgap as gap
+
+        R = self.base_ring()
+        q = self.polynomial()
+        x = gap.Indeterminate(R, q.variable_name())
+        return gap.AlgebraicExtension(R, q(x), str(self.gen()))
+
 
     def characteristic(self):
         """
@@ -10603,7 +10644,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         """
         return 'CyclotomicField(%s)'%self.__n
 
-    def _libgap_(self):
+    def _libgap_(self, gap=None):
         """
         Return a LibGAP representation of ``self``.
 
@@ -10615,8 +10656,10 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: libgap(K)   # indirect doctest
             CF(8)
         """
-        from sage.libs.gap.libgap import libgap
-        return libgap.CyclotomicField(self.__n)
+        if gap is None:
+            from sage.libs.gap.libgap import libgap as gap
+
+        return gap.CyclotomicField(self.__n)
 
     def _repr_(self):
         r"""
@@ -10968,9 +11011,9 @@ class NumberField_cyclotomic(NumberField_absolute):
         elif isinstance(x, pari_gen):
             return NumberField_absolute._element_constructor_(self, x, check=check)
         elif (sage.interfaces.gap.is_GapElement(x) or
-              isinstance(x, sage.libs.gap.element.GapElement)):
+              isinstance(x, GapObj)):
             return self._coerce_from_gap(x)
-        elif isinstance(x,str):
+        elif isinstance(x, str):
             return self._convert_from_str(x)
 
         # late import because of speed

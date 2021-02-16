@@ -25,12 +25,12 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp, richcmp_method
-from sage.interfaces.gap import gap
+from sage.interfaces.gap import gap, GapElement
 from sage.rings.all import Integer
 from sage.rings.all import CyclotomicField
-from sage.libs.gap.element import GapElement
 from sage.libs.gap.libgap import libgap
-from sage.libs.gap.element import GapElement as LibGapElement
+
+from gappy.gapobj import GapObj
 
 # TODO:
 #
@@ -68,7 +68,7 @@ def ClassFunction(group, values):
     except AttributeError:
         pass
 
-    if isinstance(values, LibGapElement):
+    if isinstance(values, GapObj):
         return ClassFunction_libgap(group, values)
 
     return ClassFunction_gap(group, values)
@@ -854,7 +854,7 @@ class ClassFunction_libgap(SageObject):
             Character of Cyclic group of order 4 as a permutation group
         """
         self._group = G
-        if isinstance(values, LibGapElement) and values.IsClassFunction():
+        if isinstance(values, GapObj) and values.IsClassFunction():
             self._gap_classfunction = values
         else:
             self._gap_classfunction = libgap.ClassFunction(G._libgap_(),
@@ -875,15 +875,14 @@ class ClassFunction_libgap(SageObject):
             Character of Cyclic group of order 4 as a permutation group
             sage: type(chi)
             <class 'sage.groups.class_function.ClassFunction_gap'>
-            sage: gap(chi)
-            ClassFunction( CharacterTable( Group( [ (1,2,3,4) ] ) ), [ 1, -1, 1, -1 ] )
+            sage: libgap(chi)
+            ClassFunction( CharacterTable( Group([ (1,2,3,4) ]) ), [ 1, -1, 1, -1 ] )
             sage: type(_)
-            <class 'sage.interfaces.gap.GapElement'>
+            <class 'gappy.gapobj.GapList'>
         """
         return self._gap_classfunction
 
     _libgap_ = _gap_ = gap
-
 
     def _repr_(self):
         r"""

@@ -573,7 +573,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: libgap(E8 + 3/2*E8^2 + 100*E8^7)
             E(8)+3/2*E(8)^2-100*E(8)^3
             sage: type(_)
-            <type 'sage.libs.gap.element.GapElement_Cyclotomic'>
+            <class 'gappy.gapobj.GapCyclotomic'>
 
         Check that :trac:`15276` is fixed::
 

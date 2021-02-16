@@ -339,9 +339,9 @@ class MatrixGroup_base(Group):
     def sign_representation(self, base_ring=None, side="twosided"):
         r"""
         Return the sign representation of ``self`` over ``base_ring``.
-        
+
         WARNING: assumes ``self`` is a matrix group over a field which has embedding over real numbers.
-        
+
         INPUT:
 
         - ``base_ring`` -- (optional) the base ring; the default is `\ZZ`
@@ -733,10 +733,7 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             ...
             TypeError: matrix is not in the finitely generated group
         """
-        from sage.libs.gap.libgap import libgap
-        libgap_contains = libgap.eval(r'\in')
-        is_contained = libgap_contains(x_gap, self.gap())
-        if not is_contained.sage():
+        if not x_gap in self.gap():
             raise TypeError('matrix is not in the finitely generated group')
 
     def _subgroup_constructor(self, libgap_subgroup):

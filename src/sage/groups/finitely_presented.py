@@ -75,7 +75,7 @@ The same holds for the group elements::
     sage: a.gap().Order()
     2
     sage: type(_)    # note that the above output is not a Sage integer
-    <type 'sage.libs.gap.element.GapElement_Integer'>
+    <class 'gappy.gapobj.GapInteger'>
 
 You can use call syntax to replace the generators with a set of
 arbitrary ring elements. For example, take the free abelian group
@@ -133,12 +133,13 @@ from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
 from sage.groups.libgap_mixin import GroupMixinLibGAP
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.libs.gap.libgap import libgap
-from sage.libs.gap.element import GapElement
 from sage.misc.cachefunc import cached_method
 from sage.groups.free_group import FreeGroupElement
 from sage.functions.generalized import sign
 from sage.matrix.constructor import matrix
 from sage.categories.morphism import SetMorphism
+
+from gappy.gapobj import GapObj
 
 
 class GroupMorphismWithGensImages(SetMorphism):
@@ -146,9 +147,9 @@ class GroupMorphismWithGensImages(SetMorphism):
     Class used for morphisms from finitely presented groups to
     other groups. It just adds the images of the generators at the
     end of the representation.
-    
+
     EXAMPLES::
-    
+
         sage: F = FreeGroup(3)
         sage: G = F / [F([1, 2, 3, 1, 2, 3]), F([1, 1, 1])]
         sage: H = AlternatingGroup(3)
@@ -166,9 +167,9 @@ class GroupMorphismWithGensImages(SetMorphism):
     def _repr_defn(self):
         r"""
         Return the part of the representation that includes the images of the generators.
-        
+
         EXAMPLES::
-        
+
             sage: F = FreeGroup(3)
             sage: G = F / [F([1,2,3,1,2,3]),F([1,1,1])]
             sage: H = AlternatingGroup(3)
@@ -230,7 +231,7 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
             sage: TestSuite(x).run()
             sage: TestSuite(G.one()).run()
         """
-        if not isinstance(x, GapElement):
+        if not isinstance(x, GapObj):
             F = parent.free_group()
             free_element = F(x)
             fp_family = parent.gap().Identity().FamilyObj()
@@ -286,7 +287,7 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
         if self.Tietze() == ():
             return '1'
         else:
-            return self.gap()._repr_()
+            return self.gap().__repr__()
 
     @cached_method
     def Tietze(self):
@@ -376,9 +377,9 @@ def wrap_FpGroup(libgap_fpgroup):
     ``libgap_free_group`` to comparison by Python ``id``. If you want
     to put the LibGAP free group into a container ``(set, dict)`` then you
     should understand the implications of
-    :meth:`~sage.libs.gap.element.GapElement._set_compare_by_id`. To
-    be safe, it is recommended that you just work with the resulting
-    Sage :class:`FinitelyPresentedGroup`.
+    :meth:`~gappy.gapobj.GapObj._set_compare_by_id`. To be safe, it is
+    recommended that you just work with the resulting Sage
+    :class:`FinitelyPresentedGroup`.
 
     INPUT:
 
@@ -397,7 +398,7 @@ def wrap_FpGroup(libgap_fpgroup):
         sage: P = F / libgap([ a_cubed ]);   P
         <fp group of size infinity on the generators [ a, b ]>
         sage: type(P)
-        <type 'sage.libs.gap.element.GapElement'>
+        <class 'gappy.gapobj.GapObj'>
 
     Now wrap it::
 
@@ -775,7 +776,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         sage: H.gap()
         <fp group on the generators [ x0, x1 ]>
         sage: type(_)
-        <type 'sage.libs.gap.element.GapElement'>
+        <class 'gappy.gapobj.GapObj'>
     """
     Element = FinitelyPresentedGroupElement
 
@@ -827,7 +828,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         """
         gens = ', '.join(self.variable_names())
         rels = ', '.join([ str(r) for r in self.relations() ])
-        return 'Finitely presented group ' + '< '+ gens + ' | ' + rels + ' >'
+        return f'Finitely presented group < {gens} | {rels} >'
 
     def _latex_(self):
         """
@@ -1427,17 +1428,17 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             Finitely presented group < e0 | e0^2 >
         """
         return self.simplification_isomorphism().codomain()
-    
+
     def epimorphisms(self, H):
         r"""
         Return the epimorphisms from `self` to `H`, up to automorphism of `H`.
-        
+
         INPUT:
-        
+
         - `H` -- Another group
-        
+
         EXAMPLES::
-        
+
             sage: F = FreeGroup(3)
             sage: G = F / [F([1, 2, 3, 1, 2, 3]), F([1, 1, 1])]
             sage: H = AlternatingGroup(3)
@@ -1468,7 +1469,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
                      x2 |--> (1,2,3)]
 
         ALGORITHM:
-        
+
         Uses libgap's GQuotients function.
         """
         from sage.misc.misc_c import prod

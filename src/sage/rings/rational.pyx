@@ -107,6 +107,8 @@ from cpython.int cimport PyInt_AS_LONG
 cimport sage.rings.fast_arith
 import  sage.rings.fast_arith
 
+from gappy.gapobj cimport GapRational, GapInteger
+
 cdef sage.rings.fast_arith.arith_int ai
 ai = sage.rings.fast_arith.arith_int()
 
@@ -654,6 +656,12 @@ cdef class Rational(sage.structure.element.FieldElement):
                 a = integer.Integer(x)
                 mpz_set(mpq_numref(self.value), a.value)
                 mpz_set_si(mpq_denref(self.value), 1)
+
+        elif isinstance(x, GapRational):
+            x.sage(q=self)
+
+        elif isinstance(x, GapInteger):
+            set_from_Integer(self, x.sage())
 
         elif isinstance(x, list) and len(x) == 1:
             self.__set_value(x[0], base)
@@ -3150,9 +3158,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             3
             sage: (125/8).log(5/2,prec=53)
             3.00000000000000
-            
+
         TESTS::
-        
+
             sage: (25/2).log(5/2)
             log(25/2)/log(5/2)
             sage: (-1/2).log(3)

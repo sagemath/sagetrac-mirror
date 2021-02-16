@@ -280,7 +280,7 @@ class SymmetricGroup(PermutationGroup_symalt):
     @cached_method
     def _libgap_(self, gap=None):
         """
-        Return the libgap representation (as a `~sage.libs.gap.element.GapElement`) of this
+        Return the libgap representation (as a `~gappy.gapobj.GapObj`) of this
         group.
 
         EXAMPLES::
@@ -289,7 +289,7 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: S._libgap_()
             Sym( [ 1 .. 3 ] )
             sage: type(_)
-            <class 'sage.libs.gap.element.GapElement'>
+            <class 'gappy.gapobj.GapObj'>
             sage: S = SymmetricGroup(['a', 'b', 'c'])
             sage: S._libgap_()
             Sym( [ 1 .. 3 ] )
@@ -695,7 +695,7 @@ class AlternatingGroup(PermutationGroup_symalt):
     @cached_method
     def _libgap_(self, gap=None):
         """
-        Return the libgap representation (as a `~sage.libs.gap.element.GapElement`) of this
+        Return the libgap representation (as a `~gappy.gapobj.GapObj`) of this
         group.
 
         EXAMPLES::
@@ -704,7 +704,7 @@ class AlternatingGroup(PermutationGroup_symalt):
             sage: A._libgap_()
             Alt( [ 1 .. 3 ] )
             sage: type(_)
-            <class 'sage.libs.gap.element.GapElement'>
+            <class 'gappy.gapobj.GapObj'>
             sage: A = AlternatingGroup(['a', 'b', 'c'])
             sage: A._libgap_()
             Alt( [ 1 .. 3 ] )

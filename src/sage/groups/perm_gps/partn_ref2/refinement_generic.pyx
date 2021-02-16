@@ -188,6 +188,8 @@ from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
 from sage.groups.perm_gps.partn_ref.data_structures cimport *
 from sage.data_structures.bitset_base cimport *
 
+from gappy.gapobj cimport GapObj, GapPermutation
+
 
 cdef tuple PS_refinement(PartitionStack * part, long *refine_vals, long *best,
                          int begin, int end,
@@ -336,7 +338,7 @@ cdef class LabelledBranching:
 
         self.n = n
         self.group = libgap.eval("Group(())")
-        self.ClosureGroup = libgap.eval("ClosureGroup")
+        self.ClosureGroup = libgap.ClosureGroup
         self.father = < int *> sig_malloc(n * sizeof(int))
         self.sym_gp = SymmetricGroup(self.n)
         if self.father is NULL:
@@ -356,7 +358,7 @@ cdef class LabelledBranching:
         sig_free(self.father)
         sig_free(self.act_perm)
 
-    cpdef add_gen(self, GapElement_Permutation gen):
+    cpdef add_gen(self, GapPermutation gen):
         r"""
         Add a further generator to the group and
         update the complete labeled branching.
@@ -367,27 +369,28 @@ cdef class LabelledBranching:
             sage: L = LabelledBranching(3)
             sage: L.add_gen(libgap.eval('(1,2,3)'))
         """
-        from sage.libs.gap.libgap import libgap
 
         self.group = self.ClosureGroup(self.group, gen)
-        libgap.StabChain(self.group)
-        cdef GapElement h = self.group
+        cdef GapObj h = self.group
         cdef int i, i_1, j, f
 
-        if libgap.IsTrivial(h).sage():
+        h.StabChain()
+
+        if h.IsTrivial():
             return
+
         for i in range(self.n):
             self.father[i] = -1
 
         while True:
-            i = libgap.SmallestMovedPoint(h).sage()
+            i = h.SmallestMovedPoint().sage()
             i_1 = i - 1
             f = self.father[i_1]
-            for j in libgap.Orbit(h, i).sage():
+            for j in h.Orbit(i).sage():
                 self.father[j - 1] = i_1
             self.father[i_1] = f
-            h = libgap.Stabilizer(h, i)
-            if libgap.IsTrivial(h).sage():
+            h = h.Stabilizer(i)
+            if h.IsTrivial():
                 break
 
     cdef bint has_empty_intersection(self, PartitionStack * part):
@@ -432,8 +435,7 @@ cdef class LabelledBranching:
             sage: L.small_generating_set()
             [(1,2,3)]
         """
-        from sage.libs.gap.libgap import libgap
-        return libgap.SmallGeneratingSet(self.group).sage(parent=self.sym_gp)
+        return self.group.SmallGeneratingSet().sage(parent=self.sym_gp)
 
     def get_order(self):
         r"""
@@ -449,9 +451,7 @@ cdef class LabelledBranching:
             sage: L.get_order()
             3
         """
-        from sage.libs.gap.libgap import libgap
-
-        return libgap.Order(self.group).sage()
+        return self.group.Order().sage()
 
 cdef class PartitionRefinement_generic:
     r"""

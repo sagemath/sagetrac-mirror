@@ -20,6 +20,8 @@ from cysignals.signals cimport sig_check
 from cypari2.gen cimport Gen
 from cypari2.types cimport typ, t_MAT, t_VEC, t_COL, t_VECSMALL, t_LIST, t_STR, t_CLOSURE
 
+from gappy.gapobj cimport GapList
+
 MatrixSpace = None
 
 from sage.rings.integer_ring import ZZ
@@ -1269,6 +1271,9 @@ cdef class MatrixArgs:
             else:
                 self.entries = self.entries.sage()
                 return MA_ENTRIES_SCALAR
+        if isinstance(self.entries, GapList):
+            self.entries = self.entries.matrix(ring=self.base)
+            return MA_ENTRIES_MATRIX
         if isinstance(self.entries, MatrixArgs):
             # Prevent recursion
             return MA_ENTRIES_UNKNOWN

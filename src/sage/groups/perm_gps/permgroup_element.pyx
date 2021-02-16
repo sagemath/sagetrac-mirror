@@ -126,8 +126,8 @@ from sage.interfaces.gap import GapElement as PExpectGapElement
 from sage.interfaces.gp import GpElement
 
 from sage.libs.gap.libgap import libgap
-from sage.libs.gap.element cimport (GapElement, GapElement_List,
-        GapElement_String, GapElement_Permutation)
+
+from gappy.gapobj cimport GapObj, GapPermutation, GapList, GapString
 
 import operator
 
@@ -464,12 +464,12 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             self._set_permutation_group_element(g, convert or not g.parent()._has_natural_domain())
         elif isinstance(g, Gen):
             self._set_list_images(g, convert)
-        elif isinstance(g, GapElement):
-            if isinstance(g, GapElement_Permutation):
+        elif isinstance(g, GapObj):
+            if isinstance(g, GapPermutation):
                 self._set_libgap(g)
-            elif isinstance(g, GapElement_String):
-                self._set_string(g.sage())
-            elif isinstance(g, GapElement_List):
+            elif isinstance(g, GapString):
+                self._set_string(str(g))
+            elif isinstance(g, GapList):
                 self._set_list_images(g.sage(), convert)
             else:
                 raise ValueError("invalid data to initialize a permutation")
@@ -557,7 +557,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         for i in range(vn, self.n):
             self.perm[i] = i
 
-    cpdef _set_libgap(self, GapElement p):
+    cpdef _set_libgap(self, GapObj p):
         r"""
         TESTS::
 
@@ -576,7 +576,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             ...
             ValueError: invalid data to initialize a permutation
         """
-        if isinstance(p, GapElement_Permutation):
+        if isinstance(p, GapPermutation):
             try:
                 self._set_list_images(p.ListPerm(), False)
             except AssertionError:
@@ -1317,7 +1317,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: one._generate_new_GAP(perm)
             (1,4)(2,3)
         """
-        cdef GapElement_List lst = <GapElement_List?> lst_in
+        cdef GapList lst = <GapList?> lst_in
         cdef PermutationGroupElement new = self._new_c()
         cdef Py_ssize_t i, j, vn = len(lst)
 

@@ -27,7 +27,7 @@ its output via LibGAP::
     sage: FooGroup()
     <pc group of size 3 with 1 generators>
     sage: type(FooGroup().gap())
-    <type 'sage.libs.gap.element.GapElement'>
+    <class 'gappy.gapobj.GapObj'>
 
 The element class is a subclass of
 :class:`~sage.structure.element.MultiplicativeGroupElement`. To use
@@ -60,13 +60,14 @@ AUTHORS:
 ##############################################################################
 
 from sage.libs.gap.libgap import libgap
-from sage.libs.gap.element cimport GapElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
 from sage.structure.element cimport Element
 from sage.structure.richcmp cimport richcmp
+
+from gappy.gapobj cimport GapObj
 
 
 class ParentLibGAP(SageObject):
@@ -126,7 +127,7 @@ class ParentLibGAP(SageObject):
             sage: g in H
             True
         """
-        assert isinstance(libgap_parent, GapElement)
+        assert isinstance(libgap_parent, GapObj)
         self._libgap = libgap_parent
         self._ambient = ambient
         if ambient is not None:
@@ -262,7 +263,7 @@ class ParentLibGAP(SageObject):
             sage: all(g*h in G and h*g in G for g in G for h in H)
             True
         """
-        generators = [ g if isinstance(g, GapElement) else self(g).gap()
+        generators = [ g if isinstance(g, GapObj) else self(g).gap()
                        for g in generators ]
         G = self.gap()
         H = G.Subgroup(generators)
@@ -274,7 +275,7 @@ class ParentLibGAP(SageObject):
 
         OUTPUT:
 
-        A :class:`~sage.libs.gap.element.GapElement`
+        A :class:`~gappy.gapobj.GapObj`
 
         EXAMPLES::
 
@@ -283,9 +284,9 @@ class ParentLibGAP(SageObject):
             sage: G.gap()
             <free group on the generators [ x0, x1, x2 ]>
             sage: G.gap().parent()
-            C library interface to GAP
+            <SageGap(gap_root=...)>
             sage: type(G.gap())
-            <type 'sage.libs.gap.element.GapElement'>
+            <class 'gappy.gapobj.GapObj'>
 
         This can be useful, for example, to call GAP functions that
         are not wrapped in Sage::
@@ -344,7 +345,7 @@ class ParentLibGAP(SageObject):
             sage: ParentLibGAP._repr_(G)
             '<free group on the generators [ a, b ]>'
         """
-        return self._libgap._repr_()
+        return self._libgap.__repr__()
 
     @cached_method
     def gens(self):
@@ -478,7 +479,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         """
         MultiplicativeGroupElement.__init__(self, parent)
         assert isinstance(parent, ParentLibGAP)
-        if isinstance(libgap_element, GapElement):
+        if isinstance(libgap_element, GapObj):
             self._libgap = libgap_element
         else:
             if libgap_element == 1:
@@ -486,13 +487,13 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             else:
                 raise TypeError('need a libgap group element or "1" in constructor')
 
-    cpdef GapElement gap(self):
+    cpdef GapObj gap(self):
         """
         Return a LibGAP representation of the element.
 
         OUTPUT:
 
-        A :class:`~sage.libs.gap.element.GapElement`
+        A :class:`~gappy.gapobj.GapObj`
 
         EXAMPLES::
 
@@ -504,14 +505,14 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             sage: xg
             a*b*a^-1*b^-1
             sage: type(xg)
-            <type 'sage.libs.gap.element.GapElement'>
+            <class 'gappy.gapobj.GapObj'>
 
         TESTS::
 
             sage: libgap(FreeGroup('a, b').an_element())
             a*b
             sage: type(libgap(FreeGroup('a, b').an_element()))
-            <type 'sage.libs.gap.element.GapElement'>
+            <class 'gappy.gapobj.GapObj'>
         """
         return self._libgap
 
@@ -584,7 +585,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         if self.is_one():
             return '1'
         else:
-            return self._libgap._repr_()
+            return self._libgap.__repr__()
 
     def _latex_(self):
         r"""

@@ -32,12 +32,14 @@ AUTHORS:
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
 from sage.groups.libgap_mixin import GroupMixinLibGAP
 from sage.groups.group import AbelianGroup as AbelianGroupBase
-from sage.libs.gap.element import GapElement
 from sage.libs.gap.libgap import libgap
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.groups import Groups
+
+from gappy.gapobj import GapObj
+
 
 class AbelianGroupElement_gap(ElementLibGAP):
     r"""
@@ -59,7 +61,7 @@ class AbelianGroupElement_gap(ElementLibGAP):
         INPUT:
 
         - ``parent`` -- an instance of :class:`AbelianGroup_gap`
-        - ``x`` -- an instance of :class:`sage.libs.gap.element.GapElement`
+        - ``x`` -- an instance of :class:`gappy.gapobj.GapObj`
         - ``check`` -- boolean (default: ``True``); check
           if ``x`` is an element  of the group
 
@@ -345,7 +347,7 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
                 x = x.gap()
         elif x == 1 or x == ():
             x = self.gap().Identity()
-        elif not isinstance(x, GapElement):
+        elif not isinstance(x, GapObj):
             from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
             from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroupElement
             from sage.modules.fg_pid.fgp_element import FGP_Element

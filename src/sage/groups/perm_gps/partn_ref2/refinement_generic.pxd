@@ -8,8 +8,10 @@
 #*******************************************************************************
 
 from sage.groups.perm_gps.partn_ref.data_structures cimport OrbitPartition, PartitionStack
-from sage.libs.gap.element cimport GapElement, GapElement_Permutation
 from sage.structure.parent cimport Parent
+
+from gappy.gapobj cimport GapObj, GapPermutation
+
 
 cdef extern from "refinement_generic.h":
     cdef long *global_refine_vals_array
@@ -20,7 +22,7 @@ cdef extern from *:
     void *qsort(void *base, size_t nmemb, size_t size,
                   int(*compar)(void *, void *))
 
-cdef tuple PS_refinement(PartitionStack * part, long *refine_vals, long *best, 
+cdef tuple PS_refinement(PartitionStack * part, long *refine_vals, long *best,
                          int begin, int end,
                          bint * cand_initialized, bint *changed_partition)
 
@@ -35,10 +37,10 @@ cdef class LabelledBranching:
     cdef int count
     cdef int *father
     cdef int *act_perm
-    cdef GapElement group, ClosureGroup
+    cpdef GapObj group, ClosureGroup
     cdef Parent sym_gp
     cdef bint has_empty_intersection(self, PartitionStack * part)
-    cpdef add_gen(self, GapElement_Permutation gen)
+    cpdef add_gen(self, GapPermutation gen)
 
 cdef class PartitionRefinement_generic:
     cdef PartitionStack * _part
@@ -52,7 +54,7 @@ cdef class PartitionRefinement_generic:
     cdef int _nr_of_inner_min_unmin_calls
 
     cdef LabelledBranching _known_automorphisms
-    cdef GapElement_Permutation _to_best, _to_best_inverse
+    cdef GapPermutation _to_best, _to_best_inverse
 
     # the following allow us to debug the program via latex
     cdef object _latex_debug_string

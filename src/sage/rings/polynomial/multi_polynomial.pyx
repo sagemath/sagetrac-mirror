@@ -1069,7 +1069,7 @@ cdef class MPolynomial(CommutativeRingElement):
         variables = R.IndeterminatesOfPolynomialRing()
         return self(*variables)
 
-    def _libgap_(self):
+    def _libgap_(self, gap=None):
         r"""
         TESTS::
 
@@ -1079,8 +1079,11 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: libgap(R.zero())     # indirect doctest
             0
         """
-        from sage.libs.gap.libgap import libgap
-        return self._gap_(libgap)
+        if gap is None:
+            from sage.libs.gap.libgap import libgap as gap
+
+        return self._gap_(gap)
+
 
     def _magma_init_(self, magma):
         """
