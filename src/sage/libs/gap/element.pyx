@@ -2258,7 +2258,7 @@ cdef class GapElement_List(GapElement):
         sage: lst[10]
         Traceback (most recent call last):
         ...
-        IndexError: index out of range.
+        IndexError: index out of range
     """
 
     def __bool__(self):
@@ -2599,7 +2599,7 @@ cdef class GapElement_Record(GapElement):
     We can easily convert a Gap ``rec`` object into a Python ``dict``::
 
         sage: dict(rec)
-        {'a': 123, 'b': 456}
+        {"a": 123, "b": 456}
         sage: type(_)
         <... 'dict'>
 
@@ -2642,7 +2642,7 @@ cdef class GapElement_Record(GapElement):
             sage: type(iter)
             <class 'generator'>
             sage: sorted(rec)
-            [('a', 123), ('b', 456)]
+            [("a", 123), ("b", 456)]
         """
         for k, v in self.obj.__iter__():
             # Convert GapObjs to GapElements
@@ -2692,7 +2692,7 @@ cdef class GapElement_Record(GapElement):
                 val = val.sage()
             except Exception as ex:
                 val = ex
-            result[key] = val
+            result[str(key)] = val
         return result
 
 
