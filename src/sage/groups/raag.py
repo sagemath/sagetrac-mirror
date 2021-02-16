@@ -25,8 +25,6 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.libs.gap.element import GapElement
-
 from sage.misc.cachefunc import cached_method
 from sage.structure.richcmp import richcmp
 from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
@@ -42,6 +40,9 @@ from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.algebras.clifford_algebra import CliffordAlgebraElement
 from sage.typeset.ascii_art import ascii_art
 from sage.typeset.unicode_art import unicode_art
+
+from gappy.gapobj import GapObj
+
 
 class RightAngledArtinGroup(ArtinGroup):
     r"""
@@ -421,7 +422,7 @@ class RightAngledArtinGroup(ArtinGroup):
                 sage: assert g.gap() == h.gap()
                 sage: assert g._data == h._data
             """
-            if isinstance(lst, GapElement):
+            if isinstance(lst, GapObj):
                 # e.g. direct call from GroupLibGAP
                 FinitelyPresentedGroupElement.__init__(self, parent, lst)
                 data = []
@@ -656,7 +657,7 @@ class CohomologyRAAG(CombinatorialFreeModule):
         if R not in Fields():
             raise NotImplementedError("only implemented with coefficients in a field")
         self._group = A
-        
+
         names = tuple(['e' + name[1:] for name in A.variable_names()])
         from sage.graphs.independent_sets import IndependentSets
         from sage.sets.finite_enumerated_set import FiniteEnumeratedSet

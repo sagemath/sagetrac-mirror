@@ -174,6 +174,7 @@ from sage.structure.element cimport (Element, EuclideanDomainElement,
         parent)
 from sage.structure.parent cimport Parent
 from cypari2.paridecl cimport *
+from gappy.gapobj cimport GapInteger
 from sage.rings.rational cimport Rational
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
@@ -686,8 +687,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             elif isinstance(x, pari_gen):
                 set_from_pari_gen(self, x)
 
-            else:
+            elif isinstance(x, GapInteger):
+                x.sage(z=self)
 
+            else:
                 otmp = getattr(x, "_integer_", None)
                 if otmp is not None:
                     set_from_Integer(self, otmp(the_integer_ring))
@@ -2842,9 +2845,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: ZZ(8).log(int(2))
             3
-            
+
         TESTS::
-        
+
             sage: (-2).log(3)
             (I*pi + log(2))/log(3)
         """

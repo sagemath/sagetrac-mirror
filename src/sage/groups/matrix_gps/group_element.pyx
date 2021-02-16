@@ -78,13 +78,14 @@ AUTHORS:
 from sage.structure.element cimport MultiplicativeGroupElement, Element, MonoidElement, Matrix
 from sage.structure.parent cimport Parent
 from sage.structure.richcmp cimport richcmp
-from sage.libs.gap.element cimport GapElement, GapElement_List
 from sage.groups.libgap_wrapper cimport ElementLibGAP
 
 from sage.structure.element import is_Matrix
 from sage.structure.factorization import Factorization
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ
+
+from gappy.gapobj cimport GapObj
 
 
 cpdef is_MatrixGroupElement(x):
@@ -447,7 +448,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             sage: g = G.random_element()
             sage: TestSuite(g).run()
         """
-        if isinstance(M, GapElement):
+        if isinstance(M, GapObj):
             ElementLibGAP.__init__(self, parent, M)
             return
         if convert:

@@ -25,7 +25,9 @@ from sage.misc.lazy_import import lazy_import
 from sage.interfaces.gap import GapElement
 lazy_import('sage.combinat.permutation', ['Permutation', 'from_cycles'])
 from sage.libs.pari.all import pari_gen
-from sage.libs.gap.element import GapElement_Permutation
+
+from gappy.gapobj import GapPermutation
+
 
 def PermutationGroupElement(g, parent=None, check=True):
     r"""
@@ -225,7 +227,7 @@ def standardize_generator(g, convert_dict=None, as_cycles=False):
 
     needs_conversion = True
 
-    if isinstance(g, GapElement_Permutation):
+    if isinstance(g, GapPermutation):
         g = g.sage()
         needs_conversion = False
     if isinstance(g, GapElement):

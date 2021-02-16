@@ -81,7 +81,6 @@ AUTHORS:
 
 
 from sage.misc.cachefunc import cached_method
-from sage.libs.gap.element import GapElement
 from sage.groups.free_group import FreeGroup
 from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
 from sage.groups.braid import BraidGroup
@@ -90,6 +89,8 @@ from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.structure.element import Element
+
+from gappy.gapobj import GapObj
 
 from enum import Enum
 
@@ -263,14 +264,12 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
         """
         if type(x) in (tuple, list):
             x = tuple(_reduce_tietze(tuple(x)))
-        elif isinstance(x, GapElement):
+        elif isinstance(x, GapObj):
             tietze_list = x.UnderlyingElement().TietzeWordAbstractWord().sage()
             tietze_red = _reduce_tietze(tietze_list)
             if tietze_red != tietze_list:
                 x = tuple(tietze_red)
         super(CubicBraidElement, self).__init__(parent, x, check=check)
-
-
 
     def _richcmp_(self, other, op):
         """

@@ -69,13 +69,15 @@ import sage.rings.integer as integer
 import sage.rings.integer_ring as integer_ring
 import sage.rings.quotient_ring as quotient_ring
 
+from sage.interfaces.gap import GapElement
 from sage.libs.pari.all import pari, PariError
 
-import sage.interfaces.all
 from sage.misc.cachefunc import cached_method
 
 from sage.structure.factory import UniqueFactory
 from sage.structure.richcmp import richcmp, richcmp_method
+
+from gappy.gapobj import GapObj
 
 
 class IntegerModFactory(UniqueFactory):
@@ -1173,7 +1175,9 @@ In the latter case, please inform the developers.""".format(self.order()))
         except (NotImplementedError, PariError):
             raise TypeError("error coercing to finite field")
         except TypeError:
-            if sage.interfaces.gap.is_GapElement(x):
+            if isinstance(x, GapObj):
+                return integer_mod.IntegerMod(self, x.sage())
+            elif isinstance(x, GapElement):
                 from sage.interfaces.gap import intmod_gap_to_sage
                 y = intmod_gap_to_sage(x)
                 return integer_mod.IntegerMod(self, y)

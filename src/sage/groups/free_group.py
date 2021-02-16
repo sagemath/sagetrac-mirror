@@ -65,13 +65,14 @@ from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.libs.gap.libgap import libgap
-from sage.libs.gap.element import GapElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.structure.sequence import Sequence
 from sage.structure.element import coercion_model, parent
+
+from gappy.gapobj import GapObj
 
 
 def is_FreeGroup(x):
@@ -164,8 +165,8 @@ class FreeGroupElement(ElementLibGAP):
     INPUT:
 
     - ``x`` -- something that determines the group element. Either a
-      :class:`~sage.libs.gap.element.GapElement` or the Tietze list
-      (see :meth:`Tietze`) of the group element.
+      :class:`~gappy.gapobj.GapObj` or the Tietze list (see :meth:`Tietze`) of
+      the group element.
 
     - ``parent`` -- the parent :class:`FreeGroup`.
 
@@ -207,7 +208,7 @@ class FreeGroupElement(ElementLibGAP):
             sage: TestSuite(G).run()
             sage: TestSuite(x).run()
         """
-        if not isinstance(x, GapElement):
+        if not isinstance(x, GapObj):
             try:
                 l = x.Tietze()
             except AttributeError:
@@ -691,9 +692,9 @@ def wrap_FreeGroup(libgap_free_group):
     ``libgap_free_group`` to comparison by Python ``id``. If you want
     to put the LibGAP free group into a container (set, dict) then you
     should understand the implications of
-    :meth:`~sage.libs.gap.element.GapElement._set_compare_by_id`. To
-    be safe, it is recommended that you just work with the resulting
-    Sage :class:`FreeGroup_class`.
+    :meth:`~gappy.gapobj.GapObj._set_compare_by_id`. To be safe, it is
+    recommended that you just work with the resulting Sage
+    :class:`FreeGroup_class`.
 
     INPUT:
 
@@ -709,7 +710,7 @@ def wrap_FreeGroup(libgap_free_group):
 
         sage: F = libgap.FreeGroup(['a', 'b'])
         sage: type(F)
-        <type 'sage.libs.gap.element.GapElement'>
+        <class 'gappy.gapobj.GapObj'>
 
     Now wrap it::
 
