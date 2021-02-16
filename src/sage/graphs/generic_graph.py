@@ -419,7 +419,6 @@ Methods
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import, division
 
 from copy import copy
 
@@ -615,38 +614,8 @@ class GenericGraph(GenericGraph_pyx):
             self.size() != other.size() or
             self.weighted() != other.weighted()):
                 return False
-        # Vertices
-        if any(x not in other for x in self):
-            return False
-        # Finally, we are prepared to check edges:
-        if not self.allows_multiple_edges():
-            return all(other.has_edge(*edge)
-                       for edge in self.edge_iterator(labels=self._weighted, sort_vertices=False))
-        # The problem with multiple edges is that labels may not have total
-        # ordering, which makes it difficult to compare lists of labels.
-        seen = set()
-        for e in self.edge_iterator(labels=False, sort_vertices=False):
-            if e in seen:
-                continue
-            seen.add(e)
-            # All labels between e[0] and e[1]
-            labels1 = self.edge_label(*e)
-            try:
-                labels2 = other.edge_label(*e)
-            except LookupError:
-                return False
-            if len(labels1) != len(labels2):
-                return False
-            if self._weighted:
-                # If there is total ordering, sorting will speed up things
-                labels1.sort()
-                labels2.sort()
-                for l in labels1:
-                    try:
-                        labels2.remove(l)
-                    except ValueError:
-                        return False
-        return True
+
+        return self._backend.is_subgraph(other._backend, self, ignore_labels=not self.weighted())
 
     @cached_method
     def __hash__(self):
@@ -851,7 +820,7 @@ class GenericGraph(GenericGraph_pyx):
 
         try:
             V = sorted(self)
-        except:
+        except TypeError:
             V = self
         v_to_int = {v: i for i, v in enumerate(V)}
         for u,v,_ in self.edge_iterator():
@@ -3135,11 +3104,11 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``to_undirected`` -- boolean (default ``False``)
+        - ``to_undirected`` -- boolean (default: ``False``)
 
-        - ``labels`` -- boolean (default ``True``); whether to include labels
+        - ``labels`` -- boolean (default: ``True``); whether to include labels
 
-        - ``sort`` - boolean (default ``False``); whether to sort the result
+        - ``sort`` - boolean (default: ``False``); whether to sort the result
 
         EXAMPLES::
 
@@ -10924,23 +10893,9 @@ class GenericGraph(GenericGraph_pyx):
             ...
             TypeError: object of type 'sage.rings.integer.Integer' has no len()
         """
-        if loops:
-            self._backend.add_edges(edges, self._directed)
-            return
         if loops is None:
             loops = self.allows_loops()
-
-        for t in edges:
-            try:
-                if len(t) == 3:
-                    u, v, label = t
-                else:
-                    u, v = t
-                    label = None
-            except Exception:
-                raise TypeError("cannot interpret {!r} as graph edge".format(t))
-            if loops or u != v:
-                self._backend.add_edge(u, v, label, self._directed)
+        self._backend.add_edges(edges, self._directed, remove_loops=not loops)
 
     def subdivide_edge(self, *args):
         r"""
@@ -11207,8 +11162,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: K12.size()
             120
         """
-        for e in edges:
-            self.delete_edge(e)
+        self._backend.del_edges(edges, self._directed)
 
     def contract_edge(self, u, v=None, label=None):
         r"""
@@ -11749,7 +11703,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``labels`` -- boolean (default: ``True``); if ``False``, each edge is
           a tuple `(u,v)` of vertices
 
-        - ``sort`` -- boolean (default ``False``); whether to sort the result
+        - ``sort`` -- boolean (default: ``False``); whether to sort the result
 
         EXAMPLES::
 
@@ -13112,7 +13066,7 @@ class GenericGraph(GenericGraph_pyx):
             120
 
         If we define the graph `T_k` (the transitive tournament on `k` vertices)
-        as the graph on `\{0, ..., k-1\}` such that `ij \in T_k` iif `i<j`, how
+        as the graph on `\{0, ..., k-1\}` such that `ij \in T_k` if `i<j`, how
         many directed triangles can be found in `T_5` ? The answer is of course
         `0`::
 
@@ -14048,7 +14002,7 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``directed_cycle`` -- boolean (default ``True``); if set to ``True``
+        - ``directed_cycle`` -- boolean (default: ``True``); if set to ``True``
           and the graph is directed, only return ``True`` if ``self`` is a
           directed cycle graph (i.e., a circuit). If set to ``False``, we ignore
           the direction of edges and so opposite arcs become multiple (parallel)
@@ -14221,10 +14175,12 @@ class GenericGraph(GenericGraph_pyx):
             return False
 
         if induced:
-            return other.subgraph(self) == self
+            # Check whether ``self`` is contained in ``other``
+            # and whether the induced subgraph of ``other`` is contained in ``self``.
+            return (self._backend.is_subgraph(other._backend, self)
+                    and other._backend.is_subgraph(self._backend, self))
         else:
-            self._scream_if_not_simple(allow_loops=True)
-            return all(other.has_edge(e) for e in self.edge_iterator())
+            return self._backend.is_subgraph(other._backend, self)
 
     ### Cluster
 
@@ -17137,7 +17093,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``start`` -- vertex or list of vertices from which to start the
           traversal
 
-        - ``ignore_direction`` -- boolean (default ``False``); only applies to
+        - ``ignore_direction`` -- boolean (default: ``False``); only applies to
           directed graphs. If ``True``, searches across edges in either
           direction.
 
@@ -17151,12 +17107,12 @@ class GenericGraph(GenericGraph_pyx):
           digraph, the ``neighbors`` function defaults to the
           :meth:`~DiGraph.neighbor_out_iterator` function of the graph.
 
-        - ``report_distance`` -- boolean (default ``False``); if ``True``,
+        - ``report_distance`` -- boolean (default: ``False``); if ``True``,
           reports pairs ``(vertex, distance)`` where ``distance`` is the
           distance from the ``start`` nodes. If ``False`` only the vertices are
           reported.
 
-        - ``edges`` -- boolean (default ``False``); whether to return the edges
+        - ``edges`` -- boolean (default: ``False``); whether to return the edges
           of the BFS tree in the order of visit or the vertices (default).
           Edges are directed in root to leaf orientation of the tree.
 
@@ -17278,9 +17234,10 @@ class GenericGraph(GenericGraph_pyx):
 
         # Preferably use the Cython implementation
         if (neighbors is None and not isinstance(start, list) and distance is None
-                and hasattr(self._backend, "breadth_first_search") and not report_distance and not edges):
-            for v in self._backend.breadth_first_search(start, ignore_direction=ignore_direction):
-                yield v
+                and hasattr(self._backend, "breadth_first_search")):
+            yield from self._backend.breadth_first_search(
+                    start, ignore_direction=ignore_direction,
+                    report_distance=report_distance, edges=edges)
         else:
             if neighbors is None:
                 if not self._directed or ignore_direction:
@@ -17331,7 +17288,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``start`` -- vertex or list of vertices from which to start the
           traversal
 
-        - ``ignore_direction`` -- boolean (default ``False``); only applies to
+        - ``ignore_direction`` -- boolean (default: ``False``); only applies to
           directed graphs. If ``True``, searches across edges in either
           direction.
 
@@ -17432,8 +17389,7 @@ class GenericGraph(GenericGraph_pyx):
         # Preferably use the Cython implementation
         if (neighbors is None and not isinstance(start, list)
                 and hasattr(self._backend, "depth_first_search") and not edges):
-            for v in self._backend.depth_first_search(start, ignore_direction=ignore_direction):
-                yield v
+            yield from self._backend.depth_first_search(start, ignore_direction=ignore_direction)
         else:
             if neighbors is None:
                 if not self._directed or ignore_direction:
@@ -22260,10 +22216,10 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        -  ``certificate`` - if True, then output is `(a, b)`, where `a`
+        -  ``certificate`` -- if True, then output is `(a, b)`, where `a`
            is a boolean and `b` is either a map or ``None``.
 
-        -  ``edge_labels`` - default ``False``, otherwise allows
+        -  ``edge_labels`` -- boolean (default: ``False``); if ``True`` allows
            only permutations respecting edge labels.
 
         OUTPUT:
