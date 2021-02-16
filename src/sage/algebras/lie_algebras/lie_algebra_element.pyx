@@ -328,13 +328,13 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             sage: parent(u) == L
             True
             sage: elt = x*y - y*x; elt
-            b4 - b5
+            b1 - b5
             sage: xp, yp = x.lift_associative(), y.lift_associative()
             sage: eltp = xp*yp - yp*xp; eltp
             -(1,2) + (1,3)
             sage: G = list(S.basis())
             sage: G[4] - G[5]
-            -(1,2) + (1,3)
+            -(1,2) + (1,3,2)
 
         TESTS::
 
