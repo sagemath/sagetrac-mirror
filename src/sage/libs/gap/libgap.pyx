@@ -119,12 +119,12 @@ Or get them as results of computations::
     sage: rec['Sym3']
     Sym( [ 1 .. 3 ] )
     sage: dict(rec)
-    {'Sym3': Sym( [ 1 .. 3 ] ), 'a': 123, 'b': 456}
+    {"Sym3": Sym( [ 1 .. 3 ] ), "a": 123, "b": 456}
 
-The output is a Sage dictionary whose keys are Sage strings and whose
-Values are instances of :meth:`~sage.libs.gap.element.GapElement`. So,
-for example, ``rec['a']`` is not a Sage integer. To recursively
-convert the entries into Sage objects, you should use the
+The output is a Sage dictionary whose keys are GAP strings and whose Values are
+instances of :meth:`~sage.libs.gap.element.GapElement`. So, for example,
+``rec['a']`` is not a Sage integer. To recursively convert the keys and entries
+into Sage objects, you should use the
 :meth:`~sage.libs.gap.element.GapElement.sage` method::
 
     sage: rec.sage()
