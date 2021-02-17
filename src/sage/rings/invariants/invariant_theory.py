@@ -7,7 +7,7 @@ special linear group. That is, we are dealing with polynomials of
 degree `d` in `n` variables. The special linear group `SL(n,\CC)` acts
 on the variables `(x_1,\dots, x_n)` linearly,
 
-.. MATH::
+. MATH::
 
     (x_1,\dots, x_n)^t \to A (x_1,\dots, x_n)^t
     ,\qquad
@@ -92,7 +92,7 @@ specify one less variable::
 
 REFERENCES:
 
-.. [WpInvariantTheory] :wikipedia:`Glossary_of_invariant_theory`
+- :wikipedia:`Glossary_of_invariant_theory`
 
 AUTHORS:
 
@@ -3221,10 +3221,8 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
 
     REFERENCES:
 
-    ..  [Salmon2]
-        G. Salmon: A Treatise on Conic Sections,
-        Section on "Invariants and Covariants of Systems of Conics",
-        Art. 388 (a).
+    - Section on "Invariants and Covariants of Systems of Conics",
+      Art. 388 (a) in [Sal1954]_
 
     TESTS::
 
@@ -3436,10 +3434,8 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
     REFERENCES:
 
-    ..  [Salmon]
-        G. Salmon: "A Treatise on the Analytic Geometry of Three
-        Dimensions", section on "Invariants and Covariants of
-        Systems of Quadrics".
+    -  section on "Invariants and Covariants of
+       Systems of Quadrics" in [Sal1958]_, [Sal1965]_
 
     TESTS::
 
@@ -3862,11 +3858,17 @@ class InvariantTheoryFactory(object):
     """
     Factory object for invariants of multilinear forms.
 
+    Use the invariant_theory object to construct algebraic forms. These
+    can then be queried for invariant and covariants.
+
     EXAMPLES::
 
         sage: R.<x,y,z> = QQ[]
         sage: invariant_theory.ternary_cubic(x^3+y^3+z^3)
         Ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
+
+        sage: invariant_theory.ternary_cubic(x^3+y^3+z^3).J_covariant()
+        x^6*y^3 - x^3*y^6 - x^6*z^3 + y^6*z^3 + x^3*z^6 - y^3*z^6
     """
 
     def __repr__(self):
@@ -3880,27 +3882,9 @@ class InvariantTheoryFactory(object):
         EXAMPLES::
 
             sage: invariant_theory
-            <BLANKLINE>
-            Use the invariant_theory object to construct algebraic forms. These
-            can then be queried for invariant and covariants. For example,
-            <BLANKLINE>
-                s...: R.<x,y,z> = QQ[]
-                s...: invariant_theory.ternary_cubic(x^3+y^3+z^3)
-                Ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
-                s...: invariant_theory.ternary_cubic(x^3+y^3+z^3).J_covariant()
-                x^6*y^3 - x^3*y^6 - x^6*z^3 + y^6*z^3 + x^3*z^6 - y^3*z^6
+            InvariantTheoryFactory
         """
-        return """
-Use the invariant_theory object to construct algebraic forms. These
-can then be queried for invariant and covariants. For example,
-
-    sage: R.<x,y,z> = QQ[]
-    sage: invariant_theory.ternary_cubic(x^3+y^3+z^3)
-    Ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
-    sage: invariant_theory.ternary_cubic(x^3+y^3+z^3).J_covariant()
-    x^6*y^3 - x^3*y^6 - x^6*z^3 + y^6*z^3 + x^3*z^6 - y^3*z^6
-"""
-
+        return "InvariantTheoryFactory"
 
     def quadratic_form(self, polynomial, *args):
         """
@@ -4017,7 +4001,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  [WpBinaryForm] :wikipedia:`Invariant_of_a_binary_form`
+        - :wikipedia:`Invariant_of_a_binary_form`
 
         EXAMPLES::
 
@@ -4217,7 +4201,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        .. [WpTernaryCubic] :wikipedia:`Ternary_cubic`
+        - :wikipedia:`Ternary_cubic`
 
         INPUT:
 
@@ -4312,7 +4296,7 @@ can then be queried for invariant and covariants. For example,
             sage: type(inv)
             <class 'sage.rings.invariants.invariant_theory.TwoQuaternaryQuadratics'>
 
-        Distance between two spheres [Salmon]_ ::
+        Distance between two spheres [Sal1958]_, [Sal1965]_ ::
 
             sage: R.<x,y,z, a,b,c, r1,r2> = QQ[]
             sage: S1 = -r1^2 + x^2 + y^2 + z^2
