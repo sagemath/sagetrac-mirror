@@ -1843,6 +1843,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         u = max(indices_right)
         ll = (floor((l*k**(M-m) - k**M + 1)/(k**(M-m) - 1)) + 1)*(l < 0)
         uu = max([ceil((u*k**(M-m) + k**M - k**m)/(k**(M-m) - 1)) - 1, k**m - 1])
+        n1 = n0 - floor(ll/q^M)
         dim = (k**M - 1)/(k - 1) + (M - m)*(uu - ll - k**m + 1)
 
         recursion_rules = namedtuple('recursion_rules',
@@ -1851,7 +1852,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                                       'coeffs', 'initial_values', 'n0'])
 
         return recursion_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, dim=dim,
-                               coeffs=coeffs, initial_values=initial_values, n0=n0)
+                               coeffs=coeffs, initial_values=initial_values, n0=n0, n1=n1)
 
 
     def _get_matrix_from_recursions_(self, recursion_rules, rem, function, var):
