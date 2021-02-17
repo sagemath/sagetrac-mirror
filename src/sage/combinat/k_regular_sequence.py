@@ -1948,7 +1948,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         u = recursion_rules.u
         ll = recursion_rules.ll
         uu = recursion_rules.uu
-        n_start = recursion_rules.n_start
+        n0 = recursion_rules.n0
         dim = recursion_rules.dim
         coeffs = recursion_rules.coeffs
         initial_values = recursion_rules.initial_values
@@ -2034,10 +2034,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             Mat = MatrixSpace(self.base_ring(), dim + n0, dim + n0) 
             return Mat(block_matrix([[mat, Matrix(W).transpose()],
                                      [zero_matrix(n0, dim), Matrix(J)]]))
-
-
-    def _correct_matrices_(A, rem, n_start):
-
 
     
     def _get_left_from_recursions_(self, dim):
