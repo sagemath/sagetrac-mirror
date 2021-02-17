@@ -1843,16 +1843,16 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         u = max(indices_right)
         ll = (floor((l*k**(M-m) - k**M + 1)/(k**(M-m) - 1)) + 1)*(l < 0)
         uu = max([ceil((u*k**(M-m) + k**M - k**m)/(k**(M-m) - 1)) - 1, k**m - 1])
-        n1 = n0 - floor(ll/q^M)
-        dim = (k**M - 1)/(k - 1) + (M - m)*(uu - ll - k**m + 1)
+        n1 = n0 - floor(ll/k**M)
+        dim = (k**M - 1)/(k - 1) + (M - m)*(uu - ll - k**m + 1) + n1
 
         recursion_rules = namedtuple('recursion_rules',
-                                     ['M', 'm', 'l', 'u',
-                                      'll', 'uu', 'dim',
-                                      'coeffs', 'initial_values', 'n0'])
+                                     ['M', 'm', 'l', 'u', 'll', 'uu', 'dim',
+                                      'coeffs', 'initial_values', 'n0', 'n1'])
 
         return recursion_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, dim=dim,
-                               coeffs=coeffs, initial_values=initial_values, n0=n0, n1=n1)
+                               coeffs=coeffs, initial_values=initial_values,
+                               n0=n0, n1=n1)
 
 
     def _get_matrix_from_recursions_(self, recursion_rules, rem, function, var):
@@ -1953,7 +1953,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         dim = recursion_rules.dim
         coeffs = recursion_rules.coeffs
         initial_values = recursion_rules.initial_values
-        n0 = recursion_rules.n0
+        n1 = recursion_rules.n1
 
         mat = []
         current_shift = 0
@@ -2008,13 +2008,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         mat = Matrix(mat)
 
-        if n0 == 0:
+        if n1 == 0:
             return mat
         else:
             arguments = [k**j*var + d for j in srange(m) for d in srange(k**j)] + \
                         [k**j*var + d for j in srange(m, M) for d in srange(ll, k**j - k**m + uu + 1)]
             W = []
-            for i in srange(n0):
+            for i in srange(n1):
                 v_eval_i = []
                 v_eval_ki_plus_r = []
                 for a in arguments:
@@ -2029,12 +2029,12 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 W.append(list(vector(v_eval_ki_plus_r) - mat*vector(v_eval_i)))
 
             J = []
-            for i in srange(n0):
-                J.append([int(i >= rem and i % k == rem and j*k == i - rem) for j in srange(n0)])
+            for i in srange(n1):
+                J.append([int(i >= rem and i % k == rem and j*k == i - rem) for j in srange(n1)])
 
             Mat = MatrixSpace(self.base_ring(), dim + n0, dim + n0) 
             return Mat(block_matrix([[mat, Matrix(W).transpose()],
-                                     [zero_matrix(n0, dim), Matrix(J)]]))
+                                     [zero_matrix(n1, dim), Matrix(J)]]))
 
     
     def _get_left_from_recursions_(self, dim):
@@ -2087,7 +2087,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         ll = recursion_rules.ll
         uu = recursion_rules.uu
         initial_values = recursion_rules.initial_values
-        n0 = recursion_rules.n0
+        n1 = recursion_rules.n1
         right = []
 
         for j in srange(m):
@@ -2106,8 +2106,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                     raise ValueError('Initial value %s is missing.'
                                      % (function(d),))
 
-        if n0 >= 1:
-            right = right + [1] + (n0 - 1)*[0]
+        if n1 >= 1:
+            right = right + [1] + (n1 - 1)*[0]
 
         return vector(right)
 
