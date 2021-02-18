@@ -3358,13 +3358,60 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             return tuple(res), tuple(den)
         return tuple(res)
 
+    def _extension_ring_conjugation(self, generic=False):
+        r"""
+        """
+        ER = self.extension_ring(generic=generic)
+        if generic:
+            e3 = ER.cyclotomic_generator()
+            a, b, c = ER.gens()
+            return ER.hom((e3**2, a, b, c))
+        else:
+            GER = self.extension_ring(generic=True)
+            if ER == GER.as_splitting_algebra():
+                e3 = ER.gen()
+                return ER.hom(e3**2)
+            else:
+                f = GER.convert_map_from(ER)
+                if not f:
+                    return None
+                conj = self._extension_ring_conjugation(generic=True)
+                g = self._generic_extension_ring_map
+                return g*conj*f
+
     def _class_function(self, irr):
         r"""
         """
+        def split_real_imag(m):
+            val = m[irr].trace()
+            # imaginary part exists
+            if irr == self.irred_repr.W4_333:
+                irr2 = self.irred_repr.W4_333bar # conjugated repr
+                val += m[irr2].trace()  # real part
+                cf = val.dict() # coeffs of third root of unity
+                if len(cf.keys()) <= 1:
+                    return val
+                raise RuntimeError('cannot obtain real part for %s of %s' %(irr,val))
+            elif irr == self.irred_repr.W4_333bar:
+                irr2 = self.irred_repr.W4_333    # conjugated repr
+                val -= m[irr2].trace()  # imaginary part
+                if val.is_zero():
+                    return val
+                cf = val.dict() # coeffs of third root of unity
+                if 2*cf[0] == cf[1]: # check that val is divisable by (2*e3+1)
+                    return val.parent()(cf[0])
+                raise RuntimeError('cannot obtain imaginary part for %s of %s' %(irr, val))
+
+            cf = val.dict() # coeffs of third root of unity
+            if len(cf.keys()) <= 1:
+                # no imaginary part
+                return val
+            raise RuntimeError('unexpected imaginary part for %s of %s' %(irr,val))
+
         def class_function(ele):
             if isinstance(ele, self.element_class):
                 m = ele.matrix()
-                return m[irr].trace()
+                return split_real_imag(m)
             else:
                 # if ele is given by the representation matrix
                 mone_irr = self.one().matrix().reduce_to_irr_block(irr)
@@ -3402,7 +3449,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         """
         if self.strands() == 3:
             from sage.misc.persist import load
-            return load('/home/sebastian/devel/prepare/sobj/markov_trace_coeffs.sobj')
+            return load('/home/sebastian/devel/prepare/markov_trace_coeffs.sobj')
         B = self.base_ring(generic=True)
         BB = B.base_ring()
         var = B.variable_names() + BB.variable_names()
@@ -3456,9 +3503,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         ER = self.extension_ring(generic=True)
         from sage.rings.number_field.number_field import CyclotomicField
         C3 = CyclotomicField(3)
-        c3 = C3.gen()
-        from sage.rings.qqbar import QQbar
-        e3 = QQbar(c3)
 
         all_vars, new_vars = self._markov_vars()
 
@@ -3471,10 +3515,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         var = ER.variable_names()
         new_var = tuple(new_vars.keys())
 
-        P = QQbar[var + sub_var_add + new_var]
+        P = C3[var + sub_var_add + new_var]
         F = P.fraction_field()
         a, b, c, s, *remain, = F.gens()
-        emb_ER = ER.hom((F(e3), a, b, c))
+        emb_ER = ER.hom((F(C3.gen()), a, b, c))
 
         BR = self.base_ring(generic=True)
         img_ER = [emb_ER(ER(v)) for v in BR.gens_over_ground()]
@@ -3519,6 +3563,19 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         irr_coeff = sol + cfs*kerm
         irr_coeff.save('markov_irr_coeff.sobj')
 
+        def red_coeff(cf):
+            cfn = cf.numerator().factor()
+            cfd = cf.denominator().factor()
+            un = cfn.unit()
+            ud = cfd.unit()
+            prn = prod(f**e for (f,e) in cfn)
+            prd = prod(f**e for (f,e) in cfd)
+            u = un/ud
+            return u*prn/prd
+
+        irr_coeff = vector([red_coeff(cf) for cf in irr_coeff])
+        irr_coeff.save('markov_irr_coeffR.sobj')
+
         # find minimal coefficient ring
 
         denoms = tuple(set([cf.denominator() for cf in irr_coeff] +[P(a), P(b), P(c)]))
@@ -3540,7 +3597,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         else:
             L = P.localization(denoms)
             irr_coeff = irr_coeff.change_ring(L)
-            c3 = L(e3)
+            c3 = L(C3.gen())
             irr_coeff.save('markov_irr_coeffL.sobj')
 
         a, b, c, s, *remain, = L.gens()
