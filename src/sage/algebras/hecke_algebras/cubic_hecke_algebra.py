@@ -3391,6 +3391,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 K9_29 = B((1, -2, -2, 3, -2, 1, -2, 3, -2))
                 K9_34 = B((-1, 2, -1, 2, -3, 2, -1, 2, -3))
                 new_vars = {'U4':self.one(), 'K4U':self(K4_1_U), 'K6':self(K6_1), 'K7':self(K7_4), 'K91':self(K9_29), 'K92':self(K9_34)}
+                from sage.misc.persist import save
                 save(new_vars, 'markov_new_vars.sobj')
         sub_vars.update(new_vars)
         return sub_vars, new_vars
@@ -3401,7 +3402,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         """
         if self.strands() == 3:
             from sage.misc.persist import load
-            return load('/home/sebastian/devel/prepare/markov_trace_coeffs.sobj')
+            return load('/home/sebastian/devel/prepare/sobj/markov_trace_coeffs.sobj')
         B = self.base_ring(generic=True)
         BB = B.base_ring()
         var = B.variable_names() + BB.variable_names()
@@ -3418,13 +3419,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         from sage.functions.generalized import sign
         mtr = self._markov_trace_irr_coeffs()
-        mtr_one = mtr(self.one())
-        #mtr_list = [mtr(self(g)) for g in self.get_order()]
-        #mtr_list_v = vector(mtr_list)
-        #mtr_list_v.save('markov_mtr_list.sobj')
         E = self.extension_ring()
         PE = E[('s',) + tuple(all_vars)]
-        EC3 = mtr_one.parent().base_ring()
+        EC3 = mtr[0].parent().base_ring()
         EZ = ZZ[EC3.variable_names()]
         img = tuple(self.cubic_equation_roots()) + PE.gens()
         emb_EZ = EZ.hom(img)
@@ -3442,7 +3439,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             den_PE = emb_EZ(EZ(den.dict()))
             num_L = sage_eval(str(num_PE), locals=subs_dict)
             den_L = sage_eval(str(den_PE), locals=subs_dict)
-            return num_L/den_L
+            res = num_L/den_L
+            res.save('markov_mtr_%s.sobj' %g)
+            return res
         return [convert_coeff(g) for g in self.get_order()]
 
 
@@ -3457,6 +3456,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         ER = self.extension_ring(generic=True)
         from sage.rings.number_field.number_field import CyclotomicField
         C3 = CyclotomicField(3)
+        c3 = C3.gen()
+        from sage.rings.qqbar import QQbar
+        e3 = QQbar(c3)
 
         all_vars, new_vars = self._markov_vars()
 
@@ -3469,10 +3471,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         var = ER.variable_names()
         new_var = tuple(new_vars.keys())
 
-        P = C3[var + sub_var_add + new_var]
+        P = QQbar[var + sub_var_add + new_var]
         F = P.fraction_field()
         a, b, c, s, *remain, = F.gens()
-        emb_ER = ER.hom((F(C3.gen()), a, b, c))
+        emb_ER = ER.hom((F(e3), a, b, c))
 
         BR = self.base_ring(generic=True)
         img_ER = [emb_ER(ER(v)) for v in BR.gens_over_ground()]
@@ -3538,7 +3540,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         else:
             L = P.localization(denoms)
             irr_coeff = irr_coeff.change_ring(L)
-            c3 = L(C3.gen())
+            c3 = L(e3)
             irr_coeff.save('markov_irr_coeffL.sobj')
 
         a, b, c, s, *remain, = L.gens()
