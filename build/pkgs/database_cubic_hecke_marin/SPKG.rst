@@ -1,5 +1,5 @@
-Cubic Hecke Algebra Database
-============================
+database_cubic_hecke_marin: Matrix representations of the cubic Hecke algebras
+==============================================================================
 
 Description
 -----------
