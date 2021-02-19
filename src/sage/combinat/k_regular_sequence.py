@@ -1713,7 +1713,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         k = self.k
         base_ring = self.base()
-        indices_right = [0]
+        indices_right = []
         coeffs = {}
         initial_values = {}
         remainders = []
@@ -1838,9 +1838,12 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         if not coeffs:
             m = M - 1
+            l = 0
+            u = 0
+        else:
+            l = min(indices_right)
+            u = max(indices_right)
 
-        l = min(indices_right)
-        u = max(indices_right)
         ll = (floor((l*k**(M-m) - k**M + 1)/(k**(M-m) - 1)) + 1)*(l < 0)
         uu = max([ceil((u*k**(M-m) + k**M - k**m)/(k**(M-m) - 1)) - 1, k**m - 1])
         n1 = n0 - floor(ll/k**M)
