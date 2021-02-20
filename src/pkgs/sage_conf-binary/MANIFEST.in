@@ -1,0 +1,10 @@
+include VERSION.txt
+include pyproject.toml
+include sage_conf.py.in
+graft bin
+#
+global-exclude .tox
+global-exclude *~*
+global-exclude *.bak
+global-exclude __pycache__
+global-exclude *.pyc
