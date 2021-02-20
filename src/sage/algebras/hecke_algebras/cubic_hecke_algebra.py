@@ -3468,7 +3468,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         mtr = self._markov_trace_irr_coeffs()
         E = self.extension_ring()
         PE = E[('s',) + tuple(all_vars)]
-        EC3 = mtr[0].parent().base_ring()
+        mtr_one = mtr(self.one())
+        EC3 = mtr_one.parent().base_ring()
         EZ = ZZ[EC3.variable_names()]
         img = tuple(self.cubic_equation_roots()) + PE.gens()
         emb_EZ = EZ.hom(img)
@@ -3562,6 +3563,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         cfs = M.solve_right(w-v)
         irr_coeff = sol + cfs*kerm
         irr_coeff.save('markov_irr_coeff.sobj')
+
+        from sage.misc.misc_c import prod
 
         def red_coeff(cf):
             cfn = cf.numerator().factor()
