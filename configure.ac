@@ -60,9 +60,19 @@ AC_CONFIG_MACRO_DIR([m4])
 # Set various environment variables (needed at configure time)
 ########################################################################
 
-# Assume current directory is SAGE_ROOT.
-SAGE_ROOT=`pwd -P`
-AC_SUBST(SAGE_ROOT)
+AC_ARG_WITH([relocation-root],
+            [AS_HELP_STRING([--with-relocation-root[=ROOT]],
+                            [Create a symbolic link ROOT pointing to the source directory and hardcode SAGE_ROOT=ROOT instead of the physical source directory])], [
+                dnl --with-relocation-root given
+                AS_CASE(["$with_relocation_root"],
+                   [yes], [
+                                   TO BE CONTINUED
+                =
+            ], [
+                dnl --with-relocation-root not given. Assume current directory is SAGE_ROOT.
+                SAGE_ROOT=`pwd -P`
+            ])
+AC_SUBST([SAGE_ROOT])
 
 SAGE_LOCAL="$prefix"
 # The following line is necessary because the code below
