@@ -2988,11 +2988,12 @@ def random_unimodular_matrix(parent, upper_bound=None, max_tries=100):
     A matrix over the number Field in `y` with defining polynomial `y^2-2y-2`. ::
 
         sage: y = var('y')
-        sage: K=NumberField(y^2-2*y-2,'y')
-        sage: C=random_matrix(K, 3, algorithm='unimodular');C
-        [    -5*y + 11     10*y - 30 -695*y + 2366]
-        [            5       5*y - 9  -535*y + 588]
-        [        y - 1       3*y - 1   -35*y - 273]
+        sage: K = NumberField(y^2-2*y-2,'y')
+        sage: C = random_matrix(K, 3, algorithm='unimodular')
+        sage: C  # random
+        [      -1/7*y + 47/35       3/5*y - 127/70 -2917/70*y + 4419/70]
+        [                   1          1/2*y - 1/2     -104/3*y + 211/6]
+        [         1/3*y - 1/3                y - 1      -35/6*y - 149/6]
         sage: det(C)
         1
 
