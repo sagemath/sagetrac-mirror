@@ -3561,10 +3561,19 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         vars_dict = F.gens_dict_recursive()
         new_variables = [vars_dict[v] for v in new_vars.keys()]
         new_var_elements = list(new_vars.values())
-        M = matrix(F, dk, dk, lambda i, j: genClF(new_var_elements[i], j))
-        M.save('markov_M.sobj')
-        v = vector(F, [genClF(new_var_elements[i]) for i in range(dk)])
-        v.save('markov_v.sobj')
+
+        try:
+            M = load('markov_M.sobj')
+        except FileNotFoundError:
+            M = matrix(F, dk, dk, lambda i, j: genClF(new_var_elements[i], j))
+            M.save('markov_M.sobj')
+
+        try:
+            v = load('markov_v.sobj')
+        except FileNotFoundError:
+            v = vector(F, [genClF(new_var_elements[i]) for i in range(dk)])
+            v.save('markov_v.sobj')
+
         w = vector(F, new_variables)
         w.save('markov_w.sobj')
 
