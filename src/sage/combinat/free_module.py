@@ -1725,7 +1725,6 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
                                              for module in self._sets)
         # TODO: make this overridable by setting _name
 
-    @cached_method
     def cartesian_embedding(self, i):
         """
         Return the natural embedding morphism of the ``i``-th
@@ -1759,7 +1758,6 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
     summand_embedding = cartesian_embedding
 
-    @cached_method
     def cartesian_projection(self, i):
         """
         Return the natural projection onto the `i`-th Cartesian factor
