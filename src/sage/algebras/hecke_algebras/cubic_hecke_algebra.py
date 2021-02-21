@@ -3527,6 +3527,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         emb_subR = subR.hom(img)
 
         from sage.matrix.constructor import matrix
+        from sage.misc.persist import load
         g = self.gen(self.ngens()-1)
         eq_p = matrix(F, sub_dim, dClF, lambda i,j: emb_ER(ClF[j](self(sub_basis[i])*g)))
         eq_m = matrix(F, sub_dim, dClF, lambda i,j: emb_ER(ClF[j](self(sub_basis[i])*~g)))
@@ -3535,10 +3536,16 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         mtr_sub = [F(emb_subR(b.formal_markov_trace())) for b in sub_basis]
         mtr_sub_b = vector(F, [s*mtr for mtr in mtr_sub] + [~s*mtr for mtr in mtr_sub])
         mtr_sub_b.save('markov_sub_b.sobj')
-        sol = eq_b.solve_right(mtr_sub_b)
-        sol.save('markov_sol.sobj')
-        ker = eq_b.right_kernel()
-        ker.save('markov_ker.sobj')
+        try:
+            sol = load('markov_sol.sobj')
+        except FileNotFoundError:
+            sol = eq_b.solve_right(mtr_sub_b)
+            sol.save('markov_sol.sobj')
+        try:
+            ker = load('markov_ker.sobj')
+        except FileNotFoundError:
+            ker = eq_b.right_kernel()
+            ker.save('markov_ker.sobj')
 
         # adjusting kernel to new variables
 
@@ -3560,9 +3567,13 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         v.save('markov_v.sobj')
         w = vector(F, new_variables)
         w.save('markov_w.sobj')
-        cfs = M.solve_right(w-v)
-        irr_coeff = sol + cfs*kerm
-        irr_coeff.save('markov_irr_coeff.sobj')
+
+        try:
+            irr_coeff = load('markov_irr_coeff.sobj')
+        except FileNotFoundError:
+            cfs = M.solve_right(w-v)
+            irr_coeff = sol + cfs*kerm
+            irr_coeff.save('markov_irr_coeff.sobj')
 
         from sage.misc.misc_c import prod
 
