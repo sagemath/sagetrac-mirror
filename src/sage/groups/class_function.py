@@ -982,10 +982,13 @@ class ClassFunction_libgap(SageObject):
         """
         Evaluate the character on the group element `g`.
 
-        Return an error if `g` is not in `G` and `G` is not a symmetric group.
+        Return an error if `g` is not in `G` when `G` is not a symmetric group.
 
         If `G` is a symmetric group, this accepts partitions in lieu of the
-        group element `g`.
+        group element `g`. In this case `G` must be a 
+        `sage.groups.perm_gps.permgroup_named.SymmetricGroup_with_category`.
+        In particular, `CoxeterMatrixGroup`s and `Permutations(n)` are not
+        supported.
 
         EXAMPLES::
 
@@ -1010,21 +1013,67 @@ class ClassFunction_libgap(SageObject):
             sage: triv(h)
             1
             sage: h.cycle_type()
-            [2,1]
-			sage: triv(h.cycle_type())
-			1
+            [2, 1]
+            sage: triv(h.cycle_type())
+            1
+            sage: chi = G.irreducible_characters()[1]
+            sage: [chi(s) for s in G]
+            [2, -1, -1, 0, 0, 0]
+            sage: chi(Partition([1,1,1]))
+            2
+            sage: chi(Partition([2,1]))
+            0
+            sage: chi(Partition([3]))
+            -1
+            sage: chi = G.irreducible_characters()[0]
+            sage: chi([1,1,1])
+            1
+            sage: chi([2,1])
+            -1
+            sage: chi([3])
+            1
+            sage: chi(Partition([]))
+            <BLANKLINE>
+            Traceback (most recent call last):
+                ...
+            AssertionError: Size of [] disagrees with Symmetric group of order 3! as a permutation group. Try giving a partition of 3.
+
+            sage: G = CyclicPermutationGroup(3)
+            sage: h = G.an_element()
+            sage: chi = G.irreducible_characters()[1]
+            sage: [chi(s) for s in G]
+            [1, zeta3, -zeta3 - 1]
+            sage: chi([2,1])
+            <BLANKLINE>
+            Traceback (most recent call last):
+                ...
+            TypeError: Cyclic group of order 3 as a permutation group is not a SymmetricGroup. Give an element of Cyclic group of order 3 as a permutation group.
+            sage: chi.induct(SymmetricGroup(3))([2,1])
+            0
         """  
+
         from sage.combinat.partition import Partition
         
-        if isinstance(g, Partition):
-        	# If self._group is a Symmetric group, we can identify a partition with a conjugacy class
-        	from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+        if isinstance(g, (Partition,list)):
+            # If self._group is a Symmetric group, we can identify a
+            # partition with a conjugacy class
+            from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 
-        	assert isinstance(self._group, SymmetricGroup), f"{self._group} is not a SymmetricGroup. Give an element of {self._group}."
+            if isinstance(g,list):
+                g = Partition(g)
 
-        	from sage.groups.perm_gps.symgp_conjugacy_class import default_representative
-        	
-        	g = default_representative(g, self._group)
+            if isinstance(self._group, SymmetricGroup):
+
+                from sage.groups.perm_gps.symgp_conjugacy_class import default_representative
+
+                assert g.size() == len(self._group.domain()), \
+                       f"Size of {g} disagrees {self._group}. Try giving a partition of {len(self._group.domain())}."
+
+                g = default_representative(g, self._group)
+
+            else: 
+
+                raise TypeError(f"{self._group} is not a 'SymmetricGroup' object. Give an element of {self._group}.")
 
         value = g.gap() ** self.gap()
         return value.sage(self._base_ring)
