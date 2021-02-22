@@ -3447,9 +3447,11 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     def _markov_trace_coeffs(self):
         r"""
         """
+        from sage.misc.persist import load
         if self.strands() == 3:
-            from sage.misc.persist import load
-            return load('/home/sebastian/devel/prepare/markov_trace_coeffs.sobj')
+            return load('/home/sebastian/devel/prepare/markov_trace_coeffs3.sobj')
+        if self.strands() == 4:
+            return load('/home/sebastian/devel/prepare/markov_trace_coeffs4.sobj')
         B = self.base_ring(generic=True)
         BB = B.base_ring()
         var = B.variable_names() + BB.variable_names()
