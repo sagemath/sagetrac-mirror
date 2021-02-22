@@ -447,6 +447,11 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         mtcf = cha._markov_trace_coeffs()
         vs = self.to_vector()
         vm = vector(mtcf)
+        B = vs.base_ring()
+        u, v, w, *remain = vm.base_ring().gens()
+        P = B.create_specialization((u,v,w))
+        vsP = vs.change_ring(P)
+        return vsP*vm
         f = vm.parent().convert_map_from(vs.parent())
         return f(vs) * vm
 
