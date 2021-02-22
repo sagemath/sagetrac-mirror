@@ -3455,7 +3455,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         var = B.variable_names() + BB.variable_names()
         all_vars, new_vars =self._markov_vars()
         P = ZZ[var +('s',) + tuple(all_vars.keys())]
-        L = P.localization((P.gen(2),P.gen(3)))
+        L = P.localization((P.gen(1), P.gen(2), P.gen(3)))
         u, v, w, s, *remain = L.gens()
         L = B.create_specialization((u, v, w))
         u, v, w, s, *remain = L.gens()
