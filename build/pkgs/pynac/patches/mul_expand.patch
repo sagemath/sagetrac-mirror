@@ -1,0 +1,37 @@
+diff --git a/ginac/mul.cpp b/ginac/mul.cpp
+--- a/ginac/mul.cpp
++++ b/ginac/mul.cpp
+@@ -1325,18 +1325,21 @@
+ 				const auto& add2end   = add2.seq.end();
+ 				epvector distrseq;
+ 				auto s = add1.seq.size()+add2.seq.size();
+-                                if (s > 400) {
+-//                                // the condition is probably too simple
+-                                        try {
+-                                        // can it be converted/expanded via Singular?
+-                                        last_expanded = poly_mul_expand(last_expanded,
+-                                                                        elem.rest);
+-                                                continue;
+-                                        }
+-                                        catch (std::runtime_error) {
+-                                                std::cerr << "can't happen while calling poly_mul_expand\n";
+-                                        }
+-                                }
++//                  // the following call to poly_mul_expand has been deleted, in
++//                  // order to work around a bad bug (see sage :trac:`31077`)
++//                  // TODO: find the underlying issue and fix it
++//                                 if (s > 400) {
++// //                                // the condition is probably too simple
++//                                         try {
++//                                         // can it be converted/expanded via Singular?
++//                                         last_expanded = poly_mul_expand(last_expanded,
++//                                                                         elem.rest);
++//                                                 continue;
++//                                         }
++//                                         catch (std::runtime_error) {
++//                                                 std::cerr << "can't happen while calling poly_mul_expand\n";
++//                                         }
++//                                 }
+ 
+ 				distrseq.reserve(s);
+ 				// Multiply add2 with the overall coefficient of add1 and append it to distrseq:
