@@ -3389,6 +3389,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         """
         def split_real_imag(m):
             val = m[irr].trace()
+            return val
             # imaginary part exists
             if irr == self.irred_repr.W4_333:
                 irr2 = self.irred_repr.W4_333bar # conjugated repr
@@ -3453,10 +3454,14 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         r"""
         """
         from sage.misc.persist import load
-        if self.strands() == 3:
-            return load('/home/sebastian/devel/prepare/markov_trace_coeffs3.sobj')
-        if self.strands() == 4:
-            return load('/home/sebastian/devel/prepare/markov_trace_coeffs4.sobj')
+        try:
+            if self.strands() == 3:
+                return load('/home/sebastian/devel/prepare/markov_trace_coeffs3.sobj')
+            if self.strands() == 4:
+                return load('/home/sebastian/devel/prepare/markov_trace_coeffs4.sobj')
+        except FileNotFoundError:
+            pass
+
         B = self.base_ring(generic=True)
         BB = B.base_ring()
         var = B.variable_names() + BB.variable_names()
@@ -3495,9 +3500,20 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             num_L = sage_eval(str(num_PE), locals=subs_dict)
             den_L = sage_eval(str(den_PE), locals=subs_dict)
             res = num_L/den_L
-            res.save('markov_mtr_%s.sobj' %g)
             return res
-        return [convert_coeff(g) for g in self.get_order()]
+        mtcf = []
+        try:
+            mtcf = load('markov_mtr_coeffs_temp.sobj')
+        except FileNotFoundError:
+            pass
+        O = self.get_order()
+        l = len(O)
+        s = len(mtcf)
+        for i in range(s,l):
+            print(i, 'of', l)
+            mtcf.append(convert_coeff(O[i]))
+            save(mtcf, 'markov_mtr_coeffs_temp.sobj')
+        return mtcf
 
 
     @cached_method
