@@ -215,6 +215,9 @@ lazy_import('sage.combinat.binary_recurrence_sequences',
 # Six Vertex Model
 lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
 
+#Schubert, Grothendieck, etc
+from .multivariate_polynomials.all import *
+
 # sine-Gordon Y-systems
 lazy_import('sage.combinat.sine_gordon', 'SineGordonYsystem')
 
@@ -233,3 +236,4 @@ lazy_import('sage.combinat.growth', 'GrowthDiagram')
 
 # Path Tableaux
 lazy_import('sage.combinat.path_tableaux', 'catalog', as_='path_tableaux')
+
