@@ -452,8 +452,6 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         P = B.create_specialization((u,v,w))
         vsP = vs.change_ring(P)
         return vsP*vm
-        f = vm.parent().convert_map_from(vs.parent())
-        return f(vs) * vm
 
 
 
@@ -3453,15 +3451,18 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     def _markov_trace_coeffs(self):
         r"""
         """
-        from sage.misc.persist import load
+        from sage.misc.persist import load, save
         try:
             if self.strands() == 3:
                 return load('/home/sebastian/devel/prepare/markov_trace_coeffs3.sobj')
+                time = verbose('found precalculated list of Markov trace coefficients')
             if self.strands() == 4:
                 return load('/home/sebastian/devel/prepare/markov_trace_coeffs4.sobj')
+                time = verbose('found precalculated list of Markov trace coefficients')
         except FileNotFoundError:
             pass
 
+        time = verbose('preparing calculation of Markov trace coefficients')
         B = self.base_ring(generic=True)
         BB = B.base_ring()
         var = B.variable_names() + BB.variable_names()
@@ -3491,7 +3492,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         spe = PE.gen(0)
 
         def convert_coeff(g):
-            print(g)
             cf = mtr(self(g))
             num = cf.numerator()
             den = cf.denominator()
@@ -3501,18 +3501,25 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             den_L = sage_eval(str(den_PE), locals=subs_dict)
             res = num_L/den_L
             return res
+
         mtcf = []
+        s = len(mtcf)
+
         try:
-            mtcf = load('markov_mtr_coeffs_temp.sobj')
+            mtcf = load('markov_trace_coeffs_temp.sobj')
+            s = len(mtcf)
+            time = verbose('found temporary list of length %s' %(s), t=time)
         except FileNotFoundError:
             pass
+        time = verbose('start calculating', t=time)
+
         O = self.get_order()
         l = len(O)
-        s = len(mtcf)
         for i in range(s,l):
-            print(i, 'of', l)
+            time = verbose('%s of %s' %(i, l), t=time)
             mtcf.append(convert_coeff(O[i]))
-            save(mtcf, 'markov_mtr_coeffs_temp.sobj')
+            save(mtcf, 'markov_trace_coeffs_temp.sobj')
+        verbose('calculation of Markov trace coefficients finished', t=time)
         return mtcf
 
 
@@ -3520,6 +3527,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     def _markov_trace_irr_coeffs(self, integral=False):
         r"""
         """
+        time = verbose('preparing calculation of irreducible Markov trace coefficients')
+
         irrs = [irr for irr in self.irred_repr if  irr.number_gens()== self.strands() -1]
         dClF = len(irrs)
         ClF = [self._class_function(irrs[i]) for i in range(dClF)]
@@ -3549,6 +3558,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         img = tuple(img_ER) + (s,) + tuple([remain[i] for i in range(len(remain)-len(new_var))])
         emb_subR = subR.hom(img)
 
+        time = verbose('setting up equation', t=time)
+
         from sage.matrix.constructor import matrix
         from sage.misc.persist import load
         g = self.gen(self.ngens()-1)
@@ -3559,16 +3570,23 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         mtr_sub = [F(emb_subR(b.formal_markov_trace())) for b in sub_basis]
         mtr_sub_b = vector(F, [s*mtr for mtr in mtr_sub] + [~s*mtr for mtr in mtr_sub])
         mtr_sub_b.save('markov_sub_b.sobj')
+        time = verbose('solving equation', t=time)
         try:
             sol = load('markov_sol.sobj')
+            time = verbose('found precalculated solution', t=time)
         except FileNotFoundError:
             sol = eq_b.solve_right(mtr_sub_b)
             sol.save('markov_sol.sobj')
+            time = verbose('solution saved', t=time)
+
+        time = verbose('obtaining the kernel', t=time)
         try:
             ker = load('markov_ker.sobj')
+            time = verbose('found precalculated kernel', t=time)
         except FileNotFoundError:
             ker = eq_b.right_kernel()
             ker.save('markov_ker.sobj')
+            time = verbose('kernel saved', t=time)
 
         # adjusting kernel to new variables
 
@@ -3585,27 +3603,34 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         new_variables = [vars_dict[v] for v in new_vars.keys()]
         new_var_elements = list(new_vars.values())
 
+        time = verbose('setting up adjusting equation', t=time)
         try:
             M = load('markov_M.sobj')
+            time = verbose('found precalculated adjusting matrix', t=time)
         except FileNotFoundError:
             M = matrix(F, dk, dk, lambda i, j: genClF(new_var_elements[i], j))
             M.save('markov_M.sobj')
+            time = verbose('adjusting matrix saved', t=time)
 
         try:
             v = load('markov_v.sobj')
+            time = verbose('found precalculated vector matrix', t=time)
         except FileNotFoundError:
             v = vector(F, [genClF(new_var_elements[i]) for i in range(dk)])
             v.save('markov_v.sobj')
+            time = verbose('adjusting vector saved', t=time)
 
         w = vector(F, new_variables)
-        w.save('markov_w.sobj')
 
+        time = verbose('solving adjusting equation', t=time)
         try:
             irr_coeff = load('markov_irr_coeff.sobj')
+            time = verbose('found precalculated adjusting solution', t=time)
         except FileNotFoundError:
             cfs = M.solve_right(w-v)
             irr_coeff = sol + cfs*kerm
             irr_coeff.save('markov_irr_coeff.sobj')
+            time = verbose('adjusting solution saved', t=time)
 
         from sage.misc.misc_c import prod
 
@@ -3621,6 +3646,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         irr_coeff = vector([red_coeff(cf) for cf in irr_coeff])
         irr_coeff.save('markov_irr_coeffR.sobj')
+        time = verbose('reduced adjusting solution saved', t=time)
 
         # find minimal coefficient ring
 
@@ -3645,11 +3671,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             irr_coeff = irr_coeff.change_ring(L)
             c3 = L(C3.gen())
             irr_coeff.save('markov_irr_coeffL.sobj')
+            time = verbose('localized adjusting solution saved', t=time)
 
         a, b, c, s, *remain, = L.gens()
         emb_ER = ER.hom((c3, a, b, c))
-        emb_ER.save('markov_emb_ER.sobj')
 
         def mtr_ext(ele):
             return sum(irr_coeff[j]*emb_ER(ClF[j](ele)) for j in range(dClF))
+        verbose('calculation of irreducible Markov trace coefficients finished', t=time)
         return mtr_ext
