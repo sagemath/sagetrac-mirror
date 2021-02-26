@@ -1,5 +1,5 @@
 """
-LibGAP Workspace Support
+GAP workspace support
 
 The single purpose of this module is to provide the location of the
 libgap saved workspace and a time stamp to invalidate saved

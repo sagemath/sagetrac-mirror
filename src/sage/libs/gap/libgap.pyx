@@ -1,8 +1,23 @@
 """
-Library Interface to GAP
+Library interface to GAP
 
 This module implements a fast C library interface to GAP.  To use it, you
 simply call ``libgap`` and use it to convert Sage objects into GAP objects.
+
+.. note::
+
+    Since SageMath 9.4 the ``sage.libs.gap`` interface has been rewritten on
+    top of the stand-alone package `gappy
+    <https://gappy.readthedocs.io/en/latest/>`_.
+
+    For new users this change should have no impact.  For existing users this
+    should have minimal impact--the existing interfaces of the Sage ``libgap``
+    are supported.  The main difference is that most methods return instances
+    of :class:`gappy.gapobj.GapObj` instead of the now deprecated
+    ``sage.libs.gap.element.GapElement``.
+
+    Documentation for the different :class:`~gappy.gapobj.GapObj` subclasses
+    can be found in the :mod:`gappy.gapobj` module documentation.
 
 EXAMPLES::
 
@@ -22,7 +37,7 @@ Compared to the expect interface this is >1000 times faster::
     sage: timeit('b*b')   # random output; long time
     125 loops, best of 3: 2.05 ms per loop
 
-If you want to evaluate GAP commands, use the :meth:`Gap.eval` method::
+If you want to evaluate GAP commands, use the :meth:`.SageGap.eval` method::
 
     sage: libgap.eval('List([1..10], i->i^2)')
     [ 1, 4, 9, 16, 25, 36, 49, 64, 81, 100 ]
@@ -67,9 +82,8 @@ consider themselves as elements of when converted to Sage::
 So far, the following GAP data types can be directly converted to the
 corresponding Sage datatype:
 
-#. GAP booleans ``true`` / ``false`` to Sage booleans ``True`` /
-   ``False``. The third GAP boolean value ``fail`` raises a
-   ``ValueError``.
+#. GAP booleans ``true`` / ``false`` to Sage booleans :obj:`True` /
+   :obj:`False`. The third GAP boolean value ``fail`` raises a :exc:`ValueError`.
 
 #. GAP integers to Sage integers.
 
@@ -80,8 +94,9 @@ corresponding Sage datatype:
 #. GAP permutations to Sage permutations.
 
 #. The GAP containers ``List`` and ``rec`` are converted to Sage containers
-   ``list`` and ``dict``.  Furthermore, the ``.sage()`` method is applied
-   recursively to the entries.
+   :obj:`list` and :obj:`dict`.  Furthermore, the :func:`GapObj.sage()
+   <sage.libs.gap.converters.gapobj_to_sage>` method is applied recursively to
+   the entries.
 
 Special support is available for the GAP container classes. GAP lists
 can be used as follows::
@@ -116,11 +131,11 @@ Or get them as results of computations::
     sage: dict(rec)
     {"Sym3": Sym( [ 1 .. 3 ] ), "a": 123, "b": 456}
 
-The output is a Sage dictionary whose keys are GAP strings and whose Values are
-instances of :meth:`~sage.gap.GapObj`. So, for example,
+The output is a Sage dictionary whose keys are GAP strings and whose values are
+instances of :class:`~gappy.gapobj.GapObj`. So, for example,
 ``rec['a']`` is not a Sage integer. To recursively convert the keys and entries
-into Sage objects, you should use the
-``GapObj.sage()`` method::
+into Sage objects, you should use the :func:`GapObj.sage()
+<sage.libs.gap.converters.gapobj_to_sage>` method::
 
     sage: rec.sage()
     {'Sym3': NotImplementedError('cannot construct equivalent Sage object'...),
@@ -129,13 +144,14 @@ into Sage objects, you should use the
 
 Now ``rec['a']`` is a Sage integer. We have not implemented the
 conversion of the GAP symmetric group to the Sage symmetric group yet,
-so you end up with a ``NotImplementedError`` exception object. The
+so you end up with a :exc:`NotImplementedError` exception object. The
 exception is returned and not raised so that you can work with the
 partial result.
 
 While we don't directly support matrices yet, you can convert them to Gap List
 of Lists. These lists are then easily converted into Sage using the recursive
-expansion of the ``GapObj.sage`` method::
+expansion of the :func:`GapObj.sage()
+<sage.libs.gap.converters.gapobj_to_sage>` method::
 
     sage: M = libgap.eval('BlockMatrix([[1,1,[[1, 2],[ 3, 4]]], [1,2,[[9,10],[11,12]]], [2,2,[[5, 6],[ 7, 8]]]],2,2)')
     sage: M
@@ -151,14 +167,6 @@ expansion of the ``GapObj.sage`` method::
     [ 0  0  7  8]
 
 
-Using the GAP C library from Cython
-===================================
-
-.. TODO:: Expand the following text
-
-   We are using the GAP API provided by the GAP project since
-   GAP 4.10.
-
 AUTHORS:
 
   - William Stein, Robert Miller (2009-06-23): first version
@@ -168,6 +176,7 @@ AUTHORS:
     gap-4.5.5, make it ready for public consumption.
   - Dima Pasechnik (2018-09-18, GAP Days): started the port to native
     libgap API
+  - E. Madison Bray: rewrite on top of gappy
 """
 
 ###############################################################################
@@ -236,8 +245,11 @@ from .util import gap_root
 # since it has an incompatible binary layout with Parent.
 cdef class SageGap(Gap):
     """
-    Subclasses `gappy.core.Gap` to provide some Sage-specific default
+    Subclasses :class:`gappy.core.Gap` to provide some Sage-specific default
     behaviors.
+
+    See the full documentation for :class:`gappy.core.Gap` for additional
+    methods, attributes, and examples.
     """
 
     def __init__(self):
@@ -246,6 +258,19 @@ cdef class SageGap(Gap):
                      autoload=True)
 
     cpdef initialize(self):
+        """
+        Manually initialize the underlying GAP interpreter if it is has not
+        already been automatically initialized.
+
+        Returns True if this initialized the GAP interpreter for the first
+        time, or False if the interpreter was already initialized.
+
+        Under normal use, the GAP interpreter is automatically initialized
+        upon first use, but this method can be called to manually initialize
+        the GAP interpreter (e.g. to test it) without explicitly running any
+        GAP code.
+        """
+
         initializing = Gap.initialize(self)
 
         if initializing:
@@ -295,7 +320,7 @@ cdef class SageGap(Gap):
 
     def load_package(self, pkg):
         """
-        If loading fails, raise a RuntimeError exception.
+        If loading fails, raise a :exc:`RuntimeError` exception.
 
         TESTS::
 
@@ -321,6 +346,15 @@ cdef class SageGap(Gap):
     def function_factory(self, function):
         """
         Return a GAP function wrapper
+
+        .. warning::
+
+            Deprecated since SageMath 9.4; use ``libgap.<function>`` instead
+            for calling existing global functions from GAP.
+
+            For defining new functions you can either call
+            ``libgap.eval(code)`` or use the
+            :meth:`~gappy.core.Gap.gap_function` decorator.
 
         This is almost the same as calling ``libgap.eval(function)``, but
         faster and makes it obvious in your code that you are wrapping a
@@ -399,7 +433,7 @@ cdef class SageGap(Gap):
 
         OUTPUT:
 
-        A :class:`~gappy.gapobj.GapObj` wrapping the GAP output. A
+        A :class:`~gappy.gapobj.GapObj` wrapping the GAP object. A
         ``ValueError`` is raised if there is no such variable in GAP.
 
         EXAMPLES::
@@ -422,11 +456,12 @@ cdef class SageGap(Gap):
         return val
 
     def set_seed(self, seed=None):
-        """
+        r"""
         Reseed the standard GAP pseudo-random sources with the given seed.
 
-        Uses a random seed given by ``current_randstate().ZZ_seed()`` if
-        ``seed=None``.  Otherwise the seed should be an integer.
+        Uses a random seed given by
+        :func:`.current_randstate`.\ :meth:`~sage.misc.randstate.randstate.ZZ_seed`
+        if ``seed=None``.  Otherwise the seed should be an integer.
 
         EXAMPLES::
 

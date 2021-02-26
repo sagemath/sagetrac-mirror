@@ -92,14 +92,10 @@ GAP
 .. toctree::
    :maxdepth: 2
 
-   sage/libs/gap/context_managers
-   sage/libs/gap/gap_functions
-   sage/libs/gap/test_long
-   sage/libs/gap/util
    sage/libs/gap/libgap
-   sage/libs/gap/test
-   sage/libs/gap/element
+   sage/libs/gap/converters
    sage/libs/gap/saved_workspace
+   sage/libs/gap/util
 
 LinBox
 ------
