@@ -1,4 +1,4 @@
-$(PYTHON) cysignals gap | $(PYTHON_TOOLCHAIN)
+$(PYTHON) cysignals gap | $(PYTHON_TOOLCHAIN) sphinx
 
 ----------
 All lines of this file are ignored except the first.

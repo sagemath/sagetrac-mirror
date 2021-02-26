@@ -1,0 +1,18 @@
+if [ "$SAGE_SPKG_INSTALL_DOCS" = "yes" ]; then
+    cd src/docs/
+
+    # write conf.py override to give correct intersphinx mappings
+    mv conf.py orig_conf.py
+    cat >> conf.py <<_EOF_
+with open('orig_conf.py') as f:
+    exec(f.read())
+
+intersphinx_mapping.update({
+    'python': (intersphinx_mapping['python'][0],
+               '$SAGE_SRC/doc/common/python3.inv')
+})
+_EOF_
+
+    make html
+    sdh_install _build/html/* "$SAGE_SHARE/doc/gappy"
+fi

@@ -1,0 +1,3 @@
+if [ -d "$SAGE_SHARE/doc/gappy" ]; then
+    rm -rf "$SAGE_SHARE/doc/gappy"
+fi
