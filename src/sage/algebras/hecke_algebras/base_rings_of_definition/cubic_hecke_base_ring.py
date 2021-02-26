@@ -455,7 +455,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
         if len(im_gens) == 4:
             e3, ia, ib, ic = im_gens
             hom_cycl_gen = self.base_ring().hom([e3], codomain=e3.parent(), check=check, base_map=base_map)
-            verbose( "hom_cycl_gen %s" %(hom_cycl_gen))
+            verbose( "hom_cycl_gen %s" %(hom_cycl_gen), level=2)
             return super(CubicHeckeExtensionRing, self).hom([ia, ib, ic], codomain=codomain, check=check, base_map=hom_cycl_gen)
         else:
             if base_map is None:
@@ -478,6 +478,16 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
         a, b, c = self.gens()
         e3 = self.cyclotomic_generator()
         return b**2/c+a*e3
+
+    def conjugation(self):
+        r"""
+        Return an involution the perfoms *complex conjugation* with respect to base ring considered as
+        order in the complex field.
+        """
+        a, b, c = self.gens()
+        e3 = self.cyclotomic_generator()
+        return self.hom((e3**2, a, b, c))
+
 
 
 
@@ -678,12 +688,12 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
             pass
 
         im_cubic_equation_roots = [image_ring(root) for root in im_cubic_equation_roots]
-        verbose("common parent of roots and inverses: %s" %(image_ring))
+        verbose("common parent of roots and inverses: %s" %(image_ring), level=2)
 
         image_ring_base = image_ring.base_ring()
         image_ring_map = None
 
-        verbose("first choice: image_ring %s, image_ring_base %s" %(image_ring, image_ring_base))
+        verbose("first choice: image_ring %s, image_ring_base %s" %(image_ring, image_ring_base), level=2)
 
         # ---------------------------------------------------------------------------------------------------------
         # make sure that a third root of unity belongs to image_ring
@@ -695,22 +705,22 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         if len(cyclotomic_roots) > 0:
             E3 = cyclotomic_roots[0]
-            verbose("thrird root of unity %s found in %s" %(E3, E3.parent()))
+            verbose("thrird root of unity %s found in %s" %(E3, E3.parent()), level=2)
 
         if E3 == None:
             raise RuntimeError( "cannot find a ring containing a third root of unity for the this choice of cubic roots!" )
 
         hom_gens = [E3] + im_cubic_equation_roots
-        verbose("hom_gens %s" %(hom_gens))
+        verbose("hom_gens %s" %(hom_gens), level=2)
 
         image_ring = get_coercion_model().common_parent(*(hom_gens))
-        verbose("common parent of roots and third root: %s" %(image_ring))
+        verbose("common parent of roots and third root: %s" %(image_ring), level=2)
 
         hom_gens = [image_ring(gen) for gen in hom_gens]
 
         image_ring_base = image_ring.base_ring()
 
-        verbose("second choice: image_ring %s, image_ring_base %s" %(image_ring, image_ring_base))
+        verbose("second choice: image_ring %s, image_ring_base %s" %(image_ring, image_ring_base), level=2)
 
         try:
             image_ring_map = self.hom(hom_gens, codomain=image_ring)
@@ -718,7 +728,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
             image_ring_map = self.hom(hom_gens, codomain=image_ring, check=False)
             verbose('check failed for embedding as ring morphism')
 
-        verbose("specializing map defined %s" %(image_ring_map))
+        verbose("specializing map defined %s" %(image_ring_map), level=2)
 
         register_ring_hom(image_ring_map)
         return image_ring
@@ -752,11 +762,11 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
         """
 
         if self._splitting_algebra  != None:
-            verbose("End (short)")
+            verbose("End (short)", level=2)
             return self._splitting_algebra
 
         if self._ring_of_definition == None:
-            verbose("constructing generic base ring")
+            verbose("constructing generic base ring", level=2)
             self._ring_of_definition = CubicHeckeRingOfDefinition()
 
         BR = self._ring_of_definition
@@ -765,7 +775,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         FSR = SplittingAlgebra(BR.cubic_equation(), root_names, warning=False)
         splitting_roots = FSR.splitting_roots()
-        verbose("splitting roots %s" %(splitting_roots))
+        verbose("splitting roots %s" %(splitting_roots), level=2)
 
         A, B, C = splitting_roots
         S = self.create_specialization([A, B, C])
@@ -1186,7 +1196,7 @@ class CubicHeckeRingOfDefinition(MPolynomialRing_polydict, UniqueRepresentation)
 
         im_cubic_equation_parameters = [image_ring(para) for para in im_cubic_equation_parameters]
 
-        verbose("common parent of parameters and inverses: %s" %(image_ring))
+        verbose("common parent of parameters and inverses: %s" %(image_ring), level=2)
 
         try:
             image_ring_map = self.hom(im_cubic_equation_parameters, codomain=image_ring)

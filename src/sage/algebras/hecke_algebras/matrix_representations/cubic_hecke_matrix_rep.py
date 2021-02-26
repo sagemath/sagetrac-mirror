@@ -678,7 +678,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         else:
             specialize    = cubic_hecke_algebra._ring_of_definition_map
 
-        verbose("original_base_ring %s base_ring %s" %(original_base_ring, base_ring))
+        verbose("original_base_ring %s base_ring %s" %(original_base_ring, base_ring), level=2)
 
         self._original_base_ring = original_base_ring
         self._specialize         = specialize
@@ -947,7 +947,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         ele_Tietze = basis_element.Tietze()
         matrix_list = filecache.read_matrix_representation(representation_type, ele_Tietze, original_base_ring)
         if matrix_list is None:
-            verbose("not in  memory %s (Tietze %s)" %(basis_element, ele_Tietze))
+            verbose("not in  memory %s (Tietze %s)" %(basis_element, ele_Tietze), level=2)
             if len(ele_Tietze) == 0 :
                 matrix_list = ch_algebra._create_matrix_list_for_one(representation_type)
             else:
@@ -960,7 +960,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
                             matrix_list[i] *= gen_matrix_list[i]
 
             filecache.write_matrix_representation(representation_type, ele_Tietze, matrix_list)
-            verbose("%s saved to memory" %(basis_element))
+            verbose("%s saved to memory" %(basis_element), level=2)
 
         mat =  block_diagonal_matrix(matrix_list, subdivide=self._subdivide, sparse=True)
         return self._specialize_matrix(mat)

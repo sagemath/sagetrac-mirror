@@ -806,18 +806,18 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if cubic_equation_parameters == None and cubic_equation_roots != None:
              pa, pb, pc = cubic_equation_roots
              cubic_equation_parameters = [ pa+pb+pc, pa*pb+pb*pc+pa*pc, pa*pb*pc ]
-             verbose('cubic_equation_parameters %s set according to cubic_equation_roots %s' %(cubic_equation_parameters, cubic_equation_roots))
+             verbose('cubic_equation_parameters %s set according to cubic_equation_roots %s' %(cubic_equation_parameters, cubic_equation_roots), level=2)
 
         if cubic_equation_parameters != None:
             base_ring = ring_of_definition.create_specialization(cubic_equation_parameters)
             cubic_equation_parameters = [ base_ring(para) for para in cubic_equation_parameters ]
-            verbose('base_ring %s set according to cubic_equation_parameters %s' %(base_ring, cubic_equation_parameters))
+            verbose('base_ring %s set according to cubic_equation_parameters %s' %(base_ring, cubic_equation_parameters), level=2)
         else:
             base_ring                 = self._ring_of_definition
             cubic_equation_parameters = self._generic_cubic_equation_parameters
 
 
-        verbose('base_ring %s and cubic_equation_parameters %s defined' %(base_ring, cubic_equation_parameters))
+        verbose('base_ring %s and cubic_equation_parameters %s defined' %(base_ring, cubic_equation_parameters), level=2)
 
 
         # ------------------------------------------------------------------------------------------
@@ -828,7 +828,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         cubic_equation = pol_bas_ring([-pw, pv, -pu, 1 ])
 
 
-        verbose('cubic_equation %s defined' %(cubic_equation))
+        verbose('cubic_equation %s defined' %(cubic_equation), level=2)
 
 
 
@@ -852,13 +852,13 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if cubic_equation_roots != None:
             extension_ring = generic_extension_ring.create_specialization(cubic_equation_roots)
             cubic_equation_roots = [ extension_ring(root) for root in cubic_equation_roots ]
-            verbose('extension_ring %s set according to cubic_equation_roots %s' %(base_ring, cubic_equation_roots))
+            verbose('extension_ring %s set according to cubic_equation_roots %s' %(base_ring, cubic_equation_roots), level=2)
 
         else:
             extension_ring = generic_extension_ring.as_splitting_algebra()
             cubic_equation_roots = [extension_ring(a), extension_ring(b), extension_ring(c)]
 
-        verbose('cubic roots %s and extension ring %s defined' %(cubic_equation_roots, extension_ring))
+        verbose('cubic roots %s and extension ring %s defined' %(cubic_equation_roots, extension_ring), level=2)
         pa, pb, pc = cubic_equation_roots
 
 
@@ -901,11 +901,11 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             return True
 
         if check_base_ring_embedding(base_ring_embedding):
-            verbose('base_ring_embedding defined via coercion')
+            verbose('base_ring_embedding defined via coercion', level=2)
         else:
             base_ring_embedding = extension_ring.convert_map_from( base_ring )
             if check_base_ring_embedding(base_ring_embedding):
-                verbose('base_ring_embedding defined via conversion')
+                verbose('base_ring_embedding defined via conversion', level=2)
             else:
                 try:
                     if base_ring.gens() == cubic_equation_parameters:
@@ -1127,7 +1127,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             result = self._tietze_to_finite_sub_basis_monomial(x)
             if result is not None:
                 # x represents a monomial
-                verbose("End from tuple %s: %s" %(x, result))
+                verbose("End from tuple %s: %s" %(x, result), level=2)
                 return result
 
             try:
@@ -1158,13 +1158,13 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 OtherCBGA = OtherCHA.cubic_braid_group_algebra()
 
                 result = OtherCBGA._apply_module_morphism(cubic_braid_preimg, lambda ele: cbraid_img(cbraid_grp(ele)), codomain=self)
-                verbose("End from smaller cubic Hecke algebra %s: %s" %(xb, result))
+                verbose("End from smaller cubic Hecke algebra %s: %s" %(xb, result), level=2)
                 return result
 
             elif OtherCHA == self._mirror_image:
 
                 result = OtherCHA.mirror_isomorphism(xb)
-                verbose("End from mirror image %s: %s" %(xb, result))
+                verbose("End from mirror image %s: %s" %(xb, result), level=2)
                 return result
 
         # -----------------------------------------------------------------------------------------
@@ -1174,14 +1174,14 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if isinstance(xb, braid_grp_alg.element_class) and xb in braid_grp_alg:
 
             result = braid_grp_alg._apply_module_morphism(xb, lambda ele: braid_img(ele), codomain=self)
-            verbose("End from braid_group algebra %s: %s" %(xb, result))
+            verbose("End from braid_group algebra %s: %s" %(xb, result), level=2)
             return result
 
         from sage.groups.braid import Braid
         if isinstance(xb, Braid) and xb.strands() == self.strands():
 
             result = braid_img(xb)
-            verbose("End from braid_group %s: %s" %(xb, result))
+            verbose("End from braid_group %s: %s" %(xb, result), level=2)
             return result
 
         # -----------------------------------------------------------------------------------------
@@ -1191,14 +1191,14 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if isinstance(xb, cbraid_grp_alg.element_class) and xb in cbraid_grp_alg:
 
             result = cbraid_grp_alg._apply_module_morphism(xb, cbraid_img, codomain=self)
-            verbose("End from cubic braid_group algebra %s: %s" %(xb, result))
+            verbose("End from cubic braid_group algebra %s: %s" %(xb, result), level=2)
             return result
 
         from sage.groups.cubic_braid import CubicBraidElement
         if isinstance(xb, CubicBraidElement) and xb.parent().strands() == self.strands():
 
             result = cbraid_img(xb)
-            verbose("End from cubic braid_group %s: %s" %(xb, result))
+            verbose("End from cubic braid_group %s: %s" %(xb, result), level=2)
             return result
 
 
@@ -1206,7 +1206,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # doing the default construction by inheritance
         # -----------------------------------------------------------------------------------------
         result = CombinatorialFreeModule._element_constructor_(self, x)
-        verbose("End (default) %s: %s" %(xb, result))
+        verbose("End (default) %s: %s" %(xb, result), level=2)
         return result
 
 
@@ -1449,7 +1449,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         g1_Tietze = g1.Tietze()
         g2_Tietze = g2.Tietze()
 
-        verbose("Tietze established (%s, %s)" %(g1_Tietze, g2_Tietze))
+        verbose("Tietze established (%s, %s)" %(g1_Tietze, g2_Tietze), level=2)
 
         # ----------------------------------------------------------------------------------------------------
         # The product is calculated from the corresponding product of the braids
@@ -1748,7 +1748,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         self._finite_sub_basis_tuples = {}
         order_list = [cbg(tup)  for tup in tietze_list]
         self.set_order(order_list)
-        verbose('Finite sub basis length: %s' %(len(order_list)))
+        verbose('Finite sub basis length: %s' %(len(order_list)), level=2)
 
         if self.strands() < 5:
             return
@@ -1778,7 +1778,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             cub_braid = cub_braid_group(bas_Tietze)
             self._cubic_braid_image(cub_braid, check=False)
 
-        verbose('Finite sub basis (extended) length: %s' %(len(self.get_order())))
+        verbose('Finite sub basis (extended) length: %s' %(len(self.get_order())), level=2)
         self._filecache.update_basis_extensions(self._basis_extension)
         return
 
@@ -2059,7 +2059,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if n not in braid_list and -n not in braid_list:
 
             result = self(SubAlg(braid_tietze))
-            verbose("End (%s): %s in smaller algebra" %(braid_list, result) )
+            verbose("End (%s): %s in smaller algebra" %(braid_list, result), level=2)
             return result, None
 
         # ---------------------------------------------------------------------------------------------------
@@ -2070,7 +2070,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         result = self._braid_image_from_filecache(braid)
         if result != None:
 
-            verbose("End from file cache (%s)" %(list(braid_tietze)))
+            verbose("End from file cache (%s)" %(list(braid_tietze)), level=2)
             return result, None
 
 
@@ -2154,7 +2154,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             if  bgrp(braid_tietze) != bgrp(tup):
                 raise NotImplementedError("no algorithm available to calculate braid image of %s" %(str(braid_tietze)))
             B = self.basis()
-            verbose("braid-image %s in Basis" %(str(braid_tietze)))
+            verbose("braid-image %s in Basis" %(str(braid_tietze)), level=2)
             return self.monomial(B[cubic_braid])
 
         return self._cubic_braid_append_to_basis(cubic_braid)
@@ -2216,7 +2216,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             break
 
         if power == 0 :
-            verbose("End (%s) no powers" %(braid_list))
+            verbose("End (%s) no powers" %(braid_list), level=2)
             return [self.base_ring().one()], [braid_tietze]
 
         # ------------------------------------------------------------------------------------------------------------
@@ -2371,7 +2371,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             ((w^-1)*u*v, (-w^-1)*u^2, -u, (-w^-1)*v, (-w^-1)*v^2, (w^-1)*u, (w^-1)*u*v, 1, v,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
-        verbose("Multiply %s (preimage %s) by %s using %s" %(vect, braid_preimage, gen_tuple, representation_type))
+        verbose("Multiply %s (preimage %s) by %s using %s" %(vect, braid_preimage, gen_tuple, representation_type), level=2)
         l = len(gen_tuple)
         braid_list = None
         if braid_preimage:
@@ -2379,7 +2379,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         result = vect
         for i in range(l):
-            verbose("Multiply image of %s with position %s" %(braid_list, i))
+            verbose("Multiply image of %s with position %s" %(braid_list, i), level=2)
 
             if representation_type == RepresentationType.RegularLeft:
                 gen_ind = gen_tuple[l-i-1 ]
@@ -2409,10 +2409,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             # save this intermediate result to the dynamic library
             # ----------------------------------------------------------------------------------
             if braid_list:
-                verbose("Save image of %s to file cache" %braid_list)
+                verbose("Save image of %s to file cache" %braid_list, level=2)
                 self._braid_image_to_filecache(tuple(braid_list), result)
 
-        verbose("Multiply %s by %s using %s result %s" %(vect, gen_tuple, representation_type, result))
+        verbose("Multiply %s by %s using %s result %s" %(vect, gen_tuple, representation_type, result), level=2)
         return result
 
 
@@ -2456,7 +2456,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         monomial = self.monomial(cubic_braid)
         self._finite_sub_basis_tuples.update({cubic_braid:cbTietze})
 
-        verbose("Registering new basis element: %s (par %s ind %s)" %(cubic_braid, cubic_braid.parent(), next_index))
+        verbose("Registering new basis element: %s (par %s ind %s)" %(cubic_braid, cubic_braid.parent(), next_index), level=2)
         self._filecache.update_basis_extensions(self._basis_extension)
         return monomial
 
@@ -2489,18 +2489,18 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         tietze_list = self._basis_tietze()
         cubic_braid_tietze = cubic_braid.Tietze()
         if list(cubic_braid_tietze) in tietze_list:
-            verbose("cubic_braid_tietze: %s in basis" %(str(cubic_braid_tietze)))
+            verbose("cubic_braid_tietze: %s in basis" %(str(cubic_braid_tietze)), level=2)
             return cubic_braid_tietze
         else:
             if cubic_braid in self._finite_sub_basis_tuples.keys():
-                verbose("cubic_braid: %s in finite_sub_basis" %(cubic_braid))
+                verbose("cubic_braid: %s in finite_sub_basis" %(cubic_braid), level=2)
                 return self._finite_sub_basis_tuples[cubic_braid]
 
         for tup in tietze_list:
             cb_tup = self.cubic_braid_group()(tup)
             if cubic_braid == cb_tup:
                 self._finite_sub_basis_tuples.update({cb_tup:tup})
-                verbose("cubic_braid: %s added to finite_sub_basis with tuple %s" %(cubic_braid, tup))
+                verbose("cubic_braid: %s added to finite_sub_basis with tuple %s" %(cubic_braid, tup), level=2)
                 return tuple(tup)
         return None
 
@@ -3385,37 +3385,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     def _class_function(self, irr):
         r"""
         """
-        def split_real_imag(m):
-            val = m[irr].trace()
-            return val
-            # imaginary part exists
-            if irr == self.irred_repr.W4_333:
-                irr2 = self.irred_repr.W4_333bar # conjugated repr
-                val += m[irr2].trace()  # real part
-                cf = val.dict() # coeffs of third root of unity
-                if len(cf.keys()) <= 1:
-                    return val
-                raise RuntimeError('cannot obtain real part for %s of %s' %(irr,val))
-            elif irr == self.irred_repr.W4_333bar:
-                irr2 = self.irred_repr.W4_333    # conjugated repr
-                val -= m[irr2].trace()  # imaginary part
-                if val.is_zero():
-                    return val
-                cf = val.dict() # coeffs of third root of unity
-                if 2*cf[0] == cf[1]: # check that val is divisable by (2*e3+1)
-                    return val.parent()(cf[0])
-                raise RuntimeError('cannot obtain imaginary part for %s of %s' %(irr, val))
-
-            cf = val.dict() # coeffs of third root of unity
-            if len(cf.keys()) <= 1:
-                # no imaginary part
-                return val
-            raise RuntimeError('unexpected imaginary part for %s of %s' %(irr,val))
-
         def class_function(ele):
             if isinstance(ele, self.element_class):
                 m = ele.matrix()
-                return split_real_imag(m)
+                return m[irr].trace()
             else:
                 # if ele is given by the representation matrix
                 mone_irr = self.one().matrix().reduce_to_irr_block(irr)
@@ -3442,8 +3415,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 K9_29 = B((1, -2, -2, 3, -2, 1, -2, 3, -2))
                 K9_34 = B((-1, 2, -1, 2, -3, 2, -1, 2, -3))
                 new_vars = {'U4':self.one(), 'K4U':self(K4_1_U), 'K6':self(K6_1), 'K7':self(K7_4), 'K91':self(K9_29), 'K92':self(K9_34)}
-                from sage.misc.persist import save
-                save(new_vars, 'markov_new_vars.sobj')
         sub_vars.update(new_vars)
         return sub_vars, new_vars
 
@@ -3452,11 +3423,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         r"""
         """
         from sage.misc.persist import load, save
+        n = self.strands()
         try:
-            if self.strands() == 3:
+            if n == 3:
                 return load('/home/sebastian/devel/prepare/markov_trace_coeffs3.sobj')
                 time = verbose('found precalculated list of Markov trace coefficients')
-            if self.strands() == 4:
+            if n == 4:
                 return load('/home/sebastian/devel/prepare/markov_trace_coeffs4.sobj')
                 time = verbose('found precalculated list of Markov trace coefficients')
         except FileNotFoundError:
@@ -3482,7 +3454,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         E = self.extension_ring()
         PE = E[('s',) + tuple(all_vars)]
         mtr_one = mtr(self.one())
-        EC3 = mtr_one.parent().base_ring()
+        # EC3 = mtr_one.parent().base_ring()
+        EC3 = mtr_one.parent().ring()
         EZ = ZZ[EC3.variable_names()]
         img = tuple(self.cubic_equation_roots()) + PE.gens()
         emb_EZ = EZ.hom(img)
@@ -3506,7 +3479,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         s = len(mtcf)
 
         try:
-            mtcf = load('markov_trace_coeffs_temp.sobj')
+            mtcf = load('markov_trace_coeffs%s_temp.sobj' %n)
             s = len(mtcf)
             time = verbose('found temporary list of length %s' %(s), t=time)
         except FileNotFoundError:
@@ -3518,13 +3491,15 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         for i in range(s,l):
             time = verbose('%s of %s' %(i, l), t=time)
             mtcf.append(convert_coeff(O[i]))
-            save(mtcf, 'markov_trace_coeffs_temp.sobj')
+            save(mtcf, 'markov_trace_coeffs%_temp.sobj' %n)
+        import os
+        os.system('mv markov_trace_coeffs%s_temp.sobj markov_trace_coeffs%s.sobj' %(n,n))
         verbose('calculation of Markov trace coefficients finished', t=time)
         return mtcf
 
 
     @cached_method
-    def _markov_trace_irr_coeffs(self, integral=False):
+    def _markov_trace_irr_coeffs(self):
         r"""
         """
         time = verbose('preparing calculation of irreducible Markov trace coefficients')
@@ -3648,30 +3623,20 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         irr_coeff.save('markov_irr_coeffR.sobj')
         time = verbose('reduced adjusting solution saved', t=time)
 
+        def mtr_ext(ele):
+            return sum(irr_coeff[j]*emb_ER(ClF[j](ele)) for j in range(dClF))
+        verbose('calculation of irreducible Markov trace coefficients finished', t=time)
+        return mtr_ext
+
         # find minimal coefficient ring
 
         denoms = tuple(set([cf.denominator() for cf in irr_coeff] +[P(a), P(b), P(c)]))
 
-        if integral:
-            from sage.algebras.splitting_algebra import SplittingAlgebra
-            from sage.misc.functional import cyclotomic_polynomial
-            S = SplittingAlgebra(cyclotomic_polynomial(3))
-            var_dict = P.gens_dict()
-            var_names = list(var_dict.keys())
-            PS = S[tuple(var_names)]
-
-            add_units = tuple([PS(den.dict()) for den in denoms])
-            # return irr_coeff, add_units, denoms, PS
-            L = PS.localization(add_units)
-            return L, irr_coeff
-            irr_coeff = [L(cf.numerator())/L(cf.denominator()) for cf in irr_coeff]
-            c3 = L(S.gen())
-        else:
-            L = P.localization(denoms)
-            irr_coeff = irr_coeff.change_ring(L)
-            c3 = L(C3.gen())
-            irr_coeff.save('markov_irr_coeffL.sobj')
-            time = verbose('localized adjusting solution saved', t=time)
+        L = P.localization(denoms)
+        irr_coeff = irr_coeff.change_ring(L)
+        c3 = L(C3.gen())
+        irr_coeff.save('markov_irr_coeffL.sobj')
+        time = verbose('localized adjusting solution saved', t=time)
 
         a, b, c, s, *remain, = L.gens()
         emb_ER = ER.hom((c3, a, b, c))
