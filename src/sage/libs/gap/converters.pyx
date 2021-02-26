@@ -1,4 +1,14 @@
-"""Converters between Sage types and `~gappy.gapobj.GapObj types."""
+"""
+Converters between Sage types and GAP objects
+
+Most of the functions in this module use the
+:meth:`gappy.gapobj.GapObj.convert_to` decorators to provide implementations of
+the ``.sage()`` methods on different :class:`~gappy.gapobj.GapObj` subclasses.
+
+Documentation for this module is provided to give different examples of how to
+use the ``.sage()`` converters, but these functions should not be called
+directly.  Instead, use ``.sage()`` method directly on GAP objects.
+"""
 
 
 import copyreg
@@ -30,11 +40,12 @@ from gappy.gapobj cimport (GapObj, GapInteger, GapFloat, GapIntegerMod,
 @libgap.convert_from(SageObject)
 def sageobject_to_gapobj(Gap gap, SageObject obj):
     r"""
-    gappy converter for converting generic `.SageObject`\s to their
-    corresponding `~gappy.gapobj.GapObj` if any.
+    gappy converter for converting generic :class:`.SageObject`\s to their
+    corresponding :class:`~gappy.gapobj.GapObj` if any.
 
     This implements the libgap conversion functions already documented for
-    `.SageObject`\s: `.SageObject._libgap_` and `.SageObject._libgap_init_`.
+    :class:`.SageObject`\s: :meth:`.SageObject._libgap_` and
+    :meth:`.SageObject._libgap_init_`.
     """
 
     # NOTE: In the default implementation of SageObject._libgap_ it defers
@@ -351,7 +362,7 @@ def gapfinitefield_to_sage(obj, ring=None, var='a'):
 
     An Sage finite field element. The isomorphism is chosen such that the Gap
     ``PrimitiveRoot()`` maps to the Sage
-    :meth:`~sage.rings.finite_rings.finite_field_prime_modn.multiplicative_generator`.
+    :meth:`~sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic.multiplicative_generator`.
 
     EXAMPLES::
 

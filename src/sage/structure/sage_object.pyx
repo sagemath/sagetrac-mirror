@@ -723,6 +723,12 @@ cdef class SageObject:
         return self._interface_init_(I)
 
     def _libgap_(self, libgap=None):
+        """
+        Convert to an equivalent `~gappy.gapobj.GapObj` or one of the basic
+        Python types that have `GAP equivalents
+        <gappy.core.Gap.supported_builtins>`.
+        """
+
         if libgap is None:
             from sage.libs.gap.libgap import libgap
         return libgap.eval(self._libgap_init_())

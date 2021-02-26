@@ -1,4 +1,4 @@
-if [ "$SAGE_SPKG_INSTALL_DOCS" = "yes" ]; then
+if [ "$SAGE_SPKG_INSTALL_DOCS" != "no" ]; then
     cd src/docs/
 
     # write conf.py override to give correct intersphinx mappings

@@ -1,7 +1,8 @@
 import sys
 import os
 import sphinx
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
+from sage.env import (SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR,
+                      GAPPY_DOCS, PPLPY_DOCS, MATHJAX_DIR)
 import sage.version
 from sage.misc.sagedoc import extlinks
 import dateutil.parser
@@ -180,6 +181,7 @@ def set_intersphinx_mappings(app, config):
     'python': ('https://docs.python.org/',
                 os.path.join(SAGE_DOC_SRC, "common",
                              "python{}.inv".format(python_version))),
+    'gappy': (GAPPY_DOCS, None),
     'pplpy': (PPLPY_DOCS, None)}
 
     # Add master intersphinx mapping

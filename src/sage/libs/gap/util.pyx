@@ -1,4 +1,4 @@
-"""Utility functions for GAP interface."""
+"""Utility functions for GAP interface"""
 
 #*****************************************************************************
 #       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
