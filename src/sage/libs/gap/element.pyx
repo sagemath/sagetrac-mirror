@@ -33,7 +33,7 @@ deprecation(31404,
     'longer subclasses of Element')
 
 
-def import_gapobjs_as_gapelements():
+def _import_gapobjs_as_gapelements():
     """
     Creates aliases for the various `~gappy.gapobj.GapObj` subclasses under
     the names of the original ``GapElement`` subclasses to provide a bit of
@@ -44,6 +44,12 @@ def import_gapobjs_as_gapelements():
 
         sage: from gappy.gapobj import GapObj, GapList
         sage: from sage.libs.gap.element import GapElement, GapElement_List
+        ...
+        DeprecationWarning: this module has been subsumed by the gappy package
+        and will be removed in a future version; all the GapElement classes are
+        still available but as aliases for the equivalent gappy.gapobj.GapObj
+        classes, and are no longer subclasses of Element
+        See https://trac.sagemath.org/31404 for details.
         sage: GapObj is GapElement
         True
         sage: GapList is GapElement_List
@@ -64,7 +70,7 @@ def import_gapobjs_as_gapelements():
         if sub and sub != 'Obj':
             elem_name += '_' + sub
 
-        locals()[elem_name] = cls
+        globals()[elem_name] = cls
 
 
-import_gapobjs_as_gapelements()
+_import_gapobjs_as_gapelements()
