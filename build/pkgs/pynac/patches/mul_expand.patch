@@ -1,0 +1,35 @@
+diff --git a/ginac/mul.cpp b/ginac/mul.cpp
+--- a/ginac/mul.cpp
++++ b/ginac/mul.cpp
+@@ -1328,11 +1328,17 @@
+                                 if (s > 400) {
+ //                                // the condition is probably too simple
+                                         try {
+-                                        // can it be converted/expanded via Singular?
++                                        // if possible, we convert the sums to polynomials,
++                                        // and then ask Singular to multiply them
+                                         last_expanded = poly_mul_expand(last_expanded,
+                                                                         elem.rest);
+                                                 continue;
+                                         }
++                                        catch (std::domain_error) {
++                                        // could not convert to polynomials, because
++                                        // there is a negative exponent
++                                        // TODO: convert to Laurent polynomials instead
++                                        }
+                                         catch (std::runtime_error) {
+                                                 std::cerr << "can't happen while calling poly_mul_expand\n";
+                                         }
+
+diff --git a/ginac/mpoly-singular.cpp b/ginac/mpoly-singular.cpp
+--- a/ginac/mpoly-singular.cpp
++++ b/ginac/mpoly-singular.cpp
+@@ -229,6 +229,8 @@
+                                 if (it == pomap.end())
+                                         throw std::runtime_error("can't happen in ex::to_canonical");
+                                 n = expo.div(it->second[0]);
++                                if (n < 0)
++                                        throw std::domain_error("negative exponent in CanonicalForm::power");
+                                 ex b = it->first.subs(symbol_E == exp(1));
+                                 revmap[var.level()-1] = GiNaC::power(b,
+                                                                it->second[0]);
