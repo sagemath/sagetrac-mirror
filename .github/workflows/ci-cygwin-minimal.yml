@@ -148,7 +148,8 @@ jobs:
     env:
       STAGE: ii-a
       PREVIOUS_STAGES: i-*
-      TARGETS: cvxopt rpy2
+      TARGETS: cvxopt
+      TARGETS_OPTIONAL: rpy2
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
