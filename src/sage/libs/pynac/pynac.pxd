@@ -1,1 +1,1 @@
-from ginac.libpynac cimport *
+from ginac.pynac cimport *
