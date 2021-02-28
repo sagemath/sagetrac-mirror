@@ -29,7 +29,6 @@ from __future__ import print_function, absolute_import
 from sage.structure.sage_object import SageObject
 from sage.homology.homology_group import HomologyGroup
 from sage.rings.integer_ring import ZZ
-from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup

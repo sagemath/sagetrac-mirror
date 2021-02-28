@@ -69,7 +69,7 @@ from sage.combinat.posets.posets import Poset
 from sage.rings.integer_ring import ZZ
 from sage.homology.homology_group import HomologyGroup
 
-from sage.libs.ecl import EclObject, ecl_eval, EclListIterator
+from sage.libs.ecl import EclObject, EclListIterator
 from sage.interfaces import kenzo
 
 
