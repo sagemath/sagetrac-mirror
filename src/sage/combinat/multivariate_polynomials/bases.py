@@ -8,7 +8,7 @@ Shortcuts for most used polynomial bases
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from multivariate_polynomials import MultivariatePolynomialAlgebra
+from .multivariate_polynomials import MultivariatePolynomialAlgebra
 
 def SchubertPolynomialsOnVectors(R, basis_name = None, basis_repr= "Y", **keywords):
     r"""

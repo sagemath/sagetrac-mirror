@@ -13,7 +13,8 @@ This file contains the `MonomialBasis` and `FiniteMonomialBasis` classes which
 from sage.rings.integer import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 
-from basis import PolynomialRingWithBasis, FinitePolynomialRingWithBasis, MonomialKeyWrapper
+from .basis import PolynomialRingWithBasis, FinitePolynomialRingWithBasis, MonomialKeyWrapper
+
 class MonomialBasis(PolynomialRingWithBasis):
     r"""
     This class implements the monomial basis. Polynomials are seen as
@@ -149,9 +150,9 @@ class MonomialBasis(PolynomialRingWithBasis):
         from sage.calculus.var import var
         key = list(vector)
         if alphabet is None:
-            alphabet = [var(self.basis_repr() + str(i)) for i in xrange(1,len(key)+1)]
+            alphabet = [var(self.basis_repr() + str(i)) for i in range(1,len(key)+1)]
         expr = 1
-        for i in xrange(len(key)):
+        for i in range(len(key)):
             expr*=alphabet[i]**key[i]
 
         return expr
@@ -186,14 +187,14 @@ class MonomialBasis(PolynomialRingWithBasis):
         flag = True
         while flag:
             flag = False
-            for i in xrange(l):
+            for i in range(l):
                 if(result_key[i] == result_key[i+1]): return Schub(0)
                 if(result_key[i] > result_key[i+1]):
                     result_key[i], result_key[i+1] = result_key[i+1], result_key[i]
                     flag = True
                     sign*=-1
             l = l-1
-        for i in xrange(len(result_key)):
+        for i in range(len(result_key)):
             result_key[i]-=i
         return sign * Schub( result_key )
 
@@ -273,7 +274,7 @@ class MonomialBasis(PolynomialRingWithBasis):
             monomial_basis_with_type = self._module.basis_tower().abstract_algebra().algebra_finite_nb_variables(i).monomial_basis_with_type(otype)
             morph = monomial_basis_with_type.get_morphism(i,method=method,t1=self._t1,t2 = self._t2)
             key1 = key[:i]
-            key2 = [0 for j in xrange(i)]
+            key2 = [0 for j in range(i)]
             key2.extend(key[i:])
             return self._module( morph(monomial_basis_with_type( key1 )).change_nb_variables(len(key))) * self._module( key2 )
 
@@ -402,8 +403,7 @@ class MonomialBasis(PolynomialRingWithBasis):
                 sage: wrapp.si_on_basis(key)
                 Traceback (most recent call last):
                 ...
-                ValueError: Unknown type E
-
+                ValueError: unknown type E
             """
             key = list(key)
             i = self._i -1
@@ -415,7 +415,7 @@ class MonomialBasis(PolynomialRingWithBasis):
             elif(otype=="D"):
                 key[i],key[i-1] = -key[i-1],-key[i]
             else:
-                raise ValueError, "Unknown type %s"%(otype)
+                raise ValueError("unknown type %s"%(otype))
             return self._module(key)
 
 class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
@@ -485,7 +485,7 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
             #[0, 0, 0]
 
         #"""
-        #return self._basis_keys( list(0 for i in xrange(self.nb_variables())) )
+        #return self._basis_keys( list(0 for i in range(self.nb_variables())) )
 
     def __getitem__(self, c, *rest):
         r"""
@@ -539,7 +539,7 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
             x[3, 4, 3]
 
         """
-        return self.term( self._basis_keys(tuple(vector1[i]+vector2[i] for i in xrange(len(vector1)))) )
+        return self.term( self._basis_keys(tuple(vector1[i]+vector2[i] for i in range(len(vector1)))) )
 
 
     class Element(FinitePolynomialRingWithBasis.Element):
@@ -570,7 +570,7 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
                 vect = l[0][0]
                 coef = l[0][1]
                 return coef**-1 * self.parent()( tuple(-v for v in vect) )
-            raise ValueError,"%s is not invertible in %s"%(self, self.parent())
+            raise ValueError("%s is not invertible in %s"%(self, self.parent()))
 
         def _right_number_of_variables_pol(self, i, otype= "A"):
             r"""

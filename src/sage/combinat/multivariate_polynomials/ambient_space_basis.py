@@ -16,7 +16,7 @@ from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.integer import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 
-from basis import PolynomialRingWithBasis, FinitePolynomialRingWithBasis, MonomialKeyWrapper
+from .basis import PolynomialRingWithBasis, FinitePolynomialRingWithBasis, MonomialKeyWrapper
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -159,7 +159,7 @@ class PolynomialRingWithBasisFromAmbientSpace(PolynomialRingWithBasis):
             as_key = key.ambient_space_element()
             n = as_key.scalar(ambient_space.simple_coroot(i))
             if n >= 0:
-                return self._module.sum_of_monomials((key.parent()(as_key-(j)*ambient_space.simple_root(i)-ambient_space.basis()[i-1]) for j in xrange(n)))
+                return self._module.sum_of_monomials((key.parent()(as_key-(j)*ambient_space.simple_root(i)-ambient_space.basis()[i-1]) for j in range(n)))
             else:
                 return -self.divided_difference_on_basis(key.parent()(ambient_space.simple_reflection(i)(as_key)))
 
@@ -193,7 +193,7 @@ class PolynomialRingWithBasisFromAmbientSpace(PolynomialRingWithBasis):
         @cached_method
         def hecke_generator_on_basis(self, key):
             if(self._module.group_type() != "A"):
-                raise NotImplementedError, "The hecke algebra operator is only implemented in type A"%()
+                raise NotImplementedError("the hecke algebra operator is only implemented in type A")
             pi = self.isobaric_divided_difference_on_basis
             res1 = pi(key) * (self._t1 + self._t2)
             res2 = self._module(key)
@@ -267,7 +267,7 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
 
             sage: # Fix a nice example
         """
-        return self.term( self._basis_keys(tuple(key1[i]+key2[i] for i in xrange(len(key1)))) )
+        return self.term( self._basis_keys(tuple(key1[i]+key2[i] for i in range(len(key1)))) )
 
     def _to_monomial_on_basis(self, key):
         r"""
@@ -380,5 +380,5 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
                 vect = l[0][0]
                 coef = l[0][1]
                 return coef**-1 * self.parent()( tuple(-v for v in vect) )
-            raise ValueError,"%s is not invertible in %s"%(self, self.parent())
+            raise ValueError("%s is not invertible in %s"%(self, self.parent()))
 

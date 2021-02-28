@@ -305,7 +305,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
         """
         if any (parent.is_parent_of(element) for parent in self.facade_for()):
             return element
-        raise TypeError, "do not know how to make '%s' an element of '%s'"%(element, self)
+        raise TypeError("do not know how to make '%s' an element of '%s'"%(element, self))
 
     def var(self, i, nb_variables = 0):
         r"""
@@ -336,7 +336,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
         """
         if(nb_variables ==0 or nb_variables < i ): nb_variables =i
-        vect = [0 for j in xrange(nb_variables)]
+        vect = [0 for j in range(nb_variables)]
         vect[i-1] = 1
         return self.monomial_basis()( vect )
 
@@ -482,7 +482,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
             x[2, 2]
         """
         if(basis_repr is None): basis_repr = self._main_repr_var
-        from monomial import MonomialBasis
+        from .monomial import MonomialBasis
         return MonomialBasis(self, basis_repr)
 
     def monomial_basis_with_type(self, group_type, basis_repr = None):
@@ -531,7 +531,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
         """
         if(basis_repr is None): basis_repr = self._main_repr_var + group_type
-        from ambient_space_basis import PolynomialRingWithBasisFromAmbientSpace
+        from .ambient_space_basis import PolynomialRingWithBasisFromAmbientSpace
         return PolynomialRingWithBasisFromAmbientSpace(self,group_type,"Ambient space basis of type " + group_type, basis_repr)
 
     def from_morphism_basis(self, neutral_nb_variables, morphism_to_basis, get_basis_keys, get_morphism_on_basis, basis_name, basis_repr, variables_auto_coerce =False, **keywords):
@@ -577,7 +577,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
             sage: A = MultivariatePolynomialAlgebra(QQ)
             sage: m = A.monomial_basis()
             sage: def get_basis_keys(n): code = "A" + str(n-1); return RootSystem(code).ambient_space(QQ)
-            sage: def get_morphism_on_basis(n): return lambda key: m( [key[i] for i in xrange(n)])
+            sage: def get_morphism_on_basis(n): return lambda key: m( [key[i] for i in range(n)])
             sage: MyBasis = A.from_morphism_basis(1,m,get_basis_keys,get_morphism_on_basis,"My Basis", "x"); MyBasis
             The ring of multivariate polynomials on x over Rational Field on the My Basis
             sage: MyBasis.an_element()
@@ -587,7 +587,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
         We have recreated the typed basis.
         """
-        from basis import PolynomialRingWithBasisFromMorphism
+        from .basis import PolynomialRingWithBasisFromMorphism
         return PolynomialRingWithBasisFromMorphism(self, neutral_nb_variables, morphism_to_basis, basis_name, basis_repr, get_basis_keys, get_morphism_on_basis,variables_auto_coerce, **keywords)
 
     def linear_basis_on_vectors(self, group_type, basis_name, basis_repr, on_basis_method, extra_parameters = (), **keywords):
@@ -632,7 +632,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
             sage: A = MultivariatePolynomialAlgebra(QQ)
             sage: def schubert_on_basis(v, basis, call_back):
-            ...     for i in xrange(len(v)-1):
+            ...     for i in range(len(v)-1):
             ...         if(v[i]<v[i+1]):
             ...             v[i], v[i+1] = v[i+1] + 1, v[i]
             ...             return call_back(v).divided_difference(i+1)
@@ -655,7 +655,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
             1/2*x(-1, -1, -2)
 
         """
-        from linear_basis_on_vectors import LinearBasisOnVectors
+        from .linear_basis_on_vectors import LinearBasisOnVectors
         monomial_basis_with_type = self.monomial_basis_with_type(group_type)
         return LinearBasisOnVectors(self, monomial_basis_with_type, basis_name, basis_repr, on_basis_method, extra_parameters, **keywords)
 
@@ -725,7 +725,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
             sage: Schub[1,2] * Schub[3,0,0]
             Y(4, 2, 0) + Y(5, 1, 0)
         """
-        from linear_basis_on_vectors import SchubertBasisOnVectors
+        from .linear_basis_on_vectors import SchubertBasisOnVectors
         if(basis_name is None):
             basis_name = "Schubert basis of type A (indexed by vectors)"
         if(self._show_main_var): basis_repr+= self._main_repr_var
@@ -810,7 +810,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
             x(2, 1, 0) + x(2, 1, -2) + x(2, 1, -1) + x(2, 1, 1) + x(2, 1, 2) + x(2, 2, 0) + x(2, 2, -1) + x(2, 2, 1)
 
         """
-        from linear_basis_on_vectors import DemazureBasisOnVectors
+        from .linear_basis_on_vectors import DemazureBasisOnVectors
         if(basis_name is None):
             basis_name = "Demazure basis of type " +group_type+" (indexed by vectors)"
         if(self._show_main_var): basis_repr+= self._main_repr_var
@@ -888,7 +888,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
             x(2, 1, 0) + x(2, 1, -2) + x(2, 1, -1) + x(2, 1, 1)
 
         """
-        from linear_basis_on_vectors import DemazureBasisOnVectors
+        from .linear_basis_on_vectors import DemazureBasisOnVectors
         if(basis_name is None):
             basis_name = "Demazure hat basis of type " +group_type+" (indexed by vectors)"
         if(self._show_main_var): basis_repr+= self._main_repr_var
@@ -968,7 +968,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
             ...
             NotImplementedError: The product is not implemented for this basis
         """
-        from linear_basis_on_vectors import GrothendieckNegativeBasisOnVectors
+        from .linear_basis_on_vectors import GrothendieckNegativeBasisOnVectors
         if(basis_name is None):
             basis_name = "Grothendieck basis of type A with negative exposants (indexed by vectors)"
         if(self._show_main_var): basis_repr+= self._main_repr_var
@@ -1048,7 +1048,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
             G(4, 2, 0) + G(5, 1, 0) - G(5, 2, 0)
         """
 
-        from linear_basis_on_vectors import GrothendieckPositiveBasisOnVectors
+        from .linear_basis_on_vectors import GrothendieckPositiveBasisOnVectors
         if(basis_name is None):
             basis_name = "Grothendieck basis of type A, with positive exposants (indexed by vectors) "
         if(self._show_main_var): basis_repr+= self._main_repr_var
@@ -1104,6 +1104,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
             (t1-t2)*M(0, 0) + (1/(-t2))*M(1, 0) + ((t1*q-t1)/(t1*q+t2))*M(0, 1)
 
         Let us see some operations::
+
             sage: Mac[1,2] + Mac[1,0]
             M(1, 0) + M(1, 2)
             sage: Mac[1,2] * Mac[1,0]
@@ -1112,7 +1113,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
         if(t1 is None): t1 = self.base_ring()(var('t1'))
         if(t2 is None): t2 = self.base_ring()(var('t2'))
         if(q is None): q = self.base_ring()(var('q'))
-        from linear_basis_on_vectors import MacdonaldBasisOnVectors
+        from .linear_basis_on_vectors import MacdonaldBasisOnVectors
         if(basis_name is None):
             basis_name = "Macdonald basis of type A (indexed by vectors) "
         if(self._show_main_var): basis_repr+= self._main_repr_var
@@ -1184,7 +1185,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
             x(2, 2, 3, 0, 0)
         """
         if(nb_variables < pol.nb_variables()):
-            raise NotImplementedError, "This method doesn't reduce the number of variables, use reduce_nb_variables"%()
+            raise NotImplementedError("this method doesn't reduce the number of variables, use reduce_nb_variables")
         basis = pol.parent().basis_tower().finite_basis(nb_variables)
         return basis( pol )
 
@@ -1218,13 +1219,13 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
         """
         max = 1
         for ind, coeff in pol:
-            for i in xrange(pol.nb_variables()-1,-1,-1):
+            for i in range(pol.nb_variables()-1,-1,-1):
                 if(ind[i]!=0):
                     if(i+1>max): max = i+1
                     break
         if(max==pol.nb_variables()): return pol
         codomain = pol.parent().basis_tower().finite_basis(max)
-        return sum( [coeff * codomain([ind[i] for i in xrange(0,max)]) for ind, coeff in pol] )
+        return sum( [coeff * codomain([ind[i] for i in range(0,max)]) for ind, coeff in pol] )
 
     def maxDiffDiv(self, pol):
         """
@@ -1404,7 +1405,7 @@ class FiniteMultivariatePolynomialAlgebra(UniqueRepresentation, Parent):
         """
         if self.is_parent_of(element):
             return element
-        raise ValueError, "'%s' is not an element of '%s'"%(element, self)
+        raise ValueError("'%s' is not an element of '%s'"%(element, self))
 
 
     def an_element(self):
@@ -1454,7 +1455,7 @@ class FiniteMultivariatePolynomialAlgebra(UniqueRepresentation, Parent):
             The ring of multivariate polynomials on x over Rational Field with 5 variables on the monomial basis
         """
         if(basis_repr is None): basis_repr = self._main_repr_var
-        from monomial import FiniteMonomialBasis
+        from .monomial import FiniteMonomialBasis
         return FiniteMonomialBasis(self, basis_repr)
 
     def monomial_basis_with_type(self, letter, basis_repr = None):
@@ -1471,7 +1472,7 @@ class FiniteMultivariatePolynomialAlgebra(UniqueRepresentation, Parent):
             The ring of multivariate polynomials on x over Rational Field with 2 variables on the Ambient space basis of type B
         """
         if(basis_repr is None): basis_repr = self._main_repr_var + letter
-        from ambient_space_basis import FinitePolynomialRingWithBasisFromAmbientSpace
+        from .ambient_space_basis import FinitePolynomialRingWithBasisFromAmbientSpace
         if(letter == "A"): number = self.nb_variables()-1
         else: number = self.nb_variables()
         code = str(letter) + str(number)
@@ -1501,7 +1502,7 @@ class FiniteMultivariatePolynomialAlgebra(UniqueRepresentation, Parent):
             sage: A = MultivariatePolynomialAlgebra(QQ)
             sage: M = A.monomial_basis()
             sage: def get_basis_keys(n): code = "A" + str(n-1); return RootSystem(code).ambient_space(QQ)
-            sage: def get_morphism_on_basis(n): return lambda key: M( [key[i] for i in xrange(n)])
+            sage: def get_morphism_on_basis(n): return lambda key: M( [key[i] for i in range(n)])
             sage: MyBasis = A.from_morphism_basis(1,M,get_basis_keys,get_morphism_on_basis,"My Basis", "X"); MyBasis
             The ring of multivariate polynomials on x over Rational Field on the My Basis
             sage: from sage.combinat.multivariate_polynomials.multivariate_polynomials import FiniteMultivariatePolynomialAlgebra
@@ -1518,7 +1519,7 @@ class FiniteMultivariatePolynomialAlgebra(UniqueRepresentation, Parent):
 
         """
 
-        from basis import FinitePolynomialRingWithBasisFromMorphism
+        from .basis import FinitePolynomialRingWithBasisFromMorphism
         return FinitePolynomialRingWithBasisFromMorphism(self, polynomial_ring_tower, basis_name, basis_repr)
 
 
@@ -1547,7 +1548,7 @@ class FiniteMultivariatePolynomialAlgebra(UniqueRepresentation, Parent):
 
             sage: A = MultivariatePolynomialAlgebra(QQ)
             sage: def schubert_on_basis(v, basis, call_back):
-            ...     for i in xrange(len(v)-1):
+            ...     for i in range(len(v)-1):
             ...         if(v[i]<v[i+1]):
             ...             v[i], v[i+1] = v[i+1] + 1, v[i]
             ...             return call_back(v).divided_difference(i+1)
@@ -1559,7 +1560,7 @@ class FiniteMultivariatePolynomialAlgebra(UniqueRepresentation, Parent):
             The ring of multivariate polynomials on x over Rational Field with 3 variables on the MySchub
 
         """
-        from linear_basis_on_vectors import FiniteLinearBasisOnVectors
+        from .linear_basis_on_vectors import FiniteLinearBasisOnVectors
         return FiniteLinearBasisOnVectors(self, polynomial_ring_tower, basis_name, basis_repr, **keywords)
 
 

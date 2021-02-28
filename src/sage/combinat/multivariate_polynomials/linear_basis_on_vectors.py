@@ -18,7 +18,7 @@ from sage.rings.integer import Integer
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.structure.unique_representation import UniqueRepresentation
 
-from basis import PolynomialRingWithBasisFromMorphism, FinitePolynomialRingWithBasisFromMorphism, PolynomialRingWithBasis
+from .basis import PolynomialRingWithBasisFromMorphism, FinitePolynomialRingWithBasisFromMorphism, PolynomialRingWithBasis
 
 class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
     r"""
@@ -45,9 +45,11 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
         self._monomial_basis_with_type = monomial_basis_with_type
         get_morphism_on_basis = self._get_morphism_on_basis
 
-        if(not keywords.has_key("triangular")): keywords["triangular"] = "upper"
-        if(not keywords["triangular"] is None):
-            if(not keywords.has_key("key")): keywords["key"] = self._basis_key
+        if "triangular" not in keywords:
+            keywords["triangular"] = "upper"
+        if keywords["triangular"] is not None:
+            if "key" not in keywords:
+                keywords["key"] = self._basis_key
         self._keywords = keywords
 
         self._extra_parameters = {}
@@ -69,7 +71,7 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
 
     def _basis_key(self, vec):
         l = len(vec)
-        d = sum( [vec[i] for i in xrange(l)])
+        d = sum( [vec[i] for i in range(l)])
         return (-d, tuple(reversed(vec)))
 
     def _get_basis_keys(self, n):
@@ -146,9 +148,9 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
 
         @cached_method
         def morphism_on_basis(self, key):
-            x = [key[i] for i in xrange(self._basis.nb_variables())]
+            x = [key[i] for i in range(self._basis.nb_variables())]
             if(self._on_basis_method is None):
-                raise NotImplementedError,"No compute method has been implemented"%()
+                raise NotImplementedError("no compute method has been implemented")
             else:
                 if (len(self._parameters)==0):
                     return self._on_basis_method(x, self._basis, self._call_back)
@@ -188,7 +190,7 @@ class SchubertBasisOnVectors(LinearBasisOnVectors):
 
 
     def on_basis_method(self, x, basis, call_back):
-        for i in xrange( len( x ) - 1 ):
+        for i in range( len( x ) - 1 ):
             if( x[i]<x[i+1] ):
                 x[i], x[i+1] = x[i+1]+1, x[i]
                 return call_back(x).divided_difference(i+1)
@@ -227,8 +229,8 @@ class SchubertBasisOnVectors(LinearBasisOnVectors):
             nb_variables = len(part)
         if(nb_variables< len(part)):
             return self(0)
-        key = [0 for i in xrange(nb_variables)]
-        for i in xrange(len(part)): key[i] = part[i]
+        key = [0 for i in range(nb_variables)]
+        for i in range(len(part)): key[i] = part[i]
         key.reverse()
         return self(key)
 
@@ -307,7 +309,7 @@ class SchubertBasisOnVectors(LinearBasisOnVectors):
             """
             i = self._i
             if(key[i-1] > key[i]):
-                key2 = [key[j] for j in xrange(len(key))]
+                key2 = [key[j] for j in range(len(key))]
                 key2[i-1], key2[i] = key2[i], key2[i-1]-1
                 return self._module(key2)
             return self._module.zero()
@@ -342,7 +344,7 @@ class GrothendieckPositiveBasisOnVectors(LinearBasisOnVectors):
         return abstract_polynomial_ring.grothendieck_positive_basis_on_vectors(self.group_type())
 
     def on_basis_method(self, x, basis, call_back):
-        for i in xrange( len( x ) - 1 ):
+        for i in range( len( x ) - 1 ):
             if( x[i]<x[i+1] ):
                 x[i], x[i+1] = x[i+1]+1, x[i]
                 res = call_back(x)
@@ -383,12 +385,12 @@ class GrothendieckNegativeBasisOnVectors(LinearBasisOnVectors):
         return abstract_polynomial_ring.grothendieck_negative_basis_on_vectors(self.group_type())
 
     def on_basis_method(self, x, basis, call_back):
-        for i in xrange( len( x ) - 1 ):
+        for i in range( len( x ) - 1 ):
             if( x[i]<x[i+1] ):
                 x[i], x[i+1] = x[i+1]+1, x[i]
                 return call_back(x).isobaric_divided_difference(i+1)
         prod = basis.one()
-        for i in xrange(len(x)):
+        for i in range(len(x)):
             inv_x_i = basis.var(i+1)**(-1)
             prod *= (basis.one() - inv_x_i)**x[i]
         return prod
@@ -449,7 +451,7 @@ class GrothendieckNegativeBasisOnVectors(LinearBasisOnVectors):
             """
             i = self._i
             if(key[i-1] > key[i]):
-                key2 = [key[j] for j in xrange(self._module.nb_variables())]
+                key2 = [key[j] for j in range(self._module.nb_variables())]
                 key2[i-1], key2[i] = key2[i], key2[i-1]-1
                 return self._module(key2)
             else:
@@ -538,7 +540,7 @@ class MacdonaldBasisOnVectors(LinearBasisOnVectors):
 
     def _basis_key(self, vec):
         l = len(vec.parent()._basis_keys)
-        d = sum( [vec[i] for i in xrange(l) ] )
+        d = sum( [vec[i] for i in range(l) ] )
         return (d, tuple(sorted(vec,reverse=True)), tuple(vec))
 
 
@@ -546,12 +548,12 @@ class MacdonaldBasisOnVectors(LinearBasisOnVectors):
         size = len(u)
         if(u[size-1] != 0):
             temp = u[size-1]
-            for i in xrange(size-1,0,-1): u[i] = u[i-1]
+            for i in range(size-1,0,-1): u[i] = u[i-1]
             u[0]  = temp-1
 
             res = call_back(u)
 
-            p = [i+2 for i in xrange(size)]
+            p = [i+2 for i in range(size)]
             p[size-1] = 1
             p = Permutation( p )
             res = res.perm_vars(p)
@@ -560,15 +562,15 @@ class MacdonaldBasisOnVectors(LinearBasisOnVectors):
             res*= basis.var(size) - (-t2)**(size-1)
             return res
 
-        for i in xrange(size-1):
+        for i in range(size-1):
             if(u[i] > u[i+1]):
                 u[i], u[i+1] = u[i+1], u[i]
                 res = call_back(u)
 
                 res1 = res.hecke_generator(i+1,t1, t2)
-                w = Word( [u[j] for j in xrange(size-1,-1,-1)  ] )
+                w = Word( [u[j] for j in range(size-1,-1,-1)  ] )
                 p = w.standard_permutation()
-                u_spec = [ q**(u[j])*(-t1/t2)**(p(size-j) -1) for j in xrange(size) ]
+                u_spec = [ q**(u[j])*(-t1/t2)**(p(size-j) -1) for j in range(size) ]
                 res2 = res * (t1  + t2)/(u_spec[i+1]/u_spec[i] -1)
                 return res1 + res2
 
@@ -640,7 +642,7 @@ class DemazureBasisOnVectors(LinearBasisOnVectors):
     def on_basis_method(self, x, basis, call_back, method = "isobaric_divided_difference"):
         otype = basis.group_type()
         if(otype=="D"):
-            for i in xrange( len(x) - 1):
+            for i in range( len(x) - 1):
                 if( x[i]<x[i+1] ):
                     x[i], x[i+1] = x[i+1], x[i]
                     return getattr(call_back(x), method)(i+1)
@@ -650,7 +652,7 @@ class DemazureBasisOnVectors(LinearBasisOnVectors):
                 return getattr(call_back(x),method)(i+2)
             return basis(x)
         else:
-            for i in xrange( len( x ) - 1 ):
+            for i in range( len( x ) - 1 ):
                 if( x[i]<x[i+1] ):
                     x[i], x[i+1] = x[i+1], x[i]
                     return getattr(call_back(x), method)(i+1)

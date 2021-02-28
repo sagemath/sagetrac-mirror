@@ -33,7 +33,7 @@ class RelativeIntegerVectors(CombinatorialFreeModule):
             sage: # Fix a nice test
         """
         self._length = length
-        CombinatorialFreeModule.__init__(self, QQ, xrange(length))
+        CombinatorialFreeModule.__init__(self, QQ, range(length))
 
     def __getitem__(self, x):
         r"""
@@ -68,7 +68,7 @@ class RelativeIntegerVectors(CombinatorialFreeModule):
 
                 sage: # Fix a nice test
             """
-            return [ self[i] for i in xrange(self.parent().length()) ]
+            return [ self[i] for i in range(self.parent().length()) ]
 
         def _repr_(self):
             r"""

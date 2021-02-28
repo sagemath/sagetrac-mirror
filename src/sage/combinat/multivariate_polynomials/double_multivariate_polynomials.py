@@ -14,9 +14,9 @@ from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
-from multivariate_polynomials import MultivariatePolynomialAlgebra
-from basis import PolynomialRingWithBasis
-from linear_basis_on_vectors import LinearBasisOnVectors, FiniteLinearBasisOnVectors
+from .multivariate_polynomials import MultivariatePolynomialAlgebra
+from .basis import PolynomialRingWithBasis
+from .linear_basis_on_vectors import LinearBasisOnVectors, FiniteLinearBasisOnVectors
 
 class DoubleMultivariatePolynomialAlgebra(MultivariatePolynomialAlgebra):
     """r
@@ -307,7 +307,7 @@ class DoubleSchubertBasisOnVectors(LinearBasisOnVectors):
 
     def cmp(self, key1, key2):
         l = len(key1.parent()._basis_keys)
-        for i in xrange(l-1,-1,-1):
+        for i in range(l-1,-1,-1):
             if (key1[i]>key2[i]):
                 return 1
             if (key1[i]<key2[i]):
@@ -315,13 +315,13 @@ class DoubleSchubertBasisOnVectors(LinearBasisOnVectors):
         return 0
 
     def on_basis_method(self, x, basis, call_back):
-        for i in xrange( len( x ) - 1 ):
+        for i in range( len( x ) - 1 ):
             if( x[i]<x[i+1] ):
                 x[i], x[i+1] = x[i+1]+1, x[i]
                 return call_back(x).divided_difference(i+1)
         basex = basis
         basey = basex.basis_tower().equivalent_basis(basex.base_ring())
-        return prod( [basex.var(i+1) - basey.var(j+1) for i in xrange(len(x)) for j in xrange(x[i])], basex.one())
+        return prod( [basex.var(i+1) - basey.var(j+1) for i in range(len(x)) for j in range(x[i])], basex.one())
 
 
 
@@ -354,16 +354,16 @@ class DoubleGrothendieckBasisOnVectors(LinearBasisOnVectors):
 
 
     def on_basis_method(self, x, basis, call_back):
-        for i in xrange( len( x ) - 1 ):
+        for i in range( len( x ) - 1 ):
             if( x[i]<x[i+1] ):
                 x[i], x[i+1] = x[i+1]+1, x[i]
                 return call_back(x).isobaric_divided_difference(i+1)
         prod = basis.one()
         basex = basis
         basey = basex.basis_tower().equivalent_basis(basex.base_ring())
-        for i in xrange(len(x)):
+        for i in range(len(x)):
             inv_x_i = basex.var(i+1)**(-1)
-            for j in xrange(x[i]):
+            for j in range(x[i]):
                 prod *= (basis.one() - basey.var(j+1) * inv_x_i)
         return prod
 
@@ -424,7 +424,7 @@ class DoubleGrothendieckBasisOnVectors(LinearBasisOnVectors):
             """
             i = self._i
             if(key[i-1] > key[i]):
-                key2 = [key[j] for j in xrange(self._module.nb_variables())]
+                key2 = [key[j] for j in range(self._module.nb_variables())]
                 key2[i-1], key2[i] = key2[i], key2[i-1]-1
                 return self._module(key2)
             else:
