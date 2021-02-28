@@ -46,7 +46,6 @@ from sage.features.kenzo import Kenzo
 kenzo_names = ['add',
                'array-dimensions',
                'basis_aux1',
-               'basis_aux1',
                'bicomplex-spectral-sequence',
                'build-finite-ss2',
                'build-mrph-aux',
@@ -55,7 +54,10 @@ kenzo_names = ['add',
                'chcm-mat2',
                'classifying-space',
                'cmps',
+               'convertarray',
                'convertmatrice',
+               'copier-matrice',
+               'creer-matrice',
                'crts-prdc',
                'degr-aux',
                'dffr-aux',
@@ -63,12 +65,16 @@ kenzo_names = ['add',
                'dgop',
                'dgop-int-ext',
                'dstr-change-sorc-trgt-aux',
+               'dvfield-aux',
                'echcm',
+               'edges-to-matrice',
                'eilenberg-moore-spectral-sequence',
                'evaluation-aux1',
                'gmsm',
                'homologie',
                'homotopy-list',
+               'h-regular-dif',
+               'h-regular-dif-dvf-aux',
                'idnt-mrph',
                'join',
                'k-z',
@@ -80,13 +86,19 @@ kenzo_names = ['add',
                'loop-space',
                'make-array-from-lists',
                'make-array-to-lists',
+               'matrice-to-lmtrx',
                'moore',
+               'mtrx-prdc',
                'ncol',
+               'newsmith-equal-matrix',
+               'newsmith-mtrx-prdc',
                'nlig',
                'nreverse',
                'nth',
                'opps',
                'orgn_aux1',
+               'random-top-2space',
+               'randomtop',
                'sbtr',
                'serre-spectral-sequence-product',
                'serre-whitehead-spectral-sequence',
@@ -99,6 +111,7 @@ kenzo_names = ['add',
                'suspension',
                'tnsr-prdc',
                'trgt-aux',
+               'vector-to-list',
                'wedge',
                'zero-mrph']
 
@@ -2005,3 +2018,153 @@ def BicomplexSpectralSequence(l):
         [-4  0]
     """
     return KenzoSpectralSequence(__bicomplex_spectral_sequence__(s2k_listofmorphisms(l)))
+
+def quotient_group_matrices(*matrices, left_null=False, right_null=False, check=True):
+    r"""
+    Return a presentation of the homology group `\ker M1/ \mathrm{im}\ M2`.
+
+    INPUT:
+
+    - ``matrices`` -- A tuple of ECL matrices. The length `L` of this parameter
+      can take the value 0, 1 or 2.
+
+    - ``left_null`` -- (default ``False``) A boolean.
+
+    - ``right_null`` -- (default ``False``) A boolean.
+
+    - ``check`` -- (default ``True``) A boolean. If it is ``True`` and `L=2`, 
+      it checks that the product of the ``matrices`` is the zero matrix.
+
+    OUTPUT:
+
+    - If `L=0`, it returns the trivial group.
+
+    - If `L=1` (``matrices`` = M), then one of the parameters ``left_null`` or
+      ``right_null`` must be ``True``: in case ``left_null`` == ``True``, it
+      returns the homology group `\ker 0/ \mathrm{im}\ M` and in case 
+      ``right_null`` == ``True``, it returns the homology group `\ker M/ \mathrm{im}\ 0`.
+
+    - If `L=2` (``matrices`` = (M1, M2)), it returns the homology group 
+      `\ker M1/ \mathrm{im}\ M2`.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.kenzo import s2k_matrix, quotient_group_matrices, __convertarray__   # optional - kenzo
+        sage: quotient_group_matrices()                        # optional - kenzo
+        0
+        sage: s_M1 = matrix(2, 3, [1, 2, 3, 4, 5, 6])
+        sage: M1 = __convertarray__(s2k_matrix(s_M1))          # optional - kenzo
+        sage: quotient_group_matrices(M1, left_null=True)      # optional - kenzo
+        C3
+        sage: quotient_group_matrices(M1, right_null=True)     # optional - kenzo
+        Z
+        sage: s_M2 = matrix(2, 2, [1, -1, 1, -1])
+        sage: M2 = __convertarray__(s2k_matrix(s_M2))          # optional - kenzo
+        sage: s_M3 = matrix(2, 2, [1, 0, 1, 0])
+        sage: M3 = __convertarray__(s2k_matrix(s_M3))          # optional - kenzo
+        sage: quotient_group_matrices(M2, M3)                  # optional - kenzo
+        0
+        sage: s_M4 = matrix(2, 2, [0, 0, 1, 0])
+        sage: M4 = __convertarray__(s2k_matrix(s_M4))          # optional - kenzo
+        sage: quotient_group_matrices(M2, M4)                  # optional - kenzo
+        Traceback (most recent call last):
+        ...
+        AssertionError: m1*m2 must be zero
+    """
+    if left_null and right_null:
+        raise AssertionError("left_null and right_null must not be both True")
+    if len(matrices)==0:
+        return HomologyGroup(0, ZZ)
+    elif len(matrices)==1:
+        if left_null==True:
+            m2 = matrices[0]
+            m1 = __creer_matrice__(0, __nlig__(m2))
+        elif right_null==True:
+            m1 = matrices[0]
+            m2 = __creer_matrice__(__ncol__(m1), 0)
+        else:
+            raise AssertionError("left_null or right_null must be True")
+    elif len(matrices)==2:
+        m1, m2 = matrices
+        if check==True:
+            rowsm1 = __nlig__(m1)
+            colsm1 = __ncol__(m1)
+            rowsm2 = __nlig__(m2)
+            colsm2 = __ncol__(m2)
+            if colsm1!=rowsm2:
+                raise AssertionError("Number of columns of m1 must be equal to the number of rows of m2")
+            if not __newsmith_equal_matrix__(__newsmith_mtrx_prdc__(m1, m2), \
+                                                   __creer_matrice__(rowsm1, colsm2)).python():
+                raise AssertionError("m1*m2 must be zero")
+    homology = __homologie__(__copier_matrice__(m1), __copier_matrice__(m2))
+    lhomomology = [i for i in EclListIterator(homology)]
+    res = []
+    for component in lhomomology:
+        pair = [i for i in EclListIterator(component)]
+        res.append(pair[0].python())
+    return HomologyGroup(len(res), ZZ, res)
+
+def k2s_binary_matrix_sparse(kmatrix):
+    r"""
+    Converts a Kenzo binary sparse matrice (type `matrice`) to a matrix in 
+    SageMath.
+
+    INPUT:
+
+    - ``kmatrix`` -- A Kenzo binary sparse matrice (type `matrice`).
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.kenzo import k2s_binary_matrix_sparse, s2k_binary_matrix_sparse, __randomtop__    # optional - kenzo
+        sage: KM2 = __randomtop__(6,1)                                        # optional - kenzo
+        sage: k2s_binary_matrix_sparse(KM2)                                   # optional - kenzo
+        [1 1 1 1 1 1]
+        [0 1 1 1 1 1]
+        [0 0 1 1 1 1]
+        [0 0 0 1 1 1]
+        [0 0 0 0 1 1]
+        [0 0 0 0 0 1]
+        sage: KM = __randomtop__(100, float(0.8))                             # optional - kenzo
+        sage: SM = k2s_binary_matrix_sparse(KM)                               # optional - kenzo
+        sage: SM == k2s_binary_matrix_sparse(s2k_binary_matrix_sparse(SM))    # optional - kenzo
+        True
+    """
+    data = __vector_to_list__(__matrice_to_lmtrx__(kmatrix)).python()
+    dim = len(data)
+    mat_dict = {}
+    for j in range(dim):
+        colj = data[j]
+        for entry in colj:
+            mat_dict[(entry[0], j)] = 1
+    return matrix(dim, mat_dict)
+
+def s2k_binary_matrix_sparse(smatrix):
+    r"""
+    Converts a binary matrix in SageMath to a Kenzo binary sparse matrice 
+    (type `matrice`).
+
+    INPUT:
+
+    - ``smatrix`` -- A binary matrix.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.kenzo import k2s_binary_matrix_sparse, s2k_binary_matrix_sparse   # optional - kenzo
+        sage: SM2 = matrix.ones(5)
+        sage: s2k_binary_matrix_sparse(SM2)              # optional - kenzo
+        <ECL: 
+        ========== MATRIX 5 lines + 5 columns =====
+        L1=[C1=1][C2=1][C3=1][C4=1][C5=1]
+        L2=[C1=1][C2=1][C3=1][C4=1][C5=1]
+        L3=[C1=1][C2=1][C3=1][C4=1][C5=1]
+        L4=[C1=1][C2=1][C3=1][C4=1][C5=1]
+        L5=[C1=1][C2=1][C3=1][C4=1][C5=1]
+        ========== END-MATRIX>
+    """
+    dim = smatrix.nrows()
+    entries = []
+    for entry in smatrix.dict().keys():
+        entries.append([entry[0]+1, entry[1]+1])
+    kentries = EclObject(entries)
+    return __edges_to_matrice__(kentries, dim)
+

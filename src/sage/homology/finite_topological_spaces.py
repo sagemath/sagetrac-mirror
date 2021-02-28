@@ -3,44 +3,47 @@ Finite topological spaces
 
 This module implements finite topological spaces and related concepts.
 
-A *finite topological space* is a topological space with finitely many points and
-a *finite preordered set* is a finite set with a transitive and reflexive relation.
-Finite spaces and finite preordered sets are basically the same objects considered
-from different perspectives. Given a finite topological space `X`, for every point
-`x\in X`, define the *minimal open set* `U_x` as the intersection of all the open
-sets which contain `x` (it is an open set since arbitrary intersections of open
-sets in finite spaces are open). The minimal open sets constitute a basis for the
-topology of `X`. Indeed, any open set `U` of `X` is the union of the sets `U_x`
-with `x\in U`. This basis is called the *minimal basis of* `X`. A preorder on `X`
-is given  by `x\leqslant y` if `x\in U_y`.
+A *finite topological space* is a topological space with finitely many points 
+and a *finite preordered set* is a finite set with a transitive and reflexive 
+relation. Finite spaces and finite preordered sets are basically the same 
+objects considered from different perspectives. Given a finite topological 
+space `X`, for every point `x\in X`, define the *minimal open set* `U_x` as the 
+intersection of all the open sets which contain `x` (it is an open set since 
+arbitrary intersections of open sets in finite spaces are open). The minimal 
+open sets constitute a basis for the topology of `X`. Indeed, any open set `U` 
+of `X` is the union of the sets `U_x` with `x\in U`. This basis is called the 
+*minimal basis of* `X`. A preorder on `X` is given  by `x\leqslant y` if 
+`x\in U_y`.
 
-If `X` is now a finite preordered set, one can define a topology on `X` given by
-the basis `\lbrace y\in X\vert y\leqslant x\rbrace_{x\in X}`. Note that if `y\leqslant x`,
-then `y` is contained in every basic set containing `x`, and therefore `y\in U_x`.
-Conversely, if `y\in U_x`, then `y\in\lbrace z\in X\vert z\leqslant x\rbrace`.
-Therefore `y\leqslant x` if and only if `y\in U_x`. This shows that these two
-applications, relating topologies and preorders on a finite set, are mutually
-inverse. This simple remark, made in first place by Alexandroff [Ale1937]_, allows
-us to study finite spaces by combining Algebraic Topology with the combinatorics
-arising from their intrinsic preorder structures. The antisymmetry of a finite
-preorder corresponds exactly to the `T_0` separation axiom. Recall that a topological
+If `X` is now a finite preordered set, one can define a topology on `X` given 
+by the basis `\lbrace y\in X\vert y\leqslant x\rbrace_{x\in X}`. Note that if 
+`y\leqslant x`, then `y` is contained in every basic set containing `x`, and 
+therefore `y\in U_x`. Conversely, if `y\in U_x`, then 
+`y\in\lbrace z\in X\vert z\leqslant x\rbrace`. Therefore `y\leqslant x` if and 
+only if `y\in U_x`. This shows that these two applications, relating topologies 
+and preorders on a finite set, are mutually inverse. This simple remark, made 
+in first place by Alexandroff [Ale1937]_, allows us to study finite spaces by 
+combining Algebraic Topology with the combinatorics arising from their 
+intrinsic preorder structures. The antisymmetry of a finite preorder 
+corresponds exactly to the `T_0` separation axiom. Recall that a topological
 space `X` is said to be `T_0` if for any pair of points in `X` there exists an
 open set containing one and only one of them. Therefore finite `T_0`-spaces are
 in correspondence with finite partially ordered sets (posets) [Bar2011]_.
 
 Now, if `X = \lbrace x_1, x_2, \ldots , x_n\rbrace` is a finite space and for
 each `i` the unique minimal open set containing `x_i` is denoted by `U_i`, a
-*topogenous matrix* of the space is the `n \times n` matrix `A = \left[a_{ij}\right]`
-defined by `a_{ij} = 1` if `x_i \in U_j` and `a_{ij} = 0` otherwise (this is the
-transposed matrix of the Definition 1 in [Shi1968]_). A finite space `X` is `T_0`
-if and only if the topogenous matrix `A` defined above is similar (via a permutation
-matrix) to a certain upper triangular matrix [Shi1968]_. This is the reason one
-can assume that the topogenous matrix of a finite `T_0`-space is upper triangular.
+*topogenous matrix* of the space is the `n \times n` matrix 
+`A = \left[a_{ij}\right]` defined by `a_{ij} = 1` if `x_i \in U_j` and 
+`a_{ij} = 0` otherwise (this is the transposed matrix of the Definition 1 in 
+[Shi1968]_). A finite space `X` is `T_0` if and only if the topogenous matrix 
+`A` defined above is similar (via a permutation matrix) to a certain upper 
+triangular matrix [Shi1968]_. This is the reason one can assume that the 
+topogenous matrix of a finite `T_0`-space is upper triangular.
 
 
 AUTHOR::
 
-- Julian Cuevas-Rozo (2020): Initial version
+- Julian Cuevas-Rozo (2021): Initial version
 
 REFERENCES:
 
@@ -68,184 +71,6 @@ from sage.homology.homology_group import HomologyGroup
 
 from sage.libs.ecl import EclObject, ecl_eval, EclListIterator
 from sage.interfaces import kenzo
-from sage.features.kenzo import Kenzo
-
-###############################################################
-# This section (lines 76 to 246) will be included to src/sage/interfaces/kenzo.py
-
-kenzonames = ['2h-regularization',
-               'copier-matrice',
-               'creer-matrice',
-               'convertarray',
-               'dvfield-aux',
-               'edges-to-matrice',
-               'h-regular-dif',
-               'h-regular-dif-dvf-aux',
-               'matrice-to-lmtrx',
-               'mtrx-prdc',
-               'newsmith-equal-matrix',
-               'newsmith-mtrx-prdc',
-               'random-top-2space',
-               'randomtop',
-               'vector-to-list']
-               
-if Kenzo().is_present():
-    ecl_eval("(require :kenzo)")
-    ecl_eval("(in-package :cat)")
-    ecl_eval("(setf *HOMOLOGY-VERBOSE* nil)")
-    for s in kenzonames:
-        name = '__{}__'.format(s.replace('-', '_'))
-        exec('{} = EclObject("{}")'.format(name, s))
-
-
-def quotient_group_matrices(*matrices, left_null=False, right_null=False, check=True):
-    r"""
-    Return a presentation of the homology group `\ker M1/ \im M2`.
-
-    INPUT:
-
-    - ``matrices`` -- A tuple of ECL matrices. The length `L` of this parameter
-      can take the value 0, 1 or 2.
-
-    - ``left_null`` -- (default ``False``) A boolean.
-
-    - ``right_null`` -- (default ``False``) A boolean.
-
-    - ``check`` -- (default ``True``) A boolean. If it is ``True`` and `L=2`, it
-      checks that the product of the ``matrices`` is the zero matrix.
-
-    OUTPUT:
-
-    - If `L=0`, it returns the trivial group.
-
-    - If `L=1` (``matrices`` = M), then one of the parameters ``left_null`` or
-      ``right_null`` must be ``True``: in case ``left_null`` == ``True``, it
-      returns the homology group `\ker 0/ \im M` and in case ``right_null`` == ``True``,
-      it returns the homology group `\ker M/ \im 0`.
-
-    - If `L=2` (``matrices`` = (M1, M2)), it returns the homology group `\ker M1/ \im M2`.
-
-    EXAMPLES::
-
-        sage: from sage.homology.finite_topological_spaces import quotient_group_matrices, __convertarray__
-        sage: from sage.interfaces.kenzo import s2k_matrix
-        sage: quotient_group_matrices()
-        0
-        sage: s_M1 = matrix(2, 3, [1, 2, 3, 4, 5, 6])
-        sage: M1 = __convertarray__(s2k_matrix(s_M1))
-        sage: quotient_group_matrices(M1, left_null=True)
-        C3
-        sage: quotient_group_matrices(M1, right_null=True)
-        Z
-        sage: s_M2 = matrix(2, 2, [1, -1, 1, -1])
-        sage: M2 = __convertarray__(s2k_matrix(s_M2))
-        sage: s_M3 = matrix(2, 2, [1, 0, 1, 0])
-        sage: M3 = __convertarray__(s2k_matrix(s_M3))
-        sage: quotient_group_matrices(M2, M3)
-        0
-        sage: s_M4 = matrix(2, 2, [0, 0, 1, 0])
-        sage: M4 = __convertarray__(s2k_matrix(s_M4))
-        sage: quotient_group_matrices(M2, M4)
-        Traceback (most recent call last):
-        ...
-        AssertionError: m1*m2 must be zero
-    """
-    assert not (left_null and right_null), "left_null and right_null must not be both True"
-    if len(matrices)==0:
-        return HomologyGroup(0, ZZ)
-    elif len(matrices)==1:
-        if left_null==True:
-            m2 = matrices[0]
-            m1 = __creer_matrice__(0, kenzo.__nlig__(m2))
-        elif right_null==True:
-            m1 = matrices[0]
-            m2 = __creer_matrice__(kenzo.__ncol__(m1), 0)
-        else:
-            raise AssertionError("left_null or right_null must be True")
-    elif len(matrices)==2:
-        m1, m2 = matrices
-        if check==True:
-            rowsm1 = kenzo.__nlig__(m1)
-            colsm1 = kenzo.__ncol__(m1)
-            rowsm2 = kenzo.__nlig__(m2)
-            colsm2 = kenzo.__ncol__(m2)
-            assert colsm1==rowsm2, "Number of columns of m1 must be equal to the number of rows of m2"
-            assert __newsmith_equal_matrix__(__newsmith_mtrx_prdc__(m1, m2), \
-                                                   __creer_matrice__(rowsm1, colsm2)).python(), \
-                                               "m1*m2 must be zero"
-    homology = kenzo.__homologie__(__copier_matrice__(m1), __copier_matrice__(m2))
-    lhomomology = [i for i in EclListIterator(homology)]
-    res = []
-    for component in lhomomology:
-        pair = [i for i in EclListIterator(component)]
-        res.append(pair[0].python())
-    return HomologyGroup(len(res), ZZ, res)
-
-def k2s_binary_matrix_sparse(kmatrix):
-    r"""
-    Converts a Kenzo binary sparse matrice (type `matrice`) to a matrix in SageMath.
-
-    INPUT:
-
-    - ``kmatrix`` -- A Kenzo binary sparse matrice (type `matrice`).
-
-    EXAMPLES::
-
-        sage: from sage.homology.finite_topological_spaces import k2s_binary_matrix_sparse, \
-              s2k_binary_matrix_sparse, __randomtop__
-        sage: KM2 = __randomtop__(6,1)
-        sage: k2s_binary_matrix_sparse(KM2)
-        [1 1 1 1 1 1]
-        [0 1 1 1 1 1]
-        [0 0 1 1 1 1]
-        [0 0 0 1 1 1]
-        [0 0 0 0 1 1]
-        [0 0 0 0 0 1]
-        sage: KM = __randomtop__(100, float(0.8))
-        sage: SM = k2s_binary_matrix_sparse(KM)
-        sage: SM == k2s_binary_matrix_sparse(s2k_binary_matrix_sparse(SM))
-        True
-    """
-    data = __vector_to_list__(__matrice_to_lmtrx__(kmatrix)).python()
-    dim = len(data)
-    mat_dict = {}
-    for j in range(dim):
-        colj = data[j]
-        for entry in colj:
-            mat_dict[(entry[0], j)] = 1
-    return matrix(dim, mat_dict)
-
-def s2k_binary_matrix_sparse(smatrix):
-    r"""
-    Converts a binary matrix in SageMath to a Kenzo binary sparse matrice (type `matrice`).
-
-    INPUT:
-
-    - ``smatrix`` -- A binary matrix.
-
-    EXAMPLES::
-
-        sage: from sage.homology.finite_topological_spaces import k2s_binary_matrix_sparse, \
-              s2k_binary_matrix_sparse
-        sage: SM2 = matrix.ones(5)
-        sage: s2k_binary_matrix_sparse(SM2)
-        <ECL: 
-        ========== MATRIX 5 lines + 5 columns =====
-        L1=[C1=1][C2=1][C3=1][C4=1][C5=1]
-        L2=[C1=1][C2=1][C3=1][C4=1][C5=1]
-        L3=[C1=1][C2=1][C3=1][C4=1][C5=1]
-        L4=[C1=1][C2=1][C3=1][C4=1][C5=1]
-        L5=[C1=1][C2=1][C3=1][C4=1][C5=1]
-        ========== END-MATRIX>
-    """
-    dim = smatrix.nrows()
-    entries = []
-    for entry in smatrix.dict().keys():
-        entries.append([entry[0]+1, entry[1]+1])
-    kentries = EclObject(entries)
-    return __edges_to_matrice__(kentries, dim)
-
-###############################################################
 
 
 def FiniteSpace(data, elements=None, is_T0=False):
@@ -259,21 +84,22 @@ def FiniteSpace(data, elements=None, is_T0=False):
       1. A dictionary representing the minimal basis of the space.
 
       2. A list or tuple of minimal open sets (in this case the elements of the 
-         space are assumed to be ``range(n)`` where ``n`` is the length of ``data``).
+         space are assumed to be ``range(n)`` where ``n`` is the length of 
+         ``data``).
 
-      3. A topogenous matrix (assumed sparse). If ``elements=None``, the elements
-         of the space are assumed to be ``range(n)`` where ``n`` is the dimension
-         of the matrix.
+      3. A topogenous matrix (assumed sparse). If ``elements=None``, the 
+         elements of the space are assumed to be ``range(n)`` where ``n`` is 
+         the dimension of the matrix.
 
-      4. A finite poset (by now if ``poset._is_facade = False``, the methods are
-         not completely tested).
+      4. A finite poset (by now if ``poset._is_facade = False``, the methods 
+      are not completely tested).
 
-    - ``elements`` -- (default ``None``) it is ignored when data is of type 1, 2
-      or 4. When ``data`` is a topogenous matrix, this parameter gives the 
+    - ``elements`` -- (default ``None``) it is ignored when data is of type 1, 
+      2 or 4. When ``data`` is a topogenous matrix, this parameter gives the 
       underlying set of the space.
       
-    - ``is_T0`` -- (default ``False``) it is a boolean that indicates, when it is 
-      previously known, if the finite space is `T_0.
+    - ``is_T0`` -- (default ``False``) it is a boolean that indicates, when it 
+      is previously known, if the finite space is `T_0`.
 
     EXAMPLES:
 
@@ -310,8 +136,8 @@ def FiniteSpace(data, elements=None, is_T0=False):
         ...
         ValueError: This kind of data assume the elements are in range(2)
 
-    If ``data`` is a topogenous matrix, the parameter ``elements``, when it is not
-    ``None``, determines the list of elements of the space::
+    If ``data`` is a topogenous matrix, the parameter ``elements``, when it is 
+    not ``None``, determines the list of elements of the space::
 
         sage: from sage.homology.finite_topological_spaces import FiniteSpace
         sage: mat_dict = {(0, 0): 1, (0, 3): 1, (0, 4): 1, (1, 1): 1, (1, 2): 1, (2, 1): 1, \
@@ -379,17 +205,17 @@ def FiniteSpace(data, elements=None, is_T0=False):
 
     if isinstance(data, Matrix_integer_sparse): # type 3
         n = data.dimensions()[0]
-        assert n==data.dimensions()[1], \
-               "Topogenous matrices are square"
-        assert set(data.dict().values())=={1}, \
-               "Topogenous matrices must have entries in {0,1}"
+        if n!=data.dimensions()[1]:
+            raise AssertionError("Topogenous matrices are square")
+        if set(data.dict().values())!={1}:
+            raise AssertionError("Topogenous matrices must have entries in {0,1}")
         basis = {}
         # Extracting a minimal basis from the topogenous matrix info
         if elements:
             if not isinstance(elements, (list, tuple)):
                 raise ValueError("Parameter 'elements' must be a list or a tuple")
-            assert len(set(elements))==n, \
-                   "Not valid list of elements"
+            if len(set(elements))!=n:
+                raise AssertionError("Not valid list of elements")
             for j in range(n):
                 Uj = set([elements[i] for i in data.nonzero_positions_in_column(j)])
                 basis[elements[j]] = Uj
@@ -443,45 +269,50 @@ def RandomFiniteT0Space(*args):
 
     INPUT:
 
-    - ``args`` -- A tuple of two arguments. The first argument must be an integer
-     number, while the second argument must be either a number between 0 and 1, or
-     ``True``.
+    - ``args`` -- A tuple of two arguments. The first argument must be an 
+      integer number, while the second argument must be either a number between 
+      0 and 1, or ``True``.
 
     OUTPUT:
 
-    - If ``args[1]``=``True``, a random finite `T_0` space of cardinality ``args[0]``
-      of height 3 without beat points is returned.
+    - If ``args[1]``=``True``, a random finite `T_0` space of cardinality 
+      ``args[0]`` of height 3 without beat points is returned.
 
-    - If ``args[1]`` is a number, a random finite `T_0` space of cardinality ``args[0]``
-      and density ``args[1]`` of ones in its topogenous matrix is returned.
+    - If ``args[1]`` is a number, a random finite `T_0` space of cardinality 
+      ``args[0]`` and density ``args[1]`` of ones in its topogenous matrix is 
+      returned.
 
     EXAMPLES::
 
         sage: from sage.homology.finite_topological_spaces import RandomFiniteT0Space
-        sage: RandomFiniteT0Space(5, 0)
+        sage: RandomFiniteT0Space(5, 0)                                # optional - kenzo               
         Finite T0 topological space of 5 points with minimal basis 
          {0: {0}, 1: {1}, 2: {2}, 3: {3}, 4: {4}}
-        sage: RandomFiniteT0Space(5, 2)
+        sage: RandomFiniteT0Space(5, 2)                                # optional - kenzo
         Finite T0 topological space of 5 points with minimal basis
          {0: {0}, 1: {0, 1}, 2: {0, 1, 2}, 3: {0, 1, 2, 3}, 4: {0, 1, 2, 3, 4}}
-        sage: RandomFiniteT0Space(6, True)
+        sage: RandomFiniteT0Space(6, True)                             # optional - kenzo
         Finite T0 topological space of 6 points with minimal basis
          {0: {0}, 1: {1}, 2: {0, 1, 2}, 3: {0, 1, 3}, 4: {0, 1, 2, 3, 4}, 5: {0, 1, 2, 3, 5}}
-        sage: RandomFiniteT0Space(150, 0.2)
+        sage: RandomFiniteT0Space(150, 0.2)                            # optional - kenzo
         Finite T0 topological space of 150 points
-        sage: RandomFiniteT0Space(5, True)
+        sage: RandomFiniteT0Space(5, True)                             # optional - kenzo
         Traceback (most recent call last):
         ...
         AssertionError: The first argument must be an integer number greater than 5
     """
-    assert len(args)==2, "Two arguments must be given"
-    assert args[0].is_integer(), "The first argument must be an integer number"
+    if len(args)!=2:
+        raise AssertionError("Two arguments must be given")
+    if not args[0].is_integer():
+        raise AssertionError("The first argument must be an integer number")
     if args[1]==True:
-        assert args[0]>5, "The first argument must be an integer number greater than 5"
-        kenzo_top = __random_top_2space__(args[0])
+        if args[0]>5:
+            kenzo_top = kenzo.__random_top_2space__(args[0])
+        else:
+            raise AssertionError("The first argument must be an integer number greater than 5")
     else:
-        kenzo_top = __randomtop__(args[0], EclObject(float(args[1])))
-    topogenous = k2s_binary_matrix_sparse(kenzo_top)
+        kenzo_top = kenzo.__randomtop__(args[0], EclObject(float(args[1])))
+    topogenous = kenzo.k2s_binary_matrix_sparse(kenzo_top)
     basis = {j:set(topogenous.nonzero_positions_in_column(j)) for j in range(args[0])}
     return FiniteTopologicalSpace_T0(elements=list(range(args[0])), minimal_basis=basis,
                                      topogenous=topogenous)
@@ -502,11 +333,11 @@ class FiniteTopologicalSpace(Parent):
 
         - ``elements`` -- list of the elements of the space. 
 
-        - ``minimal_basis`` -- a dictionary where the values are sets representing
-          the minimal open sets containing the respective key.
+        - ``minimal_basis`` -- a dictionary where the values are sets 
+          representing the minimal open sets containing the respective key.
 
-        - ``topogenous`` -- a topogenous matrix of the finite space corresponding
-          to the order given by ``elements``.
+        - ``topogenous`` -- a topogenous matrix of the finite space 
+          corresponding to the order given by ``elements``.
 
         EXAMPLES::
 
@@ -530,8 +361,8 @@ class FiniteTopologicalSpace(Parent):
     def space_sorting(self, element):
         r"""
         Return a pair formed by the index of `element` in `self._elements` and 
-        the index of `str(element)` in the sorted list consisting of the strings of
-        elements in `self._elements`.
+        the index of `str(element)` in the sorted list consisting of the 
+        strings of elements in `self._elements`.
 
         EXAMPLES::
 
@@ -638,11 +469,11 @@ class FiniteTopologicalSpace(Parent):
         """
         if points is None:
             return self
-        assert isinstance(points, (tuple, list, set)), \
-               "Parameter must be of type tuple, list or set"
+        if not isinstance(points, (tuple, list, set)):
+            raise AssertionError("Parameter must be of type tuple, list or set")
         points = set(points)
-        assert points <= set(self._elements), \
-               "There are points that are not in the space"
+        if points > set(self._elements):
+            raise AssertionError("There are points that are not in the space")
         if points==set(self._elements):
             return self
         minimal_basis = {x: self._minimal_basis[x] & points for x in points}
@@ -664,7 +495,8 @@ class FiniteTopologicalSpace(Parent):
 
     def minimal_basis(self):
         r"""
-        Return the minimal basis that generates the topology of the finite space.
+        Return the minimal basis that generates the topology of the finite 
+        space.
 
         OUTPUT:
 
@@ -748,11 +580,13 @@ class FiniteTopologicalSpace(Parent):
 
         INPUT:
 
-        - ``points`` -- (default ``None``) a tuple, list or set of representatives
-          elements of the equivalent classes induced by the partition ``self._T0``.
+        - ``points`` -- (default ``None``) a tuple, list or set of 
+          representatives elements of the equivalent classes induced by the 
+          partition ``self._T0``.
 
-        - ``check`` -- if ``True`` (default), it is checked that ``points`` effectively
-          defines a set of representatives of the partition ``self._T0``.
+        - ``check`` -- if ``True`` (default), it is checked that ``points`` 
+          effectively defines a set of representatives of the partition 
+          ``self._T0``.
 
         EXAMPLES::
 
@@ -781,10 +615,10 @@ class FiniteTopologicalSpace(Parent):
             if points is None:
                 points = [list(A)[0] for A in self._T0]
             elif check:
-                assert isinstance(points, (tuple, list, set)), \
-                       "Parameter 'points' must be of type tuple, list or set"
-                assert len(points)==len(self._T0), \
-                       "Parameter 'points' does not have a valid length"
+                if not isinstance(points, (tuple, list, set)):
+                    raise AssertionError("Parameter 'points' must be of type tuple, list or set")
+                if len(points)!=len(self._T0):
+                    raise AssertionError("Parameter 'points' does not have a valid length")
                 points2 = set(points.copy())
                 partition = self._T0.copy()
                 while points2:
@@ -801,7 +635,8 @@ class FiniteTopologicalSpace(Parent):
 
     def Ux(self, x):
         r"""
-        Return the list of the elements in the minimal open set containing ``x``.
+        Return the list of the elements in the minimal open set containing 
+        ``x``.
 
         EXAMPLES::
 
@@ -873,7 +708,7 @@ class FiniteTopologicalSpace(Parent):
 
     def Ux_tilded(self, x):
         r"""
-        Return the list of the elements in `\widehat{U}_x = U_x \minus \lbrace x\rbrace`.
+        Return the list of the elements in `\widehat{U}_x = U_x - \lbrace x\rbrace`.
 
         EXAMPLES::
 
@@ -888,7 +723,7 @@ class FiniteTopologicalSpace(Parent):
 
     def Fx_tilded(self, x):
         r"""
-        Return the list of the elements in `\widehat{F}_x = F_x \minus \lbrace x\rbrace`.
+        Return the list of the elements in `\widehat{F}_x = F_x - \lbrace x\rbrace`.
 
         EXAMPLES::
 
@@ -903,7 +738,7 @@ class FiniteTopologicalSpace(Parent):
 
     def Cx_tilded(self, x):
         r"""
-        Return the list of the elements in `\widehat{C}_x = C_x \minus \lbrace x\rbrace`.
+        Return the list of the elements in `\widehat{C}_x = C_x - \lbrace x\rbrace`.
 
         EXAMPLES::
 
@@ -951,7 +786,8 @@ class FiniteTopologicalSpace(Parent):
 
     def is_interior_point(self, x, E):
         r"""
-        Return ``True`` if ``x`` is an interior point of ``E`` in the finite space.
+        Return ``True`` if ``x`` is an interior point of ``E`` in the finite 
+        space.
 
         EXAMPLES::
 
@@ -966,8 +802,10 @@ class FiniteTopologicalSpace(Parent):
             sage: T.is_interior_point(3, T.underlying_set())
             True
         """
-        assert x in self.underlying_set() , "Parameter 'x' must be an element of the space"
-        assert E <= self.underlying_set() , "Parameter 'E' must be a subset of the underlying set"
+        if not x in self.underlying_set():
+            raise AssertionError("Parameter 'x' must be an element of the space")
+        if not E <= self.underlying_set():
+            raise AssertionError("Parameter 'E' must be a subset of the underlying set")
         if not x in E:
             return False
         return self._minimal_basis[x] <= E
@@ -993,7 +831,7 @@ class FiniteTopologicalSpace(Parent):
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
             sage: k = randint(0,len(X))
-            sage: E = set(random.sample(X, k))
+            sage: E = set(random.sample(list(X), k))
             sage: Int = T.interior(E)
             sage: T.is_open(Int)
             True
@@ -1002,14 +840,15 @@ class FiniteTopologicalSpace(Parent):
             sage: Int == X - T.closure(X - E)
             True
             sage: m = randint(0,len(X))
-            sage: M = set(random.sample(X, m))
+            sage: M = set(random.sample(list(X), m))
             sage: T.interior(E & M) == Int & T.interior(M)
             True
         """
         X = self.underlying_set()
         if E == X or E == set():
             return E
-        assert E < X , "The parameter must be a subset of the underlying set"
+        if not E < X:
+            raise AssertionError("The parameter must be a subset of the underlying set")
         return set([x for x in E if self.is_interior_point(x, E)])
 
     def is_open(self, E):
@@ -1049,7 +888,8 @@ class FiniteTopologicalSpace(Parent):
 
     def is_exterior_point(self, x, E):
         r"""
-        Return ``True`` if ``x`` is an exterior point of ``E`` in the finite space.
+        Return ``True`` if ``x`` is an exterior point of ``E`` in the finite 
+        space.
 
         EXAMPLES::
 
@@ -1081,7 +921,7 @@ class FiniteTopologicalSpace(Parent):
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
             sage: k = randint(0,len(X))
-            sage: E = set(random.sample(X, k))
+            sage: E = set(random.sample(list(X), k))
             sage: Ext = T.exterior(E)
             sage: Ext.isdisjoint(E)
             True
@@ -1097,12 +937,14 @@ class FiniteTopologicalSpace(Parent):
             return set()
         if E == set():
             return X
-        assert E < X , "The parameter must be a subset of the underlying set"
+        if not E < X:
+            raise AssertionError("The parameter must be a subset of the underlying set")
         return set([x for x in X - E if self.is_exterior_point(x, E)])
 
     def is_boundary_point(self, x, E):
         r"""
-        Return ``True`` if ``x`` is a boundary point of ``E`` in the finite space.
+        Return ``True`` if ``x`` is a boundary point of ``E`` in the finite 
+        space.
 
         EXAMPLES::
 
@@ -1135,7 +977,7 @@ class FiniteTopologicalSpace(Parent):
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
             sage: k = randint(0,len(X))
-            sage: E = set(random.sample(X, k))
+            sage: E = set(random.sample(list(X), k))
             sage: Fr = T.boundary(E)
             sage: T.is_closed(Fr)
             True
@@ -1157,7 +999,8 @@ class FiniteTopologicalSpace(Parent):
         X = self.underlying_set()
         if E == X or E == set():
             return set()
-        assert E < X , "The parameter must be a subset of the underlying set"
+        if not E < X:
+            raise AssertionError("The parameter must be a subset of the underlying set")
         return set([x for x in X if self.is_boundary_point(x, E)])
 
     def is_limit_point(self, x, E):
@@ -1195,7 +1038,7 @@ class FiniteTopologicalSpace(Parent):
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
             sage: k = randint(0,len(X))
-            sage: E = set(random.sample(X, k))
+            sage: E = set(random.sample(list(X), k))
             sage: Der = T.derived(E)
             sage: T.derived(Der) <= E.union(Der)
             True
@@ -1205,12 +1048,14 @@ class FiniteTopologicalSpace(Parent):
         X = self.underlying_set()
         if E == X or E == set():
             return E
-        assert E < X , "The parameter must be a subset of the underlying set"
+        if not E < X:
+            raise AssertionError("The parameter must be a subset of the underlying set")
         return set([x for x in X if self.is_limit_point(x, E)])
 
     def is_closure_point(self, x, E):
         r"""
-        Return ``True`` if ``x`` is a point of closure of ``E`` in the finite space.
+        Return ``True`` if ``x`` is a point of closure of ``E`` in the finite 
+        space.
 
         EXAMPLES::
 
@@ -1242,7 +1087,7 @@ class FiniteTopologicalSpace(Parent):
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
             sage: k = randint(0,len(X))
-            sage: E = set(random.sample(X, k))
+            sage: E = set(random.sample(list(X), k))
             sage: Cl = T.closure(E)
             sage: T.is_closed(Cl)
             True
@@ -1255,14 +1100,15 @@ class FiniteTopologicalSpace(Parent):
             sage: Cl == E.union(T.boundary(E))
             True
             sage: m = randint(0,len(X))
-            sage: M = set(random.sample(X, m))
+            sage: M = set(random.sample(list(X), m))
             sage: T.closure(E.union(M)) == Cl.union(T.closure(M))
             True
         """
         X = self.underlying_set()
         if E == X or E == set():
             return E
-        assert E < X , "The parameter must be a subset of the underlying set"
+        if not E < X:
+            raise AssertionError("The parameter must be a subset of the underlying set")
         return E.union(set([x for x in X - E if self.is_closure_point(x, E)]))
 
     def is_dense(self, E):
@@ -1282,9 +1128,9 @@ class FiniteTopologicalSpace(Parent):
 
     def is_isolated_point(self, x, E=None):
         r"""
-        Return ``True`` if ``x`` is an isolated point of ``E`` in the finite space.
-        If ``E`` is ``None``, return ``True`` if ``x`` is an isolated point of 
-        the finite space.
+        Return ``True`` if ``x`` is an isolated point of ``E`` in the finite 
+        space. If ``E`` is ``None``, return ``True`` if ``x`` is an isolated 
+        point of the finite space.
 
         EXAMPLES::
 
@@ -1319,7 +1165,7 @@ class FiniteTopologicalSpace(Parent):
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
             sage: k = randint(0,len(X))
-            sage: E = set(random.sample(X, k))
+            sage: E = set(random.sample(list(X), k))
             sage: Iso = T.isolated_set(E)
             sage: T.closure(E) == Iso.union(T.derived(E))
             True
@@ -1331,7 +1177,8 @@ class FiniteTopologicalSpace(Parent):
 
 class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
     r"""
-    Finite topological spaces satisfying the T0 separation axiom (Kolmogorov spaces).
+    Finite topological spaces satisfying the T0 separation axiom (Kolmogorov 
+    spaces).
 
     Users should not call this directly, but instead use :func:`FiniteSpace`.
     See that function for more documentation.
@@ -1344,11 +1191,12 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
         - ``elements`` -- list of the elements of the space. 
 
-        - ``minimal_basis`` -- a dictionary where the values are sets representing
-          the minimal open sets containing the respective key.
+        - ``minimal_basis`` -- a dictionary where the values are sets 
+          representing the minimal open sets containing the respective key.
 
-        - ``topogenous`` -- a topogenous matrix of the finite space corresponding
-          to the order given by ``elements`` (it is assumed upper triangular).
+        - ``topogenous`` -- a topogenous matrix of the finite space 
+          corresponding to the order given by ``elements`` (it is assumed upper 
+          triangular).
 
         - ``poset`` -- a poset corresponding to the finite space (Alexandroff
           correspondence) (default ``None``).
@@ -1367,11 +1215,11 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         FiniteTopologicalSpace.__init__(self, elements, minimal_basis, topogenous)
         if poset:
             # isinstance(poset, FinitePosets)
-            assert hasattr(poset, '_hasse_diagram'), \
-                   "Parameter 'poset' must be a real poset!"
+            if not hasattr(poset, '_hasse_diagram'):
+                raise AssertionError("Parameter 'poset' must be a poset!")
             # Verify the coherence of the parameters
-            assert set(self._elements)==set(poset.list()), \
-                   "Elements of poset and minimal_basis do not coincide"
+            if set(self._elements)!=set(poset.list()):
+                raise AssertionError("Elements of poset and minimal_basis do not coincide")
             self._elements = poset.list()
         else:
             # Construct the associated poset
@@ -1407,7 +1255,8 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def poset(self):
         r"""
-        Return the corresponding poset of the finite space (Alexandroff correspondence).
+        Return the corresponding poset of the finite space (Alexandroff 
+        correspondence).
 
         EXAMPLES::
 
@@ -1442,8 +1291,9 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def stong_matrix(self):
         r"""
-        Return the Stong matrix of the finite `T_0` space i.e. the adjacency matrix
-        of the Hasse diagram of its associated poset, with ones in its diagonal.
+        Return the Stong matrix of the finite `T_0` space i.e. the adjacency 
+        matrix of the Hasse diagram of its associated poset, with ones in its 
+        diagonal.
 
         EXAMPLES::
 
@@ -1487,8 +1337,8 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def order_complex(self):
         r"""
-        Return the order complex of the finite space i.e. the simplicial complex
-        whose simplices are the nonempty chains of ``self.poset()``.
+        Return the order complex of the finite space i.e. the simplicial 
+        complex whose simplices are the nonempty chains of ``self.poset()``.
 
         EXAMPLES::
 
@@ -1504,8 +1354,8 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def barycentric_subdivision(self):
         r"""
-        Return the barycentric subdivision of the finite space i.e. the face poset
-        of its order complex.
+        Return the barycentric subdivision of the finite space i.e. the face 
+        poset of its order complex.
 
         EXAMPLES::
 
@@ -1525,15 +1375,16 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def is_down_beat_point(self, x, subspace=None):
         r"""
-        Return ``True`` if ``x`` is a down beat point of the subspace of ``self``
-        determined by ``subspace``.
+        Return ``True`` if ``x`` is a down beat point of the subspace of 
+        ``self`` determined by ``subspace``.
 
         INPUT:
 
         - ``x`` - an element of the finite space. In case ``subspace`` is not
           ``None``, `x`` must be one of its elements.
 
-        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+        - ``subspace`` -- (default ``None``) a list of elements in the finite 
+          space.
 
         EXAMPLES::
 
@@ -1565,15 +1416,16 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def is_up_beat_point(self, x, subspace=None):
         r"""
-        Return ``True`` if ``x`` is an up beat point of the subspace of ``self``
-        determined by ``subspace``.
+        Return ``True`` if ``x`` is an up beat point of the subspace of 
+        ``self`` determined by ``subspace``.
 
         INPUT:
 
         - ``x`` - an element of the finite space. In case ``subspace`` is not
           ``None``, `x`` must be one of its elements.
 
-        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+        - ``subspace`` -- (default ``None``) a list of elements in the finite 
+          space.
 
         EXAMPLES::
 
@@ -1613,7 +1465,8 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         - ``x`` - an element of the finite space. In case ``subspace`` is not
           ``None``, `x`` must be one of its elements.
 
-        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+        - ``subspace`` -- (default ``None``) a list of elements in the finite 
+          space.
 
         EXAMPLES::
 
@@ -1633,12 +1486,13 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def core_list(self, subspace=None):
         r"""
-        Return a list of elements in a core of the subspace of ``self`` determined
-        by ``subspace``.
+        Return a list of elements in a core of the subspace of ``self`` 
+        determined by ``subspace``.
 
         INPUT:
 
-        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+        - ``subspace`` -- (default ``None``) a list of elements in the finite 
+          space.
 
         EXAMPLES::
 
@@ -1659,8 +1513,8 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.2))
             sage: X = T._elements
             sage: k = randint(0,len(X))
-            sage: E1 = random.sample(X, k)
-            sage: E2 = random.sample(E1, k)
+            sage: E1 = random.sample(list(X), k)
+            sage: E2 = random.sample(list(E1), k)
             sage: len(T.core_list(E1)) == len(T.core_list(E2)) # cores are homeomorphic
             True
         """
@@ -1682,7 +1536,8 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
         INPUT:
 
-        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+        - ``subspace`` -- (default ``None``) a list of elements in the finite 
+          space.
 
         EXAMPLES::
 
@@ -1704,12 +1559,13 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def is_contractible(self, subspace=None):
         r"""
-        Return ``True`` if the finite space is contractible (in the setting of finite spaces,
-        this is equivalent to say that its cores are singletons).
+        Return ``True`` if the finite space is contractible (in the setting of 
+        finite spaces, this is equivalent to say that its cores are singletons).
 
         INPUT:
 
-        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+        - ``subspace`` -- (default ``None``) a list of elements in the finite 
+          space.
 
         EXAMPLES::
 
@@ -1728,7 +1584,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             sage: P = posets.RandomPoset(20, 0.5)
             sage: X = P.list()
             sage: k = randint(0,len(X))
-            sage: E = random.sample(X, k)
+            sage: E = random.sample(list(X), k)
             sage: S = P.subposet(E)
             sage: F = FiniteSpace(S)
             sage: S.has_top()==False or F.is_contractible()
@@ -1740,15 +1596,16 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def is_weak_point(self, x, subspace=None):
         r"""
-        Return ``True`` if ``x`` is a weak beat point of the subspace of ``self``
-        determined by ``subspace``.
+        Return ``True`` if ``x`` is a weak beat point of the subspace of 
+        ``self`` determined by ``subspace``.
 
         INPUT:
 
         - ``x`` - an element of the finite space. In case ``subspace`` is not
           ``None``, `x`` must be one of its elements.
 
-        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+        - ``subspace`` -- (default ``None``) a list of elements in the finite 
+          space.
 
         EXAMPLES::
 
@@ -1769,7 +1626,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.2))
             sage: X = T._elements
             sage: k = randint(0,len(X))
-            sage: E = random.sample(X, k)
+            sage: E = random.sample(list(X), k)
             sage: x = random.choice(E)
             sage: T.is_beat_point(x, E)==False or T.is_beat_point(x, E)==T.is_weak_point(x, E)
             True
@@ -1786,12 +1643,13 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def weak_core_list(self, subspace=None):
         r"""
-        Return a list of elements in a weak core (finite space with no weak points)
-        of the subspace of ``self`` determined by ``subspace``.
+        Return a list of elements in a weak core (finite space with no weak 
+        points) of the subspace of ``self`` determined by ``subspace``.
 
         INPUT:
 
-        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+        - ``subspace`` -- (default ``None``) a list of elements in the finite 
+          space.
 
         EXAMPLES::
 
@@ -1812,7 +1670,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T._elements
             sage: k = randint(0,len(X))
-            sage: E = random.sample(X, k)
+            sage: E = random.sample(list(X), k)
             sage: len(T.weak_core_list(E)) <= len(T.core_list(E))
             True
         """
@@ -1829,12 +1687,13 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def weak_core(self, subspace=None):
         r"""
-        Return a weak core (finite space with no weak points) of the subspace of
-        ``self`` determined by ``subspace``.
+        Return a weak core (finite space with no weak points) of the subspace 
+        of ``self`` determined by ``subspace``.
 
         INPUT:
 
-        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+        - ``subspace`` -- (default ``None``) a list of elements in the finite 
+          space.
 
         EXAMPLES::
 
@@ -1855,16 +1714,17 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def discrete_vector_field(self, h_admissible=None):
         r"""
-        Return a discrete vector field on the finite `T_0` space i.e. a homologically
-        admissible Morse matching on the Hasse diagram of the associated poset.
+        Return a discrete vector field on the finite `T_0` space i.e. a 
+        homologically admissible Morse matching on the Hasse diagram of the 
+        associated poset.
 
         INPUT:
 
-        - ``h_admissible`` -- (default ``None``) If it is ``True``, all the edges
-          `(x, y)` of the Hasse diagram are assumed to be homologically admissible
-          i.e. tha subspace `\widehat{U}_y - \lbrace x\rbrace` is homotopically 
-          trivial (this can be assumed when the finite space is a barycentric
-          subdivision).
+        - ``h_admissible`` -- (default ``None``) If it is ``True``, all the 
+          edges `(x, y)` of the Hasse diagram are assumed to be homologically 
+          admissible i.e. the subspace `\widehat{U}_y - \lbrace x\rbrace` is 
+          homotopically trivial (this can be assumed when the finite space is a 
+          barycentric subdivision).
 
         EXAMPLES::
 
@@ -1875,20 +1735,20 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             ....:            [11, 16], [15, 17], [2, 19], [6, 20], [18, 20]]
             sage: P = Poset((list(range(1,21)), Pcovers), cover_relations=True)
             sage: X = FiniteSpace(P)
-            sage: dvf = X.discrete_vector_field(); dvf
+            sage: dvf = X.discrete_vector_field(); dvf                                # optional - kenzo
             [(2, 3), (4, 6), (8, 9), (7, 12), (15, 17), (18, 20), (10, 13), (11, 16)]
-            sage: X.show(dvf)
+            sage: X.show(dvf)                                                         # optional - kenzo
             Graphics object consisting of 45 graphics primitives
             sage: Qcovers = [[1, 2], [2, 3], [3, 4], [3, 5]]
             sage: Q = Poset((list(range(1,6)), Qcovers), cover_relations=True)
             sage: Y = FiniteSpace(Q)
             sage: Z = Y.barycentric_subdivision()
-            sage: dvf = Z.discrete_vector_field(h_admissible=True)
-            sage: Z.show(dvf)
+            sage: dvf = Z.discrete_vector_field(h_admissible=True)                    # optional - kenzo
+            sage: Z.show(dvf)                                                         # optional - kenzo
             Graphics object consisting of 71 graphics primitives
         """
-        kenzo_top = s2k_binary_matrix_sparse(self._topogenous)
-        kenzo_dvfield = EclListIterator(__dvfield_aux__(kenzo_top, None, h_admissible))
+        kenzo_top = kenzo.s2k_binary_matrix_sparse(self._topogenous)
+        kenzo_dvfield = EclListIterator(kenzo.__dvfield_aux__(kenzo_top, None, h_admissible))
         result = []
         for vector in kenzo_dvfield:
             vectorpy = vector.python()
@@ -1901,14 +1761,13 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
         INPUT:
 
-        - ``deg`` -- an element of the grading group for the chain
-          complex (default ``None``); the degree in which
-          to compute homology -- if this is ``None``, return the
-          homology in every degree in which the chain complex is
-          possibly nonzero.
+        - ``deg`` -- an element of the grading group for the chain complex 
+          (default ``None``); the degree in which to compute homology -- if 
+          this is ``None``, return the homology in every degree in which the 
+          chain complex is possibly nonzero.
 
-        - ``dvfield`` -- (default ``None``) a list of edges representing a discrete
-          vector field on the finite space.
+        - ``dvfield`` -- (default ``None``) a list of edges representing a 
+          discrete vector field on the finite space.
 
         EXAMPLES::
         
@@ -1919,40 +1778,41 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             ....:           [2, 4], [1, 4]]
             sage: P = Poset((list(range(1,14)), covers), cover_relations = True)
             sage: X = FiniteSpace(P)
-            sage: X.hregular_homology()
+            sage: X.hregular_homology()                              # optional - kenzo
             {0: Z, 1: C2, 2: 0}
-            sage: dvf = X.discrete_vector_field()
-            sage: X.show(dvf)
+            sage: dvf = X.discrete_vector_field()                    # optional - kenzo
+            sage: X.show(dvf)                                        # optional - kenzo
             Graphics object consisting of 38 graphics primitives
-            sage: X.hregular_homology(dvfield = dvf)
+            sage: X.hregular_homology(dvfield = dvf)                 # optional - kenzo
             {0: Z, 1: C2, 2: 0}
         """
-        assert deg==None or deg.is_integer(), "The degree must be an integer number or None"
+        if not (deg==None or deg.is_integer()):
+            raise AssertionError("The degree must be an integer number or None")
         height = self._poset.height()
         if deg and (deg < 0 or deg >= height):
             return HomologyGroup(0, ZZ)
-        kenzo_stong = s2k_binary_matrix_sparse(self.stong_matrix())
+        kenzo_stong = kenzo.s2k_binary_matrix_sparse(self.stong_matrix())
         if dvfield:
             kenzo_targets = EclObject([self._elements.index(edge[1])+1 for edge in dvfield])
             kenzo_sources = EclObject([self._elements.index(edge[0])+1 for edge in dvfield])
-            matrices = __h_regular_dif_dvf_aux__(kenzo_stong, kenzo_targets, kenzo_sources)
+            matrices = kenzo.__h_regular_dif_dvf_aux__(kenzo_stong, kenzo_targets, kenzo_sources)
         else:
-            matrices = __h_regular_dif__(kenzo_stong)
+            matrices = kenzo.__h_regular_dif__(kenzo_stong)
         if deg is not None:
             if deg == height - 1:
-                M1 = __copier_matrice__(kenzo.__nth__(height-1, matrices))
-                return quotient_group_matrices(M1, right_null=True)
+                M1 = kenzo.__copier_matrice__(kenzo.__nth__(height-1, matrices))
+                return kenzo.quotient_group_matrices(M1, right_null=True)
             else:
-                M1 = __copier_matrice__(kenzo.__nth__(deg, matrices))
-                M2 = __copier_matrice__(kenzo.__nth__(deg+1, matrices))
-                return quotient_group_matrices(M1, M2, check=False)
+                M1 = kenzo.__copier_matrice__(kenzo.__nth__(deg, matrices))
+                M2 = kenzo.__copier_matrice__(kenzo.__nth__(deg+1, matrices))
+                return kenzo.quotient_group_matrices(M1, M2, check=False)
         else:
             result = {}
             for dim in range(0, height - 1):
-                M1 = __copier_matrice__(kenzo.__nth__(dim, matrices))
-                M2 = __copier_matrice__(kenzo.__nth__(dim+1, matrices))
-                result[dim] = quotient_group_matrices(M1, M2, check=False)
-            Mh = __copier_matrice__(kenzo.__nth__(height-1, matrices))
-            result[height-1] = quotient_group_matrices(Mh, right_null=True)
+                M1 = kenzo.__copier_matrice__(kenzo.__nth__(dim, matrices))
+                M2 = kenzo.__copier_matrice__(kenzo.__nth__(dim+1, matrices))
+                result[dim] = kenzo.quotient_group_matrices(M1, M2, check=False)
+            Mh = kenzo.__copier_matrice__(kenzo.__nth__(height-1, matrices))
+            result[height-1] = kenzo.quotient_group_matrices(Mh, right_null=True)
             return result
 
