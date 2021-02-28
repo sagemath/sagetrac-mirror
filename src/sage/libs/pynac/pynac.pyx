@@ -17,6 +17,8 @@ Pynac interface
 from cpython cimport *
 from libc cimport math
 
+import ginac.pynac
+
 from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gmp.all cimport *
 from sage.libs.gsl.types cimport *
