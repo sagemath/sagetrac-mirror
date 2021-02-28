@@ -1,4 +1,4 @@
-$(PYTHON) $(MP_LIBRARY) flint singular | pkgconf
+$(PYTHON) $(MP_LIBRARY) flint singular cython | pkgconf $(PYTHON_TOOLCHAIN)
 
 ----------
 All lines of this file are ignored except the first.
