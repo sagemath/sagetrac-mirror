@@ -3491,7 +3491,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         for i in range(s,l):
             time = verbose('%s of %s' %(i, l), t=time)
             mtcf.append(convert_coeff(O[i]))
-            save(mtcf, 'markov_trace_coeffs%_temp.sobj' %n)
+            save(mtcf, 'markov_trace_coeffs%s_temp.sobj' %n)
         import os
         os.system('mv markov_trace_coeffs%s_temp.sobj markov_trace_coeffs%s.sobj' %(n,n))
         verbose('calculation of Markov trace coefficients finished', t=time)
