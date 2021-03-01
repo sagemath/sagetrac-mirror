@@ -1,0 +1,119 @@
+prune sage
+graft sage/cpython
+graft sage_setup
+prune sage_setup/docbuild
+
+include sage/__init__.py   # FIXME: Needs to become a namespace package
+include sage/env.py        # FIXME: sage_setup must be changed so it does not depend on it
+include sage/version.py    # FIXME: likewise
+
+global-include all__sage_objects.py
+global-include all__sage_categories.py
+
+graft sage/features
+graft sage/structure
+graft sage/categories
+include sage/misc/__init__.py
+include sage/misc/classcall_metaclass.*
+include sage/misc/inherit_comparison*.*
+include sage/misc/weak_dict.*
+include sage/misc/nested_class*.*
+include sage/misc/abstract_method.*
+include sage/misc/cachefunc.*
+include sage/misc/decorators.*
+include sage/misc/c3_controlled.*
+include sage/misc/lazy_attribute.*
+include sage/misc/function_mangling.*
+include sage/misc/lazy_string.*
+include sage/misc/lazy_format.*
+include sage/misc/unknown.*
+include sage/misc/fast_methods.*
+include sage/misc/constant_function.*
+include sage/misc/call.*
+include sage/misc/bindable_class.*
+
+include sage/misc/verbose.*
+include sage/misc/repr.*
+include sage/misc/superseded.*
+include sage/misc/misc_c.*              # prod
+include sage/misc/flatten.*             # dep of sage/categories/coxeter_groups.py
+
+include sage/misc/lazy_import*.*
+include sage/misc/sageinspect.*          # dep of sage/misc/lazy_import
+graft sage/docs                          # dep of sage/misc/lazy_import
+
+include sage/misc/persist.*
+include sage/misc/sage_unittest.*        # dep of sage/misc/persist
+
+include sage/misc/prandom.*              # dep of sage/rings/ring
+
+include sage/ext/__init__.py
+include sage/ext/stdsage.pxd
+include sage/sets/__init__.py
+include sage/sets/pythonclass.*
+include sage/arith/__init__.py
+include sage/arith/power.*
+include sage/arith/numerical_approx.*
+# integers...
+include sage/arith/long.*
+include sage/rings/__init__.py
+include sage/rings/integer_fake.*
+include sage/libs/__init__.py
+graft sage/libs/gmp
+
+# Extra in sage_categories:
+include sage/rings/ideal.*
+include sage/rings/ring.*
+# include sage/rings/integer*.*     # depends on cypari, flint - https://trac.sagemath.org/ticket/30022
+# include sage/rings/rational*.*
+# include sage/rings/infinity.*
+
+# Extra in sagemath_linbox:
+graft sage/libs/linbox
+graft sage/libs/mpfr
+include sage/libs/flint/__init__.*
+include sage/libs/flint/*.pxd
+include sage/libs/flint/*.h
+include sage/ext/mod_int.*
+include sage/rings/__init__.*
+include sage/rings/integer.pxd
+include sage/rings/fast_arith.pxd
+include sage/rings/finite_rings/__init__.*
+include sage/rings/finite_rings/stdint.pxd
+include sage/rings/finite_rings/integer_mod*.*
+include sage/rings/finite_rings/element_base.*
+include sage/modules/__init__.*
+include sage/modules/free_module_element.pxd
+include sage/modules/vector_modn_dense.pxd
+include sage/matrix/__init__.*
+include sage/matrix/matrix.*
+include sage/matrix/matrix0.*
+include sage/matrix/matrix1.*
+include sage/matrix/matrix2.*
+include sage/matrix/matrix_dense.*
+include sage/matrix/*.pxd
+include sage/matrix/matrix_integer_dense.pxd
+include sage/matrix/matrix_modn_dense*.*
+exclude sage/libs/linbox/linbox_flint_interface.*
+
+## What we do not want:
+# sage/misc/latex         -- this should really go to another package
+
+
+## For doctesting
+include bin/sage
+include bin/sage-env
+include bin/sage-env-config
+include bin/sage-python
+include bin/sage-runtests
+graft sage/doctest
+include sage/misc/temporary_file.*
+include sage/misc/randstate.*
+include sage/misc/misc.*              # walltime, cputime
+# graft sage/features
+include sage/misc/package.*
+
+graft sage/repl
+graft sage/server
+
+global-exclude *.py[co]
