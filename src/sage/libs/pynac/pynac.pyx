@@ -18,6 +18,7 @@ from cpython cimport *
 from libc cimport math
 
 import ginac.pynac
+from ginac.pynac cimport *
 
 from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gmp.all cimport *

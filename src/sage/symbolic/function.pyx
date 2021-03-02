@@ -125,7 +125,7 @@ is attempted, and after that ``sin()`` which succeeds::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.pynac.pynac cimport *
+from ginac.pynac cimport *
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent

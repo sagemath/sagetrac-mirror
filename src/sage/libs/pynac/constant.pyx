@@ -14,7 +14,7 @@ Wrapper around Pynac's constants
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .pynac cimport *
+from ginac.pynac cimport *
 from sage.symbolic.expression cimport new_Expression_from_GEx
 from sage.symbolic.ring import SR
 from sage.cpython.string cimport str_to_bytes

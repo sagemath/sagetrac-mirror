@@ -1,4 +1,4 @@
-from .pynac cimport GConstant
+from ginac.pynac cimport GConstant
 
 cdef class PynacConstant:
     cdef GConstant* pointer
