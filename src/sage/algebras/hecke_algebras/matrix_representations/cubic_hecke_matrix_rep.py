@@ -702,7 +702,6 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         return CubicHeckeMatrixSpace, (self._cubic_hecke_algebra, self._representation_type, self._subdivide, original)
 
 
-    @cached_method
     def _element_constructor_(self, x):
         r"""
         INPUT:
