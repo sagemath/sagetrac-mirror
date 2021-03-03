@@ -3361,29 +3361,17 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             return tuple(res), tuple(den)
         return tuple(res)
 
-    def _extension_ring_conjugation(self, generic=False):
-        r"""
-        """
-        ER = self.extension_ring(generic=generic)
-        if generic:
-            e3 = ER.cyclotomic_generator()
-            a, b, c = ER.gens()
-            return ER.hom((e3**2, a, b, c))
-        else:
-            GER = self.extension_ring(generic=True)
-            if ER == GER.as_splitting_algebra():
-                e3 = ER.gen()
-                return ER.hom(e3**2)
-            else:
-                f = GER.convert_map_from(ER)
-                if not f:
-                    return None
-                conj = self._extension_ring_conjugation(generic=True)
-                g = self._generic_extension_ring_map
-                return g*conj*f
 
-    def _class_function(self, irr):
+    def _class_function(self, irr=None):
         r"""
+        Return the irreducible class functions of ``self``.
+
+        INPUT:
+
+        - ``irr`` -- (optional) instance of :class:`AbsIrreducibeRep`
+          selecting the irreducible representation corresponding to the
+          class function. If not given a list of all class function is
+          returned
         """
         def class_function(ele):
             if isinstance(ele, self.element_class):
@@ -3394,8 +3382,13 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 mone_irr = self.one().matrix().reduce_to_irr_block(irr)
                 m_irr = ele*mone_irr
                 return m_irr.trace()
-        return class_function
+        if irr:
+            return class_function
+        irrs = [irr for irr in self.irred_repr if  irr.number_gens()== self.strands() -1]
+        return [self._class_function(irrs[i]) for i in range(len(irrs))]
 
+
+    @cached_method
     def _markov_vars(self):
         r"""
         """
@@ -3419,6 +3412,37 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         return sub_vars, new_vars
 
     @cached_method
+    def _markov_trace_embedding(self, extension_ring=True):
+        r"""
+        """
+        if extension_ring:
+            ER = self.extension_ring(generic=True)
+            from sage.rings.number_field.number_field import CyclotomicField
+            C3 = CyclotomicField(3)
+
+            all_vars, new_vars = self._markov_vars()
+            var = ER.variable_names()
+            all_var = tuple(all_vars.keys())
+
+            P = C3[var + ('s',) + all_var]
+            F = P.fraction_field()
+            a, b, c, s, *remain, = F.gens()
+            return ER.hom((F(C3.gen()), a, b, c))
+        else:
+            BR = self.base_ring(generic=True)
+            BB = BR.base_ring()
+            var = BR.variable_names() + BB.variable_names()
+            all_vars, new_vars =self._markov_vars()
+            P = ZZ[var +('s',) + tuple(all_vars.keys())]
+            u, v, w, s, *remain = P.gens()
+            L = P.localization((v, w, s))
+            u, v, w, s, *remain = L.gens()
+            L = BR.create_specialization((u, v, w))
+            return L.convert_map_from(BR)
+
+
+
+    @cached_method
     def _markov_trace_coeffs(self):
         r"""
         """
@@ -3435,26 +3459,26 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             pass
 
         time = verbose('preparing calculation of Markov trace coefficients')
-        B = self.base_ring(generic=True)
-        BB = B.base_ring()
-        var = B.variable_names() + BB.variable_names()
-        all_vars, new_vars =self._markov_vars()
-        P = ZZ[var +('s',) + tuple(all_vars.keys())]
-        L = P.localization((P.gen(1), P.gen(2), P.gen(3)))
-        u, v, w, s, *remain = L.gens()
-        L = B.create_specialization((u, v, w))
-        u, v, w, s, *remain = L.gens()
+        # B = self.base_ring(generic=True)
+        # BB = B.base_ring()
+        # var = B.variable_names() + BB.variable_names()
+        all_vars, new_vars = self._markov_vars()
+        # P = ZZ[var +('s',) + tuple(all_vars.keys())]
+        # L = P.localization((P.gen(1), P.gen(2), P.gen(3)))
+        # u, v, w, s, *remain = L.gens()
+        # L = B.create_specialization((u, v, w))
+        # u, v, w, s, *remain = L.gens()
+        emb_BR = self._markov_trace_embedding(extension_ring=False)
+        L = emb_BR.codomain()
 
         if self.strands() == 2:
             U1, U2 = remain
             return [U2, s*U1, ~s*U1]
 
-        from sage.functions.generalized import sign
         mtr = self._markov_trace_irr_coeffs()
         E = self.extension_ring()
         PE = E[('s',) + tuple(all_vars)]
         mtr_one = mtr(self.one())
-        # EC3 = mtr_one.parent().base_ring()
         EC3 = mtr_one.parent().ring()
         EZ = ZZ[EC3.variable_names()]
         img = tuple(self.cubic_equation_roots()) + PE.gens()
@@ -3504,13 +3528,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         """
         time = verbose('preparing calculation of irreducible Markov trace coefficients')
 
-        irrs = [irr for irr in self.irred_repr if  irr.number_gens()== self.strands() -1]
-        dClF = len(irrs)
-        ClF = [self._class_function(irrs[i]) for i in range(dClF)]
+        ClF = self._class_function()
+        dClF = len(ClF)
 
-        ER = self.extension_ring(generic=True)
-        from sage.rings.number_field.number_field import CyclotomicField
-        C3 = CyclotomicField(3)
+        # ER = self.extension_ring(generic=True)
+        # from sage.rings.number_field.number_field import CyclotomicField
+        # C3 = CyclotomicField(3)
 
         all_vars, new_vars = self._markov_vars()
 
@@ -3520,13 +3543,17 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         subR = sub._markov_trace_coeffs()[0].parent()
         sub_var = subR.base_ring().variable_names()
         sub_var_add = tuple([sub_var[i] for i in range(3, len(sub_var))])
-        var = ER.variable_names()
+        # var = ER.variable_names()
         new_var = tuple(new_vars.keys())
 
-        P = C3[var + sub_var_add + new_var]
-        F = P.fraction_field()
+        # P = C3[var + sub_var_add + new_var]
+        # F = P.fraction_field()
+        # a, b, c, s, *remain, = F.gens()
+        # emb_ER = ER.hom((F(C3.gen()), a, b, c))
+        emb_ER = self._markov_trace_embedding()
+        ER = emb_ER.domain()
+        F  = emb_ER.codomain()
         a, b, c, s, *remain, = F.gens()
-        emb_ER = ER.hom((F(C3.gen()), a, b, c))
 
         BR = self.base_ring(generic=True)
         img_ER = [emb_ER(ER(v)) for v in BR.gens_over_ground()]
@@ -3622,24 +3649,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         irr_coeff = vector([red_coeff(cf) for cf in irr_coeff])
         irr_coeff.save('markov_irr_coeffR.sobj')
         time = verbose('reduced adjusting solution saved', t=time)
-
-        def mtr_ext(ele):
-            return sum(irr_coeff[j]*emb_ER(ClF[j](ele)) for j in range(dClF))
-        verbose('calculation of irreducible Markov trace coefficients finished', t=time)
-        return mtr_ext
-
-        # find minimal coefficient ring
-
-        denoms = tuple(set([cf.denominator() for cf in irr_coeff] +[P(a), P(b), P(c)]))
-
-        L = P.localization(denoms)
-        irr_coeff = irr_coeff.change_ring(L)
-        c3 = L(C3.gen())
-        irr_coeff.save('markov_irr_coeffL.sobj')
-        time = verbose('localized adjusting solution saved', t=time)
-
-        a, b, c, s, *remain, = L.gens()
-        emb_ER = ER.hom((c3, a, b, c))
 
         def mtr_ext(ele):
             return sum(irr_coeff[j]*emb_ER(ClF[j](ele)) for j in range(dClF))
