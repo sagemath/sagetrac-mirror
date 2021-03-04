@@ -229,7 +229,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             [0 1 0]
             [0 0 1]
             Domain: Ambient lattice of rank 3 with a faithful action by a group of order 3
-            sage: q = L1.quotient_lattice(L1.zero_sum_sublattice(), True, True); q[1]
+            sage: q = L.quotient_lattice(L.zero_sum_sublattice(), True, True); q[1]
             Lattice morphism defined by the left action of the matrix
             [1 1 1]
             Domain: Ambient lattice of rank 3 with a faithful action by a group of order 3
@@ -245,7 +245,6 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
     def __call__(self, elt):
         """
         Compute the image of either an element of a lattice, or a sublattice.
-       
 
         EXAMPLES::
 
