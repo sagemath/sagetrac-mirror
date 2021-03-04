@@ -128,7 +128,36 @@ cdef class MatrixMulAction(Action):
             sage: A = MSQ.get_action(MSZ)
             sage: TestSuite(A).run()
         """
-        return type(self), (self.G, self.underlying_set())
+        return type(self), (self.G, self.domain())
+
+    def __eq__(self, other):
+        r"""
+        Equality testing.
+
+        TESTS::
+
+            sage: MSQ = MatrixSpace(QQ, 2)
+            sage: MSZ = MatrixSpace(ZZ['x'], 2)
+            sage: MSQ.get_action(MSZ) == MSQ.get_action(MSZ)
+            True
+        """
+        return type(self) == type(other) and self.G == other.G and self.domain() == other.domain()
+
+    def __ne__(self, other):
+        """
+        Inequality testing.
+
+        TESTS::
+
+            sage: from sage.matrix.action import VectorMatrixAction, MatrixVectorAction
+            sage: M = MatrixSpace(QQ, 3, 3)
+            sage: V = VectorSpace(CDF, 3)
+            sage: A = VectorMatrixAction(M, V)
+            sage: B = MatrixVectorAction(M, V)
+            sage: A != B
+            True
+        """
+        return not (self == other)
 
 cdef class MatrixMatrixAction(MatrixMulAction):
     """
