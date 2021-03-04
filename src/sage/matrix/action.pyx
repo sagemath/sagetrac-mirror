@@ -128,7 +128,7 @@ cdef class MatrixMulAction(Action):
             sage: A = MSQ.get_action(MSZ)
             sage: TestSuite(A).run()
         """
-        return (type(self), (self.G, self.underlying_set())
+        return type(self), (self.G, self.underlying_set())
 
 cdef class MatrixMatrixAction(MatrixMulAction):
     """
