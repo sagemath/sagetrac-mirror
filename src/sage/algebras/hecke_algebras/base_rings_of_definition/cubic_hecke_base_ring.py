@@ -31,10 +31,9 @@ from sage.misc.verbose import verbose
 from sage.misc.functional import cyclotomic_polynomial
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ
-from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
-from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
-from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, LaurentPolynomialRing_mpair
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_mpair
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.localization import Localization
 from sage.algebras.splitting_algebra import solve_with_extension, SplittingAlgebra
 
 
@@ -61,13 +60,11 @@ def register_ring_hom(ring_hom):
         Universal Cyclotomic Field
         sage: _.convert_map_from(BR)
         Ring morphism:
-          From: Multivariate Polynomial Ring in u, v
-                over Univariate Laurent Polynomial Ring in w
-                over Integer Ring
+          From: Multivariate Polynomial Ring in u, v, w over Integer Ring localized at (w,)
           To:   Universal Cyclotomic Field
           Defn: u |--> E(5)
                 v |--> E(7)
-                with map of base ring
+                w |--> E(3)
     """
     domain   = ring_hom.domain()
     codomain = ring_hom.codomain()
@@ -391,6 +388,11 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
     # ---------------------------------------------------------------------------------------------------------------------
     #######################################################################################################################
 
+    def construction(self):
+        r"""
+        Return ``None`` since this construction is not functorial.
+        """
+        return None
 
     def __reduce__(self):
         r"""
@@ -751,14 +753,12 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
             sage: GER = GBR.extension_ring()
             sage: ER = GER.as_splitting_algebra(); ER
             Splitting Algebra of T^2 + T + 1 with roots [E3, -E3 - 1]
-              over Splitting Algebra of h^3 - u*h^2 + v*h - w
-                with roots [a, b, -b - a + u]
-              over Multivariate Polynomial Ring in u, v
-              over Univariate Laurent Polynomial Ring in w over Integer Ring
+              over Splitting Algebra of h^3 - u*h^2 + v*h - w with roots [a, b, -b - a + u]
+              over Multivariate Polynomial Ring in u, v, w over Integer Ring localized at (w,)
             sage: ER(GER.an_element())
-            a*E3 + (((-w^-1)*u)*a^2 + ((w^-1)*u^2 + (-w^-1)*v)*a)*b + a - u
+            a*E3 + ((u/(-w))*a^2 + ((u^2 - v)/w)*a)*b + a - u
             sage: ER(GBR.an_element())
-            (w^-1)*u^2 + v
+            (u^2 + v*w)/w
         """
 
         if self._splitting_algebra  != None:
@@ -810,7 +810,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 # This class inherits from UniqueRepresentation since otherwise an error occurs when a second instance
 # is declared. This error occurs in as_splitting_algebra of the associated extension ring.
 # --------------------------------------------------------------------------------------------------------
-class CubicHeckeRingOfDefinition(MPolynomialRing_polydict, UniqueRepresentation):
+class CubicHeckeRingOfDefinition(Localization, UniqueRepresentation):
     r"""
     This class implements the *ring of definition* of the cubic Hecke algebra.
 
@@ -835,7 +835,7 @@ class CubicHeckeRingOfDefinition(MPolynomialRing_polydict, UniqueRepresentation)
         sage: ER(ele)
         3*a^2*b + 3*a*b^2 + 3*a^2*c + 9*a*b*c + 3*b^2*c
         + 3*a*c^2 + 3*b*c^2 + (-5)*a^-2*b^-2*c^-2
-        sage: phi1 = BR.hom( [4,3,1] )
+        sage: phi1 = BR.hom( [4,3,1/1] )
         sage: phi1(ele)
         31
 
@@ -875,14 +875,12 @@ class CubicHeckeRingOfDefinition(MPolynomialRing_polydict, UniqueRepresentation)
         self._order = order
         self._all_names = names
         self._invertible_name = names[2]
-        self._non_invertible_names = (names[0], names[1])
 
         # ---------------------------------------------------------------------------------
         # ---------------------------------------------------------------------------------
         # base ring containing the invertible variable
         # ---------------------------------------------------------------------------------
         # ---------------------------------------------------------------------------------
-        self._base_ring = LaurentPolynomialRing(ZZ, self._invertible_name)
 
 
         # ---------------------------------------------------------------------------------
@@ -890,7 +888,8 @@ class CubicHeckeRingOfDefinition(MPolynomialRing_polydict, UniqueRepresentation)
         # Init of self
         # ---------------------------------------------------------------------------------
         # ---------------------------------------------------------------------------------
-        MPolynomialRing_polydict.__init__(self, self._base_ring, 2, self._non_invertible_names, order)
+        base_ring = PolynomialRing(ZZ, names, order=order)
+        Localization.__init__(self, base_ring, self._invertible_name)
 
         # ---------------------------------------------------------------------------------
         # Init of data used on demand
@@ -899,12 +898,20 @@ class CubicHeckeRingOfDefinition(MPolynomialRing_polydict, UniqueRepresentation)
 
         return
 
-    # note: Element assignment is missing in MPolynomialRing_polydict. It activates the element_class method for self
-    Element = MPolynomial_polydict
 
+    def _element_constructor_(self, x):
+        """
+        Make sure x is a valid member of self, and return the constructed element.
 
+        EXAMPLES::
 
-
+        """
+        if type(x) == dict:
+            if list(x.keys()) == ['n', 'd']:
+                num = self.base_ring()(x['n'])
+                den = self.base_ring()(x['d'])
+                x = self.fraction_field()(num/den)
+        return super(CubicHeckeRingOfDefinition, self)._element_constructor_(x)
 
 
 
@@ -913,20 +920,6 @@ class CubicHeckeRingOfDefinition(MPolynomialRing_polydict, UniqueRepresentation)
     # overloaded inherited methods
     # ---------------------------------------------------------------------------------------------------------------------
     #######################################################################################################################
-
-    def __reduce__(self):
-        r"""
-        Used in pickling.
-
-        EXAMPLES::
-
-            sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
-            sage: BR = chbr.CubicHeckeRingOfDefinition()
-            sage: loads(dumps(BR)) == BR
-            True
-        """
-        return CubicHeckeRingOfDefinition, (self._all_names, self._order)
-
 
     def _defining_names(self):
         r"""
@@ -939,24 +932,9 @@ class CubicHeckeRingOfDefinition(MPolynomialRing_polydict, UniqueRepresentation)
             sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR._defining_names()
-            (u, v)
+            (u, v, w)
         """
         return self.gens()
-
-
-    def __call__(self, x, check=True):
-        r"""
-        Overloaded to fix an inherited bug concerning ``_test_category``.
-
-        EXAMPLES::
-
-            sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
-            sage: BR = chbr.CubicHeckeRingOfDefinition()
-            sage: BR.an_element()._test_category()           # indirect doctest
-        """
-        result = MPolynomialRing_polydict.__call__(self, x, check=check)
-        return self.element_class( self, result.dict() )
-
 
 
     def _an_element_(self):
@@ -968,47 +946,11 @@ class CubicHeckeRingOfDefinition(MPolynomialRing_polydict, UniqueRepresentation)
             sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR.an_element()                            # indirect doctest
-            (w^-1)*u^2 + v
+            (u^2 + v*w)/w
         """
 
         u, v, w = self.gens_over_ground()
         return u**2/w+v
-
-    def hom(self, im_gens, codomain=None, check=True, base_map=None):
-        r"""
-        Custom version overloading the corresponding method of class :class:`~sage.structure.parent_gens.ParentWithGens`
-        because of special effort with respect to invertible third parameter.
-
-        INPUT: according to the calss :class:`~sage.structure.parent_gens.ParentWithGens`. For more information type ``ParentWithGens.hom?``
-
-        OUTPUT: according to the :class:`ParentWithGens`.
-
-        EXAMPLES::
-
-            sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
-            sage: BR = chbr.CubicHeckeRingOfDefinition()
-            sage: R = ZZ.localization((5,))
-            sage: im_gens = [R(z) for z in [3, 4, ~5]]
-            sage: map = BR.hom(im_gens)
-            sage: BR.an_element()
-            (w^-1)*u^2 + v
-            sage: map(_)
-            49
-        """
-
-        if not isinstance(im_gens, (list,tuple)):
-            im_gens = [im_gens]
-
-        if len(im_gens) == 3:
-            iu, iv, iw = im_gens
-            hom_on_laur = self.base_ring().hom([iw], base_map=base_map)
-            return super(CubicHeckeRingOfDefinition, self).hom([iu, iv], codomain=codomain, check=check, base_map=hom_on_laur)
-        else:
-            if base_map is None:
-                raise ValueError("number of images must be three or a base_map (on %s) must be given" %self.base_ring())
-            return super(CubicHeckeRingOfDefinition, self).hom([iu, iv], codomain=codomain, check=check, base_map=base_map)
-
-
 
 
     #######################################################################################################################
@@ -1038,12 +980,10 @@ class CubicHeckeRingOfDefinition(MPolynomialRing_polydict, UniqueRepresentation)
             sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition(names='A, B, C')
             sage: BR.gens_over_ground()
-            [A, B, C]
+            (A, B, C)
 
         """
-        gen_list = self.gens() + self.base_ring().gens()
-        return [ self(gen) for gen in gen_list ]
-
+        return self.gens()
 
 
     def cubic_equation(self, var='h', as_coefficients=False):
@@ -1103,13 +1043,12 @@ class CubicHeckeRingOfDefinition(MPolynomialRing_polydict, UniqueRepresentation)
             sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR.mirror_involution()
-            Ring endomorphism of Multivariate Polynomial Ring in u, v
-            over Univariate Laurent Polynomial Ring in w over Integer Ring
-            Defn: u |--> (w^-1)*v
-            v |--> (w^-1)*u
-            with map of base ring
+            Ring endomorphism of Multivariate Polynomial Ring in u, v, w over Integer Ring localized at (w,)
+              Defn: u |--> v/w
+                    v |--> u/w
+                    w |--> 1/w
             sage: _(BR.an_element())
-            (w^-1)*v^2 + (w^-1)*u
+            (v^2 + u)/w
         """
 
         if self._mirror == None:
@@ -1141,7 +1080,7 @@ class CubicHeckeRingOfDefinition(MPolynomialRing_polydict, UniqueRepresentation)
             sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: t = BR.an_element(); t
-            (w^-1)*u^2 + v
+            (u^2 + v*w)/w
             sage: Sp1 = BR.create_specialization([E(5), E(7), E(3)]); Sp1
             Universal Cyclotomic Field
             sage: Sp1(t)

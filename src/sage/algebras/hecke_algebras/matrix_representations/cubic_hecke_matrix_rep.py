@@ -687,6 +687,12 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         self.Element = CubicHeckeMatrixRep
         return
 
+    def construction(self):
+        r"""
+        Return ``None`` since this construction is not functorial.
+        """
+        return None
+
     def __reduce__(self):
         r"""
         Used for pickling.
@@ -854,9 +860,9 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             sage: MSreg = chmr.CubicHeckeMatrixSpace(CHA2, representation_type=CHA2.repr_type.RegularRight)
             sage: MSreg._image_on_gen(-1)
             [
-            [        0         1 (-w^-1)*u]
-            [        0         0      w^-1]
-            [        1         0  (w^-1)*v]
+            [     0      1 (-u)/w]
+            [     0      0    1/w]
+            [     1      0    v/w]
             ]
         """
 

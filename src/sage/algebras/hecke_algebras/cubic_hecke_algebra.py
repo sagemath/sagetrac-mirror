@@ -29,9 +29,9 @@ strand cubic Hecke algebra::
     sage: braid = BG3((1,2,-1,2,2,-1)); braid
     c0*c1*c0^-1*c1^2*c0^-1
     sage: braid_image = CHA3(braid); braid_image
-    (-u*v+w)*c1^-1 + ((w^-1)*u^2+(-w^-1)*v)*c0*c1*c0 + ((-w^-1)*u^3+(w^-1)*u*v)*c0*c1
-    + ((w^-1)*u^2*v+(-w^-1)*v^2)*c0*c1*c0^-1 + (-u^2)*c0^-1*c1
-    + u*c1*c0^-1*c1 + u*v*c0*c1^-1*c0^-1
+    (-u*v+w)*c1^-1 + ((u^2-v)/w)*c0*c1*c0 + ((-u^3+u*v)/w)*c0*c1
+    + ((u^2*v-v^2)/w)*c0*c1*c0^-1 + (-u^2)*c0^-1*c1 + u*c1*c0^-1*c1
+    + u*v*c0*c1^-1*c0^-1
 
 If the ring elements $u, v, w$ (which will be called the *cubic equation parameters*
 in the sequel) are taken to be $u = v = 0, w = 1$ the cubic Hecke algebra specializes to the
@@ -94,7 +94,7 @@ than you can do calculations inside the infinite algebra as well::
     sage: s^2                                                             # long time
     (c0*c1*c2*c3*c4)^2
     sage: t = CHA6.an_element()*c4; t                                     # long time
-    (-w)*c0*c1^-1*c4 + v*c0*c2^-1*c4 + u*c2*c1*c4 + ((w^-1)*u-v)*c4
+    (-w)*c0*c1^-1*c4 + v*c0*c2^-1*c4 + u*c2*c1*c4 + ((-v*w+u)/w)*c4
 
 REFERENCES:
 
@@ -154,7 +154,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
         sage: CHA3.<c1, c2> = algebras.CubicHecke(3)
         sage: c1**3*~c2
-        (-u*v+w)*c2^-1 + (u^2-v)*c1*c2^-1 + w*u*c1^-1*c2^-1
+        (-u*v+w)*c2^-1 + (u^2-v)*c1*c2^-1 + u*w*c1^-1*c2^-1
     """
 
     # ---------------------------------------------------------------------------------------------
@@ -209,7 +209,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
             sage: CHA3 = algebras.CubicHecke(3)
             sage: ele = CHA3.an_element(); ele
-            ((w^-1)*u-v) + u*c1 + v*c0 + (-w)*c0*c1^-1
+            ((-v*w+u)/w) + u*c1 + v*c0 + (-w)*c0*c1^-1
             sage: ele.Tietze() is None
             True
             sage: bas_ele = CHA3(ele.leading_support())
@@ -234,7 +234,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
             sage: CHA3 = algebras.CubicHecke(3)
             sage: ele = CHA3.an_element(); ele
-            ((w^-1)*u-v) + u*c1 + v*c0 + (-w)*c0*c1^-1
+            ((-v*w+u)/w) + u*c1 + v*c0 + (-w)*c0*c1^-1
             sage: ele.max_len()
             2
         """
@@ -257,9 +257,9 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
             sage: CHA3 = algebras.CubicHecke(3)
             sage: ele = CHA3.an_element(); ele
-            ((w^-1)*u-v) + u*c1 + v*c0 + (-w)*c0*c1^-1
+            ((-v*w+u)/w) + u*c1 + v*c0 + (-w)*c0*c1^-1
             sage: b_ele = ele.braid_group_algebra_pre_image(); b_ele
-            ((w^-1)*u-v) + v*c0 + u*c1 + (-w)*c0*c1^-1
+            ((-v*w+u)/w) + v*c0 + u*c1 + (-w)*c0*c1^-1
             sage: ele in CHA3
             True
             sage: b_ele in CHA3
@@ -290,9 +290,9 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
             sage: CHA3 = algebras.CubicHecke(3)
             sage: ele = CHA3.an_element(); ele
-            ((w^-1)*u-v) + u*c1 + v*c0 + (-w)*c0*c1^-1
+            ((-v*w+u)/w) + u*c1 + v*c0 + (-w)*c0*c1^-1
             sage: cb_ele = ele.cubic_braid_group_algebra_pre_image(); cb_ele
-            ((w^-1)*u-v) + u*c1 + v*c0 + (-w)*c0*c1^-1
+            ((-v*w+u)/w) + u*c1 + v*c0 + (-w)*c0*c1^-1
             sage: ele in CHA3
             True
             sage: cb_ele in CHA3
@@ -415,7 +415,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
             sage: CHA3.<c1, c2> = algebras.CubicHecke(3)
             sage: e = CHA3.an_element()
             sage: e.revert_mirror()
-            ((-w^-1)*u+v) + ((w^-1)*v)*c1^-1 + ((w^-1)*u)*c0^-1 + (-w^-1)*c0^-1*c1
+            ((v*w-u)/w) + v/w*c1^-1 + u/w*c0^-1 - 1/w*c0^-1*c1
             sage: _.revert_mirror() == e
             True
         """
@@ -433,7 +433,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
             sage: CHA3.<c1, c2> = algebras.CubicHecke(3)
             sage: e = CHA3.an_element()
             sage: e.revert_orientation()
-            ((w^-1)*u-v) + u*c2 + v*c1 + (-w)*c2^-1*c1
+            ((-v*w+u)/w) + u*c2 + v*c1 + (-w)*c2^-1*c1
             sage: _.revert_orientation() == e
             True
         """
@@ -523,9 +523,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     1. cubic Hecke algebra over the ring of definition::
 
         sage: CHA3 = algebras.CubicHecke('s1, s2'); CHA3
-        Cubic Hecke algebra on 3 strands over Multivariate Polynomial Ring in u, v
-          over Univariate Laurent Polynomial Ring in w over Integer Ring
-            with cubic equation: h^3 - u*h^2 + v*h - w = 0
+        Cubic Hecke algebra on 3 strands over Multivariate Polynomial Ring in u, v, w
+          over Integer Ring localized at (w,)
+          with cubic equation: h^3 - u*h^2 + v*h - w = 0
         sage: CHA3.gens()
         (s1, s2)
         sage: GER = CHA3.extension_ring(generic=True); GER
@@ -534,22 +534,20 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             with roots [e3, -e3 - 1] over Integer Ring
         sage: ER = CHA3.extension_ring(); ER
         Splitting Algebra of T^2 + T + 1 with roots [E3, -E3 - 1]
-          over Splitting Algebra of h^3 - u*h^2 + v*h - w
-            with roots [a, b, -b - a + u]
-          over Multivariate Polynomial Ring in u, v
-          over Univariate Laurent Polynomial Ring in w over Integer Ring
+          over Splitting Algebra of h^3 - u*h^2 + v*h - w with roots [a, b, -b - a + u]
+          over Multivariate Polynomial Ring in u, v, w over Integer Ring localized at (w,)
 
     2. element construction::
 
         sage: ele = CHA3.an_element(); ele
-        ((w^-1)*u-v) + u*s2 + v*s1 + (-w)*s1*s2^-1
+        ((-v*w+u)/w) + u*s2 + v*s1 + (-w)*s1*s2^-1
         sage: ele2 = ele**2; ele2
-        (-u^2*v-v^3+(w^-2)*u^2+(-2*w^-1)*u*v+v^2) + (u^3+(2*w^-1)*u^2+(-2)*u*v)*s2
-        + (w*u^2+w*v^2)*s2^-1 + (u*v^2+(2*w^-1)*u*v+(-2)*v^2+(-w)*u)*s1
-        + u*v*s2*s1 + w*v^2*s1^-1 + w*u*v*s2*s1^-1 + u*v*s1*s2
-        + ((-w)*u^2)*s1*s2*s1^-1 + ((-w)*u)*s1^-1*s2*s1
-        + ((-w)*u*v+(-2)*u+2*w*v)*s1*s2^-1 + w*u*s1*s2*s1^-1*s2 + ((-w)*v)*s2*s1^-1*s2
-        + ((-w^2)*v)*s1^-1*s2^-1 + ((-w^2)*u)*s1^-1*s2*s1^-1 + w^2*(s1^-1*s2)^2
+        ((-u^2*v*w^2-v^3*w^2+v^2*w^2-2*u*v*w+u^2)/w^2) + ((u^3*w-2*u*v*w+2*u^2)/w)*s2
+        + (u^2*w+v^2*w)*s2^-1 + ((u*v^2*w-2*v^2*w-u*w^2+2*u*v)/w)*s1 + u*v*s2*s1
+        + v^2*w*s1^-1 + u*v*w*s2*s1^-1 + u*v*s1*s2 + (-u^2*w)*s1*s2*s1^-1
+        + (-u*w)*s1^-1*s2*s1 + (-u*v*w+2*v*w-2*u)*s1*s2^-1 + u*w*s1*s2*s1^-1*s2
+        + (-v*w)*s2*s1^-1*s2 + (-v*w^2)*s1^-1*s2^-1 + (-u*w^2)*s1^-1*s2*s1^-1
+        + w^2*(s1^-1*s2)^2
         sage: B3 = CHA3.braid_group()
         sage: braid = B3((2,-1, 2, 1)); braid
         s2*s1^-1*s2*s1
@@ -563,15 +561,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     3. cubic Hecke algebra over the ring of definition using different variable names::
 
         sage: algebras.CubicHecke(3, cubic_equation_parameters='u, v, w', cubic_equation_roots='p, q, r')
-        Cubic Hecke algebra on 3 strands over Multivariate Polynomial Ring in u, v
-          over Univariate Laurent Polynomial Ring in w over Integer Ring
-            with cubic equation: h^3 - u*h^2 + v*h - w = 0
+        Cubic Hecke algebra on 3 strands over Multivariate Polynomial Ring in u, v, w
+          over Integer Ring localized at (w,) with cubic equation: h^3 - u*h^2 + v*h - w = 0
         sage: _.extension_ring()
         Splitting Algebra of T^2 + T + 1 with roots [E3, -E3 - 1]
-          over Splitting Algebra of h^3 - u*h^2 + v*h - w
-            with roots [p, q, -q - p + u]
-          over Multivariate Polynomial Ring in u, v
-          over Univariate Laurent Polynomial Ring in w over Integer Ring
+          over Splitting Algebra of h^3 - u*h^2 + v*h - w with roots [p, q, -q - p + u]
+          over Multivariate Polynomial Ring in u, v, w over Integer Ring localized at (w,)
 
     4. cubic Hecke algebra over a special base ring with respect to a special cubic equation::
 
@@ -1038,9 +1033,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
             sage: CHA3 = algebras.CubicHecke(3)
             sage: CHA3 # indirect doctest
-            Cubic Hecke algebra on 3 strands over Multivariate Polynomial Ring in u, v
-              over Univariate Laurent Polynomial Ring in w
-              over Integer Ring with cubic equation: h^3 - u*h^2 + v*h - w = 0
+            Cubic Hecke algebra on 3 strands over Multivariate Polynomial Ring in u, v, w
+              over Integer Ring localized at (w,) with cubic equation: h^3 - u*h^2 + v*h - w = 0
         """
         return "Cubic Hecke algebra on %s strands over %s with cubic equation: %s = 0"%(self.strands(), self.base_ring(), self.cubic_equation())
 
@@ -1093,10 +1087,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: braid = B3((1,2,2,-1,2,1,1,-1)); braid
             c0*c1^2*c0^-1*c1*c0
             sage: img_braid = CHA3(braid); img_braid
-            (u*v^2+(-w)*v)*c1^-1 + (u^2-v)*c1*c0 + u^2*v*c1*c0^-1 + (-u^3)*c0*c1*c0^-1
-            + (-u^2*v+w*u)*c0*c1^-1 + u^2*c0*c1*c0^-1*c1 + (-u*v)*c1*c0^-1*c1
-            + ((-w)*u*v+w^2)*c0^-1*c1^-1 + ((-w)*u^2)*c0^-1*c1*c0^-1
-            + w*u*(c0^-1*c1)^2 + u*v*c0*c1^-1*c0
+            (u*v^2-v*w)*c1^-1 + (u^2-v)*c1*c0 + u^2*v*c1*c0^-1 + (-u^3)*c0*c1*c0^-1
+            + (-u^2*v+u*w)*c0*c1^-1 + u^2*c0*c1*c0^-1*c1 + (-u*v)*c1*c0^-1*c1
+            + (-u*v*w+w^2)*c0^-1*c1^-1 + (-u^2*w)*c0^-1*c1*c0^-1 + u*w*(c0^-1*c1)^2
+            + u*v*c0*c1^-1*c0
             sage: cbraid = CB3(braid); cbraid
             c0*c1^2*c0^-1*c1*c0
             sage: img_cbraid = CHA3(cbraid); img_cbraid
@@ -1260,8 +1254,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
             sage: CHA2 = algebras.CubicHecke(2)
             sage: CHA2._dense_free_module()
-            Ambient free module of rank 3 over the integral domain Multivariate Polynomial Ring in u, v
-            over Univariate Laurent Polynomial Ring in w over Integer Ring
+            Ambient free module of rank 3
+              over the integral domain Multivariate Polynomial Ring in u, v, w
+              over Integer Ring localized at (w,)
         """
 
         if base_ring is None:
@@ -1345,7 +1340,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
             sage: CHA2 = algebras.CubicHecke(2)
             sage: CHA2.an_element()              # indirect doctest
-            ((w^-1)*u-v) + v*c
+            ((-v*w+u)/w) + v*c
         """
 
         n = self.ngens()+1
@@ -1806,14 +1801,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA3 = algebras.CubicHecke(3)
             sage: b1, b2 = CHA3.braid_group().gens(); br = ~b2*b1*~b2
             sage: CHA3._braid_image_from_filecache(br)
-            ((w^-1)*v)*c1^-1*c0 + ((-w^-1)*u)*c0*c1*c0^-1 + (w^-1)*c0*c1*c0^-1*c1
+            v/w*c1^-1*c0 + ((-u)/w)*c0*c1*c0^-1 + 1/w*c0*c1*c0^-1*c1
             sage: F = CHA3.base_ring().fraction_field()
             sage: par = tuple([F(p) for p in CHA3.cubic_equation_parameters()])
             sage: CHA3F = algebras.CubicHecke(3, cubic_equation_parameters=par)
-            doctest:...
-            UserWarning: Assuming h^3 - u*h^2 + v*h - w to have maximal Galois group!
             sage: CHA3F._braid_image_from_filecache(br)
-            ((w^-1)*v)*c1^-1*c0 + ((-w^-1)*u)*c0*c1*c0^-1 + (w^-1)*c0*c1*c0^-1*c1
+            v/w*c1^-1*c0 + ((-u)/w)*c0*c1*c0^-1 + 1/w*c0*c1*c0^-1*c1
             sage: CHA3.reset_filecache(CHA3.select_filecache_section().braid_images)
             sage: CHA3._braid_image_from_filecache(br)
         """
@@ -2191,7 +2184,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
             sage: CHA3 = algebras.CubicHecke(3)
             sage: CHA3._reduce_all_gen_powers((1, 1, -2, -2))
-            ([(w^-1)*u*v, (-w^-1)*v, (-w^-1)*v^2, (-w^-1)*u^2, (w^-1)*u, (w^-1)*u*v, -u, 1, v],
+            ([u*v/w, (-v)/w, (-v^2)/w, (-u^2)/w, u/w, u*v/w, -u, 1, v],
              [(), (2,), (-2,), (1,), (1, 2), (1, -2), (-1,), (-1, 2), (-1, -2)])
         """
 
@@ -2292,8 +2285,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
             sage: CHA2 = algebras.CubicHecke(2)
             sage: CHA2._reduce_gen_power(5)
-            (-u^3*v + 2*u*v^2 + w*u^2 + (-2*w)*v, u^4 + (-3)*u^2*v
-            + v^2 + 2*w*u, w*u^3 + (-2*w)*u*v + w^2)
+            (-u^3*v + 2*u*v^2 + u^2*w - 2*v*w, u^4 - 3*u^2*v
+            + v^2 + 2*u*w, u^3*w - 2*u*v*w + w^2)
         """
 
 
@@ -2368,7 +2361,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA3.inject_variables()
             Defining c0, c1
             sage: CHA3._mult_by_regular_rep(c0.to_vector(), (1, -2, -2), CHA3.repr_type.RegularRight)
-            ((w^-1)*u*v, (-w^-1)*u^2, -u, (-w^-1)*v, (-w^-1)*v^2, (w^-1)*u, (w^-1)*u*v, 1, v,
+            (u*v/w, (-u^2)/w, -u, (-v)/w, (-v^2)/w, u/w, u*v/w, 1, v,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
         verbose("Multiply %s (preimage %s) by %s using %s" %(vect, braid_preimage, gen_tuple, representation_type), level=2)
@@ -2689,7 +2682,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA3 = algebras.CubicHecke(3)
             sage: ele = CHA3.an_element()
             sage: ele_gar = CHA3.garside_involution(ele); ele_gar
-            ((w^-1)*u-v) + v*c1 + u*c0 + (-w)*c1*c0^-1
+            ((-v*w+u)/w) + v*c1 + u*c0 + (-w)*c1*c0^-1
             sage: ele == CHA3.garside_involution(ele_gar)
             True
         """
@@ -2729,7 +2722,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA3 = algebras.CubicHecke(3)
             sage: ele = CHA3.an_element()
             sage: ele_ori = CHA3.orientation_antiinvolution(ele); ele_ori
-            ((w^-1)*u-v) + u*c1 + v*c0 + (-w)*c1^-1*c0
+            ((-v*w+u)/w) + u*c1 + v*c0 + (-w)*c1^-1*c0
             sage: ele == CHA3.orientation_antiinvolution(ele_ori)
             True
         """
@@ -2773,7 +2766,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA3 = algebras.CubicHecke(3)
             sage: ele = CHA3.an_element()
             sage: ele_mirr = CHA3.mirror_isomorphism(ele); ele_mirr
-            ((-w^-1)*u+v) + ((w^-1)*v)*c1^-1 + ((w^-1)*u)*c0^-1 + (-w^-1)*c0^-1*c1
+            ((v*w-u)/w) + v/w*c1^-1 + u/w*c0^-1 - 1/w*c0^-1*c1
             sage: ele_mirr2 = ele.revert_mirror() # indirect doctest
             sage: ele_mirr == ele_mirr2
             True
@@ -2923,8 +2916,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA2.base_ring()
             Integer Ring localized at (2, 3, 5)
             sage: CHA2.base_ring(generic=True)
-            Multivariate Polynomial Ring in u, v
-              over Univariate Laurent Polynomial Ring in w over Integer Ring
+            Multivariate Polynomial Ring in u, v, w over Integer Ring localized at (w,)
         """
         if generic == True:
             return self._ring_of_definition
@@ -3031,8 +3023,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA2 = algebras.CubicHecke(2)
             sage: CHA2.braid_group_algebra()
             Algebra of Braid group on 2 strands
-            over Multivariate Polynomial Ring in u, v
-            over Univariate Laurent Polynomial Ring in w over Integer Ring
+             over Multivariate Polynomial Ring in u, v, w
+             over Integer Ring localized at (w,)
         """
         return self._braid_group_algebra
 
@@ -3046,8 +3038,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA2 = algebras.CubicHecke(2)
             sage: CHA2.cubic_braid_group_algebra()
             Algebra of Cubic Braid group on 2 strands
-            over Multivariate Polynomial Ring in u, v
-            over Univariate Laurent Polynomial Ring in w over Integer Ring
+             over Multivariate Polynomial Ring in u, v, w
+             over Integer Ring localized at (w,)
         """
         return self._cubic_braid_group_algebra
 
@@ -3134,14 +3126,13 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             h^3 - u*h^2 + v*h - w
             sage: CHA2m = CHA2.mirror_image()
             sage: cem =  CHA2m.cubic_equation(); cem
-            h^3 + ((-w^-1)*v)*h^2 + ((w^-1)*u)*h - w^-1
+            h^3 + ((-v)/w)*h^2 + u/w*h + (-1)/w
             sage: mi = CHA2.base_ring().mirror_involution(); mi
-            Ring endomorphism of Multivariate Polynomial Ring in u, v
-                                 over Univariate Laurent Polynomial Ring in w
-                                 over Integer Ring
-              Defn: u |--> (w^-1)*v
-                    v |--> (w^-1)*u
-                    with map of base ring
+            Ring endomorphism of Multivariate Polynomial Ring in u, v, w
+                                 over Integer Ring localized at (w,)
+              Defn: u |--> v/w
+                    v |--> u/w
+                    w |--> 1/w
             sage: cem == cem.parent()([mi(cf) for cf in ce.coefficients()])
             True
 
@@ -3155,8 +3146,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             True
             sage: a, b, c = CHA2.cubic_equation_roots()
             sage: CHA2m.cubic_equation_roots()
-            [(w^-1)*a^2 + ((-w^-1)*u)*a + (w^-1)*v,
-            ((-w^-1)*a)*b + (-w^-1)*a^2 + ((w^-1)*u)*a, ((w^-1)*a)*b]
+            [((-1)/(-w))*a^2 + (u/(-w))*a + (-v)/(-w),
+             ((1/(-w))*a)*b + (1/(-w))*a^2 + ((-u)/(-w))*a,
+             (((-1)/(-w))*a)*b]
             sage: ai, bi, ci = _
             sage: ai == ~a, bi == ~b, ci == ~c
             (True, True, True)
@@ -3254,7 +3246,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA3 = algebras.CubicHecke(3)       # optional gap3
             sage: sch_eles = CHA3.schur_elements()    # optional gap3
             sage: sch_eles[6]                         # optional gap3
-            (w^-1)*u^3 + (w^-2)*v^3 + (-6*w^-1)*u*v + 8
+            (u^3*w + v^3 - 6*u*v*w + 8*w^2)/w^2
         """
         gap3_result    = self.chevie().SchurElements()
         GER = self.extension_ring(generic=True)
@@ -3289,7 +3281,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
             sage: CHA3 = algebras.CubicHecke(3)                 # optional gap3
             sage: CHA3.schur_element(CHA3.irred_repr.W3_111)    # optional gap3
-            (w^-1)*u^3 + (w^-2)*v^3 + (-6*w^-1)*u*v + 8
+            (u^3*w + v^3 - 6*u*v*w + 8*w^2)/w^2
         """
         if not isinstance(item, AbsIrreducibeRep):
             raise ValueError('item must be an instance of %s' %(AbsIrreducibeRep))
@@ -3388,6 +3380,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         return [self._class_function(irrs[i]) for i in range(len(irrs))]
 
 
+    @cached_method
     def _markov_vars(self):
         r"""
         """
@@ -3410,6 +3403,37 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         sub_vars.update(new_vars)
         return sub_vars, new_vars
 
+    def _markov_trace_embedding(self, extension_ring=False):
+        r"""
+        """
+        if extension_ring:
+            ER = self.extension_ring(generic=True)
+            from sage.rings.number_field.number_field import CyclotomicField
+            C3 = CyclotomicField(3)
+
+            all_vars, new_vars = self._markov_vars()
+            var = ER.variable_names()
+            all_var = tuple(all_vars.keys())
+
+            P = C3[var + ('s',) + all_var]
+            F = P.fraction_field()
+            a, b, c, s, *remain, = F.gens()
+            return ER.hom((F(C3.gen()), a, b, c))
+        else:
+            BR = self.base_ring(generic=True)
+            BB = BR.base_ring()
+            var = BR.variable_names() + BB.variable_names()
+            all_vars, new_vars =self._markov_vars()
+            P = ZZ[var +('s',) + tuple(all_vars.keys())]
+            u, v, w, s, *remain = P.gens()
+            L = P.localization((v, w, s))
+            u, v, w, s, *remain = L.gens()
+            L = BR.create_specialization((u, v, w))
+            return L.convert_map_from(BR)
+
+
+
+    @cached_method
     def _markov_trace_embedding(self, extension_ring=False):
         r"""
         """

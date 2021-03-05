@@ -82,7 +82,12 @@ def convert_poly_to_dict_recursive(ring_elem):
     else:
         if ring_elem in ZZ:
             return int(ring_elem)
-        return ring_elem
+        elif hasattr(ring_elem, 'numerator'):
+            # treat the case of elements of localization and fraction fields
+            dict_res['n'] = convert_poly_to_dict_recursive(ring_elem.numerator())
+            dict_res['d'] = convert_poly_to_dict_recursive(ring_elem.denominator())
+        else:
+            return ring_elem
     return dict_res
 
 
@@ -680,11 +685,11 @@ class CubicHeckeDataBase(SageObject):
         rep_list = self.read(representation_type.data_filename(), nstrands=nstrands)
         if gen_ind > 0 :
             rep_list = [rep_list[GenSign.pos][i] for i in range(num_rep)]
-            matrix_list = [matrix(ring_of_definition, rep[gen_ind-1 ], sparse=True) for rep in rep_list]
+            matrix_list = [matrix(ring_of_definition, rep[gen_ind-1], sparse=True) for rep in rep_list]
         else:
             # data of inverse of generators is stored under negative strand-index
             rep_list = [rep_list[GenSign.neg][i] for i in range(num_rep) ]
-            matrix_list = [matrix(ring_of_definition, rep[-gen_ind-1 ], sparse=True) for rep in rep_list]
+            matrix_list = [matrix(ring_of_definition, rep[-gen_ind-1], sparse=True) for rep in rep_list]
         for m in matrix_list: m.set_immutable()
         return matrix_list
 

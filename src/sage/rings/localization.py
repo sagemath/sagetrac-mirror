@@ -618,6 +618,14 @@ class Localization(IntegralDomain, UniqueRepresentation):
         ValueError: factor x^2 + 2 of denominator is not a unit
 
     More examples will be shown typing ``sage.rings.localization?``
+
+    TESTS:
+
+    Check that :trac:`????2` is fixed::
+
+        sage: R = ZZ.localization(5)
+        sage: R.localization(~5)
+        Integer Ring localized at (5,)
     """
 
     Element = LocalizationElement
@@ -642,6 +650,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
         if isinstance(base_ring, Localization):
             # don't allow recursive constructions
+            additional_units = [au for au in additional_units if not ~au in base_ring._additional_units] # :trac:`????2`
             additional_units += base_ring._additional_units
             base_ring = base_ring.base_ring()
 
