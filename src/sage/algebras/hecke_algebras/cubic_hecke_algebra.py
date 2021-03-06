@@ -1143,7 +1143,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                     img_xbv = vector([self.base_ring()(cf) for cf in xbv ])
                     return self.from_vector(img_xbv)
                 elif other_ngens < ngens:
-                    SubAlg = SubAlg = self.cubic_hecke_subalgebra(other_ngens+1)
+                    SubAlg = self.cubic_hecke_subalgebra(other_ngens+1)
                     return self(SubAlg(xb))
 
             elif other_ngens < ngens and OtherCHA.cubic_equation_parameters() == self.cubic_equation_parameters():
@@ -3093,8 +3093,11 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         GensRed = tuple([Gens[i] for i in gen_range])
 
-        SubHeckeAlg = CubicHeckeAlgebra(names=GensRed, cubic_equation_parameters=tuple(self._cubic_equation_parameters),
-                      cubic_equation_roots=tuple(self._cubic_equation_roots))
+        if self.base_ring() == self.base_ring(generic=True):
+            SubHeckeAlg = CubicHeckeAlgebra(names=GensRed)
+        else:
+            SubHeckeAlg = CubicHeckeAlgebra(names=GensRed, cubic_equation_parameters=tuple(self._cubic_equation_parameters),
+                          cubic_equation_roots=tuple(self._cubic_equation_roots))
 
         if nstrands == self.strands() -1 :
             self._cubic_hecke_subalgebra = SubHeckeAlg
@@ -3380,7 +3383,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         return [self._class_function(irrs[i]) for i in range(len(irrs))]
 
 
-    @cached_method
     def _markov_vars(self):
         r"""
         """
@@ -3421,8 +3423,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             return ER.hom((F(C3.gen()), a, b, c))
         else:
             BR = self.base_ring(generic=True)
-            BB = BR.base_ring()
-            var = BR.variable_names() + BB.variable_names()
+            var = BR.base_ring().variable_names()
             all_vars, new_vars =self._markov_vars()
             P = ZZ[var +('s',) + tuple(all_vars.keys())]
             u, v, w, s, *remain = P.gens()
@@ -3430,38 +3431,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             u, v, w, s, *remain = L.gens()
             L = BR.create_specialization((u, v, w))
             return L.convert_map_from(BR)
-
-
-
-    @cached_method
-    def _markov_trace_embedding(self, extension_ring=False):
-        r"""
-        """
-        if extension_ring:
-            ER = self.extension_ring(generic=True)
-            from sage.rings.number_field.number_field import CyclotomicField
-            C3 = CyclotomicField(3)
-
-            all_vars, new_vars = self._markov_vars()
-            var = ER.variable_names()
-            all_var = tuple(all_vars.keys())
-
-            P = C3[var + ('s',) + all_var]
-            F = P.fraction_field()
-            a, b, c, s, *remain, = F.gens()
-            return ER.hom((F(C3.gen()), a, b, c))
-        else:
-            BR = self.base_ring(generic=True)
-            BB = BR.base_ring()
-            var = BR.variable_names() + BB.variable_names()
-            all_vars, new_vars =self._markov_vars()
-            P = ZZ[var +('s',) + tuple(all_vars.keys())]
-            u, v, w, s, *remain = P.gens()
-            L = P.localization((v, w, s))
-            u, v, w, s, *remain = L.gens()
-            L = BR.create_specialization((u, v, w))
-            return L.convert_map_from(BR)
-
 
 
     @cached_method
