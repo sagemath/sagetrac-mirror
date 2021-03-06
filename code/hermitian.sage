@@ -10,10 +10,10 @@ magma.attach_spec(dire+"/unit_quotients/lat.spec")
 from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
 attach("lattice_with_isometry.sage")
 
-# E0.<a> = CyclotomicField(4)
-# K0.<b>, phi0 = E0.subfield(a + a**-1)
-# p0 = K0.primes_above(2)[0]
-# Erel0.<a0> = E0.relativize(phi0)
+#E0.<a> = CyclotomicField(4)
+#K0.<b>, phi0 = E0.subfield(a + a**-1)
+#p0 = K0.primes_above(2)[0]
+#Erel0.<a0> = E0.relativize(phi0)
 
 my_gram_str = """my_gram:=function(L)
     E:=BaseRing(L);
@@ -465,7 +465,12 @@ class GenusHermitian(object):
         """
         m = magma
         Em = m(self._phi.codomain())
-        Km = Em.sub(Em.1 + Em.1**-1)
+        d = self._Erel.absolute_degree()
+        if d == 2:
+          Km = m.RationalsAsNumberField()
+          m.IsSubfield(Km,Em)
+        else:
+          Km = Em.sub(Em.1 + Em.1**-1)
         E = m.RelativeField(Km, Em)
         P = self.non_norm_primes()
         O = Km.Integers()
@@ -484,7 +489,7 @@ class GenusHermitian(object):
             g = m(g).ChangeRing(E)
             L = m.HermitianLattice(g)
             pm = self._ideal_to_magma(Km, p)
-            if Km.sage() == QQ:
+            if d == 2:
                 pm = gcd([ZZ(a) for a in p.gens()])
             M = m.FindLattice(M, L, pm)
         return M
