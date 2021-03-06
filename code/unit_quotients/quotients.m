@@ -309,7 +309,11 @@ intrinsic get_the_group(L) -> Any
   E := NumberField(OE);
   K := BaseField(E);
   OK := MaximalOrder(K);
-  D := Different(MaximalOrder(E)) * Different(MaximalOrder(K));
+  if IsAbsoluteField(E) then
+    D := Different(MaximalOrder(E));
+  else
+    D := Different(MaximalOrder(E)) * Different(MaximalOrder(K));
+  end if;
   I := &*ElementaryDivisors(Module(D^-1*LD), Module(L));
   Fac := Factorization(I);
   S := Set([Factorization(Norm(Fac[i][1]))[1][1] : i in [1..#Fac]]);
