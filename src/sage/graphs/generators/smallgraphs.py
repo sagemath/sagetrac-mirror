@@ -5086,23 +5086,27 @@ def U42Graph216():
 
     GapPackage("grape", spkg="gap_packages").require()
 
-    adj_list = libgap.function_factory("""function()
-                local gg, hl, o216, a216, x, h, re, G;
-                LoadPackage("grape");
-                gg:=SpecialUnitaryGroup(4,2);
-                hl:=Z(2)*[
-                [0,0,1,0],
-                [1,1,0,0],
-                [0,1,0,1],
-                [0,1,1,0],
-                [1,1,0,1]];
-                o216:=Orbit(gg,Set(hl),OnSets);
-                a216:=Action(gg,o216,OnSets);
-                h:=Stabilizer(a216,1);
-                re:=Filtered(Orbits(h,[1..216]),x->Length(x)=20);
-                G:=EdgeOrbitsGraph(a216, [[1,re[1][1]], [1,re[2][1]]]);
-                return List([1..216],x->Adjacency(G,x));
-                end;""")
+    @libgap.gap_function
+    def adj_list():
+        """
+        function()
+            local gg, hl, o216, a216, x, h, re, G;
+            LoadPackage("grape");
+            gg:=SpecialUnitaryGroup(4,2);
+            hl:=Z(2)*[
+            [0,0,1,0],
+            [1,1,0,0],
+            [0,1,0,1],
+            [0,1,1,0],
+            [1,1,0,1]];
+            o216:=Orbit(gg,Set(hl),OnSets);
+            a216:=Action(gg,o216,OnSets);
+            h:=Stabilizer(a216,1);
+            re:=Filtered(Orbits(h,[1..216]),x->Length(x)=20);
+            G:=EdgeOrbitsGraph(a216, [[1,re[1][1]], [1,re[2][1]]]);
+            return List([1..216],x->Adjacency(G,x));
+        end;
+        """
 
     adj = adj_list() # for each vertex, we get the list of vertices it is adjacent to
     G = Graph(((i, int(j - 1))
@@ -5134,18 +5138,22 @@ def U42Graph540():
 
     GapPackage("grape", spkg="gap_packages").require()
 
-    adj_list=libgap.function_factory("""function()
-                local f, o540, a540, x, oh, h, lo, G;
-                LoadPackage("grape");
-                f:=Sp(4,3);
-                o540:=Orbit(f,Z(3)^0*[1,0,0,Z(9)],OnLines);
-                a540:=Action(f,o540,OnLines);
-                h:=Stabilizer(a540,1);
-                oh:=Orbits(h,[1..540]);
-                lo:=List([8,9,10,11,12,16,19,22,23,24],x->[1,oh[x+1][1]]);
-                G:=EdgeOrbitsGraph(a540,lo);
-                return List([1..540],x->Adjacency(G,x));
-                end;""")
+    @libgap.gap_function
+    def adj_list():
+        """
+        function()
+            local f, o540, a540, x, oh, h, lo, G;
+            LoadPackage("grape");
+            f:=Sp(4,3);
+            o540:=Orbit(f,Z(3)^0*[1,0,0,Z(9)],OnLines);
+            a540:=Action(f,o540,OnLines);
+            h:=Stabilizer(a540,1);
+            oh:=Orbits(h,[1..540]);
+            lo:=List([8,9,10,11,12,16,19,22,23,24],x->[1,oh[x+1][1]]);
+            G:=EdgeOrbitsGraph(a540,lo);
+            return List([1..540],x->Adjacency(G,x));
+        end;
+        """
 
     adj = adj_list()  # for each vertex, we get the list of vertices it is adjacent to
     G = Graph(((i, int(j - 1))
