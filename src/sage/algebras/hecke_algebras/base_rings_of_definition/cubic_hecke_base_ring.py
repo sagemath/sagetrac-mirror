@@ -810,7 +810,6 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 # This class inherits from UniqueRepresentation since otherwise an error occurs when a second instance
 # is declared. This error occurs in as_splitting_algebra of the associated extension ring.
 # --------------------------------------------------------------------------------------------------------
-#class CubicHeckeRingOfDefinition(Localization, UniqueRepresentation):
 class CubicHeckeRingOfDefinition(Localization):
     r"""
     This class implements the *ring of definition* of the cubic Hecke algebra.

@@ -1026,9 +1026,9 @@ class CubicHeckeFileCache(SageObject):
             sage: m = gi.matrix(representation_type=rt.RegularRight)
             sage: cha_fc.read_matrix_representation(rt.RegularRight, git, R)
             [
-            [        0         1 (-w^-1)*u]
-            [        0         0      w^-1]
-            [        1         0  (w^-1)*v]
+            [     0      1 (-u)/w]
+            [     0      0    1/w]
+            [     1      0    v/w]
             ]
             sage: CHA2.reset_filecache(cha_fc.section.matrix_representations)
             sage: cha_fc.read_matrix_representation(rt.RegularLeft, git, R) == None
@@ -1120,10 +1120,10 @@ class CubicHeckeFileCache(SageObject):
             sage: B2 = BraidGroup(2)
             sage: b, = B2.gens(); b3 = b**3
             sage: b3_img = CHA2(b3); b3_img
-            (-u*v+w) + (u^2-v)*c + w*u*c^-1
+            (-u*v+w) + (u^2-v)*c + u*w*c^-1
             sage: cha_fc.write_braid_image(b3.Tietze(), b3_img.to_vector())
             sage: cha_fc.read_braid_image(b3.Tietze(), ring_of_definition)
-            (-u*v + w, u^2 - v, w*u)
+            (-u*v + w, u^2 - v, u*w)
             sage: cha_fc.reset_library(CubicHeckeFileCache.section.braid_images)
             sage: cha_fc.write(CubicHeckeFileCache.section.braid_images)
             sage: cha_fc.is_empty(CubicHeckeFileCache.section.braid_images)
