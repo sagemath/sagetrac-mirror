@@ -27,16 +27,11 @@ from sage.libs.gap.libgap import libgap
 from sage.libs.gap.saved_workspace import workspace
 
 
-# TODO: These functions should be deprecated and/or where possible rewritten
-# as methods on the Gap class.
+# NOTE: This module as well as all_documented_functions are not used by
+# Sage and should probably be deprecated: https://groups.google.com/g/sage-devel/c/iPTfFXUk8XU/m/UX3qr42xAQAJ
+# Alternatively: Use it as the basis for a script that will be used to generate
+# gap_globals.
 
-
-NamesGVars = libgap.function_factory('NamesGVars')
-Filtered = libgap.function_factory('Filtered')
-ValueGlobal = libgap.function_factory('ValueGlobal')
-IsBoundGlobal = libgap.function_factory('IsBoundGlobal')
-IsFunction = libgap.function_factory('IsFunction')
-IsDocumentedWord = libgap.function_factory('IsDocumentedWord')
 
 
 def load_or_compute(name, function):
@@ -110,8 +105,8 @@ def list_globals():
         True
     """
     gvars = set(
-        name.sage() for name in NamesGVars()
-        if IsBoundGlobal(name)
+        name.sage() for name in libgap.NamesGVars()
+        if libgap.IsBoundGlobal(name)
     )
     gvars.difference_update(KEYWORDS)
     return tuple(sorted(gvars))
@@ -137,7 +132,7 @@ def list_functions():
         True
     """
     fnames = set(GLOBALS).difference(KEYWORDS)
-    documented = Filtered(list(fnames), IsDocumentedWord)
+    documented = libgap.Filtered(list(fnames), libgap.IsDocumentedWord)
     return tuple(sorted(documented.sage()))
 
 

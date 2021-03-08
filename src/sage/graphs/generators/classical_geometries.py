@@ -1264,30 +1264,35 @@ def CossidentePenttilaGraph(q):
     GapPackage("grape", spkg="gap_packages").require()
 
     from sage.libs.gap.libgap import libgap
-    adj_list=libgap.function_factory("""function(q)
-        local z, e, so, G, nu, G1, G0, B, T, s, O1, O2, x;
-        LoadPackage("grape");
-        G0:=SO(3,q^2);
-        so:=GeneratorsOfGroup(G0);
-        G1:=Group(Comm(so[1],so[2]),Comm(so[1],so[3]),Comm(so[2],so[3]));
-        B:=InvariantBilinearForm(G0).matrix;
-        z:=Z(q^2); e:=z; sqo:=(q^2-1)/2;
-        if IsInt(sqo/Order(e^2+z^0)) then
-            e:=z^First([2..q^2-2], x-> not IsInt(sqo/Order(z^(2*x)+z^0)));
-        fi;
-        nu:=z^First([0..q^2-2], x->z^x*(e^2+z^0)+(z^x*(e^2+z^0))^q=0*z);
-        T:=function(x)
-            local r;
-            r:=nu*x*B*x;
-            return r+r^q;
+
+    @libgap.gap_function
+    def adj_list(q):
+        """
+        function(q)
+            local z, e, so, G, nu, G1, G0, B, T, s, O1, O2, x;
+            LoadPackage("grape");
+            G0:=SO(3,q^2);
+            so:=GeneratorsOfGroup(G0);
+            G1:=Group(Comm(so[1],so[2]),Comm(so[1],so[3]),Comm(so[2],so[3]));
+            B:=InvariantBilinearForm(G0).matrix;
+            z:=Z(q^2); e:=z; sqo:=(q^2-1)/2;
+            if IsInt(sqo/Order(e^2+z^0)) then
+                e:=z^First([2..q^2-2], x-> not IsInt(sqo/Order(z^(2*x)+z^0)));
+            fi;
+            nu:=z^First([0..q^2-2], x->z^x*(e^2+z^0)+(z^x*(e^2+z^0))^q=0*z);
+            T:=function(x)
+                local r;
+                r:=nu*x*B*x;
+                return r+r^q;
+            end;
+            s:=Group([Z(q)*IdentityMat(3,GF(q))]);
+            O1:=Orbit(G1, Set(Orbit(s,z^0*[1,0,0])), OnSets);
+            O2:=Orbit(G1, Set(Orbit(s,z^0*[1,1,e])), OnSets);
+            G:=Graph(G1,Concatenation(O1,O2),OnSets,
+                function(x,y) return x<>y and 0*z=T(x[1]+y[1]); end);
+            return List([1..OrderGraph(G)],x->Adjacency(G,x));
         end;
-        s:=Group([Z(q)*IdentityMat(3,GF(q))]);
-        O1:=Orbit(G1, Set(Orbit(s,z^0*[1,0,0])), OnSets);
-        O2:=Orbit(G1, Set(Orbit(s,z^0*[1,1,e])), OnSets);
-        G:=Graph(G1,Concatenation(O1,O2),OnSets,
-            function(x,y) return x<>y and 0*z=T(x[1]+y[1]); end);
-        return List([1..OrderGraph(G)],x->Adjacency(G,x));
-        end;""")
+        """
 
     adj = adj_list(q) # for each vertex, we get the list of vertices it is adjacent to
     G = Graph(((i,int(j-1))

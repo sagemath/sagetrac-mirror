@@ -21,4 +21,4 @@ from sage.libs.gap.assigned_names import FUNCTIONS as _FUNCTIONS
 
 
 for _f in _FUNCTIONS:
-    globals()[_f] = libgap.function_factory(_f)
+    globals()[_f] = getattr(libgap, _f)
