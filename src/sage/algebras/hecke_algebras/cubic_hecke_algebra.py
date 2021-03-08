@@ -72,7 +72,7 @@ We verify that the third power of it is a scalar multiple of itself (explicitly 
     sage: b3 = b2*b
     sage: BR = CHA3.base_ring()
     sage: ER = CHA3.extension_ring()
-    sage: u, v, w = BR.gens_over_ground()
+    sage: u, v, w = BR.gens()
     sage: f =  BR(b3.coefficients()[0]/w)
     sage: try:
     ....:     sh = CHA3.schur_element(CHA3.irred_repr.W3_111)
@@ -778,7 +778,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # ---------------------------------------------------------------------------------
         # ---------------------------------------------------------------------------------
         ring_of_definition = CubicHeckeRingOfDefinition(names=ring_of_definition_names)
-        u, v, w = ring_of_definition.gens_over_ground()
+        u, v, w = ring_of_definition.gens()
 
         generic_extension_ring = ring_of_definition.extension_ring(names=generic_extension_ring_names)
         a, b, c = generic_extension_ring.gens()
@@ -2824,7 +2824,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         BaseRing = self.base_ring(generic=generic)
 
         if generic == True:
-            u, v, w = BaseRing.gens_over_ground()
+            u, v, w = BaseRing.gens()
         else:
             u, v, w = self._cubic_equation_parameters
 
@@ -3323,7 +3323,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if self.base_ring() == R:
             P = PolynomialRing(ZZ, 3, 'p')
             L = R.create_specialization(P.gens())
-            phi = L.hom(R.gens_over_ground())
+            phi = L.hom(R.gens())
         else:
             L = self.base_ring()
             from sage.categories.homset import Hom
@@ -3534,7 +3534,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         a, b, c, s, *remain, = F.gens()
 
         BR = self.base_ring(generic=True)
-        img_ER = [emb_ER(ER(v)) for v in BR.gens_over_ground()]
+        img_ER = [emb_ER(ER(v)) for v in BR.gens()]
         img = tuple(img_ER) + (s,) + tuple([remain[i] for i in range(len(remain)-len(new_var))])
         emb_subR = subR.hom(img)
 

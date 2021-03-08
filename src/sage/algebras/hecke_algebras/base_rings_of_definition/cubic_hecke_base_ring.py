@@ -829,7 +829,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
         sage: BR = chbr.CubicHeckeRingOfDefinition()
-        sage: u, v, w = BR.gens_over_ground()
+        sage: u, v, w = BR.gens()
         sage: ele = 3*u*v-5*w**(-2)
         sage: ER = BR.extension_ring()
         sage: ER(ele)
@@ -949,7 +949,7 @@ class CubicHeckeRingOfDefinition(Localization):
             (u^2 + v*w)/w
         """
 
-        u, v, w = self.gens_over_ground()
+        u, v, w = self.gens()
         return u**2/w+v
 
 
@@ -970,22 +970,6 @@ class CubicHeckeRingOfDefinition(Localization):
     # ---------------------------------------------------------------------------------------------------------------------
     #######################################################################################################################
 
-    def gens_over_ground(self):
-        r"""
-        Return the generators of self over the ground ring. These are the generators of self over the base ring (u, v)
-        together with the generator of the base ring over the ground ring (w).
-
-        EXAMPLES::
-
-            sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
-            sage: BR = chbr.CubicHeckeRingOfDefinition(names='A, B, C')
-            sage: BR.gens_over_ground()
-            (A, B, C)
-
-        """
-        return self.gens()
-
-
     def cubic_equation(self, var='h', as_coefficients=False):
         r"""
         Return the cubic equation over which the cubic Hecke algebra is defined.
@@ -1001,7 +985,7 @@ class CubicHeckeRingOfDefinition(Localization):
             sage: BR.cubic_equation(as_coefficients=True)
             [-w, v, -u, 1]
         """
-        u, v, w = self.gens_over_ground()
+        u, v, w = self.gens()
         cf = [-w, v, -u, 1]
         if as_coefficients == True:
             return cf
@@ -1052,7 +1036,7 @@ class CubicHeckeRingOfDefinition(Localization):
         """
 
         if self._mirror == None:
-            u, v, w = self.gens_over_ground()
+            u, v, w = self.gens()
             self._mirror = self.hom([v/w, u/w, ~w])
 
         return self._mirror
@@ -1120,7 +1104,7 @@ class CubicHeckeRingOfDefinition(Localization):
         # ---------------------------------------------------------------------------------------------------------
         # short exit on trivial invocation
         # ---------------------------------------------------------------------------------------------------------
-        if image_ring_base is self and im_cubic_equation_parameters == self.gens_over_ground():
+        if image_ring_base is self and im_cubic_equation_parameters == self.gens():
             return self
 
         image_ring = get_coercion_model().common_parent(*(im_cubic_equation_parameters))
