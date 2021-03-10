@@ -4408,6 +4408,8 @@ const numeric numeric::iquo(const numeric &b, numeric& r) const {
 
 const numeric numeric::gcd(const numeric &B) const
 {
+        // The gcd of two rational numbers p and q is the largest number d,
+        // such that p/d and q/d are integers (except that gcd(0,0) is 0).
         if (is_zero())
                 return B.abs();
         if (B.is_zero())
@@ -4421,8 +4423,6 @@ const numeric numeric::gcd(const numeric &B) const
                 b = B.negative();
         else
                 b = B;
-        if (a.is_one() or b.is_one())
-                return *_num1_p;
 
         switch (a.t) {
         case LONG:
