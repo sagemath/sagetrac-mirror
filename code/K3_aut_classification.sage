@@ -146,8 +146,9 @@ class K3SurfaceAutGrp(object):
     def transcendental_lattice(self):
         r"""
         """
-        R.<x> = QQ[]
-        cn = cyclotomic_polynomial(self.n,x)
+        R = PolynomialRing(QQ,"x")
+        x = R.gen()
+        cn = cyclotomic_polynomial(self.n,'x')
         g = self.g
         S = self.symplectic_invariant_lattice()
         K = self.H.kernel_sublattice(cn(g))
@@ -324,8 +325,59 @@ def classify_ord_pe_parallel(L, p, e, file_name,rw,verbose=False):
                     not_realized.append([fix,a])
     return classifi, not_realized
 
+def classify_purely_ns_pn(p,e,file_name,rw="w",verbose=True):
+    classifi = []
+    result = open(file_name,rw)
+    result.close()
+    not_realized = []
+    g = genera((3,19),1,1,even=true)[0]
+    for A, a, Oa in k3_prime_power(g, p, e,verbose=verbose):
+        aut = K3SurfaceAutGrp(A,A.orthogonal_group([]),a,p^e)
+        classifi.append(aut)
+        s = aut.str()
+        result = open(file_name,"a")
+        result.write(s+ "\n")
+        result.close()
+    return classifi
+
+def classify_purely_ns_peq(p, q ,file_r, file_aw,aw="w",verbose=2):
+    classifi = []
+    peactions = open(file_r,'r')
+    result = open(file_aw,aw)
+    result.close()
+    not_realized = []
+    k = 0
+    types = []
+    for str_pe in peactions:
+        k+=1
+        print(k)
+        k3 = aut_from_str(str_pe)
+        L = k3.symplectic_invariant_lattice()
+        if k3.NS_coinvariant().maximum() == -2:
+            # the isometry is obstructed
+            continue
+        f = k3.g
+        assert p == k3.n.prime_factors()[0]
+        typ = ptype(L,f,p)
+        if typ in types:
+            continue
+        types.append(typ)
+        g = genera((3,19),1,1,even=true)[0]
+        for A, a, Oa in pnq_actions(q, typ, verbose=verbose):
+            n = a.change_ring(ZZ).multiplicative_order()
+            aut = K3SurfaceAutGrp(A, A.orthogonal_group([]), a, n)
+            classifi.append(aut)
+            s = aut.str()
+            result = open(file_aw,"a")
+            result.write(s+ "\n")
+            result.close()
+    return classifi
+
 
 def classify_ord_peq(p, q, file_r, file_aw,aw='w',verbose=2):
+    r"""
+    file_r contains the p^e actions
+    """
     classifi = []
     peactions = open(file_r,'r')
     result = open(file_aw,aw)

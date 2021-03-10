@@ -312,8 +312,8 @@ def Oq_equiv_herm(L,f, G, Lh):
     #gens_matE = []
     #gens_mat.append(f)
     #gens_matE.append(E.gen()*matrix.identity(E,n))
-    gens = [Oqf(on_disc(D,f))]
-    dets = [E.gen()^n]
+    gens = [Oqf(on_disc(D,f)), Oqf(on_disc(D,-f^0))]
+    dets = [E.gen()^n, E(-1)^n]
     S = Oqf.subgroup(gens)
     omega = skew_element(E)
     # create random reflections and eichler isometries until we generate U(L^vee/L)
