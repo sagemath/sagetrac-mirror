@@ -331,8 +331,6 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.groups.perm_gps.permgroup import load_hap
 from sage.arith.misc import xgcd
-from . import matrix_morphism
-
 
 def GLattice(*args, **kwds):
     r"""
@@ -866,7 +864,7 @@ class Lattice_generic(FreeModule_generic):
 
     def surjection_from_square(self):
         """
-        Returns the natural map from the direct sum of the lattice with itself given by sending the direct sum 
+        Return the natural map from the direct sum of the lattice with itself given by sending the direct sum 
         to the sum.
 
         EXAMPLES::
@@ -1204,7 +1202,7 @@ class Lattice_generic(FreeModule_generic):
             [0 0 0|0 1 0], [1 0 0|0 0 0]
             ]
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(L1.Tate_Cohomology(i)))
+            ....:     print("H^"+str(i)+": "+str(L1.Tate_Cohomology(i))) # optional - gap_packages
             H^-5:  []
             H^-4:  [2]
             H^-3:  []
@@ -1217,7 +1215,7 @@ class Lattice_generic(FreeModule_generic):
             H^4:  [2]
             H^5:  []
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(L3.Tate_Cohomology(i)))
+            ....:     print("H^"+str(i)+": "+str(L3.Tate_Cohomology(i))) # optional - gap_packages
             H^-5:  []
             H^-4:  []
             H^-3:  []
@@ -1328,7 +1326,7 @@ class Lattice_generic(FreeModule_generic):
 
     def ambient_lattice(self):
         r"""
-        Returns this lattice; for compatibility with the corresponding method of sublattices.
+        Return this lattice; for compatibility with the corresponding method of sublattices.
 
         EXAMPLES::
 
@@ -1640,7 +1638,7 @@ class Lattice_generic(FreeModule_generic):
             sage: act2 = matrix.identity(3)
             sage: L1 = GLattice(G, [act1, act2])
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(L1.Tate_Cohomology(i)))
+            ....:     print("H^"+str(i)+": "+str(L1.Tate_Cohomology(i))) # optional - gap_packages
             H^-5:  []
             H^-4:  [2]
             H^-3:  []
@@ -1657,7 +1655,7 @@ class Lattice_generic(FreeModule_generic):
 
             sage: L2 = GLattice(SymmetricGroup(3), 4)
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(L2.Tate_Cohomology(i)))
+            ....:     print("H^"+str(i)+": "+str(L2.Tate_Cohomology(i))) # optional - gap_packages
             H^-5:  []
             H^-4:  [6, 6, 6, 6]
             H^-3:  []
@@ -1677,7 +1675,7 @@ class Lattice_generic(FreeModule_generic):
             sage: m3 = matrix(3, [0, 1, 0, 1, 0, 0, -1, -1, -1])
             sage: L3 = GLattice([m1, m2, m3])
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(L3.Tate_Cohomology(i)))
+            ....:     print("H^"+str(i)+": "+str(L3.Tate_Cohomology(i))) # optional - gap_packages
             H^-5:  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
             H^-4:  [2, 2, 2, 2, 2, 2, 2, 2]
             H^-3:  [2, 2, 2, 2, 2, 2]
@@ -1696,7 +1694,7 @@ class Lattice_generic(FreeModule_generic):
             sage: mat = matrix(2, [0, 1, 1, 0])
             sage: L = GLattice(G, [mat])
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(L.Tate_Cohomology(i)))
+            ....:     print("H^"+str(i)+": "+str(L.Tate_Cohomology(i))) # optional - gap_packages
             H^-5:  []
             H^-4:  [29]
             H^-3:  []
@@ -1714,7 +1712,7 @@ class Lattice_generic(FreeModule_generic):
             sage: L = GLattice(DihedralGroup(4), 4)
             sage: SL = L.zero_sum_sublattice()
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(SL.Tate_Cohomology(i)))
+            ....:     print("H^"+str(i)+": "+str(SL.Tate_Cohomology(i))) # optional - gap_packages
             H^-5:  [2, 2, 2, 2, 2, 2]
             H^-4:  [2, 2, 2, 2, 2, 2, 4, 4, 4]
             H^-3:  [2, 2, 2]
@@ -1734,7 +1732,7 @@ class Lattice_generic(FreeModule_generic):
             sage: m2 = -matrix.identity(2)
             sage: L = GLattice(G, [m1, m2])
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(L.Tate_Cohomology(i)))
+            ....:     print("H^"+str(i)+": "+str(L.Tate_Cohomology(i))) # optional - gap_packages
             H^-5:  [2, 2, 2]
             H^-4:  [2, 2]
             H^-3:  [2, 2]
@@ -1750,7 +1748,7 @@ class Lattice_generic(FreeModule_generic):
             sage: a,b = L.basis()
             sage: SL2 = L.sublattice([a+b])
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(SL1.Tate_Cohomology(i)))
+            ....:     print("H^"+str(i)+": "+str(SL1.Tate_Cohomology(i))) # optional - gap_packages
             H^-5:  [2, 2, 2]
             H^-4:  [2, 2]
             H^-3:  [2, 2]
@@ -1763,7 +1761,7 @@ class Lattice_generic(FreeModule_generic):
             H^4:  [2, 2]
             H^5:  [2, 2, 2]
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(SL2.Tate_Cohomology(i)))
+            ....:     print("H^"+str(i)+": "+str(SL2.Tate_Cohomology(i))) # optional - gap_packages
             H^-5:  [2, 2, 2]
             H^-4:  [2, 2]
             H^-3:  [2, 2]
@@ -1851,7 +1849,7 @@ class Lattice_generic(FreeModule_generic):
         The last line tells us this cohomology group is `\ZZ/6\ZZ`.  We can check
         that this agrees with the result computed by the :meth:`Tate_Cohomology` method::
 
-            sage: L.Tate_Cohomology(1)
+            sage: L.Tate_Cohomology(1) # optional - gap_packages
             [6]
         """
 
@@ -1976,7 +1974,7 @@ class Lattice_generic(FreeModule_generic):
             sage: L3.first_cohomology_group()
             ([2],
              [(0, 0, 0, 1, -1, -1, 1, -1, -1, 0, 0, 0, 1, -1, -1, 0, 0, 0, 0, 0, 0, 1, -1, -1)])
-            sage: L3.first_cohomology_group()[0] == L3.Tate_Cohomology(1)
+            sage: L3.first_cohomology_group()[0] == L3.Tate_Cohomology(1) # optional - gap_packages
             True
 
         TESTS:
@@ -2042,7 +2040,7 @@ class Lattice_generic(FreeModule_generic):
             sage: L.Tate_Shafarevich_lattice(1, [SUBGG[0], SUBGG[1]])
             [2,
              [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 1, 1, 1, 2, 1, 1, 1, 0)]]
-            sage: L.Tate_Shafarevich_lattice(2)
+            sage: L.Tate_Shafarevich_lattice(2) # optional - gap_packages
             [2]
             sage: L.Tate_Shafarevich_lattice(2, [SUBGG[4]])
             1
@@ -2343,7 +2341,7 @@ class Lattice_generic(FreeModule_generic):
             [0 0 0 1 0 0 0 0], [ 0  0  0  0  0  0  0 -1]
             ]
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(L.Tate_Cohomology(i)))
+            ....:     print("H^"+str(i)+": "+str(L.Tate_Cohomology(i))) # optional - gap_packages
             H^-5:  [2, 2, 2, 2, 2, 2, 2, 2]
             H^-4:  [2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4]
             H^-3:  [2, 2, 2, 2]
@@ -2356,7 +2354,7 @@ class Lattice_generic(FreeModule_generic):
             H^4:  [2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4]
             H^5:  [2, 2, 2, 2, 2, 2, 2, 2]
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(ROS.Tate_Cohomology(i)))
+            ....:     print("H^"+str(i)+": "+str(ROS.Tate_Cohomology(i))) # optional - gap_packages
             H^-5: [6, 6, 6, 6]
             H^-4: [2, 2, 2, 2]
             H^-3: []
@@ -2375,7 +2373,7 @@ class Lattice_generic(FreeModule_generic):
             sage: G = GLattice([3, 2]).group()
             sage: ROS = L.norm_one_restriction_of_scalars(G); ROS
             Ambient lattice of rank 3 with a faithful action by a group of order 6
-            sage: for i in range(-5, 6):  print("H^"+str(i)+": "+str(ROS.Tate_Cohomology(i))
+            sage: for i in range(-5, 6):  print("H^"+str(i)+": "+str(ROS.Tate_Cohomology(i)) # optional - gap_packages
             ....: )
             H^-5: [2]
             H^-4: []
@@ -2456,7 +2454,7 @@ class Lattice_generic(FreeModule_generic):
             sage: G = SymmetricGroup(3)
             sage: L = GM.induced_lattice(G)
             sage: ZL = L.zero_sum_sublattice()
-            sage: ZL.is_coflabby()
+            sage: ZL.is_coflabby() # optional - gap_packages
             False
             sage: [K, P, h] = ZL.coflabby_resolution(); [K, P, h]
             [Sublattice of degree 12 and rank 7 with a faithful action by a group of order 6 and echelon basis matrix
@@ -2476,7 +2474,7 @@ class Lattice_generic(FreeModule_generic):
              [ 0  1  0 -1  0  0| 0  0  0 -1  0  1]
              Domain: Ambient lattice of rank 12 with a faithful action by a group of order 6
              Codomain: Ambient lattice of rank 5 with a faithful action by a group of order 6]
-            sage: K.is_coflabby()
+            sage: K.is_coflabby() # optional - gap_packages
             True
             sage: h.is_surjective()
             True
@@ -2554,11 +2552,11 @@ class Lattice_generic(FreeModule_generic):
             sage: G = SymmetricGroup(3)
             sage: L = GM.induced_lattice(G)
             sage: ZL = L.zero_sum_sublattice()
-            sage: L.is_coflabby()
+            sage: L.is_coflabby() # optional - gap_packages
             True
-            sage: ZL.is_coflabby()
+            sage: ZL.is_coflabby() # optional - gap_packages
             False
-            sage: ZL.coflabby_resolution()[0].is_coflabby()
+            sage: ZL.coflabby_resolution()[0].is_coflabby() # optional - gap_packages
             True
         """
         check = True
@@ -2782,12 +2780,12 @@ class Lattice_generic(FreeModule_generic):
             sage: SL2 = SL1.zero_sum_sublattice()
             sage: QL = IL.quotient_lattice(SL2); QL
             Ambient lattice of rank 3 with a faithful action by a group of order 4
-            sage: QL.Tate_Cohomology(1)
+            sage: QL.Tate_Cohomology(1) # optional - gap_packages
             [2]
-            sage: QL.Tate_Cohomology(2)
+            sage: QL.Tate_Cohomology(2) # optional - gap_packages
             [2, 2]
             sage: DQL = QL.dim_shift()
-            sage: DQL.Tate_Cohomology(1)
+            sage: DQL.Tate_Cohomology(1) # optional - gap_packages
             [2, 2]
 
         The cohomology of the quaternion group is `4`-periodic, so we can see both shifts clearly.
@@ -2798,11 +2796,11 @@ class Lattice_generic(FreeModule_generic):
             sage: L = GLattice(1).norm_one_restriction_of_scalars(Q)
             sage: lL = L.dim_shift()
             sage: rL = L.dim_shift("Right")
-            sage: [L.Tate_Cohomology(i) for i in range(4)]
+            sage: [L.Tate_Cohomology(i) for i in range(4)] # optional - gap_packages
             [[], [2, 2], [], [8]]
-            sage: [lL.Tate_Cohomology(i) for i in range(4)]
+            sage: [lL.Tate_Cohomology(i) for i in range(4)] # optional - gap_packages
             [[2, 2], [], [8], []]
-            sage: [rL.Tate_Cohomology(i) for i in range(4)]
+            sage: [rL.Tate_Cohomology(i) for i in range(4)] # optional - gap_packages
             [[8], [], [2, 2], []]
         """
 

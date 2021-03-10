@@ -122,7 +122,6 @@ from __future__ import print_function, absolute_import
 from sage.schemes.generic.scheme import Scheme
 from sage.matrix.constructor import matrix
 from sage.modules.glattice import GLattice
-from sage.rings.rational_field import QQ
 
 
 
@@ -481,7 +480,7 @@ class AlgebraicTorus(Scheme):
         ::
 
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+" : ", T1. Tate_Cohomology (i))
+            ....:     print("H^"+str(i)+" : ", T1. Tate_Cohomology (i)) # optional - gap_packages
             H^-5 :  []
             H^-4 :  []
             H^-3 :  []
@@ -499,7 +498,7 @@ class AlgebraicTorus(Scheme):
         ::
 
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+" : ", T2. Tate_Cohomology (i))
+            ....:     print("H^"+str(i)+" : ", T2. Tate_Cohomology (i)) # optional - gap_packages
             H^-5 :  []
             H^-4 :  [2]
             H^-3 :  []
@@ -524,7 +523,7 @@ class AlgebraicTorus(Scheme):
         `H^2(\ZZ)`), which here has order 2 (it is the group of signatures)::
 
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+" : ", T3. Tate_Cohomology (i))
+            ....:     print("H^"+str(i)+" : ", T3. Tate_Cohomology (i)) # optional - gap_packages
             H^-5 :  []
             H^-4 :  [2]
             H^-3 :  []
@@ -670,11 +669,11 @@ class AlgebraicTorus(Scheme):
             sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars
             sage: F.<a> = QuadraticField([2])
             sage: T = NormOneRestrictionOfScalars(F)
-            sage: T.Tamagawa_number()
+            sage: T.Tamagawa_number() # optional - gap_packages
             2
             sage: from sage.schemes.group_schemes.tori import RestrictionOfScalars
             sage: T2 = RestrictionOfScalars(F)
-            sage: T2.Tamagawa_number()
+            sage: T2.Tamagawa_number() # optional - gap_packages
             1
 
         ::
@@ -687,7 +686,7 @@ class AlgebraicTorus(Scheme):
             sage: L = IL.quotient_lattice(SL); L
             Ambient lattice of rank 5 with a faithful action by a group of order 8
             sage: T2 = AlgebraicTorus(L)
-            sage: T2.Tamagawa_number()
+            sage: T2.Tamagawa_number() # optional - gap_packages
             1/2
 
         ::
@@ -695,7 +694,7 @@ class AlgebraicTorus(Scheme):
             sage: G = GLattice([2, 2, 2, 2]).group()
             sage: L = GLattice(1).norm_one_restriction_of_scalars(G)
             sage: T = AlgebraicTorus(L)
-            sage: T.Tamagawa_number()
+            sage: T.Tamagawa_number() # optional - gap_packages
             1/4
 
         The latter example is the Tamagawa number computed by Ono, the first example of non-integral Tamagawa number.
@@ -714,12 +713,12 @@ class AlgebraicTorus(Scheme):
                 SGperm = PermutationGroup(SG.gens())
                 if not(SGperm.is_cyclic()):
                     ram_decomp += [SGperm]
-            unram_decomp = [h for h in perm_group.conjugacy_classes_subgroups() if h.is_cyclic()]
+            #unram_decomp = [h for h in perm_group.conjugacy_classes_subgroups() if h.is_cyclic()]
             lat = self.character_lattice()
             lat2 = GLattice(perm_group, lat._action_matrices)
         num = prod(self.Tate_Cohomology(1))
         denom = prod(lat2.Tate_Shafarevich_lattice(2))
-        if ram_decomp == [] or denom == 1 :
+        if ram_decomp == [] or denom == 1:
             return num/denom
         else:
             denom = lat2.character_lattice().Tate_Shafarevich_lattice(2, ram_decomp)[0]
@@ -779,7 +778,7 @@ class AlgebraicTorus(Scheme):
 
             sage: ROS = T1.norm_one_restriction(PermutationGroup([(1,2), (3,4), (5,6), (7,8)]))
             sage: for i in range(-4, 6):
-            ....:     print("H^"+str(i)+" : ", ROS.Tate_Cohomology (i))
+            ....:     print("H^"+str(i)+" : ", ROS.Tate_Cohomology (i)) # optional - gap_packages
             H^-4 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
             H^-3 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
             H^-2 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
@@ -798,7 +797,7 @@ class AlgebraicTorus(Scheme):
 
             sage: ROS2 = T2.norm_one_restriction(SymmetricGroup(4))
             sage: for i in range(-4, 6):
-            ....:     print("H^"+str(i)+" : ", T2.Tate_Cohomology (i))
+            ....:     print("H^"+str(i)+" : ", T2.Tate_Cohomology (i)) # optional - gap_packages
             H^-4 :  [2]
             H^-3 :  []
             H^-2 :  [6]
