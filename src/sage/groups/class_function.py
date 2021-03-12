@@ -25,6 +25,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.lazy_import import lazy_import
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp, richcmp_method
 from sage.interfaces.gap import gap
@@ -33,6 +34,13 @@ from sage.rings.all import CyclotomicField
 from sage.libs.gap.element import GapElement
 from sage.libs.gap.libgap import libgap
 from sage.libs.gap.element import GapElement as LibGapElement
+
+lazy_import('sage.groups.perm_gps.permgroup_named','SymmetricGroup')
+lazy_import('sage.groups.perm_gps.permgroup_element','SymmetricGroupElement')
+lazy_import('sage.combinat.partition', \
+            'Partition', at_startup=True)
+lazy_import('sage.groups.perm_gps.symgp_conjugacy_class', \
+            'default_representative', at_startup=True)
 
 # TODO:
 #
@@ -1055,13 +1063,8 @@ class ClassFunction_libgap(SageObject):
             ...
             TypeError: (1,2,3) must be a 'SymmetricGroupElement' or 'Partition'.
         """
-
-        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        
+   
         if isinstance(self._group, SymmetricGroup):
-
-            from sage.combinat.partition import Partition
-            from sage.groups.perm_gps.permgroup_element import SymmetricGroupElement
 
             if isinstance(g,SymmetricGroupElement):
                 # If self._group is a symmetric group, and g is
@@ -1074,7 +1077,9 @@ class ClassFunction_libgap(SageObject):
                 # a partition (or list representing a partition),
                 # we can identify g with a conjugacy class of self._group
 
-                from sage.groups.perm_gps.symgp_conjugacy_class import default_representative
+                if isinstance(g,list):
+                    # Ducktyping conversion
+                    g = Partition(g)
 
                 if isinstance(g,list):
                     # Ducktyping conversion
