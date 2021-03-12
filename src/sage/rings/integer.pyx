@@ -2195,6 +2195,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             TypeError: no canonical coercion from Univariate Polynomial
             Ring in t over Rational Field to Rational Field
+
+        Check that :trac:`29156` is fixed::
+
+            sage: 2^(-21111111111/11111111111)
+            1/4*2^(1111111111/11111111111)
         """
         if modulus is not None:
             from sage.rings.finite_rings.integer_mod import Mod
