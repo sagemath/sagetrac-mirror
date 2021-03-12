@@ -804,10 +804,6 @@ class ClassFunction_gap(SageObject):
         return ClassFunction(self._group, [self(x**k) for x in reprs])
 
 
-
-
-
-
 #####################################################################
 ###
 ### Class function using the GAP library
@@ -1033,7 +1029,6 @@ class ClassFunction_libgap(SageObject):
             sage: chi([3])
             1
             sage: chi(Partition([]))
-            <BLANKLINE>
             Traceback (most recent call last):
             ...
             ValueError: The size of the partition 0 must equal 3.
@@ -1044,27 +1039,46 @@ class ClassFunction_libgap(SageObject):
             sage: [chi(s) for s in G]
             [1, zeta3, -zeta3 - 1]
             sage: chi([2,1])
-            <BLANKLINE>
             Traceback (most recent call last):
             ...
-            TypeError: Cyclic group of order 3 as a permutation group is not a SymmetricGroup. Give an element of Cyclic group of order 3 as a permutation group.
+            AttributeError: 'list' object has no attribute 'gap'
             sage: chi.induct(SymmetricGroup(3))([2,1])
             0
-        """  
 
-        from sage.combinat.partition import Partition
+            sage: G = SymmetricGroup(3)
+            sage: g = G.an_element()
+            sage: chi = G.irreducible_characters()[1]
+            sage: H = CyclicPermutationGroup(3)
+            sage: h = H.an_element()
+            sage: chi(h)
+            Traceback (most recent call last):
+            ...
+            TypeError: (1,2,3) must be a 'SymmetricGroupElement' or 'Partition'.
+        """
+
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         
-        if isinstance(g, (Partition,list)):
-            # If self._group is a Symmetric group, we can identify a
-            # partition with a conjugacy class
-            from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+        if isinstance(self._group, SymmetricGroup):
 
-            if isinstance(g,list):
-                g = Partition(g)
+            from sage.combinat.partition import Partition
+            from sage.groups.perm_gps.permgroup_element import SymmetricGroupElement
 
-            if isinstance(self._group, SymmetricGroup):
+            if isinstance(g,SymmetricGroupElement):
+                # If self._group is a symmetric group, and g is
+                # a group element, treat it as any other group.
+
+                pass
+
+            elif isinstance(g, (Partition,list)):
+                # If self._group is a symmetric group, and g is
+                # a partition (or list representing a partition),
+                # we can identify g with a conjugacy class of self._group
 
                 from sage.groups.perm_gps.symgp_conjugacy_class import default_representative
+
+                if isinstance(g,list):
+                    # Ducktyping conversion
+                    g = Partition(g)
 
                 if g.size() != len(self._group.domain()):
 
@@ -1074,7 +1088,7 @@ class ClassFunction_libgap(SageObject):
 
             else: 
 
-                raise TypeError(f"{self._group} is not a 'SymmetricGroup' object. Give an element of {self._group}.")
+                raise TypeError(f"{g} must be a 'SymmetricGroupElement' or 'Partition'.")
 
         value = g.gap() ** self.gap()
         return value.sage(self._base_ring)
