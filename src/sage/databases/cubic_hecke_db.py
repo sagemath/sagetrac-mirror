@@ -448,7 +448,7 @@ class CubicHeckeDataBase(SageObject):
         
         base_ring = CubicHeckeRingOfDefinition()
         global u, v, w, mm1, mm2, mm3, mm1I, mm2I, mm3I, reps      # set in load
-        u, v, w = base_ring.gens_over_ground()
+        u, v, w = base_ring.gens()
 
         if right == False:
             fname = self.filename.regular_left
@@ -523,7 +523,7 @@ class CubicHeckeDataBase(SageObject):
 
         load(self.import_data(self.filename.irred_split))
 
-        a, b, c = base_ring.gens_over_ground() # now back to usual nameing
+        a, b, c = base_ring.gens() # now back to usual nameing
         cfs = [-c, b, -a, 1]
         cfse = [extension_ring(cf/c) for cf in cfs]
 
