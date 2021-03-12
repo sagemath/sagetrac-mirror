@@ -1035,8 +1035,8 @@ class ClassFunction_libgap(SageObject):
             sage: chi(Partition([]))
             <BLANKLINE>
             Traceback (most recent call last):
-                ...
-            AssertionError: Size of [] disagrees with Symmetric group of order 3! as a permutation group. Try giving a partition of 3.
+            ...
+            ValueError: The size of the partition 0 must equal 3.
 
             sage: G = CyclicPermutationGroup(3)
             sage: h = G.an_element()
@@ -1046,7 +1046,7 @@ class ClassFunction_libgap(SageObject):
             sage: chi([2,1])
             <BLANKLINE>
             Traceback (most recent call last):
-                ...
+            ...
             TypeError: Cyclic group of order 3 as a permutation group is not a SymmetricGroup. Give an element of Cyclic group of order 3 as a permutation group.
             sage: chi.induct(SymmetricGroup(3))([2,1])
             0
@@ -1066,9 +1066,10 @@ class ClassFunction_libgap(SageObject):
 
                 from sage.groups.perm_gps.symgp_conjugacy_class import default_representative
 
-                assert g.size() == len(self._group.domain()), \
-                       f"Size of {g} disagrees {self._group}. Try giving a partition of {len(self._group.domain())}."
+                if g.size() != len(self._group.domain()):
 
+                    raise ValueError(f"The size of the partition {g.size()} must equal {len(self._group.domain())}.")
+                
                 g = default_representative(g, self._group)
 
             else: 
