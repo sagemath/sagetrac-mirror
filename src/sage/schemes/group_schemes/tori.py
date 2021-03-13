@@ -73,9 +73,9 @@ Attributes of a Torus
 
 - ``torus._lattice`` -- the character lattice of the torus
 
-- ``torus._base_field`` -- optional, the field over which the torus is defined.
+- ``torus._base_field`` -- lazy attribute, the field over which the torus is defined.
 
-- ``torus._splitting_field`` -- optional, a field over which the torus splits
+- ``torus._top_field`` -- lazy attribute, a field over which the torus splits
 
 
 Methods of a Torus
@@ -122,7 +122,7 @@ from __future__ import print_function, absolute_import
 from sage.schemes.generic.scheme import Scheme
 from sage.matrix.constructor import matrix
 from sage.modules.glattice import GLattice
-
+from sage.misc.lazy_attribute import lazy_attribute
 
 
 
@@ -207,13 +207,8 @@ class AlgebraicTorus(Scheme):
         Scheme.__init__(self)
         self._galois_group = lattice.group()
         self._lattice = lattice
-        try:
-            self._field = self._galois_group.number_field()
-            self._base_field = self._field.base_field()
-        except AttributeError:
-            self._field = None
-            self._base_field = None
-        self._splitting_field = self._field
+
+
 
     def _repr_(self):
         r"""
@@ -270,6 +265,40 @@ class AlgebraicTorus(Scheme):
             3
         """
         return self._lattice._rank
+
+    @lazy_attribute
+    def _top_field(self):
+        """
+        The top field of the Galois group acting on the torus. 
+
+        EXAMPLES::
+
+            sage: L.<a , b , c , d> = NumberField([x^2-5, x^2-29 , x^2-109 , x^2-281]) 
+            ....: K = L.absolute_field('e');                                                
+            sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars   
+            sage: T = NormOneRestrictionOfScalars(K)                                        
+            sage: T._top_field == K                                                         
+            True
+        """
+        return self._galois_group.top_field()
+
+    @lazy_attribute
+    def _base_field(self):
+        """
+        The field of definition of the torus. 
+
+        EXAMPLES::
+
+            sage: L.<a , b , c , d> = NumberField([x^2-5, x^2-29 , x^2-109 , x^2-281]) 
+            ....: K = L.absolute_field('e');                                                
+            sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars   
+            sage: T = NormOneRestrictionOfScalars(K)                                        
+            sage: T._base_field                                                             
+            Rational Field
+        """
+        return self._galois_group._base
+
+        
 
     def splitting_degree(self):
         """
@@ -700,16 +729,16 @@ class AlgebraicTorus(Scheme):
         The latter example is the Tamagawa number computed by Ono, the first example of non-integral Tamagawa number.
         """
         from sage.misc.misc_c import prod
-        if self._field is None:
+        if self._base_field is None:
             ram_decomp = subgrps
             lat2 = self.character_lattice()
         else:
             from sage.groups.perm_gps.permgroup import PermutationGroup
             perm_group = PermutationGroup(self.galois_group().gens())
-            ram_primes = self._splitting_field.discriminant().prime_divisors()
+            ram_primes = self._top_field.discriminant().prime_divisors()
             ram_decomp = []
             for p in ram_primes: 
-                SG = self._splitting_field.prime_above(p).decomposition_group()
+                SG = self._top_field.prime_above(p).decomposition_group()
                 SGperm = PermutationGroup(SG.gens())
                 if not(SGperm.is_cyclic()):
                     ram_decomp += [SGperm]
