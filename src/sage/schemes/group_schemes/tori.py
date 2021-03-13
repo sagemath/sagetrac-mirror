@@ -77,6 +77,7 @@ Attributes of a Torus
 
 - ``torus._top_field`` -- lazy attribute, a field over which the torus splits
 
+- ``torus._splitting_field`` -- lazy attribute, splitting field of the torus
 
 Methods of a Torus
 ==================
@@ -281,6 +282,51 @@ class AlgebraicTorus(Scheme):
             True
         """
         return self._galois_group.top_field()
+
+    @lazy_attribute
+    def _splitting_field(self):
+        """
+        The splitting field of the algebraic torus.
+
+        EXAMPLES::
+
+            sage: L.<a , b> = NumberField([x^2-5, x^2-29]) 
+            ....: K = L.absolute_field('e');                                                
+            sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars   
+            sage: T1 = NormOneRestrictionOfScalars(K); T1                                    
+            Algebraic torus of rank 3 over Rational Field split by a degree 4 extension
+            sage: T1._splitting_field                                                        
+            Number Field in e with defining polynomial x^4 - 68*x^2 + 576
+            sage: T1._splitting_field == K                                                   
+            True
+            sage: G = T1.galois_group()                                                      
+            sage: lat = GLattice(G, 1)                                                      
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus                
+            sage: T2 = AlgebraicTorus(lat)                                                  
+            sage: T2._splitting_field                                                       
+            Rational Field
+            sage: G.gens()                                                                  
+            [(1,2)(3,4), (1,3)(2,4)]                                                     
+            sage: H = G.subgroup([G.gens()[0]])                                                       
+            sage: lat2 = GLattice(H, 1).induced_lattice(G)     
+            sage: T3 = AlgebraicTorus(lat2); T3                                             
+            Algebraic torus of rank 2 over Rational Field split by a degree 2 extension
+            sage: T3._top_field                                                             
+            Number Field in e with defining polynomial x^4 - 68*x^2 + 576
+            sage: T3._splitting_field                                                       
+            Number Field in e0 with defining polynomial x^2 - 116 with e0 = -1/24*e^3 + 23/6*e
+        """
+
+        ker = self.character_lattice().action_kernel()
+        if ker.order() == 1:
+            return self._top_field
+        field = ker.fixed_field()[0]
+        if field.degree() == 1:
+            from sage.rings.rational_field import QQ
+            return QQ
+        else:
+            return field
+
 
     @lazy_attribute
     def _base_field(self):
