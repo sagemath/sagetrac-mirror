@@ -290,31 +290,27 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES::
 
-            sage: L.<a , b> = NumberField([x^2-5, x^2-29]) 
+            sage: L.<a , b> = NumberField([x^2-5, x^2-3]) 
             ....: K = L.absolute_field('e');                                                
             sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars   
-            sage: T1 = NormOneRestrictionOfScalars(K); T1                                    
-            Algebraic torus of rank 3 over Rational Field split by a degree 4 extension
-            sage: T1._splitting_field                                                        
-            Number Field in e with defining polynomial x^4 - 68*x^2 + 576
-            sage: T1._splitting_field == K                                                   
-            True
-            sage: G = T1.galois_group()                                                      
-            sage: lat = GLattice(G, 1)                                                      
+            sage: T1 = NormOneRestrictionOfScalars(K)                                       
+            sage: T1._splitting_field                                                       
+            Number Field in e with defining polynomial x^4 - 16*x^2 + 4
+            sage: G = T1.galois_group()                                                     
+            sage: H = G.subgroup([G.gens()[0]])                                             
+            sage: lat1 = GLattice(G, 1)                                                     
+            sage: lat2 = GLattice(H, 1).induced_lattice(G)                                  
             sage: from sage.schemes.group_schemes.tori import AlgebraicTorus                
-            sage: T2 = AlgebraicTorus(lat)                                                  
-            sage: T2._splitting_field                                                       
-            Rational Field
-            sage: G.gens()                                                                  
-            [(1,2)(3,4), (1,3)(2,4)]                                                     
-            sage: H = G.subgroup([G.gens()[0]])                                                       
-            sage: lat2 = GLattice(H, 1).induced_lattice(G)     
+            sage: T2 = AlgebraicTorus(lat1); T2                                             
+            Split algebraic torus of rank 1 over Rational Field
             sage: T3 = AlgebraicTorus(lat2); T3                                             
             Algebraic torus of rank 2 over Rational Field split by a degree 2 extension
+            sage: T2._splitting_field                                                       
+            Rational Field
             sage: T3._top_field                                                             
-            Number Field in e with defining polynomial x^4 - 68*x^2 + 576
+            Number Field in e with defining polynomial x^4 - 16*x^2 + 4
             sage: T3._splitting_field                                                       
-            Number Field in e0 with defining polynomial x^2 - 116 with e0 = -1/24*e^3 + 23/6*e
+            Number Field in e0 with defining polynomial x^2 - 12 with e0 = 1/2*e^3 - 7*e
         """
 
         ker = self.character_lattice().action_kernel()
