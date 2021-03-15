@@ -47,7 +47,7 @@
 #   exception to the GPL to apply to your modified version as well.
 
 AC_DEFUN([AX_C_CHECK_FLAG],[
-  AC_PREREQ([2.61])
+  AC_PREREQ([2.69])
   AC_REQUIRE([AC_PROG_CC])
   AC_REQUIRE([AC_PROG_SED])
 
