@@ -6,6 +6,11 @@ graft sage_root
 prune sage_root/build/pkgs/*/src*
 # Except for this one because config.status writes there
 graft sage_root/build/pkgs/sage_conf/src
+prune sage_root/build/pkgs/sage_conf/src/build
+# And this one because of declared dependencies on source files in Makefile.in
+graft sage_root/build/pkgs/sage_docbuild/src
+prune sage_root/build/pkgs/sage_docbuild/src/build
+prune sage_root/build/pkgs/sage_docbuild/src/sage_docbuild.egg-info
 #
 global-exclude .tox
 global-exclude *~*
