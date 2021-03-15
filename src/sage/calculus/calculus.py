@@ -2338,7 +2338,7 @@ def _find_var(name):
             return res
 
     try:
-        return SR.symbols[name]
+        return SR._symbols[name]
     except KeyError:
         pass
 

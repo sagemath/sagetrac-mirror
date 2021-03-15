@@ -287,7 +287,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
         self._arguments = arguments
         SymbolicRing.__init__(self, SR)
         self._populate_coercion_lists_(coerce_list=[SR])
-        self.symbols = SR.symbols  # Use the same list of symbols as SR
+        self._symbols = SR._symbols  # Use the same list of symbols as SR
 
     def _coerce_map_from_(self, R):
         """

@@ -63,7 +63,7 @@ cdef class SymbolicRing(CommutativeRing):
             base_ring = self
         CommutativeRing.__init__(self, base_ring)
         self._populate_coercion_lists_(convert_method_name='_symbolic_')
-        self.symbols = {}
+        self._symbols = {}
 
     def __reduce__(self):
         """
@@ -703,7 +703,7 @@ cdef class SymbolicRing(CommutativeRing):
         cdef Expression e
 
         # check if there is already a symbol with same name
-        e = self.symbols.get(name)
+        e = self._symbols.get(name)
 
         # fast path to get an already existing variable
         if e is not None:
@@ -741,7 +741,7 @@ cdef class SymbolicRing(CommutativeRing):
                     ginac_domain = domain_complex
                 symb = ginac_symbol(str_to_bytes(name),
                                     str_to_bytes(latex_name), ginac_domain)
-                self.symbols[name] = e
+                self._symbols[name] = e
 
             e._gobj = GEx(symb)
             if domain is not None:
