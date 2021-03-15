@@ -40,7 +40,7 @@ class build_py(distutils_build_py):
                 shutil.copytree('sage_root', SAGE_ROOT)  # will fail if already exists
             except Exception:
                 raise DistutilsSetupError(f"the directory SAGE_ROOT={SAGE_ROOT} already exists but it is not configured.  Please remove it and try again.")
-            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --with-system-python3=force"
+            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --with-system-python3=force --disable-notebook"
             print(f"Running {cmd}")
             if os.system(cmd) != 0:
                 raise DistutilsSetupError("configure failed")
@@ -51,7 +51,7 @@ class build_py(distutils_build_py):
         # TODO: A target to only build wheels of tricky packages
         # (that use native libraries shared with other packages).
         SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads | cut -d" " -f 2)"; fi'
-        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 build-local'
+        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 build'
         if os.system(cmd) != 0:
             raise DistutilsSetupError("make build-local failed")
 
