@@ -32,7 +32,7 @@ class build_py(distutils_build_py):
         SAGE_ROOT = os.path.join(DOT_SAGE, f'sage-{sage_version}-{python_tag}')
         SAGE_LOCAL = os.path.join(SAGE_ROOT, 'local')
         if os.path.exists(os.path.join(SAGE_ROOT, 'config.status')):
-            print('Reusing SAGE_ROOT={SAGE_ROOT}')
+            print(f'Reusing SAGE_ROOT={SAGE_ROOT}')
         else:
             # config.status and other configure output has to be writable.
             # So (until the Sage distribution supports VPATH builds - #21469), we have to make a copy of sage_root.
