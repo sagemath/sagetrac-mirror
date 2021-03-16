@@ -417,7 +417,7 @@ class FunctionField(Field):
         """
         return self.constant_base_field().is_finite()
 
-    def extension(self, f, names=None):
+    def extension(self, f, names=None, check=False):
         """
         Create an extension `K(y)` of this function field `K` extended with
         a root `y` of the univariate polynomial `f` over `K`.
@@ -427,6 +427,8 @@ class FunctionField(Field):
         - ``f`` -- univariate polynomial over `K`
 
         - ``names`` -- string or tuple of length 1 that names the variable `y`
+
+        - ``check`` -- Boolean (default: False). If set to True, the method will check if the defining polynomial is irreducible.
 
         OUTPUT:
 
@@ -448,8 +450,26 @@ class FunctionField(Field):
 
             sage: K.extension(t*y^3 + (1/t)*y + t^3/(t+1))
             Function field in y defined by t*y^3 + 1/t*y + t^3/(t + 1)
+
+        Set check=True to verify if the the defining polynomial is irreducible or not::
+
+            sage: K.<t> = FunctionField(GF(5));
+            sage: x = polygen(K, "x")
+            sage: f = 4*x^4 + 4*t^4
+            sage: f.is_irreducible()
+            False
+            sage: L.<a> = K.extension(f); L
+            Function field in a defined by 4*a^4 + 4*t^4
+            sage: L.<a> = K.extension(f, check=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: defining polynomial (4*x^4 + 4*t^4) must be irreducible
+
         """
         from . import constructor
+        if check:
+            if not f.is_irreducible():
+                raise ValueError("defining polynomial (%s) must be irreducible"%(f))
         return constructor.FunctionFieldExtension(f, names)
 
     def order_with_basis(self, basis, check=True):
@@ -4108,7 +4128,7 @@ class RationalFunctionField(FunctionField):
         from sage.structure.factorization import Factorization
         return Factorization(w, unit=unit)
 
-    def extension(self, f, names=None):
+    def extension(self, f, names=None, check=False):
         """
         Create an extension `L = K[y]/(f(y))` of the rational function field.
 
@@ -4117,6 +4137,8 @@ class RationalFunctionField(FunctionField):
         - ``f`` -- univariate polynomial over self
 
         - ``names`` -- string or length-1 tuple
+
+        - ``check`` -- Boolean (default: False). If set to True, the method will check if the defining polynomial is irreducible.
 
         OUTPUT:
 
@@ -4138,8 +4160,25 @@ class RationalFunctionField(FunctionField):
 
             sage: K.extension(t*y^3 + (1/t)*y + t^3/(t+1))
             Function field in y defined by t*y^3 + 1/t*y + t^3/(t + 1)
+
+        Set check=True to verify if the the defining polynomial is irreducible or not::
+
+            sage: K.<t> = FunctionField(GF(5));
+            sage: x = polygen(K, "x")
+            sage: f = 4*x^4 + 4*t^4
+            sage: f.is_irreducible()
+            False
+            sage: L.<a> = K.extension(f); L
+            Function field in a defined by 4*a^4 + 4*t^4
+            sage: L.<a> = K.extension(f, check=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: defining polynomial (4*x^4 + 4*t^4) must be irreducible
         """
         from . import constructor
+        if check:
+            if not f.is_irreducible():
+                raise ValueError("defining polynomial (%s) must be irreducible"%(f))
         return constructor.FunctionFieldExtension(f, names)
 
     @cached_method
