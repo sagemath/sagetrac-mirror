@@ -32,6 +32,8 @@ EXAMPLES: We illustrate each of the calculus functional functions.
 
 from .calculus import SR
 from sage.symbolic.expression import Expression
+from sage.misc.derivative import derivative_parse
+from sage.structure.element import get_coercion_model
 
 def simplify(f):
     r"""
@@ -149,6 +151,13 @@ def derivative(f, *args, **kwds):
     try:
         return f.derivative(*args, **kwds)
     except AttributeError:
+        pass
+    try:
+        elts = [e for e in derivative_parse(args) if e is not None]
+        elts.append(f)
+        cm = get_coercion_model()
+        return cm.common_parent(*elts)(f).derivative(*args, **kwds)
+    except (AttributeError, TypeError):
         pass
     if not isinstance(f, Expression):
         f = SR(f)
