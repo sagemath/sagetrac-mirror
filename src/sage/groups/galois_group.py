@@ -1,15 +1,22 @@
 r"""
-Galois groups of field extensions
+Galois groups of field extensions.
+
+We don't necessarily require extensions to be normal, but we do require them to be separable.
+When an extension is not normal, the Galois group refers to
+the automorphism group of the normal closure.
 
 AUTHORS:
 
 - David Roe (2019): initial version
 """
 
-from sage.groups.perm_gps.permgroup import PermutationGroup_generic
+from sage.groups.perm_gps.permgroup import PermutationGroup_generic, PermutationGroup_subgroup
+from sage.groups.abelian_gps.abelian_group import AbelianGroup_class, AbelianGroup_subgroup
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.cachefunc import cached_method
 from sage.structure.category_object import normalize_names
+from sage.rings.integer_ring import ZZ
 
 def _alg_key(self, algorithm=None, recompute=False):
     r"""
@@ -32,70 +39,22 @@ def _alg_key(self, algorithm=None, recompute=False):
         algorithm = self._get_algorithm(algorithm)
         return algorithm
 
-class GaloisGroup(PermutationGroup_generic):
+class _GaloisMixin:
     r"""
-    The group of automorphisms of a Galois closure of a given field.
-
-    INPUT:
-
-    - ``field`` -- a field, separable over its base
-
-    - ``names`` -- a string or tuple of length 1, giving a variable name for the splitting field
-
-    - ``gc_numbering`` -- boolean, whether to express permutations in terms of the
-        roots of the defining polynomial of the splitting field (versus the defining polynomial
-        of the original extension).  The default value may vary based on the type of field.
+    This class provides some methods for Galois groups to be used for both permutation groups
+    and abelian groups.
     """
-    # Subclasses should implement the following methods and lazy attributes
-
-    # methods (taking algorithm and recompute as arguments):
-    # * transitive_number
-    # * order
-    # * _element_constructor_ -- for creating elements
-
-    # lazy_attributes
-    # * _gcdata -- a pair, the Galois closure and an embedding of the top field into it
-    # * _gens -- the list of generators of this group, as elements.  This is not computed during __init__ for speed
-    # * _elts -- the list of all elements of this group.
-
-    # * Element (for coercion)
-
-    def __init__(self, field, algorithm=None, names=None, gc_numbering=False):
-        r"""
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^3 + 2*x + 2)
-            sage: G = K.galois_group()
-            sage: TestSuite(G).run()
-        """
-        self._field = field
-        self._default_algorithm = algorithm
-        self._base = field.base_field()
-        self._gc_numbering = gc_numbering
-        if names is None:
-            # add a c for Galois closure
-            names = field.variable_name() + 'c'
-        self._gc_names = normalize_names(1, names)
-        # We do only the parts of the initialization of PermutationGroup_generic
-        # that don't depend on _gens
-        from sage.categories.permutation_groups import PermutationGroups
-        category = PermutationGroups().FinitelyGenerated().Finite()
-        # Note that we DON'T call the __init__ method for PermutationGroup_generic
-        # Instead, the relevant attributes are computed lazily
-        super(PermutationGroup_generic, self).__init__(category=category)
-
     def _repr_(self):
         """
         String representation of this Galois group
 
         EXAMPLES::
 
-            sage: from sage.groups.galois_group import GaloisGroup
+            sage: from sage.groups.galois_group import GaloisGroup_perm
             sage: R.<x> = ZZ[]
             sage: K.<a> = NumberField(x^3 + 2*x + 2)
             sage: G = K.galois_group()
-            sage: GaloisGroup._repr_(G)
+            sage: GaloisGroup_perm._repr_(G)
             'Galois group of x^3 + 2*x + 2'
         """
         f = self._field.defining_polynomial()
@@ -164,8 +123,8 @@ class GaloisGroup(PermutationGroup_generic):
             sage: R.<x> = ZZ[]
             sage: K.<a> = NumberField(x^8 - x^5 + x^4 - x^3 + 1)
             sage: G = K.galois_group()
-            sage: from sage.groups.galois_group import GaloisGroup
-            sage: GaloisGroup.is_galois(G)
+            sage: from sage.groups.galois_group import GaloisGroup_perm
+            sage: GaloisGroup_perm.is_galois(G)
             False
         """
         return self.order() == self._field.degree()
@@ -216,6 +175,61 @@ class GaloisGroup(PermutationGroup_generic):
               Defn: a |--> 1/36*b^4 + 5/18*b^2 - 1/2*b + 4/9
         """
         return self._gcdata[1]
+
+
+
+class GaloisGroup_perm(_GaloisMixin, PermutationGroup_generic):
+    r"""
+    The group of automorphisms of a Galois closure of a given field.
+
+    INPUT:
+
+    - ``field`` -- a field, separable over its base
+
+    - ``names`` -- a string or tuple of length 1, giving a variable name for the splitting field
+
+    - ``gc_numbering`` -- boolean, whether to express permutations in terms of the
+        roots of the defining polynomial of the splitting field (versus the defining polynomial
+        of the original extension).  The default value may vary based on the type of field.
+    """
+    # Subclasses should implement the following methods and lazy attributes
+
+    # methods (taking algorithm and recompute as arguments):
+    # * transitive_number
+    # * order
+    # * _element_constructor_ -- for creating elements
+
+    # lazy_attributes
+    # * _gcdata -- a pair, the Galois closure and an embedding of the top field into it
+    # * _gens -- the list of generators of this group, as elements.  This is not computed during __init__ for speed
+    # * _elts -- the list of all elements of this group.
+
+    # * Element (for coercion)
+
+    def __init__(self, field, algorithm=None, names=None, gc_numbering=False):
+        r"""
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^3 + 2*x + 2)
+            sage: G = K.galois_group()
+            sage: TestSuite(G).run()
+        """
+        self._field = field
+        self._default_algorithm = algorithm
+        self._base = field.base_field()
+        self._gc_numbering = gc_numbering
+        if names is None:
+            # add a c for Galois closure
+            names = field.variable_name() + 'c'
+        self._gc_names = normalize_names(1, names)
+        # We do only the parts of the initialization of PermutationGroup_generic
+        # that don't depend on _gens
+        from sage.categories.permutation_groups import PermutationGroups
+        category = PermutationGroups().FinitelyGenerated().Finite()
+        # Note that we DON'T call the __init__ method for PermutationGroup_generic
+        # Instead, the relevant attributes are computed lazily
+        super(PermutationGroup_generic, self).__init__(category=category)
 
     @lazy_attribute
     def _deg(self):
@@ -302,3 +316,127 @@ class GaloisGroup(PermutationGroup_generic):
             1
         """
         return len(self._gens)
+
+class GaloisGroup_ab(_GaloisMixin, AbelianGroup_class):
+    r"""
+    Abelian Galois groups
+    """
+    def __init__(self, field, generator_orders, algorithm=None, gen_names='sigma'):
+        r"""
+        Initialize this Galois group.
+
+        TESTS::
+
+            sage: TestSuite(GF(9).galois_group()).run()
+        """
+        self._field = field
+        self._default_algorithm = algorithm
+        AbelianGroup_class.__init__(self, generator_orders, gen_names)
+
+    def is_galois(self):
+        r"""
+        Abelian extensions are Galois.
+
+        For compatibility with Galois groups of number fields.
+
+        EXAMPLES::
+
+            sage: GF(9).galois_group().is_galois()
+            True
+        """
+        return True
+
+    @lazy_attribute
+    def _gcdata(self):
+        r"""
+        Return the Galois closure (ie, the finite field itself) together with the identity
+
+        EXAMPLES::
+
+            sage: GF(3^2).galois_group()._gcdata
+            (Finite Field in z2 of size 3^2,
+             Identity endomorphism of Finite Field in z2 of size 3^2)
+        """
+        k = self._field
+        return k, k.Hom(k).identity()
+
+    @cached_method(key=_alg_key)
+    def transitive_number(self, algorithm=None, recompute=False):
+        r"""
+        Return the transitive number for the action on the roots of the defining polynomial.
+
+        For abelian groups, there is only one transitive action up to isomorphism
+        (left multiplication of the group on itself), so we identify that action.
+
+        EXAMPLES::
+
+            sage: from sage.groups.galois_group import GaloisGroup_ab
+            sage: Gtest = GaloisGroup_ab(field=None, generator_orders=(2,2,4))
+            sage: Gtest.transitive_number()
+            2
+        """
+        return ZZ(self._gap_().RegularActionHomomorphism().Image().TransitiveIdentification())
+
+class GaloisGroup_cyc(GaloisGroup_ab):
+    r"""
+    Cyclic Galois groups
+    """
+    def transitive_number(self, algorithm=None, recompute=False):
+        r"""
+        Return the transitive number for the action on the roots of the defining polynomial.
+
+        EXAMPLES::
+
+            sage: GF(2^8).galois_group().transitive_number()
+            1
+            sage: GF(3^32).galois_group().transitive_number()
+            33
+            sage: GF(2^60).galois_group().transitive_number()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: transitive database only computed up to degree 47
+        """
+        d = self.order()
+        if d > 47:
+            raise NotImplementedError("transitive database only computed up to degree 47")
+        elif d == 32:
+            # I don't know why this case is special, but you can check this in Magma (GAP only goes up to 22)
+            return ZZ(33)
+        else:
+            return ZZ(1)
+
+    def signature(self):
+        r"""
+        Return 1 if contained in the alternating group, -1 otherwise.
+
+        EXAMPLES::
+
+            sage: GF(3^2).galois_group().signature()
+            -1
+            sage: GF(3^3).galois_group().signature()
+            1
+        """
+        return ZZ(1) if (self._field.degree() % 2) else ZZ(-1)
+
+class GaloisSubgroup_perm(PermutationGroup_subgroup):
+    """
+    Subgroups of Galois groups are specified by giving a list of generators.
+
+    Unlike ambient Galois groups, where we work hard to enable creation without
+    determining a list of generators, we require that generators for a subgroup
+    be specified during initialization.
+
+    Subclasses are encouraged to implement a fixed_field method.
+    """
+    pass
+
+class GaloisSubgroup_ab(AbelianGroup_subgroup):
+    """
+    Subgroups of abelian Galois groups.
+
+    Subclasses are encouraged to implement a fixed_field method.
+    """
+    pass
+
+GaloisGroup_perm.Subgroup = GaloisSubgroup_perm
+GaloisGroup_ab.Subgroup = GaloisSubgroup_ab
