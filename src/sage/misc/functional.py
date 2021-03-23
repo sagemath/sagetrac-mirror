@@ -432,6 +432,15 @@ def symbolic_sum(expression, *args, **kwds):
 
       - ``'sympy'`` - use SymPy
 
+    .. SEEALSO::
+
+        For the symbolic product function, see 
+        :func:`sage.misc.functional.symbolic_prod`.
+
+        For the traditional product function for other objects
+        like list elements or function return values, see
+        :func:`sage.misc.misc_c.prod`.
+  
     EXAMPLES::
 
         sage: k, n = var('k,n')
@@ -603,6 +612,15 @@ def symbolic_prod(expression, *args, **kwds):
 
     - ``hold`` - (default: ``False``) if ``True`` don't evaluate
 
+    .. SEEALSO::
+        
+        For the symbolic sum function, see
+        :func:`sage.misc.functional.symbolic_sum`.
+
+        For the traditional product function for other objects
+        like list elements or function return values, see
+        :func:`sage.misc.misc_c.prod`.
+
     EXAMPLES::
 
         sage: i, k, n = var('i,k,n')
@@ -622,6 +640,39 @@ def symbolic_prod(expression, *args, **kwds):
         1/factorial(n + 1)
         sage: product(f(i), i, 1, n).log().log_expand()
         sum(log(f(i)), i, 1, n)
+
+    .. WARNING::
+
+        This function only works with symbolic expressions. To calculate
+        product of other objects like list elements or function return values,
+        please use the ``prod()`` function referenced above in the 'See also'
+        section.
+
+        In particular, this does not work::
+
+            sage: n = var('n')
+            sage: mylist = [1,2,3,4,5]
+            sage: product(mylist[n], n, 0, 3)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert n to an integer
+
+        Use ``prod()`` instead::
+
+            sage: prod(mylist[n] for n in range(4))
+            24
+
+        Also, only a limited number of functions are recognized in symbolic products::
+
+            sage: product(valuation(n, 2), n, 1, 5)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert n to an integer
+
+        Again, use ``prod()``::
+
+            sage: prod(valuation(n+1, 2) for n in range(5))
+            0  
 
     """
     from .misc_c import prod as c_prod

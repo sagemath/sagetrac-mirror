@@ -82,7 +82,9 @@ def prod(x, z=None, Py_ssize_t recursion_cutoff=5):
 
     .. SEEALSO::
 
-        For the symbolic product function, see :func:`sage.calculus.calculus.symbolic_product`.
+        For the symbolic product function, see :func:`sage.misc.functional.symbolic_prod`.
+
+        For the symbolic sum function, see :func:`sage.misc.functional.symbolic_sum`.
 
     EXAMPLES::
 
