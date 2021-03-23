@@ -163,13 +163,6 @@ If one enters the matrix manually, one must make sure that the morphism preserve
 
 from __future__ import print_function, absolute_import
 import sage.modules.glattice
-from sage.modules.free_module_morphism import FreeModuleMorphism
-from sage.modules.free_module_element import FreeModuleElement
-from sage.structure.element import is_Matrix
-from inspect import isfunction
-from . import matrix_morphism
-from sage.matrix.constructor import matrix
-from sage.matrix.matrix_space import MatrixSpace
 
 
 class GLatticeMorphism_left(sage.categories.morphism.Morphism):
@@ -668,7 +661,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
 
     def kernel(self):
         """
-        Returns the Kernel of a morphism
+        Return the Kernel of a morphism
 
         EXAMPLES::
 
