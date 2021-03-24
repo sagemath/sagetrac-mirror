@@ -5489,6 +5489,12 @@ cdef class Expression(CommutativeRingElement):
             sage: f = function("f")
             sage: integrate(f(x), x, 0, a).subs(a=cos(a))
             integrate(f(x), x, 0, cos(a))
+
+        Check that :trac:`31530` is fixed::
+
+            sage: a, b = var("a b")
+            sage: (a + b*x).series(x, 2).subs(a=a, b=b)
+            (a) + (b)*x + Order(x^2)
         """
         cdef dict sdict = {}
         cdef GEx res
@@ -5511,20 +5517,20 @@ cdef class Expression(CommutativeRingElement):
 
         # To work around the pynac bug in :trac:`30378`, we use two steps to do a
         # substitution that only involves plugging expressions into variables, but
-        # where some of the expressions include variables that are in self.
+        # where some of the expressions include variables that are being replaced.
         if all(self.parent(k).is_symbol() for k in sdict.keys()):
             dict_vars = tuple(v for k in sdict.keys()
-                for v in self.parent(sdict[k]).variables())
-            if not set(self.variables()).isdisjoint(dict_vars):
-                # Step 1: replace each variable with a new temporary variable
-                temp_vars = {v : self.parent().symbol() for v in self.variables()}
+                                for v in self.parent(sdict[k]).variables())
+            conflict_vars = set(sdict.keys()).intersection(dict_vars)
+            if conflict_vars:
+                # Step 1: replace each conflicting variable with a new temporary variable
+                temp_vars = {v : self.parent().symbol() for v in conflict_vars}
                 with hold:
                     first_step = self.substitute(temp_vars)
                 # Step 2: make the original substitutions into the new variables
                 result = first_step.substitute({
-                    temp_vars[v] :
-                    sdict[v] if v in sdict.keys() else v
-                    for v in self.variables()})
+                            temp_vars[v] if v in conflict_vars else v : sdict[v]
+                            for v in sdict.keys()})
                 if not set(result.variables()).issubset(self.variables() + dict_vars):
                     raise RuntimeError("substitution failed")
                 return result
