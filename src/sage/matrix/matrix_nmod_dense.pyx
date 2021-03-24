@@ -12,6 +12,7 @@ from cpython.sequence cimport *
 
 from cysignals.signals cimport sig_str, sig_off
 
+from sage.arith.power cimport generic_power
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, Matrix
 from sage.libs.flint.nmod_mat cimport *
@@ -147,11 +148,14 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         cdef int k
 
         from sage.structure.richcmp cimport Py_EQ, PY_NE
+        raise NotImplementedError("I'm here")
         if op == PY_EQ:
             #FIXME
+            return rich_to_bool(op, 0)
 
         elif op == PY_NE:
             #FIXME 
+            return rich_to_bool(op, 0)
 
         else:
             sig_on()
@@ -194,22 +198,186 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
     # Extra
 
-    # add inplace and not inplace versions
+    def tranpose(self):
+        cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
+        sig_on()
+        nmod_mat_transpose(M._matrix, self._matrix)
+        sig_off()
+        return M
+
+
+    def echelonize(self):
+        """
+        Echelon form in place
+        """
+        if not self._parent._base.is_field():
+            raise NotImplementedError("Only implemented over fields")
+        self.check_mutability()
+        self.clear_cache()
+        rank = nmod_mat_rref(self._matrix)
+        self.cache('rank', rank)
+
+    def echelon_form(self):
+        key='echelon_form'
+        ans = self.fetch(key)
+        if ans is not None:
+            return ans
+        ans = self.__copy__()
+        self.cache(key, ans)
+        ans.echelonize()
+        return ans
+
+
+
+    def rank(self):
+        key = 'rank'
+        ans = self.fetch(key)
+        if ans is not None:
+            return ans
+        sig_on()
+        ans = nmod_mat_rank(self._matrix)
+        sig_off()
+        self.cache(key, ans)
+        return ans
+
+    def det(self):
+        if self._nrows != self._ncols:
+            raise ValueError("self must be a square matrix")
+        key = 'det'
+        ans = self.fetch(key)
+        if ans is not None:
+            return ans
+        sig_on()
+        ans = nmod_mat_det(self._matrix)
+        sig_off()
+        self.cache(key, ans)
+        return ans
+
+    def trace(self):
+        if self._nrows != self._ncols:
+            raise ValueError("self must be a square matrix")
+        key = 'trace'
+        ans = self.fetch(key)
+        if ans is not None:
+            return ans
+        sig_on()
+        ans = nmod_mat_trace(self._matrix)
+        sig_off()
+        self.cache(key, ans)
+        return ans
+
+    def _strong_echelon_form(self):
+        """
+        In place strong echelon form of self
+        """
+        if self._nrows >= self._ncols:
+            raise ValueError("self must must have at least as many rows as columns.")
+        self.check_mutability()
+        self.clear_cache()
+        sig_on()
+        nmod_mat_strong_echelon_form(self._matrix)
+        sig_off()
 
     def strong_echelon_form(self):
-        # Edgar: fix so not in place
-        if self._nrows >= self._ncols:
-            nmod_mat_strong_echelon_form(self._matrix)
-        else:
-            raise ValueError("Matrix must have at least as many rows as columns.")
+        """
+        Strong echelon form of self
+        """
+        key='strong_echelon_form'
+        ans = self.fetch(key)
+        if ans is not None:
+            return ans
+        ans = self.__copy__()
+        ans._strong_echelon_form()
+        self.cache(key, ans)
+        return ans
 
+    def _howell_form(self):
+        """
+        In place Howell form of self
+        """
+        if self._nrows >= self._ncols:
+            raise ValueError("self must must have at least as many rows as columns.")
+        self.check_mutability()
+        self.clear_cache()
+        nmod_mat_howell_form(self._matrix)
 
     def howell_form(self):
-        # Edgar: fix so not in place
-        if self._nrows >= self._ncols:
-            nmod_mat_howell_form(self._matrix)
+        """
+        Howell form of self
+        """
+        key='howell_form'
+        ans = self.fetch(key)
+        if ans is not None:
+            return ans
+        ans = self.__copy__()
+        ans._howell_form()
+        self.cache(key, ans)
+        return ans
+
+    def __pow__(sself, n, dummy):
+        cdef Matrix_nmod_dense self = <Matrix_nmod_dense?>sself
+
+        if dummy is not None:
+            raise ValueError
+        if self._nrows != self._ncols:
+            raise ArithmeticError("self must be a square matrix")
+
+        cdef unsigned long e
+        cdef long e_sgn
+        cdef int err
+
+        if integer_check_long_py(n, &e_sgn, &err) and not err:
+            if e_sgn < 0:
+                return (~self) ** (-n)
+            e = <unsigned long>e_sgn
         else:
-            raise ValueError("Matrix must have at least as many rows as columns.")
+            if not isinstance(n, Integer):
+                try:
+                    n = Integer(n)
+                except TypeError:
+                    from sage.symbolic.expression import Expression
+                    if isinstance(n, Expression):
+                        from sage.matrix.matrix2 import _matrix_power_symbolic
+                        return _matrix_power_symbolic(self, n)
+                    else:
+                        raise NotImplementedError("the given exponent is not supported")
+            if mpz_sgn((<Integer>n).value) < 0:
+                return (~self) ** (-n)
+
+            if mpz_fits_ulong_p((<Integer>n).value):
+                e = mpz_get_ui((<Integer>n).value)
+            else:
+                # it is very likely that the following will never finish except
+                # if self has only eigenvalues 0, 1 or -1.
+                return generic_power(self, n)
+
+        if e == 0:
+            return self._parent.identity_matrix()
+        if e == 1:
+            return self
+
+        cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
+        sig_on()
+        nmod_mat_pow(M._matrix, self._matrix, e)
+        sig_off()
+        return M
+
+    def _right_kernel_matrix(self):
+        if self._parent._base.is_field():
+            # nmod_mut_nullspace will do this regardless
+            # so we are better off to start in echelon form to have the rank
+            echelon_form = self.echelon_form()
+            cdef Matrix_nmod_dense X = self._new(self.ncols, self._nrows - self.rank(), self._ncols)
+            cdef Matrix_nmod_dense ans = self._new(self._nrows - self.rank(), self._ncols)
+            sig_on()
+            nmod_mat_nullspace(X._matrix, echelon_form._matrix) # columns of X form a basis
+            nmod_mat_tranpose(ans._natrix, X._matrix)
+            sig_off()
+            return ans
+        else:
+            raise NotImplementedError("I'm here")
+            strong_echelon_form = self.strong_echelon_form()
+
 
     # random matrix generation (David)
     # swap rows, columns (David)
@@ -218,9 +386,10 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
 
 
-    # transpose (Edgar)
-    # nmod_mat_pow (Edgar)
-    # nmod_mat_trace (Edgar)
-    # rank and det (only primes) (Egar)
-    # right_kernel_matrix (nmod_mat_nullspace) (Edgar)
-    # row reduction (nmod_mat_rref) (Edgar)
+    # transpose (Edgar) x
+    # nmod_mat_pow (Edgar) x
+    # nmod_mat_trace (Edgar) X
+    # rank and det (only primes) (Edgar) X
+    # right_kernel_matrix (nmod_mat_nullspace) (Edgar) x
+    # row reduction (nmod_mat_rref) (Edgar) ~
+    # richcmp ~
