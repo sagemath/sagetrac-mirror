@@ -57,7 +57,7 @@ class build_py(setuptools_build_py):
                 # Previously built, start from there
                 os.rename(SAGE_LOCAL_BUILD, SAGE_LOCAL)
 
-            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --with-system-python3=force --without-system-gmp --without-system-mpfr --enable-download-from-upstream-url --enable-fat-binary --disable-notebook --disable-r --disable-sagelib"
+            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --with-system-python3=force --with-mp=gmp --without-system-mpfr --enable-download-from-upstream-url --enable-fat-binary --disable-notebook --disable-r --disable-sagelib"
             print(f"Running {cmd}")
             if os.system(cmd) != 0:
                 raise DistutilsSetupError("configure failed")
