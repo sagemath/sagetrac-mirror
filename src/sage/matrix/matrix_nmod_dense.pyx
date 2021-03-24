@@ -39,6 +39,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             se = <SparseEntry>t
             z = <long>se.entry
             nmod_mat_set_entry(self._matrix, se.i, se.j, z)
+        nmod_mat_print_pretty(self._matrix)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x):
         self.set_unsafe_si(i, j, x.ivalue)
@@ -70,10 +71,18 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         cdef Matrix_nmod_dense ans = Matrix_nmod_dense.__new__(Matrix_nmod_dense, P, None, None, None)
         return ans
 
-    cdef void strong_echelon_form(self):
-        nmod_mat_strong_echelon_form(self._matrix)
 
-    cdef void howell_form(self):
-        nmod_mat_howell_form(self._matrix)
+    def strong_echelon_form(self):
+        if self._nrows >= self._ncols:
+            nmod_mat_strong_echelon_form(self._matrix)
+        else:
+            raise ValueError("Matrix must have at least as many rows as columns.")
+
+
+    def howell_form(self):
+        if self._nrows >= self._ncols:
+            nmod_mat_howell_form(self._matrix)
+        else:
+            raise ValueError("Matrix must have at least as many rows as columns.")
 
 

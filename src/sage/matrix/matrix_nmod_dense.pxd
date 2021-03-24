@@ -11,7 +11,5 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     cdef long get_unsafe_si(self, Py_ssize_t i, Py_ssize_t j)
 
     cdef Matrix_nmod_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols)
-    cdef void strong_echelon_form(self)
-    cdef void howell_form(self)
 
 
