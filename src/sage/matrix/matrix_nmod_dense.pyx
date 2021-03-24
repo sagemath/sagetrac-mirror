@@ -38,7 +38,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         for t in ma.iter(coerce, True): #????
             se = <SparseEntry>t
             z = <long>se.entry
-            nmod_mat_set_entry(self._matrix, se.i, se.j, z.ivalue)
+            nmod_mat_set_entry(self._matrix, se.i, se.j, z)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x):
         self.set_unsafe_si(i, j, x.ivalue)
@@ -50,7 +50,8 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         return nmod_mat_get_entry(self._matrix, i, j)
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
-        return self._parent._base._new_c(self.get_unsafe_si(i, j))
+        # FIXME is this correct?
+        return self._parent._base(self.get_unsafe_si(i, j))
 
     ########################################################################
     # LEVEL 1 helpers:
