@@ -21,6 +21,10 @@ import sage.matrix.matrix_space as matrix_space
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_int64
 
 cdef class Matrix_nmod_dense(Matrix_dense):
+    ########################################################################
+    # LEVEL 1 helpers:
+    #   These function support the implementation of the level 1 functionality.
+    ########################################################################
     def __cinit__(self, parent, *args, **kwds):
         self._modulus = parent._base._pyx_order
         sig_str("FLINT exception")
@@ -28,8 +32,6 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         sig_off()
 
 
-    def __dealloc__(self):
-        nmod_mat_clear(self._matrix)
 
     def __init__(self, parent, entries=None, bint coerce=True):
         self._parent = parent # MatrixSpace over IntegerMod_int or IntegerMod_int64
@@ -41,6 +43,9 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             z = <long>se.entry
             nmod_mat_set_entry(self._matrix, se.i, se.j, z)
         nmod_mat_print_pretty(self._matrix)
+
+    def __dealloc__(self):
+        nmod_mat_clear(self._matrix)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x):
         if self._modulus.element_class() is IntegerMod_int:
@@ -58,10 +63,9 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         # FIXME is this correct?
         return self._parent._base(self.get_unsafe_si(i, j))
 
-    ########################################################################
-    # LEVEL 1 helpers:
-    #   These function support the implementation of the level 1 functionality.
-    ########################################################################
+    #TODO:
+    # def __richcmp__
+
     cdef Matrix_nmod_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
         """
         Return a new matrix over the parent from given parent
@@ -75,16 +79,23 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         cdef Matrix_nmod_dense ans = Matrix_nmod_dense.__new__(Matrix_nmod_dense, P)
         return ans
 
+    ########################################################################
+    # LEVEL 2 helpers:
+    #   These function support the implementation of the level 2 functionality.
+    ########################################################################
+
+    # TODO?
+    # def _pickle
+    # def _unpickle
+    # cdef __list__
+    # cdef _dict
+    # cpdef _rmul_
+
+    # FIXME cdef?
     cpdef _add_(self, _right):
         cdef Matrix_nmod_dense right = _right
         cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
         nmod_mat_add(M._matrix, self._matrix, right._matrix)
-        return M
-
-    cpdef _sub_(self, _right):
-        cdef Matrix_nmod_dense right = _right
-        cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
-        nmod_mat_sub(M._matrix, self._matrix, right._matrix)
         return M
 
     cdef Matrix _matrix_times_matrix_(left, Matrix _right):
@@ -103,6 +114,80 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         else:
             nmod_mat_scalar_mul(M._matrix, self._matrix, (<IntegerMod_int64?>right).ivalue)
         return M
+
+
+    def __copy__(self):
+        """
+        Return a copy of this matrix. Changing the entries of the copy will
+        not change the entries of this matrix.
+        """
+        cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
+        sig_on()
+        nmod_mat_set(M._matrix, self._matrix)
+        sig_off()
+        return M
+
+    def __neg__(self):
+        r"""
+        Return the negative of this matrix.
+
+        TESTS::
+
+
+        """
+        cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
+        sig_on()
+        nmod_mat_neg(M._matrix, self._matrix)
+        sig_off()
+        return M
+
+    cpdef _richcmp_(self, right, int op):
+        r"""
+        Compare ``self`` with ``right``, examining entries in
+        lexicographic (row major) ordering.
+
+        EXAMPLES::
+
+
+        """
+        cdef Py_ssize_t i, j
+        cdef int k
+
+        sig_on()
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                if nmod_mat_entry(self._matrix,i,j) != nmod_mat_entry((<Matrix_nmod_dense>right)._matrix,i,j):
+                    sig_off()
+                    return rich_to_bool(op, 1)
+        sig_off()
+        return rich_to_bool(op, 0)
+
+
+     ########################################################################
+    # LEVEL 3 helpers:
+    #   These function support the implementation of the level 2 functionality.
+    ########################################################################
+
+    #TODO
+    # __invert
+    # _multiply_classical
+    # __deepcopy__
+
+    # FIXME: cdef?
+    cpdef _sub_(self, _right):
+        cdef Matrix_nmod_dense right = _right
+        cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
+        nmod_mat_sub(M._matrix, self._matrix, right._matrix)
+        return M
+
+
+
+
+
+
+
+
+    # Extra
 
     def strong_echelon_form(self):
         if self._nrows >= self._ncols:
