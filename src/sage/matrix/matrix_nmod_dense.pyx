@@ -63,9 +63,6 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         # FIXME is this correct?
         return self._parent._base(self.get_unsafe_si(i, j))
 
-    #TODO:
-    # def __richcmp__
-
     cdef Matrix_nmod_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
         """
         Return a new matrix over the parent from given parent
@@ -84,14 +81,9 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     #   These function support the implementation of the level 2 functionality.
     ########################################################################
 
-    # TODO?
-    # def _pickle
-    # def _unpickle
-    # cdef __list__
+    # cdef _list
     # cdef _dict
-    # cpdef _rmul_
 
-    # FIXME cdef?
     cpdef _add_(self, _right):
         cdef Matrix_nmod_dense right = _right
         cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
@@ -163,17 +155,14 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         return rich_to_bool(op, 0)
 
 
-     ########################################################################
+    ########################################################################
     # LEVEL 3 helpers:
     #   These function support the implementation of the level 2 functionality.
     ########################################################################
 
     #TODO
-    # __invert
-    # _multiply_classical
-    # __deepcopy__
+    # __invert__
 
-    # FIXME: cdef?
     cpdef _sub_(self, _right):
         cdef Matrix_nmod_dense right = _right
         cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
