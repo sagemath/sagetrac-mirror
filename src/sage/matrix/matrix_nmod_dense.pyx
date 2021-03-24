@@ -1,4 +1,5 @@
 # distutils: extra_compile_args = -D_XPG6
+# flags chosen from libs/flint/fmpz_poly.pyx
 """
 FLINT nmod_mat class wrapper
 
