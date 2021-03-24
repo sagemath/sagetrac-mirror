@@ -176,6 +176,9 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     #TODO
     # __invert__
 
+    def __nonzero__(self):
+        return not nmod_mat_is_zero(self._matrix)
+
     cpdef _sub_(self, _right):
         cdef Matrix_nmod_dense right = _right
         cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
@@ -205,4 +208,13 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         else:
             raise ValueError("Matrix must have at least as many rows as columns.")
 
-
+    # random matrix generation
+    # swap rows, columns
+    # transpose
+    # charpoly and minpoly
+    # nmod_mat_pow
+    # nmod_mat_trace
+    # rank and det (only primes)
+    # right_kernel_matrix (nmod_mat_nullspace)
+    # solve (nmod_mat_can_solve)
+    # row reduction (nmod_mat_rref)
