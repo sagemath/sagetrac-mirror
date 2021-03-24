@@ -81,8 +81,8 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     #   These function support the implementation of the level 2 functionality.
     ########################################################################
 
-    # cdef _list
-    # cdef _dict
+    # cdef _list (David)
+    # cdef _dict (David)
 
     cpdef _add_(self, _right):
         cdef Matrix_nmod_dense right = _right
@@ -174,7 +174,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     ########################################################################
 
     #TODO
-    # __invert__
+    # __invert__ (David)
 
     def __nonzero__(self):
         return not nmod_mat_is_zero(self._matrix)
@@ -196,6 +196,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     # add inplace and not inplace versions
 
     def strong_echelon_form(self):
+        # Edgar: fix so not in place
         if self._nrows >= self._ncols:
             nmod_mat_strong_echelon_form(self._matrix)
         else:
@@ -203,18 +204,19 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
 
     def howell_form(self):
+        # Edgar: fix so not in place
         if self._nrows >= self._ncols:
             nmod_mat_howell_form(self._matrix)
         else:
             raise ValueError("Matrix must have at least as many rows as columns.")
 
-    # random matrix generation
-    # swap rows, columns
-    # transpose
-    # charpoly and minpoly
-    # nmod_mat_pow
-    # nmod_mat_trace
-    # rank and det (only primes)
-    # right_kernel_matrix (nmod_mat_nullspace)
-    # solve (nmod_mat_can_solve)
-    # row reduction (nmod_mat_rref)
+    # random matrix generation (David)
+    # swap rows, columns (David)
+    # transpose (Edgar)
+    # charpoly and minpoly (David)
+    # nmod_mat_pow (Edgar)
+    # nmod_mat_trace (Edgar)
+    # rank and det (only primes) (Egar)
+    # right_kernel_matrix (nmod_mat_nullspace) (Edgar)
+    # solve (nmod_mat_can_solve) (David)
+    # row reduction (nmod_mat_rref) (Edgar)
