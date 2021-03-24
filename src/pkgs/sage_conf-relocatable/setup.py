@@ -57,7 +57,7 @@ class build_py(setuptools_build_py):
                 # Previously built, start from there
                 os.rename(SAGE_LOCAL_BUILD, SAGE_LOCAL)
 
-            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --with-system-python3=force --without-system-gmp --without-system-mpfr --enable-download-from-upstream-url --enable-fat-binary"
+            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --with-system-python3=force --without-system-gmp --without-system-mpfr --enable-download-from-upstream-url --enable-fat-binary --disable-notebook --disable-r --disable-sagelib"
             print(f"Running {cmd}")
             if os.system(cmd) != 0:
                 raise DistutilsSetupError("configure failed")
@@ -68,7 +68,7 @@ class build_py(setuptools_build_py):
             # TODO: A target to only build wheels of tricky packages
             # (that use native libraries shared with other packages).
             SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads | cut -d" " -f 2)"; fi'
-            TARGETS = 'build-local'
+            TARGETS = 'build'
             #TARGETS = 'base-toolchain giac'
             cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 {TARGETS}'
             if os.system(cmd) != 0:
