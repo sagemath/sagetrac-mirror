@@ -213,11 +213,14 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
     # random matrix generation (David)
     # swap rows, columns (David)
-    # transpose (Edgar)
     # charpoly and minpoly (David)
+    # solve (nmod_mat_can_solve) (David)
+
+
+
+    # transpose (Edgar)
     # nmod_mat_pow (Edgar)
     # nmod_mat_trace (Edgar)
     # rank and det (only primes) (Egar)
     # right_kernel_matrix (nmod_mat_nullspace) (Edgar)
-    # solve (nmod_mat_can_solve) (David)
     # row reduction (nmod_mat_rref) (Edgar)
