@@ -93,6 +93,13 @@ cdef extern from "flint_wrap.h":
 
     ctypedef fmpz_mod_poly_struct fmpz_mod_poly_t[1]
 
+# flint/nmod_mat.h:
+cdef extern from "flint_wrap.h":
+    ctypedef struct nmod_mat_struct:
+        pass
+
+    ctypedef nmod_mat_struct nmod_mat_t[1];
+
 # flint/nmod_poly.h:
 cdef extern from "flint_wrap.h":
     ctypedef struct nmod_t:
