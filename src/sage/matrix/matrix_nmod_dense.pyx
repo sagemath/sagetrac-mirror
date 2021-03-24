@@ -145,14 +145,27 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         cdef Py_ssize_t i, j
         cdef int k
 
-        sig_on()
-        for i in range(self._nrows):
-            for j in range(self._ncols):
-                if nmod_mat_entry(self._matrix,i,j) != nmod_mat_entry((<Matrix_nmod_dense>right)._matrix,i,j):
-                    sig_off()
-                    return rich_to_bool(op, 1)
-        sig_off()
-        return rich_to_bool(op, 0)
+        from sage.structure.richcmp cimport Py_EQ, PY_NE
+        if op == PY_EQ:
+            #FIXME
+
+        elif op == PY_NE:
+            #FIXME 
+
+        else:
+            sig_on()
+            for i in range(self._nrows):
+                for j in range(self._ncols):
+                    k = nmod_mat_entry(self._matrix,i,j) - nmod_mat_entry((<Matrix_nmod_dense>right)._matrix,i,j)
+                    if k:
+                        sig_off()
+                        if k < 0:
+                            return rich_to_bool(op, -1)
+                        else:
+                            return rich_to_bool(op, 1)
+            sig_off()
+            return rich_to_bool(op, 0)
+
 
 
     ########################################################################
@@ -175,8 +188,9 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
 
 
-
     # Extra
+
+    # add inplace and not inplace versions
 
     def strong_echelon_form(self):
         if self._nrows >= self._ncols:
