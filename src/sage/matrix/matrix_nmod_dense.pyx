@@ -20,7 +20,8 @@ import sage.matrix.matrix_space as matrix_space
 
 
 cdef class Matrix_nmod_dense(Matrix_dense):
-    def __cinit__(self):
+    def __cinit__(self, parent, entries=None, bint coerce=True):
+        self._modulus = parent._base._pyx_order
         sig_str("FLINT exception")
         nmod_mat_init(self._matrix, self._nrows, self._ncols, self._modulus.int64)
         sig_off()
@@ -31,7 +32,6 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
     def __init__(self, parent, entries=None, bint coerce=True):
         self._parent = parent # MatrixSpace over IntegerMod_int or IntegerMod_int64
-        self._modulus = parent._base._pyx_order
         ma = MatrixArgs_init(parent, entries)
 
         cdef long z
