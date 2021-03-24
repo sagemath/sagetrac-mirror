@@ -440,7 +440,13 @@ def symbolic_sum(expression, *args, **kwds):
         For the traditional product function for other objects
         like list elements or function return values, see
         :func:`sage.misc.misc_c.prod`.
-  
+
+    .. NOTE::
+
+       Even though the function is named ``sybmolic_sum``, it is aliased as
+       ``sum`` at build time. This function uses Python's ``sum()`` when given a
+       single or no argument (See warning below). 
+ 
     EXAMPLES::
 
         sage: k, n = var('k,n')
@@ -620,6 +626,12 @@ def symbolic_prod(expression, *args, **kwds):
         For the traditional product function for other objects
         like list elements or function return values, see
         :func:`sage.misc.misc_c.prod`.
+
+    .. NOTE::
+
+        Even though the function is named ``sybmolic_prod``, it is aliased as
+        ``product`` at build time. This function uses :func:`sage.misc.misc_c.prod`
+        when given a single or no argument (See warning below). 
 
     EXAMPLES::
 
