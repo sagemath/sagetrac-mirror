@@ -5323,7 +5323,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         field.
 
         Raises a ``ZeroDivisionError`` if the matrix has zero
-        determinant, and raises an ``ArithmeticError``, if the
+        determinant, and raises an ``ArithmeticError`` if the
         inverse doesn't exist because the matrix is nonsquare. Also, note,
         e.g., that the inverse of a matrix over `\ZZ` is
         always a matrix defined over `\QQ` (even if the
