@@ -216,6 +216,8 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         self.cache('rank', rank)
 
     def echelon_form(self):
+        #FIXME: add a warning regarding the output potentially having more rows
+        # call howell_form and 
         key='echelon_form'
         ans = self.fetch(key)
         if ans is not None:
