@@ -10,17 +10,21 @@ AUTHORS:
 
 from cpython.sequence cimport *
 
-from cysignals.signals cimport sig_str, sig_off
+from cysignals.signals cimport sig_on, sig_str, sig_off
 
 from sage.arith.power cimport generic_power
+from sage.arith.long cimport integer_check_long_py
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, Matrix
 from sage.libs.flint.nmod_mat cimport *
+from sage.libs.gmp.mpz cimport mpz_sgn,  mpz_fits_ulong_p, mpz_get_ui
+from sage.rings.integer cimport Integer
 
 from .args cimport SparseEntry, MatrixArgs_init
 
 import sage.matrix.matrix_space as matrix_space
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_int64
+from sage.structure.richcmp cimport rich_to_bool, Py_EQ, Py_NE
 
 cdef class Matrix_nmod_dense(Matrix_dense):
     ########################################################################
@@ -147,21 +151,15 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         cdef Py_ssize_t i, j
         cdef int k
 
-        from sage.structure.richcmp cimport Py_EQ, PY_NE
-        raise NotImplementedError("I'm here")
-        if op == PY_EQ:
-            #FIXME
-            return rich_to_bool(op, 0)
-
-        elif op == PY_NE:
-            #FIXME 
-            return rich_to_bool(op, 0)
-
+        if op == Py_EQ:
+            return bool(nmod_mat_equal(self._matrix, (<Matrix_nmod_dense>right)._matrix))
+        elif op == Py_NE:
+            return not bool(nmod_mat_equal(self._matrix, (<Matrix_nmod_dense>right)._matrix))
         else:
             sig_on()
             for i in range(self._nrows):
                 for j in range(self._ncols):
-                    k = nmod_mat_entry(self._matrix,i,j) - nmod_mat_entry((<Matrix_nmod_dense>right)._matrix,i,j)
+                    k = nmod_mat_get_entry(self._matrix,i,j) - nmod_mat_get_entry((<Matrix_nmod_dense>right)._matrix,i,j)
                     if k:
                         sig_off()
                         if k < 0:
@@ -228,28 +226,73 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         return ans
 
 
+    def _pivots(self):
+        key = 'pivots'
+        ans = self.fetch(key)
+        if ans is not None:
+            return ans
+        cdef Matrix_nmod_dense E
+        # howell form has all the zero rows at the bottom
+        E = self.echelon_form() if self._parent._base.is_field() else self.howell_form()
+        p = []
+        zdp = []
+        k = 0
+        for i from 0 <= i < E._nrows:
+            for j from k <= j < E._ncols:
+                if nmod_mat_get_entry(E._matrix, i, j) != 0:  # nonzero position
+                    if nmod_mat_get_entry(E._matrix, i, j) == 1:
+                        p.append(j)
+                    else:
+                        zdp.append(j) # is a zero divisor
+                    k = j+1  # so start at next position next time
+                    break
+        ans = (p, zdp)
+        self.cache(key, ans)
+        return ans
+
+    def pivots(self):
+        return self._pivots()[0]
+
 
     def rank(self):
         key = 'rank'
         ans = self.fetch(key)
         if ans is not None:
             return ans
-        sig_on()
-        ans = nmod_mat_rank(self._matrix)
-        sig_off()
+        if self._parent._base.is_field():
+            sig_on()
+            ans = nmod_mat_rank(self._matrix)
+            sig_off()
         self.cache(key, ans)
         return ans
 
-    def det(self):
+
+    def determinant(self):
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
         key = 'det'
         ans = self.fetch(key)
         if ans is not None:
             return ans
-        sig_on()
-        ans = nmod_mat_det(self._matrix)
-        sig_off()
+
+        # If charpoly known, then det is easy.
+        f = self.fetch('charpoly')
+        if f is not None:
+            c = f[0]
+            if self._ncols % 2:
+                c = -c
+            d = self._coerce_element(c)
+            self.cache('det', d)
+            return d
+
+        if self._parent._base.is_field():
+            sig_on()
+            ans = nmod_mat_det(self._matrix)
+            sig_off()
+        else:
+            ans = self.apply_map(lambda x : x.lift_centered()).det()
+
+        ans = self._parent._base(ans)
         self.cache(key, ans)
         return ans
 
@@ -363,19 +406,20 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         return M
 
     def _right_kernel_matrix(self):
+        cdef Matrix_nmod_dense X, ans, echelon_form;
         if self._parent._base.is_field():
             # nmod_mut_nullspace will do this regardless
             # so we are better off to start in echelon form to have the rank
             echelon_form = self.echelon_form()
-            cdef Matrix_nmod_dense X = self._new(self.ncols, self._nrows - self.rank(), self._ncols)
-            cdef Matrix_nmod_dense ans = self._new(self._nrows - self.rank(), self._ncols)
+            X = self._new(self.ncols, self._nrows - self.rank())
+            ans = self._new(self._nrows - self.rank(), self._ncols)
             sig_on()
             nmod_mat_nullspace(X._matrix, echelon_form._matrix) # columns of X form a basis
-            nmod_mat_tranpose(ans._natrix, X._matrix)
+            nmod_mat_transpose(ans._matrix, X._matrix)
             sig_off()
             return ans
         else:
-            raise NotImplementedError("I'm here")
+            #I'm here
             strong_echelon_form = self.strong_echelon_form()
 
 
@@ -390,6 +434,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     # nmod_mat_pow (Edgar) x
     # nmod_mat_trace (Edgar) X
     # rank and det (only primes) (Edgar) X
+    # rank generic (Edgar)
     # right_kernel_matrix (nmod_mat_nullspace) (Edgar) x
     # row reduction (nmod_mat_rref) (Edgar) ~
-    # richcmp ~
+    # richcmp x
