@@ -443,7 +443,7 @@ def symbolic_sum(expression, *args, **kwds):
 
     .. NOTE::
 
-       Even though the function is named ``sybmolic_sum``, it is aliased as
+       Even though the function is named ``symbolic_sum``, it is aliased as
        ``sum`` at build time. This function uses Python's ``sum()`` when given a
        single or no argument (See warning below). 
  
@@ -629,7 +629,7 @@ def symbolic_prod(expression, *args, **kwds):
 
     .. NOTE::
 
-        Even though the function is named ``sybmolic_prod``, it is aliased as
+        Even though the function is named ``symbolic_prod``, it is aliased as
         ``product`` at build time. This function uses :func:`sage.misc.misc_c.prod`
         when given a single or no argument (See warning below). 
 
