@@ -433,7 +433,7 @@ AC_ARG_ENABLE([notebook],
   ])
 
 AS_IF([test "$SAGE_ENABLE_notebook" = no -a "$SAGE_ENABLE_sagelib" = no], [
-    for pkg in jupyter_client ipykernel zeromq pyzmq; do
+    for pkg in jupyter_client ipykernel ipython zeromq pyzmq; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
   ])
