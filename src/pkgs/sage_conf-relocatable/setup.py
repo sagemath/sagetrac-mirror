@@ -105,7 +105,7 @@ class build_py(setuptools_build_py):
             + glob.glob('sage_root/local/include/**', recursive=True)
             + glob.glob('sage_root/local/lib/**', recursive=True)
             + glob.glob('sage_root/local/share/**', recursive=True)
-            + glob.glob('sage_root/local/var/**', recursive=True)
+            + glob.glob('sage_root/local/var/lib/**', recursive=True)  # omit /var/tmp
             )
         #
         setuptools_build_py.run(self)
