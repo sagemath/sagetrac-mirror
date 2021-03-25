@@ -57,6 +57,10 @@ class build_py(setuptools_build_py):
                 # Previously built, start from there
                 os.rename(SAGE_LOCAL_BUILD, SAGE_LOCAL)
 
+            # We use libgd only used in a very limited way, in {matrix,vector}_mod_2_dense.
+            # Simplify our library dependencies.
+            SETENV += ' && export LIBGD_CONFIGURE="--without-freetype --without-raqm --without-fontconfig --without-jpeg --without-liq --without-xpm --without-tiff --without-webp --without-heif --without-avif"'
+
             cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --with-system-python3=force --with-mp=gmp --without-system-mpfr --without-system-readline --enable-download-from-upstream-url --enable-fat-binary --disable-notebook --disable-r --disable-sagelib"
             print(f"Running {cmd}")
             if os.system(cmd) != 0:
