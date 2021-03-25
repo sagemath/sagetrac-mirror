@@ -29,7 +29,6 @@ This module implements morphisms and homsets of simplicial sets.
 #                  http://www.gnu.org/licenses/
 #
 #*****************************************************************************
-from six.moves import range
 
 import itertools
 
@@ -197,7 +196,6 @@ class SimplicialSetHomset(Homset):
             ...
             ValueError: codomain is not pointed, so specify a target for the constant map
         """
-        domain = self.domain()
         codomain = self.codomain()
         if point is None:
             if codomain.is_pointed():
@@ -229,7 +227,6 @@ class SimplicialSetHomset(Homset):
             sage: Hom(K,L)(d) == Hom(K,L).an_element()
             True
         """
-        domain = self.domain()
         codomain = self.codomain()
         if codomain.is_pointed():
             target = codomain.base_point()
@@ -300,7 +297,7 @@ class SimplicialSetHomset(Homset):
                 pass
 
     def _latex_(self):
-        """
+        r"""
         LaTeX representation
 
         EXAMPLES::
@@ -417,8 +414,6 @@ class SimplicialSetMorphism(Morphism):
             sage: one
             Simplicial set endomorphism of S^5
               Defn: Identity map
-            sage: one._dictionary
-            {v_0: v_0, sigma_5: sigma_5}
 
         TESTS:
 
@@ -458,7 +453,7 @@ class SimplicialSetMorphism(Morphism):
             if identity:
                 if codomain is None:
                     codomain = domain
-                elif not domain is codomain:
+                elif domain is not codomain:
                     raise TypeError("identity map is only defined for endomorphism sets")
                 self._is_identity = True
                 Morphism.__init__(self, Hom(domain, codomain, SimplicialSets()))
@@ -475,10 +470,10 @@ class SimplicialSetMorphism(Morphism):
             if identity:
                 self._is_identity = True
                 check = False
-                if not domain is codomain:
+                if domain is not codomain:
                     raise TypeError("identity map is only defined for endomorphism sets")
                 data = {}
-                for i in range(domain.dimension()+1):
+                for i in range(domain.dimension() + 1):
                     for s in domain.n_cells(i):
                         data[s] = s
             if constant is not None:
@@ -498,16 +493,16 @@ class SimplicialSetMorphism(Morphism):
         d = {sigma:data[sigma] for sigma in data if sigma.is_nondegenerate()}
         # For each simplex in d.keys(), add its faces, and the faces
         # of its faces, etc., to d.
-        for simplex in d.keys():
+        for simplex in list(d):
             faces = domain.faces(simplex)
             add = []
             if faces:
-                for (i,sigma) in enumerate(faces):
+                for (i, sigma) in enumerate(faces):
                     nondegen = sigma.nondegenerate()
                     if nondegen not in d:
-                        add.append((sigma,i,simplex))
+                        add.append((sigma, i, simplex))
             while add:
-                (sigma,i,tau) = add.pop()
+                (sigma, i, tau) = add.pop()
                 # sigma is the ith face of tau.
                 face_f = codomain.face(d[tau], i)
                 degens = sigma.degeneracies()
@@ -1167,10 +1162,9 @@ class SimplicialSetMorphism(Morphism):
             sage: g.coproduct(g).is_bijective()
             False
         """
-        domain = self.domain().coproduct(*[g.domain() for g in others])
         codomain = self.codomain().coproduct(*[g.codomain() for g in others])
         factors = []
-        for (i,f) in enumerate([self] + list(others)):
+        for i, f in enumerate([self] + list(others)):
             factors.append(codomain.inclusion_map(i) * f)
         return codomain.universal_property(*factors)
 
@@ -1396,9 +1390,9 @@ class SimplicialSetMorphism(Morphism):
             [0|2]
             sage: g3 = f.induced_homology_morphism(base_ring=GF(3), cohomology=True)
             sage: g3.to_matrix()
-            [2|0]
+            [1|0]
             [-+-]
-            [0|1]
+            [0|2]
         """
         return InducedHomologyMorphism(self, base_ring, cohomology)
 

@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 
 from .chain_complex import ChainComplex
 
@@ -19,5 +18,5 @@ lazy_import('sage.homology', 'simplicial_set_catalog', 'simplicial_sets')
 
 
 # For taking care of old pickles
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.homology.examples', 'SimplicialSurface', SimplicialComplex)

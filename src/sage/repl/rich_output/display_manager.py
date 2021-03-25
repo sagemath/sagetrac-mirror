@@ -24,14 +24,14 @@ EXAMPLES::
     The Sage display manager using the doctest backend
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 
 import warnings
@@ -57,6 +57,7 @@ class DisplayException(Exception):
     """
     pass
 
+
 class OutputTypeException(DisplayException):
     """
     Wrong Output container.
@@ -77,6 +78,7 @@ class OutputTypeException(DisplayException):
         OutputTypeException: foo
     """
     pass
+
 
 class RichReprWarning(UserWarning):
     """
@@ -471,7 +473,7 @@ class DisplayManager(SageObject):
         return output
 
     def _preferred_text_formatter(self, obj, plain_text=None, **kwds):
-        """
+        r"""
         Return the preferred textual representation
 
         INPUT:
@@ -487,6 +489,7 @@ class DisplayManager(SageObject):
         One of
         :class:`~sage.repl.rich_output.output_basic.OutputPlainText`,
         :class:`~sage.repl.rich_output.output_basic.OutputAsciiArt`,
+        :class:`~sage.repl.rich_output.output_basic.OutputUnicodeArt`,
         or
         :class:`~sage.repl.rich_output.output_basic.OutputLatex`
         containing the preferred textual representation of ``obj``
@@ -540,7 +543,7 @@ class DisplayManager(SageObject):
             if type(plain_text) is not OutputPlainText:
                 raise OutputTypeException('backend returned wrong output type, require PlainText')
             return plain_text
-        out =  self._backend.plain_text_formatter(obj, **kwds)
+        out = self._backend.plain_text_formatter(obj, **kwds)
         if type(out) is not OutputPlainText:
             raise OutputTypeException('backend returned wrong output type, require PlainText')
         return out
@@ -581,7 +584,7 @@ class DisplayManager(SageObject):
             return obj._rich_repr_(self, **rich_repr_kwds)
         try:
             return obj._rich_repr_(self)
-        except NotImplementedError as e:
+        except NotImplementedError:
             # don't warn on NotImplementedErrors
             return None
         except Exception as e:
@@ -715,7 +718,7 @@ class DisplayManager(SageObject):
 
     def threejs_scripts(self, online):
         """
-        Return Three.js script tags for the current backend.
+        Return Three.js script tag for the current backend.
 
         INPUT:
 
@@ -723,19 +726,19 @@ class DisplayManager(SageObject):
 
         OUTPUT:
 
-        String containing script tags
+        String containing script tag
 
         .. NOTE::
 
             This base method handles ``online=True`` case only, serving CDN
-            script tags. Location of scripts for offline usage is
+            script tag. Location of script for offline usage is
             backend-specific.
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output import get_display_manager
             sage: get_display_manager().threejs_scripts(online=True)
-            '...<script src="https://cdn.rawgit.com/mrdoob/three.js/...'
+            '...<script src="https://cdn.jsdelivr.net/gh/sagemath/threejs-sage@...'
             sage: get_display_manager().threejs_scripts(online=False)
             Traceback (most recent call last):
             ...
@@ -743,11 +746,13 @@ class DisplayManager(SageObject):
             offline threejs graphics
         """
         if online:
-            from sage.misc.package import installed_packages
-            version = installed_packages()['threejs']
+            import sage.env
+            import re
+            import os
+            with open(os.path.join(sage.env.THREEJS_DIR, 'version')) as f:
+                version = f.read().strip()
             return """
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/build/three.min.js"></script>
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sagemath/threejs-sage@{0}/build/three.min.js"></script>
             """.format(version)
         try:
             return self._backend.threejs_offline_scripts()
@@ -832,8 +837,6 @@ class DisplayManager(SageObject):
         """
         plain_text, rich_output = self._rich_output_formatter(obj, rich_repr_kwds)
         self._backend.display_immediately(plain_text, rich_output)
-
-
 
 
 get_display_manager = DisplayManager.get_instance

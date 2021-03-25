@@ -22,7 +22,6 @@ EXAMPLES::
     sage: K.fractional_ideal(G).absolute_norm().factor()
     7^2
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
@@ -276,8 +275,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             (2, 15*a*b + 3*a + 1)
         """
         try:
-            ## Compute the single generator, if it exists
-            dummy = self.is_principal()
+            # Compute the single generator, if it exists
+            self.is_principal()
             return self.__reduced_generators
         except AttributeError:
             L = self.number_field()
@@ -506,8 +505,9 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: PF.<Y> = F[]
             sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
             sage: I = K.ideal(3, c)
-            sage: J = I.ideal_below(); J
-            Fractional ideal (-b)
+            sage: J = I.ideal_below()
+            sage: J == K.ideal(b)
+            True
             sage: J.number_field() == F
             True
 
@@ -606,7 +606,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
 
     def is_prime(self):
         """
-        Return True if this ideal of a relative number field is prime.
+        Return ``True`` if this ideal of a relative number field is prime.
 
         EXAMPLES::
 
@@ -620,7 +620,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             return self._pari_prime is not None
         except AttributeError:
             abs_ideal = self.absolute_ideal()
-            _ = abs_ideal.is_prime()
+            abs_ideal.is_prime()
             self._pari_prime = abs_ideal._pari_prime
             return self._pari_prime is not None
 

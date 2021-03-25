@@ -9,7 +9,6 @@ problems.
 from sage.rings.all import ZZ
 from sage.arith.all import crt, inverse_mod
 from sage.modular.modsym.p1list import lift_to_sl2z
-from copy import copy
 
 
 def lift_to_gamma1(g, m, n):
@@ -172,7 +171,7 @@ def lift_ramified(g, p, u, n):
 
         sage: from sage.modular.local_comp.liftings import lift_ramified
         sage: lift_ramified([2,2,3,2], 3, 1, 1)
-        [5, 8, 3, 5]
+        [-1, -1, 3, 2]
         sage: lift_ramified([8,2,12,2], 3, 2, 23)
         [323, 110, -133584, -45493]
         sage: type(lift_ramified([8,2,12,2], 3, 2, 23)[0])
@@ -248,7 +247,6 @@ def lift_for_SL(A, N=None):
         ....:     M = random_matrix(Zmod(p), d, algorithm='unimodular')
         ....:     assert lift_for_SL(M).det() == 1
     """
-    from sage.matrix.constructor import matrix
     from sage.matrix.special import (identity_matrix, diagonal_matrix,
                                      block_diagonal_matrix)
     from sage.misc.misc_c import prod

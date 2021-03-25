@@ -2,7 +2,7 @@ r"""
 Orlik-Solomon Algebras
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 William Slofstra
 #                          Travis Scrimshaw <tscrimsh at umn.edu>
 #
@@ -10,13 +10,14 @@ Orlik-Solomon Algebras
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.algebras import Algebras
 from sage.sets.family import Family
+
 
 class OrlikSolomonAlgebra(CombinatorialFreeModule):
     r"""
@@ -193,7 +194,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def algebra_generators(self):
-        """
+        r"""
         Return the algebra generators of ``self``.
 
         These form a family indexed by the ground set `X` of `M`. For
@@ -221,7 +222,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def product_on_basis(self, a, b):
-        """
+        r"""
         Return the product in ``self`` of the basis elements
         indexed by ``a`` and ``b``.
 
@@ -426,8 +427,8 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
                     if j == i:
                         switch = True
                 return r
-        else: # So ``S`` is an NBC set.
-            return self.monomial(S)
+        # So ``S`` is an NBC set.
+        return self.monomial(S)
 
     def degree_on_basis(self, m):
         """

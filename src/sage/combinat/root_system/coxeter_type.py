@@ -16,21 +16,20 @@ Coxeter Types
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import add_metaclass
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.matrix.all import MatrixSpace
+from sage.matrix.args import SparseEntry
+from sage.matrix.all import Matrix
 from sage.symbolic.ring import SR
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 from sage.rings.number_field.number_field import is_QuadraticField
 
 
-@add_metaclass(ClasscallMetaclass)
-class CoxeterType(SageObject):
+class CoxeterType(SageObject, metaclass=ClasscallMetaclass):
     """
     Abstract class for Coxeter types.
     """
@@ -372,7 +371,6 @@ class CoxeterType(SageObject):
 
         n = self.rank()
         mat = self.coxeter_matrix()._matrix
-        base_ring = mat.base_ring()
 
         from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
         UCF = UniversalCyclotomicField()
@@ -410,13 +408,10 @@ class CoxeterType(SageObject):
                 else:
                     return R(x)
 
-        MS = MatrixSpace(R, n, sparse=True)
-        MC = MS._matrix_class
-
-        bilinear = MC(MS, entries={(i, j): val(mat[i, j])
-                                   for i in range(n) for j in range(n)
-                                   if mat[i, j] != 2},
-                      coerce=True, copy=True)
+        entries = [SparseEntry(i, j, val(mat[i, j]))
+                   for i in range(n) for j in range(n)
+                   if mat[i, j] != 2]
+        bilinear = Matrix(R, n, entries)
         bilinear.set_immutable()
         return bilinear
 
@@ -518,6 +513,18 @@ class CoxeterTypeFromCartanType(UniqueRepresentation, CoxeterType):
         """
         return self._cartan_type
 
+    def type(self):
+        """
+        Return the type of ``self``.
+
+        EXAMPLES::
+
+            sage: C = CoxeterType(['A', 4])
+            sage: C.type()
+            'A'
+        """
+        return self._cartan_type.type()
+
     def rank(self):
         """
         Return the rank of ``self``.
@@ -597,6 +604,59 @@ class CoxeterTypeFromCartanType(UniqueRepresentation, CoxeterType):
             False
         """
         return self._cartan_type.is_simply_laced()
+
+    def is_reducible(self):
+        """
+        Return if ``self`` is reducible.
+
+        EXAMPLES::
+
+            sage: C = CoxeterType(['A', 5])
+            sage: C.is_reducible()
+            False
+
+            sage: C = CoxeterType('A2xA2')
+            sage: C.is_reducible()
+            True
+        """
+        return self._cartan_type.is_reducible()
+
+    def is_irreducible(self):
+        """
+        Return if ``self`` is irreducible.
+
+        EXAMPLES::
+
+            sage: C = CoxeterType(['A', 5])
+            sage: C.is_irreducible()
+            True
+
+            sage: C = CoxeterType('B3xB3')
+            sage: C.is_irreducible()
+            False
+        """
+        return self._cartan_type.is_irreducible()
+
+    def component_types(self):
+        """
+        A list of Coxeter types making up the reducible type.
+
+        EXAMPLES::
+
+            sage: CoxeterType(['A',2],['B',2]).component_types()
+            [Coxeter type of ['A', 2], Coxeter type of ['B', 2]]
+
+            sage: CoxeterType('A4xB3').component_types()
+            [Coxeter type of ['A', 4], Coxeter type of ['B', 3]]
+
+            sage: CoxeterType(['A', 2]).component_types()
+            Traceback (most recent call last):
+            ...
+            ValueError: component types only defined for reducible types
+        """
+        if self.is_irreducible():
+            raise ValueError('component types only defined for reducible types')
+        return [CoxeterType(t) for t in self._cartan_type.component_types()]
 
     def relabel(self, relabelling):
         """

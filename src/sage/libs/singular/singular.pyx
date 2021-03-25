@@ -6,16 +6,15 @@ AUTHOR:
 - Martin Albrecht <malb@informatik.uni-bremen.de>
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-###############################################################################
-from __future__ import print_function, absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 include "sage/libs/ntl/decl.pxi"
 
@@ -73,7 +72,7 @@ cdef Rational si2sa_QQ(number *n, number **nn, ring *_ring):
 
     ##  Immediate integers handles carry the tag 'SR_INT', i.e. the last bit is 1.
     ##  This distinguishes immediate integers from other handles which point to
-    ##  structures aligned on 4 byte boundaries and therefor have last bit zero.
+    ##  structures aligned on 4 byte boundaries and therefore have last bit zero.
     ##  (The second bit is reserved as tag to allow extensions of this scheme.)
     ##  Using immediates as pointers and dereferencing them gives address errors.
     nom = nlGetNumerator(n, _ring.cf)
@@ -508,7 +507,7 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     cdef char *_name
 
     # the result of nlInit2gmp() is in a plain polynomial ring over QQ (not an extension ring!),
-    # so we hace to get/create one :
+    # so we have to get/create one:
     #
     # todo: reuse qqr/ get an existing Singular polynomial ring over Q.
     _name = omStrDup("a")
@@ -770,17 +769,17 @@ cdef init_libsingular():
     cdef void *handle = NULL
 
     from sage.env import SINGULAR_SO
-    lib = SINGULAR_SO
+    if not SINGULAR_SO or not os.path.exists(SINGULAR_SO):
+        raise RuntimeError(
+            "libSingular not found--a working Singular install "
+            "is required for Sage to work")
 
-    if not os.path.exists(lib):
-        raise ImportError("cannot locate Singular library ({})".format(lib))
-
-    lib = str_to_bytes(lib, FS_ENCODING, "surrogateescape")
+    lib = str_to_bytes(SINGULAR_SO, FS_ENCODING, "surrogateescape")
 
     handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
     if not handle:
         err = dlerror()
-        raise ImportError("cannot load Singular library ({})".format(err))
+        raise ImportError(f"cannot load Singular library from {SINGULAR_SO} ({err})")
 
     # load SINGULAR
     siInit(lib)

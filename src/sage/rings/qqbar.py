@@ -1,4 +1,5 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 Field of Algebraic Numbers
 
 AUTHOR:
@@ -150,7 +151,7 @@ roots if they exist, but for ``QQbar`` we take the principal root::
     0.500000000000000? + 0.866025403784439?*I
 
 We can explicitly coerce from `\QQ[I]`. (Technically, this is not quite
-kosher, since `\QQ[I]` doesn't come with an embedding; we do not know
+kosher, since `\QQ[I]` does not come with an embedding; we do not know
 whether the field generator is supposed to map to `+I` or `-I`. We assume
 that for any quadratic field with polynomial `x^2+1`, the generator maps
 to `+I`.)::
@@ -166,7 +167,7 @@ However, implicit coercion from `\QQ[I]` is not allowed::
     sage: QQbar(1) + im
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for +: 'Algebraic Field' and 'Number Field in I with defining polynomial x^2 + 1'
+    TypeError: unsupported operand parent(s) for +: 'Algebraic Field' and 'Number Field in I with defining polynomial x^2 + 1 with I = 1*I'
 
 We can implicitly coerce from algebraic reals to algebraic numbers::
 
@@ -308,8 +309,8 @@ and we get a way to produce the number directly::
     sage: n == 109*rt2 + 89*rt3
     True
     sage: sage_input(n)
-    R.<x> = AA[]
-    v = AA.polynomial_root(AA.common_polynomial(x^4 - 4*x^2 + 1), RIF(RR(0.51763809020504148), RR(0.51763809020504159)))
+    R.<y> = QQ[]
+    v = AA.polynomial_root(AA.common_polynomial(y^4 - 4*y^2 + 1), RIF(RR(0.51763809020504148), RR(0.51763809020504159)))
     -109*v^3 - 89*v^2 + 327*v + 178
 
 We can also see that some computations (basically, those which are
@@ -320,8 +321,8 @@ the computation tree::
     sage: z4_4 = QQbar.zeta(4) * 4
     sage: z5_5 = QQbar.zeta(5) * 5
     sage: sage_input(z3_3 * z4_4 * z5_5)
-    R.<x> = AA[]
-    3*QQbar.polynomial_root(AA.common_polynomial(x^2 + x + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871))))*QQbar(4*I)*(5*QQbar.polynomial_root(AA.common_polynomial(x^4 + x^3 + x^2 + x + 1), CIF(RIF(RR(0.3090169943749474), RR(0.30901699437494745)), RIF(RR(0.95105651629515353), RR(0.95105651629515364)))))
+    R.<y> = QQ[]
+    3*QQbar.polynomial_root(AA.common_polynomial(y^2 + y + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871))))*QQbar(4*I)*(5*QQbar.polynomial_root(AA.common_polynomial(y^4 + y^3 + y^2 + y + 1), CIF(RIF(RR(0.3090169943749474), RR(0.30901699437494745)), RIF(RR(0.95105651629515353), RR(0.95105651629515364)))))
 
 Note that the ``verify=True`` argument to ``sage_input`` will always trigger
 exact computation, so running ``sage_input`` twice in a row on the same number
@@ -357,23 +358,10 @@ algorithms in :trac:`10255`::
     1.000000000000000?
     sage: sage_input(one, verify=True)
     # Verified
-    R1 = QQbar['x']
-    x1 = R1.gen()
-    R2 = AA['x']
-    x2 = R2.gen()
-    cp1 = AA.common_polynomial(x2^2 - 2)
-    v1 = QQbar.polynomial_root(cp1, RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
-    v2 = QQbar.polynomial_root(AA.common_polynomial(x1^2 - 3), CIF(RIF(RR(1.7320508075688772), RR(1.7320508075688774)), RIF(RR(0))))
-    v3 = -v1 - v2
-    v4 = QQbar.polynomial_root(cp1, RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
-    cp2 = AA.common_polynomial(x1^2 + (-v4 + v2)*x1 - v4*v2)
-    v5 = QQbar.polynomial_root(cp2, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v6 = v3 - v5
-    v7 = -1 - v2 - QQbar.polynomial_root(cp2, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v8 = v1*v2
-    v9 = v8 - v3*v5
-    si = v8*v5
-    AA.polynomial_root(AA.common_polynomial(x1^4 + (v6 + v7)*x1^3 + (v9 + v6*v7)*x1^2 + (-si + v9*v7)*x1 - si*v7), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
+    R1.<x> = QQbar[]
+    R2.<y> = QQ[]
+    v = AA.polynomial_root(AA.common_polynomial(y^4 - 4*y^2 + 1), RIF(RR(0.51763809020504148), RR(0.51763809020504159)))
+    AA.polynomial_root(AA.common_polynomial(x^4 + QQbar(v^3 - 3*v - 1)*x^3 + QQbar(-v^3 + 3*v - 3)*x^2 + QQbar(-3*v^3 + 9*v + 3)*x + QQbar(3*v^3 - 9*v)), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
     sage: one
     1
 
@@ -506,11 +494,60 @@ Check that :trac:`22202` is fixed::
     sage: a = QQbar.polynomial_root((-4*v + 2)*s + (v - 1/2), CIF(RIF(0.24, 0.26), RIF(0)))
     sage: QQ(a)
     1/4
-"""
 
-from __future__ import absolute_import, print_function, division
-from six.moves import range
-from six import integer_types, iteritems
+This example from :trac:`17896` should run in reasonable time, see also
+:trac:`15600`::
+
+    sage: x,y = polygens(QQ,"x,y")
+    sage: p1 = x^5 + 6*x^4 - 42*x^3 - 142*x^2 + 467*x + 422
+    sage: p2 = p1(x=(x-1)^2)
+    sage: p3 = p2(x=x*y).resultant(p2,x).univariate_polynomial()
+    sage: p4, = [f[0] for f in p3.factor() if f[0].degree() == 80]
+    sage: ival = CIF((0.77, 0.78), (-0.08, -0.07))
+    sage: z, = [r for r in p4.roots(QQbar, False) if r in ival]
+    sage: z.exactify()
+
+Check that :trac:`17895` is fixed. We check that ``polynomial_root``
+runs under 5 seconds (used to take ~40sec)::
+
+    sage: x,y = polygens(QQ,"x,y")
+    sage: p1 = x^5 + 6*x^4 - 42*x^3 - 142*x^2 + 467*x + 422
+    sage: p2 = p1(x=(x-1)^2)
+    sage: p3 = p2(x=x*y).resultant(p2,x).univariate_polynomial()
+    sage: p4, = [f[0] for f in p3.factor() if f[0].degree() == 80]
+    sage: ival = CIF((0.77, 0.78), (-0.08, -0.07))
+    sage: alarm(5.0)
+    sage: z2 = QQbar.polynomial_root(p4, ival)
+    sage: cancel_alarm()
+
+Check that :trac:`28530` is fixed::
+
+    sage: x = polygen(QQ)
+    sage: K.<a> = NumberField(x^2 - x - 6256320, embedding=-2500.763730596996)
+    sage: y = polygen(K)
+    sage: lc = (253699680440307500000000000000000000000000*y^13 +
+    ....: (-82964409970750000000000000000000000*a - 253907049983029389625000000000000000000000)*y^12 -
+    ....: 1269011504560040442911087500000000000000000*y^11 +
+    ....: (414989843657644100408750000000000000*a + 1270048771674262724340059170625000000000000)*y^10 +
+    ....: 2539049473271641600616704837811000000000000*y^9 +
+    ....: (-830315359762894607374452813100000000*a - 2541124846513368955687837282617343450000000)*y^8 -
+    ....: 2540076196857756969319550626460768394380000*y^7 +
+    ....: (830651117050319162421733536395645998*a + 2542152409324824242066023749434989311552001)*y^6 +
+    ....: 1270551589939213408433336739488536788760000*y^5 +
+    ....: (-415493479588780904355108633491291996*a - 1271590115891445566303772333517948273104002)*y^4 -
+    ....: 254213042233365096819403450838768394380000*y^3 +
+    ....: (83132288614462248899077910195645998*a + 254420831388756945210526696075302411552001)*y^2)
+    sage: lc = lc.change_ring(QQbar)
+    sage: lc.roots(CIF)
+    [(-1.000505492239?, 2),
+     (-1.000000000000?, 2),
+     (-0.999999999662605?, 1),
+     (0, 2),
+     (1.000000000000?, 2),
+     (1.000505492239?, 2),
+     (0.999999587? + 0.?e-11*I, 1),
+     (0.999999999? + 0.?e-11*I, 1)]
+"""
 
 import itertools
 import operator
@@ -521,32 +558,45 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import (richcmp, richcmp_method,
                                     rich_to_bool, richcmp_not_equal,
-                                    op_EQ, op_NE)
+                                    op_EQ, op_NE, op_GT)
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement, RealIntervalField_class
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField, is_ComplexIntervalField
 from sage.rings.complex_interval import is_ComplexIntervalFieldElement
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.number_field.number_field import NumberField, QuadraticField, CyclotomicField
+from sage.rings.number_field.number_field import NumberField, GaussianField, CyclotomicField
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from sage.arith.all import factor
 from . import infinity
 from sage.categories.action import Action
 
+from sage.structure.global_options import GlobalOptions
 
 CC = ComplexField()
 CIF = ComplexIntervalField()
-
 
 class AlgebraicField_common(sage.rings.ring.Field):
     r"""
     Common base class for the classes :class:`~AlgebraicRealField` and
     :class:`~AlgebraicField`.
+
+    TESTS::
+
+        sage: AA.is_finite()
+        False
+        sage: QQbar.is_finite()
+        False
     """
+
+    class options(GlobalOptions):
+        NAME = 'AlgebraicField'
+        display_format = dict(default='decimal',
+                              values=dict(decimal='Always display a decimal approximation',
+                                          radical='Display using radicals (if possible)'))
 
     def default_interval_prec(self):
         r"""
@@ -557,25 +607,14 @@ class AlgebraicField_common(sage.rings.ring.Field):
             sage: AA.default_interval_prec()
             64
         """
-
         return 64
-
-    def is_finite(self):
-        r"""
-        Check whether this field is finite. Since this class is only used for
-        fields of characteristic 0, always returns False.
-
-        EXAMPLES::
-
-            sage: QQbar.is_finite()
-            False
-        """
-        return False
 
     def characteristic(self):
         r"""
-        Return the characteristic of this field. Since this class is only used
-        for fields of characteristic 0, always returns 0.
+        Return the characteristic of this field.
+
+        Since this class is only used
+        for fields of characteristic 0, this always returns 0.
 
         EXAMPLES::
 
@@ -586,7 +625,9 @@ class AlgebraicField_common(sage.rings.ring.Field):
 
     def order(self):
         r"""
-        Return the cardinality of self. Since this class is only used for
+        Return the cardinality of ``self``.
+
+        Since this class is only used for
         fields of characteristic 0, always returns Infinity.
 
         EXAMPLES::
@@ -600,7 +641,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
         """
         Given a polynomial with algebraic coefficients, returns a
         wrapper that caches high-precision calculations and
-        factorizations. This wrapper can be passed to polynomial_root
+        factorizations. This wrapper can be passed to ``polynomial_root``
         in place of the polynomial.
 
         Using ``common_polynomial`` makes no semantic difference, but will
@@ -642,17 +683,330 @@ class AlgebraicField_common(sage.rings.ring.Field):
         """
         EXAMPLES::
 
-            sage: QQbar.get_action(QQ, operator.pow)
+            sage: coercion_model.get_action(QQbar, QQ, operator.pow)
             Right Rational Powering by Rational Field on Algebraic Field
-            sage: print(QQbar.get_action(QQ, operator.pow, self_on_left=False))
+            sage: print(coercion_model.get_action(QQ, QQbar, operator.pow))
             None
-            sage: print(QQbar.get_action(QQ, operator.mul))
+            sage: print(coercion_model.get_action(QQbar, QQ, operator.mul))
             None
-            sage: QQbar.get_action(ZZ, operator.pow)
+            sage: coercion_model.get_action(QQbar, ZZ, operator.pow)
             Right Integer Powering by Integer Ring on Algebraic Field
         """
         if self_on_left and G is QQ and op is operator.pow:
             return AlgebraicNumberPowQQAction(G, self)
+
+    def _factor_multivariate_polynomial(self, f, proof=True):
+        r"""
+        Factor the multivariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a multivariate polynomial defined over the algebraic field
+          or the real algebraic field
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the algebraic or real algebraic numbers
+          into a unit and monic irreducible factors
+
+        ALGORITHM:
+
+        For rings over `\QQ`, uses Singular's ``absfact`` library.
+
+        For rings over number fields, we reduce to the `\QQ` case by factoring
+        the norm of the polynomial.
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict.factor`.
+
+        REFERENCES:
+
+        - [GCL1992]_ Section 8.8
+        - https://trac.sagemath.org/attachment/ticket/25390/qqbar.pdf
+
+        .. TODO::
+
+            Investigate whether performance can be improved by testing
+            if the multivariate polynomial is actually univariate, and
+            using the univariate code if so.
+
+        TESTS::
+
+            sage: R.<x,y> = QQbar[]
+            sage: A.<u,v> = AA[]
+
+            sage: L = QQbar._factor_multivariate_polynomial(x^2-y^2)
+            sage: L
+            (x - y) * (x + y)
+            sage: L = QQbar._factor_multivariate_polynomial(x^2+y^2)
+            sage: L
+            (x + (-1*I)*y) * (x + 1*I*y)
+            sage: L.value()
+            x^2 + y^2
+
+            sage: L = AA._factor_multivariate_polynomial(u^2-v^2)
+            sage: L
+            (u - v) * (u + v)
+            sage: L = AA._factor_multivariate_polynomial(u^2+v^2)
+            sage: L
+            u^2 + v^2
+
+        The test from Singular's ``absfact`` documentation::
+
+            sage: p = (-7*x^2 + 2*x*y^2 + 6*x + y^4 + 14*y^2 + 47)*(5*x^2+y^2)^3*(x-y)^4
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (125) * (x + (-0.4472135954999580?*I)*y)^3
+            * (x + 0.4472135954999580?*I*y)^3 * (x - y)^4
+            * (y^2 + (-1.828427124746191?)*x + 5.585786437626905?)
+            * (y^2 + 3.828427124746190?*x + 8.414213562373095?)
+            sage: F.value() == p
+            True
+
+            sage: p = (-7*u^2 + 2*u*v^2 + 6*u + v^4 + 14*v^2 + 47)*(5*u^2+v^2)^3*(u-v)^4
+            sage: F = AA._factor_multivariate_polynomial(p)
+            sage: F
+            (125) * (u - v)^4
+            * (v^2 - 1.828427124746191?*u + 5.585786437626905?)
+            * (v^2 + 3.828427124746190?*u + 8.414213562373095?)
+            * (u^2 + 1/5*v^2)^3
+            sage: F.value() == p
+            True
+
+        A test requiring us to further extend a number field that was
+        used to specify the polynomial::
+
+            sage: p = x^2 + QQbar(sqrt(2))*y^2
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (x + (-1.189207115002722?*I)*y) * (x + 1.189207115002722?*I*y)
+            sage: F.value() == p
+            True
+
+            sage: p = u^2 + AA(sqrt(2))*v^2
+            sage: F = AA._factor_multivariate_polynomial(p)
+            sage: F
+            u^2 + 1.414213562373095?*v^2
+            sage: F.value() == p
+            True
+
+        A test requiring a number field different from the number field
+        used to specify the polynomial::
+
+            sage: p = QQbar(sqrt(2))*(x^2+y^2)
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (1.414213562373095?) * (x + (-1*I)*y) * (x + 1*I*y)
+            sage: F.value() == p
+            True
+
+            sage: p = AA(sqrt(2))*(u^2+v^2)
+            sage: F = AA._factor_multivariate_polynomial(p)
+            sage: F
+            (1.414213562373095?) * (u^2 + v^2)
+            sage: F.value() == p
+            True
+
+        A test where a factor introduces a number field that was already
+        used to specify the polynomial::
+
+            sage: p = QQbar(sqrt(2))*(x^2-2*y^2)^2
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (1.414213562373095?)
+            * (x + (-1.414213562373095?)*y)^2 * (x + 1.414213562373095?*y)^2
+            sage: F.value() == p
+            True
+
+            sage: p = AA(sqrt(2))*(u^2-2*v^2)^2
+            sage: F = AA._factor_multivariate_polynomial(p)
+            sage: F
+            (1.414213562373095?)
+            * (u - 1.414213562373095?*v)^2 * (u + 1.414213562373095?*v)^2
+            sage: F.value() == p
+            True
+
+        A test where two factors produce the same factor in the norm::
+
+            sage: p = (x^2+QQbar(sqrt(2))*y^2)*(x^4-2*y^4)
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (x + (-1.189207115002722?)*y) * (x + 1.189207115002722?*y)
+            * (x + (-1.189207115002722?*I)*y)^2 * (x + 1.189207115002722?*I*y)^2
+            sage: F.value() == p
+            True
+
+            sage: p = (u^2+AA(sqrt(2))*v^2)*(u^4-2*v^4)
+            sage: F = AA._factor_multivariate_polynomial(p)
+            sage: F
+            (u - 1.189207115002722?*v) * (u + 1.189207115002722?*v)
+            * (u^2 + 1.414213562373095?*v^2)^2
+            sage: F.value() == p
+            True
+
+        A test where the number field that expresses the result is a subfield
+        of the number field that expressed the polynomial::
+
+            sage: p = (x^2+QQbar(2)^(1/2)*y^2)*(x+QQbar(2)^(1/8)*y)
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (x + (-1.189207115002722?*I)*y) * (x + 1.189207115002722?*I*y)
+            * (x + 1.090507732665258?*y)
+            sage: F.value() == p
+            True
+
+        A test where the polynomial variable names conflict with the
+        number field generator::
+
+            sage: S.<a,b> = QQbar[]
+            sage: p = a^2 + QQbar(sqrt(2))*b^2
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (a + (-1.189207115002722?*I)*b) * (a + 1.189207115002722?*I*b)
+
+        A test that led to :trac:`26898`::
+
+            sage: R.<x> = QQ[]
+            sage: minpoly = 4*x^7 + 27
+            sage: NF.<b> = NumberField(minpoly)
+            sage: for hom in NF.embeddings(QQbar):
+            ....:    factor_f = (x - b).map_coefficients(hom)
+            ....:    assert(minpoly % factor_f == 0)
+
+        Test :trac:`29076`::
+
+            sage: AA['x','y'](1).factor()   # indirect doctest
+            1
+
+        """
+        from sage.structure.factorization import Factorization
+        from sage.interfaces.singular import singular
+
+        if f.degree() == 0:
+            return Factorization([], f.lc())
+
+        singular.lib('absfact.lib')
+
+        orig_elems = f.coefficients()
+        numfield, new_elems, morphism = number_field_elements_from_algebraics(orig_elems, same_field=True)
+
+        elem_dict = dict(zip(orig_elems, new_elems))
+
+        numfield_f = f.map_coefficients(elem_dict.__getitem__, new_base_ring=numfield)
+
+        if numfield is not QQ:
+            # We now want to compute the norm of the polynomial, i.e,
+            #
+            #    norm_f = prod([numfield_f.map_coefficients(h)
+            #                   for h in numfield.embeddings(QQbar)])
+            #
+            # As nbruin pointed out during the review of Trac #25390,
+            # this can be accomplished more efficiently using the resultant
+            # of the polynomial with the number field's minimal polynomial.
+            #
+            # We use two auxiliary polynomial rings:
+            #
+            #   norm_ring - for the polynomial's norm (same var names,
+            #               but over QQ instead of over the number field)
+            #   flat_ring - all the polynomial and number field variables
+            #               in a single flat polynomial ring, with the
+            #               variables renamed to ensure they don't conflict
+            #
+            # norm_ring has the same number of generators as the polynomial
+            # being factored, and flat_ring has one more.
+
+            polynomial_gens = numfield_f.parent().gens()
+
+            norm_ring = PolynomialRing(QQ, polynomial_gens)
+            flat_ring = PolynomialRing(QQ, len(polynomial_gens) + 1, 'x')
+            nf_gen = flat_ring.gen(0)
+
+            numfield_polynomial_flat = numfield.polynomial()(nf_gen)
+
+            polynomial_flat = sum(flat_ring({(0,)+tuple(k):1})
+                                  * v.polynomial()(nf_gen)
+                                  for k,v in numfield_f.dict().items())
+
+            norm_flat = polynomial_flat.resultant(numfield_polynomial_flat, nf_gen)
+            norm_f = norm_flat((0,)+norm_ring.gens())
+        else:
+            norm_f = numfield_f
+
+        R = norm_f._singular_().absFactorize()
+
+        singular.setring(R)
+        L = singular('absolute_factors')
+
+        # We're going to do some polynomial operations below that
+        # require Singular to change to a different base ring, which
+        # will make L "disappear".  Convert its contents now.
+
+        factors = []
+
+        for i in range(2, len(L[1])+1):
+            factor = L[1][i].sage()
+            #multiplicity = L[2][i].sage()
+            minpoly = L[3][i].sage()
+            factors.append((factor, minpoly))
+
+        factorization = []
+
+        for factor, minpoly in factors:
+
+            # minpoly is in a multivariate polynomial ring
+            # over a univariate fraction field
+
+            assert minpoly.degree() == 0
+            minpoly = minpoly.constant_coefficient()
+            assert minpoly.denominator() == 1
+            minpoly = minpoly.numerator()
+
+            NF = NumberField(minpoly, minpoly.parent().gen(0))
+
+            # Singular returns factor coefficients in a fraction field
+            # of a univariate ring, which is actually a number field.
+
+            def NF_elem_map(e):
+                return NF(e.numerator()) / NF(e.denominator())
+
+            factor_NF = factor.map_coefficients(NF_elem_map, new_base_ring=NF)
+            factor_NF /= factor_NF.lc()
+
+            # We now have a number field and a factor in that number field such
+            # that the factor and all of its conjugates multiply together to
+            # form a factor of the original polynomial's norm.  Each of those
+            # conjugate factors may (or may not) be a factor of the original
+            # polynomial, so check each one.  In the real case (AA), we expect
+            # the embeddings to come in conjugate pairs, and we want to combine
+            # each pair together so that the factor maps to a real polynomial.
+
+            for hom in NF.embeddings(QQbar):
+                factor_f = factor_NF.map_coefficients(hom)
+                if f.base_ring() is AA:
+                    target = hom(NF.gen(0))
+                    if target.imag() < 0:
+                        continue
+                    elif target.imag() > 0:
+                        conjugate_hom = NF.hom([target.conjugate()], QQbar)
+                        factor_f *= factor_NF.map_coefficients(conjugate_hom)
+                    factor_f = factor_f.change_ring(AA)
+                for i in itertools.count(1):
+                    if f % factor_f**i != 0:
+                        multiplicity = i-1
+                        break
+                if multiplicity > 0:
+                    factorization.append((factor_f, multiplicity))
+
+        # What we'd now like to do is
+        #     return Factorization(factorization, unit=QQ(L[1][1].sage()))
+        # but Singular seems to have a bug and doesn't
+        # always compute the unit correctly
+
+        trial = Factorization(factorization).value()
+
+        return Factorization(factorization, unit = f.lc() / trial.lc())
 
 
 class AlgebraicRealField(Singleton, AlgebraicField_common):
@@ -693,10 +1047,11 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             ....: b'\xb1.~\x000\xc2\xe0\xa1')
             sage: s is AA
             True
-
         """
-        try: return AA
-        except BaseException: return AlgebraicField_common.__new__(cls)
+        try:
+            return AA
+        except BaseException:
+            return AlgebraicField_common.__new__(cls)
 
     def __init__(self):
         r"""
@@ -704,12 +1059,13 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
         EXAMPLES:
 
-        This function calls functions in superclasses which set the category, so we check that.
+        This function calls functions in superclasses which set the category, so we check that. ::
 
             sage: QQbar.category() # indirect doctest
-            Category of fields
+            Category of infinite fields
         """
-        AlgebraicField_common.__init__(self, self, ('x',), normalize=False)
+        from sage.categories.fields import Fields
+        AlgebraicField_common.__init__(self, self, ('x',), normalize=False, category=Fields().Infinite())
 
     def _element_constructor_(self, x):
         r"""
@@ -717,18 +1073,18 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
         EXAMPLES::
 
-            sage: QQbar(sqrt(2)) in AA # indirect doctest
+            sage: QQbar(sqrt(2)) in AA  # indirect doctest
             True
             sage: QQbar(I) in AA
             False
             sage: AA in AA
             False
 
-        The following should both return True (this is a bug). ::
+        The following should both return ``True`` (this is a bug). ::
 
-            sage: sqrt(2) in AA # not tested
+            sage: sqrt(2) in AA  # known bug
             False
-            sage: K.<z> = CyclotomicField(5); z + 1/z in AA # not tested
+            sage: K.<z> = CyclotomicField(5); z + 1/z in AA  # known bug
             False
         """
         if isinstance(x, AlgebraicReal):
@@ -744,7 +1100,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
     def _repr_(self):
         r"""
-        String representation of self.
+        String representation of ``self``.
 
         EXAMPLES::
 
@@ -771,7 +1127,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
     # Is there a standard representation for this?
     def _latex_(self):
         r"""
-        Latex representation of self.
+        Latex representation of ``self``.
 
         EXAMPLES::
 
@@ -815,17 +1171,18 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
         return (from_par is ZZ or from_par is QQ
                 or from_par is AA)
 
-    def completion(self, p, prec, extras = {}):
+    def completion(self, p, prec, extras={}):
         r"""
-        Return the completion of self at the place `p`. Only implemented for `p
-        = \infty` at present.
+        Return the completion of ``self`` at the place `p`.
+
+        Only implemented for `p = \infty` at present.
 
         INPUT:
 
-        - ``p`` -- either a prime (not implemented at present) or Infinity
+        - ``p`` -- either a prime (not implemented at present) or ``Infinity``
         - ``prec`` -- precision of approximate field to return
-        - ``extras`` -- a dict of extra keyword arguments for the ``RealField``
-          constructor
+        - ``extras`` -- (optional) a dict of extra keyword arguments
+          for the ``RealField`` constructor
 
         EXAMPLES::
 
@@ -841,13 +1198,13 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             NotImplementedError
         """
         if p == infinity.Infinity:
-            from sage.rings.real_mpfr import create_RealField
+            from sage.rings.real_field import create_RealField
             return create_RealField(prec, **extras)
         else:
             raise NotImplementedError
 
     def algebraic_closure(self):
-        """
+        r"""
         Return the algebraic closure of this field, which is the field
         `\overline{\QQ}` of algebraic numbers.
 
@@ -858,10 +1215,12 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
         """
         return QQbar
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=False):
         r"""
-        Attempt to construct a homomorphism from self to codomain sending the
-        generators to ``im_gens``. Since this field is not finitely generated,
+        Attempt to construct a homomorphism from ``self`` to ``codomain`` sending the
+        generators to ``im_gens``.
+
+        Since this field is not finitely generated,
         this cannot be implemented in a mathematically sensible way, and we
         just test that there exists a canonical coercion.
 
@@ -879,7 +1238,9 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
     def gens(self):
         r"""
-        Return a set of generators for this field. As this field is not
+        Return a set of generators for this field.
+
+        As this field is not
         finitely generated, we opt for just returning 1.
 
         EXAMPLES::
@@ -1051,13 +1412,14 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
         """
         rr = f.roots()
-        cr = [(r,e) for r,e in f.roots(QQbar) if r.imag()>0]
+        cr = [(r, e) for r, e in f.roots(QQbar) if r.imag() > 0]
 
         from sage.structure.factorization import Factorization
         return Factorization(
-            [(f.parent()([-r,1]),e) for r,e in rr] +
-            [(f.parent()([r.norm(),-2*r.real(),1]),e) for r,e in cr],
+            [(f.parent()([-r, 1]), e) for r, e in rr] +
+            [(f.parent()([r.norm(), -2 * r.real(), 1]), e) for r, e in cr],
             unit=f.leading_coefficient())
+
 
 def is_AlgebraicRealField(F):
     r"""
@@ -1071,8 +1433,10 @@ def is_AlgebraicRealField(F):
     """
     return isinstance(F, AlgebraicRealField)
 
+
 # Create the globally unique AlgebraicRealField object.
 AA = AlgebraicRealField()
+
 
 class AlgebraicField(Singleton, AlgebraicField_common):
     """
@@ -1113,8 +1477,10 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: s is QQbar
             True
         """
-        try: return QQbar
-        except BaseException: return AlgebraicField_common.__new__(cls)
+        try:
+            return QQbar
+        except BaseException:
+            return AlgebraicField_common.__new__(cls)
 
     def __init__(self):
         r"""
@@ -1123,7 +1489,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
         We test by setting the category::
 
             sage: QQbar.category() # indirect doctest
-            Category of fields
+            Category of infinite fields
             sage: QQbar.base_ring()
             Algebraic Real Field
 
@@ -1132,7 +1498,8 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: QQbar._repr_option('element_is_atomic')
             False
         """
-        AlgebraicField_common.__init__(self, AA, ('I',), normalize=False)
+        from sage.categories.fields import Fields
+        AlgebraicField_common.__init__(self, AA, ('I',), normalize=False, category=Fields().Infinite())
 
     def _element_constructor_(self, x):
         """
@@ -1168,7 +1535,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
     def _latex_(self):
         r"""
-        Latex representation of self.
+        Latex representation of ``self``.
 
         EXAMPLES::
 
@@ -1210,17 +1577,18 @@ class AlgebraicField(Singleton, AlgebraicField_common):
         return (from_par is ZZ or from_par is QQ
                 or from_par is AA or from_par is QQbar)
 
-    def completion(self, p, prec, extras = {}):
+    def completion(self, p, prec, extras={}):
         r"""
-        Return the completion of self at the place `p`. Only implemented for `p
-        = \infty` at present.
+        Return the completion of ``self`` at the place `p`.
+
+        Only implemented for `p = \infty` at present.
 
         INPUT:
 
-        - ``p`` -- either a prime (not implemented at present) or Infinity
+        - ``p`` -- either a prime (not implemented at present) or ``Infinity``
         - ``prec`` -- precision of approximate field to return
-        - ``extras`` -- a dict of extra keyword arguments for the ``RealField``
-          constructor
+        - ``extras`` -- (optional) a dict of extra keyword arguments
+          for the ``RealField`` constructor
 
         EXAMPLES::
 
@@ -1236,15 +1604,16 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             NotImplementedError
         """
         if p == infinity.Infinity:
-            from sage.rings.real_mpfr import create_RealField
+            from sage.rings.real_field import create_RealField
             return create_RealField(prec, **extras).complex_field()
         else:
             raise NotImplementedError
 
     def algebraic_closure(self):
         """
-        Return the algebraic closure of this field. As this field is already
-        algebraically closed, just returns self.
+        Return the algebraic closure of this field.
+
+        As this field is already algebraically closed, just returns ``self``.
 
         EXAMPLES::
 
@@ -1255,7 +1624,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
     def construction(self):
         """
-        Return a functor that constructs self (used by the coercion machinery).
+        Return a functor that constructs ``self`` (used by the coercion machinery).
 
         EXAMPLES::
 
@@ -1268,7 +1637,9 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
     def gens(self):
         r"""
-        Return a set of generators for this field. As this field is not
+        Return a set of generators for this field.
+
+        As this field is not
         finitely generated over its prime field, we opt for just returning I.
 
         EXAMPLES::
@@ -1276,7 +1647,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: QQbar.gens()
             (I,)
         """
-        return(QQbar_I, )
+        return (QQbar_I,)
 
     def gen(self, n=0):
         r"""
@@ -1310,7 +1681,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
     @cached_method
     def zeta(self, n=4):
         r"""
-        Returns a primitive `n`'th root of unity, specifically `\exp(2*\pi*i/n)`.
+        Return a primitive `n`'th root of unity, specifically `\exp(2*\pi*i/n)`.
 
         INPUT:
 
@@ -1389,7 +1760,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
     def random_element(self, poly_degree=2, *args, **kwds):
         r"""
-        Returns a random algebraic number.
+        Return a random algebraic number.
 
         INPUT:
 
@@ -1444,16 +1815,16 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: QQbar(0) in z
             False
 
-         If you just want real algebraic numbers you can filter them out.
-         Using an odd degree for the polynomials will insure some degree of
-         success. ::
+        If you just want real algebraic numbers you can filter them out.
+        Using an odd degree for the polynomials will ensure some degree of
+        success. ::
 
             sage: r = []
             sage: while len(r) < 3:
             ....:   x = QQbar.random_element(poly_degree=3)
             ....:   if x in AA:
             ....:     r.append(x)
-            sage: (len(r) == 3) and all([z in AA for z in r])
+            sage: (len(r) == 3) and all(z in AA for z in r)
             True
 
         TESTS:
@@ -1497,7 +1868,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
         # p will have at least one root; pick one at random
         # could we instead just compute one root "randomly"?
-        m = sage.misc.prandom.randint(0, len(roots)-1)
+        m = sage.misc.prandom.randint(0, len(roots) - 1)
         return roots[m]
 
     def _is_irreducible_univariate_polynomial(self, f):
@@ -1528,7 +1899,6 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             ValueError: polynomial must not be constant
             sage: R(1).is_irreducible()
             False
-
         """
         if f.degree() < 1:
             # this case is handled by the caller (PolynomialElement.is_irreducible())
@@ -1574,7 +1944,9 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
         """
         from sage.structure.factorization import Factorization
-        return Factorization([(f.parent()([-r,1]),e) for r,e in f.roots()], unit=f.leading_coefficient())
+        return Factorization([(f.parent()([-r, 1]), e) for r, e in f.roots()],
+                             unit=f.leading_coefficient())
+
 
 def is_AlgebraicField(F):
     r"""
@@ -1588,8 +1960,10 @@ def is_AlgebraicField(F):
     """
     return isinstance(F, AlgebraicField)
 
+
 # Create the globally unique AlgebraicField object.
 QQbar = AlgebraicField()
+
 
 def is_AlgebraicField_common(F):
     r"""
@@ -1602,6 +1976,7 @@ def is_AlgebraicField_common(F):
         [True, True, False, False, False]
     """
     return isinstance(F, AlgebraicField_common)
+
 
 def prec_seq():
     r"""
@@ -1624,7 +1999,10 @@ def prec_seq():
         yield bits
         bits = bits * 2
 
+
 _short_prec_seq = (64, 128, None)
+
+
 def short_prec_seq():
     r"""
     Return a sequence of precisions to try in cases when an infinite-precision
@@ -1638,6 +2016,7 @@ def short_prec_seq():
         (64, 128, None)
     """
     return _short_prec_seq
+
 
 def tail_prec_seq():
     r"""
@@ -1655,10 +2034,12 @@ def tail_prec_seq():
         yield bits
         bits = bits * 2
 
+
 def rational_exact_root(r, d):
     r"""
-    Checks whether the rational `r` is an exact `d`'th power. If so, returns
-    the `d`'th root of `r`; otherwise, returns None.
+    Check whether the rational `r` is an exact `d`'th power.
+
+    If so, this returns the `d`'th root of `r`; otherwise, this returns ``None``.
 
     EXAMPLES::
 
@@ -1672,22 +2053,27 @@ def rational_exact_root(r, d):
     den = r.denominator()
 
     (num_rt, num_exact) = num.nth_root(d, truncate_mode=1)
-    if not num_exact: return None
+    if not num_exact:
+        return None
     (den_rt, den_exact) = den.nth_root(d, truncate_mode=1)
-    if not den_exact: return None
+    if not den_exact:
+        return None
     return (num_rt / den_rt)
 
+
 def clear_denominators(poly):
-    """
-    Takes a monic polynomial and rescales the variable to get a monic
-    polynomial with "integral" coefficients. Works on any univariate
+    r"""
+    Take a monic polynomial and rescale the variable to get a monic
+    polynomial with "integral" coefficients.
+
+    This works on any univariate
     polynomial whose base ring has a ``denominator()`` method that returns
     integers; for example, the base ring might be `\QQ` or a number
     field.
 
     Returns the scale factor and the new polynomial.
 
-    (Inspired by Pari's ``primitive_pol_to_monic()``.)
+    (Inspired by :pari:`primitive_pol_to_monic` .)
 
     We assume that coefficient denominators are "small"; the algorithm
     factors the denominators, to give the smallest possible scale factor.
@@ -1701,7 +2087,6 @@ def clear_denominators(poly):
         (2, x + 3)
         sage: clear_denominators(x^2 + x/2 + 1/4)
         (2, x^2 + x + 1)
-
     """
 
     # This algorithm factors the polynomial denominators.
@@ -1721,16 +2106,17 @@ def clear_denominators(poly):
             oe = 0
             if f in factors:
                 oe = factors[f]
-            min_e = (e + (deg-i) - 1) // (deg-i)
+            min_e = (e + (deg - i) - 1) // (deg - i)
             factors[f] = max(oe, min_e)
     change = 1
-    for f, e in iteritems(factors):
+    for f, e in factors.items():
         change = change * f**e
-    poly = poly * (change ** deg)
+    poly = poly * (change**deg)
     poly = poly(poly.parent().gen() / change)
     return change, poly
 
-def do_polred(poly):
+
+def do_polred(poly, threshold=32):
     r"""
     Find a polynomial of reasonably small discriminant that generates
     the same number field as ``poly``, using the PARI ``polredbest``
@@ -1738,7 +2124,8 @@ def do_polred(poly):
 
     INPUT:
 
-    - ``poly`` - a monic irreducible polynomial with integer coefficients.
+    - ``poly`` - a monic irreducible polynomial with integer coefficients
+    - ``threshold`` - an integer used to decide whether to run ``polredbest``
 
     OUTPUT:
 
@@ -1774,11 +2161,16 @@ def do_polred(poly):
         sage: do_polred(x^4 - 4294967296*x^2 + 54265257667816538374400)
         (1/4*x, 4*x, x^4 - 268435456*x^2 + 211973662764908353025)
     """
-    new_poly, elt_back = poly.__pari__().polredbest(flag=1)
-
     parent = poly.parent()
+    bitsize = ZZ(poly[0].numerator().nbits() + poly[0].denominator().nbits())
+    # time(polredbest) ≈ b²d⁵
+    cost = 2 * bitsize.nbits() + 5 * poly.degree().nbits()
+    if cost > threshold:
+        return parent.gen(), parent.gen(), poly
+    new_poly, elt_back = poly.__pari__().polredbest(flag=1)
     elt_fwd = elt_back.modreverse()
     return parent(elt_fwd.lift()), parent(elt_back.lift()), parent(new_poly)
+
 
 def isolating_interval(intv_fn, pol):
     """
@@ -1814,7 +2206,6 @@ def isolating_interval(intv_fn, pol):
 
     for prec in prec_seq():
         intv = intv_fn(prec)
-        ifld = intv.parent()
 
         # We need to verify that pol has exactly one root in the
         # interval intv. We know (because it is a precondition of
@@ -1828,6 +2219,7 @@ def isolating_interval(intv_fn, pol):
 
         if not dpol(intv).contains_zero():
             return intv
+
 
 def find_zero_result(fn, l):
     """
@@ -1863,6 +2255,7 @@ def find_zero_result(fn, l):
             raise ValueError('find_zero_result could not find any zeroes')
         return result
 
+
 def conjugate_expand(v):
     r"""
     If the interval ``v`` (which may be real or complex) includes some
@@ -1877,11 +2270,11 @@ def conjugate_expand(v):
 
         sage: from sage.rings.qqbar import conjugate_expand
         sage: conjugate_expand(CIF(RIF(0, 1), RIF(1, 2))).str(style='brackets')
-        '[0.00000000000000000 .. 1.0000000000000000] + [1.0000000000000000 .. 2.0000000000000000]*I'
+        '[0.0000000000000000 .. 1.0000000000000000] + [1.0000000000000000 .. 2.0000000000000000]*I'
         sage: conjugate_expand(CIF(RIF(0, 1), RIF(0, 1))).str(style='brackets')
-        '[0.00000000000000000 .. 1.0000000000000000] + [-1.0000000000000000 .. 1.0000000000000000]*I'
+        '[0.0000000000000000 .. 1.0000000000000000] + [-1.0000000000000000 .. 1.0000000000000000]*I'
         sage: conjugate_expand(CIF(RIF(0, 1), RIF(-2, 1))).str(style='brackets')
-        '[0.00000000000000000 .. 1.0000000000000000] + [-2.0000000000000000 .. 2.0000000000000000]*I'
+        '[0.0000000000000000 .. 1.0000000000000000] + [-2.0000000000000000 .. 2.0000000000000000]*I'
         sage: conjugate_expand(RIF(1, 2)).str(style='brackets')
         '[1.0000000000000000 .. 2.0000000000000000]'
     """
@@ -1893,6 +2286,7 @@ def conjugate_expand(v):
     re = v.real()
     fld = ComplexIntervalField(v.prec())
     return fld(re, im.union(-im))
+
 
 def conjugate_shrink(v):
     r"""
@@ -1924,7 +2318,7 @@ def conjugate_shrink(v):
         return v.real()
     return v
 
-def number_field_elements_from_algebraics(numbers, minimal=False):
+def number_field_elements_from_algebraics(numbers, minimal=False, same_field=False, embedded=False, prec=53):
     r"""
     Given a sequence of elements of either ``AA`` or ``QQbar``
     (or a mixture), computes a number field containing all of these
@@ -1932,8 +2326,35 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
     homomorphism from the number field back to ``AA`` or
     ``QQbar``.
 
+    INPUT:
+
+    - ``numbers`` -- a number or list of numbers.
+
+    - ``minimal`` -- Boolean (default: ``False``). Whether to minimize the
+      degree of the extension.
+
+    - ``same_field`` -- Boolean (default: ``False``). See below.
+
+    - ``embedded`` -- Boolean (default: ``False``). Whether to make the
+      NumberField embedded.
+
+    - ``prec`` -- integer (default: ``53``). The number of bit of precision
+      to guarantee finding real roots.
+
+    OUTPUT:
+
+    A tuple with the NumberField, the numbers inside the NumberField,
+    and a homomorphism from the number field back to ``AA`` or ``QQbar``.
+
     This may not return the smallest such number field, unless
     ``minimal=True`` is specified.
+
+    If ``same_field=True`` is specified, and all of the elements are
+    from the same field (either ``AA`` or ``QQbar``), the generated
+    homomorphism will map back to that field.  Otherwise, if all specified
+    elements are real, the homomorphism might map back to ``AA``
+    (and will, if ``minimal=True`` is specified), even if the
+    elements were in ``QQbar``.
 
     Also, a single number can be passed, rather than a sequence; and
     any values which are not elements of ``AA`` or ``QQbar``
@@ -1960,6 +2381,8 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         1.414213562373095?
         sage: rt3 = AA(sqrt(3)); rt3
         1.732050807568878?
+        sage: rt3a = QQbar(sqrt(3)); rt3a
+        1.732050807568878?
         sage: qqI = QQbar.zeta(4); qqI
         I
         sage: z3 = QQbar.zeta(3); z3
@@ -1971,9 +2394,9 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
 
         sage: number_field_elements_from_algebraics(rt2)
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
-            From: Number Field in a with defining polynomial y^2 - 2
-            To:   Algebraic Real Field
-            Defn: a |--> 1.414213562373095?)
+           From: Number Field in a with defining polynomial y^2 - 2
+           To:   Algebraic Real Field
+           Defn: a |--> 1.414213562373095?)
 
         sage: number_field_elements_from_algebraics((rt2,rt3))
         (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, [-a^3 + 3*a, -a^2 + 2], Ring morphism:
@@ -1981,7 +2404,23 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
             To:   Algebraic Real Field
             Defn: a |--> 0.5176380902050415?)
 
-    We've created ``rt2b`` in such a way that \sage doesn't initially know
+    ``rt3a`` is a real number in ``QQbar``.  Ordinarily, we'd get a homomorphism
+    to ``AA`` (because all elements are real), but if we specify ``same_field=True``,
+    we'll get a homomorphism back to ``QQbar``::
+
+        sage: number_field_elements_from_algebraics(rt3a)
+        (Number Field in a with defining polynomial y^2 - 3, a, Ring morphism:
+            From: Number Field in a with defining polynomial y^2 - 3
+            To:   Algebraic Real Field
+            Defn: a |--> 1.732050807568878?)
+
+        sage: number_field_elements_from_algebraics(rt3a, same_field=True)
+        (Number Field in a with defining polynomial y^2 - 3, a, Ring morphism:
+            From: Number Field in a with defining polynomial y^2 - 3
+            To:   Algebraic Field
+            Defn: a |--> 1.732050807568878?)
+
+    We've created ``rt2b`` in such a way that \sage does not initially know
     that it's in a degree-2 extension of `\QQ`::
 
         sage: number_field_elements_from_algebraics(rt2b)
@@ -2044,6 +2483,30 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         sage: [hom(n) for n in nums] == [rt2, rt3, qqI, z3]
         True
 
+    It is also possible to have an embedded Number Field::
+
+        sage: x = polygen(ZZ)
+        sage: my_num = AA.polynomial_root(x^3-2, RIF(0,3))
+        sage: res = number_field_elements_from_algebraics(my_num,embedded=True)
+        sage: res[0].gen_embedding()
+        1.259921049894873?
+        sage: res[2]
+        Ring morphism:
+          From: Number Field in a with defining polynomial y^3 - 2 with a = 1.259921049894873?
+          To:   Algebraic Real Field
+          Defn: a |--> 1.259921049894873?
+
+        sage: nf,nums,hom = number_field_elements_from_algebraics([2^(1/3),3^(1/5)],embedded=True)
+        sage: nf
+        Number Field in a with defining polynomial y^15 - 9*y^10 + 21*y^5 - 3 with a = 0.6866813218928813?
+        sage: nums
+        [a^10 - 5*a^5 + 2, -a^8 + 4*a^3]
+        sage: hom
+        Ring morphism:
+          From: Number Field in a with defining polynomial y^15 - 9*y^10 + 21*y^5 - 3 with a = 0.6866813218928813?
+          To:   Algebraic Real Field
+          Defn: a |--> 0.6866813218928813?
+
     TESTS::
 
         sage: number_field_elements_from_algebraics(rt3)
@@ -2057,23 +2520,57 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
             To:   Algebraic Field
             Defn: a |--> 0.7071067811865475? + 0.7071067811865475?*I)
 
-    Note that for the first example, where \sage doesn't realize that
-    the number is real, we get a homomorphism to ``QQbar``; but with
-    ``minimal=True``, we get a homomorphism to ``AA``. Also note
-    that the exact answer depends on a Pari function that gives
-    different answers for 32-bit and 64-bit machines::
+    Note that for the first example, where \sage does not realize that
+    the number is real, we get a homomorphism to ``QQbar``::
 
-        sage: number_field_elements_from_algebraics(rt2c)
+        sage: number_field_elements_from_algebraics(rt2c)   # random
         (Number Field in a with defining polynomial y^4 + 2*y^2 + 4, 1/2*a^3, Ring morphism:
             From: Number Field in a with defining polynomial y^4 + 2*y^2 + 4
             To:   Algebraic Field
             Defn: a |--> -0.7071067811865475? - 1.224744871391589?*I)
+
+    But with ``minimal=True``, we get a homomorphism to ``AA``::
+
         sage: number_field_elements_from_algebraics(rt2c, minimal=True)
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Real Field
             Defn: a |--> 1.414213562373095?)
 
+    If we specify both ``minimal=True`` and ``same_field=True``, we get a second
+    degree extension (minimal) that maps back to ``QQbar``::
+
+        sage: number_field_elements_from_algebraics(rt2c, minimal=True, same_field=True)
+        (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
+            From: Number Field in a with defining polynomial y^2 - 2
+            To:   Algebraic Field
+            Defn: a |--> 1.414213562373095?)
+
+    Tests trivial cases::
+
+        sage: number_field_elements_from_algebraics([], embedded=True)
+        (Rational Field, [], Ring morphism:
+           From: Rational Field
+           To:   Algebraic Real Field
+           Defn: 1 |--> 1)
+        sage: number_field_elements_from_algebraics([1], embedded=True)
+        (Rational Field, [1], Ring morphism:
+           From: Rational Field
+           To:   Algebraic Real Field
+           Defn: 1 |--> 1)
+
+    Tests more complicated combinations::
+
+        sage: UCF = UniversalCyclotomicField()
+        sage: E = UCF.gen(5)
+        sage: L.<b> = NumberField(x^2-189*x+16, embedding=200)
+        sage: x = polygen(ZZ)
+        sage: my_nums = [-52*E - 136*E^2 - 136*E^3 - 52*E^4, \
+                         L.gen()._algebraic_(AA), \
+                         sqrt(2), AA.polynomial_root(x^3-3, RIF(0,3)), 11/9, 1]
+        sage: res = number_field_elements_from_algebraics(my_nums, embedded=True)
+        sage: res[0]
+        Number Field in a with defining polynomial y^24 - 107010*y^22 - 24*y^21 + ... + 250678447193040618624307096815048024318853254384 with a = -95.5053039433554?
     """
     gen = qq_generator
 
@@ -2085,28 +2582,75 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         numbers = [numbers]
         single_number = True
 
+    if any(isinstance(nb, AlgebraicNumber) for nb in numbers):
+        algebraic_field = QQbar
+    else:
+        algebraic_field = AA
+
     def mk_algebraic(x):
         if isinstance(x, AlgebraicNumber_base):
             return x
         return QQbar(x)
 
+    # Try to cast into AA
+    try:
+        aa_numbers = [AA(_) for _ in numbers]
+        numbers = aa_numbers
+        real_case = True
+    except:
+        real_case = False
+        if embedded:
+            raise NotImplementedError
+    # Make the numbers algebraic
     numbers = [mk_algebraic(_) for _ in numbers]
 
+    # Make the numbers have a real exact underlying field
+    real_numbers = []
+    for v in numbers:
+        if v._exact_field().is_complex() and real_case:
+            # the number comes from a complex algebraic number field
+            embedded_rt = v.interval_fast(RealIntervalField(prec))
+            root = ANRoot(v.minpoly(), embedded_rt)
+            real_nf = NumberField(v.minpoly(),'a')
+            new_ef = AlgebraicGenerator(real_nf, root)
+            real_numbers += [new_ef.root_as_algebraic()]
+        else:
+            real_numbers += [v]
+    numbers = real_numbers
+
+    # Get the union of the exact fields
     for v in numbers:
         if minimal:
             v.simplify()
         gen = gen.union(v._exact_field())
 
     fld = gen._field
-
     nums = [gen(v._exact_value()) for v in numbers]
+
+    hom = fld.hom([gen.root_as_algebraic()])
+
+    if fld is not QQ and embedded:
+        # creates the embedded field
+        assert real_case
+        exact_generator = hom(fld.gen(0))
+        embedded_field = NumberField(fld.defining_polynomial(),fld.variable_name(),embedding=exact_generator)
+
+        # embeds the numbers
+        inter_hom = fld.hom([embedded_field.gen(0)])
+        nums = [inter_hom(n) for n in nums]
+
+        # get the field and homomorphism
+        hom = embedded_field.hom([gen.root_as_algebraic()])
+        fld = embedded_field
 
     if single_number:
         nums = nums[0]
 
-    hom = fld.hom([gen.root_as_algebraic()])
+    if same_field:
+        hom = fld.hom([gen.root_as_algebraic()], codomain=algebraic_field)
 
     return (fld, nums, hom)
+
 
 # Cache some commonly-used polynomial rings
 QQx = QQ['x']
@@ -2154,7 +2698,10 @@ def cmp_elements_with_same_minpoly(a, b, p):
     ar = a._value.real()
     br = b._value.real()
     if not ar.overlaps(br):
-        return -1 if (ar < br) else 1
+        # NOTE: do not try to use "ar < br" here as it will coerce to a common
+        # precision which is to be avoided. See
+        # https://trac.sagemath.org/ticket/29220
+        return 1 if ar._richcmp_(br, op_GT) else -1
 
     ai = a._value.imag()
     bi = b._value.imag()
@@ -2167,14 +2714,22 @@ def cmp_elements_with_same_minpoly(a, b, p):
 
     real = ar.union(br)
     imag = ai.union(bi)
-    roots = [r for r in roots if r._value.real().overlaps(real)
-             and r._value.imag().abs().overlaps(imag)]
-    if len(roots) == 1:
-        # There is only a single (real) root matching both descriptors
+    oroots = [r for r in roots if r._value.real().overlaps(real)
+             and r._value.imag().overlaps(imag)]
+    if not oroots:
+        raise RuntimeError('a = {}\nb = {}\np = {}'.format(a, b, p))
+    if len(oroots) == 1:
+        # There is a single root matching both descriptors
         # so they both must be that root and therefore equal.
         return 0
-    if (len(roots) == 2 and
-        not roots[0]._value.imag().contains_zero()):
+
+    # test whether we have a conjugated pair (in which situation
+    # real part are equal)
+    imag = ai.abs().union(bi.abs())
+    oroots = [r for r in roots if r._value.real().overlaps(real)
+             and r._value.imag().abs().overlaps(imag)]
+    if (len(oroots) == 2 and
+           not oroots[0]._value.imag().contains_zero()):
         # There is a complex conjugate pair of roots matching both
         # descriptors, so compare by imaginary value.
         while ai.contains_zero():
@@ -2185,8 +2740,13 @@ def cmp_elements_with_same_minpoly(a, b, p):
             bi = b._value.imag()
         if ai.overlaps(bi):
             return 0
-        return -1 if (ai < bi) else 1
 
+        # NOTE: do not try to use "ai < bi" here as it will coerce to a common
+        # precision which is to be avoided. See
+        # https://trac.sagemath.org/ticket/29220
+        return 1 if ai._richcmp_(bi, op_GT) else -1
+
+    # not able to determine equality
     return None
 
 
@@ -2208,6 +2768,7 @@ class AlgebraicGeneratorRelation(SageObject):
         self.child2 = child2
         self.child2_poly = child2_poly
         self.parent = parent
+
 
 algebraic_generator_counter = 0
 
@@ -2280,7 +2841,7 @@ class AlgebraicGenerator(SageObject):
         r"""
         Return a hash value for self. This will depend on the order that
         commands get executed at load time, so we do not test the value that is
-        returned, just that it doesn't raise an error.
+        returned, just that it does not raise an error.
 
         EXAMPLES::
 
@@ -2313,7 +2874,7 @@ class AlgebraicGenerator(SageObject):
 
     def is_complex(self):
         r"""
-        Return True if this is a generator for a non-real number field.
+        Return ``True`` if this is a generator for a non-real number field.
 
         EXAMPLES::
 
@@ -2355,7 +2916,8 @@ class AlgebraicGenerator(SageObject):
         if self._trivial:
             return 'Trivial generator'
         else:
-            return '%s with a in %s'%(self._field, self._root._interval_fast(53))
+            return '%s with a in %s' % (self._field,
+                                        self._root._interval_fast(53))
 
     def root_as_algebraic(self):
         r"""
@@ -2372,7 +2934,7 @@ class AlgebraicGenerator(SageObject):
 
     def is_trivial(self):
         """
-        Returns true iff this is the trivial generator (alpha == 1), which
+        Return true iff this is the trivial generator (alpha == 1), which
         does not actually extend the rationals.
 
         EXAMPLES::
@@ -2417,7 +2979,8 @@ class AlgebraicGenerator(SageObject):
             sage: gen.pari_field()
              [y^2 - y - 1, [2, 0], ...]
         """
-        if self.is_trivial(): raise ValueError("No PARI field attached to trivial generator")
+        if self.is_trivial():
+            raise ValueError("No PARI field attached to trivial generator")
         if self._pari_field is None:
             pari_pol = self._field.pari_polynomial("y")
             self._pari_field = pari_pol.nfinit(1)
@@ -2457,7 +3020,7 @@ class AlgebraicGenerator(SageObject):
 
     def _interval_fast(self, prec):
         """
-        Returns an interval containing this generator, to the specified
+        Return an interval containing this generator, to the specified
         precision.
 
         EXAMPLES::
@@ -2513,7 +3076,6 @@ class AlgebraicGenerator(SageObject):
         elif other._cyclotomic:
             self, other = other, self
 
-        sp = self._field.polynomial()
         op = other._field.polynomial()
         op = QQx(op)
         # pari_nf = self._field.pari_nf()
@@ -2553,15 +3115,14 @@ class AlgebraicGenerator(SageObject):
 
         self_pol_sage = QQx(self_pol.lift())
 
-        new_nf_a = new_nf.gen()
-
         def intv_fn(prec):
             return conjugate_expand(red_elt(self._root._interval_fast(prec) * k + other._root._interval_fast(prec)))
         new_intv = conjugate_shrink(isolating_interval(intv_fn, red_pol))
 
         new_gen = AlgebraicGenerator(new_nf, ANRoot(QQx(red_pol), new_intv))
         rel = AlgebraicGeneratorRelation(self, self_pol_sage(red_back_x),
-                                         other, (QQx_x - k*self_pol_sage)(red_back_x),
+                                         other,
+                                         (QQx_x - k * self_pol_sage)(red_back_x),
                                          new_gen)
         self._unions[other] = rel
         other._unions[self] = rel
@@ -2670,6 +3231,7 @@ class AlgebraicGenerator(SageObject):
 # dictionary for multimethod dispatch
 _binop_algo = {}
 
+
 class ANDescr(SageObject):
     r"""
     An ``AlgebraicNumber`` or ``AlgebraicReal`` is a wrapper around an
@@ -2681,10 +3243,10 @@ class ANDescr(SageObject):
     """
     def is_simple(self):
         r"""
-        Checks whether this descriptor represents a value with the same
+        Check whether this descriptor represents a value with the same
         algebraic degree as the number field associated with the descriptor.
 
-        Returns ``True`` if self is an ``ANRational``, or a minimal
+        This returns ``True`` if self is an ``ANRational``, or a minimal
         ``ANExtensionElement``.
 
         EXAMPLES::
@@ -2812,7 +3374,7 @@ class ANDescr(SageObject):
         if self.is_complex():
             return ANUnaryExpr(n, 'norm')
         else:
-            return (n*n)._descr
+            return (n * n)._descr
 
 
 class AlgebraicNumber_base(sage.structure.element.FieldElement):
@@ -2886,7 +3448,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             22/7
         """
         sage.structure.element.FieldElement.__init__(self, parent)
-        if isinstance(x, integer_types + (sage.rings.integer.Integer,
+        if isinstance(x, (int, sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             self._descr = ANRational(x)
         elif isinstance(x, ANDescr):
@@ -2898,11 +3460,20 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         else:
             raise TypeError("Illegal initializer for algebraic number")
 
-        self._value = self._descr._interval_fast(64)
+        prec = 64
+        self._value = self._descr._interval_fast(prec)
+        while self._value.is_NaN():
+            prec = 2 * prec
+            self._value = self._descr._interval_fast(prec)
 
     def _repr_(self):
         """
-        Returns the print representation of this number.
+        Return the print representation of this number.
+
+        :class:`AlgebraicField_common`'s option display_format controls
+        whether irrational numbers will always be printed using a decimal
+        approximation (display_format = 'decimal'), or whether an attempt
+        will be made to print them as radicals (display_format = 'radical')
 
         EXAMPLES::
 
@@ -2920,11 +3491,23 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             0.9324722294043558? + 0.3612416661871530?*I
             sage: AA(19).sqrt()
             4.358898943540674?
+            sage: AA.options.display_format = 'radical'
+            sage: AA(19).sqrt()
+            sqrt(19)
+            sage: QQbar.zeta(6)
+            1/2*I*sqrt(3) + 1/2
+            sage: QQbar.zeta(17)
+            0.9324722294043558? + 0.3612416661871530?*I
+            sage: AA.options.display_format = 'decimal'
         """
         if isinstance(self._descr, ANRational):
             return repr(self._descr)
         if isinstance(self._descr, ANExtensionElement) and self._descr._generator is QQbar_I_generator:
             return repr(self._descr._value)
+        if self.parent().options.display_format == 'radical':
+            radical = self.radical_expression()
+            if radical is not self:
+                return repr(radical)
         if self.parent() is QQbar:
             return repr(CIF(self._value))
         else:
@@ -2932,7 +3515,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
     def _latex_(self):
         r"""
-        Returns the latex representation of this number.
+        Return the latex representation of this number.
 
         EXAMPLES::
 
@@ -2950,12 +3533,24 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             0.9324722294043558? + 0.3612416661871530? \sqrt{-1}
             sage: latex(AA(19).sqrt())
             4.358898943540674?
+            sage: AA.options.display_format = 'radical'
+            sage: latex(AA(19).sqrt())
+            \sqrt{19}
+            sage: latex(QQbar.zeta(6))
+            \frac{1}{2} i \, \sqrt{3} + \frac{1}{2}
+            sage: latex(QQbar.zeta(17))
+            0.9324722294043558? + 0.3612416661871530? \sqrt{-1}
+            sage: AA.options.display_format = 'decimal'
         """
         from sage.misc.latex import latex
         if isinstance(self._descr, ANRational):
             return latex(self._descr._value)
         if isinstance(self._descr, ANExtensionElement) and self._descr._generator is QQbar_I_generator:
             return latex(self._descr._value)
+        if self.parent().options.display_format == 'radical':
+            radical = self.radical_expression()
+            if radical is not self:
+                return latex(radical)
         return repr(self).replace('*I', r' \sqrt{-1}')
 
     def _sage_input_(self, sib, coerce):
@@ -2974,8 +3569,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: sage_input(22/7*QQbar.zeta(4))
             QQbar(22/7*I)
             sage: sage_input(QQbar.zeta(5)^3)
-            R.<x> = AA[]
-            QQbar.polynomial_root(AA.common_polynomial(x^4 + x^3 + x^2 + x + 1), CIF(RIF(RR(0.3090169943749474), RR(0.30901699437494745)), RIF(RR(0.95105651629515353), RR(0.95105651629515364))))^3
+            R.<y> = QQ[]
+            QQbar.polynomial_root(AA.common_polynomial(y^4 + y^3 + y^2 + y + 1), CIF(RIF(RR(0.3090169943749474), RR(0.30901699437494745)), RIF(RR(0.95105651629515353), RR(0.95105651629515364))))^3
             sage: sage_input((AA(3)^(1/2))^(1/3))
             R.<x> = AA[]
             AA.polynomial_root(AA.common_polynomial(x^3 - AA.polynomial_root(AA.common_polynomial(x^2 - 3), RIF(RR(1.7320508075688772), RR(1.7320508075688774)))), RIF(RR(1.2009369551760025), RR(1.2009369551760027)))
@@ -2991,15 +3586,15 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         And a nice big example::
 
             sage: K.<x> = QQ[]
-            sage: p = K.random_element(4); p
-            1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4
+            sage: p = K.random_element(3); p
+            -12*x^3 + 1/2*x^2 - 1/95*x - 1/2
             sage: rts = p.roots(ring=QQbar, multiplicities=False); rts
-            [-1.830225346898784?, 1.842584249981426?, 0.004346864248152390? - 1.540200655088741?*I, 0.004346864248152390? + 1.540200655088741?*I]
-            sage: sage_input(rts, verify=True)  # long time (2s on sage.math, 2013)
+            [-0.3325236940280402?, 0.1870951803473535? - 0.3004991638609601?*I, 0.1870951803473535? + 0.3004991638609601?*I]
+            sage: sage_input(rts, verify=True)
             # Verified
-            R.<x> = AA[]
-            cp = AA.common_polynomial(1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4)
-            [QQbar.polynomial_root(cp, CIF(RIF(-RR(1.8302253468987832), -RR(1.830225346898783)), RIF(RR(0)))), QQbar.polynomial_root(cp, CIF(RIF(RR(1.8425842499814258), RR(1.842584249981426)), RIF(RR(0)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.0043468642481523899), RR(0.0043468642481523908)), RIF(-RR(1.5402006550887404), -RR(1.5402006550887402)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.0043468642481523899), RR(0.0043468642481523908)), RIF(RR(1.5402006550887402), RR(1.5402006550887404))))]
+            R.<y> = QQ[]
+            cp = AA.common_polynomial(-12*y^3 + 1/2*y^2 - 1/95*y - 1/2)
+            [QQbar.polynomial_root(cp, CIF(RIF(-RR(0.33252369402804022), -RR(0.33252369402804016)), RIF(RR(0)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.18709518034735342), RR(0.18709518034735345)), RIF(-RR(0.30049916386096009), -RR(0.30049916386096004)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.18709518034735342), RR(0.18709518034735345)), RIF(RR(0.30049916386096004), RR(0.30049916386096009))))]
 
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
@@ -3021,7 +3616,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         sk = type(self._descr)
         ok = type(other._descr)
-        return type(self)(_binop_algo[sk,ok](self, other, operator.mul))
+        return type(self)(_binop_algo[sk, ok](self, other, operator.mul))
 
     def _div_(self, other):
         """
@@ -3029,10 +3624,18 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
             sage: AA(sqrt(2)) / AA(sqrt(8)) # indirect doctest
             0.500000000000000?
+
+            sage: z = QQbar(I).real()
+            sage: 1 / z
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in algebraic field
         """
+        if not other:
+            raise ZeroDivisionError("division by zero in algebraic field")
         sk = type(self._descr)
         ok = type(other._descr)
-        return type(self)(_binop_algo[sk,ok](self, other, operator.truediv))
+        return type(self)(_binop_algo[sk, ok](self, other, operator.truediv))
 
     def __invert__(self):
         """
@@ -3040,8 +3643,15 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
             sage: ~AA(sqrt(~2))
             1.414213562373095?
+
+            sage: z = QQbar(I).real()
+            sage: a = ~z
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in algebraic field
         """
-        sd = self._descr
+        if not self:
+            raise ZeroDivisionError("division by zero in algebraic field")
         return type(self)(self._descr.invert(self))
 
     def _add_(self, other):
@@ -3055,7 +3665,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         sk = type(self._descr)
         ok = type(other._descr)
-        return type(self)(_binop_algo[sk,ok](self, other, operator.add))
+        return type(self)(_binop_algo[sk, ok](self, other, operator.add))
 
     def _sub_(self, other):
         """
@@ -3066,7 +3676,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         sk = type(self._descr)
         ok = type(other._descr)
-        return type(self)(_binop_algo[sk,ok](self, other, operator.sub))
+        return type(self)(_binop_algo[sk, ok](self, other, operator.sub))
 
     def _neg_(self):
         """
@@ -3305,8 +3915,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         OUTPUT:
 
-        (boolean) True in all cases for elements of QQbar; True for
-        non-negative elements of AA, otherwise False.
+        (boolean)
+        ``True`` in all cases for elements of ``QQbar``;
+        ``True`` for non-negative elements of ``AA``;
+        otherwise ``False``
 
         EXAMPLES::
 
@@ -3326,7 +3938,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
     def is_integer(self):
         """
-        Return True if this number is a integer
+        Return ``True`` if this number is a integer.
 
         EXAMPLES::
 
@@ -3378,7 +3990,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: a.sqrt(all=True)
             [0]
 
-        This second example just shows that the program doesn't care where 0
+        This second example just shows that the program does not care where 0
         is defined, it gives the same answer regardless. After all, how many
         ways can you square-root zero?
 
@@ -3394,8 +4006,6 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             Traceback (most recent call last):
             ...
             ValueError: -2 is not a square in AA, being negative. Use extend = True for a square root in QQbar.
-
-
         """
         # deal with 0 first:
 
@@ -3407,9 +4017,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         # raise an error if appropriate:
 
-        if self.parent() is AA and self<0 and not extend:
+        if self.parent() is AA and self < 0 and not extend:
             if not all:
-                raise ValueError("%s is not a square in AA, being negative. Use extend = True for a square root in QQbar."%self)
+                raise ValueError("%s is not a square in AA, being negative. Use extend = True for a square root in QQbar." % self)
             else:
                 return []
 
@@ -3418,7 +4028,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         if all:
             return [root, -root]
         else:
-           return root
+            return root
 
     def nth_root(self, n, all=False):
         r"""
@@ -3479,11 +4089,22 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 zlist.append(root)
             return zlist
 
-    def as_number_field_element(self, minimal=False):
+    def as_number_field_element(self, minimal=False, embedded=False, prec=53):
         r"""
-        Returns a number field containing this value, a representation of
+        Return a number field containing this value, a representation of
         this value as an element of that number field, and a homomorphism
         from the number field back to ``AA`` or ``QQbar``.
+
+        INPUT:
+
+        - ``minimal`` -- Boolean (default: ``False``). Whether to minimize the
+          degree of the extension.
+
+        - ``embedded`` -- Boolean (default: ``False``). Whether to make the
+          NumberField embedded.
+
+        - ``prec`` -- integer (default: ``53``). The number of bit of precision
+          to guarantee finding real roots.
 
         This may not return the smallest such number field, unless
         ``minimal=True`` is specified.
@@ -3499,18 +4120,51 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 From: Number Field in a with defining polynomial y^2 - 2
                 To:   Algebraic Real Field
                 Defn: a |--> 1.414213562373095?)
+
             sage: x = polygen(ZZ)
             sage: p = x^3 + x^2 + x + 17
             sage: (rt,) = p.roots(ring=AA, multiplicities=False); rt
             -2.804642726932742?
+
             sage: (nf, elt, hom) = rt.as_number_field_element()
             sage: nf, elt, hom
-            (Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50, a^2 - 5*a - 19, Ring morphism:
-              From: Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50
-              To:   Algebraic Real Field
-              Defn: a |--> 7.237653139801104?)
+            (Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50,
+             a^2 - 5*a - 19,
+             Ring morphism:
+               From: Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50
+               To:   Algebraic Real Field
+               Defn: a |--> 7.237653139801104?)
+            sage: elt == rt
+            False
+            sage: AA(elt)
+            Traceback (most recent call last):
+            ...
+            ValueError: need a real or complex embedding to convert a non rational element of a number field into an algebraic number
             sage: hom(elt) == rt
             True
+
+        Creating an element of an embedded number field::
+
+            sage: (nf, elt, hom) = rt.as_number_field_element(embedded=True)
+            sage: nf.coerce_embedding()
+            Generic morphism:
+              From: Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50 with a = 7.237653139801104?
+              To:   Algebraic Real Field
+              Defn: a -> 7.237653139801104?
+            sage: elt
+            a^2 - 5*a - 19
+            sage: elt.parent() == nf
+            True
+            sage: hom(elt).parent()
+            Algebraic Real Field
+            sage: hom(elt) == rt
+            True
+            sage: elt == rt
+            True
+            sage: AA(elt)
+            -2.804642726932742?
+            sage: RR(elt)
+            -2.80464272693274
 
         We see an example where we do not get the minimal number field unless
         we specify ``minimal=True``::
@@ -3525,11 +4179,11 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 Defn: a |--> 0.5176380902050415?)
             sage: rt3b.as_number_field_element(minimal=True)
             (Number Field in a with defining polynomial y^2 - 3, a, Ring morphism:
-                From: Number Field in a with defining polynomial y^2 - 3
-                To:   Algebraic Real Field
-                Defn: a |--> 1.732050807568878?)
+               From: Number Field in a with defining polynomial y^2 - 3
+               To:   Algebraic Real Field
+               Defn: a |--> 1.732050807568878?)
         """
-        return number_field_elements_from_algebraics(self, minimal=minimal)
+        return number_field_elements_from_algebraics(self, minimal=minimal, embedded=embedded, prec=prec)
 
     def exactify(self):
         """
@@ -3545,7 +4199,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             2
         """
         od = self._descr
-        if isinstance(od, (ANRational, ANExtensionElement)): return
+        if isinstance(od, (ANRational, ANExtensionElement)):
+            return
         self._set_descr(self._descr.exactify())
 
     def _set_descr(self, new_descr):
@@ -3590,12 +4245,13 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         self.exactify()
         od = self._descr
-        if od.is_simple(): return
+        if od.is_simple():
+            return
         self._set_descr(od.simplify(self))
 
     def _exact_field(self):
         """
-        Returns a generator for a number field that includes this number
+        Return a generator for a number field that includes this number
         (not necessarily the smallest such number field).
 
         EXAMPLES::
@@ -3607,7 +4263,6 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: (QQbar(7)^(3/5))._exact_field()
             Number Field in a with defining polynomial y^5 - 2*y^4 - 18*y^3 + 38*y^2 + 82*y - 181 with a in 2.554256611698490?
         """
-
         sd = self._descr
         if isinstance(sd, (ANRational, ANExtensionElement)):
             return sd.generator()
@@ -3616,7 +4271,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
     def _exact_value(self):
         r"""
-        Returns an ``ANRational`` or an ``ANExtensionElement`` representing this
+        Return an ``ANRational`` or an ``ANExtensionElement`` representing this
         value.
 
         EXAMPLES::
@@ -3652,7 +4307,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             1.41421356237309504880168872420969807856967187537694807317667973799073247846211?
         """
         prec = self._value.prec()
-        self._value = self._descr._interval_fast(prec*2)
+        self._value = self._descr._interval_fast(prec * 2)
 
     def minpoly(self):
         """
@@ -3868,11 +4523,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: a.radical_expression()
             sqrt(2) + 10000000000000000000000000
         """
-        from sage.symbolic.ring import SR # Lazy to avoid cyclic dependency
+        from sage.symbolic.ring import SR  # Lazy to avoid cyclic dependency
 
         # Adapted from NumberFieldElement._symbolic_()
         poly = self.minpoly()
-        var = SR(poly.variable_name())
         if is_ComplexIntervalFieldElement(self._value):
             interval_field = self._value.parent()
         else:
@@ -3888,7 +4542,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             if len(candidates) == 1:
                 return candidates[0]
             roots = candidates
-            interval_field = interval_field.to_prec(interval_field.prec()*2)
+            interval_field = interval_field.to_prec(interval_field.prec() * 2)
 
 
 class AlgebraicNumber(AlgebraicNumber_base):
@@ -4012,6 +4666,38 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
             sage: QQbar.zeta(3).real() == -1/2
             True
+
+        Check that :trac:`26593` is fixed (the test here has to be repeated
+        twice)::
+
+            sage: pi = x^7 - 2*x^6 + x^3 - 2*x^2 + 2*x - 1
+            sage: b = pi.roots(ring=QQbar)[3][0]
+            sage: pi = b.minpoly()
+            sage: K = NumberField(pi, 'b', embedding=b)
+            sage: pi = x^7 - 2*x^6 + x^3 - 2*x^2 + 2*x - 1
+            sage: b = pi.roots(ring=QQbar)[3][0]
+            sage: pi = b.minpoly()
+            sage: K = NumberField(pi, 'b', embedding=b)
+
+        Check that :trac:`29220` is fixed::
+
+            sage: a = AA(2**(1/2) - 2**(1/3))
+            sage: b = 808620184/5240825825
+            sage: a < b
+            True
+            sage: a < b
+            True
+
+            sage: a = AA(2^(1/3))
+            sage: r = 3085094589/2448641198
+            sage: a < r
+            False
+            sage: a > r
+            True
+            sage: a < r
+            False
+            sage: a > r
+            True
         """
         # note: we can assume that self is not other here
         sd = self._descr
@@ -4039,7 +4725,10 @@ class AlgebraicNumber(AlgebraicNumber_base):
         ri1 = self._value.real()
         ri2 = other._value.real()
         if not ri1.overlaps(ri2):
-            return richcmp_not_equal(ri1, ri2, op)
+            # NOTE: do not call richcmp here as self._value and other._value
+            # might have different precisions. See
+            # https://trac.sagemath.org/ticket/29220
+            return ri1._richcmp_(ri2, op)
 
         # case 1: rationals
         sd = self._descr
@@ -4216,7 +4905,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
     def conjugate(self):
         """
-        Returns the complex conjugate of self.
+        Return the complex conjugate of ``self``.
 
         EXAMPLES::
 
@@ -4231,8 +4920,10 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
     def norm(self):
         r"""
-        Returns ``self * self.conjugate()``. This is the algebraic
-        definition of norm, if we view ``QQbar`` as ``AA[I]``.
+        Return ``self * self.conjugate()``.
+
+        This is the algebraic definition of norm, if we view ``QQbar``
+        as ``AA[I]``.
 
         EXAMPLES::
 
@@ -4333,8 +5024,9 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
     def multiplicative_order(self):
         r"""
-        Compute the multiplicative order of this algebraic real
-        number. That is, find the smallest positive integer `n` such
+        Compute the multiplicative order of this algebraic number.
+
+        That is, find the smallest positive integer `n` such
         that `x^n = 1`. If there is no such `n`, returns ``+Infinity``.
 
         We first check that ``abs(x)`` is very close to 1. If so, we compute
@@ -4362,8 +5054,8 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
     def rational_argument(self):
         r"""
-        Returns the argument of self, divided by `2\pi`, as long as this
-        result is rational. Otherwise returns None. Always triggers
+        Return the argument of ``self``, divided by `2\pi`, as long as this
+        result is rational. Otherwise returns ``None``. Always triggers
         exact computation.
 
         EXAMPLES::
@@ -4480,7 +5172,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         TESTS:
 
         We have to ensure after doing this that self._value is still
-        real which isn't the case without calling _ensure_real (see
+        real which is not the case without calling _ensure_real (see
         :trac:`11728`)::
 
             sage: P = AA['x'](1+x^4); a1,a2 = P.factor()[0][0],P.factor()[1][0]; a1*a2
@@ -4551,7 +5243,10 @@ class AlgebraicReal(AlgebraicNumber_base):
 
         # case 0: real parts are clearly distinct
         if not self._value.overlaps(other._value):
-            return richcmp(self._value, other._value, op)
+            # NOTE: do not call richcmp here as self._value and other._value
+            # might have different precisions. See
+            # https://trac.sagemath.org/ticket/29220
+            return self._value._richcmp_(other._value, op)
 
         # case 1: rationals
         sd = self._descr
@@ -4559,14 +5254,24 @@ class AlgebraicReal(AlgebraicNumber_base):
         if type(sd) is ANRational and type(od) is ANRational:
             return richcmp(sd._value, od._value, op)
 
+        # case 2: possibly equal values
+        # (this case happen a lot when sorting the roots of a real polynomial)
+        if self.minpoly() == other.minpoly():
+            c = cmp_elements_with_same_minpoly(self, other, self.minpoly())
+            if c is not None:
+                return rich_to_bool(op, c)
+
         if self._value.prec() < 128:
             self._more_precision()
         if other._value.prec() < 128:
             other._more_precision()
         if not self._value.overlaps(other._value):
-            return richcmp(self._value, other._value, op)
+            # NOTE: do not call richcmp here as self._value and other._value
+            # might have different precisions. See
+            # https://trac.sagemath.org/ticket/29220
+            return self._value._richcmp_(other._value, op)
 
-        return rich_to_bool(op, (self-other).sign())
+        return rich_to_bool(op, (self - other).sign())
 
     def _integer_(self, Z=None):
         """
@@ -4731,8 +5436,9 @@ class AlgebraicReal(AlgebraicNumber_base):
 
     def real(self):
         """
-        Returns the real part of this algebraic real (so it always returns
-        self).
+        Return the real part of this algebraic real.
+
+        It always returns ``self``.
 
         EXAMPLES::
 
@@ -4746,8 +5452,9 @@ class AlgebraicReal(AlgebraicNumber_base):
 
     def imag(self):
         """
-        Returns the imaginary part of this algebraic real (so it always
-        returns 0).
+        Return the imaginary part of this algebraic real.
+
+        It always returns 0.
 
         EXAMPLES::
 
@@ -4761,7 +5468,7 @@ class AlgebraicReal(AlgebraicNumber_base):
 
     def conjugate(self):
         """
-        Returns the complex conjugate of self, i.e. returns itself.
+        Return the complex conjugate of ``self``, i.e. returns itself.
 
         EXAMPLES::
 
@@ -4773,12 +5480,40 @@ class AlgebraicReal(AlgebraicNumber_base):
         """
         return self
 
+    def multiplicative_order(self):
+        r"""
+        Compute the multiplicative order of this real algebraic number.
+
+        That is, find the smallest positive integer `n` such
+        that `x^n = 1`. If there is no such `n`, returns ``+Infinity``.
+
+        We first check that ``abs(x)`` is very close to 1. If so, we compute
+        `x` exactly and compare it to 1 and -1.
+
+        EXAMPLES::
+
+            sage: AA(1).multiplicative_order()
+            1
+            sage: AA(-1).multiplicative_order()
+            2
+            sage: AA(5).sqrt().multiplicative_order()
+            +Infinity
+        """
+        if not (1 in RIF(self).abs()):
+            return infinity.infinity
+        if self == 1:
+            return 1
+        elif self == -1:
+            return 2
+        else:
+            return infinity.infinity
+    
     def sign(self):
         """
         Compute the sign of this algebraic number (return -1 if negative,
         0 if zero, or 1 if positive).
 
-        Computes an interval enclosing this number using 128-bit interval
+        This computes an interval enclosing this number using 128-bit interval
         arithmetic; if this interval includes 0, then fall back to
         exact computation (which can be very slow).
 
@@ -4864,7 +5599,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         # Sigh...
         self.exactify()
         return self.sign()
-
+    
     def _interval_fast(self, prec):
         r"""
         Compute an approximation to this ``AlgebraicReal`` object in a real interval field of precision prec.
@@ -4903,9 +5638,22 @@ class AlgebraicReal(AlgebraicNumber_base):
             1.000000000000001?
             sage: z.interval_exact(RIF)
             1.000000000000001?
+
+        TESTS:
+
+        Check that :trac:`26898` is fixed.  This calculation triggers the 40 bits
+        of extra precision below, and the point is not that the length of the list
+        is seven, but that the code runs in a reasonable time::
+
+            sage: R.<x> = QQbar[]
+            sage: roots = (x^7 + 27/4).roots()
+            sage: from sage.rings.qqbar import QQbar_hash_offset
+            sage: len([(r[0] + QQbar_hash_offset).interval_exact(CIF) for r in roots])
+            7
+
         """
         for extra in (0, 40):
-            target = RR(1.0) >> field.prec()
+            target = RR(1.0) >> (field.prec() + extra)
             # p==precise; pr==precise rounded
             pval = self.interval_diameter(target)
             pbot = pval.lower()
@@ -4919,7 +5667,7 @@ class AlgebraicReal(AlgebraicNumber_base):
                               prbot < pbot and ptop < prtop):
                 return val
 
-        # Even 40 extra bits of precision aren't enough to prove that
+        # Even 40 extra bits of precision are not enough to prove that
         # self is not an exactly representable float.
         self.exactify()
         while True:
@@ -5079,14 +5827,14 @@ class AlgebraicReal(AlgebraicNumber_base):
             1.41421356237309
         """
         for extra in (0, 40):
-            target = RR(1.0) >> field.prec()
+            target = RR(1.0) >> (field.prec() + extra)
             val = self.interval_diameter(target)
             fbot = field(val.lower())
             ftop = field(val.upper())
             if fbot == ftop:
                 return ftop
 
-        # Even 40 extra bits of precision aren't enough to determine the
+        # Even 40 extra bits of precision are not enough to determine the
         # answer.
         rifp1 = RealIntervalField(field.prec() + 1)
         rifp2 = RealIntervalField(field.prec() + 2)
@@ -5233,7 +5981,7 @@ class AlgebraicNumberPowQQAction(Action):
         """
         Action.__init__(self, G, S, False, operator.pow)
 
-    def _call_(self, x, e):
+    def _act_(self, e, x):
         r"""
         Return the power ``x ^ e``.
 
@@ -5264,7 +6012,7 @@ class AlgebraicNumberPowQQAction(Action):
                     if S is AA:
                         return AlgebraicReal(ANRational((-rt)**n))
                     else:
-                        z = QQbar.zeta(2*d)._pow_int(n)
+                        z = QQbar.zeta(2 * d)._pow_int(n)
                         return z * AlgebraicNumber(ANRational(rt**n))
                 return S(ANRational(rt**n))
 
@@ -5353,13 +6101,11 @@ class ANRational(ANDescr):
 
             sage: polygen(QQbar) / int(3)
             1/3*x
-            sage: QQbar(int(7)) / QQbar(long(2))
-            7/2
         """
         if isinstance(x, (sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             self._value = x
-        elif isinstance(x, integer_types):
+        elif isinstance(x, int):
             self._value = ZZ(x)
         else:
             raise TypeError("Illegal initializer for algebraic number rational")
@@ -5431,7 +6177,7 @@ class ANRational(ANDescr):
     def generator(self):
         r"""
         Return an :class:`AlgebraicGenerator` object associated to this
-        element. Returns the trivial generator, since self is rational.
+        element. Returns the trivial generator, since ``self`` is rational.
 
         EXAMPLES::
 
@@ -5544,9 +6290,9 @@ class ANRational(ANDescr):
             True
         """
         if self._value > 0:
-            return QQ(0)
+            return QQ.zero()
         if self._value < 0:
-            return QQ(1)/2
+            return QQ((1, 2))
         return None
 
     def angle(self):
@@ -5578,6 +6324,7 @@ class ANRational(ANDescr):
         """
         return self._value
 
+
 def is_AlgebraicReal(x):
     r"""
     Test if ``x`` is an instance of :class:`~AlgebraicReal`. For internal use.
@@ -5593,6 +6340,7 @@ def is_AlgebraicReal(x):
         False
     """
     return isinstance(x, AlgebraicReal)
+
 
 def is_AlgebraicNumber(x):
     r"""
@@ -5610,8 +6358,10 @@ def is_AlgebraicNumber(x):
     """
     return isinstance(x, AlgebraicNumber)
 
+
 QQbarPoly = PolynomialRing(QQbar, 'x')
 AAPoly = PolynomialRing(AA, 'x')
+
 
 class AlgebraicPolynomialTracker(SageObject):
     r"""
@@ -5625,7 +6375,7 @@ class AlgebraicPolynomialTracker(SageObject):
     This class is private, and should only be constructed by
     ``AA.common_polynomial()`` or ``QQbar.common_polynomial()``, and should
     only be used as an argument to ``AA.polynomial_root()`` or
-    ``QQbar.polynomial_root()``. (It doesn't matter whether you create
+    ``QQbar.polynomial_root()``. (It does not matter whether you create
     the common polynomial with ``AA.common_polynomial()`` or
     ``QQbar.common_polynomial()``.)
 
@@ -5652,7 +6402,12 @@ class AlgebraicPolynomialTracker(SageObject):
         """
         if not is_Polynomial(poly):
             raise ValueError("Trying to create AlgebraicPolynomialTracker on non-Polynomial")
-        if isinstance(poly.base_ring(), AlgebraicField_common):
+        B = poly.base_ring()
+
+        if B is ZZ or B is QQ:
+            poly = QQy(poly)
+            complex = False
+        elif isinstance(B, AlgebraicField_common):
             complex = is_AlgebraicField(poly.base_ring())
         else:
             try:
@@ -5689,8 +6444,8 @@ class AlgebraicPolynomialTracker(SageObject):
 
             sage: x = polygen(QQ)
             sage: sage_input(AA.common_polynomial(x^3 - 7))
-            R.<x> = AA[]
-            AA.common_polynomial(x^3 - 7)
+            R.<y> = QQ[]
+            AA.common_polynomial(y^3 - 7)
             sage: x = polygen(AA)
             sage: p = sqrt(AA(2)) * x^2 - sqrt(AA(3))
             sage: cp = AA.common_polynomial(p)
@@ -5705,7 +6460,7 @@ class AlgebraicPolynomialTracker(SageObject):
         """
         # XXX It would be nicer to skip the "AA.common_polynomial()"
         # wrapper if the polynomial is not actually shared. But
-        # sage_input.py isn't quite that generic.
+        # sage_input.py is not quite that generic.
         v = sib.name('AA').common_polynomial(self._poly)
         sib.id_cache(self, v, 'cp')
         return v
@@ -5718,7 +6473,7 @@ class AlgebraicPolynomialTracker(SageObject):
 
             sage: x = polygen(QQ)
             sage: AA.common_polynomial(x^3 - 7)._repr_()
-            'x^3 - 7'
+            'y^3 - 7'
         """
         return repr(self._poly)
 
@@ -5728,16 +6483,17 @@ class AlgebraicPolynomialTracker(SageObject):
 
         EXAMPLES::
 
-            sage: x = polygen(QQ); f = x^3 - 7
+            sage: x = polygen(QQ)
+            sage: f = x^3 - 7
             sage: g = AA.common_polynomial(f)
-            sage: g.poly() == f
-            True
+            sage: g.poly()
+            y^3 - 7
         """
         return self._poly
 
     def is_complex(self):
         r"""
-        Return True if the coefficients of this polynomial are non-real.
+        Return ``True`` if the coefficients of this polynomial are non-real.
 
         EXAMPLES::
 
@@ -5752,7 +6508,7 @@ class AlgebraicPolynomialTracker(SageObject):
 
     def complex_roots(self, prec, multiplicity):
         """
-        Find the roots of self in the complex field to precision prec.
+        Find the roots of ``self`` in the complex field to precision ``prec``.
 
         EXAMPLES::
 
@@ -5760,7 +6516,7 @@ class AlgebraicPolynomialTracker(SageObject):
             sage: cp = AA.common_polynomial(x^4 - 2)
 
         Note that the precision is not guaranteed to find the tightest
-        possible interval since complex_roots() depends on the
+        possible interval since ``complex_roots()`` depends on the
         underlying BLAS implementation. ::
 
             sage: cp.complex_roots(30, 1)
@@ -5806,32 +6562,36 @@ class AlgebraicPolynomialTracker(SageObject):
 
         self._exact = True
 
-        gen = qq_generator
-
-        for c in self._poly.list():
-            c.exactify()
-            gen = gen.union(c._exact_field())
-
-        self._gen = gen
-
-        coeffs = [gen(c._exact_value()) for c in self._poly.list()]
-
-        if gen.is_trivial():
-            qp = QQy(coeffs)
-            self._factors = [fac_exp[0] for fac_exp in qp.factor()]
+        if self._poly.base_ring() is QQ:
+            self._factors = [fac_exp[0] for fac_exp in self._poly.factor()]
+            self._gen = qq_generator
         else:
-            fld = gen.field()
-            fld_poly = fld['x']
+            gen = qq_generator
+            for c in self._poly.list():
+                c.exactify()
+                gen = gen.union(c._exact_field())
 
-            fp = fld_poly(coeffs)
+            self._gen = gen
 
-            self._factors = [fac_exp[0] for fac_exp in fp.factor()]
+            coeffs = [gen(c._exact_value()) for c in self._poly.list()]
+
+            if gen.is_trivial():
+                self._poly = QQy(self._poly)
+                self._factors = [fac_exp[0] for fac_exp in self._poly.factor()]
+            else:
+                fld = gen.field()
+                fld_poly = fld['y']
+
+                fp = fld_poly(coeffs)
+
+                self._factors = [fac_exp[0] for fac_exp in fp.factor()]
 
     def factors(self):
         r"""
         EXAMPLES::
 
-            sage: x=polygen(QQ); f=QQbar.common_polynomial(x^4 + 4)
+            sage: x = polygen(QQ)
+            sage: f = QQbar.common_polynomial(x^4 + 4)
             sage: f.factors()
             [y^2 - 2*y + 2, y^2 + 2*y + 2]
         """
@@ -5853,6 +6613,7 @@ class AlgebraicPolynomialTracker(SageObject):
         """
         self.exactify()
         return self._gen
+
 
 class ANRoot(ANDescr):
     """
@@ -5899,11 +6660,12 @@ class ANRoot(ANDescr):
 
         EXAMPLES::
 
-            sage: x=polygen(QQ); v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]
+            sage: x = polygen(QQ)
+            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]
             sage: v._descr._repr_()
-            'Root 1.618033988749894849? of x^2 - x - 1'
+            'Root 1.618033988749894849? of y^2 - y - 1'
         """
-        return 'Root %s of %s'%(self._interval, self._poly)
+        return 'Root %s of %s' % (self._interval, self._poly)
 
     def handle_sage_input(self, sib, coerce, is_qqbar):
         r"""
@@ -5940,18 +6702,19 @@ class ANRoot(ANDescr):
             sage: x = polygen(QQ)
             sage: sage_input(AA.polynomial_root(x^2-x-1, RIF(1, 2)), verify=True)
             # Verified
-            R.<x> = AA[]
-            AA.polynomial_root(AA.common_polynomial(x^2 - x - 1), RIF(RR(1.6180339887498947), RR(1.6180339887498949)))
+            R.<y> = QQ[]
+            AA.polynomial_root(AA.common_polynomial(y^2 - y - 1), RIF(RR(1.6180339887498947), RR(1.6180339887498949)))
             sage: sage_input(QQbar.polynomial_root(x^3-5, CIF(RIF(-3, 0), RIF(0, 3))), verify=True)
             # Verified
-            R.<x> = AA[]
-            QQbar.polynomial_root(AA.common_polynomial(x^3 - 5), CIF(RIF(-RR(0.85498797333834853), -RR(0.85498797333834842)), RIF(RR(1.4808826096823642), RR(1.4808826096823644))))
+            R.<y> = QQ[]
+            QQbar.polynomial_root(AA.common_polynomial(y^3 - 5), CIF(RIF(-RR(0.85498797333834853), -RR(0.85498797333834842)), RIF(RR(1.4808826096823642), RR(1.4808826096823644))))
             sage: from sage.rings.qqbar import *
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: rt = ANRoot(x^3 - 2, RIF(0, 4))
             sage: rt.handle_sage_input(sib, False, True)
-            ({call: {getattr: {atomic:QQbar}.polynomial_root}({call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:** {gen:x {constr_parent: {subscr: {atomic:AA}[{atomic:'x'}]} with gens: ('x',)}} {atomic:3}} {atomic:2}})}, {call: {atomic:RIF}({call: {atomic:RR}({atomic:1.259921049894873})}, {call: {atomic:RR}({atomic:1.2599210498948732})})})}, True)
+            ({call: {getattr: {atomic:QQbar}.polynomial_root}({call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:** {gen:y {constr_parent: {subscr: {atomic:QQ}[{atomic:'y'}]} with gens: ('y',)}} {atomic:3}} {atomic:2}})}, {call: {atomic:RIF}({call: {atomic:RR}({atomic:1.259921049894873})}, {call: {atomic:RR}({atomic:1.2599210498948732})})})},
+             True)
         """
         parent = sib.name('QQbar' if is_qqbar else 'AA')
         poly = sib(self._poly)
@@ -6052,7 +6815,7 @@ class ANRoot(ANDescr):
             sage: rt2.refine_interval(RIF(0, 2), 75) # indirect doctest
             1.4142135623730950488017?
         """
-        # Don't throw away bits in the original interval; doing so might
+        # Do not throw away bits in the original interval; doing so might
         # invalidate it (include an extra root)
 
         field = RealIntervalField(max(prec, interval.prec()))
@@ -6061,6 +6824,7 @@ class ANRoot(ANDescr):
             return interval
 
         p = self._poly.poly()
+
         dp = p.derivative()
         for i in range(self._multiplicity - 1):
             p = dp
@@ -6071,53 +6835,54 @@ class ANRoot(ANDescr):
         poly_ring = field['x']
 
         # interval_p = poly_ring(p)
-        coeffs = [c._interval_fast(prec) for c in p.list()]
-        interval_p = poly_ring(coeffs)
+        if p.base_ring() is QQ:
+            interval_p = p.change_ring(field)
+        else:
+            coeffs = [c._interval_fast(prec) for c in p.list()]
+            interval_p = poly_ring(coeffs)
 
         # This special case is important: this is the only way we could
         # refine "infinitely deep" (we could get an interval of diameter
         # about 2^{-2^31}, and then hit floating-point underflow); avoiding
         # this case here means we do not have to worry about iterating too
         # many times later
-        if coeffs[0].is_zero() and interval.contains_zero():
+        if interval_p[0].is_zero() and interval.contains_zero():
             return zero
 
         # interval_dp = poly_ring(dp)
-        dcoeffs = [c.interval_fast(field) for c in dp.list()]
-        interval_dp = poly_ring(dcoeffs)
+        if p.base_ring() is QQ:
+            interval_dp = p.derivative().change_ring(field)
+        else:
+            dcoeffs = [c.interval_fast(field) for c in dp.list()]
+            interval_dp = poly_ring(dcoeffs)
 
-        linfo = {}
-        uinfo = {}
+        l = interval.lower()
+        pl = interval_p(field(l))
+        u = interval.upper()
+        pu = interval_p(field(u))
 
-        def update_info(info, x):
-            info['endpoint'] = x
-            val = interval_p(field(x))
-            info['value'] = val
-            # sign == 1 if val is bounded greater than 0
-            # sign == -1 if val is bounded less than 0
-            # sign == 0 if val might be 0
-            if val > zero:
-                info['sign'] = 1
-            elif val < zero:
-                info['sign'] = -1
-            else:
-                info['sign'] = 0
-
-        update_info(linfo, interval.lower())
-        update_info(uinfo, interval.upper())
-
-        newton_lower = True
-
-        while True:
-            if linfo['sign'] == 0 and uinfo['sign'] == 0:
-                # We take it on faith that there is a root in interval,
-                # even though we can't prove it at the current precision.
-                # We can't do any more refining...
+        if pl.contains_zero():
+            if pu.contains_zero():
                 return interval
-
-            if linfo['sign'] == uinfo['sign']:
+            else:
+                su = pu.unique_sign()
+                sl = -su
+        elif pu.contains_zero():
+            sl = pl.unique_sign()
+            su = -sl
+        else:
+            sl = pl.unique_sign()
+            su = pu.unique_sign()
+            if sl == su:
                 # Oops...
                 raise ValueError("Refining interval that does not bound unique root!")
+
+        while True:
+            assert l == interval.lower()
+            assert u == interval.upper()
+            assert pl.contains_zero() or \
+                   pu.contains_zero() or \
+                   pl.unique_sign() != pu.unique_sign()
 
             # Use a simple algorithm:
             # Try an interval Newton-Raphson step. If this does not add at
@@ -6128,29 +6893,16 @@ class ANRoot(ANDescr):
             # If all of these fail, then return the current interval.
 
             slope = interval_dp(interval)
-
-            newton_success = False
             diam = interval.diameter()
+            newton_lower = True
 
-            if not (zero in slope):
-                # OK, we try Newton-Raphson.
-                # I have no idea if it helps, but each time through the loop,
-                # we either do Newton-Raphson from the left endpoint or
-                # the right endpoint, alternating.
-
+            if not slope.contains_zero():
                 newton_lower = not newton_lower
+
                 if newton_lower:
-                    new_range = linfo['endpoint'] - linfo['value'] / slope
+                    interval = interval.intersection(field(l) - pl/slope)
                 else:
-                    new_range = uinfo['endpoint'] - uinfo['value'] / slope
-
-                if new_range.lower() in interval:
-                    interval = field(new_range.lower(), interval.upper())
-                    update_info(linfo, interval.lower())
-                if new_range.upper() in interval:
-                    interval = field(interval.lower(), new_range.upper())
-                    update_info(uinfo, interval.upper())
-
+                    interval = interval.intersection(field(u) - pu/slope)
                 new_diam = interval.diameter()
 
                 if new_diam == 0:
@@ -6161,47 +6913,37 @@ class ANRoot(ANDescr):
                     return interval
 
                 if (new_diam << 1) <= diam:
-                    # We got at least one bit.
-                    newton_success = True
+                    # We got at least one bit
+                    l = interval.lower()
+                    u = interval.upper()
+                    pl = interval_p(field(l))
+                    pu = interval_p(field(u))
+                    continue
 
-            if not newton_success:
-                center = interval.center()
+            # bisection
+            for i,j in [(2,2),(3,1),(1,3)]:
+                c = (i*l + j*u) / 4
+                pc = interval_p(field(c))
 
-                def try_bisection(mid):
-                    minfo = {}
-                    update_info(minfo, mid)
-                    if minfo['sign'] == 0:
-                        return interval, False
-                    # We check to make sure the new interval is actually
-                    # narrower; this might not be true if the interval
-                    # is less than 4 ulp's wide
-                    if minfo['sign'] == linfo['sign'] and mid > interval.lower():
-                        linfo['endpoint'] = minfo['endpoint']
-                        linfo['value'] = minfo['value']
-                        linfo['sign'] = minfo['sign']
-                        return field(mid, interval.upper()), True
-                    if minfo['sign'] == uinfo['sign'] and mid < interval.upper():
-                        uinfo['endpoint'] = minfo['endpoint']
-                        uinfo['value'] = minfo['value']
-                        uinfo['sign'] = minfo['sign']
-                        return field(interval.lower(), mid), True
-                    return interval, False
-
-                interval, bisect_success = try_bisection(center)
-
-                if not bisect_success:
-                    uq = (center + interval.upper()) / 2
-                    interval, bisect_success = try_bisection(uq)
-                if not bisect_success:
-                    lq = (center + interval.lower()) / 2
-                    interval, bisect_success = try_bisection(lq)
-
-                if not bisect_success:
-                    # OK, we've refined about as much as we can.
-                    # (We might be able to trim a little more off the edges,
-                    # but the interval is no more than twice as wide as the
-                    # narrowest possible.)
+                if c <= l or c >= u:
+                    # not enough precision
                     return interval
+
+                if pc.contains_zero():
+                    continue
+                elif pc.unique_sign() != sl:
+                    interval = field(l, c)
+                    u = c
+                    pu = pc
+                    break
+                else:
+                    interval = field(c, u)
+                    l = c
+                    pl = pc
+                    break
+            else:
+                # bisection failed
+                return interval
 
     def _complex_refine_interval(self, interval, prec):
         r"""
@@ -6249,20 +6991,26 @@ class ANRoot(ANDescr):
         poly_ring = field['x']
 
         # interval_p = poly_ring(p)
-        coeffs = [c.interval_fast(field) for c in p.list()]
-        interval_p = poly_ring(coeffs)
+        if p.base_ring() is QQ:
+            interval_p = p.change_ring(field)
+        else:
+            coeffs = [c.interval_fast(field) for c in p.list()]
+            interval_p = poly_ring(coeffs)
 
         # This special case is important: this is the only way we could
         # refine "infinitely deep" (we could get an interval of diameter
         # about 2^{-2^31}, and then hit floating-point underflow); avoiding
         # this case here means we do not have to worry about iterating too
         # many times later
-        if coeffs[0].is_zero() and zero in interval:
+        if interval_p[0].is_zero() and zero in interval:
             return zero
 
         # interval_dp = poly_ring(dp)
-        dcoeffs = [c.interval_fast(field) for c in dp.list()]
-        interval_dp = poly_ring(dcoeffs)
+        if p.base_ring() is QQ:
+            interval_dp = p.derivative().change_ring(field)
+        else:
+            dcoeffs = [c.interval_fast(field) for c in dp.list()]
+            interval_dp = poly_ring(dcoeffs)
 
         while True:
             center = field(interval.center())
@@ -6376,7 +7124,7 @@ class ANRoot(ANDescr):
         if len(our_root) == 1:
             return our_root[0]
 
-        if len(our_root) == 0:
+        if not our_root:
             raise ValueError("Complex root interval does not include any roots")
 
         # We have more than one root that overlap the current interval.
@@ -6391,7 +7139,7 @@ class ANRoot(ANDescr):
 
     def exactify(self):
         """
-        Returns either an ``ANRational`` or an
+        Return either an ``ANRational`` or an
         ``ANExtensionElement`` with the same value as this number.
 
         EXAMPLES::
@@ -6419,6 +7167,7 @@ class ANRoot(ANDescr):
 
         if gen.is_trivial():
             qpf = self._poly.factors()
+
             def find_fn(factor, prec):
                 return factor(self._interval_fast(prec))
             my_factor = find_zero_result(find_fn, qpf)
@@ -6441,10 +7190,8 @@ class ANRoot(ANDescr):
             root = ANRoot(QQx(red_pol), new_intv)
             new_gen = AlgebraicGenerator(field, root)
 
-            return ANExtensionElement(new_gen, red_back(field.gen())/den)
+            return ANExtensionElement(new_gen, red_back(field.gen()) / den)
         else:
-            fld = gen.field()
-
             fpf = self._poly.factors()
 
             def find_fn(factor, prec):
@@ -6479,7 +7226,6 @@ class ANRoot(ANDescr):
 
             den, my_factor = clear_denominators(my_factor)
 
-
             pari_nf = gen.pari_field()
 
             x, y = QQxy.gens()
@@ -6500,8 +7246,6 @@ class ANRoot(ANDescr):
 
             self_pol_sage = QQx(self_pol.lift())
 
-            new_nf_a = new_nf.gen()
-
             def intv_fn(prec):
                 return conjugate_expand(red_elt(gen._interval_fast(prec) * k + self._interval_fast(prec) * den))
             new_intv = conjugate_shrink(isolating_interval(intv_fn, red_pol))
@@ -6509,7 +7253,7 @@ class ANRoot(ANDescr):
             root = ANRoot(QQx(red_pol), new_intv)
             new_gen = AlgebraicGenerator(new_nf, root)
             red_back_a = red_back(new_nf.gen())
-            new_poly = ((QQx_x - k * self_pol_sage)(red_back_a)/den)
+            new_poly = ((QQx_x - k * self_pol_sage)(red_back_a) / den)
             return ANExtensionElement(new_gen, new_poly)
 
     def _more_precision(self):
@@ -6528,7 +7272,7 @@ class ANRoot(ANDescr):
             128
         """
         prec = self._interval.prec()
-        self._interval = self.refine_interval(self._interval, prec*2)
+        self._interval = self.refine_interval(self._interval, prec * 2)
 
     def _interval_fast(self, prec):
         """
@@ -6554,6 +7298,7 @@ class ANRoot(ANDescr):
             return self._interval.parent().to_prec(prec)(self._interval)
         self._more_precision()
         return self._interval_fast(prec)
+
 
 class ANExtensionElement(ANDescr):
     r"""
@@ -6593,10 +7338,10 @@ class ANExtensionElement(ANDescr):
     def _repr_(self):
         fgen = self._generator._field.gen()
         sgen = str(fgen)
-        return '%s where %s = 0 and %s in %s'%(self._value,
-                                               self._generator.field().polynomial()._repr(name=sgen),
-                                               sgen,
-                                               self._generator._interval_fast(53))
+        return '%s where %s = 0 and %s in %s' % (self._value,
+                                                 self._generator.field().polynomial()._repr(name=sgen),
+                                                 sgen,
+                                                 self._generator._interval_fast(53))
 
     def handle_sage_input(self, sib, coerce, is_qqbar):
         r"""
@@ -6615,19 +7360,19 @@ class ANExtensionElement(ANDescr):
             True
             sage: sage_input(vector(QQbar, (4-3*I, QQbar.zeta(7))), verify=True)
             # Verified
-            R.<x> = AA[]
-            vector(QQbar, [4 - 3*I, QQbar.polynomial_root(AA.common_polynomial(x^6 + x^5 + x^4 + x^3 + x^2 + x + 1), CIF(RIF(RR(0.62348980185873348), RR(0.62348980185873359)), RIF(RR(0.7818314824680298), RR(0.78183148246802991))))])
+            R.<y> = QQ[]
+            vector(QQbar, [4 - 3*I, QQbar.polynomial_root(AA.common_polynomial(y^6 + y^5 + y^4 + y^3 + y^2 + y + 1), CIF(RIF(RR(0.62348980185873348), RR(0.62348980185873359)), RIF(RR(0.7818314824680298), RR(0.78183148246802991))))])
             sage: sage_input(v, verify=True)
             # Verified
-            R.<x> = AA[]
-            v = QQbar.polynomial_root(AA.common_polynomial(x^8 - x^7 + x^5 - x^4 + x^3 - x + 1), CIF(RIF(RR(0.91354545764260087), RR(0.91354545764260098)), RIF(RR(0.40673664307580015), RR(0.40673664307580021))))
+            R.<y> = QQ[]
+            v = QQbar.polynomial_root(AA.common_polynomial(y^8 - y^7 + y^5 - y^4 + y^3 - y + 1), CIF(RIF(RR(0.91354545764260087), RR(0.91354545764260098)), RIF(RR(0.40673664307580015), RR(0.40673664307580021))))
             v^5 + v^3
             sage: v = QQbar(sqrt(AA(2)))
             sage: v.exactify()
             sage: sage_input(v, verify=True)
             # Verified
-            R.<x> = AA[]
-            QQbar(AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951))))
+            R.<y> = QQ[]
+            QQbar(AA.polynomial_root(AA.common_polynomial(y^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951))))
             sage: from sage.rings.qqbar import *
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
@@ -6654,7 +7399,7 @@ class ANExtensionElement(ANDescr):
         # The following is copied with slight mods from polynomial_element.pyx
         coeffs = [sib(c, True) for c in self._value.list()]
         terms = []
-        for i in range(len(coeffs)-1, -1, -1):
+        for i in range(len(coeffs) - 1, -1, -1):
             if i > 0:
                 if i > 1:
                     rt_pow = rt**sib.int(i)
@@ -6671,6 +7416,7 @@ class ANExtensionElement(ANDescr):
     def is_complex(self):
         r"""
         Return True if the number field that defines this element is not real.
+
         This does not imply that the element itself is definitely non-real, as
         in the example below.
 
@@ -6692,7 +7438,7 @@ class ANExtensionElement(ANDescr):
 
     def is_simple(self):
         r"""
-        Checks whether this descriptor represents a value with the same
+        Check whether this descriptor represents a value with the same
         algebraic degree as the number field associated with the descriptor.
 
         For ``ANExtensionElement`` elements, we check this by
@@ -6736,8 +7482,9 @@ class ANExtensionElement(ANDescr):
 
     def exactify(self):
         r"""
-        Return an exact representation of self. Since self is already exact,
-        just return self.
+        Return an exact representation of ``self``.
+
+        Since ``self`` is already exact, just return ``self``.
 
         EXAMPLES::
 
@@ -6898,7 +7645,7 @@ class ANExtensionElement(ANDescr):
             <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         if self._exactly_real:
-            return (n*n)._descr
+            return (n * n)._descr
         elif self._generator is QQbar_I_generator:
             return ANRational(self._value.norm())
         else:
@@ -6956,13 +7703,13 @@ class ANExtensionElement(ANDescr):
             if n > 0:
                 return QQ.zero()
             else:
-                return QQ((1,2))
+                return QQ((1, 2))
 
         gen_degree = self._generator._field.degree()
         if gen_degree <= 2:
             max_b = 6
         else:
-            max_b = gen_degree*gen_degree
+            max_b = gen_degree * gen_degree
         rat_arg_fl = n._interval_fast(128).argument() / RealIntervalField(128).pi() / 2
         rat_arg = rat_arg_fl.simplest_rational()
         if rat_arg.denominator() > max_b:
@@ -6974,6 +7721,7 @@ class ANExtensionElement(ANDescr):
         # rational in rat_arg_fl and make sure its denominator is > max_b.
         # For now, we just punt.
         raise NotImplementedError
+
 
 class ANUnaryExpr(ANDescr):
     def __init__(self, arg, op):
@@ -7024,12 +7772,12 @@ class ANUnaryExpr(ANDescr):
             QQbar.polynomial_root(AA.common_polynomial(x^2 + 3), CIF(RIF(RR(0)), RIF(RR(1.7320508075688772), RR(1.7320508075688774)))).conjugate()
             sage: sage_input(QQbar.zeta(3).real(), verify=True)
             # Verified
-            R.<x> = AA[]
-            QQbar.polynomial_root(AA.common_polynomial(x^2 + x + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).real()
+            R.<y> = QQ[]
+            QQbar.polynomial_root(AA.common_polynomial(y^2 + y + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).real()
             sage: sage_input(QQbar.zeta(3).imag(), verify=True)
             # Verified
-            R.<x> = AA[]
-            QQbar.polynomial_root(AA.common_polynomial(x^2 + x + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).imag()
+            R.<y> = QQ[]
+            QQbar.polynomial_root(AA.common_polynomial(y^2 + y + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).imag()
             sage: sage_input(abs(sqrt(QQbar(-3))), verify=True)
             # Verified
             R.<x> = QQbar[]
@@ -7040,8 +7788,8 @@ class ANUnaryExpr(ANDescr):
             QQbar.polynomial_root(AA.common_polynomial(x^2 + 3), CIF(RIF(RR(0)), RIF(RR(1.7320508075688772), RR(1.7320508075688774)))).norm()
             sage: sage_input(QQbar(QQbar.zeta(3).real()), verify=True)
             # Verified
-            R.<x> = AA[]
-            QQbar(QQbar.polynomial_root(AA.common_polynomial(x^2 + x + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).real())
+            R.<y> = QQ[]
+            QQbar(QQbar.polynomial_root(AA.common_polynomial(y^2 + y + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).real())
             sage: from sage.rings.qqbar import *
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
@@ -7080,10 +7828,10 @@ class ANUnaryExpr(ANDescr):
             # The following version is not safe with respect to caching;
             # with the current sage_input.py, anything that gets entered
             # into the cache must be safe at all coercion levels.
-#             if is_qqbar and not coerce:
-#                 v = sib.name('QQbar')(v)
-#             if not is_qqbar and coerce != 2:
-#                 v = sib.name('AA')(v)
+            #             if is_qqbar and not coerce:
+            #                 v = sib.name('QQbar')(v)
+            #             if not is_qqbar and coerce != 2:
+            #                 v = sib.name('AA')(v)
             v = sib.name('QQbar' if is_qqbar else 'AA')(v)
 
         return (v, True)
@@ -7229,6 +7977,7 @@ class ANUnaryExpr(ANDescr):
             arg.exactify()
             return arg._descr.conjugate(None)
 
+
 class ANBinaryExpr(ANDescr):
     def __init__(self, left, right, op):
         r"""
@@ -7359,10 +8108,10 @@ class ANBinaryExpr(ANDescr):
             # The following version is not safe with respect to caching;
             # with the current sage_input.py, anything that gets entered
             # into the cache must be safe at all coercion levels.
-#             if is_qqbar and not coerce:
-#                 v = sib.name('QQbar')(v)
-#             if not is_qqbar and coerce != 2:
-#                 v = sib.name('AA')(v)
+            #             if is_qqbar and not coerce:
+            #                 v = sib.name('QQbar')(v)
+            #             if not is_qqbar and coerce != 2:
+            #                 v = sib.name('AA')(v)
             v = sib.name('QQbar' if is_qqbar else 'AA')(v)
 
         return (v, True)
@@ -7411,9 +8160,15 @@ class ANBinaryExpr(ANDescr):
 
         We check to make sure that this method still works even. We
         do this by increasing the recursion level at each step and
-        decrease it before we return::
+        decrease it before we return.
+        We lower the recursion limit for this test to allow
+        a test in reasonable time::
 
-            sage: import sys; sys.getrecursionlimit()
+            sage: import sys
+            sage: old_recursion_limit = sys.getrecursionlimit()
+            sage: sys.setrecursionlimit(1000)
+
+            sage: sys.getrecursionlimit()
             1000
             sage: s = SymmetricFunctions(QQ).schur()
             sage: a=s([3,2]).expand(8)(flatten([[QQbar.zeta(3)^d for d in range(3)], [QQbar.zeta(5)^d for d in range(5)]]))
@@ -7422,6 +8177,7 @@ class ANBinaryExpr(ANDescr):
             sage: sys.getrecursionlimit()
             1000
 
+            sage: sys.setrecursionlimit(old_recursion_limit)
         """
         import sys
         old_recursion_limit = sys.getrecursionlimit()
@@ -7450,6 +8206,7 @@ class ANBinaryExpr(ANDescr):
 # we fall back to floating-point computation to be backed up by exact
 # symbolic computation only as required.
 
+
 def an_binop_rational(a, b, op):
     r"""
     Used to add, subtract, multiply or divide algebraic numbers.
@@ -7472,6 +8229,7 @@ def an_binop_rational(a, b, op):
         <class 'sage.rings.qqbar.ANRational'>
     """
     return ANRational(op(a._descr._value, b._descr._value))
+
 
 def an_binop_expr(a, b, op):
     r"""
@@ -7507,6 +8265,7 @@ def an_binop_expr(a, b, op):
         2*a^7 - a^6 - 24*a^5 + 12*a^4 + 46*a^3 - 22*a^2 - 22*a + 9 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in 3.1258...?
     """
     return ANBinaryExpr(a, b, op)
+
 
 def an_binop_element(a, b, op):
     r"""
@@ -7563,7 +8322,6 @@ def an_binop_element(a, b, op):
         bdg2 = bdg.super_poly(p)
         av = ad._value.polynomial()(adg2)
         bv = bd._value.polynomial()(bdg2)
-        v = op(av, bv)
         return ANExtensionElement(p, op(av, bv))
 
     adg2 = adg.super_poly(bdg)
@@ -7578,11 +8336,12 @@ def an_binop_element(a, b, op):
 
     return ANBinaryExpr(a, b, op)
 
+
 # instanciation of the multimethod dispatch
 _binop_algo[ANRational, ANRational] = an_binop_rational
 _binop_algo[ANRational, ANExtensionElement] = \
 _binop_algo[ANExtensionElement, ANRational] = \
-_binop_algo[ANExtensionElement, ANExtensionElement ] = an_binop_element
+_binop_algo[ANExtensionElement, ANExtensionElement] = an_binop_element
 for t1 in (ANRational, ANRoot, ANExtensionElement, ANUnaryExpr, ANBinaryExpr):
     for t2 in (ANUnaryExpr, ANBinaryExpr, ANRoot):
         _binop_algo[t1, t2] = _binop_algo[t2, t1] = an_binop_expr
@@ -7599,32 +8358,34 @@ def _init_qqbar():
     EXAMPLES::
 
         sage: sage.rings.qqbar.QQbar_I_generator # indirect doctest
-        Number Field in I with defining polynomial x^2 + 1 with a in 1*I
+        Number Field in I with defining polynomial x^2 + 1 with I = 1*I with a in 1*I
     """
     global ZZX_x, AA_0, QQbar_I, AA_hash_offset, QQbar_hash_offset, QQbar_I_generator, QQbar_I_nf
     global QQ_0, QQ_1, QQ_1_2, QQ_1_4, RR_1_10
 
-    RR_1_10 = RR(1)/10
+    RR_1_10 = RR(1) / 10
     QQ_0 = QQ.zero()
     QQ_1 = QQ.one()
-    QQ_1_2 = QQ((1,2))
-    QQ_1_4 = QQ((1,4))
+    QQ_1_2 = QQ((1, 2))
+    QQ_1_4 = QQ((1, 4))
 
     AA_0 = AA.zero()
 
-    QQbar_I_nf = QuadraticField(-1, 'I', embedding=CC.gen(), latex_name='i')
+    QQbar_I_nf = GaussianField()
     QQbar_I_generator = AlgebraicGenerator(QQbar_I_nf, ANRoot(AAPoly.gen()**2 + 1, CIF(0, 1)))
     QQbar_I = AlgebraicNumber(ANExtensionElement(QQbar_I_generator, QQbar_I_nf.gen()))
 
     AA_hash_offset = AA(~ZZ(123456789))
 
-    QQbar_hash_offset = AlgebraicNumber(ANExtensionElement(QQbar_I_generator, ~ZZ(123456789) + QQbar_I_nf.gen()/ZZ(987654321)))
+    QQbar_hash_offset = AlgebraicNumber(ANExtensionElement(QQbar_I_generator, ~ZZ(123456789) + QQbar_I_nf.gen() / ZZ(987654321)))
 
     ZZX_x = ZZ['x'].gen()
+
 
 # This is used in the _algebraic_ method of the golden_ratio constant,
 # in sage/symbolic/constants.py
 AA_golden_ratio = None
+
 
 def get_AA_golden_ratio():
     r"""
@@ -7642,24 +8403,3 @@ def get_AA_golden_ratio():
         AA_golden_ratio_generator = AlgebraicGenerator(AA_golden_ratio_nf, ANRoot(AAPoly.gen()**2 - AAPoly.gen() - 1, RIF(1.618, 1.6181)))
         AA_golden_ratio = AlgebraicReal(ANExtensionElement(AA_golden_ratio_generator, AA_golden_ratio_nf.gen()))
     return AA_golden_ratio
-
-class ANRootOfUnity(ANExtensionElement):
-    r"""
-    Deprecated class to support unpickling
-
-    TESTS::
-
-        sage: from sage.rings.qqbar import ANRootOfUnity
-        sage: ANRootOfUnity(1/5, 3/2)
-        doctest:...: DeprecationWarning: ANRootOfUnity is deprecated
-        See http://trac.sagemath.org/19954 for details.
-        3/2*zeta5 where zeta5^4 + zeta5^3 + zeta5^2 + zeta5 + 1 = 0
-        and zeta5 in 0.3090169943749474? + 0.9510565162951536?*I
-    """
-    def __new__(self, a, b):
-        from sage.misc.superseded import deprecation
-        deprecation(19954, "ANRootOfUnity is deprecated")
-        descr = QQbar.zeta(a.denominator())._descr
-        generator = descr._generator
-        value = b * descr._value ** (a.numerator())
-        return ANExtensionElement(generator, value)

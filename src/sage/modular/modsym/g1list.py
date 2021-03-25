@@ -3,7 +3,7 @@ List of coset representatives for `\Gamma_1(N)` in `{\rm SL}_2(\ZZ)`
 """
 
 #*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -18,11 +18,10 @@ List of coset representatives for `\Gamma_1(N)` in `{\rm SL}_2(\ZZ)`
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 from sage.arith.all import GCD
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.structure.sage_object import SageObject
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 
 
 @richcmp_method
@@ -128,7 +127,7 @@ class G1list(SageObject):
             sage: L = sage.modular.modsym.g1list.G1list(4); L.normalize(6, 2) # nonsense!
             (2, 2)
         """
-        return u % self.__N,   v % self.__N
+        return u % self.__N, v % self.__N
 
 
 class _G1list_old_pickle(G1list):

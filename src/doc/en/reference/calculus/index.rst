@@ -1,3 +1,5 @@
+.. _symbolic-calculus:
+
 Symbolic Calculus
 =================
 
@@ -35,6 +37,7 @@ Using calculus
   - :doc:`sage/calculus/transforms/dft`
   - :doc:`sage/calculus/transforms/fft`
 
+- :ref:`Vector Calculus <euclidean-spaces>`
 - :doc:`sage/calculus/riemann`
 - :doc:`Other calculus functionality <sage/calculus/functions>`
 - :doc:`sage/symbolic/complexity_measures`

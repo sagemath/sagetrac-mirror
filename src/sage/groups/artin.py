@@ -21,8 +21,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import division, absolute_import, print_function
-import six
 
 from sage.misc.cachefunc import cached_method
 from sage.groups.free_group import FreeGroup
@@ -69,7 +67,7 @@ class ArtinGroupElement(FinitelyPresentedGroupElement):
             sage: b._latex_()
             '\\sigma_{1}\\sigma_{2}\\sigma_{3}\\sigma_{1}^{-1}\\sigma_{2}\\sigma_{3}^{-1}'
         """
-        return ''.join("\sigma_{%s}^{-1}" % (-i) if i < 0 else "\sigma_{%s}" % i
+        return ''.join(r"\sigma_{%s}^{-1}" % (-i) if i < 0 else r"\sigma_{%s}" % i
                        for i in self.Tietze())
 
     def exponent_sum(self):
@@ -179,7 +177,7 @@ class FiniteTypeArtinGroupElement(ArtinGroupElement):
 
     @cached_method
     def left_normal_form(self):
-        """
+        r"""
         Return the left normal form of ``self``.
 
         OUTPUT:
@@ -220,7 +218,7 @@ class FiniteTypeArtinGroupElement(ArtinGroupElement):
                      [P._standard_lift(w) for w in lnfp[1:]])
 
     def _left_normal_form_coxeter(self):
-        """
+        r"""
         Return the left normal form of the element, in the `\Delta`
         exponent and Coxeter group element form.
 
@@ -403,7 +401,7 @@ class ArtinGroup(FinitelyPresentedGroup):
         coxeter_data = CoxeterMatrix(coxeter_data)
         if names is None:
             names = 's'
-        if isinstance(names, six.string_types):
+        if isinstance(names, str):
             if ',' in names:
                 names = [x.strip() for x in names.split(',')]
             else:
@@ -656,8 +654,9 @@ class ArtinGroup(FinitelyPresentedGroup):
 
     Element = ArtinGroupElement
 
+
 class FiniteTypeArtinGroup(ArtinGroup):
-    """
+    r"""
     A finite-type Artin group.
 
     An Artin group is *finite-type* or *spherical* if the corresponding

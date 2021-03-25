@@ -1,6 +1,16 @@
 # -*- encoding: utf-8 -*-
 """
 String <-> bytes encoding/decoding
+
+TESTS:
+
+Check that this can be used outside of Sage (see :trac:`25549`)::
+
+    sage: cython('''
+    ....: from sage.cpython.string cimport char_to_str
+    ....: print(char_to_str("hello world!"))
+    ....: ''')
+    hello world!
 """
 
 #*****************************************************************************
@@ -12,8 +22,6 @@ String <-> bytes encoding/decoding
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import absolute_import
 
 import sys
 

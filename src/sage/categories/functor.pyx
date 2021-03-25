@@ -13,11 +13,11 @@ AUTHORS:
   re-implementation of the default call method,
   making functors applicable to morphisms (not only to objects)
 
-- Simon King (2010-12): Pickling of functors without loosing domain and codomain
+- Simon King (2010-12): Pickling of functors without losing domain and codomain
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu> and
 #                     William Stein <wstein@math.ucsd.edu>
 #
@@ -30,9 +30,8 @@ AUTHORS:
 #  See the GNU General Public License for more details; the full text
 #  is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from . import category
 
@@ -210,9 +209,10 @@ cdef class Functor(SageObject):
             True
             sage: F.codomain()
             Category of rings
-
         """
-        return _Functor_unpickle, (self.__class__, self.__dict__.items(), self.__domain, self.__codomain)
+        return (_Functor_unpickle,
+                (self.__class__, list(self.__dict__.items()),
+                 self.__domain, self.__codomain))
 
     def _apply_functor(self, x):
         """
@@ -261,7 +261,7 @@ cdef class Functor(SageObject):
                             Ring endomorphism of Finite Field in a of size 5^2
                               Defn: a |--> 4*a + 1
             sage: fF((a^2+a)*t^2/(a*t - a^2))
-            3*a*t^2/((4*a + 1)*t + a + 1)
+            ((4*a + 2)*t^2)/(t + a + 4)
 
         """
         try:
@@ -381,7 +381,7 @@ cdef class Functor(SageObject):
         if is_Morphism(x):
             return self._apply_functor_to_morphism(x)
         y = self._apply_functor(self._coerce_into_domain(x))
-        if not ((y in self.__codomain) or (y in self.__codomain.hom_category())):
+        if not ((y in self.__codomain) or (y in self.__codomain.Homsets())):
             raise TypeError("%s is ill-defined, since it sends x (=%s) to something that is not in %s." % (repr(self), x, self.__codomain))
         return y
 
@@ -500,7 +500,7 @@ class ForgetfulFunctor_generic(Functor):
 
             sage: F1 = ForgetfulFunctor(FiniteFields(),Fields())
 
-        This is to test against a bug occuring in a previous version
+        This is to test against a bug occurring in a previous version
         (see :trac:`8800`)::
 
             sage: F1 == QQ #indirect doctest
@@ -523,7 +523,7 @@ class ForgetfulFunctor_generic(Functor):
         """
         Return whether ``self`` is not equal to ``other``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: F1 = ForgetfulFunctor(FiniteFields(),Fields())
             sage: F1 != F1

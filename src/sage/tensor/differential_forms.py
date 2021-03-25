@@ -38,7 +38,6 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from sage.rings.ring import Algebra
 from sage.tensor.coordinate_patch import CoordinatePatch
@@ -447,5 +446,4 @@ class DifferentialForms(Algebra):
             sage: latex(F) == F._latex_()
             True
         """
-
-        return "\\Omega^\\ast(\mathbb{\\RR}^%s)" % self._patch.dim()
+        return "\\Omega^\\ast(\\mathbb{\\RR}^%s)" % self._patch.dim()

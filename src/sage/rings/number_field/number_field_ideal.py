@@ -21,7 +21,7 @@ We test that pickling works::
     True
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -33,27 +33,20 @@ We test that pickling works::
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
-from six.moves import range
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 SMALL_DISC = 1000000
-
-
-import sage.libs.all
 
 import sage.misc.latex as latex
 
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
-import sage.arith.all as arith
+from sage.arith.all import kronecker_symbol, gcd
 import sage.misc.misc as misc
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
-
-
-from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
+from sage.rings.ideal import Ideal_generic
 from sage.misc.all import prod
 from sage.misc.mrange import xmrange_iter
 from sage.misc.cachefunc import cached_method
@@ -118,7 +111,7 @@ class NumberFieldIdeal(Ideal_generic):
         """
         from .number_field import NumberField_generic
         if not isinstance(field, NumberField_generic):
-            raise TypeError("field (=%s) must be a number field."%field)
+            raise TypeError("field (=%s) must be a number field." % field)
 
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
@@ -141,6 +134,34 @@ class NumberFieldIdeal(Ideal_generic):
         Ideal_generic.__init__(self, field, gens, coerce)
         if field.absolute_degree() == 2:
             self.quadratic_form = self._quadratic_form
+
+    def _magma_init_(self, magma):
+        """
+        Return Magma version of this ideal.
+
+        INPUT:
+
+
+        -  ``magma`` - a Magma interpreter
+
+
+        OUTPUT: MagmaElement corresponding to this ideal.
+
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2) # optional - magma
+            sage: I = K.ideal(5) # optional - magma
+            sage: I._magma_init_(magma)            # optional - magma
+            '(_sage_[...]![5, 0, 0]) * _sage_[...]'
+        """
+        O = magma(self.number_field().maximal_order())
+        g = self.gens()[0]
+        ans = magma(g) * O
+        for g in self.gens()[1:]:
+            ans += magma(g) * O
+        return '+'.join('%s * %s' % (g._magma_init_(magma), O.name())
+                        for g in self.gens())
 
     def __hash__(self):
         """
@@ -192,7 +213,7 @@ class NumberFieldIdeal(Ideal_generic):
 
             sage: sage.rings.number_field.number_field_ideal.SMALL_DISC = 1000000
         """
-        return '\\left(%s\\right)'%(", ".join(map(latex.latex, self._gens_repr())))
+        return '\\left(%s\\right)' % (", ".join(map(latex.latex, self._gens_repr())))
 
     def _richcmp_(self, other, op):
         """
@@ -424,7 +445,7 @@ class NumberFieldIdeal(Ideal_generic):
             sage: type(I)
             <class 'sage.rings.number_field.number_field_ideal.NumberFieldFractionalIdeal'>
         """
-        return "Ideal %s of %s"%(self._repr_short(), self.number_field())
+        return "Ideal %s of %s" % (self._repr_short(), self.number_field())
 
     def _repr_short(self):
         """
@@ -464,7 +485,7 @@ class NumberFieldIdeal(Ideal_generic):
             sage: I.gens_reduced()
             (19, a + 5)
         """
-        return '(%s)'%(', '.join(map(str, self._gens_repr())))
+        return '(%s)' % (', '.join(map(str, self._gens_repr())))
 
     def _gens_repr(self):
         """
@@ -687,7 +708,7 @@ class NumberFieldIdeal(Ideal_generic):
         not always) if self is principal then this function returns
         the unit ideal.
 
-        ALGORITHM: Calls pari's idealred function.
+        ALGORITHM: Calls :pari:`idealred` function.
 
         EXAMPLES::
 
@@ -937,7 +958,7 @@ class NumberFieldIdeal(Ideal_generic):
             return self.__is_integral
         except AttributeError:
             one = self.number_field().ideal(1)
-            self.__is_integral = all([a in one for a in self.integral_basis()])
+            self.__is_integral = all(a in one for a in self.integral_basis())
             return self.__is_integral
 
     def is_maximal(self):
@@ -1006,7 +1027,7 @@ class NumberFieldIdeal(Ideal_generic):
             ValueError: Fractional ideal (2) is not a prime ideal
         """
         if not self.is_prime():
-           raise ValueError("%s is not a prime ideal"%self)
+           raise ValueError("%s is not a prime ideal" % self)
         return self._pari_prime
 
     def _cache_bnfisprincipal(self, proof=None, gens_needed=False):
@@ -1075,7 +1096,7 @@ class NumberFieldIdeal(Ideal_generic):
         ``proof=True`` (this is the default setting) to prove the correctness
         of the output.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: K = QuadraticField(-119,'a')
             sage: P = K.factor(2)[1][0]
@@ -1302,7 +1323,7 @@ class NumberFieldIdeal(Ideal_generic):
 
             sage: K.<i> = QuadraticField(-1)
             sage: P1, P2 = [P for P,e in K.factor(13)]
-            sage: all([(P1^i*P2^j).smallest_integer() == 13^max(i,j,0) for i in range(-3,3) for j in range(-3,3)])
+            sage: all((P1^i*P2^j).smallest_integer() == 13^max(i,j,0) for i in range(-3,3) for j in range(-3,3))
             True
             sage: I = K.ideal(0)
             sage: I.smallest_integer()
@@ -1377,11 +1398,11 @@ class NumberFieldIdeal(Ideal_generic):
         if not isinstance(p, NumberFieldIdeal):
             p = self.number_field().ideal(p)
         if not p:
-            raise ValueError("p (= %s) must be nonzero"%p)
+            raise ValueError("p (= %s) must be nonzero" % p)
         if not p.is_prime():
-            raise ValueError("p (= %s) must be a prime"%p)
+            raise ValueError("p (= %s) must be a prime" % p)
         if p.ring() != self.number_field():
-            raise ValueError("p (= %s) must be an ideal in %s"%self.number_field())
+            raise ValueError("p (= %s) must be an ideal in %s" % self.number_field())
         nf = self.number_field().pari_nf()
         return nf.idealval(self.pari_hnf(), p.pari_prime()).sage()
 
@@ -1396,7 +1417,7 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(7)[0].decomposition_group()
-            Galois group of Number Field in w with defining polynomial x^2 + 23
+            Subgroup [(), (1,2)] of Galois group 2T1 (S2) with order 2 of x^2 + 23
         """
         return self.number_field().galois_group().decomposition_group(self)
 
@@ -1412,9 +1433,9 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(23)[0].ramification_group(0)
-            Galois group of Number Field in w with defining polynomial x^2 + 23
+            Subgroup [(), (1,2)] of Galois group 2T1 (S2) with order 2 of x^2 + 23
             sage: QuadraticField(-23, 'w').primes_above(23)[0].ramification_group(1)
-            Subgroup [()] of Galois group of Number Field in w with defining polynomial x^2 + 23
+            Subgroup [()] of Galois group 2T1 (S2) with order 2 of x^2 + 23
         """
 
         return self.number_field().galois_group().ramification_group(self, v)
@@ -1430,12 +1451,12 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(23)[0].inertia_group()
-            Galois group of Number Field in w with defining polynomial x^2 + 23
+            Subgroup [(), (1,2)] of Galois group 2T1 (S2) with order 2 of x^2 + 23
         """
         return self.ramification_group(0)
 
     def random_element(self, *args, **kwds):
-        """
+        r"""
         Return a random element of this order.
 
         INPUT:
@@ -1546,8 +1567,6 @@ class NumberFieldIdeal(Ideal_generic):
             ValueError: The residue symbol to that power is not defined for the number field
 
         """
-        from sage.arith.all import kronecker_symbol
-
         K = self.ring()
         if m == 2 and K.absolute_degree() == 1:
             try:
@@ -1569,7 +1588,7 @@ class NumberFieldIdeal(Ideal_generic):
         primroot = K.primitive_root_of_unity()
         rootorder = primroot.multiplicative_order()
         if check:
-            if not rootorder%m == 0:
+            if rootorder % m:
                 raise ValueError("The residue symbol to that power is not defined for the number field")
         if not self.is_prime():
             return prod(Q.residue_symbol(e,m,check=False)**i for Q, i in self.factor())
@@ -1632,8 +1651,7 @@ class NumberFieldIdeal(Ideal_generic):
 
         REFERENCES:
 
-        .. [Cohen] Henri Cohen, A Course in Computational Algebraic
-           Number Theory. Section 5.2.
+        - [Coh1993]_
         """
         K = self.number_field()
         if K.degree() == 2:
@@ -1727,9 +1745,9 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         """
         from .number_field import NumberField_generic
         if not isinstance(field, NumberField_generic):
-            raise TypeError("field (=%s) must be a number field."%field)
+            raise TypeError("field (=%s) must be a number field." % field)
 
-        if len(gens)==0:
+        if not gens:
             raise ValueError("gens must have length at least 1 (zero ideal is not a fractional ideal)")
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
@@ -1755,7 +1773,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: type(I)
             <class 'sage.rings.number_field.number_field_ideal.NumberFieldFractionalIdeal'>
         """
-        return "Fractional ideal %s"%self._repr_short()
+        return "Fractional ideal %s" % self._repr_short()
 
     def divides(self, other):
         """
@@ -1800,11 +1818,17 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         TESTS:
 
         Number fields defined by non-monic and non-integral
-        polynomials are supported (:trac:`252`)::
+        polynomials are supported (:trac:`252`);
+        the representation depends on the PARI version::
 
             sage: F.<a> = NumberField(2*x^3 + x + 1)
-            sage: fact = F.factor(2); fact
-            (Fractional ideal (2*a^2 + 1))^2 * (Fractional ideal (-2*a^2))
+            sage: fact = F.factor(2)
+            sage: (fact[0][1], fact[1][1])
+            (2, 1)
+            sage: fact[0][0] == F.ideal(2*a^2 + 1)
+            True
+            sage: fact[1][0] == F.ideal(-2*a^2)
+            True
             sage: [p[0].norm() for p in fact]
             [2, 2]
         """
@@ -1941,7 +1965,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         return ZZ(self.pari_prime().pr_get_e())
 
     def reduce(self, f):
-        """
+        r"""
         Return the canonical reduction of the element of `f` modulo the ideal
         `I` (=self). This is an element of `R` (the ring of integers of the
         number field) that is equivalent modulo `I` to `f`.
@@ -2040,8 +2064,8 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         return sum([v[i]*Rbasis[i] for i in range(n)])
 
     def residues(self):
-        """
-        Returns a iterator through a complete list of residues modulo this integral ideal.
+        r"""
+        Return a iterator through a complete list of residues modulo this integral ideal.
 
         An error is raised if this fractional ideal is not integral.
 
@@ -2063,7 +2087,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
 
             sage: K.<i>=NumberField(x^2+1)
             sage: res =  K.ideal(2).residues(); res
-            xmrange_iter([[0, 1], [0, 1]], <function <lambda> at 0x...>)
+            xmrange_iter([[0, 1], [0, 1]], <function ...<lambda> at 0x...>)
             sage: list(res)
             [0, i, 1, i + 1]
             sage: list(K.ideal(2+i).residues())
@@ -2074,7 +2098,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: reps=I.residues()
             sage: len(list(reps)) == I.norm()
             True
-            sage: all([r==s or not (r-s) in I for r in reps for s in reps])  # long time (6s on sage.math, 2011)
+            sage: all(r == s or not (r-s) in I for r in reps for s in reps)  # long time (6s on sage.math, 2011)
             True
 
             sage: K.<a> = NumberField(x^3-10)
@@ -2119,14 +2143,14 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
           `I`, i.e. a list of elements in the ring of integers `R` representing
           the elements of `(R/I)^*`.
 
-        ALGORITHM: Use pari's ``idealstar`` to find the group structure and
+        ALGORITHM: Use :pari:`idealstar` to find the group structure and
         generators of the multiplicative group modulo the ideal.
 
         EXAMPLES::
 
             sage: K.<i>=NumberField(x^2+1)
             sage: ires =  K.ideal(2).invertible_residues(); ires
-            xmrange_iter([[0, 1]], <function <lambda> at 0x...>)
+            xmrange_iter([[0, 1]], <function ...<lambda> at 0x...>)
             sage: list(ires)
             [1, -i]
             sage: list(K.ideal(2+i).invertible_residues())
@@ -2216,11 +2240,9 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
 
         AUTHOR: Maite Aranes.
         """
-
         if self.norm() == 1:
             return xmrange_iter([[1]], lambda l: l[0])
 
-        k = self.number_field()
         G = self.idealstar(2)
 
         invs = G.invariants()
@@ -2361,7 +2383,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         one = K.unit_ideal()
         other = K.ideal(other)
         if self.is_integral() and other.is_integral():
-            if arith.gcd(ZZ(self.absolute_norm()), ZZ(other.absolute_norm())) == 1:
+            if gcd(ZZ(self.absolute_norm()), ZZ(other.absolute_norm())) == 1:
                 return True
             else:
                 return self+other == one
@@ -2396,12 +2418,25 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: B = k.ideal(3)
             sage: A.is_coprime(B)
             False
-            sage: lam = A.idealcoprime(B); lam
+            sage: lam = A.idealcoprime(B)
+            sage: lam  # representation depends, not tested
             -1/6*a + 1/6
             sage: (lam*A).is_coprime(B)
             True
 
         ALGORITHM: Uses Pari function :pari:`idealcoprime`.
+
+        TESTS:
+
+        Check the above doctests, where the representation
+        depends on the PARI version::
+
+            sage: k.<a> = NumberField(x^2 + 23)
+            sage: A = k.ideal(a+1)
+            sage: B = k.ideal(3)
+            sage: lam = A.idealcoprime(B)
+            sage: lam in (-1/6*a + 1/6, 1/6*a - 1/6)
+            True
         """
         if not (self.is_integral() and J.is_integral()):
             raise ValueError("Both ideals must be integral.")
@@ -2526,7 +2561,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             (f0, f1)
             sage: G.gens_values()   # random output
             (2*a^2 - 1, 2*a^2 + 2*a - 2)
-            sage: all([G.gen(i).value() in k for i in range(G.ngens())])
+            sage: all(G.gen(i).value() in k for i in range(G.ngens()))
             True
 
         TESTS::
@@ -2626,7 +2661,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         # sanitise input
 
         k = self.number_field()
-        if not all([k(x).valuation(p)==0 for p, e in self.factor()]):
+        if not all(k(x).valuation(p) == 0 for p, e in self.factor()):
             raise TypeError("the element must be invertible mod the ideal")
 
         # calculate ideal log w.r.t. standard gens
@@ -2642,8 +2677,6 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         # otherwise translate answer in terms of given gens
         G = self.idealstar(2)
         invs = G.invariants()
-        g = G.gens()
-        n = G.ngens()
 
         from sage.matrix.all import matrix, identity_matrix, zero_matrix, diagonal_matrix, block_matrix
 
@@ -2728,16 +2761,16 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             TypeError: Fractional ideal (1/2*a^2) is not an integral ideal
         """
         if not self.is_integral():
-            raise TypeError("%s is not an integral ideal"%self)
+            raise TypeError("%s is not an integral ideal" % self)
 
         # Catch invalid inputs by making sure that we can make an ideal out of other.
         K = self.number_field()
         other = K.ideal(other)
         if not other.is_integral():
-            raise TypeError("%s is not an integral ideal"%other)
+            raise TypeError("%s is not an integral ideal" % other)
 
         if not self.is_coprime(other):
-            raise TypeError("%s, %s are not coprime ideals"%(self, other))
+            raise TypeError("%s, %s are not coprime ideals" % (self, other))
 
         bnf = K.pari_bnf()
         r = bnf.idealaddtoone(self.pari_hnf(), other.pari_hnf())[0]
@@ -2962,7 +2995,9 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             Basis matrix:
             []
 
-        We do an example with a split prime and show both the quo and lift maps:
+        We do an example with a split prime and show both the quo
+        and lift maps::
+
             sage: K.<i> = NumberField(x^2 + 1); O = K.maximal_order()
             sage: I = K.factor(5)[0][0]
             sage: Q,quo,lift = I._p_quotient(5)
@@ -3042,6 +3077,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             -1
             sage: F2(a)
             Traceback (most recent call last):
+            ...
             ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (2*i + 1): it has negative valuation
 
         An example with a relative number field::
@@ -3189,7 +3225,8 @@ class QuotientMap:
             sage: repr(f)
             'Partially defined reduction map:\n  From: Number Field in a with defining polynomial x^3 + 4\n  To:   Residue field of Fractional ideal (1/2*a^2 + 1)'
         """
-        return "Partially defined quotient map from %s to an explicit vector space representation for the quotient of the ring of integers by (p,I) for the ideal I=%s."%(self.__K, self.__I)
+        return "Partially defined quotient map from %s to an explicit vector space representation for the quotient of the ring of integers by (p,I) for the ideal I=%s." % (self.__K, self.__I)
+
 
 class LiftMap:
     """
@@ -3253,7 +3290,8 @@ class LiftMap:
             sage: repr(R.lift_map())
             'Lifting map:\n  From: Residue field of Fractional ideal (1/2*a^2 + 1)\n  To:   Maximal Order in Number Field in a with defining polynomial x^3 + 4'
         """
-        return "Lifting map to %s from quotient of integers by %s"%(self.__OK, self.__I)
+        return "Lifting map to %s from quotient of integers by %s" % (self.__OK, self.__I)
+
 
 def quotient_char_p(I, p):
     r"""
@@ -3305,7 +3343,6 @@ def quotient_char_p(I, p):
     # Step 1. Write each basis vector for I (as a ZZ-module)
     # in terms of the basis for OK.
 
-    B_I = M_I.basis()
     M_OK_mat = M_OK.basis_matrix()
     M_OK_change = M_OK_mat**(-1)
     B_I_in_terms_of_M = M_I.basis_matrix() * M_OK_change

@@ -59,7 +59,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
 
 import sage.misc.prandom as random
 
@@ -89,6 +88,7 @@ class IntegerModFactory(UniqueFactory):
     - ``is_field`` -- bool (default: ``False``); assert that
       the order is prime and hence the quotient ring belongs to
       the category of fields
+    - ``category`` (optional) - the category that the quotient ring belongs to.
 
     .. NOTE::
 
@@ -187,6 +187,11 @@ class IntegerModFactory(UniqueFactory):
         sage: R in Fields()
         True
 
+    To avoid side-effects of this test on other tests, we clear the cache of
+    the ring factory::
+
+        sage: IntegerModRing._cache.clear()
+
     """
     def get_object(self, version, key, extra_args):
         out = super(IntegerModFactory,self).get_object(version, key, extra_args)
@@ -196,7 +201,7 @@ class IntegerModFactory(UniqueFactory):
             out._factory_data[3]['category'] = category
         return out
 
-    def create_key_and_extra_args(self, order=0, is_field=False):
+    def create_key_and_extra_args(self, order=0, is_field=False, category=None):
         """
         An integer mod ring is specified uniquely by its order.
 
@@ -446,6 +451,10 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: TestSuite(Z16).run()
             sage: R = Integers(100000)
             sage: TestSuite(R).run()  # long time (17s on sage.math, 2011)
+
+            sage: R = IntegerModRing(18)
+            sage: R.is_finite()
+            True
         """
         order = ZZ(order)
         if order <= 0:
@@ -476,7 +485,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self._zero_element = integer_mod.IntegerMod(self, 0)
         self._one_element = integer_mod.IntegerMod(self, 1)
 
-    def _macaulay2_init_(self):
+    def _macaulay2_init_(self, macaulay2=None):
         """
         EXAMPLES::
 
@@ -491,7 +500,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             Traceback (most recent call last):
             ...
             TypeError: Error evaluating Macaulay2 code.
-            IN:sage1=ZZ/10;
+            IN:...
             OUT:...error: ZZ/n not implemented yet for composite n
         """
         return "ZZ/{}".format(self.order())
@@ -538,7 +547,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return True
 
-    def extension(self, poly, name=None, names=None, embedding=None):
+    def extension(self, poly, name=None, names=None, **kwds):
         """
         Return an algebraic extension of ``self``. See
         :meth:`sage.rings.ring.CommutativeRing.extension()` for more
@@ -554,7 +563,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             return self
 
         from sage.rings.ring import CommutativeRing
-        return CommutativeRing.extension(self, poly, name, names, embedding)
+        return CommutativeRing.extension(self, poly, name, names, **kwds)
 
     @cached_method
     def is_prime_field(self):
@@ -593,6 +602,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             [1, 5, 7, 11]
             sage: type(L[0])
             <... 'int'>
+            sage: Zmod(1).list_of_elements_of_multiplicative_group()
+            [0]
         """
         import sage.rings.fast_arith as a
         if self.__order <= 46340:   # todo: don't hard code
@@ -600,10 +611,10 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         elif self.__order <= 2147483647:   # todo: don't hard code
             gcd = a.arith_llong().gcd_longlong
         else:
-            raise MemoryError("creating the list would exhaust memory")
+            raise NotImplementedError("list_of_elements_of_multiplicative_group() is not implemented for large moduli")
         N = self.__order
-        H = [i for i in range(N) if gcd(i, N) == 1]
-        return H
+        # Don't use N.coprime_integers() here because we want Python ints
+        return [i for i in range(N) if gcd(i, N) == 1]
 
     @cached_method
     def multiplicative_subgroups(self):
@@ -632,18 +643,6 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return tuple(tuple(g.value() for g in H.gens())
                      for H in self.unit_group().subgroups())
-
-    def is_finite(self):
-        r"""
-        Return ``True`` since `\ZZ/N\ZZ` is finite for all positive `N`.
-
-        EXAMPLES::
-
-            sage: R = IntegerModRing(18)
-            sage: R.is_finite()
-            True
-        """
-        return True
 
     def is_integral_domain(self, proof=None):
         """
@@ -740,6 +739,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             in other parts of Sage. Either it was a mistake of the user,
             or a probabilistic primality test has failed.
             In the latter case, please inform the developers.
+
+        To avoid side-effects of this test on other tests, we clear the cache
+        of the ring factory::
+
+            sage: IntegerModRing._cache.clear()
 
         """
         from sage.categories.fields import Fields
@@ -1008,7 +1012,7 @@ In the latter case, please inform the developers.""".format(self.order()))
         return factor(self.__order, int_=(self.__order < 2**31))
 
     def factored_unit_order(self):
-        """
+        r"""
         Return a list of :class:`Factorization` objects, each the factorization
         of the order of the units in a `\ZZ / p^n \ZZ` component of this group
         (using the Chinese Remainder Theorem).
@@ -1196,7 +1200,7 @@ In the latter case, please inform the developers.""".format(self.order()))
             i = i + 1
 
     def _coerce_map_from_(self, S):
-        """
+        r"""
         EXAMPLES::
 
             sage: R = Integers(15)
@@ -1310,7 +1314,7 @@ In the latter case, please inform the developers.""".format(self.order()))
 
         """
         # We want that GF(p) and IntegerModRing(p) evaluate unequal.
-        # However, we can not just compare the types, since the
+        # However, we cannot just compare the types, since the
         # choice of a different category also changes the type.
         # But if we go to the base class, we avoid the influence
         # of the category.
@@ -1509,8 +1513,8 @@ In the latter case, please inform the developers.""".format(self.order()))
                     orders.append(o)
         elif algorithm == 'pari':
             _, orders, gens = self.order().__pari__().znstar()
-            gens = map(self, gens)
-            orders = map(integer.Integer, orders)
+            gens = [self(g) for g in gens]
+            orders = [integer.Integer(o) for o in orders]
         else:
             raise ValueError('unknown algorithm %r for computing the unit group' % algorithm)
         return AbelianGroupWithValues(gens, orders, values_group=self)
@@ -1585,7 +1589,7 @@ Integers = IntegerModRing
 
 # Register unpickling methods for backward compatibility.
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.integer_mod_ring', 'IntegerModRing_generic', IntegerModRing_generic)
 
 def crt(v):

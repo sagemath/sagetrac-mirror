@@ -32,8 +32,10 @@ Modules
    sage/modules/diamond_cutting
 
    sage/modules/with_basis/__init__
+   sage/modules/with_basis/cell_module
    sage/modules/with_basis/morphism
    sage/modules/with_basis/subquotient
+   sage/modules/with_basis/representation
 
    sage/modules/finite_submodule_iter
    sage/modules/free_quadratic_module

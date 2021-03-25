@@ -6,7 +6,7 @@ Groups
 
    sage/groups/groups_catalog
    sage/groups/group
-   sage/groups/group_homset
+   sage/groups/libgap_morphism
    sage/groups/libgap_wrapper
    sage/groups/libgap_group
    sage/groups/libgap_mixin
@@ -16,6 +16,7 @@ Groups
    sage/groups/finitely_presented
    sage/groups/finitely_presented_named
    sage/groups/braid
+   sage/groups/cubic_braid
    sage/groups/indexed_free_group
    sage/groups/raag
    sage/groups/group_exp
@@ -43,6 +44,8 @@ Abelian Groups
    sage/groups/abelian_gps/abelian_group_morphism
    sage/groups/additive_abelian/additive_abelian_group
    sage/groups/additive_abelian/additive_abelian_wrapper
+   sage/groups/misc_gps/argument_groups
+   sage/groups/misc_gps/imaginary_groups
 
 Permutation Groups
 ------------------
@@ -51,6 +54,7 @@ Permutation Groups
    :maxdepth: 2
 
    sage/groups/perm_gps/permutation_groups_catalog
+   sage/groups/perm_gps/constructor
    sage/groups/perm_gps/permgroup
    sage/groups/perm_gps/permgroup_named
    sage/groups/perm_gps/permgroup_element
@@ -81,6 +85,14 @@ Matrix and Affine Groups
    sage/groups/affine_gps/affine_group
    sage/groups/affine_gps/euclidean_group
    sage/groups/affine_gps/group_element
+
+Lie Groups
+------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/groups/lie_gps/nilpotent_lie_group
 
 Partition Refinement
 --------------------

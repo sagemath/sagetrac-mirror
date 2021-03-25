@@ -22,14 +22,13 @@ rings but rather quotients of them (see module
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
 
 from sage.structure.category_object import normalize_names
 import sage.rings.ring as ring
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 from sage.misc.cachefunc import weak_cached_function
@@ -660,7 +659,7 @@ def unpickle_PolynomialRing(base_ring, arg1=None, arg2=None, sparse=False):
     args = [arg for arg in (arg1, arg2) if arg is not None]
     return PolynomialRing(base_ring, *args, sparse=sparse)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.polynomial.polynomial_ring_constructor', 'PolynomialRing', unpickle_PolynomialRing)
 
 
@@ -948,7 +947,7 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
     if not R is None:
         return R
 
-    from sage.rings.polynomial.pbori import BooleanPolynomialRing
+    from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing
     R = BooleanPolynomialRing(n, names, order)
 
     _save_in_cache(key, R)

@@ -19,7 +19,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
 
 from sage.structure.element import Element
 from sage.structure.parent import Parent
@@ -212,21 +211,6 @@ class TotallyOrderedFiniteSet(FiniteEnumeratedSet):
         False
         sage: A('a') == 'a'
         False
-
-    and comparisons are comparisons of types::
-
-        sage: for e in [1,'a',(0, 0)]:
-        ....:     f = A(e)
-        ....:     l = (e == f,
-        ....:          cmp(e,f) == cmp(type(e),type(f)),
-        ....:          cmp(f,e) == cmp(type(f),type(e)))
-        ....:     print(l)
-        (False, True, True)
-        (False, True, True)
-        (False, True, True)
-
-    This behavior of comparison is the same as the one of
-    :class:`~sage.structure.element.Element`.
 
     Since :trac:`16280`, totally ordered sets support elements that do
     not inherit from :class:`sage.structure.element.Element`, whether

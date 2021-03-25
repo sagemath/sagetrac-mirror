@@ -19,7 +19,7 @@ from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
 
 
 class DihedralGroup(UniqueRepresentation, Parent):
-    """
+    r"""
     An example of finite Coxeter group: the `n`-th dihedral group of order `2n`.
 
     The purpose of this class is to provide a minimal template for
@@ -60,7 +60,7 @@ class DihedralGroup(UniqueRepresentation, Parent):
          (1, 2, 1, 2, 1)]
 
     This reduced word is unique, except for the longest element where
-    the choosen reduced word is `(1,2,1,2\dots)`::
+    the chosen reduced word is `(1,2,1,2\dots)`::
 
         sage: G.long_element()
         (1, 2, 1, 2, 1)
