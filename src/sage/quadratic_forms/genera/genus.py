@@ -2058,6 +2058,7 @@ class Genus_Symbol_p_adic_ring(object):
             excess=self.excess()
             )
 
+
     def represents(self,other):
         r"""
         Return if self is represents other.
@@ -2075,7 +2076,7 @@ class Genus_Symbol_p_adic_ring(object):
         level = max(s1[-1][0],s2[-1][0])
         #notation
         def delta(pgenus,i):
-            # O'Meara pp.
+            # O'Meara pp.857
             if pgenus.symbol(i+1)[3]==1:
                 return ZZ(2)**(i+1)
             if pgenus.symbol(i+2)[3]==1:
@@ -2084,8 +2085,9 @@ class Genus_Symbol_p_adic_ring(object):
 
         genus1 = self
         genus2 = other
-        gen1 = []
-        gen2 = []
+
+        gen1 = []  # gen1[i] = \mathfrak{l}_i
+        gen2 = []  # gen2[i] = \mathfrak{L}_i
 
         for i in range(level+3):
             g1 = [s for s in s1 if s[0]<=i]
@@ -2100,14 +2102,14 @@ class Genus_Symbol_p_adic_ring(object):
 
         # additional conditions for p==2
         for i in range(level+1):
-            d = QQ(gen1[i].det()*gen2[i].det())
+            dD = QQ(gen1[i].det()*gen2[i].det())
             # Lower Type following O'Meara Page 858
             # (7)
             if gen1[i].rank() > gen2[i].rank():
                 return False
             # (8)
             if gen1[i].rank() == gen2[i].rank():
-                if d.valuation(2)%2!=0:
+                if dD.valuation(2)%2!=0:
                     return False
             # (9)
             if gen1[i].rank() == gen2[i].rank():
@@ -2119,7 +2121,7 @@ class Genus_Symbol_p_adic_ring(object):
                 r = delta(genus1,i-1).gcd(2**(i+1))
                 if not r.divides(l):
                     return False
-            v = d.valuation(2)
+            v = dD.valuation(2)
             cond = (gen1[i].rank() + 1 == gen2[i].rank()
                     and gen1[i].rank()>0
                    )
@@ -2138,12 +2140,12 @@ class Genus_Symbol_p_adic_ring(object):
 
         gen2_round = []
         for i in range(level+3):
-            g2 = [s for s in s2 if s[0]<i or s[0]==i and s[3]==1]
+            g2 = [s for s in s2 if s[0]<i or (s[0]==i and s[3]==1)]
             gen2_round.append(Genus_Symbol_p_adic_ring(p,g2))
 
         gen1_square = []
         for i in range(level+1):
-            g1 = [s for s in s1 if s[0]<=i or s[0]==i+1 and s[3]==0]
+            g1 = [s for s in s1 if s[0]<=i or (s[0]==i+1 and s[3]==0)]
             gen1_square.append(Genus_Symbol_p_adic_ring(p,g1))
 
         FH = LocalGenusSymbol(matrix(QQ,2,[0,1,1,0]),p).space()

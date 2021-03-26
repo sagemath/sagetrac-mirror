@@ -164,7 +164,7 @@ def all_lattice_with_isometry(n, rk, det, max_scale, min_scale=1, min_norm=1, si
             L = IntegralLattice(gramZ)
             out.append(LatticeWithIsometry(L, iso, order=n,gramE=gramE, magmaRep=g.representative()))
     if even:
-        min_norm = lcm(min_norm,even)
+        min_norm = lcm(min_norm, 2)
     if min_norm != 1:
         out = [g for g in out if min_norm.divides(gcd(g.L.gram_matrix().diagonal()))]
     return out
@@ -279,6 +279,15 @@ def skew_element(E):
     assert omega+omega.conjugate()==0
     return omega
 
+def vecZtoV(V, x):
+  n = x.degree()
+  E = V.base_ring()
+  d = E.degree()
+  assert n % d ==0
+  x = x.list()
+  return V([E(x[i*d:(i+1)*d]) for i in range(n/d)])
+end
+
 
 def Oq_equiv_herm(L,f, G, Lh):
     """
@@ -319,9 +328,28 @@ def Oq_equiv_herm(L,f, G, Lh):
     # create random reflections and eichler isometries until we generate U(L^vee/L)
     # should work most of the time, though not always.
     count = 0
+    De = enumerate(D)
+    flag = true
+
+    m = pari(L.gram_matrix())
+    from sage.env import SAGE_EXTCODE
+    gp.read(SAGE_EXTCODE + "/pari/simon/qfsolve.gp")
+    m = gp.eval('qflllgram_indefgoon(%s)'%m)
+    # convert the output string to sage
+    extra = pari(m).sage()[1].columns()
     while S.order()!=Oqf.order():
         count +=1
-        s = VE(VO.random_element().list())
+        if flag:
+          try:
+            x = next(De)[1]
+            s = vecZtoV(VE, x.lift()*x.order())
+          except StopIteration:
+            flag = false
+        elif len(extra)>0:
+            e = extra.pop()
+            s = vecZtoV(VE, e)
+        else:
+            s = VE(VO.random_element().list())
         if s == 0:
             continue
         sigma = s*G*s.conjugate()/2
@@ -346,20 +374,21 @@ def Oq_equiv_herm(L,f, G, Lh):
                         gens.append(Tbar)
                         dets.append(E(1))
                         S = Oqf.subgroup(gens)
-        sigma = sigma + phi(K.random_element())*omega
-        if sigma==0:
+        for i in range(30):
+          sigma = sigma + phi(K.random_element())*omega
+          if sigma==0:
+              continue
+          tau,determ,tauE = symmetry(G,s,sigma)
+          if gcd(tau.denominator(),D.cardinality())!=1:
             continue
-        tau,determ,tauE = symmetry(G,s,sigma)
-        if gcd(tau.denominator(),D.cardinality())!=1:
-          continue
-        taubar = on_disc(D,tau)
-        taubar = Oqf(taubar)
-        if not taubar in S:
-            #gens_mat.append(tau)
-            #gens_matE.append(tauE)
-            gens.append(taubar)
-            dets.append(determ)
-            S = Oqf.subgroup(gens)
+          taubar = on_disc(D,tau)
+          taubar = Oqf(taubar)
+          if not taubar in S:
+              #gens_mat.append(tau)
+              #gens_matE.append(tauE)
+              gens.append(taubar)
+              dets.append(determ)
+              S = Oqf.subgroup(gens)
     Lhn = magma.HermitianLattice((1/ord)*Lh.GramMatrix())
     Fm,invariants,toF = Lhn.get_the_group(nvals=3)
     Fs = AbelianGroupGap(invariants)

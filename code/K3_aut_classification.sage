@@ -266,6 +266,9 @@ def classify_ord_p_next(cofix, ptypes, file_name, rw, verbose=0):
                 result.close()
             if len(actsg)==0:
                 not_realized.append([A,a])
+    result = open(file_name,"a")
+    result.write("complete \n")
+    result.close()
     return classifi, not_realized
 
 def invariant_lattice(L,G):
@@ -296,6 +299,9 @@ def classify_ord_pe(L, p, e, file_name,rw,verbose=False,rkT=None):
                 result.close()
             if len(actsg)==0:
                 not_realized.append([fix,a])
+    result = open(file_name,"a")
+    result.write("complete \n")
+    result.close()
     return classifi, not_realized
 
 def classify_ord_pe_parallel(L, p, e, file_name,rw,verbose=False):
@@ -325,22 +331,32 @@ def classify_ord_pe_parallel(L, p, e, file_name,rw,verbose=False):
                     not_realized.append([fix,a])
     return classifi, not_realized
 
-def classify_purely_ns_pn(p,e,file_name,rw="w",verbose=True):
+def classify_purely_ns_pn(p,e,file_name, log_file, rw="w",verbose=True):
     classifi = []
     result = open(file_name,rw)
     result.close()
     not_realized = []
     g = genera((3,19),1,1,even=true)[0]
-    for A, a, Oa in k3_prime_power(g, p, e,verbose=verbose):
-        aut = K3SurfaceAutGrp(A,A.orthogonal_group([]),a,p^e)
-        classifi.append(aut)
-        s = aut.str()
-        result = open(file_name,"a")
-        result.write(s+ "\n")
-        result.close()
+    for rkT in range(2,22):
+      for A, a, Oa in k3_prime_power(g, p, e,verbose=verbose, rkT=rkT):
+          aut = K3SurfaceAutGrp(A,A.orthogonal_group([]),a,p^e)
+          classifi.append(aut)
+          s = aut.str()
+          result = open(file_name,"a")
+          result.write(s+ "\n")
+          result.close()
+      log = open(log_file, 'a')
+      log.write("completed purely non-symplectic order %s^%s, rkT = %s\n"%(p,e,rkT))
+      log.close()
+    log = open(log_file, 'a')
+    log.write("completed purely non-symplectic order %s^%s \n"%(p,e))
+    log.close()
+    result = open(file_name,"a")
+    result.write("complete \n")
+    result.close()
     return classifi
 
-def classify_purely_ns_peq(p, q ,file_r, file_aw,aw="w",verbose=2):
+def classify_purely_ns_peq(p, q ,file_r, file_aw, log_file,aw="w",verbose=2):
     classifi = []
     peactions = open(file_r,'r')
     result = open(file_aw,aw)
@@ -371,6 +387,12 @@ def classify_purely_ns_peq(p, q ,file_r, file_aw,aw="w",verbose=2):
             result = open(file_aw,"a")
             result.write(s+ "\n")
             result.close()
+    result = open(file_aw,'a')
+    result.write("complete \n")
+    result.close()
+    log = open(log_file, 'a')
+    log.write("completed purely non-symplectic order %s^%s*%s \n"%(p,e,q))
+    log.close()
     return classifi
 
 
@@ -413,6 +435,9 @@ def classify_ord_peq(p, q, file_r, file_aw,aw='w',verbose=2):
                 result.close()
             if len(actsg)==0:
                 not_realized.append([A,a])
+    result = open(file_aw,'a')
+    result.write("complete \n")
+    result.close()
     return classifi, not_realized
 
 
