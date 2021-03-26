@@ -198,14 +198,14 @@ class SageDisplayFormatter(DisplayFormatter):
             __repr__ called
             I am repper
         """
-        # First, use Sage rich output if there is any
         sage_format, sage_metadata = self.dm.displayhook(obj)
         assert PLAIN_TEXT in sage_format, 'plain text is always present'
-        if not set(sage_format.keys()).issubset(self.default_mime()):
-            return sage_format, sage_metadata
-        # Second, try IPython widgets (obj._ipython_display_ and type registry)
+        # First, try IPython widgets (obj._ipython_display_ and type registry)
         if self.ipython_display_formatter(obj):
             return {}, {}
+        # Second, use Sage rich output if there is any
+        if not set(sage_format.keys()).issubset(self.default_mime()):
+            return sage_format, sage_metadata
         # Finally, try IPython rich representation (obj._repr_foo_ methods and ipython hardcoded types)
         if exclude is not None:
             exclude = list(exclude) + self.default_mime()
