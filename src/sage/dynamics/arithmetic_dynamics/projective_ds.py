@@ -5645,8 +5645,24 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f = DynamicalSystem_projective([u^2+v^2, v^2])
             sage: f.all_rational_preimages(P(4))
             [(-w : 1), (w : 1)]
+
+        A dynamical systems over function field example::
+
+            sage: K = GF(17)
+            sage: FF.<t> = FunctionField(K)
+            sage: P.<x,y> = ProjectiveSpace(FF,1)
+            sage: DS = DynamicalSystem([(1/t)*x^2 + y^2  ,y^2])
+            sage: DS.normalize_coordinates()
+            sage: base = DS.base_ring()
+            sage: CF = base.constant_field()
+            sage: D = DS.domain()
+            sage: DS.all_rational_preimages(D(1,1))
+            [(0 : 1)]
+            
         """
-        if self.domain().base_ring() not in NumberFields():
+
+        from sage.rings.function_field.function_field import RationalFunctionField_global
+        if not isinstance(self.base_ring(),RationalFunctionField_global ) and self.domain().base_ring() not in NumberFields():
             raise TypeError("field won't return finite list of elements")
         if not isinstance(points, (list, tuple)):
             points = [points]
