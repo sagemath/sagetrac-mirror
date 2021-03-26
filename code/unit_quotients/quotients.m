@@ -208,6 +208,11 @@ intrinsic get_quotient_ramified(E, P, p, i) -> Any
     return x;
   end function;
 
+  for l in [1..10] do
+    g := Random(K);
+    assert dlog(exp(g)) eq g;
+  end for;
+
   return K, exp, dlog;
 end intrinsic;
 
@@ -284,6 +289,11 @@ intrinsic get_big_quotient(E, Fac) -> Any
     return a;
   end function;
 
+  for k in [1..10] do
+    g := Random(G);
+    assert dlog(exp(g)) eq g;
+  end for;
+
   return G, dlog, exp;
 end intrinsic;
 
@@ -314,8 +324,14 @@ intrinsic get_the_group(L) -> Any
   else
     D := Different(MaximalOrder(E)) * Different(MaximalOrder(K));
   end if;
+  Drel := Different(MaximalOrder(E));
   I := &*ElementaryDivisors(Module(D^-1*LD), Module(L));
   Fac := Factorization(I);
+  for i in [1..#Fac] do
+    if Fac[i][2] lt 0 then
+      error("L <= A^-1 L^# violated");
+    end if;
+  end for;
   S := Set([Factorization(Norm(Fac[i][1]))[1][1] : i in [1..#Fac]]);
   NL := Norm(L);
   // Compute the invariants to determine F^#(L)
@@ -338,7 +354,7 @@ intrinsic get_the_group(L) -> Any
     if not is_special(L, p) then
       continue;
     end if;
-    e := Valuation(D, P);
+    e := Valuation(Drel, P);
     // The det group E_0^(2*n + e)
     Append(~Fdata, <p, e>);
   end for;
