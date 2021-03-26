@@ -150,6 +150,30 @@ cdef extern from "flint_wrap.h":
         unsigned long exp[15]
         unsigned long p[15]
 
+    ctypedef struct n_primes_struct:
+        slong small_i
+        slong small_num
+        unsigned int * small_primes
+
+        ulong sieve_a
+        ulong sieve_b
+        slong sieve_i
+        slong sieve_num
+        char * sieve
+
+    ctypedef n_primes_struct n_primes_t[1]
+
+    ctypedef struct n_ecm_s:
+        ulong x, z
+        ulong a24
+        ulong ninv
+        ulong normbits
+        ulong one
+        unsigned char *GCD_table
+        unsigned char **prime_table
+
+    ctypedef n_ecm_s n_ecm_t[1]
+
 # flint/padic.h:
 cdef extern from "flint_wrap.h":
     ctypedef struct padic_struct:
