@@ -17,20 +17,30 @@ from sage.arith.long cimport integer_check_long_py
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, Matrix
 from sage.libs.flint.nmod_mat cimport *
-from sage.libs.flint.nmod_poly cimport nmod_poly_set
-from sage.libs.flint.ulong_extras cimport n_CRT, n_precompute_inverse
+from sage.libs.flint.nmod_poly cimport nmod_poly_set, nmod_poly_set_coeff_ui
+from sage.libs.flint.ulong_extras cimport (
+    n_precompute_inverse,
+    n_preinvert_limb,
+    n_pow,
+    n_addmod,
+    n_submod,
+    n_invmod,
+    n_mod2_preinv,
+    n_mulmod2_preinv,
+    n_remove2_precomp,
+    n_CRT,
+)
 from sage.rings.polynomial.polynomial_zmod_flint cimport Polynomial_zmod_flint
 from sage.libs.gmp.mpz cimport mpz_sgn,  mpz_fits_ulong_p, mpz_get_ui
 from sage.rings.integer cimport Integer
+from sage.structure.factorization import Factorization
 
 from .args cimport SparseEntry, MatrixArgs_init
 
 import sage.matrix.matrix_space as matrix_space
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_abstract, IntegerMod_int, IntegerMod_int64, IntegerMod_gmp
+from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.structure.richcmp cimport rich_to_bool, Py_EQ, Py_NE
-
-cdef mp_limb_t _get_modulus(NativeIntStruct modulus):
-    return mpz_get_ui(modulus.sageInteger.value)
 
 cdef class Matrix_nmod_dense(Matrix_dense):
     ########################################################################
@@ -40,7 +50,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     def __cinit__(self, parent, *args, **kwds):
         self._modulus = parent._base._pyx_order
         sig_str("FLINT exception")
-        nmod_mat_init(self._matrix, self._nrows, self._ncols, _get_modulus(self._modulus))
+        nmod_mat_init(self._matrix, self._nrows, self._ncols, mpz_get_ui(self._modulus.sageInteger.value))
         sig_off()
 
 
@@ -301,6 +311,11 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                     if lift_required:
                         nmod_mat_clear(tmp)
 
+    def hessenberg_form(self):
+        B = self.__copy__()
+        B.hessenbergize()
+        return B
+
     def hessenbergize(self):
         """
         """
@@ -308,17 +323,166 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         F = R.factored_order()
         if len(F) != 1:
             raise ValueError("Hessenbergize only supported for prime power modulus")
+        if not self.is_square():
+            raise TypeError("self must be square")
+
         pz, ez = F[0]
-        cdef mp_limb_t p = pz
+        cdef Py_ssize_t i, j, k, m, n, r
+        n = self._nrows
+
+        self.check_mutability()
+
+        cdef bint found_nonzero
+        cdef mp_limb_t u, minu, inv, q, x, y, prepe, prepe1, preq, pe, p = pz
+        cdef int v, minv, e = ez
         cdef double pinv = n_precompute_inverse(p)
+        pe = n_pow(p, e)
+        prepe = n_preinvert_limb(pe)
+        prepe1 = n_preinvert_limb(n_pow(p, e-1))
+
+        for m in range(1, n-1):
+            i = -1
+            minv = e
+            for r in range(m, n):
+                u = nmod_mat_get_entry(self._matrix, r, m-1)
+                if u != 0:
+                    v = n_remove2_precomp(&u, p, pinv)
+                    if v < minv:
+                        i = r
+                        minv = v
+                        minu = u
+            if i != -1:
+                # i is the first row below m with an entry in colunmn m-1 with minimal valuation
+                q = n_pow(p, e-minv)
+                if minv == 0:
+                    preq = prepe
+                elif minv == 1:
+                    preq = prepe1
+                else:
+                    preq = n_preinvert_limb(q)
+                inv = n_invmod(minu, q)
+                if i > m:
+                    self.swap_rows_c(i, m)
+                    # We must do the corresponding column swap to
+                    # maintain the characteristic polynomial (which is
+                    # an invariant of Hessenberg form)
+                    self.swap_columns_c(i, m)
+                # Now the nonzero entry in position (m,m-1) is minu * p^minv.
+                # Use it to clear the entries in column m-1 below m.
+                for j in range(m+1, n):
+                    u = nmod_mat_get_entry(self._matrix, j, m-1)
+                    if u != 0:
+                        # multiply by the inverse of the (m,m-1) entry
+                        if minv == 0:
+                            # Simpler case if minv=0
+                            u = n_mulmod2_preinv(u, inv, q, preq)
+                        else:
+                            # extract powers of p from u, multiply by the unit
+                            # and put the right number of powers of p back.
+                            v = n_remove2_precomp(&u, p, pinv)
+                            u = n_pow(p, v-minv) * n_mulmod2_preinv(u, inv, q, preq)
+                        # self.add_multiple_of_row(j, m, -u, 0)
+                        for k in range(n):
+                            x = nmod_mat_get_entry(self._matrix, j, k)
+                            y = nmod_mat_get_entry(self._matrix, m, k)
+                            y = n_mulmod2_preinv(y, u, pe, prepe)
+                            nmod_mat_set_entry(self._matrix, j, k, n_submod(x, y, pe))
+                        # To maintain charpoly, do the corresponding column operation,
+                        # which doesn't mess up the matrix, since it only changes
+                        # column m, and we're only worried about column m-1 right now.
+                        # Add u*column_j to column_m.
+                        for k in range(n):
+                            x = nmod_mat_get_entry(self._matrix, k, m)
+                            y = nmod_mat_get_entry(self._matrix, k, j)
+                            y = n_mulmod2_preinv(y, u, pe, prepe)
+                            nmod_mat_set_entry(self._matrix, k, m, n_addmod(x, y, pe))
 
     def charpoly(self, var='x', algorithm=None):
+        if not self.is_square():
+            raise TypeError("self must be square")
         R = self._parent._base
         cdef Polynomial_zmod_flint f
-        if R.is_field():
+        cdef Py_ssize_t i, j, m, jstart, n = self._nrows
+        cdef mp_limb_t pe, prepe, preN, x, y, scalar, t, N = R.order()
+        preN = n_preinvert_limb(N)
+        cdef Matrix_nmod_dense A
+        cdef nmod_mat_t H, c
+        F = R.factored_order()
+        if algorithm is None:
+            if len(F) == 1 and F[0][1] == 1: # N prime
+                algorithm = "FLINT"
+            else:
+                algorithm = "crt"
+        if algorithm == "FLINT":
             f = R[var]()
             nmod_mat_charpoly(&f.x, self._matrix)
             return f
+        if algorithm == "lift":
+            return self.lift_centered().charpoly(var).change_ring(R)
+        if algorithm == "crt":
+            # We hessenbergize at each prime, CRT, then compute the charpoly from the Hessenberg form
+            try:
+                nmod_mat_init(H, n, n, 1)
+                nmod_mat_init(c, n+1, n+1, N)
+                # Now we use N cummulatively as we work through the factorization
+                N = 1
+                for pz, ez in F:
+                    pe = n_pow(pz, ez)
+                    prepe = n_preinvert_limb(pe)
+                    R = Zmod(pe)
+                    R.factored_order.set_cache(Factorization([(pz, ez)]))
+                    A = matrix_space.MatrixSpace(R, self._nrows, self._ncols, sparse=False)()
+                    for i in range(n):
+                        for j in range(n):
+                            x = nmod_mat_get_entry(self._matrix, i, j)
+                            x = n_mod2_preinv(x, pe, prepe)
+                            nmod_mat_set_entry(A._matrix, i, j, x)
+                    A.hessenbergize()
+                    _nmod_mat_set_mod(H, N*pe)
+                    for i in range(n):
+                        jstart = i - 1
+                        if i == 0:
+                            jstart = 0
+                        for j in range(jstart, n):
+                            nmod_mat_set_entry(H, i, j, n_CRT(nmod_mat_get_entry(H, i, j), N, nmod_mat_get_entry(A._matrix, i, j), pe))
+                    N *= pe
+                # We represent the intermediate polynomials that come up in
+                # the calculations as rows of an (n+1)x(n+1) matrix, since
+                # we've implemented basic arithmetic with such a matrix.
+                # Also see Cohen's first GTM, Algorithm 2.2.9.
+                nmod_mat_set_entry(c, 0, 0, 1)
+                for m in range(1, n+1):
+                    # Set the m-th row of c to (x - H[m-1,m-1])*c[m-1] = x*c[m-1] - H[m-1,m-1]*c[m-1]
+                    # We do this by hand by setting the m-th row to c[m-1]
+                    # shifted to the right by one.  We then add
+                    # -H[m-1,m-1]*c[m-1] to the resulting m-th row.
+                    for i in range(1, n+1):
+                        nmod_mat_set_entry(c, m, i, nmod_mat_get_entry(c, m-1, i-1))
+                    # self.sub_multiple_of_row(m, m-1, -H[m-1,m-1], 0)
+                    scalar = nmod_mat_get_entry(H, m-1, m-1)
+                    for j in range(n+1):
+                        x = nmod_mat_get_entry(c, m, j)
+                        y = nmod_mat_get_entry(c, m-1, j)
+                        y = n_mulmod2_preinv(y, scalar, N, preN)
+                        nmod_mat_set_entry(c, m, j, n_submod(x, y, N))
+                    t = 1
+                    for i in range(1, m):
+                        t = n_mulmod2_preinv(t, nmod_mat_get_entry(H, m-i, m-i-1), N, preN)
+                        scalar = n_mulmod2_preinv(t, nmod_mat_get_entry(H, m-i-1, m-1), N, preN)
+                        for j in range(n+1):
+                            x = nmod_mat_get_entry(c, m, j)
+                            y = nmod_mat_get_entry(c, m-i-1, j)
+                            y = n_mulmod2_preinv(y, scalar, N, preN)
+                            nmod_mat_set_entry(c, m, j, n_submod(x, y, N))
+                # the answer is now the n-th row of c.
+                f = R[var]()
+                for j in range(n+1):
+                    nmod_poly_set_coeff_ui(&f.x, j, nmod_mat_get_entry(c, n, j))
+                return f
+            finally:
+                nmod_mat_clear(H)
+                nmod_mat_clear(c)
+        raise ValueError("Unknown algorithm '%s'" % algorithm)
 
     cdef swap_columns_c(self, Py_ssize_t c1, Py_ssize_t c2):
         nmod_mat_swap_cols(self._matrix, NULL, c1, c2)
