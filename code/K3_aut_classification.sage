@@ -331,14 +331,16 @@ def classify_ord_pe_parallel(L, p, e, file_name,rw,verbose=False):
                     not_realized.append([fix,a])
     return classifi, not_realized
 
-def classify_purely_ns_pn(p,e,file_name, log_file, rw="w",verbose=True):
+def classify_purely_ns_pn(p,e,file_name, log_file, rw="w",verbose=True, rkT=None):
     classifi = []
     result = open(file_name,rw)
     result.close()
     not_realized = []
     g = genera((3,19),1,1,even=true)[0]
-    for rkT in range(2,22):
-      for A, a, Oa in k3_prime_power(g, p, e,verbose=verbose, rkT=rkT):
+    for rkT0 in range(2,22):
+      if rkT is not None and rkT0!=rkT:
+          continue
+      for A, a, Oa in k3_prime_power(g, p, e,verbose=verbose, rkT=rkT0):
           aut = K3SurfaceAutGrp(A,A.orthogonal_group([]),a,p^e)
           classifi.append(aut)
           s = aut.str()
