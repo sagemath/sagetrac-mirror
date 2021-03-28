@@ -492,7 +492,6 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
     # Extra
 
-    #FIXME returning wrong type
     def tranpose(self):
         cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
         sig_on()
