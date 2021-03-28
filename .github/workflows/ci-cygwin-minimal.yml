@@ -10,7 +10,7 @@ on:
     # Allow to run manually
 
 env:
-  MAKE: make -j8
+  MAKE: make -j8 -k
   SAGE_NUM_THREADS: 3
   CYGWIN: winsymlinks:native
   CONFIGURE_ARGS: --enable-experimental-packages --enable-download-from-upstream-url --enable-fat-binary
