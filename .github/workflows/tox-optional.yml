@@ -75,7 +75,8 @@ jobs:
             if echo "$TOKEN" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin; then
               echo "DOCKER_PUSH_REPOSITORY=docker.pkg.github.com/${{ github.repository }}/" >> $GITHUB_ENV
             fi
-      - run: |
+      - name: Run build in docker via tox
+        run: |
           set -o pipefail; EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3\"" tox -e $TOX_ENV -- $TARGETS 2>&1 | sed "/^configure: notice:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: warning:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: error:/s|^|::error file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;"
       - name: Copy logs from the docker image or build container
         run: |
