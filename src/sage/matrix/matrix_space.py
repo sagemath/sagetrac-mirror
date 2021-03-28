@@ -237,7 +237,10 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                         pass
 
             if sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R):
-                from . import matrix_modn_dense_double, matrix_modn_dense_float
+                N = R.order()
+                from . import matrix_modn_dense_double, matrix_modn_dense_float, matrix_nmod_dense
+                if N <= sys.maxsize:
+                    return matrix_nmod_dense.Matrix_nmod_dense
                 if R.order() < matrix_modn_dense_float.MAX_MODULUS:
                     return matrix_modn_dense_float.Matrix_modn_dense_float
                 if R.order() < matrix_modn_dense_double.MAX_MODULUS:
