@@ -29,8 +29,11 @@ class build_py(setuptools_build_py):
         else:
             python_tag = soabi
 
+        # On macOS, /var -> /private/var; we work around the DESTDIR staging bug #31569.
+        STICKY = '/var/tmp'
+        STICKY = str(Path(STICKY).resolve())
         # SAGE_ROOT will be a symlink during Sage runtime, but has to be a physical directory during build.
-        SAGE_ROOT = os.path.join('/var/tmp', f'sage-{sage_version}-{python_tag}')
+        SAGE_ROOT = os.path.join(STICKY, f'sage-{sage_version}-{python_tag}')
         # After building, we move the directory out of the way to make room for the symlink.
         # We do the wheel packaging from here.
         SAGE_ROOT_BUILD = SAGE_ROOT + '-build'
