@@ -600,7 +600,7 @@ cdef class InteractiveLPBackend:
 
         INPUT:
 
-        - ``basic_variables`` -- (optional) a list of indices or names of the variables 
+        - ``basic_variables`` -- (optional) a list of indices or names of the variables
           in the ``coordinate_ring`` of ``self.interactive_lp_problem().standard_form()``.
           If not provided, then the current dictionary is set to the initial dictionary.
 
@@ -633,7 +633,7 @@ cdef class InteractiveLPBackend:
         """
         ## FIXME: standard_form should allow to pass slack names (which we would take from row_names).
         ## FIXME: Perhaps also pass the problem name as objective name
-        if not hasattr(self, "lp_std_form"):
+        if self.lp_std_form is None:
             self.lp_std_form, self.std_form_transformation = self.lp.standard_form(transformation=True)
         var_names = self.lp_std_form.coordinate_ring().gens()
         x_B = [var_names[v] if v in ZZ else v for v in basic_variables]
@@ -666,7 +666,7 @@ cdef class InteractiveLPBackend:
             ...
             MIPSolverException: ...
         """
-        if not hasattr(self, "current_dictionary"):
+        if self.current_dictionary is None:
             self.set_dictionary()
         output = [self.current_dictionary.run_simplex_method()]
         ## FIXME: Display output as a side effect if verbosity is high enough. We don't care about output for now.
@@ -1265,7 +1265,7 @@ cdef class InteractiveLPBackend:
             (17/8, 0)
 
         """
-        if not hasattr(self, "current_dictionary"):
+        if self.current_dictionary is None:
             self.set_dictionary()
         return self.current_dictionary
 
