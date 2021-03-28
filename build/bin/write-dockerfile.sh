@@ -214,7 +214,7 @@ FROM configured as with-base-toolchain
 # We first compile base-toolchain because otherwise lots of packages are missing their dependency on 'patch'
 ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
-ARG USE_MAKEFLAGS="-k V=0"
+ARG USE_MAKEFLAGS="V=0"
 ENV SAGE_CHECK=warn
 ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!rpy2,!symengine_py,!sage_sws2rst"
 #:toolchain:
@@ -223,7 +223,7 @@ $RUN make \${USE_MAKEFLAGS} base-toolchain $ENDRUN
 FROM with-base-toolchain as with-targets-pre
 ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
-ARG USE_MAKEFLAGS="-k V=0"
+ARG USE_MAKEFLAGS="V=0"
 ENV SAGE_CHECK=warn
 ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!rpy2,!symengine_py,!sage_sws2rst"
 #:make:
@@ -233,7 +233,7 @@ $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_PRE} $ENDRUN
 FROM with-targets-pre as with-targets
 ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
-ARG USE_MAKEFLAGS="-k V=0"
+ARG USE_MAKEFLAGS="V=0"
 ENV SAGE_CHECK=warn
 ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!rpy2,!symengine_py,!sage_sws2rst"
 ADD src src
@@ -243,7 +243,7 @@ $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS} $ENDRUN
 FROM with-targets as with-targets-optional
 ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
-ARG USE_MAKEFLAGS="-k V=0"
+ARG USE_MAKEFLAGS="V=0"
 ENV SAGE_CHECK=warn
 ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!rpy2,!symengine_py,!sage_sws2rst"
 ARG TARGETS_OPTIONAL="ptest"
