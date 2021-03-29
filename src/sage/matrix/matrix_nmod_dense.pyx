@@ -16,7 +16,8 @@ from sage.arith.all import gcd
 from sage.arith.power cimport generic_power
 from sage.arith.long cimport integer_check_long_py
 from sage.structure.sage_object cimport SageObject
-from sage.structure.element cimport Element, Matrix, is_Vector
+from sage.structure.element cimport Element, Matrix
+from sage.structure.element import is_Vector
 from sage.libs.flint.nmod_mat cimport *
 from sage.libs.flint.nmod_poly cimport nmod_poly_set, nmod_poly_set_coeff_ui
 from sage.libs.flint.ulong_extras cimport (
