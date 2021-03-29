@@ -4,6 +4,7 @@ import glob
 import shutil
 import sysconfig
 from pathlib import Path
+import fnmatch
 
 from setuptools import setup
 from distutils.command.build_scripts import build_scripts as distutils_build_scripts
@@ -50,7 +51,17 @@ class build_py(setuptools_build_py):
 
             # config.status and other configure output has to be writable.
             # So (until the Sage distribution supports VPATH builds - #21469), we have to make a copy of sage_root_source.
-            shutil.copytree(os.path.join(HERE, 'sage_root_source'), SAGE_ROOT)  # will fail if already exists
+            #
+            # The file exclusions here duplicate what is done in MANIFEST.in
+            def ignore(path, names):
+                # exclude embedded src trees -- except for the one of sage_conf
+                if any(fnmatch.fnmatch(path, spkg) for spkg in ('*/build/pkgs/sagelib',
+                                                                '*/build/pkgs/sage_docbuild',
+                                                                '*/build/pkgs/sage_sws2rst')):
+                    return ['src']
+                return []
+            shutil.copytree(os.path.join(HERE, 'sage_root_source'), SAGE_ROOT,
+                            ignore=ignore)  # will fail if already exists
 
             # Use our copy of the sage_conf template, which contains the relocation logic
             shutil.copyfile(os.path.join(HERE, 'sage_conf.py.in'),
