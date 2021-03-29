@@ -415,7 +415,9 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                 algorithm = "crt"
         if algorithm == "FLINT":
             f = R[var]()
+            sig_on()
             nmod_mat_charpoly(&f.x, self._matrix)
+            sig_off()
             return f
         if algorithm == "lift":
             return self.lift_centered().charpoly(var).change_ring(R)
@@ -508,7 +510,9 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         self.check_mutability()
         self.clear_cache()
         if self._parent._base.is_field():
+            sig_on()
             rank = nmod_mat_rref(self._matrix)
+            sig_off()
             self.cache('rank', rank)
         else:
             self._howell_form()
@@ -726,7 +730,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         sig_off()
         return M
 
-    def _right_kernel_matrix(self):
+    def _right_kernel_matrix(self, zero_divisors_are_pivots=False):
         cdef Matrix_nmod_dense X, ans, E
         cdef Py_ssize_t i, j, k, l
         cdef long x, y, s
@@ -757,6 +761,8 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                 i = k
                 if j in zdp:
                     k += 1
+                    if zero_divisors_are_pivots:
+                        continue
                     v[j] = self._modulus.int64/nmod_mat_get_entry(E._matrix, i, j)
                 else:
                     v[j] = one
@@ -785,7 +791,10 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                 se = <SparseEntry>t
                 x = <long>se.entry
                 nmod_mat_set_entry(ans._matrix, se.i, se.j, x)
-            return ans
+            if zero_divisors_are_pivots:
+                return ans
+            else:
+                return ans.howell_form()
 
 
     # random matrix generation (David)
