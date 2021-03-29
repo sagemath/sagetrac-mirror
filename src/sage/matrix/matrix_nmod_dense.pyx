@@ -15,7 +15,7 @@ from cysignals.signals cimport sig_on, sig_str, sig_off
 from sage.arith.power cimport generic_power
 from sage.arith.long cimport integer_check_long_py
 from sage.structure.sage_object cimport SageObject
-from sage.structure.element cimport Element, Matrix
+from sage.structure.element cimport Element, Matrix, is_Vector
 from sage.libs.flint.nmod_mat cimport *
 from sage.libs.flint.nmod_poly cimport nmod_poly_set, nmod_poly_set_coeff_ui
 from sage.libs.flint.ulong_extras cimport (
@@ -489,6 +489,10 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
     cdef swap_rows_c(self, Py_ssize_t r1, Py_ssize_t r2):
         nmod_mat_swap_rows(self._matrix, NULL, r1, r2)
+
+    def solve_right(self, B, check=True):
+        b_is_vec = is_Vector(B)
+        #nmod_mat_can_solve
 
     # Extra
 
