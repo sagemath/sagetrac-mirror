@@ -94,7 +94,11 @@ class build_py(setuptools_build_py):
             self.packages = self.distribution.packages = ['']
         if not self.distribution.package_data:
             self.package_data = self.distribution.package_data = {}
-        os.symlink(SAGE_ROOT_BUILD, os.path.join(HERE, 'sage_root'))
+
+        HERE_SAGE_ROOT = os.path.join(HERE, 'sage_root')
+        if os.path.islink(HERE_SAGE_ROOT):
+            os.remove(HERE_SAGE_ROOT)
+        os.symlink(SAGE_ROOT_BUILD, HERE_SAGE_ROOT)
 
         # We do not include lib64 (a symlink) because all symlinks are followed,
         # causing another copy to be installed.
