@@ -12,6 +12,7 @@ from cpython.sequence cimport *
 
 from cysignals.signals cimport sig_on, sig_str, sig_off
 
+from sage.arith.all import gcd
 from sage.arith.power cimport generic_power
 from sage.arith.long cimport integer_check_long_py
 from sage.structure.sage_object cimport SageObject
@@ -58,7 +59,6 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         self._parent = parent
         ma = MatrixArgs_init(parent, entries)
-
         cdef long z
         for t in ma.iter(coerce, True): #????
             se = <SparseEntry>t
@@ -66,7 +66,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             nmod_mat_set_entry(self._matrix, se.i, se.j, z)
 
     def _print(self):
-        # For debugging; remove when ready
+        #FIXME: For debugging; remove when ready
         nmod_mat_print_pretty(self._matrix)
 
     def __dealloc__(self):
@@ -415,7 +415,9 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                 algorithm = "crt"
         if algorithm == "FLINT":
             f = R[var]()
+            sig_on()
             nmod_mat_charpoly(&f.x, self._matrix)
+            sig_off()
             return f
         if algorithm == "lift":
             return self.lift_centered().charpoly(var).change_ring(R)
@@ -505,24 +507,33 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
 
     def echelonize(self):
+        #FIXME: add a warning regarding the output potentially having more rows than input
         """
         Echelon form in place
         """
-        if not self._parent._base.is_field():
-            raise NotImplementedError("Only implemented over fields")
         self.check_mutability()
         self.clear_cache()
-        rank = nmod_mat_rref(self._matrix)
-        self.cache('rank', rank)
+        if self._parent._base.is_field():
+            sig_on()
+            rank = nmod_mat_rref(self._matrix)
+            sig_off()
+            self.cache('rank', rank)
+        else:
+            self._howell_form()
 
     def echelon_form(self):
+        #FIXME: add a warning regarding the output potentially having more rows than input
         key='echelon_form'
         ans = self.fetch(key)
         if ans is not None:
             return ans
-        ans = self.__copy__()
-        self.cache(key, ans)
+        if self._nrows < self._ncols:
+            M = self._new(self._ncols - self._nrows, self._ncols)
+            ans = M.stack(self)
+        else:
+            ans = self.__copy__()
         ans.echelonize()
+        self.cache(key, ans)
         return ans
 
 
@@ -532,13 +543,14 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         if ans is not None:
             return ans
         cdef Matrix_nmod_dense E
+        cdef Py_ssize_t i, j, k
         # howell form has all the zero rows at the bottom
-        E = self.echelon_form() if self._parent._base.is_field() else self.howell_form()
+        E = self.echelon_form()
         p = []
         zdp = []
         k = 0
-        for i from 0 <= i < E._nrows:
-            for j from k <= j < E._ncols:
+        for i in range(E._nrows):
+            for j in range(k, E._ncols):
                 if nmod_mat_get_entry(E._matrix, i, j) != 0:  # nonzero position
                     if nmod_mat_get_entry(E._matrix, i, j) == 1:
                         p.append(j)
@@ -559,10 +571,17 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         ans = self.fetch(key)
         if ans is not None:
             return ans
-        if self._parent._base.is_field():
-            sig_on()
-            ans = nmod_mat_rank(self._matrix)
-            sig_off()
+        if not self._parent._base.is_field():
+            p = self.pivots()
+            ans = len(p[0])
+        else:
+            p = self.fetch('pivots')
+            if ans is not None:
+                ans = len(p[0])
+            else:
+                sig_on()
+                ans = nmod_mat_rank(self._matrix)
+                sig_off()
         self.cache(key, ans)
         return ans
 
@@ -613,7 +632,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         """
         In place strong echelon form of self
         """
-        if self._nrows >= self._ncols:
+        if self._nrows < self._ncols:
             raise ValueError("self must must have at least as many rows as columns.")
         self.check_mutability()
         self.clear_cache()
@@ -622,6 +641,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         sig_off()
 
     def strong_echelon_form(self):
+        #FXIME add warning
         """
         Strong echelon form of self
         """
@@ -629,7 +649,11 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         ans = self.fetch(key)
         if ans is not None:
             return ans
-        ans = self.__copy__()
+        if self._nrows < self._ncols:
+            M = self._new(self._ncols - self._nrows, self._ncols)
+            ans = self.stack(M)
+        else:
+            ans = self.__copy__()
         ans._strong_echelon_form()
         self.cache(key, ans)
         return ans
@@ -638,13 +662,17 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         """
         In place Howell form of self
         """
-        if self._nrows >= self._ncols:
-            raise ValueError("self must must have at least as many rows as columns.")
+        if self._nrows < self._ncols:
+            raise ValueError("self must have at least as many rows as columns.")
         self.check_mutability()
+        cdef Matrix_nmod_dense M
         self.clear_cache()
+        sig_on()
         nmod_mat_howell_form(self._matrix)
+        sig_off()
 
     def howell_form(self):
+        #FXIME add warning
         """
         Howell form of self
         """
@@ -652,7 +680,12 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         ans = self.fetch(key)
         if ans is not None:
             return ans
-        ans = self.__copy__()
+
+        if self._nrows < self._ncols:
+            M = self._new(self._ncols - self._nrows, self._ncols)
+            ans = self.stack(M)
+        else:
+            ans = self.__copy__()
         ans._howell_form()
         self.cache(key, ans)
         return ans
@@ -705,22 +738,71 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         sig_off()
         return M
 
-    def _right_kernel_matrix(self):
-        cdef Matrix_nmod_dense X, ans, echelon_form;
+    def _right_kernel_matrix(self, zero_divisors_are_pivots=False):
+        cdef Matrix_nmod_dense X, ans, E
+        cdef Py_ssize_t i, j, k, l
+        cdef long x, y, s
+        E = self.echelon_form()
         if self._parent._base.is_field():
             # nmod_mut_nullspace will do this regardless
             # so we are better off to start in echelon form to have the rank
-            echelon_form = self.echelon_form()
             X = self._new(self.ncols, self._nrows - self.rank())
             ans = self._new(self._nrows - self.rank(), self._ncols)
             sig_on()
-            nmod_mat_nullspace(X._matrix, echelon_form._matrix) # columns of X form a basis
+            nmod_mat_nullspace(X._matrix, E._matrix) # columns of X form a basis
             nmod_mat_transpose(ans._matrix, X._matrix)
             sig_off()
             return ans
         else:
-            #I'm here
-            strong_echelon_form = self.strong_echelon_form()
+            zero = self._parent._base.zero()
+            one = self._parent._base.one()
+            p, zdp = map(set, self._pivots())
+            set_pivots = p.union(zdp)
+            pivot = sorted(list(set_pivots))
+            basis = []
+            k = 0
+            for j in range(self._ncols):
+                if j in p:
+                    k += 1
+                    continue
+                v = [zero] * self._ncols
+                i = k
+                if j in zdp:
+                    k += 1
+                    if zero_divisors_are_pivots:
+                        continue
+                    v[j] = self._modulus.int64/nmod_mat_get_entry(E._matrix, i, j)
+                else:
+                    v[j] = one
+
+                # figure out the remaining coefficients of v
+                # note that v might need to be rescaled several times
+                for l in reversed(range(i)):
+                    x = nmod_mat_get_entry(E._matrix, l, pivot[l])
+                    # solve
+                    # v[pivot[l]] E[l, pivot[l]]  + y*sum(E[l,m] * v[m] for m in range(pivot[l] + 1, j)) = 0
+                    s = sum(v[m]*nmod_mat_get_entry(E._matrix, l, m) for m in range(pivot[l] + 1, j + 1)) % self._modulus.int64
+                    if s % x != 0: # make sure we can work mod N/x
+                        y = x//gcd(s, x)
+                        s *= y # now s is divisible by x
+                        for m in range(pivot[l] + 1, j + 1):
+                            v[m] *= y
+                        assert v[j] % self._modulus.int64 != 0
+                    # QUESTION: this is correct modulo N/x, does one need to consider the various lifts?
+                    # FIXME, this feels wrong
+                    v[pivot[l]] = self._parent._base((-s//x))
+                basis.append(v)
+            # FIXME, this feels wrong
+            ans = self._new(len(basis), self._ncols)
+            ma = MatrixArgs_init(ans._parent, basis)
+            for t in ma.iter(False, True): #????
+                se = <SparseEntry>t
+                x = <long>se.entry
+                nmod_mat_set_entry(ans._matrix, se.i, se.j, x)
+            if zero_divisors_are_pivots:
+                return ans
+            else:
+                return ans.howell_form()
 
 
     # random matrix generation (David)
