@@ -515,6 +515,10 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             sig_off()
             self.cache('rank', rank)
         else:
+            if self._nrows < self._ncols:
+                M = self._new(self._ncols - self._nrows, self._ncols)
+                #FIXME: this doesn't work
+                self = M.stack(self)
             self._howell_form()
 
     def echelon_form(self):
@@ -523,7 +527,11 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         ans = self.fetch(key)
         if ans is not None:
             return ans
-        ans = self.__copy__()
+        if self._nrows < self._ncols:
+            M = self._new(self._ncols - self._nrows, self._ncols)
+            ans = M.stack(self)
+        else:
+            ans = self.__copy__()
         ans.echelonize()
         self.cache(key, ans)
         return ans
