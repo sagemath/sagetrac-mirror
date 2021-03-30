@@ -275,7 +275,7 @@ class AlgebraicTorus(Scheme):
         EXAMPLES::
 
             sage: L.<a , b , c , d> = NumberField([x^2-5, x^2-29 , x^2-109 , x^2-281]) 
-            ....: K = L.absolute_field('e');                                                
+            sage: K = L.absolute_field('e')                                                
             sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars   
             sage: T = NormOneRestrictionOfScalars(K)                                        
             sage: T._top_field == K                                                         
@@ -291,7 +291,7 @@ class AlgebraicTorus(Scheme):
         EXAMPLES::
 
             sage: L.<a , b> = NumberField([x^2-5, x^2-3]) 
-            ....: K = L.absolute_field('e');                                                
+            sage: K = L.absolute_field('e')                                                
             sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars   
             sage: T1 = NormOneRestrictionOfScalars(K)                                       
             sage: T1._splitting_field                                                       
@@ -310,7 +310,7 @@ class AlgebraicTorus(Scheme):
             sage: T3._top_field                                                             
             Number Field in e with defining polynomial x^4 - 16*x^2 + 4
             sage: T3._splitting_field                                                       
-            Number Field in e0 with defining polynomial x^2 - 12 with e0 = 1/2*e^3 - 7*e
+            Number Field in e0 with defining polynomial x^2 - 3 with e0 = 1/4*e^3 - 7/2*e
         """
 
         ker = self.character_lattice().action_kernel()
@@ -332,7 +332,7 @@ class AlgebraicTorus(Scheme):
         EXAMPLES::
 
             sage: L.<a , b , c , d> = NumberField([x^2-5, x^2-29 , x^2-109 , x^2-281]) 
-            ....: K = L.absolute_field('e');                                                
+            sage: K = L.absolute_field('e')                                               
             sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars   
             sage: T = NormOneRestrictionOfScalars(K)                                        
             sage: T._base_field                                                             

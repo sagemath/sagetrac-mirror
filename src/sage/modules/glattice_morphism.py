@@ -366,14 +366,14 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             sage: L = GLattice([2, 2])
             sage: m = identity_matrix(4)
             sage: h = L.left_morphism(m)
-            sage: h.sum(h, False, False)
+            sage: h.exterior_sum(h, False, False)
             Lattice endomorphism defined by the left action of the matrix
             [2 0 0 0]
             [0 2 0 0]
             [0 0 2 0]
             [0 0 0 2]
             Domain: Ambient lattice of rank 4 with a faithful action by a group of order 4
-            sage: h.sum(h)
+            sage: h.exterior_sum(h)
             Lattice endomorphism defined by the left action of the matrix
             [1 0 0 0|0 0 0 0]
             [0 1 0 0|0 0 0 0]
@@ -385,7 +385,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             [0 0 0 0|0 0 1 0]
             [0 0 0 0|0 0 0 1]
             Domain: Ambient lattice of rank 8 with a faithful action by a group of order 4
-            sage: h.sum(h, domain_ext = False)
+            sage: h.exterior_sum(h, domain_ext = False)
             Lattice morphism defined by the left action of the matrix
             [1 0 0 0]
             [0 1 0 0]
@@ -398,7 +398,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             [0 0 0 1]
             Domain: Ambient lattice of rank 4 with a faithful action by a group of order 4
             Codomain: Ambient lattice of rank 8 with a faithful action by a group of order 4
-            sage: h.sum(h, codomain_ext = False)
+            sage: h.exterior_sum(h, codomain_ext = False)
             Lattice morphism defined by the left action of the matrix
             [1 0 0 0|1 0 0 0]
             [0 1 0 0|0 1 0 0]
@@ -406,14 +406,14 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             [0 0 0 1|0 0 0 1]
             Domain: Ambient lattice of rank 8 with a faithful action by a group of order 4
             Codomain: Ambient lattice of rank 4 with a faithful action by a group of order 4
-            sage: h.sum([h, h], False, False)
+            sage: h.exterior_sum([h, h], False, False)
             Lattice endomorphism defined by the left action of the matrix
             [3 0 0 0]
             [0 3 0 0]
             [0 0 3 0]
             [0 0 0 3]
             Domain: Ambient lattice of rank 4 with a faithful action by a group of order 4
-            sage: h.sum([h, h], domain_ext = False)
+            sage: h.exterior_sum([h, h], domain_ext = False)
             Lattice morphism defined by the left action of the matrix
             [1 0 0 0]
             [0 1 0 0]
@@ -430,7 +430,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             [0 0 0 1]
             Domain: Ambient lattice of rank 4 with a faithful action by a group of order 4
             Codomain: Ambient lattice of rank 12 with a faithful action by a group of order 4
-            sage: h.sum([h, h], codomain_ext = False)
+            sage: h.exterior_sum([h, h], codomain_ext = False)
             Lattice morphism defined by the left action of the matrix
             [1 0 0 0 1 0 0 0|1 0 0 0]
             [0 1 0 0 0 1 0 0|0 1 0 0]
@@ -438,7 +438,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             [0 0 0 1 0 0 0 1|0 0 0 1]
             Domain: Ambient lattice of rank 12 with a faithful action by a group of order 4
             Codomain: Ambient lattice of rank 4 with a faithful action by a group of order 4
-            sage: h.sum([h, h])
+            sage: h.exterior_sum([h, h])
             Lattice endomorphism defined by the left action of the matrix
             [1 0 0 0 0 0 0 0|0 0 0 0]
             [0 1 0 0 0 0 0 0|0 0 0 0]
