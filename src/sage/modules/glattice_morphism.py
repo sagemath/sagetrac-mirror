@@ -30,7 +30,7 @@ Methods of a lattice morphism
 
 - :meth:`GLatticeMorphism_left.group` -- the group acting on the domain and codomain.
 
-- :meth:`GLatticeMorphism_left.sum` -- compute the sum of two morphisms.
+- :meth:`GLatticeMorphism_left.exterior_sum` -- compute the exterior sum of two morphisms.
 
 - :meth:`GLatticeMorphism_left.group_action` -- computes the action of a group element on the morphism.
 
@@ -267,7 +267,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
         else:
             return self._matrix*elt
 
-    def __add__(self, other,):
+    def __add__(self, other):
         """
         Adds morphisms with same domain and codomain. The second argument can be a list of morphisms. 
         
@@ -343,23 +343,21 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             [3 5]
             Domain: Ambient lattice of rank 2 with the trivial action of a group of order 3
         """
-        return self.sum(other, "inner", "inner")
+        return self.exterior_sum(other, False, False)
 
-    def sum(self, other, domainsum = "outer", codomainsum = "outer"):
+    def exterior_sum(self, other, domain_ext = True, codomain_ext = True):
         """
-        Adds morphisms. The second argument can be a list of morphisms. 
+        The exterior sum of morphisms. The second argument can be a list of morphisms. 
         
         INPUT:
 
         - ``other`` -- Lattice or list of lattice we want to take the sum with.
 
-        - ``domainsum`` -- String (default ``outer``), declares it we want to take the inner or 
-          outer sum for the domain. If ``inner``, the domain lattices must match. If the argument
-          is ``outer`` then the domain of the sum will be a direct sum of lattices.
+        - ``domain_ext`` -- Boolean (default ``True``). If True, the domain of the sum 
+          will be the direct sum of domains. Else morphisms must share a common domain.
 
-        - ``codomainsum`` -- String (default ``outer``), declares it we want to take the inner or 
-          outer sum for the codomain. If ``inner``, the codomain lattices must match. If the argument
-          is ``outer`` then the codomain of the sum will be a direct sum of lattices.
+        - ``codomain_ext`` -- Boolean (default ``True``). If True, the codomain of the sum 
+          will be the direct sum of codomains. Else morphisms must share a common codomain.
 
 
 
@@ -368,7 +366,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             sage: L = GLattice([2, 2])
             sage: m = identity_matrix(4)
             sage: h = L.left_morphism(m)
-            sage: h.sum(h, "inner", "inner")
+            sage: h.sum(h, False, False)
             Lattice endomorphism defined by the left action of the matrix
             [2 0 0 0]
             [0 2 0 0]
@@ -387,7 +385,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             [0 0 0 0|0 0 1 0]
             [0 0 0 0|0 0 0 1]
             Domain: Ambient lattice of rank 8 with a faithful action by a group of order 4
-            sage: h.sum(h, "inner")
+            sage: h.sum(h, domain_ext = False)
             Lattice morphism defined by the left action of the matrix
             [1 0 0 0]
             [0 1 0 0]
@@ -400,7 +398,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             [0 0 0 1]
             Domain: Ambient lattice of rank 4 with a faithful action by a group of order 4
             Codomain: Ambient lattice of rank 8 with a faithful action by a group of order 4
-            sage: h.sum(h, "outer", "inner")
+            sage: h.sum(h, codomain_ext = False)
             Lattice morphism defined by the left action of the matrix
             [1 0 0 0|1 0 0 0]
             [0 1 0 0|0 1 0 0]
@@ -408,14 +406,14 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             [0 0 0 1|0 0 0 1]
             Domain: Ambient lattice of rank 8 with a faithful action by a group of order 4
             Codomain: Ambient lattice of rank 4 with a faithful action by a group of order 4
-            sage: h.sum([h, h], "inner", "inner")
+            sage: h.sum([h, h], False, False)
             Lattice endomorphism defined by the left action of the matrix
             [3 0 0 0]
             [0 3 0 0]
             [0 0 3 0]
             [0 0 0 3]
             Domain: Ambient lattice of rank 4 with a faithful action by a group of order 4
-            sage: h.sum([h, h], "inner", "outer")
+            sage: h.sum([h, h], domain_ext = False)
             Lattice morphism defined by the left action of the matrix
             [1 0 0 0]
             [0 1 0 0]
@@ -432,7 +430,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             [0 0 0 1]
             Domain: Ambient lattice of rank 4 with a faithful action by a group of order 4
             Codomain: Ambient lattice of rank 12 with a faithful action by a group of order 4
-            sage: h.sum([h, h], "outer", "inner")
+            sage: h.sum([h, h], codomain_ext = False)
             Lattice morphism defined by the left action of the matrix
             [1 0 0 0 1 0 0 0|1 0 0 0]
             [0 1 0 0 0 1 0 0|0 1 0 0]
@@ -440,7 +438,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             [0 0 0 1 0 0 0 1|0 0 0 1]
             Domain: Ambient lattice of rank 12 with a faithful action by a group of order 4
             Codomain: Ambient lattice of rank 4 with a faithful action by a group of order 4
-            sage: h.sum([h, h], "outer", "outer")
+            sage: h.sum([h, h])
             Lattice endomorphism defined by the left action of the matrix
             [1 0 0 0 0 0 0 0|0 0 0 0]
             [0 1 0 0 0 0 0 0|0 0 0 0]
@@ -461,8 +459,8 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             if len(other) == 0:
                 return self
             else:
-                mor = self.sum(other[0], domainsum, codomainsum)
-                return mor.sum(other[1:], domainsum, codomainsum)
+                mor = self.exterior_sum(other[0], domain_ext, codomain_ext)
+                return mor.exterior_sum(other[1:], domain_ext, codomain_ext)
         else:
             A = self.domain()
             B = other.domain()
@@ -473,11 +471,11 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             from sage.matrix.special import block_diagonal_matrix
             M = block_diagonal_matrix([self.matrix(),other.matrix()])
             mor = C.left_morphism(M, TC)
-            if domainsum == "inner":
+            if not(domain_ext):
                 if not(A == B):
                     raise ValueError("The domains must match.")
                 mor = mor.pre_compose(A.diagonal_embedding())
-            if codomainsum == "inner":
+            if not(codomain_ext):
                 if not(TA == TB):
                     raise ValueError("The codomains of the morphisms must match")
                 surj = TA.surjection_from_square()

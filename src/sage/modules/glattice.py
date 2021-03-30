@@ -934,7 +934,7 @@ class Lattice_generic(FreeModule_generic):
 
         initial_map = self.orbit_permutation_cover(representatives[0])[1]
         morphisms = [self.orbit_permutation_cover(r)[1] for r in representatives[1:]]
-        hom = initial_map.sum(morphisms, "outer", "inner") 
+        hom = initial_map.exterior_sum(morphisms, codomain_ext = False) 
         return [hom.domain(), hom]
 
     def left_morphism(self, mat, codomain=None):
@@ -2513,7 +2513,7 @@ class Lattice_generic(FreeModule_generic):
             representatives = reducedreps
         initial_hom = lat.orbit_permutation_cover(representatives[0])[1]
         homs = [lat.orbit_permutation_cover(r)[1] for r in representatives[1:]]
-        hom = initial_hom.sum(homs, "outer", "inner")
+        hom = initial_hom.exterior_sum(homs, codomain_ext = False)
         return [hom.kernel(), hom.domain(), hom]
 
 
