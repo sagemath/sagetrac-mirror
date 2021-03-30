@@ -767,7 +767,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                     k += 1
                     if zero_divisors_are_pivots:
                         continue
-                    v[j] = self._modulus.int64/nmod_mat_get_entry(E._matrix, i, j)
+                    v[j] = self._parent._base(mpz_get_si(self._modulus.sageInteger.value)//nmod_mat_get_entry(E._matrix, i, j))
                 else:
                     v[j] = one
 
@@ -783,10 +783,10 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                         s *= y # now s is divisible by x
                         for m in range(pivot[l] + 1, j + 1):
                             v[m] *= y
-                        assert v[j] % self._modulus.int64 != 0
+                        assert v[j] % mpz_get_si(self._modulus.sageInteger.value) != 0
                     # QUESTION: this is correct modulo N/x, does one need to consider the various lifts?
                     # FIXME, this feels wrong
-                    v[pivot[l]] = self._parent._base((-s//x))
+                    v[pivot[l]] = self._parent._base(-s//x)
                 basis.append(v)
             # FIXME, this feels wrong
             ans = self._new(len(basis), self._ncols)
