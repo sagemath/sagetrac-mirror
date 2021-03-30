@@ -824,25 +824,7 @@ cdef class Matrix(Matrix1):
             # separately.
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             if is_IntegerModRing(K):
-                from sage.libs.pari import pari
-                A = pari(self.lift())
-                b = pari(B).lift()
-                if b.type() == "t_MAT":
-                    X = []
-                    for n in range(B.ncols()):
-                        ret = A.matsolvemod(K.cardinality(), b[n])
-                        if ret.type() == 't_INT':
-                            raise ValueError("matrix equation has no solutions")
-                        X.append(ret.sage())
-                    X = self.matrix_space(B.ncols(), self.ncols())(X)
-                    return X.T
-                elif b.type() == "t_VEC":
-                    b = b.Col()
-                    ret = A.matsolvemod(K.cardinality(), b)
-                    if ret.type() == 't_INT':
-                        raise ValueError("matrix equation has no solutions")
-                    ret = ret.Vec().sage()
-                    return (K ** self.ncols())(ret)
+                return self._solve_right_modn(B)
             raise TypeError("base ring must be an integral domain or a ring of integers mod n")
 
         C = B.column() if b_is_vec else B
@@ -860,6 +842,29 @@ cdef class Matrix(Matrix1):
             return X.column(0)
         else:
             return X
+
+    def _solve_right_modn(self, B):
+        from sage.libs.pari import pari
+        K = self.base_ring()
+        A = pari(self.lift())
+        b = pari(B).lift()
+        if b.type() == "t_MAT":
+            X = []
+            for n in range(B.ncols()):
+                ret = A.matsolvemod(K.cardinality(), b[n])
+                if ret.type() == 't_INT':
+                    raise ValueError("matrix equation has no solutions")
+                X.append(ret.sage())
+            X = self.matrix_space(B.ncols(), self.ncols())(X)
+            return X.T
+        elif b.type() == "t_VEC":
+            b = b.Col()
+            ret = A.matsolvemod(K.cardinality(), b)
+            if ret.type() == 't_INT':
+                raise ValueError("matrix equation has no solutions")
+            ret = ret.Vec().sage()
+            return (K ** self.ncols())(ret)
+        
 
     def _solve_right_nonsingular_square(self, B, check_rank=True):
         r"""

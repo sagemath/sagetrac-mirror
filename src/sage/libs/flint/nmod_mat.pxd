@@ -76,3 +76,4 @@ cdef extern from "flint_wrap.h":
     void nmod_mat_similarity(nmod_mat_t M, slong r, ulong d)
     void nmod_mat_set_entry(nmod_mat_t mat, slong i, slong j, mp_limb_t x)
     void nmod_mat_charpoly(nmod_poly_t p, const nmod_mat_t M)
+    int nmod_mat_can_solve(nmod_mat_t X, const nmod_mat_t A, const nmod_mat_t B)

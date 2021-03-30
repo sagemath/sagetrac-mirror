@@ -493,9 +493,22 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     cdef swap_rows_c(self, Py_ssize_t r1, Py_ssize_t r2):
         nmod_mat_swap_rows(self._matrix, NULL, r1, r2)
 
-    def solve_right(self, B, check=True):
+    def _solve_right_modn(self, B, check=True):
         b_is_vec = is_Vector(B)
-        #nmod_mat_can_solve
+        cdef Py_ssize_t n
+        if b_is_vec:
+            n = B.degree()
+        else:
+            n = B.nrows()
+        cdef Matrix_nmod_dense C = B.column() if b_is_vec else B
+        cdef Matrix_nmod_dense X = self._new(self.nrows(), n)
+        nmod_mat_can_solve(X._matrix, self._matrix, C._matrix)
+
+        if b_is_vec:
+            # Convert back to a vector
+            return X.column(0)
+        else:
+            return X
 
     # Extra
 
