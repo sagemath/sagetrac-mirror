@@ -32,7 +32,7 @@ from sage.libs.flint.ulong_extras cimport (
     n_CRT,
 )
 from sage.rings.polynomial.polynomial_zmod_flint cimport Polynomial_zmod_flint
-from sage.libs.gmp.mpz cimport mpz_sgn,  mpz_fits_ulong_p, mpz_get_ui
+from sage.libs.gmp.mpz cimport mpz_sgn,  mpz_fits_ulong_p, mpz_get_ui, mpz_get_si
 from sage.rings.integer cimport Integer
 from sage.structure.factorization import Factorization
 
