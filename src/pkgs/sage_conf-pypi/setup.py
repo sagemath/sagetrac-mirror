@@ -1,23 +1,24 @@
 import os
 import sys
+import glob
 import shutil
 import sysconfig
+from pathlib import Path
+import fnmatch
 
 from setuptools import setup
 from distutils.command.build_scripts import build_scripts as distutils_build_scripts
-from distutils.command.build_py import build_py as distutils_build_py
+from setuptools.command.build_py import build_py as setuptools_build_py
 from distutils.errors import (DistutilsSetupError, DistutilsModuleError,
                               DistutilsOptionError)
 
-class build_py(distutils_build_py):
+class build_py(setuptools_build_py):
 
     def run(self):
-        DOT_SAGE = os.environ.get('DOT_SAGE', os.path.join(os.environ.get('HOME'), '.sage'))
         HERE = os.path.dirname(__file__)
         with open(os.path.join(HERE, 'VERSION.txt')) as f:
             sage_version = f.read().strip()
-        # For convenience, set up the homebrew env automatically. This is a no-op if homebrew is not present.
-        SETENV = '. .homebrew-build-env 2>&1; :'
+        SETENV = ':'
         # Until pynac is repackaged as a pip-installable package (#30534), SAGE_LOCAL still has to be specific to
         # the Python version.  Note that as of pynac-0.7.26.sage-2020-04-03, on Cygwin, pynac is linked through
         # to libpython; whereas on all other platforms, it is not linked through, so we only key it to the SOABI.
@@ -28,44 +29,104 @@ class build_py(distutils_build_py):
             python_tag = f'{libdir_tag}-{ldversion}'
         else:
             python_tag = soabi
-        # TODO: These two should be user-configurable with options passed to "setup.py install"
-        SAGE_ROOT = os.path.join(DOT_SAGE, f'sage-{sage_version}-{python_tag}')
+
+        # On macOS, /var -> /private/var; we work around the DESTDIR staging bug #31569.
+        STICKY = '/var/tmp'
+        STICKY = str(Path(STICKY).resolve())
+        # SAGE_ROOT will be a symlink during Sage runtime, but has to be a physical directory during build.
+        SAGE_ROOT = os.path.join(STICKY, f'sage-{sage_version}-{python_tag}')
+        # After building, we move the directory out of the way to make room for the symlink.
+        # We do the wheel packaging from here.
+        SAGE_ROOT_BUILD = SAGE_ROOT + '-build'
+        # This will resolve via SAGE_ROOT.
         SAGE_LOCAL = os.path.join(SAGE_ROOT, 'local')
-        if os.path.exists(os.path.join(SAGE_ROOT, 'config.status')):
-            print(f'Reusing SAGE_ROOT={SAGE_ROOT}')
-        else:
+        SAGE_LOCAL_BUILD = os.path.join(SAGE_ROOT_BUILD, 'local')
+
+        if Path(SAGE_ROOT).is_symlink():
+            # Remove symlink created by the sage_conf runtime
+            os.remove(SAGE_ROOT)
+
+        try:
+            # Within this try...finally block, SAGE_ROOT is a physical directory.
+
             # config.status and other configure output has to be writable.
-            # So (until the Sage distribution supports VPATH builds - #21469), we have to make a copy of sage_root.
-            try:
-                shutil.copytree('sage_root', SAGE_ROOT)  # will fail if already exists
-            except Exception:
-                raise DistutilsSetupError(f"the directory SAGE_ROOT={SAGE_ROOT} already exists but it is not configured.  Please remove it and try again.")
-            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --with-system-python3=force --disable-notebook --disable-sagelib"
+            # So (until the Sage distribution supports VPATH builds - #21469), we have to make a copy of sage_root_source.
+            #
+            # The file exclusions here duplicate what is done in MANIFEST.in
+            def ignore(path, names):
+                # exclude embedded src trees -- except for the one of sage_conf
+                if any(fnmatch.fnmatch(path, spkg) for spkg in ('*/build/pkgs/sagelib',
+                                                                '*/build/pkgs/sage_docbuild',
+                                                                '*/build/pkgs/sage_sws2rst')):
+                    return ['src']
+                return []
+            shutil.copytree(os.path.join(HERE, 'sage_root_source'), SAGE_ROOT,
+                            ignore=ignore)  # will fail if already exists
+
+            # Use our copy of the sage_conf template, which contains the relocation logic
+            shutil.copyfile(os.path.join(HERE, 'sage_conf.py.in'),
+                            os.path.join(SAGE_ROOT, 'build', 'pkgs', 'sage_conf', 'src', 'sage_conf.py.in'))
+
+            if os.path.exists(SAGE_LOCAL_BUILD):
+                # Previously built, start from there
+                os.rename(SAGE_LOCAL_BUILD, SAGE_LOCAL)
+
+            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --with-system-python3=force --with-mp=gmp --without-system-mpfr --without-system-readline --enable-download-from-upstream-url --enable-fat-binary --disable-notebook --disable-r --disable-sagelib"
             print(f"Running {cmd}")
             if os.system(cmd) != 0:
                 raise DistutilsSetupError("configure failed")
-        # Here we run "make build" -- which builds everything except for sagelib because we
-        # used configure --disable-sagelib
-        # Alternative:
-        # "make build-local" only builds the non-Python packages of the Sage distribution.
-        # It still makes an (empty) venv in SAGE_LOCAL, which is unused by default;
-        # but then a user could use "make build-venv" to build compatible wheels for all Python packages.
-        # TODO: A target to only build wheels of tricky packages
-        # (that use native libraries shared with other packages).
-        SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads | cut -d" " -f 2)"; fi'
-        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 build'
-        if os.system(cmd) != 0:
-            raise DistutilsSetupError("make build-local failed")
+
+            # build-local only builds the non-Python packages of the Sage distribution.
+            # It still makes an (empty) venv in SAGE_LOCAL, which is unused by default;
+            # but a user could use "make build-venv" to build compatible wheels for all Python packages.
+            # TODO: A target to only build wheels of tricky packages
+            # (that use native libraries shared with other packages).
+            SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads | cut -d" " -f 2)"; fi'
+            TARGETS = 'build'
+            #TARGETS = 'base-toolchain giac'
+            cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 {TARGETS}'
+            if os.system(cmd) != 0:
+                raise DistutilsSetupError("make build-local failed")
+        finally:
+            # Delete old SAGE_ROOT_BUILD (if any), move new SAGE_ROOT there, symlink into build dir
+            shutil.rmtree(SAGE_ROOT_BUILD, ignore_errors=True)
+            os.rename(SAGE_ROOT, SAGE_ROOT_BUILD)
 
         # Install configuration
-        shutil.copyfile(os.path.join(SAGE_ROOT, 'build', 'pkgs', 'sage_conf', 'src', 'sage_conf.py'),
+        shutil.copyfile(os.path.join(SAGE_ROOT_BUILD, 'build', 'pkgs', 'sage_conf', 'src', 'sage_conf.py'),
                         os.path.join(HERE, 'sage_conf.py'))
         if not self.distribution.py_modules:
             self.py_modules = self.distribution.py_modules = []
         self.distribution.py_modules.append('sage_conf')
-        shutil.copyfile(os.path.join(SAGE_ROOT, 'src', 'bin', 'sage-env-config'),
+        shutil.copyfile(os.path.join(SAGE_ROOT_BUILD, 'src', 'bin', 'sage-env-config'),
                         os.path.join(HERE, 'bin', 'sage-env-config'))
-        distutils_build_py.run(self)
+        # Install built SAGE_ROOT as package data
+        if not self.packages:
+            self.packages = self.distribution.packages = ['']
+        if not self.distribution.package_data:
+            self.package_data = self.distribution.package_data = {}
+
+        HERE_SAGE_ROOT = os.path.join(HERE, 'sage_root')
+        if os.path.islink(HERE_SAGE_ROOT):
+            os.remove(HERE_SAGE_ROOT)
+        os.symlink(SAGE_ROOT_BUILD, HERE_SAGE_ROOT)
+
+        # We do not include lib64 (a symlink) because all symlinks are followed,
+        # causing another copy to be installed.
+        self.distribution.package_data[''] = (
+            glob.glob('sage_root/*')
+            + glob.glob('sage_root/config/*')
+            + glob.glob('sage_root/m4/*')
+            + glob.glob('sage_root/build/**', recursive=True)
+            + glob.glob('sage_root/local/*')
+            + glob.glob('sage_root/local/bin/**', recursive=True)
+            + glob.glob('sage_root/local/include/**', recursive=True)
+            + glob.glob('sage_root/local/lib/**', recursive=True)
+            + glob.glob('sage_root/local/share/**', recursive=True)
+            + glob.glob('sage_root/local/var/lib/**', recursive=True)  # omit /var/tmp
+            )
+        #
+        setuptools_build_py.run(self)
 
 class build_scripts(distutils_build_scripts):
 
@@ -79,5 +140,14 @@ class build_scripts(distutils_build_scripts):
         distutils_build_scripts.run(self)
 
 setup(
-    cmdclass=dict(build_py=build_py, build_scripts=build_scripts)
+    cmdclass=dict(build_py=build_py, build_scripts=build_scripts),
+    # Do not mark the wheel as pure
+    has_ext_modules=lambda: True,
+
+    # Our complicated extras_require do not fit well into setup.cfg syntax
+    extras_require = {
+        "dot_sage": ['sage_root_built_in_dot_sage @ https://github.com/sagemath/sage-wheels/releases/download/9.3.rc1/sage_root_built_in_dot_sage-9.3rc1.tar.gz'],
+        "opt_sage: implementation_name=='cpython'": ['sage_root_with_opt_sage_symlink @ https://github.com/sagemath/sage-wheels/releases/download/9.3.rc1/sage_root_with_opt_sage_symlink-9.3rc1-cp38-cp38-macosx_10_15_x86_64.whl'],
+        },
+
 )

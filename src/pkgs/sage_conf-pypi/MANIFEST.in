@@ -1,16 +1,12 @@
 include VERSION.txt
 include pyproject.toml
+include sage_conf.py.in
 graft bin
-graft sage_root
+graft sage_root_source
 # These sources are not needed because individual distributions of these are made.
-prune sage_root/build/pkgs/*/src*
+prune sage_root_source/build/pkgs/*/src*
 # Except for this one because config.status writes there
-graft sage_root/build/pkgs/sage_conf/src
-prune sage_root/build/pkgs/sage_conf/src/build
-# And this one because of declared dependencies on source files in Makefile.in
-graft sage_root/build/pkgs/sage_docbuild/src
-prune sage_root/build/pkgs/sage_docbuild/src/build
-prune sage_root/build/pkgs/sage_docbuild/src/sage_docbuild.egg-info
+graft sage_root_source/build/pkgs/sage_conf/src
 #
 global-exclude .tox
 global-exclude *~*
