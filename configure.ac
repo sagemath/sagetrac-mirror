@@ -430,8 +430,17 @@ AC_SUBST([SAGE_SPKG_OPTIONS])
 
 AC_ARG_ENABLE([sagelib],
   AS_HELP_STRING([--disable-sagelib],
-                 [disable build of the Sage library and packages depending on it]), [
+                 [disable build of the Sage library and packages depending on it (implies --disable-doc)]), [
     for pkg in sagelib sage_docbuild; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+    AS_IF([test "$enableval" = no], [enable_doc=no])
+  ])
+
+AC_ARG_ENABLE([doc],
+  AS_HELP_STRING([--disable-doc],
+                 [disable build of the Sage documentation and packages depending on it]), [
+    for pkg in sage_docbuild sphinx sphinxcontrib_devhelp sphinxcontrib_jsmath sphinxcontrib_serializinghtml sphinxcontrib_applehelp sphinxcontrib_htmlhelp sphinxcontrib_qthelp sphinxcontrib_websupport; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
   ])
