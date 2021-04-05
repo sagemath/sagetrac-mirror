@@ -5,6 +5,7 @@ Functions for plotting polyhedra
 ########################################################################
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2020 Mara Kortenkamp <mara.kortenkamp@fu-berlin.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -20,11 +21,19 @@ from sage.misc.functional import norm
 from sage.misc.latex import LatexExpr
 from sage.symbolic.constants import pi
 from sage.structure.sequence import Sequence
+from sage.graphs.graph import Graph
+from sage.functions.generalized import sign
+from sage.rings.real_mpfr import RealField
+from sage.modules.vector_space_morphism import linear_transformation
+from sage.plot.polygon import polygon
+from sage.misc.functional import det
+from sage.plot.colors import Color
+from collections import OrderedDict
 
 from sage.plot.all import Graphics, point2d, line2d, arrow, polygon2d
 from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygons3d
 from sage.plot.plot3d.transform import rotate_arbitrary
-
+from .constructor import Polyhedron
 
 #############################################################
 
@@ -128,180 +137,237 @@ def cyclic_sort_vertices_2d(Vlist):
 
 #########################################################################
 
-def faceorder(poly):
+def faceorder(polytope):
     """
-    Return an order for the unfolding of a 3 polytope
-    
-    INPUT:
-    
-    - ``poly`` -- a 3 polytope
-     
-    ### Außerdem wäre es gut den Algorithmus der den Spanning Tree berechnet als Variable einzugeben.
-    
-    EXAMPLES:
-    
-    """
-    HR = poly.Hrepresentation()
-    order = {}
-    new_order = {}
-    span_tree = Graph(poly.facet_adjacency_matrix()).min_spanning_tree(algorithm='Kruskal') #list of tuples
-    
-    j = 0
-    for i in span_tree: #takes the tuples and puts hrepresentation instead of number.
-        order[j] = [HR[i[0]], HR[i[1]]]
-        j = j+1
-             
-    # G = Graph(order.values())
-    G = Graph(span_tree)
-    l = list(G.depth_first_search(0))
-    
-    j = 0
-    for v in l:
-        for w in l:
-            if (v,w,None) in span_tree:
-                new_order[j] = [HR[v],HR[w]]
-                j = j + 1
-    
-    return new_order
+    Return a linear ordering of the edges in a spanning tree for the facet
+    adjacency graph of `poly`.
 
-def left_or_right_2d(vertex_i,vertex_j,facet_adj,map_2d_dict_glo):
-    """
-    Returns the orientation of a face in accordance to an oriented edge
-    
     INPUT:
+
+    - ``polytope`` -- a polytope
     
-    - ‘‘vertex_i‘‘ 3d vertex. First vertex of the edge. The edge is oriented from vertex_i to vertex_j.
-    
-    - ‘‘vertex_j‘‘ 3d vertex. Second vertex of the edge
-    
-    - ‘‘facet_adj‘‘ the facet of the 3 polytope, whose orientation is to be distunguished in H-representation.
-    
-    - ‘‘map_2d_dict_glo‘‘ a dictionary of dictionaries. The metakeys are the facets that map to the
-                            dictionary between the vertices in 3d and their coordinates in 2d.
     
     OUTPUT:
     
-    """
-    vertices_facet_adj = [v for v in facet_adj.incident() if (v != vertex_i and v != vertex_j)]
-    vi = vector(map_2d_dict_glo[facet_adj][vertex_i])
-    vj = vector(map_2d_dict_glo[facet_adj][vertex_j])
-    vfadj = vector(map_2d_dict_glo[facet_adj][vertices_facet_adj[0]])
-    M = matrix(3,2,[vi,vj,vfadj])
-    M = M.augment(vector([1,1,1]))
-    #print M.nrows(), M.ncols()
-    orient = sign(det(M))
-    return orient
+    A list of tuples which are the edges of a spanning tree
+    of the facets of the polytope.
 
-def face_map_affine_trans(poly, facet, vertex_i, vertex_j, x_i, y_i, x_j, y_j, center, orient):
+    EXAMPLES::
+    
+        sage: Cube = polytopes.cube()
+        sage: Cube.facet_adjacency_matrix()
+        [0 1 1 0 1 1]
+        [1 0 1 1 1 0]
+        [1 1 0 1 0 1]
+        [0 1 1 0 1 1]
+        [1 1 0 1 0 1]
+        [1 0 1 1 1 0]
+        sage: faceorder(Cube)
+        [(0, 1), (0, 2), (0, 4), (0, 5), (1, 3)]
     """
-    Returns the coordinates of the vertices of a 2 facet of a 3 polytope that has been
+    
+    order = list(Graph(polytope.facet_adjacency_matrix()).breadth_first_search(0, edges=True))
+    
+    return order
+    
+
+def facets_in_H_order(polyhedron):
+    """
+    Returns the facets of the polyhedron such that the order of the corresponding
+    ambient H-representations is the same as in the H-representation of the polyhedron.
+    
+    INPUT:
+    
+    - ``polyhedron`` -- the polyhedron which facets should be ordered
+    
+    
+    OUTPUT:
+    
+    - ``ordered_facets`` -- a list of the facets of the polyhedron in desired order
+    
+    
+    EXAMPLES::
+    
+        sage: from sage.geometry.polyhedron.plot import facets_in_H_order
+        sage: cube = polytopes.cube()
+        sage: facets_in_H_order(cube)
+        [A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+         A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+         A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+         A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+         A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+         A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices]
+        sage: cube.Hrepresentation()
+        (An inequality (-1, 0, 0) x + 1 >= 0,
+         An inequality (0, -1, 0) x + 1 >= 0,
+         An inequality (0, 0, -1) x + 1 >= 0,
+         An inequality (1, 0, 0) x + 1 >= 0,
+         An inequality (0, 0, 1) x + 1 >= 0,
+         An inequality (0, 1, 0) x + 1 >= 0)
+        sage: facets = facets_in_H_order(cube)
+        sage: for facet in facets:
+        ....:     print(facet, '\n', facet.ambient_Hrepresentation())
+        ....:
+        A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+         (An inequality (-1, 0, 0) x + 1 >= 0,)
+        A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+         (An inequality (0, -1, 0) x + 1 >= 0,)
+        A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+         (An inequality (0, 0, -1) x + 1 >= 0,)
+        A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+         (An inequality (1, 0, 0) x + 1 >= 0,)
+        A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+         (An inequality (0, 0, 1) x + 1 >= 0,)
+        A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+         (An inequality (0, 1, 0) x + 1 >= 0,)
+
+    """
+    HR = polyhedron.Hrepresentation()
+    facets = list(polyhedron.facets())
+    ordered_facets = len(facets) * [0]
+
+    for facet in facets:
+        ordered_facets[HR.index(facet.ambient_Hrepresentation()[0])] = facet
+        
+    return tuple(ordered_facets)
+    
+
+def face_map(cur_facet, pre_facet, map_2d_dict_glo, first=0):
+    """
+    Returns the coordinates of the vertices of a 2-facet of a 3-polytope that has been
     mapped to the plane via an affine transformation.
     
     INPUT:
-    - ‘‘poly‘‘ the 3-polytope
     
-    - ‘‘facet‘‘ the facet, that is to be mapped to the plane in H-representation
+    - ``cur_facet`` -- the facet in H-representation, that is to be mapped to the plane
     
-    - ‘‘vertex_i‘‘ the first vertex of the anchor edge
+    - ``pre_facet`` -- the facet in H-representation, that was already mapped to the
+        plane before and is adjacent to cur_facet
     
-    - ‘‘vertex_j‘‘ the second vertex of the anchor edge
+    - ``map_2d_dict_glo`` -- A dictionary which keeps track of the tranformations of
+        the vertices of all facets, that are already mapped to the plan
     
-    - ‘‘(x_i,y_i)‘‘ the coordniates in the plane of vertex_i.
-    
-    - ‘‘(x_j,y_j)‘‘ the coordniates in the plane of vertex_j.
-    
-    - ‘‘center‘‘ the barycenter of the polytope
-    
-    - ‘‘orient‘‘ the orientation of the facet in
-    
-    
+    - ``first`` -- Set to one if the cur_facet is the first facet of the polytope to be
+        mapped.
+        
     OUTPUT:
     
+    A dictionary where the keys are the vertices of `cur_facet` and the corresponding values
+    are the vertices after mapping the 2-facet to the plane.
+    
+    EXAMPLES::
+    
+        sage: from sage.geometry.polyhedron.plot import face_map
+        sage: polytope = Polyhedron(vertices = [[0,0,0], [10,0, 0], [7,1,1], [3,1,0]])
+        sage: order = faceorder(polytope)
+        sage: print(order)
+        [(0, 1), (0, 2), (0, 3)]
+        sage: facets = facets_in_H_order(polytope)
+        sage: print(facets)
+        (A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices,
+         A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices,
+         A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices,
+         A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices)
+        sage: print(facets[order[0][0]])
+        A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices
+        sage: print(facets[order[0][0]].vertices())
+        (A vertex at (0, 0, 0),
+         A vertex at (3, 1, 0),
+         A vertex at (7, 1, 1))
+        sage: first_mapping = face_map(facets[order[0][0]], facets[order[0][1]], {}, first=1)
+        sage: print(first_mapping)
+        {A vertex at (0, 0, 0): (0.0, 0.0),
+         A vertex at (3, 1, 0): (0.0, 3.1622776601683795),
+         A vertex at (7, 1, 1): (1.6124515496597092, 6.957010852370435)}
+        sage: current_state = {facets[order[0][0]]: first_mapping}
+        sage: print(current_state)
+        {A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices:
+            {A vertex at (0, 0, 0): (0.0, 0.0),
+             A vertex at (3, 1, 0): (0.0, 3.1622776601683795),
+             A vertex at (7, 1, 1): (1.6124515496597092, 6.957010852370435)}}
+        sage: mapping = face_map(facets[order[0][1]], facets[order[0][0]], current_state, first=0)
+        sage: print(mapping)
+        {A vertex at (0, 0, 0): (0.0, 0.0),
+         A vertex at (3, 1, 0): (0.0, 3.1622776601683795),
+         A vertex at (10, 0, 0): (-3.162277660168379, 9.486832980505138)}
+        
     """
-    HR = poly.Hrepresentation()
-    VR = poly.Vrepresentation()
-    
-    
     output = {}
-    #output[vertex_i] = vector((x_i,y_i))
     
-    facet_as_poly_vertices = [ v for v in poly.vertices() if facet.is_incident(v)]
-    facet_as_poly = Polyhedron(facet_as_poly_vertices)
-    facet_other_vertices = [v for v in facet.incident() if ( v != vertex_i and v != vertex_j)]
-    vertex_k = facet_other_vertices[0]
-    three_vertices = [vertex_i, vertex_j, vertex_k]
-    M = matrix([center - vector(v) for v in three_vertices])
-    alt_3D = sign(M.det())
-    #print alt_3D
+    facet_as_poly = cur_facet.as_polyhedron()
     
-    A,b = facet_as_poly.affine_hull(orthonormal=True, as_affine_map=True, extend=True)
-    for v in facet_as_poly_vertices:
+    A, b = facet_as_poly.affine_hull_projection(orthonormal=True, as_affine_map=True, extend=True)
+    for v in facet_as_poly.vertices():
         output[v] = A(vector(v))
     facet_2d = Polyhedron([A(v) for v in facet_as_poly.vertices_list()])
     
-    A_three_vertices = [A(vector(v)) for v in three_vertices]
-    A_three_vertices_hom = [list(v)+[1] for v in A_three_vertices]
-    A_three_vertices_hom_matrix =  matrix(A_three_vertices_hom)
-    alt_2D = sign(A_three_vertices_hom_matrix.det())
-    #print alt_2D
+    common_vertices = [v for v in list(facet_as_poly.vertices()) if v in list(pre_facet.as_polyhedron().vertices())]
     
-    orient = alt_2D*alt_3D
-    #versuch
-    
-    #versuchende
-    
-    x,y = vector([x_i,y_i]), vector([x_j,y_j])
-    a,b = [A(vector(vertex_i)), A(vector(vertex_j))]
-
-    #base_ring = AA
     base_ring = RDF
-    base_ring = RealField(300)
-    al = b-a
+    
+    if first == 1:
+        x, y = vector(base_ring, [0,0]), vector(base_ring, [0, norm(vector(common_vertices[0]) - vector(common_vertices[1]))])
+    elif first == 0:
+        x, y = vector(map_2d_dict_glo[pre_facet][common_vertices[0]]), vector(map_2d_dict_glo[pre_facet][common_vertices[1]])
+    a, b = A(vector(common_vertices[0])), A(vector(common_vertices[1]))
+
+    
+    al = b - a
     bl = vector(base_ring, [-al[1], al[0]])
-    D = (base_ring^2).subspace_with_basis([al,bl])
-    xl = y-x
+    D = (base_ring**2).subspace_with_basis([al,bl])
+    xl = y - x
     yl = vector(base_ring, [-xl[1], xl[0]])
-    C = (base_ring^2).subspace_with_basis([xl,yl])
+    C = (base_ring**2).subspace_with_basis([xl,yl])
+    
+    
     A = matrix(base_ring, [[1,0],[0,1]])
-    #versuch2
-    if orient == -1:
-        A = matrix(base_ring, [[1,0],[0,-1]])
-    #endeversuch
     
     
     psi = linear_transformation(D, C, A, 'left')
-    #print psi, psi.base_ring()
-    rho = psi.restrict_domain(base_ring^2).restrict_codomain(base_ring^2)
-    M=rho.matrix().transpose()
+    rho = psi.restrict_domain(base_ring**2).restrict_codomain(base_ring**2)
+    M = rho.matrix().transpose()
     
     def F(v):
-        return M*(v-a) + x
+        return M * (v - a) + x
     
-    for v in facet_as_poly_vertices:
-        output[v]=F(vector(base_ring,vector(output[v])))
+    orient = -1
+    if first == 0:
+        test_vertex_pre = list(pre_facet.as_polyhedron().vertices())[0]
+        test_vertex = list(facet_as_poly.vertices())[0]
+    
+        i = 1
+        while test_vertex_pre in common_vertices:
+            test_vertex_pre = list(pre_facet.as_polyhedron().vertices())[i]
+            i = i + 1
+        
+        i = 1
+        while test_vertex in common_vertices:
+            test_vertex = list(facet_as_poly.vertices())[i]
+            i = i + 1
+    
+        column_1 = vector(y - x)
+        column_2 = vector(map_2d_dict_glo[pre_facet][test_vertex_pre] - x)
+        column_3 = vector(F(vector(base_ring, output[test_vertex])) - x)
+        mat_1 = matrix(base_ring, [column_1, column_2])
+        mat_2 = matrix(base_ring, [column_1, column_3])
+        orient = sign(det(mat_1)) * sign(det(mat_2))
+    elif first == 1:
+        cur_vertices = cyclic_sort_vertices_2d(cur_facet.vertices())
+        before = matrix([vector(v) - cur_facet.polyhedron().center() for v in cur_vertices[:3]])
+        after = matrix([F(vector(base_ring, output[v])) for v in cur_vertices[:3]]).augment(matrix([[1],[1],[1]]))
+        orient = - (sign(det(before)) * sign(det(after)))
+    
+    if orient == 1:
+        A = matrix(base_ring, [[1,0],[0,-1]])
+    
+        psi = linear_transformation(D, C, A, 'left')
+        rho = psi.restrict_domain(base_ring**2).restrict_codomain(base_ring**2)
+        M = rho.matrix().transpose()
+    
+    for v in facet_as_poly.vertices():
+        output[v] = F(vector(base_ring,vector(output[v])))
 
     return output
-
-def face_map_call(poly, HR, pair, map_2d_dict_glo, center, first = 0):
-    
-    if first == 1:
-        facet = pair[0]
-        facet_adj = pair[1]
-        [vertex_i,vertex_j] = [v for v in facet.incident() if v in facet_adj.incident()]
-        (x_i,y_i) = (0,0)
-        (x_j,y_j) = (0,norm(vector(vertex_j)-vector(vertex_i)))
-        orient = 1
-    else:
-        facet = pair[1]
-        facet_adj = pair[0]
-        [vertex_i,vertex_j] = [v for v in facet.incident() if v in facet_adj.incident()]
-        (x_i,y_i) = map_2d_dict_glo[facet_adj][vertex_i]
-        (x_j,y_j) = map_2d_dict_glo[facet_adj][vertex_j]
-        orient = left_or_right_2d(vertex_i,vertex_j,facet_adj,map_2d_dict_glo)
-        
-    face_map_dict = face_map_affine_trans(poly, facet,vertex_i, vertex_j, x_i, y_i, x_j, y_j, center, orient)
-    
-    return face_map_dict
     
 #########################################################################
 
@@ -1885,66 +1951,104 @@ class Projection(SageObject):
         return LatexExpr(tikz_pic)
 
 ############################################################
+
 class Unfolding():
+    """
+    The unfolding, i.e. the net of a 3-polytope.
+    
+    This class keeps track of the necessary data to plot the unfolding
+    of the input 3-polytope.
+    """
 
     def __init__(self, poly):
-        self.poly = poly
-        map_2d_dict_glo = {}
-        HR = poly.Hrepresentation()
-        VR = poly.Vrepresentation()
+        """
+        Initializes the Unfolding of `poly`.
         
-        # find the center of the polyhedron
-        sumsum = vector([0,0,0])
-        for v in poly.vertices_list():
-            sumsum += vector(v)
+        INPUT:
+
+        - ``poly`` -- A bounded 3-polytope.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.plot import Unfolding
+            sage: cube = polytopes.cube()
+            sage: cube.is_compact()
+            True
+            sage: net_cube = Unfolding(cube)
+            sage: net_cube
+            <sage.geometry.polyhedron.plot.Unfolding object at ...>
             
-        center = sumsum / len(poly.vertices_list())
+            sage: polytope = Polyhedron(vertices = [[0,0,0], [10,0, 0], [7,1,1], [3,1,0]])
+            sage: polytope.is_compact()
+            True
+            sage: net_polytope = Unfolding(polytope)
+            sage: net_polytope
+            <sage.geometry.polyhedron.plot.Unfolding object at ...>
+            
+        """
+        self._poly = poly
+        map_2d_dict_glo = {}
+        
+        order = faceorder(poly)
+        self._facets = facets_in_H_order(poly)
         
         # map the first face to the plane:
-        num = 0
         pair = order[0]
-        first = face_map_call(poly, HR, pair, map_2d_dict_glo, center, 1)
-        map_2d_dict_glo[pair[0]] = first
+        first =  face_map(self._facets[pair[0]], self._facets[pair[1]], map_2d_dict_glo, 1)
+        map_2d_dict_glo[self._facets[pair[0]]] = first
         
         # map all other faces to the plane:
-        for i in range(len(order)):
-            num = num+1
-            pair = order[i]
-            if (pair[0] in map_2d_dict_glo) == False:
-                pair[0], pair[1] = pair[1], pair[0]
-            face_map_2d = face_map_call(poly, HR, pair, map_2d_dict_glo, center, 0)
-            map_2d_dict_glo[pair[1]] = face_map_2d
+        for pair in order:
+            face_map_2d = face_map(self._facets[pair[1]], self._facets[pair[0]], map_2d_dict_glo, 0)
+            map_2d_dict_glo[self._facets[pair[1]]] = face_map_2d
         
-        self.map_2d_dict_glo = map_2d_dict_glo
-        return
+        self._map_2d_dict_glo = map_2d_dict_glo
         
     
-    def plot_map(self, innercolor="white"):
+    def plot(self, filled=True):
+        """
+        Plot an object of the :class:`Unfolding`.
         
-        g = []
-        num = 0
-        HR = poly.Hrepresentation()
-        nHR = len(HR)
-        for i in range(nHR) :
-            num = num+1
-            c = self.map_2d_dict_glo[HR[i]].values()
-            cc = [vector(RDF, vv) for vv in c]
-            p = Polyhedron(cc)
-            v = p.vertices()
+        INPUT:
+        
+        - ``filled`` -- Boolean (default: True) if the faces of the plot are colored or not.
+        
+        OUTPUT:
+        
+        A (multipart) graphics object.
+        
+        EXAMPLES::
+        
+            sage: polytope = Polyhedron(vertices = [[0,0,0], [10,0, 0], [7,1,1], [3,1,0]])
+            sage: polytope_net = Unfolding(polytope)
+            sage: polytope_net.plot()
+            Graphics object consisting of 4 graphics primitives
             
-            cyc = cyclic_sort_vertices_2d(v)
-            if i == 0: innercolor = "white"
-            if i == 1: innercolor = "yellow"
-            if i == 2: innercolor = "orange"
-            if i == 3: innercolor = "red"
-            if i == 4: innercolor = "blue"
-            if i == 5: innercolor = "green"
-            if i == 6: innercolor = "gray"
-            if i == 7: innercolor = "black"
-            if g == []:
-                g = polygon(cyc,color = innercolor, edgecolor="black")
+            sage: polytope_net.plot(filled=False)
+            Graphics object consisting of 4 graphics primitives
+            
+            sage: cube = polytopes.cube()
+            sage: cube_net = Unfolding(cube)
+            sage: cube_net.plot()
+            Graphics object consisting of 6 graphics primitives
+        """
+    
+        i = 0
+        if filled == False:
+            v = 0
+        else:
+            v = 1
+            
+        for facet in self._facets:
+            new_vertices = list(self._map_2d_dict_glo[facet].values())
+            cyc = cyclic_sort_vertices_2d(Polyhedron(new_vertices).vertices())
+            
+            if i == 0:
+                g = polygon(cyc, fill=filled, color = Color(i / len(self._poly.facets()), 0.75, v, space='hsv'), edgecolor="black")
             else:
-                g += polygon(cyc,color = innercolor, edgecolor="black")
-        g.SHOW_OPTIONS['axes']=False
+                g += polygon(cyc, fill=filled, color = Color(i / len(self._poly.facets()), 0.75, v, space='hsv'), edgecolor="black")
+            i += 1
+            
+        g.SHOW_OPTIONS['axes'] = False
         
         return g
