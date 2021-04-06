@@ -864,7 +864,6 @@ cdef class Matrix(Matrix1):
                 raise ValueError("matrix equation has no solutions")
             ret = ret.Vec().sage()
             return (K ** self.ncols())(ret)
-        
 
     def _solve_right_nonsingular_square(self, B, check_rank=True):
         r"""
