@@ -34,7 +34,7 @@ from sage.libs.flint.ulong_extras cimport (
     n_CRT,
 )
 from sage.rings.polynomial.polynomial_zmod_flint cimport Polynomial_zmod_flint
-from sage.libs.gmp.mpz cimport mpz_sgn,  mpz_fits_ulong_p, mpz_get_ui
+from sage.libs.gmp.mpz cimport mpz_sgn,  mpz_fits_ulong_p, mpz_get_ui, mpz_get_si
 from sage.rings.integer cimport Integer
 from sage.structure.factorization import Factorization
 from sage.structure.proof.all import linear_algebra as linalg_proof
@@ -910,6 +910,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             p, zdp = map(set, self._pivots())
             set_pivots = p.union(zdp)
             pivot = sorted(list(set_pivots))
+            N = mpz_get_si(self._modulus.sageInteger.value)
             basis = []
             k = 0
             for j in range(self._ncols):
@@ -922,7 +923,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                     k += 1
                     if zero_divisors_are_pivots:
                         continue
-                    v[j] = self._modulus.int64/nmod_mat_get_entry(E._matrix, i, j)
+                    v[j] = self._parent._base(N//nmod_mat_get_entry(E._matrix, i, j))
                 else:
                     v[j] = one
 
@@ -932,16 +933,16 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                     x = nmod_mat_get_entry(E._matrix, l, pivot[l])
                     # solve
                     # v[pivot[l]] E[l, pivot[l]]  + y*sum(E[l,m] * v[m] for m in range(pivot[l] + 1, j)) = 0
-                    s = sum(v[m]*nmod_mat_get_entry(E._matrix, l, m) for m in range(pivot[l] + 1, j + 1)) % self._modulus.int64
+                    s = sum(v[m]*nmod_mat_get_entry(E._matrix, l, m) for m in range(pivot[l] + 1, j + 1)) % N
                     if s % x != 0: # make sure we can work mod N/x
                         y = x//gcd(s, x)
                         s *= y # now s is divisible by x
                         for m in range(pivot[l] + 1, j + 1):
                             v[m] *= y
-                        assert v[j] % self._modulus.int64 != 0
+                        assert v[j] % N != 0
                     # QUESTION: this is correct modulo N/x, does one need to consider the various lifts?
                     # FIXME, this feels wrong
-                    v[pivot[l]] = self._parent._base((-s//x))
+                    v[pivot[l]] = self._parent._base(-s//x)
                 basis.append(v)
             # FIXME, this feels wrong
             ans = self._new(len(basis), self._ncols)
