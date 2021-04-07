@@ -55,6 +55,20 @@ def _standard_libs_libdirs_incdirs_aliases():
         'ntl']
     standard_libdirs = [os.path.join(SAGE_LOCAL, "lib")] + aliases["CBLAS_LIBDIR"] + aliases["NTL_LIBDIR"]
     standard_incdirs = sage_include_directories() + aliases["CBLAS_INCDIR"] + aliases["NTL_INCDIR"]
+    # add standard_libs info from pkgconfig.  This is necessary if python3-config doesn't know these paths.
+    for pkg in standard_libs:
+        if pkgconfig.exists(pkg):
+            # Fix standard_libdirs
+            paths = pkgconfig.libs(pkg).split()
+            for path in paths:
+                if path[0:2] == "-L":
+                    standard_libdirs.append(path[2:])
+            # Fix standard_incdirs
+            paths = pkgconfig.libs(pkg).split()
+            for path in paths:
+                if path[0:2] == "-I":
+                    standard_incdirs.append(path[2:])
+    
     return standard_libs, standard_libdirs, standard_incdirs, aliases
 
 ################################################################
