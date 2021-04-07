@@ -11,4 +11,4 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     cdef long get_unsafe_si(self, Py_ssize_t i, Py_ssize_t j)
 
     cdef Matrix_nmod_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols)
-    cpdef _shift_mod(self, mp_limb_t modulus, mp_limb_t shift=1, bint mul=True, bint domod=True)
+    cpdef _shift_mod(self, mp_limb_t modulus, mp_limb_t shift=*, bint mul=*, bint domod=*)

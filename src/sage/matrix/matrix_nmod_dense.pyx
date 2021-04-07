@@ -12,6 +12,7 @@ from cpython.sequence cimport *
 
 from cysignals.signals cimport sig_on, sig_str, sig_off
 
+from sage.categories.cartesian_product import cartesian_product
 import sage.misc.prandom as random
 from sage.arith.all import gcd
 from sage.arith.power cimport generic_power
@@ -20,7 +21,7 @@ from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, Matrix
 from sage.structure.element import is_Vector
 from sage.libs.flint.nmod_mat cimport *
-from sage.libs.flint.nmod_poly cimport nmod_poly_set, nmod_poly_set_coeff_ui, nmod_poly_get_coeff_ui
+from sage.libs.flint.nmod_poly cimport nmod_poly_set, nmod_poly_set_coeff_ui, nmod_poly_get_coeff_ui, nmod_poly_fit_length
 from sage.libs.flint.ulong_extras cimport (
     n_precompute_inverse,
     n_preinvert_limb,
@@ -32,12 +33,14 @@ from sage.libs.flint.ulong_extras cimport (
     n_mulmod2_preinv,
     n_remove2_precomp,
     n_CRT,
+    n_div2_preinv,
 )
 from sage.rings.polynomial.polynomial_zmod_flint cimport Polynomial_zmod_flint
 from sage.libs.gmp.mpz cimport mpz_sgn,  mpz_fits_ulong_p, mpz_get_ui, mpz_get_si
 from sage.rings.integer cimport Integer
 from sage.structure.factorization import Factorization
 from sage.structure.proof.all import linear_algebra as linalg_proof
+from sage.misc.cachefunc import cached_method
 
 from .args cimport SparseEntry, MatrixArgs_init
 
@@ -45,6 +48,24 @@ import sage.matrix.matrix_space as matrix_space
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_abstract, IntegerMod_int, IntegerMod_int64, IntegerMod_gmp
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.structure.richcmp cimport rich_to_bool, Py_EQ, Py_NE
+
+def poly_crt(S, polys, moduli):
+    if len(polys) == 1:
+        return polys[0]
+    cdef Py_ssize_t i, j, d
+    cdef mp_limb_t N
+    polys = sorted(polys, key=lambda g: g.degree())
+    cdef Polynomial_zmod_flint f = S()
+    nmod_poly_fit_length(&f.x, polys[-1].degree()+1)
+    N = 1
+    d = 0
+    for i in range(len(polys)):
+        d = polys[i].degree()
+        for j in range(d):
+            nmod_poly_set_coeff_ui(&f.x, j, n_CRT(nmod_poly_get_coeff_ui(&f.x, j), N, nmod_poly_get_coeff_ui(&(<Polynomial_zmod_flint>polys[i]).x, j), <unsigned long>moduli[i]))
+        N *= moduli[i]
+    return f
+
 
 cdef class Matrix_nmod_dense(Matrix_dense):
     ########################################################################
@@ -532,97 +553,85 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                 gens.extend(self.change_ring(S).minpoly_gens())
             return gens
         P = self.parent()
-        cdef mp_limb_t p, q, qp, piv, c, N = self.base_ring().order()
-        cdef int e
+        cdef mp_limb_t piv, c, N = self.base_ring().order()
         p, e = F[0]
         # We start with the minimal polynomial mod p
         S = Zmod(p)
-        S.factored_order.set_cache(Factorization([(p, 1)]))
-        cdef Polynomial_zmod_flint newgen, mpoly = self.change_ring(S).minpoly()
+        cdef Matrix_nmod_dense C = self.change_ring(S)
+        cdef Polynomial_zmod_flint f, mpoly = S['x']()
+        sig_on()
+        nmod_mat_minpoly(&mpoly.x, self._matrix)
+        sig_off()
         if e == 1:
-            return [(p, [mpoly])]
-        cdef Py_ssize_t i, j, deg, d = mpoly.degree()
+            return [[mpoly]]
+        cdef Py_ssize_t i, j, jj, k, d = mpoly.degree()
         if d == n:
             # The minimal polynomial is the same as the characteristic polynomial
-            return [(N, [self.charpoly()])]
+            return [[self.charpoly()]]
         # We pick a random vector and iteratively multiply by the matrix n times
-        
         cdef Matrix_nmod_dense v = self._new(n, 1), B = self._new(n+1, n+1)
         pows = [self.parent().identity_matrix()]
         for i in range(d):
             pows.append(pows[-1] * self)
+        Rx = R['x']
+        def check(polys, pows):
+            d = polys[0].degree()
+            while d >= len(pows):
+                pows.append(pows[-1] * self)
+            for f in polys:
+                C = self._new(n, n)
+                for k in range(f.degree() + 1):
+                    C += f[k] * pows[k]
+                if C:
+                    return False
+            return True
         while True:
             for i in range(n):
                 c = random.randrange(N)
                 nmod_mat_set_entry(v._matrix, i, 0, c)
-                nmod_mat_set_entry(B._matrix, i, 0, c)
-            for j in range(1, n+1):
+                nmod_mat_set_entry(B._matrix, i, n, c)
+            # It would be nice to figure out if we can stop early
+            for j in range(n-1, -1, -1):
                 v = self * v
                 for i in range(n):
                     nmod_mat_set_entry(B._matrix, i, j, nmod_mat_get_entry(v._matrix, i, 0))
-            B._howell_form()
+            C = B._right_kernel_matrix()
             polys = []
             # scan for last nonzero row
             for i in range(n, -1, -1):
                 for j in range(n):
-                    piv = nmod_mat_get_entry(B._matrix, i, j)
-                    if not polys: # monic generator from next free column
-                        poly = [R(0) for _ in range(j)] + [R(1)]
+                    piv = nmod_mat_get_entry(C._matrix, i, j)
                     if piv:
-                        deg = j + 1
-                        
-        gens = []
-        pows = [self.parent().identity_matrix()]
-        pows_modp = [pows[0]._shift_mod(p), domod=False]
-        for i in range(d):
-            pows.append(pows[-1] * self)
-            pows_modp.append(pows[0]._shift(p))
-        q = p
-        cdef Matrix_nmod_dense Y
-        for i in range(2, e+1):
-            qp = q*p
-            S = Zmod(qp)
-            curgen = curgen.change_ring(S)
-            Y = P.zero()
-            for j in range(d+1):
-                Y += pows[j]._shift_mod(qp, nmod_poly_get_coeff_ui(curgen.x, j))
-            Y = Y._shift_mod(p, q, mul=False, domod=False) # Y = Y // q, as a matrix mod p
-            # X^d + (a(d-1) + q b(d-1)) X^(d-1) + (a(d-2) + q b(d-2)) X^(d-2) + ... + (a(0) + q b(0)) = 0
-            # q(Y + b(d-1) X^(d-1) + b(d-2) X^(d-2) + ... + b(0)) = 0
-            q = qp
+                        f = Rx()
+                        nmod_poly_fit_length(&f.x, n+1-j)
+                        for jj in range(n+1-j):
+                            nmod_poly_set_coeff_ui(&f.x, jj, nmod_mat_get_entry(C._matrix, i, n-jj))
+                        polys.append(f)
+                        break
+                if piv == 1:
+                    # reached the monic generator, so try to return an answer
+                    polys.reverse()
+                    # We only know that the polynomials vanish on a random vector.
+                    # We need to check that they actually vanish on the matrix
+                    if proof and check(polys, pows) or not proof:
+                        return [polys]
+                    break
 
     def minpoly(self, var='x', proof=None, **kwds):
         if not self.is_square():
             raise ValueError("Minimal polynomial not defined for non-square matrices")
-        R = self.base_ring()
-        F = R.factored_order()
-        cdef Polynomial_zmod_flint f
-        if len(F) == 1:
-            p, e = F[0]
-            if e == 1:
-                f = R[var]()
-                sig_on()
-                nmod_mat_minpoly(&f.x, self._matrix)
-                sig_off()
-                return f
-            else:
-                # The prime power case is difficult: we can't just lift from mod p or reduce from Z since the degree can change.
-                # For example, [p, 0; 0, -p] has minpoly X mod p, X^2 mod p^2 and X^2 - p^2 mod p^3.
-                gens = self._minpoly_gens(proof=proof)[0][1]
-                if len(gens) != 1:
-                    raise ValueError("Matrix does not have a minimal polynomial; try minpoly_ideal")
-                gen = gens[0]
-                if var != 'x':
-                    gen = gen.change_variable_name(var)
-                return gen
         gens = self._minpoly_gens(proof=proof)
-        if any(len(pegens) != 1 for (pe, pegens) in gens):
+        if any(len(pegens) != 1 for pegens in gens):
             raise ValueError("Matrix does not have a minimal polynomial; try minpoly_ideal")
         return self.minpoly_ideal(var=var).gen()
 
     def minpoly_ideal(self, var='x', proof=None, **kwds):
-        gens = self._minpoly_gens(proof=proof)
-        
+        if not self.is_square():
+            raise ValueError("Minimal polynomial ideal not defined for non-square matrices")
+        gens_by_p = self._minpoly_gens(proof=proof)
+        moduli = [gens[0].base_ring().order() for gens in gens_by_p]
+        S = self.base_ring()[var]
+        return S.ideal([poly_crt(S, polys, moduli) for polys in cartesian_product(gens_by_p)])
 
     cdef swap_columns_c(self, Py_ssize_t c1, Py_ssize_t c2):
         nmod_mat_swap_cols(self._matrix, NULL, c1, c2)
@@ -909,7 +918,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             one = self._parent._base.one()
             p, zdp = map(set, self._pivots())
             set_pivots = p.union(zdp)
-            pivot = sorted(list(set_pivots))
+            pivot = sorted(set_pivots)
             N = mpz_get_si(self._modulus.sageInteger.value)
             basis = []
             k = 0
@@ -955,12 +964,6 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                 return ans
             else:
                 return ans.howell_form()
-
-
-    # random matrix generation (David)
-    # charpoly and minpoly (David)
-    # solve (nmod_mat_can_solve) (David)
-
 
 
     # transpose (Edgar) x
