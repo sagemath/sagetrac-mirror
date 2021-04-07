@@ -83,6 +83,7 @@ def K3SurfaceAut(A, B, a, Oa):
     phi0 = A1.gap().GroupHomomorphismByImages(A2.gap(), gens1, gens2)
 
     # notation
+    print(B)
     OB = B.orthogonal_group()
     pi = OB.gap().GroupHomomorphismByImagesNC(OqB.gap(),[OqB(h).gap() for h in OB.gens()])
     G0 = pi.Kernel().GeneratorsOfGroup()
@@ -369,7 +370,7 @@ def classify_purely_ns_peq(p, q ,file_r, file_aw, log_file,aw="w",verbose=2):
     for str_pe in peactions:
         k+=1
         print(k)
-        if str_pe=="complete":
+        if str_pe[:8]=="complete":
             continue
         k3 = aut_from_str(str_pe)
         L = k3.symplectic_invariant_lattice()
