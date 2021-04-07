@@ -369,6 +369,8 @@ def classify_purely_ns_peq(p, q ,file_r, file_aw, log_file,aw="w",verbose=2):
     for str_pe in peactions:
         k+=1
         print(k)
+        if str_pe=="complete":
+            continue
         k3 = aut_from_str(str_pe)
         L = k3.symplectic_invariant_lattice()
         if k3.NS_coinvariant().maximum() == -2:
@@ -410,6 +412,8 @@ def classify_ord_peq(p, q, file_r, file_aw,aw='w',verbose=2):
     k = 0
     types = []
     for str_pe in peactions:
+        if str_pe=="complete":
+            continue
         k+=1
         print(k)
         k3 = aut_from_str(str_pe)
