@@ -1,27 +1,49 @@
 # distutils: extra_compile_args = -D_XPG6
 # flags chosen from libs/flint/fmpz_poly.pyx
-"""
+r"""
 FLINT nmod_mat class wrapper
+
+This file implements matrices over `\ZZ/N\ZZ` for `N < 2^{63}`.
+It adds some capabilities for composite `N` that are not present in FLINT.
 
 AUTHORS:
 
-- Edgar Costa (2021) Initial version.
+- Edgar Costa, David Roe (2021) Initial version.
 """
 
 from cpython.sequence cimport *
-
 from cysignals.signals cimport sig_on, sig_str, sig_off
 
+from sage.structure.element cimport Element, Matrix
+from sage.structure.element import is_Vector
 from sage.categories.cartesian_product import cartesian_product
-import sage.misc.prandom as random
+from sage.structure.richcmp cimport rich_to_bool, Py_EQ, Py_NE
+from sage.structure.factorization import Factorization
+from sage.structure.proof.all import linear_algebra as linalg_proof
+from sage.misc.cachefunc import cached_method
+from sage.misc.prandom import randrange
 from sage.arith.all import gcd
 from sage.arith.power cimport generic_power
 from sage.arith.long cimport integer_check_long_py
-from sage.structure.sage_object cimport SageObject
-from sage.structure.element cimport Element, Matrix
-from sage.structure.element import is_Vector
+from sage.rings.polynomial.polynomial_zmod_flint cimport Polynomial_zmod_flint
+from sage.rings.integer cimport Integer
+from sage.rings.finite_rings.integer_mod cimport (
+    IntegerMod_abstract,
+    IntegerMod_int,
+    IntegerMod_int64,
+    IntegerMod_gmp
+)
+from sage.rings.finite_rings.integer_mod_ring import Zmod
+from sage.matrix.matrix_space import MatrixSpace
+from .args cimport SparseEntry, MatrixArgs_init
+
 from sage.libs.flint.nmod_mat cimport *
-from sage.libs.flint.nmod_poly cimport nmod_poly_set, nmod_poly_set_coeff_ui, nmod_poly_get_coeff_ui, nmod_poly_fit_length
+from sage.libs.flint.nmod_poly cimport (
+    nmod_poly_set,
+    nmod_poly_set_coeff_ui,
+    nmod_poly_get_coeff_ui,
+    nmod_poly_fit_length
+)
 from sage.libs.flint.ulong_extras cimport (
     n_precompute_inverse,
     n_preinvert_limb,
@@ -35,21 +57,37 @@ from sage.libs.flint.ulong_extras cimport (
     n_CRT,
     n_div2_preinv,
 )
-from sage.rings.polynomial.polynomial_zmod_flint cimport Polynomial_zmod_flint
 from sage.libs.gmp.mpz cimport mpz_sgn,  mpz_fits_ulong_p, mpz_get_ui, mpz_get_si
-from sage.rings.integer cimport Integer
-from sage.structure.factorization import Factorization
-from sage.structure.proof.all import linear_algebra as linalg_proof
-from sage.misc.cachefunc import cached_method
 
-from .args cimport SparseEntry, MatrixArgs_init
-
-import sage.matrix.matrix_space as matrix_space
-from sage.rings.finite_rings.integer_mod cimport IntegerMod_abstract, IntegerMod_int, IntegerMod_int64, IntegerMod_gmp
-from sage.rings.finite_rings.integer_mod_ring import Zmod
-from sage.structure.richcmp cimport rich_to_bool, Py_EQ, Py_NE
 
 def poly_crt(S, polys, moduli):
+    r"""
+    Implements the Chinese remainder theorem for polynomials over `\ZZ/m\ZZ`.
+
+    INPUT:
+
+    - ``S`` -- a polynomial ring over `\ZZ/N\ZZ` with `N < 2^{63}`.
+
+    - ``polys`` -- a list of polynomials modulo smaller integers `m`.
+
+    - ``moduli`` -- the moduli `m` for the polynomials.  The list must have the same length, and the product must be `N`.
+
+    OUTPUT:
+
+    The polynomial in S reducing to each polynomial in ``polys`` modulo the integers given in ``moduli``.
+
+    EXAMPLES::
+
+        sage: from sage.matrix.matrix_nmod_dense import poly_crt
+        sage: moduli = [4, 9, 25, 49]
+        sage: N = prod(moduli)
+        sage: S.<x> = Zmod(N)[]
+        sage: polys = [Zmod(m)['x']([sqrt(m)] + [0]*(sqrt(m)-1) + [1]) for m in moduli]
+        sage: f = poly_crt(S, polys, moduli); f
+        27000*x^7 + 15876*x^5 + 34300*x^3 + 11025*x^2 + 40530
+        sage: all(g == f.change_ring(Zmod(m)) for (g, m) in zip(polys, moduli))
+        True
+    """
     if len(polys) == 1:
         return polys[0]
     cdef Py_ssize_t i, j, d
@@ -61,42 +99,74 @@ def poly_crt(S, polys, moduli):
     d = 0
     for i in range(len(polys)):
         d = polys[i].degree()
-        for j in range(d):
-            nmod_poly_set_coeff_ui(&f.x, j, n_CRT(nmod_poly_get_coeff_ui(&f.x, j), N, nmod_poly_get_coeff_ui(&(<Polynomial_zmod_flint>polys[i]).x, j), <unsigned long>moduli[i]))
+        for j in range(d+1):
+            nmod_poly_set_coeff_ui(&f.x, j, n_CRT(nmod_poly_get_coeff_ui(&f.x, j), N, nmod_poly_get_coeff_ui(&(<Polynomial_zmod_flint?>polys[i]).x, j), <unsigned long>moduli[i]))
         N *= moduli[i]
     return f
 
 
 cdef class Matrix_nmod_dense(Matrix_dense):
+    r"""
+    Matrices modulo `N` for `N < 2^{63}`
+
+    EXAMPLES::
+
+        sage: A = matrix(Zmod(36), 3, 3, range(9))
+        sage: type(A)
+        <class 'sage.matrix.matrix_nmod_dense.Matrix_nmod_dense'>
+    """
     ########################################################################
     # LEVEL 1 helpers:
     #   These function support the implementation of the level 1 functionality.
     ########################################################################
     def __cinit__(self, parent, *args, **kwds):
+        """
+        Memory initialization
+
+        EXAMPLES::
+
+            sage: M = MatrixSpace(Zmod(36), 2, 2)
+            sage: M()
+            [0 0]
+            [0 0]
+        """
         self._modulus = parent._base._pyx_order
         sig_str("FLINT exception")
         nmod_mat_init(self._matrix, self._nrows, self._ncols, mpz_get_ui(self._modulus.sageInteger.value))
         sig_off()
 
-
-
     def __init__(self, parent, entries=None, copy=None, bint coerce=True):
+        """
+        Initialization
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(36), 3, 3, range(9))
+            sage: TestSuite(A).run()
+        """
         self._parent = parent
         ma = MatrixArgs_init(parent, entries)
-        cdef long z
-        for t in ma.iter(coerce, True): #????
-            se = <SparseEntry>t
-            z = <long>se.entry
-            nmod_mat_set_entry(self._matrix, se.i, se.j, z)
-
-    def _print(self):
-        #FIXME: For debugging; remove when ready
-        nmod_mat_print_pretty(self._matrix)
+        cdef SparseEntry se
+        for se in ma.iter(coerce, sparse=True):
+            nmod_mat_set_entry(self._matrix, se.i, se.j, se.entry)
 
     def __dealloc__(self):
+        """
+        Memory deallocation
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(36), 3, 3, range(9))
+            sage: del A
+        """
+        sig_on()
         nmod_mat_clear(self._matrix)
+        sig_off()
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x):
+        """
+        Low level interface for setting entries, used by generic matrix code.
+        """
         e = self._modulus.element_class()
         cdef mp_limb_t ivalue
         if e is IntegerMod_int:
@@ -105,15 +175,13 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             ivalue = (<IntegerMod_int64>x).ivalue
         else:
             ivalue = mpz_get_ui((<IntegerMod_gmp>x).value)
-        self.set_unsafe_si(i, j, ivalue)
-
-    cdef void set_unsafe_si(self, Py_ssize_t i, Py_ssize_t j, long value):
-        nmod_mat_set_entry(self._matrix, i, j, value)
-
-    cdef long get_unsafe_si(self, Py_ssize_t i, Py_ssize_t j):
-        return nmod_mat_get_entry(self._matrix, i, j)
+        nmod_mat_set_entry(self._matrix, i, j, ivalue)
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Low level interface for getting entries as an element of the base ring,
+        used by generic matrix code.
+        """
         cdef type t = self._modulus.element_class()
         cdef IntegerMod_abstract x = t.__new__(t)
         x._parent = self._parent._base
@@ -130,7 +198,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         if nrows == self._nrows and ncols == self._ncols:
             P = self._parent
         else:
-            P = matrix_space.MatrixSpace(self._parent._base, nrows, ncols, sparse=False)
+            P = MatrixSpace(self._parent._base, nrows, ncols, sparse=False)
         cdef Matrix_nmod_dense ans = Matrix_nmod_dense.__new__(Matrix_nmod_dense, P)
         ans._parent = P
         return ans
@@ -141,20 +209,58 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     ########################################################################
 
     cpdef _add_(self, _right):
+        """
+        Addition
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(36), 3, 3, range(9))
+            sage: B = matrix(Zmod(36), 3, 3, range(2, 20, 2))
+            sage: A + B
+            [ 2  5  8]
+            [11 14 17]
+            [20 23 26]
+        """
         cdef Matrix_nmod_dense right = _right
         cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
+        sig_on()
         nmod_mat_add(M._matrix, self._matrix, right._matrix)
+        sig_off()
         return M
 
     cdef Matrix _matrix_times_matrix_(left, Matrix _right):
+        """
+        Multiplication
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(36), 2, 3, range(6))
+            sage: B = matrix(Zmod(36), 3, 2, range(6))
+            sage: A * B
+            [10 13]
+            [28  4]
+        """
         if left._ncols != _right._nrows:
             raise IndexError("Number of columns of self must equal number of rows of right.")
         cdef Matrix_nmod_dense right = _right
         cdef Matrix_nmod_dense M = left._new(left._nrows, right._ncols)
+        sig_on()
         nmod_mat_mul(M._matrix, left._matrix, right._matrix)
+        sig_off()
         return M
 
     cpdef _lmul_(self, Element right):
+        """
+        Scalar multiplication
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(36), 3, 3, range(0, 18, 2))
+            sage: 9*A
+            [ 0 18  0]
+            [18  0 18]
+            [ 0 18  0]
+        """
         cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
         e = self._modulus.element_class()
         cdef mp_limb_t ivalue
@@ -164,7 +270,9 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             ivalue = (<IntegerMod_int64>right).ivalue
         else:
             ivalue = mpz_get_ui((<IntegerMod_gmp>right).value)
+        sig_on()
         nmod_mat_scalar_mul(M._matrix, self._matrix, ivalue)
+        sig_off()
         return M
 
 
@@ -172,6 +280,15 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         """
         Return a copy of this matrix. Changing the entries of the copy will
         not change the entries of this matrix.
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(36), 2, 2, range(4))
+            sage: B = copy(A)
+            sage: B[1,1] = 35
+            sage: A
+            [0 1]
+            [2 3]
         """
         cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
         sig_on()
@@ -183,9 +300,12 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         r"""
         Return the negative of this matrix.
 
-        TESTS::
+        EXAMPLES::
 
-
+            sage: A = matrix(Zmod(36), 2, 2, range(4))
+            sage: -A
+            [ 0 35]
+            [34 33]
         """
         cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
         sig_on()
@@ -200,7 +320,18 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
         EXAMPLES::
 
-
+            sage: A = matrix(Zmod(36), 2, 2, range(4))
+            sage: B = matrix(Zmod(36), 2, 2, [0, 1, 3, 2])
+            sage: A == A
+            True
+            sage: A != A
+            False
+            sage: A == B
+            False
+            sage: A != B
+            True
+            sage: A < B
+            True
         """
         cdef Py_ssize_t i, j
         cdef int k
@@ -229,9 +360,29 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     ########################################################################
 
     def __nonzero__(self):
+        """
+        EXAMPLES::
+
+            sage: bool(matrix(Zmod(36), 2, 2, 1))
+            True
+            sage: bool(matrix(Zmod(36), 0, 0))
+            False
+        """
         return not nmod_mat_is_zero(self._matrix)
 
     cpdef _sub_(self, _right):
+        """
+        Subtraction
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(36), 3, 3, range(9))
+            sage: B = matrix(Zmod(36), 3, 3, range(2, 20, 2))
+            sage: A - B
+            [34 33 32]
+            [31 30 29]
+            [28 27 26]
+        """
         cdef Matrix_nmod_dense right = _right
         cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
         nmod_mat_sub(M._matrix, self._matrix, right._matrix)
@@ -241,17 +392,55 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         r"""
         Return the inverse of this matrix.
 
-        Raises a ``ZeroDivisionError`` if the determinant is not a unit,
-        and raises an ``ArithmeticError`` if the
-        inverse doesn't exist because the matrix is nonsquare.
-
         EXAMPLES::
 
-            sage: 
+            sage: A = matrix(Zmod(36), [[28, 32, 19], [25, 24, 2], [15, 11, 30]])
+            sage: B = ~A
+            sage: A * B == B * A == identity_matrix(Zmod(36), 3, 3)
+            True
         """
         return self.inverse_of_unit()
 
     def inverse_of_unit(self, algorithm="crt"):
+        """
+        Return the inverse of this matrix.
+
+        Raises a ``ZeroDivisionError`` if the determinant is not a unit,
+        and raises an ``ArithmeticError`` if the
+        inverse doesn't exist because the matrix is nonsquare.
+
+        INPUT:
+
+        - ``algorithm`` -- either ``"crt"`` or ``"lift"``.
+            In the first case, CRT is used to assemble results from prime powers
+            dividing the modulus, with quadratic Hensel lifting for prime powers.
+            In the second case, the inverse is computed over the integers and
+            then reduced.
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(36), [[28, 32, 19], [25, 24, 2], [15, 11, 30]])
+            sage: A.inverse_of_unit()
+            [14  5  4]
+            [ 0 15 23]
+            [23 28 16]
+
+            sage: for N in [5, 625, 36, 2^24, 2^6*3^9, 2^63-1]:
+            ....:     for n in [3, 6]:
+            ....:         A = random_matrix(Zmod(N), n, n)
+            ....:         while not A.det().is_unit():
+            ....:             A = random_matrix(Zmod(N), n, n)
+            ....:         assert A.inverse_of_unit('crt') == A.inverse_of_unit('lift')
+
+            sage: matrix(Zmod(36), [[2, 0], [0, 2]]).inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: input matrix must be nonsingular
+            sage: matrix(Zmod(36), [[2], [2]]).inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: inverse only defined for square matrix
+        """
         if not self.is_square():
             raise ArithmeticError("inverse only defined for square matrix")
         if not self.nrows():
@@ -270,78 +459,125 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             if not ok:
                 raise ZeroDivisionError("input matrix must be nonsingular")
             return M
-        else:
-            if algorithm == "lift":
-                return (~self.lift_centered()).change_ring(R)
-            elif algorithm == "crt":
-                # The modulus is small, so factoring is feasible.
-                # We find inverses modulo each prime dividing the modulus, lift p-adically, then CRT the results together
-                M = self._new(n, n)
-                F = R.factored_order()
-                maxe = max(fac[1] for fac in F)
-                lift_required = (maxe > 1)
+        if algorithm == "lift":
+            return (~self.lift_centered()).change_ring(R)
+        if algorithm == "crt":
+            # The modulus is small, so factoring is feasible.
+            # We find inverses modulo each prime dividing the modulus, lift p-adically, then CRT the results together
+            M = self._new(n, n)
+            F = R.factored_order()
+            maxe = max(fac[1] for fac in F)
+            lift_required = (maxe > 1)
+            if lift_required:
+                nlifts = Integer(maxe - 1).nbits()
+                lift_mods = [1 for _ in range(nlifts)]
+            try:
+                nmod_mat_init(A, n, n, 1)
+                nmod_mat_init(inv, n, n, 1)
                 if lift_required:
-                    nlifts = (maxe - 1).nbits()
-                    lift_mods = [1 for _ in range(nlifts)]
-                try:
-                    nmod_mat_init(A, n, n, 1)
-                    nmod_mat_init(inv, n, n, 1)
+                    nmod_mat_init(tmp, n, n, 1)
+                for pz, ez in F:
+                    p = pz
+                    _nmod_mat_set_mod(A, p)
+                    for i in range(n):
+                        for j in range(n):
+                            nmod_mat_set_entry(A, i, j, nmod_mat_get_entry(self._matrix, i, j) % p)
+                    ok = nmod_mat_inv(A, A)
+                    if not ok:
+                        raise ZeroDivisionError("input matrix must be nonsingular")
+                    _nmod_mat_set_mod(inv, N*p)
+                    for i in range(n):
+                        for j in range(n):
+                            nmod_mat_set_entry(inv, i, j, n_CRT(nmod_mat_get_entry(inv, i, j), N, nmod_mat_get_entry(A, i, j), p))
+                    N *= p
+                    # Now inv is accurate modulo N
                     if lift_required:
-                        nmod_mat_init(tmp, n, n, 1)
-                    for pz, ez in F:
-                        p = pz
-                        _nmod_mat_set_mod(A, p)
+                        e = ez
+                        # Update the moduli for lifting so that the exponent of p at most doubles
+                        for k in reversed(range(nlifts)):
+                            lift_mods[k] *= p**e
+                            e = (e + 1) // 2
+                if lift_required:
+                    for k in range(nlifts):
+                        N = lift_mods[k]
+                        _nmod_mat_set_mod(tmp, N)
+                        _nmod_mat_set_mod(inv, N)
+                        _nmod_mat_set_mod(A, N)
                         for i in range(n):
                             for j in range(n):
-                                nmod_mat_set_entry(A, i, j, nmod_mat_get_entry(self._matrix, i, j) % p)
-                        ok = nmod_mat_inv(A, A)
-                        if not ok:
-                            raise ZeroDivisionError("input matrix must be nonsingular")
-                        _nmod_mat_set_mod(inv, N*p)
-                        for i in range(n):
-                            for j in range(n):
-                                nmod_mat_set_entry(inv, i, j, n_CRT(nmod_mat_get_entry(inv, i, j), N, nmod_mat_get_entry(A, i, j), p))
-                        N *= p
-                        # Now inv is accurate modulo N
-                        if lift_required:
-                            e = ez
-                            # Update the moduli for lifting so that the exponent of p at most doubles
-                            for k in reversed(range(maxe)):
-                                lift_mods[k] *= p**e
-                                e = (e + 1) // 2
-                    if lift_required:
-                        for k in range(maxe):
-                            N = lift_mods[k]
-                            _nmod_mat_set_mod(tmp, N)
-                            _nmod_mat_set_mod(inv, N)
-                            _nmod_mat_set_mod(A, N)
-                            for i in range(n):
-                                for j in range(n):
-                                    nmod_mat_set_entry(A, i, j, nmod_mat_get_entry(self._matrix, i, j) % N)
-                            # Suppose B is an approximation to the inverse of A.
-                            # I - AB = p^k E
-                            # (I - AB)(I - AB) = I - A(2B - BAB) = p^(2k)E^2
-                            # So 2B - BAB is a better approximation
-                            nmod_mat_mul(tmp, A, inv)
-                            nmod_mat_mul(tmp, inv, tmp)
-                            nmod_mat_scalar_mul(inv, inv, 2)
-                            nmod_mat_sub(inv, inv, tmp)
-                            # Now inv is accurate mod N
-                    nmod_mat_set(M._matrix, inv)
-                    return M
-                finally:
-                    nmod_mat_clear(A)
-                    nmod_mat_clear(inv)
-                    if lift_required:
-                        nmod_mat_clear(tmp)
+                                nmod_mat_set_entry(A, i, j, nmod_mat_get_entry(self._matrix, i, j) % N)
+                        # Suppose B is an approximation to the inverse of A.
+                        # I - AB = p^k E
+                        # (I - AB)(I - AB) = I - A(2B - BAB) = p^(2k)E^2
+                        # So 2B - BAB is a better approximation
+                        nmod_mat_mul(tmp, A, inv)
+                        nmod_mat_mul(tmp, inv, tmp)
+                        nmod_mat_scalar_mul(inv, inv, 2)
+                        nmod_mat_sub(inv, inv, tmp)
+                        # Now inv is accurate mod N
+                nmod_mat_set(M._matrix, inv)
+                return M
+            finally:
+                nmod_mat_clear(A)
+                nmod_mat_clear(inv)
+                if lift_required:
+                    nmod_mat_clear(tmp)
+        raise ValueError("Unrecognized algorithm '%s'" % algorithm)
 
     def hessenberg_form(self):
+        """
+        The Hessenberg form of a matrix is almost upper triangular,
+        and allows for efficient computation of the characteristic polynomial.
+
+        Requires that the base ring have prime power modulus.
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(125), 4, [2,1,1,-2,2,2,-1,-1,-1,1,2,3,4,5,6,7])
+            sage: H = A.hessenberg_form(); H
+            [  2  59  88   1]
+            [  2  63  34 124]
+            [  0  15 104   8]
+            [  0   0  90  94]
+            sage: H.charpoly() == A.charpoly()
+            True
+        """
         B = self.__copy__()
         B.hessenbergize()
         return B
 
     def hessenbergize(self):
         """
+        Transform this matrix into Hessenberg form.
+
+        The hessenberg form of a matrix `A` is a matrix that is
+        similar to `A`, so has the same characteristic polynomial
+        as `A`, and is upper triangular except possible for entries
+        right below the diagonal.
+
+        Requires that the base ring have prime power modulus.
+
+        The algorithm is a modification of the standard one over fields,
+        where rather than swapping in an arbitrary nonzero element in each column
+        one instead picks an element of minimal valuation.
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(125), 4, [2,1,1,-2,2,2,-1,-1,-1,1,2,3,4,5,6,7])
+            sage: A.hessenbergize(); A
+            [  2  59  88   1]
+            [  2  63  34 124]
+            [  0  15 104   8]
+            [  0   0  90  94]
+
+        You can't Hessenbergize an immutable matrix::
+
+            sage: A = matrix(Zmod(125), 3, range(9))
+            sage: A.set_immutable()
+            sage: A.hessenbergize()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
         """
         R = self._parent._base
         F = R.factored_order()
@@ -349,6 +585,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             raise ValueError("Hessenbergize only supported for prime power modulus")
         if not self.is_square():
             raise TypeError("self must be square")
+        self.check_mutability()
 
         pz, ez = F[0]
         cdef Py_ssize_t i, j, k, m, n, r
@@ -422,6 +659,34 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                             nmod_mat_set_entry(self._matrix, k, m, n_addmod(x, y, pe))
 
     def charpoly(self, var='x', algorithm=None):
+        """
+        Return the characteristic polynomial of this matrix, as a polynomial over the base ring.
+
+        INPUT:
+
+        - ``var`` -- a string, the variable name for the polynomial returned.
+
+        - ``algorithm`` -- either ``"flint"``, ``"lift"`` or ``"crt"``.
+            In the first case, use FLINT's characteristic polynomial function,
+            in the second case, lift to the integers and compute there,
+            in the third form, compute the hessenberg form for each prime power
+            dividing the modulus.
+            If not given, defaults to ``"flint"`` over fields and ``"crt"`` otherwise.
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(36), [[28, 32, 19], [25, 24, 2], [15, 11, 30]])
+            sage: A.charpoly()
+            x^3 + 8*x^2 + 8
+            sage: A = matrix(Zmod(43^10), 6, [0, 5664461354126771, 12212357361910300, 15947020959157478, 0, 16792952041597449, 14690359073749623, 11237259451999884, 5117434014428142, 15157488677243483, 9004103062307752, 20761679499270441, 4620722392655416, 5445142895231681, 6605357538252496, 7608812697273777, 18542817615638637, 18194689690271501, 0, 20341333098836812, 12117922812876054, 1270149214447437, 0, 10999401748338075, 4620722392655416, 10891113386038365, 956055025271903, 2162842206467093, 18542817615638637, 1143972982339214, 13128267973348003, 15817056104759912, 20531311511260484, 13598045280630823, 7585782589268305, 14053895308766769])
+            sage: A.charpoly()
+            x^6 + 13124967810747524*x^5 + 20067912494391006*x^4 + 11204731077775359*x^3
+
+            sage: for N in [5, 625, 36, 2^24, 2^6*3^9, 2^63-1]:
+            ....:     for n in [3, 6]:
+            ....:         A = random_matrix(Zmod(N), n, n)
+            ....:         assert A.charpoly(algorithm='crt') == A.charpoly(algorithm='lift')
+        """
         if not self.is_square():
             raise TypeError("self must be square")
         R = self._parent._base
@@ -434,10 +699,10 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         F = R.factored_order()
         if algorithm is None:
             if len(F) == 1 and F[0][1] == 1: # N prime
-                algorithm = "FLINT"
+                algorithm = "flint"
             else:
                 algorithm = "crt"
-        if algorithm == "FLINT":
+        if algorithm == "flint":
             f = R[var]()
             sig_on()
             nmod_mat_charpoly(&f.x, self._matrix)
@@ -457,7 +722,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                     prepe = n_preinvert_limb(pe)
                     R = Zmod(pe)
                     R.factored_order.set_cache(Factorization([(pz, ez)]))
-                    A = matrix_space.MatrixSpace(R, self._nrows, self._ncols, sparse=False)()
+                    A = MatrixSpace(R, self._nrows, self._ncols, sparse=False)()
                     for i in range(n):
                         for j in range(n):
                             x = nmod_mat_get_entry(self._matrix, i, j)
@@ -511,13 +776,78 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         raise ValueError("Unknown algorithm '%s'" % algorithm)
 
     cpdef _shift_mod(self, mp_limb_t modulus, mp_limb_t shift=1, bint mul=True, bint domod=True):
+        """
+        A fast method for returning a copy of this matrix with
+        different modulus or scaled by an integer.
+
+        It is the caller's responsibility to ensure that the combination of
+        shift and modulus yields a result that is mathematically meaningful.
+
+        INPUT:
+
+        - ``modulus`` -- an integer, the modulus for the result.
+
+        - ``shift`` -- an integer to multiply or divide by (default 1)
+
+        - ``mul`` -- boolean.  If true, multiply by ``shift``, otherwise divide.
+            In the case of division, floor division is used; the intended purpose
+            is for when all entries are divisible by ``shift`` and the modulus
+            will be divided as well.
+
+        - ``domod`` -- boolean.  If false, assumes that the entries
+            don't need to be reduced after scaling.
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(12), 2, [2,4,6,8])
+            sage: A._shift_mod(6, 2, mul=False, domod=False)
+            [1 2]
+            [3 4]
+            sage: A._shift_mod(24, 2, mul=True, domod=False)
+            [ 4  8]
+            [12 16]
+            sage: A._shift_mod(12, 3, mul=True)
+            [6 0]
+            [6 0]
+
+        If not all entries are divisible by shift, the result may not be sensible::
+
+            sage: A._shift_mod(4, 3, mul=False)
+            [0 1]
+            [2 2]
+
+        It's possible to get unreduced matrices::
+
+            sage: A._shift_mod(12, 2, domod=False)
+            [ 4  8]
+            [12 16]
+
+        Note that you also need to be careful about not reducing if there's a
+        possibility of overflow::
+
+            sage: N = 2^63 - 5
+            sage: A = matrix(Zmod(N), 1, [-1])
+            sage: A._shift_mod(N, 3, domod=False)
+            [9223372036854775790]
+            sage: (3*(N-1)) % (2^64)
+            9223372036854775790
+            sage: A.lift() * 3
+            [27670116110564327406]
+            sage: (A.lift() * 3).change_ring(Zmod(N))
+            [9223372036854775800]
+
+        This works correctly if you use reduction::
+
+            sage: A._shift_mod(N, 3, domod=True)
+            [9223372036854775800]
+        """
         cdef Py_ssize_t i, j, m = self._nrows, n = self._ncols
         cdef mp_limb_t x, preN, preshift, N = modulus
         preN = n_preinvert_limb(N)
         if not mul:
             preshift = n_preinvert_limb(shift)
         R = Zmod(N)
-        P = matrix_space.MatrixSpace(R, m, n, sparse=False)
+        P = MatrixSpace(R, m, n, sparse=False)
         cdef Matrix_nmod_dense ans = Matrix_nmod_dense.__new__(Matrix_nmod_dense, P)
         ans._parent = P
         for i in range(m):
@@ -540,6 +870,15 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
     @cached_method
     def _minpoly_gens(self, proof=None):
+        """
+        This internal method is used to compute generators for the minimal polynomial ideal.
+        See :meth:`minpoly_ideal` for more documentation.
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(36), 2, [6, -6])
+            sage: A._minpoly_gens()
+        """
         if proof is None:
             proof = linalg_proof()
         n = self.nrows()
@@ -550,7 +889,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             for p, e in F:
                 S = Zmod(p**e)
                 S.factored_order.set_cache(Factorization([(p, e)]))
-                gens.extend(self.change_ring(S).minpoly_gens())
+                gens.extend(self.change_ring(S)._minpoly_gens())
             return gens
         P = self.parent()
         cdef mp_limb_t piv, c, N = self.base_ring().order()
@@ -587,7 +926,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             return True
         while True:
             for i in range(n):
-                c = random.randrange(N)
+                c = randrange(N)
                 nmod_mat_set_entry(v._matrix, i, 0, c)
                 nmod_mat_set_entry(B._matrix, i, n, c)
             # It would be nice to figure out if we can stop early
@@ -883,8 +1222,6 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             if mpz_fits_ulong_p((<Integer>n).value):
                 e = mpz_get_ui((<Integer>n).value)
             else:
-                # it is very likely that the following will never finish except
-                # if self has only eigenvalues 0, 1 or -1.
                 return generic_power(self, n)
 
         if e == 0:
@@ -944,7 +1281,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                     # v[pivot[l]] E[l, pivot[l]]  + y*sum(E[l,m] * v[m] for m in range(pivot[l] + 1, j)) = 0
                     s = sum(v[m]*nmod_mat_get_entry(E._matrix, l, m) for m in range(pivot[l] + 1, j + 1)) % N
                     if s % x != 0: # make sure we can work mod N/x
-                        y = x//gcd(s, x)
+                        y = x // gcd(s, x)
                         s *= y # now s is divisible by x
                         for m in range(pivot[l] + 1, j + 1):
                             v[m] *= y

@@ -2699,7 +2699,7 @@ cdef class Matrix(Matrix1):
 
     def charpoly(self, var = 'x', algorithm = None):
         r"""
-        Returns the characteristic polynomial of self, as a polynomial over
+        Return the characteristic polynomial of this matrix, as a polynomial over
         the base ring.
 
         ALGORITHM:
