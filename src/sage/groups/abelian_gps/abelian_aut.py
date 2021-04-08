@@ -208,7 +208,7 @@ class AbelianGroupAutomorphism(ElementLibGAP):
         m.set_immutable()
         return m
 
-class AbelianGroupAutomorphismGroup_gap(CachedRepresentation,
+class AbelianGroupAutomorphismGroup_gap(#CachedRepresentation,
                                         GroupMixinLibGAP,
                                         Group,
                                         ParentLibGAP):
