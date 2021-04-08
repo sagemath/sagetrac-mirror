@@ -1,1 +1,0 @@
-../sage_conf/README.rst
