@@ -185,7 +185,7 @@ class TorsionQuadraticModuleElement(FGP_Element):
     q = quadratic_product
 
 
-class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
+class TorsionQuadraticModule(FGP_Module_class):
     r"""
     Finite quotients with a bilinear and a quadratic form.
 
@@ -227,8 +227,7 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
     """
     Element = TorsionQuadraticModuleElement
 
-    @staticmethod
-    def __classcall__(cls, V, W, gens=None, modulus=None, modulus_qf=None, check=True):
+    def __init__(self, V, W, gens=None, modulus=None, modulus_qf=None, check=True):
         r"""
         Return a :class:`TorsionQuadraticModule`.
 
@@ -241,6 +240,10 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
             sage: D2 = TorsionQuadraticForm(q)
             sage: D1 is D2
             True
+
+            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+            sage: T = TorsionQuadraticModule(ZZ^3, 6*ZZ^3)
+            sage: TestSuite(T).run()
         """
         if check:
             if V.rank() != W.rank():
@@ -275,18 +278,6 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
             modulus_qf = max_modulus_qf
         elif check and max_modulus_qf / modulus_qf not in V.base_ring():
             raise ValueError("the modulus_qf must divide (V, W)")
-        return super(TorsionQuadraticModule, cls).__classcall__(cls, V, W, gens, modulus, modulus_qf)
-
-    def __init__(self, V, W, gens, modulus, modulus_qf):
-        r"""
-        Initialize ``self``.
-
-        TESTS::
-
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
-            sage: T = TorsionQuadraticModule(ZZ^3, 6*ZZ^3)
-            sage: TestSuite(T).run()
-        """
 
         FGP_Module_class.__init__(self, V, W, check=True)
         if gens is not None:
