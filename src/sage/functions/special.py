@@ -293,14 +293,14 @@ class SphericalHarmonic(BuiltinFunction):
             sage: spherical_harmonic(1, 2, x, y)
             0
 
-
         """
-        from sage.arith.misc import factorial
-        from sage.functions.trig import cos, sin
-        from sage.functions.orthogonal_polys import legendre_P
         if m == 0:
+            from sage.functions.orthogonal_polys import legendre_P
+            from sage.functions.trig import cos
             return sqrt((2*n+1)/(4*pi)) * legendre_P(n, cos(theta))
         if n == -m:
+            from sage.arith.misc import factorial
+            from sage.functions.trig import sin
             return ((-1)**n*sqrt(factorial(2*n+1)/(4*pi))/(2**n*factorial(n)) *
                     sin(theta)**n*exp(-I*n*phi))
 
