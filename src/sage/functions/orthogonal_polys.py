@@ -1517,10 +1517,8 @@ class Func_assoc_legendre_P(BuiltinFunction):
         if n in ZZ and m in ZZ and (x in ZZ or not SR(x).is_numeric()) and n >= 0:
             if m >= 0:
                 return self.eval_poly(n, m, x)
-            elif -m <= n:
-                return (-1)**(-m)*factorial(n+m)/factorial(n-m)*self.eval_poly(n, -m, x)
             else:
-                return ZZ(0)
+                return (-1)**(-m)*factorial(n+m)/factorial(n-m)*self.eval_poly(n, -m, x)
 
     def _eval_special_values_(self, n, m, x):
         """
@@ -1546,7 +1544,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
             sage: gen_legendre_P(3,m,0)
             2^m*cos(3/2*pi + 1/2*pi*m)*gamma(1/2*m + 2)/(sqrt(pi)*gamma(-1/2*m + 5/2))
         """
-        if m > n:
+        if abs(m) > n:
             return ZZ(0)
         if m == 0:
             return legendre_P(n, x)
