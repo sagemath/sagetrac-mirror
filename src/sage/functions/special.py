@@ -176,7 +176,25 @@ class SphericalHarmonic(BuiltinFunction):
     For integers `n > -1`, `|m| \leq n`, simplification is done automatically.
     Numeric evaluation is supported for complex `n` and `m`.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    The first few spherical harmonics::
+
+        sage: x, y = var('x y')
+        sage: for n in range(3):
+        ....:     for m in range(-n,n+1):
+        ....:         print(f"Y_{n}^{m}(x,y)={spherical_harmonic(n,m,x,y)}")
+        Y_0^0(x,y)=1/2/sqrt(pi)
+        Y_1^-1(x,y)=-1/2*sqrt(3/2)*e^(-I*y)*sin(x)/sqrt(pi)
+        Y_1^0(x,y)=1/2*sqrt(3)*cos(x)/sqrt(pi)
+        Y_1^1(x,y)=1/4*sqrt(3)*sqrt(2)*sqrt(sin(x)^2)*e^(I*y)/sqrt(pi)
+        Y_2^-2(x,y)=1/8*sqrt(30)*e^(-2*I*y)*sin(x)^2/sqrt(pi)
+        Y_2^-1(x,y)=-1/4*sqrt(15)*sqrt(2)*sqrt(sin(x)^2)*cos(x)*e^(-I*y)/sqrt(pi)
+        Y_2^0(x,y)=1/4*sqrt(5)*(3*cos(x)^2 - 1)/sqrt(pi)
+        Y_2^1(x,y)=1/4*sqrt(6)*sqrt(5)*sqrt(sin(x)^2)*cos(x)*e^(I*y)/sqrt(pi)
+        Y_2^2(x,y)=1/8*sqrt(6)*sqrt(5)*e^(2*I*y)*sin(x)^2/sqrt(pi)
+
+    Some specific values::
 
         sage: x, y = var('x, y')
         sage: spherical_harmonic(3, 2, x, y)
@@ -189,6 +207,7 @@ class SphericalHarmonic(BuiltinFunction):
         Y_{3}^{2}\left(x, y\right)
         sage: spherical_harmonic(1, 2, x, y)
         0
+
     """
     def __init__(self):
         r"""
@@ -241,6 +260,9 @@ class SphericalHarmonic(BuiltinFunction):
             -0.259120612103502 + 0.149603355150537*I
 
         """
+        ret = self._eval_special_values_(n, m, theta, phi)
+        if ret is not None:
+            return ret
         if n in ZZ and m in ZZ and n > -1:
             if abs(m) > n:
                 return ZZ(0)
@@ -252,6 +274,35 @@ class SphericalHarmonic(BuiltinFunction):
             return (sqrt(factorial(n-m) * (2*n+1) / (4*pi * factorial(n+m))) *
                     exp(I*m*phi) * gen_legendre_P(n, m, cos(theta)) *
                     (-1)**m).simplify_trig()
+
+    def _eval_special_values_(self, n, m, theta, phi):
+        """
+        Special values known.
+
+        EXAMPLES::
+
+            sage: x, y = var('x y')
+            sage: spherical_harmonic(1, -1, x, y)
+            -1/2*sqrt(3/2)*e^(-I*y)*sin(x)/sqrt(pi)
+            sage: spherical_harmonic(2, -2, x, y)
+            1/8*sqrt(30)*e^(-2*I*y)*sin(x)^2/sqrt(pi)
+            sage: spherical_harmonic(1, 0, x, y)
+            1/2*sqrt(3)*cos(x)/sqrt(pi)
+            sage: spherical_harmonic(2, 0, x, y)
+            1/4*sqrt(5)*(3*cos(x)^2 - 1)/sqrt(pi)
+            sage: spherical_harmonic(1, 2, x, y)
+            0
+
+
+        """
+        from sage.arith.misc import factorial
+        from sage.functions.trig import cos, sin
+        from sage.functions.orthogonal_polys import legendre_P
+        if m == 0:
+            return sqrt((2*n+1)/(4*pi)) * legendre_P(n, cos(theta))
+        if n == -m:
+            return ((-1)**n*sqrt(factorial(2*n+1)/(4*pi))/(2**n*factorial(n)) *
+                    sin(theta)**n*exp(-I*n*phi))
 
     def _evalf_(self, n, m, theta, phi, parent, **kwds):
         r"""
