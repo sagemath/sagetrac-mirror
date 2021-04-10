@@ -260,24 +260,37 @@ class SphericalHarmonic(BuiltinFunction):
             -0.259120612103502 + 0.149603355150537*I
 
         """
-        ret = self._eval_special_values_(n, m, theta, phi)
-        if ret is not None:
-            return ret
         if n in ZZ and m in ZZ and n > -1:
-            if abs(m) > n:
-                return ZZ(0)
-            if m == 0 and theta.is_zero():
-                return sqrt((2*n+1)/4/pi)
-            from sage.arith.misc import factorial
-            from sage.functions.trig import cos
-            from sage.functions.orthogonal_polys import gen_legendre_P
-            return (sqrt(factorial(n-m) * (2*n+1) / (4*pi * factorial(n+m))) *
-                    exp(I*m*phi) * gen_legendre_P(n, m, cos(theta)) *
-                    (-1)**m).simplify_trig()
+            ret = self._eval_special_values_(n, m, theta, phi)
+            if ret is not None:
+                return ret
+            if n in ZZ and m in ZZ and n > -1:
+                return self._eval_harmonic(n, m, theta, phi, **kwargs)
+
+    def _eval_harmonic(self, n, m, theta, phi, **kwargs):
+        r"""
+        Return the spherical harmonic Y(n, m, theta, phi) for integers
+        `n > -1, |m| < n+1` and `\theta \in [0, 2pi)`, `\varphi \in [0, pi]`.
+
+        TESTS::
+
+            sage: x, y = var('x y')
+            sage: spherical_harmonic._eval_harmonic(3,-3,x,y)
+            -1/8*sqrt(35)*sqrt(sin(x)^2)*e^(-3*I*y)*sin(x)^2/sqrt(pi)
+            sage: spherical_harmonic(3,-3,x,y)
+            -1/8*sqrt(35)*e^(-3*I*y)*sin(x)^3/sqrt(pi)
+
+        """
+        from sage.arith.misc import factorial
+        from sage.functions.trig import cos
+        from sage.functions.orthogonal_polys import gen_legendre_P
+        return (sqrt(factorial(n - m) * (2 * n + 1) / (4 * pi * factorial(n + m))) *
+                exp(I * m * phi) * gen_legendre_P(n, m, cos(theta)) * (-1) ** m).simplify_trig()
 
     def _eval_special_values_(self, n, m, theta, phi):
         """
-        Special values known.
+        Special values known for `\theta \in [0, 2pi)` and
+        `\varphi \in [0, pi]`.
 
         EXAMPLES::
 
@@ -294,15 +307,19 @@ class SphericalHarmonic(BuiltinFunction):
             0
 
         """
-        if m == 0:
-            from sage.functions.orthogonal_polys import legendre_P
-            from sage.functions.trig import cos
-            return sqrt((2*n+1)/(4*pi)) * legendre_P(n, cos(theta))
+        if abs(m) > n:
+            return ZZ(0)
         if n == -m:
             from sage.arith.misc import factorial
             from sage.functions.trig import sin
-            return ((-1)**n*sqrt(factorial(2*n+1)/(4*pi))/(2**n*factorial(n)) *
-                    sin(theta)**n*exp(-I*n*phi))
+            return ((-1) ** n * sqrt(factorial(2 * n + 1) / (4 * pi)) /
+                    (2 ** n * factorial(n)) * sin(theta) ** n * exp(-I * n * phi))
+        if m == 0:
+            if theta.is_zero():
+                return sqrt((2 * n + 1) / 4 / pi)
+            from sage.functions.orthogonal_polys import legendre_P
+            from sage.functions.trig import cos
+            return sqrt((2*n+1)/(4*pi)) * legendre_P(n, cos(theta))
 
     def _evalf_(self, n, m, theta, phi, parent, **kwds):
         r"""
