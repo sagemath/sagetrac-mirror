@@ -1424,6 +1424,65 @@ class Func_legendre_Q(BuiltinFunction):
 legendre_Q = Func_legendre_Q()
 
 class Func_assoc_legendre_P(BuiltinFunction):
+    r"""
+    Return the associated Legendre polynomial for integers `n > -1` and `-n \leq m \leq n`.
+
+    REFERENCE:
+
+    - Weisstein, Eric W. "Associated Legendre Polynomial." From MathWorld--A Wolfram Web Resource.
+      https://mathworld.wolfram.com/AssociatedLegendrePolynomial.html
+
+    EXAMPLES:
+
+    Print the first associated Legendre polynomials::
+
+        sage: for n in range(4):
+        ....:     for m in range(n+1):
+        ....:         print(f"P_{n}^{m}({x})={gen_legendre_P(n, m, x)}")
+        P_0^0(x)=1
+        P_1^0(x)=x
+        P_1^1(x)=-sqrt(-x^2 + 1)
+        P_2^0(x)=3/2*x^2 - 1/2
+        P_2^1(x)=-3*sqrt(-x^2 + 1)*x
+        P_2^2(x)=-3*x^2 + 3
+        P_3^0(x)=5/2*x^3 - 3/2*x
+        P_3^1(x)=-3/2*(5*x^2 - 1)*sqrt(-x^2 + 1)
+        P_3^2(x)=-15*(x^2 - 1)*x
+        P_3^3(x)=-15*(-x^2 + 1)^(3/2)
+
+    Associated Legendre polynomials can be extended to negative valued `m`
+    according to the following formula:
+
+    .. MATH::
+
+        P^{-m}_n(x) = (-1)^{m} \frac{(n-m)!}{(n+m)!} P_n^m(x),
+
+    where `|m| \leq n`. Otherwise, if `|m|` exceeds `n`, `P^{-m}_n(x)`
+    vanishes.
+
+    Here are some values::
+
+        sage: gen_legendre_P(2, -2, x)
+        -1/8*x^2 + 1/8
+        sage: gen_legendre_P(3, -2, x)
+        -1/8*(x^2 - 1)*x
+        sage: gen_legendre_P(1, -2, x)
+        0
+
+    TESTS:
+
+    Some consistency checks::
+
+        sage: gen_legendre_P.eval_poly(1, 1, x)
+        -sqrt(-x^2 + 1)
+        sage: gen_legendre_P(1, 1, x)
+        -sqrt(-x^2 + 1)
+        sage: gen_legendre_P.eval_poly(1, 1, 0.5) # abs tol 1e-14
+        -0.866025403784439
+        sage: gen_legendre_P(1, 1, 0.5) # abs tol 1e-14
+        -0.866025403784439
+
+    """
     def __init__(self):
         r"""
         EXAMPLES::
@@ -1455,10 +1514,13 @@ class Func_assoc_legendre_P(BuiltinFunction):
         ret = self._eval_special_values_(n, m, x)
         if ret is not None:
             return ret
-        if (n in ZZ and m in ZZ
-            and n >= 0 and m >= 0
-            and (x in ZZ or not SR(x).is_numeric())):
-            return self.eval_poly(n, m, x)
+        if n in ZZ and m in ZZ and (x in ZZ or not SR(x).is_numeric()) and n >= 0:
+            if m >= 0:
+                return self.eval_poly(n, m, x)
+            elif -m <= n:
+                return (-1)**(-m)*factorial(n+m)/factorial(n-m)*self.eval_poly(n, -m, x)
+            else:
+                return ZZ(0)
 
     def _eval_special_values_(self, n, m, x):
         """
@@ -1471,9 +1533,9 @@ class Func_assoc_legendre_P(BuiltinFunction):
             sage: gen_legendre_P(2,0,4)==legendre_P(2,4)
             True
             sage: gen_legendre_P(2,2,4)
-            45
+            -45
             sage: gen_legendre_P(2,2,x)
-            3*x^2 - 3
+            -3*x^2 + 3
             sage: gen_legendre_P(13/2,2,0)
             2*sqrt(2)*gamma(19/4)/(sqrt(pi)*gamma(13/4))
             sage: (m,n) = var('m,n')
@@ -1489,7 +1551,10 @@ class Func_assoc_legendre_P(BuiltinFunction):
         if m == 0:
             return legendre_P(n, x)
         if n == m:
-            return factorial(2*m)/2**m/factorial(m) * (x**2-1)**(m/2)
+            return (-1)**m*factorial(2*m)/(2**m*factorial(m)) * (1-x**2)**(m/2)
+        if n == m+1:
+            return x*(2*m+1)*gen_legendre_P(m, m, x)
+        # TODO: do the following lines respect the same convention?
         if x == 0:
             from .gamma import gamma
             from .other import sqrt
@@ -1516,6 +1581,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
         if ret is not None:
             return ret
 
+        # TODO: do the following lines respect the same convention?
         import mpmath
         from sage.libs.mpmath.all import call as mpcall
         return mpcall(mpmath.legenp, n, m, x, parent=parent)
@@ -1547,7 +1613,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
         ex2 = sum(b * arg**a for a, b in enumerate(p))
         return (-1)**(m+n)*ex1*ex2
 
-    def _derivative_(self, n, m, x, *args,**kwds):
+    def _derivative_(self, n, m, x, *args, **kwds):
         """
         Return the derivative of ``gen_legendre_P(n,m,x)``.
 
