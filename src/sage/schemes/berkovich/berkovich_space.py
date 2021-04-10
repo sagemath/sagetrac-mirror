@@ -718,3 +718,124 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             \text{Projective Berkovich line over } \Bold{C}_{3}
         """
         return r"\text{Projective Berkovich line over } \Bold{C}_{%s}" %(self.prime())
+
+    def convex_hull(self, points, labels=None, return_graph=False):
+        """
+        Plot a bipartite graph containing the convex hull.
+
+        The convex hull of a set of points is the smallest
+        path-connected space that contains all the points,
+        or equivalently, the union of all intervals starting
+        and ending at points in the set.
+
+        By default, the vertices are labeled ``P1`` through ``Pn``,
+        where ``n`` is the number of points in ``points``. To change the
+        labels for the vertices, use the optional parameter ``labels``.
+
+        INPUT:
+
+        - points -- A list of points of this Berkovich space.
+
+        - labels -- (optional) A list of strings to use as labels for the vertices
+          bipartite graph.
+
+        - return_graph -- (default: `False`) If `True`, the bipartite graph is returned.
+
+        OUTPUT: None, unless ``return_graph`` is ``True``.
+        """
+        if not (isinstance(points, list) or isinstance(points, tuple)):
+            raise ValueError("points must be a list")
+        if not (isinstance(labels, list) or isinstance(labels, tuple) or labels == None):
+            raise ValueError("labels must be a list")
+        if labels != None:
+            if len(labels) != len(points):
+                raise ValueError("the number of labels and the number of points must be the same")
+            for i in labels:
+                if not isinstance(i, str):
+                    raise ValueError("labels must be a list of strings")
+        for i in points:
+            if not isinstance(i, Berkovich_Element_Cp_Projective):
+                raise ValueError("input to convex_hull must be a list of points of Berkovich space")
+            if i.parent() != self:
+                raise ValueError("input to convex_hull must be a list of points of this Berkovich space")
+        if labels == None:
+            labels = ["P" + str(i+1) for i in range(len(points))]
+        point_to_name = {}
+        name_to_highlight = {}
+        V = points[:]
+        for i in range(len(points)):
+            point_to_name[points[i]] = labels[i]
+            name_to_highlight[point_to_name[points[i]]] = True
+        zero = self(0)
+        point_to_name[zero] = '0'
+        infinity = self((1,0))
+        point_to_name[infinity] = 'oo'
+        gauss = self(ZZ(0), ZZ(1))
+        point_to_name[gauss] = 'Gauss'
+
+        # we add zero, infinity, and the gauss point for reference
+        for point in [zero, infinity, gauss]:
+            if point not in V:
+                V.append(point)
+                name_to_highlight[point_to_name[point]] = False
+            else:
+                name_to_highlight[point_to_name[point]] = True
+
+        # we add joins if necessary
+        for i in range(len(points)):
+                for j in range(i+1,len(points)):
+                    join = points[i].join(points[j])
+                    if join not in V:
+                        V.append(join)
+                        point_to_name[join] = point_to_name[points[i]] + " ^ " + point_to_name[points[j]]
+                        name_to_highlight[point_to_name[join]] = True
+
+        points_in_below_gauss = [point for point in V if point.lt(gauss)] + [gauss]
+        points_in_above_gauss = [point for point in V if not point.lt(gauss)]
+
+        # if there are highlighted points both above and below the gauss point we must highlight the gauss point
+        if len(points_in_below_gauss) != 2 and len(points_in_above_gauss) != 2:
+            name_to_highlight[point_to_name[gauss]] = True
+
+        E = {}
+        red_colored_edges = []
+        for start in V:
+            outgoing = {}
+            end = infinity
+            if start == end:
+                continue
+            # we now make better guesses for end until we find the unique end which is 'closest' to start -
+            # for which the interval [start, end] contains no other points of our tree
+            good_end = False
+            while not good_end:
+                good_end = True
+                for v in V:
+                    if v != start and v != end:
+                        if v.contained_in_interval(start, end):
+                            good_end = False
+                            end = v
+                            break
+            outgoing[point_to_name[end]] = point_to_name[start] + ' to ' + point_to_name[end]
+            E[point_to_name[start]] = outgoing
+            if name_to_highlight[point_to_name[start]] and name_to_highlight[point_to_name[end]] and outgoing:
+                t1 = point_to_name[start]
+                t2 = point_to_name[end]
+                t3 = outgoing[point_to_name[end]]
+                red_colored_edges.append((t1, t2, t3))
+        edge_colors = {'#FF0000':red_colored_edges}
+        from sage.graphs.digraph import DiGraph
+        G = DiGraph(E)
+        red_colored_vertices = []
+        for vertex in G:
+            if name_to_highlight[vertex]:
+                red_colored_vertices.append(vertex)
+        vertex_colors = {'#FF0000': red_colored_vertices}
+        from sage.graphs.graph_plot import GraphPlot
+        options = {'layout':'tree',
+                'edge_colors':edge_colors,
+                'vertex_colors':vertex_colors,
+                'tree_orientation': 'down',
+                'tree_root': 'oo'}
+        GraphPlot(G, options).show()
+        if return_graph:
+            return G
