@@ -150,9 +150,29 @@ def RestrictionOfScalars(nfield, rk = 1):
         Galois group 4T1 (4) with order 4 of x^4 + x^3 + x^2 + x + 1
         sage: T3 = RestrictionOfScalars(K,3); T3
         Algebraic torus of rank 12 over Rational Field split by a degree 4 extension
+
+    The construction also works for non-Galois fields.
+
+    ::
+
+        sage: from sage.schemes.group_schemes.tori import RestrictionOfScalars          
+        sage: x = polygen(QQ);  K.<a> = NumberField(x^4 - x^3 + 3*x^2 - 2*x + 4)        
+        sage: RestrictionOfScalars(K)                                                   
+        Algebraic torus of rank 4 over Rational Field split by a degree 8 extension
+
     """
-    L = GLattice(rk).induced_lattice(nfield.galois_group())
-    return AlgebraicTorus(L)
+    if nfield.is_galois():
+        L = GLattice(rk).induced_lattice(nfield.galois_group())
+        return AlgebraicTorus(L)
+    else: 
+        G = nfield.galois_group()
+        oG = G.order()
+        oF = nfield.degree()
+        subG = [h for h in G.conjugacy_classes_subgroups() if oG/h.order() == oF and not(h.is_normal())]
+        for H in subG:
+            if True in [h(e) == G.identity()(e) for e in nfield.gens() for h in H.gens()]:
+                L = GLattice(H, rk).induced_lattice(G)
+                return AlgebraicTorus(L)
 
 def NormOneRestrictionOfScalars(nfield, rk = 1):
     """
@@ -177,10 +197,31 @@ def NormOneRestrictionOfScalars(nfield, rk = 1):
         Algebraic torus of rank 3 over Rational Field split by a degree 4 extension
         sage: T3 = NormOneRestrictionOfScalars(K,3); T3
         Algebraic torus of rank 9 over Rational Field split by a degree 4 extension
+
+    The construction also works for non-Galois fields.
+
+    ::
+
+        sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars   
+        sage: x = polygen(QQ);  K.<a> = NumberField(x^4 - x^3 + 3*x^2 - 2*x + 4)        
+        sage: NormOneRestrictionOfScalars(K)                                            
+        Algebraic torus of rank 3 over Rational Field split by a degree 8 extension
     """
 
-    L = GLattice(rk).norm_one_restriction_of_scalars(nfield.galois_group())
-    return AlgebraicTorus(L)
+    
+    if nfield.is_galois():
+        L = GLattice(rk).norm_one_restriction_of_scalars(nfield.galois_group())
+        return AlgebraicTorus(L)
+    else: 
+        G = nfield.galois_group()
+        oG = G.order()
+        oF = nfield.degree()
+        l = []
+        subG = [h for h in G.conjugacy_classes_subgroups() if oG/h.order() == oF and not(h.is_normal())]
+        for H in subG:
+            if True in [h(e) == G.identity()(e) for e in nfield.gens() for h in H.gens()]:
+                L = GLattice(H, rk).norm_one_restriction_of_scalars(G)
+                return AlgebraicTorus(L)
 
 
 

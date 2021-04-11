@@ -40,7 +40,8 @@ AUTHORS:
 
 - David Joyner (2005-11-17)
 
-- William Stein (2005-11-26): rewrite to better wrap Gap
+- William Stein (2005-11-26): rewrite to better wrap 
+
 
 - David Joyner (2005-12-21)
 
