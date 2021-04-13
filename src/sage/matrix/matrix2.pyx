@@ -7420,11 +7420,11 @@ cdef class Matrix(Matrix1):
 
         Echelon form is not defined over arbitrary rings::
 
-            sage: a = matrix(Integers(9),3,3,range(9))
+            sage: a = matrix(Integers(9)['x'], 3, 3, range(9))
             sage: a.echelon_form()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 9'.
+            NotImplementedError: Generic echelon form only defined over integral domains
 
         Involving a sparse matrix::
 

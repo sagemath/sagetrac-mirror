@@ -20,7 +20,6 @@ from sage.categories.cartesian_product import cartesian_product
 from sage.structure.richcmp cimport rich_to_bool, Py_EQ, Py_NE
 from sage.structure.factorization import Factorization
 from sage.structure.proof.all import linear_algebra as linalg_proof
-from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
 from sage.arith.all import gcd
 from sage.arith.power cimport generic_power
@@ -34,7 +33,9 @@ from sage.rings.finite_rings.integer_mod cimport (
     IntegerMod_gmp
 )
 from sage.rings.finite_rings.integer_mod_ring import Zmod
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.special import identity_matrix
 from .args cimport SparseEntry, MatrixArgs_init
 
 from sage.libs.flint.nmod_mat cimport *
@@ -56,6 +57,7 @@ from sage.libs.flint.ulong_extras cimport (
     n_remove2_precomp,
     n_CRT,
     n_div2_preinv,
+    n_divrem2_precomp,
 )
 from sage.libs.gmp.mpz cimport mpz_sgn,  mpz_fits_ulong_p, mpz_get_ui, mpz_get_si
 
@@ -87,12 +89,22 @@ def poly_crt(S, polys, moduli):
         27000*x^7 + 15876*x^5 + 34300*x^3 + 11025*x^2 + 40530
         sage: all(g == f.change_ring(Zmod(m)) for (g, m) in zip(polys, moduli))
         True
+
+    TESTS:
+
+    The algorithm involves sorting the polynomials; we check that the result is preserved by reordering::
+
+        sage: polys.reverse()
+        sage: moduli.reverse()
+        sage: f == poly_crt(S, polys, moduli)
+        True
     """
     if len(polys) == 1:
         return polys[0]
     cdef Py_ssize_t i, j, d
     cdef mp_limb_t N
-    polys = sorted(polys, key=lambda g: g.degree())
+    # sort polys and moduli in parallel
+    polys, moduli = zip(*sorted(zip(polys, moduli), key=lambda pair: pair[0].degree()))
     cdef Polynomial_zmod_flint f = S()
     nmod_poly_fit_length(&f.x, polys[-1].degree()+1)
     N = 1
@@ -702,8 +714,9 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                 algorithm = "flint"
             else:
                 algorithm = "crt"
+        S = PolynomialRing(R, var, implementation="FLINT")
         if algorithm == "flint":
-            f = R[var]()
+            f = S()
             sig_on()
             nmod_mat_charpoly(&f.x, self._matrix)
             sig_off()
@@ -766,7 +779,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                             y = n_mulmod2_preinv(y, scalar, N, preN)
                             nmod_mat_set_entry(c, m, j, n_submod(x, y, N))
                 # the answer is now the n-th row of c.
-                f = R[var]()
+                f = S()
                 for j in range(n+1):
                     nmod_poly_set_coeff_ui(&f.x, j, nmod_mat_get_entry(c, n, j))
                 return f
@@ -868,51 +881,93 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                 nmod_mat_set_entry(ans._matrix, i, j, x)
         return ans
 
-    @cached_method
-    def _minpoly_gens(self, proof=None):
+    def minpoly_ideal(self, var='x', proof=None, **kwds):
         """
-        This internal method is used to compute generators for the minimal polynomial ideal.
-        See :meth:`minpoly_ideal` for more documentation.
+        The ideal of polynomials over the base ring that vanish on this matrix.
+
+        When the base ring is not a field, this ideal is not necessarily principal.
+
+        INPUT:
+
+        - ``var`` -- the variable name for the polynomial ring
+
+        - ``proof`` -- boolean, whether to check that the answer computed by using a minimal polynomial is correct.  If not specificied, uses the linear alegbra default proof state.  Note that if the modulus is composite and divisible by small primes the probability of an incorrect result is substantial.  The result is not cached when proof is ``False``, so this function can be called multiple times to get a desired level of certainty.
 
         EXAMPLES::
 
-            sage: A = matrix(Zmod(36), 2, [6, -6])
-            sage: A._minpoly_gens()
+            sage: A = matrix(Zmod(36), 2, [6, 0, 0, -6])
+            sage: A.minpoly_ideal()
+            Ideal (x^2, 3*x + 18) of Univariate Polynomial Ring in x over Ring of integers modulo 36
+
+            sage: A = matrix(Zmod(43^10), 6, [0, 5664461354126771, 12212357361910300, 15947020959157478, 0, 16792952041597449, 14690359073749623, 11237259451999884, 5117434014428142, 15157488677243483, 9004103062307752, 20761679499270441, 4620722392655416, 5445142895231681, 6605357538252496, 7608812697273777, 18542817615638637, 18194689690271501, 0, 20341333098836812, 12117922812876054, 1270149214447437, 0, 10999401748338075, 4620722392655416, 10891113386038365, 956055025271903, 2162842206467093, 18542817615638637, 1143972982339214, 13128267973348003, 15817056104759912, 20531311511260484, 13598045280630823, 7585782589268305, 14053895308766769])
+            sage: I = A.minpoly_ideal(); I
+            Ideal (x^4 + 3889828461*x^3 + 5524445805550*x^2 + 182758215997616*x, 6321363049*x^3 + 1630911666642*x^2 + 140258403331212*x, 11688200277601*x^2, 502592611936843*x) of Univariate Polynomial Ring in x over Ring of integers modulo 21611482313284249
+
+        We check that all generators vanish on A::
+
+            sage: all(f(A) == 0 for f in I.gens())
+            True
+
+        We check that the ideal is preserved by conjugation::
+
+            sage: B = random_matrix(Zmod(43^10), 6)
+            sage: while not B.is_unit():
+            ....:     B = random_matrix(Zmod(43^10), 6)
+            sage: J = (~B * A * B).minpoly_ideal()
+            sage: J == I
+            True
+
+        We check that the polynomials for random matrices vanish for various moduli::
+
+            sage: for N in [5, 625, 36, 2^24, 2^6*3^9, 2^63-1]:
+            ....:     for n in [3, 6]:
+            ....:         A = random_matrix(Zmod(N), n, n)
+            ....:         I = A.minpoly_ideal()
+            ....:         assert all(f(A) == 0 for f in I.gens())
+            ....:         assert I.gens()[0].is_monic()
         """
+        if not self.is_square():
+            raise ValueError("Minimal polynomial ideal not defined for non-square matrices")
         if proof is None:
             proof = linalg_proof()
-        n = self.nrows()
         R = self.base_ring()
+        Rx = PolynomialRing(R, var, implementation="FLINT")
+        key = "minpoly_ideal"
+        ans = self.fetch(key)
+        if ans is not None:
+            if ans.ring().variable_name() != var:
+                ans = Rx.ideal([Rx(g) for g in ans.gens()])
+            return ans
+        n = self.nrows()
         F = R.factored_order()
-        if len(F) != 1:
-            gens = []
-            for p, e in F:
-                S = Zmod(p**e)
-                S.factored_order.set_cache(Factorization([(p, e)]))
-                gens.extend(self.change_ring(S)._minpoly_gens())
-            return gens
         P = self.parent()
         cdef mp_limb_t piv, c, N = self.base_ring().order()
-        p, e = F[0]
-        # We start with the minimal polynomial mod p
-        S = Zmod(p)
-        cdef Matrix_nmod_dense C = self.change_ring(S)
-        cdef Polynomial_zmod_flint f, mpoly = S['x']()
-        sig_on()
-        nmod_mat_minpoly(&mpoly.x, self._matrix)
-        sig_off()
-        if e == 1:
-            return [[mpoly]]
-        cdef Py_ssize_t i, j, jj, k, d = mpoly.degree()
-        if d == n:
-            # The minimal polynomial is the same as the characteristic polynomial
-            return [[self.charpoly()]]
+        cdef Matrix_nmod_dense C
+        cdef Polynomial_zmod_flint f, mpoly
+        cdef Py_ssize_t i, j, jj, k, d
+        if len(F) == 1:
+            p, e = F[0]
+            # We start with the minimal polynomial mod p
+            S = Zmod(p)
+            Sx = PolynomialRing(S, var, implementation="FLINT")
+            C = self.change_ring(S)
+            mpoly = Sx()
+            sig_on()
+            nmod_mat_minpoly(&mpoly.x, C._matrix)
+            sig_off()
+            if e == 1:
+                ans = Rx.ideal(mpoly)
+                self.cache(key, ans)
+                return ans
+            d = mpoly.degree()
+            if d == n:
+                # The minimal polynomial is the same as the characteristic polynomial
+                ans = Rx.ideal(self.charpoly(var=var))
+                self.cache(key, ans)
+                return ans
         # We pick a random vector and iteratively multiply by the matrix n times
         cdef Matrix_nmod_dense v = self._new(n, 1), B = self._new(n+1, n+1)
         pows = [self.parent().identity_matrix()]
-        for i in range(d):
-            pows.append(pows[-1] * self)
-        Rx = R['x']
         def check(polys, pows):
             d = polys[0].degree()
             while d >= len(pows):
@@ -929,11 +984,13 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                 c = randrange(N)
                 nmod_mat_set_entry(v._matrix, i, 0, c)
                 nmod_mat_set_entry(B._matrix, i, n, c)
-            # It would be nice to figure out if we can stop early
+            # It would be nice to do the kernel computation in parallel with computing self*v so that we know if we can stop early
             for j in range(n-1, -1, -1):
                 v = self * v
                 for i in range(n):
                     nmod_mat_set_entry(B._matrix, i, j, nmod_mat_get_entry(v._matrix, i, 0))
+            # _right_kernel_matrix caches echelon form, and we're changing B
+            B.clear_cache()
             C = B._right_kernel_matrix()
             polys = []
             # scan for last nonzero row
@@ -953,88 +1010,300 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                     # We only know that the polynomials vanish on a random vector.
                     # We need to check that they actually vanish on the matrix
                     if proof and check(polys, pows) or not proof:
-                        return [polys]
+                        ans = Rx.ideal(polys)
+                        if proof: self.cache(key, ans)
+                        return ans
                     break
 
     def minpoly(self, var='x', proof=None, **kwds):
-        if not self.is_square():
-            raise ValueError("Minimal polynomial not defined for non-square matrices")
-        gens = self._minpoly_gens(proof=proof)
-        if any(len(pegens) != 1 for pegens in gens):
-            raise ValueError("Matrix does not have a minimal polynomial; try minpoly_ideal")
-        return self.minpoly_ideal(var=var).gen()
+        """
+        Returns the minimal polynomial of this matrix.
 
-    def minpoly_ideal(self, var='x', proof=None, **kwds):
-        if not self.is_square():
-            raise ValueError("Minimal polynomial ideal not defined for non-square matrices")
-        gens_by_p = self._minpoly_gens(proof=proof)
-        moduli = [gens[0].base_ring().order() for gens in gens_by_p]
-        S = self.base_ring()[var]
-        return S.ideal([poly_crt(S, polys, moduli) for polys in cartesian_product(gens_by_p)])
+        Note that, in general, the minimal polynomial of a matrix over a ring with composite modulus is not well defined.
+
+        INPUT:
+
+        - ``var`` -- the variable name for the polynomial ring
+
+        - ``proof`` -- boolean, whether to check that the answer computed by using a minimal polynomial is correct.  If not specificied, uses the linear alegbra default proof state.  Note that if the modulus is composite and divisible by small primes the probability of an incorrect result is substantial.  The result is not cached when proof is ``False``, so this function can be called multiple times to get a desired level of certainty.
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(36), 6, 6, 1)
+            sage: A.minpoly()
+            x + 35
+
+            sage: A = matrix(Zmod(43^4), 4, 4, [1547380, 1211593, 1900136, 2872531, 3010350, 3130824, 2590437, 420249, 1236104, 1628956, 1300526, 145927, 1817994, 1412525, 1305313, 2775020])
+            sage: f = A.minpoly(); f
+            x^4 + 1502653*x^3 + 2556099*x^2 + 595635*x + 865202
+            sage: f(A) == 0
+            True
+
+            sage: A = matrix(Zmod(36), 2, [6, 0, 0, -6])
+            sage: A.minpoly()
+            Traceback (most recent call last)
+            ...
+            ValueError: Matrix does not have a minimal polynomial; try minpoly_ideal
+
+        We build matrices with a given minimal polynomial, then check that the correct result is returned::
+
+           sage: R.<x> = Zmod(2^63-1)[]
+           sage: f = x^3 + R.random_element(2)
+           sage: g = x^2 + R.random_element(1)
+           sage: A = block_diagonal_matrix([companion_matrix(f), companion_matrix(g), companion_matrix(f*g)])
+           sage: B = random_matrix(Zmod(2^63-1), 10, 10)
+           sage: while not B.is_unit():
+           ....:     B = random_matrix(Zmod(2^63-1), 10, 10)
+           sage: C = ~B * A * B
+           sage: C.minpoly() == f*g
+        """
+        I = self.minpoly_ideal(var, proof=proof)
+        gens = I.gens()
+        if len(gens) != 1:
+            raise ValueError("Matrix does not have a minimal polynomial; try minpoly_ideal")
+        return gens[0]
 
     cdef swap_columns_c(self, Py_ssize_t c1, Py_ssize_t c2):
+        """
+        Swap two columns using FLINT.
+        """
         nmod_mat_swap_cols(self._matrix, NULL, c1, c2)
 
     cdef swap_rows_c(self, Py_ssize_t r1, Py_ssize_t r2):
+        """
+        Swap two rows using FLINT.
+        """
         nmod_mat_swap_rows(self._matrix, NULL, r1, r2)
 
     def _solve_right_modn(self, B, check=True):
+        """
+        Solve the matrix equation `A X = B`.
+
+        sage: for N in [5, 625, 36, 2^24, 2^6*3^9, 2^63-1]: # indirect doctest
+        ....:     for n in [3, 6]:
+        ....:         for m in [4, 5, 6]:
+        ....:             A = random_matrix(Zmod(N), m, n)
+        ....:             for k in [1, 2, 4]:
+        ....:                 X0 = random_matrix(Zmod(N), n, k)
+        ....:                 B = A * X0
+        ....:                 X = A.solve_right(B)
+        ....:                 assert A * X == B
+        """
         b_is_vec = is_Vector(B)
-        cdef Py_ssize_t n
+        cdef Py_ssize_t i, j, ii, jj, n, Cm, An = self.ncols()
+        cdef mp_limb_t piv, q, r, tmp, entry, N = self.base_ring().order(), Ninv = n_preinvert_limb(N)
+        cdef double pivinv
         if b_is_vec:
-            n = B.degree()
+            n = 1
         else:
             n = B.ncols()
-        cdef Matrix_nmod_dense C = B.column() if b_is_vec else B
-        cdef Matrix_nmod_dense X = self._new(self.nrows(), n)
-        nmod_mat_can_solve(X._matrix, self._matrix, C._matrix)
-
+        cdef Matrix_nmod_dense C, X
+        R = self.base_ring()
+        X = self._new(An, n)
+        if R.is_field():
+            C = B.column() if b_is_vec else B
+            sig_on()
+            nmod_mat_can_solve(X._matrix, self._matrix, C._matrix)
+            sig_off()
+        else:
+            # We use Howell form to solve the system
+            C = self.augment(B)
+            if C.nrows() < C.ncols():
+                C = C.stack(C.new_matrix(nrows=C.ncols() - C.nrows()))
+            C.echelonize()
+            # save the echelon form if not already cached
+            if self.fetch('echelon_form') is None:
+                E = C.submatrix(max(self.ncols(), self.nrows()), self.ncols())
+                self.cache('echelon_form', E)
+            Cm = C.nrows()
+            for i in range(Cm - 1, -1, -1):
+                for j in range(An):
+                    piv = nmod_mat_get_entry(C._matrix, i, j)
+                    if not piv:
+                        continue
+                    elif piv != 1:
+                        pivinv = n_precompute_inverse(piv)
+                    for jj in range(n):
+                        if piv == 1:
+                            q = nmod_mat_get_entry(C._matrix, i, An + jj)
+                        else:
+                            entry = nmod_mat_get_entry(C._matrix, i, An + jj)
+                            r = n_divrem2_precomp(&q, entry, piv, pivinv)
+                            if r:
+                                raise ValueError("matrix equation has no solutions")
+                        nmod_mat_set_entry(X._matrix, j, jj, q)
+                        # We now update the right augmented block based on the entries above the pivot.
+                        for ii in range(i - 1, -1, -1):
+                            entry = n_mulmod2_preinv(q, nmod_mat_get_entry(C._matrix, ii, j), N, Ninv)
+                            entry = n_submod(nmod_mat_get_entry(C._matrix, ii, An + jj), entry, N)
+                            nmod_mat_set_entry(C._matrix, ii, An + jj, entry)
+                    break
+                else:
+                    # full zero row on the left augmented block; check that it's also zero on the right
+                    for jj in range(n):
+                        if nmod_mat_get_entry(C._matrix, i, An + jj):
+                            raise ValueError("matrix equation has no solution")
         if b_is_vec:
             # Convert back to a vector
             return X.column(0)
         else:
             return X
 
-    # Extra
-
     def tranpose(self):
+        """
+        Return the transpose of this matrix, without changing this matrix.
+
+        EXAMPLES::
+
+            sage: matrix(Zmod(36), 2, 2, [0, 1, 0, 0]).transpose()
+            [0 0]
+            [1 0]
+        """
         cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
         sig_on()
         nmod_mat_transpose(M._matrix, self._matrix)
         sig_off()
+        if self._subdivisions is not None:
+            row_divs, col_divs = self.subdivisions()
+            M.subdivide(col_divs, row_divs)
         return M
 
 
-    def echelonize(self):
-        #FIXME: add a warning regarding the output potentially having more rows than input
+    def echelonize(self, algorithm="default", **kwds):
         """
-        Echelon form in place
+        Transform this matrix into echelon form in place, over the same base ring.
+
+        .. NOTE::
+
+            Over a field, transforms to standard reduced row echelon form.
+            Otherwise, uses Howell form, which may increase the number of nonzero rows.  In this case, we require that the number of rows is at least the number of columns.
+
+        INPUT:
+
+        - ``algorithm`` -- ignored (always uses FLINT)
+
+        - ``transformation`` -- boolean. Whether to return a matrix `T` so that left multiplication by `T` transforms the original matrix into echelon form.
+
+        OUTPUT:
+
+        This matrix is put into echelon form.  Nothing is returned unless
+        the keyword option ``transformation=True`` is specified, in
+        which case the transformation matrix is returned.
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(625), 4, 3, [[404, 355, 133], [375, 482, 448], [506, 115,  77], [370, 384, 66]])
+            sage: A
+            [404 355 133]
+            [375 482 448]
+            [506 115  77]
+            [370 384  66]
+            sage: A.echelonize()
+            sage: A
+            [1 0 2]
+            [0 1 4]
+            [0 0 5]
+            [0 0 0]
         """
         self.check_mutability()
         self.clear_cache()
+        cdef bint transformation = 'transformation' in kwds and kwds['transformation']
+        cdef Matrix_nmod_dense aug, trans
+        cdef Py_ssize_t i, j, m, n
         if self._parent._base.is_field():
-            sig_on()
-            rank = nmod_mat_rref(self._matrix)
-            sig_off()
-            self.cache('rank', rank)
+            if transformation:
+                m = self.nrows()
+                n = self.ncols()
+                aug = self.augment(identity_matrix(self.base_ring(), m))
+                trans = self._new(m, m)
+                sig_on()
+                nmod_mat_rref(aug._matrix)
+                sig_off()
+                for i in range(m):
+                    for j in range(n):
+                        nmod_mat_set_entry(self._matrix, i, j, nmod_mat_get_entry(aug._matrix, i, j))
+                    for j in range(m):
+                        nmod_mat_set_entry(trans._matrix, i, j, nmod_mat_get_entry(aug._matrix, i, n+j))
+            else:
+                sig_on()
+                rank = nmod_mat_rref(self._matrix)
+                sig_off()
+                self.cache('rank', Integer(rank))
         else:
-            self._howell_form()
+            trans = self._howell_form(transformation)
+        self.cache('in_echelon_form', True)
+        if transformation:
+            return trans
 
-    def echelon_form(self):
-        #FIXME: add a warning regarding the output potentially having more rows than input
+    def echelon_form(self, algorithm="default", **kwds):
+        """
+        Return the echelon form of this matrix.
+
+        Note that when not over a field, the echelon form can have more rows than the input.
+
+        INPUT:
+
+        - ``algorithm`` -- ignored (always uses FLINT)
+
+        - ``transformation`` -- boolean. Whether to also return the
+            transformation matrix.
+
+        OUTPUT:
+
+        If the base ring is a field, the reduced row echelon form
+        of this matrix, with the same dimensions.  If the base ring
+        is not a field, the Howell form of this matrix, which will
+        have extra rows added so that the number of rows is at least
+        the number of columns.
+
+        This matrix is not changed by this function, and the returned
+        echelon form is immutable.  Use :meth:`echelonize` to transform
+        this matrix to echelon form in place.
+
+        If the optional parameter ``transformation=True`` is
+        specified, the output consists of a pair `(E,T)` of matrices
+        where `E` is the echelon form of this matrix and `T` is the
+        transformation matrix.
+
+        EXAMPlES::
+
+            sage: A = matrix(Zmod(625), 4, 3, [[404, 355, 133], [375, 482, 448], [506, 115,  77], [370, 384, 66]])
+            sage: A.echelon_form()
+            [1 0 2]
+            [0 1 4]
+            [0 0 5]
+            [0 0 0]
+            sage: E, T = A.echelon_form(transformation=True); T
+            [  2  17  23 564]
+            [  4  22 429 488]
+            [  3   4 188 543]
+            [  5   8 510 316]
+            sage: E == T * A
+            True
+        """
+        transformation = kwds.get('transformation')
         key='echelon_form'
-        ans = self.fetch(key)
-        if ans is not None:
-            return ans
+        E = self.fetch(key)
+        if E is not None:
+            if not transformation:
+                return E
+            T = self.fetch('echelon_transformation')
+            if T is not None:
+                return E, T
         if self._nrows < self._ncols:
             M = self._new(self._ncols - self._nrows, self._ncols)
-            ans = M.stack(self)
+            E = M.stack(self)
         else:
-            ans = self.__copy__()
-        ans.echelonize()
-        self.cache(key, ans)
-        return ans
-
+            E = self.__copy__()
+        T = E.echelonize(algorithm, **kwds)
+        if T is not None:
+            self.cache('echelon_transformation', T)
+        E.set_immutable()
+        self.cache(key, E)
+        if transformation:
+            return E, T
+        else:
+            return E
 
     def _pivots(self):
         key = 'pivots'
@@ -1157,18 +1426,34 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         self.cache(key, ans)
         return ans
 
-    def _howell_form(self):
+    def _howell_form(self, transformation=False):
         """
         In place Howell form of self
         """
         if self._nrows < self._ncols:
-            raise ValueError("self must have at least as many rows as columns.")
+            raise ValueError("matrix must have at least as many rows as columns.")
         self.check_mutability()
-        cdef Matrix_nmod_dense M
+        cdef Matrix_nmod_dense aug, trans
+        cdef Py_ssize_t i, j, m, n
         self.clear_cache()
-        sig_on()
-        nmod_mat_howell_form(self._matrix)
-        sig_off()
+        if transformation:
+            m = self.nrows()
+            n = self.ncols()
+            aug = self.augment(identity_matrix(self.base_ring(), m)).stack(self._new(n, m + n))
+            trans = self._new(m, m)
+            sig_on()
+            nmod_mat_howell_form(aug._matrix)
+            sig_off()
+            for i in range(m):
+                for j in range(n):
+                    nmod_mat_set_entry(self._matrix, i, j, nmod_mat_get_entry(aug._matrix, i, j))
+                for j in range(m):
+                    nmod_mat_set_entry(trans._matrix, i, j, nmod_mat_get_entry(aug._matrix, i, n+j))
+            return trans
+        else:
+            sig_on()
+            nmod_mat_howell_form(self._matrix)
+            sig_off()
 
     def howell_form(self):
         #FXIME add warning
