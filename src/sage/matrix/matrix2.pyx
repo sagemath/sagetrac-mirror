@@ -1885,7 +1885,7 @@ cdef class Matrix(Matrix1):
 
     def determinant(self, algorithm=None):
         r"""
-        Return the determinant of ``self``.
+        Return the determinant of this matrix.
 
         ALGORITHM:
 
@@ -3184,16 +3184,9 @@ cdef class Matrix(Matrix1):
 
     def trace(self):
         """
-        Return the trace of self, which is the sum of the diagonal entries
-        of self.
+        Return the trace of this matrix, which is the sum of the diagonal entries.
 
-        INPUT:
-
-
-        -  ``self`` - a square matrix
-
-
-        OUTPUT: element of the base ring of self
+        The input must be square.
 
         EXAMPLES::
 

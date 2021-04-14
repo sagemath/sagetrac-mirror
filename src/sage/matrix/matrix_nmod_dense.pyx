@@ -1290,7 +1290,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             T = self.fetch('echelon_transformation')
             if T is not None:
                 return E, T
-        if self._nrows < self._ncols:
+        if self._nrows < self._ncols and not self.base_ring().is_field():
             M = self._new(self._ncols - self._nrows, self._ncols)
             E = M.stack(self)
         else:
@@ -1306,17 +1306,38 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             return E
 
     def _pivots(self):
+        """
+        When not over a field, it is possible to have leading entries
+        that are zero divisors.  This function distinguishes
+        between such pivots and pivots that are 1.
+
+        OUTPUT:
+
+        - a list of columns containing a leading 1
+
+        - a list of columns containing a leading nonzero zero divisor
+
+        EXAMPLES::
+
+            sage: R = Zmod(625)
+            sage: A = matrix(Zmod(625), 3, 4, [1, 2, 3, 4, 0, 5, 5, 6, 0, 0, 0, 25])
+            sage: A
+            [ 1  2  3  4]
+            [ 0  5  5  6]
+            [ 0  0  0 25]
+            sage: A._pivots()
+            ((0,), (1, 3))
+        """
         key = 'pivots'
         ans = self.fetch(key)
         if ans is not None:
             return ans
         cdef Matrix_nmod_dense E
-        cdef Py_ssize_t i, j, k
+        cdef Py_ssize_t i, j, k = 0
         # howell form has all the zero rows at the bottom
         E = self.echelon_form()
         p = []
         zdp = []
-        k = 0
         for i in range(E._nrows):
             for j in range(k, E._ncols):
                 if nmod_mat_get_entry(E._matrix, i, j) != 0:  # nonzero position
@@ -1326,22 +1347,68 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                         zdp.append(j) # is a zero divisor
                     k = j+1  # so start at next position next time
                     break
-        ans = (p, zdp)
+        ans = (tuple(p), tuple(zdp))
         self.cache(key, ans)
         return ans
 
     def pivots(self):
+        """
+        Return the columns containing a leading 1 in the echelon form of this matrix.
+
+        When the base ring is not a field, there may be other rows with leading entries
+        a zero divisor.  These columns are available using the :meth:`_pivots` method.
+
+        EXAMPLES::
+
+            sage: R = Zmod(625)
+            sage: A = matrix(Zmod(625), 3, 4, [1, 2, 3, 4, 0, 5, 5, 6, 0, 0, 0, 25])
+            sage: A
+            [ 1  2  3  4]
+            [ 0  5  5  6]
+            [ 0  0  0 25]
+            sage: A.pivots()
+            (0,)
+        """
         return self._pivots()[0]
 
-
     def rank(self):
+        """
+        Return the rank of this matrix.
+
+        When the base ring is not a field, this is defined as the number of leading 1 pivots.
+        This choice has the benefit that a square matrix will be invertible exactly when
+        the rank is the same as the number of rows.
+
+        .. SEEALSO:
+
+        - :meth:`pivots`
+
+        - :meth:`_pivots`
+
+        EXAMPlES::
+
+            sage: entries = [1, 2, 3, 4, 0, 5, 5, 6, 0, 0, 0, 25]
+            sage: A = matrix(GF(17), 3, 4, entries)
+            sage: A
+            [1 2 3 4]
+            [0 5 5 6]
+            [0 0 0 8]
+            sage: A.rank()
+            3
+            sage: A = matrix(Zmod(625), 3, 4, entries)
+            sage: A
+            [ 1  2  3  4]
+            [ 0  5  5  6]
+            [ 0  0  0 25]
+            sage: A.rank()
+            1
+        """
         key = 'rank'
         ans = self.fetch(key)
         if ans is not None:
             return ans
         if not self._parent._base.is_field():
-            p = self.pivots()
-            ans = len(p[0])
+            ans = len(self.pivots())
         else:
             p = self.fetch('pivots')
             if ans is not None:
@@ -1354,51 +1421,120 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         return ans
 
 
-    def determinant(self):
+    def determinant(self, algorithm=None):
+        """
+        Return the determinant of this matrix.
+
+        EXAMPLES::
+
+            sage: A = matrix(ZZ, 3, [1, 6, 11, -2, 3, 1, 3, 1, 0])
+            sage: all(A.change_ring(Zmod(N)).det() == A.det() for N in range(2, 100))
+
+            sage: A = random_matrix(Zmod(36), 6)
+            sage: all(A.det()^n == (A^n).det() for n in range(2, 10))
+            True
+            sage: A.det("charpoly") == A.det("lift")
+            True
+            sage: B = random_matrix(Zmod(36), 6)
+            sage: while not B.is_unit():
+            ....:     B = random_matrix(Zmod(36), 6)
+            sage: A.det() == (~B * A * B).det()
+            True
+        """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
         key = 'det'
-        ans = self.fetch(key)
-        if ans is not None:
-            return ans
+        d = self.fetch(key)
+        if d is not None:
+            return d
+        if algorithm is None:
+            algorithm = "flint" if self.base_ring().is_field() else "charpoly"
 
         # If charpoly known, then det is easy.
         f = self.fetch('charpoly')
         if f is not None:
-            c = f[0]
+            d = f[0]
             if self._ncols % 2:
-                c = -c
-            d = self._coerce_element(c)
-            self.cache('det', d)
-            return d
-
-        if self._parent._base.is_field():
+                d = -d
+        elif algorithm == "flint":
             sig_on()
-            ans = nmod_mat_det(self._matrix)
+            d = nmod_mat_det(self._matrix)
             sig_off()
+        elif algorithm == "charpoly":
+            f = self.charpoly()
+            d = f[0]
+            if self._ncols % 2:
+                d = -d
+        elif algorithm == "lift":
+            d = self.lift_centered().det()
         else:
-            ans = self.apply_map(lambda x : x.lift_centered()).det()
+            raise ValueError("Unknown algorithm '%s'" % algorithm)
 
-        ans = self._parent._base(ans)
-        self.cache(key, ans)
-        return ans
+        d = self._parent._base(d)
+        self.cache(key, d)
+        return d
 
     def trace(self):
+        """
+        Return the trace of this matrix, which is the sum of the diagonal entries.
+
+        The input must be square.
+
+        EXAMPLES::
+
+            sage: A = matrix(ZZ, 3, [1, 6, 11, -2, 3, 1, 3, 1, 0])
+            sage: all(A.change_ring(Zmod(N)).trace() == A.trace() for N in range(2, 100))
+            True
+
+        If the characteristic polynomial is known, negating the second coefficient
+        is used to recover the trace::
+
+            sage: A = matrix(Zmod(36), 3, [12, 12, 10, 6, 23, 24, 35, 24, 30])
+            sage: A.charpoly()
+            x^3 + 7*x^2 + 4*x + 22
+            sage: A.trace()
+            29
+        """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
         key = 'trace'
         ans = self.fetch(key)
         if ans is not None:
             return ans
-        sig_on()
-        ans = nmod_mat_trace(self._matrix)
-        sig_off()
+        f = self.fetch('charpoly')
+        if f is not None:
+            ans = -f[self._nrows - 1]
+        else:
+            sig_on()
+            ans = nmod_mat_trace(self._matrix)
+            sig_off()
+            ans = self.base_ring()(ans)
         self.cache(key, ans)
         return ans
 
-    def _strong_echelon_form(self):
+    def strong_echelonize(self):
         """
-        In place strong echelon form of self
+        Transform this matrix in place into its strong echelon form.
+
+        The strong echelon form obtained from the Howell form by permuting rows:
+        rather than having all zero rows at the bottom,
+        they are placed so that the pivots occur on the diagonal.
+
+        The input must have at least as many rows as columns.
+
+        EXAMPLES::
+
+            sage: entries = [1, 2, 3, 4, 0, 5, 5, 6, 0, 0, 0, 25, 0, 0, 0, 0]
+            sage: A = matrix(Zmod(625), 4, entries); A
+            [ 1  2  3  4]
+            [ 0  5  5  6]
+            [ 0  0  0 25]
+            [ 0  0  0  0]
+            sage: A.strong_echelonize(); A
+            [ 1  2  3  4]
+            [ 0  5  5  6]
+            [ 0  0  0  0]
+            [ 0  0  0 25]
         """
         if self._nrows < self._ncols:
             raise ValueError("self must must have at least as many rows as columns.")
@@ -1409,11 +1545,28 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         sig_off()
 
     def strong_echelon_form(self):
-        #FXIME add warning
         """
-        Strong echelon form of self
+        Strong echelon form of this matrix.
+
+        This is obtained from the Howell form (the form used
+        as echelon form when not over a field) by permuting rows:
+        rather than having all zero rows at the bottom,
+        they are placed so that the pivots occur on the diagonal.
+
+        The result will always have at least as many rows as columns, with zero
+        rows added if necessary to accomplish this.
+
+        EXAMPLES::
+
+            sage: entries = [624, 353, 352, 497, 182, 374, 556, 365, 271, 557, 203, 327]
+            sage: A = matrix(Zmod(625), 3, 4, entries)
+            sage: A.strong_echelon_form()
+            [ 1  2  3  4]
+            [ 0  5  5  6]
+            [ 0  0  0  0]
+            [ 0  0  0 25]
         """
-        key='strong_echelon_form'
+        key = 'strong_echelon_form'
         ans = self.fetch(key)
         if ans is not None:
             return ans
@@ -1422,13 +1575,28 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             ans = self.stack(M)
         else:
             ans = self.__copy__()
-        ans._strong_echelon_form()
+        ans.strong_echelonize()
         self.cache(key, ans)
         return ans
 
-    def _howell_form(self, transformation=False):
-        """
-        In place Howell form of self
+    def howellize(self, transformation=False):
+        r"""
+        Transform this matrix in place into its Howell form.
+
+        See :meth:`howell_form` for the definition.
+
+        Since the Howell form may have more rows than `A`, to transform `A` in place
+        we require that it has at least as many rows as columns.
+
+        EXAMPLES::
+
+            sage: entries = [624, 353, 352, 497, 182, 374, 556, 365, 271, 557, 203, 327, 181, 102, 283, 237]
+            sage: A = matrix(Zmod(625), 4, entries)
+            sage: A.howellize(); A
+            [ 1  2  3  4]
+            [ 0  5  5  6]
+            [ 0  0  0 25]
+            [ 0  0  0  0]
         """
         if self._nrows < self._ncols:
             raise ValueError("matrix must have at least as many rows as columns.")
@@ -1456,9 +1624,56 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             sig_off()
 
     def howell_form(self):
-        #FXIME add warning
         """
-        Howell form of self
+        Return the Howell form of this matrix.
+
+        The Howell form is an echelon form with a few additional properties
+        that make it unique and useful for solving equations modulo `N`.
+
+        For a matrix `A`, let `S(A)` be the module spanned by the rows, and
+        `S_j(A)` the submodule consisting of vectors with the first `j` entries
+        zero.  Recall that elements `a, b` of a ring `R` are associates if there
+        is a unit `u \in R` with `a = ub`; this is an equivalence relation.
+        We can choose a set `X` of representatives in `\ZZ/N\ZZ` by taking
+        all products of the primes dividing `N`, raised to arbitrary powers.
+
+        The Howell form of `A` is a matrix `H` with the same number of columns
+        as `A` so that
+
+        - it is an echelon form: the zero rows are at the bottom, and the leading
+          entries (pivots) in each row each occur down and to the right of the previous.
+
+        - Each pivot lies in `X`, and the entries above a pivot are smaller
+          (as in Hermite normal form).
+
+        - If `(i, j_i)` is the location of a pivot, then rows `i+1`, ... generate
+          `S_{j_i}(A)`.
+
+        if `r` is the number of nonzero rows of `H`, then the first `r` rows
+          of `H` are nonzero
+
+        .. NOTE::
+
+            The Howell form will always have at least as many rows as columns.
+
+        EXAMPLES::
+
+            sage: entries = [624, 353, 352, 497, 182, 374, 556, 365, 271, 557, 203, 327]
+            sage: A = matrix(Zmod(625), 3, 4, entries)
+            sage: A.howell_form()
+            [ 1  2  3  4]
+            [ 0  5  5  6]
+            [ 0  0  0 25]
+            [ 0  0  0  0]
+
+        The following example illustrates why the number of rows needs to be increased::
+
+            sage: A = matrix(Zmod(625), [125, 25, 5, 1])
+            sage: A.howell_form()
+            [125  25   5   1]
+            [  0 125  25   5]
+            [  0   0 125  25]
+            [  0   0   0 125]
         """
         key='howell_form'
         ans = self.fetch(key)
@@ -1470,11 +1685,18 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             ans = self.stack(M)
         else:
             ans = self.__copy__()
-        ans._howell_form()
+        ans.howellize()
         self.cache(key, ans)
         return ans
 
     def __pow__(sself, n, dummy):
+        """
+        Exponentiation.
+
+        EXAMPLES::
+
+        
+        """
         cdef Matrix_nmod_dense self = <Matrix_nmod_dense?>sself
 
         if dummy is not None:
