@@ -5861,7 +5861,7 @@ class Polyhedron_base(Polyhedron_base4):
             sage: triangle = Polyhedron([(1,0,0), (0,1,0), (0,0,1)]); triangle
             A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 3 vertices
             sage: T = triangle.relative_interior_manifold('T'); T
-            Open subset T of the 2-dimensional differentiable submanifold H embedded in the Euclidean space E^3
+            Open subset T of the 2-dimensional Riemannian submanifold H embedded in the Euclidean space E^3
             sage: pc = T.manifold().embedding().inverse()((1/3, 1/3, 1/3))
             sage: pc in T
             True
