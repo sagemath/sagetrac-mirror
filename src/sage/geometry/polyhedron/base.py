@@ -5871,14 +5871,25 @@ class Polyhedron_base(Polyhedron_base4):
             sage: p2 = T.manifold().embedding().inverse()((2, 0, 0))
             sage: p2 in T
             False
+
+        Arrangement of relative interiors of facets::
+
+            sage: D = polytopes.dodecahedron()
+            sage: E3 = EuclideanSpace(3)
+            sage: submanifolds = [
+            ....:     F.as_polyhedron().relative_interior_manifold(name=f'ri_F{i}', orthogonal=True, ambient_space=E3)
+            ....:     for i, F in enumerate(D.facets())]
+            sage: sum(FM.plot({}, srange(-2, 2, 0.1), srange(-2, 2, 0.1), opacity=0.2)  # not tested
+            ....:     for FM in submanifolds) + D.plot()
+            Graphics3d Object
+
         """
         aff_self = self.affine_hull_manifold(start_index=start_index,
                                              ambient_space=ambient_space, names=names, **kwds)
-        relint_self = aff_self.subset(name, is_open=True, latex_name=latex_name)
         restrictions = [ineq.A() * vector(aff_self.embedding().expr()) + ineq.b() > 0
                         for ineq in self.inequality_generator()]
-        relint_chart = aff_self.default_chart().restrict(relint_self, restrictions)
-        relint_self.set_default_chart(relint_chart)
+        relint_self = aff_self.open_subset(name, latex_name=latex_name,
+                                           coord_def={aff_self.default_chart(): restrictions})
         return relint_self
 
     def _polymake_init_(self):
