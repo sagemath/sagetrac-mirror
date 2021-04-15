@@ -5851,6 +5851,36 @@ class Polyhedron_base(Polyhedron_base4):
         aff_latex_name = r'\mathop{\mathrm{' + operator + '}}(' + latex_name + ')'
         return aff_name, aff_latex_name
 
+    def relative_interior_manifold(self, name=None, latex_name=None, start_index=0, ambient_space=None,
+                                   names=None, **kwds):
+        """
+        Return the relative interior of ``self`` as an open subset of its affine hull manifold.
+
+        EXAMPLES::
+
+            sage: triangle = Polyhedron([(1,0,0), (0,1,0), (0,0,1)]); triangle
+            A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 3 vertices
+            sage: T = triangle.relative_interior_manifold('T'); T
+            Open subset T of the 2-dimensional differentiable submanifold H embedded in the Euclidean space E^3
+            sage: pc = T.manifold().embedding().inverse()((1/3, 1/3, 1/3))
+            sage: pc in T
+            True
+            sage: p1 = T.manifold().embedding().inverse()((1, 0, 0))
+            sage: p1 in T
+            False
+            sage: p2 = T.manifold().embedding().inverse()((2, 0, 0))
+            sage: p2 in T
+            False
+        """
+        aff_self = self.affine_hull_manifold(start_index=start_index,
+                                             ambient_space=ambient_space, names=names, **kwds)
+        relint_self = aff_self.subset(name, is_open=True, latex_name=latex_name)
+        restrictions = [ineq.A() * vector(aff_self.embedding().expr()) + ineq.b() > 0
+                        for ineq in self.inequality_generator()]
+        relint_chart = aff_self.default_chart().restrict(relint_self, restrictions)
+        relint_self.set_default_chart(relint_chart)
+        return relint_self
+
     def _polymake_init_(self):
         """
         Return a polymake "Polytope" object corresponding to ``self``.
