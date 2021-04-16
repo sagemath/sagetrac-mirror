@@ -1662,7 +1662,27 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         tester = self._tester(**options)
         # Test to make sure the returned matrix is a copy
-        tester.assertTrue(self.change_ring(self.base_ring()) is not self)
+        tester.assertTrue(self.is_immutable() or self.change_ring(self.base_ring()) is not self)
+
+    def _change_implementation(self, implementation):
+        r"""
+        For rings with multiple implementations, such as `\ZZ/N\ZZ`, allows for switching between implementations.
+
+        EXAMPLES::
+
+            sage: M = MatrixSpace(Zmod(5), 2, implementation="flint")
+            sage: a = M(range(4))
+            sage: b = a._change_implementation("linbox-double"); b
+            [0 1]
+            [2 3]
+            sage: type(b)
+            <class 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
+        """
+        M = sage.matrix.matrix_space.MatrixSpace(self.base_ring(), self._nrows, self._ncols, sparse=self.is_sparse(), implementation=implementation)
+        mat = M(self.list(), coerce=False, copy=False)
+        if self._subdivisions is not None:
+            mat.subdivide(self.subdivisions())
+        return mat
 
     def _matrix_(self, R=None):
         """

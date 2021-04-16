@@ -34,8 +34,6 @@ from sage.rings.finite_rings.integer_mod cimport (
 )
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.special import identity_matrix
 from .args cimport SparseEntry, MatrixArgs_init
 
 from sage.libs.flint.nmod_mat cimport *
@@ -51,11 +49,13 @@ from sage.libs.flint.ulong_extras cimport (
     n_pow,
     n_addmod,
     n_submod,
+    n_negmod,
     n_invmod,
     n_mod2_preinv,
     n_mulmod2_preinv,
     n_remove2_precomp,
     n_CRT,
+    n_gcd,
     n_div2_preinv,
     n_divrem2_precomp,
 )
@@ -210,6 +210,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         if nrows == self._nrows and ncols == self._ncols:
             P = self._parent
         else:
+            from sage.matrix.matrix_space import MatrixSpace
             P = MatrixSpace(self._parent._base, nrows, ncols, sparse=False)
         cdef Matrix_nmod_dense ans = Matrix_nmod_dense.__new__(Matrix_nmod_dense, P)
         ans._parent = P
@@ -255,6 +256,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         if left._ncols != _right._nrows:
             raise IndexError("Number of columns of self must equal number of rows of right.")
         cdef Matrix_nmod_dense right = _right
+        cdef Py_ssize_t i, j
         cdef Matrix_nmod_dense M = left._new(left._nrows, right._ncols)
         sig_on()
         nmod_mat_mul(M._matrix, left._matrix, right._matrix)
@@ -689,7 +691,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
             sage: A = matrix(Zmod(36), [[28, 32, 19], [25, 24, 2], [15, 11, 30]])
             sage: A.charpoly()
-            x^3 + 8*x^2 + 8
+            x^3 + 26*x^2 + 9*x + 35
             sage: A = matrix(Zmod(43^10), 6, [0, 5664461354126771, 12212357361910300, 15947020959157478, 0, 16792952041597449, 14690359073749623, 11237259451999884, 5117434014428142, 15157488677243483, 9004103062307752, 20761679499270441, 4620722392655416, 5445142895231681, 6605357538252496, 7608812697273777, 18542817615638637, 18194689690271501, 0, 20341333098836812, 12117922812876054, 1270149214447437, 0, 10999401748338075, 4620722392655416, 10891113386038365, 956055025271903, 2162842206467093, 18542817615638637, 1143972982339214, 13128267973348003, 15817056104759912, 20531311511260484, 13598045280630823, 7585782589268305, 14053895308766769])
             sage: A.charpoly()
             x^6 + 13124967810747524*x^5 + 20067912494391006*x^4 + 11204731077775359*x^3
@@ -735,6 +737,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                     prepe = n_preinvert_limb(pe)
                     R = Zmod(pe)
                     R.factored_order.set_cache(Factorization([(pz, ez)]))
+                    from sage.matrix.matrix_space import MatrixSpace
                     A = MatrixSpace(R, self._nrows, self._ncols, sparse=False)()
                     for i in range(n):
                         for j in range(n):
@@ -860,6 +863,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         if not mul:
             preshift = n_preinvert_limb(shift)
         R = Zmod(N)
+        from sage.matrix.matrix_space import MatrixSpace
         P = MatrixSpace(R, m, n, sparse=False)
         cdef Matrix_nmod_dense ans = Matrix_nmod_dense.__new__(Matrix_nmod_dense, P)
         ans._parent = P
@@ -1149,13 +1153,14 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         else:
             return X
 
-    def tranpose(self):
+    def transpose(self):
         """
         Return the transpose of this matrix, without changing this matrix.
 
         EXAMPLES::
 
-            sage: matrix(Zmod(36), 2, 2, [0, 1, 0, 0]).transpose()
+            sage: A = matrix(Zmod(36), 2, 2, [0, 1, 0, 0])
+            sage: A.transpose()
             [0 0]
             [1 0]
         """
@@ -1214,6 +1219,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             if transformation:
                 m = self.nrows()
                 n = self.ncols()
+                from sage.matrix.special import identity_matrix
                 aug = self.augment(identity_matrix(self.base_ring(), m))
                 trans = self._new(m, m)
                 sig_on()
@@ -1230,7 +1236,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                 sig_off()
                 self.cache('rank', Integer(rank))
         else:
-            trans = self._howell_form(transformation)
+            trans = self.howellize(transformation)
         self.cache('in_echelon_form', True)
         if transformation:
             return trans
@@ -1607,6 +1613,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         if transformation:
             m = self.nrows()
             n = self.ncols()
+            from sage.matrix.special import identity_matrix
             aug = self.augment(identity_matrix(self.base_ring(), m)).stack(self._new(n, m + n))
             trans = self._new(m, m)
             sig_on()
@@ -1689,15 +1696,26 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         self.cache(key, ans)
         return ans
 
-    def __pow__(sself, n, dummy):
+    def __pow__(Matrix_nmod_dense self, n, dummy):
         """
         Exponentiation.
 
         EXAMPLES::
 
-        
+            sage: A = matrix(Zmod(625), 2, [1, 1, 0, 1])
+            sage: A^625
+            [1 0]
+            [0 1]
+
+            sage: N = 2^63 - 1
+            sage: A = random_matrix(Zmod(N), 6)
+            sage: B = random_matrix(Zmod(N), 6)
+            sage: while not B.is_unit():
+            ....:     B = random_matrix(Zmod(N), 6)
+            sage: all((~B * A * B)^k == ~B * A^k * B for k in range(2, 10))
+            True
         """
-        cdef Matrix_nmod_dense self = <Matrix_nmod_dense?>sself
+        #cdef Matrix_nmod_dense self = <Matrix_nmod_dense?>sself
 
         if dummy is not None:
             raise ValueError
@@ -1714,15 +1732,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             e = <unsigned long>e_sgn
         else:
             if not isinstance(n, Integer):
-                try:
-                    n = Integer(n)
-                except TypeError:
-                    from sage.symbolic.expression import Expression
-                    if isinstance(n, Expression):
-                        from sage.matrix.matrix2 import _matrix_power_symbolic
-                        return _matrix_power_symbolic(self, n)
-                    else:
-                        raise NotImplementedError("the given exponent is not supported")
+                n = Integer(n)
             if mpz_sgn((<Integer>n).value) < 0:
                 return (~self) ** (-n)
 
@@ -1742,79 +1752,142 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         sig_off()
         return M
 
-    def _right_kernel_matrix(self, zero_divisors_are_pivots=False):
-        cdef Matrix_nmod_dense X, ans, E
-        cdef Py_ssize_t i, j, k, l
-        cdef long x, y, s
-        E = self.echelon_form()
+    def _right_kernel_matrix(self, algorithm=None, proof=None, zero_divisors_are_pivots=False):
+        """
+        A matrix whose rows form a basis for the right kernel of this matrix.
+
+        INPUT:
+
+        - ``algorithm`` -- ignored, for compatability with :meth:`sage.matrix.matrix2.Matrix.right_kernel_matrix`.
+
+        - ``proof`` -- ignored, for compatibility with :meth:`sage.matrix.matrix2.Matrix.right_kernel_matrix`.
+
+        - ``zero_divisors_are_pivots`` -- 
+
+        OUTPUT:
+
+        - ``format`` -- a string indicating what kind of echelonization has been done on the result
+
+        - ``K`` -- a matrix so that right multiplication by ``K.transpose()`` yields zero.
+
+        EXAMPLES::
+
+        When the base ring is not a field, the kernel is computed using the Howell form::
+
+            sage: A = matrix(Zmod(43^10), 6, [0, 5664461354126771, 12212357361910300, 15947020959157478, 0, 16792952041597449, 14690359073749623, 11237259451999884, 5117434014428142, 15157488677243483, 9004103062307752, 20761679499270441, 4620722392655416, 5445142895231681, 6605357538252496, 7608812697273777, 18542817615638637, 18194689690271501, 0, 20341333098836812, 12117922812876054, 1270149214447437, 0, 10999401748338075, 4620722392655416, 10891113386038365, 956055025271903, 2162842206467093, 18542817615638637, 1143972982339214, 13128267973348003, 15817056104759912, 20531311511260484, 13598045280630823, 7585782589268305, 14053895308766769])
+
+            sage: A.howell_form()
+            [               43                 0               430   463321664584385  6642784060940877  1272143397612677]
+            [                0                43              1290    13718919206186  9222987387198236  4718167694579285]
+            [                0                 0              1849   175909299267694  5349721549210673 15609543848590133]
+            [                0                 0                 0   502592611936843 17088148805852662 20606297089410563]
+            [                0                 0                 0                 0                 0                 0]
+            [                0                 0                 0                 0                 0                 0]
+
+            sage: K0 = A.right_kernel_matrix(basis='computed'); K0 # indirect doctest
+            [502592611936843               0               0               0               0               0]
+            [              0 502592611936843               0               0               0               0]
+            [385710609160833 151946603608813  11688200277601               0               0               0]
+            [465890695877871 260955102496367   7597286341143              43               0               0]
+            [171748388290949  47073416965373   7938657150170               9               1               0]
+            [420900330750694 300556574130784   3055770614472               2               0               1]
+            sage: A * K0.T == 0
+            True
+
+        The default is to echelonize the kernel::
+
+            sage: K = A.right_kernel_matrix(); K
+            [              1               0               7  11391562385871 163874381071062   4349304245336]
+            [              0               1              22    218579974005 169987310309906  32297642657385]
+            [              0               0              43   3510762799844 121697346420828 148529822771001]
+            [              0               0               0  11688200277601  35064600832803 350646008328030]
+            [              0               0               0               0 502592611936843               0]
+            [              0               0               0               0               0 502592611936843]
+            sage: A * K.T == 0
+            True
+        """
+        cdef Py_ssize_t i, j, k, l, cur_row, pivl, M
+        cdef mp_limb_t s, x, y, N, xinv, yinv, Ninv
+        cdef Matrix_nmod_dense X, ans, E = self.echelon_form()
         if self._parent._base.is_field():
             # nmod_mut_nullspace will do this regardless
             # so we are better off to start in echelon form to have the rank
-            X = self._new(self.ncols, self._nrows - self.rank())
-            ans = self._new(self._nrows - self.rank(), self._ncols)
+            M = max(self._nrows, self._ncols)
+            X = self._new(self._ncols, M - self.rank())
+            ans = self._new(M - self.rank(), self._ncols)
             sig_on()
             nmod_mat_nullspace(X._matrix, E._matrix) # columns of X form a basis
             nmod_mat_transpose(ans._matrix, X._matrix)
             sig_off()
-            return ans
+            return "pivot-nmod-field", ans
         else:
-            zero = self._parent._base.zero()
-            one = self._parent._base.one()
+            # We need to have a square matrix so that it's possible to echelonize.
+            ans = self._new(self._ncols, self._ncols)
+            N = mpz_get_si(self._modulus.sageInteger.value)
+            Ninv = n_preinvert_limb(N)
+
             p, zdp = map(set, self._pivots())
             set_pivots = p.union(zdp)
             pivot = sorted(set_pivots)
-            N = mpz_get_si(self._modulus.sageInteger.value)
-            basis = []
+
+            # In the comments below, we write v for the current row of ans being constructed
+            cur_row = 0
+            # k tracks the number of pivots we've passed
             k = 0
             for j in range(self._ncols):
                 if j in p:
                     k += 1
                     continue
-                v = [zero] * self._ncols
                 i = k
                 if j in zdp:
                     k += 1
                     if zero_divisors_are_pivots:
                         continue
-                    v[j] = self._parent._base(N//nmod_mat_get_entry(E._matrix, i, j))
+                    #v[j] = N // E[i,j]
+                    nmod_mat_set_entry(ans._matrix, cur_row, j, N // nmod_mat_get_entry(E._matrix, i, j))
                 else:
-                    v[j] = one
+                    #v[j] = 1
+                    nmod_mat_set_entry(ans._matrix, cur_row, j, 1)
 
                 # figure out the remaining coefficients of v
                 # note that v might need to be rescaled several times
                 for l in reversed(range(i)):
-                    x = nmod_mat_get_entry(E._matrix, l, pivot[l])
-                    # solve
-                    # v[pivot[l]] E[l, pivot[l]]  + y*sum(E[l,m] * v[m] for m in range(pivot[l] + 1, j)) = 0
-                    s = sum(v[m]*nmod_mat_get_entry(E._matrix, l, m) for m in range(pivot[l] + 1, j + 1)) % N
-                    if s % x != 0: # make sure we can work mod N/x
-                        y = x // gcd(s, x)
-                        s *= y # now s is divisible by x
-                        for m in range(pivot[l] + 1, j + 1):
-                            v[m] *= y
-                        assert v[j] % N != 0
-                    # QUESTION: this is correct modulo N/x, does one need to consider the various lifts?
-                    # FIXME, this feels wrong
-                    v[pivot[l]] = self._parent._base(-s//x)
-                basis.append(v)
-            # FIXME, this feels wrong
-            ans = self._new(len(basis), self._ncols)
-            ma = MatrixArgs_init(ans._parent, basis)
-            for t in ma.iter(False, True): #????
-                se = <SparseEntry>t
-                x = <long>se.entry
-                nmod_mat_set_entry(ans._matrix, se.i, se.j, x)
-            if zero_divisors_are_pivots:
-                return ans
-            else:
-                return ans.howell_form()
+                    pivl = pivot[l]
+                    x = nmod_mat_get_entry(E._matrix, l, pivl)
+                    xinv = n_preinvert_limb(x)
 
-
-    # transpose (Edgar) x
-    # nmod_mat_pow (Edgar) x
-    # nmod_mat_trace (Edgar) X
-    # rank and det (only primes) (Edgar) X
-    # rank generic (Edgar)
-    # right_kernel_matrix (nmod_mat_nullspace) (Edgar) x
-    # row reduction (nmod_mat_rref) (Edgar) ~
-    # richcmp x
+                    # solve for T
+                    # v[pivot[l]] * E[l, pivot[l]] + T*sum(v[m] * E[l,m] for m in range(pivot[l] + 1, j + 1)) = 0
+                    # Start by computing the sum
+                    #s = sum(v[m] * E[l, m] for m in range(pivot[l] + 1, j + 1))
+                    s = 0
+                    for m in range(pivl + 1, j + 1):
+                        y = n_mulmod2_preinv(nmod_mat_get_entry(ans._matrix, cur_row, m),
+                                             nmod_mat_get_entry(E._matrix, l, m), N, Ninv)
+                        s = n_addmod(s, y, N)
+                    # Make s divisible by x by working mod N/x
+                    if n_mod2_preinv(s, x, xinv): # make sure we can work mod N/x
+                    #if s % x != 0: # make sure we can work mod N/x
+                        # set y = x // gcd(s, x), then multiply s by y
+                        y = n_gcd(s, x)
+                        yinv = n_preinvert_limb(y)
+                        y = n_div2_preinv(x, y, yinv)
+                        s = n_mulmod2_preinv(s, y, N, Ninv)
+                        # now s is divisible by x, but we also have to multiply
+                        # the other entries of the row by y
+                        for m in range(pivl + 1, j + 1):
+                            # v[m] *= y
+                            nmod_mat_set_entry(
+                                ans._matrix, cur_row, m,
+                                n_mulmod2_preinv(
+                                    nmod_mat_get_entry(ans._matrix, cur_row, m),
+                                    y, N, Ninv))
+                        # assert v[j] % N != 0
+                    # This is correct modulo N/x, and since the pivot is x
+                    # the kernel is now well defined modulo N.
+                    #v[pivot[l]] = -s / x
+                    nmod_mat_set_entry(
+                        ans._matrix, cur_row, pivl,
+                        n_div2_preinv(n_negmod(s, N), x, xinv))
+                cur_row += 1
+            return "pivot-nmod-ring", ans
