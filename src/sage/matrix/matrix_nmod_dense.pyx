@@ -995,7 +995,8 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                     nmod_mat_set_entry(B._matrix, i, j, nmod_mat_get_entry(v._matrix, i, 0))
             # _right_kernel_matrix caches echelon form, and we're changing B
             B.clear_cache()
-            C = B._right_kernel_matrix()
+            _, C = B._right_kernel_matrix()
+            C.howellize()
             polys = []
             # scan for last nonzero row
             for i in range(n, -1, -1):
@@ -1045,7 +1046,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
             sage: A = matrix(Zmod(36), 2, [6, 0, 0, -6])
             sage: A.minpoly()
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: Matrix does not have a minimal polynomial; try minpoly_ideal
 
@@ -1060,6 +1061,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
            ....:     B = random_matrix(Zmod(2^63-1), 10, 10)
            sage: C = ~B * A * B
            sage: C.minpoly() == f*g
+           True
         """
         I = self.minpoly_ideal(var, proof=proof)
         gens = I.gens()
@@ -1164,7 +1166,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             [0 0]
             [1 0]
         """
-        cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
+        cdef Matrix_nmod_dense M = self._new(self._ncols, self._nrows)
         sig_on()
         nmod_mat_transpose(M._matrix, self._matrix)
         sig_off()
@@ -1435,6 +1437,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
             sage: A = matrix(ZZ, 3, [1, 6, 11, -2, 3, 1, 3, 1, 0])
             sage: all(A.change_ring(Zmod(N)).det() == A.det() for N in range(2, 100))
+            True
 
             sage: A = random_matrix(Zmod(36), 6)
             sage: all(A.det()^n == (A^n).det() for n in range(2, 10))
@@ -1806,15 +1809,14 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             sage: A * K.T == 0
             True
         """
-        cdef Py_ssize_t i, j, k, l, cur_row, pivl, M
+        cdef Py_ssize_t i, j, k, l, cur_row, pivl
         cdef mp_limb_t s, x, y, N, xinv, yinv, Ninv
         cdef Matrix_nmod_dense X, ans, E = self.echelon_form()
         if self._parent._base.is_field():
             # nmod_mut_nullspace will do this regardless
             # so we are better off to start in echelon form to have the rank
-            M = max(self._nrows, self._ncols)
-            X = self._new(self._ncols, M - self.rank())
-            ans = self._new(M - self.rank(), self._ncols)
+            X = self._new(self._ncols, self._ncols - self.rank())
+            ans = self._new(self._ncols - self.rank(), self._ncols)
             sig_on()
             nmod_mat_nullspace(X._matrix, E._matrix) # columns of X form a basis
             nmod_mat_transpose(ans._matrix, X._matrix)
@@ -1891,3 +1893,8 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                         n_div2_preinv(n_negmod(s, N), x, xinv))
                 cur_row += 1
             return "pivot-nmod-ring", ans
+
+    cdef int _copy_row_to_mod_int_array(self, mod_int *to, Py_ssize_t i):
+        cdef Py_ssize_t j
+        for j in range(self._ncols):
+            to[j] = nmod_mat_get_entry(self._matrix, i, j)

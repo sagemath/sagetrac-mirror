@@ -1679,11 +1679,11 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 mm.mpz_reduce(tmp, entry_list)
                 for k from 0 <= k < n:
                     if isinstance(res[k], Matrix_modn_dense_float):
-                        (<Matrix_modn_dense_float>res[k])._matrix[i][j] = (<float>entry_list[k]) % mn.moduli[k]
+                        (<Matrix_modn_dense_float>res[k])._matrix[i][j] = (<float>entry_list[k]) % mm.moduli[k]
                     elif isinstance(res[k], Matrix_modn_dense_double):
-                        (<Matrix_modn_dense_double>res[k])._matrix[i][j] = (<double>entry_list[k]) % mn.moduli[k]
+                        (<Matrix_modn_dense_double>res[k])._matrix[i][j] = (<double>entry_list[k]) % mm.moduli[k]
                     else:
-                        nmod_mat_set_entry((<Matrix_nmod_dense>res[k])._matrix, i, j, entry_list[k] % mn.moduli[k])
+                        nmod_mat_set_entry((<Matrix_nmod_dense>res[k])._matrix, i, j, entry_list[k] % mm.moduli[k])
         sig_off()
         mpz_clear(tmp)
         sig_free(entry_list)
@@ -6014,8 +6014,7 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     mm = moduli
 
     for b in residues:
-        if not (isinstance(b, Matrix_modn_dense_float) or
-                isinstance(b, Matrix_modn_dense_double)):
+        if not isinstance(b, (Matrix_modn_dense_template, Matrix_nmod_dense)):
             raise TypeError("Can only perform CRT on list of matrices mod n.")
 
     cdef mod_int **row_list
@@ -6034,10 +6033,14 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
 
     for i in range(nr):
         for k in range(n):
-            (<Matrix_modn_dense_template>residues[k])._copy_row_to_mod_int_array(row_list[k],i)
+            mat = residues[k]
+            if isinstance(mat, Matrix_modn_dense_template):
+                (<Matrix_modn_dense_template>mat)._copy_row_to_mod_int_array(row_list[k], i)
+            else:
+                (<Matrix_nmod_dense>mat)._copy_row_to_mod_int_array(row_list[k], i)
         mm.mpz_crt_vec(tmp, row_list, nc)
         for j in range(nc):
-            M.set_unsafe_mpz(i,j,tmp[j])
+            M.set_unsafe_mpz(i, j, tmp[j])
 
     for k in range(n):
         sig_free(row_list[k])
