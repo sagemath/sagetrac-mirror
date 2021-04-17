@@ -4116,7 +4116,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     raise NotImplementedError("return_subscheme only implemented for minimal=False")
                 return X
             if X.dimension() == 0:
-                if R in NumberFields() or R is QQbar or R in FiniteFields():
+                from sage.rings.function_field.function_field import RationalFunctionField_global
+                if R in NumberFields() or R is QQbar or R in FiniteFields() or isinstance(self.base_ring(), RationalFunctionField_global):
                     Z = f.base_indeterminacy_locus()
                     points = [dom(Q) for Q in X.rational_points()]
                     good_points = []
