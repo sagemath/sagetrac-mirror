@@ -5863,7 +5863,7 @@ class Polyhedron_base(Polyhedron_base4):
             sage: T = triangle.relative_interior_manifold('T'); T
             Open subset T of the 2-dimensional Riemannian submanifold H embedded in the Euclidean space E^3
             sage: pc = T.manifold().embedding().inverse()((1/3, 1/3, 1/3))
-            sage: pc in T
+            sage: pc in T   # known bug - #31689
             True
             sage: p1 = T.manifold().embedding().inverse()((1, 0, 0))
             sage: p1 in T
