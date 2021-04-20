@@ -576,13 +576,11 @@ cdef class Matrix(Matrix1):
             ValueError: matrix equation has no solutions
             sage: A = Matrix(Zmod(128), 2, 3, [23,11,22,4,1,0])
             sage: B = Matrix(Zmod(128), 2, 1, [1,0])
-            sage: A.solve_right(B)
-            [  5]
-            [108]
-            [127]
+            sage: v = A.solve_right(B); A * v == B
+            True
             sage: B = B.column(0)
-            sage: A.solve_right(B)
-            (5, 108, 127)
+            sage: v = A.solve_right(B); A * v == B
+            True
             sage: A = Matrix(Zmod(15), 3,4, range(12))
             sage: B = Matrix(Zmod(15), 3,3, range(3,12))
             sage: X = A.solve_right(B)
@@ -824,28 +822,10 @@ cdef class Matrix(Matrix1):
             # separately.
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             if is_IntegerModRing(K):
-                from sage.libs.pari import pari
-                A = pari(self.lift())
-                b = pari(B).lift()
-                if b.type() == "t_MAT":
-                    X = []
-                    for n in range(B.ncols()):
-                        ret = A.matsolvemod(K.cardinality(), b[n])
-                        if ret.type() == 't_INT':
-                            raise ValueError("matrix equation has no solutions")
-                        X.append(ret.sage())
-                    X = self.matrix_space(B.ncols(), self.ncols())(X)
-                    return X.T
-                elif b.type() == "t_VEC":
-                    b = b.Col()
-                    ret = A.matsolvemod(K.cardinality(), b)
-                    if ret.type() == 't_INT':
-                        raise ValueError("matrix equation has no solutions")
-                    ret = ret.Vec().sage()
-                    return (K ** self.ncols())(ret)
+                return self._solve_right_modn(B)
             raise TypeError("base ring must be an integral domain or a ring of integers mod n")
 
-        C = B.column() if b_is_vec else B
+        C = B.column(implementation=self.parent().Element) if b_is_vec else B
 
         if not self.is_square():
             X = self._solve_right_general(C, check=check)
@@ -860,6 +840,28 @@ cdef class Matrix(Matrix1):
             return X.column(0)
         else:
             return X
+
+    def _solve_right_modn(self, B):
+        from sage.libs.pari import pari
+        K = self.base_ring()
+        A = pari(self.lift())
+        b = pari(B).lift()
+        if b.type() == "t_MAT":
+            X = []
+            for n in range(B.ncols()):
+                ret = A.matsolvemod(K.cardinality(), b[n])
+                if ret.type() == 't_INT':
+                    raise ValueError("matrix equation has no solutions")
+                X.append(ret.sage())
+            X = self.matrix_space(B.ncols(), self.ncols())(X)
+            return X.T
+        elif b.type() == "t_VEC":
+            b = b.Col()
+            ret = A.matsolvemod(K.cardinality(), b)
+            if ret.type() == 't_INT':
+                raise ValueError("matrix equation has no solutions")
+            ret = ret.Vec().sage()
+            return (K ** self.ncols())(ret)
 
     def _solve_right_nonsingular_square(self, B, check_rank=True):
         r"""
@@ -1881,7 +1883,7 @@ cdef class Matrix(Matrix1):
 
     def determinant(self, algorithm=None):
         r"""
-        Return the determinant of ``self``.
+        Return the determinant of this matrix.
 
         ALGORITHM:
 
@@ -2695,7 +2697,7 @@ cdef class Matrix(Matrix1):
 
     def charpoly(self, var = 'x', algorithm = None):
         r"""
-        Returns the characteristic polynomial of self, as a polynomial over
+        Return the characteristic polynomial of this matrix, as a polynomial over
         the base ring.
 
         ALGORITHM:
@@ -3180,16 +3182,9 @@ cdef class Matrix(Matrix1):
 
     def trace(self):
         """
-        Return the trace of self, which is the sum of the diagonal entries
-        of self.
+        Return the trace of this matrix, which is the sum of the diagonal entries.
 
-        INPUT:
-
-
-        -  ``self`` - a square matrix
-
-
-        OUTPUT: element of the base ring of self
+        The input must be square.
 
         EXAMPLES::
 
@@ -4221,7 +4216,7 @@ cdef class Matrix(Matrix1):
             sage: matrix(Integers(6), 2, 2).right_kernel_matrix(algorithm='generic')
             Traceback (most recent call last):
             ...
-            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 6'.
+            ValueError: 'generic' matrix kernel algorithm only available over a field, not over Ring of integers modulo 6
             sage: matrix(QQ, 2, 2).right_kernel_matrix(algorithm='pluq')
             Traceback (most recent call last):
             ...
@@ -7416,11 +7411,11 @@ cdef class Matrix(Matrix1):
 
         Echelon form is not defined over arbitrary rings::
 
-            sage: a = matrix(Integers(9),3,3,range(9))
+            sage: a = matrix(Integers(9)['x'], 3, 3, range(9))
             sage: a.echelon_form()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 9'.
+            NotImplementedError: Generic echelon form only defined over integral domains
 
         Involving a sparse matrix::
 
@@ -7539,13 +7534,13 @@ cdef class Matrix(Matrix1):
             [ 1  0 18]
             [ 0  1  2]
 
-        The matrix library used for `\ZZ/p`-matrices does not return
-        the transformation matrix, so the ``transformation`` option is
-        ignored::
-
-            sage: C.echelon_form(transformation=True)
-            [ 1  0 18]
-            [ 0  1  2]
+            sage: E, T = C.echelon_form(transformation=True); E, T
+            (
+            [ 1  0 18]  [11  7]
+            [ 0  1  2], [14  6]
+            )
+            sage: T*C == E
+            True
 
             sage: D = matrix(ZZ, 2, 3, [1,2,3,4,5,6])
             sage: D.echelon_form(transformation=True)

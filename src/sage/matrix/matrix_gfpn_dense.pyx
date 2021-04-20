@@ -1326,9 +1326,9 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         multiplication algorithm is used, the following is a valid
         consistency check::
 
-            sage: M = MatrixSpace(GF(9,'x'),1000,500).random_element()
-            sage: N = MatrixSpace(GF(9,'x'),500,2000).random_element()
-            sage: M*N == M._multiply_classical(N)                       # optional: meataxe
+            sage: M = MatrixSpace(GF(9,'x'),1000,500).random_element() # optional: meataxe
+            sage: N = MatrixSpace(GF(9,'x'),500,2000).random_element() # optional: meataxe
+            sage: M*N == M._multiply_classical(N)                      # optional: meataxe
             True
 
         """
@@ -1362,8 +1362,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
         We test that different cutoffs yield the same result::
 
-            sage: M = MatrixSpace(GF(9,'x'),1500,600).random_element()
-            sage: N = MatrixSpace(GF(9,'x'),600,1500).random_element()
+            sage: M = MatrixSpace(GF(9,'x'),1500,600).random_element() # optional: meataxe
+            sage: N = MatrixSpace(GF(9,'x'),600,1500).random_element() # optional: meataxe
             sage: M._multiply_strassen(N) == M._multiply_strassen(N,80) == M._multiply_strassen(N,2) # optional: meataxe
             True
 
@@ -1387,10 +1387,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
         TESTS::
 
-            sage: M = random_matrix(GF(9,'x'), 64,51)
-            sage: M == M*int(4) == int(4)*M
+            sage: M = random_matrix(GF(9,'x'), 64,51) # optional: meataxe
+            sage: M == M*int(4) == int(4)*M           # optional: meataxe
             True
-            sage: M*int(-1)+M == 0
+            sage: M*int(-1)+M == 0                    # optional: meataxe
             True
 
         """
@@ -1454,20 +1454,20 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
         TESTS::
 
-            sage: MS = MatrixSpace(GF(9,'x'),500)
-            sage: while 1:
+            sage: MS = MatrixSpace(GF(9,'x'),500) # optional: meataxe
+            sage: while 1:                        # optional: meataxe
             ....:     M = MS.random_element()
             ....:     if M.rank() == 500:
             ....:         break
-            sage: Minv = ~M    # indirect doctest
-            sage: Minv*M == M*Minv == 1
+            sage: Minv = ~M                       # optional: meataxe
+            sage: Minv*M == M*Minv == 1           # optional: meataxe
             True
 
         We use the occasion to demonstrate that errors in MeatAxe are
         correctly handled in Sage::
 
-            sage: MS = MatrixSpace(GF(25,'x'),5)
-            sage: while 1:
+            sage: MS = MatrixSpace(GF(25,'x'),5) # optional: meataxe
+            sage: while 1:                       # optional: meataxe
             ....:     M = MS.random_element(density=0.4)
             ....:     if M.rank() < 5:
             ....:         break

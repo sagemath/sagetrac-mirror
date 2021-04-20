@@ -189,8 +189,10 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: type(matrix(SR, 2, 2, 0))
         <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
         sage: type(matrix(GF(7), 2, range(4)))
+        <class 'sage.matrix.matrix_nmod_dense.Matrix_nmod_dense'>
+        sage: type(matrix(GF(7), 101))
         <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
-        sage: type(matrix(GF(16007), 2, range(4)))
+        sage: type(matrix(GF(16007), 101))
         <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
         sage: type(matrix(CBF, 2, range(4)))
         <type 'sage.matrix.matrix_complex_ball_dense.Matrix_complex_ball_dense'>
@@ -236,12 +238,23 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                     except ImportError:
                         pass
 
-            if sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R):
-                from . import matrix_modn_dense_double, matrix_modn_dense_float
-                if R.order() < matrix_modn_dense_float.MAX_MODULUS:
+            if sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R) and R.order() <= sys.maxsize:
+                # FLINT performs better for small dimensions; the following are approximate crossovers
+                # for square matrices against modn_dense_double
+                # 100 for echelon form
+                # 20 for charpoly
+                # 1000 for inverses
+                # 2 for right_kernel
+                # 250 for multiplication
+                N = R.order()
+                from . import matrix_modn_dense_double, matrix_modn_dense_float, matrix_nmod_dense
+                if not R.is_field() or max(nrows, ncols) <= 100:
+                    return matrix_nmod_dense.Matrix_nmod_dense
+                if N < matrix_modn_dense_float.MAX_MODULUS:
                     return matrix_modn_dense_float.Matrix_modn_dense_float
-                if R.order() < matrix_modn_dense_double.MAX_MODULUS:
+                if N < matrix_modn_dense_double.MAX_MODULUS:
                     return matrix_modn_dense_double.Matrix_modn_dense_double
+                return matrix_nmod_dense.Matrix_nmod_dense
 
             if sage.rings.number_field.number_field.is_CyclotomicField(R):
                 from . import matrix_cyclo_dense
@@ -272,7 +285,10 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                 return matrix_integer_dense.Matrix_integer_dense
             if R is sage.rings.rational_field.QQ:
                 return matrix_rational_dense.Matrix_rational_dense
-            raise ValueError("'flint' matrices are only available over the integers or the rationals")
+            if R.order() < sys.maxsize:
+                from . import matrix_nmod_dense
+                return matrix_nmod_dense.Matrix_nmod_dense
+            raise ValueError("'flint' matrices are only available over the integers, the rationals and Z/N with N < 2^63")
 
         if implementation == 'm4ri':
             if R.is_field() and R.characteristic() == 2 and R.order() <= 65536:
@@ -300,9 +316,10 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                 from . import matrix_cyclo_dense
                 return matrix_cyclo_dense.Matrix_cyclo_dense
             raise ValueError("'rational' matrices are only available over a cyclotomic field")
-
+        from . import matrix_modn_dense_float
+        if implementation == 'linbox':
+            implementation = 'linbox-float' if R.order() < matrix_modn_dense_float.MAX_MODULUS else 'linbox-double'
         if implementation == 'linbox-float':
-            from . import matrix_modn_dense_float
             if R.order() < matrix_modn_dense_float.MAX_MODULUS:
                 return matrix_modn_dense_float.Matrix_modn_dense_float
             raise ValueError("'linbox-float' matrices can only deal with order < %s" % matrix_modn_dense_float.MAX_MODULUS)
@@ -426,7 +443,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
         [ 0  1]
         [-1  2]
 
-        sage: all(((A.get_action(B) is not None) == (A is B)) for A in [M1,M2] for B in [M1,M2])
+        sage: all(A.get_action(B) is not None for A in [M1,M2] for B in [M1,M2])
         True
 
     Check that libgap matrices over finite fields are working properly::
