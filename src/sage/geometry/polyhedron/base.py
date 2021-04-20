@@ -5863,7 +5863,7 @@ class Polyhedron_base(Polyhedron_base4):
             sage: T = triangle.relative_interior_manifold('T'); T
             Open subset T of the 2-dimensional Riemannian submanifold H embedded in the Euclidean space E^3
             sage: pc = T.manifold().embedding().inverse()((1/3, 1/3, 1/3))
-            sage: pc in T   # known bug - #31689
+            sage: pc in T
             True
             sage: p1 = T.manifold().embedding().inverse()((1, 0, 0))
             sage: p1 in T
@@ -5886,7 +5886,8 @@ class Polyhedron_base(Polyhedron_base4):
         """
         aff_self = self.affine_hull_manifold(start_index=start_index,
                                              ambient_space=ambient_space, names=names, **kwds)
-        restrictions = [ineq.A() * vector(aff_self.embedding().expr()) + ineq.b() > 0
+        substitutions = {t: 0 for t in aff_self._var}
+        restrictions = [ineq.A() * vector(ex.subs(substitutions) for ex in aff_self.embedding().expr()) + ineq.b() > 0
                         for ineq in self.inequality_generator()]
         relint_self = aff_self.open_subset(name, latex_name=latex_name,
                                            coord_def={aff_self.default_chart(): restrictions})
