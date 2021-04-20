@@ -6014,7 +6014,8 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     mm = moduli
 
     for b in residues:
-        if not isinstance(b, (Matrix_modn_dense_template, Matrix_nmod_dense)):
+        if not isinstance(b, (Matrix_modn_dense_double, Matrix_modn_dense_float, Matrix_nmod_dense)):
+            print(type(b))
             raise TypeError("Can only perform CRT on list of matrices mod n.")
 
     cdef mod_int **row_list

@@ -189,8 +189,10 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: type(matrix(SR, 2, 2, 0))
         <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
         sage: type(matrix(GF(7), 2, range(4)))
+        <class 'sage.matrix.matrix_nmod_dense.Matrix_nmod_dense'>
+        sage: type(matrix(GF(7), 101))
         <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
-        sage: type(matrix(GF(16007), 2, range(4)))
+        sage: type(matrix(GF(16007), 101))
         <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
         sage: type(matrix(CBF, 2, range(4)))
         <type 'sage.matrix.matrix_complex_ball_dense.Matrix_complex_ball_dense'>
@@ -314,9 +316,10 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                 from . import matrix_cyclo_dense
                 return matrix_cyclo_dense.Matrix_cyclo_dense
             raise ValueError("'rational' matrices are only available over a cyclotomic field")
-
+        from . import matrix_modn_dense_float
+        if implementation == 'linbox':
+            implementation = 'linbox-float' if R.order() < matrix_modn_dense_float.MAX_MODULUS else 'linbox-double'
         if implementation == 'linbox-float':
-            from . import matrix_modn_dense_float
             if R.order() < matrix_modn_dense_float.MAX_MODULUS:
                 return matrix_modn_dense_float.Matrix_modn_dense_float
             raise ValueError("'linbox-float' matrices can only deal with order < %s" % matrix_modn_dense_float.MAX_MODULUS)
@@ -440,7 +443,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
         [ 0  1]
         [-1  2]
 
-        sage: all(((A.get_action(B) is not None) == (A is B)) for A in [M1,M2] for B in [M1,M2])
+        sage: all(A.get_action(B) is not None for A in [M1,M2] for B in [M1,M2])
         True
 
     Check that libgap matrices over finite fields are working properly::

@@ -576,13 +576,11 @@ cdef class Matrix(Matrix1):
             ValueError: matrix equation has no solutions
             sage: A = Matrix(Zmod(128), 2, 3, [23,11,22,4,1,0])
             sage: B = Matrix(Zmod(128), 2, 1, [1,0])
-            sage: A.solve_right(B)
-            [  5]
-            [108]
-            [127]
+            sage: v = A.solve_right(B); A * v == B
+            True
             sage: B = B.column(0)
-            sage: A.solve_right(B)
-            (5, 108, 127)
+            sage: v = A.solve_right(B); A * v == B
+            True
             sage: A = Matrix(Zmod(15), 3,4, range(12))
             sage: B = Matrix(Zmod(15), 3,3, range(3,12))
             sage: X = A.solve_right(B)
@@ -827,7 +825,7 @@ cdef class Matrix(Matrix1):
                 return self._solve_right_modn(B)
             raise TypeError("base ring must be an integral domain or a ring of integers mod n")
 
-        C = B.column() if b_is_vec else B
+        C = B.column(implementation=self.parent().Element) if b_is_vec else B
 
         if not self.is_square():
             X = self._solve_right_general(C, check=check)
@@ -4218,7 +4216,7 @@ cdef class Matrix(Matrix1):
             sage: matrix(Integers(6), 2, 2).right_kernel_matrix(algorithm='generic')
             Traceback (most recent call last):
             ...
-            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 6'.
+            ValueError: 'generic' matrix kernel algorithm only available over a field, not over Ring of integers modulo 6
             sage: matrix(QQ, 2, 2).right_kernel_matrix(algorithm='pluq')
             Traceback (most recent call last):
             ...
@@ -7536,13 +7534,13 @@ cdef class Matrix(Matrix1):
             [ 1  0 18]
             [ 0  1  2]
 
-        The matrix library used for `\ZZ/p`-matrices does not return
-        the transformation matrix, so the ``transformation`` option is
-        ignored::
-
-            sage: C.echelon_form(transformation=True)
-            [ 1  0 18]
-            [ 0  1  2]
+            sage: E, T = C.echelon_form(transformation=True); E, T
+            (
+            [ 1  0 18]  [11  7]
+            [ 0  1  2], [14  6]
+            )
+            sage: T*C == E
+            True
 
             sage: D = matrix(ZZ, 2, 3, [1,2,3,4,5,6])
             sage: D.echelon_form(transformation=True)

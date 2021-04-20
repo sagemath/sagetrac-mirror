@@ -13,6 +13,7 @@ AUTHORS:
 
 from cpython.sequence cimport *
 from cysignals.signals cimport sig_on, sig_str, sig_off
+from libc.string cimport memcpy
 
 from sage.structure.element cimport Element, Matrix
 from sage.structure.element import is_Vector
@@ -175,6 +176,9 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         nmod_mat_clear(self._matrix)
         sig_off()
 
+    cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
+        nmod_mat_set_entry(self._matrix, i, j, value)
+
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x):
         """
         Low level interface for setting entries, used by generic matrix code.
@@ -182,11 +186,11 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         e = self._modulus.element_class()
         cdef mp_limb_t ivalue
         if e is IntegerMod_int:
-            ivalue = (<IntegerMod_int>x).ivalue
+            ivalue = (<IntegerMod_int?>x).ivalue
         elif e is IntegerMod_int64:
-            ivalue = (<IntegerMod_int64>x).ivalue
+            ivalue = (<IntegerMod_int64?>x).ivalue
         else:
-            ivalue = mpz_get_ui((<IntegerMod_gmp>x).value)
+            ivalue = mpz_get_ui((<IntegerMod_gmp?>x).value)
         nmod_mat_set_entry(self._matrix, i, j, ivalue)
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
@@ -1136,7 +1140,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                             entry = nmod_mat_get_entry(C._matrix, i, An + jj)
                             r = n_divrem2_precomp(&q, entry, piv, pivinv)
                             if r:
-                                raise ValueError("matrix equation has no solutions")
+                                raise ValueError("matrix equation has no solution")
                         nmod_mat_set_entry(X._matrix, j, jj, q)
                         # We now update the right augmented block based on the entries above the pivot.
                         for ii in range(i - 1, -1, -1):
@@ -1898,3 +1902,109 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         cdef Py_ssize_t j
         for j in range(self._ncols):
             to[j] = nmod_mat_get_entry(self._matrix, i, j)
+
+    def _matrices_from_rows(self, Py_ssize_t nrows, Py_ssize_t ncols):
+        """
+        Make a list of matrices from the rows of this matrix.  This is a
+        fairly technical function which is used internally, e.g., by
+        the cyclotomic field linear algebra code.
+
+        INPUT:
+
+        - ``nrows`` - integer
+
+        - ``ncols`` - integer
+
+        EXAMPLES::
+
+            sage: A = matrix(GF(127), 4, 4, range(16))
+            sage: A
+            [ 0  1  2  3]
+            [ 4  5  6  7]
+            [ 8  9 10 11]
+            [12 13 14 15]
+            sage: A._matrices_from_rows(2,2)
+            [
+            [0 1]  [4 5]  [ 8  9]  [12 13]
+            [2 3], [6 7], [10 11], [14 15]
+            ]
+
+        OUTPUT:
+
+        - ``list`` - a list of matrices
+        """
+        if nrows * ncols != self._ncols:
+            raise ValueError("nrows * ncols must equal self's number of columns")
+
+        cdef Matrix_nmod_dense M
+        cdef Py_ssize_t i
+        cdef Py_ssize_t n = nrows * ncols
+        ans = []
+        if n:
+            for i in range(self._nrows):
+                M = self._new(nrows, ncols)
+                memcpy(nmod_mat_entry_ptr(M._matrix, 0, 0), nmod_mat_entry_ptr(self._matrix, i, 0), sizeof(mp_limb_t)*n)
+                ans.append(M)
+        return ans
+
+    @staticmethod
+    def _matrix_from_rows_of_matrices(X):
+        """
+        Return a matrix whose row ``i`` is constructed from the entries of
+        matrix ``X[i]``.
+
+        INPUT:
+
+        - ``X`` - a nonempty list of matrices of the same size mod a
+            single modulus `n`
+
+        EXAMPLES::
+
+            sage: X = [random_matrix(GF(17), 4, 4) for _ in range(10)]; X
+            [
+            [ 2 14  0 15]  [12 14  3 13]  [ 9 15  8  1]  [ 2 12  6 10]
+            [11 10 16  2]  [10  1 14  6]  [ 5  8 10 11]  [12  0  6  9]
+            [ 9  4 10 14]  [ 2 14 13  7]  [ 5 12  4  9]  [ 7  7  3  8]
+            [ 1 14  3 14], [ 6 14 10  3], [15  2  6 11], [ 2  9  1  5],
+            <BLANKLINE>
+            [12 13  7 16]  [ 5  3 16  2]  [14 15 16  4]  [ 1 15 11  0]
+            [ 7 11 11  1]  [11 10 12 14]  [14  1 12 13]  [16 13  8 14]
+            [ 0  2  0  4]  [ 0  7 16  4]  [ 5  5 16 13]  [13 14 16  4]
+            [ 7  9  8 15], [ 6  5  2  3], [10 12  1  7], [15  6  6  6],
+            <BLANKLINE>
+            [ 4 10 11 15]  [13 12  5  1]
+            [11  2  9 14]  [16 13 16  7]
+            [12  5  4  4]  [12  2  0 11]
+            [ 2  0 12  8], [13 11  6 15]
+            ]
+            sage: X[0]._matrix_from_rows_of_matrices(X) # indirect doctest
+            [ 2 14  0 15 11 10 16  2  9  4 10 14  1 14  3 14]
+            [12 14  3 13 10  1 14  6  2 14 13  7  6 14 10  3]
+            [ 9 15  8  1  5  8 10 11  5 12  4  9 15  2  6 11]
+            [ 2 12  6 10 12  0  6  9  7  7  3  8  2  9  1  5]
+            [12 13  7 16  7 11 11  1  0  2  0  4  7  9  8 15]
+            [ 5  3 16  2 11 10 12 14  0  7 16  4  6  5  2  3]
+            [14 15 16  4 14  1 12 13  5  5 16 13 10 12  1  7]
+            [ 1 15 11  0 16 13  8 14 13 14 16  4 15  6  6  6]
+            [ 4 10 11 15 11  2  9 14 12  5  4  4  2  0 12  8]
+            [13 12  5  1 16 13 16  7 12  2  0 11 13 11  6 15]
+
+        OUTPUT: A single matrix mod ``p`` whose ``i``-th row is ``X[i].list()``.
+        """
+        # The code below is just a fast version of the following:
+        ##     from constructor import matrix
+        ##     K = X[0].base_ring()
+        ##     v = sum([y.list() for y in X],[])
+        ##     return matrix(K, len(X), X[0].nrows()*X[0].ncols(), v)
+
+        cdef Matrix_nmod_dense T = X[0]
+        cdef Py_ssize_t i, j, copysize, n = len(X), m = T._nrows * T._ncols
+
+        cdef Matrix_nmod_dense A = T._new(n, m)
+        for i in range(n):
+            T = X[i]
+            copysize = T._ncols*sizeof(mp_limb_t)
+            # rows could have been swapped around
+            for j in range(T._nrows):
+                memcpy(nmod_mat_entry_ptr(A._matrix, i, j*T._ncols), nmod_mat_entry_ptr(T._matrix, j, 0), copysize)
+        return A

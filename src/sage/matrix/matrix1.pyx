@@ -1497,7 +1497,7 @@ cdef class Matrix(Matrix0):
             other = <Matrix>bottom
         else:
             if hasattr(bottom, '_vector_'):
-                bottom = bottom.row()
+                bottom = bottom.row(implementation=self.parent().Element)
             else:
                 raise TypeError('a matrix must be stacked with '
                         'another matrix or a vector')
@@ -1522,6 +1522,9 @@ cdef class Matrix(Matrix0):
                 other = other.sparse_matrix()
             elif other.is_sparse_c() and not self.is_sparse_c():
                 self = self.sparse_matrix()
+            if type(self) is not type(other):
+                # If still not the same type, try using _change_implementation
+                other = other._change_implementation(self.parent().Element)
 
         Z = self._stack_impl(other)
         if subdivide:
@@ -1721,7 +1724,7 @@ cdef class Matrix(Matrix0):
 
         if not isinstance(right, sage.matrix.matrix1.Matrix):
             if hasattr(right, '_vector_'):
-                right = right.column()
+                right = right.column(implementation=self.parent().Element)
             else:
                 raise TypeError("a matrix must be augmented with another matrix, "
                     "or a vector")
@@ -1732,8 +1735,24 @@ cdef class Matrix(Matrix0):
         if self._nrows != other._nrows:
             raise TypeError('number of rows must be the same, '
                 '{0} != {1}'.format(self._nrows, other._nrows))
-        if not (self._base_ring is other.base_ring()):
-            other = other.change_ring(self._base_ring)
+        left_ring = self._base_ring
+        right_ring = other._base_ring
+        if left_ring is not right_ring:
+            R = coercion_model.common_parent(left_ring, right_ring)
+            if left_ring is not R:
+                self = self.change_ring(R)
+            if right_ring is not R:
+                other = other.change_ring(R)
+
+        if type(self) is not type(other):
+            # If one of the matrices is sparse, return a sparse matrix
+            if self.is_sparse_c() and not other.is_sparse_c():
+                other = other.sparse_matrix()
+            elif other.is_sparse_c() and not self.is_sparse_c():
+                self = self.sparse_matrix()
+            if type(self) is not type(other):
+                # If still not the same type, try using _change_implementation
+                other = other._change_implementation(self.parent().Element)
 
         cdef Matrix Z
         Z = self.new_matrix(ncols = self._ncols + other._ncols)

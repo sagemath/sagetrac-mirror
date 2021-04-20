@@ -4400,13 +4400,17 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: m.rank()
             2
 
-        Rank is not implemented over the integers modulo a composite yet.::
+        Rank is defined for integers modulo a compute number in terms of the Howell form::
 
             sage: m = matrix(Integers(4), 2, [2,2,2,2])
             sage: m.rank()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 4'.
+            0
+
+        There are no pivots that are 1::
+
+            sage: m.howell_form()
+            [2 2]
+            [0 0]
 
         TESTS:
 
@@ -5392,7 +5396,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: m = matrix(Zmod(49),2,[2,1,3,3])
             sage: type(m)
-            <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
+            <class 'sage.matrix.matrix_nmod_dense.Matrix_nmod_dense'>
             sage: ~m
             [ 1 16]
             [48 17]
