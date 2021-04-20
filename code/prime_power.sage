@@ -547,9 +547,6 @@ def prime_order(p, genus, k3=True,verbose=0,rankCp=None):
                             for C1 in genusC1.representatives():
                                 C1 = IntegralLattice(C1)
                                 GC1 = C1.image_in_Oq()
-                                if C1.genus() == N1.genus() and Cp.genus() == N3.genus():
-                                    global vvv
-                                    vvv= (Cp, fp, C1, f1, GCp, GC1,glue_order, p, G)
                                 ext = extensions(Cp, fp, C1, f1, GCp, GC1,
                                                 glue_order, p, target_genus=G)
                                 if verbose > 0:
@@ -619,9 +616,10 @@ def next_prime_power(ptype, verbose=0):
             yield x
         return
 
-    for C in isometries(p**(e+1), Cgenus):
-        fC = C.iso
-        GC = C.Oq_equiv()
+    for Ch in isometries(p**(e+1), Cgenus):
+        fC = Ch.iso
+        GC = Ch.Oq_equiv()
+        C = Ch.L
         # fight a memory leak
         cm = sage.structure.element.get_coercion_model()
         cm.reset_cache()

@@ -326,6 +326,14 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
             (2)
             sage: G(a)
             f2
+
+        TESTS:
+
+        Document that :trac:`31428` is fixed::
+
+            sage: A = AbelianGroupGap([])
+            sage: A([]) == A.one()
+            True
         """
         if isinstance(x, AbelianGroupElement_gap):
             try:
