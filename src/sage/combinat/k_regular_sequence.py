@@ -1522,6 +1522,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             coeffs={(1, 0): 1, (0, 0): 1, (1, 1): 1},
             initial_values={0: 0, 1: 1, 2: 1}, offset=0, n1=0)
 
+        .. SEEALSO::
+
+            :meth:`recursions`
+
         TESTS:
 
             The following tests check that the equations are well-formed::
@@ -1959,6 +1963,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             (1, 0): 5, (1, 1): 6, (1, 2): 7, (1, 3): 8, (2, -3): 9, (2, -2): 10,
             (2, -1): 11, (2, 0): 12, (2, 1): 13, (2, 2): 14, (2, 3): 15,
             (2, 4): 16, (2, 5): 17}
+
+        .. SEEALSO::
+
+            :meth:`recursions`
         """
         from sage.arith.srange import srange
 
@@ -2125,6 +2133,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0]
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+
+        .. SEEALSO::
+
+            :meth:`recursions`
         """
         from sage.arith.srange import srange
         from sage.matrix.constructor import Matrix
@@ -2224,6 +2236,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: Seq2._get_left_from_recursions_(5)
             (1, 0, 0, 0, 0)
+
+        .. SEEALSO::
+
+            :meth:`recursions`
         """
         from sage.modules.free_module_element import vector
 
@@ -2282,6 +2298,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2._get_right_from_recursions_(UB_rules, f)
             (1, 1, 2, 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, 1, 0, 0)
 
+        .. SEEALSO::
+
+            :meth:`recursions`
         """
         from sage.arith.srange import srange
         from sage.modules.free_module_element import vector
