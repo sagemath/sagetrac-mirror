@@ -64,6 +64,7 @@ from . import matrix_dense
 from .matrix_integer_dense cimport _lift_crt
 from sage.structure.element cimport Matrix as baseMatrix
 from .misc import matrix_integer_dense_rational_reconstruction
+from sage.misc.superseded import deprecation
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
@@ -1492,69 +1493,16 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             sage: K.<z> = CyclotomicField(3)
             sage: w = matrix(K, 2, 3, [0, -z/5, -2/3, -2*z + 2, 2*z, z])
             sage: A, B = w._reduction_matrix(7)
+            
             sage: A
             [1 4]
             [1 2]
             sage: B
             [6 2]
             [4 3]
-
-        The reduction matrix is used to calculate the reductions mod primes
-        above p. ::
-
-            sage: K.<z> = CyclotomicField(5)
-            sage: A = matrix(K, 2, 2, [1, z, z^2+1, 5*z^3]); A
-            [      1       z]
-            [z^2 + 1   5*z^3]
-            sage: T, S = A._reduction_matrix(11)
-            sage: T * A._rational_matrix().change_ring(GF(11))
-            [ 1  9  5  4]
-            [ 1  5  4  9]
-            [ 1  4  6  1]
-            [ 1  3 10  3]
-
-        The rows of this product are the (flattened) matrices mod each prime above p::
-
-            sage: roots = [r for r, e in K.defining_polynomial().change_ring(GF(11)).roots()]; roots
-            [9, 5, 4, 3]
-            sage: [r^2+1 for r in roots]
-            [5, 4, 6, 10]
-            sage: [5*r^3 for r in roots]
-            [4, 9, 1, 3]
-
-        The reduction matrix is cached::
-
-            sage: w._reduction_matrix(7) is w._reduction_matrix(7)
-            True
         """
-        cache = self.fetch('reduction_matrices')
-        if cache is None:
-            cache = {}
-            self.cache('reduction_matrices', cache)
-        try:
-            return cache[p]
-        except KeyError:
-            pass
-        K = self.base_ring()
-        phi = K.defining_polynomial()
-        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-        from .constructor import matrix
-        F = GF(p)
-        aa = [a for a, _ in phi.change_ring(F).roots()]
-        n = K.degree()
-        if len(aa) != n:
-            raise ValueError("the prime p (=%s) must split completely but doesn't" % p)
-        T = matrix(F, n)
-        for i in range(n):
-            a = aa[i]
-            b = 1
-            for j in range(n):
-                T[i,j] = b
-                b *= a
-        T.set_immutable()
-        ans = (T, T**(-1))
-        cache[p] = ans
-        return ans
+        deprecation(31548, "Use the _reduction_matrix method on the base field")
+        return self.base_ring()._reduction_matrix(p)
 
     def echelon_form(self, algorithm='multimodular', height_guess=None):
         """
