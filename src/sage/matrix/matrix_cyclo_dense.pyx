@@ -64,6 +64,7 @@ from . import matrix_dense
 from .matrix_integer_dense cimport _lift_crt
 from sage.structure.element cimport Matrix as baseMatrix
 from .misc import matrix_integer_dense_rational_reconstruction
+from sage.misc.superseded import deprecation
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
@@ -79,6 +80,7 @@ from sage.rings.number_field.number_field_element_quadratic cimport NumberFieldE
 from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.verbose import verbose
 import math
+import sys
 
 from sage.matrix.matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_modn_dense_double
 from sage.arith.multi_modular import MAX_MODULUS as MAX_MODULUS_multi_modular
@@ -650,22 +652,28 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         # sign of the entries
         bound = 1 + 2 * A.height() * B.height() * self._ncols
 
-        n = self._base_ring._n()
-        p = previous_prime(MAX_MODULUS)
+        K = self._base_ring
+        exclude = [denom_self, denom_right]
+        p = K.previous_split_prime(MAX_MODULUS, exclude)
+        # Figure out whether we're using FLINT or linbox; if FLINT then we can increase the prime
+        from sage.matrix.matrix_space import _modN_matrix_class
+        from sage.matrix.matrix_nmod_dense import Matrix_nmod_dense
+        if _modN_matrix_class(p, self._nrows, self._ncols) is Matrix_nmod_dense:
+            p = K.previous_split_prime(sys.maxsize, exclude)
+
         prod = 1
         v = []
         while prod <= bound:
-            while (n >= 2 and p % n != 1) or denom_self % p == 0 or denom_right % p == 0:
-                if p == 2:
-                    raise RuntimeError("we ran out of primes in matrix multiplication.")
-                p = previous_prime(p)
             prod *= p
             Amodp, _ = self._reductions(p)
             Bmodp, _ = right._reductions(p)
-            _,     S = self._reduction_matrix(p)
+            _,     S = K._reduction_matrix(p)
             X = Amodp[0]._matrix_from_rows_of_matrices([Amodp[i] * Bmodp[i] for i in range(len(Amodp))])
             v.append(S*X)
-            p = previous_prime(p)
+            try:
+                p = K.previous_split_prime(p, exclude)
+            except ValueError:
+                raise RuntimeError("we ran out of primes in matrix multiplication.")
         M = matrix(ZZ, self._base_ring.degree(), self._nrows*right.ncols())
         _lift_crt(M, v)
         d = denom_self * denom_right
@@ -1334,7 +1342,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         k = R[0].base_ring()
         S = matrix(k, len(F), self.nrows()+1, [f.list() for f in F])
         # multiply by inverse of reduction matrix to lift
-        _, L = self._reduction_matrix(p)
+        _, L = self.base_ring()._reduction_matrix(p)
         X = L * S
         # Now the columns of the matrix X define the entries of the
         # charpoly modulo p.
@@ -1429,12 +1437,14 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         where denom is the denominator of self.
 
         INPUT:
-            p -- a prime that splits completely in the base cyclotomic field.
+
+        - ``p`` -- a prime that splits completely in the base cyclotomic field.
 
         OUTPUT:
-            list -- of r distinct matrices modulo p, where r is
-                    the degree of the cyclotomic base field.
-            denom -- an integer
+
+        - ``list`` -- of r distinct matrices modulo p, where r is
+                      the degree of the cyclotomic base field.
+        - ``denom`` -- an integer
 
         EXAMPLES::
 
@@ -1452,7 +1462,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         """
         # Get matrix that defines the linear reduction maps modulo
         # each prime of the base ring over p.
-        T, _ = self._reduction_matrix(p)
+        T, _ = self.base_ring()._reduction_matrix(p)
         # Clear denominator and get matrix over the integers suitable
         # for reduction.
         A, denom = self._matrix._clear_denom()
@@ -1483,69 +1493,16 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             sage: K.<z> = CyclotomicField(3)
             sage: w = matrix(K, 2, 3, [0, -z/5, -2/3, -2*z + 2, 2*z, z])
             sage: A, B = w._reduction_matrix(7)
+            
             sage: A
             [1 4]
             [1 2]
             sage: B
             [6 2]
             [4 3]
-
-        The reduction matrix is used to calculate the reductions mod primes
-        above p. ::
-
-            sage: K.<z> = CyclotomicField(5)
-            sage: A = matrix(K, 2, 2, [1, z, z^2+1, 5*z^3]); A
-            [      1       z]
-            [z^2 + 1   5*z^3]
-            sage: T, S = A._reduction_matrix(11)
-            sage: T * A._rational_matrix().change_ring(GF(11))
-            [ 1  9  5  4]
-            [ 1  5  4  9]
-            [ 1  4  6  1]
-            [ 1  3 10  3]
-
-        The rows of this product are the (flattened) matrices mod each prime above p::
-
-            sage: roots = [r for r, e in K.defining_polynomial().change_ring(GF(11)).roots()]; roots
-            [9, 5, 4, 3]
-            sage: [r^2+1 for r in roots]
-            [5, 4, 6, 10]
-            sage: [5*r^3 for r in roots]
-            [4, 9, 1, 3]
-
-        The reduction matrix is cached::
-
-            sage: w._reduction_matrix(7) is w._reduction_matrix(7)
-            True
         """
-        cache = self.fetch('reduction_matrices')
-        if cache is None:
-            cache = {}
-            self.cache('reduction_matrices', cache)
-        try:
-            return cache[p]
-        except KeyError:
-            pass
-        K = self.base_ring()
-        phi = K.defining_polynomial()
-        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-        from .constructor import matrix
-        F = GF(p)
-        aa = [a for a, _ in phi.change_ring(F).roots()]
-        n = K.degree()
-        if len(aa) != n:
-            raise ValueError("the prime p (=%s) must split completely but doesn't" % p)
-        T = matrix(F, n)
-        for i in range(n):
-            a = aa[i]
-            b = 1
-            for j in range(n):
-                T[i,j] = b
-                b *= a
-        T.set_immutable()
-        ans = (T, T**(-1))
-        cache[p] = ans
-        return ans
+        deprecation(31548, "Use the _reduction_matrix method on the base field")
+        return self.base_ring()._reduction_matrix(p)
 
     def echelon_form(self, algorithm='multimodular', height_guess=None):
         """
@@ -1705,9 +1662,9 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
                     try:
                         mod_p_ech, piv_ls = A._echelon_form_one_prime(p)
                     except ValueError:
-                        # This means that we chose a prime which divides
-                        # the denominator of the echelon form of self, so
-                        # just skip it and continue
+                        # This means that we chose a prime which doesn't
+                        # split or divides the denominator of the echelon
+                        # form of self, so just skip it and continue
                         p = previous_prime(p)
                         continue
                     # if we have the identity, just return it, and
@@ -1857,7 +1814,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
                            [ [y.lift() for y in E.list()] for E in ech_ls])
 
         # TODO: more coercion happening here
-        _, Finv = self._reduction_matrix(p)
+        _, Finv = self.base_ring()._reduction_matrix(p)
 
         lifted_matrix = Finv * reduction
 
