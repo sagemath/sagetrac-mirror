@@ -99,6 +99,41 @@ def is_MatrixSpace(x):
     """
     return isinstance(x, MatrixSpace)
 
+def _modN_matrix_class(N, nrows, ncols, sparse=False):
+    r"""
+    Returns the default matrix class for use over ``Zmod(N)``.
+
+    EXAMPLES::
+
+        sage: from sage.matrix.matrix_space import _modN_matrix_class
+        sage: _modN_matrix_class(101, 101, 101)
+        
+    """
+    # FLINT performs better for small dimensions; the following are approximate crossovers
+    # for square matrices against modn_dense_double
+    # 100 for echelon form
+    # 20 for charpoly
+    # 1000 for inverses
+    # 2 for right_kernel
+    # 250 for multiplication
+    if sparse:
+        if N < matrix_modn_sparse.MAX_MODULUS:
+            return matrix_modn_sparse.Matrix_modn_sparse
+        else:
+            return matrix_generic_sparse.Matrix_generic_sparse
+    else:
+        from . import matrix_modn_dense_double, matrix_modn_dense_float, matrix_nmod_dense
+        if N > sys.maxsize:
+            return matrix_generic_dense.Matrix_generic_dense
+        elif N == 2:
+            return matrix_mod2_dense.Matrix_mod2_dense
+        if max(nrows, ncols) <= 100:
+            return matrix_nmod_dense.Matrix_nmod_dense
+        if N < matrix_modn_dense_float.MAX_MODULUS:
+            return matrix_modn_dense_float.Matrix_modn_dense_float
+        if N < matrix_modn_dense_double.MAX_MODULUS:
+            return matrix_modn_dense_double.Matrix_modn_dense_double
+        return matrix_nmod_dense.Matrix_nmod_dense
 
 def get_matrix_class(R, nrows, ncols, sparse, implementation):
     r"""
@@ -238,23 +273,8 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                     except ImportError:
                         pass
 
-            if sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R) and R.order() <= sys.maxsize:
-                # FLINT performs better for small dimensions; the following are approximate crossovers
-                # for square matrices against modn_dense_double
-                # 100 for echelon form
-                # 20 for charpoly
-                # 1000 for inverses
-                # 2 for right_kernel
-                # 250 for multiplication
-                N = R.order()
-                from . import matrix_modn_dense_double, matrix_modn_dense_float, matrix_nmod_dense
-                if not R.is_field() or max(nrows, ncols) <= 100:
-                    return matrix_nmod_dense.Matrix_nmod_dense
-                if N < matrix_modn_dense_float.MAX_MODULUS:
-                    return matrix_modn_dense_float.Matrix_modn_dense_float
-                if N < matrix_modn_dense_double.MAX_MODULUS:
-                    return matrix_modn_dense_double.Matrix_modn_dense_double
-                return matrix_nmod_dense.Matrix_nmod_dense
+            if sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R):
+                return _modN_matrix_class(R.order(), nrows, ncols, False)
 
             if sage.rings.number_field.number_field.is_CyclotomicField(R):
                 from . import matrix_cyclo_dense
@@ -343,8 +363,8 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
     if implementation is not None:
         raise ValueError("cannot choose an implementation for sparse matrices")
 
-    if sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_sparse.MAX_MODULUS:
-        return matrix_modn_sparse.Matrix_modn_sparse
+    if sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R):
+        return _modN_matrix_class(R.order(), nrows, ncols, sparse=True)
 
     if sage.rings.rational_field.is_RationalField(R):
         return matrix_rational_sparse.Matrix_rational_sparse
