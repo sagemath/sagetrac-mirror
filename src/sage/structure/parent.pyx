@@ -1021,7 +1021,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             pass
         if _pow_ is None:
             raise TypeError(f"For implementing powers, provide the method "
-                            f"'_pow_' for {self} resp. {x}")
+                            f"'_pow_' for {self}")
         return _pow_(x, mod)
 
     #############################################################################
