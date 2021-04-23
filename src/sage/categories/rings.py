@@ -1164,7 +1164,7 @@ class Rings(CategoryWithAxiom):
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             return PolynomialRing(self, elts)
 
-        def free_module(self, base=None, basis=None, map=True):
+        def free_module(self, base=None, basis=None, map=False):
             """
             Return a free module `V` over the specified subring together with maps to and from `V`.
 

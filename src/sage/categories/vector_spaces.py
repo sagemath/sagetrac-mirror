@@ -90,7 +90,7 @@ class VectorSpaces(Category_module):
 
     def _call_(self, x):
         """
-        Try to coerce ``x`` into an object of this category.
+        Try to coerce ``x`` into an object of this category
 
         EXAMPLES::
 
@@ -109,11 +109,7 @@ class VectorSpaces(Category_module):
 
         """
         try:
-            if x in _Fields:
-                from sage.modules.free_module import FreeModule
-                V = FreeModule(x, 1)
-            else:
-                V = x.vector_space(self.base_field())
+            V = x.vector_space(self.base_field())
             if V.base_field() != self.base_field():
                 V = V.change_ring(self.base_field())
         except (TypeError, AttributeError) as msg:
