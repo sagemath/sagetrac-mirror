@@ -175,7 +175,6 @@ import sage.rings.rational_field
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.infinity
 import sage.rings.integer
-from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import (richcmp_method, rich_to_bool, richcmp,
@@ -184,6 +183,13 @@ from sage.structure.richcmp import (richcmp_method, rich_to_bool, richcmp,
 from sage.misc.cachefunc import cached_method
 
 from warnings import warn
+
+from sage.categories.fields import Fields
+from sage.categories.integral_domains import IntegralDomains
+from sage.categories.principal_ideal_domains import PrincipalIdealDomains
+_Fields = Fields()
+_IntegralDomains = IntegralDomains()
+_PrincipalIdealDomains = PrincipalIdealDomains()
 
 ###############################################################################
 #
@@ -247,17 +253,17 @@ done from the right side.""")
             elif not sparse and isinstance(base_ring,sage.rings.complex_double.ComplexDoubleField_class):
                 return ComplexDoubleVectorSpace_class(rank)
 
-            elif base_ring.is_field():
+            elif base_ring in _Fields:
                 return FreeModule_ambient_field(base_ring, rank, sparse=sparse)
 
-            elif base_ring in PrincipalIdealDomains():
+            elif base_ring in _PrincipalIdealDomains:
                 return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
             elif isinstance(base_ring, sage.rings.number_field.order.Order) \
                 and base_ring.is_maximal() and base_ring.class_number() == 1:
                 return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
-            elif isinstance(base_ring, ring.IntegralDomain) or base_ring.is_integral_domain():
+            elif isinstance(base_ring, ring.IntegralDomain) or base_ring in _IntegralDomains:
                 return FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
 
             else:

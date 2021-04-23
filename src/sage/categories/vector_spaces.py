@@ -90,12 +90,14 @@ class VectorSpaces(Category_module):
 
     def _call_(self, x):
         """
-        Try to coerce ``x`` into an object of this category
+        Try to coerce ``x`` into an object of this category.
 
         EXAMPLES::
 
             sage: VectorSpaces(QQ)(ZZ^3)
             Vector space of dimension 3 over Rational Field
+            sage: VectorSpaces(QQ)(QQ)
+            Vector space of dimension 1 over Rational Field
 
         TESTS:
 
@@ -107,7 +109,11 @@ class VectorSpaces(Category_module):
 
         """
         try:
-            V = x.vector_space(self.base_field())
+            if x in _Fields:
+                from sage.modules.free_module import FreeModule
+                V = FreeModule(x, 1)
+            else:
+                V = x.vector_space(self.base_field())
             if V.base_field() != self.base_field():
                 V = V.change_ring(self.base_field())
         except (TypeError, AttributeError) as msg:

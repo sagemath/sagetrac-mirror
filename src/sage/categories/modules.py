@@ -24,8 +24,11 @@ from .dual import DualObjectsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.sets_cat import Sets
 from sage.categories.bimodules import Bimodules
+
 from sage.categories.fields import Fields
+from sage.categories.rings import Rings
 _Fields = Fields()
+_Rings = Rings()
 
 
 class Modules(Category_module):
@@ -189,6 +192,21 @@ class Modules(Category_module):
             sage: Modules(ZZ).additional_structure()
         """
         return None
+
+    def _call_(self, x):
+        r"""
+        Try to coerce ``x`` into an object of this category.
+
+        EXAMPLES::
+
+            sage: P = QQ[x]
+            sage: Modules(P)(P)
+            Ambient free module of rank 1 over the principal ideal domain
+             Univariate Polynomial Ring in x over Rational Field
+        """
+        if x in _Rings:
+            from sage.modules.free_module import FreeModule
+            return FreeModule(x, 1)
 
     class SubcategoryMethods:
 

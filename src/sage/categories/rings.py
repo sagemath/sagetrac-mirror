@@ -510,6 +510,18 @@ class Rings(CategoryWithAxiom):
             # duck typing failed
             raise TypeError("Don't know how to transform %s into an ideal of %s"%(x,self))
 
+        def _pow_int(self, n):
+            r"""
+            Returns the free module of dimension `n` over ``self``.
+
+            EXAMPLES::
+
+                sage: QQ^4
+                Vector space of dimension 4 over Rational Field
+            """
+            from sage.modules.all import FreeModule
+            return FreeModule(self, n)
+
         @cached_method
         def ideal_monoid(self):
             """
