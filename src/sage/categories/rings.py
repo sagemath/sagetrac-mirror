@@ -1177,7 +1177,7 @@ class Rings(CategoryWithAxiom):
 
             - ``basis`` -- (optional) a basis for this ring over the base
 
-            - ``map`` -- boolean (default ``True``), whether to return
+            - ``map`` -- boolean (default ``False``), whether to return
               `R`-linear maps to and from `V`
 
             OUTPUT:
@@ -1193,12 +1193,12 @@ class Rings(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: R.<x> = QQ[[]]
-                sage: V, from_V, to_V = R.free_module(R)
+                sage: V, from_V, to_V = R.free_module(R, map=True)
                 sage: v = to_V(1+x); v
                 (1 + x)
                 sage: from_V(v)
                 1 + x
-                sage: W, from_W, to_W = R.free_module(R, basis=(1-x))
+                sage: W, from_W, to_W = R.free_module(R, basis=(1-x), map=True)
                 sage: W is V
                 True
                 sage: w = to_W(1+x); w

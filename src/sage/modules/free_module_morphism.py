@@ -623,7 +623,7 @@ class BaseIsomorphism1D(Morphism):
     EXAMPLES::
 
         sage: R.<x,y> = QQ[]
-        sage: V, from_V, to_V = R.free_module(R)
+        sage: V, from_V, to_V = R.free_module(R, map=True)
         sage: from_V
         Isomorphism morphism:
           From: Ambient free module of rank 1 over the integral domain Multivariate Polynomial Ring in x, y over Rational Field
@@ -634,7 +634,7 @@ class BaseIsomorphism1D(Morphism):
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]
-            sage: V, from_V, to_V = R.free_module(R)
+            sage: V, from_V, to_V = R.free_module(R, map=True)
             sage: from_V._repr_type()
             'Isomorphism'
         """
@@ -645,7 +645,7 @@ class BaseIsomorphism1D(Morphism):
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]
-            sage: V, from_V, to_V = R.free_module(R)
+            sage: V, from_V, to_V = R.free_module(R, map=True)
             sage: from_V.is_injective()
             True
         """
@@ -656,7 +656,7 @@ class BaseIsomorphism1D(Morphism):
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]
-            sage: V, from_V, to_V = R.free_module(R)
+            sage: V, from_V, to_V = R.free_module(R, map=True)
             sage: from_V.is_surjective()
             True
         """
@@ -667,7 +667,7 @@ class BaseIsomorphism1D(Morphism):
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]
-            sage: V, fr, to = R.free_module(R)
+            sage: fr= R.free_module(R)
             sage: fr == loads(dumps(fr))
             True
         """
@@ -688,12 +688,12 @@ class BaseIsomorphism1D_to_FM(BaseIsomorphism1D):
     EXAMPLES::
 
         sage: R = Zmod(8)
-        sage: V, from_V, to_V = R.free_module(R)
+        sage: V, from_V, to_V = R.free_module(R, map=True)
         sage: v = to_V(2); v
         (2)
         sage: from_V(v)
         2
-        sage: W, from_W, to_W = R.free_module(R, basis=3)
+        sage: W, from_W, to_W = R.free_module(R, basis=3, map=True)
         sage: W is V
         True
         sage: w = to_W(2); w
@@ -703,7 +703,7 @@ class BaseIsomorphism1D_to_FM(BaseIsomorphism1D):
 
     The basis vector has to be a unit so that the map is an isomorphism::
 
-        sage: W, from_W, to_W = R.free_module(R, basis=4)
+        sage: W, from_W, to_W = R.free_module(R, basis=4, map=True)
         Traceback (most recent call last):
         ...
         ValueError: Basis element must be a unit
@@ -713,7 +713,7 @@ class BaseIsomorphism1D_to_FM(BaseIsomorphism1D):
         TESTS::
 
             sage: R = Zmod(8)
-            sage: W, from_W, to_W = R.free_module(R, basis=3)
+            sage: W, from_W, to_W = R.free_module(R, basis=3, map=True)
             sage: TestSuite(to_W).run()
         """
         Morphism.__init__(self, parent)
@@ -724,7 +724,7 @@ class BaseIsomorphism1D_to_FM(BaseIsomorphism1D):
         TESTS::
 
             sage: R = Zmod(8)
-            sage: W, from_W, to_W = R.free_module(R, basis=3)
+            sage: W, from_W, to_W = R.free_module(R, basis=3, map=True)
             sage: to_W(6) # indirect doctest
             (2)
         """
@@ -744,12 +744,12 @@ class BaseIsomorphism1D_from_FM(BaseIsomorphism1D):
     EXAMPLES::
 
         sage: R.<x> = QQ[[]]
-        sage: V, from_V, to_V = R.free_module(R)
+        sage: V, from_V, to_V = R.free_module(R, map=True)
         sage: v = to_V(1+x); v
         (1 + x)
         sage: from_V(v)
         1 + x
-        sage: W, from_W, to_W = R.free_module(R, basis=(1-x))
+        sage: W, from_W, to_W = R.free_module(R, basis=(1-x), map=True)
         sage: W is V
         True
         sage: w = to_W(1+x); w
@@ -759,7 +759,7 @@ class BaseIsomorphism1D_from_FM(BaseIsomorphism1D):
 
     The basis vector has to be a unit so that the map is an isomorphism::
 
-        sage: W, from_W, to_W = R.free_module(R, basis=x)
+        sage: W, from_W, to_W = R.free_module(R, basis=x, map=True)
         Traceback (most recent call last):
         ...
         ValueError: Basis element must be a unit
@@ -769,7 +769,7 @@ class BaseIsomorphism1D_from_FM(BaseIsomorphism1D):
         TESTS::
 
             sage: R.<x> = QQ[[]]
-            sage: W, from_W, to_W = R.free_module(R, basis=(1-x))
+            sage: W, from_W, to_W = R.free_module(R, basis=(1-x), map=True)
             sage: TestSuite(from_W).run(skip='_test_nonzero_equal')
         """
         Morphism.__init__(self, parent)
@@ -780,7 +780,7 @@ class BaseIsomorphism1D_from_FM(BaseIsomorphism1D):
         TESTS::
 
             sage: R.<x> = QQ[[]]
-            sage: W, from_W, to_W = R.free_module(R, basis=(1-x))
+            sage: W, from_W, to_W = R.free_module(R, basis=(1-x), map=True)
             sage: w = to_W(1+x); w
             (1 - x^2)
             sage: from_W(w)
