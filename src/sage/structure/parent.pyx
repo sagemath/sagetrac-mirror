@@ -992,6 +992,38 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             return _mul_(self, switch_sides=True)
         return _mul_(x)
 
+    def __pow__(self, x, mod):
+        """
+        This is a power method that more or less directly
+        calls another attribute ``_pow_`` (single underscore). This
+        is because ``__pow__`` cannot be implemented via inheritance
+        from the parent methods of the category, but ``_pow_`` can
+        be inherited. This is, e.g., used when creating modules out of rings.
+
+        EXAMPLES::
+
+            sage: QQ^3
+            Vector space of dimension 3 over Rational Field
+            sage: QQ[x]^3
+            Ambient free module of rank 3 over the principal ideal domain
+             Univariate Polynomial Ring in x over Rational Field
+            sage: IntegerModRing(6)^3
+            Ambient free module of rank 3 over Ring of integers modulo 6
+
+        """
+        # generic multiplication method. It defers to
+        # _pow_, which may be defined via categories.
+        _pow_ = None
+        try:
+            if isinstance(self, Parent):
+                _pow_ = self._pow_
+        except AttributeError:
+            pass
+        if _pow_ is None:
+            raise TypeError(f"For implementing powers, provide the method "
+                            f"'_pow_' for {self} resp. {x}")
+        return _pow_(x, mod)
+
     #############################################################################
     # Containment testing
     #############################################################################
