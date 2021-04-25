@@ -616,7 +616,7 @@ class Rings(CategoryWithAxiom):
             # duck typing failed
             raise TypeError("Don't know how to transform %s into an ideal of %s"%(x,self))
 
-        def _pow_(self, n, _):
+        def __pow__(self, n):
             """
             Return the free module of rank `n` over this ring.  If n is a tuple of
             two elements, creates a matrix space.

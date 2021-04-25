@@ -994,16 +994,11 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
     def __pow__(self, x, mod):
         """
-        This is a power method that directly calls another attribute
-        ``_pow_`` (single underscore). This is because extension classes
-        cannot inherit ``__pow__`` from the the parent methods of the
-        category, and the redirection via ``__getattr__`` is not called
-        from Python when performing ``**``. Subsequently, ``__pow__``
-        cannot be inherited from the category but ``_pow_`` can.
-        See :trac:`31721`.
+        TESTS::
 
-        EXAMPLES::
-
+            sage: ZZ^3
+            Ambient free module of rank 3 over the principal ideal domain
+             Integer Ring
             sage: QQ^3
             Vector space of dimension 3 over Rational Field
             sage: QQ[x]^3
@@ -1011,30 +1006,30 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
              Univariate Polynomial Ring in x over Rational Field
             sage: IntegerModRing(6)^3
             Ambient free module of rank 3 over Ring of integers modulo 6
+            sage: ZZ.cartesian_product(ZZ)^3
+            Ambient free module of rank 3 over The Cartesian product of
+             (Integer Ring, Integer Ring)
 
-        TESTS:
-
-        We check that this works for extension classes::
-
-            sage: ZZ^3
-            Ambient free module of rank 3 over the principal ideal domain
-             Integer Ring
-            sage: isinstance(ZZ, Rings.ParentMethods)  # it is an extension class
-            False
-
+            sage: 3^ZZ
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for ^: 'Integer Ring' and '<class 'sage.rings.integer_ring.IntegerRing_class'>'
+            sage: Partitions(3)^3
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for ** or pow(): 'Partitions_n_with_category' and 'int'
         """
-        # generic multiplication method. It defers to
-        # _pow_, which may be defined via categories.
-        _pow_ = None
+        if mod is not None or not isinstance(self, Parent):
+            return NotImplemented
         try:
-            if isinstance(self, Parent):
-                _pow_ = self._pow_
+            meth = super(Parent, (<Parent> self)).__pow__
         except AttributeError:
-            pass
-        if _pow_ is None:
-            raise TypeError(f"For implementing powers, provide the method "
-                            f"'_pow_' for {self}")
-        return _pow_(x, mod)
+            # needed when self is a Cython object
+            try:
+                meth = (<Parent> self).getattr_from_category('__pow__')
+            except AttributeError:
+                return NotImplemented
+        return meth(x)
 
     #############################################################################
     # Containment testing
