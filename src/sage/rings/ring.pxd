@@ -8,6 +8,8 @@ cdef class Ring(ParentWithGens):
     cdef public object _zero_ideal
     cdef public object _unit_ideal
     cdef public object __ideal_monoid
+    cpdef bint is_field(self, proof=*) except -2
+    cpdef bint is_integral_domain(self, proof=*) except -2
 
 
 cdef class CommutativeRing(Ring):

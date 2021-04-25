@@ -583,7 +583,7 @@ cdef class SymbolicRing(CommutativeRing):
         """
         return self.symbol('some_variable')
 
-    def is_field(self, proof = True):
+    cpdef bint is_field(self, proof=True) except -2:
         """
         Returns True, since the symbolic expression ring is (for the most
         part) a field.

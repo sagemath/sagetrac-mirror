@@ -4146,7 +4146,6 @@ cdef class FieldElement(CommutativeRingElement):
 
             sage: R.<x,y> = QQ[]
             sage: S.<a,b> = R.quo(y^2 + 1)
-            sage: S.is_field = lambda : False
             sage: F = Frac(S); u = F.one()
             sage: u.quo_rem(u)
             (1, 0)
