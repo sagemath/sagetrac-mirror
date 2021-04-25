@@ -331,6 +331,112 @@ class Rings(CategoryWithAxiom):
             """
             return True
 
+        def is_integral_domain(self, proof=True):
+            """
+            Return ``True`` if this ring is an integral domain.
+
+            INPUT:
+
+            - ``proof`` -- (default: ``True``) Determines what to do in unknown
+              cases
+
+            ALGORITHM:
+
+            If the parameter ``proof`` is set to ``True``, the returned value
+            is correct but the method might throw an error.  Otherwise, if it
+            is set to ``False``, the method returns ``True`` if it can
+            establish that self is an integral domain and ``False`` otherwise.
+
+            EXAMPLES::
+
+                sage: QQ.is_integral_domain()
+                True
+                sage: ZZ.is_integral_domain()
+                True
+                sage: ZZ['x,y,z'].is_integral_domain()
+                True
+                sage: Integers(8).is_integral_domain()
+                False
+                sage: Zp(7).is_integral_domain()
+                True
+                sage: Qp(7).is_integral_domain()
+                True
+                sage: R.<a,b> = QQ[]
+                sage: S.<x,y> = R.quo((b^3))
+                sage: S.is_integral_domain()
+                False
+
+            This illustrates the use of the ``proof`` parameter::
+
+                sage: R.<a,b> = ZZ[]
+                sage: S.<x,y> = R.quo((b^3))
+                sage: S.is_integral_domain(proof = True)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+                sage: S.is_integral_domain(proof = False)
+                False
+            """
+            if self.is_field(proof):
+                return True
+
+            if self.is_zero():
+                return False
+
+            if proof:
+                raise NotImplementedError
+            else:
+                return False
+
+        def is_field(self, proof=True):
+            """
+            Return ``True`` if this ring is a field.
+
+            INPUT:
+
+            - ``proof`` -- (default: ``True``) Determines what to do in unknown
+              cases
+
+            ALGORITHM:
+
+            If the parameter ``proof`` is set to ``True``, the returned value
+            is correct but the method might throw an error.  Otherwise, if it
+            is set to ``False``, the method returns True if it can establish
+            that self is a field and False otherwise.
+
+            EXAMPLES::
+
+                sage: QQ.is_field()
+                True
+                sage: GF(9,'a').is_field()
+                True
+                sage: ZZ.is_field()
+                False
+                sage: QQ['x'].is_field()
+                False
+                sage: Frac(QQ['x']).is_field()
+                True
+
+            This illustrates the use of the ``proof`` parameter::
+
+                sage: R.<a,b> = QQ[]
+                sage: S.<x,y> = R.quo((b^3))
+                sage: S.is_field(proof = True)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+                sage: S.is_field(proof = False)
+                False
+            """
+            if self.is_zero():
+                return False
+
+            if proof:
+                raise NotImplementedError(
+                    "No way to prove that %s is an integral domain!" % self)
+            else:
+                return False
+
         def is_zero(self):
             """
             Return ``True`` if this is the zero ring.
