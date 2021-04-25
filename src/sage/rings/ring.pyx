@@ -780,7 +780,7 @@ cdef class Ring(ParentWithGens):
             return True
         raise NotImplementedError
 
-    def is_field(self, proof = True):
+    cpdef bint is_field(self, proof=True) except -2:
         """
         Return ``True`` if this ring is a field.
 
@@ -920,7 +920,7 @@ cdef class Ring(ParentWithGens):
         """
         return False
 
-    def is_integral_domain(self, proof = True):
+    cpdef bint is_integral_domain(self, proof=True) except -2:
         """
         Return ``True`` if this ring is an integral domain.
 
@@ -1782,7 +1782,7 @@ cdef class IntegralDomain(CommutativeRing):
         CommutativeRing.__init__(self, base_ring, names=names, normalize=normalize,
                                  category=category)
 
-    def is_integral_domain(self, proof = True):
+    cpdef bint is_integral_domain(self, proof=True) except -2:
         """
         Return ``True``, since this ring is an integral domain.
 

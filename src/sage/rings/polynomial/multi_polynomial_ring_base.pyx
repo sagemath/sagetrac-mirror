@@ -97,7 +97,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             category = polynomial_default_category(base_ring.category(), n)
         sage.rings.ring.Ring.__init__(self, base_ring, names, category=category)
 
-    def is_integral_domain(self, proof = True):
+    cpdef bint is_integral_domain(self, proof=True) except -2:
         """
         EXAMPLES::
 
