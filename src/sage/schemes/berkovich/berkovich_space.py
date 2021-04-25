@@ -721,12 +721,15 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
 
     def convex_hull(self, points, labels=None, return_graph=False):
         """
-        Plot a bipartite graph containing the convex hull.
+        Plot or return a bipartite graph containing the convex hull.
 
         The convex hull of a set of points is the smallest
         path-connected space that contains all the points,
         or equivalently, the union of all intervals starting
         and ending at points in the set.
+
+        For reference, 0, the Gauss point, and infinity are added
+        to the bipartite graph. The convex hull is highlighted in red.
 
         By default, the vertices are labeled ``P1`` through ``Pn``,
         where ``n`` is the number of points in ``points``. To change the
@@ -739,9 +742,83 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         - labels -- (optional) A list of strings to use as labels for the vertices
           bipartite graph.
 
-        - return_graph -- (default: `False`) If `True`, the bipartite graph is returned.
+        - return_graph -- (default: `False`) If `True`, the bipartite graph is returned
+          and the bipartite graph is not plotted.
 
-        OUTPUT: None, unless ``return_graph`` is ``True``.
+        OUTPUT: None, unless ``return_graph`` is ``True``, in which case a bipartite
+                graph is returned.
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: Q1 = B(1/3)
+            sage: Q2 = B(1/3, 3)
+            sage: Q3 = B(3)
+            sage: B.convex_hull([Q1, Q2, Q3])
+
+        ::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: Q1 = B(1)
+            sage: Q2 = B(1/81,1)
+            sage: Q4 = B(1/243, 1/3)
+            sage: Q3 = B(1/3)
+            sage: Q5 = B(9, 1/3)
+            sage: Q6 = B(1/2)
+            sage: Q7 = B(7)
+            sage: B.convex_hull([Q1, Q2, Q3, Q4, Q5, Q6, Q7])
+
+        We can use ``labels`` to specify the naming of the vertices::
+
+            sage: B = Berkovich_Cp_Projective(5)
+            sage: Q1 = B(1/5)
+            sage: Q2 = B(5, 1/5)
+            sage: Q3 = B(25, 1/25)
+            sage: convex_hull = B.convex_hull([Q1, Q2, Q3], ['Q1', 'Q2', 'Q3'], True)
+            sage: convex_hull.vertices()
+            ['0', 'Gauss', 'Q1', 'Q1 ^ Q2', 'Q2', 'Q3', 'oo']
+
+        TESTS::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: Q1 = B(1/3)
+            sage: Q2 = B(1/3, 3)
+            sage: Q3 = B(3)
+            sage: convex_hull =  B.convex_hull([Q1, Q2, Q3], return_graph=True)
+            sage: convex_hull.adjacency_matrix()
+            [0 1 0 0 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 0 0 1]
+            [0 1 0 0 0 0]
+            [0 0 0 0 0 0]
+
+        ::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: Q1 = B(1)
+            sage: Q2 = B(1/81,1)
+            sage: Q4 = B(1/243, 1/3)
+            sage: Q3 = B(1/3)
+            sage: Q5 = B(9, 1/3)
+            sage: Q6 = B(1/2)
+            sage: Q7 = B(7)
+            sage: convex_hull = B.convex_hull([Q1, Q2, Q3, Q4, Q5, Q6, Q7], return_graph=True)
+            sage: convex_hull.adjacency_matrix()
+            [0 0 0 0 0 0 0 0 0 0 1 0 0 0]
+            [0 0 0 0 1 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 1 0 0 0 0 0 0 0]
+            [0 0 0 0 0 1 0 0 0 0 0 0 0 0]
+            [0 0 0 1 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+            [0 1 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 1 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 1 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 1 0 0 0 0 0 0 0 0]
+            [0 1 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 1 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 1 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
         """
         if not (isinstance(points, list) or isinstance(points, tuple)):
             raise ValueError("points must be a list")
@@ -830,12 +907,13 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             if name_to_highlight[vertex]:
                 red_colored_vertices.append(vertex)
         vertex_colors = {'#FF0000': red_colored_vertices}
-        from sage.graphs.graph_plot import GraphPlot
-        options = {'layout':'tree',
-                'edge_colors':edge_colors,
-                'vertex_colors':vertex_colors,
-                'tree_orientation': 'down',
-                'tree_root': 'oo'}
-        GraphPlot(G, options).show()
-        if return_graph:
+        if not return_graph:
+            from sage.graphs.graph_plot import GraphPlot
+            options = {'layout':'tree',
+                    'edge_colors':edge_colors,
+                    'vertex_colors':vertex_colors,
+                    'tree_orientation': 'down',
+                    'tree_root': 'oo'}
+            GraphPlot(G, options).show()
+        else:
             return G
