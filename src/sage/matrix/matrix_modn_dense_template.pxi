@@ -7,7 +7,7 @@ BLAS/LAPACK routines using floating point arithmetic.
 
 EXAMPLES::
 
-    sage: A = matrix(GF(127), 7, 7, range(49), implementation='linbox-float')
+    sage: A = matrix(GF(127), 7, 7, range(49), implementation='linbox')
     sage: A*A
     [  2  23  44  65  86 107   1]
     [ 15  85  28  98  41 111  54]
@@ -19,7 +19,7 @@ EXAMPLES::
     sage: A.rank()
     2
 
-    sage: A = matrix(GF(127), 4, 4, [106, 98, 24, 84, 108, 7, 94, 71, 96, 100, 15, 42, 80, 56, 72, 35], implementation='linbox-float')
+    sage: A = matrix(GF(127), 4, 4, [106, 98, 24, 84, 108, 7, 94, 71, 96, 100, 15, 42, 80, 56, 72, 35], implementation='linbox')
     sage: A.rank()
     4
     sage: v = vector(GF(127), 4, (100, 93, 47, 110))
@@ -44,10 +44,10 @@ We test corner cases for multiplication::
 
     sage: v0 = vector(GF(3),[])
     sage: v1 = vector(GF(3),[1])
-    sage: m00 = matrix(GF(3),0,0,[], implementation='linbox-float')
-    sage: m01 = matrix(GF(3),0,1,[], implementation='linbox-float')
-    sage: m10 = matrix(GF(3),1,0,[], implementation='linbox-float')
-    sage: m11 = matrix(GF(3),1,1,[1], implementation='linbox-float')
+    sage: m00 = matrix(GF(3),0,0,[], implementation='linbox')
+    sage: m01 = matrix(GF(3),0,1,[], implementation='linbox')
+    sage: m10 = matrix(GF(3),1,0,[], implementation='linbox')
+    sage: m11 = matrix(GF(3),1,1,[1], implementation='linbox')
     sage: good = [ (v0,m00), (v0,m01), (v1,m10), (v1,m11), (m00,v0), (m10,v0), (m01,v1), (m11,v1), (m00,m00), (m01,m10), (m10,m01), (m11,m11) ]
     sage: for v, m in good:
     ....:     print('{} x {} = {}'.format(v, m, v * m))
@@ -391,7 +391,7 @@ cpdef __matrix_from_rows_of_matrices(X):
 
     EXAMPLES::
 
-        sage: X = [random_matrix(GF(17), 4, 4, implementation='linbox-float') for _ in range(10)]; X
+        sage: X = [random_matrix(GF(17), 4, 4, implementation='linbox') for _ in range(10)]; X
         [
         [ 2 14  0 15]  [12 14  3 13]  [ 9 15  8  1]  [ 2 12  6 10]
         [11 10 16  2]  [10  1 14  6]  [ 5  8 10 11]  [12  0  6  9]
@@ -470,10 +470,10 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
             sage: import gc
             sage: for i in range(10):
-            ....:      A = random_matrix(GF(7),1000,1000, implementation='linbox-float')
-            ....:      B = random_matrix(Integers(10),1000,1000, implementation='linbox-float')
-            ....:      C = random_matrix(GF(16007),1000,1000, implementation='linbox-double')
-            ....:      D = random_matrix(Integers(1000),1000,1000, implementation='linbox-double')
+            ....:      A = random_matrix(GF(7),1000,1000, implementation='linbox')
+            ....:      B = random_matrix(Integers(10),1000,1000, implementation='linbox')
+            ....:      C = random_matrix(GF(16007),1000,1000, implementation='linbox')
+            ....:      D = random_matrix(Integers(1000),1000,1000, implementation='linbox')
             ....:      del A
             ....:      del B
             ....:      del C
@@ -499,27 +499,27 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         EXAMPLES::
 
-            sage: A = random_matrix(GF(3), 1000, 1000, implementation='linbox-float')
+            sage: A = random_matrix(GF(3), 1000, 1000, implementation='linbox')
             sage: type(A)
             <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
-            sage: A = random_matrix(Integers(10), 1000, 1000, implementation='linbox-float')
+            sage: A = random_matrix(Integers(10), 1000, 1000, implementation='linbox')
             sage: type(A)
             <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
-            sage: A = random_matrix(Integers(2^16), 1000, 1000, implementation='linbox-double')
+            sage: A = random_matrix(Integers(2^16), 1000, 1000, implementation='linbox')
             sage: type(A)
             <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
 
         TESTS::
 
-            sage: Matrix(GF(7), 2, 2, [-1, int(-2), GF(7)(-3), 1/4], implementation='linbox-float')
+            sage: Matrix(GF(7), 2, 2, [-1, int(-2), GF(7)(-3), 1/4], implementation='linbox')
             [6 5]
             [4 2]
 
-            sage: Matrix(GF(6434383), 2, 2, [-1, int(-2), GF(7)(-3), 1/4], implementation='linbox-double')
+            sage: Matrix(GF(6434383), 2, 2, [-1, int(-2), GF(7)(-3), 1/4], implementation='linbox')
             [6434382 6434381]
             [      4 1608596]
 
-            sage: Matrix(Integers(4618990), 2, 2, [-1, int(-2), GF(7)(-3), 1/7], implementation='linbox-double')
+            sage: Matrix(Integers(4618990), 2, 2, [-1, int(-2), GF(7)(-3), 1/7], implementation='linbox')
             [4618989 4618988]
             [      4 2639423]
         """
@@ -548,6 +548,22 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
                     v[j] = <celement>x
 
     def _change_implementation(self, implementation):
+        """
+        Return this matrix with a different underlying implementation.
+
+        INPUT::
+
+        - ``implementation`` -- an argument accepted as an implementation argument to :class:`sage.matrix.matrix_space.MatrixSpace`.
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(5), 2, range(4), implementation="linbox")
+            sage: type(A)
+            <class 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
+            sage: B = A._change_implementation("flint")
+            sage: type(B)
+            <class 'sage.matrix.matrix_modn_dense_flint.Matrix_modn_dense_flint'>
+        """
         from sage.matrix.matrix_space import MatrixSpace
         P = MatrixSpace(self._parent._base, self._nrows, self._ncols, sparse=False, implementation=implementation)
         if P is self.parent():
@@ -565,14 +581,14 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         """
         EXAMPLES::
 
-            sage: B = random_matrix(GF(127), 3, 3, implementation='linbox-float')
+            sage: B = random_matrix(GF(127), 3, 3, implementation='linbox')
             sage: B.set_immutable()
             sage: {B:0} # indirect doctest
             {[  9  75  94]
             [  4  57 112]
             [ 59  85  45]: 0}
 
-            sage: M = random_matrix(GF(7), 10, 10, implementation='linbox-float')
+            sage: M = random_matrix(GF(7), 10, 10, implementation='linbox')
             sage: M.set_immutable()
             sage: hash(M)
             -5724333594806680561  # 64-bit
@@ -588,7 +604,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         TESTS::
 
-            sage: A = matrix(GF(2), 2, 0, implementation='linbox-float')
+            sage: A = matrix(GF(2), 2, 0, implementation='linbox')
             sage: hash(A)
             Traceback (most recent call last):
             ...
@@ -629,7 +645,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         EXAMPLES::
 
-            sage: m = matrix(Integers(128), 3, 3, [ord(c) for c in "Hi there!"], implementation='linbox-float'); m
+            sage: m = matrix(Integers(128), 3, 3, [ord(c) for c in "Hi there!"], implementation='linbox'); m
             [ 72 105  32]
             [116 104 101]
             [114 101  33]
@@ -685,7 +701,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         Test for char-sized modulus::
 
-            sage: A = random_matrix(GF(7), 5, 9, implementation='linbox-float')
+            sage: A = random_matrix(GF(7), 5, 9, implementation='linbox')
             sage: data, version = A._pickle()
             sage: B = A.parent()(0)
             sage: B._unpickle(data, version)
@@ -694,7 +710,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         And for larger modulus::
 
-            sage: A = random_matrix(GF(1009), 51, 5, implementation='linbox-double')
+            sage: A = random_matrix(GF(1009), 51, 5, implementation='linbox')
             sage: data, version = A._pickle()
             sage: B = A.parent()(0)
             sage: B._unpickle(data, version)
@@ -703,7 +719,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         Now test all the bit-packing options::
 
-            sage: A = matrix(Integers(1000), 2, 2, implementation='linbox-double')
+            sage: A = matrix(Integers(1000), 2, 2, implementation='linbox')
             sage: A._unpickle((1, True, b'\x01\x02\xFF\x00'), 10)
             sage: A
             [  1   2]
@@ -1734,6 +1750,19 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         return r
 
     def _echelon_copy(self):
+        """
+        Copies the matrix and adds zero rows at the bottom if necessary.
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(5), [1, 2], implementation="linbox")
+            sage: A._echelon_copy()
+            [1 2]
+            sage: B = matrix(Zmod(6), [1, 2], implementation="linbox")
+            sage: B._echelon_copy()
+            [1 2]
+            [0 0]
+        """
         if self._nrows < self._ncols and not self.base_ring().is_field():
             M = self.new_matrix(self._ncols - self._nrows, self._ncols)
             return self.stack(M)

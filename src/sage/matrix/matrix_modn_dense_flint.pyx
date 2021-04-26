@@ -156,6 +156,9 @@ cdef class Matrix_modn_dense_flint(Matrix_dense):
         x.set_from_ulong_fast(nmod_mat_get_entry(self._matrix, i, j))
         return x
 
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        return not nmod_mat_get_entry(self._matrix, i, j)
+
     cdef Matrix_modn_dense_flint _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
         """
         Return a new matrix over the parent from given parent
