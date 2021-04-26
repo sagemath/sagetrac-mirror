@@ -25,6 +25,7 @@ from sage.libs.flint.arith import (bernoulli_number as flint_bernoulli,
 
 from sage.structure.element import parent
 from sage.structure.coerce import py_scalar_to_element
+from sage.misc.superseded import deprecation
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
@@ -960,7 +961,7 @@ def eratosthenes(n):
     return [ZZ(2)] + [ZZ(x) for x in s if x and x <= n]
 
 
-def primes(start, stop=None, proof=None):
+def primes(start, stop=None, step=None, proof=None):
     r"""
     Return an iterator over all primes between start and stop-1,
     inclusive. This is much slower than ``prime_range``, but
@@ -977,12 +978,14 @@ def primes(start, stop=None, proof=None):
 
     INPUT:
 
-    - ``start`` - an integer - lower bound for the primes
+    - ``start`` -- an integer - lower bound for the primes
 
-    - ``stop`` - an integer (or infinity) optional argument -
+    - ``stop`` -- an integer (or infinity) optional argument -
       giving upper (open) bound for the primes
 
-    - ``proof`` - bool or None (default: None)  If True, the function
+    - ``step`` -- an integer (default ``None``).  Only primes congruent to ``start`` modulo ``step`` are included.
+
+    - ``proof`` -- bool or None (default: None)  If True, the function
       yields only proven primes.  If False, the function uses a
       pseudo-primality test, which is much faster for really big
       numbers but does not provide a proof of primality. If None,
@@ -990,7 +993,7 @@ def primes(start, stop=None, proof=None):
 
     OUTPUT:
 
-    -  an iterator over primes from start to stop-1, inclusive
+    -  an iterator over primes from ``start`` to ``stop-1``, inclusive
 
 
     EXAMPLES::
@@ -1008,6 +1011,15 @@ def primes(start, stop=None, proof=None):
         sage: next(p for p in primes(10^20, infinity) if is_prime(2*p+1))
         100000000000000001243
 
+    You can specify a step::
+
+        sage: list(primes(11, 100, 10))
+        [11, 31, 41, 61, 71]
+
+    The default start is 2::
+
+        sage: list(primes(10^900, step=4))
+        [2]
 
     TESTS::
 
@@ -1034,20 +1046,41 @@ def primes(start, stop=None, proof=None):
     """
     from sage.rings.infinity import infinity
 
+    if isinstance(step, bool):
+        if proof is not None:
+            raise ValueError("invalid type for 'step'")
+        deprecation(29760, "Pass proof as a keyword argument")
+        proof = step
+        step = None
+
     start = ZZ(start)
     if stop is None:
         stop = start
         start = ZZ(2)
     elif stop != infinity:
         stop = ZZ(stop)
-    n = start - 1
-    while True:
-        n = n.next_prime(proof)
-        if n < stop:
-            yield n
-        else:
+    if step is None:
+        n = start - 1
+        while True:
+            n = n.next_prime(proof)
+            if n < stop:
+                yield n
+            else:
+                return
+    else:
+        g = gcd(start, step)
+        if g > 1:
+            # Only possibility is that g is prime and in the range
+            if g >= start and g < stop and g.is_prime():
+                yield g
             return
-
+        n = start
+        while True:
+            if n.is_prime(proof):
+                yield n
+            n += step
+            if n >= stop:
+                return
 
 def next_prime_power(n):
     """

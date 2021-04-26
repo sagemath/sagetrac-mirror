@@ -37,6 +37,7 @@ Basic arithmetic with C integers
 
 from libc.math cimport sqrt
 from sage.libs.gmp.mpz cimport mpz_set_ui
+from sage.libs.flint.ulong_extras cimport n_gcd, n_preinvert_limb, n_mod2_preinv, n_is_probabprime
 
 from sage.ext.stdsage cimport PY_NEW
 
@@ -44,8 +45,9 @@ from cypari2.paridecl cimport *
 from cypari2.gen cimport Gen as pari_gen
 from sage.libs.pari.all import pari
 from sage.rings.integer cimport Integer
+from sage.misc.superseded import deprecation
 
-cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
+cpdef prime_range(start, stop=None, step=None, algorithm=None, bint py_ints=False):
     r"""
     Return a list of all primes between ``start`` and ``stop - 1``, inclusive.
 
@@ -61,6 +63,8 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
     - ``start`` -- integer, lower bound (default: 1)
 
     - ``stop`` -- integer, upper bound
+
+    - ``step`` -- integer (default: 1)
 
     - ``algorithm`` -- optional string (default: ``None``), one of:
 
@@ -144,6 +148,16 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
         ...
         ValueError: algorithm "pari_primes" is limited to primes larger than 436273008
 
+    You can specify a step::
+
+        sage: prime_range(11, 100, 10)
+        [11, 31, 41, 61, 71]
+
+    The default start is 2::
+
+        sage: prime_range(10^900, step=4)
+        [2]
+
     AUTHORS:
 
     - William Stein (original version)
@@ -152,7 +166,7 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
     - Robert Bradshaw (speedup using Pari prime table, py_ints option)
     """
     cdef Integer z
-    cdef long c_start, c_stop, p
+    cdef long c_start, c_stop, c_step, p, g, step_inv
     cdef byteptr pari_prime_ptr
     # input to pari.init_primes cannot be greater than 436273290 (hardcoded bound)
     DEF init_primes_max = 436273290
@@ -179,9 +193,27 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
                 raise ValueError(str(integer_error)
                     + "\nand argument is also not real: " + str(real_error))
 
+    if isinstance(step, str):
+        if algorithm is not None:
+            raise ValueError("Invalid type for step")
+        deprecation(29760, "Pass algorithm as a keyword argument")
+        algorithm = step
+        step = None
+
+    if step is not None:
+        try:
+            step = Integer(step)
+        except TypeError as integer_error:
+            try:
+                step = Integer(round(float(step)))
+            except (ValueError, TypeError) as real_error:
+                raise ValueError(str(integer_error)
+                    + "\nand argument is also not real: " + str(real_error))
+
+    cdef bint use_step = (step is not None)
     if algorithm is None:
         # if 'stop' is 'None', need to change it to an integer before comparing with 'start'
-        if max(start, stop or 0) <= small_prime_max:
+        if max(start, stop or 0) <= small_prime_max and (step is None or step < 5000):
             algorithm = "pari_primes"
         else:
             algorithm = "pari_isprime"
@@ -203,6 +235,19 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
                 c_start = 1
         if c_stop <= c_start:
             return []
+        if use_step:
+            c_step = step
+            g = n_gcd(c_step, c_start)
+            if g > 1:
+                # only possibility is if g is prime and in the range
+                # n_is_probabprime can't fail less than init_primes_max
+                if g >= c_start and g < c_stop and n_is_probabprime(g):
+                    if py_ints:
+                        return [g]
+                    else:
+                        return [Integer(g)]
+                else:
+                    return []
 
         if maxprime() < c_stop:
             # Adding prime_gap_bound should be sufficient to guarantee an
@@ -212,11 +257,16 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
 
         pari_prime_ptr = diffptr
         p = 0
+        if use_step:
+            step_inv = n_preinvert_limb(c_step)
+            g = n_mod2_preinv(c_start, c_step, step_inv)
         res = []
         while p < c_start:
             NEXT_PRIME_VIADIFF(p, pari_prime_ptr)
         while p < c_stop:
-            if py_ints:
+            if use_step and n_mod2_preinv(p, c_step, step_inv) != g:
+                pass
+            elif py_ints:
                 res.append(p)
             else:
                 z = <Integer>PY_NEW(Integer)
@@ -226,7 +276,7 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
 
     elif (algorithm == "pari_isprime") or (algorithm == "pari_primes"):
         from sage.arith.all import primes
-        res = list(primes(start, stop))
+        res = list(primes(start, stop, step))
     else:
         raise ValueError('algorithm must be "pari_primes" or "pari_isprime"')
     return res
