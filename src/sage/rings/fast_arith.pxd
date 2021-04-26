@@ -1,4 +1,4 @@
-cpdef prime_range(start, stop=*, algorithm=*, bint py_ints=*)
+cpdef prime_range(start, stop=*, step=*, algorithm=*, bint py_ints=*)
 
 cdef class arith_int:
     cdef int abs_int(self, int x) except -1
