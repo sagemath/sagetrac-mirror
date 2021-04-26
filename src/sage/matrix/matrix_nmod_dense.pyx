@@ -179,6 +179,12 @@ cdef class Matrix_nmod_dense(Matrix_dense):
     cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
         nmod_mat_set_entry(self._matrix, i, j, value)
 
+    cdef void set_unsafe_ui(self, Py_ssize_t i, Py_ssize_t j, unsigned long value):
+        nmod_mat_set_entry(self._matrix, i, j, value)
+
+    cdef unsigned long get_unsafe_ui(self, Py_ssize_t i, Py_ssize_t j):
+        return nmod_mat_get_entry(self._matrix, i, j)
+
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x):
         """
         Low level interface for setting entries, used by generic matrix code.
@@ -219,6 +225,36 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         cdef Matrix_nmod_dense ans = Matrix_nmod_dense.__new__(Matrix_nmod_dense, P)
         ans._parent = P
         return ans
+
+    def _change_implementation(self, implementation):
+        """
+        Return this matrix with a different underlying implementation.
+
+        INPUT::
+
+        - ``implementation`` -- an argument accepted as an implementation argument to :class:`sage.matrix.matrix_space.MatrixSpace`.
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(5), 2, range(4))
+            sage: type(A)
+            <class 'sage.matrix.matrix_nmod_dense.Matrix_nmod_dense'>
+            sage: B = A._change_implementation("linbox")
+            sage: type(B)
+            <class 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
+        """
+        from sage.matrix.matrix_space import MatrixSpace
+        P = MatrixSpace(self._parent._base, self._nrows, self._ncols, sparse=False, implementation=implementation)
+        if P is self.parent():
+            return self
+        cdef Matrix_dense mat = P()
+        cdef Py_ssize_t i, j
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                mat.set_unsafe_ui(i, j, self.get_unsafe_ui(i, j))
+        if self._subdivisions is not None:
+            mat.subdivide(self.subdivisions())
+        return mat
 
     ########################################################################
     # LEVEL 2 helpers:
@@ -419,7 +455,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         """
         return self.inverse_of_unit()
 
-    def inverse_of_unit(self, algorithm="crt"):
+    def inverse_of_unit(self, algorithm=None):
         """
         Return the inverse of this matrix.
 
@@ -444,11 +480,14 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             [23 28 16]
 
             sage: for N in [5, 625, 36, 2^24, 2^6*3^9, 2^63-1]:
+            ....:     algs = ["flint", "linbox", "lift"] if N == 5 else ["crt", "lift"]
             ....:     for n in [3, 6]:
             ....:         A = random_matrix(Zmod(N), n, n)
             ....:         while not A.det().is_unit():
             ....:             A = random_matrix(Zmod(N), n, n)
-            ....:         assert A.inverse_of_unit('crt') == A.inverse_of_unit('lift')
+            ....:         Is = [A.inverse_of_unit(alg) for alg in algs]
+            ....:         for I in Is: I.set_immutable()
+            ....:         assert len(set(Is)) == 1
 
             sage: matrix(Zmod(36), [[2, 0], [0, 2]]).inverse_of_unit()
             Traceback (most recent call last):
@@ -471,15 +510,33 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         cdef mp_limb_t p, N = 1
         cdef nmod_mat_t inv, A, B, tmp
         cdef bint lift_required, ok
-        if R.is_field():
+        if algorithm is None:
+            if R.is_field():
+                if n > 1000:
+                    from .matrix_modn_dense_double import MAX_MODULUS
+                    if R.order() < MAX_MODULUS:
+                        algorithm = "linbox"
+                    else:
+                        algorithm = "flint"
+                else:
+                    algorithm = "flint"
+            else:
+                algorithm = "crt"
+        if algorithm == "flint":
+            if not R.is_field():
+                raise ValueError("Flint inversion only supported over fields; use algorithm=crt")
             M = self._new(n, n)
             ok = nmod_mat_inv(M._matrix, self._matrix)
             if not ok:
                 raise ZeroDivisionError("input matrix must be nonsingular")
             return M
-        if algorithm == "lift":
+        elif algorithm == "linbox":
+            if not R.is_field():
+                raise ValueError("Linbox inversion only supported over fields; use algorithm=crt")
+            return self._change_implementation("linbox").inverse_of_unit()._change_implementation("flint")
+        elif algorithm == "lift":
             return (~self.lift_centered()).change_ring(R)
-        if algorithm == "crt":
+        elif algorithm == "crt":
             # The modulus is small, so factoring is feasible.
             # We find inverses modulo each prime dividing the modulus, lift p-adically, then CRT the results together
             M = self._new(n, n)
@@ -604,12 +661,11 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         if not self.is_square():
             raise TypeError("self must be square")
         self.check_mutability()
+        self.clear_cache()
 
         pz, ez = F[0]
         cdef Py_ssize_t i, j, k, m, n, r
         n = self._nrows
-
-        self.check_mutability()
 
         cdef bint found_nonzero
         cdef mp_limb_t u, minu, inv, q, x, y, prepe, prepe1, preq, pe, p = pz
@@ -684,12 +740,14 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
         - ``var`` -- a string, the variable name for the polynomial returned.
 
-        - ``algorithm`` -- either ``"flint"``, ``"lift"`` or ``"crt"``.
+        - ``algorithm`` -- either ``"flint"``, ``"lift"``, ``"crt"``, or ``"linbox"``.
             In the first case, use FLINT's characteristic polynomial function,
             in the second case, lift to the integers and compute there,
             in the third form, compute the hessenberg form for each prime power
             dividing the modulus.
-            If not given, defaults to ``"flint"`` over fields and ``"crt"`` otherwise.
+            In the last, converts to a linbox matrix and computes the charpoly there.
+            If not given, defaults to ``"crt"`` when not over a field, to ``"linbox"`` when
+            the dimension is large, and ``"flint"``  otherwise.
 
         EXAMPLES::
 
@@ -704,32 +762,53 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             ....:     for n in [3, 6]:
             ....:         A = random_matrix(Zmod(N), n, n)
             ....:         assert A.charpoly(algorithm='crt') == A.charpoly(algorithm='lift')
+
+            sage: A = random_matrix(GF(73), 6)
+            sage: fs = [A.charpoly(algorithm=alg) for alg in ['flint', 'linbox', 'crt', 'lift', 'hessenberg', 'df']]
+            sage: len(set(fs))
+            1
+            sage: A = random_matrix(Zmod(1728), 6)
+            sage: fs = [A.charpoly(algorithm=alg) for alg in ['crt', 'lift', 'df']]
+            sage: len(set(fs))
+            1
         """
         if not self.is_square():
             raise TypeError("self must be square")
+        ans = self.fetch('charpoly')
+        if ans is not None:
+            return ans.change_variable_name(var)
         R = self._parent._base
-        cdef Polynomial_zmod_flint f
-        cdef Py_ssize_t i, j, m, jstart, n = self._nrows
-        cdef mp_limb_t pe, prepe, preN, x, y, scalar, t, N = R.order()
-        preN = n_preinvert_limb(N)
-        cdef Matrix_nmod_dense A
-        cdef nmod_mat_t H, c
         F = R.factored_order()
         if algorithm is None:
             if len(F) == 1 and F[0][1] == 1: # N prime
-                algorithm = "flint"
+                if self._nrows > 200:
+                    from .matrix_modn_dense_double import MAX_MODULUS
+                    if R.order() < MAX_MODULUS:
+                        algorithm = "linbox"
+                    else:
+                        algorithm = "flint"
+                else:
+                    algorithm = "flint"
             else:
                 algorithm = "crt"
+        cdef Polynomial_zmod_flint f
+        cdef Py_ssize_t i, j, m, jstart, n = self._nrows
+        cdef mp_limb_t pe, prepe, preN, x, y, scalar, t, N = R.order()
+        cdef Matrix_nmod_dense A
+        cdef nmod_mat_t H, c
         S = PolynomialRing(R, var, implementation="FLINT")
-        if algorithm == "flint":
+        if algorithm == "linbox":
+            ans = self._change_implementation("linbox").charpoly(var)
+        elif algorithm == "flint":
             f = S()
             sig_on()
             nmod_mat_charpoly(&f.x, self._matrix)
             sig_off()
-            return f
-        if algorithm == "lift":
-            return self.lift_centered().charpoly(var).change_ring(R)
-        if algorithm == "crt":
+            ans = f
+        elif algorithm == "lift":
+            ans = self.lift_centered().charpoly(var).change_ring(R)
+        elif algorithm == "crt":
+            preN = n_preinvert_limb(N)
             # We hessenbergize at each prime, CRT, then compute the charpoly from the Hessenberg form
             try:
                 nmod_mat_init(H, n, n, 1)
@@ -742,7 +821,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                     R = Zmod(pe)
                     R.factored_order.set_cache(Factorization([(pz, ez)]))
                     from sage.matrix.matrix_space import MatrixSpace
-                    A = MatrixSpace(R, self._nrows, self._ncols, sparse=False)()
+                    A = MatrixSpace(R, self._nrows, self._ncols, sparse=False, implementation="flint")()
                     for i in range(n):
                         for j in range(n):
                             x = nmod_mat_get_entry(self._matrix, i, j)
@@ -793,7 +872,14 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             finally:
                 nmod_mat_clear(H)
                 nmod_mat_clear(c)
-        raise ValueError("Unknown algorithm '%s'" % algorithm)
+        elif algorithm == "hessenberg":
+            ans = self._charpoly_hessenberg(var)
+        elif algorithm == "df":
+            ans = self._charpoly_df(var)
+        else:
+            raise ValueError("Unknown algorithm '%s'" % algorithm)
+        self.cache('charpoly', ans)
+        return ans
 
     cpdef _shift_mod(self, mp_limb_t modulus, mp_limb_t shift=1, bint mul=True, bint domod=True):
         """
@@ -958,7 +1044,9 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             # We start with the minimal polynomial mod p
             S = Zmod(p)
             Sx = PolynomialRing(S, var, implementation="FLINT")
-            C = self.change_ring(S)
+            from sage.matrix.matrix_space import MatrixSpace
+            SM = MatrixSpace(S, self._nrows, self._ncols, implementation="flint")
+            C = SM(self)
             mpoly = Sx()
             sig_on()
             nmod_mat_minpoly(&mpoly.x, C._matrix)
@@ -1029,6 +1117,10 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         Returns the minimal polynomial of this matrix.
 
         Note that, in general, the minimal polynomial of a matrix over a ring with composite modulus is not well defined.
+
+        .. SEEALSO::
+
+            :meth:`minpoly_ideal`
 
         INPUT:
 
@@ -1191,7 +1283,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
         INPUT:
 
-        - ``algorithm`` -- ignored (always uses FLINT)
+        - ``algorithm`` -- a string, either "default", "flint" or "linbox"
 
         - ``transformation`` -- boolean. Whether to return a matrix `T` so that left multiplication by `T` transforms the original matrix into echelon form.
 
@@ -1219,9 +1311,25 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         self.check_mutability()
         self.clear_cache()
         cdef bint transformation = 'transformation' in kwds and kwds['transformation']
-        cdef Matrix_nmod_dense aug, trans
+        cdef Matrix_nmod_dense aug, trans, E
         cdef Py_ssize_t i, j, m, n
-        if self._parent._base.is_field():
+        R = self._parent._base
+        if algorithm == "default":
+            if R.is_field() and min(self._nrows, self._ncols) > 200:
+                from .matrix_modn_dense_double import MAX_MODULUS
+                if R.order() < MAX_MODULUS:
+                    algorithm = "linbox"
+                else:
+                    algorithm = "flint"
+            else:
+                algorithm = "flint"
+        if algorithm not in ["flint", "linbox"]:
+            raise ValueError("Unknown algorithm '%s'" % algorithm)
+        if algorithm == "linbox":
+            transformation = False
+            E = self._change_implementation("linbox").echelon_form(algorithm="linbox_noefd")._change_implementation("flint")
+            nmod_mat_set(self._matrix, E._matrix)
+        elif self._parent._base.is_field():
             if transformation:
                 m = self.nrows()
                 n = self.ncols()
@@ -1247,75 +1355,25 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         if transformation:
             return trans
 
-    def echelon_form(self, algorithm="default", **kwds):
+    def _echelon_copy(self):
         """
-        Return the echelon form of this matrix.
+        Copies the matrix and adds zero rows at the bottom if necessary.
 
-        Note that when not over a field, the echelon form can have more rows than the input.
+        EXAMPLES::
 
-        INPUT:
-
-        - ``algorithm`` -- ignored (always uses FLINT)
-
-        - ``transformation`` -- boolean. Whether to also return the
-            transformation matrix.
-
-        OUTPUT:
-
-        If the base ring is a field, the reduced row echelon form
-        of this matrix, with the same dimensions.  If the base ring
-        is not a field, the Howell form of this matrix, which will
-        have extra rows added so that the number of rows is at least
-        the number of columns.
-
-        This matrix is not changed by this function, and the returned
-        echelon form is immutable.  Use :meth:`echelonize` to transform
-        this matrix to echelon form in place.
-
-        If the optional parameter ``transformation=True`` is
-        specified, the output consists of a pair `(E,T)` of matrices
-        where `E` is the echelon form of this matrix and `T` is the
-        transformation matrix.
-
-        EXAMPlES::
-
-            sage: A = matrix(Zmod(625), 4, 3, [[404, 355, 133], [375, 482, 448], [506, 115,  77], [370, 384, 66]])
-            sage: A.echelon_form()
-            [1 0 2]
-            [0 1 4]
-            [0 0 5]
-            [0 0 0]
-            sage: E, T = A.echelon_form(transformation=True); T
-            [  2  17  23 564]
-            [  4  22 429 488]
-            [  3   4 188 543]
-            [  5   8 510 316]
-            sage: E == T * A
-            True
+            sage: A = matrix(Zmod(5), [1, 2])
+            sage: A._echelon_copy()
+            [1 2]
+            sage: B = matrix(Zmod(6), [1, 2])
+            sage: B._echelon_copy()
+            [1 2]
+            [0 0]
         """
-        transformation = kwds.get('transformation')
-        key='echelon_form'
-        E = self.fetch(key)
-        if E is not None:
-            if not transformation:
-                return E
-            T = self.fetch('echelon_transformation')
-            if T is not None:
-                return E, T
         if self._nrows < self._ncols and not self.base_ring().is_field():
             M = self._new(self._ncols - self._nrows, self._ncols)
-            E = M.stack(self)
+            return self.stack(M)
         else:
-            E = self.__copy__()
-        T = E.echelonize(algorithm, **kwds)
-        if T is not None:
-            self.cache('echelon_transformation', T)
-        E.set_immutable()
-        self.cache(key, E)
-        if transformation:
-            return E, T
-        else:
-            return E
+            return self.__copy__()
 
     def _pivots(self):
         """
@@ -1340,14 +1398,17 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             sage: A._pivots()
             ((0,), (1, 3))
         """
-        key = 'pivots'
+        key = '_pivots'
         ans = self.fetch(key)
         if ans is not None:
             return ans
         cdef Matrix_nmod_dense E
         cdef Py_ssize_t i, j, k = 0
         # howell form has all the zero rows at the bottom
-        E = self.echelon_form()
+        if self.fetch('in_echelon_form'):
+            E = self
+        else:
+            E = self.echelon_form()
         p = []
         zdp = []
         for i in range(E._nrows):
@@ -1437,6 +1498,10 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         """
         Return the determinant of this matrix.
 
+        INPUT:
+
+        - ``algorithm`` -- a string, one of ``flint``, ``charpoly``, ``linbox`` or ``lift``
+
         EXAMPLES::
 
             sage: A = matrix(ZZ, 3, [1, 6, 11, -2, 3, 1, 3, 1, 0])
@@ -1453,6 +1518,14 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             ....:     B = random_matrix(Zmod(36), 6)
             sage: A.det() == (~B * A * B).det()
             True
+
+            sage: A = random_matrix(Zmod(73), 6)
+            sage: a = A.det("flint")
+            sage: b = A.det("linbox")
+            sage: c = A.det("lift")
+            sage: d = A.det("charpoly")
+            sage: a == b == c == d
+            True
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
@@ -1460,8 +1533,19 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         d = self.fetch(key)
         if d is not None:
             return d
+        R = self._parent._base
         if algorithm is None:
-            algorithm = "flint" if self.base_ring().is_field() else "charpoly"
+            if R.is_field():
+                if self._nrows > 400:
+                    from .matrix_modn_dense_double import MAX_MODULUS
+                    if R.order() < MAX_MODULUS:
+                        algorithm = "linbox"
+                    else:
+                        algorithm = "flint"
+                else:
+                    algorithm = "flint"
+            else:
+                algorithm = "charpoly"
 
         # If charpoly known, then det is easy.
         f = self.fetch('charpoly')
@@ -1473,6 +1557,8 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             sig_on()
             d = nmod_mat_det(self._matrix)
             sig_off()
+        elif algorithm == "linbox":
+            d = self._change_implementation("linbox").det()
         elif algorithm == "charpoly":
             f = self.charpoly()
             d = f[0]
@@ -1483,7 +1569,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         else:
             raise ValueError("Unknown algorithm '%s'" % algorithm)
 
-        d = self._parent._base(d)
+        d = R(d)
         self.cache(key, d)
         return d
 
@@ -1765,7 +1851,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
         INPUT:
 
-        - ``algorithm`` -- ignored, for compatability with :meth:`sage.matrix.matrix2.Matrix.right_kernel_matrix`.
+        - ``algorithm`` -- either ``flint`` or ``linbox``.
 
         - ``proof`` -- ignored, for compatibility with :meth:`sage.matrix.matrix2.Matrix.right_kernel_matrix`.
 
@@ -1813,10 +1899,23 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             sage: A * K.T == 0
             True
         """
+        R = self._parent._base
+        if algorithm == "default":
+            if R.is_field() and min(self._nrows, self._ncols) > 200:
+                from .matrix_modn_dense_double import MAX_MODULUS
+                if R.order() < MAX_MODULUS:
+                    algorithm = "linbox"
+                else:
+                    algorithm = "flint"
+            else:
+                algorithm = "flint"
+        if algorithm == "linbox":
+            K = self._change_implementation("linbox").right_kernel_matrix("linbox-noefd", basis="pivot")
+            return "pivot-linboxed", K._change_implementation("flint")
         cdef Py_ssize_t i, j, k, l, cur_row, pivl
         cdef mp_limb_t s, x, y, N, xinv, yinv, Ninv
         cdef Matrix_nmod_dense X, ans, E = self.echelon_form()
-        if self._parent._base.is_field():
+        if R.is_field():
             # nmod_mut_nullspace will do this regardless
             # so we are better off to start in echelon form to have the rank
             X = self._new(self._ncols, self._ncols - self.rank())
@@ -1915,6 +2014,10 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
         - ``ncols`` - integer
 
+        OUTPUT:
+
+        - ``list`` - a list of matrices, one for each row of the input, of size ``nrows`` by ``ncols``.
+
         EXAMPLES::
 
             sage: A = matrix(GF(127), 4, 4, range(16))
@@ -1929,22 +2032,19 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             [2 3], [6 7], [10 11], [14 15]
             ]
 
-        OUTPUT:
-
-        - ``list`` - a list of matrices
         """
         if nrows * ncols != self._ncols:
             raise ValueError("nrows * ncols must equal self's number of columns")
 
         cdef Matrix_nmod_dense M
         cdef Py_ssize_t i
-        cdef Py_ssize_t n = nrows * ncols
+        cdef Py_ssize_t n = self._ncols
         ans = []
-        if n:
-            for i in range(self._nrows):
-                M = self._new(nrows, ncols)
+        for i in range(self._nrows):
+            M = self._new(nrows, ncols)
+            if n:
                 memcpy(nmod_mat_entry_ptr(M._matrix, 0, 0), nmod_mat_entry_ptr(self._matrix, i, 0), sizeof(mp_limb_t)*n)
-                ans.append(M)
+            ans.append(M)
         return ans
 
     @staticmethod
@@ -1962,32 +2062,32 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
             sage: X = [random_matrix(GF(17), 4, 4) for _ in range(10)]; X
             [
-            [ 2 14  0 15]  [12 14  3 13]  [ 9 15  8  1]  [ 2 12  6 10]
-            [11 10 16  2]  [10  1 14  6]  [ 5  8 10 11]  [12  0  6  9]
-            [ 9  4 10 14]  [ 2 14 13  7]  [ 5 12  4  9]  [ 7  7  3  8]
-            [ 1 14  3 14], [ 6 14 10  3], [15  2  6 11], [ 2  9  1  5],
+            [ 1  8  0  5]  [12  8  6 14]  [ 4  1  4  3]  [11  6  1 15]
+            [ 8  3 11  1]  [ 7 15 10 11]  [13  1 10 16]  [ 3  9 14  6]
+            [15  9 15 13]  [11  5  9 15]  [15 13 15  2]  [ 9 10  3 16]
+            [ 2 14 14  8], [13 16 10 16], [13 13 14  1], [ 7  3  8  7],
             <BLANKLINE>
-            [12 13  7 16]  [ 5  3 16  2]  [14 15 16  4]  [ 1 15 11  0]
-            [ 7 11 11  1]  [11 10 12 14]  [14  1 12 13]  [16 13  8 14]
-            [ 0  2  0  4]  [ 0  7 16  4]  [ 5  5 16 13]  [13 14 16  4]
-            [ 7  9  8 15], [ 6  5  2  3], [10 12  1  7], [15  6  6  6],
+            [12 14  7 14]  [ 1 15 11 11]  [13  8  8  0]  [ 2 16 14 12]
+            [ 6  1  7 11]  [ 2  2 11  0]  [ 5  9  6  6]  [ 7 11 15  7]
+            [16 12  5  9]  [ 7 15  0  0]  [12 14  2 15]  [ 3  2 14  6]
+            [ 0  2 14  0], [13  1 15  6], [ 1  2  5  3], [ 7  9 11  0],
             <BLANKLINE>
-            [ 4 10 11 15]  [13 12  5  1]
-            [11  2  9 14]  [16 13 16  7]
-            [12  5  4  4]  [12  2  0 11]
-            [ 2  0 12  8], [13 11  6 15]
+            [ 5  1  6  5]  [15  1 15 14]
+            [15  1  9  2]  [ 6 14  9 10]
+            [ 0 12  2 13]  [ 9  3  5  9]
+            [ 1 13  8 14], [ 6  3  1 16]
             ]
             sage: X[0]._matrix_from_rows_of_matrices(X) # indirect doctest
-            [ 2 14  0 15 11 10 16  2  9  4 10 14  1 14  3 14]
-            [12 14  3 13 10  1 14  6  2 14 13  7  6 14 10  3]
-            [ 9 15  8  1  5  8 10 11  5 12  4  9 15  2  6 11]
-            [ 2 12  6 10 12  0  6  9  7  7  3  8  2  9  1  5]
-            [12 13  7 16  7 11 11  1  0  2  0  4  7  9  8 15]
-            [ 5  3 16  2 11 10 12 14  0  7 16  4  6  5  2  3]
-            [14 15 16  4 14  1 12 13  5  5 16 13 10 12  1  7]
-            [ 1 15 11  0 16 13  8 14 13 14 16  4 15  6  6  6]
-            [ 4 10 11 15 11  2  9 14 12  5  4  4  2  0 12  8]
-            [13 12  5  1 16 13 16  7 12  2  0 11 13 11  6 15]
+            [ 1  8  0  5  8  3 11  1 15  9 15 13  2 14 14  8]
+            [12  8  6 14  7 15 10 11 11  5  9 15 13 16 10 16]
+            [ 4  1  4  3 13  1 10 16 15 13 15  2 13 13 14  1]
+            [11  6  1 15  3  9 14  6  9 10  3 16  7  3  8  7]
+            [12 14  7 14  6  1  7 11 16 12  5  9  0  2 14  0]
+            [ 1 15 11 11  2  2 11  0  7 15  0  0 13  1 15  6]
+            [13  8  8  0  5  9  6  6 12 14  2 15  1  2  5  3]
+            [ 2 16 14 12  7 11 15  7  3  2 14  6  7  9 11  0]
+            [ 5  1  6  5 15  1  9  2  0 12  2 13  1 13  8 14]
+            [15  1 15 14  6 14  9 10  9  3  5  9  6  3  1 16]
 
         OUTPUT: A single matrix mod ``p`` whose ``i``-th row is ``X[i].list()``.
         """

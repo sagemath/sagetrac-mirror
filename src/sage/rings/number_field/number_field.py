@@ -11348,7 +11348,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         """
         phi = self.defining_polynomial()
         from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-        from .constructor import matrix
+        from sage.matrix.constructor import matrix
         F = GF(p)
         aa = [a for a, _ in phi.change_ring(F).roots()]
         n = self.degree()

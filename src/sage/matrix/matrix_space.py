@@ -107,7 +107,17 @@ def _modN_matrix_class(N, nrows, ncols, sparse=False):
 
         sage: from sage.matrix.matrix_space import _modN_matrix_class
         sage: _modN_matrix_class(101, 101, 101)
-        
+        <class 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
+        sage: _modN_matrix_class(1001, 1001, 1001)
+        <class 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
+        sage: _modN_matrix_class(97, 97, 97)
+        <class 'sage.matrix.matrix_nmod_dense.Matrix_nmod_dense'>
+        sage: _modN_matrix_class(97, 97, 97, sparse=True)
+        <class 'sage.matrix.matrix_modn_sparse.Matrix_modn_sparse'>
+        sage: _modN_matrix_class(2^64, 2, 2)
+        <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+        sage: _modN_matrix_class(2^64, 2, 2, sparse=True)
+        <class 'sage.matrix.matrix_generic_sparse.Matrix_generic_sparse'>
     """
     # FLINT performs better for small dimensions; the following are approximate crossovers
     # for square matrices against modn_dense_double
@@ -1712,10 +1722,10 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: Mat(RDF,2,3).is_sparse()
-            False
-            sage: Mat(RR,123456,22,sparse=True).is_sparse()
+            sage: Mat(RDF,2,3).is_dense()
             True
+            sage: Mat(RR,123456,22,sparse=True).is_dense()
+            False
         """
         return not self.__is_sparse
 

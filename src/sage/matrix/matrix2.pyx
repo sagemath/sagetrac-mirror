@@ -573,7 +573,7 @@ cdef class Matrix(Matrix1):
             sage: A.solve_right(B)
             Traceback (most recent call last):
             ...
-            ValueError: matrix equation has no solutions
+            ValueError: matrix equation has no solution
             sage: A = Matrix(Zmod(128), 2, 3, [23,11,22,4,1,0])
             sage: B = Matrix(Zmod(128), 2, 1, [1,0])
             sage: v = A.solve_right(B); A * v == B
@@ -4255,7 +4255,7 @@ cdef class Matrix(Matrix1):
         algorithm = kwds.pop('algorithm', None)
         if algorithm is None:
             algorithm = 'default'
-        elif not algorithm in ['default', 'generic', 'flint', 'pari', 'padic', 'pluq']:
+        elif algorithm not in ['default', 'generic', 'flint', 'pari', 'padic', 'pluq', 'linbox', 'linbox-noefd']:
             raise ValueError("matrix kernel algorithm '%s' not recognized" % algorithm )
         elif algorithm == 'padic' and not (is_IntegerRing(R) or is_RationalField(R)):
             raise ValueError("'padic' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
@@ -7416,6 +7416,7 @@ cdef class Matrix(Matrix1):
             Traceback (most recent call last):
             ...
             NotImplementedError: Generic echelon form only defined over integral domains
+            echelon form over Univariate Polynomial Ring in x over Ring of integers modulo 9 not yet implemented
 
         Involving a sparse matrix::
 
@@ -7485,6 +7486,10 @@ cdef class Matrix(Matrix1):
             the matrix entries are in a field (specifically, the field
             of fractions of the base ring of the matrix).
 
+            If the base ring is a principal ideal ring with zero divisors,
+            such as ``Zmod(N)``, then the echelon form returned is the
+            Howell form, which may have more more rows than the input.
+
         INPUT:
 
         - ``algorithm`` -- string. Which algorithm to use. Choices are
@@ -7551,6 +7556,20 @@ cdef class Matrix(Matrix1):
             sage: E, T = D.echelon_form(transformation=True)
             sage: T*D == E
             True
+
+            sage: A = matrix(Zmod(625), 4, 3, [[404, 355, 133], [375, 482, 448], [506, 115,  77], [370, 384, 66]])
+            sage: A.echelon_form()
+            [1 0 2]
+            [0 1 4]
+            [0 0 5]
+            [0 0 0]
+            sage: E, T = A.echelon_form(transformation=True); T
+            [  2  17  23 564]
+            [  4  22 429 488]
+            [  3   4 188 543]
+            [  5   8 510 316]
+            sage: E == T * A
+            True
         """
         cdef bint transformation = ('transformation' in kwds and kwds['transformation'])
         x = self.fetch('echelon_form')
@@ -7561,7 +7580,7 @@ cdef class Matrix(Matrix1):
             if y:
                 return (x, y)
 
-        E = self.__copy__()
+        E = self._echelon_copy()
         if algorithm == 'default':
             v = E.echelonize(cutoff=cutoff, **kwds)
         else:
@@ -7575,6 +7594,24 @@ cdef class Matrix(Matrix1):
             return (E, v)
         else:
             return E
+
+    def _echelon_copy(self):
+        """
+        Return a copy of this matrix in preparation for echelonizing.
+
+        Usually this will just return a copy, but over some rings,
+        such as integers modulo composite `N`, extra zero rows need
+        to be added at the bottom.
+
+        EXAMPLES::
+
+            sage: matrix(ZZ, 1, 2)._echelon_copy()
+            [0 0]
+            sage: matrix(Zmod(6), 1, 2)._echelon_copy()
+            [0 0]
+            [0 0]
+        """
+        return self.__copy__()
 
     cpdef _echelon(self, str algorithm):
         """

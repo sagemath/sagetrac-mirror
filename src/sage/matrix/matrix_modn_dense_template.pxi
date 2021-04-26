@@ -134,6 +134,8 @@ cdef bint little_endian = (<char*>(&num))[0]
 cdef inline celement_invert(celement a, celement n):
     """
     Invert the finite field element `a` modulo `n`.
+
+    Note that this will return an incorrect result if gcd(a, n) != 1, rather than raising an error.
     """
     # This is copied from linbox source linbox/field/modular-float.h
     # The extended Euclidean algorithm
@@ -544,6 +546,20 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
                     v[j] = R(x)
                 else:
                     v[j] = <celement>x
+
+    def _change_implementation(self, implementation):
+        from sage.matrix.matrix_space import MatrixSpace
+        P = MatrixSpace(self._parent._base, self._nrows, self._ncols, sparse=False, implementation=implementation)
+        if P is self.parent():
+            return self
+        cdef Matrix_dense mat = P()
+        cdef Py_ssize_t i, j
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                mat.set_unsafe_ui(i, j, self.get_unsafe_ui(i, j))
+        if self._subdivisions is not None:
+            mat.subdivide(self.subdivisions())
+        return mat
 
     cdef long _hash_(self) except -1:
         """
@@ -1325,7 +1341,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         - ``var`` - a variable name
 
-        - ``algorithm`` - 'generic', 'linbox' or 'all' (default: linbox)
+        - ``algorithm`` - 'generic', 'linbox', 'flint' or 'all' (default: linbox)
 
         EXAMPLES::
 
@@ -1461,10 +1477,12 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             return g.change_variable_name(var)
 
         if algorithm == 'linbox' and (self.p == 2 or not self.base_ring().is_field()):
-            algorithm = 'generic' # LinBox only supports Z/pZ (p prime)
+            algorithm = 'flint' # LinBox only supports Z/pZ (p odd prime)
 
         if algorithm == 'linbox':
             g = self._charpoly_linbox(var)
+        elif algorithm == 'flint':
+            g = self._change_implementation('flint').charpoly(var)
         elif algorithm == 'generic':
             g = Matrix_dense.charpoly(self, var)
         elif algorithm == 'all':
@@ -1483,11 +1501,13 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         """
         Return the minimal polynomial of this matrix.
 
+        Note that, in general, the minimal polynomial of a matrix over a ring with composite modulus is not well defined.
+
         INPUT:
 
         - ``var`` - a variable name
 
-        - ``algorithm`` - ``generic`` or ``linbox`` (default:
+        - ``algorithm`` - ``generic``, ``flint`` or ``linbox`` (default:
           ``linbox``)
 
         - ``proof`` -- (default: ``True``); whether to provably return
@@ -1617,7 +1637,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         proof = get_proof_flag(proof, "linear_algebra")
 
         if algorithm == 'linbox' and (self.p == 2 or not self.base_ring().is_field()):
-            algorithm='generic' # LinBox only supports fields
+            algorithm='flint' # LinBox only supports fields
 
         if algorithm == 'linbox':
             if self._nrows != self._ncols:
@@ -1633,6 +1653,8 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             if proof:
                 while g(self):  # insanely toy slow (!)
                     g = g.lcm(R(linbox_minpoly(self.p, self._nrows, self._entries)))
+        elif algorithm == 'flint':
+            g = self._change_implementation('flint').minpoly(var)
 
         elif algorithm == 'generic':
             raise NotImplementedError("Minimal polynomials are not implemented for Z/nZ.")
@@ -1642,6 +1664,26 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         self.cache('minpoly_%s_%s'%(algorithm, var), g)
         return g
+
+    def minpoly_ideal(self, var='x', proof=None, **kwds):
+        """
+        The ideal of polynomials over the base ring that vanish on this matrix.
+
+        When the base ring is not a field, this ideal is not necessarily principal.
+
+        INPUT:
+
+        - ``var`` -- the variable name for the polynomial ring
+
+        - ``proof`` -- boolean, whether to check that the answer computed by using a minimal polynomial is correct.  If not specificied, uses the linear alegbra default proof state.  Note that if the modulus is composite and divisible by small primes the probability of an incorrect result is substantial.  The result is not cached when proof is ``False``, so this function can be called multiple times to get a desired level of certainty.
+
+        EXAMPLES::
+
+            sage: A = matrix(Zmod(36), 2, [6, 0, 0, -6], implementation='linbox')
+            sage: A.minpoly_ideal()
+            Ideal (x^2, 3*x + 18) of Univariate Polynomial Ring in x over Ring of integers modulo 36
+        """
+        return self._change_implementation('flint').minpoly_ideal(var, proof=proof, **kwds)
 
     def _charpoly_linbox(self, var='x'):
         """
@@ -1691,7 +1733,14 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         r = R(v)
         return r
 
-    def echelonize(self, algorithm="linbox_noefd", **kwds):
+    def _echelon_copy(self):
+        if self._nrows < self._ncols and not self.base_ring().is_field():
+            M = self.new_matrix(self._ncols - self._nrows, self._ncols)
+            return self.stack(M)
+        else:
+            return self.__copy__()
+
+    def echelonize(self, algorithm="default", **kwds):
         """
         Put ``self`` in reduced row echelon form.
 
@@ -1701,9 +1750,13 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         - ``algorithm``
 
+          - ``default`` -- use ``linbox_noefd`` if over a field, ``flint`` otherwise
+
           - ``linbox`` - uses the LinBox library (wrapping fflas-ffpack)
 
           - ``linbox_noefd`` - uses the FFPACK directly, less memory and faster (default)
+
+          - ``flint`` -- use FLINT's nmod_mat module
 
           - ``gauss`` - uses a custom slower `O(n^3)` Gauss
             elimination implemented in Sage.
@@ -1784,13 +1837,11 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: ~A == C
             True
 
-        ::
+        Echelon forms over non-fields have at least as many rows as columns::
 
             sage: A = random_matrix(Integers(10), 10, 20, implementation='linbox')
             sage: A.echelon_form()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 10'.
+            20 x 20 dense matrix over Ring of integers modulo 10 (use the '.str()' method to see the entries)
 
         ::
 
@@ -1821,9 +1872,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
             sage: A = random_matrix(Integers(10000), 10, 20, implementation='linbox')
             sage: A.echelon_form()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 10000'.
+            20 x 20 dense matrix over Ring of integers modulo 10000 (use the '.str()' method to see the entries)
 
         Parallel computation::
 
@@ -1894,11 +1943,36 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             ....:        A.echelonize(algorithm='all')
         """
         x = self.fetch('in_echelon_form')
-        if not x is None:
+        if x is not None:
             return  # already known to be in echelon form
 
+        transformation = kwds.get('transformation')
+        if algorithm == "default":
+            if self.base_ring().is_field() and not transformation:
+                algorithm = "linbox_noefd"
+            else:
+                algorithm = "flint"
+        cdef Py_ssize_t i, j
+        cdef Matrix_dense E
+        if algorithm == "flint":
+            if not self.base_ring().is_field() and self._nrows < self._ncols:
+                raise ValueError("matrix must have at least as many rows as columns.")
+            self.check_mutability()
+            self.clear_cache()
+            E = self._change_implementation("flint")
+            T = E.echelonize(algorithm="flint", **kwds)
+            if transformation:
+                T = T._change_implementation(self.parent().Element)
+            assert E.nrows() == self.nrows()
+            for i in range(self._nrows):
+                for j in range(self._nrows):
+                    self.set_unsafe_ui(i, j, E.get_unsafe_ui(i, j))
+            self.cache('pivots', E.pivots())
+            self.cache('in_echelon_form', True)
+            return T
+
         if not self.base_ring().is_field():
-            raise NotImplementedError("Echelon form not implemented over '%s'."%self.base_ring())
+            raise NotImplementedError("Echelon form not supported over '%s' by linbox"%self.base_ring())
 
         if algorithm == 'linbox':
             self._echelonize_linbox(efd=True)
@@ -2182,6 +2256,9 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         if self._nrows != self._ncols:
             raise ArithmeticError("Matrix must be square to compute Hessenberg form.")
+        R = self._parent._base
+        if not R.is_field():
+            raise NotImplementedError("Echelon form not supported over '%s' by linbox"%self.base_ring())
 
         cdef Py_ssize_t n
         n = self._nrows
@@ -2338,14 +2415,11 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: A.rank()
             0
 
-        Rank is not implemented over the integers modulo a composite
-        yet.::
+        For integers modulo a composite, the rank is the number of leading 1s in echelon form::
 
             sage: M = matrix(Integers(4), 2, [2,2,2,2], implementation='linbox')
             sage: M.rank()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 4'.
+            0
 
         ::
 

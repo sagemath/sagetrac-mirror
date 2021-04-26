@@ -1673,16 +1673,15 @@ cdef class Matrix(Matrix0):
             [2 3|3 4 5]
             [4 5|6 7 8]
 
-        The result retains the base ring of ``self`` by coercing the
-        elements of ``right`` into the base ring of ``self``. ::
+        The base ring of the result is the pushout of the base rings of the inputs::
 
             sage: A = matrix(QQ, 2, [1,2])
             sage: B = matrix(RR, 2, [sin(1.1), sin(2.2)])
             sage: C = A.augment(B); C
-            [                  1 183017397/205358938]
-            [                  2 106580492/131825561]
+            [ 1.00000000000000 0.891207360061435]
+            [ 2.00000000000000 0.808496403819590]
             sage: C.parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            Full MatrixSpace of 2 by 2 dense matrices over Real Field with 53 bits of precision
 
             sage: D = B.augment(A); D
             [0.89120736006...  1.00000000000000]
@@ -1690,13 +1689,11 @@ cdef class Matrix(Matrix0):
             sage: D.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Real Field with 53 bits of precision
 
-        Sometimes it is not possible to coerce into the base ring of
-        ``self``.  A solution is to change the base ring of ``self`` to
-        a more expansive ring.  Here we mix the rationals with a ring of
-        polynomials with rational coefficients.  ::
+        The base ring of the result is the pushout of the base rings of
+        the inputs::
 
-            sage: R.<y> = PolynomialRing(QQ)
-            sage: A = matrix(QQ, 1, [1,2])
+            sage: R.<y> = PolynomialRing(ZZ)
+            sage: A = matrix(QQ, 1, [1, 2])
             sage: B = matrix(R, 1, [y, y^2])
 
             sage: C = B.augment(A); C
@@ -1704,16 +1701,16 @@ cdef class Matrix(Matrix0):
             sage: C.parent()
             Full MatrixSpace of 1 by 4 dense matrices over Univariate Polynomial Ring in y over Rational Field
 
-            sage: D = A.augment(B)
-            Traceback (most recent call last):
-            ...
-            TypeError: not a constant polynomial
+            sage: D = A.augment(B); D
+            [  1   2   y y^2]
+            sage: D.parent()
+            Full MatrixSpace of 1 by 4 dense matrices over Univariate Polynomial Ring in y over Rational Field
 
             sage: E = A.change_ring(R)
             sage: F = E.augment(B); F
             [  1   2   y y^2]
             sage: F.parent()
-            Full MatrixSpace of 1 by 4 dense matrices over Univariate Polynomial Ring in y over Rational Field
+            Full MatrixSpace of 1 by 4 dense matrices over Univariate Polynomial Ring in y over Integer Ring
 
         AUTHORS:
 

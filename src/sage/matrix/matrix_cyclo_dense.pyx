@@ -587,6 +587,91 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             A._matrix = T * self._matrix
         return A
 
+    def _initial_split_prime(self, exclude=None):
+        """
+        Return the largest split prime where we can use an optimized matrix implementation modulo `p`.
+
+        INPUT:
+
+        - ``exclude`` -- a list of integers; avoid primes dividing any of these integers.
+
+        EXAMPLES::
+
+            sage: K = CyclotomicField(37)
+            sage: A = matrix(K, 101)
+            sage: p = A._initial_split_prime(); p
+            8384867
+            sage: 2^23 # largest modulus for Matrix_modn_dense_double
+            8388608
+            sage: p % 37
+            1
+
+        If the size of matrix is smaller, we can use a larger prime since the
+        default implementation, FLINT, supports up to 2^63.  However, we still
+        have to remain below the limit imposed by Sage's multimodular code,
+        which requires being able to multiply within a long without overflow::
+
+            sage: A = matrix(K, 99)
+            sage: p = A._initial_split_prime(); p
+            3037000331
+            sage: (2^63-1).isqrt() # limit on mod_int
+            3037000499
+            sage: 2^63 # largest modulus for Matrix_modn_dense_flint
+            9223372036854775808
+            sage: p % 37
+            1
+        """
+        K = self._base_ring
+        p = K.previous_split_prime(MAX_MODULUS, exclude)
+        # Figure out whether we're using FLINT or linbox; if FLINT then we can increase the prime
+        from sage.matrix.matrix_space import _modN_matrix_class
+        from sage.matrix.matrix_nmod_dense import Matrix_nmod_dense
+        if _modN_matrix_class(p, self._nrows, self._ncols) is Matrix_nmod_dense:
+            p = K.previous_split_prime(MAX_MODULUS_multi_modular, exclude)
+        return p
+
+    def _split_primes(self, bound, exclude=None, err="Ran out of split primes"):
+        """
+        Iterate over split primes until the product of the returned primes exceeds the given bound.
+
+        Primes will be returned starting with the result of :meth:`_initial_split_prime`.
+
+        INPUT::
+
+        - ``bound`` -- an integer; the returned primes will have product larger than this.
+
+        - ``exclude`` -- a list of integers; avoid primes dividing any of these.
+
+        - ``err`` -- an error message in case there aren't enough split primes to exceed the bound
+
+        EXAMPLES::
+
+            sage: A = matrix(CyclotomicField(37), 33)
+            sage: L = list(A._split_primes(10^40)); L
+            [3037000331, 3036999887, 3036999739, 3036999443, 3036998999]
+            sage: prod(L) > 10^40
+            True
+            sage: prod(L[:-1]) > 10^40
+            False
+            sage: all(p.is_prime() and p % 37 == 1 for p in L)
+            True
+        """
+        K = self._base_ring
+        p = self._initial_split_prime(exclude)
+
+        prod = 1
+        while prod <= bound:
+            prod *= p
+            yield p
+            try:
+                p = K.previous_split_prime(p, exclude)
+            except ValueError:
+                if prod > bound:
+                    pass
+                else:
+                    raise RuntimeError(err)
+
+
     cdef _matrix_times_matrix_(self, baseMatrix right):
         """
         Return the product of two cyclotomic dense matrices.
@@ -650,30 +735,18 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
         # conservative but correct estimate: 2 is there to account for the
         # sign of the entries
-        bound = 1 + 2 * A.height() * B.height() * self._ncols
-
         K = self._base_ring
+        bound = 1 + 2 * A.height() * B.height() * self._ncols
         exclude = [denom_self, denom_right]
-        p = K.previous_split_prime(MAX_MODULUS, exclude)
-        # Figure out whether we're using FLINT or linbox; if FLINT then we can increase the prime
-        from sage.matrix.matrix_space import _modN_matrix_class
-        from sage.matrix.matrix_nmod_dense import Matrix_nmod_dense
-        if _modN_matrix_class(p, self._nrows, self._ncols) is Matrix_nmod_dense:
-            p = K.previous_split_prime(sys.maxsize, exclude)
+        err = "we ran out of primes in matrix multiplication."
 
-        prod = 1
         v = []
-        while prod <= bound:
-            prod *= p
+        for p in self._split_primes(bound, exclude, err):
             Amodp, _ = self._reductions(p)
             Bmodp, _ = right._reductions(p)
             _,     S = K._reduction_matrix(p)
             X = Amodp[0]._matrix_from_rows_of_matrices([Amodp[i] * Bmodp[i] for i in range(len(Amodp))])
             v.append(S*X)
-            try:
-                p = K.previous_split_prime(p, exclude)
-            except ValueError:
-                raise RuntimeError("we ran out of primes in matrix multiplication.")
         M = matrix(ZZ, self._base_ring.degree(), self._nrows*right.ncols())
         _lift_crt(M, v)
         d = denom_self * denom_right
@@ -1385,36 +1458,31 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
         proof = get_proof_flag(proof, "linear_algebra")
 
-        n = self._base_ring._n()
-        p = previous_prime(MAX_MODULUS)
-        prod = 1
         v = []
         #A, denom = self._matrix._clear_denom()
         # TODO: this might be stupidly slow
         denom = self._matrix.denominator()
         A._matrix = <Matrix_rational_dense>(denom*self._matrix)
-        bound = A._charpoly_bound()
-        L_last = 0
-        while prod <= bound:
-            while (n >= 2  and p % n != 1) or denom % p == 0:
-                if p == 2:
-                    raise RuntimeError("we ran out of primes in multimodular charpoly algorithm.")
-                p = previous_prime(p)
 
+        bound = A._charpoly_bound()
+        exclude = [denom]
+        err = "we ran out of primes in multimodular charpoly algorithm."
+        L_last = L = None
+        for p in self._split_primes(bound, exclude, err):
             X = A._charpoly_mod(p)
             v.append(X)
-            prod *= p
-            p = previous_prime(p)
-
             # if we've used enough primes as determined by bound, or
             # if we've used 3 primes, we check to see if the result is
             # the same.
-            if prod >= bound or (not proof  and  (len(v) % 3 == 0)):
+            if not proof and len(v) % 3 == 0:
                 M = matrix(ZZ, self._base_ring.degree(), self._nrows+1)
                 L = _lift_crt(M, v)
-                if not proof and L == L_last:
+                if not proof and L_last is not None and L == L_last:
                     break
                 L_last = L
+        if L is None:
+            M = matrix(ZZ, self._base_ring.degree(), self._nrows+1)
+            L = _lift_crt(M, v)
 
         # Now each column of L encodes a coefficient of the output polynomial,
         # with column 0 being the constant coefficient.
@@ -1493,7 +1561,9 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             sage: K.<z> = CyclotomicField(3)
             sage: w = matrix(K, 2, 3, [0, -z/5, -2/3, -2*z + 2, 2*z, z])
             sage: A, B = w._reduction_matrix(7)
-            
+            doctest:warning...
+            DeprecationWarning: Use the _reduction_matrix method on the base field
+            See https://trac.sagemath.org/31548 for details.
             sage: A
             [1 4]
             [1 2]
@@ -1642,7 +1712,8 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
         # This is all setup to keep track of various data
         # in the loop below.
-        p = previous_prime(MAX_MODULUS)
+        p = self._initial_split_prime()
+        K = self._base_ring
         found = 0
         prod = 1
         n = self._base_ring._n()
@@ -1658,15 +1729,14 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             # Generate primes to use, and find echelon form
             # modulo those primes.
             while found < num_primes or prod <= height_bound:
-                if (n == 1) or p % n == 1:
-                    try:
-                        mod_p_ech, piv_ls = A._echelon_form_one_prime(p)
-                    except ValueError:
-                        # This means that we chose a prime which doesn't
-                        # split or divides the denominator of the echelon
-                        # form of self, so just skip it and continue
-                        p = previous_prime(p)
-                        continue
+                try:
+                    mod_p_ech, piv_ls = A._echelon_form_one_prime(p)
+                except ValueError:
+                    # This means that we chose a prime which divides
+                    # the denominator of the echelon form of self,
+                    # so just skip it and continue
+                    pass
+                else:
                     # if we have the identity, just return it, and
                     # we're done.
                     if is_square and len(piv_ls) == self._nrows:
@@ -1683,14 +1753,11 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
                         # add this to the list of primes
                         prod *= p
                         found += 1
-                    else:
-                        # this means that the rank profile mod this
-                        # prime is worse than those that came before,
-                        # so we just loop
-                        p = previous_prime(p)
-                        continue
+                    # otherwise the rank profile mod this
+                    # prime is worse than those that came before,
+                    # so we just loop
 
-                p = previous_prime(p)
+                p = K.previous_split_prime(p)
 
             if found > num_primes:
                 num_primes = found
