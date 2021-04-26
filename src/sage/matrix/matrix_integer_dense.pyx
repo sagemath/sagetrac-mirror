@@ -116,7 +116,7 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
 
-from .matrix_nmod_dense cimport Matrix_nmod_dense
+from .matrix_modn_dense_flint cimport Matrix_modn_dense_flint
 from .matrix_modn_dense_float cimport Matrix_modn_dense_template
 from .matrix_modn_dense_float cimport Matrix_modn_dense_float
 from .matrix_modn_dense_double cimport Matrix_modn_dense_double
@@ -1623,7 +1623,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         elif p > sys.maxsize:
             raise ValueError("p too large")
         R = IntegerModRing(p)
-        cdef Matrix_nmod_dense ans = Matrix_nmod_dense.__new__(Matrix_nmod_dense, parent)
+        cdef Matrix_modn_dense_flint ans = Matrix_modn_dense_flint.__new__(Matrix_modn_dense_flint, parent)
         ans._parent = parent
         cdef double pinv = n_precompute_inverse(p)
         for i in range(self._nrows):
@@ -1640,7 +1640,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             moduli = MultiModularBasis(moduli)
 
         cdef MultiModularBasis mm
-        cdef Matrix_nmod_dense mat
+        cdef Matrix_modn_dense_flint mat
         mm = moduli
 
         res = []
@@ -1653,7 +1653,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 res.append( Matrix_modn_dense_double.__new__(Matrix_modn_dense_double,
                                                              parent, None, None, None) )
             elif p < sys.maxsize:
-                mat = Matrix_nmod_dense.__new__(Matrix_nmod_dense, parent)
+                mat = Matrix_modn_dense_flint.__new__(Matrix_modn_dense_flint, parent)
                 mat._parent = parent
                 res.append(mat)
             else:
@@ -1683,7 +1683,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
                     elif isinstance(res[k], Matrix_modn_dense_double):
                         (<Matrix_modn_dense_double>res[k])._matrix[i][j] = (<double>entry_list[k]) % mm.moduli[k]
                     else:
-                        nmod_mat_set_entry((<Matrix_nmod_dense>res[k])._matrix, i, j, entry_list[k] % mm.moduli[k])
+                        nmod_mat_set_entry((<Matrix_modn_dense_flint>res[k])._matrix, i, j, entry_list[k] % mm.moduli[k])
         sig_off()
         mpz_clear(tmp)
         sig_free(entry_list)
@@ -6014,7 +6014,7 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     mm = moduli
 
     for b in residues:
-        if not isinstance(b, (Matrix_modn_dense_double, Matrix_modn_dense_float, Matrix_nmod_dense)):
+        if not isinstance(b, (Matrix_modn_dense_double, Matrix_modn_dense_float, Matrix_modn_dense_flint)):
             print(type(b))
             raise TypeError("Can only perform CRT on list of matrices mod n.")
 
@@ -6038,7 +6038,7 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
             if isinstance(mat, Matrix_modn_dense_template):
                 (<Matrix_modn_dense_template>mat)._copy_row_to_mod_int_array(row_list[k], i)
             else:
-                (<Matrix_nmod_dense>mat)._copy_row_to_mod_int_array(row_list[k], i)
+                (<Matrix_modn_dense_flint>mat)._copy_row_to_mod_int_array(row_list[k], i)
         mm.mpz_crt_vec(tmp, row_list, nc)
         for j in range(nc):
             M.set_unsafe_mpz(i, j, tmp[j])

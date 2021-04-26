@@ -111,7 +111,7 @@ def _modN_matrix_class(N, nrows, ncols, sparse=False):
         sage: _modN_matrix_class(1001, 1001, 1001)
         <class 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
         sage: _modN_matrix_class(97, 97, 97)
-        <class 'sage.matrix.matrix_nmod_dense.Matrix_nmod_dense'>
+        <class 'sage.matrix.matrix_modn_dense_flint.Matrix_modn_dense_flint'>
         sage: _modN_matrix_class(97, 97, 97, sparse=True)
         <class 'sage.matrix.matrix_modn_sparse.Matrix_modn_sparse'>
         sage: _modN_matrix_class(2^64, 2, 2)
@@ -132,18 +132,18 @@ def _modN_matrix_class(N, nrows, ncols, sparse=False):
         else:
             return matrix_generic_sparse.Matrix_generic_sparse
     else:
-        from . import matrix_modn_dense_double, matrix_modn_dense_float, matrix_nmod_dense
+        from . import matrix_modn_dense_double, matrix_modn_dense_float, matrix_modn_dense_flint
         if N > sys.maxsize:
             return matrix_generic_dense.Matrix_generic_dense
         elif N == 2:
             return matrix_mod2_dense.Matrix_mod2_dense
         if max(nrows, ncols) <= 100:
-            return matrix_nmod_dense.Matrix_nmod_dense
+            return matrix_modn_dense_flint.Matrix_modn_dense_flint
         if N < matrix_modn_dense_float.MAX_MODULUS:
             return matrix_modn_dense_float.Matrix_modn_dense_float
         if N < matrix_modn_dense_double.MAX_MODULUS:
             return matrix_modn_dense_double.Matrix_modn_dense_double
-        return matrix_nmod_dense.Matrix_nmod_dense
+        return matrix_modn_dense_flint.Matrix_modn_dense_flint
 
 def get_matrix_class(R, nrows, ncols, sparse, implementation):
     r"""
@@ -234,7 +234,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: type(matrix(SR, 2, 2, 0))
         <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
         sage: type(matrix(GF(7), 2, range(4)))
-        <class 'sage.matrix.matrix_nmod_dense.Matrix_nmod_dense'>
+        <class 'sage.matrix.matrix_modn_dense_flint.Matrix_modn_dense_flint'>
         sage: type(matrix(GF(7), 101))
         <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
         sage: type(matrix(GF(16007), 101))
@@ -316,8 +316,8 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
             if R is sage.rings.rational_field.QQ:
                 return matrix_rational_dense.Matrix_rational_dense
             if R.order() < sys.maxsize:
-                from . import matrix_nmod_dense
-                return matrix_nmod_dense.Matrix_nmod_dense
+                from . import matrix_modn_dense_flint
+                return matrix_modn_dense_flint.Matrix_modn_dense_flint
             raise ValueError("'flint' matrices are only available over the integers, the rationals and Z/N with N < 2^63")
 
         if implementation == 'm4ri':

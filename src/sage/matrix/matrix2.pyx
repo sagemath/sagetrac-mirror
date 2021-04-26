@@ -842,10 +842,33 @@ cdef class Matrix(Matrix1):
             return X
 
     def _solve_right_modn(self, B):
+        """
+        If this matrix `A` has entries in ``Zmod(N)``, return a matrix `X`
+        such that `A X = B`.  This is intended for use when N is composite
+
+        .. SEEALSO::
+
+            :meth:`solve_right` and :meth:`solve_left`
+
+        INPUT:
+
+        - ``B`` -- a matrix or vector with entries modulo `N`
+
+        EXAMPLES::
+
+            sage: N = 2^35*3^35
+            sage: A = random_matrix(Zmod(N), 4, 5)
+            sage: X = random_matrix(Zmod(N), 5, 3)
+            sage: B = A * X
+            sage: Y = A._solve_right_modn(B)
+            sage: A * Y == B
+            True
+        """
         from sage.libs.pari import pari
         K = self.base_ring()
         A = pari(self.lift())
         b = pari(B).lift()
+        cdef Py_ssize_t n
         if b.type() == "t_MAT":
             X = []
             for n in range(B.ncols()):
@@ -853,8 +876,7 @@ cdef class Matrix(Matrix1):
                 if ret.type() == 't_INT':
                     raise ValueError("matrix equation has no solutions")
                 X.append(ret.sage())
-            X = self.matrix_space(B.ncols(), self.ncols())(X)
-            return X.T
+            return self.matrix_space(B.ncols(), self.ncols())(X).T
         elif b.type() == "t_VEC":
             b = b.Col()
             ret = A.matsolvemod(K.cardinality(), b)
@@ -3304,7 +3326,7 @@ cdef class Matrix(Matrix1):
             [    0  25/4  15/2   5/2]
             [    0     0  58/5     3]
 
-        You can't Hessenbergize an immutable matrix::
+        You cannot Hessenbergize an immutable matrix::
 
             sage: A = matrix(QQ, 3, [1..9])
             sage: A.set_immutable()
@@ -16568,7 +16590,7 @@ cdef class Matrix(Matrix1):
           is a positive operator.
         - ``False`` will be returned if it can be proven that this matrix
           is not a positive operator.
-        - ``False`` will also be returned if we can't decide; specifically
+        - ``False`` will also be returned if we cannot decide; specifically
           if we arrive at a symbolic inequality that cannot be resolved.
 
         .. SEEALSO::
@@ -16658,7 +16680,7 @@ cdef class Matrix(Matrix1):
             ...
             TypeError: K1 and K2 must be cones.
 
-        We can't give reliable answers over inexact rings::
+        We cannot give reliable answers over inexact rings::
 
             sage: K = Cone([(1,2,3), (4,5,6)])
             sage: L = identity_matrix(RR,3)
@@ -16725,7 +16747,7 @@ cdef class Matrix(Matrix1):
           is cross-positive on ``K``.
         - ``False`` will be returned if it can be proven that this matrix
           is not cross-positive on ``K``.
-        - ``False`` will also be returned if we can't decide; specifically
+        - ``False`` will also be returned if we cannot decide; specifically
           if we arrive at a symbolic inequality that cannot be resolved.
 
         .. SEEALSO::
@@ -16801,7 +16823,7 @@ cdef class Matrix(Matrix1):
             ...
             TypeError: K must be a cone.
 
-        We can't give reliable answers over inexact rings::
+        We cannot give reliable answers over inexact rings::
 
             sage: K = Cone([(1,2,3), (4,5,6)])
             sage: L = identity_matrix(RR,3)
@@ -16859,7 +16881,7 @@ cdef class Matrix(Matrix1):
           is a Z-operator on ``K``.
         - ``False`` will be returned if it can be proven that this matrix
           is not a Z-operator on ``K``.
-        - ``False`` will also be returned if we can't decide; specifically
+        - ``False`` will also be returned if we cannot decide; specifically
           if we arrive at a symbolic inequality that cannot be resolved.
 
         .. SEEALSO::
@@ -16933,7 +16955,7 @@ cdef class Matrix(Matrix1):
             ...
             TypeError: K must be a cone.
 
-        We can't give reliable answers over inexact rings::
+        We cannot give reliable answers over inexact rings::
 
             sage: K = Cone([(1,2,3), (4,5,6)])
             sage: L = identity_matrix(RR,3)
@@ -16981,7 +17003,7 @@ cdef class Matrix(Matrix1):
           is Lyapunov-like on ``K``.
         - ``False`` will be returned if it can be proven that this matrix
           is not Lyapunov-like on ``K``.
-        - ``False`` will also be returned if we can't decide; specifically
+        - ``False`` will also be returned if we cannot decide; specifically
           if we arrive at a symbolic inequality that cannot be resolved.
 
         .. SEEALSO::
@@ -17055,7 +17077,7 @@ cdef class Matrix(Matrix1):
             ...
             TypeError: K must be a cone.
 
-        We can't give reliable answers over inexact rings::
+        We cannot give reliable answers over inexact rings::
 
             sage: K = Cone([(1,2,3), (4,5,6)])
             sage: L = identity_matrix(RR,3)

@@ -72,6 +72,7 @@ from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.nmod_poly cimport *
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc_c import prod
 
 cdef class Polynomial_zmod_flint(Polynomial_template):
     r"""

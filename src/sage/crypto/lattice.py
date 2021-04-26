@@ -24,7 +24,7 @@ AUTHORS:
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 
 def gen_lattice(type='modular', n=4, m=8, q=11, seed=None,
-                quotient=None, dual=False, ntl=False, lattice=False, mat_impl='linbox'):
+                quotient=None, dual=False, ntl=False, lattice=False, mat_impl=None):
     r"""
     This function generates different types of integral lattice bases
     of row vectors relevant in cryptography.
@@ -231,6 +231,9 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None,
     A = identity_matrix(ZZ_q, n)
 
     if type == 'random' or type == 'modular':
+        from sage.matrix.matrix_modn_dense_double import MAX_MODULUS
+        if mat_impl is None and q < MAX_MODULUS:
+            mat_impl = 'linbox'
         R = MatrixSpace(ZZ_q, m-n, n, implementation=mat_impl)
         A = A.stack(R.random_element())
 

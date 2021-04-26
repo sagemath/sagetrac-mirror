@@ -625,8 +625,8 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         p = K.previous_split_prime(MAX_MODULUS, exclude)
         # Figure out whether we're using FLINT or linbox; if FLINT then we can increase the prime
         from sage.matrix.matrix_space import _modN_matrix_class
-        from sage.matrix.matrix_nmod_dense import Matrix_nmod_dense
-        if _modN_matrix_class(p, self._nrows, self._ncols) is Matrix_nmod_dense:
+        from sage.matrix.matrix_modn_dense_flint import Matrix_modn_dense_flint
+        if _modN_matrix_class(p, self._nrows, self._ncols) is Matrix_modn_dense_flint:
             p = K.previous_split_prime(MAX_MODULUS_multi_modular, exclude)
         return p
 

@@ -63,62 +63,7 @@ from sage.libs.flint.ulong_extras cimport (
 from sage.libs.gmp.mpz cimport mpz_sgn,  mpz_fits_ulong_p, mpz_get_ui, mpz_get_si
 
 
-def poly_crt(S, polys, moduli):
-    r"""
-    Implements the Chinese remainder theorem for polynomials over `\ZZ/m\ZZ`.
-
-    INPUT:
-
-    - ``S`` -- a polynomial ring over `\ZZ/N\ZZ` with `N < 2^{63}`.
-
-    - ``polys`` -- a list of polynomials modulo smaller integers `m`.
-
-    - ``moduli`` -- the moduli `m` for the polynomials.  The list must have the same length, and the product must be `N`.
-
-    OUTPUT:
-
-    The polynomial in S reducing to each polynomial in ``polys`` modulo the integers given in ``moduli``.
-
-    EXAMPLES::
-
-        sage: from sage.matrix.matrix_nmod_dense import poly_crt
-        sage: moduli = [4, 9, 25, 49]
-        sage: N = prod(moduli)
-        sage: S.<x> = Zmod(N)[]
-        sage: polys = [Zmod(m)['x']([sqrt(m)] + [0]*(sqrt(m)-1) + [1]) for m in moduli]
-        sage: f = poly_crt(S, polys, moduli); f
-        27000*x^7 + 15876*x^5 + 34300*x^3 + 11025*x^2 + 40530
-        sage: all(g == f.change_ring(Zmod(m)) for (g, m) in zip(polys, moduli))
-        True
-
-    TESTS:
-
-    The algorithm involves sorting the polynomials; we check that the result is preserved by reordering::
-
-        sage: polys.reverse()
-        sage: moduli.reverse()
-        sage: f == poly_crt(S, polys, moduli)
-        True
-    """
-    if len(polys) == 1:
-        return polys[0]
-    cdef Py_ssize_t i, j, d
-    cdef mp_limb_t N
-    # sort polys and moduli in parallel
-    polys, moduli = zip(*sorted(zip(polys, moduli), key=lambda pair: pair[0].degree()))
-    cdef Polynomial_zmod_flint f = S()
-    nmod_poly_fit_length(&f.x, polys[-1].degree()+1)
-    N = 1
-    d = 0
-    for i in range(len(polys)):
-        d = polys[i].degree()
-        for j in range(d+1):
-            nmod_poly_set_coeff_ui(&f.x, j, n_CRT(nmod_poly_get_coeff_ui(&f.x, j), N, nmod_poly_get_coeff_ui(&(<Polynomial_zmod_flint?>polys[i]).x, j), <unsigned long>moduli[i]))
-        N *= moduli[i]
-    return f
-
-
-cdef class Matrix_nmod_dense(Matrix_dense):
+cdef class Matrix_modn_dense_flint(Matrix_dense):
     r"""
     Matrices modulo `N` for `N < 2^{63}`
 
@@ -126,7 +71,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
         sage: A = matrix(Zmod(36), 3, 3, range(9))
         sage: type(A)
-        <class 'sage.matrix.matrix_nmod_dense.Matrix_nmod_dense'>
+        <class 'sage.matrix.matrix_modn_dense_flint.Matrix_modn_dense_flint'>
     """
     ########################################################################
     # LEVEL 1 helpers:
@@ -211,7 +156,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         x.set_from_ulong_fast(nmod_mat_get_entry(self._matrix, i, j))
         return x
 
-    cdef Matrix_nmod_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
+    cdef Matrix_modn_dense_flint _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
         """
         Return a new matrix over the parent from given parent
         All memory is allocated for this matrix, but its
@@ -222,7 +167,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         else:
             from sage.matrix.matrix_space import MatrixSpace
             P = MatrixSpace(self._parent._base, nrows, ncols, sparse=False)
-        cdef Matrix_nmod_dense ans = Matrix_nmod_dense.__new__(Matrix_nmod_dense, P)
+        cdef Matrix_modn_dense_flint ans = Matrix_modn_dense_flint.__new__(Matrix_modn_dense_flint, P)
         ans._parent = P
         return ans
 
@@ -238,7 +183,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
 
             sage: A = matrix(Zmod(5), 2, range(4))
             sage: type(A)
-            <class 'sage.matrix.matrix_nmod_dense.Matrix_nmod_dense'>
+            <class 'sage.matrix.matrix_modn_dense_flint.Matrix_modn_dense_flint'>
             sage: B = A._change_implementation("linbox")
             sage: type(B)
             <class 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
@@ -274,8 +219,8 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             [11 14 17]
             [20 23 26]
         """
-        cdef Matrix_nmod_dense right = _right
-        cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
+        cdef Matrix_modn_dense_flint right = _right
+        cdef Matrix_modn_dense_flint M = self._new(self._nrows, self._ncols)
         sig_on()
         nmod_mat_add(M._matrix, self._matrix, right._matrix)
         sig_off()
@@ -295,9 +240,9 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         """
         if left._ncols != _right._nrows:
             raise IndexError("Number of columns of self must equal number of rows of right.")
-        cdef Matrix_nmod_dense right = _right
+        cdef Matrix_modn_dense_flint right = _right
         cdef Py_ssize_t i, j
-        cdef Matrix_nmod_dense M = left._new(left._nrows, right._ncols)
+        cdef Matrix_modn_dense_flint M = left._new(left._nrows, right._ncols)
         sig_on()
         nmod_mat_mul(M._matrix, left._matrix, right._matrix)
         sig_off()
@@ -315,7 +260,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             [18  0 18]
             [ 0 18  0]
         """
-        cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
+        cdef Matrix_modn_dense_flint M = self._new(self._nrows, self._ncols)
         e = self._modulus.element_class()
         cdef mp_limb_t ivalue
         if e is IntegerMod_int:
@@ -344,7 +289,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             [0 1]
             [2 3]
         """
-        cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
+        cdef Matrix_modn_dense_flint M = self._new(self._nrows, self._ncols)
         sig_on()
         nmod_mat_set(M._matrix, self._matrix)
         sig_off()
@@ -361,7 +306,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             [ 0 35]
             [34 33]
         """
-        cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
+        cdef Matrix_modn_dense_flint M = self._new(self._nrows, self._ncols)
         sig_on()
         nmod_mat_neg(M._matrix, self._matrix)
         sig_off()
@@ -391,14 +336,14 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         cdef int k
 
         if op == Py_EQ:
-            return bool(nmod_mat_equal(self._matrix, (<Matrix_nmod_dense>right)._matrix))
+            return bool(nmod_mat_equal(self._matrix, (<Matrix_modn_dense_flint>right)._matrix))
         elif op == Py_NE:
-            return not bool(nmod_mat_equal(self._matrix, (<Matrix_nmod_dense>right)._matrix))
+            return not bool(nmod_mat_equal(self._matrix, (<Matrix_modn_dense_flint>right)._matrix))
         else:
             sig_on()
             for i in range(self._nrows):
                 for j in range(self._ncols):
-                    k = nmod_mat_get_entry(self._matrix,i,j) - nmod_mat_get_entry((<Matrix_nmod_dense>right)._matrix,i,j)
+                    k = nmod_mat_get_entry(self._matrix,i,j) - nmod_mat_get_entry((<Matrix_modn_dense_flint>right)._matrix,i,j)
                     if k:
                         sig_off()
                         if k < 0:
@@ -437,8 +382,8 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             [31 30 29]
             [28 27 26]
         """
-        cdef Matrix_nmod_dense right = _right
-        cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
+        cdef Matrix_modn_dense_flint right = _right
+        cdef Matrix_modn_dense_flint M = self._new(self._nrows, self._ncols)
         nmod_mat_sub(M._matrix, self._matrix, right._matrix)
         return M
 
@@ -503,7 +448,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         if not self.nrows():
             return self
 
-        cdef Matrix_nmod_dense M
+        cdef Matrix_modn_dense_flint M
         R = self._parent._base
         cdef Py_ssize_t i, j, n = self._nrows
         cdef long k, e, b, nlifts
@@ -645,7 +590,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             [  0  15 104   8]
             [  0   0  90  94]
 
-        You can't Hessenbergize an immutable matrix::
+        You cannot Hessenbergize an immutable matrix::
 
             sage: A = matrix(Zmod(125), 3, range(9))
             sage: A.set_immutable()
@@ -794,7 +739,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         cdef Polynomial_zmod_flint f
         cdef Py_ssize_t i, j, m, jstart, n = self._nrows
         cdef mp_limb_t pe, prepe, preN, x, y, scalar, t, N = R.order()
-        cdef Matrix_nmod_dense A
+        cdef Matrix_modn_dense_flint A
         cdef nmod_mat_t H, c
         S = PolynomialRing(R, var, implementation="FLINT")
         if algorithm == "linbox":
@@ -955,7 +900,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         R = Zmod(N)
         from sage.matrix.matrix_space import MatrixSpace
         P = MatrixSpace(R, m, n, sparse=False)
-        cdef Matrix_nmod_dense ans = Matrix_nmod_dense.__new__(Matrix_nmod_dense, P)
+        cdef Matrix_modn_dense_flint ans = Matrix_modn_dense_flint.__new__(Matrix_modn_dense_flint, P)
         ans._parent = P
         for i in range(m):
             for j in range(n):
@@ -1036,7 +981,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         F = R.factored_order()
         P = self.parent()
         cdef mp_limb_t piv, c, N = self.base_ring().order()
-        cdef Matrix_nmod_dense C
+        cdef Matrix_modn_dense_flint C
         cdef Polynomial_zmod_flint f, mpoly
         cdef Py_ssize_t i, j, jj, k, d
         if len(F) == 1:
@@ -1062,7 +1007,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
                 self.cache(key, ans)
                 return ans
         # We pick a random vector and iteratively multiply by the matrix n times
-        cdef Matrix_nmod_dense v = self._new(n, 1), B = self._new(n+1, n+1)
+        cdef Matrix_modn_dense_flint v = self._new(n, 1), B = self._new(n+1, n+1)
         pows = [self.parent().identity_matrix()]
         def check(polys, pows):
             d = polys[0].degree()
@@ -1199,7 +1144,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             n = 1
         else:
             n = B.ncols()
-        cdef Matrix_nmod_dense C, X
+        cdef Matrix_modn_dense_flint C, X
         R = self.base_ring()
         X = self._new(An, n)
         if R.is_field():
@@ -1262,7 +1207,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             [0 0]
             [1 0]
         """
-        cdef Matrix_nmod_dense M = self._new(self._ncols, self._nrows)
+        cdef Matrix_modn_dense_flint M = self._new(self._ncols, self._nrows)
         sig_on()
         nmod_mat_transpose(M._matrix, self._matrix)
         sig_off()
@@ -1311,7 +1256,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         self.check_mutability()
         self.clear_cache()
         cdef bint transformation = 'transformation' in kwds and kwds['transformation']
-        cdef Matrix_nmod_dense aug, trans, E
+        cdef Matrix_modn_dense_flint aug, trans, E
         cdef Py_ssize_t i, j, m, n
         R = self._parent._base
         if algorithm == "default":
@@ -1402,7 +1347,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         ans = self.fetch(key)
         if ans is not None:
             return ans
-        cdef Matrix_nmod_dense E
+        cdef Matrix_modn_dense_flint E
         cdef Py_ssize_t i, j, k = 0
         # howell form has all the zero rows at the bottom
         if self.fetch('in_echelon_form'):
@@ -1700,7 +1645,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         if self._nrows < self._ncols:
             raise ValueError("matrix must have at least as many rows as columns.")
         self.check_mutability()
-        cdef Matrix_nmod_dense aug, trans
+        cdef Matrix_modn_dense_flint aug, trans
         cdef Py_ssize_t i, j, m, n
         self.clear_cache()
         if transformation:
@@ -1789,7 +1734,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         self.cache(key, ans)
         return ans
 
-    def __pow__(Matrix_nmod_dense self, n, dummy):
+    def __pow__(Matrix_modn_dense_flint self, n, dummy):
         """
         Exponentiation.
 
@@ -1808,7 +1753,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             sage: all((~B * A * B)^k == ~B * A^k * B for k in range(2, 10))
             True
         """
-        #cdef Matrix_nmod_dense self = <Matrix_nmod_dense?>sself
+        #cdef Matrix_modn_dense_flint self = <Matrix_modn_dense_flint?>sself
 
         if dummy is not None:
             raise ValueError
@@ -1839,7 +1784,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         if e == 1:
             return self
 
-        cdef Matrix_nmod_dense M = self._new(self._nrows, self._ncols)
+        cdef Matrix_modn_dense_flint M = self._new(self._nrows, self._ncols)
         sig_on()
         nmod_mat_pow(M._matrix, self._matrix, e)
         sig_off()
@@ -1914,7 +1859,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
             return "pivot-linboxed", K._change_implementation("flint")
         cdef Py_ssize_t i, j, k, l, cur_row, pivl
         cdef mp_limb_t s, x, y, N, xinv, yinv, Ninv
-        cdef Matrix_nmod_dense X, ans, E = self.echelon_form()
+        cdef Matrix_modn_dense_flint X, ans, E = self.echelon_form()
         if R.is_field():
             # nmod_mut_nullspace will do this regardless
             # so we are better off to start in echelon form to have the rank
@@ -2036,7 +1981,7 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         if nrows * ncols != self._ncols:
             raise ValueError("nrows * ncols must equal self's number of columns")
 
-        cdef Matrix_nmod_dense M
+        cdef Matrix_modn_dense_flint M
         cdef Py_ssize_t i
         cdef Py_ssize_t n = self._ncols
         ans = []
@@ -2097,10 +2042,10 @@ cdef class Matrix_nmod_dense(Matrix_dense):
         ##     v = sum([y.list() for y in X],[])
         ##     return matrix(K, len(X), X[0].nrows()*X[0].ncols(), v)
 
-        cdef Matrix_nmod_dense T = X[0]
+        cdef Matrix_modn_dense_flint T = X[0]
         cdef Py_ssize_t i, j, copysize, n = len(X), m = T._nrows * T._ncols
 
-        cdef Matrix_nmod_dense A = T._new(n, m)
+        cdef Matrix_modn_dense_flint A = T._new(n, m)
         for i in range(n):
             T = X[i]
             copysize = T._ncols*sizeof(mp_limb_t)

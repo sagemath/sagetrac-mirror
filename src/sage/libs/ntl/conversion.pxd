@@ -30,7 +30,7 @@ from sage.libs.flint.nmod_mat cimport nmod_mat_get_entry
 
 from sage.matrix.matrix_modn_dense_float cimport Matrix_modn_dense_float
 from sage.matrix.matrix_modn_dense_double cimport Matrix_modn_dense_double
-from sage.matrix.matrix_nmod_dense cimport Matrix_nmod_dense
+from sage.matrix.matrix_modn_dense_flint cimport Matrix_modn_dense_flint
 from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
 
 
@@ -72,7 +72,7 @@ cdef inline void set_ntl_matrix_modn_dense_double(mat_ZZ_p_c& A, ntl_ZZ_pContext
             tmp = ntl_ZZ_p(m[i,j], c)
             A.put(i, j, tmp.x)
 
-cdef inline void set_ntl_matrix_nmod_dense(mat_ZZ_p_c& A, ntl_ZZ_pContext_class c, Matrix_nmod_dense m):
+cdef inline void set_ntl_matrix_modn_dense_flint(mat_ZZ_p_c& A, ntl_ZZ_pContext_class c, Matrix_modn_dense_flint m):
     r"""
     set the entries of a NTL matrix from a Sage matrix.
 
@@ -119,8 +119,8 @@ cdef inline int set_ntl_matrix_modn_dense(mat_ZZ_p_c& A, ntl_ZZ_pContext_class c
         set_ntl_matrix_modn_dense_float(A, c, m)
     elif isinstance(m, Matrix_modn_dense_double):
         set_ntl_matrix_modn_dense_double(A, c, m)
-    elif isinstance(m, Matrix_nmod_dense):
-        set_ntl_matrix_nmod_dense(A, c, m)
+    elif isinstance(m, Matrix_modn_dense_flint):
+        set_ntl_matrix_modn_dense_flint(A, c, m)
     elif isinstance(m, Matrix_generic_dense):
         set_ntl_matrix_modn_generic_dense(A, c, m)
     else:

@@ -11343,7 +11343,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         The reduction matrix is cached::
 
-            sage: K._reduction_matrix(7) is K._reduction_matrix(7)
+            sage: K._reduction_matrix(31) is K._reduction_matrix(31)
             True
         """
         phi = self.defining_polynomial()

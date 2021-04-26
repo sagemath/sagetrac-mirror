@@ -408,11 +408,11 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
             sage: E.generator_matrix()
-            [1 0 0 0 0 5 2 6 0 6]
-            [0 1 0 0 0 5 2 2 1 1]
-            [0 0 1 0 0 6 2 4 0 4]
-            [0 0 0 1 0 0 6 3 3 3]
-            [0 0 0 0 1 0 1 3 4 3]
+            [1 0 0 0 0 5 0 0 3 3]
+            [0 1 0 0 0 2 4 2 5 3]
+            [0 0 1 0 0 4 4 1 1 5]
+            [0 0 0 1 0 0 3 3 5 6]
+            [0 0 0 0 1 4 0 0 5 2]
         """
         C = self.code().original_code()
         pos = self.code().punctured_positions()

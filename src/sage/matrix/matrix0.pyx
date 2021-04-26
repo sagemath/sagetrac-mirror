@@ -414,7 +414,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         Matrices are always mutable by default, i.e., you can change their
         entries using ``A[i,j] = x``. However, mutable matrices
-        aren't hashable, so can't be used as keys in dictionaries, etc.
+        aren't hashable, so cannot be used as keys in dictionaries, etc.
         Also, often when implementing a class, you might compute a matrix
         associated to it, e.g., the matrix of a Hecke operator. If you
         return this matrix to the user you're really returning a reference
@@ -431,7 +431,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [10   1]
             [ 2   3]
 
-        Mutable matrices are not hashable, so can't be used as keys for
+        Mutable matrices are not hashable, so cannot be used as keys for
         dictionaries::
 
             sage: hash(A)
@@ -5546,7 +5546,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: m = matrix(Zmod(49),2,[2,1,3,3])
             sage: type(m)
-            <class 'sage.matrix.matrix_nmod_dense.Matrix_nmod_dense'>
+            <class 'sage.matrix.matrix_modn_dense_flint.Matrix_modn_dense_flint'>
             sage: ~m
             [ 1 16]
             [48 17]
