@@ -39,6 +39,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import sys
 from sage.libs.ntl.ntl_lzz_pX import ntl_zz_pX
 from sage.structure.factorization import Factorization
 from sage.structure.element cimport parent
@@ -70,6 +71,7 @@ cdef extern from "zn_poly/zn_poly.h":
 
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.nmod_poly cimport *
+from sage.libs.flint.ulong_extras cimport n_CRT
 
 from sage.misc.cachefunc import cached_method
 
@@ -891,3 +893,63 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         sig_off()
 
         return res
+
+    def crt(self, *others):
+        r"""
+        Implements the Chinese remainder theorem for polynomials over `\ZZ/m\ZZ`.
+
+        INPUT:
+
+        - ``others`` -- polynomials modulo other integers.  All should have the same variable name.
+
+        OUTPUT:
+
+        The polynomial modulo the product of the moduli reducing to each given polynomial
+
+        EXAMPLES::
+
+            sage: moduli = [4, 9, 25, 49]
+            sage: N = prod(moduli)
+            sage: S.<x> = Zmod(N)[]
+            sage: polys = [Zmod(m)['x']([sqrt(m)] + [0]*(sqrt(m)-1) + [1]) for m in moduli]
+            sage: f = polys[0].crt(*polys[1:])
+            27000*x^7 + 15876*x^5 + 34300*x^3 + 11025*x^2 + 40530
+            sage: all(g == f.change_ring(Zmod(m)) for (g, m) in zip(polys, moduli))
+            True
+
+        TESTS:
+
+        The algorithm involves sorting the polynomials; we check that the result is preserved by reordering::
+
+            sage: polys.reverse()
+            sage: f == polys[0].crt(*polys[1:])
+            True
+        """
+        if not others:
+            return self
+        var = self.variable_name()
+        if any(g.variable_name() != var for g in others):
+            raise ValueError("All inputs must have the same variable name")
+        polys = [self] + list(others)
+        polys.sort(key=lambda g: g.degree())
+        moduli = [g.base_ring().order() for g in polys]
+        NN = prod(moduli)
+        cdef Py_ssize_t i, j, d
+        cdef mp_limb_t N
+        cdef Polynomial_zmod_flint f
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
+        S = Zmod[var]
+        if NN <= sys.maxsize:
+            f = S()
+            nmod_poly_fit_length(&f.x, polys[-1].degree()+1)
+            N = 1
+            d = 0
+            for i in range(len(polys)):
+                d = polys[i].degree()
+                for j in range(d+1):
+                    nmod_poly_set_coeff_ui(&f.x, j, n_CRT(nmod_poly_get_coeff_ui(&f.x, j), N, nmod_poly_get_coeff_ui(&(<Polynomial_zmod_flint?>polys[i]).x, j), <unsigned long>moduli[i]))
+                N *= moduli[i]
+            return f
+        else:
+            pass
+            # Results
