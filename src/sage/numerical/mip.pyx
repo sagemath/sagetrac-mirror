@@ -3093,6 +3093,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
         else:
             raise ValueError('Form of interactive_lp_problem must be either None or \'standard\'')
 
+    def ambient_manifold(self):
+        from sage.manifolds.differentiable.examples.euclidean import EuclideanSpace
+        return EuclideanSpace(names=self._backend_variable_names())
 
 class MIPSolverException(RuntimeError):
     r"""
