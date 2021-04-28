@@ -352,7 +352,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def __init__(self, solver=None, maximization=True,
                  constraint_generation=False, check_redundant=False,
-                 names=tuple(), base_ring=None):
+                 names=tuple(), base_ring=None, name=None):
         r"""
         Constructor for the ``MixedIntegerLinearProgram`` class.
 
@@ -397,6 +397,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         - ``names`` -- list/tuple/iterable of string. Default names of
           the MIP variables. Used to enable the ``MIP.<x> =
           MixedIntegerLinearProgram()`` syntax.
+
+        - ``name`` -- (default ``None``) name of the problem.
 
         .. SEEALSO::
 
@@ -444,6 +446,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
                                    base_ring=base_ring)
         if not maximization:
             self._backend.set_sense(-1)
+
+        if name:
+            self.set_problem_name(name)
 
         # Associates an index to the variables
         self._variables = {}
