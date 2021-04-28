@@ -2946,6 +2946,24 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         return self._backend.get_relative_objective_gap()
 
+    def _format_backend_variable_name(self, name, prefix, index):
+        if name:
+            return name.replace('[','_').strip(']')
+        else:
+            return prefix + '_' + str(index)
+
+    def _backend_variable_names(self):
+        # Construct 'x'
+        back_end = self.get_backend()
+        return [self._format_backend_variable_name(back_end.col_name(i), 'x', i)
+                for i in range(back_end.ncols())]
+
+    def _backend_slack_names(self):
+        # Construct slack names
+        back_end = self.get_backend()
+        return [self._format_backend_variable_name(back_end.row_name(i), 'w', i)
+                for i in range(back_end.nrows())]
+
     def interactive_lp_problem(self,form='standard'):
         r"""
         Returns an InteractiveLPProblem and, if available, a basis.
@@ -3048,27 +3066,16 @@ cdef class MixedIntegerLinearProgram(SageObject):
             return back_end.objective_coefficient(i)
         objective_coefs_vector = [get_obj_coef(i) for i in range(self.number_of_variables())]
 
-        def format(name, prefix, index):
-            if name:
-                return name.replace('[','_').strip(']')
-            else:
-                return prefix + '_' + str(index)
-
-        # Construct 'x'
-        var_names = [format(back_end.col_name(i), 'x', i) for i in range(back_end.ncols())]
-
         A = coef_matrix
         b = upper_bound_vector
         c = objective_coefs_vector
-        x = var_names
+        x = self._backend_variable_names()
 
         if form is None:
             from sage.numerical.interactive_simplex_method import InteractiveLPProblem
             return InteractiveLPProblem(A, b, c, x), None
         elif form == 'standard' or form == 'std':
-            # Construct slack names
-            slack_names = [format(back_end.row_name(i), 'w', i) for i in range(back_end.nrows())]
-            w = slack_names
+            w = self._backend_slack_names()
             from sage.numerical.interactive_simplex_method import InteractiveLPProblemStandardForm
             lp = InteractiveLPProblemStandardForm(A, b, c, x, slack_variables=w)
             basic_variables = []
