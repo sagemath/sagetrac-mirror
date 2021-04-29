@@ -234,6 +234,7 @@ AUTHORS:
 # ****************************************************************************
 
 from copy import copy
+import weakref
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 from sage.structure.element import is_Matrix
@@ -2253,11 +2254,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def set_min(self, v, min):
         r"""
-        Sets the minimum value of a variable.
+        Sets the minimum value of a variable or component.
 
         INPUT:
 
-        - ``v`` -- a variable.
+        - ``v`` -- a variable or component.
 
         - ``min`` -- the minimum value the variable can take.  When
           ``min=None``, the variable has no lower bound.
@@ -2297,11 +2298,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def set_max(self, v, max):
         r"""
-        Sets the maximum value of a variable.
+        Sets the maximum value of a variable or component.
 
         INPUT:
 
-        - ``v`` -- a variable.
+        - ``v`` -- a variable or component.
 
         - ``max`` -- the maximum value the variable can take.  When
           ``max=None``, the variable has no upper bound.
@@ -2834,7 +2835,7 @@ cdef class MIPVariable(SageObject):
         :meth:`MixedIntegerLinearProgram.new_variable`.
     """
     def __init__(self, mip, vtype, name="", lower_bound=0, upper_bound=None,
-                 indices=None):
+                 indices=None, backend=None, linear_functions_parent=None):
         r"""
         Constructor for ``MIPVariable``.
 
@@ -2844,7 +2845,8 @@ cdef class MIPVariable(SageObject):
           MIP variable.
 
         - ``mip`` -- :class:`MixedIntegerLinearProgram`. The
-          underlying linear program.
+          underlying linear program.  If ``None``, provide both
+          ``backend`` and ``linear_functions_parent`` instead.
 
         - ``vtype`` (integer) -- Defines the type of the variables
           (default is ``REAL``).
@@ -2872,7 +2874,12 @@ cdef class MIPVariable(SageObject):
             MIPVariable of dimension 1
         """
         self._dict = {}
-        self._p = mip
+        if mip:
+            self._p_ref = weakref.ref(mip)
+        else:
+            self._p_ref = None
+        self._linear_functions_parent = linear_functions_parent or mip._linear_functions_parent
+        self._backend = backend or mip._backend
         self._vtype = vtype
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
@@ -2886,6 +2893,9 @@ cdef class MIPVariable(SageObject):
     def __copy__(self):
         r"""
         Returns a copy of ``self``.
+
+        Warning: 
+
 
         EXAMPLES::
 
@@ -2903,7 +2913,7 @@ cdef class MIPVariable(SageObject):
             sage: p.number_of_variables()
             3
         """
-        return self.copy_for_mip(self.mip())
+        return self.copy_for_mip()
 
     def __deepcopy__(self, memo={}):
         r"""
@@ -2925,7 +2935,7 @@ cdef class MIPVariable(SageObject):
             sage: p.number_of_variables()
             3
         """
-        return self.copy_for_mip(self.mip())
+        return self.copy_for_mip()
 
     def __getitem__(self, i):
         r"""
@@ -2987,9 +2997,9 @@ cdef class MIPVariable(SageObject):
             return self._dict[i]
         if not self._dynamic_indices:
             raise IndexError("{} does not index a component of {}".format(i, self))
-        zero = self._p._backend.zero()
+        zero = self._backend.zero()
         name = self._name + "[" + str(i) + "]" if self._name else None
-        j = self._p._backend.add_variable(
+        j = self._backend.add_variable(
             lower_bound=self._lower_bound,
             upper_bound=self._upper_bound,
             binary=False,
@@ -2997,19 +3007,28 @@ cdef class MIPVariable(SageObject):
             integer=False,
             obj=zero,
             name=name)
-        v = self._p.linear_functions_parent()({j : 1})
+        v = self._linear_functions_parent()({j : 1})
         self._p._variables[v] = j
         self._p._backend.set_variable_type(j, self._vtype)
         self._dict[i] = v
         return v
 
-    def copy_for_mip(self, mip):
+    def copy_for_mip(self, mip=None, backend=None, linear_functions_parent=None):
         r"""
-        Returns a copy of ``self`` suitable for a new :class:`MixedIntegerLinearProgram`
-        instance ``mip``.
+        Return a copy of ``self`` suitable for the same MIP or a copy of the MIP.
 
-        For this to make sense, ``mip`` should have been obtained as a copy of
-        ``self.mip()``.
+        INPUT:
+
+        - ``mip`` -- (default ``None``) a :class:`MixedIntegerLinearProgram` instance
+        - ``backend`` -- (default ``None``) a MIP backend instance
+        - ``linear_functions_parent`` -- (default ``None``) a
+          :class:`LinearFunctionsParent_class` instance
+
+        Either ``mip`` or both of ``backend`` and ``linear_functions_parent``
+        should be provided.
+
+        For this to make sense, ``mip`` (or the ``backend`` and ``linear_functions_parent``
+        pair) should have been obtained as a copy of ``self.mip()`` (or corresponding pair).
 
         EXAMPLES::
 
@@ -3044,8 +3063,13 @@ cdef class MIPVariable(SageObject):
             IndexError: 5 does not index a component of MIPVariable of dimension 1
 
         """
+        mip = mip or self._p_ref()
+        backend = backend or self._backend
+        linear_functions_parent = linear_functions_parent or self._linear_functions_parent
         cdef MIPVariable cp = type(self)(mip, self._vtype, self._name,
-                                         self._lower_bound, self._upper_bound)
+                                         self._lower_bound, self._upper_bound,
+                                         backend=backend,
+                                         linear_functions_parent=linear_functions_parent)
         cp._dict = copy(self._dict)
         cp._dynamic_indices = self._dynamic_indices
         return cp
@@ -3087,7 +3111,7 @@ cdef class MIPVariable(SageObject):
         """
         self._lower_bound = min
         for v in self._dict.values():
-            self._p.set_min(v,min)
+            self._backend.variable_lower_bound(v,min)
 
     def set_max(self, max):
         r"""
@@ -3184,6 +3208,8 @@ cdef class MIPVariable(SageObject):
         r"""
         Returns the :class:`MixedIntegerLinearProgram` in which ``self`` is a variable.
 
+        This method is deprecated; use :meth:`backend` instead.
+
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
@@ -3191,7 +3217,22 @@ cdef class MIPVariable(SageObject):
             sage: p == v.mip()
             True
         """
-        return self._p
+        if self._p_ref:
+            return self._p_ref()
+        return None
+
+    def backend(self):
+        r"""
+        Return the :class:`GenericBackend` in which ``self`` is a variable.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: v = p.new_variable(nonnegative=True)
+            sage: p.get_backend() == v.backend()
+            True
+        """
+        return self._backend
 
     def __mul__(left, right):
         """
@@ -3234,8 +3275,8 @@ cdef class MIPVariable(SageObject):
             x_index, = x.dict().keys()
             result[x_index] = row
         from sage.modules.free_module import FreeModule
-        V = FreeModule(self._p.base_ring(), m.ncols())
-        T = self._p.linear_functions_parent().tensor(V)
+        V = FreeModule(self._linear_functions_parent.base_ring(), m.ncols())
+        T = self._linear_functions_parent().tensor(V)
         return T(result)
 
     cdef _matrix_lmul_impl(self, m):
@@ -3248,7 +3289,7 @@ cdef class MIPVariable(SageObject):
             x_index, = x.dict().keys()
             result[x_index] = col
         from sage.modules.free_module import FreeModule
-        V = FreeModule(self._p.base_ring(), m.nrows())
-        T = self._p.linear_functions_parent().tensor(V)
+        V = FreeModule(self._linear_functions_parent.base_ring(), m.nrows())
+        T = self._linear_functions_parent().tensor(V)
         return T(result)
 

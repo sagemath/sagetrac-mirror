@@ -24,10 +24,13 @@ cdef class MixedIntegerLinearProgram(SageObject):
     cdef int _check_redundant
     cdef list _constraints
     cpdef sum(self, L)
+    cdef object __weakref__
 
 
 cdef class MIPVariable(SageObject):
-    cdef MixedIntegerLinearProgram _p
+    cdef object _p_ref
+    cdef GenericBackend _backend
+    cdef object _linear_functions_parent
     cdef dict _dict
     cdef bint _dynamic_indices
     cdef int _vtype
@@ -36,5 +39,3 @@ cdef class MIPVariable(SageObject):
     cdef object _upper_bound
     cdef _matrix_rmul_impl(self, m)
     cdef _matrix_lmul_impl(self, m)
-
-
