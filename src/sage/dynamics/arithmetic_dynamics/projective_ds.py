@@ -4077,6 +4077,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
             sage: f.periodic_points(2, R=GF(3^2,'t'))
             [(t + 2 : 1), (2*t : 1)]
+
+        ::
+
+            sage: K = GF(3)
+            sage: FF.<t> = FunctionField(K)
+            sage: P.<x,y> = ProjectiveSpace(FF,1)
+            sage: DS1 = DynamicalSystem([x^2 + y^2, y^2])
+            sage: DS1.periodic_points(3, minimal=False)
+            [(1 : 0), (2 : 1)]
         """
         if n <= 0:
             raise ValueError("a positive integer period must be specified")
@@ -4117,7 +4126,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 return X
             if X.dimension() == 0:
                 from sage.rings.function_field.function_field import RationalFunctionField_global
-                if R in NumberFields() or R is QQbar or R in FiniteFields() or isinstance(self.base_ring(), RationalFunctionField_global):
+                if R in NumberFields() or R is QQbar or R in FiniteFields() or isinstance(R, RationalFunctionField_global):
                     Z = f.base_indeterminacy_locus()
                     points = [dom(Q) for Q in X.rational_points()]
                     good_points = []
