@@ -392,7 +392,7 @@ We can pickle and unpickle algebraic numbers::
     True
 
     sage: t = ~QQbar(sqrt(2)); type(t._descr)
-    <class 'sage.rings.qqbar.ANUnaryExpr'>
+    <class 'sage.rings.qqbar.ANUnaryInvert'>
     sage: loads(dumps(t)) == 1/QQbar(sqrt(2))
     True
 
@@ -3281,9 +3281,9 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(2))
             sage: b = a._descr
             sage: b.neg(a)
-            <sage.rings.qqbar.ANUnaryExpr object at ...>
+            <sage.rings.qqbar.ANUnaryNeg object at ...>
         """
-        return ANUnaryExpr(n, '-')
+        return ANUnaryNeg(n)
 
     def invert(self, n):
         r"""
@@ -3294,22 +3294,22 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(2))
             sage: b = a._descr
             sage: b.invert(a)
-            <sage.rings.qqbar.ANUnaryExpr object at ...>
+            <sage.rings.qqbar.ANUnaryInvert object at ...>
         """
-        return ANUnaryExpr(n, '~')
+        return ANUnaryInvert(n)
 
     def abs(self, n):
         r"""
-        Absolute value of self.
+        Absolute value of ``self``.
 
         EXAMPLES::
 
             sage: a = QQbar(sqrt(2))
             sage: b = a._descr
             sage: b.abs(a)
-            <sage.rings.qqbar.ANUnaryExpr object at ...>
+            <sage.rings.qqbar.ANUnaryAbs object at ...>
         """
-        return ANUnaryExpr(n, 'abs')
+        return ANUnaryAbs(n)
 
     def real(self, n):
         r"""
@@ -3320,48 +3320,48 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(-7))
             sage: b = a._descr
             sage: b.real(a)
-            <sage.rings.qqbar.ANUnaryExpr object at ...>
+            <sage.rings.qqbar.ANUnaryReal object at ...>
         """
         if self.is_complex():
-            return ANUnaryExpr(n, 'real')
+            return ANUnaryReal(n)
         else:
             return self
 
     def imag(self, n):
         r"""
-        Imaginary part of self.
+        Imaginary part of ``self``.
 
         EXAMPLES::
 
             sage: a = QQbar(sqrt(-7))
             sage: b = a._descr
             sage: b.imag(a)
-            <sage.rings.qqbar.ANUnaryExpr object at ...>
+            <sage.rings.qqbar.ANUnaryImag object at ...>
         """
         if self.is_complex():
-            return ANUnaryExpr(n, 'imag')
+            return ANUnaryImag(n)
         else:
             return ANRational(0)
 
     def conjugate(self, n):
         r"""
-        Complex conjugate of self.
+        Complex conjugate of ``self``.
 
         EXAMPLES::
 
             sage: a = QQbar(sqrt(-7))
             sage: b = a._descr
             sage: b.conjugate(a)
-            <sage.rings.qqbar.ANUnaryExpr object at ...>
+            <sage.rings.qqbar.ANUnaryConjugate object at ...>
         """
         if self.is_complex():
-            return ANUnaryExpr(n, 'conjugate')
+            return ANUnaryConjugate(n)
         else:
             return self
 
     def norm(self, n):
         r"""
-        Field norm of self from `\overline{\QQ}` to its real subfield
+        Field norm of ``self`` from `\overline{\QQ}` to its real subfield
         `\mathbf{A}`, i.e.~the square of the usual complex absolute value.
 
         EXAMPLES::
@@ -3369,10 +3369,10 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(-7))
             sage: b = a._descr
             sage: b.norm(a)
-            <sage.rings.qqbar.ANUnaryExpr object at ...>
+            <sage.rings.qqbar.ANUnaryNorm object at ...>
         """
         if self.is_complex():
-            return ANUnaryExpr(n, 'norm')
+            return ANUnaryNorm(n)
         else:
             return (n * n)._descr
 
@@ -3864,7 +3864,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             return True
         elif isinstance(sd, ANRational):
             return bool(sd._value)
-        elif isinstance(sd, ANUnaryExpr) and sd._op != 'real' and sd._op != 'imag':
+        elif isinstance(sd, ANUnaryExpr) and not isinstance(sd, (ANUnaryReal, ANUnaryImag)):
             ans = bool(sd._arg)
             if not ans:
                 self._set_descr(ANRational(QQ.zero()))
@@ -5579,16 +5579,15 @@ class AlgebraicReal(AlgebraicNumber_base):
                 elif not rs:
                     self._set_descr(sd._left._descr)
                     return ls
-        elif type(sd) is ANUnaryExpr:
-            if sd._op == 'abs':
-                c = 1 if bool(sd._arg) else 0
-                if not c:
-                    self._set_descr(ANRational(QQ.zero()))
-                return c
-            elif sd._op == '-':
-                return -(sd._arg.sign())
-            elif sd._op == '~':
-                return sd._arg.sign()
+        elif type(sd) is ANUnaryAbs:
+            c = 1 if bool(sd._arg) else 0
+            if not c:
+                self._set_descr(ANRational(QQ.zero()))
+            return c
+        elif type(sd) is ANUnaryNeg:
+            return -(sd._arg.sign())
+        elif type(sd) is ANUnaryInvert:
+            return sd._arg.sign()
 
         if self._value.prec() < 128:
             # OK, we'll try adding precision one more time
@@ -6761,7 +6760,7 @@ class ANRoot(ANDescr):
             sage: type(b)
             <class 'sage.rings.qqbar.ANRoot'>
             sage: c = b.conjugate(a); c
-            <sage.rings.qqbar.ANUnaryExpr object at ...>
+            <sage.rings.qqbar.ANUnaryConjugate object at ...>
             sage: c.exactify()
             -2*a + 1 where a^2 - a + 6 = 0 and a in 0.50000000000000000? - 2.397915761656360?*I
         """
@@ -6770,7 +6769,7 @@ class ANRoot(ANDescr):
         if not self._complex_poly:
             return ANRoot(self._poly, self._interval.conjugate(), self._multiplicity)
 
-        return ANUnaryExpr(n, 'conjugate')
+        return ANUnaryConjugate(n)
 
     def refine_interval(self, interval, prec):
         r"""
@@ -7608,7 +7607,7 @@ class ANExtensionElement(ANDescr):
 
     def conjugate(self, n):
         r"""
-        Negation of self.
+        Complex conjugate of ``self``.
 
         EXAMPLES::
 
@@ -7642,14 +7641,14 @@ class ANExtensionElement(ANDescr):
             sage: type(b)
             <class 'sage.rings.qqbar.ANExtensionElement'>
             sage: b.norm(a)
-            <sage.rings.qqbar.ANUnaryExpr object at ...>
+            <sage.rings.qqbar.ANUnaryNorm object at ...>
         """
         if self._exactly_real:
             return (n * n)._descr
         elif self._generator is QQbar_I_generator:
             return ANRational(self._value.norm())
         else:
-            return ANUnaryExpr(n, 'norm')
+            return ANUnaryNorm(n)
 
     def abs(self, n):
         r"""
@@ -7724,17 +7723,16 @@ class ANExtensionElement(ANDescr):
 
 
 class ANUnaryExpr(ANDescr):
-    def __init__(self, arg, op):
+    def __init__(self, arg, com=True):
         r"""
         Initialize this ANUnaryExpr.
 
         EXAMPLES::
 
-            sage: t = ~QQbar(sqrt(2)); type(t._descr) # indirect doctest
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            sage: t = QQbar(-sqrt(2)).conjugate(); type(t._descr)  # indirect doctest
+            <class 'sage.rings.qqbar.ANUnaryConjugate'>
         """
         self._arg = arg
-        self._op = op
         self._complex = True
 
     def __reduce__(self):
@@ -7744,11 +7742,11 @@ class ANUnaryExpr(ANDescr):
         EXAMPLES::
 
             sage: t = ~QQbar(sqrt(2)); type(t._descr)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <class 'sage.rings.qqbar.ANUnaryInvert'>
             sage: loads(dumps(t)) == 1/QQbar(sqrt(2))
             True
         """
-        return (ANUnaryExpr, (self._arg, self._op))
+        return (self.__class__, (self._arg,))
 
     def handle_sage_input(self, sib, coerce, is_qqbar):
         r"""
@@ -7793,7 +7791,7 @@ class ANUnaryExpr(ANDescr):
             sage: from sage.rings.qqbar import *
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
-            sage: unexp = ANUnaryExpr(sqrt(AA(2)), '~')
+            sage: unexp = ANUnaryInvert(sqrt(AA(2)))
             sage: unexp.handle_sage_input(sib, False, False)
             ({unop:~ {call: {getattr: {atomic:AA}.polynomial_root}({call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:** {gen:x {constr_parent: {subscr: {atomic:AA}[{atomic:'x'}]} with gens: ('x',)}} {atomic:2}} {atomic:2}})}, {call: {atomic:RIF}({call: {atomic:RR}({atomic:1.4142135623730949})}, {call: {atomic:RR}({atomic:1.4142135623730951})})})}},
              True)
@@ -7802,27 +7800,10 @@ class ANUnaryExpr(ANDescr):
              True)
         """
         arg_is_qqbar = self._arg.parent() is QQbar
-        v = sib(self._arg)
-        op = self._op
-        if op == '-':
-            v = -v
-        elif op == '~':
-            v = ~v
-        elif op == 'conjugate':
-            v = v.conjugate()
-        elif op == 'real':
-            v = v.real()
-        elif op == 'imag':
-            v = v.imag()
-        elif op == 'abs':
-            v = abs(v)
-        elif op == 'norm':
-            v = v.norm()
-        else:
-            raise NotImplementedError
+        v = self._sage_input_op(sib(self._arg))
 
         result_is_qqbar = arg_is_qqbar
-        if op in ('real', 'imag', 'abs', 'norm'):
+        if isinstance(self, ANUnaryRealExpr):
             result_is_qqbar = False
         if result_is_qqbar != is_qqbar:
             # The following version is not safe with respect to caching;
@@ -7838,16 +7819,20 @@ class ANUnaryExpr(ANDescr):
 
     def is_complex(self):
         r"""
-        Return whether or not this element is complex. Note that this is a data
-        type check, and triggers no computations -- if it returns False, the
-        element might still be real, it just doesn't know it yet.
+        Return whether or not this element is complex.
+
+        .. NOTE::
+
+            This is a data type check, and triggers no computations -- if
+            it returns ``False``, the element might still be real, it just
+            does not know it yet.
 
         EXAMPLES::
 
             sage: t = AA(sqrt(2))
             sage: s = (-t)._descr
             sage: s
-            <sage.rings.qqbar.ANUnaryExpr object at ...>
+            <sage.rings.qqbar.ANUnaryNeg object at ...>
             sage: s.is_complex()
             False
             sage: QQbar(-sqrt(2))._descr.is_complex()
@@ -7855,127 +7840,313 @@ class ANUnaryExpr(ANDescr):
         """
         return self._complex
 
+class ANUnaryRealExpr(ANUnaryExpr):
+    def __init__(self, arg):
+        r"""
+        Initialize this ANUnaryRealExpr.
+
+        EXAMPLES::
+
+            sage: t = ~QQbar(sqrt(2)); type(t._descr) # indirect doctest
+            <class 'sage.rings.qqbar.ANUnaryInvert'>
+        """
+        ANUnaryExpr.__init__(self, arg, False)
+
+    def real(self, n):
+        return self
+
+    def complex(self, n):
+        return ANRational(0)
+
+class ANUnaryNeg(ANUnaryExpr):
+    def _sage_input_op(self, v):
+        """
+        Perform the operation on ``v``.
+        """
+        return -v
+
     def _interval_fast(self, prec):
         r"""
-        Calculate an approximation to this ``ANUnaryExpr`` object in an interval field of precision ``prec``.
+        Calculate an approximation to this ``ANUnaryExpr`` subclass object
+        in an interval field of precision ``prec``.
 
         EXAMPLES::
 
             sage: t = AA(sqrt(2))
             sage: s = (-t)._descr
             sage: s
-            <sage.rings.qqbar.ANUnaryExpr object at ...>
+            <sage.rings.qqbar.ANUnaryNeg object at ...>
             sage: s._interval_fast(150)
             -1.414213562373095048801688724209698078569671876?
         """
-        op = self._op
-
         v = self._arg._interval_fast(prec)
-
         if not is_ComplexIntervalFieldElement(v):
             self._complex = False
-
-        if op == '-':
-            return -v
-
-        if op == '~':
-            return ~v
-
-        if op == 'conjugate':
-            if is_ComplexIntervalFieldElement(v):
-                return v.conjugate()
-            else:
-                return v
-
-        self._complex = False
-
-        if op == 'real':
-            if is_ComplexIntervalFieldElement(v):
-                return v.real()
-            else:
-                return v
-
-        if op == 'imag':
-            if is_ComplexIntervalFieldElement(v):
-                return v.imag()
-            else:
-                return RealIntervalField(prec)(0)
-
-        if op == 'abs':
-            return abs(v)
-
-        if op == 'norm':
-            if is_ComplexIntervalFieldElement(v):
-                return v.norm()
-            else:
-                return v.square()
-
-        raise NotImplementedError
+        return -v
 
     def exactify(self):
         r"""
-        Trigger exact computation of self.
+        Trigger exact computation of ``self``.
 
         EXAMPLES::
 
             sage: v = (-QQbar(sqrt(2)))._descr
             sage: type(v)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <class 'sage.rings.qqbar.ANUnaryNeg'>
             sage: v.exactify()
             -a where a^2 - 2 = 0 and a in 1.414213562373095?
         """
-        op = self._op
+        self._arg.exactify()
+        return self._arg._descr.neg(None)
+
+    def neg(self, n):
+        return self._arg._descr
+
+    def norm(self, n):
+        return ANUnaryNorm(self._arg)
+
+    def abs(self, n):
+        return ANUnaryAbs(self._arg._descr)
+
+class ANUnaryInvert(ANUnaryExpr):
+    def _sage_input_op(self, v):
+        """
+        Perform the operation on ``v``.
+        """
+        return ~v
+
+    def _interval_fast(self, prec):
+        r"""
+        Calculate an approximation to this ``ANUnaryExpr`` subclass object
+        in an interval field of precision ``prec``.
+        """
+        v = self._arg._interval_fast(prec)
+        if not is_ComplexIntervalFieldElement(v):
+            self._complex = False
+        return ~v
+
+    def exactify(self):
+        r"""
+        Trigger exact computation of ``self``.
+
+        EXAMPLES::
+        """
+        self._arg.exactify()
+        return self._arg._descr.invert(None)
+
+    def invert(self, n):
+        r"""
+        Return ``1 / self``.
+
+        EXAMPLES::
+
+            sage: a = QQbar(sqrt(-7))
+            sage: b = a._descr
+            sage: b.invert(a).invert(None) is b
+            True
+        """
+        return self._arg._descr
+
+class ANUnaryReal(ANUnaryRealExpr):
+    def _sage_input_op(self, v):
+        """
+        Perform the operation on ``v``.
+        """
+        return v.real()
+
+    def _interval_fast(self, prec):
+        r"""
+        Calculate an approximation to this ``ANUnaryExpr`` subclass object
+        in an interval field of precision ``prec``.
+        """
+        v = self._arg._interval_fast(prec)
+        if is_ComplexIntervalFieldElement(v):
+            return v.real()
+        else:
+            return v
+
+    def exactify(self):
+        r"""
+        Trigger exact computation of ``self``.
+
+        EXAMPLES::
+        """
         arg = self._arg
+        arg.exactify()
+        rv = (arg + arg.conjugate()) / 2
+        rv.exactify()
+        rvd = rv._descr
+        rvd._exactly_real = True
+        return rvd
 
-        if op == '-':
-            arg.exactify()
-            return arg._descr.neg(None)
+class ANUnaryImag(ANUnaryRealExpr):
+    def _sage_input_op(self, v):
+        """
+        Perform the operation on ``v``.
+        """
+        return v.imag()
 
-        if op == '~':
-            arg.exactify()
-            return arg._descr.invert(None)
+    def _interval_fast(self, prec):
+        r"""
+        Calculate an approximation to this ``ANUnaryExpr`` subclass object
+        in an interval field of precision ``prec``.
+        """
+        v = self._arg._interval_fast(prec)
+        if is_ComplexIntervalFieldElement(v):
+            return v.imag()
+        else:
+            return RealIntervalField(prec).zero()
 
-        if op == 'real':
-            arg.exactify()
-            rv = (arg + arg.conjugate()) / 2
-            rv.exactify()
-            rvd = rv._descr
-            rvd._exactly_real = True
-            return rvd
+    def exactify(self):
+        r"""
+        Trigger exact computation of ``self``.
 
-        if op == 'imag':
-            arg.exactify()
-            iv = QQbar_I * (arg.conjugate() - arg) / 2
-            iv.exactify()
-            ivd = iv._descr
-            ivd._exactly_real = True
-            return ivd
+        EXAMPLES::
+        """
+        arg = self._arg
+        arg.exactify()
+        iv = QQbar_I * (arg.conjugate() - arg) / 2
+        iv.exactify()
+        ivd = iv._descr
+        ivd._exactly_real = True
+        return ivd
 
-        if op == 'abs':
-            arg.exactify()
-            if arg.parent() is AA:
-                if arg.sign() > 0:
-                    return arg._descr
-                else:
-                    return arg._descr.neg(None)
+class ANUnaryAbs(ANUnaryRealExpr):
+    def _sage_input_op(self, v):
+        """
+        Perform the operation on ``v``.
+        """
+        return abs(v)
 
-            v = (arg * arg.conjugate()).sqrt()
-            v.exactify()
-            vd = v._descr
-            vd._exactly_real = True
-            return vd
+    def _interval_fast(self, prec):
+        r"""
+        Calculate an approximation to this ``ANUnaryExpr`` subclass object
+        in an interval field of precision ``prec``.
+        """
+        return abs(self._arg._interval_fast(prec))
 
-        if op == 'norm':
-            arg.exactify()
-            v = arg * arg.conjugate()
-            v.exactify()
-            vd = v._descr
-            vd._exactly_real = True
-            return vd
+    def exactify(self):
+        r"""
+        Trigger exact computation of ``self``.
 
-        if op == 'conjugate':
-            arg.exactify()
-            return arg._descr.conjugate(None)
+        EXAMPLES::
+        """
+        arg = self._arg
+        arg.exactify()
+        if arg.parent() is AA:
+            if arg.sign() > 0:
+                return arg._descr
+            else:
+                return arg._descr.neg(None)
+
+        v = (arg * arg.conjugate()).sqrt()
+        v.exactify()
+        vd = v._descr
+        vd._exactly_real = True
+        return vd
+
+    def abs(self, n):
+        return self
+
+class ANUnaryNorm(ANUnaryRealExpr):
+    def _sage_input_op(self, v):
+        """
+        Perform the operation on ``v``.
+        """
+        return v.norm()
+
+    def _interval_fast(self, prec):
+        r"""
+        Calculate an approximation to this ``ANUnaryExpr`` subclass object
+        in an interval field of precision ``prec``.
+        """
+        v = self._arg._interval_fast(prec)
+        if is_ComplexIntervalFieldElement(v):
+            return v.norm()
+        else:
+            return v.square()
+
+    def exactify(self):
+        r"""
+        Trigger exact computation of ``self``.
+
+        EXAMPLES::
+        """
+        self._arg.exactify()
+        v = self._arg * self._arg.conjugate()
+        v.exactify()
+        vd = v._descr
+        vd._exactly_real = True
+        return vd
+
+    def abs(self, n):
+        r"""
+        Absolute value of ``self``.
+
+        EXAMPLES::
+
+            sage: a = QQbar(sqrt(-7))
+            sage: b = a._descr
+            sage: c = b.norm(a)
+            sage: c.abs(None) is c
+            True
+        """
+        return self
+
+    def conjugate(self, n):
+        r"""
+        Complex conjugate of ``self``.
+
+        EXAMPLES::
+
+            sage: a = QQbar(sqrt(-7))
+            sage: b = a._descr
+            sage: c = b.conjugate(a)
+            sage: c.conjugate(None) is b
+            True
+        """
+        return self
+
+class ANUnaryConjugate(ANUnaryExpr):
+    def _sage_input_op(self, v):
+        """
+        Perform the operation on ``v``.
+        """
+        return v.conjugate()
+
+    def _interval_fast(self, prec):
+        r"""
+        Calculate an approximation to this ``ANUnaryExpr`` subclass object
+        in an interval field of precision ``prec``.
+        """
+        v = self._arg._interval_fast(prec)
+        if is_ComplexIntervalFieldElement(v):
+            return v.conjugate()
+        else:
+            self._complex = False
+            return v
+
+    def exactify(self):
+        r"""
+        Trigger exact computation of ``self``.
+
+        EXAMPLES::
+        """
+        self._arg.exactify()
+        return self._arg._descr.conjugate(None)
+
+    def conjugate(self, n):
+        r"""
+        Complex conjugate of ``self``.
+
+        EXAMPLES::
+
+            sage: a = QQbar(sqrt(-7))
+            sage: b = a._descr
+            sage: b.conjugate(a).conjugate(None) is b
+            True
+        """
+        return self._arg._descr
 
 
 class ANBinaryExpr(ANDescr):
@@ -8338,12 +8509,13 @@ def an_binop_element(a, b, op):
 
 
 # instanciation of the multimethod dispatch
+ANUnary_subclasses = (ANUnaryNeg, ANUnaryInvert, ANUnaryReal, ANUnaryImag, ANUnaryNorm, ANUnaryAbs, ANUnaryConjugate)
 _binop_algo[ANRational, ANRational] = an_binop_rational
 _binop_algo[ANRational, ANExtensionElement] = \
 _binop_algo[ANExtensionElement, ANRational] = \
 _binop_algo[ANExtensionElement, ANExtensionElement] = an_binop_element
-for t1 in (ANRational, ANRoot, ANExtensionElement, ANUnaryExpr, ANBinaryExpr):
-    for t2 in (ANUnaryExpr, ANBinaryExpr, ANRoot):
+for t1 in (ANRational, ANRoot, ANExtensionElement, ANBinaryExpr) + ANUnary_subclasses:
+    for t2 in ANUnary_subclasses + (ANBinaryExpr, ANRoot):
         _binop_algo[t1, t2] = _binop_algo[t2, t1] = an_binop_expr
 
 qq_generator = AlgebraicGenerator(QQ, ANRoot(AAPoly.gen() - 1, RIF(1)))
