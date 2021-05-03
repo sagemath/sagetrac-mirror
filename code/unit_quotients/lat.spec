@@ -5,4 +5,6 @@
   genus.m
   reduce.m
   quotients.m
+  diagonal.m
+  neighbors.m
 }
