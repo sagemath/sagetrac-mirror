@@ -2397,9 +2397,40 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             pass
         return ManifoldSubsetFiniteFamily(subsets)
 
+    def declare_open_cover(self, oc):
+        # Should this be a public method?
+        ## reduced_oc = self._reduce_union_members(oc)  # FIXME: reduces
+        ##                                 # the pair that covers the union...
+        reduced_oc = oc
+        if not reduced_oc:
+            self.declare_empty()
+        elif len(reduced_oc) == 1:
+            superset = next(iter(reduced_oc))
+            if self.is_open():
+                self.declare_equal(superset)
+            else:
+                self.declare_subset(superset)
+        else:
+            reduced_oc = list(reduced_oc)
+            self._open_covers.append(reduced_oc)
+
     def _union_subset(self, other, name=None, latex_name=None):
         r"""
         Return a subset of the manifold that is the union of the given subsets.
+
+        TESTS:
+
+        Test that :trac:`30263` is fixed::
+
+            sage: M = Manifold(3, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            sage: M.declare_union(U, V.union(W))
+            sage: M.is_subset(U.union(V).union(W))
+            True
+            sage: M.is_subset(U.union(W).union(V))
+            True
+            sage: M.is_subset(V.union(W).union(U))
+            True
 
         """
         if latex_name is None:
@@ -2430,11 +2461,17 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         # Open covers of the union:
         for oc1 in self._open_covers:
             for oc2 in other._open_covers:
-                oc = oc1[:]
-                for s in oc2:
-                    if s not in oc:
-                        oc.append(s)
-            res._open_covers.append(oc)
+                oc = ManifoldSubsetFiniteFamily.from_subsets_or_families(oc1, oc2)
+                res.declare_open_cover(oc)
+        # Reduce open covers of supersets by making use of res.
+        for superset in res.supersets():
+            if superset is not res:
+                for oc in superset.open_covers():
+                    if self in oc and other in oc:
+                        reduced_oc = set(oc)
+                        reduced_oc.difference_update((self, other))
+                        reduced_oc.add(res)
+                        superset.declare_open_cover(reduced_oc)
         return res
 
 
