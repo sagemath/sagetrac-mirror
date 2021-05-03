@@ -2357,11 +2357,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             return res
         for other in others[:-1]:
             old, res = res, res._union_subset(other)
-            old._unions[other._name] = other._unions[old._name] = res
         # The last one gets the name
         other = others[-1]
         old, res = res, res._union_subset(other, name=name, latex_name=latex_name)
-        old._unions[other._name] = other._unions[old._name] = res
         return res
 
     @staticmethod
@@ -2403,7 +2401,6 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         r"""
         Return a subset of the manifold that is the union of the given subsets.
 
-        This method does not cache the result.
         """
         if latex_name is None:
             if name is None:
@@ -2417,6 +2414,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         res.declare_superset(other)
         res._top_subsets.add(self)
         res._top_subsets.add(other)
+        self._unions[other._name] = other._unions[self._name] = res
         for sp in self._supersets:
             if sp in other._supersets:
                 sp._subsets.add(res)
