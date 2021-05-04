@@ -452,7 +452,7 @@ def ptype(L, f, p):
     return ptype
 
 
-def prime_order(p, genus, k3=True,verbose=0,rankCp=None):
+def prime_order(p, genus, k3=True,verbose=2,rankCp=None):
     r"""
     """
     G = genus
@@ -525,7 +525,7 @@ def prime_order(p, genus, k3=True,verbose=0,rankCp=None):
                         # recurse
                         f1 = matrix.identity(rkC1)
                         if verbose > 2:
-                            print('computing representatives')
+                            print('computing representatives of %s'%CpG)
                         for CpE in CpG.representatives():
                             Cp, fp = trace_lattice(CpE)
                             Cp = IntegralLattice(Cp)

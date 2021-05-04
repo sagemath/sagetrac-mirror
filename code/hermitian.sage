@@ -130,7 +130,8 @@ def all_lattice_with_isometry(n, rk, det, max_scale, min_scale=1, min_norm=1, si
         f = matrix.identity(ZZ, rk)
         if n == 2:
             f = -f
-        return [LatticeWithIsometry(IntegralLattice(g),f,order=n) for g in flatten([genus.representatives() for genus in genera])]
+        rep = [LatticeWithIsometry(IntegralLattice(g),f,order=n) for g in flatten([genus.representatives() for genus in genera])]
+        return rep
 
     E.<a> = CyclotomicField(n)
     K.<b>, phi = E.subfield(a + a**-1)
@@ -306,6 +307,11 @@ def Oq_equiv_herm(L,f, G, Lh):
     ord = f.change_ring(ZZ).multiplicative_order()
     n = G.ncols()
     E = G.base_ring()
+    prime = false
+    if len(prime_factors(ord))==1:
+      prime = true
+      A = E.different()
+      P = A.prime_factors()[0]
     assert ord>2
     assert G.ncols()>1
     OGL = L.q().O()
@@ -344,6 +350,7 @@ def Oq_equiv_herm(L,f, G, Lh):
             x = next(De)[1]
             s = vecZtoV(VE, x.lift()*x.order())
           except StopIteration:
+            print("done discr")
             flag = false
         elif len(extra)>0:
             e = extra.pop()
@@ -355,7 +362,7 @@ def Oq_equiv_herm(L,f, G, Lh):
         sigma = s*G*s.conjugate()/2
         print("Computing spinor norms of Oqf. Total:" +str(Oqf.order())+" Remaining:" +str(Oqf.order()/S.order()) + " number of tries: " +str(count), end="\r")
         sys.stdout.flush()
-        if 2.divides(S.order()) and sigma == 0:
+        if 2.divides(D.cardinality()) and sigma == 0:
             # we might run into trouble if V is locally isotropic at 2 but not globally isotropic, ... so lets see if we are lucky...
             sg = (s*G)
             (m,i) = min((e[1].norm(),e[0]) for e in enumerate(sg) if e[1]!=0)
@@ -374,11 +381,17 @@ def Oq_equiv_herm(L,f, G, Lh):
                         gens.append(Tbar)
                         dets.append(E(1))
                         S = Oqf.subgroup(gens)
-        for i in range(30):
-          sigma = sigma + phi(K.random_element())*omega
-          if sigma==0:
+        if prime:
+            I = A*E.ideal((s*G).list())
+            if I.valuation(P)<=0:
+                continue
+        for i in range(100):
+          # we want
+          # <s,L> <= (sigma+x*omega) O < E.different()^-1
+          sigma1 = sigma + phi(K.random_element())*omega
+          if sigma1==0:
               continue
-          tau,determ,tauE = symmetry(G,s,sigma)
+          tau,determ,tauE = symmetry(G,s,sigma1)
           if gcd(tau.denominator(),D.cardinality())!=1:
             continue
           taubar = on_disc(D,tau)
