@@ -28,7 +28,6 @@ from sage.rings.ring_extension_element cimport RingExtensionElement
 from sage.rings.ring_extension_conversion cimport backend_parent, backend_element, backend_morphism
 
 
-# I don't trust the operator ==
 cdef are_equal_morphisms(f, g):
     r"""
     Return ``True`` if ``f`` and ``g`` coincide on the

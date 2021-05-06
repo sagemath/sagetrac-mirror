@@ -573,7 +573,7 @@ cdef class RingMap_lift(RingMap):
         """
         if not isinstance(other, RingMap_lift):
             # Generic comparison
-            return RingMap._richcmp_(self, other, op)
+            return RingHomomorphism._richcmp_(self, other, op)
         # Two lifting maps with the same parent must be equal
         return rich_to_bool(op, 0)
 
@@ -740,6 +740,38 @@ cdef class RingHomomorphism(RingMap):
         except AttributeError:
             pass
         return slots
+
+    def _richcmp_(self, other, int op):
+        r"""
+        Compare this ring morphism with ``other``.
+
+        This is the generic implementation:
+        we check if both morphisms agree on the generators of the
+        domain (including generators of successive base rings).
+
+        TESTS:
+
+        We check that :trac:`31783` is resolved::
+
+            sage: S.<a,b> = QQ['a,b'].quotient('a*b')
+            sage: R.<x> = S[]
+            sage: f = R.hom([b], R)
+            sage: g = R.hom([b], R) * R.hom(S.hom([-a, b], S), R)
+            sage: f == g
+            False
+        """
+        domain = self.domain()
+        if domain is other.domain() and self.codomain() is other.codomain():
+            while True:
+                for g in domain.gens():
+                    if self(g) != other(g):
+                        return richcmp(self(g), other(g), op)
+                base = domain.base_ring()
+                if base is domain:
+                    return rich_to_bool(op, 0)
+                domain = base
+        else:
+            return richcmp((domain, self.codomain()), (other.domain(), other.codomain()), op)
 
     def _composition_(self, right, homset):
         """
@@ -1698,7 +1730,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         """
         if not isinstance(other, RingHomomorphism_coercion):
             # Generic comparison
-            return RingMap._richcmp_(self, other, op)
+            return RingHomomorphism._richcmp_(self, other, op)
         # Two coercion maps with the same parent must be equal
         return rich_to_bool(op, 0)
 
@@ -1980,7 +2012,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         """
         if not isinstance(other, RingHomomorphism_im_gens):
             # Generic comparison
-            return RingMap._richcmp_(self, other, op)
+            return RingHomomorphism._richcmp_(self, other, op)
         # Check equality using the images of the generators.
         self_im = self._im_gens
         other_im = (<RingHomomorphism_im_gens>other)._im_gens
@@ -2282,7 +2314,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         """
         if not isinstance(other, RingHomomorphism_from_base):
             # Generic comparison
-            return RingMap._richcmp_(self, other, op)
+            return RingHomomorphism._richcmp_(self, other, op)
         self_underlying = self._underlying
         other_underlying = (<RingHomomorphism_from_base>other)._underlying
         return richcmp(self_underlying, other_underlying, op)
@@ -2591,7 +2623,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
         """
         if not isinstance(other, RingHomomorphism_cover):
             # Generic comparison
-            return RingMap._richcmp_(self, other, op)
+            return RingHomomorphism._richcmp_(self, other, op)
         # Two cover maps with the same parent must be equal
         return rich_to_bool(op, 0)
 
@@ -2823,13 +2855,7 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
             sage: phi == f
             True
         """
-        if not isinstance(other, RingHomomorphism_from_quotient):
-            # Generic comparison
-            return RingMap._richcmp_(self, other, op)
-        # Generic comparison
-        self_phi = self.phi
-        other_phi = (<RingHomomorphism_from_quotient>other).phi
-        return richcmp(self_phi, other_phi, op)
+        return RingHomomorphism._richcmp_(self, other, op)
 
     def __hash__(self):
         """
