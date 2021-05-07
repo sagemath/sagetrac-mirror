@@ -3,12 +3,14 @@ Base class for elements of multivariate polynomial rings
 """
 
 #*****************************************************************************
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 2 of the License, or
-# (at your option) any later version.
+#       Copyright (C) 2005 David Kohel
+#       Copyringt (C) 2021 Vincent Delecroix <20100.delecroix@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
@@ -306,6 +308,97 @@ cdef class MPolynomial(CommutativeRingElement):
             monom = prod([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
             expr = expr + monom
         return expr
+
+    def __call__(self, *x, **kwds):
+        r"""
+        Evaluate this multi-variate polynomial at `x`, where
+        `x` is either the tuple of values to substitute in, or one
+        can use functional notation `f(a_0,a_1,a_2, \ldots)` to
+        evaluate `f` with the ith variable replaced by
+        `a_i`.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = CC[]
+            sage: f = x^2 + y^2
+            sage: f(1,2)
+            5.00000000000000
+            sage: f((1,2))
+            5.00000000000000
+
+        ::
+
+            sage: x = PolynomialRing(CC,3,'x').gens()
+            sage: f = x[0] + x[1] - 2*x[1]*x[2]
+            sage: f
+            (-2.00000000000000)*x1*x2 + x0 + x1
+            sage: f(1,2,0)
+            3.00000000000000
+            sage: f(1,2,5)
+            -17.0000000000000
+
+        TESTS:
+
+        Check :trac:`27446`::
+
+            sage: P = PolynomialRing(QQ, 't', 0)
+            sage: a = P(1)
+            sage: a(()).parent()
+            Rational Field
+
+        Check that the output has the proper parent (:trac:`27261`)::
+
+            sage: for A in [ZZ, QQ, GF(7), ZZ['a']]:
+            ....:     R = A['x, y']
+            ....:     S = A['q, r']
+            ....:     x, y = R.gens()
+            ....:     q, r = S.gens()
+            ....:     p1 = R.zero()
+            ....:     p2 = x
+            ....:     p3 = x + y
+            ....:     print(A)
+            ....:     print(all(p.subs(x=0).parent() is R for p in [p1, p2, p3]))
+            ....:     print(all(p.subs(x=0, y=0).parent() is A for p in [p1, p2, p3]))
+            ....:     print(all(p.subs(x=q, y=r).parent() is S for p in [p1, p2, p3]))
+            Integer Ring
+            True
+            True
+            True
+            Rational Field
+            True
+            True
+            True
+            Finite Field of size 7
+            True
+            True
+            True
+            Univariate Polynomial Ring in a over Integer Ring
+            True
+            True
+            True
+        """
+        if len(kwds) > 0:
+            f = self.subs(**kwds)
+            if len(x) > 0:
+                return f(*x)
+            else:
+                return f
+        if len(x) == 1 and isinstance(x[0], (list, tuple)):
+            x = x[0]
+        n = self.parent().ngens()
+        if len(x) != n:
+            raise TypeError("x must be of correct length")
+        if n == 0:
+            return self.constant_coefficient()
+
+        parent = self._parent
+        res_parent = coercion_model.common_parent(parent._base, *x)
+        x = [res_parent.coerce(elt) for elt in x]
+        y = res_parent(0)
+        one = res_parent(1)
+        for (m, c) in self.dict().items():
+            y += c * prod([x[i]**m[i] for i in range(n) if m[i]], one)
+        return y
 
     def _fast_callable_(self, etb):
         """
@@ -993,8 +1086,15 @@ cdef class MPolynomial(CommutativeRingElement):
             -x*y+3*z
             sage: gap(R.zero())     # indirect doctest
             0
+            sage: type(gap(R.zero()))
+            <class 'sage.interfaces.gap.GapElement'>
+
             sage: (x+y+z)._gap_(libgap)
             x+y+z
+            sage: libgap(R.zero())
+            0
+            sage: type(libgap(R.zero()))
+            <class 'sage.libs.gap.element.GapElement_Integer'>
 
             sage: g = gap(x - y + 3*x*y*z)
             sage: R(g)

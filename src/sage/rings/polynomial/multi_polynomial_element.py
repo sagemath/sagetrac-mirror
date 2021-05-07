@@ -97,69 +97,6 @@ class MPolynomial_element(MPolynomial):
 
     ####################
 
-    def __call__(self, *x, **kwds):
-        r"""
-        Evaluate this multi-variate polynomial at `x`, where
-        `x` is either the tuple of values to substitute in, or one
-        can use functional notation `f(a_0,a_1,a_2, \ldots)` to
-        evaluate `f` with the ith variable replaced by
-        `a_i`.
-
-        EXAMPLES::
-
-            sage: R.<x,y> = CC[]
-            sage: f = x^2 + y^2
-            sage: f(1,2)
-            5.00000000000000
-            sage: f((1,2))
-            5.00000000000000
-
-        ::
-
-            sage: x = PolynomialRing(CC,3,'x').gens()
-            sage: f = x[0] + x[1] - 2*x[1]*x[2]
-            sage: f
-            (-2.00000000000000)*x1*x2 + x0 + x1
-            sage: f(1,2,0)
-            3.00000000000000
-            sage: f(1,2,5)
-            -17.0000000000000
-
-        TESTS:
-
-        Check :trac:`27446`::
-
-            sage: P = PolynomialRing(QQ, 't', 0)
-            sage: a = P(1)
-            sage: a(()).parent()
-            Rational Field
-
-        AUTHORS:
-
-        - David Kohel (2005-09-27)
-        """
-        if len(kwds) > 0:
-            f = self.subs(**kwds)
-            if len(x) > 0:
-                return f(*x)
-            else:
-                return f
-        if len(x) == 1 and isinstance(x[0], (list, tuple)):
-            x = x[0]
-        n = self.parent().ngens()
-        if len(x) != n:
-            raise TypeError("x must be of correct length")
-        if n == 0:
-            return self.constant_coefficient()
-        try:
-            K = x[0].parent()
-        except AttributeError:
-            K = self.parent().base_ring()
-        y = K(0)
-        for (m,c) in self.element().dict().items():
-            y += c*prod([ x[i]**m[i] for i in range(n) if m[i] != 0])
-        return y
-
     def _richcmp_(self, right, op):
         """
         Compare ``self`` to ``right`` with respect to the term order of

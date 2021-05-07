@@ -2087,49 +2087,12 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: a.parent() is QQ
             True
         """
-        if len(kwds) > 0:
-            f = self.subs(**kwds)
-            if len(x) > 0:
-                return f(*x)
-            else:
-                return f
-
-        cdef int l = len(x)
-        cdef MPolynomialRing_libsingular parent = self._parent
-        cdef ring *_ring = parent._ring
-
-        if l == 1 and isinstance(x[0], (list, tuple)):
-            x = x[0]
-            l = len(x)
-
-        if l != parent._ring.N:
-            raise TypeError("number of arguments does not match number of variables in parent")
-
-        try:
-            # Attempt evaluation via singular.
-            coerced_x = [parent.coerce(e) for e in x]
-        except TypeError:
-            # give up, evaluate functional
-            y = parent.base_ring().zero()
-            for (m,c) in self.dict().iteritems():
-                y += c*mul([ x[i]**m[i] for i in m.nonzero_positions()])
-            return y
-
-        cdef poly *res    # ownership will be transferred to us in the next line
-        singular_polynomial_call(&res, self._poly, _ring, coerced_x, MPolynomial_libsingular_get_element)
-        res_parent = coercion_model.common_parent(parent._base, *x)
-
-        if res == NULL:
-            return res_parent(0)
-        if p_LmIsConstant(res, _ring):
-            sage_res = si2sa( p_GetCoeff(res, _ring), _ring, parent._base )
-            p_Delete(&res, _ring)            # sage_res contains copy
-        else:
-            sage_res = new_MP(parent, res)   # pass on ownership of res to sage_res
-
-        if parent(sage_res) is not res_parent:
-            sage_res = res_parent(sage_res)
-        return sage_res
+        #######################################################################
+        # NOTE: the custom code for __call__ used to have a serious memory leak
+        # (see https://trac.sagemath.org/ticket/27261). For now we rely on the
+        # generic (and certainly slower) generic method of MPolynomial.
+        #######################################################################
+        return MPolynomial.__call__(self, *x, **kwds)
 
     def __hash__(self):
         """
@@ -3620,7 +3583,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
                 res_id = fast_map_common_subexp(from_id, _ring, to_id, _ring)
                 _p = res_id.m[0]
 
-                from_id.m[0] = NULL
+                p_Delete(&from_id.m[0], _ring)
                 res_id.m[0] = NULL
 
                 id_Delete(&from_id, _ring)
