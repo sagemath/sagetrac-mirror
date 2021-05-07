@@ -159,20 +159,37 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
 
     TESTS:
 
-    Test that there is no memory leak in evaluating polynomials. Note
-    that (lib)Singular has pre-allocated buckets, so we have to run a
-    lot of iterations to fill those up first::
+    Test that there is no memory leak in evaluating polynomials (see
+    :trac:`27261`). Note that (lib)Singular has pre-allocated buckets, so we
+    have to run a lot of iterations to fill those up first::
 
         sage: import resource
         sage: import gc
-        sage: F.<a> = GF(7^2)
-        sage: R.<x,y> = F[]
-        sage: p = x+2*y
-        sage: def leak(N):
-        ....:     before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        sage: def leak_ZZ(N):
+        ....:     R.<x, y> = ZZ[]
+        ....:     p = (x + y)^10
         ....:     gc.collect()
+        ....:     before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        ....:     for i in range(N):
+        ....:         _ = p(x, y)
+        ....:         _ = p(x + y, y)
+        ....:         _ = p(1, -1)
+        ....:         _ = p(0, 0)
+        ....:     gc.collect()
+        ....:     after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        ....:     return (after - before) * 1024   # ru_maxrss is in kilobytes
+        sage: def leak_GF49(N):
+        ....:     F.<a> = GF(7^2)
+        ....:     R.<x,y> = F[]
+        ....:     p = (x + 2*y - 1)^10
+        ....:     gc.collect()
+        ....:     before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         ....:     for i in range(N):
         ....:         _ = p(a, a)
+        ....:         _ = p(x, y)
+        ....:         _ = p(x + y, y)
+        ....:         _ = p(a + x, a)
+        ....:     gc.collect()
         ....:     after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         ....:     return (after - before) * 1024   # ru_maxrss is in kilobytes
 
@@ -185,20 +202,22 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
 
         sage: zeros = 0
         sage: for i in range(30):  # long time
-        ....:     n = leak(10000)
-        ....:     print("Leaked {} bytes".format(n))
-        ....:     if n == 0:
+        ....:     nGF49 = leak_GF49(1000)
+        ....:     nZZ = leak_ZZ(1000)
+        ....:     print("Leaked {} and {} bytes".format(nGF49, nZZ))
+        ....:     if nGF49 == nZZ == 0:
         ....:         zeros += 1
         ....:         if zeros >= 6:
         ....:             break
         ....:     else:
         ....:         zeros = 0
         Leaked...
-        Leaked 0 bytes
-        Leaked 0 bytes
-        Leaked 0 bytes
-        Leaked 0 bytes
-        Leaked 0 bytes
+        Leaked 0 and 0 bytes
+        Leaked 0 and 0 bytes
+        Leaked 0 and 0 bytes
+        Leaked 0 and 0 bytes
+        Leaked 0 and 0 bytes
+        Leaked 0 and 0 bytes
     """
     cdef long l = len(args)
     cdef ideal *to_id = idInit(l,1)
