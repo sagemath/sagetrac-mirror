@@ -830,8 +830,9 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
 
         EXAMPLES::
 
-            sage: R.<s> = QQ[]
-            sage: P2.<x,y,z> = toric_varieties.P2(base_ring=GF(7))
+            sage: K = GF(7)
+            sage: R.<s> = K[]
+            sage: P2.<x,y,z> = toric_varieties.P2(base_ring=K)
             sage: X = P2.subscheme([x^3 + 2*y^3 + 3*z^3, x*y*z + x*y^2])
             sage: point_set = X.point_set()
             sage: ffe = point_set._enumerator()
