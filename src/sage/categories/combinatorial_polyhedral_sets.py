@@ -12,8 +12,10 @@ Category of sets of combinatorial polyhedra
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from .category_singleton import Category_singleton
+from .category_with_axiom import CategoryWithAxiom
 from .sets_cat import Sets
 
 class CombinatorialPolyhedralSets(Category_singleton):
@@ -47,3 +49,38 @@ class CombinatorialPolyhedralSets(Category_singleton):
             [Category of sets]
         """
         return [Sets()]
+
+    class ParentMethods:
+
+        pass
+
+
+    class ElementMethods:
+
+        @abstract_method
+        def dimension(self):
+            r"""
+            Return the dimension of the combinatorial polyhedron.
+            """
+
+        def dim(self):
+            r"""
+            Return the dimension of the combinatorial polyhedron.
+
+            This is an alias for meth:`dimension`.
+            """
+            return self.dimension()
+
+    class Finite(CategoryWithAxiom):
+        """
+        Category of finite sets of combinatorial polyhedra.
+        """
+
+        class ParentMethods:
+
+            @cached_method
+            def dimension(self):
+                r"""
+                Return the maximum dimension of the combinatorial polyhedra in ``self``.
+                """
+                return max(c.dimension for c in self)
