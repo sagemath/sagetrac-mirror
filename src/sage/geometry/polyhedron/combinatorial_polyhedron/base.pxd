@@ -1,13 +1,13 @@
 cimport cython
 from memory_allocator           cimport MemoryAllocator
-from sage.structure.sage_object cimport SageObject
+from sage.structure.element     cimport Element
 from .face_iterator             cimport FaceIterator, CombinatorialFace
 from .list_of_faces             cimport ListOfFaces
 from .face_data_structure       cimport face_t
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 
 @cython.final
-cdef class CombinatorialPolyhedron(SageObject):
+cdef class CombinatorialPolyhedron(Element):
     cdef public dict __cached_methods
 
     # Do not assume any of those attributes to be initialized, use the corresponding methods instead.

@@ -99,6 +99,8 @@ from .conversions \
 from .conversions cimport Vrep_list_to_bit_rep
 from sage.misc.cachefunc            import cached_method
 
+from sage.structure.element            cimport Element
+from sage.structure.parent             cimport Parent
 from sage.rings.integer                cimport smallInteger
 from cysignals.signals                 cimport sig_check, sig_block, sig_unblock
 from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
@@ -109,7 +111,10 @@ from .face_iterator cimport iter_t, parallel_f_vector
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
 
-cdef class CombinatorialPolyhedron(SageObject):
+from .parent import CombinatorialPolyhedra
+cdef Parent unspecific_parent = CombinatorialPolyhedra()
+
+cdef class CombinatorialPolyhedron(Element):
     r"""
     The class of the Combinatorial Type of a Polyhedron, a Polytope.
 
@@ -313,7 +318,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: CombinatorialPolyhedron(LatticePolytope([], lattice=ToricLattice(3)))
         A -1-dimensional combinatorial polyhedron with 0 facets
     """
-    def __init__(self, data, Vrep=None, facets=None, unbounded=False, far_face=None, Vrepr=None):
+    def __init__(self, data, Vrep=None, facets=None, unbounded=False,
+                 far_face=None, Vrepr=None, parent=None):
         r"""
         Initialize :class:`CombinatorialPolyhedron`.
 
@@ -556,6 +562,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._far_face_tuple = tuple(far_face)
         else:
             self._far_face_tuple = ()
+
+        if parent is None:
+            parent = unspecific_parent
+        self._parent = parent
 
     def _repr_(self):
         r"""
