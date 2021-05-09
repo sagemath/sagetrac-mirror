@@ -1,5 +1,5 @@
 r"""
-Polyhedral subsets of free ZZ, QQ or RR-modules.
+Category of sets of polyhedra
 """
 #*****************************************************************************
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
@@ -13,11 +13,15 @@ from sage.categories.category_types import Category_over_base_ring
 
 class PolyhedralSets(Category_over_base_ring):
     r"""
-    The category of polyhedra over a ring.
+    The category of sets of polyhedra over a ring.
+
+    A set of polyhedra is a parent.
+
+    A polyhedron is an element.
 
     EXAMPLES:
 
-    We create the category of polyhedra over `\QQ`::
+    We create the category of sets of polyhedra over `\QQ`::
 
         sage: PolyhedralSets(QQ)
         Category of polyhedral sets over Rational Field
