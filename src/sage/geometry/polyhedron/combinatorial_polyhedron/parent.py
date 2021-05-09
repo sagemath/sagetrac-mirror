@@ -17,4 +17,20 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 class CombinatorialPolyhedra(UniqueRepresentation, Parent):
 
-    pass
+    r"""
+    Parent class for combinatorial polyhedra
+    """
+
+    def __init__(self):
+        """
+        Construct the parent of class ``CombinatorialPolyhedra``.
+
+        """
+        from sage.categories.combinatorial_polyhedral_sets import CombinatorialPolyhedralSets
+        Parent.__init__(self, category=CombinatorialPolyhedralSets())
+
+    def _repr_(self):
+        """
+        Return a string representation.
+        """
+        return "Combinatorial polyhedra"
