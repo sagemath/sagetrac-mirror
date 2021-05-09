@@ -146,12 +146,13 @@ also allowed::
     sage: mip.show()
     Maximization:
     <BLANKLINE>
+    <BLANKLINE>
     Constraints:
     Variables:
-      a[1] = x_0 is a continuous variable (min=-oo, max=+oo)
-      b[3] = x_1 is a continuous variable (min=-oo, max=+oo)
-      a[(4, 'string', Rational Field)] = x_2 is a continuous variable (min=-oo, max=+oo)
-      b[2] = x_3 is a continuous variable (min=-oo, max=+oo)
+      a_1 = x_0 is a continuous variable (min=-oo, max=+oo)
+      b_3 = x_1 is a continuous variable (min=-oo, max=+oo)
+      a_4_string_Rational_Field = x_2 is a continuous variable (min=-oo, max=+oo)
+      b_2 = x_3 is a continuous variable (min=-oo, max=+oo)
 
 Upper/lower bounds on a variable can be specified either as separate constraints
 (see :meth:`add_constraint <sage.numerical.mip.MixedIntegerLinearProgram.add_constraint>`) or
@@ -800,12 +801,13 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: mip.show()
             Maximization:
             <BLANKLINE>
+            <BLANKLINE>
             Constraints:
-              x[0] + y[1] + z[2] <= 10.0
+              x_0 + y_1 + z_2 <= 10.0
             Variables:
-              x[0] = x_0 is a continuous variable (min=-oo, max=+oo)
-              y[1] = x_1 is a continuous variable (min=-oo, max=+oo)
-              z[2] = x_2 is a continuous variable (min=-oo, max=+oo)
+              x_0 is a continuous variable (min=-oo, max=+oo)
+              y_1 = x_1 is a continuous variable (min=-oo, max=+oo)
+              z_2 = x_2 is a continuous variable (min=-oo, max=+oo)
         """
         if sum([real, binary, integer]) > 1:
             raise ValueError("Exactly one of the available types has to be True")
@@ -865,10 +867,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: mip.show()
             Maximization:
             <BLANKLINE>
+            <BLANKLINE>
             Constraints:
             Variables:
-              a[0] = x_0 is a continuous variable (min=-oo, max=+oo)
-              b[2] = x_1 is a continuous variable (min=-oo, max=+oo)
+              a_0 = x_0 is a continuous variable (min=-oo, max=+oo)
+              b_2 = x_1 is a continuous variable (min=-oo, max=+oo)
         """
         return tuple(self.new_variable() for i in range(n))
 
@@ -1191,12 +1194,13 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2, name="Constraint_1")
             sage: p.show()
             Maximization:
-              Hey[1] + Hey[2]
+              Hey_1 + Hey_2 
+            <BLANKLINE>
             Constraints:
-              Constraint_1: -3.0 Hey[1] + 2.0 Hey[2] <= 2.0
+              Constraint_1: -3.0 Hey_1 + 2.0 Hey_2 <= 2.0
             Variables:
-              Hey[1] = x_0 is a continuous variable (min=-oo, max=+oo)
-              Hey[2] = x_1 is a continuous variable (min=-oo, max=+oo)
+              Hey_1 = x_0 is a continuous variable (min=-oo, max=+oo)
+              Hey_2 = x_1 is a continuous variable (min=-oo, max=+oo)
 
         Without any names ::
 
@@ -2969,6 +2973,17 @@ cdef class MIPVariable(SageObject):
             sage: x[(2, 3)]
             x_11
 
+        The components of variables with a ``name`` have components
+        with names in the backend::
+
+            sage: M2.<x> = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x[1,2]
+            x_0
+            sage: x[3,4]
+            x_1
+            sage: M2.get_backend().col_name(0)
+            'x_1_2'
+
         TESTS:
 
         An empty list of static indices gives an error on every component access;
@@ -2988,7 +3003,19 @@ cdef class MIPVariable(SageObject):
         if not self._dynamic_indices:
             raise IndexError("{} does not index a component of {}".format(i, self))
         zero = self._p._backend.zero()
-        name = self._name + "[" + str(i) + "]" if self._name else None
+        if self._name:
+            def _namify(i):
+                if isinstance(i, str):
+                    return i
+                if isinstance(i, (tuple, list)):
+                    return '_'.join(_namify(x) for x in i)
+                name = str(i)
+                name = name.replace(' ', '_')
+                # FIXME: Fix up name if it has other bad characters in it
+                return name
+            name = self._name + "_" + _namify(i)
+        else:
+            name = None
         j = self._p._backend.add_variable(
             lower_bound=self._lower_bound,
             upper_bound=self._upper_bound,
