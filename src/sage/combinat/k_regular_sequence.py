@@ -31,10 +31,11 @@ Examples
 Binary sum of digits
 --------------------
 
-::
+The binary sum of digits `S(n)` of a nonnegative integer `n` satisfies
+`S(2n) = S(n)` and `S(2n+1) = S(n) + 1`. We model this by the following::
 
     sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-    sage: S = Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
+    sage: S = Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [1, 1]])),
     ....:          left=vector([0, 1]), right=vector([1, 0]))
     sage: S
     2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ...
@@ -44,7 +45,8 @@ Binary sum of digits
 Number of odd entries in Pascal's triangle
 ------------------------------------------
 
-::
+Let us consider the number of odd entries in the first `n` rows
+of Pascals's triangle::
 
     sage: @cached_function
     ....: def u(n):
@@ -54,8 +56,11 @@ Number of odd entries in Pascal's triangle
     sage: tuple(u(n) for n in srange(10))
     (0, 1, 3, 5, 9, 11, 15, 19, 27, 29)
 
-    sage: U = Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-    ....:          left=vector([0, 1]), right=vector([1, 0]), transpose=True)
+There is a `2`-recursive sequence describing the numbers above as well::
+
+    sage: U = Seq2((Matrix([[3, 2], [0, 1]]), Matrix([[2, 0], [1, 3]])),
+    ....:          left=vector([0, 1]), right=vector([1, 0]),
+    ....:          allow_degenerated_sequence=True).transposed()
     sage: all(U[n] == u(n) for n in srange(30))
     True
 
@@ -69,15 +74,11 @@ Various
     :mod:`sage.rings.cfinite_sequence`,
     :mod:`sage.combinat.binary_recurrence_sequences`.
 
-REFERENCES:
-
-.. [AS2003] Jean-Paul Allouche, Jeffrey Shallit,
-   *Automatic Sequences: Theory, Applications, Generalizations*,
-   Cambridge University Press, 2003.
 
 AUTHORS:
 
-- Daniel Krenn (2016)
+- Daniel Krenn (2016, 2021)
+
 
 ACKNOWLEDGEMENT:
 
@@ -97,12 +98,10 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from .recognizable_series import RecognizableSeries
 from .recognizable_series import RecognizableSeriesSpace
 from sage.misc.cachefunc import cached_function, cached_method
-from six import iteritems
 
 
 def pad_right(T, length, zero=0):
@@ -213,22 +212,39 @@ def split_interlace(n, k, p):
                                 for d in n.digits(k, padto=1))))
 
 
-class kRegularSequence(RecognizableSeries):
+class DegeneratedSequenceError(RuntimeError):
+    r"""
+    Exception raised if a degenerated sequence
+    (see :meth:`~kRegularSequence.is_degenerated`) is detected.
 
+    EXAMPLES::
+
+        sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+        sage: Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]))
+        Traceback (most recent call last):
+        ...
+        DegeneratedSequenceError: degenerated sequence: mu[0]*right != right.
+        Using such a sequence might lead to wrong results.
+        You can use 'allow_degenerated_sequence=True' followed
+        by a call of method .regenerated() for correcting this.
+    """
+    pass
+
+
+class kRegularSequence(RecognizableSeries):
     def __init__(self, parent, mu, left=None, right=None):
         r"""
         A `k`-regular sequence.
 
         INPUT:
 
-        - ``parent`` -- an instance of :class:`kRegularSequenceSpace`.
+        - ``parent`` -- an instance of :class:`kRegularSequenceSpace`
 
         - ``mu`` -- a family of square matrices, all of which have the
           same dimension. The indices of this family are `0,...,k-1`.
           ``mu`` may be a list or tuple of cardinality `k`
-          as well. See
-          :meth:`~sage.combinat.recognizable_series.RecognizableSeries.mu`
-          for more details.
+          as well. See also
+          :meth:`~sage.combinat.recognizable_series.RecognizableSeries.mu`.
 
         - ``left`` -- (default: ``None``) a vector.
           When evaluating the sequence, this vector is multiplied
@@ -237,32 +253,37 @@ class kRegularSequence(RecognizableSeries):
 
         - ``right`` -- (default: ``None``) a vector.
           When evaluating the sequence, this vector is multiplied
-          from the left to the matrix product. If ``None``, then this
+          from the right to the matrix product. If ``None``, then this
           multiplication is skipped.
 
         When created via the parent :class:`kRegularSequenceSpace`, then
         the following option is available.
 
-        - ``transpose`` -- (default: ``False``) a boolean. If set, then
-            each of the matrices in
-            :meth:`mu <sage.combinat.recognizable_series.RecognizableSeries.mu>`
-            is transposed. Additionally the vectors
-            :meth`left <sage.combinat.recognizable_series.RecognizableSeries.left>`
-            and
-            :meth:`right <sage.combinat.recognizable_series.RecognizableSeries.right>`
-            are switched.
-            (This is done by calling :meth:`~sage.combinat.recognizable_series.RecognizableSeries.transposed`.)
-
-        - ``heal`` -- (default: ``False``) a boolean. If set, then
-          :meth:`healed` is called at the end of creating the element.
+        - ``allow_degenerated_sequence`` -- (default: ``False``) a boolean. If set, then
+          there will be no check if the input is a degenerated sequence
+          (see :meth:`is_degenerated`).
+          Otherwise the input is checked and a :class:`DegeneratedSequenceError`
+          is raised if such a sequence is detected.
 
         EXAMPLES::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-            sage: Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:      vector([0, 1]), vector([1, 0]),
-            ....:      transpose=True)
+            sage: S = Seq2((Matrix([[3, 0], [6, 1]]), Matrix([[0, 1], [-6, 5]])),
+            ....:          vector([1, 0]), vector([0, 1])); S
             2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...
+
+        We can access the coefficients of a sequence by
+        ::
+
+            sage: S[5]
+            11
+
+        or iterating over the first, say `10`, by
+        ::
+
+            sage: from itertools import islice
+            sage: list(islice(S, 10))
+            [0, 1, 3, 5, 9, 11, 15, 19, 27, 29]
 
         .. SEEALSO::
 
@@ -272,20 +293,19 @@ class kRegularSequence(RecognizableSeries):
         super(kRegularSequence, self).__init__(
             parent=parent, mu=mu, left=left, right=right)
 
-
     def _repr_(self):
         r"""
         Return a representation string of this `k`-regular sequence.
 
         OUTPUT:
 
-        A string.
+        A string
 
         TESTS::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-            sage: s = Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:           vector([0, 1]), vector([1, 0]), transpose=True)
+            sage: s = Seq2((Matrix([[3, 0], [6, 1]]), Matrix([[0, 1], [-6, 5]])),
+            ....:           vector([1, 0]), vector([0, 1]))
             sage: repr(s)  # indirect doctest
             '2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...'
         """
@@ -296,19 +316,18 @@ class kRegularSequence(RecognizableSeries):
             opening_delimiter='', closing_delimiter='',
             preview=10)
 
-
     @cached_method
     def __getitem__(self, n, **kwds):
         r"""
-        Return the `n`th entry of this sequence.
+        Return the `n`-th entry of this sequence.
 
         INPUT:
 
-        - ``n`` -- a nonnegative integer.
+        - ``n`` -- a nonnegative integer
 
         OUTPUT:
 
-        An element of the universe of the sequence.
+        An element of the universe of the sequence
 
         EXAMPLES::
 
@@ -323,7 +342,7 @@ class kRegularSequence(RecognizableSeries):
             sage: S[-1]
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to unsigned char
+            ValueError: value -1 of index is negative
 
         ::
 
@@ -341,10 +360,9 @@ class kRegularSequence(RecognizableSeries):
         """
         return self.coefficient_of_word(self.parent()._n_to_index_(n), **kwds)
 
-
     def __iter__(self):
         r"""
-        Return an iterator.
+        Return an iterator over the coefficients of this sequence.
 
         EXAMPLES::
 
@@ -368,36 +386,67 @@ class kRegularSequence(RecognizableSeries):
 
 
     @cached_method
-    def is_healthy(self):
+    def is_degenerated(self):
         r"""
-        Return whether this `k`-regular sequence satisfies
+        Return whether this `k`-regular sequence is degenerated,
+        i.e., whether this `k`-regular sequence does not satisfiy
         `\mu[0] \mathit{right} = \mathit{right}`.
 
         EXAMPLES::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-            sage: S = Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]))
-            WARNING:...:Unhealthy sequence: mu[0]*right != right.
-                        Results might be wrong. Use heal=True or
-                        method .healed() for correcting this.
+            sage: Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]))  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            DegeneratedSequenceError: degenerated sequence: mu[0]*right != right.
+            Using such a sequence might lead to wrong results.
+            You can use 'allow_degenerated_sequence=True' followed
+            by a call of method .regenerated() for correcting this.
+            sage: S = Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]),
+            ....:          allow_degenerated_sequence=True)
             sage: S
             2-regular sequence 1, 3, 6, 9, 12, 18, 18, 27, 24, 36, ...
-            sage: S.is_healthy()
-            False
+            sage: S.is_degenerated()
+            True
 
         ::
 
             sage: C = Seq2((Matrix([[2, 0], [2, 1]]), Matrix([[0, 1], [-2, 3]])),
             ....:          vector([1, 0]), vector([0, 1]))
-            sage: C.is_healthy()
-            True
+            sage: C.is_degenerated()
+            False
         """
         from sage.rings.integer_ring import ZZ
-        return (self.mu[ZZ(0)] * self.right) == self.right
+        return (self.mu[ZZ(0)] * self.right) != self.right
 
+    def _error_if_degenerated_(self):
+        r"""
+        Raise an error if this `k`-regular sequence is degenerated,
+        i.e., if this `k`-regular sequence does not satisfiy
+        `\mu[0] \mathit{right} = \mathit{right}`.
+
+        TESTS::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: Seq2((Matrix([[3, 2], [0, 1]]), Matrix([[2, 0], [1, 3]])),
+            ....:      left=vector([0, 1]), right=vector([1, 0]))  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            DegeneratedSequenceError: degenerated sequence: mu[0]*right != right.
+            Using such a sequence might lead to wrong results.
+            You can use 'allow_degenerated_sequence=True' followed
+            by a call of method .regenerated() for correcting this.
+        """
+        if self.is_degenerated():
+            raise DegeneratedSequenceError(
+                "degenerated sequence: mu[0]*right != right. "
+                "Using such a sequence might lead to wrong results. "
+                "You can use 'allow_degenerated_sequence=True' followed by "
+                "a call of method .regenerated() "
+                "for correcting this.")
 
     @cached_method
-    def healed(self, minimize=True):
+    def regenerated(self, minimize=True):
         r"""
         Return a `k`-regular sequence that satisfies
         `\mu[0] \mathit{right} = \mathit{right}`.
@@ -416,21 +465,19 @@ class kRegularSequence(RecognizableSeries):
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
 
         The following linear representation of `S` is chosen bad (is
-        unhealty, see :meth:`is_healthy`), as `\mu(0)` applied on
+        degenerated, see :meth:`is_degenerated`), as `\mu(0)` applied on
         `\mathit{right}` does not equal `\mathit{right}`::
 
-            sage: S = Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]))
-            WARNING:...:Unhealthy sequence: mu[0]*right != right.
-                        Results might be wrong. Use heal=True or
-                        method .healed() for correcting this.
+            sage: S = Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]),
+            ....:          allow_degenerated_sequence=True)
             sage: S
             2-regular sequence 1, 3, 6, 9, 12, 18, 18, 27, 24, 36, ...
-            sage: S.is_healthy()
-            False
+            sage: S.is_degenerated()
+            True
 
-        However, we can heal the sequence `S`::
+        However, we can regenerate the sequence `S`::
 
-            sage: H = S.healed()
+            sage: H = S.regenerated()
             sage: H
             2-regular sequence 1, 3, 6, 9, 12, 18, 18, 27, 24, 36, ...
             sage: H.mu[0], H.mu[1], H.left, H.right
@@ -438,34 +485,32 @@ class kRegularSequence(RecognizableSeries):
             [ 0  1]  [3 0]
             [-2  3], [6 0], (1, 0), (1, 1)
             )
-            sage: H.is_healthy()
-            True
+            sage: H.is_degenerated()
+            False
 
         TESTS::
 
-            sage: S = Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]))
-            WARNING:...:Unhealthy sequence: mu[0]*right != right.
-                        Results might be wrong. Use heal=True or
-                        method .healed() for correcting this.
-            sage: H = S.healed(minimize=False)
+            sage: S = Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]),
+            ....:          allow_degenerated_sequence=True)
+            sage: H = S.regenerated(minimize=False)
             sage: H.mu[0], H.mu[1], H.left, H.right
             (
             [1 0]  [0 0]
             [0 2], [3 3], (1, 1), (1, 0)
             )
-            sage: H.is_healthy()
-            True
+            sage: H.is_degenerated()
+            False
 
         ::
 
             sage: C = Seq2((Matrix([[2, 0], [2, 1]]), Matrix([[0, 1], [-2, 3]])),
             ....:          vector([1, 0]), vector([0, 1]))
-            sage: C.is_healthy()
-            True
-            sage: C.healed() is C
+            sage: C.is_degenerated()
+            False
+            sage: C.regenerated() is C
             True
         """
-        if self.is_healthy():
+        if not self.is_degenerated():
             return self
 
         from sage.matrix.special import zero_matrix, identity_matrix
@@ -492,6 +537,78 @@ class kRegularSequence(RecognizableSeries):
         else:
             return result
 
+    def transposed(self, allow_degenerated_sequence=False):
+        r"""
+        Return the transposed sequence.
+
+        INPUT:
+
+        - ``allow_degenerated_sequence`` -- (default: ``False``) a boolean. If set, then
+          there will be no check if the transposed sequence is a degenerated sequence
+          (see :meth:`is_degenerated`).
+          Otherwise the transposed sequence is checked and a :class:`DegeneratedSequenceError`
+          is raised if such a sequence is detected.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`
+
+        Each of the matrices in :meth:`mu <mu>` is transposed. Additionally
+        the vectors :meth:`left <left>` and :meth:`right <right>` are switched.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: U = Seq2((Matrix([[3, 2], [0, 1]]), Matrix([[2, 0], [1, 3]])),
+            ....:          left=vector([0, 1]), right=vector([1, 0]),
+            ....:          allow_degenerated_sequence=True)
+            sage: U.is_degenerated()
+            True
+            sage: Ut = U.transposed()
+            sage: Ut.is_degenerated()
+            False
+
+            sage: Ut.transposed()
+            Traceback (most recent call last):
+            ...
+            DegeneratedSequenceError: degenerated sequence: mu[0]*right != right.
+            Using such a sequence might lead to wrong results.
+            You can use 'allow_degenerated_sequence=True' followed
+            by a call of method .regenerated() for correcting this.
+            sage: Utt = Ut.transposed(allow_degenerated_sequence=True)
+            sage: Utt.is_degenerated()
+            True
+
+        .. SEEALSO::
+
+            :meth:`RecognizableSeries.tranposed <sage.combinat.recognizable_series.RecognizableSeries.tranposed>`
+        """
+        element = super().transposed()
+        if not allow_degenerated_sequence:
+            element._error_if_degenerated_()
+        return element
+
+    def _minimized_right_(self):
+        r"""
+        Return a recognizable series equivalent to this series, but
+        with a right minimized linear representation.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`
+
+        .. SEEALSO::
+
+            :meth:`RecognizableSeries._minimized_right_ <sage.combinat.recognizable_series.RecognizableSeries._minimized_right>`
+
+        TESTS::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: Seq2((Matrix([[3, 0], [2, 1]]), Matrix([[2, 1], [0, 3]])),
+            ....:          left=vector([1, 0]), right=vector([0, 1])).minimized()  # indirect doctest
+            2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...
+        """
+        return self.transposed(allow_degenerated_sequence=True)._minimized_left_().transposed(allow_degenerated_sequence=True)
 
     def subsequence(self, a, b, minimize=True):
         r"""
@@ -617,13 +734,11 @@ class kRegularSequence(RecognizableSeries):
             ValueError: a=-1 is not nonnegative.
 
         The following linear representation of `S` is chosen bad (is
-        unhealty, see :meth:`is_healthy`), as `\mu(0)` applied on
+        degenerated, see :meth:`is_degenerated`), as `\mu(0)` applied on
         `\mathit{right}` does not equal `\mathit{right}`::
 
-            sage: S = Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]))
-            WARNING:...:Unhealthy sequence: mu[0]*right != right.
-                        Results might be wrong. Use heal=True or
-                        method .healed() for correcting this.
+            sage: S = Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]),
+            ....:          allow_degenerated_sequence=True)
             sage: S
             2-regular sequence 1, 3, 6, 9, 12, 18, 18, 27, 24, 36, ...
 
@@ -636,7 +751,7 @@ class kRegularSequence(RecognizableSeries):
         We get the correct result by
         ::
 
-            sage: S.healed().subsequence(1, -4)
+            sage: S.regenerated().subsequence(1, -4)
             2-regular sequence 0, 0, 0, 0, 1, 3, 6, 9, 12, 18, ...
         """
         from sage.rings.integer_ring import ZZ
@@ -647,7 +762,7 @@ class kRegularSequence(RecognizableSeries):
 
         if a == 0:
             return sum(c_j * self[b_j] * self.parent().one_hadamard()
-                       for b_j, c_j in iteritems(b))
+                       for b_j, c_j in b.items())
         elif a == 1 and len(b) == 1 and zero in b:
             return b[zero] * self
         elif a < 0:
@@ -695,7 +810,7 @@ class kRegularSequence(RecognizableSeries):
                  for r in A),
             sum(c_j * vector(
                     pad_right(pad(tuple(self.left), b_j), ndim, zero=zero))
-                for b_j, c_j in iteritems(b)),
+                for b_j, c_j in b.items()),
             vector(sum((tuple(self.__getitem__(c, multiply_left=False))
                         if c >= 0 else dim*(zero,)
                         for c in kernel), tuple())))
@@ -826,13 +941,11 @@ class kRegularSequence(RecognizableSeries):
             2-regular sequence 0, 1, 3, 6, 10, 15, 21, 28, 36, 45, ...
 
         The following linear representation of `S` is chosen bad (is
-        unhealty, see :meth:`is_healthy`), as `\mu(0)` applied on
+        degenerated, see :meth:`is_degenerated`), as `\mu(0)` applied on
         `\mathit{right}` does not equal `\mathit{right}`::
 
-            sage: S = Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]))
-            WARNING:...:Unhealthy sequence: mu[0]*right != right.
-                        Results might be wrong. Use heal=True or
-                        method .healed() for correcting this.
+            sage: S = Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]),
+            ....:          allow_degenerated_sequence=True)
             sage: S
             2-regular sequence 1, 3, 6, 9, 12, 18, 18, 27, 24, 36, ...
 
@@ -865,11 +978,11 @@ class kRegularSequence(RecognizableSeries):
             sage: G.minimized().dimension() == G.dimension()
             True
 
-        Or we heal the sequence `S` first::
+        Or we regenerate the sequence `S` first::
 
-            sage: S.healed().partial_sums(include_n=True, minimize=False)
+            sage: S.regenerated().partial_sums(include_n=True, minimize=False)
             2-regular sequence 1, 4, 10, 19, 31, 49, 67, 94, 118, 154, ...
-            sage: S.healed().partial_sums(minimize=False)
+            sage: S.regenerated().partial_sums(minimize=False)
             2-regular sequence 0, 1, 4, 10, 19, 31, 49, 67, 94, 118, ...
 
         TESTS::
@@ -927,7 +1040,7 @@ def _pickle_kRegularSequenceSpace(k, coefficients, category):
         sage: Seq2 = kRegularSequenceSpace(2, ZZ)
         sage: from sage.combinat.k_regular_sequence import _pickle_kRegularSequenceSpace
         sage: _pickle_kRegularSequenceSpace(
-        ....:     Seq2.k, Seq2.coefficients(), Seq2.category())
+        ....:     Seq2.k, Seq2.coefficient_ring(), Seq2.category())
         Space of 2-regular sequences over Integer Ring
     """
     return kRegularSequenceSpace(k, coefficients, category=category)
@@ -939,13 +1052,12 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
     INPUT:
 
-    - ``k`` -- an integer at least `2` specifying the base.
+    - ``k`` -- an integer at least `2` specifying the base
 
-    - ``coefficients`` -- a (semi-)ring. If not specified (``None``),
-      then the integer ring is used.
+    - ``coefficient_ring`` -- a (semi-)ring.
 
     - ``category`` -- (default: ``None``) the category of this
-      space.
+      space
 
     EXAMPLES::
 
@@ -959,12 +1071,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         :doc:`k-regular sequence <k_regular_sequence>`,
         :class:`kRegularSequence`.
     """
-
     Element = kRegularSequence
 
-
     @classmethod
-    def __normalize__(cls, k, coefficients=None, **kwds):
+    def __normalize__(cls, k, coefficient_ring, **kwds):
         r"""
         Normalizes the input in order to ensure a unique
         representation.
@@ -976,20 +1086,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: Seq2.category()
             Category of modules over Integer Ring
-
-        ::
-
-            sage: Seq2 is kRegularSequenceSpace(2)
-            True
+            sage: Seq2.alphabet()
+            {0, 1}
         """
         from sage.arith.srange import srange
-        from sage.rings.integer_ring import ZZ
-        if coefficients is None:
-            coefficients = ZZ
         nargs = super(kRegularSequenceSpace, cls).__normalize__(
-            coefficients, alphabet=srange(k), **kwds)
+            coefficient_ring, alphabet=srange(k), **kwds)
         return (k,) + nargs
-
 
     def __init__(self, k, *args, **kwds):
         r"""
@@ -997,7 +1100,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         INPUT:
 
-        - ``k`` -- an integer at least `2` specifying the base.
+        - ``k`` -- an integer at least `2` specifying the base
 
         Other input arguments are passed on to
         :meth:`~sage.combinat.recognizable_series.RecognizableSeriesSpace.__init__`.
@@ -1020,6 +1123,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             running ._test_an_element() . . . pass
             running ._test_cardinality() . . . pass
             running ._test_category() . . . pass
+            running ._test_construction() . . . pass
             running ._test_elements() . . .
               Running the test suite of self.an_element()
               running ._test_category() . . . pass
@@ -1048,7 +1152,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         self.k = k
         super(kRegularSequenceSpace, self).__init__(*args, **kwds)
 
-
     def __reduce__(self):
         r"""
         Pickling support.
@@ -1060,8 +1163,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             Space of 2-regular sequences over Integer Ring
         """
         return _pickle_kRegularSequenceSpace, \
-            (self.k, self.coefficients(), self.category())
-
+            (self.k, self.coefficient_ring(), self.category())
 
     def _repr_(self):
         r"""
@@ -1069,7 +1171,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         OUTPUT:
 
-        A string.
+        A string
 
         TESTS::
 
@@ -1078,7 +1180,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         """
         return 'Space of {}-regular sequences over {}'.format(self.k, self.base())
 
-
     def _n_to_index_(self, n):
         r"""
         Convert `n` to an index usable by the underlying
@@ -1086,11 +1187,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         INPUT:
 
-        - ``n`` -- a nonnegative integer.
+        - ``n`` -- a nonnegative integer
 
         OUTPUT:
 
-        A word.
+        A word
 
         TESTS::
 
@@ -1100,13 +1201,15 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2._n_to_index_(-1)
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to unsigned char
+            ValueError: value -1 of index is negative
         """
         from sage.rings.integer_ring import ZZ
         n = ZZ(n)
         W = self.indices()
-        return W(n.digits(self.k))
-
+        try:
+            return W(n.digits(self.k))
+        except OverflowError:
+            raise ValueError('value {} of index is negative'.format(n)) from None
 
     def some_elements(self):
         r"""
@@ -1122,15 +1225,19 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             sage: tuple(kRegularSequenceSpace(2, ZZ).some_elements())
             (2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ...,
-             2-regular sequence 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...,
-             2-regular sequence 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...,
-             2-regular sequence -2, -4, 4, -8, -4, 8, 8, -16, 4, -8, ...,
-             2-regular sequence 1, 2, 2, 4, 2, 2, 4, 8, 2, 2, ...,
-             2-regular sequence 2, 11, 14, 20, 17, 23, 23, 29, 20, 26, ...,
+             2-regular sequence 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, ...,
+             2-regular sequence 1, 1, 0, 1, -1, 0, 0, 1, -2, -1, ...,
+             2-regular sequence 2, -1, 0, 0, 0, -1, 0, 0, 0, 0, ...,
+             2-regular sequence 1, 1, 0, 1, 5, 0, 0, 1, -33, 5, ...,
+             2-regular sequence -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence -59, -20, 0, -20, 0, 0, 0, -20, 0, 0, ...,
              ...
-             2-regular sequence 1, 10, 10, 100, 10, 10, 100, 1000, 10, 10, ...)
+             2-regular sequence 2210, 170, 0, 0, 0, 0, 0, 0, 0, 0, ...)
         """
-        return super(kRegularSequenceSpace, self).some_elements(heal=True)
+        return iter(element.regenerated()
+                    for element
+                    in super(kRegularSequenceSpace, self).some_elements(
+                        allow_degenerated_sequence=True))
 
 
     def _element_constructor_(self, *args, **kwds):
@@ -1143,25 +1250,23 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]))
-            WARNING:...:Unhealthy sequence: mu[0]*right != right.
-                        Results might be wrong. Use heal=True or
-                        method .healed() for correcting this.
+            Traceback (most recent call last):
+            ...
+            DegeneratedSequenceError: degenerated sequence: mu[0]*right != right.
+            Using such a sequence might lead to wrong results.
+            You can use 'allow_degenerated_sequence=True' followed
+            by a call of method .regenerated() for correcting this.
+            sage: Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]),
+            ....:      allow_degenerated_sequence=True)
             2-regular sequence 1, 3, 6, 9, 12, 18, 18, 27, 24, 36, ...
             sage: Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]),
-            ....:      heal=True)
+            ....:      allow_degenerated_sequence=True).regenerated()
             2-regular sequence 1, 3, 6, 9, 12, 18, 18, 27, 24, 36, ...
         """
-        heal = kwds.pop('heal', False)
+        allow_degenerated_sequence = kwds.pop('allow_degenerated_sequence', False)
         element = super(kRegularSequenceSpace, self)._element_constructor_(*args, **kwds)
-        if heal:
-            element = element.healed()
-        elif not element.is_healthy():
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.warning('Unhealthy sequence: mu[0]*right != right. '
-                           'Results might be wrong. '
-                           'Use heal=True or method .healed() '
-                           'for correcting this.')
+        if not allow_degenerated_sequence:
+            element._error_if_degenerated_()
         return element
 
 
@@ -1221,6 +1326,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             [1 0]  [ 0  1]
             [0 1], [-1  2], (1, 0), (0, 1)
             )
+
             sage: logging.getLogger().setLevel(logging.WARN)
 
         Variant 2::
@@ -1270,17 +1376,15 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             )
 
         The following linear representation of `S` is chosen bad (is
-        unhealty, see :meth:`is_healthy`), as `\mu(0)` applied on
+        degenerated, see :meth:`is_degenerated`), as `\mu(0)` applied on
         `\mathit{right}` does not equal `\mathit{right}`::
 
-            sage: S = Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]))
-            WARNING:...:Unhealthy sequence: mu[0]*right != right.
-                        Results might be wrong. Use heal=True or
-                        method .healed() for correcting this.
+            sage: S = Seq2((Matrix([2]), Matrix([3])), vector([1]), vector([1]),
+            ....:          allow_degenerated_sequence=True)
             sage: S
             2-regular sequence 1, 3, 6, 9, 12, 18, 18, 27, 24, 36, ...
-            sage: S.is_healthy()
-            False
+            sage: S.is_degenerated()
+            True
 
         However, we can :meth:`~kRegularSequenceSpace.guess` a `2`-regular sequence of dimension `2`::
 
@@ -1293,7 +1397,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             [-2  3], [6 0], (1, 0), (1, 1)
             )
 
-            sage: G == S.healed()
+            sage: G == S.regenerated()
             True
 
         TESTS::
@@ -1356,7 +1460,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         from sage.modules.free_module_element import vector
 
         k = self.k
-        domain = self.coefficients()
+        domain = self.coefficient_ring()
         if sequence is None:
             mu = [[] for _ in srange(k)]
             seq = lambda m: tuple()
