@@ -2604,6 +2604,8 @@ cdef class MPolynomial(CommutativeRingElement):
             2
             sage: (12*p).valuation(6)
             1
+            sage: ((x^2 + 1)^3*p).valuation(x^2 + 1)
+            3
             sage: ((x*y + x*z + 1)*p).valuation(x*y + x*z + 1)
             1
         """

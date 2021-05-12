@@ -182,7 +182,14 @@ class Polynomial_generic_sparse(Polynomial):
 
     def valuation(self, p=None):
         """
-        Return the valuation of ``self``.
+        Return the valuation of this polynomial.
+
+        INPUT:
+
+        - ``p`` -- ``None``, ``infinity`` or a polynomial.
+          If ``infinity``, returns the negation of the degree of this polynomial.
+          If a polynomial, returns the largest power of that polynomial dividing this one.
+          ``None`` gives the same result as the generator.
 
         EXAMPLES::
 
@@ -190,6 +197,8 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f = w^1997 - w^10000
             sage: f.valuation()
             1997
+            sage: f.valuation(infinity)
+            -10000
             sage: R(19).valuation()
             0
             sage: R(0).valuation()
@@ -1206,7 +1215,8 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
         b = ~dera
         while(True):
             na = a - selfa * b
-            if na == a: return a
+            if na == a:
+                return a
             a = na
             selfa = self(a)
             dera = der(a)
@@ -1484,7 +1494,8 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
                 continue
             if hint is not None and slope == minval:
                 rootsbar = hint
-                if not rootsbar: continue
+                if not rootsbar:
+                    continue
             if i < len(vertices) - 1:
                 F = P._factor_of_degree(deg_right - deg)
                 P = P // F
@@ -1498,7 +1509,8 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             if hint is None or slope != minval:
                 Fbar = Pk([ F[j] >> (val - j*slope) for j in range(F.degree()+1) ])
                 rootsbar = [ r for (r, _) in Fbar.roots() ]
-                if not rootsbar: continue
+                if not rootsbar:
+                    continue
             rbar = rootsbar.pop()
             shift = K(rbar).lift_to_precision() << slope  # probably we should choose a better lift
             roots += [(r+shift, m) for (r, m) in F(x+shift)._roots(secure, slope, [r-rbar for r in rootsbar])]  # recursive call
