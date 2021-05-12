@@ -28,7 +28,7 @@ import operator
 
 
 from sage.structure.element cimport Element, ModuleElement
-from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal, rich_to_bool
 from sage.structure.parent cimport Parent
 
 
@@ -201,7 +201,7 @@ cdef class Morphism(Map):
 
         .. NOTE::
 
-            Implemented only when the domain has a method gens()
+            Implemented only when the domain has methods `gens` and `base_ring`.
 
         EXAMPLES::
 
@@ -220,13 +220,21 @@ cdef class Morphism(Map):
             sage: h.is_identity()
             False
         """
-        try:
-            i = self._parent.identity()
-        except TypeError:
-            # If there is no identity morphism,
-            # then self cannot be equal to it.
+        domain = self.domain()
+        if domain is not self.codomain():
             return False
-        return self._richcmp_(i, Py_EQ)
+        ring = domain.base_ring()
+        gens = domain.gens()
+        while True:
+            for a in ring.gens():
+                for x in gens:
+                    elt = a * x
+                    if self(elt) != elt:
+                        return False
+            base = ring.base_ring()
+            if base is ring:
+                return True
+            ring = base
 
     def pushforward(self, I):
         raise NotImplementedError
@@ -326,8 +334,11 @@ cdef class Morphism(Map):
         """
         Generic comparison function for morphisms.
 
-        We check the images of the generators of the domain under both
-        maps. We then iteratively check the base.
+        This is the generic implementation:
+        we check if both morphisms agree on product of the form
+        `a x` where `x` runs over the generators of the domain
+        and `a` runs over the generators of all successive base
+        rings of the domain.
 
         TESTS::
 
@@ -347,41 +358,24 @@ cdef class Morphism(Map):
             sage: f.is_identity()
             True
         """
-        if self is other:
-            return rich_to_bool(op, 0)
-
         # Important note: because of the coercion model, we know that
         # self and other have identical parents. This means that self
         # and other have the same domain and codomain.
-
-        cdef Parent domain = <Parent?>self.domain()
-        e = None
+        if self is other:
+            return rich_to_bool(op, 0)
+        domain = self.domain()
+        ring = domain.base_ring()
+        gens = domain.gens()
         while True:
-            try:
-                m = domain.gens
-            except AttributeError:
-                raise NotImplementedError(f"unable to compare morphisms of type {type(self)} and {type(other)} with domain {domain}")
-            gens = m()
-            # If e is a ModuleElement, then this is not the first
-            # iteration and we are really in the base structure.
-            #
-            # If so, we see the base as a ring of scalars and create new
-            # gens by picking an element of the initial domain (e) and
-            # multiplying it with the gens of the scalar ring.
-            if e is not None and isinstance(e, ModuleElement):
-                B = (<ModuleElement>e)._parent._base
-                gens = [(<ModuleElement>e)._lmul_(B.coerce(x)) for x in gens]
-            for e in gens:
-                x = self(e)
-                y = other(e)
-                if x != y:
-                    return richcmp_not_equal(x, y, op)
-            # Check base
-            base = domain._base
-            if base is None or base is domain:
-                break
-            domain = <Parent?>base
-        return rich_to_bool(op, 0)
+            for a in ring.gens():
+                for x in gens:
+                    elt = a * x
+                    if self(elt) != other(elt):
+                        return richcmp(self(elt), other(elt), op)
+            base = ring.base_ring()
+            if base is ring:
+                return rich_to_bool(op, 0)
+            ring = base
 
     def __nonzero__(self):
         r"""

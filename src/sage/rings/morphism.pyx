@@ -389,8 +389,11 @@ from cpython.object cimport Py_EQ, Py_NE
 
 from . import ideal
 import sage.structure.all
-from sage.structure.richcmp cimport (richcmp, rich_to_bool, richcmp_not_equal)
+from sage.structure.richcmp cimport richcmp, rich_to_bool, richcmp_not_equal
 from sage.misc.cachefunc import cached_method
+
+from sage.rings.ring cimport Ring
+from sage.structure.element cimport RingElement
 
 
 def is_RingHomomorphism(phi):
@@ -741,13 +744,13 @@ cdef class RingHomomorphism(RingMap):
             pass
         return slots
 
-    def _richcmp_(self, other, int op):
+    cpdef _richcmp_(self, other, int op):
         r"""
         Compare this ring morphism with ``other``.
 
         This is the generic implementation:
         we check if both morphisms agree on the generators of the
-        domain (including generators of successive base rings).
+        domain, including generators of successive base rings.
 
         TESTS:
 
@@ -760,18 +763,22 @@ cdef class RingHomomorphism(RingMap):
             sage: f == g
             False
         """
-        domain = self.domain()
-        if domain is other.domain() and self.codomain() is other.codomain():
-            while True:
-                for g in domain.gens():
-                    if self(g) != other(g):
-                        return richcmp(self(g), other(g), op)
-                base = domain.base_ring()
-                if base is domain:
-                    return rich_to_bool(op, 0)
-                domain = base
-        else:
-            return richcmp((domain, self.codomain()), (other.domain(), other.codomain()), op)
+        # Important note: because of the coercion model, we know that
+        # self and other have identical parents. This means that self
+        # and other have the same domain and codomain.
+
+        cdef Ring domain, ring, base
+        cdef RingElement g
+        ring = domain = self.domain()
+        while True:
+            for g in ring.gens():
+                g = domain(g)
+                if self(g) != other(g):
+                    return richcmp(self(g), other(g), op)
+            base = ring.base_ring()
+            if base is ring:
+                return rich_to_bool(op, 0)
+            ring = base
 
     def _composition_(self, right, homset):
         """
