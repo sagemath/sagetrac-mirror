@@ -3730,14 +3730,6 @@ class Link(SageObject):
 
             sage: import snappy                    # optional - snappy
             Plink failed to import tkinter.
-            doctest:warning
-            ...
-            DeprecationWarning: the complex_field module is deprecated, please use sage.rings.complex_mpfr
-            See http://trac.sagemath.org/24483 for details.
-            doctest:warning
-            ...
-            DeprecationWarning: the complex_number module is deprecated, please use sage.rings.complex_mpfr
-            See http://trac.sagemath.org/24483 for details.
 
             sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: KnotInfoSeries(10, True, True)   # optional - database_knotinfo
