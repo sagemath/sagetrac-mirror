@@ -236,6 +236,51 @@ cdef class Morphism(Map):
                 return True
             ring = base
 
+    def is_coercion_map(self):
+        r"""
+        Return ``True`` if this morphism is a coercion map.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R[]
+            sage: i = S.coerce_map_from(R)
+            sage: i.is_coercion_map()
+            False
+
+        Identities are of course always coercion maps::
+
+            sage: End(R).identity().is_coercion_map()
+            True
+
+        This method recognizes morphisms which are equal to
+        coercion maps but not explicitly defined as such::
+
+            sage: j = R.hom([S(x)])
+            sage: j
+            Ring morphism:
+              From: Univariate Polynomial Ring in x over Rational Field
+              To:   Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+              Defn: x |--> x
+            sage: j.is_coercion_map()
+            True
+        """
+        ring = domain = self.domain()
+        if not self.codomain().has_coerce_map_from(domain):
+            return False
+        ring = domain.base_ring()
+        gens = domain.gens()
+        while True:
+            for a in ring.gens():
+                for x in gens:
+                    elt = a * x
+                    if self(elt) != elt:
+                        return False
+            base = ring.base_ring()
+            if base is ring:
+                return True
+            ring = base
+
     def pushforward(self, I):
         raise NotImplementedError
 
@@ -334,8 +379,8 @@ cdef class Morphism(Map):
         """
         Generic comparison function for morphisms.
 
-        This is the generic implementation:
-        we check if both morphisms agree on product of the form
+        This is a generic implementation.
+        We check if both morphisms agree on product of the form
         `a x` where `x` runs over the generators of the domain
         and `a` runs over the generators of all successive base
         rings of the domain.

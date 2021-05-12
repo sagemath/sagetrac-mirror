@@ -748,8 +748,8 @@ cdef class RingHomomorphism(RingMap):
         r"""
         Compare this ring morphism with ``other``.
 
-        This is the generic implementation:
-        we check if both morphisms agree on the generators of the
+        This is a generic implementation.
+        We check if both morphisms agree on the generators of the
         domain, including generators of successive base rings.
 
         TESTS:
@@ -766,7 +766,6 @@ cdef class RingHomomorphism(RingMap):
         # Important note: because of the coercion model, we know that
         # self and other have identical parents. This means that self
         # and other have the same domain and codomain.
-
         cdef Ring domain, ring, base
         cdef RingElement g
         ring = domain = self.domain()
@@ -778,6 +777,105 @@ cdef class RingHomomorphism(RingMap):
             base = ring.base_ring()
             if base is ring:
                 return rich_to_bool(op, 0)
+            ring = base
+
+    def is_identity(self):
+        r"""
+        Return true if this morphism is the identity.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = R.hom([x])
+            sage: f.is_identity()
+            True
+
+            sage: g = R.hom([x+1])
+            sage: g.is_identity()
+            False
+
+        This method always returns false if the domain of the
+        morphism is not the same as its morphism. In particular,
+        coercion morphisms are not considered as identities::
+
+            sage: S.<y> = R[]
+            sage: i = S.coerce_map_from(R)
+            sage: i.is_identity()
+            False
+
+        Similarly, if this morphism is a canonical identification
+        between two different rings, it is not considered as an
+        identity::
+
+            sage: T = S.quo(y)
+            sage: j = R.hom([T(x)])
+            sage: j
+            Ring morphism:
+              From: Univariate Polynomial Ring in x over Rational Field
+              To:   Univariate Quotient Polynomial Ring in ybar over Univariate Polynomial Ring in x over Rational Field with modulus y
+              Defn: x |--> x
+            sage: j.is_identity()
+            False
+
+        .. SEEALSO:: :meth:`is_coercion_map`
+        """
+        cdef Ring domain, ring, base
+        cdef RingElement g
+        ring = domain = self.domain()
+        if domain is not self.codomain():
+            return False
+        while True:
+            for g in ring.gens():
+                g = domain(g)
+                if self(g) != g:
+                    return False
+            base = ring.base_ring()
+            if base is ring:
+                return True
+            ring = base
+
+    def is_coercion_map(self):
+        r"""
+        Return ``True`` if this morphism is a coercion map.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R[]
+            sage: i = S.coerce_map_from(R)
+            sage: i.is_coercion_map()
+            True
+
+        Identities are of course always coercion maps::
+
+            sage: End(R).identity().is_coercion_map()
+            True
+
+        This method recognizes morphisms which are equal to
+        coercion maps but not explicitly defined as such::
+
+            sage: j = R.hom([S(x)])
+            sage: j
+            Ring morphism:
+              From: Univariate Polynomial Ring in x over Rational Field
+              To:   Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+              Defn: x |--> x
+            sage: j.is_coercion_map()
+            True
+        """
+        cdef Ring domain, ring, base
+        cdef RingElement g
+        ring = domain = self.domain()
+        if not self.codomain().has_coerce_map_from(domain):
+            return False
+        while True:
+            for g in ring.gens():
+                g = domain(g)
+                if self(g) != g:
+                    return False
+            base = ring.base_ring()
+            if base is ring:
+                return True
             ring = base
 
     def _composition_(self, right, homset):
