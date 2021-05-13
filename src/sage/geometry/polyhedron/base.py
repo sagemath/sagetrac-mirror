@@ -6893,7 +6893,7 @@ class Polyhedron_base(Element):
 
     def join_of_Vrep(self, *Vrepresentatives):
         r"""
-        Return the smallest face that contains in ``Vrepresentatives``.
+        Return the smallest face that contains ``Vrepresentatives``.
 
         INPUT:
 
