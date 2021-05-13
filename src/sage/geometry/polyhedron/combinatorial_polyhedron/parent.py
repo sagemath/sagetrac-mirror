@@ -34,3 +34,33 @@ class CombinatorialPolyhedra(UniqueRepresentation, Parent):
         Return a string representation.
         """
         return "Combinatorial polyhedra"
+
+    def _Hom_(self, other, category=None):
+        """
+        EXAMPLES::
+
+        sage: C = polytopes.cube().combinatorial_polyhedron()
+        sage: Hom(C.parent(), C.parent()) # indirect doctest
+        Set of Morphisms
+         from Combinatorial polyhedra
+         to Combinatorial polyhedra
+         in Category of combinatorial polyhedral sets
+        """
+        from sage.categories.combinatorial_polyhedral_sets import CombinatorialPolyhedralSets
+        if category is not None and not category.is_subcategory(CombinatorialPolyhedralSets()):
+            raise TypeError(f"{category} is not a subcategory of CombinatorialPolyhedralSets()")
+        from .homset import CombinatorialPolyhedraHomset
+        return CombinatorialPolyhedraHomset(self, other)
+
+    def hom(self, Vrep_dict, codomain=None, check=True, category=None):
+        """
+        Create a morphism from ``self`` to another set of combinatorial polyhedra.
+
+        EXAMPLES::
+
+            sage: C = polytopes.cube().combinatorial_polyhedron()
+            sage: C.parent().hom({1: 2, 2: 2}, C.parent())
+
+        """
+        homset = self.Hom(codomain)
+        return homset(Vrep_dict, check=check)
