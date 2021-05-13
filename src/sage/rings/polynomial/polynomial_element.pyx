@@ -8968,21 +8968,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 raise NotImplementedError
 
-        if is_FractionField(p.parent()):
+        P = parent(p)
+
+        if is_FractionField(P):
             if p.denominator().is_unit():
                 p = p.numerator()
+                P = parent(p)
             else:
                 raise TypeError("The denominator should be a unit.")
 
         if self.base_ring().has_coerce_map_from(p.parent()):
-            return min(c.valuation(p) for c in self.coefficients())
+            return min(self.get_unsafe(k).valuation(p)
+                       for k in range(self.degree()+1)
+                       if self.get_unsafe(k))
 
-        elif self.parent().has_coerce_map_from(p.parent()):
-            p = self.parent().coerce(p)
+        elif self._parent.has_coerce_map_from(P):
+            p = self._parent.coerce(p)
             k = 0
             while p.divides(self):
                 k += 1
-                self = self.__floordiv__(p)
+                self = self._floordiv_(p) # same parent
             return sage.rings.integer.Integer(k)
 
         else:
