@@ -672,6 +672,14 @@ def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2):
         if not has_given_invariant_submodule(M, fM, GM, qlist, p):
             continue
             print('does not have the given invariant submodule')
+        if k3_unobstructed:
+            P = PolynomialRing(QQ,"x")
+            x = P.gen()
+            pol = (x^(p^e*q)-1)/(x-1)
+            K = M.kernel_sublattice(pol(f))
+            if K.signature_pair()[0]==0 and K.maximum()==-2:
+                print("obstructed")
+                continue
         if verbose >= 0:
             print('%s^%s * %s -- %s^%s'%(p,e,q,p,e))
             print(M.genus())
