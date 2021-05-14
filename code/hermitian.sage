@@ -130,7 +130,12 @@ def all_lattice_with_isometry(n, rk, det, max_scale, min_scale=1, min_norm=1, si
         f = matrix.identity(ZZ, rk)
         if n == 2:
             f = -f
-        rep = [LatticeWithIsometry(IntegralLattice(g),f,order=n) for g in flatten([genus.representatives() for genus in genera])]
+        rep = []
+        for genus in genera:
+            if genus.dim()>12:
+                print("computing representatives of ")
+                print(genus)
+            rep += [LatticeWithIsometry(IntegralLattice(g),f,order=n) for g in genus.representatives()]
         return rep
 
     E.<a> = CyclotomicField(n)
@@ -307,11 +312,12 @@ def Oq_equiv_herm(L,f, G, Lh):
     ord = f.change_ring(ZZ).multiplicative_order()
     n = G.ncols()
     E = G.base_ring()
-    prime = false
+    prime = false; dyadic = false
     if len(prime_factors(ord))==1:
       prime = true
       A = E.different()
       P = A.prime_factors()[0]
+      dyadic = 2.divides(P.norm())
     assert ord>2
     assert G.ncols()>1
     OGL = L.q().O()
@@ -320,6 +326,20 @@ def Oq_equiv_herm(L,f, G, Lh):
     # the ambient group we want to generate
     Oqf = OGL.subgroup(GL.GeneratorsOfGroup())
     K,phi = E.maximal_totally_real_subfield()
+    gamma = 1/2 # something of trace 1
+    if dyadic:
+        print("searching gamma")
+        e =2
+        while True:
+            g = E(-1*K.random_element()^2 -1)
+            val = 2*E(2).valuation(P)-2*e+2 
+            valg = g.valuation(P)
+            if valg == val and (g+1).is_square():
+                 print("heureka")
+                 break
+        gamma = (1+(g+1).sqrt())/2
+        assert gamma.valuation(P)==1 -e
+        assert gamma+gamma.conjugate()==1
     VO = E.maximal_order()^n
     VE = E^n
     D = L.discriminant_group()
@@ -343,8 +363,10 @@ def Oq_equiv_herm(L,f, G, Lh):
     m = gp.eval('qflllgram_indefgoon(%s)'%m)
     # convert the output string to sage
     extra = pari(m).sage()[1].columns()
+    print(L.genus())
     while S.order()!=Oqf.order():
         count +=1
+        nsigmatrys = 500
         if flag:
           try:
             x = next(De)[1]
@@ -352,6 +374,7 @@ def Oq_equiv_herm(L,f, G, Lh):
           except StopIteration:
             print("done discr")
             flag = false
+            nsigmatrys = 100
         elif len(extra)>0:
             e = extra.pop()
             s = vecZtoV(VE, e)
@@ -359,7 +382,7 @@ def Oq_equiv_herm(L,f, G, Lh):
             s = VE(VO.random_element().list())
         if s == 0:
             continue
-        sigma = s*G*s.conjugate()/2
+        sigma = s*G*s.conjugate()*gamma
         print("Computing spinor norms of Oqf. Total:" +str(Oqf.order())+" Remaining:" +str(Oqf.order()/S.order()) + " number of tries: " +str(count), end="\r")
         sys.stdout.flush()
         if 2.divides(D.cardinality()) and sigma == 0:
@@ -385,10 +408,11 @@ def Oq_equiv_herm(L,f, G, Lh):
             I = A*E.ideal((s*G).list())
             if I.valuation(P)<=0:
                 continue
-        for i in range(100):
+        for i in range(nsigmatrys):
           # we want
           # <s,L> <= (sigma+x*omega) O < E.different()^-1
-          sigma1 = sigma + phi(K.random_element())*omega
+          omega1 = phi(K.random_element())*omega
+          sigma1 = sigma + omega1
           if sigma1==0:
               continue
           tau,determ,tauE = symmetry(G,s,sigma1)
