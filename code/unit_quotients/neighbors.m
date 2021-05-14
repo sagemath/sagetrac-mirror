@@ -314,7 +314,7 @@ TA := DTA;
    return [ ScaledLattice(N,c) : N in ExtendNeighbors(TA, [L], p, dep) ];
 end intrinsic;
 
-intrinsic MyGenusRepresentatives(L::Lat: Depth := -1, Bound := 2^32) -> SeqEnum
+intrinsic MyGenusRepresentatives(L::Lat: Depth := -1, Bound := 2^50) -> SeqEnum
    {The genus of L as isometry class representatives for the
    p-neighbors of L.}
 
