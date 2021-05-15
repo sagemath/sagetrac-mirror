@@ -106,13 +106,17 @@ AUTHORS:
 from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object import SageObject
-import sage.arith.all as arith
+from sage.arith.all import valuation, lcm, gcd
 from sage.rings.fast_arith import prime_range
-import sage.misc.all as misc
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.interfaces.genus2reduction', ['genus2reduction', 'Genus2reduction'])
+from sage.modular.all import CuspForms
+from sage.misc.all import prod
 import sage.rings.all as rings
-from sage.rings.all import RealField, GF
+from sage.rings.all import RealField, GF, ZZ, QQ, Zmod, PolynomialRing
+from sage.modular.dirichlet import DirichletGroup
 
-from math import sqrt
+from math import sqrt, floor
 from sage.libs.pari.all import pari
 
 
@@ -127,13 +131,12 @@ class GaloisRepresentation(SageObject):
     EXAMPLES::
 
         sage: R.<x>=QQ[]
-        sage: f = x^5 + 17
+        sage: f = x**5 + 17
         sage: C = HyperellipticCurve(f)
         sage: J = C.jacobian()
         sage: rho = J.galois_representation()
         sage: rho
-        Compatible family of Galois representations associated to the Jacobian of Hyperelliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
-
+        Compatible family of Galois representations associated to the Jacobian of Hyperelliptic Curve defined by y**2 + y = x**3 - x**2 - 10*x - 20 over Rational Field
     """
 
     def __init__(self, A):
@@ -149,6 +152,7 @@ class GaloisRepresentation(SageObject):
         """
         self.__image_type = {}
         self._A = A
+        self.non_surjective_primes = None
 
     def __repr__(self):
         r"""
@@ -158,187 +162,146 @@ class GaloisRepresentation(SageObject):
 
             sage: rho = EllipticCurve([0,1]).galois_representation()
             sage: rho
-            Compatible family of Galois representations associated to the Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
+            Compatible family of Galois representations associated to the Elliptic Curve defined by y**2 = x**3 + 1 over Rational Field
 
         """
-        return "Compatible family of Galois representations associated to the " + repr(self._E)
+        return "Compatible family of Galois representations associated to the " + repr(self._A)
 
-    def __eq__(self,other):
-        r"""
-        Compares two Galois representations.
-        We define tho compatible families of representations
-        attached to elliptic curves to be isomorphic if the curves are equal.
 
-        EXAMPLES::
-
-            sage: rho = EllipticCurve('11a1').galois_representation()
-            sage: rho2 = EllipticCurve('11a2').galois_representation()
-            sage: rho == rho
-            True
-            sage: rho == rho2
-            False
-            sage: rho == 34
-            False
-
-        """
-        # if rho_E = rho_E' then the L-functions agree,
-        # so E and E' are isogenous
-        # except for p=2
-        # the mod p representations will be different
-        # for p dividing the degree of the isogeny
-        # anyway, there should not be a _compatible_
-        # isomorphism between rho and rho' unless E
-        # is isomorphic to E'
-        # Note that rho can not depend on the Weierstrass model
-        if type(self) is not type(other):
-            return False
-        return self._E.is_isomorphic(other._E)
-
-    def elliptic_curve(self):
-        r"""
-        The elliptic curve associated to this representation.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('11a1')
-            sage: rho = E.galois_representation()
-            sage: rho.elliptic_curve() == E
-            True
-
-        """
-        from copy import copy
-        return copy(self._E)
 
 #####################################################################
 # surjectivity
 #####################################################################
 
-    def _init_exps():
+    def _init_exps(self):
         """
         Return a dictionary with keys l = 3, 5, and 7; for each l, the associated value is the list of characteristic polynomials of the matrices in the exceptional subgroup of GSp(4,l).
         """
         #char3 is the list of characteristic polynomials of matrices in the one subgroup of GSp(4,3) (up to conjugation) that isn't ruled out by surj_tests
-        R.<x> = PolynomialRing(Zmod(3))
-        char3 = [x^4 + 2*x^3 + x^2 + 2*x + 1,
-            x^4 + 1,
-            x^4 + x^3 + 2*x^2 + x + 1,
-            x^4 + 2*x^3 + 2*x + 1,
-            x^4 + x^3 + 2*x^2 + 2*x + 1,
-            x^4 + x^3 + x^2 + x + 1,
-            x^4 + x^3 + x^2 + 2*x + 1,
-            x^4 + 2*x^2 + 1,
-            x^4 + x^3 + x + 1,
-            x^4 + 2*x^3 + 2*x^2 + x + 1,
-            x^4 + 2*x^3 + 2*x^2 + 2*x + 1,
-            x^4 + x^2 + 1,
-            x^4 + 2*x^3 + x^2 + x + 1]
+        R = PolynomialRing(Zmod(3),"x")
+        x = R.gen()
+        char3 = [x**4 + 2*x**3 + x**2 + 2*x + 1,
+            x**4 + 1,
+            x**4 + x**3 + 2*x**2 + x + 1,
+            x**4 + 2*x**3 + 2*x + 1,
+            x**4 + x**3 + 2*x**2 + 2*x + 1,
+            x**4 + x**3 + x**2 + x + 1,
+            x**4 + x**3 + x**2 + 2*x + 1,
+            x**4 + 2*x**2 + 1,
+            x**4 + x**3 + x + 1,
+            x**4 + 2*x**3 + 2*x**2 + x + 1,
+            x**4 + 2*x**3 + 2*x**2 + 2*x + 1,
+            x**4 + x**2 + 1,
+            x**4 + 2*x**3 + x**2 + x + 1]
         #char5 Is the list of characteristic polynomials of matrices in the one subgroup of GSp(4,5) (up to conjugation) that isn't ruled out by surj_tests
-        R.<x> = PolynomialRing(Zmod(5))
-        char5 = [x^4 + x^3 + 2*x^2 + x + 1,
-            x^4 + x^3 + 4*x + 1,
-            x^4 + x^3 + x^2 + x + 1,
-            x^4 + x^3 + x + 1,
-            x^4 + 4*x^2 + 1,
-            x^4 + 4*x^3 + 4*x^2 + 4*x + 1,
-            x^4 + 3*x^2 + 1,
-            x^4 + 4*x^3 + 3*x^2 + 4*x + 1,
-            x^4 + 2*x^2 + 1,
-            x^4 + 4*x^3 + 4*x^2 + x + 1,
-            x^4 + 4*x^3 + 2*x^2 + 4*x + 1,
-            x^4 + x^2 + 1,
-            x^4 + 2*x^3 + 4*x^2 + 3*x + 1,
-            x^4 + 4*x^3 + 3*x^2 + x + 1,
-            x^4 + 1,
-            x^4 + 4*x^3 + x^2 + 4*x + 1,
-            x^4 + 2*x^3 + 3*x^2 + 3*x + 1,
-            x^4 + 4*x^3 + 2*x^2 + x + 1,
-            x^4 + 4*x^3 + 4*x + 1,
-            x^4 + 2*x^3 + 2*x^2 + 3*x + 1,
-            x^4 + 4*x^3 + x^2 + x + 1,
-            x^4 + 3*x^3 + 4*x^2 + 3*x + 1,
-            x^4 + 2*x^3 + x^2 + 3*x + 1,
-            x^4 + 4*x^3 + x + 1,
-            x^4 + 3*x^3 + 3*x^2 + 3*x + 1,
-            x^4 + 2*x^3 + 3*x + 1,
-            x^4 + 3*x^3 + 2*x^2 + 3*x + 1,
-            x^4 + 3*x^3 + x^2 + 3*x + 1,
-            x^4 + 3*x^3 + 3*x + 1,
-            x^4 + 2*x^3 + 4*x^2 + 2*x + 1,
-            x^4 + 2*x^3 + 3*x^2 + 2*x + 1,
-            x^4 + 2*x^3 + 2*x^2 + 2*x + 1,
-            x^4 + 3*x^3 + 4*x^2 + 2*x + 1,
-            x^4 + 2*x^3 + x^2 + 2*x + 1,
-            x^4 + x^3 + 4*x^2 + 4*x + 1,
-            x^4 + 3*x^3 + 3*x^2 + 2*x + 1,
-            x^4 + 2*x^3 + 2*x + 1,
-            x^4 + x^3 + 3*x^2 + 4*x + 1,
-            x^4 + 3*x^3 + 2*x^2 + 2*x + 1,
-            x^4 + x^3 + 4*x^2 + x + 1,
-            x^4 + 3*x^3 + x^2 + 2*x + 1,
-            x^4 + x^3 + 2*x^2 + 4*x + 1,
-            x^4 + x^3 + 3*x^2 + x + 1,
-            x^4 + x^3 + x^2 + 4*x + 1,
-            x^4 + 3*x^3 + 2*x + 1]
+        R = PolynomialRing(Zmod(5),"x")
+        x = R.gen()
+        char5 = [x**4 + x**3 + 2*x**2 + x + 1,
+            x**4 + x**3 + 4*x + 1,
+            x**4 + x**3 + x**2 + x + 1,
+            x**4 + x**3 + x + 1,
+            x**4 + 4*x**2 + 1,
+            x**4 + 4*x**3 + 4*x**2 + 4*x + 1,
+            x**4 + 3*x**2 + 1,
+            x**4 + 4*x**3 + 3*x**2 + 4*x + 1,
+            x**4 + 2*x**2 + 1,
+            x**4 + 4*x**3 + 4*x**2 + x + 1,
+            x**4 + 4*x**3 + 2*x**2 + 4*x + 1,
+            x**4 + x**2 + 1,
+            x**4 + 2*x**3 + 4*x**2 + 3*x + 1,
+            x**4 + 4*x**3 + 3*x**2 + x + 1,
+            x**4 + 1,
+            x**4 + 4*x**3 + x**2 + 4*x + 1,
+            x**4 + 2*x**3 + 3*x**2 + 3*x + 1,
+            x**4 + 4*x**3 + 2*x**2 + x + 1,
+            x**4 + 4*x**3 + 4*x + 1,
+            x**4 + 2*x**3 + 2*x**2 + 3*x + 1,
+            x**4 + 4*x**3 + x**2 + x + 1,
+            x**4 + 3*x**3 + 4*x**2 + 3*x + 1,
+            x**4 + 2*x**3 + x**2 + 3*x + 1,
+            x**4 + 4*x**3 + x + 1,
+            x**4 + 3*x**3 + 3*x**2 + 3*x + 1,
+            x**4 + 2*x**3 + 3*x + 1,
+            x**4 + 3*x**3 + 2*x**2 + 3*x + 1,
+            x**4 + 3*x**3 + x**2 + 3*x + 1,
+            x**4 + 3*x**3 + 3*x + 1,
+            x**4 + 2*x**3 + 4*x**2 + 2*x + 1,
+            x**4 + 2*x**3 + 3*x**2 + 2*x + 1,
+            x**4 + 2*x**3 + 2*x**2 + 2*x + 1,
+            x**4 + 3*x**3 + 4*x**2 + 2*x + 1,
+            x**4 + 2*x**3 + x**2 + 2*x + 1,
+            x**4 + x**3 + 4*x**2 + 4*x + 1,
+            x**4 + 3*x**3 + 3*x**2 + 2*x + 1,
+            x**4 + 2*x**3 + 2*x + 1,
+            x**4 + x**3 + 3*x**2 + 4*x + 1,
+            x**4 + 3*x**3 + 2*x**2 + 2*x + 1,
+            x**4 + x**3 + 4*x**2 + x + 1,
+            x**4 + 3*x**3 + x**2 + 2*x + 1,
+            x**4 + x**3 + 2*x**2 + 4*x + 1,
+            x**4 + x**3 + 3*x**2 + x + 1,
+            x**4 + x**3 + x**2 + 4*x + 1,
+            x**4 + 3*x**3 + 2*x + 1]
         #char7 Is the list of characteristic polynomials of matrices in the one subgroup of GSp(4,7) (up to conjugation) that isn't ruled out by surj_tests
-        R.<x> = PolynomialRing(Zmod(7))
-        char7 = [x^4 + 2*x^3 + 5*x^2 + 5*x + 1,
-            x^4 + 5*x^3 + 5*x^2 + 2*x + 1,
-            x^4 + x^3 + 6*x^2 + 2*x + 4,
-            x^4 + x^3 + 3*x^2 + 4*x + 2,
-            x^4 + 5*x^3 + 3*x^2 + 5*x + 1,
-            x^4 + 1,
-            x^4 + 2*x^2 + 1,
-            x^4 + 6*x^2 + 1,
-            x^4 + 4*x^3 + x + 4,
-            x^4 + 4*x^3 + 2*x^2 + x + 4,
-            x^4 + 6*x^3 + x^2 + 6*x + 1,
-            x^4 + 4*x^3 + 5*x^2 + 2*x + 2,
-            x^4 + x^3 + x + 1,
-            x^4 + 3*x^3 + 5*x^2 + 5*x + 2,
-            x^4 + 3*x^3 + 6*x + 4,
-            x^4 + 3*x^3 + 2*x^2 + 6*x + 4,
-            x^4 + 6*x^3 + 3*x^2 + 3*x + 2,
-            x^4 + 2,
-            x^4 + x^3 + 4*x^2 + 6*x + 1,
-            x^4 + 3*x^2 + 4,
-            x^4 + 6*x^2 + 2,
-            x^4 + 5*x^2 + 4,
-            x^4 + 3*x^3 + 6*x^2 + 3*x + 1,
-            x^4 + 6*x^3 + 6*x^2 + 5*x + 4,
-            x^4 + 3*x^3 + 4*x^2 + 4*x + 1,
-            x^4 + 4*x^3 + 4*x^2 + 3*x + 1,
-            x^4 + 4*x^3 + 6*x^2 + 4*x + 1,
-            x^4 + 2*x^3 + x + 2,
-            x^4 + x^3 + 2*x^2 + 3*x + 2,
-            x^4 + 2*x^3 + 4*x^2 + x + 2,
-            x^4 + 6*x^3 + 4*x^2 + x + 1,
-            x^4 + 3*x^3 + x^2 + x + 4,
-            x^4 + 2*x^3 + x^2 + 3*x + 4,
-            x^4 + x^3 + 3*x^2 + 5*x + 4,
-            x^4 + 5*x^2 + 1,
-            x^4 + 2*x^3 + 5*x^2 + 4*x + 4,
-            x^4 + 3*x^3 + 6*x^2 + 2*x + 2,
-            x^4 + 6*x^3 + 6*x + 1,
-            x^4 + 2*x^3 + 2*x^2 + 6*x + 2,
-            x^4 + x^3 + x^2 + x + 1,
-            x^4 + 5*x^3 + 2*x^2 + x + 2,
-            x^4 + 5*x^3 + 5*x^2 + 3*x + 4,
-            x^4 + 4*x^3 + 6*x^2 + 5*x + 2,
-            x^4 + 4*x^3 + x^2 + 6*x + 4,
-            x^4 + 5*x^3 + x^2 + 4*x + 4,
-            x^4 + 2*x^3 + 3*x^2 + 2*x + 1,
-            x^4 + 6*x^3 + 3*x^2 + 2*x + 4,
-            x^4 + x^2 + 2,
-            x^4 + 4,
-            x^4 + 5*x^3 + 6*x + 2,
-            x^4 + 3*x^2 + 2,
-            x^4 + 6*x^3 + 2*x^2 + 4*x + 2,
-            x^4 + 4*x^2 + 4,
-            x^4 + 5*x^3 + 4*x^2 + 6*x + 2]
+        R = PolynomialRing(Zmod(7),"x")
+        x = R.gen()
+        char7 = [x**4 + 2*x**3 + 5*x**2 + 5*x + 1,
+            x**4 + 5*x**3 + 5*x**2 + 2*x + 1,
+            x**4 + x**3 + 6*x**2 + 2*x + 4,
+            x**4 + x**3 + 3*x**2 + 4*x + 2,
+            x**4 + 5*x**3 + 3*x**2 + 5*x + 1,
+            x**4 + 1,
+            x**4 + 2*x**2 + 1,
+            x**4 + 6*x**2 + 1,
+            x**4 + 4*x**3 + x + 4,
+            x**4 + 4*x**3 + 2*x**2 + x + 4,
+            x**4 + 6*x**3 + x**2 + 6*x + 1,
+            x**4 + 4*x**3 + 5*x**2 + 2*x + 2,
+            x**4 + x**3 + x + 1,
+            x**4 + 3*x**3 + 5*x**2 + 5*x + 2,
+            x**4 + 3*x**3 + 6*x + 4,
+            x**4 + 3*x**3 + 2*x**2 + 6*x + 4,
+            x**4 + 6*x**3 + 3*x**2 + 3*x + 2,
+            x**4 + 2,
+            x**4 + x**3 + 4*x**2 + 6*x + 1,
+            x**4 + 3*x**2 + 4,
+            x**4 + 6*x**2 + 2,
+            x**4 + 5*x**2 + 4,
+            x**4 + 3*x**3 + 6*x**2 + 3*x + 1,
+            x**4 + 6*x**3 + 6*x**2 + 5*x + 4,
+            x**4 + 3*x**3 + 4*x**2 + 4*x + 1,
+            x**4 + 4*x**3 + 4*x**2 + 3*x + 1,
+            x**4 + 4*x**3 + 6*x**2 + 4*x + 1,
+            x**4 + 2*x**3 + x + 2,
+            x**4 + x**3 + 2*x**2 + 3*x + 2,
+            x**4 + 2*x**3 + 4*x**2 + x + 2,
+            x**4 + 6*x**3 + 4*x**2 + x + 1,
+            x**4 + 3*x**3 + x**2 + x + 4,
+            x**4 + 2*x**3 + x**2 + 3*x + 4,
+            x**4 + x**3 + 3*x**2 + 5*x + 4,
+            x**4 + 5*x**2 + 1,
+            x**4 + 2*x**3 + 5*x**2 + 4*x + 4,
+            x**4 + 3*x**3 + 6*x**2 + 2*x + 2,
+            x**4 + 6*x**3 + 6*x + 1,
+            x**4 + 2*x**3 + 2*x**2 + 6*x + 2,
+            x**4 + x**3 + x**2 + x + 1,
+            x**4 + 5*x**3 + 2*x**2 + x + 2,
+            x**4 + 5*x**3 + 5*x**2 + 3*x + 4,
+            x**4 + 4*x**3 + 6*x**2 + 5*x + 2,
+            x**4 + 4*x**3 + x**2 + 6*x + 4,
+            x**4 + 5*x**3 + x**2 + 4*x + 4,
+            x**4 + 2*x**3 + 3*x**2 + 2*x + 1,
+            x**4 + 6*x**3 + 3*x**2 + 2*x + 4,
+            x**4 + x**2 + 2,
+            x**4 + 4,
+            x**4 + 5*x**3 + 6*x + 2,
+            x**4 + 3*x**2 + 2,
+            x**4 + 6*x**3 + 2*x**2 + 4*x + 2,
+            x**4 + 4*x**2 + 4,
+            x**4 + 5*x**3 + 4*x**2 + 6*x + 2]
         return {3 : char3, 5 : char5, 7 : char7}
 
 
-    def _init_wit(L):
+    def _init_wit(self, L):
         """
         Return a list for witnesses with all entries initially all set to zero, in the following format:
             2: [_] <-> [_is_surj_at_2 ]
@@ -358,23 +321,23 @@ class GaloisRepresentation(SageObject):
         return witnesses
 
 
-    def _is_surj_at_2(f,h):
+    def _is_surj_at_2(self, f,h):
         """
-        Return True if and only if the mod 2 Galois image of the Jacobian of y^2 + h(x) y = f(x) is surjective, i.e. if and
-        only if the Galois group of the polynomial 4*f+h^2 is all of S_6.
+        Return True if and only if the mod 2 Galois image of the Jacobian of y**2 + h(x) y = f(x) is surjective, i.e. if and
+        only if the Galois group of the polynomial 4*f+h**2 is all of S_6.
         """
-        F = 4*f + h^2
+        F = 4*f + h**2
         return F.is_irreducible() and F.galois_group().order() == 720
 
 
-    def _surj_test_A(frob_mod):
+    def _surj_test_A(self, frob_mod):
         """
         Return True if frob_mod is irreducible.
         """
         return frob_mod.is_irreducible()
 
 
-    def _surj_test_B(frob_mod):
+    def _surj_test_B(self, frob_mod):
         """
         Return True if frob_mod has nonzero trace and has a linear factor with multiplicity one.
         """
@@ -385,14 +348,14 @@ class GaloisRepresentation(SageObject):
         return False
 
 
-    def _surj_test_exp(l, frob_mod, exps):
+    def _surj_test_exp(self, l, frob_mod, exps):
         """
         Return True if frob_mod is the characteristic polynomial of a matrix that is not in the exceptional subgroup mod l
         """
         return not frob_mod in exps[l]
 
 
-    def _update_wit(l, p, frob, f, h, exps, wit):
+    def _update_wit(self, l, p, frob, f, h, exps, wit):
         """
         Return an updated list of witnesses, based on surjectivity tests for frob at p.
         """
@@ -400,20 +363,20 @@ class GaloisRepresentation(SageObject):
         for i in range(0,len(wit)):
             if wit[i] == 0:
                 if l == 2:
-                    if _is_surj_at_2(f,h):
+                    if self._is_surj_at_2(f,h):
                         wit[i] = 1
                     else:
                         wit[i] = -1
-                elif i == 0 and _surj_test_A(frob_mod):
+                elif i == 0 and self._surj_test_A(frob_mod):
                     wit[i] = p
-                elif i == 1 and _surj_test_B(frob_mod):
+                elif i == 1 and self._surj_test_B(frob_mod):
                     wit[i] = p
-                elif i == 2 and _surj_test_exp(l, frob_mod, exps):
+                elif i == 2 and self._surj_test_exp(l, frob_mod, exps):
                     wit[i] = p
         return wit
 
 
-    def find_surj_from_list(self, L=list(primes(1000)), bound=1000, verbose=False):
+    def find_surj_from_list(self, L=prime_range(1000), bound=1000, verbose=False):
         r"""
         Return a list of primes in L at which the residual Galois representation of the Jacobian of `H` might not be surjective.
         Outside of the returned list, all primes in L are surjective. The primes in the returned list are likely non-surjective.
@@ -439,25 +402,26 @@ class GaloisRepresentation(SageObject):
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: H = HyperellipticCurve(R([0, 21, -5, -9, 1, 1]), R([1, 1])); H
-            Hyperelliptic Curve over Rational Field defined by y^2 + (x + 1)*y = x^5 + x^4 - 9*x^3 - 5*x^2 + 21*x
+            Hyperelliptic Curve over Rational Field defined by y**2 + (x + 1)*y = x**5 + x**4 - 9*x**3 - 5*x**2 + 21*x
             sage: find_surj_from_list(H)
             [2, 13]
 
         """
+        H = self._A.curve()
         f,h = H.hyperelliptic_polynomials()
-        # C = 2 * genus2reduction(h, f).conductor # An integer which agrees up with the conductor of H: y^2 + h y = f, except possibly at two. Bad primes of Jac(H) divide it.
+        # C = 2 * genus2reduction(h, f).conductor # An integer which agrees up with the conductor of H: y**2 + h y = f, except possibly at two. Bad primes of Jac(H) divide it.
         C = 2 * prod(genus2reduction(h,f).local_data.keys())
-        witnesses = _init_wit(L)
-        exps = _init_exps()
+        witnesses = self._init_wit(L)
+        exps = self._init_exps()
         to_check = L.copy() # to_check is the list of primes for which we still need to determine surjectivity. Initially, it equals L and we remove primes as their status is determined.
-        for p in primes(3,bound):
+        for p in prime_range(3,bound):
             if C % p != 0:
                 Hp = H.change_ring(GF(p))
                 frob = Hp.frobenius_polynomial()
                 to_remove = []
                 for l in to_check:
                     if p != l and 0 in witnesses[l]:
-                        witnesses[l] = _update_wit(l, p, frob, f, h, exps, witnesses[l])
+                        witnesses[l] = self._update_wit(l, p, frob, f, h, exps, witnesses[l])
                         if not 0 in witnesses[l]:
                             to_remove.append(l)
                 for l in to_remove:
@@ -542,7 +506,7 @@ class GaloisRepresentation(SageObject):
 
         """
 
-        ans = find_surj_from_list(self, L=[p], bound=1000, verbose=False)
+        ans = self.find_surj_from_list(L=[p], bound=1000, verbose=False)
 
         if ans:
             return True
@@ -557,30 +521,17 @@ class GaloisRepresentation(SageObject):
 
     def p_part(p, N):
         if N != 0:
-            return p^valuation(N,p)
+            return p**valuation(N,p)
         else:
             return 1
 
 
-    def poor_mans_conductor(C):
-        f,h = C.hyperelliptic_polynomials()
-        red_data = genus2reduction(h,f)
-        N = red_data.conductor
-        if red_data.prime_to_2_conductor_only:
-            N = 2*N
-        return N
-
-    def maximal_square_divisor(N):
-        PP = prime_factors(N)
+    def maximal_square_divisor(self, N):
+        PP = ZZ(N).prime_divisors()
         n = 1
         for p in PP:
-            n = n * p^(floor(valuation(N,p)/2))
-
+            n = n * p**(floor(valuation(N,p)/2))
         return n
-
-    def true_conductor(C):
-        print("Warning. This hasn't yet been implemented. The return value isn't actually the conductor.")
-        return poor_mans_conductor(C)
 
 
     #########################################################
@@ -590,25 +541,23 @@ class GaloisRepresentation(SageObject):
     #########################################################
 
 
-    def maximal_quadratic_conductor(N):
+    def maximal_quadratic_conductor(self, N):
         if N % 2 == 0:
-            return 4*radical(N)
+            return 4 * ZZ(N).radical()
         else:
-            return radical(N)
+            return ZZ(N).radical()
 
-    def character_list(N):
-        #N = poor_mans_conductor(C)
-        c = maximal_quadratic_conductor(N)
+    def character_list(self, N):
+        c = self.maximal_quadratic_conductor(N)
         D = DirichletGroup(c,base_ring=QQ,zeta_order=2)
         return [phi for phi in D if phi.conductor() != 1]
 
 
-    def set_up_quadratic_chars(N):
-        return [(phi,0,0) for phi in character_list(N)]
+    def set_up_quadratic_chars(self, N):
+        return [(phi,0,0) for phi in self.character_list(N)]
 
 
-
-    def rule_out_quadratic_ell_via_Frob_p(p,fp,MM):
+    def rule_out_quadratic_ell_via_Frob_p(self,p,fp,MM):
         """Provide a summary of what this method is doing.
 
         Args:
@@ -622,7 +571,7 @@ class GaloisRepresentation(SageObject):
         Returns:
             (list): TODO
         """
-        ap = -fp.coefficients(sparse=false)[3]
+        ap = -fp.coefficients(sparse=False)[3]
         if ap == 0:
             return MM
         else:
@@ -632,8 +581,6 @@ class GaloisRepresentation(SageObject):
                     MM0.append((phi,M,y))
                 else:
                     MM0.append((phi,gcd(M,p*ap), y+1))
-
-    #        MM0 = [(phi,M/(p_part(2,M)*p_part(3,M)), y) for phi,M,y in MM0]
             return MM0
 
 
@@ -644,90 +591,41 @@ class GaloisRepresentation(SageObject):
     #                            #
     #########################################################
 
-    #This should probably be update with the GCD of the return value and 120
-    def compute_f_from_d(d,p):
-        return Integers(d)(p).multiplicative_order()
-
-    def rule_out_one_dim_ell(p,fp,d,M):
-        """Zev's direct implementation of what is in Dieulefait SS 3.1 and 3.2.
-        Warning: some bugs because the conductor used here is wrong at 2
-
-        Args:
-            p ([type]): [description]
-            fp ([type]): [description]
-            d ([type]): [description]
-            M ([type]): [description]
-
-        Returns:
-            [type]: [description]
-        """
-        if M != 1:
-            f = compute_f_from_d(d,p)
-            x = fp.variables()[0]
-            M = gcd(M,p*fp.resultant(x^f-1))
-
-        return M
-
-
-    def rule_out_related_two_dim_ell_case1(p,fp,d,M):
-        if M != 1:
-            f = compute_f_from_d(d,p)
-            ap = -fp.coefficients(sparse=false)[3]
-            bp = fp.coefficients(sparse=false)[2]
-            x = fp.variables()[0]
-
-            Q = (x*bp - 1 - p^2*x^2)*(p*x + 1)^2 - ap^2*p*x^2
-            M = gcd(M,p*Q.resultant(x^f-1))
-
-        return M
-
-    def rule_out_related_two_dim_ell_case2(p,fp,d,M):
-        if M != 1:
-            f = compute_f_from_d(d,p)
-            ap = -fp.coefficients(sparse=false)[3]
-            bp = fp.coefficients(sparse=false)[2]
-            x = fp.variables()[0]
-
-            Q = (x*bp - p - p*x^2)*(x + 1)^2 - ap^2*x^2
-            M = gcd(M,p*Q.resultant(x^f-1))
-
-        return M
-
     """
     Isabel's code using the fact that the exponent of the determinant
     character divides 120.
 
     the following three functions implement the following for n=2,3,5:
-    f(x) = x^4 - t*x^3 + s*x^2 - p^alpha*t*x + p^(2*alpha) is a
-    degree 4 polynomial whose roots multiply in pairs to p^alpha
+    f(x) = x**4 - t*x**3 + s*x**2 - p**alpha*t*x + p**(2*alpha) is a
+    degree 4 polynomial whose roots multiply in pairs to p**alpha
     returns the tuple (p, tn, sn, alphan) of the polynomial
-    f^(n)(x) = x^4 - tn*x^3 + sn*x^2 - p^(alphan)*tn*x + p^(2*alphan)
+    f**(n)(x) = x**4 - tn*x**3 + sn*x**2 - p**(alphan)*tn*x + p**(2*alphan)
     whose roots are the nth powers of the roots of f
     """
 
-    def power_roots2(ptsa):
+    def power_roots2(self, ptsa):
         p, t, s, alpha = ptsa
-        return (p, t^2 - 2*s, s^2 - 2*p^alpha*t^2 + 2*p^(2*alpha), 2*alpha)
+        return (p, t**2 - 2*s, s**2 - 2*p**alpha*t**2 + 2*p**(2*alpha), 2*alpha)
 
 
-    def power_roots3(ptsa):
+    def power_roots3(self, ptsa):
         p, t, s, alpha = ptsa
-        return (p, t^3 - 3*s*t + 3*p^alpha*t, s^3 - 3*p^alpha*s*t^2 + 3*p^(2*alpha)
-                *t^2 + 3*p^(2*alpha)*t^2 - 3*p^(2*alpha)*s, 3*alpha)
+        return (p, t**3 - 3*s*t + 3*p**alpha*t, s**3 - 3*p**alpha*s*t**2 + 3*p**(2*alpha)
+                *t**2 + 3*p**(2*alpha)*t**2 - 3*p**(2*alpha)*s, 3*alpha)
 
 
-    def power_roots5(ptsa):
+    def power_roots5(self, ptsa):
         p, t, s, alpha = ptsa
-        return (p, t^5 - 5*s*t^3 + 5*s^2*t + 5*p^alpha*t^3 - 5*p^alpha*s*t -
-        5*p^(2*alpha)*t, s^5 - 5*p^alpha*s^3*t^2 + 5*p^(2*alpha)*s*t^4 +
-        5*p^(2*alpha)*s^2*t^2 - 5*p^(3*alpha)*t^4 + 5*p^(2*alpha)*s^2*t^2 -
-        5*p^(2*alpha)*s^3 - 5*p^(3*alpha)*t^4 - 5*p^(3*alpha)*s*t^2 +
-        5*p^(4*alpha)*t^2 + 5*p^(4*alpha)*t^2 + 5*p^(4*alpha)*s, 5*alpha)
+        return (p, t**5 - 5*s*t**3 + 5*s**2*t + 5*p**alpha*t**3 - 5*p**alpha*s*t -
+        5*p**(2*alpha)*t, s**5 - 5*p**alpha*s**3*t**2 + 5*p**(2*alpha)*s*t**4 +
+        5*p**(2*alpha)*s**2*t**2 - 5*p**(3*alpha)*t**4 + 5*p**(2*alpha)*s**2*t**2 -
+        5*p**(2*alpha)*s**3 - 5*p**(3*alpha)*t**4 - 5*p**(3*alpha)*s*t**2 +
+        5*p**(4*alpha)*t**2 + 5*p**(4*alpha)*t**2 + 5*p**(4*alpha)*s, 5*alpha)
 
 
     #put these together to do any power dividing 120 that we actually need
     #c is the power
-    def power_roots(cptsa):
+    def power_roots(self, cptsa):
         c, p, t, s, alpha = cptsa
         if 120 % c != 0:
             raise ValueError("can't raise to this power")
@@ -735,23 +633,23 @@ class GaloisRepresentation(SageObject):
         ptsa = (p, t, s, alpha)
 
         while c % 2 == 0:
-            c, ptsa = c/2, power_roots2(ptsa)
+            c, ptsa = c/2, self.power_roots2(ptsa)
 
         while c % 3 == 0:
-            c, ptsa = c/3, power_roots3(ptsa)
+            c, ptsa = c/3, self.power_roots3(ptsa)
 
         while c % 5 == 0:
-            c, ptsa = c/5, power_roots5(ptsa)
+            c, ptsa = c/5, self.power_roots5(ptsa)
 
         return ptsa
 
 
-    #given a quartic f whose roots multiply to p^alpha in pairs,
+    #given a quartic f whose roots multiply to p**alpha in pairs,
     #returns the quartic whose roots are the products of roots
-    #of f that DO NOT multiply to p^alpha
-    def roots_pairs_not_p(ptsa):
+    #of f that DO NOT multiply to p**alpha
+    def roots_pairs_not_p(self, ptsa):
         p, t, s, alpha = ptsa
-        return (p, s - 2*p, p*t^2 - 2*p*s + 2*p^2, 2*alpha)
+        return (p, s - 2*p, p*t**2 - 2*p*s + 2*p**2, 2*alpha)
 
     #t and s are the first and second elementary symmetric functions in the
     #roots of the characteristic polynomial of Frobenius at p for a curve C
@@ -759,9 +657,10 @@ class GaloisRepresentation(SageObject):
     #1 + 3 reducible divides M
     #y is a counter for the number of nontrivial Frobenius conditions going
     #into M
-    def rule_out_1_plus_3_via_Frob_p(c, p, t, s, M=0, y=0):
-        p, tnew, snew, alphanew = power_roots((c, p, t, s, 1))
-        Pnew(x) = x^4 - tnew*x^3 + snew*x^2 - p^alphanew*tnew*x + p^(2*alphanew)
+    def rule_out_1_plus_3_via_Frob_p(self,c, p, t, s, M=0, y=0):
+        p, tnew, snew, alphanew = self.power_roots((c, p, t, s, 1))
+        x = PolynomialRing(QQ,"x").gen()
+        Pnew = x**4 - tnew*x**3 + snew*x**2 - p**alphanew*tnew*x + p**(2*alphanew)
         Pval = Pnew(1)
         if Pval != 0:
             return ZZ(gcd(M, p*Pval)), y+1
@@ -774,11 +673,12 @@ class GaloisRepresentation(SageObject):
     #2+2 non-self-dual type reducible divides M
     #y is a counter for the number of nontrivial Frobenius conditions going
     #into M
-    def rule_out_2_plus_2_nonselfdual_via_Frob_p(c, p, t, s, M=0, y=0):
-        p, tnew, snew, alphanew = roots_pairs_not_p((p, t, s, 1))
-        p, tnew, snew, alphanew = power_roots((c, p, tnew, snew, alphanew))
-        Pnew(x) = x^4 - tnew*x^3 + snew*x^2 - p^alphanew*tnew*x + p^(2*alphanew)
-        Pval = Pnew(1)*Pnew(p^c)
+    def rule_out_2_plus_2_nonselfdual_via_Frob_p(self, c, p, t, s, M=0, y=0):
+        p, tnew, snew, alphanew = self.roots_pairs_not_p((p, t, s, 1))
+        p, tnew, snew, alphanew = self.power_roots((c, p, tnew, snew, alphanew))
+        x = PolynomialRing(QQ,"x").gen()
+        Pnew = x**4 - tnew*x**3 + snew*x**2 - p**alphanew*tnew*x + p**(2*alphanew)
+        Pval = Pnew(1)*Pnew(p**c)
         if Pval != 0:
             return ZZ(gcd(M, p*Pval)), y+1
         else:
@@ -793,8 +693,8 @@ class GaloisRepresentation(SageObject):
     #########################################################
 
 
-    def special_divisors(N):
-        D0 = [d for d in divisors(N) if d <= sqrt(N)]
+    def special_divisors(self, N):
+        D0 = [d for d in ZZ(N).divisors() if d <= sqrt(N)]
         D0.reverse()
         D = []
         for d0 in D0:
@@ -805,108 +705,53 @@ class GaloisRepresentation(SageObject):
         return D
 
 
-    def get_cuspidal_levels(N, max_cond_exp_2=None):
+    def get_cuspidal_levels(self, N, max_cond_exp_2=None):
 
         if max_cond_exp_2 is not None:
             # if we're here, then N is the even poor mans conductor
             conductor_away_two = N/2  # recall we put a 2 in the poor mans conductor
-            possible_conductors = [conductor_away_two * 2^i for i in range(max_cond_exp_2 + 1)]
-            return list(set([d for N in possible_conductors for d in special_divisors(N)]))  # not ordered, hopefully not a problem.
+            possible_conductors = [conductor_away_two * 2 ** i for i in range(max_cond_exp_2 + 1)]
+            return list(set([d for N in possible_conductors for d in self.special_divisors(N)]))  # not ordered, hopefully not a problem.
         else:
-            return special_divisors(N)
+            return self.special_divisors(N)
 
 
-    def create_polynomial_database(path_to_datafile, levels_of_interest):
-
-        df = pd.read_csv(path_to_datafile, sep=":", header=None, names=["N", "p", "coeffs"])
-        actual_levels_of_interest = [i for i,j,k in levels_of_interest]
-        df_relevant = df.loc[df["N"].isin(actual_levels_of_interest)].copy()
-
-        df_relevant["coeffs"] = df_relevant["coeffs"].apply(ast.literal_eval)
-
-        return df_relevant
+    def set_up_cuspidal_spaces(self, N, max_cond_exp_2=None):
+        D = self.get_cuspidal_levels(N, max_cond_exp_2)
+        return [(CuspForms(d),0,0) for d in D]
 
 
-    def set_up_cuspidal_spaces(N, path_to_datafile=None, max_cond_exp_2=None):
-        D = get_cuspidal_levels(N, max_cond_exp_2)
-        if path_to_datafile is not None:
-            levels_of_interest = [(d,0,0) for d in D]
-
-            # There are no modular forms of level < 11
-            bad_levels = [(i,0,0) for (i,0,0) in levels_of_interest if i in range(11)]
-
-            levels_of_interest = [z for z in levels_of_interest if z not in bad_levels]
-
-            DB = create_polynomial_database(path_to_datafile, levels_of_interest)
-            return levels_of_interest, DB
-        else:
-            return [(CuspForms(d),0,0) for d in D], None
-
-
-    def reconstruct_hecke_poly_from_trace_polynomial(cusp_form_space, p):
+    def reconstruct_hecke_poly_from_trace_polynomial(self, cusp_form_space, p):
         """Implement Zev and Joe Wetherell's idea"""
-
+        R = PolynomialRing(QQ, "x")
+        x = R.gen()
         char_T_x = R(cusp_form_space.hecke_polynomial(p))
-        S.<a,b> = QQ[]
+        S = PolynomialRing(QQ,2,"ab")
+        a,b = S.gens()
         char_T_a_b = S(char_T_x(x=a)).homogenize(var='b')
-        substitute_poly = char_T_a_b(a=1+p*b^2)
+        substitute_poly = char_T_a_b(a=1+p*b**2)
 
         return R(substitute_poly(a=0, b=x))
 
 
-    def get_hecke_characteristic_polynomial(cusp_form_space, p, coeff_table = None):
-        """This should return the left hand side of Equation 3.8.
-
-        Args:
-            cusp_form_space ([type]): either a space of weight 2 cuspforms with trivial
-            Nebentypus or a level (given as an integer)
-            p (int): prime number
-        coeff_table: a filename with a list of characteristic polyomials for spaces of modular forms
-
-        Returns:
-            [pol]: an integer polynomial of twice the dimension of the cuspform
-                space
-        """
-
-        if coeff_table is None:
-            return reconstruct_hecke_poly_from_trace_polynomial(cusp_form_space, p)
-        else:
-
-            slice_of_coeff_table = coeff_table.loc[(coeff_table["N"] == cusp_form_space)
-                                                & (coeff_table["p"] == p)]
-
-            if slice_of_coeff_table.shape[0] == 1:
-                print("doing pandas stuff for level {}".format(cusp_form_space))
-                hecke_charpoly_coeffs = slice_of_coeff_table.iloc[int(0)]["coeffs"]
-                hecke_charpoly = sum([hecke_charpoly_coeffs[i]*(R.0)^i for i in range(len(hecke_charpoly_coeffs))])
-            else:  # i.e., can't find data in database
-                warning_msg = ("Warning: couldn't find level {} and prime {} in DB.\n"
-                            "Reconstructing on the fly...").format(cusp_form_space, p)
-                print(warning_msg)
-                CuspFormSpaceOnFly = CuspForms(cusp_form_space)
-                hecke_charpoly = reconstruct_hecke_poly_from_trace_polynomial(CuspFormSpaceOnFly, p)
-
-            return hecke_charpoly
-
-
-    def rule_out_cuspidal_space_using_Frob_p(S,p,fp,M,y,coeff_table=None):
+    def rule_out_cuspidal_space_using_Frob_p(self, S,p,fp,M,y):
         if M != 1 and y<2:
-            Tp = get_hecke_characteristic_polynomial(S,p, coeff_table=coeff_table)
+            Tp = self.reconstruct_hecke_poly_from_trace_polynomial(S,p)
             res = fp.resultant(Tp)
             if res != 0:
                 return gcd(M,p*res), y+1
         return M, y
 
 
-    def rule_out_cuspidal_spaces_using_Frob_p(p,fp,MC, coeff_table = None):
+    def rule_out_cuspidal_spaces_using_Frob_p(self, p,fp,MC):
         MC0 = []
         for S,M,y in MC:
-            Mm, yy = rule_out_cuspidal_space_using_Frob_p(S,p,fp,M,y,coeff_table=coeff_table)
+            Mm, yy = self.rule_out_cuspidal_space_using_Frob_p(S,p,fp,M,y)
             MC0.append((S,Mm,yy))
         return MC0
 
 
-    def non_surjective(self, N=None, path_to_datafile=None, bound=1000):
+    def non_surjective(self, N=None, bound=1000):
         r"""
         Returns a list of primes p such that the mod-p representation
         *might* not be surjective. If `p` is not in the returned list,
@@ -974,6 +819,9 @@ class GaloisRepresentation(SageObject):
 
         """
 
+        if self.non_surjective_primes is not None:
+            return self.non_surjective_primes
+
         C = self._A.curve()
 
         M1p3 = 0
@@ -995,14 +843,14 @@ class GaloisRepresentation(SageObject):
         #a level, M is an integer such that all primes with a reducible sub isomorphic to the
         #rep of a cusp form in S divide M, y is a counter for the number of nontrivial Frobenius
         #conditions go into M
-        MCusp, DB = set_up_cuspidal_spaces(N, path_to_datafile=path_to_datafile, max_cond_exp_2=None)
+        MCusp = self.set_up_cuspidal_spaces(N, max_cond_exp_2=max_cond_exp_2)
 
         #MQuad is a list of the form <phi,M,y>, where phi is a quadratic character, M is the integer
         #all nonsurjective primes governed by phi must divide, and y is counter for the number of nontrivial
         #Frobenius conditions going into M
-        MQuad = set_up_quadratic_chars(N)
+        MQuad = self.set_up_quadratic_chars(N)
 
-        d = maximal_square_divisor(N)
+        d = self.maximal_square_divisor(N)
 
         #we'll test as many p as we need to get at least 2 nontrivial Frobenius conditions for every
         #possible cause of non-surjectivity
@@ -1011,26 +859,22 @@ class GaloisRepresentation(SageObject):
         p = 1
 
         while not sufficient_p:
-                p = next_prime(p)
+                p = ZZ(p).next_prime()
                 if N % p != 0:
-                    Cp = C.change_ring(FiniteField(p))
+                    Cp = C.change_ring(GF(p))
                     fp = Cp.frobenius_polynomial()
                     fp_rev = Cp.zeta_function().numerator()
 
-                    #M31 = rule_out_one_dim_ell(p,fp,d,M31);
-                    #M32A = rule_out_related_two_dim_ell_case1(p,fp,d,M32A)
-                    #M32B = rule_out_related_two_dim_ell_case2(p,fp,d,M32B)
-
-                    f = Integers(d)(p).multiplicative_order()
+                    f = Zmod(d)(p).multiplicative_order()
                     c = gcd(f, 120)
                     c = lcm(c, 8)  # adding in the max power of 2
-                    tp = - fp.coefficients(sparse=false)[3]
-                    sp = fp.coefficients(sparse=false)[2]
+                    tp = - fp.coefficients(sparse=False)[3]
+                    sp = fp.coefficients(sparse=False)[2]
 
-                    M1p3, y1p3 = rule_out_1_plus_3_via_Frob_p(c, p, tp, sp, M1p3, y1p3)
-                    M2p2nsd, y2p2nsd = rule_out_2_plus_2_nonselfdual_via_Frob_p(c, p, tp, sp, M2p2nsd, y2p2nsd)
-                    MCusp = rule_out_cuspidal_spaces_using_Frob_p(p,fp_rev,MCusp,coeff_table=DB)
-                    MQuad = rule_out_quadratic_ell_via_Frob_p(p,fp,MQuad)
+                    M1p3, y1p3 = self.rule_out_1_plus_3_via_Frob_p(c, p, tp, sp, M1p3, y1p3)
+                    M2p2nsd, y2p2nsd = self.rule_out_2_plus_2_nonselfdual_via_Frob_p(c, p, tp, sp, M2p2nsd, y2p2nsd)
+                    MCusp = self.rule_out_cuspidal_spaces_using_Frob_p(p,fp_rev,MCusp)
+                    MQuad = self.rule_out_quadratic_ell_via_Frob_p(p,fp,MQuad)
 
                 if (M1p3 == 1) or (y1p3 > 1):
                     if (M2p2nsd == 1) or (y2p2nsd > 1):
@@ -1039,22 +883,17 @@ class GaloisRepresentation(SageObject):
                                 sufficient_p = True
 
 
-        #ell_red_easy = [prime_factors(M31), prime_factors(M32A), prime_factors(M32B)]
-
         # we will always include 2, 3, 5, 7 and the non-semistable primes.
         non_maximal_primes = {2,3,5,7}.union(set([p[0] for p in list(N.factor()) if p[1]>1]))
 
         ell_red_easy = [M1p3.prime_factors(), M2p2nsd.prime_factors()]
         non_maximal_primes = non_maximal_primes.union(set([p for j in ell_red_easy for p in j]))
 
-        if path_to_datafile is not None:
-            ell_red_cusp = [(S,prime_factors(M)) for S,M,y in MCusp]
-        else:
-            ell_red_cusp = [(S.level(),prime_factors(M)) for S,M,y in MCusp]
+        ell_red_cusp = [(S.level(), ZZ(M).prime_factors()) for S,M,y in MCusp]
 
         non_maximal_primes = non_maximal_primes.union(set([p for a,j in ell_red_cusp for p in j]))
 
-        ell_irred = [(phi,prime_factors(M)) for phi,M,t in MQuad]
+        ell_irred = [(phi,ZZ(M).prime_factors() ) for phi,M,t in MQuad]
         non_maximal_primes = non_maximal_primes.union(set([p for a,j in ell_irred for p in j]))
-
-        return self.find_surj_from_list(L=non_maximal_primes, bound)
+        self.non_surjective_primes = self.find_surj_from_list(L=non_maximal_primes, bound=bound)
+        return self.non_surjective_primes
