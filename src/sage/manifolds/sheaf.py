@@ -42,13 +42,28 @@ class Presheaf(SageObject):
         self._manifold = manifold
         self._section_set_constructor = section_set_constructor
 
+    def _repr_name_(self):
+        r"""
+
+        """
+        return 'Presheaf'
+
+    def _repr_(self):
+        r"""
+        Return the string representation of ``self``.
+
+        """
+        repr = f'{self._repr_name_()} of sections constructed '
+        repr += f'by {self._section_set_constructor} on the {self._manifold}'
+        return repr
+
     def __call__(self, open_subset):
         r"""
         Return the set of sections of ``self`` w.r.t. ``open_subset``.
 
         """
-        if not open_subset.is_subset(self._manifold):
-            raise ValueError
+        if not open_subset.is_subset(self._manifold) or not open_subset.is_open():
+            raise ValueError(f'{open_subset} must be an open subset of {self._manifold}')
         return self._section_set_constructor(open_subset)
 
     def section_set(self, open_subset):
@@ -64,15 +79,44 @@ class Presheaf(SageObject):
         ``to_open_subset``.
 
         """
-        if not from_open_subset.is_subset(self._manifold) or not to_open_subset.is_subset(self._manifold):
-            raise ValueError
+        if not from_open_subset.is_subset(self._manifold) or not from_open_subset.is_open():
+            raise ValueError(f'{from_open_subset} must be an open subset of {self._manifold}')
+        if not to_open_subset.is_subset(self._manifold) or not to_open_subset.is_open():
+            raise ValueError(f'{to_open_subset} must be an open subset of {self._manifold}')
         from sage.categories.morphism import SetMorphism
         from sage.categories.homset import Hom
         from sage.categories.sets_cat import Sets
-        sec_dom = self.section_set(from_open_subset)
-        sec_codom = self.section_set(to_open_subset)
+        sec_dom = self(from_open_subset)
+        sec_codom = self(to_open_subset)
         return SetMorphism(Hom(sec_dom, sec_codom, Sets()),
                            lambda x: x.restrict(to_open_subset))
+
+class Sheaf(Presheaf):
+    r"""
+
+    """
+    def concatenation(self, *args, **kwargs):
+        r"""
+        Return the concatenation of a list of sections each defined on an open
+        subset of an open covering of ``open_subset``.
+
+        INPUT:
+
+        - ``open_subset`` -- (default: ``None``) op
+
+        """
+        open_subset = kwargs.pop('open_subset', self._manifold)
+        # compatibility check
+        # ...
+        # construct section from parts
+        # ...
+        pass
+
+    def _repr_name_(self):
+        r"""
+
+        """
+        return 'Sheaf'
 
 class PresheafSection(SageObject):
     r"""
@@ -84,19 +128,37 @@ class PresheafSection(SageObject):
         """
         self._domain = domain
 
-    def restrict(self, open_subset):
+    def restrict(self, subdomain):
         r"""
-        Return the restriction of ``self`` to ``open_subset``.
+        Return the restriction of ``self`` to ``subdomain``.
 
         """
         # try to get restriction from restriction graph
         # ...
         # if that fails, create restriction from scratch
-        return self._construct_restriction_(open_subset)
+        return self._construct_restriction_(subdomain)
 
     @abstract_method
-    def _construct_restriction_(self, open_subset):
+    def _construct_restriction_(self, subdomain):
         r"""
-        Construct a restriction of ``self`` to ``open_subset`` from scratch.
+        Construct a restriction of ``self`` to ``subdomain`` from scratch.
 
         """
+
+class SheafSection(PresheafSection):
+    r"""
+
+    """
+    def __eq__(self, other):
+        r"""
+
+        """
+        if self is other:
+            return True
+        if self._domain != other._domain:
+            return False
+        # compare on open covers until hitting a subdomain on which the
+        # sections are actually comparable (e.g. parallelizable subdomains for
+        # tensor fields)
+        return all(self.restrict(subdom) == other.restrict(subdom)
+                   for subdom in self._domain.open_covers(trivial=False))
