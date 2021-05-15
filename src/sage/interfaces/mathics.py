@@ -345,6 +345,12 @@ AUTHORS:
 
 - Sebastian Oehms (2021): first version from a copy of the Mathematica interface (see :trac:`31778`).
 
+
+Thanks to Rocky Bernstein and Juan Mauricio Matera for their support. For further acknowledgments see `this list <https://github.com/mathics/Mathics/blob/master/AUTHORS.txt>`__.
+
+
+
+
 TESTS:
 
 Check that numerical approximations via Mathics's `N[]` function work
