@@ -18,6 +18,7 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 from sage.misc.abstract_method import abstract_method
+from .manifold import TopologicalManifold
 
 class Presheaf(SageObject):
     r"""
@@ -31,14 +32,16 @@ class Presheaf(SageObject):
             sage: from sage.manifolds.sheaf import Presheaf
             sage: M = Manifold(2, 'M')
             sage: F = Presheaf(M, lambda d: d.scalar_field_algebra()); F
-            ...
-            sage: U = M.open_subset()
+            Presheaf of sections constructed by <function <lambda> at 0x7f4d179cbaf0>
+             on the 2-dimensional differentiable manifold M
+            sage: U = M.open_subset('U')
             sage: F(U)
-            ...
+            Algebra of differentiable scalar fields on the Open subset U of the
+             2-dimensional differentiable manifold M
 
         """
-        if manifold is not self._manifold:
-            raise ValueError
+        if not isinstance(manifold, TopologicalManifold):
+            raise ValueError(f'{manifold} must be an instance of {TopologicalManifold}')
         self._manifold = manifold
         self._section_set_constructor = section_set_constructor
 
@@ -77,6 +80,17 @@ class Presheaf(SageObject):
         r"""
         Return the restriction morphism from ``from_open_subset`` to
         ``to_open_subset``.
+
+        EXAMPLES::
+
+            sage: from sage.manifolds.sheaf import Presheaf
+            sage: M = Manifold(2, 'M')
+            sage: F = Presheaf(M, lambda d: d.scalar_field_algebra())
+            sage: U = M.open_subset('U')
+            sage: F.restriction_morphism(M, U)
+            Generic morphism:
+              From: Algebra of differentiable scalar fields on the 2-dimensional differentiable manifold M
+              To:   Algebra of differentiable scalar fields on the Open subset U of the 2-dimensional differentiable manifold M
 
         """
         if not from_open_subset.is_subset(self._manifold) or not from_open_subset.is_open():
