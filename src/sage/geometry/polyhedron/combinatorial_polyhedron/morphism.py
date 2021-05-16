@@ -53,6 +53,39 @@ class CombinatorialPolyhedraMorphism(Morphism):
             sage: phi_C.Hrepresentation()
             (0, 1, 2, 3, 4, 5)
 
+        A realization morphism:
+
+            sage: V = QQ^3
+            sage: def zero_one(vertex):
+            ....:    v = V([1 if x >= 0 else 0 for x in vertex])
+            ....:    v.set_immutable()
+            ....:    return v
+            sage: Vrep_dict = {index: zero_one(vertex)
+            ....:              for index, vertex in enumerate(C.vertices())}
+            sage: Vrep_dict
+            {0: (1, 0, 0),
+            1: (1, 1, 0),
+            2: (1, 1, 1),
+            3: (1, 0, 1),
+            4: (0, 0, 1),
+            5: (0, 0, 0),
+            6: (0, 1, 0),
+            7: (0, 1, 1)}
+            sage: psi = phi_C.parent().hom(Vrep_dict)
+            sage: C2 = psi(phi_C); C2
+            A 3-dimensional combinatorial polyhedron with 6 facets
+            sage: C2.Vrepresentation()
+            ((1, 0, 0),
+            (1, 1, 0),
+            (1, 1, 1),
+            (1, 0, 1),
+            (0, 0, 1),
+            (0, 0, 0),
+            (0, 1, 0),
+            (0, 1, 1))
+            sage: C2.Hrepresentation()
+            (0, 1, 2, 3, 4, 5)
+
         """
         # For now, degenerations are not implemented
         incidence_matrix = p.incidence_matrix()
