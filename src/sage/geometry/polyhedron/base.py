@@ -5851,6 +5851,30 @@ class Polyhedron_base(Polyhedron_base4):
         aff_latex_name = r'\mathop{\mathrm{' + operator + '}}(' + latex_name + ')'
         return aff_name, aff_latex_name
 
+    def _relative_interior_name_latex_name(self, name=None, latex_name=None):
+        """
+        Return the default name of a relative interior.
+
+        EXAMPLES::
+
+            sage: polytopes.cube()._relative_interior_name_latex_name('C', r'\square')
+            ('int_C', '\\mathop{\\mathrm{int}}(\\square)')
+
+            sage: Polyhedron(vertices=[[0, 1], [1, 0]])._relative_interior_name_latex_name()
+            ('ri_P', '\\mathop{\\mathrm{ri}}(P)')
+        """
+        if name is None:
+            name = 'P'
+        if latex_name is None:
+            latex_name = name
+        if self.is_full_dimensional():
+            operator = 'int'
+        else:
+            operator = 'ri'
+        relint_name = f'{operator}_{name}'
+        relint_latex_name = r'\mathop{\mathrm{' + operator + '}}(' + latex_name + ')'
+        return relint_name, relint_latex_name
+
     def relative_interior_manifold(self, name=None, latex_name=None, start_index=0, ambient_space=None,
                                    names=None, **kwds):
         """
@@ -5884,14 +5908,22 @@ class Polyhedron_base(Polyhedron_base4):
             Graphics3d Object
 
         """
+        if name is None:
+            name, latex_name = self._relative_interior_name_latex_name()
         aff_self = self.affine_hull_manifold(start_index=start_index,
                                              ambient_space=ambient_space, names=names, **kwds)
-        substitutions = {t: 0 for t in aff_self._var}
-        restrictions = [ineq.A() * vector(ex.subs(substitutions) for ex in aff_self.embedding().expr()) + ineq.b() > 0
+        C_aff_self = aff_self.default_chart()
+        if self.is_full_dimensional():
+            x = vector(C_aff_self)
+        else:
+            # Set the foliation parameters
+            substitutions = {t: 0 for t in aff_self._var}
+            x = vector(ex.subs(substitutions)
+                       for ex in aff_self.embedding().expr())
+        restrictions = [ineq.A() * x + ineq.b() > 0
                         for ineq in self.inequality_generator()]
-        relint_self = aff_self.open_subset(name, latex_name=latex_name,
-                                           coord_def={aff_self.default_chart(): restrictions})
-        return relint_self
+        return aff_self.open_subset(name, latex_name=latex_name,
+                                    coord_def={C_aff_self: restrictions})
 
     def _polymake_init_(self):
         """
