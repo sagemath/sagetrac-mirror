@@ -13,6 +13,7 @@ Families of Codes (Rich representation)
 
     :meth:`~sage.coding.parity_check_code.ParityCheckCode` @ Parity check codes
     :meth:`~sage.coding.cyclic_code.CyclicCode` @ Cyclic codes
+    :meth:`~sage.coding.cyclic_rank_code.CyclicRankCode` @ Cyclic rank codes
     :meth:`~sage.coding.bch_code.BCHCode` @ BCH Codes
     :meth:`~sage.coding.grs_code.GeneralizedReedSolomonCode` @ Generalized Reed-Solomon codes
     :meth:`~sage.coding.grs_code.ReedSolomonCode` @ Reed-Solomon codes
@@ -22,6 +23,7 @@ Families of Codes (Rich representation)
     :meth:`~sage.coding.golay_code.GolayCode` @ Golay codes
     :meth:`~sage.coding.goppa_code.GoppaCode` @ Goppa codes
     :meth:`~sage.coding.kasami_codes.KasamiCode` @ Kasami codes
+    
 
 Families of Codes (Generator matrix representation)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -42,6 +44,7 @@ Families of Codes (Generator matrix representation)
     :meth:`~sage.coding.code_constructions.WalshCode` @ Walsh codes
     :meth:`~sage.coding.code_constructions.from_parity_check_matrix` @ Construct a code from a parity check matrix
     :meth:`~sage.coding.code_constructions.random_linear_code` @ Construct a random linear code
+    :meth:`~sage.coding.code_constructions.random_rank_code` @ Construct a random rank metric code
     :meth:`~sage.coding.guava.RandomLinearCodeGuava` @ Construct a random linear code through Guava (Requires GAP/Guava)
 
 
@@ -72,6 +75,7 @@ Derived Codes
 #
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 # This module is imported as "codes" in all.py so that codes.<tab> is
 # available in the global namespace.
@@ -84,7 +88,7 @@ _lazy_import('sage.coding.code_constructions',
         ['DuadicCodeEvenPair', 'DuadicCodeOddPair',
          'ExtendedQuadraticResidueCode', 'from_parity_check_matrix',
          'QuadraticResidueCode', 'QuadraticResidueCodeEvenPair',
-         'QuadraticResidueCodeOddPair', 'random_linear_code',
+         'QuadraticResidueCodeOddPair', 'random_linear_code', 'random_rank_code' ,
          'ToricCode', 'WalshCode'])
 
 _lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcode')
@@ -93,6 +97,7 @@ _lazy_import('sage.coding.punctured_code', 'PuncturedCode')
 
 _lazy_import('sage.coding.parity_check_code', 'ParityCheckCode')
 _lazy_import('sage.coding.cyclic_code', 'CyclicCode')
+_lazy_import('sage.coding.cyclic_rank_code', 'CyclicRankCode')
 _lazy_import('sage.coding.bch_code', 'BCHCode')
 _lazy_import('sage.coding.grs_code', ['GeneralizedReedSolomonCode', 'ReedSolomonCode'])
 _lazy_import('sage.coding.reed_muller_code', ['BinaryReedMullerCode', 'ReedMullerCode'])
@@ -102,6 +107,7 @@ _lazy_import('sage.coding.goppa_code', 'GoppaCode')
 _lazy_import('sage.coding.kasami_codes', 'KasamiCode')
 _lazy_import('sage.coding.linear_rank_metric', 'LinearRankMetricCode')
 _lazy_import('sage.coding.gabidulin_code', 'GabidulinCode')
+_lazy_import('sage.coding.low_rank_parity_check', 'LRPCCode')
 
 _lazy_import('sage.coding.guava', ['QuasiQuadraticResidueCode', 'RandomLinearCodeGuava'])
 
