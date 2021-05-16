@@ -5851,6 +5851,44 @@ class Polyhedron_base(Polyhedron_base4):
         aff_latex_name = r'\mathop{\mathrm{' + operator + '}}(' + latex_name + ')'
         return aff_name, aff_latex_name
 
+    def as_manifold_subset(self, name=None, latex_name=None, start_index=0, ambient_space=None,
+                           names=None, **kwds):
+        """
+        Return the relative interior of ``self`` as a subset of its affine hull manifold.
+
+        It is the closure of its :meth:`relative_interior_manifold` in
+        the :meth:`affine_hull_manifold`.
+
+        EXAMPLES::
+
+            sage: cube = polytopes.cube(); cube
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: cube.as_manifold_subset()
+            Topological closure P of the
+             Open subset int_P of the
+              Euclidean space E^3
+            sage: triangle = Polyhedron([(1,0,0), (0,1,0), (0,0,1)]); triangle
+            A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 3 vertices
+            sage: triangle.as_manifold_subset()
+            Topological closure P of the
+             Open subset ri_P of the
+              2-dimensional Riemannian submanifold aff_P
+               embedded in the Euclidean space E^3
+
+        """
+        if name is None:
+            name = 'P'
+        if latex_name is None:
+            latex_name = name
+        relint_name, relint_latex_name = self._relative_interior_name_latex_name(name, latex_name)
+        relint_self = self.relative_interior_manifold(name=relint_name,
+                                                      latex_name=relint_latex_name,
+                                                      start_index=start_index,
+                                                      ambient_space=ambient_space,
+                                                      names=names,
+                                                      **kwds)
+        return relint_self.closure(name=name, latex_name=latex_name)
+
     def _relative_interior_name_latex_name(self, name=None, latex_name=None):
         """
         Return the default name of a relative interior.
