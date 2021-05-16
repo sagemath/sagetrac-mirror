@@ -66,7 +66,8 @@ from .conversions \
 from .conversions cimport bit_rep_to_Vrep_list
 
 from sage.rings.integer        cimport smallInteger
-from .base                     cimport CombinatorialPolyhedron
+from .base                      import CombinatorialPolyhedron
+from .base                     cimport CombinatorialPolyhedron_class
 from .face_iterator            cimport FaceIterator
 from .face_list_data_structure cimport *
 
@@ -110,7 +111,7 @@ cdef class PolyhedronFaceLattice:
     by intersecting with all coatoms. Then each intersection is looked up in
     the sorted level sets.
     """
-    def __init__(self, CombinatorialPolyhedron C):
+    def __init__(self, CombinatorialPolyhedron_class C):
         r"""
         Initialize :class:`PolyhedronFaceLattice`.
 

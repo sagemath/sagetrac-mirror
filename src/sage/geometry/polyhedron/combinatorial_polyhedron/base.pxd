@@ -7,7 +7,7 @@ from .face_data_structure       cimport face_t
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 
 @cython.final
-cdef class CombinatorialPolyhedron(Element):
+cdef class CombinatorialPolyhedron_class(Element):
     cdef public dict __cached_methods
 
     # Do not assume any of those attributes to be initialized, use the corresponding methods instead.
@@ -54,8 +54,8 @@ cdef class CombinatorialPolyhedron(Element):
     cdef tuple far_face_tuple(self)
 
     # Methods to obtain a different combinatorial polyhedron.
-    cpdef CombinatorialPolyhedron dual(self)
-    cpdef CombinatorialPolyhedron pyramid(self, new_vertex=*, new_facet=*)
+    cpdef CombinatorialPolyhedron_class dual(self)
+    cpdef CombinatorialPolyhedron_class pyramid(self, new_vertex=*, new_facet=*)
 
     # Space for edges, ridges, etc. is allocated with ``MemoryAllocators``.
     # Upon success they are copied to ``_mem_tuple``.

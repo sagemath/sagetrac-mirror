@@ -69,7 +69,7 @@ from sage.misc.superseded        import deprecated_function_alias
 import numbers
 from sage.rings.integer         cimport smallInteger
 from .conversions               cimport bit_rep_to_Vrep_list
-from .base                      cimport CombinatorialPolyhedron
+from .base                       import CombinatorialPolyhedron
 from .face_iterator             cimport FaceIterator_base
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 from .face_data_structure       cimport face_len_atoms, face_init, face_copy, face_issubset

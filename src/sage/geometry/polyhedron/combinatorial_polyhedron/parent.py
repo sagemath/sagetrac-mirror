@@ -14,12 +14,15 @@ Parent class for combinatorial polyhedra
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from .base import CombinatorialPolyhedron_class
 
 class CombinatorialPolyhedra(UniqueRepresentation, Parent):
 
     r"""
     Parent class for combinatorial polyhedra
     """
+
+    Element = CombinatorialPolyhedron_class
 
     def __init__(self):
         """
@@ -60,7 +63,10 @@ class CombinatorialPolyhedra(UniqueRepresentation, Parent):
 
             sage: C = polytopes.cube().combinatorial_polyhedron()
             sage: C.parent().hom({1: 2, 2: 2}, C.parent())
+            Combinatorial polyhedral set endomorphism of Combinatorial polyhedra
 
         """
+        if codomain is None:
+            codomain = self
         homset = self.Hom(codomain)
         return homset(Vrep_dict, check=check)

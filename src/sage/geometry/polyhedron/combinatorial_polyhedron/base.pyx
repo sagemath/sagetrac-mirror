@@ -114,9 +114,10 @@ cdef extern from "Python.h":
 from .parent import CombinatorialPolyhedra
 cdef Parent unspecific_parent = CombinatorialPolyhedra()
 
-cdef class CombinatorialPolyhedron(Element):
+cpdef CombinatorialPolyhedron(data, Vrep=None, facets=None, unbounded=False,
+                              far_face=None, Vrepr=None, parent=None):
     r"""
-    The class of the Combinatorial Type of a Polyhedron, a Polytope.
+    Construct a combinatorial polyhedron, the labeled combinatorial type of a polyhedron.
 
     INPUT:
 
@@ -318,8 +319,15 @@ cdef class CombinatorialPolyhedron(Element):
         sage: CombinatorialPolyhedron(LatticePolytope([], lattice=ToricLattice(3)))
         A -1-dimensional combinatorial polyhedron with 0 facets
     """
-    def __init__(self, data, Vrep=None, facets=None, unbounded=False,
-                 far_face=None, Vrepr=None, parent=None):
+    if parent is None:
+        parent = unspecific_parent
+    return CombinatorialPolyhedron_class(parent, data, Vrep, facets,
+                                         unbounded, far_face, Vrepr)
+
+cdef class CombinatorialPolyhedron_class(Element):
+
+    def __init__(self, parent, data, Vrep=None, facets=None, unbounded=False,
+                 far_face=None, Vrepr=None):
         r"""
         Initialize :class:`CombinatorialPolyhedron`.
 
@@ -3011,9 +3019,9 @@ cdef class CombinatorialPolyhedron(Element):
         r"""
         Return whether ``self`` and ``other`` are equal.
         """
-        if not isinstance(other, CombinatorialPolyhedron):
+        if not isinstance(other, CombinatorialPolyhedron_class):
             return False
-        cdef CombinatorialPolyhedron other_C = other
+        cdef CombinatorialPolyhedron_class other_C = other
         return (self.n_facets() == other.n_facets()
                 and self.Vrepresentation() == other.Vrepresentation()
                 and self.facet_names() == other_C.facet_names()
@@ -3025,7 +3033,7 @@ cdef class CombinatorialPolyhedron(Element):
 
     # Methods to obtain a different combinatorial polyhedron.
 
-    cpdef CombinatorialPolyhedron dual(self):
+    cpdef CombinatorialPolyhedron_class dual(self):
         r"""
         Return the dual/polar of self.
 
@@ -3068,7 +3076,7 @@ cdef class CombinatorialPolyhedron(Element):
 
     polar = dual
 
-    cpdef CombinatorialPolyhedron pyramid(self, new_vertex=None, new_facet=None):
+    cpdef CombinatorialPolyhedron_class pyramid(self, new_vertex=None, new_facet=None):
         r"""
         Return the pyramid of ``self``.
 
