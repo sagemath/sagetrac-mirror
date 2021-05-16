@@ -5853,7 +5853,7 @@ class Polyhedron_base(Polyhedron_base4):
 
     def as_manifold_subset(self, name=None, latex_name=None, start_index=0, ambient_space=None,
                            names=None, **kwds):
-        """
+        r"""
         Return the relative interior of ``self`` as a subset of its affine hull manifold.
 
         It is the closure of its :meth:`relative_interior_manifold` in
@@ -5890,7 +5890,7 @@ class Polyhedron_base(Polyhedron_base4):
         return relint_self.closure(name=name, latex_name=latex_name)
 
     def _relative_interior_name_latex_name(self, name=None, latex_name=None):
-        """
+        r"""
         Return the default name of a relative interior.
 
         EXAMPLES::
@@ -5915,7 +5915,7 @@ class Polyhedron_base(Polyhedron_base4):
 
     def relative_interior_manifold(self, name=None, latex_name=None, start_index=0, ambient_space=None,
                                    names=None, **kwds):
-        """
+        r"""
         Return the relative interior of ``self`` as an open subset of its affine hull manifold.
 
         EXAMPLES::
