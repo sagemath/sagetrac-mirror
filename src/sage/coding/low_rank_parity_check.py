@@ -7,11 +7,11 @@ defined as the codes with parity check matrix `H` such that subspace `F` generat
 is of dimension `d`.
 
 This module also provides :class:`~sage.coding.low_rank_parity_check.LRPCCodeGeneratorMatrixEncoder`,
-an encoder based on the generator matrix. It also provides a decoder 
+an encoder based on the generator matrix. It also provides a decoder
 :class:`~sage.coding.low_rank_parity_check.LRPCBasicSyndromeDecoder`, which corrects errors using
 the general decoding algorithm for LRPC codes defined in [GMRZ2013]_.
 
-AUTHOR: 
+AUTHOR:
 
 - Maaike van Leuken (2021-2-26): initial version
 """
@@ -40,12 +40,12 @@ from sage.functions.other import floor
 class LRPCCode(AbstractLinearRankMetricCode):
     r"""
     An LRPC code.
-    
+
     DEFINITION:
     A linear Low Rank Parity Check code of rank `d`, length `n` and dimension `k` over `\mathbb{f}_{q^m}`
     is the set of all codewords `c`, such that `c \in x \cdot G` for all `x \in \mathbb{F_{q^m}}`
     Where `G` is the generator matrix derived from the parity check matrix `H`, which coefficients span
-    a sub-vector space `F` of `\mathbb{F}_{q^m}` of dimension `d`. The construction of LRPC codes is 
+    a sub-vector space `F` of `\mathbb{F}_{q^m}` of dimension `d`. The construction of LRPC codes is
     random. In some cases, for parameters where `d` is close to `n` or `m`, the construction might fail.
     To obtain equal LRPC codes, one can give a parity check matrix `H`. This is done in the examples
     for reproducibility.
@@ -55,13 +55,13 @@ class LRPCCode(AbstractLinearRankMetricCode):
         An LRPC code can be constructed in the following way::
 
             sage: q = 2; n = 5; k = 1; m = 5; d = 2;
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C                                                                         
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C
             [5, 1, 2] LRPC code over GF(32)/GF(2)
 
         An example of an LRPC code with larger parameters::
 
-            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2;                              
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C                                  
+            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2;
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C
             [22, 11, 2] LRPC code over GF(2048)/GF(2)
 
         An LRPC code can also be constructed by giving a parity check matrix `H`::
@@ -71,14 +71,14 @@ class LRPCCode(AbstractLinearRankMetricCode):
             sage: H = [(z5^4 + z5^3 + z5^2 + 1, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5, 0), \
             (z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5),\
             (0, 0, z5^4 + z5^3 + z5, z5^4 + z5^3 + z5, 0), \
-            (0, z5^4 + z5^3 + z5, 0, z5^4 + z5^3 + z5, z5^4 + z5^3 + z5^2 + 1)] 
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C  
-            [5, 1, 2] LRPC code over GF(32)/GF(2)            
+            (0, z5^4 + z5^3 + z5, 0, z5^4 + z5^3 + z5, z5^4 + z5^3 + z5^2 + 1)]
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
+            [5, 1, 2] LRPC code over GF(32)/GF(2)
 
         The construction of the code is probabilistic, so sometimes, the subspace `F` does not have the
         correct dimension `d`::
 
-            sage: q = 2; n = 3; d = 2; k = 1; r = 1; m = 4; 
+            sage: q = 2; n = 3; d = 2; k = 1; r = 1; m = 4;
             sage: z4 = GF(q**m).gen()
             sage: H = [(0, z4^2, z4^2), (0, z4^2, z4^2)]
             sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H));
@@ -88,16 +88,16 @@ class LRPCCode(AbstractLinearRankMetricCode):
     """
     _registered_encoders = {}
     _registered_decoders = {}
-    
+
     def __init__(self, base_field, length, dimension, d, sub_field=None, parity_check_matrix=None):
         r"""
         Representation of a low-rank parity check (LRPC) code.
-        
+
         INPUT:
 
         - ``base_field`` -- finite field of order `q^m` where `q` is a prime power
           and `m` is an integer, the extension degree.
-          
+
         - ``length`` -- length of the resulting code
 
         - ``dimension`` -- dimension of the resulting code
@@ -111,7 +111,7 @@ class LRPCCode(AbstractLinearRankMetricCode):
         - ``parity_check_matrix`` -- (default: ``None``) the parity check matrix
           the code should have. If not given, it is computed randomly below
           such that its coefficients span the subspace `F` of dimension ``d``.
-          
+
         TESTS:
 
         If ``d`` is bigger than the degree of the extension an error is
@@ -120,15 +120,15 @@ class LRPCCode(AbstractLinearRankMetricCode):
             sage: C = C = codes.LRPCCode(GF(64), 7, 3, 7)
             Traceback (most recent call last):
             ...
-            ValueError: The dimension of the support of the parity check matrix cannot be larger than the extension_degree. 
+            ValueError: The dimension of the support of the parity check matrix cannot be larger than the extension_degree.
 
         If ``d`` is bigger than the degree of the extension an error is
         raised:
 
-            sage: C = codes.LRPCCode(GF(8), 2, 1, 3) 
+            sage: C = codes.LRPCCode(GF(8), 2, 1, 3)
             Traceback (most recent call last):
             ...
-            ValueError: The dimension of the support of the parity check matrix cannot be larger than length of the code. 
+            ValueError: The dimension of the support of the parity check matrix cannot be larger than length of the code.
 
         If ``d`` is smaller than 1, an error is raised:
 
@@ -141,7 +141,7 @@ class LRPCCode(AbstractLinearRankMetricCode):
         self._d = d
 
         if sub_field == None:
-            sub_field = base_field.base_ring() 
+            sub_field = base_field.base_ring()
         if d > log(base_field.cardinality(), sub_field.cardinality()):
             raise ValueError("The dimension of the support of the parity check matrix cannot be larger than the extension_degree. ")
         if d > length:
@@ -161,7 +161,7 @@ class LRPCCode(AbstractLinearRankMetricCode):
                 raise ValueError("This is not a good LRPC code, since the dimension of the support of the parity is not equal to %d." %(d))
             self._sup = F
             elems = [self.poly_form_of_vector(elem, base_field) for elem in list(F)]
-            
+
             from random import choice
             temp = [[0 for _ in range(length)] for _ in range(length-dimension)]
             for i in range(length-dimension):
@@ -171,19 +171,16 @@ class LRPCCode(AbstractLinearRankMetricCode):
             self._parity_check = matrix(base_field, temp)
             self.basis = from_parity_check_matrix(self._parity_check).generator_matrix()
 
-        super(LRPCCode, self).__init__(base_field, sub_field, length, "GeneratorMatrix", "SyndromeDecoder", self.basis)        
-           
-    """def __len__(self):
-        return len(self.sub_field())**(self.extension_degree() * self.dimension())"""
+        super(LRPCCode, self).__init__(base_field, sub_field, length, "GeneratorMatrix", "SyndromeDecoder", self.basis)
 
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
 
         EXAMPLES::
-            
-            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2;                              
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C                                  
+
+            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2;
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C
             [22, 11, 2] LRPC code over GF(2048)/GF(2)
         """
         R = self.base_field()
@@ -199,20 +196,20 @@ class LRPCCode(AbstractLinearRankMetricCode):
 
         EXAMPLES::
 
-            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2;                              
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C                                  
-            [22, 11, 2] LRPC code over GF(2048)/GF(2)                                                                
-            sage: latex(C)                                                                  
+            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2;
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C
+            [22, 11, 2] LRPC code over GF(2048)/GF(2)
+            sage: latex(C)
             [22, 11, 2] \textnormal{ linear LRPC code over } \Bold{F}_{2^{11}}/\Bold{F}_{2}
         """
         return "[%s, %s, %s] \\textnormal{ linear LRPC code over } %s/%s"\
                 % (self.length(), self.dimension(), self.rank(),
                 self.base_field()._latex_(), self.sub_field()._latex_())
-    
+
     def __eq__(self, other):
         r"""
         Tests equality between LRPC Code objects.
-        Two codes are equal if they contain the same codewords. This happens when 
+        Two codes are equal if they contain the same codewords. This happens when
         the generator matrices or the parity check matrices in systematic form of both
         codes are equal. Here we use the generator matrices to verify this, since these are
         generated in ``__init__`` in systematic form.
@@ -227,9 +224,9 @@ class LRPCCode(AbstractLinearRankMetricCode):
 
         EXAMPLES::
 
-            sage: C1 = codes.LRPCCode(GF(2**10), 8, 4, 2)                                   
-            sage: C2 = codes.LRPCCode(GF(2**10), 8, 4, 2)                                 
-            sage: C1 == C2                                                                 
+            sage: C1 = codes.LRPCCode(GF(2**10), 8, 4, 2)
+            sage: C2 = codes.LRPCCode(GF(2**10), 8, 4, 2)
+            sage: C1 == C2
             False
 
         Two codes `C_1` and `C_2`, with generator and parity check matrix `G_1`, `H_1` and  G_2`, `H_2`
@@ -238,10 +235,10 @@ class LRPCCode(AbstractLinearRankMetricCode):
             sage: z5 = GF(2**5).gen()
             sage: H1 = [(z5^4 + z5^3 + z5^2, z5^4 + z5^3 + z5^2, z5^4 + z5^3 + z5^2, z5^4 + z5^3 + z5^2, 0),
             ....: (z5^4 + z5^3 + z5^2, z5^4 + z5^3 + z5^2, 0, z5^4 + z5^3 + z5^2, z5^4 + z5^3 + z5^2)]
-            sage: C1 = codes.LRPCCode(GF(2**5), 5, 3, 1, parity_check_matrix=matrix(H1));                                            
-            sage: C2 = codes.LRPCCode(GF(2**5), 5, 3, 1, parity_check_matrix=H1)           
-            sage: C1 == C2                                                                 
-            True       
+            sage: C1 = codes.LRPCCode(GF(2**5), 5, 3, 1, parity_check_matrix=matrix(H1));
+            sage: C2 = codes.LRPCCode(GF(2**5), 5, 3, 1, parity_check_matrix=H1)
+            sage: C1 == C2
+            True
         """
         return  isinstance(other, LRPCCode) \
                 and self.base_field() == other.base_field() \
@@ -251,29 +248,29 @@ class LRPCCode(AbstractLinearRankMetricCode):
                 and self.dimension() == other.dimension() \
                 and self.generator_matrix() * other.parity_check_matrix().transpose() \
                  == other.generator_matrix() * self.parity_check_matrix().transpose() == 0
-        
+
     def generator_matrix(self):
         r"""
         Return the generator matrix of ``self``.
 
         EXAMPLES::
 
-            sage: q = 2; n = 5; k = 2; m = 5; d = 3 
+            sage: q = 2; n = 5; k = 2; m = 5; d = 3
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5 + 1, z5^2, z5^4 + z5^2 + 1, z5^4 + z5^3 + z5^2 + z5 + 1, z5^3 + z5^2 + z5),\
             ....: (z5^2, 0, z5^4 + z5^3 + z5 + 1, z5^2, z5^4 + z5^2 + 1),\
             ....: (z5^2, z5^4 + z5^3 + z5^2 + z5 + 1, z5^2, z5^4 + z5^3 + z5 + 1, 0)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C      
-            [5, 2, 3] LRPC code over GF(32)/GF(2)  
-            sage: G = C.generator_matrix(); G     
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
+            [5, 2, 3] LRPC code over GF(32)/GF(2)
+            sage: G = C.generator_matrix(); G
             [               1                0 z5^4 + z5^3 + z5             z5^2    z5^4 + z5 + 1]
-            [               0                1 z5^4 + z5^3 + z5         z5^2 + 1    z5^4 + z5 + 1]                                    
-            sage: G * C.parity_check_matrix().transpose()                                   
+            [               0                1 z5^4 + z5^3 + z5         z5^2 + 1    z5^4 + z5 + 1]
+            sage: G * C.parity_check_matrix().transpose()
             [0 0 0]
             [0 0 0]
         """
         return self.basis
-     
+
     def parity_check_matrix(self):
         r"""
         Return the parity check matrix of ``self``.
@@ -282,14 +279,14 @@ class LRPCCode(AbstractLinearRankMetricCode):
 
         EXAMPLES::
 
-            sage: q = 2; n = 5; k = 2; m = 5; d = 3 
+            sage: q = 2; n = 5; k = 2; m = 5; d = 3
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5 + 1, z5^2, z5^4 + z5^2 + 1, z5^4 + z5^3 + z5^2 + z5 + 1, z5^3 + z5^2 + z5),\
             ....: (z5^2, 0, z5^4 + z5^3 + z5 + 1, z5^2, z5^4 + z5^2 + 1),\
             ....: (z5^2, z5^4 + z5^3 + z5^2 + z5 + 1, z5^2, z5^4 + z5^3 + z5 + 1, 0)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C         
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [5, 2, 3] LRPC code over GF(32)/GF(2)
-            sage: C.parity_check_matrix()                                                                   
+            sage: C.parity_check_matrix()
             [       z5^4 + z5^3 + z5 + 1                        z5^2             z5^4 + z5^2 + 1 z5^4 + z5^3 + z5^2 + z5 + 1            z5^3 + z5^2 + z5]
             [                       z5^2                           0        z5^4 + z5^3 + z5 + 1                        z5^2             z5^4 + z5^2 + 1]
             [                       z5^2 z5^4 + z5^3 + z5^2 + z5 + 1                        z5^2        z5^4 + z5^3 + z5 + 1                           0]
@@ -301,39 +298,39 @@ class LRPCCode(AbstractLinearRankMetricCode):
     def rank(self):
         r"""
         Return the dimension of the subspace spanned by the coefficients of the parity check matrix.
-        
+
         EXAMPLES::
 
-            sage: q = 2; n = 5; k = 2; m = 5; d = 3 
+            sage: q = 2; n = 5; k = 2; m = 5; d = 3
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5 + 1, z5^2, z5^4 + z5^2 + 1, z5^4 + z5^3 + z5^2 + z5 + 1, z5^3 + z5^2 + z5),\
             ....: (z5^2, 0, z5^4 + z5^3 + z5 + 1, z5^2, z5^4 + z5^2 + 1),\
             ....: (z5^2, z5^4 + z5^3 + z5^2 + z5 + 1, z5^2, z5^4 + z5^3 + z5 + 1, 0)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C          
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [5, 2, 3] LRPC code over GF(32)/GF(2)
-            sage: C.rank()                                                                  
-            3       
+            sage: C.rank()
+            3
         """
-        return self._d 
-        
+        return self._d
+
     def support_of_parity(self):
-        r""" 
+        r"""
         Return F, the subspace of ``self.base_field`` generated by the coefficients of ``self.parity_check``.
-        
+
         EXAMPLES::
-        
-            sage: q = 2; n = 5; k = 2; m = 5; d = 3 
+
+            sage: q = 2; n = 5; k = 2; m = 5; d = 3
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5 + 1, z5^2, z5^4 + z5^2 + 1, z5^4 + z5^3 + z5^2 + z5 + 1, z5^3 + z5^2 + z5),\
             ....: (z5^2, 0, z5^4 + z5^3 + z5 + 1, z5^2, z5^4 + z5^2 + 1),\
             ....: (z5^2, z5^4 + z5^3 + z5^2 + z5 + 1, z5^2, z5^4 + z5^3 + z5 + 1, 0)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C          
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [5, 2, 3] LRPC code over GF(32)/GF(2)
-            sage: C.parity_check_matrix()                                                                   
+            sage: C.parity_check_matrix()
             [       z5^4 + z5^3 + z5 + 1                        z5^2             z5^4 + z5^2 + 1 z5^4 + z5^3 + z5^2 + z5 + 1            z5^3 + z5^2 + z5]
             [                       z5^2                           0        z5^4 + z5^3 + z5 + 1                        z5^2             z5^4 + z5^2 + 1]
             [                       z5^2 z5^4 + z5^3 + z5^2 + z5 + 1                        z5^2        z5^4 + z5^3 + z5 + 1                           0]
-            sage: F = C.support_of_parity(); F                                                       
+            sage: F = C.support_of_parity(); F
             Vector space of degree 5 and dimension 3 over Finite Field of size 2
             Basis matrix:
             [1 0 0 0 1]
@@ -349,35 +346,35 @@ class LRPCCode(AbstractLinearRankMetricCode):
         Rewrite the parity check matrix `H` in terms of its support `F`.
         Each element of `H` can be rewritten as:
         `H_{ij} = \sum_{k = 0}^{d-1} H_{ijk}F_k`
-        
-        EXAMPLES:: 
-            
-            sage: q = 2; n = 5; k = 2; m = 5; d = 3 
+
+        EXAMPLES::
+
+            sage: q = 2; n = 5; k = 2; m = 5; d = 3
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5 + 1, z5^2, z5^4 + z5^2 + 1, z5^4 + z5^3 + z5^2 + z5 + 1, z5^3 + z5^2 + z5),\
             ....: (z5^2, 0, z5^4 + z5^3 + z5 + 1, z5^2, z5^4 + z5^2 + 1),\
             ....: (z5^2, z5^4 + z5^3 + z5^2 + z5 + 1, z5^2, z5^4 + z5^3 + z5 + 1, 0)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C          
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [5, 2, 3] LRPC code over GF(32)/GF(2)
-            sage: C.parity_check_matrix()                                                                   
+            sage: C.parity_check_matrix()
             [       z5^4 + z5^3 + z5 + 1                        z5^2             z5^4 + z5^2 + 1 z5^4 + z5^3 + z5^2 + z5 + 1            z5^3 + z5^2 + z5]
             [                       z5^2                           0        z5^4 + z5^3 + z5 + 1                        z5^2             z5^4 + z5^2 + 1]
             [                       z5^2 z5^4 + z5^3 + z5^2 + z5 + 1                        z5^2        z5^4 + z5^3 + z5 + 1                           0]
-            sage: F = C.support_of_parity(); F                                                       
+            sage: F = C.support_of_parity(); F
             Vector space of degree 5 and dimension 3 over Finite Field of size 2
             Basis matrix:
             [1 0 0 0 1]
             [0 1 0 1 0]
-            [0 0 1 0 0]            
-            sage: HinF = C.parity_in_support(); HinF                                                                               
+            [0 0 1 0 0]
+            sage: HinF = C.parity_in_support(); HinF
             [[(1, 1, 0), (0, 0, 1), (1, 0, 1), (1, 1, 1), (0, 1, 1)],
              [(0, 0, 1), (0, 0, 0), (1, 1, 0), (0, 0, 1), (1, 0, 1)],
              [(0, 0, 1), (1, 1, 1), (0, 0, 1), (1, 1, 0), (0, 0, 0)]]
-            sage: a = HinF[0][0]* matrix(F.basis()); a                                               
+            sage: a = HinF[0][0]* matrix(F.basis()); a
             (1, 1, 0, 1, 1)
-            sage: C.poly_form_of_vector(a)                                                           
+            sage: C.poly_form_of_vector(a)
             z5^4 + z5^3 + z5 + 1
-            sage: C.poly_form_of_vector(a) == H[0][0]                                                
+            sage: C.poly_form_of_vector(a) == H[0][0]
             True
         """
         F = self.support_of_parity()
@@ -385,14 +382,14 @@ class LRPCCode(AbstractLinearRankMetricCode):
         n = self.length()
         k = self.dimension()
         return [[self.rewrite_in_basis(H[i][j], F.basis()) for j in range(n)] for i in range(n-k)]
-        
+
 ####################### encoders ###############################
 
 class LRPCCodeGeneratorMatrixEncoder(LinearCodeGeneratorMatrixEncoder):
     def __init__(self, code):
         r"""
         Encoder for LRPC codes based on the generator matrix.
-        A message `m` is encrypted as `mG=c`. 
+        A message `m` is encrypted as `mG=c`.
 
         INPUT:
 
@@ -400,19 +397,19 @@ class LRPCCodeGeneratorMatrixEncoder(LinearCodeGeneratorMatrixEncoder):
 
         EXAMPLES::
 
-            sage: q = 2; n = 5; k = 2; m = 5; d = 3 
+            sage: q = 2; n = 5; k = 2; m = 5; d = 3
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5 + 1, z5^2, z5^4 + z5^2 + 1, z5^4 + z5^3 + z5^2 + z5 + 1, z5^3 + z5^2 + z5),\
             ....: (z5^2, 0, z5^4 + z5^3 + z5 + 1, z5^2, z5^4 + z5^2 + 1),\
             ....: (z5^2, z5^4 + z5^3 + z5^2 + z5 + 1, z5^2, z5^4 + z5^3 + z5 + 1, 0)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C        
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [5, 2, 3] LRPC code over GF(32)/GF(2)
-            sage: E = C.encoder() 
+            sage: E = C.encoder()
             sage: m = list(E.message_space())[12]; m
-            (z5^3 + z5^2 + z5, 0)                                                           
-            sage: E.encode(m)                                                                        
+            (z5^3 + z5^2 + z5, 0)
+            sage: E.encode(m)
             (z5^3 + z5^2 + z5, 0, z5^4 + z5^3, z5^4 + z5^3 + z5^2 + 1, z5^3 + 1)
-            sage: E.encode(m) in C                                                                   
+            sage: E.encode(m) in C
             True
         """
         if not isinstance(code, LRPCCode):
@@ -436,28 +433,28 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: n = 74; k = 37; d = 4; r = 4; m = 41;                                     
-            sage: C = codes.LRPCCode(GF(2**m), n, k, d)                                     
-            sage: D = C.decoder(); D                                                        
-            Basic LRPC syndrome decoder for [74, 37, 4] LRPC code over GF(2199023255552)/GF(2)  
+            sage: n = 74; k = 37; d = 4; r = 4; m = 41;
+            sage: C = codes.LRPCCode(GF(2**m), n, k, d)
+            sage: D = C.decoder(); D
+            Basic LRPC syndrome decoder for [74, 37, 4] LRPC code over GF(2199023255552)/GF(2)
 
         TESTS:
 
         If the code is not an LRPC code, an error is raised:
 
-            sage: C = codes.GabidulinCode(GF(8), 3, 2)                                      
+            sage: C = codes.GabidulinCode(GF(8), 3, 2)
             sage: D = codes.decoders.LRPCBasicSyndromeDecoder(C)
             Traceback (most recent call last):
             ...
-            ValueError: Code has to be an LRPC code.       
+            ValueError: Code has to be an LRPC code.
         """
         if not isinstance(code, LRPCCode):
              raise ValueError("Code has to be an LRPC code.")
-        
+
         self._D_H = [None for i in range(floor((code.length() - code.dimension())/2)+1)]
-        
+
         super(LRPCBasicSyndromeDecoder, self).__init__(code, code.ambient_space(), code._default_encoder_name)
-        
+
 
     def _repr_(self):
         r"""
@@ -465,10 +462,10 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES:
 
-            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2;                              
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C                                  
+            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2;
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C
             [22, 11, 2] LRPC code over GF(2048)/GF(2)
-            sage: D = codes.decoders.LRPCBasicSyndromeDecoder(C); D                                                                                  
+            sage: D = codes.decoders.LRPCBasicSyndromeDecoder(C); D
             Basic LRPC syndrome decoder for [22, 11, 2] LRPC code over GF(2048)/GF(2)
         """
         return "Basic LRPC syndrome decoder for %s" % self.code()
@@ -479,12 +476,12 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES:
 
-            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2;                              
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C                                  
+            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2;
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C
             [22, 11, 2] LRPC code over GF(2048)/GF(2)
-            sage: D = codes.decoders.LRPCBasicSyndromeDecoder(C); D                                                                                  
+            sage: D = codes.decoders.LRPCBasicSyndromeDecoder(C); D
             Basic LRPC syndrome decoder for [22, 11, 2] LRPC code over GF(2048)/GF(2)
-            sage: latex(D)                                                                           
+            sage: latex(D)
             \textnormal{Syndrome decoder for } [22, 11, 2] \textnormal{ linear LRPC code over } \Bold{F}_{2^{11}}/\Bold{F}_{2}
         """
         return "\\textnormal{Syndrome decoder for } %s" % self.code()._latex_()
@@ -503,18 +500,18 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2; 
-            sage: C1 = codes.LRPCCode(GF(q**m), n, k, d)                              
-            sage: H = C1.parity_check_matrix()                                              
-            sage: C2 = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=H);              
-            sage: D1 = codes.decoders.LRPCBasicSyndromeDecoder(C1)                          
-            sage: D2 = codes.decoders.LRPCBasicSyndromeDecoder(C2)                          
-            sage: D1 == D2                                                                  
+            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2;
+            sage: C1 = codes.LRPCCode(GF(q**m), n, k, d)
+            sage: H = C1.parity_check_matrix()
+            sage: C2 = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=H);
+            sage: D1 = codes.decoders.LRPCBasicSyndromeDecoder(C1)
+            sage: D2 = codes.decoders.LRPCBasicSyndromeDecoder(C2)
+            sage: D1 == D2
             True
 
-            sage: C3 = codes.LRPCCode(GF(q**m), n, k, d);                               
-            sage: D3 = codes.decoders.LRPCBasicSyndromeDecoder(C3)                          
-            sage: D2 == D3                                                                  
+            sage: C3 = codes.LRPCCode(GF(q**m), n, k, d);
+            sage: D3 = codes.decoders.LRPCBasicSyndromeDecoder(C3)
+            sage: D2 == D3
             False
         """
         return isinstance(other, LRPCBasicSyndromeDecoder) \
@@ -527,23 +524,23 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2;                              
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C                                  
+            sage: q = 2; n = 22; k = 11; m = 11; r = 5; d = 2;
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d); C
             [22, 11, 2] LRPC code over GF(2048)/GF(2)
-            sage: D = codes.decoders.LRPCBasicSyndromeDecoder(C); D                                                                                  
-            Basic LRPC syndrome decoder for [22, 11, 2] LRPC code over GF(2048)/GF(2)              
-            sage: D.decoding_radius()                                                       
+            sage: D = codes.decoders.LRPCBasicSyndromeDecoder(C); D
+            Basic LRPC syndrome decoder for [22, 11, 2] LRPC code over GF(2048)/GF(2)
+            sage: D.decoding_radius()
             5
         """
         C = self.code()
         n = C.length()
         k = C.dimension()
         return floor((n-k)/2)
-    
+
     def syndrome_space_computation(self, received):
         r"""
         Compute the syndrome and the syndrome space. This is step 1 in the algorithm
-        described in [GMRZ2013]_ in Figure 1. The first output of this function is the 
+        described in [GMRZ2013]_ in Figure 1. The first output of this function is the
         syndrome of ``received``, the second output is the support of that syndrome.
 
         INPUT:
@@ -552,19 +549,19 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1 
+            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3, z5^2 + 1, 0, z5^4 + z5^2),\
              (0, z5^3 + 1, z5^4 + z5^3, 0, z5^3 + z5^2, z5^4 + z5^2, z5^4 + z5^2),\
              (0, 0, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^2, z5^4 + z5^3 + z5^2 + 1, z5^2 + 1),\
              (z5^4 + 1, z5^4 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3),\
              (z5^4 + 1, z5^3 + z5^2, z5^4 + 1, z5^3 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^3 + 1)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C          
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [7, 2, 3] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder()
-            sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e; e # random                                                                                                                                     
+            sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e; e # random
             (z5^3, 0, 0, z5^3, 0, 0, z5^3)
-            sage: s, S = D.syndrome_space_computation(y); s # random 
+            sage: s, S = D.syndrome_space_computation(y); s # random
             (z5^4 + z5^3 + z5^2, z5^4 + 1, z5^4 + z5^3 + z5^2 + z5, z5^3 + z5^2 + 1, z5^4 + z5^3 + z5^2)
             sage: S # random
             Vector space of degree 5 and dimension 3 over Finite Field of size 2
@@ -573,13 +570,13 @@ class LRPCBasicSyndromeDecoder(Decoder):
             [0 1 0 0 0]
             [0 0 1 1 1]
 
-            sage: q = 2; n = 5; k = 1; m = 5; d = 2; r = 1                                           
-            sage: C = codes.LRPCCode(GF(2**m), n, k, d); D = C.decoder();                            
-            sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e; y  # random                   
+            sage: q = 2; n = 5; k = 1; m = 5; d = 2; r = 1
+            sage: C = codes.LRPCCode(GF(2**m), n, k, d); D = C.decoder();
+            sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e; y  # random
             (z5^3 + 1, z5^3 + z5^2, z5^3 + z5^2, 0, z5^3 + z5^2)
-            sage: s, S = D.syndrome_space_computation(y); s # random                                 
+            sage: s, S = D.syndrome_space_computation(y); s # random
             (z5^4 + z5^2 + z5 + 1, z5^3 + z5^2 + z5, z5^3 + z5^2 + z5, 0)
-            sage: S # random                            
+            sage: S # random
             Vector space of degree 5 and dimension 2 over Finite Field of size 2
             Basis matrix:
             [1 0 0 1 1]
@@ -609,19 +606,19 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1 
+            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3, z5^2 + 1, 0, z5^4 + z5^2),\
              (0, z5^3 + 1, z5^4 + z5^3, 0, z5^3 + z5^2, z5^4 + z5^2, z5^4 + z5^2),\
              (0, 0, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^2, z5^4 + z5^3 + z5^2 + 1, z5^2 + 1),\
              (z5^4 + 1, z5^4 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3),\
              (z5^4 + 1, z5^3 + z5^2, z5^4 + 1, z5^3 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^3 + 1)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C    
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [7, 2, 3] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder()
-            sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e; e # random                                                                                                                                     
+            sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e; e # random
             (z5^3, 0, 0, z5^3, 0, 0, z5^3)
-            sage: s, S = D.syndrome_space_computation(y); s # random 
+            sage: s, S = D.syndrome_space_computation(y); s # random
             (z5^4 + z5^3 + z5^2, z5^4 + 1, z5^4 + z5^3 + z5^2 + z5, z5^3 + z5^2 + 1, z5^4 + z5^3 + z5^2)
             sage: S # random
             Vector space of degree 5 and dimension 3 over Finite Field of size 2
@@ -630,10 +627,10 @@ class LRPCBasicSyndromeDecoder(Decoder):
             [0 1 0 0 0]
             [0 0 1 1 1]
             sage: F = C.support_of_parity()
-            sage: fbase = [i for i in F.basis()] 
-            sage: finverse = [1/C.poly_form_of_vector(f, C.base_field()) for f in fbase] 
-            sage: sgens = [C.poly_form_of_vector(ss, C.base_field()) for ss in S.gens()]  
-            sage: mults = [[vector(inv*ss) for ss in sgens] for inv in finverse] 
+            sage: fbase = [i for i in F.basis()]
+            sage: finverse = [1/C.poly_form_of_vector(f, C.base_field()) for f in fbase]
+            sage: sgens = [C.poly_form_of_vector(ss, C.base_field()) for ss in S.gens()]
+            sage: mults = [[vector(inv*ss) for ss in sgens] for inv in finverse]
             sage: Si = [span(m, C.sub_field()) for m in mults]; Si # random
             [Vector space of degree 5 and dimension 3 over Finite Field of size 2
              Basis matrix:
@@ -650,28 +647,28 @@ class LRPCBasicSyndromeDecoder(Decoder):
              [1 1 0 0 0]
              [0 0 1 0 0]
              [0 0 0 1 0]]
-            sage: D.subspace_com(Si) # random 
+            sage: D.subspace_com(Si) # random
             Vector space of degree 5 and dimension 1 over Finite Field of size 2
             Basis matrix:
             [0 0 0 1 0]
 
-            sage: q = 2; n = 5; k = 1; m = 5; d = 2; r = 1                                           
-            sage: C = codes.LRPCCode(GF(2**m), n, k, d); D = C.decoder();                            
-            sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e; y  # random                   
+            sage: q = 2; n = 5; k = 1; m = 5; d = 2; r = 1
+            sage: C = codes.LRPCCode(GF(2**m), n, k, d); D = C.decoder();
+            sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e; y  # random
             (z5^3 + 1, z5^3 + z5^2, z5^3 + z5^2, 0, z5^3 + z5^2)
-            sage: s, S = D.syndrome_space_computation(y); s # random                                 
+            sage: s, S = D.syndrome_space_computation(y); s # random
             (z5^4 + z5^2 + z5 + 1, z5^3 + z5^2 + z5, z5^3 + z5^2 + z5, 0)
-            sage: S # random                            
+            sage: S # random
             Vector space of degree 5 and dimension 2 over Finite Field of size 2
             Basis matrix:
             [1 0 0 1 1]
             [0 1 1 1 0]
             sage: F = C.support_of_parity()
-            sage: fbase = [i for i in F.basis()] 
-            sage: finverse = [1/C.poly_form_of_vector(f, C.base_field()) for f in fbase] 
-            sage: sgens = [C.poly_form_of_vector(ss, C.base_field()) for ss in S.gens()]  
-            sage: mults = [[vector(inv*ss) for ss in sgens] for inv in finverse] 
-            sage: Si = [span(m, C.sub_field()) for m in mults]; Si # random                                                                        
+            sage: fbase = [i for i in F.basis()]
+            sage: finverse = [1/C.poly_form_of_vector(f, C.base_field()) for f in fbase]
+            sage: sgens = [C.poly_form_of_vector(ss, C.base_field()) for ss in S.gens()]
+            sage: mults = [[vector(inv*ss) for ss in sgens] for inv in finverse]
+            sage: Si = [span(m, C.sub_field()) for m in mults]; Si # random
             [Vector space of degree 5 and dimension 2 over Finite Field of size 2
              Basis matrix:
              [1 0 0 1 0]
@@ -680,7 +677,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
              Basis matrix:
              [1 0 0 1 0]
              [0 1 1 0 1]]
-            sage: D.subspace_com(Si) # random                                                                
+            sage: D.subspace_com(Si) # random
             Vector space of degree 5 and dimension 1 over Finite Field of size 2
             Basis matrix:
             [1 0 0 1 0]
@@ -697,7 +694,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
         Compute the syndrome and the syndrome space. This is step 2 in the algorithm
         described in [GMRZ2013]_ in Figure 1.
 
-        Getting the correct E is probabilistic. Probability of failure is defined in 
+        Getting the correct E is probabilistic. Probability of failure is defined in
         Proposition 2 [GMRZ2013]_.
 
         INPUT:
@@ -706,19 +703,19 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1 
+            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3, z5^2 + 1, 0, z5^4 + z5^2),\
              (0, z5^3 + 1, z5^4 + z5^3, 0, z5^3 + z5^2, z5^4 + z5^2, z5^4 + z5^2),\
              (0, 0, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^2, z5^4 + z5^3 + z5^2 + 1, z5^2 + 1),\
              (z5^4 + 1, z5^4 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3),\
              (z5^4 + 1, z5^3 + z5^2, z5^4 + 1, z5^3 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^3 + 1)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C        
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [7, 2, 3] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder()
-            sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e; e # random                                                                                                                                     
+            sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e; e # random
             (z5^3, 0, 0, z5^3, 0, 0, z5^3)
-            sage: s, S = D.syndrome_space_computation(y); s # random 
+            sage: s, S = D.syndrome_space_computation(y); s # random
             (z5^4 + z5^3 + z5^2, z5^4 + 1, z5^4 + z5^3 + z5^2 + z5, z5^3 + z5^2 + 1, z5^4 + z5^3 + z5^2)
             sage: S # random
             Vector space of degree 5 and dimension 3 over Finite Field of size 2
@@ -726,25 +723,25 @@ class LRPCBasicSyndromeDecoder(Decoder):
             [1 0 0 0 1]
             [0 1 0 0 0]
             [0 0 1 1 1]
-            sage: E = D.recover_error_support(S); E # random                                                                                                
+            sage: E = D.recover_error_support(S); E # random
             Vector space of degree 5 and dimension 1 over Finite Field of size 2
             Basis matrix:
             [0 0 0 1 0]
             sage: C.support(e) == E
             True
 
-            sage: q = 2; n = 7; k = 2; m = 5; d = 2; r = 1                                           
-            sage: C = codes.LRPCCode(GF(2**m), n, k, d); D = C.decoder();                            
-            sage: e = C.find_e_of_rank(r); 
+            sage: q = 2; n = 7; k = 2; m = 5; d = 2; r = 1
+            sage: C = codes.LRPCCode(GF(2**m), n, k, d); D = C.decoder();
+            sage: e = C.find_e_of_rank(r);
             sage: x = C.random_element(); y = x + e;
-            sage: s, S = D.syndrome_space_computation(y); s # random                                 
+            sage: s, S = D.syndrome_space_computation(y); s # random
             (z5^4 + z5^3 + z5^2 + z5, z5^3 + z5^2 + z5 + 1, z5^4 + z5^3 + z5^2 + z5, z5^4 + 1, z5^3 + z5^2 + z5 + 1)
-            sage: S # random                                                                                                                
+            sage: S # random
             Vector space of degree 5 and dimension 2 over Finite Field of size 2
             Basis matrix:
             [1 0 0 0 1]
             [0 1 1 1 1]
-            sage: E = D.recover_error_support(S); E # random                                                                        
+            sage: E = D.recover_error_support(S); E # random
             Vector space of degree 5 and dimension 1 over Finite Field of size 2
             Basis matrix:
             [0 0 0 0 1]
@@ -756,7 +753,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         fbase = [i for i in F.basis()]
         finverse = [1/C.poly_form_of_vector(f, C.base_field()) for f in fbase]
-        sgens = [C.poly_form_of_vector(ss, C.base_field()) for ss in S.gens()] 
+        sgens = [C.poly_form_of_vector(ss, C.base_field()) for ss in S.gens()]
         mults = [[vector(inv*ss) for ss in sgens] for inv in finverse]
         Si = [span(m, C.sub_field()) for m in mults]
         if len(Si) > 1:
@@ -776,20 +773,20 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1 
+            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3, z5^2 + 1, 0, z5^4 + z5^2),\
              (0, z5^3 + 1, z5^4 + z5^3, 0, z5^3 + z5^2, z5^4 + z5^2, z5^4 + z5^2),\
              (0, 0, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^2, z5^4 + z5^3 + z5^2 + 1, z5^2 + 1),\
              (z5^4 + 1, z5^4 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3),\
              (z5^4 + 1, z5^3 + z5^2, z5^4 + 1, z5^3 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^3 + 1)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C         
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [7, 2, 3] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder()
-            sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e; e # random                                                                                                                                     
+            sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e; e # random
             (z5^3, 0, 0, z5^3, 0, 0, z5^3)
             sage: s, S = D.syndrome_space_computation(y);
-            sage: E = D.recover_error_support(S); E # random                                                                                                
+            sage: E = D.recover_error_support(S); E # random
             Vector space of degree 5 and dimension 1 over Finite Field of size 2
             Basis matrix:
             [0 0 0 1 0]
@@ -799,44 +796,44 @@ class LRPCBasicSyndromeDecoder(Decoder):
             [1 0 0 0 1]
             [0 0 1 0 1]
             [0 0 0 1 1]
-            sage: D.compute_product_space(E, F) # random                                                    
+            sage: D.compute_product_space(E, F) # random
             Vector space of degree 5 and dimension 3 over Finite Field of size 2
             Basis matrix:
             [0 0 1 1 1]
             [1 0 0 0 1]
             [0 1 1 1 1]
-        
-            sage: q = 2; n = 7; k = 2; m = 5; d = 2; r = 1                                           
-            sage: C = codes.LRPCCode(GF(2**m), n, k, d); D = C.decoder();                            
-            sage: e = C.find_e_of_rank(r); 
+
+            sage: q = 2; n = 7; k = 2; m = 5; d = 2; r = 1
+            sage: C = codes.LRPCCode(GF(2**m), n, k, d); D = C.decoder();
+            sage: e = C.find_e_of_rank(r);
             sage: x = C.random_element(); y = x + e;
-            sage: s, S = D.syndrome_space_computation(y); s # random                                 
+            sage: s, S = D.syndrome_space_computation(y); s # random
             (z5^4 + z5^3 + z5^2 + z5, z5^3 + z5^2 + z5 + 1, z5^4 + z5^3 + z5^2 + z5, z5^4 + 1, z5^3 + z5^2 + z5 + 1)
-            sage: S # random                                                                                                                
+            sage: S # random
             Vector space of degree 5 and dimension 2 over Finite Field of size 2
             Basis matrix:
             [1 0 0 0 1]
             [0 1 1 1 1]
-            sage: E = D.recover_error_support(S); E # random                                                                        
+            sage: E = D.recover_error_support(S); E # random
             Vector space of degree 5 and dimension 1 over Finite Field of size 2
             Basis matrix:
             [0 0 0 0 1]
             sage: F = C.support_of_parity()
-            sage: D.compute_product_space(E, F) # random                                                    
+            sage: D.compute_product_space(E, F) # random
             Vector space of degree 5 and dimension 2 over Finite Field of size 2
             Basis matrix:
             [1 0 0 0 1]
             [0 1 1 1 1]
         """
         C = self.code()
-        partE = [C.poly_form_of_vector(E.gens()[i], C.base_field()) for i in range(len(E.gens()))]; 
+        partE = [C.poly_form_of_vector(E.gens()[i], C.base_field()) for i in range(len(E.gens()))];
         partF = [C.poly_form_of_vector(F.gens()[i], C.base_field()) for i in range(len(F.gens()))];
-        p = [vector(e*f) for f in partF for e in partE]; 
+        p = [vector(e*f) for f in partF for e in partE];
         return span(p, already_echelonized=True);
-    
+
     def compute_A_H_r(self, hijv, r):
         r"""
-        The `(n-k)rd \times nr` matrix `A_H^r` allows to rewrite the system `He^t = s` in the 
+        The `(n-k)rd \times nr` matrix `A_H^r` allows to rewrite the system `He^t = s` in the
         base field `\mathbb{F}_q`. `A_H^r` does not depend on `e`, just on its rank ``r``.
 
         The description of this matrix `A_H^r` is given in Definition 5 in [GMRZ2013]_.
@@ -849,14 +846,14 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1 
+            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3, z5^2 + 1, 0, z5^4 + z5^2),\
              (0, z5^3 + 1, z5^4 + z5^3, 0, z5^3 + z5^2, z5^4 + z5^2, z5^4 + z5^2),\
              (0, 0, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^2, z5^4 + z5^3 + z5^2 + 1, z5^2 + 1),\
              (z5^4 + 1, z5^4 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3),\
              (z5^4 + 1, z5^3 + z5^2, z5^4 + 1, z5^3 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^3 + 1)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C         
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [7, 2, 3] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder()
             sage: hijv = C.parity_in_support(); hijv
@@ -865,7 +862,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
              [(0, 0, 0), (0, 0, 0), (0, 0, 0), (1, 1, 1), (0, 1, 0), (1, 1, 1), (1, 1, 0)],
              [(1, 0, 0), (1, 0, 0), (0, 0, 1), (0, 1, 1), (1, 1, 0), (0, 1, 1), (0, 0, 1)],
              [(1, 0, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (0, 0, 1), (0, 1, 1), (1, 0, 1)]]
-            sage: AHr = D.compute_A_H_r(hijv, r); AHr                                                                                                       
+            sage: AHr = D.compute_A_H_r(hijv, r); AHr
             [1 1 0 0 1 0 0]
             [1 1 1 0 1 0 1]
             [1 1 1 1 0 0 0]
@@ -887,17 +884,17 @@ class LRPCBasicSyndromeDecoder(Decoder):
             sage: H = [(z5^4 + z5^3 + z5^2 + 1, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5, 0), \
             (z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5),\
             (0, 0, z5^4 + z5^3 + z5, z5^4 + z5^3 + z5, 0), \
-            (0, z5^4 + z5^3 + z5, 0, z5^4 + z5^3 + z5, z5^4 + z5^3 + z5^2 + 1)] 
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C            
+            (0, z5^4 + z5^3 + z5, 0, z5^4 + z5^3 + z5, z5^4 + z5^3 + z5^2 + 1)]
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [5, 1, 2] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder(); D
             Basic LRPC syndrome decoder for [5, 1, 2] LRPC code over GF(32)/GF(2)
-            sage: hijv = C.parity_in_support(); hijv                                                                             
+            sage: hijv = C.parity_in_support(); hijv
             [[(1, 0), (0, 0), (1, 0), (0, 1), (0, 0)],
              [(1, 0), (0, 1), (0, 0), (1, 0), (0, 1)],
              [(0, 0), (0, 0), (0, 1), (0, 1), (0, 0)],
              [(0, 0), (0, 1), (0, 0), (0, 1), (1, 0)]]
-            sage: AHr = D.compute_A_H_r(hijv, r); AHr                                                
+            sage: AHr = D.compute_A_H_r(hijv, r); AHr
             [1 0 1 0 0]
             [0 0 0 1 0]
             [1 0 0 1 0]
@@ -918,29 +915,29 @@ class LRPCBasicSyndromeDecoder(Decoder):
                 for j in range(n):
                     for v in range(d):
                         temp[u + v*r + i*r*d][u + j*r] = hijv[i][j][v]
-        
+
         return matrix(C.sub_field(), temp)
 
     def get_decoding_matrix(self, AHr, r):
         r"""
         Return the decoding matrix for a specific rank.
 
-        INPUT: 
-        
-        - ``AHr`` -- the matrix `A_H^r` 
+        INPUT:
+
+        - ``AHr`` -- the matrix `A_H^r`
 
         - ``r`` -- the rank of the error vector
 
-        EXAMPLES::  
+        EXAMPLES::
 
-            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1 
+            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3, z5^2 + 1, 0, z5^4 + z5^2),\
              (0, z5^3 + 1, z5^4 + z5^3, 0, z5^3 + z5^2, z5^4 + z5^2, z5^4 + z5^2),\
              (0, 0, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^2, z5^4 + z5^3 + z5^2 + 1, z5^2 + 1),\
              (z5^4 + 1, z5^4 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3),\
              (z5^4 + 1, z5^3 + z5^2, z5^4 + 1, z5^3 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^3 + 1)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C         
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [7, 2, 3] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder()
             sage: hijv = C.parity_in_support(); hijv
@@ -949,7 +946,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
              [(0, 0, 0), (0, 0, 0), (0, 0, 0), (1, 1, 1), (0, 1, 0), (1, 1, 1), (1, 1, 0)],
              [(1, 0, 0), (1, 0, 0), (0, 0, 1), (0, 1, 1), (1, 1, 0), (0, 1, 1), (0, 0, 1)],
              [(1, 0, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (0, 0, 1), (0, 1, 1), (1, 0, 1)]]
-            sage: AHr = D.compute_A_H_r(hijv, r); AHr                                                                                                       
+            sage: AHr = D.compute_A_H_r(hijv, r); AHr
             [1 1 0 0 1 0 0]
             [1 1 1 0 1 0 1]
             [1 1 1 1 0 0 0]
@@ -965,7 +962,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
             [1 0 1 1 0 0 1]
             [0 1 0 0 0 1 0]
             [0 1 0 1 1 1 1]
-            sage: DH = D.get_decoding_matrix(AHr, r); DH                                                                                                    
+            sage: DH = D.get_decoding_matrix(AHr, r); DH
             [0 0 1 0 1 1 1]
             [0 0 0 1 0 0 0]
             [1 0 1 0 1 0 1]
@@ -983,7 +980,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
         Compute the decoding matrix `D_H` of parity check matrix H, by finding an
         `nr \times nr` invertible submatrix of `A_H^r`. Using this matrix `D_H`,
         the `nr` values `e_{ij}` can be recovered by simple matrix multiplication.
-        See Definition 6 in [GMRZ2013]_. This function has no output, but stores 
+        See Definition 6 in [GMRZ2013]_. This function has no output, but stores
         `D_H` in the decoder's decoding matrices list.
 
         INPUT:
@@ -994,7 +991,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         TESTS:
 
-        This function does not have a return value, but it gives an error message if the 
+        This function does not have a return value, but it gives an error message if the
         decoding matrix `D_H` does not exist for this ``AHr``::
 
             sage: q = 2; n = 5; k = 1; m = 5; d = 2; r = 1
@@ -1002,17 +999,17 @@ class LRPCBasicSyndromeDecoder(Decoder):
             sage: H = [(z5^4 + z5^3 + z5^2 + 1, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5, 0), \
             (z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5),\
             (0, 0, z5^4 + z5^3 + z5, z5^4 + z5^3 + z5, 0), \
-            (0, z5^4 + z5^3 + z5, 0, z5^4 + z5^3 + z5, z5^4 + z5^3 + z5^2 + 1)] 
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C            
+            (0, z5^4 + z5^3 + z5, 0, z5^4 + z5^3 + z5, z5^4 + z5^3 + z5^2 + 1)]
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [5, 1, 2] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder(); D
             Basic LRPC syndrome decoder for [5, 1, 2] LRPC code over GF(32)/GF(2)
-            sage: hijv = C.parity_in_support(); hijv                                                                             
+            sage: hijv = C.parity_in_support(); hijv
             [[(1, 0), (0, 0), (1, 0), (0, 1), (0, 0)],
              [(1, 0), (0, 1), (0, 0), (1, 0), (0, 1)],
              [(0, 0), (0, 0), (0, 1), (0, 1), (0, 0)],
              [(0, 0), (0, 1), (0, 0), (0, 1), (1, 0)]]
-            sage: AHr = D.compute_A_H_r(hijv, r); AHr                                                
+            sage: AHr = D.compute_A_H_r(hijv, r); AHr
             [1 0 1 0 0]
             [0 0 0 1 0]
             [1 0 0 1 0]
@@ -1021,7 +1018,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
             [0 0 1 1 0]
             [0 0 0 0 1]
             [0 1 0 1 0]
-            sage: D.compute_D_H(AHr, r);  
+            sage: D.compute_D_H(AHr, r);
             Traceback (most recent call last):
             ...
             ValueError: There is no invertible submatrix available for these parameters.
@@ -1037,7 +1034,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
                 continue
         if self._D_H[r] == None:
             raise ValueError("There is no invertible submatrix available for these parameters.")
-    
+
     def _flatten(self, A):
         r"""
         Flatten list ``A``.
@@ -1048,14 +1045,14 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1 
+            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3, z5^2 + 1, 0, z5^4 + z5^2),\
              (0, z5^3 + 1, z5^4 + z5^3, 0, z5^3 + z5^2, z5^4 + z5^2, z5^4 + z5^2),\
              (0, 0, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^2, z5^4 + z5^3 + z5^2 + 1, z5^2 + 1),\
              (z5^4 + 1, z5^4 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3),\
              (z5^4 + 1, z5^3 + z5^2, z5^4 + 1, z5^3 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^3 + 1)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C         
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [7, 2, 3] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder()
             sage: hijv = C.parity_in_support(); hijv
@@ -1064,7 +1061,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
              [(0, 0, 0), (0, 0, 0), (0, 0, 0), (1, 1, 1), (0, 1, 0), (1, 1, 1), (1, 1, 0)],
              [(1, 0, 0), (1, 0, 0), (0, 0, 1), (0, 1, 1), (1, 1, 0), (0, 1, 1), (0, 0, 1)],
              [(1, 0, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (0, 0, 1), (0, 1, 1), (1, 0, 1)]]
-            sage: D._flatten(hijv)                                                                                                                          
+            sage: D._flatten(hijv)
             [(1, 1, 1),
              (1, 1, 1),
              (0, 1, 1),
@@ -1106,10 +1103,10 @@ class LRPCBasicSyndromeDecoder(Decoder):
             for j in range(len(A[0])):
                 B += [A[i][j]]
         return B
-        
+
     def _failure_probability(self, r):
         r"""
-        The probability of failure is given in Theorem 1 of "Low Rank Parity Check 
+        The probability of failure is given in Theorem 1 of "Low Rank Parity Check
         Codes and their Application to Cryptography".
 
         INPUT:
@@ -1119,9 +1116,9 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1 
+            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1
             sage: C = codes.LRPCCode(GF(q**m), n, k, d); D = C.decoder();
-            sage: D._failure_probability(r)                                                 
+            sage: D._failure_probability(r)
             1/8
         """
         C = self.code()
@@ -1138,7 +1135,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
         As defined in [GMRZ2013]_, from the matrix `A_H^r` we can compute the decoding matrix of `H`, `D_H`.
         This decoding matrix is only dependent of the rank weight ``r`` of the error, hence we can keep
         a list with all decoding matrices for all possible ranks of the error. Then we only have to compute
-        `D_H` once when decoding multiple received ``y`` with the same error weight.  
+        `D_H` once when decoding multiple received ``y`` with the same error weight.
 
         INPUT:
 
@@ -1148,14 +1145,14 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1 
+            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3, z5^2 + 1, 0, z5^4 + z5^2),\
              (0, z5^3 + 1, z5^4 + z5^3, 0, z5^3 + z5^2, z5^4 + z5^2, z5^4 + z5^2),\
              (0, 0, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^2, z5^4 + z5^3 + z5^2 + 1, z5^2 + 1),\
              (z5^4 + 1, z5^4 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3),\
              (z5^4 + 1, z5^3 + z5^2, z5^4 + 1, z5^3 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^3 + 1)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C       
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [7, 2, 3] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder()
             sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e;
@@ -1164,8 +1161,8 @@ class LRPCBasicSyndromeDecoder(Decoder):
             sage: x_found == x
             True
             sage: G = C.generator_matrix()
-            sage: a == x/G                                                                           
-            True            
+            sage: a == x/G
+            True
 
             sage: q = 2; n = 5; k = 1; m = 5; d = 2; r = 1
             sage: z5 = GF(q**m).gen()
@@ -1173,7 +1170,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
              (z5^2 + 1, 0, z5^4 + z5 + 1, z5^4 + z5^2 + z5, z5^4 + z5 + 1), \
              (z5^4 + z5^2 + z5, z5^2 + 1, 0, z5^2 + 1, z5^4 + z5^2 + z5), \
              (z5^4 + z5^2 + z5, z5^2 + 1, z5^4 + z5 + 1, z5^4 + z5 + 1, 0)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C            
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [5, 1, 2] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder(); D
             Basic LRPC syndrome decoder for [5, 1, 2] LRPC code over GF(32)/GF(2)
@@ -1183,7 +1180,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
             sage: x_found == x
             True
             sage: G = C.generator_matrix()
-            sage: a == x/G                                                                           
+            sage: a == x/G
             True
         """
         C = self.code()
@@ -1205,7 +1202,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
             raise ValueError("The dimension of the computed error support is not correct. ")
 
         # Step 3) Compute the product space `P` and rewrite the syndrome in terms of `P`.
-        P = self.compute_product_space(E, F) 
+        P = self.compute_product_space(E, F)
         if P.dimension() != r*d:
             raise ValueError("The dimension of the computed product space is not correct. ")
 
@@ -1230,14 +1227,14 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         # Otherwise, we compute `A_H^r` and try to find `D_H`. Then we can either solve the system using `D_H` if it exists,
         # or with `A_H^r`.
-        else: 
+        else:
             hijv = C.parity_in_support()
             AHr = self.compute_A_H_r(hijv, r)
-        
+
             DH = self.get_decoding_matrix(AHr, r)
             if DH != None:
                 i = 0
-                # Decoding with DH is successful if we take the correct nr values for `s'`. Try different parts of `s'` 
+                # Decoding with DH is successful if we take the correct nr values for `s'`. Try different parts of `s'`
                 # until a solution is found of correct rank ``r``.
                 while i < ((n-k)*r*d - n*r):
                     e_prime = self._D_H[r] * s_prime[i:i+n*r]
@@ -1256,7 +1253,7 @@ class LRPCBasicSyndromeDecoder(Decoder):
                 e = vector([C.poly_form_of_vector(e_prime[i:i+r]*M, C.base_field()) for i in range(0, len(e_prime), r)])
                 x = y - e
                 return x, x/G
-     
+
 
     def decode_to_code(self, y, r):
         r"""
@@ -1270,14 +1267,14 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1 
+            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3, z5^2 + 1, 0, z5^4 + z5^2),\
              (0, z5^3 + 1, z5^4 + z5^3, 0, z5^3 + z5^2, z5^4 + z5^2, z5^4 + z5^2),\
              (0, 0, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^2, z5^4 + z5^3 + z5^2 + 1, z5^2 + 1),\
              (z5^4 + 1, z5^4 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3),\
              (z5^4 + 1, z5^3 + z5^2, z5^4 + 1, z5^3 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^3 + 1)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C      
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [7, 2, 3] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder()
             sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e;
@@ -1290,9 +1287,9 @@ class LRPCBasicSyndromeDecoder(Decoder):
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^2 + 1, z5^2 + 1, z5^4 + z5 + 1, 0, z5^4 + z5^2 + z5), \
              (z5^2 + 1, 0, z5^4 + z5 + 1, z5^4 + z5^2 + z5, z5^4 + z5 + 1), \
-             (z5^4 + z5^2 + z5, z5^2 + 1, 0, z5^2 + 1, z5^4 + z5^2 + z5), \ 
-             (z5^4 + z5^2 + z5, z5^2 + 1, z5^4 + z5 + 1, z5^4 + z5 + 1, 0)] 
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C            
+             (z5^4 + z5^2 + z5, z5^2 + 1, 0, z5^2 + 1, z5^4 + z5^2 + z5), \
+             (z5^4 + z5^2 + z5, z5^2 + 1, z5^4 + z5 + 1, z5^4 + z5 + 1, 0)]
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [5, 1, 2] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder(); D
             Basic LRPC syndrome decoder for [5, 1, 2] LRPC code over GF(32)/GF(2)
@@ -1316,45 +1313,44 @@ class LRPCBasicSyndromeDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1 
+            sage: q = 2; n = 7; k = 2; m = 5; d = 3; r = 1
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^3 + z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3, z5^2 + 1, 0, z5^4 + z5^2),\
              (0, z5^3 + 1, z5^4 + z5^3, 0, z5^3 + z5^2, z5^4 + z5^2, z5^4 + z5^2),\
              (0, 0, 0, z5^4 + z5^3 + z5^2 + 1, z5^4 + z5^2, z5^4 + z5^3 + z5^2 + 1, z5^2 + 1),\
              (z5^4 + 1, z5^4 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^2 + 1, z5^3 + z5^2, z5^4 + z5^3),\
              (z5^4 + 1, z5^3 + z5^2, z5^4 + 1, z5^3 + 1, z5^4 + z5^3, z5^3 + z5^2, z5^3 + 1)]
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C         
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [7, 2, 3] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder()
             sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e;
             sage: G = C.generator_matrix()
-            sage: a_found = D.decode_to_message(y,r);                                                
+            sage: a_found = D.decode_to_message(y,r);
             Probability of failure with these parameters is 1/8
-            sage: a_found == x/G                                                                     
+            sage: a_found == x/G
             True
-    
+
             sage: q = 2; n = 5; k = 1; m = 5; d = 2; r = 1
             sage: z5 = GF(q**m).gen()
             sage: H = [(z5^2 + 1, z5^2 + 1, z5^4 + z5 + 1, 0, z5^4 + z5^2 + z5), \
              (z5^2 + 1, 0, z5^4 + z5 + 1, z5^4 + z5^2 + z5, z5^4 + z5 + 1), \
-             (z5^4 + z5^2 + z5, z5^2 + 1, 0, z5^2 + 1, z5^4 + z5^2 + z5), \ 
+             (z5^4 + z5^2 + z5, z5^2 + 1, 0, z5^2 + 1, z5^4 + z5^2 + z5), \
              (z5^4 + z5^2 + z5, z5^2 + 1, z5^4 + z5 + 1, z5^4 + z5 + 1, 0)] \
-            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C            
+            sage: C = codes.LRPCCode(GF(q**m), n, k, d, parity_check_matrix=matrix(H)); C
             [5, 1, 2] LRPC code over GF(32)/GF(2)
             sage: D = C.decoder(); D
             Basic LRPC syndrome decoder for [5, 1, 2] LRPC code over GF(32)/GF(2)
             sage: e = C.find_e_of_rank(r); x = C.random_element(); y = x + e;
             sage: G = C.generator_matrix()
-            sage: a_found = D.decode_to_message(y,r);                                                
+            sage: a_found = D.decode_to_message(y,r);
             Probability of failure with these parameters is 1/8
-            sage: a_found == x/G                                                                     
+            sage: a_found == x/G
             True
-        """ 
+        """
         return self._decode(y, r)[1]
 
-                
+
 ############################## registration ####################################
 
 LRPCCode._registered_encoders["GeneratorMatrix"] = LRPCCodeGeneratorMatrixEncoder
 LRPCCode._registered_decoders['SyndromeDecoder'] = LRPCBasicSyndromeDecoder
-
