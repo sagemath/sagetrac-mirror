@@ -781,7 +781,7 @@ cdef class RingHomomorphism(RingMap):
 
     def is_identity(self):
         r"""
-        Return true if this morphism is the identity.
+        Return ``True`` if this morphism is the identity.
 
         EXAMPLES::
 

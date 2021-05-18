@@ -201,7 +201,7 @@ cdef class Morphism(Map):
 
         .. NOTE::
 
-            Implemented only when the domain has methods `gens` and `base_ring`.
+            Implemented only when the domain has methods ``gens`` and ``base_ring``.
 
         EXAMPLES::
 
