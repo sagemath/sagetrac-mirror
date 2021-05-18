@@ -795,7 +795,7 @@ cdef class RingHomomorphism(RingMap):
             False
 
         This method always returns false if the domain of the
-        morphism is not the same as its morphism. In particular,
+        morphism is not the same as its codomain. In particular,
         coercion morphisms are not considered as identities::
 
             sage: S.<y> = R[]

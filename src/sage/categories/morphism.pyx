@@ -380,10 +380,14 @@ cdef class Morphism(Map):
         Generic comparison function for morphisms.
 
         This is a generic implementation.
-        We check if both morphisms agree on product of the form
+        We check if both morphisms agree on products of the form
         `a x` where `x` runs over the generators of the domain
         and `a` runs over the generators of all successive base
         rings of the domain.
+
+        .. NOTE::
+
+            Implemented only when the domain has methods ``gens`` and ``base_ring``.
 
         TESTS::
 
