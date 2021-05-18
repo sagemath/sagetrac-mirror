@@ -246,7 +246,7 @@ cdef class Morphism(Map):
             sage: S.<y> = R[]
             sage: i = S.coerce_map_from(R)
             sage: i.is_coercion_map()
-            False
+            True
 
         Identities are of course always coercion maps::
 
@@ -409,8 +409,12 @@ cdef class Morphism(Map):
         if self is other:
             return rich_to_bool(op, 0)
         domain = self.domain()
-        ring = domain.base_ring()
-        gens = domain.gens()
+        try:
+            ring = domain.base_ring()
+            gens = domain.gens()
+        except AttributeError:
+            # shouldn't we return NotImplemented instead?
+            raise NotImplementedError(f"unable to compare morphisms of type {type(self)} and {type(other)} with domain {domain}")
         while True:
             for a in ring.gens():
                 for x in gens:
