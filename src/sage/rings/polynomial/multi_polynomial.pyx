@@ -337,6 +337,14 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f(1,2,5)
             -17.0000000000000
 
+        ::
+
+            sage: R.<x,y> = ZZ['a'][]
+            sage: (x + y)(0, 0, 0)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of arguments does not match number of variables in parent
+
         TESTS:
 
         Check :trac:`27446`::
@@ -387,7 +395,7 @@ cdef class MPolynomial(CommutativeRingElement):
             x = x[0]
         n = self.parent().ngens()
         if len(x) != n:
-            raise TypeError("x must be of correct length")
+            raise TypeError("number of arguments does not match number of variables in parent")
         if n == 0:
             return self.constant_coefficient()
 
