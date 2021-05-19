@@ -208,16 +208,14 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
         ....:     if nGF49 == nZZ == 0:
         ....:         zeros += 1
         ....:         if zeros >= 6:
+        ....:             print("done")
         ....:             break
         ....:     else:
         ....:         zeros = 0
-        Leaked...
+        Leaked ...
+        ...
         Leaked 0 and 0 bytes
-        Leaked 0 and 0 bytes
-        Leaked 0 and 0 bytes
-        Leaked 0 and 0 bytes
-        Leaked 0 and 0 bytes
-        Leaked 0 and 0 bytes
+        done
     """
     cdef long l = len(args)
     cdef ideal *to_id = idInit(l,1)
