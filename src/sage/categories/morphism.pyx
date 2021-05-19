@@ -201,7 +201,7 @@ cdef class Morphism(Map):
 
         .. NOTE::
 
-            Implemented only when the domain has methods ``gens`` and ``base_ring``.
+            Implemented only when the domain has a method ``gens``.
 
         EXAMPLES::
 
@@ -223,8 +223,17 @@ cdef class Morphism(Map):
         domain = self.domain()
         if domain is not self.codomain():
             return False
-        ring = domain.base_ring()
         gens = domain.gens()
+        ring = None
+        try:
+            ring = domain.base_ring()
+        except AttributeError:
+            pass
+        if ring is None:
+            for elt in gens:
+                if self(elt) != elt:
+                    return False
+            return True
         while True:
             for a in ring.gens():
                 for x in gens:
@@ -387,7 +396,7 @@ cdef class Morphism(Map):
 
         .. NOTE::
 
-            Implemented only when the domain has methods ``gens`` and ``base_ring``.
+            Implemented only when the domain has a method ``gens``.
 
         TESTS::
 
@@ -414,11 +423,20 @@ cdef class Morphism(Map):
             return rich_to_bool(op, 0)
         domain = self.domain()
         try:
-            ring = domain.base_ring()
             gens = domain.gens()
         except AttributeError:
             # shouldn't we return NotImplemented instead?
             raise NotImplementedError(f"unable to compare morphisms of type {type(self)} and {type(other)} with domain {domain}")
+        ring = None
+        try:
+            ring = domain.base_ring()
+        except AttributeError:
+            pass
+        if ring is None:
+            for elt in gens:
+                if self(elt) != other(elt):
+                    return richcmp(self(elt), other(elt), op)
+            return rich_to_bool(op, 0)
         while True:
             for a in ring.gens():
                 for x in gens:
