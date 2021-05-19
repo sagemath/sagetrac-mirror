@@ -2781,16 +2781,23 @@ class Polyhedron_base(Element):
         return self._facet_adjacency_matrix()
 
     @cached_method
-    def incidence_matrix(self):
+    def incidence_matrix(self, Vrep=None, Hrep=None):
         """
         Return the incidence matrix.
+
+        INPUT:
+
+        - ``Vrep`` -- (default: :meth:`Vrepresentation` of ``self``)
+          an iterable of vertices/rays/lines
+
+        - ``Hrep`` -- (default: :meth:`Hrepresentation` of ``self``)
+          an iterable of inequalities/equations
 
         .. NOTE::
 
             The columns correspond to inequalities/equations in the
-            order :meth:`Hrepresentation`, the rows correspond to
-            vertices/rays/lines in the order
-            :meth:`Vrepresentation`.
+            order given by ``Hrep``, the rows correspond to
+            vertices/rays/lines in the order given by ``Vrep``.
 
         .. SEEALSO::
 
@@ -2903,9 +2910,14 @@ class Polyhedron_base(Element):
         """
         if self.base_ring() in (ZZ, QQ):
             # Much faster for integers or rationals.
-            incidence_matrix = self.slack_matrix().zero_pattern_matrix(ZZ)
+            incidence_matrix = self.slack_matrix(Vrep=Vrep, Hrep=Hrep).zero_pattern_matrix(ZZ)
             incidence_matrix.set_immutable()
             return incidence_matrix
+
+        if Hrep is not None:
+            raise NotImplementedError
+        if Vrep is not None:
+            raise NotImplementedError
 
         incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
@@ -2942,12 +2954,20 @@ class Polyhedron_base(Element):
         return incidence_matrix
 
     @cached_method
-    def slack_matrix(self):
+    def slack_matrix(self, Vrep=None, Hrep=None):
         r"""
         Return the slack matrix.
 
         The entries correspond to the evaluation of the Hrepresentation
         elements on the  Vrepresentation elements.
+
+        INPUT:
+
+        - ``Vrep`` -- (default: :meth:`Vrepresentation` of ``self``)
+          an iterable of vertices/rays/lines
+
+        - ``Hrep`` -- (default: :meth:`Hrepresentation` of ``self``)
+          an iterable of inequalities/equations
 
         .. NOTE::
 
@@ -3005,6 +3025,11 @@ class Polyhedron_base(Element):
             sage: Polyhedron(base_ring=QuadraticField(2)).slack_matrix().base_ring()
             Number Field in a with defining polynomial x^2 - 2 with a = 1.41...
         """
+        if Hrep is not None:
+            raise NotImplementedError
+        if Vrep is not None:
+            raise NotImplementedError
+
         if not self.n_Vrepresentation() or not self.n_Hrepresentation():
             slack_matrix = matrix(self.base_ring(), self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
@@ -3517,11 +3542,19 @@ class Polyhedron_base(Element):
         return self.n_rays() == 0 and self.n_lines() == 0
 
     @cached_method
-    def combinatorial_polyhedron(self):
+    def combinatorial_polyhedron(self, Vrep=None, Hrep=None):
         r"""
         Return the combinatorial type of ``self``.
 
         See :class:`sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`.
+
+        INPUT:
+
+        - ``Vrep`` -- (default: :meth:`Vrepresentation` of ``self``)
+          an iterable of vertices/rays/lines
+
+        - ``Hrep`` -- (default: :meth:`Hrepresentation` of ``self``)
+          an iterable of inequalities/equations
 
         EXAMPLES::
 
@@ -3534,6 +3567,11 @@ class Polyhedron_base(Element):
             sage: Polyhedron(rays=[[0,1], [1,0]]).combinatorial_polyhedron()
             A 2-dimensional combinatorial polyhedron with 2 facets
         """
+        if Hrep is not None:
+            raise NotImplementedError
+        if Vrep is not None:
+            raise NotImplementedError
+
         from sage.geometry.polyhedron.combinatorial_polyhedron.base import CombinatorialPolyhedron
         return CombinatorialPolyhedron(self)
 
