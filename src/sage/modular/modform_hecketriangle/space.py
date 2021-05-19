@@ -396,9 +396,9 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: MF.dimension()
             7
             sage: MF.gens()
-            [q - 17535/(262144*d^2)*q^3 + O(q^4),
+            [q + (17535/(-262144*d^2))*q^3 + O(q^4),
              q^2 - 47/(128*d)*q^3 + O(q^4),
-             q - 9/(128*d)*q^2 + 15633/(262144*d^2)*q^3 + O(q^4),
+             q + (9/(-128*d))*q^2 + (-15633/(-262144*d^2))*q^3 + O(q^4),
              q^2 - 7/(128*d)*q^3 + O(q^4),
              q - 23/(64*d)*q^2 - 3103/(262144*d^2)*q^3 + O(q^4),
              q - 3/(64*d)*q^2 - 4863/(262144*d^2)*q^3 + O(q^4),
@@ -816,7 +816,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             3
             sage: MF.gens()
             [q + 296888795/(10319560704*d^3)*q^4 + O(q^5),
-             q^2 + 6629/(221184*d^2)*q^4 + O(q^5),
+             q^2 + (-6629/(-221184*d^2))*q^4 + O(q^5),
              q^3 - 25/(96*d)*q^4 + O(q^5)]
 
             sage: MF = CuspForms(n=infinity, k=8, ep=1)

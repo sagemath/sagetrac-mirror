@@ -997,7 +997,7 @@ Modular forms ring and spaces for Hecke triangle groups:
       sage: MF.F_basis(2)
       q^2 - 41/(200*d)*q^3 + O(q^4)
       sage: MF.F_basis(1)
-      q - 13071/(640000*d^2)*q^3 + O(q^4)
+      q + (13071/(-640000*d^2))*q^3 + O(q^4)
       sage: MF.F_basis(-0)
       1 - 277043/(192000000*d^3)*q^3 + O(q^4)
       sage: MF.F_basis(-2)

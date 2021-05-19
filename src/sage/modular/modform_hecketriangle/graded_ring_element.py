@@ -1586,7 +1586,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
         d = self.parent().get_d(fix_d, d_num_prec)
         q = self.parent().get_q(prec, fix_d, d_num_prec)
 
-        qexp = sum([(qexp.coefficients()[m]).subs(d=d) * q**qexp.exponents()[m] for m in range(len(qexp.coefficients()))])
+        # NOTE: even though the substitution below does not involve x, y, z
+        # their values must be set so that the output has the right type.
+        qexp = sum([(qexp.coefficients()[m]).subs(x=0, y=0, z=0, d=d) * q**qexp.exponents()[m] for m in range(len(qexp.coefficients()))])
         if (cur_prec != infinity):
             qexp += O(q**cur_prec)
         else:
