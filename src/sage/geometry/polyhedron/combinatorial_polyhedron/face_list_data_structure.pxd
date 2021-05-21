@@ -200,6 +200,26 @@ cdef inline int face_list_intersection_fused(face_list_t dest, face_list_t A, fa
     for i in range(A.n_faces):
         face_intersection_fused(dest.faces[i], A.faces[i], b, algorithm)
 
+cdef inline int face_list_intersection_naive(face_list_t dest, face_list_t A, face_t b, algorithm_variant algorithm) nogil except -1:
+    """
+    Set ``dest`` to be the intersection of each face of ``A`` with ``b``.
+    """
+    if not dest.total_n_faces >= A.n_faces:
+        with gil:
+            raise AssertionError
+    if not dest.n_atoms >= A.n_atoms:
+        with gil:
+            raise AssertionError
+    dest.n_faces = A.n_faces
+    dest.polyhedron_is_simple = A.polyhedron_is_simple
+
+    cdef size_t i
+    cdef size_t counter = 0
+    for i in range(A.n_faces):
+        if not face_issubset_fused(b, A.faces[i], algorithm):
+            face_intersection_fused(dest.faces[counter], A.faces[i], b, algorithm)
+            counter += 1
+    dest.n_faces = counter
 
 cdef inline size_t get_next_level_fused(
         face_list_t faces,
@@ -283,6 +303,49 @@ cdef inline size_t get_next_level(
         output = get_next_level_fused(faces, new_faces, visited_all, <standard> 0)
     sig_off()
     return output
+
+cdef inline size_t get_next_level_naive(
+        face_list_t faces,
+        face_list_t facets,
+        face_list_t new_faces,
+        face_list_t visited_all) nogil except -1:
+    sig_on()
+    cdef standard algorithm = 0
+
+    # We keep track, which face in ``new_faces`` is a new face.
+    cdef size_t n_faces = faces.n_faces
+    # Step 1:
+    n_faces -= 1
+    faces.n_faces -= 1
+    face_list_intersection_naive(new_faces, facets, faces.faces[n_faces], algorithm)
+
+    n_faces = new_faces.n_faces
+    cdef bint* is_not_new_face = new_faces.is_not_new_face
+    memset(is_not_new_face, 0, n_faces*sizeof(bint))
+
+
+    cdef size_t j
+    for j in range(n_faces):
+        if (is_not_maximal_fused(new_faces, j, algorithm, is_not_new_face) or  # Step 2
+                is_contained_in_one_fused(new_faces.faces[j], visited_all, algorithm)):  # Step 3
+            is_not_new_face[j] = True
+
+    # Set ``new_faces`` to point to the correct ones.
+    cdef size_t n_new_faces = 0
+    for j in range(n_faces):
+        if is_not_new_face[j]:
+            continue
+        # It is a new face of codimension 1.
+        # Either ``faces.n_new_faces == j`` or ``new_faces.faces[n_new_faces]`` is not
+        # a new face.
+
+        swap_faces(new_faces.faces[j], new_faces.faces[n_new_faces])
+
+        n_new_faces += 1
+
+    new_faces.n_faces = n_new_faces
+    sig_off()
+    return n_new_faces
 
 cdef inline size_t bit_rep_to_coatom_rep(face_t face, face_list_t coatoms, size_t *output):
     """

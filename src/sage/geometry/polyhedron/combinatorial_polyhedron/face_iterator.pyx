@@ -1210,6 +1210,7 @@ cdef inline int next_face_loop(iter_t structure) nogil except -1:
 
     # Getting ``[faces, n_faces, n_visited_all]`` according to dimension.
     cdef face_list_t* faces = &structure.new_faces[structure.current_dimension]
+    cdef face_list_t* facets = &structure.new_faces[structure.dimension-1]
     cdef face_list_t* new_faces = &structure.new_faces[structure.current_dimension-1]
     cdef face_list_t* visited_all = &structure.visited_all[structure.current_dimension]
     cdef size_t n_faces = faces[0].n_faces
@@ -1253,8 +1254,13 @@ cdef inline int next_face_loop(iter_t structure) nogil except -1:
     # which we have not yet visited.
     cdef size_t new_faces_counter
 
+    '''
     new_faces_counter = get_next_level(
         faces[0], new_faces[0], visited_all[0])
+    '''
+
+    new_faces_counter = get_next_level_naive(
+        faces[0], facets[0], new_faces[0], visited_all[0])
 
     if new_faces_counter:
         # ``faces[n_faces]`` contains new faces.
