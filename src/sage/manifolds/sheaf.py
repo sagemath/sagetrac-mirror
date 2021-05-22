@@ -115,7 +115,7 @@ class Sheaf(Presheaf):
 
         """
         if isinstance(args[0], (list, tuple)):
-            sections = list(args)
+            sections = list(args[0])
         else:
             sections = args
         if len(sections) < 2:
@@ -142,14 +142,53 @@ class PresheafSection(SageObject):
         self._domain = domain
         self._restrictions = {} # dict. of restrictions of self on subsets
                                 # of self._domain, with the subsets as keys
+        self._restrictions_graph = {self._domain: self}
+                    # dict. of known restrictions of self on smaller domains,
+                    # including self, with domains as keys. Its elements can be
+                    # seen as outgoing edges on a graph.
 
     def restrict(self, subdomain):
         r"""
         Return the restriction of ``self`` to ``subdomain``.
 
         """
-        # try to get restriction from restriction graph
-        # ...
+        if subdomain == self._domain:
+            return self
+        if subdomain not in self._restrictions:
+            if not subdomain.is_subset(self._domain):
+                raise ValueError("the provided domain is not a subset of " +
+                                 "the presheaf section's domain")
+            # First one tries to get the restriction from a tighter domain:
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom) and subdomain in rst._restrictions:
+                    res = rst._restrictions[subdomain]
+                    self._restrictions[subdomain] = res
+                    self._restrictions_graph[subdomain] = res
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
+                        ext._restrictions[subdomain] = res
+                        ext._restrictions_graph[subdomain] = res
+                    return self._restrictions[subdomain]
+
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom) and dom is not self._domain:
+                    self._restrictions[subdomain] = rst.restrict(subdomain)
+                    self._restrictions_graph[subdomain] = rst.restrict(subdomain)
+                    return self._restrictions[subdomain]
+
+            # Secondly one tries to get the restriction from one previously
+            # defined on a larger domain:
+            for dom, ext in self._extensions_graph.items():
+                if subdomain in ext._restrictions:
+                    res = ext._restrictions_graph[subdomain]
+                    self._restrictions[subdomain] = res
+                    self._restrictions_graph[subdomain] = res
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
+                        ext._restrictions[subdomain] = res
+                        ext._restrictions_graph[subdomain] = res
+                    return self._restrictions[subdomain]
+
         # if that fails, create restriction from scratch
         return self._construct_restriction_(subdomain)
 
