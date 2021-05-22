@@ -223,27 +223,7 @@ cdef class Morphism(Map):
         domain = self.domain()
         if domain is not self.codomain():
             return False
-        gens = domain.gens()
-        ring = None
-        try:
-            ring = domain.base_ring()
-        except AttributeError:
-            pass
-        if ring is None:
-            for elt in gens:
-                if self(elt) != elt:
-                    return False
-            return True
-        while True:
-            for a in ring.gens():
-                for x in gens:
-                    elt = a * x
-                    if self(elt) != elt:
-                        return False
-            base = ring.base_ring()
-            if base is ring:
-                return True
-            ring = base
+        return self.is_coercion_map()
 
     def is_coercion_map(self):
         r"""
@@ -275,10 +255,22 @@ cdef class Morphism(Map):
             True
         """
         ring = domain = self.domain()
-        if not self.codomain().has_coerce_map_from(domain):
+        f = self.codomain()._internal_coerce_map_from(domain)
+        if f is None:
             return False
-        ring = domain.base_ring()
+        if f is self:
+            return True
         gens = domain.gens()
+        ring = None
+        try:
+            ring = domain.base_ring()
+        except AttributeError:
+            pass
+        if ring is None:
+            for elt in gens:
+                if self(elt) != elt:
+                    return False
+            return True
         while True:
             for a in ring.gens():
                 for x in gens:

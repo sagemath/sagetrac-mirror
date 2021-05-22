@@ -824,15 +824,7 @@ cdef class RingHomomorphism(RingMap):
         ring = domain = self.domain()
         if domain is not self.codomain():
             return False
-        while True:
-            for g in ring.gens():
-                g = domain(g)
-                if self(g) != g:
-                    return False
-            base = ring.base_ring()
-            if base is ring:
-                return True
-            ring = base
+        return self.is_coercion_map()
 
     def is_coercion_map(self):
         r"""
@@ -866,8 +858,11 @@ cdef class RingHomomorphism(RingMap):
         cdef Ring domain, ring, base
         cdef RingElement g
         ring = domain = self.domain()
-        if not self.codomain().has_coerce_map_from(domain):
+        f = self.codomain()._internal_coerce_map_from(domain)
+        if f is None:
             return False
+        if f is self:
+            return True
         while True:
             for g in ring.gens():
                 g = domain(g)
