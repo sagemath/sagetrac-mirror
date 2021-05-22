@@ -19,6 +19,9 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 from sage.misc.abstract_method import abstract_method
 from .manifold import TopologicalManifold
+from sage.categories.morphism import SetMorphism
+from sage.categories.homset import Hom
+from sage.categories.sets_cat import Sets
 
 class Presheaf(SageObject):
     r"""
@@ -97,9 +100,6 @@ class Presheaf(SageObject):
             raise ValueError(f'{from_open_subset} must be an open subset of {self._manifold}')
         if not to_open_subset.is_subset(self._manifold) or not to_open_subset.is_open():
             raise ValueError(f'{to_open_subset} must be an open subset of {self._manifold}')
-        from sage.categories.morphism import SetMorphism
-        from sage.categories.homset import Hom
-        from sage.categories.sets_cat import Sets
         sec_dom = self(from_open_subset)
         sec_codom = self(to_open_subset)
         return SetMorphism(Hom(sec_dom, sec_codom, Sets()),
@@ -109,22 +109,21 @@ class Sheaf(Presheaf):
     r"""
 
     """
-    def concatenation(self, *args, **kwargs):
+    def concatenation(self, *args):
         r"""
-        Return the concatenation of a list of sections each defined on an open
-        subset of an open covering of ``open_subset``.
-
-        INPUT:
-
-        - ``open_subset`` -- (default: ``None``) op
+        Return the concatenation of a list of sections.
 
         """
-        open_subset = kwargs.pop('open_subset', self._manifold)
-        # compatibility check
-        # ...
-        # construct section from parts
-        # ...
-        pass
+        if isinstance(args[0], (list, tuple)):
+            sections = list(args)
+        else:
+            sections = args
+        if len(sections) < 2:
+            raise ValueError('input must contain at least two sheaf sections')
+        res = sections[0].concatenate(sections[1])
+        for sec in sections[2:]:
+            res = res.concatenate(sec)
+        return res
 
     def _repr_name_(self):
         r"""
@@ -141,6 +140,8 @@ class PresheafSection(SageObject):
 
         """
         self._domain = domain
+        self._restrictions = {} # dict. of restrictions of self on subsets
+                                # of self._domain, with the subsets as keys
 
     def restrict(self, subdomain):
         r"""
@@ -155,7 +156,7 @@ class PresheafSection(SageObject):
     @abstract_method
     def _construct_restriction_(self, subdomain):
         r"""
-        Construct a restriction of ``self`` to ``subdomain`` from scratch.
+        Construct the restriction of ``self`` to ``subdomain``.
 
         """
 
@@ -176,3 +177,37 @@ class SheafSection(PresheafSection):
         # tensor fields)
         return all(self.restrict(subdom) == other.restrict(subdom)
                    for subdom in self._domain.open_covers(trivial=False))
+
+    @abstract_method
+    def copy(self):
+        r"""
+
+        """
+
+    def set_restriction(self, rst):
+        r"""
+
+        """
+        if not rst._domain.is_subset(self._domain):
+            raise ValueError("the domain of the declared restriction is not " +
+                             "a subset of the sheaf section's domain")
+        self._restrictions[rst._domain] = rst.copy()
+
+    def concatenate(self, other):
+        r"""
+        Concatenate ``self`` with ``other``.
+
+        """
+        if self is other:
+            return self
+        inter = self._domain.intersection(other._domain)
+        if self.restrict(inter) != other.restrict(inter):
+            raise ValueError(f'{self} and {other} must coincide on intersection')
+        return self._construct_concatenation_()
+
+    @abstract_method
+    def _construct_concatenation_(self, other):
+        r"""
+        Construct the concatenation of ``self`` with ``other``.
+
+        """
