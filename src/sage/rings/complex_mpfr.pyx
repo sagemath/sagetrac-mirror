@@ -144,10 +144,6 @@ def is_ComplexNumber(x):
         sage: is_ComplexNumber(b)
         True
 
-    Note that the global element ``I`` is of type :class:`SymbolicConstant`.
-    However, elements of the class :class:`ComplexField_class` are of type
-    :class:`ComplexNumber`::
-
         sage: c = 1 + 2*I
         sage: is_ComplexNumber(c)
         False
