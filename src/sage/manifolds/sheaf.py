@@ -142,6 +142,10 @@ class PresheafSection(SageObject):
         self._domain = domain
         self._restrictions = {} # dict. of restrictions of self on subsets
                                 # of self._domain, with the subsets as keys
+        self._extensions_graph = {self._domain: self}
+                    # dict. of known extensions of self on bigger domains,
+                    # including self, with domains as keys. Its elements can be
+                    # seen as incoming edges on a graph.
         self._restrictions_graph = {self._domain: self}
                     # dict. of known restrictions of self on smaller domains,
                     # including self, with domains as keys. Its elements can be
