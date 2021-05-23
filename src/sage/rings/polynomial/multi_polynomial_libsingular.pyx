@@ -125,46 +125,45 @@ Check if :trac:`6160` is fixed::
     sage: b-j*c
     b - 1728*c
 
-Test memory leaks from :trac:`27261`::
+Test memory leak from :trac:`27261`::
 
-    sage: R = PolynomialRing(ZZ, 'x', 50)
-    sage: d1 = {str(g): g for g in R.gens()}
-    sage: d2 = {str(g): R.zero() for g in R.gens()}
-    sage: d3 = {str(g): ZZ.one() for g in R.gens()}
-    sage: p1 = sum(R.gens())
-    sage: p2 = R.zero()
+
+    sage: import resource
     sage: import gc
-    sage: _ = gc.collect()
-    sage: mem0 = get_memory_usage()
-    sage: for i in range(20):
-    ....:     for _ in range(50):
+    sage: def leak_subs(N):
+    ....:     R = PolynomialRing(ZZ, 'x', 50)
+    ....:     d1 = {str(g): g for g in R.gens()}
+    ....:     d2 = {str(g): R.zero() for g in R.gens()}
+    ....:     d3 = {str(g): ZZ.one() for g in R.gens()}
+    ....:     p1 = sum(R.gens())
+    ....:     p2 = R.zero()
+    ....:     gc.collect()
+    ....:     before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    ....:     for i in range(N):
     ....:         _ = p1.subs(**d1)
     ....:         _ = p2.subs(**d1)
     ....:         _ = p1.subs(**d2)
     ....:         _ = p2.subs(**d2)
     ....:         _ = p1.subs(**d3)
     ....:         _ = p2.subs(**d3)
-    ....:     _ = gc.collect()
-    ....:     mem1 = get_memory_usage()
-    ....:     if mem1 > mem0:
-    ....:         print(i, mem1-mem0)
-    ....:         mem0 = mem1
-
-    sage: R.<x, y> = ZZ[]
-    sage: p = (x + y)**100
-    sage: _ = gc.collect()
-    sage: mem0 = get_memory_usage()
-    sage: for i in range(20):
-    ....:     _ = p(x, y)
-    ....:     _ = p(x + y, y)
-    ....:     _ = p(1, -1)
-    ....:     _ = p(0, 0)
-    ....:     _ = gc.collect()
-    ....:     mem1 = get_memory_usage()
-    ....:     if mem1>mem0:
-    ....:         print(i, mem1-mem0)
-    ....:         mem0 = mem1
-
+    ....:     gc.collect()
+    ....:     after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    ....:     return (after - before) * 1024  # ru_maxrss is in kilobytes
+    sage: zeros = 0
+    sage: for i in range(30):
+    ....:     n = leak_subs(20)
+    ....:     print("Leaked {} bytes".format(n))
+    ....:     if n == 0:
+    ....:         zeros += 1
+    ....:         if zeros >= 6:
+    ....:             print("done")
+    ....:             break
+    ....:     else:
+    ....:         zeros = 0
+    Leaked ...
+    ...
+    Leaked 0 bytes
+    done
 
 .. TODO::
 
