@@ -1,6 +1,23 @@
 r"""
 Presheaves and Sheaves over Manifolds
 
+A *presheaf* `F` over a topological manifold `M` can be seen as a contravariant
+functor from the category of open subsets of `M` to the category of sets. More
+precisely, every open subset `U \subset M` is assigned to a set `F(U)` of
+so-called *sections*, and for each inclusion `V \subseteq U` of open subsets,
+we obtain restriction morphisms
+
+.. MATH::
+
+    \mathrm{res}_{V,U} \colon F(U) \to F(V)
+
+satisfying the functorial properties
+
+1. `\mathrm{res}_{U,U} = \mathrm{id}_{F(U)}`,
+2. `\mathrm{res}_{W,V} \circ \mathrm{res}_{V,U} = \mathrm{res}_{W,U}`,
+
+where `W \subseteq V \subseteq U`.
+
 AUTHORS:
 
 - Michael Jung (2021): initial version
@@ -80,7 +97,7 @@ class Presheaf(Functor):
         """
         return self(open_subset)
 
-    def restriction_morphism(self, from_open_subset, to_open_subset):
+    def restriction_morphism(self, open_subset, open_subset_rst):
         r"""
         Return the restriction morphism from ``from_open_subset`` to
         ``to_open_subset``.
@@ -100,7 +117,7 @@ class Presheaf(Functor):
         if open_subset not in self.domain():
             raise TypeError(f"{open_subset} must be an open subset of {self._manifold}")
         # TODO: assuming that ``inclusion`` yields the inclusion morphism between open subsets
-        inclusion = to_open_subset.inclusion(from_open_subset)
+        inclusion = open_subset_rst.inclusion(open_subset)
         return self(inclusion)
 
     def _apply_functor_to_morphism(self, inclusion):
