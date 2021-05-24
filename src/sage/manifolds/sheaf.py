@@ -162,6 +162,26 @@ class PresheafSection(SageObject):
                     # including self, with domains as keys. Its elements can be
                     # seen as outgoing edges on a graph.
 
+    def _del_restrictions(self):
+        r"""
+        Delete the restrictions defined on ``self``.
+
+        TESTS::
+
+
+
+        """
+        self._restrictions.clear()
+        self._extensions_graph = {self._domain: self}
+        self._restrictions_graph = {self._domain: self}
+
+    @abstract_method
+    def set_restriction(self, rst):
+        r"""
+        Set ``rst`` to a restriction of ``self``.
+
+        """
+
     def restrict(self, subdomain):
         r"""
         Return the restriction of ``self`` to ``subdomain``.
@@ -231,26 +251,6 @@ class SheafSection(PresheafSection):
         # tensor fields)
         return all(self.restrict(subdom) == other.restrict(subdom)
                    for subdom in self._domain.open_covers(trivial=False))
-
-    @abstract_method
-    def copy(self, *args, **kwargs):
-        r"""
-        Return a copy of ``self``.
-
-        """
-
-    @abstract_method
-    def copy_from(self, other):
-        r"""
-        Turn ``self`` into a copy of ``other``.
-
-        """
-
-    @abstract_method
-    def set_restriction(self, rst):
-        r"""
-
-        """
 
     def concatenate(self, other):
         r"""
