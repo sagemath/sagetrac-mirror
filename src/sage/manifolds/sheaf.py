@@ -225,7 +225,23 @@ class PresheafSection(SageObject):
                     return self._restrictions[subdomain]
 
         # if that fails, create restriction from scratch
-        return self._construct_restriction_(subdomain)
+        res = self._construct_restriction_(subdomain)
+        # update restriction graph
+        res._extensions_graph.update(self._extensions_graph)
+        for dom, ext in self._extensions_graph.items():
+            ext._restrictions[subdomain] = res
+            ext._restrictions_graph[subdomain] = res
+
+        for dom, rst in self._restrictions.items():
+            if dom.is_subset(subdomain):
+                if rst is not res:
+                    res._restrictions.update(rst._restrictions)
+                res._restrictions_graph.update(rst._restrictions_graph)
+                rst._extensions_graph.update(res._extensions_graph)
+        self._restrictions[subdomain] = res
+        self._restrictions_graph[subdomain] = res
+        res._extensions_graph.update(self._extensions_graph)
+        return res
 
     @abstract_method
     def _construct_restriction_(self, subdomain):
