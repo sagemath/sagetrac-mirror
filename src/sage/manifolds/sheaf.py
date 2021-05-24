@@ -175,12 +175,21 @@ class PresheafSection(SageObject):
         self._extensions_graph = {self._domain: self}
         self._restrictions_graph = {self._domain: self}
 
-    @abstract_method
     def set_restriction(self, rst):
         r"""
         Set ``rst`` to a restriction of ``self``.
 
         """
+        rst = self._modify_restriction_(rst)
+        self._restrictions[rst._domain] = rst
+
+    def _modify_restriction_(self, rst):
+        r"""
+        Modify the restriction for ``set_restriction``, for example copy it or
+        change its name. Should be overridden by a concrete implementation.
+
+        """
+        return rst
 
     def restrict(self, subdomain):
         r"""
