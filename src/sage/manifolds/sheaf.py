@@ -233,29 +233,24 @@ class SheafSection(PresheafSection):
                    for subdom in self._domain.open_covers(trivial=False))
 
     @abstract_method
-    def copy(self):
+    def copy(self, *args, **kwargs):
         r"""
-        Return a copy of ``self``
+        Return a copy of ``self``.
 
         """
 
-    def _copy_restrictions(self, copy):
+    @abstract_method
+    def copy_from(self, other):
         r"""
-        Helper method to copy all restrictions of ``self`` to the copy
-        ``copy``.
+        Turn ``self`` into a copy of ``other``.
 
         """
-        for dom, rst in self._restrictions.items():
-            copy._restrictions[dom] = rst.copy()
 
+    @abstract_method
     def set_restriction(self, rst):
         r"""
 
         """
-        if not rst._domain.is_subset(self._domain):
-            raise ValueError("the domain of the declared restriction is not " +
-                             "a subset of the sheaf section's domain")
-        self._restrictions[rst._domain] = rst.copy()
 
     def concatenate(self, other):
         r"""
@@ -275,12 +270,3 @@ class SheafSection(PresheafSection):
         Construct the concatenation of ``self`` with ``other``.
 
         """
-
-    def _concatenate_restrictions(self, other, resu):
-        r"""
-        Helper method to concatenate the restrictions of ``self`` and ``other``
-        into ``resu``.
-
-        """
-        resu._restrictions[self._domain] = self
-        resu._restrictions[other._domain] = other
