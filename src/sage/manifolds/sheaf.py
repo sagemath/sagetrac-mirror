@@ -100,7 +100,7 @@ class Presheaf(Functor):
         if open_subset not in self.domain():
             raise TypeError(f"{open_subset} must be an open subset of {self._manifold}")
         # TODO: assuming that ``inclusion`` yields the inclusion morphism between open subsets
-        inclusion = from_open_subset.inclusion(to_open_subset)
+        inclusion = to_open_subset.inclusion(from_open_subset)
         return self(inclusion)
 
     def _apply_functor_to_morphism(self, inclusion):
@@ -113,8 +113,10 @@ class Presheaf(Functor):
 
 
         """
-        return SetMorphism(Hom(inclusion.domain(), inclusion.codomain(), Sets()),
-                           lambda x: x.restrict(self(inclusion.codomain())))
+        sec_dom = self(inclusion.codomain())
+        sec_codom = self(inclusion.domain())
+        return SetMorphism(Hom(sec_dom, sec_codom, Sets()),
+                           lambda x: x.restrict(inclusion.domain()))
 
 class Sheaf(Presheaf):
     r"""
@@ -144,6 +146,9 @@ class Sheaf(Presheaf):
 
 class PresheafSection(SageObject):
     r"""
+
+    This class is intended to be mixed into a concrete implementation of
+    presheaf sections.
 
     """
     def __init__(self, domain):
@@ -185,8 +190,9 @@ class PresheafSection(SageObject):
 
     def _modify_restriction_(self, rst):
         r"""
-        Modify the restriction for ``set_restriction``, for example copy it or
-        change its name. Should be overridden by a concrete implementation.
+        Modify/Prepare the restriction for ``set_restriction``, for example
+        copy it or change its name. Should be overridden by a concrete
+        implementation.
 
         """
         return rst
@@ -257,6 +263,8 @@ class PresheafSection(SageObject):
         r"""
         Construct the restriction of ``self`` to ``subdomain``.
 
+        Must be implemented by a concrete implementation.
+
         """
 
 class SheafSection(PresheafSection):
@@ -293,5 +301,7 @@ class SheafSection(PresheafSection):
     def _construct_concatenation_(self):
         r"""
         Construct the concatenation of ``self`` with ``other``.
+
+        Must be implemented by a concrete implementation.
 
         """
