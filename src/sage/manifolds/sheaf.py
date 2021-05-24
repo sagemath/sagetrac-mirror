@@ -16,6 +16,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.categories.functor import Functor
 from sage.structure.sage_object import SageObject
 from sage.misc.abstract_method import abstract_method
 from .manifold import TopologicalManifold
@@ -23,7 +24,7 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 from sage.categories.sets_cat import Sets
 
-class Presheaf(SageObject):
+class Presheaf(Functor):
     r"""
 
     """
@@ -47,6 +48,8 @@ class Presheaf(SageObject):
             raise ValueError(f'{manifold} must be an instance of {TopologicalManifold}')
         self._manifold = manifold
         self._section_set_constructor = section_set_constructor
+        # TODO: assuming the category of open subsets is given by OpenSubsets(M)
+        super(self).__init__(OpenSubsets(manifold), Sets())
 
     def _repr_name_(self):
         r"""
@@ -63,13 +66,11 @@ class Presheaf(SageObject):
         repr += f'by {self._section_set_constructor} on the {self._manifold}'
         return repr
 
-    def __call__(self, open_subset):
+    def _apply_functor(self, open_subset):
         r"""
         Return the set of sections of ``self`` w.r.t. ``open_subset``.
 
         """
-        if not open_subset.is_subset(self._manifold) or not open_subset.is_open():
-            raise ValueError(f'{open_subset} must be an open subset of {self._manifold}')
         return self._section_set_constructor(open_subset)
 
     def section_set(self, open_subset):
@@ -96,14 +97,24 @@ class Presheaf(SageObject):
               To:   Algebra of differentiable scalar fields on the Open subset U of the 2-dimensional differentiable manifold M
 
         """
-        if not from_open_subset.is_subset(self._manifold) or not from_open_subset.is_open():
-            raise ValueError(f'{from_open_subset} must be an open subset of {self._manifold}')
-        if not to_open_subset.is_subset(self._manifold) or not to_open_subset.is_open():
-            raise ValueError(f'{to_open_subset} must be an open subset of {self._manifold}')
-        sec_dom = self(from_open_subset)
-        sec_codom = self(to_open_subset)
-        return SetMorphism(Hom(sec_dom, sec_codom, Sets()),
-                           lambda x: x.restrict(to_open_subset))
+        if open_subset not in self.domain():
+            raise TypeError(f"{open_subset} must be an open subset of {self._manifold}")
+        # TODO: assuming that ``inclusion`` yields the inclusion morphism between open subsets
+        inclusion = from_open_subset.inclusion(to_open_subset)
+        return self(inclusion)
+
+    def _apply_functor_to_morphism(self, inclusion):
+        r"""
+        Apply ``self`` to an inclusion morphism from one open subset to
+        another.
+
+        EXAMPLES::
+
+
+
+        """
+        return SetMorphism(Hom(inclusion.domain(), inclusion.codomain(), Sets()),
+                           lambda x: x.restrict(self(inclusion.codomain())))
 
 class Sheaf(Presheaf):
     r"""
@@ -224,8 +235,18 @@ class SheafSection(PresheafSection):
     @abstract_method
     def copy(self):
         r"""
+        Return a copy of ``self``
 
         """
+
+    def _copy_restrictions(self, copy):
+        r"""
+        Helper method to copy all restrictions of ``self`` to the copy
+        ``copy``.
+
+        """
+        for dom, rst in self._restrictions.items():
+            copy._restrictions[dom] = rst.copy()
 
     def set_restriction(self, rst):
         r"""
@@ -246,11 +267,20 @@ class SheafSection(PresheafSection):
         inter = self._domain.intersection(other._domain)
         if self.restrict(inter) != other.restrict(inter):
             raise ValueError(f'{self} and {other} must coincide on intersection')
-        return self._construct_concatenation_()
+        return self._construct_concatenation_(other)
 
     @abstract_method
-    def _construct_concatenation_(self, other):
+    def _construct_concatenation_(self):
         r"""
         Construct the concatenation of ``self`` with ``other``.
 
         """
+
+    def _concatenate_restrictions(self, other, resu):
+        r"""
+        Helper method to concatenate the restrictions of ``self`` and ``other``
+        into ``resu``.
+
+        """
+        resu._restrictions[self._domain] = self
+        resu._restrictions[other._domain] = other
