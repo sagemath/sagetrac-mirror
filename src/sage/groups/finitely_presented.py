@@ -25,25 +25,85 @@ as in the case of free groups::
     sage: a.parent()
     Finitely presented group < a, b, c | a^2, b^2, c^2, (a*b*c)^2 >
 
-Notice that, even if they are represented in the same way, the
-elements of a finitely presented group and the elements of the
-corresponding free group are not the same thing.  However, they can be
-converted from one parent to the other::
+Notice that elements of a finitely presented group are represented
+as the elements of the underlying free group (namely as words over
+the generators and their inverses modulo the trivial reductions
+`a a^{-1} = a^{-1} a = 1`). However, elements of the two groups
+are different, but they can be converted from one parent to the other::
 
-    sage: F.<a,b,c> = FreeGroup()
-    sage: G = F / [a^2,b^2,c^2,a*b*c*a*b*c]
-    sage: F([1])
-    a
-    sage: G([1])
-    a
-    sage: F([1]) is G([1])
+    sage: F.<r,s,t> = FreeGroup()
+    sage: G = F / (r^2, s^3, t^3, r*s*t)  # the tetrahedral group
+    sage: G(r)
+    r
+    sage: r is G(r)
     False
-    sage: F([1]) == G([1])
+    sage: rst_G = G(r*s/t); rst_G
+    r*s*t^-1
+    sage: F(rst_G)
+    r*s*t^-1
+    sage: F(rst_G) == r*s/t
+    True
+
+There is a coercion to the finitely presented group from the
+corresponding free group. So equality is tested as elements of
+the finitely presented group::
+
+    sage: r == G(r)
+    True
+
+.. WARNING::
+
+    Some methods are not guaranteed to finish since the word problem
+    for finitely presented groups is, in general, undecidable. In
+    those cases the process may run until the available memory is
+    exhausted.
+
+.. WARNING::
+
+    Since the word problem is undecidable, there is no canonical
+    representation of finitely presented group elements. Subsequently, the
+    hash of an element is based upon its representation.
+
+The following example shows that different words representing the
+same element can result in two distinct elements of a ``set``::
+
+    sage: G.order()
+    12
+    sage: a, b, c = G(r*s), G(r*s^2)*G(~s), G(~t)
+    sage: {a, b} # a and b are the same
+    {r*s}
+    sage: {a, b, c}
+    {r*s, t^-1}
+    sage: a == c
+    True
+    sage: hash(a) != hash(c)
+    True
+
+To implement ``set``-like behavior, we can use a ``list`` with the
+group elements directly for groups that can compare elements::
+
+    sage: H = F / [r^2,s^2,t^2,r*s*t*r*s*t]
+    sage: x = H(r * s * t)
+    sage: L = [x, x^2]
+    sage: H.one() in L  # long time (6s)
+    True
+    sage: x^3 in L  # long time (this is now fast)
+    True
+    sage: H(r) in L  # long time (also fast)
     False
-    sage: G(a*b/c)
-    a*b*c^-1
-    sage: F(G(a*b/c))
-    a*b*c^-1
+
+For a finite group, one way to use the elements in a ``set`` or ``dict``
+(up to equality rather than representation) is to convert the group
+to a :func:`~sage.groups.perm_gps.permgroup.PermutationGroup`::
+
+    sage: G_P = G.as_permutation_group()
+    sage: r_P, s_P, t_P = G_P(r), G_P(s), G_P(t)
+    sage: a_P, b_P, c_P = G_P(a), G_P(b), G_P(c)
+    sage: set_P = {a_P, b_P, c_P, r_P*s_P, t_P^-1} # Now, a one-element set
+    sage: print(set_P, len(set_P))
+    {(1,6,5)(2,3,8)(4,10,9)(7,12,11)} 1
+    sage: G(set_P.pop()), G(a_P), G(b_P), G(c_P), G(r_P*s_P), G(r_P)*G(s_P)
+    (t^-1, t^-1, t^-1, t^-1, t^-1, r^-1*s)
 
 Finitely presented groups are implemented via GAP. You can use the
 :meth:`~sage.groups.libgap_wrapper.ParentLibGAP.gap` method to access
@@ -93,19 +153,12 @@ obtained by modding out the commutator subgroup of the free group::
     sage: g(M1, M1)
     [1 0]
     [0 4]
-    sage: M1*M2 == M2*M1   # matrices do not commute
+    sage: M1 * M2 == M2 * M1   # matrices do not commute
     False
     sage: g(M1, M2)
     Traceback (most recent call last):
     ...
     ValueError: the values do not satisfy all relations of the group
-
-.. WARNING::
-
-    Some methods are not guaranteed to finish since the word problem
-    for finitely presented groups is, in general, undecidable. In
-    those cases the process may run until the available memory is
-    exhausted.
 
 REFERENCES:
 
@@ -739,7 +792,7 @@ class RewritingSystem(object):
 
 
 class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
-    Group, ParentLibGAP):
+                             Group, ParentLibGAP):
     """
     A class that wraps GAP's Finitely Presented Groups.
 
@@ -807,6 +860,24 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         parent_gap = free_group.gap() / libgap([rel.gap() for rel in relations])
         ParentLibGAP.__init__(self, parent_gap)
         Group.__init__(self, category=category)
+
+    def _coerce_map_from_(self, H):
+        r"""
+        Return the coerce map from ``H`` or ``True`` if such a map exists
+        or ``False`` or ``None`` otherwise.
+
+        TESTS::
+
+            sage: G.<a,b> = FreeGroup()
+            sage: H = G / (G([1]), G([2])^3)
+            sage: H._coerce_map_from_(G)
+            True
+            sage: H.has_coerce_map_from(ZZ)
+            False
+        """
+        if H is self._free_group:
+            return True
+        return super(FinitelyPresentedGroup, self)._coerce_map_from_(H)
 
     def _repr_(self):
         """
@@ -950,7 +1021,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     order = cardinality
 
     def as_permutation_group(self, limit=4096000):
-        """
+        r"""
         Return an isomorphic permutation group.
 
         The generators of the resulting group correspond to the images
@@ -958,15 +1029,14 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         INPUT:
 
-        - ``limit`` -- integer (default: 4096000). The maximal number
-          of cosets before the computation is aborted.
+        - ``limit`` -- (default: 4096000) integer; the maximal number
+          of cosets before the computation is aborted
 
         OUTPUT:
 
-        A Sage
-        :func:`~sage.groups.perm_gps.permgroup.PermutationGroup`. If
-        the number of cosets exceeds the given ``limit``, a
-        ``ValueError`` is returned.
+        A :func:`~sage.groups.perm_gps.permgroup.PermutationGroup`.
+        If the number of cosets exceeds the given ``limit``, a
+        ``ValueError`` is raised.
 
         EXAMPLES::
 
@@ -988,8 +1058,8 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         .. WARNING::
 
-            This is in general not a decidable problem (in fact, it is
-            not even possible to check if the group is finite or
+            This is in general not a decidable problem (in fact, it
+            is not even decidable whether the group is finite or
             not). If the group is infinite, or too big, you should be
             prepared for a long computation that consumes all the
             memory without finishing if you do not set a sensible
@@ -1134,7 +1204,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         .. MATH::
 
-                (g_1, h_1)(g_2, h_2) = (g_1 g_2, \phi(g_2)(h_1) h_2).
+            (g_1, h_1)(g_2, h_2) = (g_1 g_2, \phi(g_2)(h_1) h_2).
 
         INPUT:
 
@@ -1314,10 +1384,10 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: H([1, 2, 1, -2]) # indirect doctest
             a*b*a*b^-1
         """
-        if len(args)!=1:
+        if len(args) != 1:
             return self.element_class(self, *args, **kwds)
         x = args[0]
-        if x==1:
+        if x == 1:
             return self.one()
         try:
             P = x.parent()
@@ -1353,7 +1423,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         return tuple( i.sage() for i in invariants )
 
     def simplification_isomorphism(self):
-        """
+        r"""
         Return an isomorphism from ``self`` to a finitely presented group with
         a (hopefully) simpler presentation.
 
@@ -1397,7 +1467,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         return GroupMorphismWithGensImages(HS, phi)
 
     def simplified(self):
-        """
+        r"""
         Return an isomorphic group with a (hopefully) simpler presentation.
 
         OUTPUT:
@@ -1430,11 +1500,12 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     
     def epimorphisms(self, H):
         r"""
-        Return the epimorphisms from `self` to `H`, up to automorphism of `H`.
+        Return the epimorphisms from ``self`` to ``H``, up to
+        an automorphism of ``H``.
         
         INPUT:
         
-        - `H` -- Another group
+        - ``H`` -- Another group
         
         EXAMPLES::
         
@@ -1572,3 +1643,4 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         return RewritingSystem(self)
 
     from sage.groups.generic import structure_description
+
