@@ -2756,6 +2756,36 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         return self._far_face_tuple
 
+    def as_polyhedron(self, backend=None, check=True):
+        r"""
+        Return a geometric polyhedron corresponding to ``self``.
+
+        This assumes that at least one of V-representation and
+        H-representation is geometric.
+        """
+        if not self.is_bounded():
+            raise NotImplementedError('only implemented for polytopes')
+        try:
+            facets = [tuple(facet) for facet in self.facet_names()]
+            equations = [tuple(equation) for equation in self.equalities()]
+        except TypeError:
+            Hrep = None
+        else:
+            Hrep = [facets, equations]
+        try:
+            vertices = [tuple(v) for v in self.Vrep()]
+        except TypeError:
+            Vrep = None
+        else:
+            Vrep = [vertices, (), ()]
+
+        from sage.geometry.polyhedron.constructor  import Polyhedron
+        P = Polyhedron._from_Vrep_Hrep(Vrep, Hrep)
+
+        if check:
+            pass
+
+        return P
 
     # Methods to obtain a different combinatorial polyhedron.
 
