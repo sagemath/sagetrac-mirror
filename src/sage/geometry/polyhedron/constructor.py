@@ -292,16 +292,16 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ########################################################################
 
+import itertools
+
+from sage.misc.classcall_metaclass  import ClasscallMetaclass
 from sage.rings.all import ZZ, RDF, RR
 
 from .misc import _make_listlist, _common_length_of
 
-
 #########################################################################
-def Polyhedron(vertices=None, rays=None, lines=None,
-               ieqs=None, eqns=None,
-               ambient_dim=None, base_ring=None, minimize=True, verbose=False,
-               backend=None):
+class Polyhedron(metaclass=ClasscallMetaclass):
+
     r"""
     Construct a polyhedron object.
 
@@ -556,106 +556,165 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
         :mod:`Library of polytopes <sage.geometry.polyhedron.library>`
     """
-    got_Vrep = not ((vertices is None) and (rays is None) and (lines is None))
-    got_Hrep = not ((ieqs is None) and (eqns is None))
 
-    # Clean up the arguments
-    vertices = _make_listlist(vertices)
-    rays = _make_listlist(rays)
-    lines = _make_listlist(lines)
-    ieqs = _make_listlist(ieqs)
-    eqns = _make_listlist(eqns)
+    @staticmethod
+    def __classcall__(cls,
+                      vertices=None, rays=None, lines=None, ieqs=None, eqns=None,
+                      ambient_dim=None, base_ring=None, minimize=True,
+                      verbose=False, backend=None):
+        r"""
+        The traditional constructor.
+        """
+        got_Vrep = not ((vertices is None) and (rays is None) and (lines is None))
+        got_Hrep = not ((ieqs is None) and (eqns is None))
 
-    if got_Vrep and got_Hrep:
-        raise ValueError('cannot specify both H- and V-representation.')
-    elif got_Vrep:
-        deduced_ambient_dim = _common_length_of(vertices, rays, lines)[1]
-        if deduced_ambient_dim is None:
-            if ambient_dim is not None:
-                deduced_ambient_dim = ambient_dim
-            else:
-                deduced_ambient_dim = 0
-    elif got_Hrep:
-        deduced_ambient_dim = _common_length_of(ieqs, eqns)[1]
-        if deduced_ambient_dim is None:
-            if ambient_dim is not None:
-                deduced_ambient_dim = ambient_dim
-            else:
-                deduced_ambient_dim = 0
+        if got_Vrep and got_Hrep:
+            raise ValueError('cannot specify both H- and V-representation.')
+        elif got_Hrep:
+            return Polyhedron.from_Hrep(ieqs, eqns,
+                                        ambient_dim=ambient_dim,
+                                        base_ring=base_ring, minimize=minimize,
+                                        verbose=verbose, backend=backend)
+        elif got_Vrep:
+            return Polyhedron.from_Vrep(vertices, rays, lines,
+                                        ambient_dim=ambient_dim,
+                                        base_ring=base_ring, minimize=minimize,
+                                        verbose=verbose, backend=backend)
+
         else:
-            deduced_ambient_dim -= 1
-    else:
+            if ambient_dim is None:
+                ambient_dim = 0
+            return Polyhedron.empty(ambient_dim,
+                                    base_ring=base_ring, minimize=minimize,
+                                    verbose=verbose, backend=backend)
+
+    def _from_Vrep_Hrep(Vrep, Hrep, ambient_dim=None, base_ring=None, minimize=True,
+                      verbose=False, backend=None):
+        r"""
+        Internal constructor.
+        """
+        if not Vrep and not Hrep:
+            raise ValueError('at least one of Vrep and Hrep must be provided')
+
+        value_lists = []
+
+        if Vrep:
+            # Clean up the arguments
+            vertices, rays, lines = Vrep
+            vertices = _make_listlist(vertices)
+            rays = _make_listlist(rays)
+            lines = _make_listlist(lines)
+
+            deduced_ambient_dim = _common_length_of(vertices, rays, lines)[1]
+            if deduced_ambient_dim is None:
+                if ambient_dim is not None:
+                    deduced_ambient_dim = ambient_dim
+                else:
+                    deduced_ambient_dim = 0
+            else:
+                # Add the origin if necessary
+                if len(vertices) == 0 and len(rays + lines) > 0:
+                    vertices = [[0] * deduced_ambient_dim]
+            Vrep = [vertices, rays, lines]
+            value_lists.extend(Vrep)
+            # set ambient_dim
+            if ambient_dim is not None and deduced_ambient_dim != ambient_dim:
+                raise ValueError('ambient space dimension mismatch. Try removing the "ambient_dim" parameter.')
+            ambient_dim = deduced_ambient_dim
+
+        if Hrep:
+            # Clean up the arguments
+            ieqs, eqns = Hrep
+            ieqs = _make_listlist(ieqs)
+            eqns = _make_listlist(eqns)
+            deduced_ambient_dim = _common_length_of(ieqs, eqns)[1]
+            if deduced_ambient_dim is None:
+                if ambient_dim is not None:
+                    deduced_ambient_dim = ambient_dim
+                else:
+                    deduced_ambient_dim = 0
+            else:
+                deduced_ambient_dim -= 1
+            Hrep = (ieqs, eqns)
+            value_lists.extend(Hrep)
+
+            # set ambient_dim
+            if ambient_dim is not None and deduced_ambient_dim != ambient_dim:
+                raise ValueError('ambient space dimension mismatch. Try removing the "ambient_dim" parameter.')
+            ambient_dim = deduced_ambient_dim
+
         if ambient_dim is None:
-            deduced_ambient_dim = 0
-        else:
-            deduced_ambient_dim = ambient_dim
-        if base_ring is None:
+            ambient_dim = 0
+
+        # figure out base_ring
+        from sage.misc.flatten import flatten
+        from sage.structure.element import parent
+        from sage.categories.all import Rings, Fields
+
+        values = flatten(value_lists)
+        if base_ring is not None:
+            convert = any(parent(x) is not base_ring for x in values)
+        elif not values:
             base_ring = ZZ
-
-    # set ambient_dim
-    if ambient_dim is not None and deduced_ambient_dim != ambient_dim:
-        raise ValueError('ambient space dimension mismatch. Try removing the "ambient_dim" parameter.')
-    ambient_dim = deduced_ambient_dim
-
-    # figure out base_ring
-    from sage.misc.flatten import flatten
-    from sage.structure.element import parent
-    from sage.categories.all import Rings, Fields
-
-    values = flatten(vertices + rays + lines + ieqs + eqns)
-    if base_ring is not None:
-        convert = any(parent(x) is not base_ring for x in values)
-    elif not values:
-        base_ring = ZZ
-        convert = False
-    else:
-        P = parent(values[0])
-        if any(parent(x) is not P for x in values):
-            from sage.structure.sequence import Sequence
-            P = Sequence(values).universe()
-            convert = True
-        else:
             convert = False
-
-        from sage.structure.coerce import py_scalar_parent
-        if isinstance(P, type):
-            base_ring = py_scalar_parent(P)
-            convert = convert or P is not base_ring
         else:
-            base_ring = P
-
-        if base_ring not in Fields():
-            got_compact_Vrep = got_Vrep and not rays and not lines
-            got_cone_Vrep = got_Vrep and all(all(x == 0 for x in v) for v in vertices)
-            if not got_compact_Vrep and not got_cone_Vrep:
-                base_ring = base_ring.fraction_field()
+            P = parent(values[0])
+            if any(parent(x) is not P for x in values):
+                from sage.structure.sequence import Sequence
+                P = Sequence(values).universe()
                 convert = True
+            else:
+                convert = False
 
-        if base_ring not in Rings():
-            raise ValueError('invalid base ring')
+            from sage.structure.coerce import py_scalar_parent
+            if isinstance(P, type):
+                base_ring = py_scalar_parent(P)
+                convert = convert or P is not base_ring
+            else:
+                base_ring = P
 
-        from sage.symbolic.ring import SR
-        if base_ring is not SR and not base_ring.is_exact():
-            # TODO: remove this hack?
-            if base_ring is RR:
-                base_ring = RDF
-                convert = True
-            elif base_ring is not RDF:
-                raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
+            if base_ring not in Fields():
+                got_compact_Vrep = Vrep and not rays and not lines
+                got_cone_Vrep = Vrep and all(all(x == 0 for x in v) for v in vertices)
+                if not got_compact_Vrep and not got_cone_Vrep:
+                    base_ring = base_ring.fraction_field()
+                    convert = True
 
-    # Add the origin if necessary
-    if got_Vrep and len(vertices) == 0 and len(rays + lines) > 0:
-        vertices = [[0] * ambient_dim]
+            if base_ring not in Rings():
+                raise ValueError('invalid base ring')
 
-    # Specific backends can override the base_ring
-    from sage.geometry.polyhedron.parent import Polyhedra
-    parent = Polyhedra(base_ring, ambient_dim, backend=backend)
-    base_ring = parent.base_ring()
+            from sage.symbolic.ring import SR
+            if base_ring is not SR and not base_ring.is_exact():
+                # TODO: remove this hack?
+                if base_ring is RR:
+                    base_ring = RDF
+                    convert = True
+                elif base_ring is not RDF:
+                    raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
 
-    # finally, construct the Polyhedron
-    Hrep = Vrep = None
-    if got_Hrep:
-        Hrep = [ieqs, eqns]
-    if got_Vrep:
-        Vrep = [vertices, rays, lines]
-    return parent(Vrep, Hrep, convert=convert, verbose=verbose)
+        # Specific backends can override the base_ring
+        from sage.geometry.polyhedron.parent import Polyhedra
+        parent = Polyhedra(base_ring, ambient_dim, backend=backend)
+        base_ring = parent.base_ring()
+
+        # finally, construct the Polyhedron
+        return parent(Vrep, Hrep, convert=convert, verbose=verbose)
+
+    @staticmethod
+    def from_Vrep(vertices, rays, lines, **kwds):
+        return Polyhedron._from_Vrep_Hrep([vertices, rays, lines], None, **kwds)
+
+    @staticmethod
+    def from_Hrep(ieqs, eqns, **kwds):
+        return Polyhedron._from_Vrep_Hrep(None, [ieqs, eqns], **kwds)
+
+    @staticmethod
+    def from_Vrep_and_Hrep(vertices, rays, lines, ieqs, eqns, **kwds):
+        return Polyhedron._from_Vrep_Hrep([vertices, rays, lines],
+                                          [ieqs, eqns],
+                                          **kwds)
+
+    @staticmethod
+    def empty(ambient_dim, **kwds):
+        return Polyhedron.from_Vrep([], [], [],
+                                    ambient_dim=ambient_dim, **kwds)
