@@ -4,4 +4,4 @@ perl_ccflags=`perl -MExtUtils::Embed -e ccflags`
 perl_ldflags=`perl -MExtUtils::Embed -e ldopts`
 CXXFLAGS="$CXXFLAGS $perl_ccflags"
 LDFLAGS="$LDFLAGS $perl_ldflags"
-pip install --verbose --ignore-installed --no-deps pypolymake
+pip install --verbose --ignore-installed --no-deps -r install-requires.txt
