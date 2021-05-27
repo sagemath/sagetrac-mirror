@@ -139,8 +139,8 @@ def is_admissible(A, B, C, p):
 
     # if C_p is unimodular we have a necessary and sufficient condition
     if not p.divides(C.det()):
-      qA = A.discriminant_form(p).normal_form()
-      qB = B.discriminant_form(p).twist(-1).normal_form()
+      qA = A.discriminant_form().primary_part(p).normal_form()
+      qB = B.discriminant_form().primary_part(p).twist(-1).normal_form()
       return qA == qB
 
     # check that rationally (A + B)_p = C_p
