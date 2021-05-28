@@ -5611,6 +5611,14 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             [(-9 : -4 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 1), (0 : 4 : 1),
              (1 : 0 : 1), (1 : 1 : 1), (1 : 2 : 1), (1 : 3 : 1)]
 
+        A dynamical systems over function field example::
+
+            sage: FF.<t> = FunctionField(GF(17))
+            sage: P.<x,y> = ProjectiveSpace(FF, 1)
+            sage: DS = DynamicalSystem([x^2 + y^2, y^2])
+            sage: DS.all_rational_preimages(P(1,1))
+            [(0 : 1), (4 : 1), (13 : 1)]
+
         A non-periodic example ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
@@ -5644,21 +5652,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: P.<u,v> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([u^2+v^2, v^2])
             sage: f.all_rational_preimages(P(4))
-            [(-w : 1), (w : 1)]
-
-        A dynamical systems over function field example::
-
-            sage: K = GF(17)
-            sage: FF.<t> = FunctionField(K)
-            sage: P.<x,y> = ProjectiveSpace(FF,1)
-            sage: DS = DynamicalSystem([(1/t)*x^2 + y^2  ,y^2])
-            sage: DS.normalize_coordinates()
-            sage: base = DS.base_ring()
-            sage: CF = base.constant_field()
-            sage: D = DS.domain()
-            sage: DS.all_rational_preimages(D(1,1))
-            [(0 : 1)]
-            
+            [(-w : 1), (w : 1)]    
         """
 
         from sage.rings.function_field.function_field import RationalFunctionField_global
