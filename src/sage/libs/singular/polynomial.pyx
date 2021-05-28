@@ -156,66 +156,6 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
 
         sage: (3*x*z)(x,x,x)
         3*x^2
-
-    TESTS:
-
-    Test that there is no memory leak in evaluating polynomials (see
-    :trac:`27261`). Note that (lib)Singular has pre-allocated buckets, so we
-    have to run a lot of iterations to fill those up first::
-
-        sage: import resource
-        sage: import gc
-        sage: def leak_ZZ(N):
-        ....:     R.<x, y> = ZZ[]
-        ....:     p = (x + y)^10
-        ....:     gc.collect()
-        ....:     before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        ....:     for i in range(N):
-        ....:         _ = p(x, y)
-        ....:         _ = p(x + y, y)
-        ....:         _ = p(1, -1)
-        ....:         _ = p(0, 0)
-        ....:     gc.collect()
-        ....:     after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        ....:     return (after - before) * 1024   # ru_maxrss is in kilobytes
-        sage: def leak_GF49(N):
-        ....:     F.<a> = GF(7^2)
-        ....:     R.<x,y> = F[]
-        ....:     p = (x + 2*y - 1)^10
-        ....:     gc.collect()
-        ....:     before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        ....:     for i in range(N):
-        ....:         _ = p(a, a)
-        ....:         _ = p(x, y)
-        ....:         _ = p(x + y, y)
-        ....:         _ = p(a + x, a)
-        ....:     gc.collect()
-        ....:     after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        ....:     return (after - before) * 1024   # ru_maxrss is in kilobytes
-
-    Loop (at most 30 times) until we have 6 consecutive zeros when
-    calling ``leak(10000)``. Depending on the operating system, it is
-    possible to have several non-zero leak values in the beginning, but
-    after a while we should get only zeros. The fact that we require 6
-    zeros also means that Singular's pre-allocated buckets should not
-    be sufficient if there really would be a memory leak. ::
-
-        sage: zeros = 0
-        sage: for i in range(30):  # long time
-        ....:     nGF49 = leak_GF49(1000)
-        ....:     nZZ = leak_ZZ(1000)
-        ....:     print("Leaked {} and {} bytes".format(nGF49, nZZ))
-        ....:     if nGF49 == nZZ == 0:
-        ....:         zeros += 1
-        ....:         if zeros >= 6:
-        ....:             print("done")
-        ....:             break
-        ....:     else:
-        ....:         zeros = 0
-        Leaked ...
-        ...
-        Leaked 0 and 0 bytes
-        done
     """
     cdef long l = len(args)
     cdef ideal *to_id = idInit(l,1)
