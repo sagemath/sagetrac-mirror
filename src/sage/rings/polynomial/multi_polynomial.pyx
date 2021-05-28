@@ -408,6 +408,48 @@ cdef class MPolynomial(CommutativeRingElement):
             y += c * prod([x[i]**m[i] for i in range(n) if m[i]], one)
         return y
 
+    def subs(self, fixed=None, **kw):
+        """
+        Fixes some given variables in a given multivariate polynomial and
+        returns the changed multivariate polynomials. The polynomial itself
+        is not affected. The variable,value pairs for fixing are to be
+        provided as a dictionary of the form {variable:value}.
+
+        This is a special case of evaluating the polynomial with some of
+        the variables constants and the others the original variables.
+
+        INPUT:
+
+
+        -  ``fixed`` - (optional) dictionary of inputs
+
+        -  ``**kw`` - named parameters
+
+
+        OUTPUT: new MPolynomial
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQbar[]
+            sage: f = x^2 + y + x^2*y^2 + 5
+            sage: f((5,y))
+            25*y^2 + y + 30
+            sage: f.subs({x:5})
+            25*y^2 + y + 30
+        """
+        cdef list values = list(self.parent().gens())
+        cdef Py_ssize_t i
+        for i, v in enumerate(values):
+            s = str(v)
+            if s in kw:
+                values[i] = kw[s]
+            elif fixed:
+                if v in fixed:
+                    values[i] = fixed[v]
+                elif s in fixed:
+                    values[i] = fixed[s]
+        return self(*values)
+
     def _fast_callable_(self, etb):
         """
         Given an ExpressionTreeBuilder, return an Expression representing

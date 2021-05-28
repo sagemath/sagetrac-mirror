@@ -1110,43 +1110,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         return len(self.element()) == 1
 
-    def subs(self, fixed=None, **kw):
-        """
-        Fixes some given variables in a given multivariate polynomial and
-        returns the changed multivariate polynomials. The polynomial itself
-        is not affected. The variable,value pairs for fixing are to be
-        provided as a dictionary of the form {variable:value}.
-
-        This is a special case of evaluating the polynomial with some of
-        the variables constants and the others the original variables.
-
-        INPUT:
-
-
-        -  ``fixed`` - (optional) dictionary of inputs
-
-        -  ``**kw`` - named parameters
-
-
-        OUTPUT: new MPolynomial
-
-        EXAMPLES::
-
-            sage: R.<x,y> = QQbar[]
-            sage: f = x^2 + y + x^2*y^2 + 5
-            sage: f((5,y))
-            25*y^2 + y + 30
-            sage: f.subs({x:5})
-            25*y^2 + y + 30
-        """
-        variables = list(self.parent().gens())
-        for i in range(0,len(variables)):
-            if str(variables[i]) in kw:
-                variables[i]=kw[str(variables[i])]
-            elif fixed and variables[i] in fixed:
-                variables[i] = fixed[variables[i]]
-        return self(tuple(variables))
-
     def monomials(self):
         """
         Returns the list of monomials in self. The returned list is

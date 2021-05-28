@@ -150,12 +150,12 @@ Test memory leak from :trac:`27261`::
     ....:     after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     ....:     return (after - before) * 1024  # ru_maxrss is in kilobytes
     sage: zeros = 0
-    sage: for i in range(30):
+    sage: for i in range(40):
     ....:     n = leak_subs(20)
     ....:     print("Leaked {} bytes".format(n))
     ....:     if n == 0:
     ....:         zeros += 1
-    ....:         if zeros >= 6:
+    ....:         if zeros >= 10:
     ....:             print("done")
     ....:             break
     ....:     else:
@@ -3510,163 +3510,13 @@ cdef class MPolynomial_libsingular(MPolynomial):
             ....:             assert z.subs(d) == z.subs(**ds) == vz
             ....:             assert (x+y).subs(d) == (x+y).subs(**ds) == vx+vy
         """
-        cdef int mi, i, need_map, try_symbolic
+        #######################################################################
+        # NOTE: the custom code for subs used to have a serious memory leak
+        # (see https://trac.sagemath.org/ticket/27261). For now we rely on the
+        # generic (and certainly slower) generic method of MPolynomial.
+        #######################################################################
+        return MPolynomial.subs(self, fixed, **kw)
 
-        cdef unsigned long degree = 0
-        cdef MPolynomialRing_libsingular parent = self._parent
-        cdef ring *_ring = parent._ring
-
-        if(_ring != currRing): rChangeCurrRing(_ring)
-
-        cdef poly *_p = p_Copy(self._poly, _ring)
-        cdef poly *_f
-
-        cdef ideal *to_id = idInit(_ring.N,1)
-        cdef ideal *from_id
-        cdef ideal *res_id
-        need_map = 0
-        try_symbolic = 0
-
-        if _p == NULL:
-            # the polynomial is 0. There is nothing to do except to change the
-            # ring
-            try_symbolic = 1
-
-        if not try_symbolic and fixed is not None:
-            for m,v in fixed.items():
-                if isinstance(m, (int, Integer)):
-                    mi = m+1
-                elif isinstance(m,MPolynomial_libsingular) and m.parent() is parent:
-                    for i from 0 < i <= _ring.N:
-                        if p_GetExp((<MPolynomial_libsingular>m)._poly, i, _ring) != 0:
-                            mi = i
-                            break
-                    if i > _ring.N:
-                        id_Delete(&to_id, _ring)
-                        p_Delete(&_p, _ring)
-                        raise TypeError("key does not match")
-                else:
-                    id_Delete(&to_id, _ring)
-                    p_Delete(&_p, _ring)
-                    raise TypeError("keys do not match self's parent")
-                try:
-                    v = parent._coerce_c(v)
-                except TypeError:
-                    try_symbolic = 1
-                    break
-                _f = (<MPolynomial_libsingular>v)._poly
-                if p_IsConstant(_f, _ring):
-                    singular_polynomial_subst(&_p, mi-1, _f, _ring)
-                else:
-                    need_map = 1
-                    degree = <unsigned long>p_GetExp(_p, mi, _ring) * <unsigned long>p_GetMaxExp(_f, _ring)
-                    if  degree > _ring.bitmask:
-                        id_Delete(&to_id, _ring)
-                        p_Delete(&_p, _ring)
-                        raise OverflowError("exponent overflow (%d)"%(degree))
-                    to_id.m[mi-1] = p_Copy(_f, _ring)
-
-                if _p == NULL:
-                    # polynomial becomes 0 after some substitution
-                    try_symbolic = 1
-                    break
-
-        cdef dict gd
-
-        if not try_symbolic:
-            gd = parent.gens_dict(copy=False)
-            for m,v in kw.iteritems():
-                m = gd[m]
-                for i from 0 < i <= _ring.N:
-                    if p_GetExp((<MPolynomial_libsingular>m)._poly, i, _ring) != 0:
-                        mi = i
-                        break
-                if i > _ring.N:
-                    id_Delete(&to_id, _ring)
-                    p_Delete(&_p, _ring)
-                    raise TypeError("key does not match")
-                try:
-                    v = parent._coerce_c(v)
-                except TypeError:
-                    try_symbolic = 1
-                    break
-                _f = (<MPolynomial_libsingular>v)._poly
-                if p_IsConstant(_f, _ring):
-                    singular_polynomial_subst(&_p, mi-1, _f, _ring)
-                else:
-                    if to_id.m[mi-1] != NULL:
-                        p_Delete(&to_id.m[mi-1],_ring)
-                    to_id.m[mi-1] = p_Copy(_f, _ring)
-                    degree = <unsigned long>p_GetExp(_p, mi, _ring) * <unsigned long>p_GetMaxExp(_f, _ring)
-                    if degree > _ring.bitmask:
-                        id_Delete(&to_id, _ring)
-                        p_Delete(&_p, _ring)
-                        raise OverflowError("exponent overflow (%d)"%(degree))
-                    need_map = 1
-
-                if _p == NULL:
-                    # the polynomial is 0
-                    try_symbolic = 1
-                    break
-
-            if need_map:
-                for mi from 0 <= mi < _ring.N:
-                    if to_id.m[mi] == NULL:
-                        to_id.m[mi] = p_ISet(1,_ring)
-                        p_SetExp(to_id.m[mi], mi+1, 1, _ring)
-                        p_Setm(to_id.m[mi], _ring)
-
-                from_id=idInit(1,1)
-                from_id.m[0] = _p
-
-                rChangeCurrRing(_ring)
-                res_id = fast_map_common_subexp(from_id, _ring, to_id, _ring)
-                _p = res_id.m[0]
-
-                p_Delete(&from_id.m[0], _ring)
-                res_id.m[0] = NULL
-
-                id_Delete(&from_id, _ring)
-                id_Delete(&res_id, _ring)
-
-        id_Delete(&to_id, _ring)
-
-        if not try_symbolic:
-            return new_MP(parent,_p)
-
-        # now as everything else failed, try to do it symbolically with call
-
-        cdef list g = list(parent.gens())
-
-        if fixed is not None:
-            for m,v in fixed.items():
-                if isinstance(m, (int, Integer)):
-                    mi = m+1
-                elif isinstance(m, MPolynomial_libsingular) and m.parent() is parent:
-                    for i from 0 < i <= _ring.N:
-                        if p_GetExp((<MPolynomial_libsingular>m)._poly, i, _ring) != 0:
-                            mi = i
-                            break
-                    if i > _ring.N:
-                        raise TypeError("key does not match")
-                else:
-                    raise TypeError("keys do not match self's parent")
-
-                g[mi-1] = v
-
-        gd = parent.gens_dict(copy=False)
-        for m,v in kw.iteritems():
-            m = gd[m]
-            for i from 0 < i <= _ring.N:
-                if p_GetExp((<MPolynomial_libsingular>m)._poly, i, _ring) != 0:
-                    mi = i
-                    break
-            if i > _ring.N:
-                raise TypeError("key does not match")
-
-            g[mi-1] = v
-
-        return self(*g)
 
     def monomials(self):
         """
