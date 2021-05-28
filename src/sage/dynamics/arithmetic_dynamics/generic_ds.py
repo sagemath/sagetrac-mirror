@@ -327,7 +327,51 @@ class DynamicalSystem(SchemeMorphism_polynomial,
         F = f.change_ring(R)
         return F.as_dynamical_system()
 
-     def specialization(self, D=None, phi=None, homset=None):
+    def mod(self,p):
+        r"""
+        Modulo function for Dynamical Systems, the function takes as a parameter a prime p and returns the Dynamical System modulo p.
+
+        OUTPUT: DynamicalSystem
+
+        TESTS::
+
+            sage: FF.<t>=FunctionField(GF(17));FF
+            Rational function field in t over Finite Field of size 17
+            sage: P1.<x,y>=ProjectiveSpace(FF, 1);P1
+            Projective Space of dimension 1 over Rational function field in t over Finite Field of size 17
+            sage: DS=DynamicalSystem([(1/t)*x^2+y^2, y^2])
+            sage: DS.mod(t+1)
+            Dynamical System of Projective Space of dimension 1 over Finite Field of size 17
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 - y^2 : -y^2)
+        """
+        self.normalize_coordinates()  # normalize coordinates of dynamical system
+        df_p_all = self.defining_polynomials()
+        coefficients = [poly.coefficients() for poly in self.defining_polynomials()]
+        monomials = [poly.monomials() for poly in self.defining_polynomials()]
+        F = self.base_ring() # obtain base_ring of dynamical system
+        O = F.maximal_order()
+        p = O.ideal(p).place()
+        k, fr_k, to_k = p.residue_field()
+        # reduce each coefficient of each polynomial using the function to_k :
+        reduced_coefficients = []
+        for coeff in coefficients:
+            reduced_coefficients.append([to_k(c) for c in coeff])
+        # change the ring of each monomial to the residue field :
+        new_monomials = []
+        for monom in monomials:
+            new_monomials.append([m.change_ring(k) for m in monom])
+        new_pol = []
+        polynom = 0
+        for i in range(0, len(reduced_coefficients)):
+            for j in range(0, len(reduced_coefficients[i])):
+                polynom += reduced_coefficients[i][j] * new_monomials[i][j]
+            new_pol.append(polynom)
+            polynom = 0
+        # construct a new dynamical system from the polynomials
+        return DynamicalSystem(new_pol)
+
+    def specialization(self, D=None, phi=None, homset=None):
         r"""
         Specialization of this dynamical system.
 
