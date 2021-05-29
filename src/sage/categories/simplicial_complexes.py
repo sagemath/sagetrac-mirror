@@ -13,7 +13,7 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.category_with_axiom import CategoryWithAxiom
 #from sage.categories.cw_complexes import CWComplexes
-from sage.categories.sets_cat import Sets
+from sage.categories.combinatorial_polyhedral_sets import CombinatorialPolyhedralSets
 
 class SimplicialComplexes(Category_singleton):
     r"""
@@ -51,9 +51,9 @@ class SimplicialComplexes(Category_singleton):
 
             sage: from sage.categories.simplicial_complexes import SimplicialComplexes
             sage: SimplicialComplexes().super_categories()
-            [Category of sets]
+            [Category of combinatorial polyhedral sets]
         """
-        return [Sets()]
+        return [CombinatorialPolyhedralSets()]
 
     class Finite(CategoryWithAxiom):
         """
