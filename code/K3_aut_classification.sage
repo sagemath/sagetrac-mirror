@@ -52,6 +52,9 @@ def K3SurfaceAut(A, B, a, Oa):
     - a -- matrix; an isometry of A
     - Oa -- image of the stabilizer of a in Oq
     """
+    if B.rank() == 0:
+        # purely non-symplectic
+        return [K3SurfaceAutGrp(A, A.orthogonal_group([]),a,a.change_ring(ZZ).multiplicative_order())]    
     a = A.orthogonal_group([a]).gen(0)
     n = a.order()
 
@@ -216,22 +219,27 @@ def aut_from_str(s, check=False):
     else:
         name=None
     n = L[0]
-    basis = matrix(QQ,22,22,L[1][0])
-    gram = matrix(QQ,22,22,L[1][1])
+    deg = ZZ(len(L[1][1]))
+    assert deg.is_square()
+    deg = deg.sqrt()
+    basis = matrix(QQ,22,deg,L[1][0])
+    gram = matrix(QQ,deg,deg,L[1][1])
     H = IntegralLattice(gram, basis)
 
-    G0_gens = [matrix(QQ,22,22,h) for h in L[2]]
+    G0_gens = [matrix(QQ,deg,deg,h) for h in L[2]]
     G0 = H.orthogonal_group(G0_gens)
-    g = matrix(QQ,22,22,L[3])
+    g = matrix(QQ,deg,deg,L[3])
 
     return K3SurfaceAutGrp(H, G0, g, n, check=check,name=name)
 
 
 #######################################
-def get_ptypes(order,number=None,rkT=None):
+def get_ptypes(order,fi=None,number=None,rkT=None,orderG0=None):
     assert len(order.prime_factors())==1
     p = order.prime_factors()[0]
-    if rkT is not None:
+    if fi is not None:
+        pass
+    elif rkT is not None:
         fi = open('results/order%s_no%s_rkT%s.txt'%(order,number,rkT))
     elif number is not None:
         fi = open('results/order%s_no%s.txt'%(order,number))
@@ -239,8 +247,14 @@ def get_ptypes(order,number=None,rkT=None):
         fi = open('results/order%s.txt' % order)
     ptypes = []
     for s in fi:
+        if s[:8]=="complete":
+            continue
         k3 = aut_from_str(s)
         H = k3.symplectic_invariant_lattice()
+        if rkT is not None and rkT!=k3.transcendental_lattice().rank():
+            continue
+        if orderG0 is not None and orderG0 != k3.G0.order():
+            continue
         g = k3.g
         t = ptype(H,g,p)
         if not t in ptypes:
@@ -359,7 +373,7 @@ def classify_purely_ns_pn(p,e,file_name, log_file, rw="w",verbose=True, rkT=None
     result.close()
     return classifi
 
-def classify_purely_ns_peq(p, q ,file_r, file_aw, log_file,aw="w",verbose=2):
+def classify_purely_ns_peq(p, q ,file_r, file_aw, log_file,aw="w",verbose=2,rkT=None):
     classifi = []
     peactions = open(file_r,'r')
     result = open(file_aw,aw)
@@ -374,9 +388,11 @@ def classify_purely_ns_peq(p, q ,file_r, file_aw, log_file,aw="w",verbose=2):
             continue
         k3 = aut_from_str(str_pe)
         L = k3.symplectic_invariant_lattice()
+        if rkT is not None and rkT != k3.transcendental_lattice().rank():
+            continue
         if k3.NS_coinvariant().maximum() == -2:
             # the isometry is obstructed
-            continue
+            assert False
         f = k3.g
         assert p == k3.n.prime_factors()[0]
         typ = ptype(L,f,p)
@@ -401,7 +417,7 @@ def classify_purely_ns_peq(p, q ,file_r, file_aw, log_file,aw="w",verbose=2):
     return classifi
 
 
-def classify_ord_peq(p, q, file_r, file_aw,aw='w',verbose=2):
+def classify_ord_peq(p, q, file_r, file_aw,aw='w',verbose=2, rkT=None):
     r"""
     file_r contains the p^e actions
     """
@@ -413,7 +429,7 @@ def classify_ord_peq(p, q, file_r, file_aw,aw='w',verbose=2):
     k = 0
     types = []
     for str_pe in peactions:
-        if str_pe=="complete":
+        if str_pe[:8]=="complete":
             continue
         k+=1
         print(k)
@@ -421,6 +437,8 @@ def classify_ord_peq(p, q, file_r, file_aw,aw='w',verbose=2):
         L = k3.symplectic_invariant_lattice()
         if k3.NS_coinvariant().maximum() == -2:
             # the isometry is obstructed
+            continue
+        if rkT is not None and k3.transcendental_lattice().rank()!=rkT:
             continue
         f = k3.g
         assert p == k3.n.prime_factors()[0]
