@@ -104,8 +104,60 @@ cdef class MatrixMulAction(Action):
         self._codomain = self._create_codomain(base)
 
     def codomain(self):
+        """
+        Codomain of this action.
+
+        EXAMPLES::
+
+            sage: MSQ = MatrixSpace(QQ, 2)
+            sage: MSZ = MatrixSpace(ZZ['x'], 2)
+            sage: A = MSQ.get_action(MSZ)
+            sage: A.codomain()
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+        """
         return self._codomain
 
+    def __reduce__(self):
+        r"""
+        For pickling.
+
+        TESTS::
+
+            sage: MSQ = MatrixSpace(QQ, 2)
+            sage: MSZ = MatrixSpace(ZZ['x'], 2)
+            sage: A = MSQ.get_action(MSZ)
+            sage: TestSuite(A).run()
+        """
+        return type(self), (self.G, self.domain())
+
+    def __eq__(self, other):
+        r"""
+        Equality testing.
+
+        TESTS::
+
+            sage: MSQ = MatrixSpace(QQ, 2)
+            sage: MSZ = MatrixSpace(ZZ['x'], 2)
+            sage: MSQ.get_action(MSZ) == MSQ.get_action(MSZ)
+            True
+        """
+        return type(self) == type(other) and self.G == other.G and self.domain() == other.domain()
+
+    def __ne__(self, other):
+        """
+        Inequality testing.
+
+        TESTS::
+
+            sage: from sage.matrix.action import VectorMatrixAction, MatrixVectorAction
+            sage: M = MatrixSpace(QQ, 3, 3)
+            sage: V = VectorSpace(CDF, 3)
+            sage: A = VectorMatrixAction(M, V)
+            sage: B = MatrixVectorAction(M, V)
+            sage: A != B
+            True
+        """
+        return not (self == other)
 
 cdef class MatrixMatrixAction(MatrixMulAction):
     """
@@ -132,6 +184,7 @@ cdef class MatrixMatrixAction(MatrixMulAction):
         [  0   x]
         [2*x 3*x]
         [4*x 5*x]
+        sage: TestSuite(A).run()
 
     .. NOTE::
 
@@ -286,6 +339,8 @@ cdef class MatrixVectorAction(MatrixMulAction):
             Traceback (most recent call last):
             ...
             TypeError: incompatible dimensions 3, 4
+            sage: A = MatrixVectorAction(MatrixSpace(QQ, 3, 3), VectorSpace(CDF, 3))
+            sage: TestSuite(A).run()
             """
         if not is_FreeModule(S):
             raise TypeError("Not a free module: %s" % S)
@@ -336,6 +391,8 @@ cdef class VectorMatrixAction(MatrixMulAction):
             Traceback (most recent call last):
             ...
             TypeError: incompatible dimensions 5, 3
+            sage: A = VectorMatrixAction(MatrixSpace(QQ, 5, 3), VectorSpace(CDF, 5))
+            sage: TestSuite(A).run()
         """
         if not is_FreeModule(S):
             raise TypeError("Not a free module: %s" % S)
@@ -393,6 +450,7 @@ cdef class MatrixPolymapAction(MatrixMulAction):
             Field on Set of morphisms
               From: Projective Space of dimension 1 over Rational Field
               To:   Projective Space of dimension 1 over Rational Field
+            sage: TestSuite(A).run()
         """
         if not isinstance(S, SchemeHomset_generic):
             raise TypeError("not a scheme polynomial morphism: %s"% S)
@@ -464,6 +522,7 @@ cdef class PolymapMatrixAction(MatrixMulAction):
             Field on Set of morphisms
               From: Projective Space of dimension 1 over Rational Field
               To:   Projective Space of dimension 1 over Rational Field
+            sage: TestSuite(A).run()
         """
         if not isinstance(S, SchemeHomset_generic):
             raise TypeError("not a scheme polynomial morphism: %s"% S)
@@ -536,6 +595,7 @@ cdef class MatrixSchemePointAction(MatrixMulAction):
             Left action by Full MatrixSpace of 2 by 2 dense matrices over
             Rational Field on Set of rational points of Projective Space
             of dimension 1 over Rational Field
+            sage: TestSuite(A).run()
         """
         if not isinstance(S, SchemeHomset_points):
             raise TypeError("not a homset of scheme points: %s"% S)

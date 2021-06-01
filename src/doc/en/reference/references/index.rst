@@ -3048,6 +3048,9 @@ REFERENCES:
             Volume 31, Issue 6, August 2010, Pages 1553-1559,
             :doi:`10.1016/j.ejc.2009.07.009`
 
+.. [HY2017] Akinari Hoshi and Aiichi Yamasaki, "Rationality Problem for Algebraic Tori",
+            Mem. AMS 248, no. 1176 (2017).
+
 .. [HZ1999] \C. Holton, L. Q. Zamboni, *Descendants of primitive
             substitutions*, Theory Comput. Syst. 32 (1999) 133-157.
 
