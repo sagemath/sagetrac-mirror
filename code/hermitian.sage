@@ -3,8 +3,8 @@
 #my_magma = Magma()
 #my_magma.set_server_and_command(command="magma")
 #my_magma.set_server_and_command(command="magma.avx64.exe")
-#dire = "/home/simon/Dropbox/Math/MyPapers/K3_automorphisms_catalogue/code"
-dire = "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/code"
+#dire = "/home/simon/Dropbox/Math/MyPapers/K3_automorphisms_catalogue/code
+dire = "sage/code"
 magma.attach_spec(dire+"/unit_quotients/lat.spec")
 # G.ChangeRing(E).sage()
 from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
