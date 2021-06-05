@@ -888,6 +888,16 @@ def _sympysage_true(self):
     from sage.symbolic.ring import SR
     return SR(True)
 
+def _sympysage_and(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy.logic.boolalg import And
+        sage: And((x>0)._sympy_(), (x<1)._sympy_())._sage_()
+    """
+    from sage.functions.boolean import and_symbolic
+    return and_symbolic(self.args)
+
 
 #------------------------------------------------------------------
 from sage.repl.ipython_extension import run_once
@@ -936,7 +946,7 @@ def sympy_init():
     from sympy.functions.special.hyper import hyper
     from sympy.functions.special.spherical_harmonics import Ynm
     from sympy.functions.special.tensor_functions import KroneckerDelta
-    from sympy.logic.boolalg import BooleanTrue, BooleanFalse
+    from sympy.logic.boolalg import BooleanTrue, BooleanFalse, And
     from sympy.integrals.integrals import Integral
     from sympy.polys.rootoftools import CRootOf
     from sympy.series.order import Order
@@ -997,7 +1007,9 @@ def sympy_init():
     CRootOf._sage_ = _sympysage_crootof
     BooleanFalse._sage_ = _sympysage_false
     BooleanTrue._sage_ = _sympysage_true
+    And._sage_ = _sympysage_and
     ceiling._sage_ = _sympysage_ceiling
+
 
 def check_expression(expr, var_symbols, only_from_sympy=False):
     """
