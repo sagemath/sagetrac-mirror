@@ -9,8 +9,8 @@ easy way to discover and quickly create the algebras that are available
 Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 ``algebras.<tab>`` to the see the currently implemented named algebras.
 
-- :class:`algebras.CubicHecke
-  <sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra>`
+- :class:`algebras.AlternatingCentralExtensionQuantumOnsager
+  <sage.algebras.quantum_groups.alt_central_ext_quantum_onsager.ACEQuantumOnsagerAlgebra>`
 - :class:`algebras.ArikiKoike
   <sage.algebras.hecke_algebras.ariki_koike_algebra.ArikiKoikeAlgebra>`
 - :class:`algebras.AskeyWilson <sage.algebras.askey_wilson.AskeyWilsonAlgebra>`
@@ -18,6 +18,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Brauer <sage.combinat.diagram_algebras.BrauerAlgebra>`
 - :class:`algebras.Clifford <sage.algebras.clifford_algebra.CliffordAlgebra>`
 - :class:`algebras.ClusterAlgebra <sage.algebras.cluster_algebra.ClusterAlgebra>`
+- :class:`algebras.CubicHecke <sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra>`
 - :class:`algebras.Descent <sage.combinat.descent_algebra.DescentAlgebra>`
 - :class:`algebras.DifferentialWeyl
   <sage.algebras.weyl_algebra.DifferentialWeylAlgebra>`
@@ -121,5 +122,8 @@ lazy_import('sage.algebras.quantum_matrix_coordinate_algebra',
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra', 'QuantumGL')
 lazy_import('sage.algebras.tensor_algebra', 'TensorAlgebra', 'Tensor')
 lazy_import('sage.algebras.quantum_groups.quantum_group_gap', 'QuantumGroup')
+lazy_import('sage.algebras.quantum_groups.ace_quantum_onsager',
+           'ACEQuantumOnsagerAlgebra', 'AlternatingCentralExtensionQuantumOnsager')
 lazy_import('sage.algebras.yangian', 'Yangian')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion
+
