@@ -1354,3 +1354,11 @@ class CubicHeckeRingOfDefinition(Localization):
         ExtensionRing.register_conversion(embedding_into_extension_ring)
 
         return ExtensionRing
+
+    def markov_trace_version(self):
+        r"""
+        """
+        if self._is_markov_trace_version():
+            return self
+        names = self.base_ring().variable_names() + ('s',)
+        return self.__class__(names=names, order=self._order, markov_trace_version=True)

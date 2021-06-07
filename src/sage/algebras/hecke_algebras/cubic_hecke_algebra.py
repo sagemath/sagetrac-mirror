@@ -3405,6 +3405,23 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         sub_vars.update(new_vars)
         return sub_vars, new_vars
 
+    def _markov_trace_module(self):
+        r"""
+        """
+        from enum import Enum
+        from sage.modules.free_module import FreeModule
+        class MarkovTraceMuduleBasis(Enum):
+            r"""
+            """
+            def __repr__(self):
+                r"""
+                """
+                return self.name
+        all_vars, new_vars = self._markov_vars()
+        basis = MarkovTraceMuduleBasis('MarkovTraceModuleBasis', all_vars)
+        BRM = self.base_ring(generic=True).markov_trace_version()
+        return FreeModule(BRM, basis)
+
     def _markov_trace_embedding(self, extension_ring=False):
         r"""
         """
@@ -3459,16 +3476,19 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             u, v, w, s, U1, U2 = L.gens()
             return [U2, s*U1, ~s*U1]
 
-        mtr = self._markov_trace_irr_coeffs()
+        irr_coeff = self._markov_trace_irr_coeffs()
+        emb_ER = self._markov_trace_embedding(extension_ring=True)
+        ClF = self._class_function()
+        dClF = len(ClF)
+        def mtr(ele):
+            return sum(irr_coeff[j]*emb_ER(ClF[j](ele)) for j in range(dClF))
+
         E = self.extension_ring()
         PE = E[('s',) + tuple(all_vars)]
         EZ_vars = self._markov_trace_embedding(extension_ring=True).codomain().variable_names()
         EZ = ZZ[EZ_vars]
         img = tuple(self.cubic_equation_roots()) + PE.gens()
         emb_EZ = EZ.hom(img)
-        # img = [PE.gens_dict_recursive()[k] for k in L.gens_dict().keys()]
-        # emb_M = M.hom(img)
-        # PE.register_coercion(emb_M)
 
         subs_dict = L.gens_dict_recursive()
         from sage.misc.sage_eval import sage_eval
@@ -3479,7 +3499,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             den = cf.denominator()
             num_PE = emb_EZ(EZ(num.dict()))
             den_PE = emb_EZ(EZ(den.dict()))
-            # return L(num_PE) / L(den_PE) benoetigt section map
             num_L = sage_eval(str(num_PE), locals=subs_dict)
             den_L = sage_eval(str(den_PE), locals=subs_dict)
             res = num_L/den_L
@@ -3628,7 +3647,5 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         irr_coeff.save('markov_irr_coeffR%s.sobj' %n)
         time = verbose('reduced adjusting solution saved', t=time)
 
-        def mtr_ext(ele):
-            return sum(irr_coeff[j]*emb_ER(ClF[j](ele)) for j in range(dClF))
         verbose('calculation of irreducible Markov trace coefficients finished', t=time)
-        return mtr_ext
+        return irr_coeff
