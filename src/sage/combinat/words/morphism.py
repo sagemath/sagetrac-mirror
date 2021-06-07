@@ -2007,6 +2007,11 @@ class WordMorphism(SageObject):
              word: 10,9,8,7,6,5,4,3,2,9,8,7,6,5,4,3,2,8,7,6...,
              word: 7654326543254324323221654325432432322154...,
              word: 4,3,2,3,2,2,1,3,2,2,1,2,1,1,10,9,8,7,6,5...]
+
+        Make sure that :trac:`31454` is fixed::
+
+            sage: WordMorphism('a->a,b->bb').periodic_points()
+            [[word: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb...]]
         """
         assert self.is_endomorphism(), "f should be an endomorphism"
 
@@ -2015,12 +2020,14 @@ class WordMorphism(SageObject):
 
         A = self.domain().alphabet()
         d = dict((letter,self(letter)[0]) for letter in A)
+        G = set(self.growing_letters())
 
         res = []
         parent = self.codomain().shift()
         for cycle in get_cycles(CallableDict(d),A):
-            P = PeriodicPointIterator(self, cycle)
-            res.append([parent(P._cache[i]) for i in range(len(cycle))])
+            if cycle[0] in G:
+                P = PeriodicPointIterator(self, cycle)
+                res.append([parent(P._cache[i]) for i in range(len(cycle))])
 
         return res
 
@@ -2030,6 +2037,8 @@ class WordMorphism(SageObject):
 
         The language of the substitution is the DOL language which consist
         of factors of `s^n(u)`.
+
+        This method assumes this substitution is non-erasing.
 
         INPUT:
 
@@ -2050,19 +2059,38 @@ class WordMorphism(SageObject):
 
             sage: s._language_naive(3, W())
             set()
+            sage: W([1, 1]) in s._language_naive(3, W([1, 1]))
+            True
         """
-        L = set(u.parent()())
-        todo = [u]
+        L = set()
+        todo = []
+        for i in range(len(u)):
+            for j in range(i+1, min(len(u)+1, i+n)):
+                f = u[i:j]
+                if f not in L:
+                    todo.append(f)
+                    L.add(f)
         while todo:
             u = todo.pop()
             v = self(u)
-            for i in range(len(v)):
-                for j in range(i+1, min(len(v)+1, i+n)):
-                    f = v[i:j]
-                    if f not in L:
-                        todo.append(f)
-                        L.add(f)
-
+            if u.length() == 1:
+                for i in range(len(v)):
+                    for j in range(i+1, min(len(v)+1, i+n)):
+                        f = v[i:j]
+                        if f not in L:
+                            todo.append(f)
+                            L.add(f)
+            else:
+                l = self._morph[u[0]].length()
+                r = self._morph[u[-1]].length()
+                m = v.length() - l - r
+                x = n - 1 - m
+                for i in range(l - min(x - 1, l), l):
+                    for j in range(l + m + 1, l + m + 1 + min(x - l + i, r)):
+                        f = v[i:j]
+                        if f not in L:
+                            todo.append(f)
+                            L.add(f)
         return L
 
     def language(self, n, u=None):
@@ -3060,13 +3088,20 @@ class WordMorphism(SageObject):
             sage: m.is_growing('c')
             False
 
+        TESTS:
+
+        Make sure that :trac:`31454` is fixed::
+
+            sage: WordMorphism('a->a').is_growing('a')
+            False
+
         REFERENCES:
 
         ..  [CassNic10] Cassaigne J., Nicolas F. Factor complexity.
             Combinatorics, automata and number theory, 163--247, Encyclopedia
             Math. Appl., 135, Cambridge Univ. Press, Cambridge, 2010.
         """
-        if self.is_primitive():
+        if self.is_primitive() and len(self._morph) > 1:
             return True
         if letter is None:
             I = range(self.domain().alphabet().cardinality())
@@ -3098,8 +3133,15 @@ class WordMorphism(SageObject):
             ['0']
             sage: WordMorphism('0->01,1->0,2->1',codomain=Words('012')).growing_letters()
             ['0', '1', '2']
+
+        TESTS:
+
+        Make sure that :trac:`31454` is fixed::
+
+            sage: WordMorphism('a->a').growing_letters()
+            []
         """
-        if self.is_primitive():
+        if self.is_primitive() and len(self._morph) > 1:
             return self.domain().alphabet().list()
         last_coef = 0
         coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)
