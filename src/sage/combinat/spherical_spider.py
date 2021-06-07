@@ -976,7 +976,7 @@ class SphericalWeb(Element):
             If the graph is not simple the diagram will degenerate.
 
             sage: S.vertex(4).glue(S.vertex(2),2)._latex_()
-            '\\begin{tikzpicture}\n\\draw (0,0) circle (1cm);\n\\draw (-1.0000,-1.0000) -- ... -- (1.0000,1.0000);\n\\end{tikzpicture}\n'
+            '\\begin{tikzpicture}\n\\draw (0,0) circle (1cm);\n\\draw (-1.00000000000000,0.0) -- (0.0,0.0);\n\\draw (1.00000000000000,0.0) -- (0.0,0.0);\n\\end{tikzpicture}\n'
 
             If there are no boundary points only the boundary circle is drawn.
 
@@ -992,7 +992,7 @@ class SphericalWeb(Element):
         result = "\\begin{tikzpicture}\n"
         result += "\\draw (0,0) circle (1cm);\n"
         for a in lines:
-            result += "\\draw ({0:1.4f},{0:1.4f}) -- ({0:1.4f},{0:1.4f});\n".format(a[0][0],a[1][0],a[1][0],a[1][1])
+            result += "\\draw ({},{}) -- ({},{});\n".format(a[0][0],a[1][0],a[1][0],a[1][1])
         result += "\\end{tikzpicture}\n"
 
         return result
@@ -1155,7 +1155,10 @@ class SphericalSpider(Parent,UniqueRepresentation):
         r"""
         Construct an element of ``self``.
 
-        EXAMPLES::
+        TESTS::
+
+            sage: SphericalSpider('plain').parent()
+            <class 'sage.combinat.spherical_spider.SphericalSpider'>
 
         """
         return self.element_class(c,e,b,self,check=check)
