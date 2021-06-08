@@ -102,9 +102,9 @@ def required_series_prec(y, prec):
         233473
     """
     y = RR(y)
-    epsilon = RR(2)**(-(prec+1))
-    pi = RR.pi()
-    return int((epsilon*(1 - (-2*pi*y).exp())).log() / (-2*pi*y)) + 1
+    epsilon = RR(2)**(-(prec + 1))
+    twopiy = -2 * RR.pi() * y
+    return int((epsilon*(1 - twopiy.exp())).log() / twopiy) + 1
 
 ###############################################################
 # Cython code to efficiently evalute a polynomial with
@@ -468,6 +468,7 @@ cdef class Polynomial_RDF_gsl:
             [(-0.0720852069059 - 0.638326735148*I, 6, 1.3877787807814457e-17)]
 
         Make x a list of approximate roots::
+
             sage: s.newton([0, -.6*I])  # abs tol 1e-10
             [(-0.605829586188, 7, 0.0), (-0.0720852069059 - 0.638326735148*I, 6, 1.3877787807814457e-17)]
         """
