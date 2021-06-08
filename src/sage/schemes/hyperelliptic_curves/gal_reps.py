@@ -1,72 +1,55 @@
 # -*- coding: utf-8 -*-
 r"""
-Galois representations attached to Jacoians of hyperelliptic curves over
-the rationals
+Galois representations attached to Jacoians of hyperelliptic curves of
+genus 2 over the rationals.
 
-More text here.
+The Jacobian variety of a genus 2 hyperelliptic curve over `\QQ` defines
+an abelian surface whose `p`-torsion Galois module defines a
+`4`-dimensional Galois representation of the absolute Galois group
+`G_{\QQ}` of `\QQ`. The image of this representation is a subgroup of
+`\text{GSp}_4(\GF{p})`, and it is known by an analogue of Serre's Open Image
+Theorem that this representation is surjective for almost all primes `p`
+under the additional assumption that the Jacobian is "generic", meaning
+that the ring of endomorphisms defined over `\overline{\QQ}` is `\ZZ`.
 
-The following are the most useful functions for the class ``GaloisRepresentation``.
+Currently sage can decide whether or not the image of this representation
+associated to a generic jacobian  is surjective, and moreover can
+determine exactly the finitely many primes at which the representation
+is not surjective.
 
-For the reducibility:
-
-- ``is_reducible(p)``
-- ``is_irreducible(p)``
-- ``reducible_primes()``
-
-For the image:
+For the surjectivity at one prime:
 
 - ``is_surjective(p)``
+
+For the list of non-surjective primes:
+
 - ``non_surjective()``
-- ``image_type(p)``
-
-For the classification of the representation
-
-- ``is_semistable(p)``
-- ``is_unramified(p, ell)``
-- ``is_crystalline(p)``
 
 EXAMPLES::
 
-    sage: E = EllipticCurve('196a1')
-    sage: rho = E.galois_representation()
-    sage: rho.is_irreducible(7)
-    True
-    sage: rho.is_reducible(3)
-    True
-    sage: rho.is_irreducible(2)
-    True
+    sage: R.<x>=QQ[]
+    sage: f = x^6 + 2*x^3 + 4*x^2 + 4*x + 1
+    sage: C = HyperellipticCurve(f)
+    sage: A = C.jacobian()
+    sage: rho = A.galois_representation()
+    sage: rho.non_surjective()
+    [2,7]
+    sage: rho.is_surjective(7)
+    False
     sage: rho.is_surjective(2)
     False
     sage: rho.is_surjective(3)
-    False
-    sage: rho.is_surjective(5)
     True
-    sage: rho.reducible_primes()
-    [3]
-    sage: rho.non_surjective()
-    [2, 3]
-    sage: rho.image_type(2)
-    'The image is cyclic of order 3.'
-    sage: rho.image_type(3)
-    'The image is contained in a Borel subgroup as there is a 3-isogeny.'
-    sage: rho.image_type(5)
-    'The image is all of GL_2(F_5).'
+    sage: rho.is_surjective(13)
+    True
 
-For semi-stable curve it is known that the representation is
-surjective if and only if it is irreducible::
+If the Jacobian has any non-trivial endomorphisms, we raise a ValueError:
 
-    sage: E = EllipticCurve('11a1')
-    sage: rho = E.galois_representation()
-    sage: rho.non_surjective()
-    [5]
-    sage: rho.reducible_primes()
-    [5]
-
-For cm curves it is not true that there are only finitely many primes for which the
-Galois representation mod p is surjective onto `GL_2(\GF{p})`::
-
-    sage: E = EllipticCurve('27a1')
-    sage: rho = E.galois_representation()
+    sage: R.<x>=QQ[]
+    sage: f = x^6 + 2*x^3 + 4*x^2 + 4*x + 1
+    sage: C = HyperellipticCurve(f)
+    sage: A = C.jacobian()
+    sage: rho = A.galois_representation()
     sage: rho.non_surjective()
     [0]
     sage: rho.reducible_primes()
@@ -506,12 +489,17 @@ class GaloisRepresentation(SageObject):
 
         """
 
+        if self.non_surjective_primes is not None:
+            if not p.is_prime():
+                raise ValueError("p must be prime")
+            return (p not in self.non_surjective_primes)
+
         ans = self.find_surj_from_list(L=[p], bound=1000, verbose=False)
 
         if ans:
-            return True
-        else:
             return False
+        else:
+            return True
 
     #########################################################
     #                            #
