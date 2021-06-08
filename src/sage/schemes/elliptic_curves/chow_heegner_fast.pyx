@@ -10,7 +10,7 @@
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
 """
 Chow-Heegner Points (fast Cython code)
@@ -62,11 +62,12 @@ from sage.rings.all import CDF
 from sage.rings.all import RR
 from sage.rings.complex_double cimport ComplexDoubleElement
 from sage.stats.intlist cimport IntList
+from sage.structure.richcmp cimport richcmp
 
 from sage.libs.mpfr cimport *
 
-from sage.rings.complex_number cimport ComplexNumber
-        #mpfr_t, mpfr_init2, mpfr_mul, mpfr_sub, mpfr_add, mpfr_clear, MPFR_RNDN)
+from sage.rings.complex_mpfr cimport ComplexNumber
+# mpfr_t, mpfr_init2, mpfr_mul, mpfr_sub, mpfr_add, mpfr_clear, MPFR_RNDN)
 
 
 def required_series_prec(y, prec):
@@ -76,7 +77,7 @@ def required_series_prec(y, prec):
     in absolute value for any point z with Im(z)>=ymin.
 
     INPUT:
-    
+
     - ``ymin`` -- positive real number; minimum y coordinate
     - ``prec`` -- positive integer (bits of precision)
 
@@ -96,9 +97,9 @@ def required_series_prec(y, prec):
     the upper half plane with imaginary part at least 1e-4, the tail
     end of the modular parametrization evaluated at z is less than
     2^(-200) in absolute value::
-    
+
         sage: required_series_prec(1e-4, 200)
-        233473        
+        233473
     """
     y = RR(y)
     epsilon = RR(2)**(-(prec+1))
@@ -165,7 +166,7 @@ cdef class ComplexPolynomial:
             sage: f = ComplexPolynomial(ComplexField(100)['x']([1,2])); f
             2.0000000000000000000000000000*x + 1.0000000000000000000000000000
             sage: type(f)
-            <type 'sage.schemes.elliptic_curves.chow_heegner_fast.ComplexPolynomial'>        
+            <type 'sage.schemes.elliptic_curves.chow_heegner_fast.ComplexPolynomial'>
         """
         self.a = f.list()
         self.f = f
@@ -180,20 +181,18 @@ cdef class ComplexPolynomial:
         """
         return repr(self.f)
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         """
         EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import ComplexPolynomial
             sage: f = ComplexPolynomial(ComplexField(100)['x']([1,2])); g = ComplexPolynomial(ComplexField(100)['x']([1,3]))
-            sage: cmp(f,f)
-            0
-            sage: cmp(f,g)
-            -1
-            sage: cmp(g,f)
-            1
+            sage: f == f
+            True
+            sage: f == g
+            False
         """
-        return cmp(self.f, right.f)
+        return richcmp(self.f, right.f, op)
 
     def __reduce__(self):
         """
@@ -203,7 +202,7 @@ cdef class ComplexPolynomial:
 
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import ComplexPolynomial
             sage: ComplexPolynomial(ComplexField(100)['x']([1,2])).__reduce__()
-            (<type 'sage.schemes.elliptic_curves.chow_heegner_fast.ComplexPolynomial'>, (2.0000000000000000000000000000*x + 1.0000000000000000000000000000,))        
+            (<type 'sage.schemes.elliptic_curves.chow_heegner_fast.ComplexPolynomial'>, (2.0000000000000000000000000000*x + 1.0000000000000000000000000000,))
         """
         return ComplexPolynomial, (self.f,)
 
@@ -218,16 +217,16 @@ cdef class ComplexPolynomial:
             sage: f(1)
             210.00000000000000000000000000
             sage: g(1)
-            210.00000000000000000000000000        
+            210.00000000000000000000000000
         """
         cdef list a = self.a
         C = a[0].parent()
         cdef ComplexNumber z = C(z0)
-            
+
         # Use Horner's rule (see http://en.wikipedia.org/wiki/Horner_scheme)
         cdef Py_ssize_t n = len(a)-1
         cdef ComplexNumber t = C(0), b = C(a[n].real(), a[n].imag())  # b must be a new copy -- do not do "b = a[n]" here or you'll get a huge bug!
-        
+
         while n >= 1:
             n -= 1
             # Fast version of: b = a[n] + b*z
@@ -238,9 +237,9 @@ cdef class ComplexPolynomial:
     def degree(self):
         """
         OUTPUT:
-        
+
         - integer
-            
+
         EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import ComplexPolynomial
@@ -260,7 +259,7 @@ cdef class Polynomial_RDF_gsl:
 
         sage: from sage.schemes.elliptic_curves.chow_heegner_fast import Polynomial_RDF_gsl
         sage: s = Polynomial_RDF_gsl(RDF['x']([1..3]))
-        sage: TestSuite(s).run()    
+        sage: TestSuite(s).run()
     """
     cdef double *c
     cdef double *c_d
@@ -273,7 +272,7 @@ cdef class Polynomial_RDF_gsl:
         EXAMPLES::
 
         Make an object of type Polynomial_RDF_gsl::
-        
+
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import Polynomial_RDF_gsl
             sage: s = Polynomial_RDF_gsl(RDF['x']([1..3])); type(s)
             <type 'sage.schemes.elliptic_curves.chow_heegner_fast.Polynomial_RDF_gsl'>
@@ -281,11 +280,11 @@ cdef class Polynomial_RDF_gsl:
             3.0*x^2 + 2.0*x + 1.0
 
         Check that the f attribute is read only::
-        
+
             sage: s.f = 0
             Traceback (most recent call last):
             ...
-            AttributeError: attribute 'f' of 'sage.schemes.elliptic_curves.chow_heegner_fast.Polynomial_RDF_gsl' objects is not writable        
+            AttributeError: attribute 'f' of 'sage.schemes.elliptic_curves.chow_heegner_fast.Polynomial_RDF_gsl' objects is not writable
         """
         self.c = NULL
         self.c_d = NULL
@@ -294,7 +293,7 @@ cdef class Polynomial_RDF_gsl:
     def __reduce__(self):
         """
         Used in pickling.
-        
+
         EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import Polynomial_RDF_gsl
@@ -304,10 +303,10 @@ cdef class Polynomial_RDF_gsl:
         """
         return Polynomial_RDF_gsl, (self.f, )
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         """
         Compares underlying polynomials.
-        
+
         EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import Polynomial_RDF_gsl
@@ -316,19 +315,13 @@ cdef class Polynomial_RDF_gsl:
             True
             sage: s == t
             False
-            sage: cmp(s,t)
-            1
-            sage: cmp(t,s)
-            -1
-            sage: cmp(t.f,s.f)
-            -1        
         """
-        return cmp(self.f, right.f)
-    
+        return richcmp(self.f, right.f, op)
+
     def __init__(self, f):
         """
         EXAMPLES::
-        
+
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import Polynomial_RDF_gsl
             sage: s = Polynomial_RDF_gsl(RDF['x']([1..5])); s
             5.0*x^4 + 4.0*x^3 + 3.0*x^2 + 2.0*x + 1.0
@@ -341,14 +334,14 @@ cdef class Polynomial_RDF_gsl:
             self.c = NULL
             raise MemoryError
         cdef list v = f.list()
-        cdef Py_ssize_t i        
+        cdef Py_ssize_t i
         for i in range(self.n):
             self.c[i] = v[i]
 
     def __repr__(self):
         """
         EXAMPLES::
-        
+
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import Polynomial_RDF_gsl
             sage: Polynomial_RDF_gsl(RDF['x']([-2.5,3,-1])).__repr__()
             '-x^2 + 3.0*x - 2.5'
@@ -356,19 +349,21 @@ cdef class Polynomial_RDF_gsl:
         return self.f.__repr__()
 
     def __dealloc__(self):
-        if self.c: sig_free(self.c)
-        if self.c_d: sig_free(self.c_d)        
+        if self.c:
+            sig_free(self.c)
+        if self.c_d:
+            sig_free(self.c_d)
 
     def __call__(self, x):
         """
         EXAMPLES::
-        
+
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import Polynomial_RDF_gsl
             sage: s = Polynomial_RDF_gsl(RDF['x']([1..100]))
             sage: s(1)
             5050.0
             sage: s.f(1)
-            5050.0            
+            5050.0
         """
         cdef ComplexDoubleElement w, z
         cdef gsl_complex a
@@ -383,14 +378,15 @@ cdef class Polynomial_RDF_gsl:
     def _init_deriv(self):
         """
         Initially derivative attribute, which is used in the __call__ method.
-        
+
         EXAMPLES::
-        
+
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import Polynomial_RDF_gsl
             sage: s = Polynomial_RDF_gsl(RDF['x']([1..5]))
             sage: s._init_deriv()
         """
-        if self.c_d: return
+        if self.c_d:
+            return
         f_d = self.f.derivative()
         self.n_d = f_d.degree()+1
         self.c_d = <double*> sig_malloc(sizeof(double)*self.n_d)
@@ -402,11 +398,11 @@ cdef class Polynomial_RDF_gsl:
     def roots(self):
         """
         OUTPUT:
-        
+
         - list of complex double precision numbers
-        
+
         EXAMPLES::
-        
+
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import Polynomial_RDF_gsl
             sage: s = Polynomial_RDF_gsl(RDF['x']([1..3]))
             sage: s
@@ -417,7 +413,7 @@ cdef class Polynomial_RDF_gsl:
             [-0.333333333333 - 0.471404520791*I, -0.333333333333 + 0.471404520791*I]
 
         A higher degree example::
-        
+
             sage: s = Polynomial_RDF_gsl(RDF['x']([1..400]))
             sage: v = s.roots()
             sage: w = s.f.roots(CDF, multiplicities=False)
@@ -429,11 +425,11 @@ cdef class Polynomial_RDF_gsl:
     def degree(self):
         """
         OUTPUT:
-        
+
         - integer
-            
+
         EXAMPLES::
-        
+
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import Polynomial_RDF_gsl
             sage: Polynomial_RDF_gsl(RDF['x']([1..10])).degree()
             9
@@ -444,11 +440,10 @@ cdef class Polynomial_RDF_gsl:
         """
         Refine approximate double precision roots x using Newton's
         method.  Return list of triples consisting of the refined
-        approximation, number of iterations and the error as output by
-        GSL.
+        approximation, number of iterations and the error as output by GSL.
 
         EXAMPLES::
-        
+
             sage: from sage.schemes.elliptic_curves.chow_heegner_fast import Polynomial_RDF_gsl
             sage: s = Polynomial_RDF_gsl(RDF['x']([1..4])); s
             4.0*x^3 + 3.0*x^2 + 2.0*x + 1.0
@@ -458,17 +453,17 @@ cdef class Polynomial_RDF_gsl:
             [(-0.605829586188, 7, 0.0)]
 
         The above used 7 iterations; let's restrict to at most 4 iterations::
-        
+
             sage: s.newton(0, 4)  # abs tol 1e-8
             [(-0.6058300580523304, 4, 0.000552920671073931)]
 
         A very small max_err::
 
             sage: s.newton(0, max_err=0.1)  # abs tol 1e-10
-            [(-0.606382978723, 3, 0.018617021276595702)]        
+            [(-0.606382978723, 3, 0.018617021276595702)]
 
         Start at a complex approximate root::
-        
+
             sage: s.newton(-.6*I)  # abs tol 1e-10
             [(-0.0720852069059 - 0.638326735148*I, 6, 1.3877787807814457e-17)]
 
@@ -490,7 +485,7 @@ cdef class Polynomial_RDF_gsl:
         for x in v:
             z=CDF(x)
             GSL_SET_COMPLEX(&root, z._complex.real, z._complex.imag)
-            GSL_SET_COMPLEX(&last_root, z._complex.real, z._complex.imag)        
+            GSL_SET_COMPLEX(&last_root, z._complex.real, z._complex.imag)
             sig_on()
             for i in range(max_iter):
                 # We recode what would be the following simple Python
@@ -506,7 +501,7 @@ cdef class Polynomial_RDF_gsl:
                 err = gsl_complex_abs(gsl_complex_sub(last_root, root))
                 if err <= max_err:
                     break
-                GSL_SET_COMPLEX(&last_root, root.real, root.imag)                    
+                GSL_SET_COMPLEX(&last_root, root.real, root.imag)
             sig_off()
             ans.append((z._new_c(root), i+1, err))
         return ans
@@ -516,19 +511,20 @@ cdef class Polynomial_RDF_gsl:
 # polynomial using GSL.  This is *much* faster than using numpy.
 ###############################################################
 
+
 def cdf_roots_of_rdf_poly(f):
     """
     Return the CDF roots of a polynomial with coefficients in RDF.
 
     Uses a very fast function in GSL that works by computing the
-    eigenvalues of the companion matrix. 
-    
+    eigenvalues of the companion matrix.
+
     INPUT:
 
     - f -- polynomial with RDF coefficients
-        
+
     OUTPUT:
-    
+
     - list -- all CDF roots of f
 
     EXAMPLES::
@@ -538,7 +534,7 @@ def cdf_roots_of_rdf_poly(f):
         sage: cdf_roots_of_rdf_poly(f)  # abs tol 1e-10
         [-0.605829586188, -0.0720852069059 - 0.638326735148*I, -0.0720852069059 + 0.638326735148*I]
         sage: f.roots(CDF, multiplicities=False)  # abs tol 1e-10
-        [-0.605829586188, -0.0720852069059 - 0.638326735148*I, -0.0720852069059 + 0.638326735148*I]    
+        [-0.605829586188, -0.0720852069059 - 0.638326735148*I, -0.0720852069059 + 0.638326735148*I]
     """
     cdef Py_ssize_t i, n = f.degree() + 1
     cdef double* a = <double*> sig_malloc(sizeof(double)*n)
@@ -548,7 +544,7 @@ def cdf_roots_of_rdf_poly(f):
     if not z:
         sig_free(a)
         raise MemoryError
-    
+
     cdef list v = f.list()
     for i in range(n):
         a[i] = v[i]
@@ -558,11 +554,11 @@ def cdf_roots_of_rdf_poly(f):
     gsl_poly_complex_solve(a, n, w, z)
     sig_off()
     gsl_poly_complex_workspace_free(w)
-    
+
     rts = [CDF(z[2 * i], z[2 * i + 1]) for i in range(n - 1)]
     rts.sort()
-    
+
     sig_free(a)
     sig_free(z)
-    
+
     return rts

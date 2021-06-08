@@ -10,7 +10,7 @@
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
 """
 Chow-Heegner Points
@@ -47,6 +47,7 @@ from sage.misc.misc import cputime
 from sage.structure.element import parent
 from sage.rings.all import (QQ, ZZ, CDF, RDF, RR, infinity, ComplexField, PolynomialRing)
 from sage.arith.all import xgcd
+from sage.structure.richcmp import richcmp, rich_to_bool
 
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.rational_field import is_RationalField
@@ -58,8 +59,8 @@ from .constructor import EllipticCurve
 from .ell_generic import is_EllipticCurve
 
 # Fast Cython functions specifically for this code.
-#from sage.schemes.elliptic_curves.chow_heegner_fast import (
-#    cdf_roots_of_rdf_poly, Polynomial_RDF_gsl, ComplexPolynomial)
+# from sage.schemes.elliptic_curves.chow_heegner_fast import (
+#     cdf_roots_of_rdf_poly, Polynomial_RDF_gsl, ComplexPolynomial)
 
 ######################################################################
 # Gamma0(N) equivalence of points in the upper half plane
@@ -102,8 +103,7 @@ def _slz2_rep_in_fundom_helper(z):
         0.241867713702? + 9.99999996768825706223026?e7*I
 
     The sl2z_rep_in_fundom function takes care of using intervals
-    automatically, and to sufficient precision, but may be much
-    slower.
+    automatically, and to sufficient precision, but may be much slower.
     """
     # We use the standard algorithm: replace z by z-n and z by -1/z
     # until |Re(z)|<=1/2 and |z|>=1.
@@ -134,17 +134,19 @@ def _slz2_rep_in_fundom_helper(z):
             gamma *= S
     return z, gamma ** (-1)
 
+
 def newton_wrap(f, x, max_iter=1000, max_err=1e-14):
     try:
         x = f.parent().base_ring()(x)
     except TypeError:
         f = f.change_ring(x.parent())
     a = f.newton_raphson(max_iter, x)
-    for i in range(2,len(a)):
+    for i in range(2, len(a)):
         err = abs(a[i] - a[i - 1])
         if err < max_err:
             return (a[i], i + 1, err)
     return (a[-1], max_iter, err)
+
 
 def sl2z_rep_in_fundom(z, eps=None):
     """
@@ -261,7 +263,7 @@ def sl2z_rep_in_fundom(z, eps=None):
     if isinstance(z, complex):
         z = CDF(z)
 
-    if isinstance(z, (float, int, long)) or z.imag() <= 0:
+    if isinstance(z, (float, int)) or z.imag() <= 0:
         raise ValueError("z must be in the upper half plane")
 
     if eps is None:
@@ -598,9 +600,11 @@ class X0NPoint(object):
         """
         return self._z
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         """
-        Compare self and right.  If they have different levels, then
+        Compare self and right.
+
+        If they have different levels, then
         the one with smaller level is considered smaller.  The points
         are considered equal if the two points are equivalent modulo
         the action of Gamma0(N) to the minimum of the precisions of
@@ -627,15 +631,16 @@ class X0NPoint(object):
             sage: y < x
             False
         """
-        c = cmp(self._N, right._N)
+        # NEEDS TO BE CHECKED
+        c = richcmp(self._N, right._N, op)
         if c:
             return c
         if self._N == 1:
-            return cmp(self._sl2z_rep(), right.sl2z_rep())
+            return richcmp(self._sl2z_rep(), right.sl2z_rep(), op)
         if is_gamma0N_equivalent(self._z, right._z,
                                  self._N, min(self._prec, right._prec)):
             return 0
-        return cmp(self._z, right._z)
+        return richcmp(self._z, right._z, op)
 
     def __repr__(self):
         """
@@ -859,7 +864,7 @@ class CloseEqual:
         """
         return hash(self.y)
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         """
         Compare the images of x in C.
 
@@ -873,7 +878,7 @@ class CloseEqual:
             sage: c.x == c2.x
             False
         """
-        return cmp(self.y, right.y)
+        return richcmp(self.y, right.y, op)
 
 
 def throw_away_close(v, prec):
@@ -1051,8 +1056,8 @@ def newton(f, x, max_iter=1000, max_err=1e-14):
     # than a usual Sage polynomial over a higher precision complex
     # field, so we use it instead.
     tm = verbose("Running Newton refinement on degree %s polynomial to precision %s on %s roots" % (f.degree(), C.prec(), len(x)))
-    f = PolynomialRing(C,'x')(f)
-    f_prime = PolynomialRing(C,'x')(f_prime)
+    f = PolynomialRing(C, 'x')(f)
+    f_prime = PolynomialRing(C, 'x')(f_prime)
     ans = []
     for root in x:
         root = C(root)
@@ -1285,7 +1290,7 @@ class NumericalPoint(object):
         """
         return NumericalPoint(self._P * right, self._eps)
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         """
         EXAMPLES::
 
@@ -1314,9 +1319,10 @@ class NumericalPoint(object):
             sage: Q == Z
             True
         """
-        if max([abs(self._P[i] - right._P[i]) for i in range(3)]) < min(self._eps, right._eps):
-            return 0
-        return cmp(self._P, right._P)
+        mineps = min(self._eps, right._eps)
+        if all(abs(self._P[i] - right._P[i]) < mineps for i in range(3)):
+            return rich_to_bool(op, 0)
+        return richcmp(self._P, right._P, op)
 
     def __repr__(self):
         """
@@ -1426,7 +1432,7 @@ def B_bound(ymin, prec):
 
 
 def phi_poly(E, B, base_field=QQ):
-    """
+    r"""
     Return a polynomial over ``base_field`` that approximates the
     modular parametrization map associated to E.  This is the degree
     `B` polynomial `\sum a_n/n T^n`.
@@ -1817,9 +1823,9 @@ class ModularParametrization(object):
             is_list = False
         f = phi_poly(self._E, d, base_field=z[0].parent())
         if z[0].prec() > 53:
-            f = PolynomialRing(CDF,'x')(f)
+            f = PolynomialRing(CDF, 'x')(f)
         else:
-            f = PolynomialRing(RDF,'x')(f)
+            f = PolynomialRing(RDF, 'x')(f)
         w = []
         for x in z:
             q = h_to_disk(x)
@@ -1889,7 +1895,6 @@ class ModularParametrization(object):
             for b, i, err in roots:
                 if abs(b) < 1 and i < max_iter:
                     w.append(b)
-
 
         verbose("found %s double prec roots that refined in %s seconds" % (len(w), cputime(t)))
         w.sort()
@@ -2161,7 +2166,7 @@ class ChowHeegnerPoint(object):
         self._fE = ModularParametrization(E)
         self._fF = ModularParametrization(F)
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         """
         We compare the ordered pair of underlying elliptic curves.
 
@@ -2178,8 +2183,9 @@ class ChowHeegnerPoint(object):
             sage: Q < P
             False
         """
-        assert isinstance(right, ChowHeegnerPoint)
-        return cmp((self._E, self._F), (right._E, right._F))
+        if not isinstance(right, ChowHeegnerPoint):
+            return NotImplemented
+        return richcmp((self._E, self._F), (right._E, right._F), op)
 
     def __repr__(self):
         """

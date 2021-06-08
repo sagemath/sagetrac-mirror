@@ -5522,7 +5522,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def chow_heegner_point(self, F):
         """
-        The Chow-Heegner point on the optimal curve E associated to
+        Return the Chow-Heegner point on the optimal curve E associated to
         the optimal curve F of the same conductor.
 
         EXAMPLES::
@@ -5534,7 +5534,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: P.numerical_approx(deg1=100)
             (6.00000000000... : 14.0000000000... : 1.00000000000000)
         """
-        from . import chow_heegner
+        from .chow_heegner import chow_heegner
         return chow_heegner.ChowHeegnerPoint(self, F)    
 
     def tate_curve(self, p):
