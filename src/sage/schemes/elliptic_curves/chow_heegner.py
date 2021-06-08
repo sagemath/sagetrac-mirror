@@ -41,15 +41,15 @@ TESTS::
 """
 
 # General Sage imports
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import cputime
 from sage.structure.element import parent
 from sage.rings.all import (QQ, ZZ, CDF, RDF, RR, infinity, ComplexField, PolynomialRing)
 from sage.arith.all import xgcd
-from sage.structure.richcmp import richcmp, rich_to_bool
+from sage.structure.richcmp import richcmp, rich_to_bool, richcmp_method
 
-from sage.rings.complex_field import is_ComplexField
+from sage.rings.complex_mpfr import is_ComplexField
 from sage.rings.rational_field import is_RationalField
 
 from sage.modular.all import Gamma0
@@ -124,9 +124,9 @@ def _slz2_rep_in_fundom_helper(z):
             n = (t + half).floor()  # avoid rounding error with 0.5
             z -= n
             if hasattr(n, 'center'):
-                k = ZZ(round(n.center()))
+                k = ZZ(n.center().round())
             else:
-                k = ZZ(round(n))
+                k = ZZ(n.round())
             gamma *= T ** k
         if abs(z) < 1:
             change = True
@@ -554,6 +554,7 @@ def is_gamma0N_equivalent(z1, z2, N, prec):
     return False
 
 
+@richcmp_method
 class X0NPoint(object):
     """
     An affine point on the modular curve `X_0(N)` represented as a
@@ -631,15 +632,13 @@ class X0NPoint(object):
             sage: y < x
             False
         """
-        # NEEDS TO BE CHECKED
-        c = richcmp(self._N, right._N, op)
-        if c:
-            return c
+        if self._N != right._N:
+            return richcmp(self._N, right._N, op)
         if self._N == 1:
             return richcmp(self._sl2z_rep(), right.sl2z_rep(), op)
         if is_gamma0N_equivalent(self._z, right._z,
                                  self._N, min(self._prec, right._prec)):
-            return 0
+            return rich_to_bool(op, 0)
         return richcmp(self._z, right._z, op)
 
     def __repr__(self):
@@ -655,8 +654,8 @@ class X0NPoint(object):
     @cached_method
     def sl2z_rep(self):
         """
-        Canonical element of fundamental domain for SL2Z that is
-        equivalent to self.
+        Return the canonical element of fundamental domain for SL2Z that is
+        equivalent to ``self``.
 
         EXAMPLES::
 
@@ -667,8 +666,7 @@ class X0NPoint(object):
             10.0*I
         """
         a = self._C(sl2z_rep_in_fundom(self._z)[0])
-        b = canonicalize_sl2z(a)[0]
-        return b
+        return canonicalize_sl2z(a)[0]
 
     def atkin_lehner(self, q=None):
         """
@@ -714,7 +712,7 @@ class X0NPoint(object):
             sage: P.atkin_lehner(10)
             [0.11049723756906076 + 0.00055248618784530228*I]
             sage: P.atkin_lehner(10).atkin_lehner(10)
-            [0.10554020083054401 + 0.000013888695990333430*I]
+            [0.10554020083054405 + 0.000013888695990333432*I]
 
         This is because applying Atkin-Lehner results in substantial precision loss::
 
@@ -829,6 +827,7 @@ def h_to_disk(z):
     return (2 * K.pi() * K.gen() * z).exp()
 
 
+@richcmp_method
 class CloseEqual:
     """
     Object used in the throw_away_close function.
@@ -845,7 +844,7 @@ class CloseEqual:
 
             sage: from sage.schemes.elliptic_curves.chow_heegner import CloseEqual
             sage: c = CloseEqual(CDF(1,1), ComplexField(30)); c
-            <sage.schemes.elliptic_curves.chow_heegner.CloseEqual instance at 0x...>
+            <sage.schemes.elliptic_curves.chow_heegner.CloseEqual object at 0x...>
             sage: c.x, c.y
             (1.0 + 1.0*I, 1.0000000 + 1.0000000*I)
         """
@@ -1074,6 +1073,7 @@ def newton(f, x, max_iter=1000, max_err=1e-14):
     return ans
 
 
+@richcmp_method
 class NumericalPoint(object):
     """
     A wrapper around a numerical approximation to a point on an
@@ -1600,7 +1600,8 @@ class ModularParametrization(object):
         The input must be an elliptic curve over the rational numbers, so this works::
 
             sage: ModularParametrization(EllipticCurve([1/2,19/4]))
-            Modular parametrization of 312160a1 having degree 127872
+            Modular parametrization of Elliptic Curve defined by
+            y^2 = x^3 + 1/2*x + 19/4 over Rational Field having degree 127872
 
         But these do not work::
 
@@ -1732,7 +1733,7 @@ class ModularParametrization(object):
             sage: phi = ModularParametrization(EllipticCurve('57b'))
             sage: Z = phi.images_of_cusps(); Z
             {(0, 0): [Infinity], (0, 1): [0], (1, 0): [1/19], (1, 1): [1/3]}
-            sage: Z.keys()[0].parent()
+            sage: list(Z)[0].parent()
             Finitely generated module V/W over Integer Ring with invariants (2, 2)
             sage: phi = ModularParametrization(EllipticCurve('11a'))
             sage: phi.images_of_cusps()
@@ -1810,7 +1811,7 @@ class ModularParametrization(object):
             (287826.305812822...: -1.54416950808282e8... : 1.00000000000000)
         """
         if isinstance(z, list):
-            if len(z) == 0:
+            if not z:
                 return []
             z = [(x.z() if isinstance(x, X0NPoint) else x) for x in z]
             d = max([B_bound(x.imag(), x.prec()) for x in z])
@@ -1872,13 +1873,13 @@ class ModularParametrization(object):
         except TypeError:
             v = [x for x, _ in f.roots() if abs(x) < 1]
         verbose('Number of double precision roots in upper half plane: %s' % len(v))
-        if len(v) == 0:
+        if not v:
             return []
 
         # use actual minimum imaginary part found
         w = [disk_to_h(x).imag() for x in v]
         w = [x for x in w if x >= min_imag]
-        if len(w) == 0:
+        if not w:
             return []
         min_imag = min(w)
 
@@ -2020,7 +2021,7 @@ class ModularParametrization(object):
 
         v = self._points_in_h_double(z, min_imag=min_imag,
                                      max_iter=max_iter1, deg1=deg1)
-        if len(v) == 0:
+        if not v:
             return []
 
         m_E = self.degree()
@@ -2067,6 +2068,7 @@ class ModularParametrization(object):
         return w
 
 
+@richcmp_method
 class ChowHeegnerPoint(object):
     """
     A Chow-Heegner point associated to an ordered pair of optimal
@@ -2177,10 +2179,6 @@ class ChowHeegnerPoint(object):
             True
             sage: Q = EllipticCurve('57b').chow_heegner_point(EllipticCurve('57a'))
             sage: P == Q
-            False
-            sage: P < Q
-            True
-            sage: Q < P
             False
         """
         if not isinstance(right, ChowHeegnerPoint):
