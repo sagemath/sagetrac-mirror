@@ -92,7 +92,7 @@ Methods of a Torus
 
 - :meth:`AlgebraicTorus.is_rational` -- tests if a point is rational.
 
-- :meth:`AlgebraicTorus.Tate_Cohomology` -- the isomorphism type of Tate Cohomology groups of the Torus over a local field.
+- :meth:`AlgebraicTorus.tate_cohomology` -- the isomorphism type of Tate Cohomology groups of the Torus over a local field.
 
 - :meth:`AlgebraicTorus.Tamagawa_number` -- the Tamagawa number.
 
@@ -563,7 +563,7 @@ class AlgebraicTorus(Scheme):
         """
         return self._lattice.colattice()
 
-    def Tate_Cohomology(self, n):
+    def tate_cohomology(self, n):
         r"""
         Gives the isomorphism type of the nth cohomology group using Tate-Nakayama duality. 
         Only works when the base field is local.
@@ -592,7 +592,7 @@ class AlgebraicTorus(Scheme):
         ::
 
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+" : ", T1. Tate_Cohomology (i)) # optional - gap_packages
+            ....:     print("H^"+str(i)+" : ", T1. tate_cohomology (i)) # optional - gap_packages
             H^-5 :  []
             H^-4 :  []
             H^-3 :  []
@@ -610,7 +610,7 @@ class AlgebraicTorus(Scheme):
         ::
 
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+" : ", T2. Tate_Cohomology (i)) # optional - gap_packages
+            ....:     print("H^"+str(i)+" : ", T2. tate_cohomology (i)) # optional - gap_packages
             H^-5 :  []
             H^-4 :  [2]
             H^-3 :  []
@@ -635,7 +635,7 @@ class AlgebraicTorus(Scheme):
         `H^2(\ZZ)`), which here has order 2 (it is the group of signatures)::
 
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+" : ", T3. Tate_Cohomology (i)) # optional - gap_packages
+            ....:     print("H^"+str(i)+" : ", T3. tate_cohomology (i)) # optional - gap_packages
             H^-5 :  []
             H^-4 :  [2]
             H^-3 :  []
@@ -651,7 +651,7 @@ class AlgebraicTorus(Scheme):
         In this example, we can see the 2-periodicity of the cohomology groups, consequence
         of the group being cyclic.
         """
-        return self._lattice.Tate_Cohomology(2 - n)
+        return self._lattice.tate_cohomology(2 - n)
 
     def product(self, torus):
         r"""
@@ -828,7 +828,7 @@ class AlgebraicTorus(Scheme):
             #unram_decomp = [h for h in perm_group.conjugacy_classes_subgroups() if h.is_cyclic()]
             lat = self.character_lattice()
             lat2 = GLattice(perm_group, lat._action_matrices)
-        num = prod(self.Tate_Cohomology(1))
+        num = prod(self.tate_cohomology(1))
         denom = prod(lat2.Tate_Shafarevich_lattice(2))
         if ram_decomp == [] or denom == 1:
             return num/denom
@@ -890,7 +890,7 @@ class AlgebraicTorus(Scheme):
 
             sage: ROS = T1.norm_one_restriction(PermutationGroup([(1,2), (3,4), (5,6), (7,8)]))
             sage: for i in range(-4, 6):
-            ....:     print("H^"+str(i)+" : ", ROS.Tate_Cohomology (i)) # optional - gap_packages
+            ....:     print("H^"+str(i)+" : ", ROS.tate_cohomology (i)) # optional - gap_packages
             H^-4 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
             H^-3 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
             H^-2 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
@@ -909,7 +909,7 @@ class AlgebraicTorus(Scheme):
 
             sage: ROS2 = T2.norm_one_restriction(SymmetricGroup(4))
             sage: for i in range(-4, 6):
-            ....:     print("H^"+str(i)+" : ", T2.Tate_Cohomology (i)) # optional - gap_packages
+            ....:     print("H^"+str(i)+" : ", T2.tate_cohomology (i)) # optional - gap_packages
             H^-4 :  [2]
             H^-3 :  []
             H^-2 :  [6]
