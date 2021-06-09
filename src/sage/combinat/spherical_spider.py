@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 r"""
-
 ### Introduction
 This is an implementation of finitely generated free spiders.
 The account below is intended as an extended introduction.
@@ -109,7 +108,7 @@ http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.146.2678&rep=rep1&type=
 .. [3] G.Kuperberg
 Spiders for rank 2 Lie algebras
 Commun.Math. Phys. 180, 109–151 (1996)
-https://arxiv.org/abs/q-alg/9712003
+:arxiv:`q-alg/9712003`
 
 .. [4] Jovana Obradovic
 Monoid-like definitions of cyclic operad
@@ -120,11 +119,12 @@ http://www.tac.mta.ca/tac/volumes/32/12/32-12.pdf
 Confluence theory for graphs
 Algebraic & Geometric Topology 7 (2007) 439–478
 https://arxiv.org/abs/math/0609832
+:arxiv:`math/0609832`
 
 
 .. [6] Bruce W. Westbury
 Invariant tensors for the spin representation of so(7)
-https://arxiv.org/abs/math/0601209
+:arxiv:`math/0601209`
 
 AUTHORS:
 
@@ -274,7 +274,7 @@ class SphericalWeb(Element):
         c = self.cp
         e = self.e
         b = self.boundary
-        h = set(c.keys())
+        h = set(c)
         if not all(isinstance(a,halfedge) for a in h):
             raise ValueError("every element must be a half-edge")
         if set(c.values()) != h:
@@ -312,18 +312,20 @@ class SphericalWeb(Element):
             sage: SphericalSpider('plain')(c,e,b) # indirect doctest
             The plain spherical web with c = (1, 0) and e = ().
 
-            This should not ever happen.
+        TESTS::
+
+        This should not ever happen.
 
             sage: SphericalSpider('plain').vertex(2) # indirect doctest
             The plain spherical web with c = (1, 0) and e = ().
 
-            Check loops are not removed.
+        Check loops are not removed.
 
             sage: SphericalSpider('plain').loop() # indirect doctest
             A closed plain spherical web with 1 edges.
         """
         flag = True
-        while(flag):
+        while flag :
             flag = False
             c = self.cp
             e = self.e
@@ -366,19 +368,6 @@ class SphericalWeb(Element):
             return f"The {self.parent()._name} spherical web with c = {cn} and e = {en}."
         else:
             return f"A closed {self.parent()._name} spherical web with {int(len(self.e)/2)} edges."
-
-    def __str__(self):
-        r"""
-        Overload default implementation.
-
-        EXAMPLES::
-
-            sage: S = SphericalSpider('plain')
-            sage: u = S.vertex(3)
-            sage: str(S.polygon([u,u,u,u]))
-            'A plain spherical web with 4 internal edges and 4 boundary edges.'
-        """
-        return f"A {self.parent()._name} spherical web with {int(len(self.e)/2)} internal edges and {len(self.boundary)} boundary edges."
 
     @cached_method
     def canonical(self):
@@ -452,7 +441,7 @@ class SphericalWeb(Element):
             ...
             TypeError: '<' not supported between ... and 'SphericalSpider.element_class'
 
-        TODO:
+        TODO::
 
             This should take the parent and/or type into account.
         """
@@ -945,7 +934,7 @@ class SphericalWeb(Element):
             sage: S.loop().plot()
             Graphics object consisting of 1 graphics primitive
 
-        TODO:
+        TODO::
 
         Add colour, direction, under crossing.
         """
@@ -983,7 +972,7 @@ class SphericalWeb(Element):
             sage: S.loop()._latex_()
             '\\begin{tikzpicture}\n\\draw (0,0) circle (1cm);\n\\end{tikzpicture}\n'
 
-        TODO:
+        TODO::
 
             Add colour, direction, under crossing.
         """
@@ -1114,7 +1103,7 @@ class SphericalWeb(Element):
 
 #### Start of Parent ####
 
-class SphericalSpider(Parent,UniqueRepresentation):
+class SphericalSpider(UniqueRepresentation,Parent):
     r"""
     The Parent class for SphericalWeb.
 
@@ -1165,6 +1154,7 @@ class SphericalSpider(Parent,UniqueRepresentation):
 
     def _an_element_(self):
         """
+        Construct an element.
 
         EXAMPLES::
 
@@ -1178,7 +1168,8 @@ class SphericalSpider(Parent,UniqueRepresentation):
     Element = SphericalWeb
 
     def vertex(self,n: int):
-        r"""Construct a single vertex of valency `n`.
+        r"""
+        Construct a single vertex of valency `n`.
 
         EXAMPLES::
 
