@@ -145,6 +145,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.graphs.graph import Graph
 from sage.combinat.permutation import Permutation
 from sage.combinat.baxter_permutations import BaxterPermutations
@@ -175,6 +176,46 @@ class Strand(NamedTuple):
             Strand(oriented=-1, colour='black', crossing=False)
         """
         return Strand(-self.oriented, self.colour, self.crossing)
+
+class Boundary(Element):
+
+    def __init__(self, parent, boundary):
+        e = self.parent().edges
+        if any(a not in e for a in boundary):
+            raise ValueError(f"every entry of {boundary} must be in {e}")
+
+        self.edges = tuple(boundary)
+        Element.__init__(self,parent)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+        """
+        return self.edges
+
+class Boundaries(UniqueRepresentation, Parent, metaclass = ClasscallMetaclass):
+
+    @staticmethod
+    def __classcall_private__(cls, edges, check=True):
+        eds = set(edges).union({a.dual() for a in edges})
+
+        return super(Boundaries, cls).__classcall__(cls, frozenset(eds), check=check)
+
+    def __init__(self, edges):
+        self.edges = edges
+        Parent.__init__(self)
+
+    Element = Boundary
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+        """
+        return self.edges
 
 Vector = Strand(0,'black',False)
 """
@@ -234,7 +275,7 @@ class SphericalWeb(Element):
             sage: SphericalWeb(S,c,{},b)
             The plain spherical web with c = (1, 0) and e = ().
         """
-        Element.__init__(self,parent)
+        Element.__init__(self, parent)
         self.cp = c
         self.e = e
         self.boundary = tuple(b)
