@@ -112,18 +112,20 @@ Commun.Math. Phys. 180, 109–151 (1996)
 
 .. [4] Jovana Obradovic
 Monoid-like definitions of cyclic operad
-Theory and Applications of Categories, Vol. 32, 2017, No. 12, pp 396-436.
+Theory and Applications of Categories, Vol. 32, (2017), No. 12, pp 396-436.
 http://www.tac.mta.ca/tac/volumes/32/12/32-12.pdf
 
 .. [5] Adam S Sikora and Bruce W Westbury
 Confluence theory for graphs
-Algebraic & Geometric Topology 7 (2007) 439–478
-https://arxiv.org/abs/math/0609832
+Algebraic & Geometric Topology,
+Vol. 7, (2007), pp 439–478
 :arxiv:`math/0609832`
 
 
 .. [6] Bruce W. Westbury
 Invariant tensors for the spin representation of so(7)
+Mathematical Proceedings of the Cambridge Philosophical Society,
+Vol. 144, (2008), pp 217-240
 :arxiv:`math/0601209`
 
 AUTHORS:
@@ -214,7 +216,7 @@ class SphericalWeb(Element):
     or are a loop.
     """
 
-    def __init__(self, c: dict, e: dict, b: list, parent: Parent, check=True):
+    def __init__(self, parent, c: dict, e: dict, b: list, check=True):
         r"""
         Initialise a ``SphericalWeb``.
 
@@ -228,10 +230,11 @@ class SphericalWeb(Element):
 
             sage: b = [halfedge(),halfedge()]
             sage: c = {b[0]:b[1], b[1]:b[0]}
-            sage: SphericalSpider('plain')(c,{},b)
+            sage: S = SphericalSpider('plain')
+            sage: SphericalWeb(S,c,{},b)
             The plain spherical web with c = (1, 0) and e = ().
         """
-        Element.__init__(self,parent=parent)
+        Element.__init__(self,parent)
         self.cp = c
         self.e = e
         self.boundary = tuple(b)
@@ -252,8 +255,9 @@ class SphericalWeb(Element):
         c = {D[a]:D[self.cp[a]] for a in self.cp}
         e = {D[a]:D[self.e[a]] for a in self.e}
         b = [D[a] for a in self.boundary]
-        result = self.parent()(c,e,b)
-        return result
+        parent = self.parent()
+        #result = self.parent()(c,e,b)
+        return parent.element_class(parent, c, e, b)
 
     def check(self):
         r"""
@@ -264,9 +268,10 @@ class SphericalWeb(Element):
         EXAMPLES::
 
             sage: a = halfedge()
-            sage: SphericalSpider('plain')({a:a},dict(),[a],check=False)
+            sage: S = SphericalSpider('plain')
+            sage: SphericalWeb(S, {a:a}, dict(), [a], check=False)
             The plain spherical web with c = (0,) and e = ().
-            sage: SphericalSpider('plain')({a:a},dict(),[a])
+            sage: SphericalWeb(S, {a:a}, dict(), [a])
             Traceback (most recent call last):
             ...
             ValueError: the mapping c has at least one fixed point
@@ -309,7 +314,8 @@ class SphericalWeb(Element):
             sage: c = {h[0]:h[1], h[1]:h[0], h[2]:h[3], h[3]:h[2]}
             sage: e = {h[1]:h[2],h[2]:h[1]}
             sage: b = [h[0],h[3]]
-            sage: SphericalSpider('plain')(c,e,b) # indirect doctest
+            sage: S = SphericalSpider('plain')
+            sage: SphericalWeb(S, c, e, b) # indirect doctest
             The plain spherical web with c = (1, 0) and e = ().
 
         TESTS::
@@ -439,7 +445,7 @@ class SphericalWeb(Element):
             sage: u < v # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: '<' not supported between ... and 'SphericalSpider.element_class'
+            TypeError: '<' not supported between ... and 'SphericalWeb'
 
         TODO::
 
@@ -454,7 +460,7 @@ class SphericalWeb(Element):
 
 #### Start of methods for working with webs ####
 
-    def _traversal(self,initial):
+    def _traversal(self, initial):
         """
         A generator for the elements of ``self`` connected to the
         elements in ``initial``.
@@ -502,7 +508,7 @@ class SphericalWeb(Element):
         return
 
     @staticmethod
-    def _stitch(c,e,x,y):
+    def _stitch(c, e, x, y):
         """
         Connect `x` and `y`.
 
@@ -531,7 +537,7 @@ class SphericalWeb(Element):
 
         return c, e
 
-    def rotate(self,k: int):
+    def rotate(self, k):
         r"""Rotate the boundary anticlockwise `k` steps.
 
         EXAMPLES::
@@ -548,7 +554,7 @@ class SphericalWeb(Element):
         result.boundary = b[k:]+b[:k]
         return result
 
-    def glue(self, other, n: int):
+    def glue(self, other, n):
         r"""Glue two ribbon graphs together.
 
         EXAMPLES::
@@ -584,7 +590,7 @@ class SphericalWeb(Element):
         for x,y in zip(reversed(bs[-n:]),bo[:n]):
             c, e =  self._stitch(c,e,x,y)
 
-        return parent(c,e,b)
+        return SphericalWeb(parent, c, e, b)
 
     def mirror_image(self):
         r"""
@@ -605,7 +611,7 @@ class SphericalWeb(Element):
         cn = {D[self.cp[a]]:D[a] for a in D}
         en = {D[a]:D[self.e[a]] for a in self.e}
         bn = reversed([D[a] for a in self.boundary])
-        return self.parent()(cn,en,bn)
+        return SphericalWeb(self.parent(), cn, en, bn)
 
     def vertices(self):
         """
@@ -739,12 +745,12 @@ class SphericalWeb(Element):
         cn = {Dn[a]:Dn[self.cp[a]] for a in self.cp}
         en = {Dn[a]:Dn[self.e[a]] for a in self.e}
         bn = [Dn[a] for a in self.boundary]
-        wb = self.parent()(cn,en,bn)
+        wb = SphericalWeb(self.parent(), cn, en, bn)
 
         Dc = {a:halfedge(a.strand) for a in self.cp if not a in Dn}
         cc = {Dc[a]:Dc[self.cp[a]] for a in Dc}
         ec = {Dc[a]:Dc[self.e[a]] for a in Dc}
-        wc = self.parent()(cc,ec,[])
+        wc = SphericalWeb(self.parent(), cc, ec, [])
 
         return wb, wc
 
@@ -1050,7 +1056,7 @@ class SphericalWeb(Element):
                 if len(set(Dm.values())) == len(Dm):
                     yield Dm
 
-    def replace(self,k,D: dict,h):
+    def replace(self, k, D, h):
         r"""
         Replace image of map D:h -> ``self`` by k
 
@@ -1097,13 +1103,13 @@ class SphericalWeb(Element):
                 i = self.boundary.index(D[a])
                 b[i] = Dk[Db[a]]
 
-        return parent(c,e,b)
+        return SphericalWeb(parent, c, e, b)
 
 #### End  of methods for rewriting ####
 
 #### Start of Parent ####
 
-class SphericalSpider(UniqueRepresentation,Parent):
+class SphericalSpider(UniqueRepresentation, Parent):
     r"""
     The Parent class for SphericalWeb.
 
@@ -1112,7 +1118,7 @@ class SphericalSpider(UniqueRepresentation,Parent):
         sage: SphericalSpider('plain')
         The plain spherical spider.
     """
-    def __init__(self,name: str):
+    def __init__(self, name):
         r"""
         Initialise an instance of this class.
 
@@ -1140,18 +1146,6 @@ class SphericalSpider(UniqueRepresentation,Parent):
         """
         return f"The {self._name} spherical spider."
 
-    def _element_constructor_(self,c,e,b,check=True):
-        r"""
-        Construct an element of ``self``.
-
-        TESTS::
-
-            sage: SphericalSpider('plain').parent()
-            <class 'sage.combinat.spherical_spider.SphericalSpider'>
-
-        """
-        return self.element_class(c,e,b,self,check=check)
-
     def _an_element_(self):
         """
         Construct an element.
@@ -1163,11 +1157,11 @@ class SphericalSpider(UniqueRepresentation,Parent):
         """
         b = [halfedge(),halfedge()]
         c = {b[0]:b[1], b[1]:b[0]}
-        return self.element_class(c,{},b,self)
+        return self.element_class(self,c,{},b)
 
     Element = SphericalWeb
 
-    def vertex(self,n: int):
+    def vertex(self, n):
         r"""
         Construct a single vertex of valency `n`.
 
@@ -1181,7 +1175,7 @@ class SphericalSpider(UniqueRepresentation,Parent):
         b = [ halfedge() for i in range(n) ]
         c = {b[i-1]:b[i] for i in range(n)}
         e = dict([])
-        return self.element_class(c,e,b,self)
+        return self.element_class(self,c,e,b)
 
     def loop(self):
         r"""
@@ -1195,7 +1189,7 @@ class SphericalSpider(UniqueRepresentation,Parent):
         h = [halfedge(),halfedge()]
         c = {h[0]:h[1], h[1]:h[0]}
         e = {h[0]:h[1], h[1]:h[0]}
-        return self.element_class(c,e,[],self)
+        return self.element_class(self,c,e,[])
 
     def empty(self):
         """
@@ -1206,9 +1200,9 @@ class SphericalSpider(UniqueRepresentation,Parent):
             sage: SphericalSpider('plain').empty()
             A closed plain spherical web with 0 edges.
         """
-        return self.element_class({},{},[],self)
+        return self.element_class(self,{},{},[])
 
-    def polygon(self,corners):
+    def polygon(self, corners):
         """
         Construct a polygon from a list of webs.
 
@@ -1250,13 +1244,14 @@ class SphericalSpider(UniqueRepresentation,Parent):
         c,e = SphericalWeb._stitch(c,e,x,y)
 
         b = sum([list(a.boundary[1:-1]) for a in corners],[])
-        return self(c,e,b)
+        return SphericalWeb(self, c, e, b)
 
-    def from_permutation(self, pi: Permutation,baxter=True):
+    def from_permutation(self, pi, baxter=True):
         r"""
         Construct a planar map from a two stack sorted permutation.
 
-        This is taken from https://arxiv.org/abs/0805.4180
+        This impements the algorithm in :arxiv:`math/0805.4180`.
+        This algorithm is designed to apply to Baxter permutations.
 
         EXAMPLES::
 
@@ -1331,6 +1326,6 @@ class SphericalSpider(UniqueRepresentation,Parent):
             e.pop(x)
             c.pop(x)
 
-        return self.element_class(c,e,b,self)
+        return self.element_class(self,c,e,b)
 
 #### End of Parent ####
