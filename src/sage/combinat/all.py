@@ -168,6 +168,8 @@ lazy_import('sage.combinat.superpartition', ('SuperPartition',
 
 lazy_import('sage.combinat.parallelogram_polyomino',
             ['ParallelogramPolyomino', 'ParallelogramPolyominoes'])
+lazy_import('sage.combinat.non_ambiguous_tree',
+            ['NonAmbiguousTrees', 'NonAmbiguousTree'])
 
 from .root_system.all import *
 from .sf.all import *
