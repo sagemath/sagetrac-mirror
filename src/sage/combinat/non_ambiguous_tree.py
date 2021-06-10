@@ -22,7 +22,6 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from six import add_metaclass
 
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
@@ -177,8 +176,8 @@ def _posets_of_nodes(tree):
     return [left_poset.to_poset(), right_poset.to_poset()]
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class NonAmbiguousTree(ClonableList):
+class NonAmbiguousTree(ClonableList,
+                       metaclass=InheritComparisonClasscallMetaclass):
     r'''
     Non-ambiguous Tree
 
