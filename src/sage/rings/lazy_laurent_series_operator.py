@@ -1023,16 +1023,3 @@ class LazyLaurentSeriesOperator_differentiate(LazyLaurentSeriesOperator):
             2*z + 2*z^2
         """
         return (n + 1) * self._series.coefficient(n + 1)
-
-    # def __hash__(self):
-    #     """
-    #     Return the hash of ``self``.
-
-    #     TESTS::
-
-    #         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-    #         sage: f = 2*(z + z^2)
-    #         sage: {f: 1}
-    #         {2*z + 2*z^2: 1}
-    #     """
-    #     return hash((type(self), self._series, self._scalar))
