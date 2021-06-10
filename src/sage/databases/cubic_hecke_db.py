@@ -769,8 +769,7 @@ class CubicHeckeFileCache(SageObject):
         self._file_cache_path = 'cubic_hecke'
         self._data_library = {}
 
-        from sage.misc.misc import sage_makedirs
-        from sage.misc.persist import SAGE_DB
+        from sage.misc.misc import sage_makedirs, SAGE_DB
         sage_makedirs(os.path.join(SAGE_DB, self._file_cache_path))
 
     def reset_library(self, section=None):

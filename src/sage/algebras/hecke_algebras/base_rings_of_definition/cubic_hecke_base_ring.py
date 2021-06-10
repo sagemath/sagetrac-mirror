@@ -903,7 +903,19 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         return self._splitting_algebra
 
+    def markov_trace_version(self):
+        r"""
+        EXAMPLES::
 
+            sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
+            sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
+            sage: ER.markov_trace_version()
+            Multivariate Laurent Polynomial Ring in a, b, c, s over Splitting Algebra of x^2 + x + 1 with roots [e3, -e3 - 1] over Integer Ring
+        """
+        if self._is_markov_trace_version():
+            return self
+        names = self.variable_names() + ('s',)
+        return self.__class__(names=names, order=self._order, markov_trace_version=True)
 
 
 
@@ -1357,6 +1369,12 @@ class CubicHeckeRingOfDefinition(Localization):
 
     def markov_trace_version(self):
         r"""
+        EXAMPLES::
+
+            sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
+            sage: GBR = chbr.CubicHeckeRingOfDefinition()
+            sage: GBR.markov_trace_version()
+            Multivariate Polynomial Ring in u, v, w, s over Integer Ring localized at (s, w, v, u)
         """
         if self._is_markov_trace_version():
             return self
