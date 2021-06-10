@@ -985,3 +985,54 @@ class LazyLaurentSeriesOperator_polynomial(LazyLaurentSeriesOperator):
         """
         return (isinstance(other, LazyLaurentSeriesOperator_polynomial) and
                 self._ring == other._ring and self._poly == other._poly)
+
+
+class LazyLaurentSeriesOperator_differentiate(LazyLaurentSeriesOperator):
+    """
+    Operator for scalar multiplication of ``series`` with ``scalar``.
+    Operator for differentiation of ``series``.
+
+    INPUT:
+
+    - ``series`` -- a lazy Laurent series
+    """
+    def __init__(self, series):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: g = 2*z
+            sage: loads(dumps(g)) == g
+            True
+        """
+        self._series = series
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 2*(z + z^2)
+            sage: f.coefficient(2)
+            2
+            sage: f
+            2*z + 2*z^2
+        """
+        return (n + 1) * self._series.coefficient(n + 1)
+
+    # def __hash__(self):
+    #     """
+    #     Return the hash of ``self``.
+
+    #     TESTS::
+
+    #         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+    #         sage: f = 2*(z + z^2)
+    #         sage: {f: 1}
+    #         {2*z + 2*z^2: 1}
+    #     """
+    #     return hash((type(self), self._series, self._scalar))

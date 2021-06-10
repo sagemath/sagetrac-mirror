@@ -92,8 +92,10 @@ from .lazy_laurent_series_operator import (
     LazyLaurentSeriesOperator_scale,
     LazyLaurentSeriesOperator_apply,
     LazyLaurentSeriesOperator_change_ring,
-    LazyLaurentSeriesOperator_truncate
+    LazyLaurentSeriesOperator_truncate,
+    LazyLaurentSeriesOperator_differentiate
 )
+
 
 class LazyLaurentSeries(ModuleElement):
     r"""
@@ -919,3 +921,15 @@ class LazyLaurentSeries(ModuleElement):
         c = (self.base_ring().zero(), d)
 
         return R.element_class(R, coefficient=op, valuation=a, constant=c)
+
+    def differentiate(self):
+        """
+        Return the differentation of this series.
+
+        """
+        R = self.parent()
+        new_valuation = self._approximate_valuation - 1
+        op = LazyLaurentSeriesOperator_differentiate(self)
+        c = None
+
+        return R.element_class(R, coefficient=op, valuation=new_valuation, constant=c)
