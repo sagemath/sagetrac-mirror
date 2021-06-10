@@ -92,10 +92,11 @@ from sage.categories.sets_cat import Sets
 from sage.rings.all import ZZ
 from sage.rings.real_lazy import LazyFieldElement, RLF
 from sage.rings.infinity import infinity, minus_infinity
+from sage.geometry.convex_set import ConvexSet_base
 
 
 @richcmp_method
-class InternalRealInterval(UniqueRepresentation, Parent):
+class InternalRealInterval(UniqueRepresentation, Parent, ConvexSet_base):
     """
     A real interval.
 
@@ -129,6 +130,16 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: interval cannot be closed at +oo
+
+        TESTS::
+
+            sage: I = RealSet(0, 1)[0]
+            sage: TestSuite(I).run()
+            sage: I = RealSet.open_closed(0, 1)[0]
+            sage: TestSuite(I).run()
+            sage: I = RealSet.unbounded_above_closed(2)
+            sage: TestSuite(I).run()
+
         """
         self._lower = lower
         self._upper = upper
