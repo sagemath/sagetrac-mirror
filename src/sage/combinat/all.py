@@ -242,4 +242,4 @@ lazy_import('sage.combinat.growth', 'GrowthDiagram')
 lazy_import('sage.combinat.path_tableaux', 'catalog', as_='path_tableaux')
 
 # Spiders and Webs
-lazy_import('sage.combinat.spherical_spider', ['Strand', 'Boundary', 'Boundaries', 'Vector', 'halfedge', 'SphericalWeb', 'SphericalSpider'])
+lazy_import('sage.combinat.spherical_spider', ['Strand', 'halfedge', 'SphericalWeb', 'SphericalSpider'])

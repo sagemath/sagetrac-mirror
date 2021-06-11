@@ -177,113 +177,6 @@ class Strand(NamedTuple):
         """
         return Strand(-self.oriented, self.colour, self.crossing)
 
-class Boundary(Element):
-    r"""
-    This class records the list of halfedges which form the boundary of a web.
-    """
-    def __init__(self, parent, boundary):
-        e = parent.edges
-        if not all(isinstance(a,halfedge) for a in boundary):
-            raise ValueError(f"{boundary} must be a list of instances of :class`halfedge`")
-        if any(a not in e for a in boundary):
-            raise ValueError(f"every entry of {boundary} must be in {e}")
-
-        self.boundary = tuple(boundary)
-        Element.__init__(self, parent)
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: bd = Boundaries([halfedge()])
-            sage: Boundary(bd,[halfedge(),halfedge()]) # indirect test
-            The list of instances of :class`halfedge`, (<sage.combinat.spherical_spider.halfedge ...>).
-
-        """
-        return f"The list of instances of :class`halfedge`, {self.boundary}."
-
-    def _richcmp_(self, other, op):
-        """
-        Overload :meth:`__eq__` and :meth:`__ne__`.
-
-        EXAMPLES::
-
-        """
-        if op == op_EQ or op == op_NE:
-            return richcmp(self.boundary, other.boundary, op)
-        else:
-            raise NotImplementedError
-
-    def dual(self):
-        r"""
-        Return the dual boundary to ``self``.
-
-        EXAMPLES::
-
-        """
-        b = [a.dual() for a in self.boundary]
-        e = tuple(reversed(list(b)))
-        return Boundary(self.parent(), e)
-
-    def rotate(self, k):
-        r"""
-        Return the dual boundary to ``self``.
-
-        EXAMPLES::
-
-            sage: plain = Boundaries([halfedge()])
-            sage: bd = Boundary(plain,[halfedge()]*3)
-            sage: bd.rotate(1) == bd
-            True
-
-        """
-        b = self.boundary
-        return(self.parent(), b[k:]+b[:k])
-
-
-class Boundaries(UniqueRepresentation, Parent, metaclass = ClasscallMetaclass):
-    r"""
-    This class records a set of Strands such that the boundary is a list of elements of this set.
-    """
-    @staticmethod
-    def __classcall_private__(cls, edges):
-        if len(edges) == 0:
-            raise ValueError(f"{edges} must be non-empty")
-
-        eds = set(edges).union({a.dual() for a in edges})
-
-        return super(Boundaries, cls).__classcall__(cls, frozenset(eds))
-
-    def __init__(self, edges):
-        self.edges = edges
-        Parent.__init__(self)
-
-    Element = Boundary
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            #sage: Boundaries([Vector])  # indirect test
-            Boundaries with edges from frozenset({Strand(oriented=0, colour='black', crossing=False)})
-        """
-        return f"Boundaries with edges from {self.edges}"
-
-    def _an_element_(self):
-        r"""
-        Construct an element of an instance of :class`Boundaries`
-
-        EXAMPLES::
-
-            sage: Boundaries([halfedge()])._an_element_()
-            The list of instances of :class`halfedge`, (<...>,).
-        """
-        return self.element_class(self, list(self.edges))
-
 class halfedge():
     """
     The class of half edges in a surface graph.
@@ -313,20 +206,15 @@ class halfedge():
         """
         return f"({self.strand.oriented},{self.strand.colour},{self.strand.crossing})"
 
-    def __eq__(self, other):
+    def dual(self):
         """
-        Overload :meth:`__eq__` and :meth:`__ne__`.
+        Construct the dual halfedge.
 
         EXAMPLES::
 
-            sage: u = halfedge()
-            sage: v = halfedge()
-            sage: u is v, u == v, u != v
-            (False, True, False)
+            sage: halfedge().dual()
+            <sage.combinat.spherical_spider.halfedge object at ...>
         """
-        return self.strand == other.strand
-
-    def dual(self):
         return halfedge(self.strand.dual())
 
 class SphericalWeb(Element):
@@ -344,9 +232,9 @@ class SphericalWeb(Element):
     or are a loop.
     """
 
-    def __init__(self, parent, c: dict, e: dict, check=True):
+    def __init__(self, c:  dict, e: dict, b: list, check=True):
         r"""
-        Initialise a ``SphericalWeb``.
+        Initialise an instance of :class`SphericalWeb`.
 
         INPUT:
 
@@ -358,14 +246,18 @@ class SphericalWeb(Element):
 
             sage: b = [halfedge(),halfedge()]
             sage: c = {b[0]:b[1], b[1]:b[0]}
-            #sage: S = SphericalSpider('plain')
-            #sage: SphericalWeb(S,c,{},b)
+            sage: SphericalWeb(c,{},b)
             The plain spherical web with c = (1, 0) and e = ().
         """
+
+        bd = tuple([a.strand for a in b])
+        parent = SphericalSpider(bd)
         Element.__init__(self, parent)
+
         self.cp = c
         self.e = e
-        #self.boundary = tuple(b)
+        self.b = b
+        self.boundary = tuple(b)
         self.normalize()
         if check:
             self.check()
@@ -382,10 +274,8 @@ class SphericalWeb(Element):
         D = {a:halfedge(a.strand) for a in self.cp}
         c = {D[a]:D[self.cp[a]] for a in self.cp}
         e = {D[a]:D[self.e[a]] for a in self.e}
-        #b = [D[a] for a in self.boundary]
-        parent = self.parent()
-        #result = self.parent()(c,e,b)
-        return parent.element_class(parent, c, e)
+        b = [D[a] for a in self.boundary]
+        return SphericalWeb(c, e, b)
 
     def check(self):
         r"""
@@ -396,17 +286,16 @@ class SphericalWeb(Element):
         EXAMPLES::
 
             sage: a = halfedge()
-            #sage: S = SphericalSpider('plain')
-            #sage: SphericalWeb(S, {a:a}, dict(), [a], check=False)
+            sage: SphericalWeb({a:a}, dict(), [a], check=False)
             The plain spherical web with c = (0,) and e = ().
-            #sage: SphericalWeb(S, {a:a}, dict(), [a])
+            sage: SphericalWeb({a:a}, dict(), [a])
             Traceback (most recent call last):
             ...
             ValueError: the mapping c has at least one fixed point
         """
         c = self.cp
         e = self.e
-        b = self.parent().boundary
+        b = self.b
         h = set(c)
         if not all(isinstance(a,halfedge) for a in h):
             raise ValueError("every element must be a half-edge")
@@ -442,8 +331,7 @@ class SphericalWeb(Element):
             sage: c = {h[0]:h[1], h[1]:h[0], h[2]:h[3], h[3]:h[2]}
             sage: e = {h[1]:h[2],h[2]:h[1]}
             sage: b = [h[0],h[3]]
-            #sage: S = SphericalSpider('plain')
-            #sage: SphericalWeb(S, c, e, b) # indirect doctest
+            sage: SphericalWeb(c, e, b) # indirect doctest
             The plain spherical web with c = (1, 0) and e = ().
 
         TESTS::
@@ -497,16 +385,16 @@ class SphericalWeb(Element):
             #sage: S.polygon([u,u,u])._repr_()
             'The plain spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).'
         """
-        if len(self.boundary) > 0:
+        if len(self.b) > 0:
             cn, en = self.canonical()
-            return f"The {self.parent()._name} spherical web with c = {cn} and e = {en}."
+            return f"The spherical web with c = {cn} and e = {en}."
         else:
-            return f"A closed {self.parent()._name} spherical web with {int(len(self.e)/2)} edges."
+            return f"A closed spherical web with {int(len(self.e)/2)} edges."
 
     @cached_method
     def canonical(self):
         r"""
-        A canonical labelling of the elements of `self``.
+        A canonical labelling of the elements of ``self``.
 
         This returns two lists of integers such that ``self``
         can be recovered, up to isomorphism, from these two sequences.
@@ -1243,8 +1131,10 @@ class SphericalSpider(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        #sage: SphericalSpider('plain')
-        The plain spherical spider.
+        sage: SphericalSpider(tuple([Strand(0,'black',False),Strand(0,'black',False)]))
+        The spherical spider with boundary (Strand(oriented=0, colour='black', crossing=False), ...).
+        sage: SphericalSpider(tuple([]))
+        The spherical spider with boundary ().
     """
     def __init__(self, boundary):
         r"""
@@ -1252,13 +1142,11 @@ class SphericalSpider(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            #sage: SphericalSpider('plain') # indirect doctest
-            The plain spherical spider.
+            sage: SphericalSpider(tuple([Strand(0,'black',False),Strand(0,'black',False)]))
+            The spherical spider with boundary (Strand(oriented=0, colour='black', crossing=False), ...).
         """
-        if not isinstance(boundary, Boundary):
-            raise ValueError(f"{boundary} must be a Boundary")
 
-        self.boundary = boundary
+        self.boundary = tuple(boundary)
 
         Parent.__init__(self)
 
@@ -1268,192 +1156,185 @@ class SphericalSpider(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            #sage: P = SphericalSpider('plain')
-            #sage: P._repr_()
-            'The plain spherical spider.'
+            sage: P = SphericalSpider(tuple([Strand(0,'black',False)]*3))
+            sage: P._repr_()
+            "The spherical spider with boundary (Strand(oriented=0, colour='black', crossing=False),  ...)."
         """
-        return f"The {self._name} spherical spider."
-
-    def _an_element_(self):
-        """
-        Construct an element.
-
-        EXAMPLES::
-
-            #sage: SphericalSpider('plain')._an_element_()
-            The plain spherical web with c = (1, 0) and e = ().
-        """
-        b = [halfedge(),halfedge()]
-        c = {b[0]:b[1], b[1]:b[0]}
-        return self.element_class(self,c,{},b)
+        return f"The spherical spider with boundary {self.boundary}."
 
     Element = SphericalWeb
 
-    def vertex(self, n):
+    def vertex(self):
         r"""
-        Construct a single vertex of valency `n`.
+        Construct a single vertex.
 
         EXAMPLES::
 
-            #sage: SphericalSpider('plain').vertex(4)
+            sage: SphericalSpider(tuple([Strand(0,'black',False)]*4)).vertex()
             The plain spherical web with c = (1, 2, 3, 0) and e = ().
         """
+        bd = self.boundary
+        n = len(bd)
         if n<2:
             raise ValueError(f"n={n} must be at least 2")
-        b = [ halfedge() for i in range(n) ]
+
+        b = [None]*n
+        for i, a in enumerate(bd):
+            b[i] = halfedge(a)
         c = {b[i-1]:b[i] for i in range(n)}
         e = dict([])
-        return self.element_class(self,c,e,b)
-
-    def loop(self):
-        r"""
-        Construct a loop.
-
-        EXAMPLES::
-
-            #sage: SphericalSpider('plain').loop()
-            A closed plain spherical web with 1 edges.
-        """
-        h = [halfedge(),halfedge()]
-        c = {h[0]:h[1], h[1]:h[0]}
-        e = {h[0]:h[1], h[1]:h[0]}
-        return self.element_class(self,c,e,[])
-
-    def empty(self):
-        """
-        Construct the empty diagram.
-
-        EXAMPLES::
-
-            #sage: SphericalSpider('plain').empty()
-            A closed plain spherical web with 0 edges.
-        """
-        return self.element_class(self,{},{},[])
-
-    def polygon(self, corners):
-        """
-        Construct a polygon from a list of webs.
-
-        EXAMPLES::
-
-            #sage: S = SphericalSpider('plain')
-            #sage: u = S.vertex(3)
-            #sage: S.polygon([u,u,u])
-            The plain spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).
-            #sage: S.polygon([])
-            A closed plain spherical web with 0 edges.
-        """
-        from functools import reduce
-
-        if len(corners) == 0:
-            return self.empty()
-
-        if any(a.parent() != self for a in corners):
-            raise ValueError(f"all entries must have parent {self}")
-
-        # Avoid duplicates.
-        cn = copy(corners)
-        for i,u in enumerate(corners):
-            for v in corners[:i]:
-                if u == v:
-                    cn[i] = copy(u)
-        corners = cn
-
-        c = reduce(lambda r, s: {**r, **s}, [a.cp for a in corners])
-        e = reduce(lambda r, s: {**r, **s}, [a.e for a in corners])
-
-        for u,v in zip(corners,corners[1:]):
-            x = u.boundary[-1]
-            y = v.boundary[0]
-            c,e = SphericalWeb._stitch(c,e,x,y)
-
-        x = corners[-1].boundary[-1]
-        y = corners[0].boundary[0]
-        c,e = SphericalWeb._stitch(c,e,x,y)
-
-        b = sum([list(a.boundary[1:-1]) for a in corners],[])
-        return SphericalWeb(self, c, e, b)
-
-    def from_permutation(self, pi, baxter=True):
-        r"""
-        Construct a planar map from a two stack sorted permutation.
-
-        This impements the algorithm in :arxiv:`math/0805.4180`.
-        This algorithm is designed to apply to Baxter permutations.
-
-        EXAMPLES::
-
-            #sage: S = SphericalSpider('plain')
-            #sage: pi = Permutation([5,3,4,9,7,8,10,6,1,2])
-            #sage: S.from_permutation(pi)
-            The plain spherical web with c = (1, 3, 6, 4, 5, 0, 7, 2, 10, 8, 9) and e = (7, 8, 9, 10, 3, 4, 5, 6).
-
-            #sage: pi = Permutation([2,4,1,3])
-            #sage: S.from_permutation(pi)
-            Traceback (most recent call last):
-            ...
-            ValueError: [2, 4, 1, 3] is not a Baxter permutation
-            #sage: S.from_permutation(pi,baxter=False)
-            The plain spherical web with c = (1, 0) and e = ().
-        """
-        if baxter:
-            if not pi in BaxterPermutations():
-                raise ValueError(f"{pi} is not a Baxter permutation")
-        black = set((i+1,a) for i, a in enumerate(pi))
-        n = len(pi)
-        white = set([(1/2,1/2),(n+1/2,n+1/2)])
-        ascents = [i+1 for i,a in enumerate(zip(pi,pi[1:])) if a[0] < a[1]]
-        for a in ascents:
-            l = max(pi[i] for i in range(a) if pi[i] < pi[a])
-            white.add((a+1/2,l+1/2))
-
-        Dup = {}
-        Ddn = {}
-        e = {}
-        for a in black:
-            w = [c for c in white if c[0]>a[0] and c[1]>a[1]]
-            w.sort(key=lambda a: a[0]+a[1])
-            r = halfedge()
-            Dup[(w[0],a)] = r
-            w = [c for c in white if c[0]<a[0] and c[1]<a[1]]
-            w.sort(key=lambda a: a[0]+a[1])
-            s = halfedge()
-            Ddn[(w[-1],a)] = s
-            e[r] = s
-            e[s] = r
-
-        c = {}
-        for g in white:
-            inco = [a for (w,a) in Ddn if w == g]
-            inco.sort(key=lambda t: t[1]-t[0])
-            outg = [a for (w,a) in Dup if w == g]
-            outg.sort(key=lambda t: t[0]-t[1])
-            #inco.reverse()
-            for x,y in zip(inco,inco[1:]):
-                c[Ddn[(g,x)]] = Ddn[(g,y)]
-            for x,y in zip(outg,outg[1:]):
-                c[Dup[(g,x)]] = Dup[(g,y)]
-            if len(inco) > 0 and len(outg) > 0:
-                c[Ddn[(g,inco[-1])]] = Dup[(g,outg[0])]
-                c[Dup[(g,outg[-1])]] = Ddn[(g,inco[0])]
-            elif len(inco) == 0 and len(outg) > 0:
-                c[Dup[(g,outg[-1])]] = Dup[(g,outg[0])]
-            elif len(inco) > 0 and len(outg) == 0:
-                c[Ddn[(g,inco[-1])]] = Ddn[(g,inco[0])]
-            else:
-                raise RuntimeError("this can't happen")
-
-        g = (1/2,1/2)
-        inco = [a for (w,a) in Ddn if w == g]
-        inco.sort(key=lambda t: t[0]-t[1])
-        b =  [e[Ddn[(g,x)]] for x in inco]
-        for a in inco:
-            x = Ddn[(g,a)]
-            e.pop(e[x])
-            #c.pop(e[x])
-            e.pop(x)
-            c.pop(x)
-
-        return self.element_class(self,c,e,b)
+        return SphericalWeb(c,e,b)
 
 #### End of Parent ####
+
+def loop(st: Strand):
+    r"""
+    Construct a loop.
+
+    EXAMPLES::
+
+        sage: sage.combinat.spherical_spider.loop(Strand(0,'black',False))
+        A closed spherical web with 1 edges.
+    """
+
+    h = [halfedge(st),halfedge(st)]
+    c = {h[0]:h[1], h[1]:h[0]}
+    e = {h[0]:h[1], h[1]:h[0]}
+    return SphericalWeb(c,e,[])
+
+def empty():
+    """
+    Construct the empty diagram.
+
+    EXAMPLES::
+
+        sage: sage.combinat.spherical_spider.empty()
+        A closed spherical web with 0 edges.
+    """
+
+    return SphericalWeb({},{},[])
+
+def polygon(corners):
+    """
+    Construct a polygon from a list of webs.
+
+    EXAMPLES::
+
+        #sage: S = SphericalSpider('plain')
+        #sage: u = S.vertex(3)
+        #sage: S.polygon([u,u,u])
+        The plain spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).
+        #sage: S.polygon([])
+        A closed plain spherical web with 0 edges.
+    """
+    from functools import reduce
+
+    if len(corners) == 0:
+        return sage.combinat.spherical_spider.empty()
+
+    # Avoid duplicates.
+    cn = copy(corners)
+    for i,u in enumerate(corners):
+        for v in corners[:i]:
+            if u == v:
+                cn[i] = copy(u)
+    corners = cn
+
+    c = reduce(lambda r, s: {**r, **s}, [a.cp for a in corners])
+    e = reduce(lambda r, s: {**r, **s}, [a.e for a in corners])
+
+    for u,v in zip(corners,corners[1:]):
+        x = u.boundary[-1]
+        y = v.boundary[0]
+        c,e = SphericalWeb._stitch(c,e,x,y)
+
+    x = corners[-1].boundary[-1]
+    y = corners[0].boundary[0]
+    c,e = SphericalWeb._stitch(c,e,x,y)
+
+    b = sum([list(a.boundary[1:-1]) for a in corners],[])
+    return SphericalWeb(c, e, b)
+
+def from_permutation(pi, baxter=True):
+    r"""
+    Construct a planar map from a two stack sorted permutation.
+
+    This implements the algorithm in :arxiv:`math/0805.4180`.
+    This algorithm is designed to apply to Baxter permutations.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.spherical_spider import from_permutation
+        sage: pi = Permutation([5,3,4,9,7,8,10,6,1,2])
+        sage: from_permutation(pi)
+        The plain spherical web with c = (1, 3, 6, 4, 5, 0, 7, 2, 10, 8, 9) and e = (7, 8, 9, 10, 3, 4, 5, 6).
+
+        sage: pi = Permutation([2,4,1,3])
+        sage: from_permutation(pi)
+        Traceback (most recent call last):
+        ...
+        ValueError: [2, 4, 1, 3] is not a Baxter permutation
+        sage: from_permutation(pi,baxter=False)
+        The plain spherical web with c = (1, 0) and e = ().
+    """
+    if baxter:
+        if not pi in BaxterPermutations():
+            raise ValueError(f"{pi} is not a Baxter permutation")
+    black = set((i+1,a) for i, a in enumerate(pi))
+    n = len(pi)
+    white = set([(1/2,1/2),(n+1/2,n+1/2)])
+    ascents = [i+1 for i,a in enumerate(zip(pi,pi[1:])) if a[0] < a[1]]
+    for a in ascents:
+        l = max(pi[i] for i in range(a) if pi[i] < pi[a])
+        white.add((a+1/2,l+1/2))
+
+    Dup = {}
+    Ddn = {}
+    e = {}
+    for a in black:
+        w = [c for c in white if c[0]>a[0] and c[1]>a[1]]
+        w.sort(key=lambda a: a[0]+a[1])
+        r = halfedge()
+        Dup[(w[0],a)] = r
+        w = [c for c in white if c[0]<a[0] and c[1]<a[1]]
+        w.sort(key=lambda a: a[0]+a[1])
+        s = halfedge()
+        Ddn[(w[-1],a)] = s
+        e[r] = s
+        e[s] = r
+
+    c = {}
+    for g in white:
+        inco = [a for (w,a) in Ddn if w == g]
+        inco.sort(key=lambda t: t[1]-t[0])
+        outg = [a for (w,a) in Dup if w == g]
+        outg.sort(key=lambda t: t[0]-t[1])
+        #inco.reverse()
+        for x,y in zip(inco,inco[1:]):
+            c[Ddn[(g,x)]] = Ddn[(g,y)]
+        for x,y in zip(outg,outg[1:]):
+            c[Dup[(g,x)]] = Dup[(g,y)]
+        if len(inco) > 0 and len(outg) > 0:
+            c[Ddn[(g,inco[-1])]] = Dup[(g,outg[0])]
+            c[Dup[(g,outg[-1])]] = Ddn[(g,inco[0])]
+        elif len(inco) == 0 and len(outg) > 0:
+            c[Dup[(g,outg[-1])]] = Dup[(g,outg[0])]
+        elif len(inco) > 0 and len(outg) == 0:
+            c[Ddn[(g,inco[-1])]] = Ddn[(g,inco[0])]
+        else:
+            raise RuntimeError("this can't happen")
+
+    g = (1/2,1/2)
+    inco = [a for (w,a) in Ddn if w == g]
+    inco.sort(key=lambda t: t[0]-t[1])
+    b =  [e[Ddn[(g,x)]] for x in inco]
+    for a in inco:
+        x = Ddn[(g,a)]
+        e.pop(e[x])
+        #c.pop(e[x])
+        e.pop(x)
+        c.pop(x)
+
+    return SphericalWeb(c,e,b)
+
+
