@@ -104,6 +104,9 @@ AUTHORS:
 # ****************************************************************************
 
 
+from .rational_field import RationalField
+
+
 class LazyLaurentSeriesOperator(object):
     """
     Base class for operators computing coefficients of a lazy Laurent series.
@@ -1023,3 +1026,42 @@ class LazyLaurentSeriesOperator_differentiate(LazyLaurentSeriesOperator):
             2*z + 2*z^2
         """
         return (n + 1) * self._series.coefficient(n + 1)
+
+
+class LazyLaurentSeriesOperator_integrate(LazyLaurentSeriesOperator):
+    """
+    Operator for scalar multiplication of ``series`` with ``scalar``.
+    Operator for differentiation of ``series``.
+
+    INPUT:
+
+    - ``series`` -- a lazy Laurent series
+    """
+    def __init__(self, series):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: g = 2*z
+            sage: loads(dumps(g)) == g
+            True
+        """
+        self._series = series
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 2*(z + z^2)
+            sage: f.coefficient(2)
+            2
+            sage: f
+            2*z + 2*z^2
+        """
+        QQ = RationalField()
+        return QQ('1/' + str(n)) * QQ(str(self._series.coefficient(n - 1)))

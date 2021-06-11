@@ -75,6 +75,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from .rational_field import RationalField
 from .infinity import infinity
 
 from sage.structure.element import ModuleElement
@@ -83,6 +84,7 @@ from sage.structure.richcmp import op_EQ, op_NE
 from sage.arith.power import generic_power
 
 from .lazy_laurent_series_operator import (
+    LazyLaurentSeriesOperator_integrate,
     LazyLaurentSeriesOperator_mul,
     LazyLaurentSeriesOperator_div,
     LazyLaurentSeriesOperator_add,
@@ -930,6 +932,23 @@ class LazyLaurentSeries(ModuleElement):
         R = self.parent()
         new_valuation = self._approximate_valuation - 1
         op = LazyLaurentSeriesOperator_differentiate(self)
+        c = None
+
+        return R.element_class(R, coefficient=op, valuation=new_valuation, constant=c)
+
+    def integrate(self):
+        """
+        Return the differentation of this series.
+
+        """
+
+        if self.coefficient(-1) != 0:
+            raise ValueError("Cannot integrate a Laurent series containing a monomial of the form 1/x")
+
+        QQ = RationalField()
+        R = self.change_ring(QQ).parent()
+        new_valuation = self._approximate_valuation + 1
+        op = LazyLaurentSeriesOperator_integrate(self)
         c = None
 
         return R.element_class(R, coefficient=op, valuation=new_valuation, constant=c)
