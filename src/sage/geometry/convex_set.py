@@ -387,6 +387,203 @@ class ConvexSet_base(SageObject):
         """
 
 
+    ### TO BE CONSIDERED
+
+
+    @abstract_method(optional=True)
+    def ambient_vector_space(self, base_ring=None):
+        r"""
+        Return the ambient vector space of ``self``.
+
+        """
+
+    @abstract_method(optional=True)
+    def an_affine_basis(self):
+        r"""
+        Return points in ``self`` that form a basis for the affine span.
+        """
+
+    def _test_an_affine_basis(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.an_affine_basis`
+
+        TESTS::
+
+            sage: c = Cone([(1,0)])
+            sage: c._test_an_affine_basis()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+        try:
+            if self.an_affine_basis == NotImplemented:
+                raise NotImplementedError
+            b = self.an_affine_basis()
+        except NotImplementedError:
+            pass
+        else:
+            m = matrix([1] + list(v) for v in b)
+            tester.assertEqual(m.rank(), self.dim() + 1)
+            for v in b:
+                tester.assertIn(v, self)
+
+    @abstract_method(optional=True)
+    def centroid(self):
+        """
+        Return the centroid (center of mass) of ``self``.
+
+        The mass is taken with respect to the induced Lebesgue measure,
+        see :meth:`volume`.
+        """
+
+    @abstract_method(optional=True)
+    def minkowski_sum(self, other):
+        r"""
+        Return the Minkowski sum.
+
+        Minkowski addition of two subsets of a vector space is defined
+        as
+
+        .. MATH::
+
+            X \oplus Y =
+            \cup_{y\in Y} (X+y) =
+            \cup_{x\in X, y\in Y} (x+y)
+
+        See :meth:`minkowski_difference` for a partial inverse operation.
+        """
+        # default implementation could set this up as an ImageSet
+
+    @abstract_method(optional=True)
+    def minkowski_difference(self, other):
+        r"""
+        Return the Minkowski difference.
+
+        Minkowski subtraction can equivalently be defined via
+        Minkowski addition (see :meth:`minkowski_sum`) or as
+        set-theoretic intersection via
+
+        .. MATH::
+
+            X \ominus Y =
+            (X^c \oplus Y)^c =
+            \cap_{y\in Y} (X-y)
+
+        where superscript-"c" means the complement in the ambient
+        vector space. The Minkowski difference of convex sets is
+        convex, and the difference of polyhedra is again a
+        polyhedron. We only consider the case of polyhedra in the
+        following. Note that it is not quite the inverse of
+        addition. In fact:
+
+        * `(X+Y)-Y = X` for any polyhedra `X`, `Y`.
+
+        * `(X-Y)+Y \subseteq X`
+
+        * `(X-Y)+Y = X` if and only if Y is a Minkowski summand of X.
+        """
+
+    @abstract_method(optional=True)
+    def is_minkowski_summand(self, Y):
+        r"""
+        Test whether ``Y`` is a Minkowski summand.
+
+        See :meth:`minkowski_sum`.
+
+        OUTPUT:
+
+        Boolean. Whether there exists another convex set `Z` such that
+        ``self`` can be written as `Y\oplus Z`.
+        """
+
+    @abstract_method(optional=True)
+    def translation(self, displacement):
+        # but AffineSpace.translation returns an automorphism
+        """
+        Return the translated convex set.
+
+        INPUT:
+
+        - ``displacement`` -- a displacement vector or a list/tuple of
+          coordinates that determines a displacement vector
+
+        OUTPUT:
+
+        The translated convex set.
+        """
+
+    @abstract_method(optional=True)
+    def dilation(self, scalar):
+        """
+        Return the dilated (uniformly stretched) convex set.
+        """
+
+    @abstract_method(optional=True)
+    def volume(self, measure='ambient'):
+        # but IntegerLattice.volume
+        """
+        Return the volume of ``self``.
+
+        INPUT:
+
+        - ``measure`` -- string. The measure to use. Allowed values are:
+
+          * ``ambient`` (default): Lebesgue measure of ambient space (volume)
+          * ``induced``: Lebesgue measure of the affine hull (relative volume)
+        """
+
+    @abstract_method(optional=True)
+    def integrate(self, function, measure='ambient'):
+        r"""
+        Return the integral of ``function`` over ``self``.
+
+        INPUT:
+
+        - ``self`` -- Polyhedron
+
+        - ``function`` -- a function
+
+        - ``measure`` -- string, the measure to use
+
+          Allowed values are:
+
+          * ``ambient`` (default): Lebesgue measure of ambient space,
+          * ``induced``: Lebesgue measure of the affine hull
+        """
+
+    # Other Polyhedron_base methods:
+
+    #def ambient_space
+    #def linear_transformation
+    #def convex_hull
+    #def affine_hull_projection
+    #def as_manifold_subset
+    #def integral_points
+    #def integral_points_count
+
+    # Minkowski-sum/dilation related operators: __add__, __sub__, _mul_, __truediv__, _acted_upon_
+    # Subset-related operator: __and__, _richcmp_
+
+
+    # Other ConvexRationalPolyhedralCone methods:
+
+    #def ambient
+    #def is_strictly_convex
+    #def solid_restriction
+
+
+    # Other LatticePolytope methods:
+
+    #def affine_transform
+    #def ambient
+    #def points, interior_points, boundary_points ... all lattice points
+
+
+    # Other FreeModule methods:
+
+    #def scale
+    #def ambient_vector_space
+    #def vector_space
+
 class ConvexSet_closed(ConvexSet_base):
     r"""
     Abstract base class for closed convex sets.
