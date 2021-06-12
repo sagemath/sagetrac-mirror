@@ -268,8 +268,8 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: SphericalSpider('plain').vertex(3).__copy__()
-            The plain spherical web with c = (1, 2, 0) and e = ().
+            sage: SphericalSpider(tuple([Strand(0,'black',False)]*3)).vertex().__copy__()
+            The spherical web with c = (1, 2, 0) and e = ().
         """
         D = {a:halfedge(a.strand) for a in self.cp}
         c = {D[a]:D[self.cp[a]] for a in self.cp}
@@ -338,8 +338,8 @@ class SphericalWeb(Element):
 
         This should not ever happen.
 
-            #sage: SphericalSpider('plain').vertex(2) # indirect doctest
-            The plain spherical web with c = (1, 0) and e = ().
+            sage: SphericalSpider(tuple([Strand(0,'black',False)]*2)).vertex() # indirect doctest
+            The spherical web with c = (1, 0) and e = ().
 
         Check loops are not removed.
 
@@ -575,26 +575,30 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: u = SphericalSpider('plain').vertex(3)
-            #sage: v = SphericalSpider('plain').vertex(3)
-            #sage: u.glue(v,1)
-            The plain spherical web with c = (1, 4, 3, 5, 0, 2) and e = (5, 4).
-            #sage: u.glue(v,0)
-            The plain spherical web with c = (1, 2, 0, 4, 5, 3) and e = ().
+            sage: u = SphericalSpider(tuple([Strand(0,'black',False)]*3)).vertex()
+            sage: v = SphericalSpider(tuple([Strand(0,'black',False)]*3)).vertex()
+            sage: u.glue(v,1)
+            The spherical web with c = (1, 4, 3, 5, 0, 2) and e = (5, 4).
+            sage: u.glue(v,0)
+            The spherical web with c = (1, 2, 0, 4, 5, 3) and e = ().
+            sage: u.glue(v,4)
+            Traceback (most recent call last):
+            ...
+            ValueError: n=4 is too large
         """
-        if n < 0:
-            raise ValueError(f"n={n} cannot be negative")
-        parent = self.parent()
-        if parent != other.parent():
-            raise ValueError(f"the two parents {self.parent()} and {other.parent()} are different")
+        #if n < 0:
+        #    raise ValueError(f"n={n} cannot be negative")
+        #parent = self.parent()
+        #if parent != other.parent():
+        #    raise ValueError(f"the two parents {self.parent()} and {other.parent()} are different")
         if n > len(self.boundary) or n > len(other.boundary):
             raise ValueError(f"n={n} is too large")
 
         ns = self.__copy__()
         no = other.__copy__()
 
-        bs = ns.boundary
-        bo = no.boundary
+        bs = ns.b
+        bo = no.b
         if n == 0:
             b = bs+bo
         else:
@@ -606,7 +610,7 @@ class SphericalWeb(Element):
         for x,y in zip(reversed(bs[-n:]),bo[:n]):
             c, e =  self._stitch(c,e,x,y)
 
-        return SphericalWeb(parent, c, e, b)
+        return SphericalWeb(c, e, b)
 
     def mirror_image(self):
         r"""
@@ -662,14 +666,13 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: len(S.vertex(3).faces())
+            sage: u = SphericalSpider(tuple([Strand(0,'black',False)]*3)).vertex()
+            sage: len(u.faces())
             3
-            #sage: len(S.vertex(4).faces())
+            sage: w = SphericalSpider(tuple([Strand(0,'black',False)]*4)).vertex()
+            sage: len(w.faces())
             4
-            #sage: u = SphericalSpider('plain').vertex(3)
-            #sage: v = SphericalSpider('plain').vertex(3)
-            #sage: len(u.glue(v,0).faces())
+            sage: len(u.glue(u,0).faces())
             6
         """
         c = self.cp
@@ -709,9 +712,9 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: SphericalSpider('plain').vertex(3).is_closed()
+            sage: SphericalSpider(tuple([Strand(0,'black',False)]*3)).vertex().is_closed()
             False
-            #sage: SphericalSpider('plain').loop().is_closed()
+            sage: SphericalSpider(tuple([])).loop(Strand(0,'black',False)).is_closed()
             True
         """
         return len(self.boundary) == 0
