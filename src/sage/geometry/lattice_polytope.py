@@ -3127,7 +3127,8 @@ class LatticePolytopeClass(SageObject, Hashable):
             True
         """
         def PGE(S, u, v):
-            if u == v: return S.one()
+            if u == v:
+                return S.one()
             return S((u, v), check=False)
 
         PM = self.vertex_facet_pairing_matrix()

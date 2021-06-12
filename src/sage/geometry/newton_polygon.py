@@ -729,7 +729,8 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
             except TypeError:
                 raise TypeError("argument must be a list of coordinates or a list of (rational) slopes")
         if len(arg) > 0 and arg[0] in self.base_ring():
-            if sort_slopes: arg.sort()
+            if sort_slopes:
+                arg.sort()
             x = y = 0
             vertices = [(x, y)]
             for slope in arg:

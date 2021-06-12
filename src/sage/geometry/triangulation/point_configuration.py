@@ -1655,8 +1655,10 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             nonminimal = set()
             for rel in Combinations(triangulation,2):
-                if rel[0].issubset(rel[1]): nonminimal.update([rel[1]])
-                if rel[1].issubset(rel[0]): nonminimal.update([rel[0]])
+                if rel[0].issubset(rel[1]):
+                    nonminimal.update([rel[1]])
+                if rel[1].issubset(rel[0]):
+                    nonminimal.update([rel[0]])
             triangulation.difference_update(nonminimal)
 
             triangulation = [ [len(t)]+sorted(t) for t in triangulation ] # decorate
@@ -1833,7 +1835,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
           :class:`~sage.geometry.triangulation.base.Point` or ``None``
           (default). A specific point to start with when picking the
           simplex vertices.
-          
+
         - ``point_order`` -- a list or tuple of (some or all)
           :class:`~sage.geometry.triangulation.base.Point` s or ``None``
           (default).
@@ -1866,13 +1868,13 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: pc.contained_simplex()
             (P(-1, -1), P(1, 1), P(0, 1))
             sage: pc.contained_simplex(point_order = [pc[1],pc[3],pc[4],pc[2],pc[0]])
-            (P(0, 1), P(1, 1), P(-1, -1)) 
+            (P(0, 1), P(1, 1), P(-1, -1))
 
         Lower-dimensional example::
 
             sage: pc.contained_simplex(point_order = [pc[0],pc[3],pc[4]])
             (P(0, 0), P(1, 1))
-            
+
         TESTS::
 
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0]])
@@ -1900,7 +1902,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             # PointConfiguration are actually ignored.
         if not points:
             return tuple()
-                         
+
         if initial_point is None:
             origin = points.pop()
         else:
@@ -2005,7 +2007,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         # input verification
         self._assert_is_affine()
-        
+
         point_order_is_given = point_order is not None
         if point_order is None:
             point_order = list(self.points())
@@ -2049,7 +2051,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 simplex = frozenset(list(facet) + [point])
                 simplices.append(simplex)
                 for facet in facets_of_simplex(simplex):
-                    if facet in visible_facets: continue
+                    if facet in visible_facets:
+                        continue
                     if facet in new_facets:
                         new_facets.remove(facet)
                         continue
