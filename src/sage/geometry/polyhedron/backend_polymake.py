@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 """
 The polymake backend for polyhedral computations
 
@@ -303,8 +303,10 @@ class Polyhedron_polymake(Polyhedron_base):
             sage: Polyhedron_polymake._init_from_Hrepresentation(p, [], [])   # optional - polymake
         """
         from sage.interfaces.polymake import polymake
-        if ieqs is None: ieqs = []
-        if eqns is None: eqns = []
+        if ieqs is None:
+            ieqs = []
+        if eqns is None:
+            eqns = []
         # Polymake 3.0r2 and 3.1 crash with a segfault for a test case
         # using QuadraticExtension, when some all-zero inequalities are input.
         # https://forum.polymake.org/viewtopic.php?f=8&t=547

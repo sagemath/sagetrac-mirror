@@ -62,7 +62,8 @@ class Polyhedron_ppl(Polyhedron_base):
             sage: Polyhedron_ppl._init_from_Vrepresentation(p, [], [], [])
         """
         gs = Generator_System()
-        if vertices is None: vertices = []
+        if vertices is None:
+            vertices = []
         for v in vertices:
             d = LCM_list([denominator(v_i) for v_i in v])
             if d.is_one():
@@ -70,7 +71,8 @@ class Polyhedron_ppl(Polyhedron_base):
             else:
                 dv = [ d*v_i for v_i in v ]
                 gs.insert(point(Linear_Expression(dv, 0), d))
-        if rays is None: rays = []
+        if rays is None:
+            rays = []
         for r in rays:
             d = LCM_list([denominator(r_i) for r_i in r])
             if d.is_one():
@@ -78,7 +80,8 @@ class Polyhedron_ppl(Polyhedron_base):
             else:
                 dr = [ d*r_i for r_i in r ]
                 gs.insert(ray(Linear_Expression(dr, 0)))
-        if lines is None: lines = []
+        if lines is None:
+            lines = []
         for l in lines:
             d = LCM_list([denominator(l_i) for l_i in l])
             if d.is_one():
@@ -117,14 +120,16 @@ class Polyhedron_ppl(Polyhedron_base):
             sage: Polyhedron_ppl._init_from_Hrepresentation(p, [], [])
         """
         cs = Constraint_System()
-        if ieqs is None: ieqs = []
+        if ieqs is None:
+            ieqs = []
         for ieq in ieqs:
             d = LCM_list([denominator(ieq_i) for ieq_i in ieq])
             dieq = [ ZZ(d*ieq_i) for ieq_i in ieq ]
             b = dieq[0]
             A = dieq[1:]
             cs.insert(Linear_Expression(A, b) >= 0)
-        if eqns is None: eqns = []
+        if eqns is None:
+            eqns = []
         for eqn in eqns:
             d = LCM_list([denominator(eqn_i) for eqn_i in eqn])
             deqn = [ ZZ(d*eqn_i) for eqn_i in eqn ]
