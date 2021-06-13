@@ -499,7 +499,7 @@ class ConvexSet_base(SageObject):
             space_point = space.an_element()
         else:
             space_point = space(ambient_point)
-        space_coords = space.coordinates(space_point)
+        space_coords = space_point.list()
         if self.contains != NotImplemented:
             contains_space_point = self.contains(space_point)
             if ambient_point is not None:
