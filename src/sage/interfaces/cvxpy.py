@@ -25,6 +25,7 @@ from sage.geometry.semialgebraic.semidefinite import PositiveSemidefiniteMatrice
 from sage.manifolds.manifold import Manifold
 from sage.manifolds.differentiable.examples.euclidean import EuclideanSpace
 from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+from sage.functions.log import log
 
 # Leaf subclasses
 
@@ -321,6 +322,46 @@ def _cvxpy_AddExpression_sage_(self):
     return self._sage_object
 
 
+# Elementwise
+
+def _cvxpy_log1p_sage_(self):
+    r"""
+    Return an equivalent Sage object.
+
+        sage: from sage.interfaces.cvxpy import cvxpy_init
+        sage: cvxpy_init()
+        sage: import cvxpy as cp
+
+    A vector variable with shape ``(5,)``::
+
+        sage: x = cp.Variable(5, name='x'); x
+        Variable((5,))
+        sage: x._sage_()
+        (x_0, x_1, x_2, x_3, x_4)
+        sage: s_x = x._sage_(); s_x
+        (x_0, x_1, x_2, x_3, x_4)
+
+        sage: log1p_x = cp.log1p(x); log1p_x
+        Expression(CONCAVE, UNKNOWN, (5,))
+        sage: s_log1p_x = log1p_x._sage_(); s_log1p_x
+        (log(x_0 + 1), log(x_1 + 1), log(x_2 + 1), log(x_3 + 1), log(x_4 + 1))
+    """
+    try:
+        return self._sage_object
+    except AttributeError:
+        pass
+
+    arg = self.args[0]._sage_()
+
+    def m(x):
+        return log(x+1)
+
+    try:
+        self._sage_object = arg.apply_map(m)
+    except AttributeError:
+        self._sage_object = m(arg)
+    return self._sage_object
+
 # Monkey patching
 
 from sage.repl.ipython_extension import run_once
@@ -345,3 +386,6 @@ def cvxpy_init():
 
     from cvxpy.atoms.affine.add_expr import AddExpression
     AddExpression._sage_ = _cvxpy_AddExpression_sage_
+
+    from cvxpy.atoms.elementwise.log1p import log1p
+    log1p._sage_ = _cvxpy_log1p_sage_
