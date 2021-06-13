@@ -893,7 +893,7 @@ class LazyLaurentSeries(ModuleElement):
             c = None
 
         from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        Q = LazyLaurentSeriesRing(ring, names=R.variable_name())
+        Q = LazyLaurentSeriesRing(ring, names=R.variable_name(), implementation=R._implementation)
         return Q.element_class(Q, coefficient=op, valuation=a, constant=c)
 
     def truncate(self, d):
