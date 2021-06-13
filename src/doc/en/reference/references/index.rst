@@ -78,10 +78,6 @@ REFERENCES:
             Some new MOLS of order 2np for p a prime power,
             The Australasian Journal of Combinatorics, vol 10 (1994)
 
-
-.. [AC2009] \N. A'Campo,'Tete-a-tete graphs and geometric monodromy'
-              preprint, 2009.
-
 .. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.  Langston,
               W. H. Suters, and C. T. Symons: Kernelization Algorithm for the
               Vertex Cover Problem: Theory and Experiments. *SIAM
@@ -1028,11 +1024,7 @@ REFERENCES:
              *The stability of the Kronecker products of Schur
              functions*.
              :arxiv:`0907.4652v2`.
-             
-.. [BPP2017] J. Fdez de Bobadilla, M. Pe Pereira, P. Portilla. *Representation of
-             surface homeomorphisms by tete-a-tete graphs*. 
-             :arxiv:`arXiv:1706.05580`
-             
+
 .. [Bou1989] \N. Bourbaki. *Lie Groups and Lie Algebras*. Chapters 1-3.
              Springer. 1989.
 
@@ -4393,12 +4385,6 @@ REFERENCES:
 
 .. [Nie2013] Johan S. R. Nielsen, List Decoding of Algebraic Codes,
              Ph.D. Thesis, Technical University of Denmark, 2013
-
-.. [Neu1981] Walter D. Neumann, *A calculus for plumbing applied to the
-             topology of complex surface singularities and degenerating
-             complex curves*, Transactions of the American
-             Mathematical Society, Vol. 268, No. 2 (Dec., 1981),
-             pp. 4807--4823
 
 .. [Nie] Johan S. R. Nielsen, Codinglib,
          https://bitbucket.org/jsrn/codinglib/.

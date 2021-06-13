@@ -180,6 +180,9 @@ src/venv.bak/
 worktree*
 =======
 
+<<<<<<< HEAD
 
 test.sage
 >>>>>>> 801ef0103f (added a few more examples)
+=======
+>>>>>>> 0dc50c4827 (Revert "Merge branch 'u/gh-baldursigurds/plumbing_graph' of git://trac.sagemath.org/sage into t/26945/plumbing_graph")
