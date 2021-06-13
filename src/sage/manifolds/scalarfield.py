@@ -1580,6 +1580,21 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         """
         return self._domain
 
+    def codomain(self):
+        r"""
+        Return the codomain of the scalar field.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: c_xy.<x,y> = M.chart()
+            sage: f = M.scalar_field(x+2*y)
+            sage: f.codomain()
+            Real Field with 53 bits of precision
+
+        """
+        return self._domain.base_field()
+
     def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of the scalar field.
@@ -2530,6 +2545,26 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             raise ValueError("no common chart has been found to evaluate " +
                              "the action of {} on the {}".format(self, p))
         return self._express[chart](*(p._coordinates[chart]))
+
+    def pullback(self, codomain_subset, name=None, latex_name=None):
+        """
+        Return the preimage of ``codomain_subset``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y}, name='f')
+            sage: L = f.pullback(RealSet.point(1)); latex(L)
+            f^{-1}(\{1\})
+            sage: M((-1, 1)) in L
+            False
+            sage: M((0, 1)) in L
+            True
+        """
+        from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+        return ManifoldSubsetPullback(self, codomain_subset=codomain_subset,
+                                      name=name, latex_name=latex_name)
 
     def __pos__(self):
         r"""
