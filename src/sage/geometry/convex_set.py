@@ -91,6 +91,18 @@ class ConvexSet_base(SageObject):
         return self.dim()
 
     @abstract_method
+    def ambient_vector_space(self, base_field=None):
+        r"""
+        Return the ambient vector space.
+        """
+
+    @abstract_method
+    def ambient(self):
+        r"""
+        Return the ambient convex set or space.
+        """
+
+    @abstract_method
     def ambient_dim(self):
         r"""
         Return the dimension of the ambient convex set or space.
@@ -124,7 +136,7 @@ class ConvexSet_base(SageObject):
 
     def codimension(self):
         r"""
-        Return the codimension of ``self``.
+        Return the codimension of ``self`` in `self.ambient()``.
 
         EXAMPLES::
 
@@ -318,13 +330,17 @@ class ConvexSet_base(SageObject):
 
             sage: from sage.geometry.convex_set import ConvexSet_open
             sage: class FaultyConvexSet(ConvexSet_open):
+            ....:     def ambient(self):
+            ....:         return QQ^55
+            ....:     def ambient_vector_space(self, base_field=None):
+            ....:         return QQ^16
             ....:     def is_universe(self):
             ....:         return True
             ....:     def dim(self):
             ....:         return 42
             ....:     def ambient_dim(self):
             ....:         return 91
-            sage: TestSuite(FaultyConvexSet()).run(skip='_test_pickling')
+            sage: TestSuite(FaultyConvexSet()).run(skip=('_test_pickling', '_test_contains'))
             Failure in _test_convex_set:
             ...
             The following tests failed: _test_convex_set
@@ -332,9 +348,13 @@ class ConvexSet_base(SageObject):
             sage: class BiggerOnTheInside(ConvexSet_open):
             ....:     def dim(self):
             ....:         return 100000
+            ....:     def ambient_vector_space(self):
+            ....:         return QQ^3
+            ....:     def ambient(self):
+            ....:         return QQ^3
             ....:     def ambient_dim(self):
             ....:         return 3
-            sage: TestSuite(BiggerOnTheInside()).run(skip='_test_pickling')
+            sage: TestSuite(BiggerOnTheInside()).run(skip=('_test_pickling', '_test_contains'))
             Failure in _test_convex_set:
             ...
             The following tests failed: _test_convex_set
@@ -435,6 +455,65 @@ class ConvexSet_base(SageObject):
             ...
             TypeError: 'NotImplementedType' object is not callable
         """
+
+    def _test_contains(self, tester=None, **options):
+        """
+        Test the ``contains`` method.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_closed
+            sage: class FaultyConvexSet(ConvexSet_closed):
+            ....:     def ambient_vector_space(self, base_field=QQ):
+            ....:         return base_field^2
+            ....:     ambient = ambient_vector_space
+            ....:     def contains(self, point):
+            ....:         if isinstance(point, (tuple, list)):
+            ....:             return all(x in ZZ for x in point)
+            ....:         return point.parent() == ZZ^2
+            sage: FaultyConvexSet()._test_contains()
+            Traceback (most recent call last):
+            ...
+            AssertionError: False != True
+
+            sage: class AlsoFaultyConvexSet(ConvexSet_closed):
+            ....:     def ambient_vector_space(self, base_field=QQ):
+            ....:         return base_field^2
+            ....:     def ambient(self):
+            ....:         return ZZ^2
+            ....:     def contains(self, point):
+            ....:         return point in ZZ^2
+            sage: AlsoFaultyConvexSet()._test_contains()
+            Traceback (most recent call last):
+            ...
+            AssertionError: True != False
+        """
+        if tester is None:
+            tester = self._tester(**options)
+        ambient = self.ambient()
+        space = self.ambient_vector_space()
+        try:
+            ambient_point = ambient.an_element()
+        except (AttributeError, NotImplementedError):
+            ambient_point = None
+            space_point = space.an_element()
+        else:
+            space_point = space(ambient_point)
+        space_coords = space.coordinates(space_point)
+        if self.contains != NotImplemented:
+            contains_space_point = self.contains(space_point)
+            if ambient_point is not None:
+                tester.assertEqual(contains_space_point, self.contains(ambient_point))
+            tester.assertEqual(contains_space_point, self.contains(space_coords))
+            from sage.rings.qqbar import AA
+            ext_space = self.ambient_vector_space(AA)
+            ext_space_point = ext_space(space_point)
+            tester.assertEqual(contains_space_point, self.contains(ext_space_point))
+            from sage.symbolic.ring import SR
+            symbolic_space = self.ambient_vector_space(SR)
+            symbolic_space_point = symbolic_space(space_point)
+            # Only test that it can accept SR vectors without error.
+            self.contains(symbolic_space_point)
 
     @abstract_method(optional=True)
     def intersection(self, other):
