@@ -105,6 +105,7 @@ AUTHORS:
 
 
 from .rational_field import RationalField
+from .integer_ring import IntegerRing
 
 
 class LazyLaurentSeriesOperator(object):
@@ -1064,4 +1065,9 @@ class LazyLaurentSeriesOperator_integrate(LazyLaurentSeriesOperator):
             2*z + 2*z^2
         """
         QQ = RationalField()
-        return QQ('1/' + str(n)) * QQ(str(self._series.coefficient(n - 1)))
+        ZZ = IntegerRing()
+        coeff = QQ('1/' + str(n)) * QQ(str(self._series.coefficient(n - 1)))
+        if coeff in ZZ or self._series.parent().base_ring() == QQ:
+            return coeff
+        else:
+            raise ValueError("The base ring is not large enough.")
