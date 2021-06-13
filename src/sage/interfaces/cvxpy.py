@@ -284,7 +284,44 @@ def _cvxpy_MulExpression_sage_(self):
     self._sage_object = left * right
     return self._sage_object
 
-#
+
+# Affine
+
+def _cvxpy_AddExpression_sage_(self):
+    r"""
+    Return an equivalent Sage object.
+
+        sage: from sage.interfaces.cvxpy import cvxpy_init
+        sage: cvxpy_init()
+        sage: import cvxpy as cp
+
+    A scalar variable::
+
+        sage: a = cp.Variable(name='a'); a
+        Variable(())
+        sage: s_a = a._sage_(); s_a
+        a
+        sage: _2a = a + a; _2a
+        Expression(AFFINE, UNKNOWN, ())
+        sage: s_2a = _2a._sage_(); s_2a
+        2*a
+        sage: s_2a is s_2a._sage_()
+        True
+        sage: s_2a == s_a + s_a
+        True
+    """
+    try:
+        return self._sage_object
+    except AttributeError:
+        pass
+
+    summands = [arg._sage_() for arg in self.args]
+
+    self._sage_object = sum(summands)
+    return self._sage_object
+
+
+# Monkey patching
 
 from sage.repl.ipython_extension import run_once
 
@@ -305,3 +342,6 @@ def cvxpy_init():
 
     from cvxpy.atoms.affine.binary_operators import MulExpression
     MulExpression._sage_ = _cvxpy_MulExpression_sage_
+
+    from cvxpy.atoms.affine.add_expr import AddExpression
+    AddExpression._sage_ = _cvxpy_AddExpression_sage_
