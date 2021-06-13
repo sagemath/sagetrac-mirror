@@ -49,7 +49,8 @@ def _cvxpy_Variable_sage_(self):
 
     A scalar variable::
 
-        sage: a = cp.Variable()
+        sage: a = cp.Variable(); a
+        Variable(())
         sage: s_a = a._sage_(); s_a
         var0
         sage: s_a.parent()
@@ -62,7 +63,8 @@ def _cvxpy_Variable_sage_(self):
 
     A vector variable with shape ``(5,)``::
 
-        sage: x = cp.Variable(5, name='x')
+        sage: x = cp.Variable(5, name='x'); x
+        Variable((5,))
         sage: x._sage_()
         (x_0, x_1, x_2, x_3, x_4)
         sage: x._sage_().parent()
@@ -72,7 +74,8 @@ def _cvxpy_Variable_sage_(self):
 
     A matrix variable with shape ``(5, 1)``::
 
-        sage: y = cp.Variable((5, 1), name='y')
+        sage: y = cp.Variable((5, 1), name='y'); y
+        Variable((5, 1))
         sage: y._sage_()
         [y_0_0]
         [y_1_0]
@@ -86,7 +89,8 @@ def _cvxpy_Variable_sage_(self):
 
     A positive semidefinite matrix variable::
 
-        sage: X = cp.Variable((3, 3), PSD=True, name='X')
+        sage: X = cp.Variable((3, 3), PSD=True, name='X'); X
+        Variable((3, 3), PSD=True)
         sage: X._sage_()
         [X_0_0 X_0_1 X_0_2]
         [X_1_0 X_1_1 X_1_2]
@@ -100,7 +104,8 @@ def _cvxpy_Variable_sage_(self):
 
     A 10-vector constrained to have boolean valued entries::
 
-        sage: b = cp.Variable(10, boolean=True, name='b')
+        sage: b = cp.Variable(10, boolean=True, name='b'); b
+        Variable((10,), boolean=True)
         sage: b._sage_()
         (b_0, b_1, b_2, b_3, b_4, b_5, b_6, b_7, b_8, b_9)
         sage: b._sage_().parent()
@@ -110,7 +115,8 @@ def _cvxpy_Variable_sage_(self):
 
     A 3 by 4 matrix constrained to have integer valued entries::
 
-        sage: Z = cp.Variable((3, 4), integer=True, name='Z')
+        sage: Z = cp.Variable((3, 4), integer=True, name='Z'); Z
+        Variable((3, 4), integer=True)
         sage: Z._sage_().parent()
         Full MatrixSpace of 3 by 4 dense matrices
          over Ring of chart functions
@@ -227,6 +233,57 @@ def _cvxpy_Variable_sage_(self):
     self._sage_object = sage_object
     return self._sage_object
 
+# Binary operators
+
+def _cvxpy_MulExpression_sage_(self):
+    r"""
+    Return an equivalent Sage object.
+
+        sage: from sage.interfaces.cvxpy import cvxpy_init
+        sage: cvxpy_init()
+        sage: import cvxpy as cp
+
+    A scalar variable::
+
+        sage: a = cp.Variable(name='a'); a
+        Variable(())
+        sage: s_a = a._sage_(); s_a
+        a
+        sage: a2 = a * a; a2
+        Expression(UNKNOWN, UNKNOWN, ())
+        sage: s_a2 = a2._sage_(); s_a2
+        a^2
+        sage: s_a2 is s_a2._sage_()
+        True
+        sage: s_a2 == s_a * s_a
+        True
+
+    A vector variable with shape ``(5,)``::
+
+        sage: x = cp.Variable(5, name='x'); x
+        Variable((5,))
+        sage: x._sage_()
+        (x_0, x_1, x_2, x_3, x_4)
+        sage: s_x = x._sage_(); s_x
+        (x_0, x_1, x_2, x_3, x_4)
+        sage: x_dot_x = x @ x; x_dot_x
+        Expression(UNKNOWN, UNKNOWN, ())
+        sage: s_x_dot_x = x_dot_x._sage_(); s_x_dot_x
+        x_0^2 + x_1^2 + x_2^2 + x_3^2 + x_4^2
+        sage: s_x_dot_x == s_x * s_x
+        True
+    """
+    try:
+        return self._sage_object
+    except AttributeError:
+        pass
+
+    left = self.args[0]._sage_()
+    right = self.args[1]._sage_()
+
+    self._sage_object = left * right
+    return self._sage_object
+
 #
 
 from sage.repl.ipython_extension import run_once
@@ -244,3 +301,7 @@ def cvxpy_init():
     except AttributeError:
         pass
     Variable._sage_ = _cvxpy_Variable_sage_
+
+
+    from cvxpy.atoms.affine.binary_operators import MulExpression
+    MulExpression._sage_ = _cvxpy_MulExpression_sage_
