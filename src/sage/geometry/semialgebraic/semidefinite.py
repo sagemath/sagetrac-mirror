@@ -15,8 +15,10 @@ Convex Cone of Positive-Semidefinite Matrices
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.geometry.convex_set import ConvexSet_closed, ConvexSet_relatively_open
 
-class PositiveSemidefiniteMatrices_base(UniqueRepresentation):
-
+class SemidefiniteMatrices_base(UniqueRepresentation):
+    r"""
+    Base class for convex sets of semidefinite matrices.
+    """
 
     def __init__(self, matrix_space):
         r"""
@@ -54,9 +56,10 @@ class PositiveSemidefiniteMatrices_base(UniqueRepresentation):
 
     __contains__ = contains
 
-class PositiveSemidefiniteMatrices(PositiveSemidefiniteMatrices_base, ConvexSet_closed):
+
+class PositiveSemidefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_closed):
     r"""
-    The convex cone of positive semidefinite matrices
+    The convex cone of positive semidefinite symmetric matrices
 
     EXAMPLES::
 
@@ -78,10 +81,17 @@ class PositiveSemidefiniteMatrices(PositiveSemidefiniteMatrices_base, ConvexSet_
         sage: A in M_psd
         True
 
-    And finally, an indefinite matrix::
+    An indefinite matrix::
 
         sage: A = matrix(QQ, [ [0,1],
         ....:                  [1,0] ] )
+        sage: A in M_psd
+        False
+
+    And, finally, a non-symmetric matrix::
+
+        sage: A = matrix(QQ, [ [2,2],
+        ....:                  [1,2] ] )
         sage: A in M_psd
         False
     """
@@ -97,9 +107,10 @@ class PositiveSemidefiniteMatrices(PositiveSemidefiniteMatrices_base, ConvexSet_
     def is_compact(self):
         return self.dimension() == 0
 
-class PositiveDefiniteMatrices(PositiveSemidefiniteMatrices_base, ConvexSet_relatively_open):
+
+class PositiveDefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_relatively_open):
     r"""
-    The convex set of positive definite matrices
+    The convex set of positive definite symmetric matrices
 
     EXAMPLES::
 
@@ -121,10 +132,17 @@ class PositiveDefiniteMatrices(PositiveSemidefiniteMatrices_base, ConvexSet_rela
         sage: A in M_pd
         False
 
-    And finally, an indefinite matrix::
+    An indefinite matrix::
 
         sage: A = matrix(QQ, [ [0,1],
         ....:                  [1,0] ] )
+        sage: A in M_pd
+        False
+
+    And, finally, a non-symmetric matrix::
+
+        sage: A = matrix(QQ, [ [2,2],
+        ....:                  [1,2] ] )
         sage: A in M_pd
         False
     """
