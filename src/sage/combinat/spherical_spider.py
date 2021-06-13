@@ -162,9 +162,9 @@ class Strand(NamedTuple):
         sage: Strand(1,'black',False)
         Strand(oriented=1, colour='black', crossing=False)
     """
-    oriented: int
-    colour: str
-    crossing: bool
+    oriented: int=0
+    colour: str='black'
+    crossing: bool=False
 
     def dual(self):
         """
@@ -183,7 +183,7 @@ class halfedge():
 
     This should probably be an attribute either of SphericalWeb or SphericalSpider
     """
-    def __init__(self, st=Strand(0,'black',False)):
+    def __init__(self, st=Strand()):
         """
         EXAMPLES::
 
@@ -201,6 +201,8 @@ class halfedge():
 
         EXAMPLES::
 
+        sage: halfedge()._repr_()
+        '(0,black,False)'
         sage: halfedge() # indirect test
         <sage.combinat.spherical_spider.halfedge object at ...>
         """
@@ -434,16 +436,14 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: u = S.vertex(3)
-            #sage: v = S.polygon([u,u,u,u])
-            #sage: v.__hash__()  # random
+            sage: v = SphericalSpider(tuple([Strand(0,'black',False)]*3)).vertex()
+            sage: v.__hash__()  # random
 
-            #sage: hash(v) # random
+            sage: hash(v) # random
 
-            #sage: w = SphericalSpider('plain').vertex(3)
-            #sage: set([u,w]) # indirect doctest
-            {The plain spherical web with c = (1, 2, 0) and e = ().}
+            sage: u = SphericalSpider(tuple([Strand(0,'black',False)]*3)).vertex()
+            sage: set([u,v]) # indirect doctest
+            {The spherical web with c = (1, 2, 0) and e = ().}
         """
         return hash((self.parent(),*self.canonical()))
 
@@ -453,12 +453,11 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: u = S.polygon([S.vertex(3)]*4)
-            #sage: v = S.polygon([S.vertex(3)]*4)
-            #sage: u is v, u == v, u != v # indirect doctest
+            sage: u = SphericalSpider(tuple([Strand(0,'black',False)]*4)).vertex()
+            sage: v = SphericalSpider(tuple([Strand(0,'black',False)]*4)).vertex()
+            sage: u is v, u == v, u != v # indirect doctest
             (False, True, False)
-            #sage: u < v # indirect doctest
+            sage: u < v # indirect doctest
             Traceback (most recent call last):
             ...
             TypeError: '<' not supported between ... and 'SphericalWeb'
@@ -470,7 +469,7 @@ class SphericalWeb(Element):
         if op == op_EQ or op == op_NE:
             return richcmp(self.canonical(), other.canonical(), op)
         else:
-            raise NotImplementedError
+            return NotImplemented
 
 #### End of underscore methods ####
 
@@ -618,20 +617,21 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: u = S.vertex(3)
-            #sage: u.glue(S.vertex(4),1).mirror_image()
-            The plain spherical web with c = (1, 2, 5, 4, 6, 0, 3) and e = (6, 5).
-
-            #sage: v = u.glue(u,1).glue(S.vertex(4),1)
-            #sage: v == v.mirror_image()
+            sage: u = SphericalSpider(tuple([Strand(0,'black',False)]*3)).vertex()
+            sage: u.mirror_image()
+            True
+            sage: v = SphericalSpider(tuple([Strand(0,'black',False)]*4)).vertex()
+            sage: u.glue(v,1).mirror_image()
+            The spherical web with c = (1, 2, 5, 4, 6, 0, 3) and e = (6, 5).
+            sage: w = u.glue(u,1).glue(v,1)
+            sage: w == w.mirror_image()
             False
         """
         D =  {a:halfedge() for a in self.cp}
         cn = {D[self.cp[a]]:D[a] for a in D}
         en = {D[a]:D[self.e[a]] for a in self.e}
-        bn = reversed([D[a] for a in self.boundary])
-        return SphericalWeb(self.parent(), cn, en, bn)
+        bn = reversed([D[a] for a in self.b])
+        return SphericalWeb(cn, en, bn)
 
     def vertices(self):
         """
@@ -1224,17 +1224,16 @@ class SphericalSpider(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: u = S.vertex(3)
-            #sage: S.polygon([u,u,u])
-            The plain spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).
-            #sage: S.polygon([])
+            sage: u = SphericalSpider(tuple([Strand(0,'black',False)]*3)).vertex()
+            sage: SphericalSpider(tuple([])).polygon([u,u,u])
+            The spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).
+            sage: SphericalSpider(tuple([])).polygon([])
             A closed plain spherical web with 0 edges.
         """
         from functools import reduce
 
         if len(corners) == 0:
-            return sage.combinat.spherical_spider.empty()
+            return SphericalSpider(tuple([])).empty()
 
         # Avoid duplicates.
         cn = copy(corners)
