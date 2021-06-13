@@ -16,8 +16,10 @@ from sage.sets.real_set import RealSet
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import minus_infinity, infinity
 from sage.rings.real_mpfr import RR
-from sage.matrix.matrix_space import MatrixSpace
 from sage.modules.free_module import VectorSpace
+from sage.modules.free_module_element import vector
+from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.constructor import matrix
 from sage.geometry.cone_catalog import nonnegative_orthant
 from sage.geometry.semialgebraic.semidefinite import PositiveSemidefiniteMatrices
 from sage.manifolds.manifold import Manifold
@@ -49,7 +51,9 @@ def _cvxpy_Variable_sage_(self):
 
         sage: a = cp.Variable()
         sage: s_a = a._sage_(); s_a
-        1-dimensional Euclidean space dom_var0
+        var0
+        sage: s_a.parent()
+        Ring of chart functions on Chart (dom_var0, (var0,))
 
     The result is cached::
 
@@ -60,31 +64,59 @@ def _cvxpy_Variable_sage_(self):
 
         sage: x = cp.Variable(5, name='x')
         sage: x._sage_()
-        5-dimensional Euclidean space dom_x
+        (x_0, x_1, x_2, x_3, x_4)
+        sage: x._sage_().parent()
+        Ambient free module of rank 5 over
+         Ring of chart functions
+          on Chart (dom_x, (x_0, x_1, x_2, x_3, x_4))
 
     A matrix variable with shape ``(5, 1)``::
 
         sage: y = cp.Variable((5, 1), name='y')
         sage: y._sage_()
-        5-dimensional Euclidean space dom_y
+        [y_0_0]
+        [y_1_0]
+        [y_2_0]
+        [y_3_0]
+        [y_4_0]
+        sage: y._sage_().parent()
+        Full MatrixSpace of 5 by 1 dense matrices over
+         Ring of chart functions
+          on Chart (dom_y, (y_0_0, y_1_0, y_2_0, y_3_0, y_4_0))
 
     A positive semidefinite matrix variable::
 
         sage: X = cp.Variable((3, 3), PSD=True, name='X')
         sage: X._sage_()
-        Subset dom_X of the 9-dimensional Euclidean space amb_dom_X
+        [X_0_0 X_0_1 X_0_2]
+        [X_1_0 X_1_1 X_1_2]
+        [X_2_0 X_2_1 X_2_2]
+        sage: X._sage_().parent()
+        Full MatrixSpace of 3 by 3 dense matrices over
+         Ring of chart functions
+          on Chart (amb_dom_X, (X_0_0, X_0_1, X_0_2,
+                                X_1_0, X_1_1, X_1_2,
+                                X_2_0, X_2_1, X_2_2))
 
     A 10-vector constrained to have boolean valued entries::
 
         sage: b = cp.Variable(10, boolean=True, name='b')
         sage: b._sage_()
-        Subset dom_b of the 10-dimensional Euclidean space amb_dom_b
+        (b_0, b_1, b_2, b_3, b_4, b_5, b_6, b_7, b_8, b_9)
+        sage: b._sage_().parent()
+        Ambient free module of rank 10
+         over Ring of chart functions
+          on Chart (amb_dom_b, (b_0, b_1, b_2, b_3, b_4, b_5, b_6, b_7, b_8, b_9))
 
-    A 5 by 7 matrix constrained to have integer valued entries::
+    A 3 by 4 matrix constrained to have integer valued entries::
 
-        sage: Z = cp.Variable((5, 7), integer=True, name='Z')
-        sage: Z._sage_()
-        Subset dom_Z of the 35-dimensional Euclidean space amb_dom_Z
+        sage: Z = cp.Variable((3, 4), integer=True, name='Z')
+        sage: Z._sage_().parent()
+        Full MatrixSpace of 3 by 4 dense matrices
+         over Ring of chart functions
+          on Chart (amb_dom_Z, (Z_0_0, Z_0_1, Z_0_2, Z_0_3,
+                                Z_1_0, Z_1_1, Z_1_2, Z_1_3,
+                                Z_2_0, Z_2_1, Z_2_2, Z_2_3))
     """
     try:
         return self._sage_object
@@ -148,6 +180,8 @@ def _cvxpy_Variable_sage_(self):
 
     ambient_space = EuclideanSpace(name=ambient_name, names=names,
                                    start_index=0, unique_tag=self)
+    ambient_chart = ambient_space.default_chart()
+
     if is_ambient:
         actual_dom = ambient_space
     else:
@@ -160,6 +194,8 @@ def _cvxpy_Variable_sage_(self):
                 n = ZZ(self.shape[0])
                 dimension = n * (n + 1) // 2
                 aff_space = Manifold(dimension, name=aff_name, ambient=ambient_space)
+            else:
+                raise NotImplementedError
 
         if any(self.attributes[key] for key in ('nonneg', 'pos', 'nonpos', 'neg')):
             actual_model_dom = cones.nonnegative_orthant(dim)
@@ -172,10 +208,23 @@ def _cvxpy_Variable_sage_(self):
         if is_relatively_open_convex:
             actual_model_dom = actual_model_dom.relative_interior()
 
-        actual_dom = ManifoldSubsetPullback(ambient_space.default_chart(), None,
+        actual_dom = ManifoldSubsetPullback(ambient_chart, None,
                                             actual_model_dom, name=actual_dom_name)
 
-    self._sage_object = actual_dom
+    if self.ndim == 0:
+        sage_object = ambient_chart.function(ambient_chart[0])
+    elif self.ndim == 1:
+        # like a multifunction, but better for matrix-vector multiplication
+        sage_object = vector(ambient_chart.function(variable)
+                             for variable in ambient_chart)
+    elif self.ndim == 2:
+        sage_object = matrix(ambient_chart.function_ring(),
+                             self.shape[0], self.shape[1],
+                             [ambient_chart.function(variable)
+                              for variable in ambient_chart])
+
+    self._sage_actual_dom = actual_dom
+    self._sage_object = sage_object
     return self._sage_object
 
 #
