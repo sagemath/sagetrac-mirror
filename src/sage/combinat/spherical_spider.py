@@ -145,38 +145,13 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+#from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.graphs.graph import Graph
-from sage.combinat.permutation import Permutation
+#from sage.combinat.permutation import Permutation
 from sage.combinat.baxter_permutations import BaxterPermutations
 from sage.structure.richcmp import richcmp, op_EQ, op_NE
-from typing import NamedTuple
 from copy import copy
 from collections import namedtuple
-
-class Strand_old(NamedTuple):
-    """
-    Record the information used to draw an edge.
-
-    EXAMPLES::
-
-        sage: Strand(1,'black',False)
-        Strand(oriented=1, colour='black', crossing=False)
-    """
-    oriented: int=0
-    colour: str='black'
-    crossing: bool=False
-
-    def dual(self):
-        """
-        Return the dual of ``self``.
-
-        EXAMPLES::
-
-            #sage: Strand(1,'black',False).dual()
-            Strand(oriented=-1, colour='black', crossing=False)
-        """
-        return Strand(-self.oriented, self.colour, self.crossing)
 
 Strand  = namedtuple('Strand', ['oriented','colour','crossing'], defaults=[0,'black',False])
 
@@ -369,8 +344,7 @@ class SphericalWeb(Element):
                     c.pop(y)
                     e.pop(x)
                     e.pop(y)
-                elif y in self.parent().boundary:
-                    flag = True
+                elif y in self.b:
                     c[y] = c[z]
                     w = [a for a in c if c[a] == z][0]
                     c[w] = y
@@ -562,9 +536,9 @@ class SphericalWeb(Element):
 
             sage: u = SphericalSpider([Strand()]*5).vertex()
             sage: u.rotate(3)
-            The spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4) and e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11).
+            The spherical web with c = (1, 2, 3, 4, 0) and e = ().
             sage: u.rotate(-1)
-            The spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4) and e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11).
+            The spherical web with c = (1, 2, 3, 4, 0) and e = ().
         """
         result = self.__copy__()
         b = result.b
@@ -838,9 +812,10 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: SphericalSpider([Strand()]*3).vertex().to_graph()
+            sage: u = SphericalSpider([Strand()]*3).vertex()
+            sage: u.to_graph()
             Graph on 3 vertices
-            #sage: S.polygon([S.vertex(3)]*3).to_graph()
+            sage: SphericalSpider([]).polygon([u]*3).to_graph()
             Graph on 9 vertices
         """
         c = self.cp
@@ -871,20 +846,23 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: len(S.polygon([S.vertex(3)]*3)._layout())
+            sage: u = SphericalSpider([Strand()]*3).vertex()
+            sage: len(SphericalSpider([]).polygon([u]*3)._layout())
             6
 
-            sage: u = SphericalSpider([Strand()]*3).vertex()
             sage: len(u.glue(u,1)._layout())
             5
 
-            If the graph is not simple the diagram will degenerate.
+        If the graph is not simple the diagram will degenerate.
 
-            #sage: len(S.vertex(4).glue(S.vertex(2),2)._layout())
-            2
+            sage: v = SphericalSpider([Strand()]*4).vertex()
+            sage: w = SphericalSpider([Strand()]*2).vertex()
+            sage: v.glue(w,2)._layout()
+            {((-1.00000000000000, 0.000000000000000), (0.0, 0.0)),
+            ((1.00000000000000, 0.000000000000000), (0.0, 0.0))}
 
-            If there are no boundary points only the boundary circle is drawn.
+
+        If there are no boundary points only the boundary circle is drawn.
 
             sage: SphericalSpider([]).loop(Strand())._layout()
             set()
@@ -942,24 +920,24 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: S.polygon([S.vertex(3)]*3).plot()
+            sage: u = SphericalSpider([Strand()]*3).vertex()
+            sage: SphericalSpider([]).polygon([u]*3).plot()
             Graphics object consisting of 7 graphics primitives
 
-            #sage: S = SphericalSpider('plain')
-            #sage: u = S.vertex(3)
-            #sage: u.glue(u,1).plot()
+            sage: u = SphericalSpider([Strand()]*3).vertex()
+            sage: u.glue(u,1).plot()
             Graphics object consisting of 6 graphics primitives
 
             If the graph is not simple the diagram will degenerate.
 
-            #sage: S = SphericalSpider('plain')
-            #sage: S.vertex(4).glue(S.vertex(2),2).plot()
+            sage: v = SphericalSpider([Strand()]*4).vertex()
+            sage: w = SphericalSpider([Strand()]*2).vertex()
+            sage: v.glue(w,2).plot()
             Graphics object consisting of 3 graphics primitives
 
             If there are no boundary points only the boundary circle is drawn.
 
-            #sage: S.loop().plot()
+            sage: SphericalSpider([]).loop(Strand()).plot()
             Graphics object consisting of 1 graphics primitive
 
         TODO::
@@ -991,7 +969,9 @@ class SphericalWeb(Element):
 
             If the graph is not simple the diagram will degenerate.
 
-            #sage: S.vertex(4).glue(S.vertex(2),2)._latex_()
+            sage: v = SphericalSpider([Strand()]*4).vertex()
+            sage: w = SphericalSpider([Strand()]*2).vertex()
+            sage: v.glue(w,2)._latex_()
             '\\begin{tikzpicture}\n\\draw (0,0) circle (1cm);\n\\draw (-1.00000000000000,0.0) -- (0.0,0.0);\n\\draw (1.00000000000000,0.0) -- (0.0,0.0);\n\\end{tikzpicture}\n'
 
             If there are no boundary points only the boundary circle is drawn.
