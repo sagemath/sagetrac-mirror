@@ -362,6 +362,46 @@ def _cvxpy_log1p_sage_(self):
         self._sage_object = m(arg)
     return self._sage_object
 
+
+# Other atoms
+
+def _cvxpy_log_det_sage_(self):
+    r"""
+    Return an equivalent Sage object.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.cvxpy import cvxpy_init
+        sage: cvxpy_init()
+        sage: import cvxpy as cp
+
+    A positive semidefinite matrix variable::
+
+        sage: X = cp.Variable((3, 3), PSD=True, name='X'); X
+        Variable((3, 3), PSD=True)
+        sage: X._sage_()
+        [X_0_0 X_0_1 X_0_2]
+        [X_1_0 X_1_1 X_1_2]
+        [X_2_0 X_2_1 X_2_2]
+
+        sage: log_det_X = cp.log_det(X); log_det_X
+        Expression(CONCAVE, NONNEGATIVE, ())
+        sage: s_log_det_X = log_det_X._sage_(); s_log_det_X
+        log(-(X_0_2*X_1_1 - X_0_1*X_1_2)*X_2_0
+            + (X_0_2*X_1_0 - X_0_0*X_1_2)*X_2_1
+            - (X_0_1*X_1_0 - X_0_0*X_1_1)*X_2_2)
+    """
+    try:
+        return self._sage_object
+    except AttributeError:
+        pass
+
+    arg = self.args[0]._sage_()
+
+    self._sage_object = log(arg.det())
+    return self._sage_object
+
+
 # Monkey patching
 
 from sage.repl.ipython_extension import run_once
@@ -389,3 +429,6 @@ def cvxpy_init():
 
     from cvxpy.atoms.elementwise.log1p import log1p
     log1p._sage_ = _cvxpy_log1p_sage_
+
+    from cvxpy.atoms.log_det import log_det
+    log_det._sage_ = _cvxpy_log_det_sage_
