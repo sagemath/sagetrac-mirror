@@ -7345,6 +7345,21 @@ def element_class(R, is_sparse):
         <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
         sage: sage.modules.free_module.element_class(P, is_sparse=False)
         <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+
+    Free modules over symbolic rings and rings whose base rings are symbolic rings::
+
+        sage: sage.modules.free_module.element_class(SR, is_sparse=False)
+        <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+        sage: SR_a_b = SR.subring(accepting_variables=('a', 'b')); SR_a_b
+        Symbolic Subring accepting the variables a, b
+        sage: sage.modules.free_module.element_class(SR_a_b, is_sparse=False)
+        <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+        sage: SR_const = SR.subring(no_variables=True); SR_const
+        Symbolic Constants Subring
+        sage: SR_poly_t = SR_const['t']; SR_poly_t
+        Univariate Polynomial Ring in t over Symbolic Constants Subring
+        sage: sage.modules.free_module.element_class(SR_poly_t, is_sparse=False)
+        <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
     """
     import sage.modules.vector_real_double_dense
     import sage.modules.vector_complex_double_dense
@@ -7368,12 +7383,14 @@ def element_class(R, is_sparse):
         return sage.modules.vector_real_double_dense.Vector_real_double_dense
     elif sage.rings.complex_double.is_ComplexDoubleField(R) and not is_sparse:
         return sage.modules.vector_complex_double_dense.Vector_complex_double_dense
-    elif sage.symbolic.ring.is_SymbolicExpressionRing(R) and not is_sparse:
-        import sage.modules.vector_symbolic_dense
-        return sage.modules.vector_symbolic_dense.Vector_symbolic_dense
     elif sage.symbolic.callable.is_CallableSymbolicExpressionRing(R) and not is_sparse:
         import sage.modules.vector_callable_symbolic_dense
         return sage.modules.vector_callable_symbolic_dense.Vector_callable_symbolic_dense
+    elif ((sage.symbolic.ring.is_SymbolicExpressionRing(R)
+           or isinstance(R.base_ring(), sage.symbolic.ring.SymbolicRing))
+          and not is_sparse):
+        import sage.modules.vector_symbolic_dense
+        return sage.modules.vector_symbolic_dense.Vector_symbolic_dense
     else:
         if is_sparse:
             return free_module_element.FreeModuleElement_generic_sparse
