@@ -1308,7 +1308,7 @@ class Chart(UniqueRepresentation, SageObject):
         TESTS::
 
             sage: type(f)
-            <class 'sage.manifolds.chart_func.MultiCoordFunction'>
+            <class 'sage.modules.free_module.FreeModule_ambient_with_category.element_class'>
 
         """
         return vector(self.function_ring(), expressions)
