@@ -295,8 +295,9 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
 
         EXAMPLES::
 
-            sage: SR._free_module_element_class_dense()
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+            sage: f(x) = 1
+            sage: f.parent()._free_module_element_class_dense()
+            <class 'sage.modules.vector_callable_symbolic_dense.Vector_callable_symbolic_dense'>
         """
         from sage.modules.vector_callable_symbolic_dense import Vector_callable_symbolic_dense
         return Vector_callable_symbolic_dense
