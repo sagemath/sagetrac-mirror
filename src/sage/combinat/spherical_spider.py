@@ -154,7 +154,7 @@ from typing import NamedTuple
 from copy import copy
 from collections import namedtuple
 
-class Strand(NamedTuple):
+class Strand_old(NamedTuple):
     """
     Record the information used to draw an edge.
 
@@ -173,12 +173,14 @@ class Strand(NamedTuple):
 
         EXAMPLES::
 
-            sage: Strand(1,'black',False).dual()
+            #sage: Strand(1,'black',False).dual()
             Strand(oriented=-1, colour='black', crossing=False)
         """
         return Strand(-self.oriented, self.colour, self.crossing)
 
-class halfedge_old():
+Strand  = namedtuple('Strand', ['oriented','colour','crossing'], defaults=[0,'black',False])
+
+class halfedge():
     """
     The class of half edges in a surface graph.
 
@@ -188,7 +190,7 @@ class halfedge_old():
         """
         EXAMPLES::
 
-            #sage: halfedge()
+            sage: halfedge()
             <sage.combinat.spherical_spider.halfedge object at ...>
         """
         self.strand = st
@@ -202,9 +204,9 @@ class halfedge_old():
 
         EXAMPLES::
 
-        #sage: halfedge()._repr_()
+        sage: halfedge()._repr_()
         '(0,black,False)'
-        #sage: halfedge() # indirect test
+        sage: halfedge() # indirect test
         <sage.combinat.spherical_spider.halfedge object at ...>
         """
         return f"({self.strand.oriented},{self.strand.colour},{self.strand.crossing})"
@@ -215,14 +217,12 @@ class halfedge_old():
 
         EXAMPLES::
 
-            #sage: halfedge().dual()
+            sage: halfedge().dual()
             <sage.combinat.spherical_spider.halfedge object at ...>
         """
-        return halfedge(self.strand.dual())
+        st = self.strand
+        return (halfedge(Strand(-st.oriented, st.colour, st.crossing)))
 
-halfedge_new = namedtuple('halfedge', ['oriented','colour','crossing'], defaults=[0,'black',False])
-
-halfedge = halfedge_old
 class SphericalWeb(Element):
     r"""The class of webs.
 
@@ -256,13 +256,13 @@ class SphericalWeb(Element):
             The spherical web with c = (1, 0) and e = ().
         """
 
-        parent = SphericalSpider(tuple(b))
+        bd = [a.strand for a in b]
+        parent = SphericalSpider(bd)
         Element.__init__(self, parent)
 
         self.cp = c
         self.e = e
         self.b = b
-        self.boundary = tuple(b)
         self.normalize()
         if check:
             self.check()
@@ -279,7 +279,7 @@ class SphericalWeb(Element):
         D = {a:halfedge(a.strand) for a in self.cp}
         c = {D[a]:D[self.cp[a]] for a in self.cp}
         e = {D[a]:D[self.e[a]] for a in self.e}
-        b = [D[a] for a in self.boundary]
+        b = [D[a] for a in self.b]
         return SphericalWeb(c, e, b)
 
     def check(self):
@@ -348,8 +348,8 @@ class SphericalWeb(Element):
 
         Check loops are not removed.
 
-            #sage: SphericalSpider('plain').loop() # indirect doctest
-            A closed plain spherical web with 1 edges.
+            sage: SphericalSpider([]).loop(Strand()) # indirect doctest
+            A closed spherical web with 1 edges.
         """
         flag = True
         while flag :
@@ -385,10 +385,9 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            ##sage: S = SphericalSpider('plain')
-            #sage: u = S.vertex(3)
-            #sage: S.polygon([u,u,u])._repr_()
-            'The plain spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).'
+            sage: u = SphericalSpider([Strand()]*3).vertex()
+            sage: SphericalSpider([]).polygon([u,u,u])._repr_()
+            'The spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).'
         """
         if len(self.b) > 0:
             cn, en = self.canonical()
@@ -410,12 +409,11 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: u = S.vertex(3)
-            #sage: cn, en = S.polygon([u,u,u,u]).canonical()
-            #sage: cn
+            sage: u = SphericalSpider([Strand()]*3).vertex()
+            sage: cn, en = SphericalSpider([]).polygon([u,u,u,u]).canonical()
+            sage: cn
             (4, 6, 8, 10, 5, 0, 7, 1, 9, 2, 11, 3)
-            #sage: en
+            sage: en
             (7, 10, 9, 4, 11, 6, 5, 8)
         """
         b = self.b
@@ -536,16 +534,18 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: u = SphericalSpider([Strand(0,'black',False)]*3).vertex()
-            sage: c,e = u._stitch(u.cp,u.e,u.boundary[0],u.boundary[-1])
+            sage: u = SphericalSpider([Strand()]*3).vertex()
+            sage: c,e = u._stitch(u.cp,u.e,u.b[0],u.b[-1])
             sage: len(c),len(e)
             (5, 4)
         """
-        if x.strand.dual() != y.strand:
+        st = x.strand
+        xd = Strand(-st.oriented, st.colour, st.crossing)
+        if y.strand != xd:
             raise ValueError(f"{x.strand} and {y.strand} must be dual")
 
-        u = halfedge(x.strand.dual())
-        v = halfedge(y.strand.dual())
+        u = halfedge(y.strand)
+        v = halfedge(x.strand)
         c[u] = v
         c[v] = u
         e[x] = u
@@ -560,17 +560,16 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: u = S.polygon([S.vertex(3)]*5)
-            #sage: u.rotate(3)
-            The plain spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4) and e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11).
-            #sage: u.rotate(-1)
-            The plain spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4) and e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11).
+            sage: u = SphericalSpider([Strand()]*5).vertex()
+            sage: u.rotate(3)
+            The spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4) and e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11).
+            sage: u.rotate(-1)
+            The spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4) and e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11).
         """
         result = self.__copy__()
-        b = result.boundary
-        result.boundary = b[k:]+b[:k]
-        return result
+        b = result.b
+        nb = b[k:]+b[:k]
+        return SphericalWeb(result.cp, result.e, nb)
 
     def glue(self, other, n):
         r"""Glue two ribbon graphs together.
@@ -593,7 +592,7 @@ class SphericalWeb(Element):
         #parent = self.parent()
         #if parent != other.parent():
         #    raise ValueError(f"the two parents {self.parent()} and {other.parent()} are different")
-        if n > len(self.boundary) or n > len(other.boundary):
+        if n > len(self.b) or n > len(other.b):
             raise ValueError(f"n={n} is too large")
 
         ns = self.__copy__()
@@ -644,9 +643,9 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: u = S.polygon([S.vertex(3)]*4)
-            #sage: [len(a) for a in u.vertices()]
+            sage: t = SphericalSpider([Strand()]*3).vertex()
+            sage: u = SphericalSpider([]).polygon([t]*4)
+            sage: [len(a) for a in u.vertices()]
             [3, 3, 3, 3]
         """
         c = self.cp
@@ -684,7 +683,7 @@ class SphericalWeb(Element):
         result = set()
 
         # First find the external faces.
-        for a in self.boundary:
+        for a in self.b:
             u = a
             face = [a]
             he.discard(a)
@@ -715,12 +714,12 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: SphericalSpider([Strand(0,'black',False)]*3).vertex().is_closed()
+            sage: SphericalSpider([Strand()]*3).vertex().is_closed()
             False
-            sage: SphericalSpider([]).loop(Strand(0,'black',False)).is_closed()
+            sage: SphericalSpider([]).loop(Strand()).is_closed()
             True
         """
-        return len(self.boundary) == 0
+        return len(self.b) == 0
 
     def is_connected(self):
         """
@@ -731,13 +730,13 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: SphericalSpider('plain').vertex(3).is_connected()
+            sage: SphericalSpider([Strand()]*3).vertex().is_connected()
             True
-            #sage: SphericalSpider('plain').loop().is_connected()
+            sage: SphericalSpider([]).loop(Strand()).is_connected()
             False
-            #sage: u = SphericalSpider('plain').vertex(3)
-            #sage: v = SphericalSpider('plain').vertex(3)
-            #sage: u.glue(v,0).is_connected()
+            sage: u = SphericalSpider([Strand()]*3).vertex()
+            sage: v = SphericalSpider([Strand()]*3).vertex()
+            sage: u.glue(v,0).is_connected()
             True
         """
         return len(self.cp) == len(self.canonical()[0])
@@ -750,29 +749,29 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: u = SphericalSpider('plain').vertex(3)
-            #sage: u.components()
-            (The plain spherical web with c = (1, 2, 0) and e = ().,
-            A closed plain spherical web with 0 edges.)
-            #sage: u.glue(u,0)
-            The plain spherical web with c = (1, 2, 0, 4, 5, 3) and e = ().
-            #sage: u.glue(u,0).components()
-            (The plain spherical web with c = (1, 2, 0, 4, 5, 3) and e = ().,
-            A closed plain spherical web with 0 edges.)
+            sage: u = SphericalSpider([Strand()]*3).vertex()
+            sage: u.components()
+            (The spherical web with c = (1, 2, 0) and e = ().,
+            A closed spherical web with 0 edges.)
+            sage: u.glue(u,0)
+            The spherical web with c = (1, 2, 0, 4, 5, 3) and e = ().
+            sage: u.glue(u,0).components()
+            (The spherical web with c = (1, 2, 0, 4, 5, 3) and e = ().,
+            A closed spherical web with 0 edges.)
         """
-        Dn = {a:halfedge(a.strand) for a in self.boundary}
-        for a in self._traversal(self.boundary[0]):
+        Dn = {a:halfedge(a.strand) for a in self.b}
+        for a in self._traversal(self.b[0]):
             Dn[a] = halfedge(a.strand)
 
         cn = {Dn[a]:Dn[self.cp[a]] for a in self.cp}
         en = {Dn[a]:Dn[self.e[a]] for a in self.e}
-        bn = [Dn[a] for a in self.boundary]
-        wb = SphericalWeb(self.parent(), cn, en, bn)
+        bn = [Dn[a] for a in self.b]
+        wb = SphericalWeb(cn, en, bn)
 
         Dc = {a:halfedge(a.strand) for a in self.cp if not a in Dn}
         cc = {Dc[a]:Dc[self.cp[a]] for a in Dc}
         ec = {Dc[a]:Dc[self.e[a]] for a in Dc}
-        wc = SphericalWeb(self.parent(), cc, ec, [])
+        wc = SphericalWeb(cc, ec, [])
 
         return wb, wc
 
@@ -788,15 +787,15 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: u = SphericalSpider('plain').vertex(3)
-            #sage: u.is_decomposable()
+            sage: u = SphericalSpider([Strand()]*3).vertex()
+            sage: u.is_decomposable()
             False
-            #sage: u.glue(u,0).is_decomposable()
+            sage: u.glue(u,0).is_decomposable()
             True
         """
-        if len(self.boundary) == 0:
+        if len(self.b) == 0:
             raise ValueError("not implemented for a closed web")
-        return len(self.cp) != len(list(self._traversal(self.boundary[0])))+1
+        return len(self.cp) != len(list(self._traversal(self.b[0])))+1
 
     def is_separable(self):
         r"""
@@ -807,8 +806,9 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: S.vertex(4).glue(S.vertex(2),2).is_separable()
+            sage: u = SphericalSpider([Strand()]*2).vertex()
+            sage: v = SphericalSpider([Strand()]*4).vertex()
+            sage: v.glue(u,2).is_separable()
             True
         """
         from itertools import product
@@ -823,10 +823,11 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: S.vertex(4).glue(S.vertex(2),2).is_simple()
+            sage: u = SphericalSpider([Strand()]*2).vertex()
+            sage: v = SphericalSpider([Strand()]*4).vertex()
+            sage: v.glue(u,2).is_simple()
             False
-            #sage: S.vertex(4).glue(S.vertex(4),2).is_simple()
+            sage: v.glue(v,2).is_simple()
             False
         """
         return all(len(x)>2 for x in self.faces())
@@ -837,8 +838,7 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: S.vertex(3).to_graph()
+            sage: SphericalSpider([Strand()]*3).vertex().to_graph()
             Graph on 3 vertices
             #sage: S.polygon([S.vertex(3)]*3).to_graph()
             Graph on 9 vertices
@@ -856,7 +856,7 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: SphericalSpider('plain').vertex(3).show()
+            sage: SphericalSpider([Strand()]*3).vertex().show()
             Graphics object consisting of 4 graphics primitives
         """
         return self.to_graph().plot(vertex_labels=False)
@@ -875,8 +875,8 @@ class SphericalWeb(Element):
             #sage: len(S.polygon([S.vertex(3)]*3)._layout())
             6
 
-            #sage: u = S.vertex(3)
-            #sage: len(u.glue(u,1)._layout())
+            sage: u = SphericalSpider([Strand()]*3).vertex()
+            sage: len(u.glue(u,1)._layout())
             5
 
             If the graph is not simple the diagram will degenerate.
@@ -886,7 +886,7 @@ class SphericalWeb(Element):
 
             If there are no boundary points only the boundary circle is drawn.
 
-            #sage: S.loop()._layout()
+            sage: SphericalSpider([]).loop(Strand())._layout()
             set()
         """
         from sage.matrix.all import matrix
@@ -895,7 +895,7 @@ class SphericalWeb(Element):
 
         vt = list(self.vertices())
         nv = len(vt)
-        d = len(self.boundary)
+        d = len(self.b)
         M = matrix(nv,nv)
         for i,u in enumerate(vt):
             M[i,i] = len(u)
@@ -905,14 +905,14 @@ class SphericalWeb(Element):
                     M[i,j] = -len(x.intersection(set(v)))
 
         U = matrix(nv,1,0.0)
-        for i,b in enumerate(self.boundary):
+        for i,b in enumerate(self.b):
             x = cos(2*pi*i/d).n()
             for j,v in enumerate(vt):
                 if b in v:
                     U[j,0] = U[j,0] + x
 
         V = matrix(nv,1,0.0)
-        for i,b in enumerate(self.boundary):
+        for i,b in enumerate(self.b):
             y = sin(2*pi*i/d).n()
             for j,v in enumerate(vt):
                 if b in v:
@@ -923,7 +923,7 @@ class SphericalWeb(Element):
 
         result = set()
         for i,u in enumerate(vt):
-            for j,b in enumerate(self.boundary):
+            for j,b in enumerate(self.b):
                 if self.cp[b] in u:
                     x = cos(2*pi*j/d).n()
                     y = sin(2*pi*j/d).n()
@@ -983,11 +983,10 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: u = S.vertex(3)
-            #sage: S.polygon([u]*3)._latex_()
+            sage: u = SphericalSpider([Strand()]*3).vertex()
+            sage: SphericalSpider([]).polygon([u]*3)._latex_()
             ...
-            #sage: u.glue(u,1)._latex_()
+            sage: u.glue(u,1)._latex_()
             ...
 
             If the graph is not simple the diagram will degenerate.
@@ -997,7 +996,7 @@ class SphericalWeb(Element):
 
             If there are no boundary points only the boundary circle is drawn.
 
-            #sage: S.loop()._latex_()
+            sage: SphericalSpider([]).loop(Strand())._latex_()
             '\\begin{tikzpicture}\n\\draw (0,0) circle (1cm);\n\\end{tikzpicture}\n'
 
         TODO::
@@ -1024,17 +1023,14 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: u = S.vertex(3)
-            #sage: len(list(S.polygon([u]*4).search(u)))
+            sage: u = SphericalSpider([Strand()]*3).vertex()
+            sage: len(list(SphericalSpider([]).polygon([u]*4).search(u)))
             12
 
         TODO::
 
             This should be rewritten to use :meth:``_traversal``.
         """
-        if self.parent() != h.parent():
-            raise ValueError(f"the two parents {self.parent()} and {h.parent()} are different")
 
         def test(x):
             flag = True
@@ -1072,7 +1068,7 @@ class SphericalWeb(Element):
         c = h.cp
         e = h.e
         for x in self.cp:
-            Dm = {h.boundary[0]:x}
+            Dm = {h.b[0]:x}
             if test(x):
                 assert [ a for a in c if not (a in Dm) ] == [], "Mapping is not fully defined."
                 if len(set(Dm.values())) == len(Dm):
@@ -1084,12 +1080,11 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider('plain')
-            #sage: h = S.vertex(3)
-            #sage: g = S.polygon([h]*3)
-            #sage: D = next(g.search(h))
-            #sage: g.replace(g,D,h)
-            The plain spherical web with c = (3, 5, ... 12, 9) and e = (9, 10, ... 14, 13).
+            sage: h = SphericalSpider([Strand()]*3).vertex()
+            sage: g = SphericalSpider([]).polygon([h]*3)
+            sage: D = next(g.search(h))
+            sage: g.replace(g,D,h)
+            The spherical web with c = (3, 5, ... 12, 9) and e = (9, 10, ... 14, 13).
         """
         parent = self.parent()
         if parent != k.parent():
@@ -1097,9 +1092,9 @@ class SphericalWeb(Element):
         if parent != h.parent():
             raise ValueError(f"the two parents {self.parent()} and {h.parent()} are different")
 
-        hb = [a.strand for a in h.boundary]
-        kb = [a.strand.dual() for a in k.boundary]
-        if hb != kb:
+        if len(h.b) != len(k.b):
+            raise ValueError(f"boundaries of {k} and {h} must have the same length")
+        if any( u.dual().strand != v.strand for u,v in zip(h.b, k.b)):
             raise ValueError(f"boundaries of {k} and {h} must match")
 
         Ds = {a:halfedge(a.strand) for a in self.cp if not a in D.values()}
@@ -1110,22 +1105,22 @@ class SphericalWeb(Element):
         e = {Ds[a]:Ds[self.e[a]] for a in Ds if a in self.e and self.e[a] in Ds}
         e.update({Dk[a]:Dk[k.e[a]] for a in k.e})
 
-        Db = {x:y for x,y in zip(h.boundary,k.boundary)}
-        b = [None]*len(self.boundary)
-        for i,a in enumerate(self.boundary):
+        Db = {x:y for x,y in zip(h.b,k.b)}
+        b = [None]*len(self.b)
+        for i,a in enumerate(self.b):
             if a in Ds:
                 b[i] = Ds[a]
 
-        for a in h.boundary:
+        for a in h.b:
             if D[a] in self.e:
                 x = Ds[self.e[D[a]]]
                 y = Dk[Db[a]]
                 c, e = self._stitch(c,e,x,y)
             else:
-                i = self.boundary.index(D[a])
+                i = self.b.index(D[a])
                 b[i] = Dk[Db[a]]
 
-        return SphericalWeb(parent, c, e, b)
+        return SphericalWeb(c, e, b)
 
 #### End  of methods for rewriting ####
 
@@ -1255,15 +1250,15 @@ class SphericalSpider(UniqueRepresentation, Parent):
         e = reduce(lambda r, s: {**r, **s}, [a.e for a in corners])
 
         for u,v in zip(corners,corners[1:]):
-            x = u.boundary[-1]
-            y = v.boundary[0]
+            x = u.b[-1]
+            y = v.b[0]
             c,e = SphericalWeb._stitch(c,e,x,y)
 
-        x = corners[-1].boundary[-1]
-        y = corners[0].boundary[0]
+        x = corners[-1].b[-1]
+        y = corners[0].b[0]
         c,e = SphericalWeb._stitch(c,e,x,y)
 
-        b = sum([list(a.boundary[1:-1]) for a in corners],[])
+        b = sum([list(a.b[1:-1]) for a in corners],[])
         return SphericalWeb(c, e, b)
 
     @staticmethod
