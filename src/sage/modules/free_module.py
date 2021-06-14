@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Free modules
 
@@ -147,8 +148,41 @@ AUTHORS:
 """
 
 ###########################################################################
-#       Copyright (C) 2005, 2007 William Stein <wstein@gmail.com>
-#       Copyright (C) 2007, 2008 David Kohel <kohel@iml.univ-mrs.fr>
+#       Copyright (C) 2005-2009 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006      Joshua Kantor
+#       Copyright (C) 2006-2007 Gonzalo Tornaria
+#       Copyright (C) 2007-2008 David Kohel <kohel@iml.univ-mrs.fr>
+#       Copyright (C) 2007-2008 Robert Bradshaw
+#       Copyright (C) 2007-2014 Martin Albrecht
+#       Copyright (C) 2008      Craig Citro
+#       Copyright (C) 2008      Gary Furnish
+#       Copyright (C) 2008      Robert L. Miller
+#       Copyright (C) 2008      Michael Abshoff
+#       Copyright (C) 2008-2009 Carl Witty
+#       Copyright (C) 2008-2009 Mike Hansen
+#       Copyright (C) 2008-2010 Jason Grout
+#       Copyright (C) 2009      David Loeffler
+#       Copyright (C) 2009-2010 John H. Palmieri
+#       Copyright (C) 2010      Georg S. Weber
+#       Copyright (C) 2010      Florent Hivert
+#       Copyright (C) 2010      Nicolas M. Thiery
+#       Copyright (C) 2010      Niles Johnson
+#       Copyright (C) 2010-2012 Andrey Novoseltsev
+#       Copyright (C) 2010-2013 Simon King
+#       Copyright (C) 2011      Maarten Derickx
+#       Copyright (C) 2011-2012 Rob Beezer
+#       Copyright (C) 2011-2017 Jeroen Demeyer
+#       Copyright (C) 2012      Daniel Smertnig
+#       Copyright (C) 2013      Karl-Dieter Crisman
+#       Copyright (C) 2014      Wilfried Luebbe
+#       Copyright (C) 2014-2015 Peter Bruin
+#       Copyright (C) 2014-2018 Travis Scrimshaw
+#       Copyright (C) 2014-2019 Frédéric Chapoton
+#       Copyright (C) 2016      Daniel Krenn
+#       Copyright (C) 2017      Paolo Menegatti
+#       Copyright (C) 2017-2018 Simon Brandhorst
+#       Copyright (C) 2018      Erik M. Bray
+#       Copyright (C) 2020-2021 Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
