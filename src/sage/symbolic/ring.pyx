@@ -65,6 +65,21 @@ cdef class SymbolicRing(CommutativeRing):
         self._populate_coercion_lists_(convert_method_name='_symbolic_')
         self.symbols = {}
 
+    def _free_module_element_class_dense(self):
+        """
+        Return the element class to use for free modules over ``self``.
+
+        :meth:`sage.modules.free_module.element_class` invokes this method
+        for rings whose base ring is an instance of :class:`SymbolicRing`.
+
+        EXAMPLES::
+
+            sage: SR._free_module_element_class_dense()
+            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+        """
+        from sage.modules.vector_symbolic_dense import Vector_symbolic_dense
+        return Vector_symbolic_dense
+
     def __reduce__(self):
         """
         EXAMPLES::

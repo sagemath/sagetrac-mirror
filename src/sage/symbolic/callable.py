@@ -289,6 +289,19 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
         self._populate_coercion_lists_(coerce_list=[SR])
         self.symbols = SR.symbols  # Use the same list of symbols as SR
 
+    def _free_module_element_class_dense(self):
+        """
+        Return the element class to use for free modules over ``self``.
+
+        EXAMPLES::
+
+            sage: f(x) = 1
+            sage: f.parent()._free_module_element_class_dense()
+            <class 'sage.modules.vector_callable_symbolic_dense.Vector_callable_symbolic_dense'>
+        """
+        from sage.modules.vector_callable_symbolic_dense import Vector_callable_symbolic_dense
+        return Vector_callable_symbolic_dense
+
     def _coerce_map_from_(self, R):
         """
         EXAMPLES::

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Free modules
 
@@ -147,8 +148,41 @@ AUTHORS:
 """
 
 ###########################################################################
-#       Copyright (C) 2005, 2007 William Stein <wstein@gmail.com>
-#       Copyright (C) 2007, 2008 David Kohel <kohel@iml.univ-mrs.fr>
+#       Copyright (C) 2005-2009 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006      Joshua Kantor
+#       Copyright (C) 2006-2007 Gonzalo Tornaria
+#       Copyright (C) 2007-2008 David Kohel <kohel@iml.univ-mrs.fr>
+#       Copyright (C) 2007-2008 Robert Bradshaw
+#       Copyright (C) 2007-2014 Martin Albrecht
+#       Copyright (C) 2008      Craig Citro
+#       Copyright (C) 2008      Gary Furnish
+#       Copyright (C) 2008      Robert L. Miller
+#       Copyright (C) 2008      Michael Abshoff
+#       Copyright (C) 2008-2009 Carl Witty
+#       Copyright (C) 2008-2009 Mike Hansen
+#       Copyright (C) 2008-2010 Jason Grout
+#       Copyright (C) 2009      David Loeffler
+#       Copyright (C) 2009-2010 John H. Palmieri
+#       Copyright (C) 2010      Georg S. Weber
+#       Copyright (C) 2010      Florent Hivert
+#       Copyright (C) 2010      Nicolas M. Thiery
+#       Copyright (C) 2010      Niles Johnson
+#       Copyright (C) 2010-2012 Andrey Novoseltsev
+#       Copyright (C) 2010-2013 Simon King
+#       Copyright (C) 2011      Maarten Derickx
+#       Copyright (C) 2011-2012 Rob Beezer
+#       Copyright (C) 2011-2017 Jeroen Demeyer
+#       Copyright (C) 2012      Daniel Smertnig
+#       Copyright (C) 2013      Karl-Dieter Crisman
+#       Copyright (C) 2014      Wilfried Luebbe
+#       Copyright (C) 2014-2015 Peter Bruin
+#       Copyright (C) 2014-2018 Travis Scrimshaw
+#       Copyright (C) 2014-2019 Frédéric Chapoton
+#       Copyright (C) 2016      Daniel Krenn
+#       Copyright (C) 2017      Paolo Menegatti
+#       Copyright (C) 2017-2018 Simon Brandhorst
+#       Copyright (C) 2018      Erik M. Bray
+#       Copyright (C) 2020-2021 Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -7345,6 +7379,21 @@ def element_class(R, is_sparse):
         <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
         sage: sage.modules.free_module.element_class(P, is_sparse=False)
         <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+
+    Free modules over symbolic rings and rings whose base rings are symbolic rings::
+
+        sage: sage.modules.free_module.element_class(SR, is_sparse=False)
+        <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+        sage: SR_a_b = SR.subring(accepting_variables=('a', 'b')); SR_a_b
+        Symbolic Subring accepting the variables a, b
+        sage: sage.modules.free_module.element_class(SR_a_b, is_sparse=False)
+        <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+        sage: SR_const = SR.subring(no_variables=True); SR_const
+        Symbolic Constants Subring
+        sage: SR_poly_t = SR_const['t']; SR_poly_t
+        Univariate Polynomial Ring in t over Symbolic Constants Subring
+        sage: sage.modules.free_module.element_class(SR_poly_t, is_sparse=False)
+        <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
     """
     import sage.modules.vector_real_double_dense
     import sage.modules.vector_complex_double_dense
@@ -7368,12 +7417,13 @@ def element_class(R, is_sparse):
         return sage.modules.vector_real_double_dense.Vector_real_double_dense
     elif sage.rings.complex_double.is_ComplexDoubleField(R) and not is_sparse:
         return sage.modules.vector_complex_double_dense.Vector_complex_double_dense
-    elif sage.symbolic.ring.is_SymbolicExpressionRing(R) and not is_sparse:
-        import sage.modules.vector_symbolic_dense
-        return sage.modules.vector_symbolic_dense.Vector_symbolic_dense
-    elif sage.symbolic.callable.is_CallableSymbolicExpressionRing(R) and not is_sparse:
-        import sage.modules.vector_callable_symbolic_dense
-        return sage.modules.vector_callable_symbolic_dense.Vector_callable_symbolic_dense
+    elif ((sage.symbolic.ring.is_SymbolicExpressionRing(R)
+           or isinstance(R.base_ring(), sage.symbolic.ring.SymbolicRing))
+          and not is_sparse):
+        try:
+            return R._free_module_element_class_dense()
+        except (AttributeError, KeyError):
+            return R.base_ring()._free_module_element_class_dense()
     else:
         if is_sparse:
             return free_module_element.FreeModuleElement_generic_sparse

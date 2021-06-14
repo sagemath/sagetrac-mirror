@@ -47,6 +47,7 @@ from sage.manifolds.chart_func import ChartFunctionRing
 from sage.manifolds.calculus_method import CalculusMethod
 from sage.symbolic.expression import Expression
 from sage.ext.fast_callable import fast_callable
+from sage.modules.free_module_element import vector
 
 
 class Chart(UniqueRepresentation, SageObject):
@@ -1307,11 +1308,10 @@ class Chart(UniqueRepresentation, SageObject):
         TESTS::
 
             sage: type(f)
-            <class 'sage.manifolds.chart_func.MultiCoordFunction'>
+            <class 'sage.modules.free_module.FreeModule_ambient_with_category.element_class'>
 
         """
-        from sage.manifolds.chart_func import MultiCoordFunction
-        return MultiCoordFunction(self, expressions)
+        return vector(self.function_ring(), expressions)
 
 
 # *****************************************************************************
