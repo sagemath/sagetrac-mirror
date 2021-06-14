@@ -945,8 +945,6 @@ class LazyLaurentSeries(ModuleElement):
         if self.coefficient(-1) != 0:
             raise ValueError("Cannot integrate a Laurent series containing a monomial of the form 1/x")
 
-        # QQ = RationalField()
-        # R = self.change_ring(QQ).parent()
         R = self.parent()
         new_valuation = self._approximate_valuation + 1
         op = LazyLaurentSeriesOperator_integrate(self)
