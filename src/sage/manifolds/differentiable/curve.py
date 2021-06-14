@@ -539,7 +539,7 @@ class DifferentiableCurve(DiffMap):
         else:
             chart_pair = next(iter(self._coord_expression.keys()))
             # a chart is picked at random
-        coord_functions = self._coord_expression[chart_pair]._functions
+        coord_functions = self._coord_expression[chart_pair]
         n = codom._dim
         dict_subs = {canon_coord: t}
         coords = [coord_functions[i].expr().substitute(dict_subs)
