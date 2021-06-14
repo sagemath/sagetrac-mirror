@@ -1050,9 +1050,7 @@ class ContinuousMap(Morphism):
             sage: latex(Phi.display(c_xy, c_cart))
             \begin{array}{llcl} \Phi:& S^2 & \longrightarrow & \RR^3
              \\ \mbox{on}\ U : & \left(x, y\right) & \longmapsto
-             & \left(X, Y, Z\right) = \left(\frac{2 \, x}{x^{2} + y^{2} + 1},
-               \frac{2 \, y}{x^{2} + y^{2} + 1},
-               \frac{x^{2} + y^{2} - 1}{x^{2} + y^{2} + 1}\right)
+             & \left(X, Y, Z\right) = \left(\frac{2 \, x}{x^{2} + y^{2} + 1},\,\frac{2 \, y}{x^{2} + y^{2} + 1},\,\frac{x^{2} + y^{2} - 1}{x^{2} + y^{2} + 1}\right)
              \end{array}
 
         If the argument ``chart2`` is not specified, the display is performed
@@ -1107,9 +1105,7 @@ class ContinuousMap(Morphism):
             sage: latex(Phi.display(c_xy, c_cart))
             \begin{array}{llcl} \Phi:& S^2 & \longrightarrow & \RR^3
              \\ \mbox{on}\ U : & \left(x, y\right) & \longmapsto
-             & \left(X, Y, Z\right) = \left(\frac{2 x}{x^{2} + y^{2} + 1},
-               \frac{2 y}{x^{2} + y^{2} + 1},
-               \frac{x^{2} + y^{2} - 1}{x^{2} + y^{2} + 1}\right)
+             & \left(X, Y, Z\right) = \left(\frac{2 x}{x^{2} + y^{2} + 1},\,\frac{2 y}{x^{2} + y^{2} + 1},\,\frac{x^{2} + y^{2} - 1}{x^{2} + y^{2} + 1}\right)
              \end{array}
 
         """
@@ -1227,7 +1223,7 @@ class ContinuousMap(Morphism):
             sage: Phi.coord_functions() # equivalent to above since 'uv' and 'xyz' are default charts
             Coordinate functions (u*v, u/v, u + v) on the Chart (M, (u, v))
             sage: type(Phi.coord_functions())
-            <class 'sage.manifolds.chart_func.MultiCoordFunction'>
+            <class 'sage.modules.free_module.FreeModule_ambient_with_category.element_class'>
 
         Coordinate representation in other charts::
 
