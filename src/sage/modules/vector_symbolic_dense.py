@@ -106,7 +106,23 @@ def apply_map(phi):
 
 
 class Vector_symbolic_dense(free_module_element.FreeModuleElement_generic_dense):
-    pass
+    """
+    A dense element of a module over a symbolic ring.
+    """
+
+    def __reduce__(self):
+        """
+        Provide pickling support.
+
+        TESTS::
+
+            sage: var('x,y')
+            (x, y)
+            sage: v = vector([sin(x)^2 + cos(x)^2, log(x*y), sin(x/(x^2 + x)), factorial(x+1)/factorial(x)])
+            sage: loads(dumps(v)) == v
+            True
+        """
+        return (self.__class__, (self.parent(), tuple(self), False, False))
 
 # Add elementwise methods.
 for method in ['simplify', 'simplify_factorial',
