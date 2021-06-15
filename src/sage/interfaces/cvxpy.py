@@ -67,7 +67,8 @@ def _cvxpy_Variable_sage_(self):
         sage: x = cp.Variable(5, name='x'); x
         Variable((5,))
         sage: x._sage_()
-        (x_0, x_1, x_2, x_3, x_4)
+        Coordinate functions (x_0, x_1, x_2, x_3, x_4)
+         on the Chart (dom_x, (x_0, x_1, x_2, x_3, x_4))
         sage: x._sage_().parent()
         Ambient free module of rank 5 over
          Ring of chart functions
@@ -108,7 +109,8 @@ def _cvxpy_Variable_sage_(self):
         sage: b = cp.Variable(10, boolean=True, name='b'); b
         Variable((10,), boolean=True)
         sage: b._sage_()
-        (b_0, b_1, b_2, b_3, b_4, b_5, b_6, b_7, b_8, b_9)
+        Coordinate functions (b_0, b_1, b_2, b_3, b_4, b_5, b_6, b_7, b_8, b_9)
+         on the Chart (amb_dom_b, (b_0, b_1, b_2, b_3, b_4, b_5, b_6, b_7, b_8, b_9))
         sage: b._sage_().parent()
         Ambient free module of rank 10
          over Ring of chart functions
@@ -263,10 +265,8 @@ def _cvxpy_MulExpression_sage_(self):
 
         sage: x = cp.Variable(5, name='x'); x
         Variable((5,))
-        sage: x._sage_()
-        (x_0, x_1, x_2, x_3, x_4)
         sage: s_x = x._sage_(); s_x
-        (x_0, x_1, x_2, x_3, x_4)
+        Coordinate functions (x_0, x_1, x_2, x_3, x_4) on the Chart (dom_x, (x_0, x_1, x_2, x_3, x_4))
         sage: x_dot_x = x @ x; x_dot_x
         Expression(UNKNOWN, UNKNOWN, ())
         sage: s_x_dot_x = x_dot_x._sage_(); s_x_dot_x
@@ -336,15 +336,16 @@ def _cvxpy_log1p_sage_(self):
 
         sage: x = cp.Variable(5, name='x'); x
         Variable((5,))
-        sage: x._sage_()
-        (x_0, x_1, x_2, x_3, x_4)
         sage: s_x = x._sage_(); s_x
-        (x_0, x_1, x_2, x_3, x_4)
+        Coordinate functions (x_0, x_1, x_2, x_3, x_4)
+         on the Chart (dom_x, (x_0, x_1, x_2, x_3, x_4))
 
         sage: log1p_x = cp.log1p(x); log1p_x
         Expression(CONCAVE, UNKNOWN, (5,))
         sage: s_log1p_x = log1p_x._sage_(); s_log1p_x
-        (log(x_0 + 1), log(x_1 + 1), log(x_2 + 1), log(x_3 + 1), log(x_4 + 1))
+        Coordinate functions (log(x_0 + 1), log(x_1 + 1), log(x_2 + 1),
+                              log(x_3 + 1), log(x_4 + 1))
+         on the Chart (dom_x, (x_0, x_1, x_2, x_3, x_4))
     """
     try:
         return self._sage_object
