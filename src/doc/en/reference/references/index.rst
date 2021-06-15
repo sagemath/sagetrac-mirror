@@ -95,9 +95,6 @@ REFERENCES:
              graphs and isoperimetric inequalities*, The Annals of Probability
              32 (2004), no.  3A, 1727-1745.
 
-.. [AC2009] \N. A'Campo,'Tete-a-tete graphs and geometric monodromy'
-              preprint, 2009.
-
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
               Transitive Closure of a Directed Graph.'
@@ -2625,19 +2622,13 @@ REFERENCES:
 .. [Gr2007] \J. Green, Polynomial representations of `GL_n`, Springer
             Verlag, 2007.
 
-<<<<<<< HEAD
 .. [Graham1985] \J. Graham,
                 *Modular representations of Hecke algebras and related algebras*.
                 PhD thesis, University of Sydney, 1985.
 
-.. [GriRei16] Darij Grinberg, Victor Reiner,
-              *Hopf Algebras in Combinatorics*,
-              :arxiv:`1409.8356v4`.
-=======
 .. [GriRei18] Darij Grinberg, Victor Reiner,
               *Hopf Algebras in Combinatorics*,
-              :arxiv:`1409.8356v5`.
->>>>>>> 7f8b361ca4 (Revert "Merge branch 'u/gh-baldursigurds/plumbing_graph' of git://trac.sagemath.org/sage into t/26945/plumbing_graph")
+              :arxiv:`1409.8356v6`.
 
 .. [GR1989] \A. M. Garsia, C. Reutenauer. *A decomposition of Solomon's
             descent algebra.* Adv. Math. **77** (1989).
@@ -4386,6 +4377,10 @@ REFERENCES:
              Proceedings of the National Academy of Sciences 36.1
              (1950): 48-49.
 
+.. [NSz2012] Némethi, András; Szilárd, Ágnes. Milnor fiber boundary of a
+             non-isolated surface singularity, volume 2037 of Lecture
+             Notes in Math. Springer, Heidelberg, 2012.
+
 .. [Neu1981] Walter D. Neumann, *A calculus for plumbing applied to the
              topology of complex surface singularities and degenerating
              complex curves*, Transactions of the American
@@ -4454,10 +4449,6 @@ REFERENCES:
             Vol. 47, number 2, pages 119--138,
             :doi:`10.1007/s00453-006-1225-y`,
             http://www.cs.uoi.gr/~stavros/C-Papers/C-2004-SODA.pdf
-
-.. [NSz2012] Némethi, András; Szilárd, Ágnes. Milnor fiber boundary of a
-             non-isolated surface singularity, volume 2037 of Lecture
-             Notes in Math. Springer, Heidelberg, 2012.
 
 .. [NWS2002] Newman, M.E.J., Watts, D.J. and Strogatz, S.H.  *Random
              graph models of social networks*. Proc. Nat. Acad. Sci. USA
