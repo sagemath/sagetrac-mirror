@@ -236,11 +236,82 @@ def _cvxpy_Variable_sage_(self):
     self._sage_object = sage_object
     return self._sage_object
 
+
+def _cvxpy_Constant_sage_(self):
+    r"""
+    Return an equivalent Sage object.
+
+    A CVXPY ``Constant`` becomes a constant expression, vector, or matrix.
+
+    Note that all constant values are inexact.  If exact constants are needed, use
+    parameters instead and substitute the exact value of the constant.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.cvxpy import cvxpy_init
+        sage: cvxpy_init()
+        sage: import cvxpy as cp
+
+    A scalar constant::
+
+        sage: print("possible deprecation warning"); a = cp.Constant(28/5); a
+        possible deprecation warning...
+        Constant(CONSTANT, NONNEGATIVE, ())
+        sage: s_a = a._sage_(); s_a
+        5.60000000000000
+        sage: s_a.parent()
+        Real Field with 53 bits of precision
+
+    A vector constant with shape ``(5,)``::
+
+        sage: x = cp.Constant([1/7, 2/7, 3/7, 4/7, 5/7]); x
+        Constant(CONSTANT, NONNEGATIVE, (5,))
+        sage: x._sage_()
+        (0.142857142857143, 0.285714285714286, 0.428571428571429, 0.571428571428571, 0.714285714285714)
+        sage: x._sage_().parent()
+        Vector space of dimension 5 over Real Field with 53 bits of precision
+
+    A matrix variable with shape ``(2, 3)``::
+
+        sage: A = cp.Constant([[1, 2, 3], [4, 5, 6]]); A
+        Constant(CONSTANT, NONNEGATIVE, (3, 2))
+        sage: A._sage_()
+        [1.00000000000000 4.00000000000000]
+        [2.00000000000000 5.00000000000000]
+        [3.00000000000000 6.00000000000000]
+        sage: A._sage_().parent()
+        Full MatrixSpace of 3 by 2 dense matrices over Real Field with 53 bits of precision
+    """
+    try:
+        return self._sage_object
+    except AttributeError:
+        pass
+
+    is_complex = any(self.attributes[key]
+                     for key in ('complex', 'hermitian', 'imag'))
+    if is_complex:
+        raise NotImplementedError
+
+    if self.ndim == 0:
+        self._sage_object = RR(self.value)
+    elif self.ndim == 1:
+        self._sage_object = vector(RR, self.value)
+    elif self.ndim == 2:
+        self._sage_object = matrix(RR, self.value)
+    else:
+        # As of CVXPY 1.1.13, higher shapes are not implemented
+        raise NotImplementedError
+
+    return self._sage_object
+
+
 # Binary operators
 
 def _cvxpy_MulExpression_sage_(self):
     r"""
     Return an equivalent Sage object.
+
+    EXAMPLES::
 
         sage: from sage.interfaces.cvxpy import cvxpy_init
         sage: cvxpy_init()
@@ -292,6 +363,8 @@ def _cvxpy_AddExpression_sage_(self):
     r"""
     Return an equivalent Sage object.
 
+    EXAMPLES::
+
         sage: from sage.interfaces.cvxpy import cvxpy_init
         sage: cvxpy_init()
         sage: import cvxpy as cp
@@ -327,6 +400,8 @@ def _cvxpy_AddExpression_sage_(self):
 def _cvxpy_log1p_sage_(self):
     r"""
     Return an equivalent Sage object.
+
+    EXAMPLES::
 
         sage: from sage.interfaces.cvxpy import cvxpy_init
         sage: cvxpy_init()
@@ -421,6 +496,8 @@ def cvxpy_init():
         pass
     Variable._sage_ = _cvxpy_Variable_sage_
 
+    from cvxpy.expressions.constants import Constant
+    Constant._sage_ = _cvxpy_Constant_sage_
 
     from cvxpy.atoms.affine.binary_operators import MulExpression
     MulExpression._sage_ = _cvxpy_MulExpression_sage_
