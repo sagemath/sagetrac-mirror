@@ -1294,7 +1294,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: S = SphericalSpider(tuple({}))
+            sage: S = SphericalSpider([])
             sage: pi = Permutation([5,3,4,9,7,8,10,6,1,2])
             sage: S.from_permutation(pi)
             The spherical web with c = (...) and e = (...).
@@ -1365,6 +1365,41 @@ class SphericalSpider(UniqueRepresentation, Parent):
             c.pop(x)
 
         return SphericalWeb(c,e,b)
+
+    @staticmethod
+    def from_Gauss_code(G):
+        r"""
+        Construct a knot diagram from A Gauss code.
+
+        EXAMPLES::
+
+            sage: SphericalSpider([]).from_Gauss_code([1,2,3,1,2,3])
+            A closed spherical web with 6 edges.
+
+            sage: G = [1, 2, 4, 5, 8, 1, 3, 4, 6, 7, 2, 3, 5, 6, 7, 8]
+            sage: SphericalSpider([]).from_Gauss_code(G)
+            A closed spherical web with 16 edges.
+        """
+        from sage.combinat.spherical_spider import halfedge
+        from sage.knots.gauss_code import recover_orientations
+        changed, positive, negative, ori = recover_orientations(G)
+
+        n = len(G)
+        h = [None]*(2*n)
+        for i in range(2*n):
+            h[i] = halfedge()
+
+        e = {h[2*i-1]: h[2*i] for i in range(n)}
+        e.update({h[2*i]: h[2*i-1] for i in range(n)})
+
+        c = dict([])
+        for r, s in positive:
+            c.update({h[2*r]:h[2*s+1], h[2*s+1]:h[2*s], h[2*s]:h[2*r+1], h[2*r+1]:h[2*r]})
+
+        for r, s in negative:
+            c.update({h[2*r]:h[2*r+1], h[2*r+1]:h[2*s], h[2*s]:h[2*s+1], h[2*s+1]:h[2*r]})
+
+        return SphericalWeb(c,e,[])
 
 #### End of Parent ####
 
