@@ -833,10 +833,10 @@ class Lattice_generic(FreeModule_generic):
 
     def diagonal_embedding(self):
         """
-        Return the diagonal embedding into the direct sum of the lattice with itself. 
+        Return the diagonal embedding into the direct sum of the lattice with itself.
 
         EXAMPLES::
-            
+
             sage: L = GLattice([2, 2])
             sage: h = L.diagonal_embedding(); h
             Lattice morphism defined by the left action of the matrix
@@ -864,7 +864,7 @@ class Lattice_generic(FreeModule_generic):
 
     def surjection_from_square(self):
         """
-        Return the natural map from the direct sum of the lattice with itself given by sending the direct sum 
+        Return the natural map from the direct sum of the lattice with itself given by sending the direct sum
         to the sum.
 
         EXAMPLES::
@@ -1256,7 +1256,7 @@ class Lattice_generic(FreeModule_generic):
         INPUT:
 
         - ``lat`` -- lattice we wish to sum with the current lattice.
-        
+
         - ``param`` -- parameter to determine if we want to compute the interior or exterior direct sum.
           The two possible choices are ``interior`` and ``exterior``. It is by default ``interior``, which requires
           the two lattices to be acted on by the same group.

@@ -51,7 +51,7 @@ This torus is obtained from the sublattice of the first lattice `L`. The torus o
 One can define an algebraic torus form a number field. We can compute restriction of scalars.
 
 ::
-    
+
     sage: from sage.schemes.group_schemes.tori import RestrictionOfScalars
     sage: x = polygen(QQ);  K.<a> = NumberField(x^8 + 68*x^6 + 986*x^4 + 4624*x^2 + 4624)
     sage: RestrictionOfScalars(K)
@@ -84,7 +84,7 @@ Methods of a Torus
 
 - :meth:`AlgebraicTorus.rank` -- the rank of the torus.
 
-- :meth:`AlgebraicTorus.galois_group` -- the Galois group (as abstract group)   of a splitting field of the torus.
+- :meth:`AlgebraicTorus.galois_group` -- the Galois group (as abstract group) of a splitting field of the torus.
 
 - :meth:`AlgebraicTorus.character_lattice` -- the character lattice of the torus.
 
@@ -126,16 +126,15 @@ from sage.modules.glattice import GLattice
 from sage.misc.lazy_attribute import lazy_attribute
 
 
-
-def RestrictionOfScalars(nfield, rk = 1):
-    """
-    Create the torus defined by restriction of scalars of a split torus to the field of rational numbers.
+def RestrictionOfScalars(field, rk=1):
+    r"""
+    Create the torus defined by restriction of scalars of a split torus to the base field (rationals, rational function field, `\QQ_p` or ``GF(p)``).
 
     INPUT:
 
-    - ``nfield`` -- Number field corresponding to the restriction of scalars.
+    - ``field`` -- Field extension over which the restriction of scalars is taken.  Usually a number field, function field, p-adic extension field or finite field.
 
-    - ``rk`` -- rank (default ``1``) of the split torus of which we take the restriction of scalars. 
+    - ``rk`` -- rank (default ``1``) of the split torus of which we take the restriction of scalars.
 
     EXAMPLES::
 
@@ -151,36 +150,38 @@ def RestrictionOfScalars(nfield, rk = 1):
         sage: T3 = RestrictionOfScalars(K,3); T3
         Algebraic torus of rank 12 over Rational Field split by a degree 4 extension
 
-    The construction also works for non-Galois fields.
+    The construction also works for non-Galois fields::
 
-    ::
-
-        sage: from sage.schemes.group_schemes.tori import RestrictionOfScalars          
-        sage: x = polygen(QQ);  K.<a> = NumberField(x^4 - x^3 + 3*x^2 - 2*x + 4)        
-        sage: RestrictionOfScalars(K)                                                   
+        sage: x = polygen(QQ);  K.<a> = NumberField(x^4 - x^3 + 3*x^2 - 2*x + 4)
+        sage: RestrictionOfScalars(K)
         Algebraic torus of rank 4 over Rational Field split by a degree 8 extension
 
+    and over finite fields::
+
+        sage: RestrictionOfScalars(GF(9))
+        Algebraic torus of rank 2 over Finite Field of size 3 split by a degree 2 extension
     """
-    if nfield.is_galois():
-        L = GLattice(rk).induced_lattice(nfield.galois_group())
+    if field.is_galois():
+        L = GLattice(rk).induced_lattice(field.galois_group())
         return AlgebraicTorus(L)
-    else: 
-        G = nfield.galois_group()
+    else:
+        G = field.galois_group()
         oG = G.order()
-        oF = nfield.degree()
-        subG = [h for h in G.conjugacy_classes_subgroups() if oG/h.order() == oF and not(h.is_normal())]
+        oF = field.degree()
+        subG = [h for h in G.conjugacy_classes_subgroups() if oG/h.order() == oF and not h.is_normal()]
         for H in subG:
-            if True in [h(e) == G.identity()(e) for e in nfield.gens() for h in H.gens()]:
+            if any(h(e) == G.identity()(e) for e in field.gens() for h in H.gens()):
                 L = GLattice(H, rk).induced_lattice(G)
                 return AlgebraicTorus(L)
 
-def NormOneRestrictionOfScalars(nfield, rk = 1):
-    """
-    Create the torus of norm one elements inside the restriction of scalars of a split torus to the field of rational numbers.
+
+def NormOneRestrictionOfScalars(field, rk=1):
+    r"""
+    Create the torus of norm one elements inside the restriction of scalars of a split torus to the base field (rationals, rational function field, `\QQ_p` or ``GF(p)``).
 
     INPUT:
 
-    - ``nfield`` -- Number field corresponding to the restriction of scalars.
+    - ``field`` -- Field extension over which the restriction of scalars is taken.  Usually a number field, function field, p-adic extension field or finite field.
 
     - ``rk`` -- rank (default ``1``) of the split torus of which we take the restriction of scalars.
 
@@ -198,31 +199,30 @@ def NormOneRestrictionOfScalars(nfield, rk = 1):
         sage: T3 = NormOneRestrictionOfScalars(K,3); T3
         Algebraic torus of rank 9 over Rational Field split by a degree 4 extension
 
-    The construction also works for non-Galois fields.
+    The construction also works for non-Galois fields::
 
-    ::
-
-        sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars   
-        sage: x = polygen(QQ);  K.<a> = NumberField(x^4 - x^3 + 3*x^2 - 2*x + 4)        
-        sage: NormOneRestrictionOfScalars(K)                                            
+        sage: x = polygen(QQ);  K.<a> = NumberField(x^4 - x^3 + 3*x^2 - 2*x + 4)
+        sage: NormOneRestrictionOfScalars(K)
         Algebraic torus of rank 3 over Rational Field split by a degree 8 extension
-    """
 
-    
-    if nfield.is_galois():
-        L = GLattice(rk).norm_one_restriction_of_scalars(nfield.galois_group())
+    and for finite fields::
+
+        sage: NormOneRestrictionOfScalars(GF(9))
+        Algebraic torus of rank 1 over Finite Field of size 3 split by a degree 2 extension
+    """
+    if field.is_galois():
+        L = GLattice(rk).norm_one_restriction_of_scalars(field.galois_group())
         return AlgebraicTorus(L)
-    else: 
-        G = nfield.galois_group()
+    else:
+        G = field.galois_group()
         oG = G.order()
-        oF = nfield.degree()
+        oF = field.degree()
         l = []
         subG = [h for h in G.conjugacy_classes_subgroups() if oG/h.order() == oF and not(h.is_normal())]
         for H in subG:
-            if True in [h(e) == G.identity()(e) for e in nfield.gens() for h in H.gens()]:
+            if any(h(e) == G.identity()(e) for e in field.gens() for h in H.gens()):
                 L = GLattice(H, rk).norm_one_restriction_of_scalars(G)
                 return AlgebraicTorus(L)
-
 
 
 class AlgebraicTorus(Scheme):
@@ -237,7 +237,7 @@ class AlgebraicTorus(Scheme):
     """
     def __init__(self, lattice):
         r"""
-        Construct an object of the albegraic torus class.
+        Construct an object of the algebraic torus class.
 
         EXAMPLES::
 
@@ -249,8 +249,6 @@ class AlgebraicTorus(Scheme):
         Scheme.__init__(self)
         self._galois_group = lattice.group()
         self._lattice = lattice
-
-
 
     def _repr_(self):
         r"""
@@ -275,7 +273,7 @@ class AlgebraicTorus(Scheme):
         else:
             s = "Algebraic"
         s += " torus of rank %s" % self.rank()
-        if not(self._base_field is None):
+        if self._base_field is not None:
             s += " over %s" % (self._base_field)
         if not split:
             s += " split by a degree %s extension" % self.splitting_degree()
@@ -311,15 +309,15 @@ class AlgebraicTorus(Scheme):
     @lazy_attribute
     def _top_field(self):
         """
-        The top field of the Galois group acting on the torus. 
+        The top field of the Galois group acting on the torus.
 
         EXAMPLES::
 
-            sage: L.<a , b , c , d> = NumberField([x^2-5, x^2-29 , x^2-109 , x^2-281]) 
-            sage: K = L.absolute_field('e')                                                
-            sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars   
-            sage: T = NormOneRestrictionOfScalars(K)                                        
-            sage: T._top_field == K                                                         
+            sage: L.<a , b , c , d> = NumberField([x^2-5, x^2-29 , x^2-109 , x^2-281])
+            sage: K = L.absolute_field('e')
+            sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars
+            sage: T = NormOneRestrictionOfScalars(K)
+            sage: T._top_field == K
             True
         """
         return self._galois_group.top_field()
@@ -329,65 +327,60 @@ class AlgebraicTorus(Scheme):
         """
         The splitting field of the algebraic torus.
 
+        This is the minimal Galois extension of the base field so that the induced action
+        on the character lattice is trivial.
+
         EXAMPLES::
 
-            sage: L.<a , b> = NumberField([x^2-5, x^2-3]) 
-            sage: K = L.absolute_field('e')                                                
-            sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars   
-            sage: T1 = NormOneRestrictionOfScalars(K)                                       
-            sage: T1._splitting_field                                                       
+            sage: L.<a , b> = NumberField([x^2-5, x^2-3])
+            sage: K = L.absolute_field('e')
+            sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars
+            sage: T1 = NormOneRestrictionOfScalars(K)
+            sage: T1._splitting_field
             Number Field in e with defining polynomial x^4 - 16*x^2 + 4
-            sage: G = T1.galois_group()                                                     
-            sage: H = G.subgroup([G.gens()[0]])                                             
-            sage: lat1 = GLattice(G, 1)                                                     
-            sage: lat2 = GLattice(H, 1).induced_lattice(G)                                  
-            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus                
-            sage: T2 = AlgebraicTorus(lat1); T2                                             
+            sage: G = T1.galois_group()
+            sage: H = G.subgroup([G.gens()[0]])
+            sage: lat1 = GLattice(G, 1)
+            sage: lat2 = GLattice(H, 1).induced_lattice(G)
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
+            sage: T2 = AlgebraicTorus(lat1); T2
             Split algebraic torus of rank 1 over Rational Field
-            sage: T3 = AlgebraicTorus(lat2); T3                                             
+            sage: T3 = AlgebraicTorus(lat2); T3
             Algebraic torus of rank 2 over Rational Field split by a degree 2 extension
-            sage: T2._splitting_field                                                       
+            sage: T2._splitting_field
             Rational Field
-            sage: T3._top_field                                                             
+            sage: T3._top_field
             Number Field in e with defining polynomial x^4 - 16*x^2 + 4
-            sage: T3._splitting_field                                                       
+            sage: T3._splitting_field
             Number Field in e0 with defining polynomial x^2 - 3 with e0 = 1/4*e^3 - 7/2*e
         """
-
         ker = self.character_lattice().action_kernel()
         if ker.order() == 1:
-            return self._top_field
-        field = ker.fixed_field()[0]
-        if field.degree() == 1:
-            from sage.rings.rational_field import QQ
-            return QQ
-        else:
-            return field
-
+            # In this case the splitting field is the full splitting field for the group.
+            return self._galois_group.splitting_field()
+        return ker.fixed_field()[0]
 
     @lazy_attribute
     def _base_field(self):
         """
-        The field of definition of the torus. 
+        The field of definition of the torus.
 
         EXAMPLES::
 
-            sage: L.<a , b , c , d> = NumberField([x^2-5, x^2-29 , x^2-109 , x^2-281]) 
-            sage: K = L.absolute_field('e')                                               
-            sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars   
-            sage: T = NormOneRestrictionOfScalars(K)                                        
-            sage: T._base_field                                                             
+            sage: L.<a , b , c , d> = NumberField([x^2-5, x^2-29 , x^2-109 , x^2-281])
+            sage: K = L.absolute_field('e')
+            sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars
+            sage: T = NormOneRestrictionOfScalars(K)
+            sage: T._base_field
             Rational Field
         """
-        return self._galois_group._base
-
-        
+        return self._top_field.base_field()
 
     def splitting_degree(self):
         """
         The degree of the splitting field of the torus. It is used in :meth:`_repr_`.
 
-        EXAMPLES:: 
+        EXAMPLES::
 
             sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: G = QuaternionGroup()
@@ -451,37 +444,30 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES::
 
-            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
-            sage: K.<w> = QuadraticField(5); G = K.galois_group()
-            sage: Lat = GLattice(G, 1)
-            sage: T = AlgebraicTorus(Lat)
-            sage: T.is_rational([w, w])
-            False
-            sage: T.is_rational([1, 1])
+            sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars
+            sage: K.<w> = QuadraticField(5)
+            sage: T = NormOneRestrictionOfScalars(K)
+            sage: T.is_rational([(w-1)/2])
             True
-            sage: T.is_rational([1, w])
+            sage: T.is_rational([-1])
+            True
+            sage: T.is_rational([w])
+            False
+            sage: T.is_rational([2])
             False
         """
+        lat = self.cocharacter_lattice()
         if subgp is None:
-            elt = matrix(self.rank(), ruple)
-            res = elt
-            galgen = self.galois_group().gens()
-            for g in range(len(galgen)):
-                res = self.cocharacter_lattice()._action_matrices[g] * matrix(self.rank(), [galgen[g](x) for x in ruple])
-                if not res == elt:
-                    return False
-            return True
-
+            subgp = self.galois_group()
         else:
-            elt = matrix(self.rank(), ruple)
-            res = elt
-            hgen = subgp.gens()
-            colat = self.cocharacter_lattice().subgroup_lattice(subgp)
-            for g in range(len(hgen)):
-                res = colat._action_matrices[g] * matrix(self.rank(), [hgen[g](x) for x in ruple])
-                if not res == elt:
-                    return False
-            return True
+            lat = lat.subgroup_lattice(subgp)
+        elt = matrix(self.rank(), ruple)
+        gens = subgp.gens()
+        for g in range(len(gens)):
+            res = lat._action_matrices[g] * matrix(self.rank(), [gens[g](x) for x in ruple])
+            if res != elt:
+                return False
+        return True
 
     def character_lattice(self):
         r"""
@@ -565,7 +551,7 @@ class AlgebraicTorus(Scheme):
 
     def tate_cohomology(self, n):
         r"""
-        Gives the isomorphism type of the nth cohomology group using Tate-Nakayama duality. 
+        Gives the isomorphism type of the nth cohomology group using Tate-Nakayama duality.
         Only works when the base field is local.
 
         INPUT:
@@ -685,7 +671,15 @@ class AlgebraicTorus(Scheme):
             [ 0  0  0  0  0| 0  1  0  0  0  0], [ 0  0  0  0  0| 0  0  0  1  0  0]
             ]
         """
-        return AlgebraicTorus(self.character_lattice().direct_sum(torus.character_lattice()))
+        L = self.character_lattice()
+        M = torus.character_lattice()
+        G = L.group()
+        H = M.group()
+        if G is H:
+            return AlgebraicTorus(L.direct_sum(M))
+        if L._base_field is not M._base_field:
+            raise ValueError("Tori must be defined over the same field")
+        raise NotImplementedError("Product of tori only defined when they have the same splitting field")
 
     def restriction_of_scalars(self, group):
         r"""
@@ -693,7 +687,7 @@ class AlgebraicTorus(Scheme):
 
         INPUT:
 
-        - ``group`` -- the bigger group corresponding the the Galois group 
+        - ``group`` -- the bigger group corresponding the the Galois group
           of the splitting field over the subfield one wishes to restrict scalars.
 
         .. NOTE::
@@ -702,13 +696,13 @@ class AlgebraicTorus(Scheme):
             More concretely, if the torus is defined over K, splits over L, and
             is defined by the action of Gal(L/K) on its character lattice, then
             if one wants the restriction of scalars to a smaller field k,
-            one has to enter Gal(L/k) as argument of this method. This is because 
-            galois groups of relative extensions are not supported so far. For 
+            one has to enter Gal(L/k) as argument of this method. This is because
+            galois groups of relative extensions are not supported so far. For
             now the user has to input the Galois group of the relative extension
             as abstract group.
 
         EXAMPLES::
-            
+
             sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: L = GLattice(PermutationGroup([()]), 1)
             sage: T1 = AlgebraicTorus(L)
@@ -767,17 +761,17 @@ class AlgebraicTorus(Scheme):
     def Tamagawa_number(self, subgrps = []):
         """
         Computes the Tamagwa number of an algebraic torus.
-        
+
         INPUT:
 
         - ``subgrps`` -- To be used when the group is not the Galois group
           of some number field, but just a permutation group. In that case
-          this argument should be the list of ramified decomposition groups, 
+          this argument should be the list of ramified decomposition groups,
           which have to be manually added. If left blank, the method will assume
           that all decomposition groups are cyclic.
 
         EXAMPLES::
-            
+
             sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars
             sage: F.<a> = QuadraticField([2])
             sage: T = NormOneRestrictionOfScalars(F)
@@ -789,7 +783,7 @@ class AlgebraicTorus(Scheme):
             1
 
         ::
-            
+
             sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: G = QuaternionGroup()
             sage: Z = G.center()
