@@ -44,9 +44,17 @@ class CompParent(Parent, UniqueRepresentation):
             sage: from sage.tensor.modules.comp_parent import CompParent
             sage: C = CompParent(2)
             sage: C._repr_()
+            'Parent of 2-index components without symmetry'
 
         """
-        return f"Parent of {self._nid}-index components without symmetry"
+        prefix, suffix = self._repr_symmetry()
+        return f"Parent of " + prefix + f"{self._nid}-index components" + suffix
+
+    def _repr_symmetry(self):
+        r"""
+        Return a prefix and a suffix string describing the symmetry of ``self``.
+        """
+        return "", " without symmetry"
 
     def _element_constructor_(self, *args, **kwargs):
         r"""
@@ -95,7 +103,7 @@ class CompParent(Parent, UniqueRepresentation):
             sage: cp._check_indices([2,3], ranges)
             Traceback (most recent call last):
             ...
-            IndexError: index out of range: 3 not in [0, 2]
+            IndexError: index out of range: 3 not in range(0, 3)
             sage: cp._check_indices([1], ranges)
             Traceback (most recent call last):
             ...
@@ -188,7 +196,7 @@ class CompParent(Parent, UniqueRepresentation):
             sage: V = VectorSpace(QQ, 3)
             sage: r = range(V.dimension())
             sage: cp = CompParent(2)
-            sage: list(cp.non_redundant_index_generator(r, r))
+            sage: list(cp.non_redundant_index_generator((r, r)))
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0),
              (2, 1), (2, 2)]
             sage: r_start_1 = range(1, V.dimension() + 1)
@@ -240,113 +248,127 @@ class CompParentWithSym(CompParent):
     """
 
     @staticmethod
-    def __classcall_private__(cls, nb_indices, sym=None,
-                              antisym=None):
+    def __classcall_private__(cls, nb_indices, sym=None, antisym=None):
         r"""
         Determine the correct class to return based upon the input. In
         particular, convert lists of symmetries to tuples and delegate to
         parent with correct symmetry.
 
-        TESTS:
+        TESTS::
 
-
-
+            sage: from sage.tensor.modules.comp_parent import CompParent, CompParentWithSym
+            sage: CompParentWithSym(3) is CompParent(3)
+            True
+            sage: CompParentWithSym(5, sym=(3, 4),) is CompParentWithSym(5, sym=((4, 3),))
+            True
+            sage: CompParentWithSym(5, sym=((1, 2), (3, 4))) is CompParentWithSym(5, sym=((4, 3), (2, 1)))
+            True
         """
-        if sym is None and antisym is None:
-            raise TypeError("for components without symmetries, please use "
-                            "'CompParent' instead")
-        if sym is not None:
-            if any(len(s) == nb_indices for s in sym):
-                return CompParentFullySym(nb_indices)
-        if antisym is not None:
-            if any(len(s) == nb_indices for s in antisym):
-                return CompParentFullyAntiSym(nb_indices)
-        sym = tuple(sorted(sym))
-        antisym = tuple(sorted(antisym))
-        return super(cls, CompParentWithSym).__classcall__(cls, nb_indices,
-                                                           sym=sym, antisym=antisym)
-
-    Element = CompWithSym
-
-    def __init__(self, nb_indices, sym=None, antisym=None):
-        r"""
-
-        """
-        CompParent.__init__(self, nb_indices)
-        self._sym = []
-        if sym is not None and sym != []:
+        if sym:
             if isinstance(sym[0], (int, Integer)):
                 # a single symmetry is provided as a tuple or a range object;
                 # it is converted to a 1-item list:
                 sym = [tuple(sym)]
+            sym_list = []
             for isym in sym:
                 if len(isym) < 2:
                     raise IndexError("at least two index positions must be " +
                                      "provided to define a symmetry")
                 for i in isym:
-                    if i<0 or i>self._nid-1:
+                    if i < 0 or i > nb_indices:
                         raise IndexError("invalid index position: " + str(i) +
-                                         " not in [0," + str(self._nid-1) + "]")
-                self._sym.append(tuple(isym))
-        self._antisym = []
-        if antisym is not None and antisym != []:
+                                         " not in [0," + str(nb_indices) + "]")
+                sym_list.append(tuple(sorted(isym)))
+            sym = tuple(sorted(sym_list))
+        else:
+            sym = ()
+
+        if antisym:
             if isinstance(antisym[0], (int, Integer)):
                 # a single antisymmetry is provided as a tuple or a range
                 # object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
+            antisym_list = []
             for isym in antisym:
                 if len(isym) < 2:
                     raise IndexError("at least two index positions must be " +
                                      "provided to define an antisymmetry")
                 for i in isym:
-                    if i<0 or i>self._nid-1:
+                    if i < 0 or i > nb_indices:
                         raise IndexError("invalid index position: " + str(i) +
                                          " not in [0," + str(self._nid-1) + "]")
-                self._antisym.append(tuple(isym))
+                antisym_list.append(tuple(sorted(isym)))
+            antisym = tuple(sorted(antisym_list))
+        else:
+            antisym = ()
+
         # Final consistency check:
         index_list = []
-        for isym in self._sym:
-            index_list += isym
-        for isym in self._antisym:
-            index_list += isym
+        for isym in sym:
+            index_list += list(isym)
+        for isym in antisym:
+            index_list += list(isym)
         if len(index_list) != len(set(index_list)):
             # There is a repeated index position:
             raise IndexError("incompatible lists of symmetries: the same " +
                              "index position appears more then once")
 
-    def _repr_(self):
+        if not sym and not antisym:
+            return CompParent(nb_indices)
+
+        if sym:
+            if any(len(s) == nb_indices for s in sym):
+                return CompParentFullySym(nb_indices)
+
+        if antisym:
+            if any(len(s) == nb_indices for s in antisym):
+                return CompParentFullyAntiSym(nb_indices)
+
+        return super(cls, CompParentWithSym).__classcall__(cls, nb_indices,
+                                                           sym, antisym)
+
+    Element = CompWithSym
+
+    def __init__(self, nb_indices, sym, antisym):
+        r"""
+        TESTS::
+
+
+        """
+        super().__init__(nb_indices)
+        self._sym = sym
+        self._antisym = antisym
+
+    def _repr_symmetry(self):
         r"""
         Return a string representation of ``self``.
 
         EXAMPLES::
 
-            sage: from sage.tensor.modules.comp_parent import CompParent
+            sage: from sage.tensor.modules.comp_parent import CompParent, CompParentWithSym
             sage: cp = CompParent(2)
             sage: cp._repr_()
+            'Parent of 2-index components without symmetry'
 
             sage: from sage.tensor.modules.comp_parent import CompParentWithSym
-            sage: CompParentWithSym(4, sym=(0,1))
+            sage: cp = CompParentWithSym(4, sym=(0,1))
+            sage: cp._repr_()
+            'Parent of 4-index components, with symmetry on the index positions (0, 1)'
 
-            sage: CompParentWithSym(4, sym=(0,1), antisym=(2,3))
-
-
+            sage: cp = CompParentWithSym(4, sym=((0,1),), antisym=((2,3),))
+            sage: cp._repr_()
+            'Parent of 4-index components, with symmetry on the index positions (0, 1), with antisymmetry on the index positions (2, 3)'
         """
-        description = "Collection of "
-        description += str(self._nid)
-        if self._nid == 1:
-            description += "-index"
-        else:
-            description += "-indices"
-        description += " components"
+        description = ""
         for isym in self._sym:
             description += ", with symmetry on the index positions " + \
                            str(tuple(isym))
         for isym in self._antisym:
             description += ", with antisymmetry on the index positions " + \
                            str(tuple(isym))
-        return description
+        return "", description
 
-    @cached_method
+    @cached_method(key=lambda self, indices, ranges: (tuple(indices), tuple(ranges)))
     def _ordered_indices(self, indices, ranges):
         r"""
         Given a sequence of indices, return a sequence of indices with the indices
@@ -373,7 +395,7 @@ class CompParentWithSym(CompParent):
         EXAMPLES::
 
             sage: from sage.tensor.modules.comp_parent import CompParentWithSym
-            sage: cp = CompParentWithSym(4, sym=(0,1), antisym=(2,3))
+            sage: cp = CompParentWithSym(4, sym=((0,1),), antisym=((2,3),))
             sage: r = range(3)
             sage: ranges = (r, r, r, r)
             sage: cp._ordered_indices([0,1,1,2], ranges)
@@ -501,8 +523,8 @@ class CompParentWithSym(CompParent):
             sage: cp = CompParentFullyAntiSym(4)
             sage: list(cp.non_redundant_index_generator((r, r, r, r)))
             [(0, 1, 2, 3)]
-            sage: c = CompParentFullyAntiSym(5)
-            sage: list(cp.non_redundant_index_generator())  # nothing since c is identically zero in this case (for 5 > 4)
+            sage: cp = CompParentFullyAntiSym(5)
+            sage: list(cp.non_redundant_index_generator((r, r, r, r, r)))  # nothing since c is identically zero in this case (for 5 > 4)
             []
 
         """
@@ -564,9 +586,9 @@ class CompParentWithSym(CompParent):
         (1,2) in a set of components antisymmetric with respect to the indices
         in position (1,2)::
 
-            sage: from sage.tensor.modules.comp import CompWithSym
+            sage: from sage.tensor.modules.comp import Components
             sage: V = VectorSpace(QQ, 3)
-            sage: c = CompWithSym(QQ, V.basis(), 3, antisym=(1,2))
+            sage: c = Components(QQ, V.basis(), 3, antisym=(1,2))
             sage: c[0,0,1], c[0,0,2], c[0,1,2] = (1,2,3)
             sage: c[1,0,1], c[1,0,2], c[1,1,2] = (4,5,6)
             sage: c[2,0,1], c[2,0,2], c[2,1,2] = (7,8,9)
@@ -574,11 +596,11 @@ class CompParentWithSym(CompParent):
             [[[0, 1, 2], [-1, 0, 3], [-2, -3, 0]],
              [[0, 4, 5], [-4, 0, 6], [-5, -6, 0]],
              [[0, 7, 8], [-7, 0, 9], [-8, -9, 0]]]
-            sage: c1 = c.parent().swap_adjacent_indices(0,1,3)
-            sage: c._antisym   # c is antisymmetric with respect to the last pair of indices...
-            [(1, 2)]
-            sage: c1._antisym  #...while c1 is antisymmetric with respect to the first pair of indices
-            [(0, 1)]
+            sage: c1 = c.swap_adjacent_indices(0,1,3)
+            sage: c.parent()._antisym   # c is antisymmetric with respect to the last pair of indices...
+            ((1, 2),)
+            sage: c1.parent()._antisym  #...while c1 is antisymmetric with respect to the first pair of indices
+            ((0, 1),)
             sage: c[0,1,2]
             3
             sage: c1[1,2,0]
@@ -668,7 +690,11 @@ class CompParentFullySym(CompParentWithSym):
 
         """
         CompParentWithSym.__init__(self, nb_indices,
-                                   sym=range(nb_indices))
+                                   sym=(tuple(range(nb_indices)),),
+                                   antisym=())
+
+    def _repr_symmetry(self):
+        return "Fully symmetric ", ""
 
 class CompParentFullyAntiSym(CompParentWithSym):
     r"""
@@ -682,4 +708,8 @@ class CompParentFullyAntiSym(CompParentWithSym):
 
         """
         CompParentWithSym.__init__(self, nb_indices,
-                                   antisym=range(nb_indices))
+                                   sym=(),
+                                   antisym=(tuple(range(nb_indices)),))
+
+    def _repr_symmetry(self):
+        return "Fully antisymmetric ", ""

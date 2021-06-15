@@ -493,7 +493,7 @@ class Components_generic(Element):
         True
 
     """
-    def __init__(self, parent, ring, frame, output_formatter=None):
+    def __init__(self, parent, ring, frame, start_index=0, output_formatter=None):
         r"""
         TESTS::
 
@@ -504,17 +504,17 @@ class Components_generic(Element):
         """
         # For efficiency, no test is performed regarding the type and range of
         # the arguments:
-        dim = parent._dim
-        if len(frame) != dim:
-            raise TypeError('the {} must have dimension {}'.format(frame, dim))
+        dim = len(frame)
         # parent
         Element.__init__(self, parent)
         self._dim = dim
         self._nid = parent._nid
-        self._sindex = parent._sindex
+        self._sindex = start_index
         # element
         self._ring = ring
         self._frame = frame
+        r = range(start_index, dim + start_index)
+        self._ranges = tuple(r for x in frame)
         self._output_formatter = output_formatter
         self._comp = {} # the dictionary of components, with the index tuples
                         # as keys
@@ -530,14 +530,25 @@ class Components_generic(Element):
             sage: c._repr_()
             '2-indices components w.r.t. [1, 2, 3]'
 
+            sage: from sage.tensor.modules.comp import CompWithSym
+            sage: CompWithSym(ZZ, [1,2,3], 4, sym=(0,1))
+            4-indices components w.r.t. [1, 2, 3],
+             with symmetry on the index positions (0, 1)
+            sage: CompWithSym(ZZ, [1,2,3], 4, sym=(0,1), antisym=(2,3))
+            4-indices components w.r.t. [1, 2, 3],
+             with symmetry on the index positions (0, 1),
+             with antisymmetry on the index positions (2, 3)
+
+            sage: from sage.tensor.modules.comp import CompFullySym
+            sage: CompFullySym(ZZ, (1,2,3), 4)
+            Fully symmetric 4-indices components w.r.t. (1, 2, 3)
+
+            sage: from sage.tensor.modules.comp import CompFullyAntiSym
+            sage: CompFullyAntiSym(ZZ, (1,2,3), 4)
+            Fully antisymmetric 4-indices components w.r.t. (1, 2, 3)
         """
-        description = str(self._nid)
-        if self._nid == 1:
-            description += "-index"
-        else:
-            description += "-indices"
-        description += " components w.r.t. " + str(self._frame)
-        return description
+        prefix, suffix = self.parent()._repr_symmetry()
+        return prefix + f"{self._nid}-index components w.r.t. {self._frame}" + suffix
 
     def _new_instance(self, parent=None):
         r"""
@@ -661,7 +672,7 @@ class Components_generic(Element):
             ind = (indices,)
         else:
             ind = tuple(indices)
-        return parent._check_indices(ind)
+        return parent._check_indices(ind, self._ranges)
 
     def __getitem__(self, args):
         r"""
@@ -1763,15 +1774,13 @@ class Components_generic(Element):
                              "same starting index")
         if isinstance(other, CompWithSym):
             sym = []
-            if other._sym != []:
-                for s in other._sym:
-                    ns = tuple(s[i]+self._nid for i in range(len(s)))
-                    sym.append(ns)
+            for s in other.parent()._sym:
+                ns = tuple(s[i]+self._nid for i in range(len(s)))
+                sym.append(ns)
             antisym = []
-            if other._antisym != []:
-                for s in other._antisym:
-                    ns = tuple(s[i]+self._nid for i in range(len(s)))
-                    antisym.append(ns)
+            for s in other.parent()._antisym:
+                ns = tuple(s[i]+self._nid for i in range(len(s)))
+                antisym.append(ns)
             result = CompWithSym(self._ring, self._frame, self._nid + other._nid,
                                  self._sindex, self._output_formatter, sym,
                                  antisym)
@@ -2214,14 +2223,14 @@ class Components_generic(Element):
         max_len_antisym = 0 # maximum length of antisymmetries in the result
         if res_nid > 1:  # no need to search for symmetries if res_nid == 1
             if isinstance(self, CompWithSym):
-                s_sym = self._sym
-                s_antisym = self._antisym
+                s_sym = self.parent()._sym
+                s_antisym = self.parent()._antisym
             else:
                 s_sym = []
                 s_antisym = []
             if isinstance(other, CompWithSym):
-                o_sym = other._sym
-                o_antisym = other._antisym
+                o_sym = other.parent()._sym
+                o_antisym = other.parent()._antisym
             else:
                 o_sym = []
                 o_antisym = []
@@ -2921,36 +2930,6 @@ class CompWithSym(Components_generic):
         Components_generic.__init__(self, parent, ring, frame,
                                     output_formatter=output_formatter)
 
-    def _repr_(self):
-        r"""
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.tensor.modules.comp import CompWithSym
-            sage: CompWithSym(ZZ, [1,2,3], 4, sym=(0,1))
-            4-indices components w.r.t. [1, 2, 3],
-             with symmetry on the index positions (0, 1)
-            sage: CompWithSym(ZZ, [1,2,3], 4, sym=(0,1), antisym=(2,3))
-            4-indices components w.r.t. [1, 2, 3],
-             with symmetry on the index positions (0, 1),
-             with antisymmetry on the index positions (2, 3)
-
-        """
-        description = str(self._nid)
-        if self._nid == 1:
-            description += "-index"
-        else:
-            description += "-indices"
-        description += " components w.r.t. " + str(self._frame)
-        for isym in self._sym:
-            description += ", with symmetry on the index positions " + \
-                           str(tuple(isym))
-        for isym in self._antisym:
-            description += ", with antisymmetry on the index positions " + \
-                           str(tuple(isym))
-        return description
-
     def _ordered_indices(self, ind):
         r"""
         Given a set of indices, return a set of indices with the indices
@@ -2989,7 +2968,7 @@ class CompWithSym(Components_generic):
 
         """
         parent = self.parent()
-        return parent._ordered_indices(ind)
+        return parent._ordered_indices(ind, self._ranges)
 
     def __getitem__(self, args):
         r"""
@@ -3204,9 +3183,9 @@ class CompWithSym(Components_generic):
              [[0, 4, 5], [-4, 0, 6], [-5, -6, 0]],
              [[0, 7, 8], [-7, 0, 9], [-8, -9, 0]]]
             sage: c1 = c.swap_adjacent_indices(0,1,3)
-            sage: c._antisym   # c is antisymmetric with respect to the last pair of indices...
+            sage: c.parent()._antisym   # c is antisymmetric with respect to the last pair of indices...
             [(1, 2)]
-            sage: c1._antisym  #...while c1 is antisymmetric with respect to the first pair of indices
+            sage: c1.parent()._antisym  #...while c1 is antisymmetric with respect to the first pair of indices
             [(0, 1)]
             sage: c[0,1,2]
             3
@@ -4417,20 +4396,6 @@ class CompFullySym(CompWithSym):
         CompWithSym.__init__(self, parent, ring, frame,
                              output_formatter=output_formatter)
 
-    def _repr_(self):
-        r"""
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.tensor.modules.comp import CompFullySym
-            sage: CompFullySym(ZZ, (1,2,3), 4)
-            Fully symmetric 4-indices components w.r.t. (1, 2, 3)
-
-        """
-        return "Fully symmetric " + str(self._nid) + "-indices" + \
-              " components w.r.t. " + str(self._frame)
-
     def __getitem__(self, args):
         r"""
         Return the component corresponding to the given indices of ``self``.
@@ -4857,20 +4822,6 @@ class CompFullyAntiSym(CompWithSym):
         """
         CompWithSym.__init__(self, parent, ring, frame,
                              output_formatter=output_formatter)
-
-    def _repr_(self):
-        r"""
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.tensor.modules.comp import CompFullyAntiSym
-            sage: CompFullyAntiSym(ZZ, (1,2,3), 4)
-            Fully antisymmetric 4-indices components w.r.t. (1, 2, 3)
-
-        """
-        return "Fully antisymmetric " + str(self._nid) + "-indices" + \
-               " components w.r.t. " + str(self._frame)
 
     def __add__(self, other):
         r"""
