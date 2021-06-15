@@ -903,6 +903,69 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         return self._splitting_algebra
 
+
+    def field_embedding(self, characteristic=0):
+        r"""
+        EXAMPLES::
+
+            sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
+            sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
+            sage: ER.field_embedding()
+            Ring morphism:
+            From: Multivariate Laurent Polynomial Ring in a, b, c
+                    over Splitting Algebra of x^2 + x + 1 with roots [e3, -e3 - 1]
+                    over Integer Ring
+            To:   Fraction Field of Multivariate Polynomial Ring in a, b, c
+                    over Cyclotomic Field of order 3 and degree 2
+            Defn: a |--> a
+                  b |--> b
+                  c |--> c
+            with map of base ring
+
+            sage: ER.field_embedding(characteristic=5)
+            Ring morphism:
+            From: Multivariate Laurent Polynomial Ring in a, b, c
+                    over Splitting Algebra of x^2 + x + 1 with roots [e3, -e3 - 1]
+                    over Integer Ring
+            To:   Fraction Field of Multivariate Polynomial Ring in a, b, c
+                    over Finite Field in a of size 5^2
+            Defn: a |--> a
+                  b |--> b
+                  c |--> c
+            with map of base ring
+
+            sage: MER = ER.markov_trace_version()
+            sage: MER.field_embedding()
+            Ring morphism:
+            From: Multivariate Laurent Polynomial Ring in a, b, c, s
+                    over Splitting Algebra of x^2 + x + 1 with roots [e3, -e3 - 1]
+                    over Integer Ring
+            To:   Fraction Field of Multivariate Polynomial Ring in a, b, c, s
+                    over Cyclotomic Field of order 3 and degree 2
+            Defn: a |--> a
+                  b |--> b
+                  c |--> c
+                  s |--> s
+            with map of base ring
+        """
+        if characteristic == 0:
+            from sage.rings.number_field.number_field import CyclotomicField
+            C3 = CyclotomicField(3)
+            E3 = C3.gen()
+        else:
+            if not ZZ(characteristic).is_prime():
+                raise ValueError('characteristic must be a prime integer')
+            from sage.rings.finite_rings.finite_field_constructor import GF
+            from sage.misc.functional import cyclotomic_polynomial
+            G = GF(characteristic)
+            c3 = cyclotomic_polynomial(3).change_ring(G)
+            C3 = c3.splitting_field('a')
+            E3 = c3.change_ring(C3).roots()[0][0]
+
+        P = C3[self.variable_names()]
+        F = P.fraction_field()
+        return self.hom((F(E3),) + F.gens())
+
     def markov_trace_version(self):
         r"""
         EXAMPLES::
