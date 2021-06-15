@@ -261,34 +261,32 @@ def Components(ring, frame, nb_indices, start_index=0, output_formatter=None,
 
     """
     if sym is None and antisym is None:
-        parent = CompParent(len(frame), nb_indices, start_index=start_index)
+        parent = CompParent(nb_indices)
     else:
-        parent = CompParentWithSym(len(frame), nb_indices,
-                                   start_index=start_index, sym=sym,
-                                   antisym=antisym)
-    return parent(ring, frame, output_formatter=output_formatter)
+        parent = CompParentWithSym(nb_indices,
+                                   sym=sym, antisym=antisym)
+    return parent(ring, frame, start_index=start_index, output_formatter=output_formatter)
 
 def CompFullySym(ring, frame, nb_indices, start_index=0, output_formatter=None):
     r"""
 
     """
-    parent = CompParentFullySym(len(frame), nb_indices, start_index=start_index)
-    return parent(ring, frame, output_formatter=output_formatter)
+    parent = CompParentFullySym(nb_indices)
+    return parent(ring, frame, start_index=start_index, output_formatter=output_formatter)
 
 def CompFullyAntiSym(ring, frame, nb_indices, start_index=0,
                      output_formatter=None):
     r"""
 
     """
-    parent = CompParentFullyAntiSym(len(frame), nb_indices,
-                                    start_index=start_index)
-    return parent(ring, frame, output_formatter=output_formatter)
+    parent = CompParentFullyAntiSym(nb_indices)
+    return parent(ring, frame, start_index=start_index, output_formatter=output_formatter)
 
 @cached_function
 def KroneckerDelta(ring, frame, start_index=0, output_formatter=None):
     r"""
 
     """
-    parent = CompParentFullySym(len(frame), 2, start_index=start_index)
-    return CompKroneckerDelta(parent, ring, frame,
+    parent = CompParentFullySym(2)
+    return CompKroneckerDelta(parent, ring, frame, start_index=start_index,
                               output_formatter=output_formatter)
