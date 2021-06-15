@@ -4450,6 +4450,10 @@ REFERENCES:
             :doi:`10.1007/s00453-006-1225-y`,
             http://www.cs.uoi.gr/~stavros/C-Papers/C-2004-SODA.pdf
 
+.. [NSz2012] Némethi, András; Szilárd, Ágnes. Milnor fiber boundary of a
+             non-isolated surface singularity, volume 2037 of Lecture
+             Notes in Math. Springer, Heidelberg, 2012.
+
 .. [NWS2002] Newman, M.E.J., Watts, D.J. and Strogatz, S.H.  *Random
              graph models of social networks*. Proc. Nat. Acad. Sci. USA
              99:1 (2002), 2566-2572. :doi:`10.1073/pnas.012582999`
