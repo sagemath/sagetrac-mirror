@@ -14,6 +14,7 @@ CVXPY --> Sage conversion
 
 from sage.sets.real_set import RealSet
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.infinity import minus_infinity, infinity
 from sage.rings.real_mpfr import RR
 from sage.modules.free_module import VectorSpace
@@ -141,14 +142,17 @@ def _cvxpy_Variable_sage_(self):
     if self.ndim == 0:
         names = [name]
         ambient_model_space = RealSet(minus_infinity, infinity)
+        ambient_dim = 1
     elif self.ndim == 1:
         names = [f'{name}_{i}'
                  for i in range(self.shape[0])]
         ambient_model_space = VectorSpace(RR, self.shape[0])
+        ambient_dim = ambient_model_space.dimension()
     elif self.ndim == 2:
         names = [f'{name}_{i}_{j}'
                  for i in range(self.shape[0]) for j in range(self.shape[1])]
         ambient_model_space = MatrixSpace(RR, *self.shape)
+        ambient_dim = ambient_model_space.dimension()
     else:
         # As of CVXPY 1.1.13, higher shapes are not implemented
         raise NotImplementedError
@@ -207,7 +211,7 @@ def _cvxpy_Variable_sage_(self):
                 raise NotImplementedError
 
         if any(self.attributes[key] for key in ('nonneg', 'pos', 'nonpos', 'neg')):
-            actual_model_dom = cones.nonnegative_orthant(dim)
+            actual_model_dom = nonnegative_orthant(ambient_dim)
         elif any(self.attributes[key] for key in ('PSD', 'NSD')):
             actual_model_dom = PositiveSemidefiniteMatrices(ambient_model_space)
         else:
@@ -237,14 +241,72 @@ def _cvxpy_Variable_sage_(self):
     return self._sage_object
 
 
+def _cvxpy_Parameter_sage_(self):
+    r"""
+    Return an equivalent Sage object.
+
+    A CVXPY ``Parameter`` is converted as follows:
+
+    - the actual domain of the parameter is converted to a Riemannian manifold
+      (or a subset thereof) with a default chart corresponding to the entries
+      of the parameter;
+
+    - return a chart function, vector of chart functions, or matrix of chart
+      functions.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.cvxpy import cvxpy_init
+        sage: cvxpy_init()
+        sage: import cvxpy as cp
+
+    A scalar parameter::
+
+        sage: a = cp.Parameter(); a
+        Parameter(())
+        sage: s_a = a._sage_(); s_a
+        param6
+        sage: s_a.parent()
+        Ring of chart functions on Chart (dom_param6, (param6,))
+
+    The result is cached::
+
+        sage: s_a is a._sage_()
+        True
+
+    A vector parameter with shape ``(5,)``::
+
+        sage: x = cp.Parameter(5, name='x'); x
+        Parameter((5,))
+        sage: x._sage_()
+        Coordinate functions (x_0, x_1, x_2, x_3, x_4)
+         on the Chart (dom_x, (x_0, x_1, x_2, x_3, x_4))
+        sage: x._sage_().parent()
+        Ambient free module of rank 5 over
+         Ring of chart functions
+          on Chart (dom_x, (x_0, x_1, x_2, x_3, x_4))
+
+    A matrix parameter with shape ``(3, 2)``::
+
+        sage: print("possible deprecation warning"); A = cp.Parameter((3, 2), value=[[1, 2, 3], [4, 5, 6]], name='A'); A
+        possible deprecation warning...
+        Parameter((3, 2))
+        sage: A._sage_()
+        [A_0_0 A_0_1]
+        [A_1_0 A_1_1]
+        [A_2_0 A_2_1]
+        sage: A._sage_().parent()
+        Full MatrixSpace of 3 by 2 dense matrices over
+         Ring of chart functions
+          on Chart (dom_A, (A_0_0, A_0_1, A_1_0, A_1_1, A_2_0, A_2_1))
+    """
+    return _cvxpy_Variable_sage_(self)
+
 def _cvxpy_Constant_sage_(self):
     r"""
     Return an equivalent Sage object.
 
     A CVXPY ``Constant`` becomes a constant expression, vector, or matrix.
-
-    Note that all constant values are inexact.  If exact constants are needed, use
-    parameters instead and substitute the exact value of the constant.
 
     EXAMPLES::
 
@@ -271,7 +333,7 @@ def _cvxpy_Constant_sage_(self):
         sage: x._sage_().parent()
         Vector space of dimension 5 over Real Field with 53 bits of precision
 
-    A matrix variable with shape ``(2, 3)``::
+    A matrix variable with shape ``(3, 2)``::
 
         sage: A = cp.Constant([[1, 2, 3], [4, 5, 6]]); A
         Constant(CONSTANT, NONNEGATIVE, (3, 2))
@@ -281,6 +343,43 @@ def _cvxpy_Constant_sage_(self):
         [3.00000000000000 6.00000000000000]
         sage: A._sage_().parent()
         Full MatrixSpace of 3 by 2 dense matrices over Real Field with 53 bits of precision
+
+    Note that all constant values are inexact::
+
+        sage: x = cp.Variable(name='x')
+        sage: dblsqr = 2.0r * cp.square(x); dblsqr
+        Expression(CONVEX, NONNEGATIVE, ())
+        sage: dblsqr.is_convex()
+        True
+        sage: dblsqr.is_affine()
+        False
+        sage: s_dblsqr = dblsqr._sage_(); s_dblsqr
+        2.00000000000000*x^2
+
+    A workaround if exact constants are needed::
+
+        sage: const2 = cp.Constant(2)
+        sage: const2._sage_object = 2
+        sage: const2sqr = const2 * cp.square(x); const2sqr
+        Expression(CONVEX, NONNEGATIVE, ())
+        sage: const2sqr.is_convex()
+        True
+        sage: const2sqr.is_affine()
+        False
+        sage: s_const2sqr = const2sqr._sage_(); s_const2sqr
+        2*x^2
+
+    We could also try to use parameters instead and substitute the exact value of the constant::
+
+        sage: param2 = cp.Parameter(pos=True, name='param2')
+        sage: param2sqr = param2 * cp.square(x); param2sqr
+        Expression(CONVEX, NONNEGATIVE, ())
+        sage: param2sqr.is_convex()
+        True
+        sage: param2sqr.is_affine()
+        False
+        sage: s_param2sqr = param2sqr._sage_(); s_param2sqr    # not tested - pushout missing
+        sage: s_2sqr = s_param2sqr.subs(param2=2); s_2sqr      # not tested - pushout missing
     """
     try:
         return self._sage_object
@@ -439,6 +538,52 @@ def _cvxpy_log1p_sage_(self):
     return self._sage_object
 
 
+def _cvxpy_power_sage_(self):
+    r"""
+    Return an equivalent Sage object.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.cvxpy import cvxpy_init
+        sage: cvxpy_init()
+        sage: import cvxpy as cp
+
+    A vector variable with shape ``(5,)``::
+
+        sage: x = cp.Variable(5, name='x'); x
+        Variable((5,))
+        sage: s_x = x._sage_(); s_x
+        Coordinate functions (x_0, x_1, x_2, x_3, x_4)
+         on the Chart (dom_x, (x_0, x_1, x_2, x_3, x_4))
+
+    Testing ``cp.square``::
+
+        sage: square_x = cp.square(x); square_x
+        Expression(CONVEX, NONNEGATIVE, (5,))
+        sage: s_square_x = square_x._sage_(); s_square_x
+        Traceback (most recent call last):
+        ...
+        Coordinate functions (x_0^2, x_1^2, x_2^2, x_3^2, x_4^2) on the Chart (dom_x, (x_0, x_1, x_2, x_3, x_4))
+    """
+    try:
+        return self._sage_object
+    except AttributeError:
+        pass
+
+    arg = self.args[0]._sage_()
+    exponent = QQ(self.p_rational)
+
+    def m(x):
+        # FIXME: Implement the semantics described in https://www.cvxpy.org/api_reference/cvxpy.atoms.elementwise.html#power
+        return x ** exponent
+
+    try:
+        self._sage_object = arg.apply_map(m)
+    except AttributeError:
+        self._sage_object = m(arg)
+    return self._sage_object
+
+
 # Other atoms
 
 def _cvxpy_log_det_sage_(self):
@@ -496,8 +641,9 @@ def cvxpy_init():
         pass
     Variable._sage_ = _cvxpy_Variable_sage_
 
-    from cvxpy.expressions.constants import Constant
+    from cvxpy.expressions.constants import Constant, Parameter
     Constant._sage_ = _cvxpy_Constant_sage_
+    Parameter._sage_ = _cvxpy_Parameter_sage_
 
     from cvxpy.atoms.affine.binary_operators import MulExpression
     MulExpression._sage_ = _cvxpy_MulExpression_sage_
@@ -507,6 +653,9 @@ def cvxpy_init():
 
     from cvxpy.atoms.elementwise.log1p import log1p
     log1p._sage_ = _cvxpy_log1p_sage_
+
+    from cvxpy.atoms.elementwise.power import power
+    power._sage_ = _cvxpy_power_sage_
 
     from cvxpy.atoms.log_det import log_det
     log_det._sage_ = _cvxpy_log_det_sage_
