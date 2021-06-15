@@ -132,16 +132,17 @@ class CompParent(Parent, UniqueRepresentation):
 
             sage: from sage.tensor.modules.comp_parent import CompParent
             sage: V = VectorSpace(QQ,3)
+            sage: r = range(V.dimension())
             sage: cp = CompParent(1)
-            sage: ranges = (range(3),)
-            sage: list(c.index_generator(ranges))
+            sage: ranges = (r,)
+            sage: list(cp.index_generator(ranges))
             [(0,), (1,), (2,)]
             sage: ranges = (range(1, 4),)
-            sage: list(c.index_generator(ranges)
+            sage: list(cp.index_generator(ranges))
             [(1,), (2,), (3,)]
             sage: cp = CompParent(2)
-            sage: ranges = (range(3),)
-            sage: list(c.index_generator(ranges))
+            sage: ranges = (r, r)
+            sage: list(cp.index_generator(ranges))
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0),
              (2, 1), (2, 2)]
 
@@ -151,12 +152,12 @@ class CompParent(Parent, UniqueRepresentation):
             raise TypeError('need a range for every index')
         ind = [r.start for r in ranges]
         ind_end = [r.start for r in ranges]
-        ind_end[0] = range[0].stop
+        ind_end[0] = ranges[0].stop
         while ind != ind_end:
             yield tuple(ind)
             ret = 1
             for pos in range(self._nid-1, -1, -1):
-                if ind[pos] != ranges[pos].stop:
+                if ind[pos] != ranges[pos].stop - 1:
                     ind[pos] += ret
                     ret = 0
                 elif ret == 1:
@@ -183,17 +184,17 @@ class CompParent(Parent, UniqueRepresentation):
 
         Indices on a 3-dimensional vector space::
 
-            sage: from sage.tensor.modules.comp import Components
+            sage: from sage.tensor.modules.comp_parent import CompParent
             sage: V = VectorSpace(QQ, 3)
-            sage: c = Components(QQ, V.basis(), 2)
-            sage: list(c.non_redundant_index_generator())
+            sage: r = range(V.dimension())
+            sage: cp = CompParent(2)
+            sage: list(cp.non_redundant_index_generator(r, r))
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0),
              (2, 1), (2, 2)]
-            sage: c = Components(QQ, V.basis(), 2, start_index=1)
-            sage: list(c.non_redundant_index_generator())
+            sage: r_start_1 = range(1, V.dimension() + 1)
+            sage: list(cp.non_redundant_index_generator((r_start_1, r_start_1)))
             [(1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3), (3, 1),
              (3, 2), (3, 3)]
-
         """
         yield from self.index_generator(ranges)
 
@@ -320,13 +321,13 @@ class CompParentWithSym(CompParent):
         EXAMPLES::
 
             sage: from sage.tensor.modules.comp_parent import CompParent
-            sage: C = CompParent(3, 2)
-            sage: C._repr_()
+            sage: cp = CompParent(2)
+            sage: cp._repr_()
 
-            sage: from sage.tensor.modules.comp_parent import CompParentSym
-            sage: CompParentSym(3, 4, sym=(0,1))
+            sage: from sage.tensor.modules.comp_parent import CompParentWithSym
+            sage: CompParentWithSym(4, sym=(0,1))
 
-            sage: CompWithSym(3, 4, sym=(0,1), antisym=(2,3))
+            sage: CompParentWithSym(4, sym=(0,1), antisym=(2,3))
 
 
         """
@@ -372,16 +373,16 @@ class CompParentWithSym(CompParent):
         EXAMPLES::
 
             sage: from sage.tensor.modules.comp_parent import CompParentWithSym
-            sage: c = CompParentWithSym(4, sym=(0,1), antisym=(2,3))
+            sage: cp = CompParentWithSym(4, sym=(0,1), antisym=(2,3))
             sage: r = range(3)
             sage: ranges = (r, r, r, r)
-            sage: c._ordered_indices([0,1,1,2], ranges)
+            sage: cp._ordered_indices([0,1,1,2], ranges)
             (1, (0, 1, 1, 2))
-            sage: c._ordered_indices([1,0,1,2], ranges)
+            sage: cp._ordered_indices([1,0,1,2], ranges)
             (1, (0, 1, 1, 2))
-            sage: c._ordered_indices([0,1,2,1], ranges)
+            sage: cp._ordered_indices([0,1,2,1], ranges)
             (-1, (0, 1, 1, 2))
-            sage: c._ordered_indices([0,1,2,2], ranges)
+            sage: cp._ordered_indices([0,1,2,2], ranges)
             (0, None)
 
         """
@@ -417,7 +418,7 @@ class CompParentWithSym(CompParent):
         ind = tuple(ind)
         return (sign, ind)
 
-    def non_redundant_index_generator(self):
+    def non_redundant_index_generator(self, ranges):
         r"""
         Generator of indices, with only ordered indices in case of symmetries,
         so that only non-redundant indices are generated.
@@ -439,11 +440,11 @@ class CompParentWithSym(CompParent):
             sage: list(cp.non_redundant_index_generator((r, r)))
             [(0, 0), (0, 1), (1, 1)]
             sage: r_start_1 = range(1, V.dimension() + 1)
-            sage: list(cp.non_redundant_index_generator((r_start_1, r_start_1))
+            sage: list(cp.non_redundant_index_generator((r_start_1, r_start_1)))
             [(1, 1), (1, 2), (2, 2)]
 
             sage: cp = CompParentFullyAntiSym(2)
-            sage: list(c.non_redundant_index_generator((r, r)))
+            sage: list(cp.non_redundant_index_generator((r, r)))
             [(0, 1)]
 
         Indices on a 3-dimensional space::
@@ -455,7 +456,7 @@ class CompParentWithSym(CompParent):
             sage: list(cp.non_redundant_index_generator((r, r)))
             [(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)]
             sage: r_start_1 = range(1, V.dimension() + 1)
-            sage: list(cp.non_redundant_index_generator((r_start_1, r_start_1))
+            sage: list(cp.non_redundant_index_generator((r_start_1, r_start_1)))
             [(1, 1), (1, 2), (1, 3), (2, 2), (2, 3), (3, 3)]
 
             sage: cp = CompParentFullyAntiSym(2)
@@ -474,12 +475,12 @@ class CompParentWithSym(CompParent):
             [(0, 0, 1), (0, 0, 2), (0, 1, 2), (1, 0, 1), (1, 0, 2), (1, 1, 2),
              (2, 0, 1), (2, 0, 2), (2, 1, 2)]
 
-            sage: cp = CompParentFullySym(QQ, V.basis(), 3)
+            sage: cp = CompParentFullySym(3)
             sage: list(cp.non_redundant_index_generator((r, r, r)))
             [(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 1, 1), (0, 1, 2), (0, 2, 2),
              (1, 1, 1), (1, 1, 2), (1, 2, 2), (2, 2, 2)]
 
-            sage: cp = CompParentFullyAntiSym(QQ, V.basis(), 3)
+            sage: cp = CompParentFullyAntiSym(3)
             sage: list(cp.non_redundant_index_generator((r, r, r)))
             [(0, 1, 2)]
 
@@ -498,16 +499,16 @@ class CompParentWithSym(CompParent):
             sage: list(cp.non_redundant_index_generator((r, r, r)))
             [(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)]
             sage: cp = CompParentFullyAntiSym(4)
-            sage: list(c.non_redundant_index_generator((r, r, r, r)))
+            sage: list(cp.non_redundant_index_generator((r, r, r, r)))
             [(0, 1, 2, 3)]
-            sage: c = CompParentFullyAntiSym(QQ, V.basis(), 5)
-            sage: list(c.non_redundant_index_generator())  # nothing since c is identically zero in this case (for 5 > 4)
+            sage: c = CompParentFullyAntiSym(5)
+            sage: list(cp.non_redundant_index_generator())  # nothing since c is identically zero in this case (for 5 > 4)
             []
 
         """
         ind = [r.start for r in ranges]
         ind_end = [r.start for r in ranges]
-        ind_end[0] = range[0].stop
+        ind_end[0] = ranges[0].stop
         while ind != ind_end:
             ordered = True
             for isym in self._sym:
@@ -524,7 +525,7 @@ class CompParentWithSym(CompParent):
                 yield tuple(ind)
             ret = 1
             for pos in range(self._nid -1, -1, -1):
-                if ind[pos] != ranges[pos].stop:
+                if ind[pos] != ranges[pos].stop - 1:
                     ind[pos] += ret
                     ret = 0
                 elif ret == 1:
@@ -573,7 +574,7 @@ class CompParentWithSym(CompParent):
             [[[0, 1, 2], [-1, 0, 3], [-2, -3, 0]],
              [[0, 4, 5], [-4, 0, 6], [-5, -6, 0]],
              [[0, 7, 8], [-7, 0, 9], [-8, -9, 0]]]
-            sage: c1 = c.swap_adjacent_indices(0,1,3)
+            sage: c1 = c.parent().swap_adjacent_indices(0,1,3)
             sage: c._antisym   # c is antisymmetric with respect to the last pair of indices...
             [(1, 2)]
             sage: c1._antisym  #...while c1 is antisymmetric with respect to the first pair of indices
