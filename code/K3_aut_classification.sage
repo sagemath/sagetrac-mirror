@@ -346,6 +346,7 @@ def classify_ord_pe_parallel(L, p, e, file_name,rw,verbose=False):
                     not_realized.append([fix,a])
     return classifi, not_realized
 
+
 def classify_purely_ns_pn(p,e,file_name, log_file, rw="w",verbose=True, rkT=None):
     classifi = []
     result = open(file_name,rw)
@@ -416,6 +417,61 @@ def classify_purely_ns_peq(p, q ,file_r, file_aw, log_file,aw="w",verbose=2,rkT=
     log.close()
     return classifi
 
+
+def classify_purely_ns_6_par(file_r, file_aw, log_file,aw="w",verbose=2,rkT=None):
+    p = 3
+    q = 2
+    classifi = []
+    peactions = open(file_r,'r')
+    result = open(file_aw,aw)
+    result.close()
+    not_realized = []
+    k = 0
+    types = []
+    for str_pe in peactions:
+        k+=1
+        print(k)
+        if str_pe[:8]=="complete":
+            continue
+        k3 = aut_from_str(str_pe)
+        L = k3.symplectic_invariant_lattice()
+        if rkT is not None and rkT != k3.transcendental_lattice().rank():
+            continue
+        if k3.NS_coinvariant().maximum() == -2:
+            # the isometry is obstructed
+            assert False
+        f = k3.g
+        assert p == k3.n.prime_factors()[0]
+        typ = ptype(L,f,p)
+        if typ in types:
+            continue
+        types.append(typ)
+    g = genera((3,19),1,1,even=true)[0]
+    inputs = [] 
+    for typ in types:
+        g1 = typ[0][2]
+        g3 = typ[1][2]
+        s1 = [a for a in split_sig(g1.signature_pair(),p,0,q)]
+        s3 = [a for a in split_sig(g3.signature_pair(),p,1,q)]
+        for s11 in s1:
+            for s33 in s3:
+                inputs.append((q,typ,((s11,),(s33,))))
+    for input,output in pnq_actions_pure(inputs):
+        for A,a in output: 
+            n = a.change_ring(ZZ).multiplicative_order()
+            aut = K3SurfaceAutGrp(A, A.orthogonal_group([]), a, n)
+            classifi.append(aut)
+            s = aut.str()
+            result = open(file_aw,"a")
+            result.write(s+ "\n")
+            result.close()
+        log = open(log_file,"a")
+        log.write(str(input))
+        log.close()
+    result = open(file_aw,'a')
+    result.write("complete \n")
+    result.close()
+    return classifi
 
 def classify_ord_peq(p, q, file_r, file_aw,aw='w',verbose=2, rkT=None):
     r"""

@@ -643,8 +643,15 @@ def next_prime_power(ptype, verbose=0):
             for ex in ext:
                 yield ex
 
+@parallel(ncpus=12)
+def pnq_actions_pure(q,ptype, splitsig):
+    #magma.attach_spec("sage/code/unit_quotients/lat.spec")
+    load("/home/lehrstuhl/ag-brandhorst/brandhorst/sage/code/hermitian.sage")
+    acts = pnq_actions(q,ptype,splitsig=splitsig)
+    acts = [(g[0],g[1]) for g in acts]
+    return acts
 
-def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2):
+def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2,splitsig=None):
     r"""
     Returns all conjugacy classes of isometries of order `p^e` in `genus`.
 
@@ -656,7 +663,7 @@ def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2):
         sage: signatures = [[0], [1], [0,1,1]]
         sage: prime_power_actions(target, p, ranks, signatures)
 
-    """
+    """  
     # skip those i where Cp^iq + Cp^i is of rank 0
     i = max(i for i in range(len(ptype)) if ptype[i][2].rank()!=0)
     p, e = ptype[i][0]
@@ -668,7 +675,11 @@ def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2):
 
     # find all actions p^e q of types p^e
     # that glue to genus
-    for (M, fM, GM) in splitpq(Cgenus,p,e,q,verbose=verbose):
+    if splitsig is not None and len(splitsig)>0:
+        splitsig_i = splitsig[i]
+    else:
+        splitsig_i = None
+    for (M, fM, GM) in splitpq(Cgenus,p,e,q,verbose=verbose,splitsig=splitsig_i):
         # base case
         cm = sage.structure.element.get_coercion_model()
         cm.reset_cache()
@@ -682,7 +693,7 @@ def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2):
             print('%s^%s * %s -- %s^%s'%(p,e,q,p,e))
             print(M.genus())
         # recurse
-        for (N, fN, GN) in pnq_actions(q,ptype[:i],k3_unobstructed=k3_unobstructed,verbose=verbose-1):
+        for (N, fN, GN) in pnq_actions(q,ptype[:i],k3_unobstructed=k3_unobstructed,verbose=verbose-1,splitsig=splitsig[:i]):
             ext = extensions(M, fM, N, fN, GM, GN,
                              pglue, p, target_genus=genus,
                              qlist=qlist)
@@ -782,7 +793,7 @@ def glue_det(det, charpol1, charpol2):
 
 
 
-def splitpq(genus, p, e, q, k3_unobstructed=True,verbose=0):
+def splitpq(genus, p, e, q, k3_unobstructed=True,verbose=0,splitsig=None):
     r"""
     Classify lattices with isometries up to isomorphism
     such that the isometry has minimal polynomial `\Phi_{p^eq}\Phi_{p^e}`
@@ -806,7 +817,9 @@ def splitpq(genus, p, e, q, k3_unobstructed=True,verbose=0):
     assert p.is_prime() and q.is_prime()
     primes = [sym.prime() for sym in genus.local_symbols() if sym.prime() != q]
 
-    for rks,sigs in split_sig(genus.signature_pair(),p,e,q):
+    if splitsig is None:
+        splitsig = split_sig(genus.signature_pair(),p,e,q)
+    for rks,sigs in splitsig:
         degsE = euler_phi(p**e), euler_phi(q*p**e)
         rksE = [rks[0]//degsE[0],rks[1]//degsE[1]]
 
