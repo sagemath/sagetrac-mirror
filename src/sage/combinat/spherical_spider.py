@@ -1141,7 +1141,7 @@ class SphericalWeb(Element):
 
 #### Start of Parent ####
 
-class SphericalSpider(UniqueRepresentation, Parent):
+class SphericalSpider(UniqueRepresentation, Parent, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     The Parent class for SphericalWeb.
 
