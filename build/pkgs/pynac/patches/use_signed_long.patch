@@ -1,0 +1,13 @@
+diff --git a/ginac/numeric.cpp b/ginac/numeric.cpp
+index 20e17e7..f5d5d3a 100644
+--- a/ginac/numeric.cpp
++++ b/ginac/numeric.cpp
+@@ -792,7 +792,7 @@ bool is_Sage_Integer(PyObject* o)
+ 
+ void set_from(Type& t, Value& v, long& hash, mpz_t bigint)
+ {
+-        if (mpz_fits_sint_p(bigint)) {
++        if (mpz_fits_slong_p(bigint)) {
+                 t = LONG;
+                 v._long = mpz_get_si(bigint);
+                 hash = (v._long==-1) ? -2 : v._long;
