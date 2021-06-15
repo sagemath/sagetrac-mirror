@@ -94,7 +94,7 @@ Methods of a Torus
 
 - :meth:`AlgebraicTorus.tate_cohomology` -- the isomorphism type of Tate Cohomology groups of the Torus over a local field.
 
-- :meth:`AlgebraicTorus.Tamagawa_number` -- the Tamagawa number.
+- :meth:`AlgebraicTorus.tamagawa_number` -- the Tamagawa number.
 
 - :meth:`AlgebraicTorus.product` -- the product of the torus with another specified torus with same base and splitting field.
 
@@ -758,7 +758,7 @@ class AlgebraicTorus(Scheme):
         """
         return AlgebraicTorus(self._lattice.induced_lattice(group))
 
-    def Tamagawa_number(self, subgrps = []):
+    def tamagawa_number(self, subgrps = []):
         """
         Computes the Tamagwa number of an algebraic torus.
 
@@ -775,11 +775,11 @@ class AlgebraicTorus(Scheme):
             sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars
             sage: F.<a> = QuadraticField([2])
             sage: T = NormOneRestrictionOfScalars(F)
-            sage: T.Tamagawa_number() # optional - gap_packages
+            sage: T.tamagawa_number() # optional - gap_packages
             2
             sage: from sage.schemes.group_schemes.tori import RestrictionOfScalars
             sage: T2 = RestrictionOfScalars(F)
-            sage: T2.Tamagawa_number() # optional - gap_packages
+            sage: T2.tamagawa_number() # optional - gap_packages
             1
 
         ::
@@ -792,7 +792,7 @@ class AlgebraicTorus(Scheme):
             sage: L = IL.quotient_lattice(SL); L
             Ambient lattice of rank 5 with a faithful action by a group of order 8
             sage: T2 = AlgebraicTorus(L)
-            sage: T2.Tamagawa_number() # optional - gap_packages
+            sage: T2.tamagawa_number() # optional - gap_packages
             1/2
 
         ::
@@ -800,7 +800,7 @@ class AlgebraicTorus(Scheme):
             sage: G = GLattice([2, 2, 2, 2]).group()
             sage: L = GLattice(1).norm_one_restriction_of_scalars(G)
             sage: T = AlgebraicTorus(L)
-            sage: T.Tamagawa_number() # optional - gap_packages
+            sage: T.tamagawa_number() # optional - gap_packages
             1/4
 
         The latter example is the Tamagawa number computed by Ono, the first example of non-integral Tamagawa number.
