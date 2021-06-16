@@ -929,11 +929,11 @@ class ComponentsWithSym_dict(Components_dict):
         sage: c[1,1], c[1,2] = 2, -4
         sage: c[2,2] = 2
         sage: s = b + c ; s
-        2-index components w.r.t. [
+        Fully symmetric 2-index components w.r.t. [
         (1, 0, 0),
         (0, 1, 0),
         (0, 0, 1)
-        ], with symmetry on the index positions (0, 1)
+        ]
         sage: b[:], c[:], s[:]
         (
         [ 1  2  3]  [-4  7 -8]  [-3  9 -5]
@@ -1977,6 +1977,7 @@ class ComponentsWithSym_dict(Components_dict):
         for isym in self.parent()._sym:
             if pos_set.issubset(set(isym)):
                 return self.copy()
+
         #
         # Interference of the new symmetry with existing ones:
         #

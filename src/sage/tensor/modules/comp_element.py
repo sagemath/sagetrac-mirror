@@ -1768,10 +1768,12 @@ class Components_base(Element):
             True
 
         """
+        if not pos:
+            pos = tuple(range(self._nid))
         new_parent = self.parent().symmetrize(*pos)
         result = self._new_instance(parent=new_parent)
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        n_sym = len(pos)  # number of indices involved in the antisymmetry
+        n_sym = len(pos)  # number of indices involved in the symmetry
         sym_group = SymmetricGroup(n_sym)
         for ind in result.non_redundant_index_generator():
             sum = 0
@@ -1907,6 +1909,8 @@ class Components_base(Element):
             True
 
         """
+        if not pos:
+            pos = tuple(range(self._nid))
         new_parent = self.parent().antisymmetrize(*pos)
         result = self._new_instance(parent=new_parent)
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
