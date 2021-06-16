@@ -981,11 +981,11 @@ class ComponentsWithSym_dict(Components_dict):
         sage: e = CompWithSym(QQ, V.basis(), 2, antisym=(0,1))  # for demonstration only: it is preferable to declare e = CompFullyAntiSym(QQ, V.basis(), 2)
         sage: e[0,1], e[0,2], e[1,2] = 2, 3, -1
         sage: s = d + e ; s
-        2-index components w.r.t. [
+        Fully antisymmetric 2-index components w.r.t. [
         (1, 0, 0),
         (0, 1, 0),
         (0, 0, 1)
-        ], with antisymmetry on the index positions (0, 1)
+        ]
         sage: d[:], e[:], s[:]
         (
         [ 0  4 -1]  [ 0  2  3]  [ 0  6  2]
@@ -1302,7 +1302,7 @@ class ComponentsWithSym_dict(Components_dict):
             sage: b = CompWithSym(ZZ, [1,2,3], 2, sym=(0,1))
             sage: b[0,1], b[2,2] = 2, -3
             sage: s = a.__add__(b) ; s  # the symmetry is kept
-            2-index components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1)
+            Fully symmetric 2-index components w.r.t. [1, 2, 3]
             sage: s[:]
             [ 0  6  0]
             [ 6  0  5]
@@ -1314,7 +1314,7 @@ class ComponentsWithSym_dict(Components_dict):
 
             sage: Parallelism().set('tensor', nproc=2)
             sage: s_par = a + b ; s_par
-            2-index components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1)
+            Fully symmetric 2-index components w.r.t. [1, 2, 3]
             sage: s_par[:] == s[:]
             True
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
