@@ -126,7 +126,7 @@ the :class:`Components` constructor::
     sage: v1[0]
     Traceback (most recent call last):
     ...
-    IndexError: index out of range: 0 not in [1, 3]
+    IndexError: index out of range: 0 not in range(1, 4)
     sage: v1[1]
     0
     sage: v1[:] = v[:]  # list copy of all components
@@ -321,7 +321,7 @@ class Components_base(Element):
         sage: c1[0,1]
         Traceback (most recent call last):
         ...
-        IndexError: index out of range: 0 not in [1, 3]
+        IndexError: index out of range: 0 not in range(1, 4)
         sage: c[0,1]  # for c, the index 0 is OK
         0
         sage: c[0,1] = -3
@@ -594,7 +594,7 @@ class Components_base(Element):
             sage: c._check_indices([2,3])
             Traceback (most recent call last):
             ...
-            IndexError: index out of range: 3 not in [0, 2]
+            IndexError: index out of range: 3 not in range(0, 3)
             sage: c._check_indices(1)
             Traceback (most recent call last):
             ...

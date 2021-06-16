@@ -1262,9 +1262,9 @@ class ComponentsWithSym_dict(Components_dict):
              [[0, 7, 8], [-7, 0, 9], [-8, -9, 0]]]
             sage: c1 = c.swap_adjacent_indices(0,1,3)
             sage: c.parent()._antisym   # c is antisymmetric with respect to the last pair of indices...
-            [(1, 2)]
+            ((1, 2),)
             sage: c1.parent()._antisym  #...while c1 is antisymmetric with respect to the first pair of indices
-            [(0, 1)]
+            ((0, 1),)
             sage: c[0,1,2]
             3
             sage: c1[1,2,0]
@@ -1872,7 +1872,7 @@ class ComponentsWithSym_dict(Components_dict):
             (0, 0, 1)
             ], with symmetry on the index positions (0, 1), with symmetry on the index positions (2, 3)
             sage: a1.parent()._sym  # a1 has two distinct symmetries:
-            [(0, 1), (2, 3)]
+            ((0, 1), (2, 3))
             sage: a[0,1,2,0] == a[0,0,2,1]  # a is symmetric w.r.t. positions 1 and 3
             True
             sage: a1[0,1,2,0] == a1[0,0,2,1] # a1 is not
@@ -2146,10 +2146,9 @@ class ComponentsWithSym_dict(Components_dict):
             (1, 0, 0),
             (0, 1, 0),
             (0, 0, 1)
-            ], with antisymmetry on the index positions (1, 3),
-               with antisymmetry on the index positions (0, 2)
+            ], with antisymmetry on the index positions (0, 2), with antisymmetry on the index positions (1, 3)
             sage: s.parent()._antisym  # the antisymmetry (0,1,2) has been reduced to (0,2), since 1 is involved in the new antisymmetry (1,3):
-            [(1, 3), (0, 2)]
+            ((0, 2), (1, 3))
 
         Partial antisymmetrization of 4-index components with a symmetry on
         the first two indices::
