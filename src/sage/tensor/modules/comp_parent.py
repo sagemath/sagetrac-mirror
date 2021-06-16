@@ -16,7 +16,9 @@ indices and symmetries
 #******************************************************************************
 
 from sage.structure.parent import Parent
-from .comp_element import Components_generic, ComponentsWithSym, ComponentsFullySym, ComponentsFullyAntiSym
+from .comp_element import Components_base
+from .comp_element_dict import (Components_dict, ComponentsWithSym_dict,
+                                ComponentsFullySym_dict, ComponentsFullyAntiSym_dict)
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
@@ -26,7 +28,7 @@ class CompParent(Parent, UniqueRepresentation):
 
     """
 
-    Element = Components_generic
+    Element = Components_dict
 
     def __init__(self, nb_indices):
         r"""
@@ -44,7 +46,7 @@ class CompParent(Parent, UniqueRepresentation):
             sage: from sage.tensor.modules.comp_parent import CompParent
             sage: C = CompParent(2)
             sage: C._repr_()
-            'Parent of 2-index components without symmetry'
+            'Parent of 2-index components'
 
         """
         prefix, suffix = self._repr_symmetry()
@@ -61,9 +63,9 @@ class CompParent(Parent, UniqueRepresentation):
         Construct an indexed set of components w.r.t. ``frame`` over the ring
         ``ring``.
         """
-        if isinstance(args[0], Components_generic):
+        if isinstance(args[0], Components_base):
             c = args[0]
-            if not isinstance(c, Components_generic):
+            if not isinstance(c, Components_base):
                 raise TypeError("cannot coerce {} into an element of {}".format(c, self))
             else:
                 return c
@@ -328,7 +330,7 @@ class CompParentWithSym(CompParent):
         return super(cls, CompParentWithSym).__classcall__(cls, nb_indices,
                                                            sym, antisym)
 
-    Element = ComponentsWithSym
+    Element = ComponentsWithSym_dict
 
     def __init__(self, nb_indices, sym, antisym):
         r"""
@@ -349,7 +351,7 @@ class CompParentWithSym(CompParent):
             sage: from sage.tensor.modules.comp_parent import CompParent, CompParentWithSym
             sage: cp = CompParent(2)
             sage: cp._repr_()
-            'Parent of 2-index components without symmetry'
+            'Parent of 2-index components'
 
             sage: from sage.tensor.modules.comp_parent import CompParentWithSym
             sage: cp = CompParentWithSym(4, sym=(0,1))
@@ -684,15 +686,15 @@ class CompParentFullySym(CompParentWithSym):
 
     """
 
-    Element = ComponentsFullySym
+    Element = ComponentsFullySym_dict
 
     def __init__(self, nb_indices):
         r"""
 
         """
-        CompParentWithSym.__init__(self, nb_indices,
-                                   sym=(tuple(range(nb_indices)),),
-                                   antisym=())
+        super().__init__(nb_indices,
+                         sym=(tuple(range(nb_indices)),),
+                         antisym=())
 
     def _repr_symmetry(self):
         return "Fully symmetric ", ""
@@ -702,15 +704,15 @@ class CompParentFullyAntiSym(CompParentWithSym):
 
     """
 
-    Element = ComponentsFullyAntiSym
+    Element = ComponentsFullyAntiSym_dict
 
     def __init__(self, nb_indices):
         r"""
 
         """
-        CompParentWithSym.__init__(self, nb_indices,
-                                   sym=(),
-                                   antisym=(tuple(range(nb_indices)),))
+        super().__init__(nb_indices,
+                         sym=(),
+                         antisym=(tuple(range(nb_indices)),))
 
     def _repr_symmetry(self):
         return "Fully antisymmetric ", ""

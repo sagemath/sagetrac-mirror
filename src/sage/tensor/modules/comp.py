@@ -57,7 +57,7 @@ being some basis of the vector space::
     (0, 0, 1)
     ]
     sage: c = Components(QQ, basis, 2) ; c
-    2-indices components w.r.t. [
+    2-index components w.r.t. [
     (1, 0, 0),
     (0, 1, 0),
     (0, 0, 1)
@@ -69,10 +69,10 @@ the function :func:`len()` can be called::
     sage: basis1 = V.gens() ; basis1
     ((1, 0, 0), (0, 1, 0), (0, 0, 1))
     sage: c1 = Components(QQ, basis1, 2) ; c1
-    2-indices components w.r.t. ((1, 0, 0), (0, 1, 0), (0, 0, 1))
+    2-index components w.r.t. ((1, 0, 0), (0, 1, 0), (0, 0, 1))
     sage: basis2 = ['a', 'b' , 'c']
     sage: c2 = Components(QQ, basis2, 2) ; c2
-    2-indices components w.r.t. ['a', 'b', 'c']
+    2-index components w.r.t. ['a', 'b', 'c']
 
 A just created set of components is initialized to zero::
 
@@ -127,7 +127,7 @@ the :class:`Components` constructor::
     sage: v1[0]
     Traceback (most recent call last):
     ...
-    IndexError: index out of range: 0 not in [1, 3]
+    IndexError: index out of range: 0 not in range(1, 4)
     sage: v1[1]
     0
     sage: v1[:] = v[:]  # list copy of all components
@@ -252,7 +252,7 @@ In case of symmetries, only non-redundant components are stored::
 
 from sage.tensor.modules.comp_parent import CompParent, CompParentWithSym, \
                                     CompParentFullySym, CompParentFullyAntiSym
-from sage.tensor.modules.comp_element import CompKroneckerDelta
+from sage.tensor.modules.comp_element_dict import ComponentsKroneckerDelta_dict
 from sage.misc.cachefunc import cached_function
 
 def Components(ring, frame, nb_indices, start_index=0, output_formatter=None,
@@ -290,5 +290,5 @@ def KroneckerDelta(ring, frame, start_index=0, output_formatter=None):
 
     """
     parent = CompParentFullySym(2)
-    return CompKroneckerDelta(parent, ring, frame, start_index=start_index,
-                              output_formatter=output_formatter)
+    return ComponentsKroneckerDelta_dict(parent, ring, frame, start_index=start_index,
+                                         output_formatter=output_formatter)
