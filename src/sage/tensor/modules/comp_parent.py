@@ -16,7 +16,7 @@ indices and symmetries
 #******************************************************************************
 
 from sage.structure.parent import Parent
-from .comp_element import Components_generic, CompWithSym, CompFullySym, CompFullyAntiSym
+from .comp_element import Components_generic, ComponentsWithSym, ComponentsFullySym, ComponentsFullyAntiSym
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
@@ -54,7 +54,7 @@ class CompParent(Parent, UniqueRepresentation):
         r"""
         Return a prefix and a suffix string describing the symmetry of ``self``.
         """
-        return "", " without symmetry"
+        return "", ""
 
     def _element_constructor_(self, *args, **kwargs):
         r"""
@@ -64,16 +64,17 @@ class CompParent(Parent, UniqueRepresentation):
         if isinstance(args[0], Components_generic):
             c = args[0]
             if not isinstance(c, Components_generic):
-                TypeError("cannot coerce {} into an element of {}".format(c, self))
+                raise TypeError("cannot coerce {} into an element of {}".format(c, self))
             else:
                 return c
-        else:
-            if len(args) != 2:
-                ValueError("{} missing {} required positional arguments".format(type(self), len(args)))
-            ring = args[0]
-            frame = args[1]
-            output_formatter = kwargs.pop('output_formatter', None)
+        if len(args) != 2:
+            raise ValueError("{} missing {} required positional arguments".format(type(self), len(args)))
+        ring = args[0]
+        frame = args[1]
+        start_index = kwargs.pop('start_index', 0)
+        output_formatter = kwargs.pop('output_formatter', None)
         return self.element_class(self, ring, frame,
+                                  start_index = start_index,
                                   output_formatter=output_formatter)
 
     def _check_indices(self, ind, ranges):
@@ -327,7 +328,7 @@ class CompParentWithSym(CompParent):
         return super(cls, CompParentWithSym).__classcall__(cls, nb_indices,
                                                            sym, antisym)
 
-    Element = CompWithSym
+    Element = ComponentsWithSym
 
     def __init__(self, nb_indices, sym, antisym):
         r"""
@@ -683,7 +684,7 @@ class CompParentFullySym(CompParentWithSym):
 
     """
 
-    Element = CompFullySym
+    Element = ComponentsFullySym
 
     def __init__(self, nb_indices):
         r"""
@@ -701,7 +702,7 @@ class CompParentFullyAntiSym(CompParentWithSym):
 
     """
 
-    Element = CompFullyAntiSym
+    Element = ComponentsFullyAntiSym
 
     def __init__(self, nb_indices):
         r"""

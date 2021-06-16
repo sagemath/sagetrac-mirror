@@ -260,12 +260,14 @@ def Components(ring, frame, nb_indices, start_index=0, output_formatter=None,
     r"""
 
     """
-    if sym is None and antisym is None:
+    if not sym and not antisym:
         parent = CompParent(nb_indices)
     else:
         parent = CompParentWithSym(nb_indices,
                                    sym=sym, antisym=antisym)
     return parent(ring, frame, start_index=start_index, output_formatter=output_formatter)
+
+CompWithSym = Components
 
 def CompFullySym(ring, frame, nb_indices, start_index=0, output_formatter=None):
     r"""
