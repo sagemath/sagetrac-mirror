@@ -337,7 +337,7 @@ class Components_dict(Components_base):
              result._comp[ind] = - val
         return result
 
-    def __add__(self, other):
+    def _add_(self, other):
         r"""
         Component addition.
 
@@ -594,7 +594,7 @@ class Components_dict(Components_base):
 
     def _rmul_(self, other):
         r"""
-        Reflected multiplication (multiplication on the left by ``other``).
+        Reversed scalar multiplication (multiplication on the left by ``other``).
 
         EXAMPLES::
 
@@ -611,8 +611,6 @@ class Components_dict(Components_base):
             True
 
         """
-        if isinstance(other, Components_base):
-            raise NotImplementedError("left tensor product not implemented")
         # Left multiplication by a "scalar":
         result = self._new_instance()
         if other == 0:

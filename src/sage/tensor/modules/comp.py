@@ -196,7 +196,7 @@ to generate string outputs::
     sage: b[:]
     ['1', '0', '-4']
 
-For such a formatter, 2-indices components are no longer displayed as a
+For such a formatter, 2-index components are no longer displayed as a
 matrix::
 
     sage: b = Components(QQ, basis, 2, output_formatter=str)

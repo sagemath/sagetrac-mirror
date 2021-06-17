@@ -248,14 +248,14 @@ In case of symmetries, only non-redundant components are stored::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.structure.element import Element
+from sage.structure.element import ModuleElementWithMutability
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
 from operator import itemgetter
 
-class Components_base(Element):
+class Components_base(ModuleElementWithMutability):
     r"""
     Indexed set of ring elements forming some components with respect
     to a given "frame".
@@ -506,7 +506,7 @@ class Components_base(Element):
         # the arguments:
         dim = len(frame)
         # parent
-        Element.__init__(self, parent)
+        ModuleElementWithMutability.__init__(self, parent, is_immutable=False)
         self._dim = dim
         self._nid = parent._nid
         self._sindex = start_index

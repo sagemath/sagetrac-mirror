@@ -15,14 +15,17 @@ indices and symmetries
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+import operator
+
 from sage.structure.parent import Parent
-from .comp_element import Components_base
-from .comp_element_dict import (Components_dict, ComponentsWithSym_dict,
-                                ComponentsFullySym_dict, ComponentsFullyAntiSym_dict)
+from sage.structure.coerce_actions import LeftModuleAction, RightModuleAction
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.modules.module import Module
+from .comp_element import Components_base
+from .comp_element_dict import (Components_dict, ComponentsWithSym_dict,
+                                ComponentsFullySym_dict, ComponentsFullyAntiSym_dict)
 
 class CompParent(Module, UniqueRepresentation):
     r"""
