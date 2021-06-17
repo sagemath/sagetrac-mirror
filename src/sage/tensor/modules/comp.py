@@ -261,11 +261,11 @@ def Components(ring, frame, nb_indices, start_index=0, output_formatter=None,
 
     """
     if not sym and not antisym:
-        parent = CompParent(nb_indices)
+        parent = CompParent(ring, nb_indices)
     else:
-        parent = CompParentWithSym(nb_indices,
+        parent = CompParentWithSym(ring, nb_indices,
                                    sym=sym, antisym=antisym)
-    return parent(ring, frame, start_index=start_index, output_formatter=output_formatter)
+    return parent(frame, start_index=start_index, output_formatter=output_formatter)
 
 CompWithSym = Components
 
@@ -273,22 +273,22 @@ def CompFullySym(ring, frame, nb_indices, start_index=0, output_formatter=None):
     r"""
 
     """
-    parent = CompParentFullySym(nb_indices)
-    return parent(ring, frame, start_index=start_index, output_formatter=output_formatter)
+    parent = CompParentFullySym(ring, nb_indices)
+    return parent(frame, start_index=start_index, output_formatter=output_formatter)
 
 def CompFullyAntiSym(ring, frame, nb_indices, start_index=0,
                      output_formatter=None):
     r"""
 
     """
-    parent = CompParentFullyAntiSym(nb_indices)
-    return parent(ring, frame, start_index=start_index, output_formatter=output_formatter)
+    parent = CompParentFullyAntiSym(ring, nb_indices)
+    return parent(frame, start_index=start_index, output_formatter=output_formatter)
 
 @cached_function
 def KroneckerDelta(ring, frame, start_index=0, output_formatter=None):
     r"""
 
     """
-    parent = CompParentFullySym(2)
-    return ComponentsKroneckerDelta_dict(parent, ring, frame, start_index=start_index,
+    parent = CompParentFullySym(ring, 2)
+    return ComponentsKroneckerDelta_dict(parent, frame, start_index=start_index,
                                          output_formatter=output_formatter)

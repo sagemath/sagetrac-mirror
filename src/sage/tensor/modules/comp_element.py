@@ -493,7 +493,7 @@ class Components_base(Element):
         True
 
     """
-    def __init__(self, parent, ring, frame, start_index=0, output_formatter=None):
+    def __init__(self, parent, frame, start_index=0, output_formatter=None):
         r"""
         TESTS::
 
@@ -511,7 +511,7 @@ class Components_base(Element):
         self._nid = parent._nid
         self._sindex = start_index
         # element
-        self._ring = ring
+        self._ring = parent.base_ring()    # TODO: Remove, replace remaining uses by .base_ring()
         self._frame = frame
         r = range(start_index, dim + start_index)
         self._ranges = tuple(r for x in range(self._nid))
@@ -565,7 +565,7 @@ class Components_base(Element):
         """
         if parent is None:
             parent = self.parent()
-        return parent(self._ring, self._frame, start_index=self._sindex,
+        return parent(self._frame, start_index=self._sindex,
                       output_formatter=self._output_formatter)
 
     def _check_indices(self, indices):
@@ -1408,7 +1408,7 @@ class Components_base(Element):
             # the contraction, we create an empty instance of Components with
             # ncontr indices and call the method index_generator() on it:
             from .comp import Components
-            comp_for_contr = Components(self._ring, self._frame, ncontr,
+            comp_for_contr = Components(self.base_ring(), self._frame, ncontr,
                                         start_index=self._sindex)
             res = 0
 
@@ -1520,7 +1520,7 @@ class Components_base(Element):
         # Construction of the result object in view of the remaining symmetries:
         #
         from .comp import Components
-        res = Components(self._ring, self._frame, res_nid,
+        res = Components(self.base_ring(), self._frame, res_nid,
                          start_index=self._sindex,
                          output_formatter=self._output_formatter,
                          sym=res_sym, antisym=res_antisym)
@@ -1530,7 +1530,7 @@ class Components_base(Element):
         # To generate the indices tuples (of size ncontr) involved in the
         # the contraction, we create an empty instance of Components with
         # ncontr indices and call the method index_generator() on it:
-        comp_for_contr = Components(self._ring, self._frame, ncontr,
+        comp_for_contr = Components(self.base_ring(), self._frame, ncontr,
                                     start_index=self._sindex)
         shift_o = self._nid - ncontr
 

@@ -296,7 +296,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
 
         # Treatment of symmetry declarations:
         self._sym = []
-        if sym is not None and sym != []:
+        if sym:
             if isinstance(sym[0], (int, Integer)):
                 # a single symmetry is provided as a tuple -> 1-item list:
                 sym = [tuple(sym)]
@@ -308,7 +308,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
                                 " not in [0," + str(self._tensor_rank-1) + "]")
                     self._sym.append(tuple(isym))
         self._antisym = []
-        if antisym is not None and antisym != []:
+        if antisym:
             if isinstance(antisym[0], (int, Integer)):
                 # a single antisymmetry is provided as a tuple -> 1-item list:
                 antisym = [tuple(antisym)]

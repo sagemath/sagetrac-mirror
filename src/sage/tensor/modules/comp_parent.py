@@ -22,19 +22,20 @@ from .comp_element_dict import (Components_dict, ComponentsWithSym_dict,
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
+from sage.modules.module import Module
 
-class CompParent(Parent, UniqueRepresentation):
+class CompParent(Module, UniqueRepresentation):
     r"""
 
     """
 
     Element = Components_dict
 
-    def __init__(self, nb_indices):
+    def __init__(self, base_ring, nb_indices):
         r"""
 
         """
-        Parent.__init__(self)
+        Module.__init__(self, base_ring)
         self._nid = nb_indices
 
     def _repr_(self):
@@ -44,13 +45,13 @@ class CompParent(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.tensor.modules.comp_parent import CompParent
-            sage: C = CompParent(2)
+            sage: C = CompParent(QQ, 2)
             sage: C._repr_()
-            'Parent of 2-index components'
+            'Parent of 2-index components over Rational Field'
 
         """
         prefix, suffix = self._repr_symmetry()
-        return f"Parent of " + prefix + f"{self._nid}-index components" + suffix
+        return f"Parent of " + prefix + f"{self._nid}-index components over {self.base_ring()}" + suffix
 
     def _repr_symmetry(self):
         r"""
@@ -69,13 +70,16 @@ class CompParent(Parent, UniqueRepresentation):
                 raise TypeError("cannot coerce {} into an element of {}".format(c, self))
             else:
                 return c
-        if len(args) != 2:
-            raise ValueError("{} missing {} required positional arguments".format(type(self), len(args)))
-        ring = args[0]
-        frame = args[1]
+        if len(args) != 1:
+            raise ValueError(f"{type(self)} missing 1 required positional argument")
+        if not args[0]:
+            # coerce 0
+            frame = ()
+        else:
+            frame = args[0]
         start_index = kwargs.pop('start_index', 0)
         output_formatter = kwargs.pop('output_formatter', None)
-        return self.element_class(self, ring, frame,
+        return self.element_class(self, frame,
                                   start_index = start_index,
                                   output_formatter=output_formatter)
 
@@ -94,7 +98,7 @@ class CompParent(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.tensor.modules.comp_parent import CompParent
-            sage: cp = CompParent(2)
+            sage: cp = CompParent(SR, 2)
             sage: r = range(3)
             sage: ranges = (r, r)
             sage: cp._check_indices((0,1), ranges)
@@ -144,14 +148,14 @@ class CompParent(Parent, UniqueRepresentation):
             sage: from sage.tensor.modules.comp_parent import CompParent
             sage: V = VectorSpace(QQ,3)
             sage: r = range(V.dimension())
-            sage: cp = CompParent(1)
+            sage: cp = CompParent(QQ, 1)
             sage: ranges = (r,)
             sage: list(cp.index_generator(ranges))
             [(0,), (1,), (2,)]
             sage: ranges = (range(1, 4),)
             sage: list(cp.index_generator(ranges))
             [(1,), (2,), (3,)]
-            sage: cp = CompParent(2)
+            sage: cp = CompParent(QQ, 2)
             sage: ranges = (r, r)
             sage: list(cp.index_generator(ranges))
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0),
@@ -198,7 +202,7 @@ class CompParent(Parent, UniqueRepresentation):
             sage: from sage.tensor.modules.comp_parent import CompParent
             sage: V = VectorSpace(QQ, 3)
             sage: r = range(V.dimension())
-            sage: cp = CompParent(2)
+            sage: cp = CompParent(QQ, 2)
             sage: list(cp.non_redundant_index_generator((r, r)))
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0),
              (2, 1), (2, 2)]
@@ -224,8 +228,8 @@ class CompParent(Parent, UniqueRepresentation):
                                  "total number of indices")
         n_sym = len(pos) # number of indices involved in the symmetry
         if n_sym == self._nid:
-            return CompParentFullySym(self._nid)
-        return CompParentWithSym(self._nid, sym=pos)
+            return CompParentFullySym(self.base_ring(), self._nid)
+        return CompParentWithSym(self.base_ring(), self._nid, sym=pos)
 
     @cached_method
     def antisymmetrize(self, *pos):
@@ -242,8 +246,8 @@ class CompParent(Parent, UniqueRepresentation):
                                  "total number of indices")
         n_sym = len(pos)  # number of indices involved in the antisymmetry
         if n_sym == self._nid:
-            return CompParentFullyAntiSym(self._nid)
-        return CompParentWithSym(self._nid, antisym=pos)
+            return CompParentFullyAntiSym(self.base_ring(), self._nid)
+        return CompParentWithSym(self.base_ring(), self._nid, antisym=pos)
 
 class CompParentWithSym(CompParent):
     r"""
@@ -251,7 +255,7 @@ class CompParentWithSym(CompParent):
     """
 
     @staticmethod
-    def __classcall_private__(cls, nb_indices, sym=None, antisym=None):
+    def __classcall_private__(cls, base_ring, nb_indices, sym=None, antisym=None):
         r"""
         Determine the correct class to return based upon the input. In
         particular, convert lists of symmetries to tuples and delegate to
@@ -261,17 +265,17 @@ class CompParentWithSym(CompParent):
 
             sage: from sage.tensor.modules.comp_parent import (
             ....:     CompParent, CompParentWithSym, CompParentFullySym, CompParentFullyAntiSym)
-            sage: CompParentWithSym(3) is CompParent(3)
+            sage: CompParentWithSym(QQ, 3) is CompParent(QQ, 3)
             True
-            sage: CompParentWithSym(5, sym=(3, 4),) is CompParentWithSym(5, sym=((4, 3),))
+            sage: CompParentWithSym(SR, 5, sym=(3, 4),) is CompParentWithSym(SR, 5, sym=((4, 3),))
             True
-            sage: CompParentWithSym(5, sym=((1, 2), (3, 4))) is CompParentWithSym(5, sym=((4, 3), (2, 1)))
+            sage: CompParentWithSym(SR, 5, sym=((1, 2), (3, 4))) is CompParentWithSym(SR, 5, sym=((4, 3), (2, 1)))
             True
-            sage: CompParentWithSym(3, sym=((1, 3, 2))) is CompParentFullySym(3)
+            sage: CompParentWithSym(RDF, 3, sym=((1, 3, 2))) is CompParentFullySym(RDF, 3)
             True
-            sage: CompParentWithSym(3, antisym=((2, 1, 3))) is CompParentFullyAntiSym(3)
+            sage: CompParentWithSym(CDF, 3, antisym=((2, 1, 3))) is CompParentFullyAntiSym(CDF, 3)
             True
-            sage: CompParentWithSym(0) is CompParent(0)
+            sage: CompParentWithSym(ZZ, 0) is CompParent(ZZ, 0)
             True
         """
         if sym:
@@ -324,28 +328,28 @@ class CompParentWithSym(CompParent):
                              "index position appears more then once")
 
         if not sym and not antisym:
-            return CompParent(nb_indices)
+            return CompParent(base_ring, nb_indices)
 
         if sym:
             if any(len(s) == nb_indices for s in sym):
-                return CompParentFullySym(nb_indices)
+                return CompParentFullySym(base_ring, nb_indices)
 
         if antisym:
             if any(len(s) == nb_indices for s in antisym):
-                return CompParentFullyAntiSym(nb_indices)
+                return CompParentFullyAntiSym(base_ring, nb_indices)
 
-        return super(cls, CompParentWithSym).__classcall__(cls, nb_indices,
+        return super(cls, CompParentWithSym).__classcall__(cls, base_ring, nb_indices,
                                                            sym, antisym)
 
     Element = ComponentsWithSym_dict
 
-    def __init__(self, nb_indices, sym, antisym):
+    def __init__(self, base_ring, nb_indices, sym, antisym):
         r"""
         TESTS::
 
 
         """
-        super().__init__(nb_indices)
+        super().__init__(base_ring, nb_indices)
         self._sym = sym
         self._antisym = antisym
 
@@ -356,18 +360,18 @@ class CompParentWithSym(CompParent):
         EXAMPLES::
 
             sage: from sage.tensor.modules.comp_parent import CompParent, CompParentWithSym
-            sage: cp = CompParent(2)
+            sage: cp = CompParent(SR, 2)
             sage: cp._repr_()
-            'Parent of 2-index components'
+            'Parent of 2-index components over Symbolic Ring'
 
             sage: from sage.tensor.modules.comp_parent import CompParentWithSym
-            sage: cp = CompParentWithSym(4, sym=(0,1))
+            sage: cp = CompParentWithSym(SR, 4, sym=(0,1))
             sage: cp._repr_()
-            'Parent of 4-index components, with symmetry on the index positions (0, 1)'
+            'Parent of 4-index components over Symbolic Ring, with symmetry on the index positions (0, 1)'
 
-            sage: cp = CompParentWithSym(4, sym=((0,1),), antisym=((2,3),))
+            sage: cp = CompParentWithSym(SR, 4, sym=((0,1),), antisym=((2,3),))
             sage: cp._repr_()
-            'Parent of 4-index components, with symmetry on the index positions (0, 1), with antisymmetry on the index positions (2, 3)'
+            'Parent of 4-index components over Symbolic Ring, with symmetry on the index positions (0, 1), with antisymmetry on the index positions (2, 3)'
         """
         description = ""
         for isym in self._sym:
@@ -405,7 +409,7 @@ class CompParentWithSym(CompParent):
         EXAMPLES::
 
             sage: from sage.tensor.modules.comp_parent import CompParentWithSym
-            sage: cp = CompParentWithSym(4, sym=((0,1),), antisym=((2,3),))
+            sage: cp = CompParentWithSym(SR, 4, sym=((0,1),), antisym=((2,3),))
             sage: r = range(3)
             sage: ranges = (r, r, r, r)
             sage: cp._ordered_indices([0,1,1,2], ranges)
@@ -468,14 +472,14 @@ class CompParentWithSym(CompParent):
             sage: V = VectorSpace(QQ, 2)
             sage: r = range(V.dimension())
 
-            sage: cp = CompParentFullySym(2)
+            sage: cp = CompParentFullySym(SR, 2)
             sage: list(cp.non_redundant_index_generator((r, r)))
             [(0, 0), (0, 1), (1, 1)]
             sage: r_start_1 = range(1, V.dimension() + 1)
             sage: list(cp.non_redundant_index_generator((r_start_1, r_start_1)))
             [(1, 1), (1, 2), (2, 2)]
 
-            sage: cp = CompParentFullyAntiSym(2)
+            sage: cp = CompParentFullyAntiSym(SR, 2)
             sage: list(cp.non_redundant_index_generator((r, r)))
             [(0, 1)]
 
@@ -484,35 +488,35 @@ class CompParentWithSym(CompParent):
             sage: V = VectorSpace(QQ, 3)
             sage: r = range(V.dimension())
 
-            sage: cp = CompParentFullySym(2)
+            sage: cp = CompParentFullySym(SR, 2)
             sage: list(cp.non_redundant_index_generator((r, r)))
             [(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)]
             sage: r_start_1 = range(1, V.dimension() + 1)
             sage: list(cp.non_redundant_index_generator((r_start_1, r_start_1)))
             [(1, 1), (1, 2), (1, 3), (2, 2), (2, 3), (3, 3)]
 
-            sage: cp = CompParentFullyAntiSym(2)
+            sage: cp = CompParentFullyAntiSym(SR, 2)
             sage: list(cp.non_redundant_index_generator((r, r)))
             [(0, 1), (0, 2), (1, 2)]
 
-            sage: cp = CompParentWithSym(3, sym=(1,2))  # symmetry on the last two indices
+            sage: cp = CompParentWithSym(SR, 3, sym=(1,2))  # symmetry on the last two indices
             sage: list(cp.non_redundant_index_generator((r, r, r)))
             [(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 1, 1), (0, 1, 2),
              (0, 2, 2), (1, 0, 0), (1, 0, 1), (1, 0, 2), (1, 1, 1),
              (1, 1, 2), (1, 2, 2), (2, 0, 0), (2, 0, 1), (2, 0, 2),
              (2, 1, 1), (2, 1, 2), (2, 2, 2)]
 
-            sage: cp = CompParentWithSym(3, antisym=(1,2))  # antisymmetry on the last two indices
+            sage: cp = CompParentWithSym(SR, 3, antisym=(1,2))  # antisymmetry on the last two indices
             sage: list(cp.non_redundant_index_generator((r, r, r)))
             [(0, 0, 1), (0, 0, 2), (0, 1, 2), (1, 0, 1), (1, 0, 2), (1, 1, 2),
              (2, 0, 1), (2, 0, 2), (2, 1, 2)]
 
-            sage: cp = CompParentFullySym(3)
+            sage: cp = CompParentFullySym(SR, 3)
             sage: list(cp.non_redundant_index_generator((r, r, r)))
             [(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 1, 1), (0, 1, 2), (0, 2, 2),
              (1, 1, 1), (1, 1, 2), (1, 2, 2), (2, 2, 2)]
 
-            sage: cp = CompParentFullyAntiSym(3)
+            sage: cp = CompParentFullyAntiSym(SR, 3)
             sage: list(cp.non_redundant_index_generator((r, r, r)))
             [(0, 1, 2)]
 
@@ -521,19 +525,19 @@ class CompParentWithSym(CompParent):
             sage: V = VectorSpace(QQ, 4)
             sage: r = range(V.dimension())
 
-            sage: cp = CompParent(1)
+            sage: cp = CompParent(SR, 1)
             sage: list(cp.non_redundant_index_generator((r,)))
             [(0,), (1,), (2,), (3,)]
-            sage: cp = CompParentFullyAntiSym(2)
+            sage: cp = CompParentFullyAntiSym(SR, 2)
             sage: list(cp.non_redundant_index_generator((r, r)))
             [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
-            sage: cp = CompParentFullyAntiSym(3)
+            sage: cp = CompParentFullyAntiSym(SR, 3)
             sage: list(cp.non_redundant_index_generator((r, r, r)))
             [(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)]
-            sage: cp = CompParentFullyAntiSym(4)
+            sage: cp = CompParentFullyAntiSym(SR, 4)
             sage: list(cp.non_redundant_index_generator((r, r, r, r)))
             [(0, 1, 2, 3)]
-            sage: cp = CompParentFullyAntiSym(5)
+            sage: cp = CompParentFullyAntiSym(SR, 5)
             sage: list(cp.non_redundant_index_generator((r, r, r, r, r)))  # nothing since c is identically zero in this case (for 5 > 4)
             []
 
@@ -630,8 +634,8 @@ class CompParentWithSym(CompParent):
         for s in self._antisym:
             new_s = [new_lpos.index(pos) for pos in s]
             res_antisym.append(tuple(sorted(new_s)))
-        return CompParentWithSym(self._nid, sym=res_sym,
-                                 antisym=res_antisym)
+        return CompParentWithSym(self.base_ring(), self._nid,
+                                 sym=res_sym, antisym=res_antisym)
 
     @cached_method
     def common_symmetries(self, other):
@@ -694,31 +698,31 @@ class CompParentFullySym(CompParentWithSym):
     """
 
     @staticmethod
-    def __classcall_private__(cls, nb_indices):
+    def __classcall_private__(cls, base_ring, nb_indices):
         r"""
         Determine the correct class to return based upon the input.
 
         TESTS::
 
             sage: from sage.tensor.modules.comp_parent import CompParent, CompParentFullySym
-            sage: CompParentFullySym(0) is CompParent(0)
+            sage: CompParentFullySym(SR, 0) is CompParent(SR, 0)
             True
-            sage: CompParentFullySym(1) is CompParent(1)
+            sage: CompParentFullySym(SR, 1) is CompParent(SR, 1)
             True
-            sage: CompParentFullySym(2) is CompParent(2)
+            sage: CompParentFullySym(SR, 2) is CompParent(SR, 2)
             False
         """
         if nb_indices <= 1:
-            return CompParent(nb_indices)
-        return super(cls, CompParentFullySym).__classcall__(cls, nb_indices)
+            return CompParent(base_ring, nb_indices)
+        return super(cls, CompParentFullySym).__classcall__(cls, base_ring, nb_indices)
 
     Element = ComponentsFullySym_dict
 
-    def __init__(self, nb_indices):
+    def __init__(self, base_ring, nb_indices):
         r"""
 
         """
-        super().__init__(nb_indices,
+        super().__init__(base_ring, nb_indices,
                          sym=(tuple(range(nb_indices)),),
                          antisym=())
 
@@ -731,33 +735,33 @@ class CompParentFullyAntiSym(CompParentWithSym):
     """
 
     @staticmethod
-    def __classcall_private__(cls, nb_indices):
+    def __classcall_private__(cls, base_ring, nb_indices):
         r"""
         Determine the correct class to return based upon the input.
 
         TESTS::
 
             sage: from sage.tensor.modules.comp_parent import CompParent, CompParentFullyAntiSym
-            sage: CompParentFullyAntiSym(0) is CompParent(0)
+            sage: CompParentFullyAntiSym(SR, 0) is CompParent(SR, 0)
             True
-            sage: CompParentFullyAntiSym(2) is CompParent(2)
+            sage: CompParentFullyAntiSym(SR, 2) is CompParent(SR, 2)
             False
         """
         if nb_indices == 0:
-            return CompParent(nb_indices)
+            return CompParent(base_ring, nb_indices)
         if nb_indices == 1:
             # TODO: A special-case parent for the trivial "fully antisymmetric 1-index tensors"
             # could be helpful here
             pass
-        return super(cls, CompParentFullyAntiSym).__classcall__(cls, nb_indices)
+        return super(cls, CompParentFullyAntiSym).__classcall__(cls, base_ring, nb_indices)
 
     Element = ComponentsFullyAntiSym_dict
 
-    def __init__(self, nb_indices):
+    def __init__(self, base_ring, nb_indices):
         r"""
 
         """
-        super().__init__(nb_indices,
+        super().__init__(base_ring, nb_indices,
                          sym=(),
                          antisym=(tuple(range(nb_indices)),))
 

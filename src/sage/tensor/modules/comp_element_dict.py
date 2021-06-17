@@ -22,7 +22,7 @@ from .comp_element import Components_base
 
 class Components_dict(Components_base):
 
-    def __init__(self, parent, ring, frame, start_index=0, output_formatter=None):
+    def __init__(self, parent, frame, start_index=0, output_formatter=None):
         r"""
         TESTS::
 
@@ -31,7 +31,7 @@ class Components_dict(Components_base):
             2-index components w.r.t. [1, 2, 3]
 
         """
-        super().__init__(parent, ring, frame, start_index, output_formatter)
+        super().__init__(parent, frame, start_index, output_formatter)
         self._comp = {} # the dictionary of components, with the index tuples
                         # as keys
 
@@ -172,11 +172,11 @@ class Components_dict(Components_base):
                     return self._output_formatter(self._comp[ind], format_type)
             else:  # if the value is not stored in self._comp, it is zero:
                 if no_format:
-                    return self._ring.zero()
+                    return self.base_ring().zero()
                 elif format_type is None:
-                    return self._output_formatter(self._ring.zero())
+                    return self._output_formatter(self.base_ring().zero())
                 else:
-                    return self._output_formatter(self._ring.zero(),
+                    return self._output_formatter(self.base_ring().zero(),
                                                  format_type)
 
     def __setitem__(self, args, value):
@@ -251,9 +251,9 @@ class Components_dict(Components_base):
                     del self._comp[ind]
             else:
                 if format_type is None:
-                    self._comp[ind] = self._ring(value)
+                    self._comp[ind] = self.base_ring()(value)
                 else:
-                    self._comp[ind] = self._ring({format_type: value})
+                    self._comp[ind] = self.base_ring()({format_type: value})
                     # NB: the writing
                     #   self._comp[ind] = self._ring(value, format_type)
                     # is not allowed when ring is an algebra and value some
@@ -385,6 +385,10 @@ class Components_dict(Components_base):
                             "an instance of Components")
         if isinstance(other, ComponentsWithSym_dict):
             return other + self     # to deal properly with symmetries
+        if not other._frame:
+            return +self
+        if not self._frame:
+            return +other
         if other._frame != self._frame:
             raise ValueError("the two sets of components are not defined on " +
                              "the same frame")
@@ -514,14 +518,14 @@ class Components_dict(Components_base):
             for s in other.parent()._antisym:
                 ns = tuple(s[i]+self._nid for i in range(len(s)))
                 antisym.append(ns)
-            result = Components(self._ring, self._frame, self._nid + other._nid,
+            result = Components(self.base_ring(), self._frame, self._nid + other._nid,
                                  self._sindex, self._output_formatter, sym,
                                  antisym)
         elif self._nid == 1 and other._nid == 1:
             if self is other:  # == would be dangerous here
                 from .comp import CompFullySym
                 # The result is symmetric:
-                result = CompFullySym(self._ring, self._frame, 2, self._sindex,
+                result = CompFullySym(self.base_ring(), self._frame, 2, self._sindex,
                                       self._output_formatter)
                 # The loop below on self._comp.items() and
                 # other._comp.items() cannot be used in the present case
@@ -555,10 +559,10 @@ class Components_dict(Components_base):
                         result[[ind]] = self[[ind[0]]] * self[[ind[1]]]
                 return result
             else:
-                result = Components(self._ring, self._frame, 2, self._sindex,
+                result = Components(self.base_ring(), self._frame, 2, self._sindex,
                                     self._output_formatter)
         else:
-            result = Components(self._ring, self._frame, self._nid + other._nid,
+            result = Components(self.base_ring(), self._frame, self._nid + other._nid,
                                 self._sindex, self._output_formatter)
         nproc = Parallelism().get('tensor')
         if nproc != 1:
@@ -588,7 +592,7 @@ class Components_dict(Components_base):
                     result._comp[ind_s + ind_o] = val_s * val_o
         return result
 
-    def __rmul__(self, other):
+    def _rmul_(self, other):
         r"""
         Reflected multiplication (multiplication on the left by ``other``).
 
@@ -616,6 +620,8 @@ class Components_dict(Components_base):
         for ind, val in self._comp.items():
             result._comp[ind] = other * val
         return result
+
+    _lmul_ = _rmul_
 
     def __truediv__(self, other):
         r"""
@@ -721,7 +727,7 @@ class Components_dict(Components_base):
         else:
             # More than 2 indices
             from .comp import Components
-            result = Components(self._ring, self._frame, self._nid - 2,
+            result = Components(self.base_ring(), self._frame, self._nid - 2,
                                 self._sindex, self._output_formatter)
             if pos1 > pos2:
                 pos1, pos2 = (pos2, pos1)
@@ -996,7 +1002,7 @@ class ComponentsWithSym_dict(Components_dict):
         True
 
     """
-    def __init__(self, parent, ring, frame, start_index=0, output_formatter=None):
+    def __init__(self, parent, frame, start_index=0, output_formatter=None):
         r"""
         TESTS::
 
@@ -1005,7 +1011,7 @@ class ComponentsWithSym_dict(Components_dict):
             sage: TestSuite(C).run()
 
         """
-        super().__init__(parent, ring, frame, start_index=start_index,
+        super().__init__(parent, frame, start_index=start_index,
                          output_formatter=output_formatter)
 
     def _ordered_indices(self, ind):
@@ -1110,11 +1116,11 @@ class ComponentsWithSym_dict(Components_dict):
             sign, ind = self._ordered_indices(indices)
             if (sign == 0) or (ind not in self._comp): # the value is zero:
                 if no_format:
-                    return self._ring.zero()
+                    return self.base_ring().zero()
                 elif format_type is None:
-                    return self._output_formatter(self._ring.zero())
+                    return self._output_formatter(self.base_ring().zero())
                 else:
-                    return self._output_formatter(self._ring.zero(),
+                    return self._output_formatter(self.base_ring().zero(),
                                                  format_type)
             else: # non zero value
                 if no_format:
@@ -1213,14 +1219,14 @@ class ComponentsWithSym_dict(Components_dict):
             else:
                 if format_type is None:
                     if sign == 1:
-                        self._comp[ind] = self._ring(value)
+                        self._comp[ind] = self.base_ring()(value)
                     else:   # sign = -1
-                        self._comp[ind] = -self._ring(value)
+                        self._comp[ind] = -self.base_ring()(value)
                 else:
                     if sign == 1:
-                        self._comp[ind] = self._ring({format_type: value})
+                        self._comp[ind] = self.base_ring()({format_type: value})
                     else:   # sign = -1
-                        self._comp[ind] = -self._ring({format_type: value})
+                        self._comp[ind] = -self.base_ring()({format_type: value})
 
     def swap_adjacent_indices(self, pos1, pos2, pos3):
         r"""
@@ -1341,10 +1347,15 @@ class ComponentsWithSym_dict(Components_dict):
 
         """
         if isinstance(other, (int, Integer)) and other == 0:
+            # TODO: This case can be removed once we define _add_ instead of __add__
             return +self
         if not isinstance(other, Components_base):
             raise TypeError("the second argument for the addition must be a " +
                             "an instance of Components")
+        if not other._frame:
+            return +self
+        if not self._frame:
+            return +other
         if other._frame != self._frame:
             raise ValueError("the two sets of components are not defined on " +
                              "the same frame")
@@ -1410,12 +1421,12 @@ class ComponentsWithSym_dict(Components_dict):
                         com = tuple(set(isym).intersection(set(osym)))
                         if len(com) > 1:
                             common_antisym.append(com)
-                result = Components(self._ring, self._frame, self._nid,
+                result = Components(self.base_ring(), self._frame, self._nid,
                                     self._sindex, self._output_formatter,
                                     common_sym, common_antisym)
         else:
             # other has no symmetry at all:
-            result = Components(self._ring, self._frame, self._nid,
+            result = Components(self.base_ring(), self._frame, self._nid,
                                 self._sindex, self._output_formatter)
         nproc = Parallelism().get('tensor')
         if nproc != 1:
@@ -1522,7 +1533,7 @@ class ComponentsWithSym_dict(Components_dict):
                     ns = tuple(s[i]+self._nid for i in range(len(s)))
                     antisym.append(ns)
         from .comp import Components
-        result = Components(self._ring, self._frame, self._nid + other._nid,
+        result = Components(self.base_ring(), self._frame, self._nid + other._nid,
                             self._sindex, self._output_formatter, sym, antisym)
         nproc = Parallelism().get('tensor')
         if nproc != 1:
@@ -1737,7 +1748,7 @@ class ComponentsWithSym_dict(Components_dict):
             # Construction of the appropriate object in view of the
             # remaining symmetries:
             nid_res = self._nid - 2
-            result = Components(self._ring, self._frame, nid_res,
+            result = Components(self.base_ring(), self._frame, nid_res,
                                 self._sindex, self._output_formatter,
                                 sym=sym_res, antisym=antisym_res)
             # The contraction itself:
@@ -2033,7 +2044,7 @@ class ComponentsWithSym_dict(Components_dict):
         for isym in sym_res:
             max_sym = max(max_sym, len(isym))
         from .comp import Components
-        result = Components(self._ring, self._frame, self._nid, self._sindex,
+        result = Components(self.base_ring(), self._frame, self._nid, self._sindex,
                             self._output_formatter, sym=sym_res,
                             antisym=antisym_res)
         if zero_result:
@@ -2292,7 +2303,7 @@ class ComponentsWithSym_dict(Components_dict):
         for isym in antisym_res:
             max_sym = max(max_sym, len(isym))
         from .comp import Components
-        result = Components(self._ring, self._frame, self._nid, self._sindex,
+        result = Components(self.base_ring(), self._frame, self._nid, self._sindex,
                             self._output_formatter, sym=sym_res,
                             antisym=antisym_res)
         if zero_result:
@@ -2448,7 +2459,7 @@ class ComponentsFullySym_dict(ComponentsWithSym_dict):
         True
 
     """
-    def __init__(self, parent, ring, frame, start_index=0, output_formatter=None):
+    def __init__(self, parent, frame, start_index=0, output_formatter=None):
         r"""
         TESTS::
 
@@ -2457,7 +2468,7 @@ class ComponentsFullySym_dict(ComponentsWithSym_dict):
             sage: TestSuite(C).run()
 
         """
-        super().__init__(parent, ring, frame, start_index=start_index,
+        super().__init__(parent, frame, start_index=start_index,
                          output_formatter=output_formatter)
 
     def __getitem__(self, args):
@@ -2529,11 +2540,11 @@ class ComponentsFullySym_dict(ComponentsWithSym_dict):
 
         # the value is zero
         if no_format:
-            return self._ring.zero()
+            return self.base_ring().zero()
         elif format_type is None:
-            return self._output_formatter(self._ring.zero())
+            return self._output_formatter(self.base_ring().zero())
         else:
-            return self._output_formatter(self._ring.zero(),
+            return self._output_formatter(self.base_ring().zero(),
                                              format_type)
 
     def __setitem__(self, args, value):
@@ -2608,9 +2619,9 @@ class ComponentsFullySym_dict(ComponentsWithSym_dict):
                     del self._comp[ind]  # zero values are not stored
             else:
                 if format_type is None:
-                    self._comp[ind] = self._ring(value)
+                    self._comp[ind] = self.base_ring()(value)
                 else:
-                    self._comp[ind] = self._ring({format_type: value})
+                    self._comp[ind] = self.base_ring()({format_type: value})
 
     def __add__(self, other):
         r"""
@@ -2695,6 +2706,10 @@ class ComponentsFullySym_dict(ComponentsWithSym_dict):
         if not isinstance(other, Components_base):
             raise TypeError("the second argument for the addition must be a " +
                             "an instance of Components")
+        if not other._frame:
+            return +self
+        if not self._frame:
+            return +other
         if isinstance(other, ComponentsFullySym_dict):
             if other._frame != self._frame:
                 raise ValueError("the two sets of components are not defined " +
@@ -2875,7 +2890,7 @@ class ComponentsFullyAntiSym_dict(ComponentsWithSym_dict):
         True
 
     """
-    def __init__(self, parent, ring, frame, start_index=0, output_formatter=None):
+    def __init__(self, parent, frame, start_index=0, output_formatter=None):
         r"""
         TESTS::
 
@@ -2884,7 +2899,7 @@ class ComponentsFullyAntiSym_dict(ComponentsWithSym_dict):
             sage: TestSuite(C).run()
 
         """
-        super().__init__(parent, ring, frame, start_index=start_index,
+        super().__init__(parent, frame, start_index=start_index,
                          output_formatter=output_formatter)
 
     def __add__(self, other):
@@ -2962,6 +2977,10 @@ class ComponentsFullyAntiSym_dict(ComponentsWithSym_dict):
         if not isinstance(other, Components_base):
             raise TypeError("the second argument for the addition must be a " +
                             "an instance of Components")
+        if not other._frame:
+            return +self
+        if not self._frame:
+            return +other
         if isinstance(other, ComponentsFullyAntiSym_dict):
             if other._frame != self._frame:
                 raise ValueError("the two sets of components are not defined " +
@@ -3138,11 +3157,11 @@ class ComponentsFullyAntiSym_dict(ComponentsWithSym_dict):
         #
         from .comp import Components, CompFullyAntiSym
         if res_nid == 1:
-            res = Components(self._ring, self._frame, res_nid,
+            res = Components(self.base_ring(), self._frame, res_nid,
                              start_index=self._sindex,
                              output_formatter=self._output_formatter)
         else:
-            res = CompFullyAntiSym(self._ring, self._frame, res_nid,
+            res = CompFullyAntiSym(self.base_ring(), self._frame, res_nid,
                                    start_index=self._sindex,
                                    output_formatter=self._output_formatter)
         factorial_s = factorial(self._nid)
@@ -3214,19 +3233,19 @@ class ComponentsKroneckerDelta_dict(ComponentsFullySym_dict):
         [['1', '0', '0'], ['0', '1', '0'], ['0', '0', '1']]
 
     """
-    def __init__(self, parent, ring, frame, start_index=0, output_formatter=None):
+    def __init__(self, parent, frame, start_index=0, output_formatter=None):
         r"""
         TESTS::
 
             sage: from sage.tensor.modules.comp import KroneckerDelta
             sage: d = KroneckerDelta(ZZ, (1,2,3))
-            sage: TestSuite(d).run()
+            sage: TestSuite(d).run(skip='_test_category')
 
         """
-        super().__init__(parent, ring, frame, start_index=start_index,
+        super().__init__(parent, frame, start_index=start_index,
                          output_formatter=output_formatter)
         for i in range(self._sindex, self._dim + self._sindex):
-            self._comp[(i,i)] = self._ring(1)
+            self._comp[(i,i)] = self.base_ring()(1)
 
     def _repr_(self):
         r"""
