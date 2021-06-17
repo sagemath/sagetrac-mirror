@@ -986,19 +986,7 @@ class DiffMap(ContinuousMap):
             frame2 = chart2.frame()
 
             tcomp = tensor._components[frame2]
-            if isinstance(tcomp, CompFullySym):
-                ptcomp = CompFullySym(ring1, frame1, ncov, start_index=si1,
-                                      output_formatter=of1)
-            elif isinstance(tcomp, CompFullyAntiSym):
-                ptcomp = CompFullyAntiSym(ring1, frame1, ncov, start_index=si1,
-                                          output_formatter=of1)
-            elif isinstance(tcomp, CompWithSym):
-                ptcomp = CompWithSym(ring1, frame1, ncov, start_index=si1,
-                                     output_formatter=of1, sym=tcomp.sym,
-                                     antisym=tcomp.antisym)
-            else:
-                ptcomp = Components(ring1, frame1, ncov, start_index=si1,
-                                    output_formatter=of1)
+            ptcomp = tcomp.parent()(ring1, frame1, start_index=si1, output_formatter=of1)
             phi = diff_map._coord_expression[(chart1, chart2)]
             jacob = phi.jacobian()
             # X2 coordinates expressed in terms of X1 ones via the diff. map:
