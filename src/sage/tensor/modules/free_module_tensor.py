@@ -331,6 +331,9 @@ class FreeModuleTensor(ModuleElementWithMutability):
             raise IndexError("incompatible lists of symmetries: the same " +
                              "position appears more than once")
 
+        self._sym = tuple(self._sym)
+        self._antisym = tuple(self._antisym)
+
         # Initialization of derived quantities:
         FreeModuleTensor._init_derived(self)
 
@@ -393,7 +396,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
 
         """
         # Special cases
-        if self._tensor_type == (0,2) and self._sym == [(0,1)]:
+        if self._tensor_type == (0,2) and self._sym == ((0,1),):
             description = "Symmetric bilinear form "
         else:
             # Generic case
