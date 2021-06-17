@@ -279,7 +279,7 @@ class AlternatingContrTensor(FreeModuleTensor):
             sage: e = M.basis('e')
             sage: a = M.alternating_contravariant_tensor(2, name='a')
             sage: a._new_comp(e)
-            Fully antisymmetric 2-indices components w.r.t. Basis (e_0,e_1,e_2)
+            Fully antisymmetric 2-index components w.r.t. Basis (e_0,e_1,e_2)
              on the Rank-3 free module M over the Integer Ring
             sage: a = M.alternating_contravariant_tensor(1)
             sage: a._new_comp(e)

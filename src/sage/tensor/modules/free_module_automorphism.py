@@ -401,7 +401,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: e = M.basis('e')
             sage: a = M.automorphism(name='a')
             sage: a.set_comp(e)
-            2-indices components w.r.t. Basis (e_0,e_1,e_2) on the Rank-3 free
+            2-index components w.r.t. Basis (e_0,e_1,e_2) on the Rank-3 free
              module M over the Integer Ring
             sage: a.set_comp(e)[:] = [[1,0,0],[0,1,2],[0,1,3]]
             sage: a.matrix(e)
@@ -445,7 +445,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
              Ring
             sage: a._components
             {Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer
-             Ring: 2-indices components w.r.t. Basis (e_0,e_1,e_2) on the
+             Ring: 2-index components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring}
             sage: a.set_comp(f)[:] = [[-1,0,0], [0,1,0], [0,0,-1]]
 
@@ -453,7 +453,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
             sage: a._components
             {Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer
-             Ring: 2-indices components w.r.t. Basis (f_0,f_1,f_2) on the
+             Ring: 2-index components w.r.t. Basis (f_0,f_1,f_2) on the
              Rank-3 free module M over the Integer Ring}
 
         Of course, they can be computed from those in basis ``f`` by means of
@@ -531,10 +531,10 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
             sage: a._components # random (dictionary output)
             {Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer
-             Ring: 2-indices components w.r.t. Basis (e_0,e_1,e_2) on the
+             Ring: 2-index components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer
-             Ring: 2-indices components w.r.t. Basis (f_0,f_1,f_2) on the
+             Ring: 2-index components w.r.t. Basis (f_0,f_1,f_2) on the
              Rank-3 free module M over the Integer Ring}
 
         For the identity map, it is not permitted to invoke :meth:`add_comp`::

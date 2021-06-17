@@ -351,7 +351,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: e = M.basis('e')
             sage: t = M.tensor((2,1))
             sage: t.add_comp(e)
-            3-indices components w.r.t. Basis (e_0,e_1,e_2) on the
+            3-index components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring
             sage: bool(t)  # unitialized components are zero
             False
@@ -997,11 +997,11 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: t = M.tensor((2,1), name='t')
             sage: e = M.basis('e')
             sage: t._new_comp(e)
-            3-indices components w.r.t. Basis (e_0,e_1,e_2) on the
+            3-index components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring
             sage: a = M.tensor((2,1), name='a', sym=(0,1))
             sage: a._new_comp(e)
-            3-indices components w.r.t. Basis (e_0,e_1,e_2) on the
+            3-index components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring,
              with symmetry on the index positions (0, 1)
 
@@ -1058,7 +1058,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: t = M.tensor((1,1), name='t')
             sage: t[1,2] = -3 ; t[3,3] = 2
             sage: t.components()
-            2-indices components w.r.t. Basis (e_1,e_2,e_3)
+            2-index components w.r.t. Basis (e_1,e_2,e_3)
              on the Rank-3 free module M over the Integer Ring
             sage: t.components() is t.components(e)  # since e is M's default basis
             True
@@ -1088,7 +1088,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: a[:] = [[0,0,1], [1,0,0], [0,-1,0]]
             sage: f = e.new_basis(a, 'f')
             sage: t.comp(f)
-            2-indices components w.r.t. Basis (f_1,f_2,f_3)
+            2-index components w.r.t. Basis (f_1,f_2,f_3)
              on the Rank-3 free module M over the Integer Ring
             sage: t.comp(f)[:]
             [ 0  0  0]
@@ -1226,7 +1226,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: t.display()
             t = -3 e_0*e^1 + 2 e_1*e^2
             sage: t._set_comp_unsafe(e)
-            2-indices components w.r.t. Basis (e_0,e_1,e_2) on the
+            2-index components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring
 
         Setting components in a new basis::
@@ -1297,7 +1297,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: t.display()
             t = -3 e_0*e^1 + 2 e_1*e^2
             sage: t.set_comp(e)
-            2-indices components w.r.t. Basis (e_0,e_1,e_2) on the
+            2-index components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring
 
         Setting components in a new basis::
@@ -1371,7 +1371,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: t.display()
             t = -3 e_0*e^1 + 2 e_1*e^2
             sage: t._add_comp_unsafe(e)
-            2-indices components w.r.t. Basis (e_0,e_1,e_2) on the
+            2-index components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring
 
         Adding components in a new basis::
@@ -1440,7 +1440,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: t.display()
             t = -3 e_0*e^1 + 2 e_1*e^2
             sage: t.add_comp(e)
-            2-indices components w.r.t. Basis (e_0,e_1,e_2) on the
+            2-index components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring
 
         Adding components in a new basis::
@@ -1541,7 +1541,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: t = M.tensor((2,1), name='t')
             sage: e = M.basis('e')
             sage: t.add_comp(e)
-            3-indices components w.r.t. Basis (e_0,e_1,e_2) on the
+            3-index components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring
             sage: t.__getitem__((1,2,0)) # uninitialized components are zero
             0

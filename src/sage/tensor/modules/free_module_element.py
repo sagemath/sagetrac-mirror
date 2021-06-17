@@ -251,7 +251,7 @@ class FiniteRankFreeModuleElement(AlternatingContrTensor):
             1-index components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring
             sage: type(v._new_comp(e))
-            <class 'sage.tensor.modules.comp.Components'>
+            <class 'sage.tensor.modules.comp_parent.CompParent.element_class'>
 
         """
         fmodule = self._fmodule  # the base free module
