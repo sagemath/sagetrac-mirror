@@ -156,6 +156,7 @@ from collections import namedtuple
 from sage.combinat.free_module import CombinatorialFreeModule
 #from sage.categories.homset import Hom
 from sage.categories.algebras import Algebras
+from sage.rings.semirings.all import NN
 
 Strand  = namedtuple('Strand', ['oriented','colour','crossing'], defaults=[0,'black',False])
 
@@ -1138,6 +1139,26 @@ class SphericalWeb(Element):
 
         return SphericalWeb(c, e, b)
 
+    def replace_linear(self, k, D, h):
+        r"""
+        Replace image of map D:h -> ``self`` by the linear combination k
+
+        EXAMPLES::
+
+        """
+        if h.parent() != k.parent().basis().keys():
+            raise ValueError("boundaries are different")
+
+        R = k.parent().base_ring()
+        L = LinearSphericalSpider(R, self.parent())
+
+        mc = k.monomial_coefficients()
+        result = L(0)
+        for a in mc:
+            result += mc[a] * L(self.replace(a, D, h))
+
+        return result
+
 #### End  of methods for rewriting ####
 
 #### Start of Parent ####
@@ -1156,6 +1177,9 @@ class SphericalSpider(UniqueRepresentation, Parent, metaclass=ClasscallMetaclass
     """
     @staticmethod
     def __classcall__(cls, boundary):
+        if boundary in NN:
+            boundary = [Strand()]*boundary
+
         return super(SphericalSpider, cls).__classcall__(cls, tuple(boundary))
 
 
@@ -1168,6 +1192,8 @@ class SphericalSpider(UniqueRepresentation, Parent, metaclass=ClasscallMetaclass
             sage: from sage.combinat.spherical_spider import Strand
             sage: SphericalSpider([Strand(0,'black',False),Strand(0,'black',False)])
             The spherical spider with boundary (Strand(oriented=0, colour='black', crossing=False), ...)
+            sage: SphericalSpider(2) = SphericalSpider([Strand(0,'black',False),Strand(0,'black',False)])
+            sage: SphericalSpider(2) == SphericalSpider([Strand(0,'black',False),Strand(0,'black',False)])
         """
 
         self.boundary = boundary
