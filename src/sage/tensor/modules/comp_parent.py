@@ -259,12 +259,19 @@ class CompParentWithSym(CompParent):
 
         TESTS::
 
-            sage: from sage.tensor.modules.comp_parent import CompParent, CompParentWithSym
+            sage: from sage.tensor.modules.comp_parent import (
+            ....:     CompParent, CompParentWithSym, CompParentFullySym, CompParentFullyAntiSym)
             sage: CompParentWithSym(3) is CompParent(3)
             True
             sage: CompParentWithSym(5, sym=(3, 4),) is CompParentWithSym(5, sym=((4, 3),))
             True
             sage: CompParentWithSym(5, sym=((1, 2), (3, 4))) is CompParentWithSym(5, sym=((4, 3), (2, 1)))
+            True
+            sage: CompParentWithSym(3, sym=((1, 3, 2))) is CompParentFullySym(3)
+            True
+            sage: CompParentWithSym(3, antisym=((2, 1, 3))) is CompParentFullyAntiSym(3)
+            True
+            sage: CompParentWithSym(0) is CompParent(0)
             True
         """
         if sym:
@@ -686,6 +693,25 @@ class CompParentFullySym(CompParentWithSym):
 
     """
 
+    @staticmethod
+    def __classcall_private__(cls, nb_indices):
+        r"""
+        Determine the correct class to return based upon the input.
+
+        TESTS::
+
+            sage: from sage.tensor.modules.comp_parent import CompParent, CompParentFullySym
+            sage: CompParentFullySym(0) is CompParent(0)
+            True
+            sage: CompParentFullySym(1) is CompParent(1)
+            True
+            sage: CompParentFullySym(2) is CompParent(2)
+            False
+        """
+        if nb_indices <= 1:
+            return CompParent(nb_indices)
+        return super(cls, CompParentFullySym).__classcall__(cls, nb_indices)
+
     Element = ComponentsFullySym_dict
 
     def __init__(self, nb_indices):
@@ -703,6 +729,27 @@ class CompParentFullyAntiSym(CompParentWithSym):
     r"""
 
     """
+
+    @staticmethod
+    def __classcall_private__(cls, nb_indices):
+        r"""
+        Determine the correct class to return based upon the input.
+
+        TESTS::
+
+            sage: from sage.tensor.modules.comp_parent import CompParent, CompParentFullyAntiSym
+            sage: CompParentFullyAntiSym(0) is CompParent(0)
+            True
+            sage: CompParentFullyAntiSym(2) is CompParent(2)
+            False
+        """
+        if nb_indices == 0:
+            return CompParent(nb_indices)
+        if nb_indices == 1:
+            # TODO: A special-case parent for the trivial "fully antisymmetric 1-index tensors"
+            # could be helpful here
+            pass
+        return super(cls, CompParentFullyAntiSym).__classcall__(cls, nb_indices)
 
     Element = ComponentsFullyAntiSym_dict
 
