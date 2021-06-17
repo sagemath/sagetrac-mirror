@@ -153,16 +153,45 @@ class MarkovTraceMuduleBasis(Enum):
     def strands(self):
         return self.value[0]
 
-    def braid_tietze(self):
-        return self.value[1]
+    def braid_tietze(self, strands_embed=None):
+        r"""
+        Return the Tietze representation of the braid corresponding to this basis
+        element.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.U2.braid_tietze()
+            ()
+            sage: MarkovTraceMuduleBasis.U2.braid_tietze(strands_embed=4)
+            (2, 3)
+        """
+        if not strands_embed:
+            strands_embed = self.strands()
+
+        if strands_embed > self.strands():
+            last_gen = strands_embed-1
+            return self.braid_tietze(strands_embed=last_gen) + (last_gen,)
+        else:
+            return self.value[1]
+
 
     def description(self):
+        r"""
+        Return a description of link corresponding to this basis element.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.U3.description()
+            'three unlinks'
+        """
         return self.value[2]
 
-    U1  = [1, None, 'one unlink']
-    U2  = [2, (1),  'two unlinks']
-    U3  = [3, (1),  'three unlinks']
-    U4  = [4, (1),  'four unlinks']
+    U1  = [1, (),   'one unlink']
+    U2  = [2, (), 'two unlinks']
+    U3  = [3, (), 'three unlinks']
+    U4  = [4, (), 'four unlinks']
     K4  = [3, (1, -2, 1, -2), 'figure eigth knot']
     K4U = [4, (1, -2, 1, -2), 'figure eigth knot plus one unlink']
     K6  = [4, (1, 1, 2, -1, -3, 2, -3),         'knot 6_1']
