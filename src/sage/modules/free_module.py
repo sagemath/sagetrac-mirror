@@ -7380,7 +7380,7 @@ def element_class(R, is_sparse):
         sage: sage.modules.free_module.element_class(P, is_sparse=False)
         <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
 
-    Free modules over symbolic rings and rings whose base rings are symbolic rings::
+    Free modules over the symbolic ring and its subrings::
 
         sage: sage.modules.free_module.element_class(SR, is_sparse=False)
         <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
@@ -7390,9 +7390,7 @@ def element_class(R, is_sparse):
         <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
         sage: SR_const = SR.subring(no_variables=True); SR_const
         Symbolic Constants Subring
-        sage: SR_poly_t = SR_const['t']; SR_poly_t
-        Univariate Polynomial Ring in t over Symbolic Constants Subring
-        sage: sage.modules.free_module.element_class(SR_poly_t, is_sparse=False)
+        sage: sage.modules.free_module.element_class(SR_const, is_sparse=False)
         <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
     """
     import sage.modules.vector_real_double_dense
@@ -7417,13 +7415,8 @@ def element_class(R, is_sparse):
         return sage.modules.vector_real_double_dense.Vector_real_double_dense
     elif sage.rings.complex_double.is_ComplexDoubleField(R) and not is_sparse:
         return sage.modules.vector_complex_double_dense.Vector_complex_double_dense
-    elif ((sage.symbolic.ring.is_SymbolicExpressionRing(R)
-           or isinstance(R.base_ring(), sage.symbolic.ring.SymbolicRing))
-          and not is_sparse):
-        try:
-            return R._free_module_element_class_dense()
-        except (AttributeError, KeyError):
-            return R.base_ring()._free_module_element_class_dense()
+    elif isinstance(R, sage.symbolic.ring.SymbolicRing) and not is_sparse:
+        return R._free_module_element_class_dense()
     else:
         if is_sparse:
             return free_module_element.FreeModuleElement_generic_sparse
