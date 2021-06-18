@@ -72,6 +72,8 @@ class CompParent(Module, UniqueRepresentation):
             if not isinstance(c, Components_base):
                 raise TypeError("cannot coerce {} into an element of {}".format(c, self))
             else:
+                # FIXME: We need to construct an instance of OUR element class
+                # corresponding to the input.
                 return c
         if len(args) != 1:
             raise ValueError(f"{type(self)} missing 1 required positional argument")
@@ -216,9 +218,34 @@ class CompParent(Module, UniqueRepresentation):
         """
         yield from self.index_generator(ranges)
 
+    def _coerce_map_from_(self, other_parent):
+        """
+        Check whether a coercion from ``other_parent`` to ``self`` is possible.
+
+        TESTS::
+
+            sage: from sage.tensor.modules.comp_parent import CompParent, CompParentWithSym
+            sage: cp = CompParent(QQ, 2)
+            sage: cp.coerce_map_from(CompParent(ZZ, 2))
+            Coercion map:
+              From: Parent of 2-index components over Integer Ring
+              To:   Parent of 2-index components over Rational Field
+
+            sage: cp.coerce_map_from(CompParentWithSym(ZZ, 2, sym=(1, 2)))
+            Coercion map:
+            From: Parent of Fully symmetric 2-index components over Integer Ring
+            To:   Parent of 2-index components over Rational Field
+        """
+        if (isinstance(other_parent, CompParent)
+            and self.base_ring().has_coerce_map_from(other_parent.base_ring())
+            and self._nid == other_parent._nid):
+            return True
+        return super()._coerce_map_from_(other_parent)
+
     @cached_method
     def symmetrize(self, *pos):
         r"""
+        Return the parent of components in ``self`` that are symmetric in ``pos``.
 
         """
         if not pos:
@@ -237,6 +264,7 @@ class CompParent(Module, UniqueRepresentation):
     @cached_method
     def antisymmetrize(self, *pos):
         r"""
+        Return the parent of components in ``self`` that are antisymmetric in ``pos``.
 
         """
         if not pos:
