@@ -166,7 +166,7 @@ class halfedge():
 
     This should probably be an attribute either of SphericalWeb or SphericalSpider
     """
-    def __init__(self, st=Strand()):
+    def __init__(self, st=Strand(), crossing=False):
         """
         EXAMPLES::
 
@@ -175,6 +175,7 @@ class halfedge():
             <sage.combinat.spherical_spider.halfedge object at ...>
         """
         self.strand = st
+        self.crossing = crossing
 
     def __hash__(self):
         return hash(self.strand)
@@ -358,6 +359,7 @@ class SphericalWeb(Element):
                     e.pop(x)
                     e.pop(y)
                 elif y in self.b:
+                    flag = True
                     c[y] = c[z]
                     w = [a for a in c if c[a] == z][0]
                     c[w] = y
@@ -1449,6 +1451,9 @@ class LinearSphericalSpider(CombinatorialFreeModule):
     """
     @staticmethod
     def __classcall__(cls, base_ring, boundary):
+        if boundary in NN:
+            boundary = [Strand()]*boundary
+
         return super(LinearSphericalSpider, cls).__classcall__(cls, base_ring, tuple(boundary))
 
     def __init__(self, base_ring, boundary):
@@ -1536,8 +1541,11 @@ class WebAlgebra(CombinatorialFreeModule):
     """
     @staticmethod
     def __classcall__(cls, base_ring, boundary):
+        if boundary in NN:
+            boundary = [Strand()]*boundary
+
         bp = list(boundary)
-        bn = [ Strand(-a.oriented, a.colour) for a in bp ]
+        bn = [Strand(-a.oriented, a.colour) for a in bp]
         bd = tuple(bp + list(reversed(bn)))
         return super(WebAlgebra, cls).__classcall__(cls, base_ring, bd)
 
@@ -1585,12 +1593,15 @@ class WebAlgebra(CombinatorialFreeModule):
             A closed spherical web with 0 edges.
             sage: WebAlgebra(QQ,[Strand()]*3).one_basis()
             The spherical web with c = (5, 4, 3, 2, 1, 0) and e = ().
+            sage: WebAlgebra(QQ,[Strand()]*3).one()
+            B[The spherical web with c = (5, 4, 3, 2, 1, 0) and e = ().]
         """
+        from sage.combinat.spherical_spider import Strand
         from sage.combinat.spherical_spider import halfedge
         b = list(self.basis().keys().boundary)
-        n = len(b)
+
         h = [ halfedge(a) for a in b ]
-        c = {h[i]: h[n-i-1] for i in range(n)}
+        c = {x: y for x, y in zip(h,reversed(h))}
 
         return SphericalWeb(c, {}, h)
 
@@ -1599,9 +1610,65 @@ class WebAlgebra(CombinatorialFreeModule):
         Return the product of two basis elements, as per
         ``AlgebrasWithBasis.ParentMethods.product_on_basis``.
 
-            EXAMPLES::
+        EXAMPLES::
 
+            sage: from sage.combinat.spherical_spider import Strand
+            sage: A = WebAlgebra(QQ,[Strand()]*3)
+            sage: A.one() * A.one() == A.one()
+            True
         """
         n = len(self.boundary())
         return self(X.glue(Y, n))
+
+    def markov_trace(self):
+        r"""
+        Construct the Markov trace on ``self``.
+
+        EXAMPLES::
+
+        """
+        from sage.combinat.spherical_spider import halfedge
+        b = list(self.basis().keys().boundary)
+        n = len(b)
+        h = [ halfedge(a) for a in b ]
+        c = {h[i]: h[n-i-1] for i in range(n)}
+        caps = SphericalWeb(c, {}, b)
+
+        codomain = LinearSphericalSpider(self.base_ring(),[])
+        on_basis = lambda x : codomain(x.glue(caps, n))
+        return self.module_morphism(codomain=codomain, on_basis=on_basis)
+
+    def U(self, k):
+        r"""
+        Construct the element `U_i`
+
+        EXAMPLES::
+
+            sage: WebAlgebra(QQ,2).U(1)
+            B[The spherical web with c = (1, 0, 3, 2) and e = ().]
+            sage: A = WebAlgebra(QQ,3)
+            sage: A.U(1) * A.U(2) * A.U(1) == A.U(1)
+            True
+            sage: A.U(2) * A.U(1) * A.U(2) == A.U(2)
+            True
+            sage: A = WebAlgebra(QQ,4)
+            sage: A.U(1) * A.U(3) == A.U(3) * A.U(1)
+            True
+        """
+        from sage.combinat.spherical_spider import halfedge
+        b = list(self.basis().keys().boundary)
+        n = len(b)
+        if not 0 < k < n//2:
+            return NotImplemented
+        if b[k-1] != Strand(-b[k].oriented, b[k].colour):
+            return NotImplemented
+
+
+        h = [ halfedge(a) for a in b ]
+        c = {h[i]: h[n-i-1] for i in range(n)}
+        c[h[k]] = h[k-1]
+        c[h[k-1]] = h[k]
+        c[h[n-k-1]] = h[n-k]
+        c[h[n-k]] = h[n-k-1]
+        return self(SphericalWeb(c, {}, h))
 
