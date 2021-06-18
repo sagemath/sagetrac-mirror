@@ -2129,8 +2129,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             t = (x + 1) dx*dx - y dx*dy + x*y dy*dx + (-y^2 + 2) dy*dy
 
         """
-        from sage.tensor.modules.comp import (CompWithSym, CompFullyAntiSym)
-
+        from sage.tensor.modules.comp_parent import CompParentWithSym, CompParentFullyAntiSym
+        cp = comp.parent()
         # 0/ Compatibility checks:
         if comp._ring is not self._ring:
              raise ValueError("the components are not defined on the " +
@@ -2149,20 +2149,20 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         elif tensor_type == (0,1):
             resu = self.linear_form(name=name, latex_name=latex_name)
         elif (tensor_type[0] == 0 and tensor_type[1] > 1
-              and isinstance(comp, CompFullyAntiSym)):
+              and isinstance(cp, CompParentFullyAntiSym)):
             resu = self.alternating_form(tensor_type[1], name=name,
                                          latex_name=latex_name)
         elif (tensor_type[0] > 1 and tensor_type[1] == 0
-              and isinstance(comp, CompFullyAntiSym)):
+              and isinstance(cp, CompParentFullyAntiSym)):
             resu = self.alternating_contravariant_tensor(tensor_type[0],
                                        name=name, latex_name=latex_name)
         else:
             resu = self.tensor_module(*tensor_type).element_class(self,
                           tensor_type, name=name, latex_name=latex_name)
             # Tensor symmetries deduced from those of comp:
-            if isinstance(comp, CompWithSym):
-                resu._sym = comp._sym
-                resu._antisym = comp._antisym
+            if isinstance(cp, CompParentWithSym):
+                resu._sym = cp._sym
+                resu._antisym = cp._antisym
         #
         # 2/ Tensor components set to comp:
         resu._components[comp._frame] = comp
