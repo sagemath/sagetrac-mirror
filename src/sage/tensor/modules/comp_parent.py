@@ -281,7 +281,7 @@ class CompParent(Module, UniqueRepresentation):
         if (isinstance(other_parent, CompParent)
             and self.base_ring().has_coerce_map_from(other_parent.base_ring())
             and self._nid == other_parent._nid):
-            if self.common_symmetries(other_parent):
+            if self.common_symmetries(other_parent) is self:
                 return True
         return super()._coerce_map_from_(other_parent)
 
@@ -325,8 +325,7 @@ class CompParent(Module, UniqueRepresentation):
 
     @cached_method
     def common_symmetries(self, other):
-        if isinstance(other, CompParentWithSym):
-            return other.common_symmetries(self)
+        # generic version, is overwritten by CompParentWithSym
         return self
 
     @cached_method
@@ -800,7 +799,7 @@ class CompParentWithSym(CompParent):
         Return a collection of components with common symmetries.
         """
         if not isinstance(other, CompParentWithSym):
-            return self
+            return other
         common_sym = []
         for isym in self._sym:
             for osym in other._sym:
