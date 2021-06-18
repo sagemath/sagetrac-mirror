@@ -909,7 +909,8 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
         EXAMPLES::
 
             sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
-            sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
+            sage: BR = chbr.CubicHeckeRingOfDefinition()
+            sage: ER = BR.extension_ring()
             sage: ER.field_embedding()
             Ring morphism:
             From: Multivariate Laurent Polynomial Ring in a, b, c
@@ -962,9 +963,19 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
             C3 = c3.splitting_field('a')
             E3 = c3.change_ring(C3).roots()[0][0]
 
+        B = self.base_ring()
+        embBase = B.hom((E3,))
+        if not C3.has_coerce_map_from(B):
+            C3._unset_coercions_used()
+            C3.register_coercion(embBase)
         P = C3[self.variable_names()]
         F = P.fraction_field()
-        return self.hom((F(E3),) + F.gens())
+        emb = self.hom((F(E3),) + F.gens())
+        F = emb.codomain()
+        if not F.has_coerce_map_from(self):
+            F._unset_coercions_used()
+            F.register_coercion(emb)
+        return emb
 
     def markov_trace_version(self):
         r"""
@@ -1426,6 +1437,9 @@ class CubicHeckeRingOfDefinition(Localization):
             embedding_into_extension_ring = self.hom(im_gens, check=False)
         else:
             embedding_into_extension_ring = self.hom(im_gens)
+        if not ExtensionRing.has_coerce_map_from(self):
+            ExtensionRing._unset_coercions_used()
+            ExtensionRing.register_coercion(embedding_into_extension_ring)
         ExtensionRing.register_conversion(embedding_into_extension_ring)
 
         return ExtensionRing
