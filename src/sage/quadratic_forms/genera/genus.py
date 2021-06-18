@@ -3335,10 +3335,14 @@ class GenusSymbol_global_ring(object):
         if n == 0:
             return (self.representative(), )
         if backend is None:
-            if n > 6 and prod(self.signature_pair_of_matrix()) == 0:
+            if prod(self.signature_pair_of_matrix()) != 0:
+                backend = 'sage'
+            elif 14 > n or self.det() % 6 != 0:
                 backend = 'magma'
             else:
-                backend = 'sage'
+                print("fallback on random search in the neighbor graph")
+                backend = "sage"
+                algorithm = "random"
         if backend == 'magma':
             if prod(self.signature_pair_of_matrix()) != 0:
                 if n <= 2:
@@ -3355,7 +3359,7 @@ class GenusSymbol_global_ring(object):
                 K = magma.Rationals()
                 gram = magma.Matrix(K, n, (e*self.representative()).list())
                 L = gram.LatticeWithGram()
-                representatives = L.GenusRepresentatives()
+                representatives = L.MyGenusRepresentatives()
                 representatives = [e*r.GramMatrix().sage() for r in representatives]
         elif backend == "sage":
             if n == 1:

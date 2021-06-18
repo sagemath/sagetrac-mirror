@@ -418,7 +418,7 @@ def classify_purely_ns_peq(p, q ,file_r, file_aw, log_file,aw="w",verbose=2,rkT=
     return classifi
 
 
-def classify_purely_ns_6_par(file_r, file_aw, log_file,aw="w",verbose=2,rkT=None):
+def classify_purely_ns_6_par(file_r, file_aw, log_file,aw="w",verbose=2,rkT=None, k3_unobstructed=True):
     p = 3
     q = 2
     classifi = []
@@ -455,19 +455,20 @@ def classify_purely_ns_6_par(file_r, file_aw, log_file,aw="w",verbose=2,rkT=None
         s3 = [a for a in split_sig(g3.signature_pair(),p,1,q)]
         for s11 in s1:
             for s33 in s3:
-                inputs.append((q,typ,((s11,),(s33,))))
+                inputs.append((q,typ,((s11,),(s33,)),k3_unobstructed))
     for input,output in pnq_actions_pure(inputs):
+        log = open(log_file,"a")
+        log.write(str(input))
+        log.write(str(output))
+        log.close()
         for A,a in output: 
             n = a.change_ring(ZZ).multiplicative_order()
-            aut = K3SurfaceAutGrp(A, A.orthogonal_group([]), a, n)
+            aut = K3SurfaceAutGrp(A, A.orthogonal_group([]), a, n,check=k3_unobstructed)
             classifi.append(aut)
             s = aut.str()
             result = open(file_aw,"a")
             result.write(s+ "\n")
             result.close()
-        log = open(log_file,"a")
-        log.write(str(input))
-        log.close()
     result = open(file_aw,'a')
     result.write("complete \n")
     result.close()

@@ -644,11 +644,11 @@ def next_prime_power(ptype, verbose=0):
                 yield ex
 
 @parallel(ncpus=12)
-def pnq_actions_pure(q,ptype, splitsig):
+def pnq_actions_pure(q,ptype, splitsig, k3_unobstructed):
     #magma.attach_spec("sage/code/unit_quotients/lat.spec")
     load("/home/lehrstuhl/ag-brandhorst/brandhorst/sage/code/hermitian.sage")
-    acts = pnq_actions(q,ptype,splitsig=splitsig)
-    acts = [(g[0],g[1]) for g in acts]
+    acts_iter = pnq_actions(q,ptype,k3_unobstructed=k3_unobstructed,splitsig=splitsig)
+    acts = [(g[0],g[1]) for g in acts_iter]
     return acts
 
 def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2,splitsig=None):
@@ -679,7 +679,7 @@ def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2,splitsig=None):
         splitsig_i = splitsig[i]
     else:
         splitsig_i = None
-    for (M, fM, GM) in splitpq(Cgenus,p,e,q,verbose=verbose,splitsig=splitsig_i):
+    for (M, fM, GM) in splitpq(Cgenus,p,e,q,k3_unobstructed=k3_unobstructed,verbose=verbose,splitsig=splitsig_i):
         # base case
         cm = sage.structure.element.get_coercion_model()
         cm.reset_cache()
@@ -704,6 +704,9 @@ def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2,splitsig=None):
                     x = P.gen()
                     pol = (x^(p^e*q)-1)/(x-1)
                     K = ex[0].kernel_sublattice(pol(ex[1]))
+                    if K.signature_pair()[0]!=0: 
+                        pol = (x^(p^e*q)-1)/(x-1)/cyclotomic_polynomial(p^e*q,x)
+                        K = ex[0].kernel_sublattice(pol(ex[1]))
                     if K.signature_pair()[0]==0 and K.maximum()==-2:
                         print("obstructed")
                         continue
@@ -830,7 +833,7 @@ def splitpq(genus, p, e, q, k3_unobstructed=True,verbose=0,splitsig=None):
                                                    min_scale=genus.scale()):
                 M = Mh.L
                 fM = Mh.iso
-                if M.genus() == genus and not is_obstructed(M,fM):
+                if M.genus() == genus and not (k3_unobstructed and is_obstructed(M,fM)):
                     GM =Mh.Oq_equiv()
                     yield M, fM, GM
             continue
@@ -842,7 +845,7 @@ def splitpq(genus, p, e, q, k3_unobstructed=True,verbose=0,splitsig=None):
                                                    min_scale=genus.scale()):
                 R = Rh.L
                 fR = Rh.iso
-                if R.genus() == genus and not is_obstructed(R,fR):
+                if R.genus() == genus and not (k3_unobstructed and is_obstructed(R,fR)):
                     GR = Rh.Oq_equiv()
                     yield R, fR, GR
             continue
@@ -882,7 +885,7 @@ def splitpq(genus, p, e, q, k3_unobstructed=True,verbose=0,splitsig=None):
                         M, fM = trace_lattice(ME, order=q*p**e)
                         M = IntegralLattice(M)
                         Mh = LatticeWithIsometry(M,fM,order=q*p**e,gramE=ME,magmaRep=MG.representative())
-                        if is_obstructed(M, fM):
+                        if k3_unobstructed and is_obstructed(M, fM):
                             continue
                         GM = Mh.Oq_equiv()
                         cm = sage.structure.element.get_coercion_model()
@@ -893,7 +896,7 @@ def splitpq(genus, p, e, q, k3_unobstructed=True,verbose=0,splitsig=None):
                             R, fR = trace_lattice(RE, order=p**e)
                             R = IntegralLattice(R)
                             Rh = LatticeWithIsometry(R,fR,order=p**e,gramE=RE,magmaRep=RG.representative())
-                            if is_obstructed(R, fR):
+                            if k3_unobstructed and is_obstructed(R, fR):
                                 continue
                             GR = Rh.Oq_equiv()
                             if verbose >0:

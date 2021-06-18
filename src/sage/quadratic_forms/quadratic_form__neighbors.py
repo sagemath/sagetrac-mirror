@@ -231,7 +231,7 @@ def find_p_neighbor_from_vec(self, p, y):
 
 
 def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
-                       algorithm=None, max_neighbors=1000, verbose=False):
+                       algorithm=None, max_neighbors=500, verbose=True):
     r"""
     Return all classes in the `p`-neighbor graph of ``self``.
 
@@ -323,9 +323,11 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
     else:
         raise ValueError("unknown algorithm")
     waiting_list = list(seeds)
-    isom_classes = []
-    mass_count = QQ(0)
+    isom_classes = list(seeds)
+    mass_count = sum([QQ(1)/Q.number_of_automorphisms() for Q in isom_classes])
     n_isom_classes = ZZ(0)
+    if verbose:
+        print("enumerating a genus of mass %s"%mass)
     while len(waiting_list) > 0 and mass != mass_count and n_isom_classes < max_classes:
         # find all p-neighbors of Q
         Q = waiting_list.pop()
@@ -338,8 +340,8 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
                 n_isom_classes += 1
                 mass_count += Q_neighbor.number_of_automorphisms()**(-1)
                 if verbose:
-                    print(max_neighbors)
-                    print(len(waiting_list))
+                    print("Nodes found %s"%n_isom_classes)
+                    print("Remaining mass: %s"%(mass-mass_count))
                 if mass_count == mass or n_isom_classes >= max_classes:
                     break
 
@@ -347,9 +349,11 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
         warn("reached the maximum number of isometry classes=%s. Increase the optional argument max_classes to obtain more." %max_classes)
 
     if mass is not None:
-        assert mass_count <= mass
         if mass_count < mass:
-            print("Warning: not all classes in the genus were found")
+            if verbose:
+                print("Remaining mass: %s"%(mass - mass_count))
+            isom_classes = neighbor_iteration(seeds=isom_classes,p=p,mass=mass,max_neighbors=max_neighbors,max_classes=max_classes,algorithm=algorithm,verbose=verbose)
+        assert mass_count == mass, "Warning: not all classes in the genus were found"
     return isom_classes
 
 def orbits_lines_mod_p(self, p):
