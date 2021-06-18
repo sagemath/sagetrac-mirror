@@ -351,7 +351,11 @@ class CompParent(Module, UniqueRepresentation):
             raise TypeError('can only add CompParent instances with the same number of indices and the same base ring')
         return self.common_symmetries(other)
 
-    _pushout_ = __add__
+    def _pushout_(self, other):
+        try:
+            return self + other
+        except TypeError:
+            pass
 
     @cached_method
     def tensor(*parents, **kwargs):

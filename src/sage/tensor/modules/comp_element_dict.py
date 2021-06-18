@@ -500,8 +500,7 @@ class Components_dict(Components_base):
 
         """
         if not isinstance(other, Components_base):
-            raise TypeError("the second argument for the tensor product " +
-                            "must be an instance of Components")
+            return super().__mul__(other)   # delegate to coercion
         if other._frame != self._frame:
             raise ValueError("the two sets of components are not defined on " +
                              "the same frame")
@@ -1511,8 +1510,7 @@ class ComponentsWithSym_dict(Components_dict):
 
         """
         if not isinstance(other, Components_base):
-            raise TypeError("the second argument for the tensor product " +
-                            "be an instance of Components")
+            return super().__mul__(other)   # delegate to coercion
         if other._frame != self._frame:
             raise ValueError("the two sets of components are not defined on " +
                              "the same frame")
