@@ -1520,11 +1520,11 @@ class ComponentsWithSym_dict(Components_dict):
         sym = list(self.parent()._sym)
         antisym = list(self.parent()._antisym)
         if isinstance(other, ComponentsWithSym_dict):
-            if other.parent()._sym != []:
+            if other.parent()._sym:
                 for s in other.parent()._sym:
                     ns = tuple(s[i]+self._nid for i in range(len(s)))
                     sym.append(ns)
-            if other.parent()._antisym != []:
+            if other.parent()._antisym:
                 for s in other.parent()._antisym:
                     ns = tuple(s[i]+self._nid for i in range(len(s)))
                     antisym.append(ns)

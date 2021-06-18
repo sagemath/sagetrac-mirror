@@ -464,7 +464,7 @@ class TensorField(ModuleElementWithMutability):
                                 # of self._domain, with the subdomains as keys
         # Treatment of symmetry declarations:
         self._sym = []
-        if sym is not None and sym != []:
+        if sym:
             if isinstance(sym[0], (int, Integer)):
                 # a single symmetry is provided as a tuple -> 1-item list:
                 sym = [tuple(sym)]
@@ -476,7 +476,7 @@ class TensorField(ModuleElementWithMutability):
                                  " not in [0,{}]".format(self._tensor_rank-1))
                     self._sym.append(tuple(isym))
         self._antisym = []
-        if antisym is not None and antisym != []:
+        if antisym:
             if isinstance(antisym[0], (int, Integer)):
                 # a single antisymmetry is provided as a tuple -> 1-item list:
                 antisym = [tuple(antisym)]
@@ -487,6 +487,8 @@ class TensorField(ModuleElementWithMutability):
                             raise IndexError("invalid position: {}".format(i) +
                                 " not in [0,{}]".format(self._tensor_rank-1))
                     self._antisym.append(tuple(isym))
+        self._sym = tuple(self._sym)
+        self._antisym = tuple(self._antisym)
         # Final consistency check:
         index_list = []
         for isym in self._sym:
