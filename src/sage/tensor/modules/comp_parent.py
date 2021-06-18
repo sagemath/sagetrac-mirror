@@ -20,9 +20,11 @@ import operator
 from sage.structure.parent import Parent
 from sage.structure.coerce_actions import LeftModuleAction, RightModuleAction
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.element import get_coercion_model
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.modules.module import Module
+from sage.categories.all import FreeModules
 from .comp_element import Components_base
 from .comp_element_dict import (Components_dict, ComponentsWithSym_dict,
                                 ComponentsFullySym_dict, ComponentsFullyAntiSym_dict)
@@ -38,7 +40,8 @@ class CompParent(Module, UniqueRepresentation):
         r"""
 
         """
-        Module.__init__(self, base_ring)
+        category = FreeModules(base_ring.category()).WithBasis()
+        Module.__init__(self, base_ring, category=category)
         self._nid = nb_indices
 
     def _repr_(self):
@@ -61,6 +64,9 @@ class CompParent(Module, UniqueRepresentation):
         Return a prefix and a suffix string describing the symmetry of ``self``.
         """
         return "", ""
+
+    def sym_antisym(self):
+        return (), ()
 
     def _element_constructor_(self, *args, **kwargs):
         r"""
@@ -280,6 +286,39 @@ class CompParent(Module, UniqueRepresentation):
             return CompParentFullyAntiSym(self.base_ring(), self._nid)
         return CompParentWithSym(self.base_ring(), self._nid, antisym=pos)
 
+    @cached_method
+    def tensor(*parents, **kwargs):
+        r"""
+        Return the tensor product
+
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.comp_parent import (
+            ....:     CompParent, CompParentWithSym, CompParentFullySym, CompParentFullyAntiSym)
+            sage: A = CompParentWithSym(QQ, 3)
+            sage: B = CompParentFullySym(ZZ, 2)
+            sage: C = CompParentFullyAntiSym(QQ, 3)
+            sage: A.tensor(B, C)
+            Parent of 8-index components over Rational Field,
+             with symmetry on the index positions (3, 4),
+             with antisymmetry on the index positions (5, 6, 7)
+        """
+        tp_sym = []
+        tp_antisym = []
+        tp_nid = 0
+        for p in parents:
+            sym, antisym = p.sym_antisym()
+            tp_sym.extend(tuple(i + tp_nid for i in clique)
+                          for clique in sym)
+            tp_antisym.extend(tuple(i + tp_nid for i in clique)
+                              for clique in antisym)
+            tp_nid += p._nid
+        cm = get_coercion_model()
+        tp_base_ring = cm.common_parent(*[p.base_ring() for p in parents])
+        return CompParentWithSym(tp_base_ring, tp_nid,
+                                 sym=tp_sym, antisym=tp_antisym)
+
+
 class CompParentWithSym(CompParent):
     r"""
 
@@ -383,6 +422,9 @@ class CompParentWithSym(CompParent):
         super().__init__(base_ring, nb_indices)
         self._sym = sym
         self._antisym = antisym
+
+    def sym_antisym(self):
+        return self._sym, self._antisym
 
     def _repr_symmetry(self):
         r"""
@@ -694,26 +736,6 @@ class CompParentWithSym(CompParent):
             result = CompParent(self._nid)
 
         return result
-
-    @cached_method
-    def tensor_product_sym(self, other):
-        r"""
-        Return the collection of components with the symmetries of tensor
-        products of components in ``self`` with components in ``other``.
-        """
-        sym = list(self._sym)
-        antisym = list(self._antisym)
-        if isinstance(other, CompParentWithSym):
-            if other._sym != []:
-                for s in other._sym:
-                    ns = tuple(s[i]+self._nid for i in range(len(s)))
-                    sym.append(ns)
-            if other._antisym != []:
-                for s in other._antisym:
-                    ns = tuple(s[i]+self._nid for i in range(len(s)))
-                    antisym.append(ns)
-        return CompParentWithSym(self._nid,
-                                 sym=sym, antisym=antisym)
 
     @cached_method
     def contract_sym(self, pos1, pos2):
