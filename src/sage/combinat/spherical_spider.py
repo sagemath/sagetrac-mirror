@@ -158,7 +158,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.algebras import Algebras
 from sage.rings.semirings.all import NN
 
-Strand  = namedtuple('Strand', ['oriented','colour','crossing'], defaults=[0,'black',False])
+Strand  = namedtuple('Strand', ['oriented','colour'], defaults=[0,'black'])
 
 class halfedge():
     """
@@ -187,11 +187,11 @@ class halfedge():
 
         sage: from sage.combinat.spherical_spider import halfedge
         sage: halfedge()._repr_()
-        '(0,black,False)'
+        '(0,black)'
         sage: halfedge() # indirect test
         <sage.combinat.spherical_spider.halfedge object at ...>
         """
-        return f"({self.strand.oriented},{self.strand.colour},{self.strand.crossing})"
+        return f"({self.strand.oriented},{self.strand.colour})"
 
     def dual(self):
         """
@@ -204,7 +204,7 @@ class halfedge():
             <sage.combinat.spherical_spider.halfedge object at ...>
         """
         st = self.strand
-        return (halfedge(Strand(-st.oriented, st.colour, st.crossing)))
+        return (halfedge(Strand(-st.oriented, st.colour)))
 
 class SphericalWeb(Element):
     r"""The class of webs.
@@ -258,7 +258,7 @@ class SphericalWeb(Element):
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: SphericalSpider([Strand(0,'black',False)]*3).vertex().__copy__()
+            sage: SphericalSpider([Strand(0,'black')]*3).vertex().__copy__()
             The spherical web with c = (1, 2, 0) and e = ().
         """
         D = {a:halfedge(a.strand) for a in self.cp}
@@ -331,7 +331,7 @@ class SphericalWeb(Element):
         This should not ever happen.
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: SphericalSpider([Strand(0,'black',False)]*2).vertex() # indirect doctest
+            sage: SphericalSpider([Strand(0,'black')]*2).vertex() # indirect doctest
             The spherical web with c = (1, 0) and e = ().
 
         Check loops are not removed.
@@ -427,12 +427,12 @@ class SphericalWeb(Element):
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: v = SphericalSpider([Strand(0,'black',False)]*3).vertex()
+            sage: v = SphericalSpider([Strand(0,'black')]*3).vertex()
             sage: v.__hash__()  # random
 
             sage: hash(v) # random
 
-            sage: u = SphericalSpider([Strand(0,'black',False)]*3).vertex()
+            sage: u = SphericalSpider([Strand(0,'black')]*3).vertex()
             sage: set([u,v]) # indirect doctest
             {The spherical web with c = (1, 2, 0) and e = ().}
         """
@@ -445,8 +445,8 @@ class SphericalWeb(Element):
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: u = SphericalSpider([Strand(0,'black',False)]*4).vertex()
-            sage: v = SphericalSpider([Strand(0,'black',False)]*4).vertex()
+            sage: u = SphericalSpider([Strand(0,'black')]*4).vertex()
+            sage: v = SphericalSpider([Strand(0,'black')]*4).vertex()
             sage: u is v, u == v, u != v # indirect doctest
             (False, True, False)
             sage: u < v # indirect doctest
@@ -475,7 +475,7 @@ class SphericalWeb(Element):
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: w = SphericalSpider([Strand(0,'black',False)]*3).vertex()
+            sage: w = SphericalSpider([Strand(0,'black')]*3).vertex()
             sage: w._traversal(w.b)
             <generator object SphericalWeb._traversal at ...>
             sage: w._traversal(w.b[0])
@@ -533,7 +533,7 @@ class SphericalWeb(Element):
             (5, 4)
         """
         st = x.strand
-        xd = Strand(-st.oriented, st.colour, st.crossing)
+        xd = Strand(-st.oriented, st.colour)
         if y.strand != xd:
             raise ValueError(f"{x.strand} and {y.strand} must be dual")
 
@@ -571,8 +571,8 @@ class SphericalWeb(Element):
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: u = SphericalSpider([Strand(0,'black',False)]*3).vertex()
-            sage: v = SphericalSpider([Strand(0,'black',False)]*3).vertex()
+            sage: u = SphericalSpider([Strand(0,'black')]*3).vertex()
+            sage: v = SphericalSpider([Strand(0,'black')]*3).vertex()
             sage: u.glue(v,1)
             The spherical web with c = (1, 4, 3, 5, 0, 2) and e = (5, 4).
             sage: u.glue(v,0)
@@ -615,10 +615,10 @@ class SphericalWeb(Element):
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: u = SphericalSpider([Strand(0,'black',False)]*3).vertex()
+            sage: u = SphericalSpider([Strand(0,'black')]*3).vertex()
             sage: u.mirror_image()
             The spherical web with c = (1, 2, 0) and e = ().
-            sage: v = SphericalSpider([Strand(0,'black',False)]*4).vertex()
+            sage: v = SphericalSpider([Strand(0,'black')]*4).vertex()
             sage: u.glue(v,1).mirror_image()
             The spherical web with c = (1, 2, 5, 4, 6, 0, 3) and e = (6, 5).
             sage: w = u.glue(u,1).glue(v,1)
@@ -666,10 +666,10 @@ class SphericalWeb(Element):
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: u = SphericalSpider([Strand(0,'black',False)]*3).vertex()
+            sage: u = SphericalSpider([Strand(0,'black')]*3).vertex()
             sage: len(u.faces())
             3
-            sage: w = SphericalSpider([Strand(0,'black',False)]*4).vertex()
+            sage: w = SphericalSpider([Strand(0,'black')]*4).vertex()
             sage: len(w.faces())
             4
             sage: len(u.glue(u,0).faces())
@@ -1159,6 +1159,19 @@ class SphericalWeb(Element):
 
         return result
 
+    def apply_rule(self, term, replacement):
+        r"""
+        Find ``term`` in ``self`` and replace with the linear combination ``replacement``.
+
+        EXAMPLES::
+
+        """
+        try:
+            D = next(self.search(term))
+            return self.replace_linear(replacement, D, term)
+        except StopIteration:
+            return self
+
 #### End  of methods for rewriting ####
 
 #### Start of Parent ####
@@ -1170,8 +1183,8 @@ class SphericalSpider(UniqueRepresentation, Parent, metaclass=ClasscallMetaclass
     EXAMPLES::
 
         sage: from sage.combinat.spherical_spider import Strand
-        sage: SphericalSpider([Strand(0,'black',False),Strand(0,'black',False)])
-        The spherical spider with boundary (Strand(oriented=0, colour='black', crossing=False), ...)
+        sage: SphericalSpider([Strand(0,'black'),Strand(0,'black')])
+        The spherical spider with boundary (Strand(oriented=0, colour='black'), ...)
         sage: SphericalSpider([])
         The spherical spider with boundary ()
     """
@@ -1190,10 +1203,10 @@ class SphericalSpider(UniqueRepresentation, Parent, metaclass=ClasscallMetaclass
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: SphericalSpider([Strand(0,'black',False),Strand(0,'black',False)])
-            The spherical spider with boundary (Strand(oriented=0, colour='black', crossing=False), ...)
-            sage: SphericalSpider(2) = SphericalSpider([Strand(0,'black',False),Strand(0,'black',False)])
-            sage: SphericalSpider(2) == SphericalSpider([Strand(0,'black',False),Strand(0,'black',False)])
+            sage: SphericalSpider([Strand(0,'black'),Strand(0,'black')])
+            The spherical spider with boundary (Strand(oriented=0, colour='black'), ...)
+            sage: SphericalSpider(2) == SphericalSpider([Strand(0,'black'),Strand(0,'black')])
+            True
         """
 
         self.boundary = boundary
@@ -1207,9 +1220,9 @@ class SphericalSpider(UniqueRepresentation, Parent, metaclass=ClasscallMetaclass
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: P = SphericalSpider([Strand(0,'black',False)]*3)
+            sage: P = SphericalSpider([Strand(0,'black')]*3)
             sage: P._repr_()
-            "The spherical spider with boundary (Strand(oriented=0, colour='black', crossing=False),  ...)"
+            "The spherical spider with boundary (Strand(oriented=0, colour='black'),  ...)"
         """
         return f"The spherical spider with boundary {self.boundary}"
 
@@ -1222,7 +1235,7 @@ class SphericalSpider(UniqueRepresentation, Parent, metaclass=ClasscallMetaclass
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: SphericalSpider([Strand(0,'black',False)]*4).vertex()
+            sage: SphericalSpider([Strand(0,'black')]*4).vertex()
             The spherical web with c = (1, 2, 3, 0) and e = ().
         """
         bd = self.boundary
@@ -1245,7 +1258,7 @@ class SphericalSpider(UniqueRepresentation, Parent, metaclass=ClasscallMetaclass
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: SphericalSpider([]).loop(Strand(0,'black',False))
+            sage: SphericalSpider([]).loop(Strand(0,'black'))
             A closed spherical web with 1 edges.
         """
 
@@ -1276,7 +1289,7 @@ class SphericalSpider(UniqueRepresentation, Parent, metaclass=ClasscallMetaclass
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: u = SphericalSpider([Strand(0,'black',False)]*3).vertex()
+            sage: u = SphericalSpider([Strand(0,'black')]*3).vertex()
             sage: SphericalSpider(tuple([])).polygon([u,u,u])
             The spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).
             sage: SphericalSpider([]).polygon([])
@@ -1428,18 +1441,6 @@ class SphericalSpider(UniqueRepresentation, Parent, metaclass=ClasscallMetaclass
 
         return SphericalWeb(c,e,[])
 
-    def from_constellation(C):
-        r"""
-        Construct the diagram of a constellation
-
-        EXAMPLES::
-
-        """
-        from sage.combinat.constellation import Constellation
-        C = Constellation(C)
-
-        return SphericalWeb(c,e,[])
-
 #### End of Parent ####
 
 class LinearSphericalSpider(CombinatorialFreeModule):
@@ -1502,6 +1503,33 @@ class LinearSphericalSpider(CombinatorialFreeModule):
         on_basis = lambda x : codomain(x.rotate(k))
         return self.module_morphism(codomain=codomain, on_basis=on_basis)
 
+    def apply_rule(self, term, replacement):
+        r"""
+        Extend :method'apply_rule' by linearity
+
+        EXAMPLES::
+
+        """
+        codomain = self
+        on_basis = lambda x : codomain(x.apply_rule(term, replacement))
+        return self.module_morphism(codomain=codomain, on_basis=on_basis)
+
+    def simplify(self, term, replacement):
+        r"""
+        Simplify by repeatedly applying :method'apply_rule'
+
+        EXAMPLES::
+
+        """
+        new = self
+        finished = False
+        while not finished:
+            old = new
+            new = old.apply_rule(term, replacement)
+            finished = new == old
+
+        return old
+
 class WebAlgebra(CombinatorialFreeModule):
     r"""
     Linear combinations of spherical webs.
@@ -1509,7 +1537,7 @@ class WebAlgebra(CombinatorialFreeModule):
     @staticmethod
     def __classcall__(cls, base_ring, boundary):
         bp = list(boundary)
-        bn = [ Strand(-a.oriented, a.colour, a.crossing) for a in bp ]
+        bn = [ Strand(-a.oriented, a.colour) for a in bp ]
         bd = tuple(bp + list(reversed(bn)))
         return super(WebAlgebra, cls).__classcall__(cls, base_ring, bd)
 
