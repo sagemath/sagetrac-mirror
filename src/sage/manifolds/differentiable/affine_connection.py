@@ -135,7 +135,7 @@ class AffineConnection(SageObject):
 
         sage: nab[1,1,2], nab[3,2,3] = x^2, y*z  # Gamma^1_{12} = x^2, Gamma^3_{23} = yz
         sage: nab._coefficients
-        {Coordinate frame (M, (d/dx,d/dy,d/dz)): 3-indices components w.r.t.
+        {Coordinate frame (M, (d/dx,d/dy,d/dz)): 3-index components w.r.t.
          Coordinate frame (M, (d/dx,d/dy,d/dz))}
 
     If not the default one, the vector frame w.r.t. which the connection
@@ -144,7 +144,7 @@ class AffineConnection(SageObject):
 
         sage: nab[c_xyz.frame(), 1,1,2], nab[c_xyz.frame(),3,2,3] = x^2, y*z
         sage: nab._coefficients
-        {Coordinate frame (M, (d/dx,d/dy,d/dz)): 3-indices components w.r.t.
+        {Coordinate frame (M, (d/dx,d/dy,d/dz)): 3-index components w.r.t.
          Coordinate frame (M, (d/dx,d/dy,d/dz))}
 
     Unset components are initialized to zero::
@@ -612,7 +612,7 @@ class AffineConnection(SageObject):
             sage: X.<x,y> = M.chart()
             sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
             sage: nab._new_coef(X.frame())
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            3-index components w.r.t. Coordinate frame (M, (d/dx,d/dy))
 
         """
         from sage.tensor.modules.comp import Components
@@ -659,7 +659,7 @@ class AffineConnection(SageObject):
             sage: nab = M.affine_connection('nabla', r'\nabla')
             sage: nab[1,1,2], nab[3,2,3] = x^2, y*z  # Gamma^1_{12} = x^2, Gamma^3_{23} = yz
             sage: nab.coef()
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy,d/dz))
+            3-index components w.r.t. Coordinate frame (M, (d/dx,d/dy,d/dz))
             sage: type(nab.coef())
             <class 'sage.tensor.modules.comp.Components'>
             sage: M.default_frame()
@@ -737,7 +737,7 @@ class AffineConnection(SageObject):
             sage: eX = X.frame(); eX
             Coordinate frame (M, (d/dx,d/dy))
             sage: nab.set_coef(eX)
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            3-index components w.r.t. Coordinate frame (M, (d/dx,d/dy))
             sage: nab.set_coef(eX)[1,2,1] = x*y
             sage: nab.display(eX)
             Gam^x_yx = x*y
@@ -747,7 +747,7 @@ class AffineConnection(SageObject):
 
             sage: nab.set_coef()[1,2,1] = x*y
             sage: nab.set_coef()
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            3-index components w.r.t. Coordinate frame (M, (d/dx,d/dy))
             sage: nab.set_coef()[1,2,1] = x*y
             sage: nab.display()
             Gam^x_yx = x*y
@@ -764,7 +764,7 @@ class AffineConnection(SageObject):
 
             sage: e = M.vector_frame('e')
             sage: nab.set_coef(e)
-            3-indices components w.r.t. Vector frame (M, (e_1,e_2))
+            3-index components w.r.t. Vector frame (M, (e_1,e_2))
             sage: nab.set_coef(e)[2,1,1] = x+y
             sage: nab.set_coef(e)[2,1,2] = x-y
             sage: nab.display(e)
@@ -838,7 +838,7 @@ class AffineConnection(SageObject):
             sage: eX = X.frame(); eX
             Coordinate frame (M, (d/dx,d/dy))
             sage: nab.add_coef(eX)
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            3-index components w.r.t. Coordinate frame (M, (d/dx,d/dy))
             sage: nab.add_coef(eX)[1,2,1] = x*y
             sage: nab.display(eX)
             Gam^x_yx = x*y
@@ -848,7 +848,7 @@ class AffineConnection(SageObject):
 
             sage: nab.add_coef()[1,2,1] = x*y
             sage: nab.add_coef()
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            3-index components w.r.t. Coordinate frame (M, (d/dx,d/dy))
             sage: nab.add_coef()[1,2,1] = x*y
             sage: nab.display()
             Gam^x_yx = x*y
@@ -857,7 +857,7 @@ class AffineConnection(SageObject):
 
             sage: e = M.vector_frame('e')
             sage: nab.add_coef(e)
-            3-indices components w.r.t. Vector frame (M, (e_1,e_2))
+            3-index components w.r.t. Vector frame (M, (e_1,e_2))
             sage: nab.add_coef(e)[2,1,1] = x+y
             sage: nab.add_coef(e)[2,1,2] = x-y
             sage: nab.display(e)

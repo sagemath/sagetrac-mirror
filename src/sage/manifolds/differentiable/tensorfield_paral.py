@@ -73,7 +73,7 @@ returned by the method
 :meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.comp`::
 
     sage: t.comp(c_xy.frame())
-    2-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+    2-index components w.r.t. Coordinate frame (M, (d/dx,d/dy))
 
 If no vector frame is mentioned in the argument of
 :meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.comp`,
@@ -160,7 +160,7 @@ of the square brackets::
     sage: t[e,1,1] = x+y
     sage: t[e,2,1], t[e,2,2] = y, -3*x
     sage: t.comp(e)
-    2-indices components w.r.t. Vector frame (M, (e_1,e_2))
+    2-index components w.r.t. Vector frame (M, (e_1,e_2))
     sage: t.comp(e)[:]
     [x + y     0]
     [    y  -3*x]
@@ -430,7 +430,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         sage: f = M.vector_frame('f')  # a new frame defined on M, in addition to e
         sage: t.set_comp(f)[0,0] = -3
         sage: t.comp(f)
-        2-indices components w.r.t. Vector frame (M, (f_0,f_1,f_2))
+        2-index components w.r.t. Vector frame (M, (f_0,f_1,f_2))
         sage: t.comp(f)[0,0]
         -3
         sage: t.comp(f)[:]  # the full list of components
@@ -443,7 +443,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
     Accordingly, the components in the frame ``e`` have been deleted::
 
         sage: t._components
-        {Vector frame (M, (f_0,f_1,f_2)): 2-indices components w.r.t. Vector
+        {Vector frame (M, (f_0,f_1,f_2)): 2-index components w.r.t. Vector
          frame (M, (f_0,f_1,f_2))}
 
     To keep the other components, one must use the method :meth:`add_comp`::
@@ -458,8 +458,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
     The components w.r.t. frame e have been kept::
 
         sage: t._components  # random (dictionary output)
-        {Vector frame (M, (e_0,e_1,e_2)): 2-indices components w.r.t. Vector frame (M, (e_0,e_1,e_2)),
-         Vector frame (M, (f_0,f_1,f_2)): 2-indices components w.r.t. Vector frame (M, (f_0,f_1,f_2))}
+        {Vector frame (M, (e_0,e_1,e_2)): 2-index components w.r.t. Vector frame (M, (e_0,e_1,e_2)),
+         Vector frame (M, (f_0,f_1,f_2)): 2-index components w.r.t. Vector frame (M, (f_0,f_1,f_2))}
 
     The basic properties of a tensor field are::
 
@@ -756,7 +756,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: e_xy = X.frame()
             sage: t = M.tensor_field(1,1, name='t')
             sage: t._set_comp_unsafe(e_xy)
-            2-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            2-index components w.r.t. Coordinate frame (M, (d/dx,d/dy))
             sage: t._set_comp_unsafe(e_xy)[1,0] = 2
             sage: t.display(e_xy)
             t = 2 d/dy*dx
@@ -765,7 +765,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
             sage: e = M.vector_frame('e')
             sage: t._set_comp_unsafe(e)
-            2-indices components w.r.t. Vector frame (M, (e_0,e_1))
+            2-index components w.r.t. Vector frame (M, (e_0,e_1))
             sage: t._set_comp_unsafe(e)[0,1] = x
             sage: t.display(e)
             t = x e_0*e^1
@@ -784,7 +784,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: f = U.vector_frame('f')
             sage: t._set_comp_unsafe(f)
-            2-indices components w.r.t. Vector frame (U, (f_0,f_1))
+            2-index components w.r.t. Vector frame (U, (f_0,f_1))
             sage: t._set_comp_unsafe(f)[0,1] = 1+y
             sage: t.display(f)
             t = (y + 1) f_0*f^1
@@ -845,7 +845,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: e_xy = X.frame()
             sage: t = M.tensor_field(1,1, name='t')
             sage: t.set_comp(e_xy)
-            2-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            2-index components w.r.t. Coordinate frame (M, (d/dx,d/dy))
             sage: t.set_comp(e_xy)[1,0] = 2
             sage: t.display(e_xy)
             t = 2 d/dy*dx
@@ -854,7 +854,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
             sage: e = M.vector_frame('e')
             sage: t.set_comp(e)
-            2-indices components w.r.t. Vector frame (M, (e_0,e_1))
+            2-index components w.r.t. Vector frame (M, (e_0,e_1))
             sage: t.set_comp(e)[0,1] = x
             sage: t.display(e)
             t = x e_0*e^1
@@ -873,7 +873,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: f = U.vector_frame('f')
             sage: t.set_comp(f)
-            2-indices components w.r.t. Vector frame (U, (f_0,f_1))
+            2-index components w.r.t. Vector frame (U, (f_0,f_1))
             sage: t.set_comp(f)[0,1] = 1+y
             sage: t.display(f)
             t = (y + 1) f_0*f^1
@@ -938,7 +938,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: e_xy = X.frame()
             sage: t = M.tensor_field(1,1, name='t')
             sage: t._add_comp_unsafe(e_xy)
-            2-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            2-index components w.r.t. Coordinate frame (M, (d/dx,d/dy))
             sage: t._add_comp_unsafe(e_xy)[1,0] = 2
             sage: t.display(e_xy)
             t = 2 d/dy*dx
@@ -947,7 +947,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
             sage: e = M.vector_frame('e')
             sage: t._add_comp_unsafe(e)
-            2-indices components w.r.t. Vector frame (M, (e_0,e_1))
+            2-index components w.r.t. Vector frame (M, (e_0,e_1))
             sage: t._add_comp_unsafe(e)[0,1] = x
             sage: t.display(e)
             t = x e_0*e^1
@@ -962,7 +962,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: f = U.vector_frame('f')
             sage: t._add_comp_unsafe(f)
-            2-indices components w.r.t. Vector frame (U, (f_0,f_1))
+            2-index components w.r.t. Vector frame (U, (f_0,f_1))
             sage: t._add_comp_unsafe(f)[0,1] = 1+y
             sage: t.display(f)
             t = (y + 1) f_0*f^1
@@ -1025,7 +1025,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: e_xy = X.frame()
             sage: t = M.tensor_field(1,1, name='t')
             sage: t.add_comp(e_xy)
-            2-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            2-index components w.r.t. Coordinate frame (M, (d/dx,d/dy))
             sage: t.add_comp(e_xy)[1,0] = 2
             sage: t.display(e_xy)
             t = 2 d/dy*dx
@@ -1034,7 +1034,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
             sage: e = M.vector_frame('e')
             sage: t.add_comp(e)
-            2-indices components w.r.t. Vector frame (M, (e_0,e_1))
+            2-index components w.r.t. Vector frame (M, (e_0,e_1))
             sage: t.add_comp(e)[0,1] = x
             sage: t.display(e)
             t = x e_0*e^1
@@ -1049,7 +1049,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: f = U.vector_frame('f')
             sage: t.add_comp(f)
-            2-indices components w.r.t. Vector frame (U, (f_0,f_1))
+            2-index components w.r.t. Vector frame (U, (f_0,f_1))
             sage: t.add_comp(f)[0,1] = 1+y
             sage: t.display(f)
             t = (y + 1) f_0*f^1
@@ -1118,15 +1118,15 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: t = M.tensor_field(1,2, name='t')
             sage: t[1,2,1] = x*y
             sage: t.comp(X.frame())
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            3-index components w.r.t. Coordinate frame (M, (d/dx,d/dy))
             sage: t.comp()  # the default frame is X.frame()
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            3-index components w.r.t. Coordinate frame (M, (d/dx,d/dy))
             sage: t.comp()[:]
             [[[0, 0], [x*y, 0]], [[0, 0], [0, 0]]]
             sage: e = M.vector_frame('e')
             sage: t[e, 2,1,1] = x-3
             sage: t.comp(e)
-            3-indices components w.r.t. Vector frame (M, (e_1,e_2))
+            3-index components w.r.t. Vector frame (M, (e_1,e_2))
             sage: t.comp(e)[:]
             [[[0, 0], [0, 0]], [[x - 3, 0], [0, 0]]]
 

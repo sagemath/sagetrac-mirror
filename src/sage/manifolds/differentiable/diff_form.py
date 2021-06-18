@@ -958,7 +958,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
         sage: a[1,0]
         -2
         sage: a.comp()
-        Fully antisymmetric 2-indices components w.r.t. Coordinate frame (M, (d/dt,d/dx,d/dy,d/dz))
+        Fully antisymmetric 2-index components w.r.t. Coordinate frame (M, (d/dt,d/dx,d/dy,d/dz))
         sage: type(a.comp())
         <class 'sage.tensor.modules.comp.CompFullyAntiSym'>
 
@@ -1034,7 +1034,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
           z == z  *passed*
         NB: a failed report can reflect a mere lack of simplification.
         sage: eps.comp(c_spher.frame()) # computation of the components in the spherical frame
-        Fully antisymmetric 3-indices components w.r.t. Coordinate frame
+        Fully antisymmetric 3-index components w.r.t. Coordinate frame
          (R3, (d/dr,d/dth,d/dph))
         sage: eps.comp(c_spher.frame())[1,2,3, c_spher]
         r^2*sin(th)

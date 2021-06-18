@@ -279,7 +279,7 @@ class AutomorphismField(TensorField):
             sage: e_uv = c_uv.frame()
             sage: a= M.automorphism_field(name='a')
             sage: a.set_comp(e_uv)
-            2-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            2-index components w.r.t. Coordinate frame (V, (d/du,d/dv))
             sage: a.set_comp(e_uv)[0,0] = u+v
             sage: a.set_comp(e_uv)[1,1] = u+v
             sage: a.display(e_uv)
@@ -289,7 +289,7 @@ class AutomorphismField(TensorField):
 
             sage: e = V.vector_frame('e')
             sage: a.set_comp(e)
-            2-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            2-index components w.r.t. Vector frame (V, (e_0,e_1))
             sage: a.set_comp(e)[0,1] = u*v
             sage: a.set_comp(e)[1,0] = u*v
             sage: a.display(e)
@@ -356,7 +356,7 @@ class AutomorphismField(TensorField):
             sage: e_uv = c_uv.frame()
             sage: a= M.automorphism_field(name='a')
             sage: a.add_comp(e_uv)
-            2-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            2-index components w.r.t. Coordinate frame (V, (d/du,d/dv))
             sage: a.add_comp(e_uv)[0,0] = u+v
             sage: a.add_comp(e_uv)[1,1] = u+v
             sage: a.display(e_uv)
@@ -366,7 +366,7 @@ class AutomorphismField(TensorField):
 
             sage: e = V.vector_frame('e')
             sage: a.add_comp(e)
-            2-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            2-index components w.r.t. Vector frame (V, (e_0,e_1))
             sage: a.add_comp(e)[0,1] = u*v
             sage: a.add_comp(e)[1,0] = u*v
             sage: a.display(e)

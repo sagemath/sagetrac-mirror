@@ -158,7 +158,7 @@ class LeviCivitaConnection(AffineConnection):
         sage: M.default_frame()
         Coordinate frame (R^3, (d/dr,d/dth,d/dph))
         sage: nab.coef()
-        3-indices components w.r.t. Coordinate frame (R^3, (d/dr,d/dth,d/dph)),
+        3-index components w.r.t. Coordinate frame (R^3, (d/dr,d/dth,d/dph)),
          with symmetry on the index positions (1, 2)
 
     We note that the Christoffel symbols are symmetric with respect to their
@@ -362,11 +362,11 @@ class LeviCivitaConnection(AffineConnection):
             sage: g[0,0], g[1,1] = 1, 1
             sage: nab = g.connection()
             sage: nab._new_coef(X.frame())
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy)), with
+            3-index components w.r.t. Coordinate frame (M, (d/dx,d/dy)), with
              symmetry on the index positions (1, 2)
             sage: e = M.vector_frame('e')
             sage: nab._new_coef(e)
-            3-indices components w.r.t. Vector frame (M, (e_0,e_1))
+            3-index components w.r.t. Vector frame (M, (e_0,e_1))
 
         """
         from sage.tensor.modules.comp import Components, CompWithSym
@@ -429,7 +429,7 @@ class LeviCivitaConnection(AffineConnection):
             g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
             sage: nab = g.connection()
             sage: gam = nab.coef() ; gam
-            3-indices components w.r.t. Coordinate frame (R^3, (d/dr,d/dth,d/dph)),
+            3-index components w.r.t. Coordinate frame (R^3, (d/dr,d/dth,d/dph)),
              with symmetry on the index positions (1, 2)
             sage: gam[:]
             [[[0, 0, 0], [0, -r, 0], [0, 0, -r*sin(th)^2]],
@@ -452,7 +452,7 @@ class LeviCivitaConnection(AffineConnection):
             sage: ch_basis[1,1], ch_basis[2,2], ch_basis[3,3] = 1, 1/r, 1/(r*sin(th))
             sage: e = c_spher.frame().new_frame(ch_basis, 'e')
             sage: gam_e = nab.coef(e) ; gam_e
-            3-indices components w.r.t. Vector frame (R^3, (e_1,e_2,e_3))
+            3-index components w.r.t. Vector frame (R^3, (e_1,e_2,e_3))
             sage: gam_e[:]
             [[[0, 0, 0], [0, -1/r, 0], [0, 0, -1/r]],
             [[0, 1/r, 0], [0, 0, 0], [0, 0, -cos(th)/(r*sin(th))]],

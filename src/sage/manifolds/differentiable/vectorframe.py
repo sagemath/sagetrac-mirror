@@ -1042,9 +1042,9 @@ class VectorFrame(FreeModuleBasis):
             sage: a is rot
             False
             sage: a._components # random (dictionary output)
-            {Vector frame (R^2, (e_0,e_1)): 2-indices components w.r.t.
+            {Vector frame (R^2, (e_0,e_1)): 2-index components w.r.t.
              Vector frame (R^2, (e_0,e_1)),
-             Vector frame (R^2, (n_0,n_1)): 2-indices components w.r.t.
+             Vector frame (R^2, (n_0,n_1)): 2-index components w.r.t.
              Vector frame (R^2, (n_0,n_1))}
             sage: a.comp(n)[:]
             [1/2*sqrt(3)        -1/2]
@@ -1228,7 +1228,7 @@ class VectorFrame(FreeModuleBasis):
             sage: e[3][:]
             [0, 0, 1/(r*sin(th))]
             sage: c = e.structure_coeff() ; c
-            3-indices components w.r.t. Vector frame (R^3, (e_1,e_2,e_3)), with
+            3-index components w.r.t. Vector frame (R^3, (e_1,e_2,e_3)), with
              antisymmetry on the index positions (1, 2)
             sage: c[:]
             [[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
@@ -1849,7 +1849,7 @@ class CoordFrame(VectorFrame):
             sage: b = M.default_frame() ; b
             Coordinate frame (R^3, (d/dr,d/dth,d/dph))
             sage: c = b.structure_coeff() ; c
-            3-indices components w.r.t. Coordinate frame
+            3-index components w.r.t. Coordinate frame
              (R^3, (d/dr,d/dth,d/dph)), with antisymmetry on the index
              positions (1, 2)
             sage: c == 0

@@ -749,7 +749,7 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
         sage: a[1,0]
         -2*x
         sage: a.comp()
-        Fully antisymmetric 2-indices components w.r.t. Coordinate frame
+        Fully antisymmetric 2-index components w.r.t. Coordinate frame
          (M, (d/dt,d/dx,d/dy,d/dz))
         sage: type(a.comp())
         <class 'sage.tensor.modules.comp.CompFullyAntiSym'>
@@ -817,7 +817,7 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
           z == z  *passed*
         NB: a failed report can reflect a mere lack of simplification.
         sage: a.comp(c_spher.frame()) # computation of components w.r.t. spherical frame
-        Fully antisymmetric 3-indices components w.r.t. Coordinate frame
+        Fully antisymmetric 3-index components w.r.t. Coordinate frame
          (R3, (d/dr,d/dth,d/dph))
         sage: a.comp(c_spher.frame())[1,2,3, c_spher]
         1/sin(th)

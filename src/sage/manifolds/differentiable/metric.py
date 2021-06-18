@@ -240,7 +240,7 @@ class PseudoRiemannianMetric(TensorField):
     coordinates::
 
         sage: g.christoffel_symbols(c_xy)
-        3-indices components w.r.t. Coordinate frame (U, (d/dx,d/dy)), with
+        3-index components w.r.t. Coordinate frame (U, (d/dx,d/dy)), with
          symmetry on the index positions (1, 2)
         sage: g.christoffel_symbols(c_xy)[:]
         [[[-2*x/(x^2 + y^2 + 1), -2*y/(x^2 + y^2 + 1)],
@@ -833,7 +833,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: g.display()  # the standard flat metric expressed in spherical coordinates
             g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
             sage: Gam = g.christoffel_symbols() ; Gam
-            3-indices components w.r.t. Coordinate frame (U, (d/dr,d/dth,d/dph)),
+            3-index components w.r.t. Coordinate frame (U, (d/dr,d/dth,d/dph)),
              with symmetry on the index positions (1, 2)
             sage: type(Gam)
             <class 'sage.tensor.modules.comp.CompWithSym'>

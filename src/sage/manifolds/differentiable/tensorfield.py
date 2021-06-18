@@ -1212,7 +1212,7 @@ class TensorField(ModuleElementWithMutability):
             sage: e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 2, name='t')
             sage: t._set_comp_unsafe(e_uv)
-            3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            3-index components w.r.t. Coordinate frame (V, (d/du,d/dv))
             sage: t._set_comp_unsafe(e_uv)[1,0,1] = u+v
             sage: t.display(e_uv)
             t = (u + v) d/dv*du*dv
@@ -1221,7 +1221,7 @@ class TensorField(ModuleElementWithMutability):
 
             sage: e = V.vector_frame('e')
             sage: t._set_comp_unsafe(e)
-            3-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            3-index components w.r.t. Vector frame (V, (e_0,e_1))
             sage: t._set_comp_unsafe(e)[0,1,1] = u*v
             sage: t.display(e)
             t = u*v e_0*e^1*e^1
@@ -1274,7 +1274,7 @@ class TensorField(ModuleElementWithMutability):
             sage: e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 2, name='t')
             sage: t.set_comp(e_uv)
-            3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            3-index components w.r.t. Coordinate frame (V, (d/du,d/dv))
             sage: t.set_comp(e_uv)[1,0,1] = u+v
             sage: t.display(e_uv)
             t = (u + v) d/dv*du*dv
@@ -1283,7 +1283,7 @@ class TensorField(ModuleElementWithMutability):
 
             sage: e = V.vector_frame('e')
             sage: t.set_comp(e)
-            3-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            3-index components w.r.t. Vector frame (V, (e_0,e_1))
             sage: t.set_comp(e)[0,1,1] = u*v
             sage: t.display(e)
             t = u*v e_0*e^1*e^1
@@ -1350,7 +1350,7 @@ class TensorField(ModuleElementWithMutability):
             sage: e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 2, name='t')
             sage: t._add_comp_unsafe(e_uv)
-            3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            3-index components w.r.t. Coordinate frame (V, (d/du,d/dv))
             sage: t._add_comp_unsafe(e_uv)[1,0,1] = u+v
             sage: t.display(e_uv)
             t = (u + v) d/dv*du*dv
@@ -1359,7 +1359,7 @@ class TensorField(ModuleElementWithMutability):
 
             sage: e = V.vector_frame('e')
             sage: t._add_comp_unsafe(e)
-            3-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            3-index components w.r.t. Vector frame (V, (e_0,e_1))
             sage: t._add_comp_unsafe(e)[0,1,1] = u*v
             sage: t.display(e)
             t = u*v e_0*e^1*e^1
@@ -1408,7 +1408,7 @@ class TensorField(ModuleElementWithMutability):
             sage: e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 2, name='t')
             sage: t.add_comp(e_uv)
-            3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            3-index components w.r.t. Coordinate frame (V, (d/du,d/dv))
             sage: t.add_comp(e_uv)[1,0,1] = u+v
             sage: t.display(e_uv)
             t = (u + v) d/dv*du*dv
@@ -1417,7 +1417,7 @@ class TensorField(ModuleElementWithMutability):
 
             sage: e = V.vector_frame('e')
             sage: t.add_comp(e)
-            3-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            3-index components w.r.t. Vector frame (V, (e_0,e_1))
             sage: t.add_comp(e)[0,1,1] = u*v
             sage: t.display(e)
             t = u*v e_0*e^1*e^1
@@ -1672,12 +1672,12 @@ class TensorField(ModuleElementWithMutability):
             sage: t[e,0,1] = 2+x
             sage: t[f,1,1] = - u*v
             sage: t.comp(e)
-            2-indices components w.r.t. Coordinate frame (U, (d/dx,d/dy))
+            2-index components w.r.t. Coordinate frame (U, (d/dx,d/dy))
             sage: t.comp(e)[:]
             [y^3 - x   x + 2]
             [      0       0]
             sage: t.comp(f)
-            2-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            2-index components w.r.t. Coordinate frame (V, (d/du,d/dv))
             sage: t.comp(f)[:]
             [   0    0]
             [   0 -u*v]
@@ -1696,7 +1696,7 @@ class TensorField(ModuleElementWithMutability):
             sage: a[:] = [[1+v, -u^2], [0, 1-u]]
             sage: h = f.new_frame(a, 'h')
             sage: t.comp(h)
-            2-indices components w.r.t. Vector frame (V, (h_0,h_1))
+            2-index components w.r.t. Vector frame (V, (h_0,h_1))
             sage: t.comp(h)[:]
             [             0 -u^3*v/(v + 1)]
             [             0           -u*v]

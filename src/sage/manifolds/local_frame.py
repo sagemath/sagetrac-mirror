@@ -873,9 +873,9 @@ class LocalFrame(FreeModuleBasis):
             sage: a is orth
             False
             sage: a._components # random (dictionary output)
-            {Local frame (E|_D_0, (e_1,e_2)): 2-indices components w.r.t.
+            {Local frame (E|_D_0, (e_1,e_2)): 2-index components w.r.t.
              Local frame (E|_D_0, (e_1,e_2)),
-             Local frame (E|_D_0, (f_1,f_2)): 2-indices components w.r.t.
+             Local frame (E|_D_0, (f_1,f_2)): 2-index components w.r.t.
              Local frame (E|_D_0, (f_1,f_2))}
             sage: a.comp(f)[:]
             [1/2*sqrt(3)        -1/2]
