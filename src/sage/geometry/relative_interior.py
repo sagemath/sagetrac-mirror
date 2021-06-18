@@ -53,6 +53,17 @@ class RelativeInterior(ConvexSet_relatively_open):
         """
         self._polyhedron = polyhedron
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: P = Polyhedron([[1, 2], [3, 4]])
+            sage: Q = Polyhedron([[3, 4], [1, 2]])
+            sage: hash(P.relative_interior()) == hash(Q.relative_interior())
+            True
+        """
+        return hash(self._polyhedron) ^ 1789
+
     def __contains__(self, point):
         r"""
         Return whether ``self`` contains ``point``.
@@ -68,6 +79,36 @@ class RelativeInterior(ConvexSet_relatively_open):
             False
         """
         return self._polyhedron.relative_interior_contains(point)
+
+    def ambient(self):
+        r"""
+        Return the ambient convex set or space.
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: ri_segment = segment.relative_interior(); ri_segment
+            Relative interior of
+             a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: ri_segment.ambient()
+            Vector space of dimension 2 over Rational Field
+        """
+        return self._polyhedron.ambient()
+
+    def ambient_vector_space(self, base_field=None):
+        r"""
+        Return the ambient vector space.
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: ri_segment = segment.relative_interior(); ri_segment
+            Relative interior of
+             a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: ri_segment.ambient_vector_space()
+            Vector space of dimension 2 over Rational Field
+        """
+        return self._polyhedron.ambient_vector_space(base_field=base_field)
 
     def ambient_dim(self):
         r"""
@@ -198,6 +239,25 @@ class RelativeInterior(ConvexSet_relatively_open):
         # relatively open themselves.
         assert not self._polyhedron.is_relatively_open()
         return False
+
+    def _some_elements_(self):
+        r"""
+        Generate some points of ``self``.
+
+        If ``self`` is empty, no points are generated; no exception will be raised.
+
+        EXAMPLES::
+
+            sage: P = polytopes.simplex()
+            sage: ri_P = P.relative_interior()
+            sage: ri_P.an_element()              # indirect doctest
+            (1/4, 1/4, 1/4, 1/4)
+            sage: ri_P.some_elements()           # indirect doctest
+            [(1/4, 1/4, 1/4, 1/4), (1/2, 1/4, 1/8, 1/8)]
+        """
+        for p in self._polyhedron.some_elements():
+            if p in self:
+                yield p
 
     def _repr_(self):
         r"""

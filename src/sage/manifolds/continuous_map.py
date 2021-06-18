@@ -870,17 +870,20 @@ class ContinuousMap(Morphism):
         r"""
         Return the preimage of ``codomain_subset`` under ``self``.
 
+        An alias is :meth:`pullback`.
+
         INPUT:
 
-        - ``codomain_subset`` -- an instance of :class:`ManifoldSubset`
+        - ``codomain_subset`` -- an instance of
+          :class:`~sage.manifolds.subset.ManifoldSubset`
         - ``name`` -- string; name (symbol) given to the subset
         - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to
           denote the subset; if none are provided, it is set to ``name``
 
         OUTPUT:
 
-        - an instance of
-          :class:`~sage.manifolds.subsets.pullback.ManifoldSubsetPullback`
+        - either a :class:`~sage.manifolds.manifold.TopologicalManifold` or
+          a :class:`~sage.manifolds.subsets.pullback.ManifoldSubsetPullback`
 
         EXAMPLES::
 
