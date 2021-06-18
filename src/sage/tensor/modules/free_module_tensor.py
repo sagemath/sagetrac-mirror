@@ -143,7 +143,7 @@ The components are managed by the class
 :class:`~sage.tensor.modules.comp.Components`::
 
     sage: type(t.comp(e))
-    <class 'sage.tensor.modules.comp.Components'>
+    <class 'sage.tensor.modules.comp_parent.CompParent_with_category.element_class'>
 
 Only non-zero components are actually stored, in the dictionary :attr:`_comp`
 of class :class:`~sage.tensor.modules.comp.Components`, whose keys are
@@ -543,7 +543,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             symmetry: (0, 1);  no antisymmetry
             sage: t = M.tensor((4,0), name='T', sym=[(0,1), (2,3)])
             sage: t.symmetries()
-            symmetries: [(0, 1), (2, 3)];  no antisymmetry
+            symmetries: ((0, 1), (2, 3)); no antisymmetry
             sage: t = M.tensor((4,0), name='T', sym=(0,1), antisym=(2,3))
             sage: t.symmetries()
             symmetry: (0, 1);  antisymmetry: (2, 3)
