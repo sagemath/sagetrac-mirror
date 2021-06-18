@@ -18,7 +18,8 @@ indices and symmetries
 import operator
 
 from sage.structure.parent import Parent
-from sage.structure.coerce_actions import LeftModuleAction, RightModuleAction
+from sage.structure.coerce_actions import ActedUponAction
+from sage.categories.action import PrecomposedAction
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import get_coercion_model
 from sage.misc.cachefunc import cached_method
@@ -36,11 +37,12 @@ class CompParent(Module, UniqueRepresentation):
 
     Element = Components_dict
 
-    def __init__(self, base_ring, nb_indices):
+    def __init__(self, base_ring, nb_indices, category=None):
         r"""
 
         """
-        category = FreeModules(base_ring.category()).WithBasis()
+        if category is None:
+            category = FreeModules(base_ring.category()).WithBasis()
         Module.__init__(self, base_ring, category=category)
         self._nid = nb_indices
 
@@ -68,31 +70,64 @@ class CompParent(Module, UniqueRepresentation):
     def sym_antisym(self):
         return (), ()
 
-    def _element_constructor_(self, *args, **kwargs):
+    def _element_constructor_(self, x, **kwargs):
         r"""
-        Construct an indexed set of components w.r.t. ``frame`` over the ring
-        ``ring``.
+        Construct an indexed set of components w.r.t. ``frame``.
+
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.comp_parent import (
+            ....:     CompParent, CompParentWithSym, CompParentFullySym, CompParentFullyAntiSym)
+            sage: cp123 = CompParentWithSym(QQ, 5, sym=(1, 2, 3)); cp123
+            Parent of 5-index components over Rational Field, with symmetry on the index positions (1, 2, 3)
+            sage: t = cp123(frame=range(6)); t
+            5-index components w.r.t. range(0, 6), with symmetry on the index positions (1, 2, 3)
+            sage: t[0, 4, 3, 5, 0] = 17
+            sage: t.display('t')
+            t_03450 = 17
+            t_03540 = 17
+            t_04350 = 17
+            t_04530 = 17
+            t_05340 = 17
+            t_05430 = 17
+            sage: cp = cp123.ambient(); cp
+            Parent of 5-index components over Rational Field
+            sage: lifted_t = cp(t); lifted_t
+            5-index components w.r.t. range(0, 6)
+            sage: lifted_t.display('lifted_t')
+            lifted_t_03450 = 17
+            lifted_t_03540 = 17
+            lifted_t_04350 = 17
+            lifted_t_04530 = 17
+            lifted_t_05340 = 17
+            lifted_t_05430 = 17
         """
-        if isinstance(args[0], Components_base):
-            c = args[0]
-            if not isinstance(c, Components_base):
-                raise TypeError("cannot coerce {} into an element of {}".format(c, self))
-            else:
-                # FIXME: We need to construct an instance of OUR element class
-                # corresponding to the input.
-                return c
-        if len(args) != 1:
-            raise ValueError(f"{type(self)} missing 1 required positional argument")
-        if not args[0]:
-            # coerce 0
-            frame = ()
+        items = ()
+        if isinstance(x, Components_base):
+            if x.parent() is self:
+                return +x  # make a copy
+            # Coerce to our element class
+            items = ((ind, x[[ind]])
+                     for ind in self.non_redundant_index_generator(x._ranges)
+                     if x[[ind]])
+            frame = x._frame
+            start_index = x._sindex
+            output_formatter = x._output_formatter
         else:
-            frame = args[0]
-        start_index = kwargs.pop('start_index', 0)
-        output_formatter = kwargs.pop('output_formatter', None)
-        return self.element_class(self, frame,
-                                  start_index = start_index,
-                                  output_formatter=output_formatter)
+            frame = kwargs.pop('frame', ()) # () is for coercion from 0
+            start_index = kwargs.pop('start_index', 0)
+            output_formatter = kwargs.pop('output_formatter', None)
+            if x == 0:
+                # coercion from 0
+                pass
+            else:
+                raise TypeError('cannot construct Components from {x}')
+        result = self.element_class(self, frame=frame,
+                                    start_index=start_index,
+                                    output_formatter=output_formatter)
+        for ind, value in items:
+            result[[ind]] = value
+        return result
 
     def _check_indices(self, ind, ranges):
         r"""
@@ -242,10 +277,12 @@ class CompParent(Module, UniqueRepresentation):
             From: Parent of Fully symmetric 2-index components over Integer Ring
             To:   Parent of 2-index components over Rational Field
         """
+        # Version for parent with no symmetries.  TODO: Split out an abstract base class.
         if (isinstance(other_parent, CompParent)
             and self.base_ring().has_coerce_map_from(other_parent.base_ring())
             and self._nid == other_parent._nid):
-            return True
+            if self.common_symmetries(other_parent):
+                return True
         return super()._coerce_map_from_(other_parent)
 
     @cached_method
@@ -285,6 +322,37 @@ class CompParent(Module, UniqueRepresentation):
         if n_sym == self._nid:
             return CompParentFullyAntiSym(self.base_ring(), self._nid)
         return CompParentWithSym(self.base_ring(), self._nid, antisym=pos)
+
+    @cached_method
+    def common_symmetries(self, other):
+        if isinstance(other, CompParentWithSym):
+            return other.common_symmetries(self)
+        return self
+
+    @cached_method
+    def __add__(self, other):
+        r"""
+        Sum (= pushout) of two parents
+
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.comp_parent import (
+            ....:     CompParent, CompParentWithSym, CompParentFullySym, CompParentFullyAntiSym)
+            sage: from sage.categories.pushout import pushout
+            sage: A1 = CompParentWithSym(QQ, 5, sym=(1, 2, 3))
+            sage: A2 = CompParentWithSym(QQ, 5, sym=(2, 3, 4))
+            sage: A1 + A2
+            Parent of 5-index components over Rational Field, with symmetry on the index positions (2, 3)
+            sage: pushout(A1, A2)
+            Parent of 5-index components over Rational Field, with symmetry on the index positions (2, 3)
+        """
+        if not (isinstance(other, CompParent)
+                and self._nid == other._nid
+                and self.base_ring() == other.base_ring()):
+            raise TypeError('can only add CompParent instances with the same number of indices and the same base ring')
+        return self.common_symmetries(other)
+
+    _pushout_ = __add__
 
     @cached_method
     def tensor(*parents, **kwargs):
@@ -419,9 +487,25 @@ class CompParentWithSym(CompParent):
 
 
         """
-        super().__init__(base_ring, nb_indices)
+        category = FreeModules(base_ring.category()).WithBasis().Subobjects()
+        super().__init__(base_ring, nb_indices, category=category)
         self._sym = sym
         self._antisym = antisym
+
+    @cached_method
+    def ambient(self):
+        r"""
+        Return the enclosing ``CompParent`` (without symmetries).
+
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.comp_parent import CompParentWithSym
+            sage: cp = CompParentWithSym(SR, 4, sym=(0,1)); cp
+            Parent of 4-index components over Symbolic Ring, with symmetry on the index positions (0, 1)
+            sage: cp.ambient()
+            Parent of 4-index components over Symbolic Ring
+        """
+        return CompParent(self.base_ring(), self._nid)
 
     def sym_antisym(self):
         return self._sym, self._antisym
@@ -715,6 +799,8 @@ class CompParentWithSym(CompParent):
         r"""
         Return a collection of components with common symmetries.
         """
+        if not isinstance(other, CompParentWithSym):
+            return self
         common_sym = []
         for isym in self._sym:
             for osym in other._sym:
@@ -727,15 +813,8 @@ class CompParentWithSym(CompParent):
                 com = tuple(set(isym).intersection(set(osym)))
                 if len(com) > 1:
                     common_antisym.append(com)
-        if common_sym != [] or common_antisym != []:
-            # convert to tuples
-            result = CompParentWithSym(self._nid,
-                                       sym=common_sym, antisym=common_antisym)
-        else:
-            # no common symmetry -> result is collection of generic components:
-            result = CompParent(self._nid)
-
-        return result
+        return CompParentWithSym(self.base_ring(), self._nid,
+                                 sym=common_sym, antisym=common_antisym)
 
     @cached_method
     def contract_sym(self, pos1, pos2):

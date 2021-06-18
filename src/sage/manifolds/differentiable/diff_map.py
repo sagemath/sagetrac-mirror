@@ -986,7 +986,7 @@ class DiffMap(ContinuousMap):
             frame2 = chart2.frame()
 
             tcomp = tensor._components[frame2]
-            ptcomp = tcomp.parent()(ring1, frame1, start_index=si1, output_formatter=of1)
+            ptcomp = tcomp.parent()(frame=frame1, start_index=si1, output_formatter=of1)
             phi = diff_map._coord_expression[(chart1, chart2)]
             jacob = phi.jacobian()
             # X2 coordinates expressed in terms of X1 ones via the diff. map:
@@ -1244,19 +1244,8 @@ class DiffMap(ContinuousMap):
         # Computation at the component level:
         tcomp = tensor._components[chart1.frame()]
         # Construction of the pushforward components (ptcomp):
-        if isinstance(tcomp, CompFullySym):
-            ptcomp = CompFullySym(ring2, frame2, ncon, start_index=si2,
-                                  output_formatter=of2)
-        elif isinstance(tcomp, CompFullyAntiSym):
-            ptcomp = CompFullyAntiSym(ring2, frame2, ncon, start_index=si2,
-                                      output_formatter=of2)
-        elif isinstance(tcomp, CompWithSym):
-            ptcomp = CompWithSym(ring2, frame2, ncon, start_index=si2,
-                                 output_formatter=of2, sym=tcomp._sym,
-                                 antisym=tcomp._antisym)
-        else:
-            ptcomp = Components(ring2, frame2, ncon, start_index=si2,
-                                output_formatter=of2)
+        ptcomp = tcomp.parent()(frame=frame2,
+                                start_index=si2, output_formatter=of2)
         # Computation of the pushforward components:
         jacob = self.differential_functions(chart1=chart1, chart2=chart2)
         si2 = chart2.domain().start_index()

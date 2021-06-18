@@ -565,7 +565,7 @@ class Components_base(ModuleElementWithMutability):
         """
         if parent is None:
             parent = self.parent()
-        return parent(self._frame, start_index=self._sindex,
+        return parent(frame=self._frame, start_index=self._sindex,
                       output_formatter=self._output_formatter)
 
     def _check_indices(self, indices):

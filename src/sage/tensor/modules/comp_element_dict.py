@@ -357,17 +357,17 @@ class Components_dict(Components_base):
             sage: a[:] = 1, 0, -3
             sage: b = Components(ZZ, [1,2,3], 1)
             sage: b[:] = 4, 5, 6
-            sage: s = a.__add__(b) ; s
+            sage: s = a + b; s
             1-index components w.r.t. [1, 2, 3]
             sage: s[:]
             [5, 5, 3]
-            sage: s == a+b
+            sage: s == a + b
             True
 
         Parallel computation::
 
             sage: Parallelism().set('tensor', nproc=2)
-            sage: s_par = a.__add__(b) ; s_par
+            sage: s_par = a + b; s_par
             1-index components w.r.t. [1, 2, 3]
             sage: s_par[:]
             [5, 5, 3]
@@ -1285,7 +1285,7 @@ class ComponentsWithSym_dict(Components_dict):
             result[new_ind] = val
         return result
 
-    def __add__(self, other):
+    def _add_(self, other):
         r"""
         Component addition.
 
@@ -1305,7 +1305,7 @@ class ComponentsWithSym_dict(Components_dict):
             sage: a[0,1], a[1,2] = 4, 5
             sage: b = CompWithSym(ZZ, [1,2,3], 2, sym=(0,1))
             sage: b[0,1], b[2,2] = 2, -3
-            sage: s = a.__add__(b) ; s  # the symmetry is kept
+            sage: s = a + b; s        # the symmetry is kept
             Fully symmetric 2-index components w.r.t. [1, 2, 3]
             sage: s[:]
             [ 0  6  0]
@@ -1327,7 +1327,7 @@ class ComponentsWithSym_dict(Components_dict):
 
             sage: c = CompWithSym(ZZ, [1,2,3], 2, antisym=(0,1))
             sage: c[0,1], c[0,2] = 3, 7
-            sage: s = a.__add__(c) ; s  # the symmetry is lost
+            sage: s = a + c; s          # the symmetry is lost
             2-index components w.r.t. [1, 2, 3]
             sage: s[:]
             [ 0  7  7]
@@ -2621,7 +2621,7 @@ class ComponentsFullySym_dict(ComponentsWithSym_dict):
                 else:
                     self._comp[ind] = self.base_ring()({format_type: value})
 
-    def __add__(self, other):
+    def _add_(self, other):
         r"""
         Component addition.
 
@@ -2641,7 +2641,7 @@ class ComponentsFullySym_dict(ComponentsWithSym_dict):
             sage: a[0,1], a[1,2] = 4, 5
             sage: b = CompFullySym(ZZ, (1,2,3), 2)
             sage: b[0,1], b[2,2] = 2, -3
-            sage: s = a.__add__(b) ; s  # the symmetry is kept
+            sage: s = a + b; s            # the symmetry is kept
             Fully symmetric 2-index components w.r.t. (1, 2, 3)
             sage: s[:]
             [ 0  6  0]
@@ -2655,7 +2655,7 @@ class ComponentsFullySym_dict(ComponentsWithSym_dict):
             sage: Parallelism().set('tensor', nproc=2)
             sage: Parallelism().get('tensor')
             2
-            sage: s_par = a.__add__(b) ; s_par
+            sage: s_par = a + b; s_par
             Fully symmetric 2-index components w.r.t. (1, 2, 3)
             sage: s_par[:]
             [ 0  6  0]
@@ -2663,7 +2663,7 @@ class ComponentsFullySym_dict(ComponentsWithSym_dict):
             [ 0  5 -3]
             sage: s_par == s
             True
-            sage: s_par == b.__add__(a)  # test of commutativity of parallel comput.
+            sage: s_par == b + a   # test of commutativity of parallel comput.
             True
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
@@ -2672,7 +2672,7 @@ class ComponentsFullySym_dict(ComponentsWithSym_dict):
             sage: from sage.tensor.modules.comp import CompFullyAntiSym
             sage: c = CompFullyAntiSym(ZZ, (1,2,3), 2)
             sage: c[0,1], c[0,2] = 3, 7
-            sage: s = a.__add__(c) ; s  # the symmetry is lost
+            sage: s = a + c; s      # the symmetry is lost
             2-index components w.r.t. (1, 2, 3)
             sage: s[:]
             [ 0  7  7]
@@ -2686,7 +2686,7 @@ class ComponentsFullySym_dict(ComponentsWithSym_dict):
             sage: Parallelism().set('tensor', nproc=2)
             sage: Parallelism().get('tensor')
             2
-            sage: s_par = a.__add__(c) ; s_par
+            sage: s_par = a + c; s_par
             2-index components w.r.t. (1, 2, 3)
             sage: s_par[:]
             [ 0  7  7]
@@ -2694,7 +2694,7 @@ class ComponentsFullySym_dict(ComponentsWithSym_dict):
             [-7  5  0]
             sage: s_par[:] == s[:]
             True
-            sage: s_par == c.__add__(a)  # test of commutativity of parallel comput.
+            sage: s_par == c + a     # test of commutativity of parallel comput.
             True
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
@@ -2900,7 +2900,7 @@ class ComponentsFullyAntiSym_dict(ComponentsWithSym_dict):
         super().__init__(parent, frame, start_index=start_index,
                          output_formatter=output_formatter)
 
-    def __add__(self, other):
+    def _add_(self, other):
         r"""
         Component addition.
 
@@ -2920,7 +2920,7 @@ class ComponentsFullyAntiSym_dict(ComponentsWithSym_dict):
             sage: a[0,1], a[1,2] = 4, 5
             sage: b = CompFullyAntiSym(ZZ, (1,2,3), 2)
             sage: b[0,1], b[0,2] = 2, -3
-            sage: s = a.__add__(b) ; s  # the antisymmetry is kept
+            sage: s = a + b; s     # the antisymmetry is kept
             Fully antisymmetric 2-index components w.r.t. (1, 2, 3)
             sage: s[:]
             [ 0  6 -3]
@@ -2931,7 +2931,7 @@ class ComponentsFullyAntiSym_dict(ComponentsWithSym_dict):
             sage: from sage.tensor.modules.comp import CompFullySym
             sage: c = CompFullySym(ZZ, (1,2,3), 2)
             sage: c[0,1], c[0,2] = 3, 7
-            sage: s = a.__add__(c) ; s  # the antisymmetry is lost
+            sage: s = a + c; s  # the antisymmetry is lost
             2-index components w.r.t. (1, 2, 3)
             sage: s[:]
             [ 0  7  7]
@@ -2948,7 +2948,7 @@ class ComponentsFullyAntiSym_dict(ComponentsWithSym_dict):
             sage: a[0,1], a[1,2] = 4, 5
             sage: b = CompFullyAntiSym(ZZ, (1,2,3), 2)
             sage: b[0,1], b[0,2] = 2, -3
-            sage: s_par = a.__add__(b) ; s_par  # the antisymmetry is kept
+            sage: s_par = a + b; s_par  # the antisymmetry is kept
             Fully antisymmetric 2-index components w.r.t. (1, 2, 3)
             sage: s_par[:]
             [ 0  6 -3]
@@ -2959,7 +2959,7 @@ class ComponentsFullyAntiSym_dict(ComponentsWithSym_dict):
             sage: from sage.tensor.modules.comp import CompFullySym
             sage: c = CompFullySym(ZZ, (1,2,3), 2)
             sage: c[0,1], c[0,2] = 3, 7
-            sage: s_par = a.__add__(c) ; s_par  # the antisymmetry is lost
+            sage: s_par = a + c; s_par  # the antisymmetry is lost
             2-index components w.r.t. (1, 2, 3)
             sage: s_par[:]
             [ 0  7  7]

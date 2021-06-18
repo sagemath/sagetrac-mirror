@@ -265,7 +265,7 @@ def Components(ring, frame, nb_indices, start_index=0, output_formatter=None,
     else:
         parent = CompParentWithSym(ring, nb_indices,
                                    sym=sym, antisym=antisym)
-    return parent(frame, start_index=start_index, output_formatter=output_formatter)
+    return parent(frame=frame, start_index=start_index, output_formatter=output_formatter)
 
 CompWithSym = Components
 
@@ -274,7 +274,7 @@ def CompFullySym(ring, frame, nb_indices, start_index=0, output_formatter=None):
 
     """
     parent = CompParentFullySym(ring, nb_indices)
-    return parent(frame, start_index=start_index, output_formatter=output_formatter)
+    return parent(frame=frame, start_index=start_index, output_formatter=output_formatter)
 
 def CompFullyAntiSym(ring, frame, nb_indices, start_index=0,
                      output_formatter=None):
@@ -282,7 +282,7 @@ def CompFullyAntiSym(ring, frame, nb_indices, start_index=0,
 
     """
     parent = CompParentFullyAntiSym(ring, nb_indices)
-    return parent(frame, start_index=start_index, output_formatter=output_formatter)
+    return parent(frame=frame, start_index=start_index, output_formatter=output_formatter)
 
 @cached_function
 def KroneckerDelta(ring, frame, start_index=0, output_formatter=None):
