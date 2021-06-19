@@ -9,13 +9,14 @@ from .combinatorial_face        cimport CombinatorialFace
 cdef struct iter_s:
     bint dual                  # if 1, then iterate over dual Polyhedron
     face_t face                # the current face of the iterator
-    int face_status            # 0 not initialized, 1 initialized, 2 added to visited_all
+    int face_status            # 0 not initialized, 1 initialized, 2 added to visited_all, 3 only visit subsets
     size_t *atom_rep           # a place where atom-representaion of face will be stored
     size_t *coatom_rep         # a place where coatom-representaion of face will be stored
     int current_dimension      # dimension of current face, dual dimension if ``dual``
     int dimension              # dimension of the polyhedron
     int output_dimension       # only faces of this (dual?) dimension are considered
     int lowest_dimension       # don't consider faces below this (dual?) dimension
+    int highest_dimension      # don't consider faces above this (dual?) dimension
     size_t _index              # this counts the number of seen faces, useful for hasing the faces
 
     # ``visited_all`` points to faces, of which we have visited all faces already.
@@ -55,8 +56,10 @@ cdef class FaceIterator_base(SageObject):
     cdef MemoryAllocator _mem
 
     # some copies from ``CombinatorialPolyhedron``
-    cdef tuple _Vrep, _facet_names, _equalities
+    cdef tuple _Vrep, _facet_names, _equations
+    cdef size_t _n_equations, _n_facets
     cdef bint _bounded
+    cdef face_t _far_face
 
     # Atoms and coatoms are the vertices/facets of the Polyedron.
     # If ``dual == 0``, then coatoms are facets, atoms vertices and vice versa.
@@ -69,6 +72,8 @@ cdef class FaceIterator_base(SageObject):
     cdef size_t set_coatom_rep(self) except -1
     cdef size_t set_atom_rep(self) except -1
     cdef int ignore_subsets(self) except -1
+    cdef int only_subsets(self) except -1
+    cdef int find_face(self, face_t face) except -1
 
 @cython.final
 cdef class FaceIterator(FaceIterator_base):
