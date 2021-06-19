@@ -170,8 +170,8 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
             sage: a(SR)
             Callable function ring with arguments (x, y)
         """
-        if R is not SR:
-            raise ValueError("Can only make callable symbolic expression rings from the Symbolic Ring")
+        if not isinstance(R, SymbolicRing):
+            raise ValueError("Can only make callable symbolic expression rings from the Symbolic Ring or its subrings")
         return CallableSymbolicExpressionRing(self.arguments())
 
     def arguments(self):
@@ -289,7 +289,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
         self._arguments = arguments
         #symbolic_ring = pushout(....)
         SymbolicRing.__init__(self, base_ring)
-        self._populate_coercion_lists_(coerce_list=[base_ring])
+        #self._populate_coercion_lists_(coerce_list=[base_ring])
         self.symbols = base_ring.symbols  # Use the same list of symbols as the base ring
 
     def _coerce_map_from_(self, R):
