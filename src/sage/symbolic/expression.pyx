@@ -6324,7 +6324,8 @@ cdef class Expression(CommutativeRingElement):
             if not is_SymbolicVariable(i):
                 break
         else:
-            R = CallableSymbolicExpressionRing(args, check=False)
+            R = CallableSymbolicExpressionRing(args, check=False,
+                                               base_ring=self.parent())
             return R(self)
         raise TypeError("Must construct a function with a tuple (or list) of symbolic variables.")
 
