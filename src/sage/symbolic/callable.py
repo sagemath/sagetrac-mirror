@@ -268,7 +268,7 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
 
 
 class CallableSymbolicExpressionRing_class(SymbolicRing):
-    def __init__(self, arguments):
+    def __init__(self, arguments, base_ring=None):
         """
         EXAMPLES:
 
@@ -284,10 +284,13 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
 
             sage: TestSuite(f.parent()).run(skip=['_test_divides'])
         """
+        if base_ring is None:
+            base_ring = SR
         self._arguments = arguments
-        SymbolicRing.__init__(self, SR)
-        self._populate_coercion_lists_(coerce_list=[SR])
-        self.symbols = SR.symbols  # Use the same list of symbols as SR
+        #symbolic_ring = pushout(....)
+        SymbolicRing.__init__(self, base_ring)
+        self._populate_coercion_lists_(coerce_list=[base_ring])
+        self.symbols = base_ring.symbols  # Use the same list of symbols as the base ring
 
     def _coerce_map_from_(self, R):
         """
@@ -316,7 +319,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
             sage: f.parent().construction()
             (CallableSymbolicExpressionFunctor(x, y), Symbolic Ring)
         """
-        return (CallableSymbolicExpressionFunctor(self.arguments()), SR)
+        return (CallableSymbolicExpressionFunctor(self.arguments()), self.base_ring())
 
     def _element_constructor_(self, x):
         """
@@ -352,11 +355,15 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
             'Callable function ring with argument z'
         """
         if len(self._arguments) == 0:
-            return "Callable function ring with no named arguments"
+            s = "Callable function ring with no named arguments"
         elif len(self._arguments) == 1:
-            return "Callable function ring with argument {}".format(self._arguments[0])
+            s = "Callable function ring with argument {}".format(self._arguments[0])
         else:
-            return "Callable function ring with arguments {}".format(self._arguments)
+            s = "Callable function ring with arguments {}".format(self._arguments)
+        if self.base_ring() is SR:
+            return s
+        else:
+            return s + " over {}".format(self.base_ring())
 
     def arguments(self):
         """
@@ -468,7 +475,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
 
 from sage.structure.factory import UniqueFactory
 class CallableSymbolicExpressionRingFactory(UniqueFactory):
-    def create_key(self, args, check=True):
+    def create_key(self, args, base_ring=None, check=True):
         """
         EXAMPLES::
 
@@ -476,6 +483,8 @@ class CallableSymbolicExpressionRingFactory(UniqueFactory):
             sage: CallableSymbolicExpressionRing.create_key((x,y))
             (x, y)
         """
+        if base_ring is None:
+            base_ring = SR
         if check:
             from sage.symbolic.ring import is_SymbolicVariable
             if len(args) == 1 and isinstance(args[0], (list, tuple)):
@@ -484,7 +493,10 @@ class CallableSymbolicExpressionRingFactory(UniqueFactory):
                 if not is_SymbolicVariable(arg):
                     raise TypeError("Must construct a function with a tuple (or list) of variables.")
             args = tuple(args)
-        return args
+        if base_ring is SR:
+            return args
+        else:
+            return base_ring, args
 
     def create_object(self, version, key, **extra_args):
         """
@@ -497,6 +509,9 @@ class CallableSymbolicExpressionRingFactory(UniqueFactory):
             sage: CallableSymbolicExpressionRing.create_object(0, (x, y))
             Callable function ring with arguments (x, y)
         """
+        if isinstance(key[0], SymbolicRing):
+            base_ring, args = key
+            return CallableSymbolicExpressionRing_class(args, base_ring=base_ring)
         return CallableSymbolicExpressionRing_class(key)
 
 CallableSymbolicExpressionRing = CallableSymbolicExpressionRingFactory('sage.symbolic.callable.CallableSymbolicExpressionRing')
