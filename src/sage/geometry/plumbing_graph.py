@@ -164,7 +164,7 @@ class PlumbingGraph():
 
     def __init__(self, mb=[], g=[], r=[], p_edges=[], n_edges=[]):
         r"""
-        Initialize ``self``.
+        Initialize ``self``
     
         INPUT:
         
@@ -272,10 +272,10 @@ class PlumbingGraph():
         
         INPUT:
     
-        - ``mb`` -- the Euler number associated to the new vertex,
-        - ``g`` -- the genus associated to the new vertex,
+        - ``mb`` -- the Euler number associated to the new vertex
+        - ``g`` -- the genus associated to the new vertex
         - ``r`` -- the number of boundary components of the base surface
-          associated to the new vertex.
+          associated to the new vertex
 
         EXAMPLES::
 
@@ -289,8 +289,8 @@ class PlumbingGraph():
 
         .. SEEALSO::
     
-            :meth:`add_edge`, :meth:`add_bamboo`, :meth:`add_cycle`,
-            :meth:`add_Seifert`.
+            :meth:`add_edge`, :meth:`add_bamboo`, :meth:`add_cycle`
+            :meth:`add_Seifert`
         """
         n = self._new_vertex_name()
         self.vertices = self.vertices.union({n})
@@ -305,7 +305,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``i`` -- name of the vertex to be deleted.
+        - ``i`` -- name of the vertex to be deleted
         
         EXAMPLES::
         
@@ -356,8 +356,8 @@ class PlumbingGraph():
         
         INPUT:
     
-        - ``A`` -- a set of one or two vertices,
-        - ``epsilon`` -- either 1 or -1, the decoration of the new edge.
+        - ``A`` -- a set of one or two vertices
+        - ``epsilon`` -- either 1 or -1, the decoration of the new edge
 
         EXAMPLES::
 
@@ -375,8 +375,8 @@ class PlumbingGraph():
 
         .. SEEALSO::
 
-            :meth:`add_vertex`, :meth:`add_bamboo`, :meth:`add_cycle`,
-            :meth:`add_Seifert`.
+            :meth:`add_vertex`, :meth:`add_bamboo`, :meth:`add_cycle`
+            :meth:`add_Seifert`
         """
         if not A.issubset(self.vertices):
             print("Edge must join two vertices")
@@ -396,7 +396,7 @@ class PlumbingGraph():
     
         INPUT:
         
-        - ``e`` -- the name of the edge to be deleted.
+        - ``e`` -- the name of the edge to be deleted
 
         EXAMPLES::
 
@@ -430,9 +430,9 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``x`` -- a rational number,
-        - ``j`` -- a vertex of self,
-        - ``r`` -- a nonnegative integer.
+        - ``x`` -- a rational number
+        - ``j`` -- a vertex of self
+        - ``r`` -- a nonnegative integer
 
         OUTPUT:
 
@@ -448,8 +448,8 @@ class PlumbingGraph():
 
         .. SEEALSO::
 
-            :meth:`add_vertex`, :meth:`add_edge`, :meth:`add_cycle`,
-            :meth:`add_Seifert`.
+            :meth:`add_vertex`, :meth:`add_edge`, :meth:`add_cycle`
+            :meth:`add_Seifert`
         """
         # Sage will at some point complain if x is an int. Silly. How do
         # rationals even work in this language?
@@ -478,8 +478,8 @@ class PlumbingGraph():
 
         INPUT:
 
-        - ``x`` -- a rational number,
-        - ``epsilon`` -- an integer (1 or -1).
+        - ``x`` -- a rational number
+        - ``epsilon`` -- an integer (1 or -1)
 
         OUTPUT:
 
@@ -495,8 +495,8 @@ class PlumbingGraph():
 
         .. SEEALSO::
 
-            :meth:`add_vertex`, :meth:`add_edge`, :meth:`add_bamboo`,
-            :meth:`add_Seifert`.
+            :meth:`add_vertex`, :meth:`add_edge`, :meth:`add_bamboo`
+            :meth:`add_Seifert`
         """
         i = self.add_bamboo(x)
         c = self.component(i)
@@ -520,13 +520,13 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``mb`` -- an integer, the Euler number of the central vertex,
-        - ``g`` -- an integer, the genus of the central vertex,
+        - ``mb`` -- an integer, the Euler number of the central vertex
+        - ``g`` -- an integer, the genus of the central vertex
         - ``X`` -- a list of rational numbers, whose negative continued
-          fraction expansion specifies the bamboos,
+          fraction expansion specifies the bamboos
         - ``r`` -- a nonnegative integer, the number of connected
           components of the surface associated with the central
-          vertex.
+          vertex
 
         OUTPUT:
 
@@ -542,8 +542,8 @@ class PlumbingGraph():
 
         .. SEEALSO::
 
-            :meth:`add_vertex`, :meth:`add_edge`, :meth:`add_bamboo`,
-            :meth:`add_cycle`.
+            :meth:`add_vertex`, :meth:`add_edge`, :meth:`add_bamboo`
+            :meth:`add_cycle`
         """
         central = self.add_vertex(mb, g, r)
         for x in X:
@@ -556,7 +556,7 @@ class PlumbingGraph():
 
         INPUT:
 
-        - ``S`` -- a set of vertices.
+        - ``S`` -- a set of vertices
 
         OUTPUT:
         
@@ -625,7 +625,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``e`` -- an edge.
+        - ``e`` -- an edge
         
         OUTPUT:
         
@@ -655,7 +655,7 @@ class PlumbingGraph():
 
         INPUT:
 
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         OUTPUT:
 
@@ -688,7 +688,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         OUTPUT:
         
@@ -759,7 +759,7 @@ class PlumbingGraph():
 
         INPUT:
 
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         OUTPUT:
         
@@ -793,7 +793,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         OUTPUT:
         
@@ -931,7 +931,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
         
         OUTPUT:
         
@@ -995,7 +995,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         EXAMPLES::
 
@@ -1022,8 +1022,8 @@ class PlumbingGraph():
 
         INPUT:
 
-        - ``i`` -- a vertex,
-        - ``j`` -- a vertex (neighbor of i).
+        - ``i`` -- a vertex
+        - ``j`` -- a vertex (neighbor of i)
 
         OUTPUT:
 
@@ -1064,7 +1064,7 @@ class PlumbingGraph():
 
         INPUT:
 
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         OUTPUT:
 
@@ -1111,7 +1111,7 @@ class PlumbingGraph():
         
         INPUT:
 
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         OUTPUT:
         
@@ -1146,7 +1146,7 @@ class PlumbingGraph():
 
         INTPUT:
 
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         OUTPUT:
 
@@ -1182,7 +1182,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``R`` -- an integer, 1-8.
+        - ``R`` -- an integer, 1-8
 
         OUTPUT:
 
@@ -1221,8 +1221,8 @@ class PlumbingGraph():
         
         INPUT:
          
-        - ``R`` -- an integer, 1-8,
-        - ``i`` -- a vertex.
+        - ``R`` -- an integer, 1-8
+        - ``i`` -- a vertex
         
         OUTPUT:
         
@@ -1266,7 +1266,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         EXAMPLES::
 
@@ -1306,7 +1306,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``e`` -- an edge.
+        - ``e`` -- an edge
 
         EXAMPLES::
 
@@ -1353,7 +1353,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``epsilon`` -- integer, either -1 or 1.
+        - ``epsilon`` -- integer, either -1 or 1
 
         OUTPUT:
 
@@ -1385,8 +1385,8 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``i`` -- a vertex.
-        - ``epsilon`` -- -1 or 1.
+        - ``i`` -- a vertex
+        - ``epsilon`` -- -1 or 1
 
         OUTPUT:
         
@@ -1417,8 +1417,8 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``e`` -- an edge.
-        - ``epsilon`` -- -1 or 1.
+        - ``e`` -- an edge
+        - ``epsilon`` -- -1 or 1
 
         OUTPUT:
 
@@ -1458,7 +1458,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         OUTPUT:
 
@@ -1504,7 +1504,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         OUTPUT:
 
@@ -1572,8 +1572,8 @@ class PlumbingGraph():
 
         INPUT
         
-        - ``j`` -- a vertex,
-        - ``i`` -- a vertex.
+        - ``j`` -- a vertex
+        - ``i`` -- a vertex
 
         EXAMPLES::
 
@@ -1597,7 +1597,7 @@ class PlumbingGraph():
 
         INPUT:
 
-        - ``j`` -- a vertex.
+        - ``j`` -- a vertex
 
         EXAMPLES::
 
@@ -1627,7 +1627,7 @@ class PlumbingGraph():
 
         INPUT:
 
-        - ``j`` -- a vertex.
+        - ``j`` -- a vertex
 
         OUTPUT:
 
@@ -1692,11 +1692,11 @@ class PlumbingGraph():
 
         INPUT:
 
-        - ``i`` -- a vertex,
-        - ``g`` -- an integer, the genus of i after extrusion.
-        - ``d`` -- an integer (delta on p. 305 of [Neu1981]_),
-        - ``d1`` -- an integer (delta_1 on p. 305 of [Neu1981]_),
-        - ``d2`` -- an integer (delta_2 on p. 305 of [Neu1981]_),
+        - ``i`` -- a vertex
+        - ``g`` -- an integer, the genus of i after extrusion
+        - ``d`` -- an integer (delta on p. 305 of [Neu1981]_)
+        - ``d1`` -- an integer (delta_1 on p. 305 of [Neu1981]_)
+        - ``d2`` -- an integer (delta_2 on p. 305 of [Neu1981]_)
         
         OUTPUT:
         
@@ -1743,7 +1743,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``k`` -- a vertex.
+        - ``k`` -- a vertex
 
         OUTPUT:
     
@@ -1798,7 +1798,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``k`` -- a vertex.
+        - ``k`` -- a vertex
 
         OUTPUT:
 
@@ -1882,11 +1882,11 @@ class PlumbingGraph():
          
         INPUT:
          
-        - ``l`` -- a vertex,
-        - ``MB`` -- list of two integers,
-        - ``G`` -- list of two integers,
-        - ``R`` -- list of two nonnegative integers,
-        - ``E`` -- a list of two sets of vertices.
+        - ``l`` -- a vertex
+        - ``MB`` -- list of two integers
+        - ``G`` -- list of two integers
+        - ``R`` -- list of two nonnegative integers
+        - ``E`` -- a list of two sets of vertices
          
         OUTPUT:
          
@@ -1947,7 +1947,7 @@ class PlumbingGraph():
 
         INTPUT:
 
-        - ``j`` -- a vertex.
+        - ``j`` -- a vertex
 
         EXAMPLES::
         
@@ -1981,7 +1981,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``v`` -- a vertex.
+        - ``v`` -- a vertex
 
         OUTPUT:
 
@@ -2058,7 +2058,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``j`` -- a vertex.
+        - ``j`` -- a vertex
 
         EXAMPLES::
 
@@ -2092,7 +2092,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``j`` -- a vertex.
+        - ``j`` -- a vertex
         
         OUTPUT:
 
@@ -2171,7 +2171,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``j`` -- a vertex.
+        - ``j`` -- a vertex
 
         EXAMPLES::
 
@@ -2217,7 +2217,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``j`` -- a vertex.
+        - ``j`` -- a vertex
 
         EXAMPLES::
 
@@ -2278,7 +2278,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         EXAMPLES:
 
@@ -2386,7 +2386,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         EXAMPLES::
         
@@ -2454,7 +2454,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``j`` -- a vertex.
+        - ``j`` -- a vertex
 
         OUTPUT:
 
@@ -2488,7 +2488,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        - ``j`` -- a vertex.
+        - ``j`` -- a vertex
 
         OUTPUT:
         
@@ -2723,7 +2723,7 @@ class PlumbingGraph():
 
         INPUT:
 
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         OUTPUT:
 
@@ -2805,7 +2805,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        -``j`` -- a vertex.
+        -``j`` -- a vertex
 
         OUTPUT:
 
@@ -2864,7 +2864,7 @@ class PlumbingGraph():
 
         INPUT:
         
-        -``j`` -- a vertex.
+        -``j`` -- a vertex
 
         OUTPUT:
 
@@ -2933,7 +2933,7 @@ class PlumbingGraph():
 
         INPUT:
 
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
 
         OUTPUT:
 
@@ -2994,7 +2994,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
         
         OUTPUT:
         
@@ -3071,7 +3071,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
         
         OUTPUT:
         
@@ -3139,7 +3139,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
         
         OUTPUT:
         
@@ -3213,7 +3213,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
         
         OUTPUT:
         
@@ -3281,7 +3281,7 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``i`` -- a vertex.
+        - ``i`` -- a vertex
         
         OUTPUT:
         
