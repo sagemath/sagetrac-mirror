@@ -661,7 +661,7 @@ class AffineConnection(SageObject):
             sage: nab.coef()
             3-index components w.r.t. Coordinate frame (M, (d/dx,d/dy,d/dz))
             sage: type(nab.coef())
-            <class 'sage.tensor.modules.comp.Components'>
+            <class 'sage.tensor.modules.comp_parent.CompParent_with_category.element_class'>
             sage: M.default_frame()
             Coordinate frame (M, (d/dx,d/dy,d/dz))
             sage: nab.coef() is nab.coef(c_xyz.frame())

@@ -836,7 +836,7 @@ class PseudoRiemannianMetric(TensorField):
             3-index components w.r.t. Coordinate frame (U, (d/dr,d/dth,d/dph)),
              with symmetry on the index positions (1, 2)
             sage: type(Gam)
-            <class 'sage.tensor.modules.comp.CompWithSym'>
+            <class 'sage.tensor.modules.comp_parent.CompParentWithSym_with_category.element_class'>
             sage: Gam[:]
             [[[0, 0, 0], [0, -r, 0], [0, 0, -r*sin(th)^2]],
             [[0, 1/r, 0], [1/r, 0, 0], [0, 0, -cos(th)*sin(th)]],

@@ -921,7 +921,7 @@ class TensorField(ModuleElementWithMutability):
             symmetry: (0, 1);  antisymmetry: (2, 3)
             sage: t = M.tensor_field(2,2, antisym=[(0,1),(2,3)])
             sage: t.symmetries()
-            no symmetry;  antisymmetries: [(0, 1), (2, 3)]
+            no symmetry; antisymmetries: ((0, 1), (2, 3))
 
         """
         if not self._sym:

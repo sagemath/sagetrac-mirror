@@ -269,7 +269,7 @@ account the symmetry between the two indices::
 
     sage: q[1,1], q[1,2], q[2,2] = (0, -x, y) # no need to set the component (2,1)
     sage: type(q.comp())
-    <class 'sage.tensor.modules.comp.CompFullySym'>
+    <class 'sage.tensor.modules.comp_parent.CompParentFullySym_with_category.element_class'>
     sage: q[:] # note that the component (2,1) is equal to the component (1,2)
     [ 0 -x]
     [-x  y]
@@ -557,7 +557,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         Tensor field of type (4,0) on the 3-dimensional differentiable
          manifold M
         sage: c.symmetries()  # since a and b are both symmetric, a*b has two symmetries:
-        symmetries: [(0, 1), (2, 3)];  no antisymmetry
+        symmetries: ((0, 1), (2, 3)); no antisymmetry
 
     The tensor product of two fully contravariant tensors is not
     symmetric in general::

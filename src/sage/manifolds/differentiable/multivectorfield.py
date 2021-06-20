@@ -752,7 +752,7 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
         Fully antisymmetric 2-index components w.r.t. Coordinate frame
          (M, (d/dt,d/dx,d/dy,d/dz))
         sage: type(a.comp())
-        <class 'sage.tensor.modules.comp.CompFullyAntiSym'>
+        <class 'sage.tensor.modules.comp_parent.CompParentFullyAntiSym_with_category.element_class'>
 
     Setting a component with repeated indices to a non-zero value results in
     an error::

@@ -1550,7 +1550,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,
         sage: v[0]
         Traceback (most recent call last):
         ...
-        IndexError: index out of range: 0 not in [1, 3]
+        IndexError: index out of range: 0 not in range(1, 4)
         sage: v[1]  # OK
         y + 1
 
