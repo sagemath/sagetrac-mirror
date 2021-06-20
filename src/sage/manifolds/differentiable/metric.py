@@ -639,7 +639,7 @@ class PseudoRiemannianMetric(TensorField):
             raise TypeError("the argument must be a tensor field")
         if symbiform._tensor_type != (0,2):
             raise TypeError("the argument must be of tensor type (0,2)")
-        if symbiform._sym != [(0,1)]:
+        if symbiform._sym != ((0,1),):
             raise TypeError("the argument must be symmetric")
         if not symbiform._domain.is_subset(self._domain):
             raise TypeError("the symmetric bilinear form is not defined " +
@@ -2300,7 +2300,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                             "values on a parallelizable domain")
         if symbiform._tensor_type != (0,2):
             raise TypeError("the argument must be of tensor type (0,2)")
-        if symbiform._sym != [(0,1)]:
+        if symbiform._sym != ((0,1),):
             raise TypeError("the argument must be symmetric")
         if symbiform._vmodule is not self._vmodule:
             raise TypeError("the symmetric bilinear form and the metric are " +
@@ -2780,7 +2780,7 @@ class DegenerateMetric(TensorField):
             raise TypeError("the argument must be a tensor field")
         if symbiform._tensor_type != (0,2):
             raise TypeError("the argument must be of tensor type (0,2)")
-        if symbiform._sym != [(0,1)]:
+        if symbiform._sym != ((0,1),):
             raise TypeError("the argument must be symmetric")
         if not symbiform._domain.is_subset(self._domain):
             raise TypeError("the symmetric bilinear form is not defined " +
@@ -3018,7 +3018,7 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
                             "values on a parallelizable domain")
         if symbiform._tensor_type != (0,2):
             raise TypeError("the argument must be of tensor type (0,2)")
-        if symbiform._sym != [(0,1)]:
+        if symbiform._sym != ((0,1),):
             raise TypeError("the argument must be symmetric")
         if symbiform._vmodule is not self._vmodule:
             raise TypeError("the symmetric bilinear form and the metric are " +

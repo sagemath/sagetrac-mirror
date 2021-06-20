@@ -563,7 +563,7 @@ class TensorField(ModuleElementWithMutability):
 
         """
         # Special cases
-        if self._tensor_type == (0,2) and self._sym == [(0,1)]:
+        if self._tensor_type == (0,2) and self._sym == ((0,1),):
             description = "Field of symmetric bilinear forms "
             if self._name is not None:
                 description += self._name + " "
