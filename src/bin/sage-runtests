@@ -143,15 +143,16 @@ if __name__ == "__main__":
     DC = DocTestController(options, args)
     err = DC.run()
 
-    try:
-        exit_code_pytest = 0
-        import pytest
-        pytest_options = ["--import-mode", "importlib"]
-        if options.verbose:
-            pytest_options.append("-v")
-        exit_code_pytest = pytest.main(pytest_options + args)
-    except ModuleNotFoundError:
-        print("Pytest is not installed, skip checking tests that rely on it.")
+    exit_code_pytest = 0
+    if not args:
+        try:
+            import pytest
+            pytest_options = ["--import-mode", "importlib"]
+            if options.verbose:
+                pytest_options.append("-v")
+            exit_code_pytest = pytest.main(pytest_options + args)
+        except ModuleNotFoundError:
+            print("Pytest is not installed, skip checking tests that rely on it.")
 
 
 
