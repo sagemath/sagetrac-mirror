@@ -36,9 +36,6 @@ class SemidefiniteMatrices_base(UniqueRepresentation):
             ....:    PositiveSemidefiniteMatrices, PositiveDefiniteMatrices)
             sage: PositiveDefiniteMatrices(QQ, 2) is PositiveDefiniteMatrices(MatrixSpace(QQ, 2))
             True
-            sage: PositiveDefiniteMatrices(ZZ, 2) is PositiveDefiniteMatrices(QQ, 2)
-            True
-
         """
         if len(args) == 1 and is_MatrixSpace(args[0]):
             matrix_space = args[0]
@@ -48,7 +45,7 @@ class SemidefiniteMatrices_base(UniqueRepresentation):
             raise TypeError('matrix space must be square')
         base_ring = matrix_space.base_ring()
         if base_ring not in Fields():
-            matrix_space = matrix_space.change_ring(base_ring.fraction_field())
+            raise NotImplementedError('semigroups of (semi)definite matrices over non-field rings are not implemented')
         return super().__classcall__(cls, matrix_space)
 
     def __init__(self, matrix_space):
@@ -79,8 +76,6 @@ class SemidefiniteMatrices_base(UniqueRepresentation):
             Full MatrixSpace of 0 by 0 dense matrices over Rational Field
             sage: PositiveSemidefiniteMatrices(AA, 1).ambient_vector_space()
             Full MatrixSpace of 1 by 1 dense matrices over Algebraic Real Field
-            sage: PositiveDefiniteMatrices(ZZ, 2).ambient_vector_space()
-            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
         """
         return self._matrix_space
 
@@ -93,7 +88,7 @@ class SemidefiniteMatrices_base(UniqueRepresentation):
 
             sage: from sage.geometry.semialgebraic.semidefinite import (
             ....:     PositiveSemidefiniteMatrices, PositiveDefiniteMatrices)
-            sage: M_psd = PositiveDefiniteMatrices(ZZ, 3)
+            sage: M_psd = PositiveDefiniteMatrices(QQ, 3)
             sage: B = M_psd.an_affine_basis(); B
             (
             [0 0 0]  [1 0 0]  [0 0 0]  [0 0 0]  [0 1 0]  [0 0 1]  [0 0 0]
@@ -126,7 +121,7 @@ class SemidefiniteMatrices_base(UniqueRepresentation):
 
             sage: from sage.geometry.semialgebraic.semidefinite import (
             ....:     PositiveSemidefiniteMatrices, PositiveDefiniteMatrices)
-            sage: M_psd = PositiveDefiniteMatrices(ZZ, 3); M_psd
+            sage: M_psd = PositiveDefiniteMatrices(QQ, 3); M_psd
             Cone of positive-definite matrices
              of Full MatrixSpace of 3 by 3 dense matrices over Rational Field
             sage: M_sym = M_psd.affine_hull(); M_sym
@@ -145,7 +140,7 @@ class SemidefiniteMatrices_base(UniqueRepresentation):
 
             sage: from sage.geometry.semialgebraic.semidefinite import (
             ....:     PositiveSemidefiniteMatrices, PositiveDefiniteMatrices)
-            sage: PositiveSemidefiniteMatrices(ZZ, 0).dimension()
+            sage: PositiveSemidefiniteMatrices(QQ, 0).dimension()
             0
             sage: PositiveDefiniteMatrices(AA, 1).dimension()
             1
@@ -163,11 +158,50 @@ class SemidefiniteMatrices_base(UniqueRepresentation):
         """
 
     def contains(self, point):
+        r"""
+        Test whether ``self`` contains the given ``point`` (matrix).
+
+        TESTS:
+
+        The `0 \times 0` matrix is positive definite because all of its
+        eigenvalues are positive::
+
+            sage: from sage.geometry.semialgebraic.semidefinite import PositiveDefiniteMatrices
+            sage: M_pd = PositiveDefiniteMatrices(QQ, 0); M_pd
+            Cone of positive-definite matrices
+             of Full MatrixSpace of 0 by 0 dense matrices over Rational Field
+            sage: matrix(QQ, 0, 0, []) in M_pd
+            True
+        """
         if point not in self._matrix_space:
             return False
         return self._predicate(point)
 
     __contains__ = contains
+
+    def _some_elements_(self):
+        r"""
+        Generate some elements in ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.semialgebraic.semidefinite import PositiveSemidefiniteMatrices
+            sage: M_psd = PositiveSemidefiniteMatrices(QQ, 2); M_psd
+            Cone of positive-semidefinite matrices
+             of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: M_psd.some_elements()  # indirect doctest
+            [
+            [13/2  3/4]  [1 0]  [  1 1/2]  [  1 1/2]  [0 0]
+            [ 3/4    4], [0 0], [1/2   1], [1/2   1], [0 1]
+            ]
+        """
+        for A in self._matrix_space.some_elements():
+            t = 0
+            A = (A + A.T) / 2
+            while A not in self:
+                t = 4 * t + 1
+                A += t * self._matrix_space.identity_matrix()
+            yield A
 
 
 class PositiveSemidefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_closed):
@@ -194,7 +228,7 @@ class PositiveSemidefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_closed):
 
     We can test the containment of matrices in the cone.  First, a positive-definite matrix::
 
-        sage: A = matrix(ZZ, [ [2,1],
+        sage: A = matrix(QQ, [ [2,1],
         ....:                  [1,2] ] )
         sage: M_psd = PositiveSemidefiniteMatrices(A.parent()); M_psd
         Cone of positive-semidefinite matrices
