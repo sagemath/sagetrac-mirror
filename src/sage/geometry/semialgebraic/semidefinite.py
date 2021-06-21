@@ -46,6 +46,11 @@ class SemidefiniteMatrices_base(UniqueRepresentation):
         base_ring = matrix_space.base_ring()
         if base_ring not in Fields():
             raise NotImplementedError('semigroups of (semi)definite matrices over non-field rings are not implemented')
+        if not matrix_space.nrows():
+            # Trivial case of 0x0 matrices. The unique element has all properties.
+            # We could just "return matrix_space" but then the result
+            # would not have all methods that we provide.
+            cls = PositiveSemidefiniteMatrices
         return super().__classcall__(cls, matrix_space)
 
     def __init__(self, matrix_space):
@@ -155,25 +160,61 @@ class SemidefiniteMatrices_base(UniqueRepresentation):
     def _predicate(self, point):
         r"""
         Containment test for elements of the ambient space
+
+        Subclasses must implement this method.
+
+        TESTS::
+
+            sage: from sage.geometry.semialgebraic.semidefinite import SemidefiniteMatrices_base
+            sage: class NegativeDefiniteMatrices(SemidefiniteMatrices_base):
+            ....:     def _predicate(self, point):
+            ....:         return (-point).is_positive_definite()
+            sage: M_nd = NegativeDefiniteMatrices(QQ, 2)
+            sage: matrix.identity(2) in M_nd
+            False
+            sage: -matrix.identity(2) in M_nd
+            True
         """
 
     def contains(self, point):
         r"""
         Test whether ``self`` contains the given ``point`` (matrix).
 
-        TESTS:
-
-        The `0 \times 0` matrix is positive definite because all of its
-        eigenvalues are positive::
+        EXAMPLES::
 
             sage: from sage.geometry.semialgebraic.semidefinite import PositiveDefiniteMatrices
-            sage: M_pd = PositiveDefiniteMatrices(QQ, 0); M_pd
-            Cone of positive-definite matrices
-             of Full MatrixSpace of 0 by 0 dense matrices over Rational Field
-            sage: matrix(QQ, 0, 0, []) in M_pd
+            sage: M_pd_2 = PositiveDefiniteMatrices(QQ, 2); M_pd_2
+            Cone of positive-definite matrices of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: matrix.identity(2) in M_pd_2
             True
+            sage: -matrix.identity(2) in M_pd_2
+            False
+            sage: [[2, 1], [1, 2]] in M_pd_2    # via the element constructor
+            True
+
+        TESTS:
+
+        No errors, just ``False``, if the dimensions of the matrix are wrong::
+
+            sage: matrix.identity(0) in M_pd_2
+            False
+
+        The `0 \times 0` matrix is positive-definite because all of its
+        eigenvalues are positive::
+
+            sage: M_pd_0 = PositiveDefiniteMatrices(QQ, 0); M_pd_0
+            Cone of positive-semidefinite matrices of Full MatrixSpace of 0 by 0 dense matrices over Rational Field
+            sage: matrix(QQ, 0, 0, []) in M_pd_0
+            True
+
+        No errors, just ``False``, if the ``point`` does not make sense::
+
+            sage: "positive" in M_pd_0
+            False
         """
-        if point not in self._matrix_space:
+        try:
+            point = self._matrix_space(point)
+        except (TypeError, ValueError):
             return False
         return self._predicate(point)
 
@@ -206,7 +247,7 @@ class SemidefiniteMatrices_base(UniqueRepresentation):
 
 class PositiveSemidefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_closed):
     r"""
-    The convex cone of positive semidefinite symmetric matrices
+    The convex cone of positive-semidefinite symmetric matrices
 
     INPUT:
 
@@ -235,10 +276,6 @@ class PositiveSemidefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_closed):
          of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
         sage: A in M_psd
         True
-
-    No matter what the base ring of the matrix space is, the cone of
-    positive-semidefinite matrices is a convex subset of its real span::
-
         sage: 1/17 * A in M_psd
         True
 
@@ -262,15 +299,54 @@ class PositiveSemidefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_closed):
         ....:                  [1,2] ] )
         sage: A in M_psd
         False
+
+    Matrices with symbolic constants::
+
+        sage: SRc = SR.subring(no_variables=True); SRc
+        Symbolic Constants Subring
+        sage: M_psd_SRc = PositiveSemidefiniteMatrices(SRc, 2); M_psd_SRc
+        Cone of positive-semidefinite matrices
+         of Full MatrixSpace of 2 by 2 dense matrices over Symbolic Constants Subring
+        sage: A = matrix(SRc, [[e, sqrt(2)], [sqrt(2), e]]); A
+        [      e sqrt(2)]
+        [sqrt(2)       e]
+        sage: A in M_psd_SRc
+        True
     """
     def _repr_(self):
+        r"""
+        Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.semialgebraic.semidefinite import PositiveSemidefiniteMatrices
+            sage: M_psd = PositiveSemidefiniteMatrices(AA, 2)
+            sage: repr(M_psd)  # indirect doctest
+            'Cone of positive-semidefinite matrices of Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field'
+        """
         return r"Cone of positive-semidefinite matrices of " + repr(self._matrix_space)
 
     def relative_interior(self):
+        r"""
+        Return the relative interior of ``self``.
+
+        It is the convex set of positive-definite matrices.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.semialgebraic.semidefinite import PositiveSemidefiniteMatrices
+            sage: M_psd = PositiveSemidefiniteMatrices(AA, 2)
+            sage: M_psd.relative_interior()
+            Cone of positive-definite matrices
+             of Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field
+
+            sage: M_psd = PositiveSemidefiniteMatrices(AA, 0)
+            sage: M_psd.relative_interior() is M_psd
+            True
+        """
         return PositiveDefiniteMatrices(self._matrix_space)
 
-    def _predicate(self, point):
-        return point.is_positive_semidefinite()
+    _predicate = attrcall('is_positive_definite')
 
     def is_relatively_open(self):
         return self.dimension() == 0
@@ -281,7 +357,7 @@ class PositiveSemidefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_closed):
 
 class PositiveDefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_relatively_open):
     r"""
-    The convex set of positive definite symmetric matrices
+    The convex set of positive-definite symmetric matrices
 
     EXAMPLES::
 
@@ -319,13 +395,33 @@ class PositiveDefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_relatively_o
         False
     """
     def _repr_(self):
+        """
+        Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.semialgebraic.semidefinite import PositiveDefiniteMatrices
+            sage: M_pd = PositiveDefiniteMatrices(AA, 2)
+            sage: repr(M_pd)  # indirect doctest
+            'Cone of positive-definite matrices of Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field'
+        """
         return r"Cone of positive-definite matrices of " + repr(self._matrix_space)
 
     def closure(self):
+        r"""
+        Return the topological closure of ``self``.
+
+        It is the convex cone of positive-semidefinite matrices.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.semialgebraic.semidefinite import PositiveDefiniteMatrices
+            sage: M_pd = PositiveDefiniteMatrices(AA, 2)
+            sage: M_pd.closure()
+        """
         return PositiveSemidefiniteMatrices(self._matrix_space)
 
-    def _predicate(self, point):
-        return point.is_positive_definite()
+    _predicate = attrcall('is_positive_definite')
 
     def is_closed(self):
         return self.dimension() == 0
