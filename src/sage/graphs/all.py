@@ -18,6 +18,8 @@ lazy_import("sage.graphs.graph_editor", "graph_editor")
 
 from sage.graphs.isgci import graph_classes
 
+lazy_import("sage.graphs.elser-numbers", "elser-numbers")
+
 """
 TESTS:
 
