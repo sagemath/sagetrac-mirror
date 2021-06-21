@@ -1061,7 +1061,46 @@ class ConvexSet_proper_conic(ConvexSet_closed_conic):
     Abstract base class for proper conic convex sets.
     """
 
-    pass
+    def affine_hull(self):
+        r"""
+        Return the affine hull of ``self``.
+
+        Proper conic convex sets are full-dimensional, so
+        this is the same as :meth:`ambient_vector_space`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_proper_conic
+            sage: class ProperExample(ConvexSet_proper_conic):
+            ....:     def ambient_vector_space(self):
+            ....:         return RR^2
+            sage: C = ProperExample()
+            sage: C.affine_hull()
+            Vector space of dimension 2 over Real Field with 53 bits of precision
+        """
+        return self.ambient_vector_space()
+
+    def dim(self):
+        """
+        Return the dimension of ``self``.
+
+        Proper conic convex sets are full-dimensional, so
+        this is the same as the dimension of
+        :meth:`ambient_vector_space`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_proper_conic
+            sage: class ProperExample(ConvexSet_proper_conic):
+            ....:     def ambient_vector_space(self):
+            ....:         return RR^2
+            sage: C = ProperExample()
+            sage: C.dimension()
+            2
+            sage: C.is_full_dimensional()
+            True
+        """
+        return self.ambient_dim()
 
 
 class ConvexSet_compact(ConvexSet_closed):
