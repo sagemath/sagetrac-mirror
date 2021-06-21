@@ -12,23 +12,23 @@ def is_vertex_cover(H,L):
             break
     return value
 
-def connected_subgraphs_of(self):
+def connected_subgraphs_of(G):
     '''
-    INPUT:  a graph self
-    OUTPUT: The collection of connected subgraphs of self
+    INPUT:  a graph G
+    OUTPUT: The collection of connected subgraphs of G
 
     This is used for computing the Nuclei of a graph
     '''
     LIST=[]
-    for s in powerset(self.edges()):
-        H=selfraph(s)
+    for s in powerset(G.edges()):
+        H=Graph(s)
         if H.is_connected():
             LIST.append(H)
     return LIST
 
-def NucleiBySize(self,U=[]):
+def NucleiBySize(G,U=[]):
     '''
-    INPUT:  a graph self and subset of the vertices of self, which we call U (if no U is specified, assumes U is the emptyset)
+    INPUT:  a graph G and subset of the vertices of G, which we call U (if no U is specified, assumes U is the emptyset)
     OUTPUT: dictionary whose ith element is a list of nuclei with i edges whose vertex set is contained in U.
 
     EXAMPLE
@@ -52,9 +52,9 @@ def NucleiBySize(self,U=[]):
     '''
     output={}
     UU=Set(U)
-    for H in connected_subgraphs_of(self):
+    for H in connected_subgraphs_of(G):
         S = H.vertices()
-        if Set(S).issuperset(UU) and is_vertex_cover(self,S):
+        if Set(S).issuperset(UU) and is_vertex_cover(G,S):
             m = H.num_edges()
             if m in output:
                 output[m].append(H)
@@ -63,10 +63,10 @@ def NucleiBySize(self,U=[]):
     return output
 
 
-def elser_number(self,k,ring=QQ):
+def elser_number(G,k,ring=QQ):
     '''
     INPUT:  A graph, an integer, and a ring (default is the rationals)
-    OUTPUT: the kth Elser number of self
+    OUTPUT: the kth Elser number of G
 
     EXAMPLE
     sage: [elser_number(graphs.CycleGraph(3),k) for k in range(10)]
@@ -82,8 +82,8 @@ def elser_number(self,k,ring=QQ):
     True
 
     '''
-    nuclei_by_size = NucleiBySize(self,U=[])
-    return (-1)**(len(self.vertices())+1) * sum([(-1)**(i) * sum([len(N.vertices())**k for N in nuclei_by_size[i]]) for i in nuclei_by_size])
+    nuclei_by_size = NucleiBySize(G,U=[])
+    return (-1)**(len(G.vertices())+1) * sum([(-1)**(i) * sum([len(N.vertices())**k for N in nuclei_by_size[i]]) for i in nuclei_by_size])
 
 
 
@@ -100,18 +100,18 @@ def _coboundary_entry(Nyuck,k,i,j):
     else:
         return 0
 
-def ElserSummand(self,U, ring=QQ):
+def ElserSummand(G,U, ring=QQ):
     '''
-    INPUT:  a graph self, a vertex set U, and a coefficient ring (if no ring is specified, the rational numbers are used)
-    OUTPUT: the U-summand of the Elser cochain complex of self
+    INPUT:  a graph G, a vertex set U, and a coefficient ring (if no ring is specified, the rational numbers are used)
+    OUTPUT: the U-summand of the Elser cochain complex of G
 
     EXAMPLE
     sage: G = Graph([[1,2],[1,3],[1,4],[2,3],[2,4]]);
     sage: ElserSummand(G,[3,4])
     Chain complex with at most 4 nonzero terms over Rational Field
     '''
-    EDGES = list(self.edges())
-    nuclei_by_size = NucleiBySize(self,U)
+    EDGES = list(G.edges())
+    nuclei_by_size = NucleiBySize(G,U)
     Nyuck = { i : [sorted([EDGES.index(e) for e in list(N.edges())]) for N in nuclei_by_size[i]] for i in nuclei_by_size}
     Cooboundary = lambda k: Matrix(ring,len(Nyuck[k]),len(Nyuck[k-1]),lambda i,j: _coboundary_entry(Nyuck,k,i,j))
     HomSupport_Indices = list(Nyuck.keys())
@@ -119,9 +119,9 @@ def ElserSummand(self,U, ring=QQ):
     return ChainComplex({k-1: Cooboundary(k) for k in HomSupport_Indices})
 
 
-def all_ElserSummands(self,ring=QQ):
+def all_ElserSummands(G,ring=QQ):
     '''
-    INPUT:  a graph self
+    INPUT:  a graph G
     OUTPUT: all summands of the Elser complex, as a dictionary
 
     Note: This is a slight improvement over the "ElserSummand function," as we compute the complete list of nuclei by size at first, then refer to it to compute each summand, one U at a time. Its faster if we want to compute all the Elser summands.
@@ -138,10 +138,10 @@ def all_ElserSummands(self,ring=QQ):
     True
 
     '''
-    EDGES = list(self.edges())
-    nuclei_by_size = NucleiBySize(self)
+    EDGES = list(G.edges())
+    nuclei_by_size = NucleiBySize(G)
     Summands = {}
-    for U in powerset(self.vertices()):
+    for U in powerset(G.vertices()):
         Nyuck = {}
         for i in nuclei_by_size:
             U_compatible = []
@@ -156,7 +156,7 @@ def all_ElserSummands(self,ring=QQ):
     return Summands
 
 
-def ElserComplex_Bettis(self,U=None,ring=QQ):
+def ElserComplex_Bettis(G,U=None,ring=QQ):
     '''
     INPUT:  a graph G, a subset of vertices U (optional), and a coefficient ring (if no ring is specified, the rational numbers are used)
     OUTPUT: A dictionary.
@@ -175,7 +175,7 @@ def ElserComplex_Bettis(self,U=None,ring=QQ):
 
     '''
     if U == None:
-        summands = all_ElserSummands(self)
+        summands = all_ElserSummands(G)
         return {V : summands[V].betti() for V in summands}
     else:
-        return ElserSummand(self,U).betti()
+        return ElserSummand(G,U).betti()
