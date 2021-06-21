@@ -16,6 +16,7 @@ import itertools
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
+from sage.misc.call import attrcall
 from sage.categories.fields import Fields
 from sage.matrix.matrix_space import is_MatrixSpace, MatrixSpace
 from sage.geometry.convex_set import ConvexSet_closed_conic, ConvexSet_relatively_open
@@ -346,7 +347,7 @@ class PositiveSemidefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_closed_c
         """
         return PositiveDefiniteMatrices(self._matrix_space)
 
-    _predicate = attrcall('is_positive_definite')
+    _predicate = attrcall('is_positive_semidefinite')
 
     def is_relatively_open(self):
         return self.dimension() == 0
@@ -415,6 +416,7 @@ class PositiveDefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_relatively_o
             sage: from sage.geometry.semialgebraic.semidefinite import PositiveDefiniteMatrices
             sage: M_pd = PositiveDefiniteMatrices(AA, 2)
             sage: M_pd.closure()
+            Cone of positive-semidefinite matrices of Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field
         """
         return PositiveSemidefiniteMatrices(self._matrix_space)
 
