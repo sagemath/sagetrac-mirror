@@ -1009,6 +1009,61 @@ class ConvexSet_closed(ConvexSet_base):
         return self.is_empty() or self.is_universe()
 
 
+class ConvexSet_conic(ConvexSet_base):
+    r"""
+    Abstract base class for conic convex sets.
+    """
+
+    def is_empty(self):
+        """
+        Return whether ``self`` is the empty set.
+
+        Because a cone always contains the origin, this method returns ``False``.
+
+        EXAMPLES::
+
+            sage: trivial_cone = cones.trivial(3)
+            sage: trivial_cone.is_empty()
+            False
+
+        """
+        return False
+
+    def is_trivial(self):
+        """
+        Checks if the cone is trivial, i.e., consists only of the origin.
+
+        The trivial cone is the only convex cone that is compact.
+
+        EXAMPLES::
+
+            sage: c0 = cones.trivial(3)
+            sage: c0.is_trivial()
+            True
+            sage: c0.is_compact()
+            True
+        """
+        return self.dim() == 0
+
+    is_compact = is_trivial
+
+
+class ConvexSet_closed_conic(ConvexSet_closed, ConvexSet_conic):
+    r"""
+    Abstract base class for closed conic convex sets.
+    """
+
+    pass
+
+
+class ConvexSet_proper_conic(ConvexSet_closed_conic):
+    r"""
+    Abstract base class for proper conic convex sets.
+    """
+
+    pass
+
+
 class ConvexSet_compact(ConvexSet_closed):
     r"""
     Abstract base class for compact convex sets.

@@ -18,7 +18,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.categories.fields import Fields
 from sage.matrix.matrix_space import is_MatrixSpace, MatrixSpace
-from sage.geometry.convex_set import ConvexSet_closed, ConvexSet_relatively_open
+from sage.geometry.convex_set import ConvexSet_closed_conic, ConvexSet_relatively_open
 
 class SemidefiniteMatrices_base(UniqueRepresentation):
     r"""
@@ -245,7 +245,7 @@ class SemidefiniteMatrices_base(UniqueRepresentation):
             yield A
 
 
-class PositiveSemidefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_closed):
+class PositiveSemidefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_closed_conic):
     r"""
     The convex cone of positive-semidefinite symmetric matrices
 
@@ -349,9 +349,6 @@ class PositiveSemidefiniteMatrices(SemidefiniteMatrices_base, ConvexSet_closed):
     _predicate = attrcall('is_positive_definite')
 
     def is_relatively_open(self):
-        return self.dimension() == 0
-
-    def is_compact(self):
         return self.dimension() == 0
 
 

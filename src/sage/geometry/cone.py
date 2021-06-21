@@ -229,7 +229,7 @@ from sage.rings.rational_field import QQ
 from sage.structure.all import SageObject, parent
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.geometry.integral_points import parallelotope_points
-from sage.geometry.convex_set import ConvexSet_closed
+from sage.geometry.convex_set import ConvexSet_closed_conic
 import sage.geometry.abc
 
 from sage.misc.lazy_import import lazy_import
@@ -1416,7 +1416,7 @@ def classify_cone_2d(ray0, ray1, check=True):
 # and ``ambient_ray_indices`` keyword parameters. See ``intersection`` method
 # for an example why this is needed.
 @richcmp_method
-class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_closed, sage.geometry.abc.ConvexRationalPolyhedralCone):
+class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_closed_conic, sage.geometry.abc.ConvexRationalPolyhedralCone):
     r"""
     Create a convex rational polyhedral cone.
 
@@ -3318,21 +3318,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         if not self.is_simplicial():
             return False
         return self.rays().matrix().elementary_divisors() == [1] * self.nrays()
-
-    def is_empty(self):
-        """
-        Return whether ``self`` is the empty set.
-
-        Because a cone always contains the origin, this method returns ``False``.
-
-        EXAMPLES::
-
-            sage: trivial_cone = cones.trivial(3)
-            sage: trivial_cone.is_empty()
-            False
-
-        """
-        return False
 
     def is_trivial(self):
         """
