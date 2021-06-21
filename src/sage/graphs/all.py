@@ -15,10 +15,8 @@ from . import graph_list as graphs_list
 lazy_import("sage.graphs", "graph_coloring")
 from .graph_database import graph_db_info
 lazy_import("sage.graphs.graph_editor", "graph_editor")
-
 from sage.graphs.isgci import graph_classes
-
-lazy_import("sage.graphs.elser-numbers", "elser-numbers")
+impport sage.graphs.elser_numbers
 
 """
 TESTS:
