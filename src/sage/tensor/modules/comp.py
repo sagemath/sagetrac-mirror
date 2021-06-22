@@ -514,6 +514,26 @@ class Components(SageObject):
         self._comp = {} # the dictionary of components, with the index tuples
                         # as keys
 
+    def __iter__(self):
+        r"""
+        Allows user to create a sparse iterator over 
+        ``self._comp``.
+        """
+        for multi_idx in self._comp.keys():
+            # access value in dictionary
+            coef = self._comp[multi_idx]
+            try:
+                result = 1
+                for idx in multi_idx:
+                    _idx = idx - self._sindex
+                    # accumulate tensor product
+                    result *= self._frame[_idx]
+                yield coef * result
+            except StopIteration:
+                pass
+
+    
+
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
