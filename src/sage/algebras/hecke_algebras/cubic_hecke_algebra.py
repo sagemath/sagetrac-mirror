@@ -451,7 +451,6 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         return MS(self)
 
 
-
     def revert_garside(self):
         r"""
         Return the image of ``self`` under the Garside involution.
@@ -3469,20 +3468,29 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         return tuple(res)
 
 
-    def _class_function(self, irr=None):
+    def characters(self, irr=None, original=True):
         r"""
-        Return the irreducible class functions of ``self``.
+        Return the irreducible characters of ``self``. By default the values
+        are given in the generic extension ring. Setting the keyword ``original``
+        to ``False`` you can obtain the values in the (non generic) extension
+        ring (compare the same keyword for :meth:`matrix`).
 
         INPUT:
 
         - ``irr`` -- (optional) instance of :class:`AbsIrreducibeRep`
           selecting the irreducible representation corresponding to the
-          class function. If not given a list of all class function is
-          returned
+          character. If not given a list of all characters is returned
+        - ``original`` -- (optional, default ``True``)  see description above
+
+        OUTPUT:
+
+        Function or list of Functions from the element class of ``self`` to
+        the (generic or non generic) extension ring depending on the given
+        keyword arguments.
         """
-        def class_function(ele):
+        def char_function(ele):
             if isinstance(ele, self.element_class):
-                m = ele.matrix(original=True)
+                m = ele.matrix(original=original)
                 return m[irr].trace()
             else:
                 # if ele is given by the representation matrix
@@ -3490,9 +3498,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 m_irr = ele*mone_irr
                 return m_irr.trace()
         if irr:
-            return class_function
+            return char_function
         irrs = [irr for irr in self.irred_repr if  irr.number_gens()== self.strands() -1]
-        return [self._class_function(irrs[i]) for i in range(len(irrs))]
+        return [self.characters(irrs[i]) for i in range(len(irrs))]
 
 
     def _markov_vars(self):
@@ -3577,7 +3585,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
 
     @cached_method
-    def _markov_trace_coeffs(self):
+    def _markov_trace_coeffs(self, bas_ele=None):
         r"""
         """
         from sage.misc.persist import load, save
@@ -3592,25 +3600,34 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         except FileNotFoundError:
             pass
 
-        time = verbose('preparing calculation of Markov trace coefficients')
-        mtm = self._markov_trace_module()
+        MTM = self._markov_trace_module()
+        MTMbas = MTM.basis().keys()
 
-        all_vars, new_vars = self._markov_vars()
-        emb_BR = self._markov_trace_embedding()
-        L = emb_BR.codomain()
+        if not bas_ele:
+            cfs = {bas_ele: self._markov_trace_coeffs(bas_ele=bas_ele) for bas_ele in MTMbas}
+            return [sum(cfs[bas_ele][i]*MTM(bas_ele) for bas_ele in MTMbas) for i in range(self.dimension())]
+
+        time = verbose('preparing calculation of Markov trace coefficients for %s' %bas_ele.value)
+
+        L = MTM.base_ring()
         M = L.base_ring()
+        u, v, w, s = L.gens()
 
         if self.strands() == 2:
-            u, v, w, s = mtm.base_ring().gens()
-            U1, U2 = mtm.gens()
-            return [U2, s*U1, ~s*U1]
+            U1, U2 = MTM.gens()
+            if MTM(bas_ele) == U1:
+                return [L(0), s, ~s]
+            else:
+                return [L(1), L(0), L(0)]
 
-        irr_coeff = self._markov_trace_irr_coeffs()
-        emb_ER = self._markov_trace_embedding(extension_ring=True)
-        ClF = self._class_function()
-        dClF = len(ClF)
+        irr_coeff = self._markov_trace_irr_coeffs()[bas_ele]
+        LE = L.extension_ring().as_splitting_algebra()
+        cf_vect = vector(LE, irr_coeff)
+        chars = self.characters()
+        num_char = len(chars)
         def mtr(ele):
-            return sum(irr_coeff[j]*emb_ER(ClF[j](ele)) for j in range(dClF))
+            ch = vector(LE, [chars[j](ele) for j in range(num_char)])
+            return cf_vect * ch
 
         E = self.extension_ring()
         PE = E[('s',) + tuple(all_vars)]
@@ -3663,49 +3680,32 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         time = verbose('preparing calculation of irreducible Markov trace coefficients')
 
         n = self.strands()
-        ClF = self._class_function()
-        dClF = len(ClF)
-
-        all_vars, new_vars = self._markov_vars()
+        chars = self.characters()
+        num_char = len(chars)
 
         sub = self.cubic_hecke_subalgebra()
         sub_basis = [sub(g) for g in sub.get_order()]
         sub_dim = sub.dimension()
-        subR = sub._markov_trace_coeffs()[0].parent()
-        sub_var = subR.base_ring().variable_names()
-        sub_var_add = tuple([sub_var[i] for i in range(3, len(sub_var))])
-        new_var = tuple(new_vars.keys())
-
-        emb_ER = self._markov_trace_embedding(extension_ring=True)
-        ER = emb_ER.domain()
-        F  = emb_ER.codomain()
-        a, b, c, s, *remain, = F.gens()
-
-        BR = self.base_ring(generic=True)
-        img_ER = [emb_ER(ER(v)) for v in BR.gens()]
-        img = tuple(img_ER) + (s,) + tuple([remain[i] for i in range(len(remain)-len(new_var))])
-        emb_subR = subR.hom(img)
-
+        sub_mtr = [b.formal_markov_trace(extended=True, field_embedding=True) for b in sub_basis]
+        MTM    = self._markov_trace_module(extended=True, field_embedding=True)
+        MTMbas = MTM.basis().keys()
+        MTMbas_new = [b for b in MTMbas if b.strands() == n]
+        sub_MTM    = sub_mtr[0].parent()
+        sub_MTMbas = sub_MTM.basis().keys()
+        F = MTM.base_ring()
+        a, b, c, s = F.gens()
+        sub_basis_ele = [self(b.braid_tietze(strands_embed=n)) for b in MTMbas if not b in MTMbas_new]
+        new_basis_ele = [self(b.braid_tietze()) for b in MTMbas_new]
         time = verbose('setting up equation', t=time)
 
         from sage.matrix.constructor import matrix
-        from sage.misc.persist import load
+        from sage.misc.persist import load, save
         g = self.gen(self.ngens()-1)
-        eq_p = matrix(F, sub_dim, dClF, lambda i,j: emb_ER(ClF[j](self(sub_basis[i])*g)))
-        eq_m = matrix(F, sub_dim, dClF, lambda i,j: emb_ER(ClF[j](self(sub_basis[i])*~g)))
-        eq_b = eq_p.stack(eq_m)
+        eq_p = matrix(F, sub_dim, num_char, lambda i,j: chars[j](self(sub_basis[i])*g))
+        eq_n = matrix(F, sub_dim, num_char, lambda i,j: chars[j](self(sub_basis[i])*~g))
+        eq_b = eq_p.stack(eq_n)
+
         eq_b.save('markov_eq_b%s.sobj' %n)
-        mtr_sub = [F(emb_subR(b.formal_markov_trace())) for b in sub_basis]
-        mtr_sub_b = vector(F, [s*mtr for mtr in mtr_sub] + [~s*mtr for mtr in mtr_sub])
-        mtr_sub_b.save('markov_sub_b%s.sobj' %n)
-        time = verbose('solving equation', t=time)
-        try:
-            sol = load('markov_sol%s.sobj' %n)
-            time = verbose('found precalculated solution', t=time)
-        except FileNotFoundError:
-            sol = eq_b.solve_right(mtr_sub_b)
-            sol.save('markov_sol%s.sobj' %n)
-            time = verbose('solution saved', t=time)
 
         time = verbose('obtaining the kernel', t=time)
         try:
@@ -3716,48 +3716,60 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             ker.save('markov_ker%s.sobj' %n)
             time = verbose('kernel saved', t=time)
 
-        # adjusting kernel to new variables
-
         dk = ker.dimension()
         kerm = ker.basis_matrix()
 
-        def genClF(ele, i=None):
-            if i is None:
-                return sum(sol[j]*emb_ER(ClF[j](ele)) for j in range(dClF))
-            else:
-                return sum(kerm[i, j]*emb_ER(ClF[j](ele)) for j in range(dClF))
-
-        vars_dict = F.gens_dict_recursive()
-        new_variables = [vars_dict[v] for v in new_vars.keys()]
-        new_var_elements = list(new_vars.values())
+        def vectchars(ele):
+            return vector(F, [chars[j](ele) for j in range(num_char)])
 
         time = verbose('setting up adjusting equation', t=time)
         try:
-            M = load('markov_M%s.sobj' %n)
+            eq_adjust = load('markov_eq_adjust%s.sobj' %n)
             time = verbose('found precalculated adjusting matrix', t=time)
         except FileNotFoundError:
-            M = matrix(F, dk, dk, lambda i, j: genClF(new_var_elements[i], j))
-            M.save('markov_M%s.sobj' %n)
+            eq_adjust = matrix(F, dk, dk, [list(kerm*vectchars(ele)) for ele in new_basis_ele])
+            eq_adjust.save('markov_eq_adjust%s.sobj' %n)
             time = verbose('adjusting matrix saved', t=time)
 
-        try:
-            v = load('markov_v%s.sobj' %n)
-            time = verbose('found precalculated vector matrix', t=time)
-        except FileNotFoundError:
-            v = vector(F, [genClF(new_var_elements[i]) for i in range(dk)])
-            v.save('markov_v%s.sobj' %n)
-            time = verbose('adjusting vector saved', t=time)
 
-        w = vector(F, new_variables)
 
-        time = verbose('solving adjusting equation', t=time)
+        def get_irr_coeff(bas_ele, time):
+            pre_image = vector(F, [0]*num_char)
+            image_new_basis = vector(F, [0]*dk)
+            claim_new_basis = vector(F, [0]*dk)
+            if bas_ele in sub_MTMbas:
+                sub_mtr_b = vector(F, [s*mtr.coefficient(bas_ele) for mtr in sub_mtr] + [~s*mtr.coefficient(bas_ele) for mtr in sub_mtr] )
+                time = verbose('solving equation', t=time)
+                try:
+                    pre_image = load('markov_pre_image%s-%s.sobj' %(n, bas_ele))
+                    time = verbose('found precalculated solution', t=time)
+                except FileNotFoundError:
+                    pre_image = eq_b.solve_right(sub_mtr_b)
+                    pre_image.save('markov_pre_image%s-%s.sobj' %(n, bas_ele))
+                    time = verbose('solution saved', t=time)
+
+                try:
+                    image_new_basis = load('markov_image_new_basis%s-%s.sobj' %(n, bas_ele))
+                    time = verbose('found precalculated image of new basis', t=time)
+                except FileNotFoundError:
+                    image_new_basis = vector(F, [pre_image*vectchars(ele) for ele in new_basis_ele])
+                    image_new_basis.save('markov_image_new_basis%s-%s.sobj' %(n, bas_ele))
+                    time = verbose('adjusting vector saved', t=time)
+            else:
+                claim_new_basis = vector(F, [MTMbas_new.index(bas_ele) == i for i in range(dk)])
+            time = verbose('solving adjusting equation', t=time)
+            cfs_adjust_kernel_basis = eq_adjust.solve_right(claim_new_basis - image_new_basis)
+            return pre_image + cfs_adjust_kernel_basis*kerm
+        # adjusting kernel to new variables
+
+
+
         try:
             irr_coeff = load('markov_irr_coeff%s.sobj' %n)
             time = verbose('found precalculated adjusting solution', t=time)
         except FileNotFoundError:
-            cfs = M.solve_right(w-v)
-            irr_coeff = sol + cfs*kerm
-            irr_coeff.save('markov_irr_coeff%s.sobj' %n)
+            irr_coeff = {bas_ele: get_irr_coeff(bas_ele, time) for bas_ele in MTMbas}
+            save(irr_coeff, 'markov_irr_coeff%s.sobj' %n)
             time = verbose('adjusting solution saved', t=time)
 
         from sage.misc.misc_c import prod
@@ -3772,8 +3784,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             u = un/ud
             return u*prn/prd
 
-        irr_coeff = vector([red_coeff(cf) for cf in irr_coeff])
-        irr_coeff.save('markov_irr_coeffR%s.sobj' %n)
+        for b in irr_coeff.keys():
+            irr_coeff[b] = vector([red_coeff(cf) for cf in irr_coeff[b]])
+        save(irr_coeff, 'markov_irr_coeffR%s.sobj' %n)
         time = verbose('reduced adjusting solution saved', t=time)
 
         verbose('calculation of irreducible Markov trace coefficients finished', t=time)
