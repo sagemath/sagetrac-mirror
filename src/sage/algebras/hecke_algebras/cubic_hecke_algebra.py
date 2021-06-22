@@ -3590,15 +3590,14 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         """
         from sage.misc.persist import load, save
         n = self.strands()
-        try:
-            if n == 3:
-                return load('/home/sebastian/devel/prepare/markov_trace_coeffs3.sobj')
-                time = verbose('found precalculated list of Markov trace coefficients')
-            if n == 4:
-                return load('/home/sebastian/devel/prepare/markov_trace_coeffs4.sobj')
-                time = verbose('found precalculated list of Markov trace coefficients')
-        except FileNotFoundError:
-            pass
+        if bas_ele:
+            filename = 'markov_trace_coeffs%s-%s' %(n, bas_ele.name)
+            try:
+                if n == 3 or n == 4:
+                    return load('/home/sebastian/devel/prepare/%s.sobj' %(filename))
+                    time = verbose('found precalculated list of Markov trace coefficients')
+            except FileNotFoundError:
+                pass
 
         MTM = self._markov_trace_module()
         MTMbas = MTM.basis().keys()
@@ -3607,7 +3606,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             cfs = {bas_ele: self._markov_trace_coeffs(bas_ele=bas_ele) for bas_ele in MTMbas}
             return [sum(cfs[bas_ele][i]*MTM(bas_ele) for bas_ele in MTMbas) for i in range(self.dimension())]
 
-        time = verbose('preparing calculation of Markov trace coefficients for %s' %bas_ele.value)
+        time = verbose('preparing calculation of Markov trace coefficients for %s' %bas_ele.name)
 
         L = MTM.base_ring()
         M = L.base_ring()
@@ -3621,20 +3620,16 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 return [L(1), L(0), L(0)]
 
         irr_coeff = self._markov_trace_irr_coeffs()[bas_ele]
-        LE = L.extension_ring().as_splitting_algebra()
-        cf_vect = vector(LE, irr_coeff)
+        cf_vect = vector(irr_coeff)
+        P = L.extension_ring()
+        Ps = P.as_splitting_algebra()
+        EZ = ZZ[P.variable_names()]
+        embEZ = EZ.hom(P.gens())
         chars = self.characters()
         num_char = len(chars)
         def mtr(ele):
-            ch = vector(LE, [chars[j](ele) for j in range(num_char)])
+            ch = vector([chars[j](ele) for j in range(num_char)])
             return cf_vect * ch
-
-        E = self.extension_ring()
-        PE = E[('s',) + tuple(all_vars)]
-        EZ_vars = self._markov_trace_embedding(extension_ring=True).codomain().variable_names()
-        EZ = ZZ[EZ_vars]
-        img = tuple(self.cubic_equation_roots()) + PE.gens()
-        emb_EZ = EZ.hom(img)
 
         subs_dict = L.gens_dict_recursive()
         from sage.misc.sage_eval import sage_eval
@@ -3643,33 +3638,33 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             cf = mtr(self(g))
             num = cf.numerator()
             den = cf.denominator()
-            num_PE = emb_EZ(EZ(num.dict()))
-            den_PE = emb_EZ(EZ(den.dict()))
-            num_L = sage_eval(str(num_PE), locals=subs_dict)
-            den_L = sage_eval(str(den_PE), locals=subs_dict)
-            res = num_L/den_L
+            num_Ps = Ps(embEZ(EZ(num.dict())))
+            den_Ps = Ps(embEZ(EZ(den.dict())))
+            num_L = sage_eval(str(num_Ps), locals=subs_dict)
+            den_L = sage_eval(str(den_Ps), locals=subs_dict)
+            res = L(num_L/den_L)
             return res
 
         mtcf = []
         s = len(mtcf)
 
         try:
-            mtcf = load('markov_trace_coeffs%s_temp.sobj' %n)
+            mtcf = load('%s_temp.sobj' %filename)
             s = len(mtcf)
-            time = verbose('found temporary list of length %s' %(s), t=time)
+            time = verbose('found temporary list of length %s for %s' %(s, bas_ele.name), t=time)
         except FileNotFoundError:
             pass
-        time = verbose('start calculating', t=time)
+        time = verbose('start calculating %s' %bas_ele.name, t=time)
 
         O = self.get_order()
         l = len(O)
         for i in range(s,l):
             time = verbose('%s of %s' %(i, l), t=time)
             mtcf.append(convert_coeff(O[i]))
-            save(mtcf, 'markov_trace_coeffs%s_temp.sobj' %n)
+            save(mtcf, '%s_temp.sobj' %filename)
         import os
-        os.system('mv markov_trace_coeffs%s_temp.sobj markov_trace_coeffs%s.sobj' %(n,n))
-        verbose('calculation of Markov trace coefficients finished', t=time)
+        os.system('mv %s_temp.sobj %s.sobj' %(filename, filename))
+        verbose('calculation of Markov trace coefficients for %s finished' %bas_ele.name, t=time)
         return mtcf
 
 
@@ -3741,19 +3736,19 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 sub_mtr_b = vector(F, [s*mtr.coefficient(bas_ele) for mtr in sub_mtr] + [~s*mtr.coefficient(bas_ele) for mtr in sub_mtr] )
                 time = verbose('solving equation', t=time)
                 try:
-                    pre_image = load('markov_pre_image%s-%s.sobj' %(n, bas_ele))
+                    pre_image = load('markov_pre_image%s-%s.sobj' %(n, bas_ele.name))
                     time = verbose('found precalculated solution', t=time)
                 except FileNotFoundError:
                     pre_image = eq_b.solve_right(sub_mtr_b)
-                    pre_image.save('markov_pre_image%s-%s.sobj' %(n, bas_ele))
+                    pre_image.save('markov_pre_image%s-%s.sobj' %(n, bas_ele.name))
                     time = verbose('solution saved', t=time)
 
                 try:
-                    image_new_basis = load('markov_image_new_basis%s-%s.sobj' %(n, bas_ele))
+                    image_new_basis = load('markov_image_new_basis%s-%s.sobj' %(n, bas_ele.name))
                     time = verbose('found precalculated image of new basis', t=time)
                 except FileNotFoundError:
                     image_new_basis = vector(F, [pre_image*vectchars(ele) for ele in new_basis_ele])
-                    image_new_basis.save('markov_image_new_basis%s-%s.sobj' %(n, bas_ele))
+                    image_new_basis.save('markov_image_new_basis%s-%s.sobj' %(n, bas_ele.name))
                     time = verbose('adjusting vector saved', t=time)
             else:
                 claim_new_basis = vector(F, [MTMbas_new.index(bas_ele) == i for i in range(dk)])
