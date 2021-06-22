@@ -26,16 +26,46 @@ class TensorSymmetryGroup(metaclass=ClasscallMetaclass):
     r"""
     Constructor for tensor symmetry groups
 
+    INPUT:
+
+    - ``nb_indices`` -- number of indices of the tensor
+    - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries among
+      the indices: each symmetry is described by a tuple containing the
+      positions of the involved indices, with the convention ``position=0``
+      for the first slot; for instance:
+
+        * ``sym = (0, 1)`` for a symmetry between the 1st and 2nd indices
+        * ``sym = [(0,2), (1,3,4)]`` for a symmetry between the 1st and 3rd
+          indices and a symmetry between the 2nd, 4th and 5th indices.
+
+    - ``antisym`` -- (default: ``None``) antisymmetry or list of antisymmetries
+      among the indices, with the same convention as for ``sym``
+
     EXAMPLES::
 
         sage: from sage.groups.tensor.monoterm_symmetry import TensorSymmetryGroup
-        sage: G = TensorSymmetryGroup(2, sym=(1, 2)); G
-        Symmetry group of 2-index tensors, with symmetry on the index positions (1, 2)
+        sage: G = TensorSymmetryGroup(2, sym=(0, 1)); G
+        Symmetry group of 2-index tensors, with symmetry on the index positions (0, 1)
         sage: V = FiniteRankFreeModule(QQ, 3)
         sage: G.get_action(V.tensor_module(0, 2))
         Left action
-         by Symmetry group of 2-index tensors, with symmetry on the index positions (1, 2)
+         by Symmetry group of 2-index tensors, with symmetry on the index positions (0, 1)
          on Free module of type-(0,2) tensors on the 3-dimensional vector space over the Rational Field
+
+    Antisymmetry on 2 indices::
+
+        sage: G = TensorSymmetryGroup(2, antisym=(0, 1)); G
+
+    Symmetry group of tensors with 6 indices, symmetric among 3 indices (at position
+    `(0, 1, 5)`) and antisymmetric among 2 indices (at position `(2, 4)`)::
+
+        sage: G = TensorSymmetryGroup(6, sym=(0, 1, 5), antisym=(2, 4)); G
+
+    Components with 4 indices, antisymmetric with respect to the first pair of
+    indices as well as with the second pair of indices::
+
+        sage: G = TensorSymmetryGroup(4, antisym=[(0, 1), (2, 3)]); G
+
     """
     @staticmethod
     def __classcall__(cls, nb_indices, sym=None, antisym=None):
