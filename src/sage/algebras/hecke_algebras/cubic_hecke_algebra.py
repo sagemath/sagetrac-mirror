@@ -550,7 +550,6 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         mtcf = cha._markov_trace_coeffs()
         vs = self.to_vector()
         M = cha._markov_trace_module(extended=extended, field_embedding=field_embedding)
-        R = M.base_ring()
         if M != mtcf[0].parent():
             if field_embedding:
                 # intermediate step needed since internal coercion to the field
@@ -3487,43 +3486,39 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         Function or list of Functions from the element class of ``self`` to
         the (generic or non generic) extension ring depending on the given
         keyword arguments.
+
+        EXAMPLES::
+
+            sage: CHA3 = algebras.CubicHecke(3)
+            sage: ch = CHA3.characters()
+            sage: e = CHA3.an_element()
+            sage: ch[0](e)
+            a^2*b + a^2*c + a^2 - b*c + b^-1*c^-1 + a^-1*c^-1 + a^-1*b^-1
+            sage: _.parent()
+            Multivariate Laurent Polynomial Ring in a, b, c
+              over Splitting Algebra of x^2 + x + 1 with roots [e3, -e3 - 1]
+              over Integer Ring
+            sage: ch_w3_100 = CHA3.characters(irr=CHA3.irred_repr.W3_100)
+            sage: ch_w3_100(e) == ch[0](e)
+            True
+            sage: ch_x = CHA3.characters(original=False)
+            sage: ch_x[0](e)
+            (u + v)*a + (-v*w - w^2 + u)/w
+            sage: _.parent()
+            Splitting Algebra of T^2 + T + 1 with roots [E3, -E3 - 1]
+              over Splitting Algebra of h^3 - u*h^2 + v*h - w with roots [a, b, -b - a + u]
+              over Multivariate Polynomial Ring in u, v, w
+              over Integer Ring localized at (w,)
         """
         def char_function(ele):
             if isinstance(ele, self.element_class):
                 m = ele.matrix(original=original)
                 return m[irr].trace()
-            else:
-                # if ele is given by the representation matrix
-                mone_irr = self.one().matrix(original=True).reduce_to_irr_block(irr)
-                m_irr = ele*mone_irr
-                return m_irr.trace()
         if irr:
             return char_function
         irrs = [irr for irr in self.irred_repr if  irr.number_gens()== self.strands() -1]
-        return [self.characters(irrs[i]) for i in range(len(irrs))]
+        return [self.characters(irrs[i], original=original) for i in range(len(irrs))]
 
-
-    def _markov_vars(self):
-        r"""
-        """
-        B = self.braid_group()
-        if    self.strands() == 2:
-            sub_vars = {'U1':None}   # U1 belongs to the 1 strand algebra which isn't implemented
-            new_vars = {'U2':self.one()}
-        else:
-            sub_vars, new_vars = self.cubic_hecke_subalgebra()._markov_vars()
-            if  self.strands() == 3:
-                K4_1 = B((1, -2, 1, -2))
-                new_vars = {'U3':self.one(), 'K4':self(K4_1)}
-            else:
-                K4_1_U = B((1, -2, 1, -2))
-                K6_1 = B((1, 1, 2, -1, -3, 2, -3))
-                K7_4 = B((1, 1, 2, -1, 2, 2, 3, -2, 3))
-                K9_29 = B((1, -2, -2, 3, -2, 1, -2, 3, -2))
-                K9_34 = B((-1, 2, -1, 2, -3, 2, -1, 2, -3))
-                new_vars = {'U4':self.one(), 'K4U':self(K4_1_U), 'K6':self(K6_1), 'K7':self(K7_4), 'K91':self(K9_29), 'K92':self(K9_34)}
-        sub_vars.update(new_vars)
-        return sub_vars, new_vars
 
     def _markov_trace_module(self, extended=False, field_embedding=False):
         r"""
@@ -3556,33 +3551,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 BRM = emb.codomain()
         return FreeModule(BRM, basis)
 
-    def _markov_trace_embedding(self, extension_ring=False):
-        r"""
-        """
-        if extension_ring:
-            ER = self.extension_ring(generic=True)
-            from sage.rings.number_field.number_field import CyclotomicField
-            C3 = CyclotomicField(3)
-
-            all_vars, new_vars = self._markov_vars()
-            var = ER.variable_names()
-            all_var = tuple(all_vars.keys())
-
-            P = C3[var + ('s',) + all_var]
-            F = P.fraction_field()
-            a, b, c, s, *remain, = F.gens()
-            return ER.hom((F(C3.gen()), a, b, c))
-        else:
-            BR = self.base_ring(generic=True)
-            var = BR.base_ring().variable_names()
-            all_vars, new_vars =self._markov_vars()
-            P = ZZ[var +('s',) + tuple(all_vars.keys())]
-            u, v, w, s, *remain = P.gens()
-            L = P.localization((v, w, s))
-            u, v, w, s, *remain = L.gens()
-            L = BR.create_specialization((u, v, w))
-            return L.convert_map_from(BR)
-
 
     @cached_method
     def _markov_trace_coeffs(self, bas_ele=None):
@@ -3609,7 +3577,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         time = verbose('preparing calculation of Markov trace coefficients for %s' %bas_ele.name)
 
         L = MTM.base_ring()
-        M = L.base_ring()
         u, v, w, s = L.gens()
 
         if self.strands() == 2:
@@ -3689,7 +3656,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         sub_MTMbas = sub_MTM.basis().keys()
         F = MTM.base_ring()
         a, b, c, s = F.gens()
-        sub_basis_ele = [self(b.braid_tietze(strands_embed=n)) for b in MTMbas if not b in MTMbas_new]
         new_basis_ele = [self(b.braid_tietze()) for b in MTMbas_new]
         time = verbose('setting up equation', t=time)
 
@@ -3713,6 +3679,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         dk = ker.dimension()
         kerm = ker.basis_matrix()
+
+        # adjusting kernel to new variables
 
         def vectchars(ele):
             return vector(F, [chars[j](ele) for j in range(num_char)])
@@ -3755,7 +3723,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             time = verbose('solving adjusting equation', t=time)
             cfs_adjust_kernel_basis = eq_adjust.solve_right(claim_new_basis - image_new_basis)
             return pre_image + cfs_adjust_kernel_basis*kerm
-        # adjusting kernel to new variables
 
 
 

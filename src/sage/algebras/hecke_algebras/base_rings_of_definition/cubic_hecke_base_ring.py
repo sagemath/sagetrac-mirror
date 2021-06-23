@@ -24,7 +24,6 @@ AUTHORS:
 
 
 from sage.structure.category_object import normalize_names
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import get_coercion_model
 from sage.categories.action import Action
 from sage.misc.verbose import verbose
@@ -1008,8 +1007,6 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 # Definition of the ring of definition for the cubic hecke algebra as polynomial ring in 2 indeterminates
 # over univariate Laurent polynomial ring over the integers.
 # This is the most general ring over which the cubic Hecke algebra may be defined.
-# This class inherits from UniqueRepresentation since otherwise an error occurs when a second instance
-# is declared. This error occurs in as_splitting_algebra of the associated extension ring.
 # --------------------------------------------------------------------------------------------------------
 class CubicHeckeRingOfDefinition(Localization):
     r"""
