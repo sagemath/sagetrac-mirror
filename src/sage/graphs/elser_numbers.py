@@ -71,7 +71,6 @@ from sage.graphs.all import graphs
 from sage.rings.rational_field import QQ
 from sage.homology.chain_complex import ChainComplex
 from sage.matrix.constructor import matrix
-from sage.matrix.matrix0 import Matrix
 
 @doc_index("Basic methods")
 def is_vertex_cover(G,L):
@@ -272,3 +271,78 @@ def elser_number(G,k):
     '''
     nuclei = nuclei_by_size(G)
     return (-1)**(len(G.vertices())+1) * sum([(-1)**(i) * sum([len(N.vertices())**k for N in nuclei[i]]) for i in nuclei])
+
+def coboundary_entry(Nyuck,k,i,j):
+    '''
+    Returns (i,j) entry of the kth coboundary map for the U-nucleus complex associated to Nyuck.
+
+    INPUT
+
+    - ``Nyuck`` -- a dictionary with keys: integers and entries lists of lists
+    - ``k`` -- one of the keys of ``Nyuck``
+    - ``i`` -- the index of an element in ``Nyuck[k]``
+    - ``j`` -- the index of an element in ``Nyuck[k-1]``
+
+    OUTPUT:
+
+    The (i,j)th entry of the kth coboundary map of a U-nucleus complex.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.elser_numbers import coboundary_entry
+        sage: Nyuck = {2: [[0, 1]], 3: [[0, 1, 2], [0, 1, 3], [0, 1, 4]], 4: [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 3, 4]], 5: [[0, 1, 2, 3, 4]]}
+        sage: coboundary_entry(Nyuck,3,2,0)
+        -1
+        sage: coboundary_entry(Nyuck,4,2,0)
+        0
+
+    '''
+    ColSet = Nyuck[k-1][j]
+    RowSet = Nyuck[k][i]
+    if set(ColSet).issubset(set(RowSet)):
+        x = list(set(RowSet)-set(ColSet))[0]
+        return -(-1)**(list(RowSet).index(x))
+    else:
+        return 0
+
+@doc_index("Leftovers")
+def nucleus_complex(G,U, ring=QQ):
+    '''
+    For a graph G and vertex subset U, computes the U-nucleus comples of G defined in [(DB)HLMNVW 2021].
+
+    INPUT:
+
+    - ``G`` -- a graph
+    - ``U`` -- a subset of the vertices of G
+    - ``ring`` -- coefficient ring (if no ring is specified, the rational numbers are used)
+
+    OUTPUT:
+
+    the U-nucleus complex of G
+
+    EXAMPLES::
+
+        sage: G = Graph([[1,2],[1,3],[1,4],[2,3],[2,4]]); G.nucleus_complex([3,4])
+        Chain complex with at most 4 nonzero terms over Rational Field
+
+        sage: G = graphs.StarGraph(5); NC = G.nucleus_complex([1,2]); bett = NC.betti(); [bett[deg] for deg in bett]
+        [0, 0, 0, 0]
+
+        sage: G = graphs.CycleGraph(5); NC = G.nucleus_complex([0,1]); bett = NC.betti(); [bett[deg] for deg in bett]
+        [0, 1, 0]
+
+    .. SEEALSO::
+
+        * :meth:`~sage.graphs.nuclei_by_size` --
+          computes the nuclei of a graph and groups them by size
+        * :meth:`~sage.graphs.elser_number` --
+          computes the Elser number of a graph
+
+    '''
+    EDGES = list(G.edges())
+    nuclei = nuclei_by_size(G,U)
+    Nyuck = { i : [sorted([EDGES.index(e) for e in list(N.edges())]) for N in nuclei[i]] for i in nuclei}
+    Cooboundary = lambda k: matrix(ring,len(Nyuck[k]),len(Nyuck[k-1]),lambda i,j: coboundary_entry(Nyuck,k,i,j))
+    HomSupport_Indices = list(Nyuck.keys())
+    HomSupport_Indices.remove(min(HomSupport_Indices))
+    return ChainComplex({k-1: Cooboundary(k) for k in HomSupport_Indices})
