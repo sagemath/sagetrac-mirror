@@ -172,7 +172,10 @@ SAGE_EXTCODE = var("SAGE_EXTCODE", join(SAGE_LIB, "sage", "ext_data"))
 SAGE_VENV_SPKG_INST = var("SAGE_VENV_SPKG_INST", join(SAGE_VENV, "var", "lib", "sage", "installed"))
 
 # prefix hierarchy where non-Python packages are installed
-SAGE_LOCAL = var("SAGE_LOCAL", SAGE_VENV)
+# Trac #32036: No fallback for SAGE_LOCAL. It must be set by sage_conf or the
+# environment. In distribution packaging, it would typically be unset,
+# and directory variables depending on it would be configured individually.
+SAGE_LOCAL = var("SAGE_LOCAL")
 SAGE_ETC = var("SAGE_ETC", join(SAGE_LOCAL, "etc"))
 SAGE_INC = var("SAGE_INC", join(SAGE_LOCAL, "include"))
 SAGE_SHARE = var("SAGE_SHARE", join(SAGE_LOCAL, "share"))
