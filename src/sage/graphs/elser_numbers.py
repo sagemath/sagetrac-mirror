@@ -10,7 +10,9 @@ This module computes the Elser numbers and U-Nucleus complexes of a graph, as de
     :widths: 30, 70
     :delim: |
 
-    :meth:`nuclei_by_size` | Computes all nuclei of the graph and groups them by size.
+    :meth:`is_vertex_cover` | For a set L of vertices, determines if L is a vertex cover of the graph G
+    :meth: connected_subgraphs_of | For a graph G, returns all connected subgraphs of G
+    :meth:`nuclei_by_size` | Computes all nuclei of the graph and groups them by size
     :meth:`elser_number` | Computes the kth Elser number of the graph
     :meth:`nucleus_complex` | For a graph G and subset of vertices U, computes the U-Nucleus complex of G
     :meth:`all_nucleus_complexes` | For a graph G, computes all U-nucleus complexes associated to that graph
@@ -56,7 +58,7 @@ We can check that the cycle graph on three vertices has positive Elser numbers f
 For each `U\in V(G)`, the `U`-nucleus complex `\Delta_U^G` is a simplicial complex whose vertices are the edges of `G`; its faces are complements of nuclei.
 We can compute the U-nucleus complex using the nucleus_complex method::
 
-    sage: G = Graph([[1,2],[1,3],[1,4],[2,3],[2,4]]);
+    sage: G = Graph([[1,2], [1,3], [1,4], [2,3], [2,4]]);
     sage: G.nucleus_complex([3,4])
     Chain complex with at most 4 nonzero terms over Rational Field
 
@@ -90,13 +92,46 @@ From this, we can extract the nucleus complex of any U. For example, if `G` is t
 
 We can also compute the Betti numbers of these complexes. This method allows you the option of specifying a vertex subset `U` or not. If a U is given, then only the relevant Betti numbers will be returned. Otherwise, the Betti numbers of all nucleus complexes are given::
 
-    sage: G = Graph([[1,2],[1,3],[1,4],[2,3],[2,4]]);
+    sage: G = Graph([[1,2], [1,3], [1,4], [2,3], [2,4]]);
     sage: G.nucleus_complex_bettis([1])
     {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
 
-    sage: G = Graph([[1,2],[1,3],[1,4],[2,3],[2,4]]);
-    sage: G.nucleus_complex_bettis()[(1,2)]
+    sage: G = Graph([[1,2], [1,3], [1,4], [2,3], [2,4]]);
+    sage: G.nucleus_complex_bettis()[(1, 2)]
     {1: 0, 2: 0, 3: 1, 4: 0, 5: 0}
+
+In addition to these functions, we also define two methods that are more generally useful.
+The first tests if a given set contains a vertex cover of the given graph.
+
+    sage: G = graphs.CycleGraph(4); G.is_vertex_cover([0, 1, 2])
+    True
+
+Note that the input of this need not be a set of vertices of the graph.
+This function will return True as long as the input set contains a vertex cover.
+For example
+
+    sage: G = graphs.CycleGraph(4); G.is_vertex_cover(['hat', 'potato'])
+    False
+    sage: G = graphs.CycleGraph(4); G.is_vertex_cover([0,1,2, 'hat', 'potato'])
+    True
+
+The second produces all connected subgraphs of a graph G.
+
+    sage: G = graphs.CycleGraph(4); G.connected_subgraphs_of()
+    [Graph on 0 vertices,
+     Graph on 2 vertices,
+     Graph on 2 vertices,
+     Graph on 3 vertices,
+     Graph on 2 vertices,
+     Graph on 3 vertices,
+     Graph on 4 vertices,
+     Graph on 2 vertices,
+     Graph on 3 vertices,
+     Graph on 4 vertices,
+     Graph on 3 vertices,
+     Graph on 4 vertices,
+     Graph on 4 vertices,
+     Graph on 4 vertices]
 
 Authors
 -------
