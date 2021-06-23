@@ -442,6 +442,12 @@ class Representation(Representation_abstract):
         """
         return "left" if self._left_repr else "right"
 
+    def invariant_module(self):
+
+        from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
+
+        return FiniteDimensionalInvariantModule(self)
+
 
     class Element(CombinatorialFreeModule.Element):
         def _acted_upon_(self, scalar, self_on_left=False):
