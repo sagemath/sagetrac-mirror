@@ -1909,6 +1909,10 @@ REFERENCES:
               two-player games.*
               http://www.maths.lse.ac.uk/personal/stengel/ETissue/ARSvS.pdf (2010)
 
+.. [(DB)HLMNVW2021] Galen Dorpalen-Barry, Cyrus Hettle, David C. Livingston, Jeremy L. Martin, George Nasr, Julianne Vega, and Hays Whitlatch.
+              "A combinatorial positivity phenomenon in Elser's Gaussian-cluster percolation model." Journal of Combinatorial Theory, Series A, **179** (2021).
+              :doi:10.1016.2020.105364
+
 .. [DHSW2003] Dumas, Heckenbach, Saunders, Welker, "Computing
               simplicial homology based on efficient Smith normal form
               algorithms," in "Algebra, geometry, and software
@@ -2117,6 +2121,9 @@ REFERENCES:
              Journal of Combinatorial Theory, Series A, Volume 31, Issue 2,
              1981, Pages 108-125, ISSN 0097-3165,:doi:`10.1016/0097-3165(81)90007-8`.
              (http://www.sciencedirect.com/science/article/pii/0097316581900078)
+
+.. [Els84] Elser, Veit, *Gaussian-cluster models of percolation and self-avoiding walks*,
+         J. Phys. A, 17 (1984), 1515--1523.
 
 .. [EGNO2015] Pavel Etingof, Shlomo Gelaki, Dmitri Nikshych and Victor Ostrik,
                *Tensor Categories*, AMS Mathematical Surveys and Monographs 205 (2015).

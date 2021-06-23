@@ -1,7 +1,7 @@
 r"""
 Elser Numbers and U-Nucleus Complexes
 
-This module computes the Elser numbers and U-Nucleus complexes of a graph, as described in the paper [(DB)HLMNVW 2021].
+This module computes the Elser numbers and U-Nucleus complexes of a graph, as described in the paper [(DB)HLMNVW2021]_.
 
 **This module contains the following methods:**
 
@@ -33,9 +33,14 @@ For example, if 'G' is the cycle graph on three elements, then the kth Elser num
 
     \text{els}_k(C_3) = 6(3^{k-1} - 2^{k-1}).
 
-These numbers were originally introduced by Veit Elser, who conjectured that they were nonnegative for all graphs 'G'
-and integers 'k\geq 2'. In [(DB)HLMNVW 2021], Galen Dorpalen-Barry, Cyrus Hettle, David C. Livingston, Jeremy L. Martin, George Nasr, Julianne Vega, and Hays Whitlatch proved Elser's conjuecture using a chain complex, which they call the 'U'-nucleus complex.
+These numbers were originally introduced by Veit Elser [Els84]_, who conjectured that they were nonnegative for all graphs 'G'
+and integers 'k\geq 2'. In [(DB)HLMNVW2021]_, Galen Dorpalen-Barry, Cyrus Hettle, David C. Livingston, Jeremy L. Martin, George Nasr, Julianne Vega, and Hays Whitlatch proved Elser's conjuecture using a chain complex, which they call the 'U'-nucleus complex.
 This module allows you to compute the Elser numbers as well as the 'U'-nucleus complexes.
+
+REFERENCES:
+
+ - [(DB)HLMNVW2021]_
+ - [Els84]_
 
 Examples
 -----------
@@ -188,7 +193,7 @@ def connected_subgraphs_of(G):
         sage: G = graphs.PathGraph(3); G.connected_subgraphs_of()
         [Graph on 0 vertices, Graph on 2 vertices, Graph on 2 vertices, Graph on 3 vertices]
 
-    Behaviour with disconnected graphs::
+    Behavior with disconnected graphs::
 
         sage: G1 = graphs.CycleGraph(3); G2 = graphs.PathGraph(3)
         sage: G = G1.disjoint_union(G2); G.connected_subgraphs_of()
@@ -251,7 +256,6 @@ def nuclei_by_size(G,U=[]):
 
         * :meth:`~sage.graphs.elser_number` --
           computes the kth Elser number of a graph
-        * :mod:`sage.graphs.elser_numbers` -- computes the U-nucleus complex, which was used in [(DB)HLMNVW 2021] to prove Elser's conjecture
 
     TESTS::
 
@@ -303,7 +307,6 @@ def elser_number(G,k):
 
         * :meth:`~sage.graphs.nuclei_by_size` --
           computes the nuclei of a graph and groups them by size
-        * :mod:`sage.graphs.elser_numbers` -- computes the U-nucleus complex, which was used in [(DB)HLMNVW 2021] to prove Elser's conjecture
 
     TESTS::
 
