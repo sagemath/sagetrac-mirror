@@ -394,7 +394,7 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
         sage: integral(cos(ln(cos(x))), x, algorithm='fricas')                  # optional - fricas
         integral(cos(log(cos(x))), x)
 
-    Check that :trac:`28641` is fixed::
+    Check that :trac:`28647` is fixed::
 
         sage: integrate(sqrt(2)*x^2 + 2*x, x, algorithm="fricas")               # optional - fricas
         1/3*sqrt(2)*x^3 + x^2
@@ -411,6 +411,7 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
         (a, c, d)
         sage: integrate(f, x, algorithm="fricas")                               # optional - fricas
         1/315*(64512*I*a*e^(10*I*d*x + 10*I*c) + 53760*I*a*e^(8*I*d*x + 8*I*c) + 30720*I*a*e^(6*I*d*x + 6*I*c) + 11520*I*a*e^(4*I*d*x + 4*I*c) + 2560*I*a*e^(2*I*d*x + 2*I*c) + 256*I*a)/(d*e^(20*I*d*x + 20*I*c) + 10*d*e^(18*I*d*x + 18*I*c) + 45*d*e^(16*I*d*x + 16*I*c) + 120*d*e^(14*I*d*x + 14*I*c) + 210*d*e^(12*I*d*x + 12*I*c) + 252*d*e^(10*I*d*x + 10*I*c) + 210*d*e^(8*I*d*x + 8*I*c) + 120*d*e^(6*I*d*x + 6*I*c) + 45*d*e^(4*I*d*x + 4*I*c) + 10*d*e^(2*I*d*x + 2*I*c) + d)
+
     """
     if not isinstance(expression, Expression):
         expression = SR(expression)
