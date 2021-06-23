@@ -370,6 +370,8 @@ def all_nucleus_complexes(G, ring=QQ):
         True
         sage: G = graphs.PathGraph(5); G.all_nucleus_complexes()[(0,1)] == nucleus_complex(graphs.PathGraph(5),[0,1])
         True
+        sage: G = graphs.PathGraph(3); G.all_nucleus_complexes()[(0,1)] == nucleus_complex(G,[0,1])
+        True
 
     TESTS::
 
@@ -393,3 +395,36 @@ def all_nucleus_complexes(G, ring=QQ):
         HomSupport_Indices.remove(min(HomSupport_Indices))
         Summands[tuple(U)] = ChainComplex({k-1: Cooboundary(k) for k in HomSupport_Indices})
     return Summands
+
+@doc_index("Leftovers")
+def nucleus_complex_bettis(G, U=None, ring=QQ):
+    '''
+    Computes the betti numbers of the nucleus complex of a graph.
+    If a U is given, then it will compute the Betti numbers of that U-nucleus complex.
+    If no U is given, then it will compute the Betti numbers of the nucleus complex of every subset of the vertices.
+
+    INPUT:
+
+    - ``G`` -- a graph
+    - ``U`` -- a subset of the vertices of G (if no U is specified, then the function will iterate over all U in the power set of the vertices)
+    - ``ring`` -- a coefficient ring (if no ring is specified, the rational numbers are used)
+
+    OUTPUT:
+
+    The betti numbers of U-nucleus comples of G.
+    If no U is specified, a dictionary for which the Uth entry is the Betti table of the Uth Elser summand.
+
+    EXAMPLES::
+
+        sage: G = Graph([[1,2],[1,3],[1,4],[2,3],[2,4]]); G.nucleus_complex_bettis([1])
+        {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+
+        sage: G = Graph([[1,2],[1,3],[1,4],[2,3],[2,4]]); G.nucleus_complex_bettis()[(1,2)]
+        {1: 0, 2: 0, 3: 1, 4: 0, 5: 0}
+
+    '''
+    if U == None:
+        summands = all_nucleus_complexes(G)
+        return {V : summands[V].betti() for V in summands}
+    else:
+        return nucleus_complex(G,U).betti()
