@@ -649,6 +649,40 @@ class HasseDiagram(DiGraph):
         return [z for z in range(x, y + 1) if
                 self.is_lequal(x, z) and self.is_lequal(z, y)]
 
+    def interval_iterator(self, x, y):
+        r"""
+        Return an iterator of the elements `z` of ``self`` such that
+        `x \leq z \leq y`.
+
+        INPUT:
+
+        -  ``x`` -- any element of the poset
+
+        -  ``y`` -- any element of the poset
+
+        EXAMPLES::
+
+            sage: uc = [[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]]
+            sage: dag = DiGraph(dict(zip(range(len(uc)),uc)))
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram(dag)
+            sage: I = set([2,5,6,4,7])
+            sage: I == set(H.interval_iterator(2,7))
+            True
+        """
+        step = set([y])
+        for z in range(y, x, -1):
+            if z in step:
+                step.add(t for t in self.neighbor_in_iterator(z) if x <= t)
+        if x not in step:
+            return
+        resu = set([x])
+        for z in sorted(step):
+            if z in resu:
+                yield z
+                resu.add(t for t in self.neighbor_out_iterator(z) if t in step)
+        return resu
+
     closed_interval = interval
 
     def open_interval(self, x, y):
@@ -2375,7 +2409,7 @@ class HasseDiagram(DiGraph):
         for w in self.vertices():
             covers = self.neighbors_out(w)
             for i, x in enumerate(covers):
-                for y in covers[i+1:]:
+                for y in covers[i + 1:]:
                     zs = self.common_upper_covers([x, y])
                     if len(zs) != 1:
                         all_diamonds_completed = False
@@ -3464,7 +3498,7 @@ class HasseDiagram(DiGraph):
             ValueError: wrong number of connected components after the covering relation is deleted
         """
         split_hasse = self.copy(self)
-        split_hasse.delete_edge(a,b)
+        split_hasse.delete_edge(a, b)
         components = split_hasse.connected_components_subgraphs()
         if not len(components) == 2:
             raise ValueError("wrong number of connected components after the covering relation is deleted")
