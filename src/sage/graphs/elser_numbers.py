@@ -3,22 +3,21 @@ Elser Numbers and U-Nucleus Complexes
 
 This module computes the Elser numbers and U-Nucleus complexes of a graph, as described in the paper [(DB)HLMNVW 2021].
 
+**This module contains the following methods:**
+
 .. csv-table::
     :class: contentstable
     :widths: 30, 70
     :delim: |
 
-    :func:`nuclei_by_size` | Computes all nuclei of the graph and groups them by size.
-    :func:'elser_number' | Computes the kth Elser number of the graph
-    :func:'nucleus_complex' | For a graph G and subset of vertices U, computes the U-Nucleus complex of G
-    :func:'all_nucleus_complexes' | For a graph G, computes all U-nucleus complexes associated to that graph
-    :func:'Enucleus_complex_bettis' | Computes the Betti numbers of the U-nucleus complex, if no U is specified, computes all such complexes
+    :meth:`nuclei_by_size` | Computes all nuclei of the graph and groups them by size.
+    :meth:`elser_number` | Computes the kth Elser number of the graph
+    :meth:`nucleus_complex` | For a graph G and subset of vertices U, computes the U-Nucleus complex of G
+    :meth:`all_nucleus_complexes` | For a graph G, computes all U-nucleus complexes associated to that graph
+    :meth:`nucleus_complex_bettis` | Computes the Betti numbers of the U-nucleus complex, if no U is specified, computes all such complexes
 
-Authors:
 
-- Galen Dorpalen-Barry, Cyrus Hettle, David C. Livingston, Jeremy L. Martin, George Nasr, Julianne Vega, and Hays Whitlatch (2021-06-21), initial implementation
-
-Definition
+Definition of Elser Numbers
 -----------
 
 Let 'G' be a graph. A nucleus of 'G' is a connected subgraph 'N' of 'G' such that N is a vertex cover; that is, every edge of G has at least one
@@ -28,7 +27,7 @@ endpoint in 'V(N)'. Let '\mathcal{N}(G)' denote the set of all nuclei of G. The 
 
     \text{els}_k(G) = (-1)^{\#V(G) + 1} \sum_{N \in \mathcal{N}(G)} (-1)^{\#E(N)} V(N)^k.
 
-For example, if 'G' is the cycle graph on three elements, then the kth elser number is
+For example, if 'G' is the cycle graph on three elements, then the kth Elser number is
 
 .. MATH::
 
@@ -38,12 +37,66 @@ These numbers were originally introduced by Veit Elser, who conjectured that the
 and integers 'k\geq 2'. In [(DB)HLMNVW 2021], Galen Dorpalen-Barry, Cyrus Hettle, David C. Livingston, Jeremy L. Martin, George Nasr, Julianne Vega, and Hays Whitlatch proved Elser's conjuecture using a chain complex, which they call the 'U'-nucleus complex.
 This module allows you to compute the Elser numbers as well as the 'U'-nucleus complexes.
 
-EXAMPLES:
+Examples
+-----------
+In this section, we guide the reader through some initial examples of the functions in this module.
+More details on the individual functions can be found in the Methods section.
 
 We can check that the cycle graph on three vertices has positive Elser numbers for '2\leq k\geq 9' using::
 
     sage: G = graphs.CycleGraph(3); [G.elser_number(k) for k in range(10)]
     [-1, 0, 6, 30, 114, 390, 1266, 3990, 12354, 37830]
+
+
+For each `U\in V(G)`, the `U`-nucleus complex `\Delta_U^G` is a simplicial complex whose vertices are the edges of `G`; its faces are complements of nuclei.
+We can compute the U-nucleus complex using the nucleus_complex method::
+
+    sage: G = Graph([[1,2],[1,3],[1,4],[2,3],[2,4]]);
+    sage: G.nucleus_complex([3,4])
+    Chain complex with at most 4 nonzero terms over Rational Field
+
+There is also a slightly faster implementation, for when you want to compute the nucleus complexes for all U for a given G::
+
+    sage: G = Graph([[1,2],[1,3],[1,4],[2,3],[2,4]]);
+    sage: G.all_nucleus_complexes()
+    {(): Chain complex with at most 5 nonzero terms over Rational Field,
+     (1,): Chain complex with at most 5 nonzero terms over Rational Field,
+     (1, 2): Chain complex with at most 5 nonzero terms over Rational Field,
+     (1, 2, 3): Chain complex with at most 4 nonzero terms over Rational Field,
+     (1, 2, 3, 4): Chain complex with at most 3 nonzero terms over Rational Field,
+     (1, 2, 4): Chain complex with at most 4 nonzero terms over Rational Field,
+     (1, 3): Chain complex with at most 4 nonzero terms over Rational Field,
+     (1, 3, 4): Chain complex with at most 4 nonzero terms over Rational Field,
+     (1, 4): Chain complex with at most 4 nonzero terms over Rational Field,
+     (2,): Chain complex with at most 5 nonzero terms over Rational Field,
+     (2, 3): Chain complex with at most 4 nonzero terms over Rational Field,
+     (2, 3, 4): Chain complex with at most 4 nonzero terms over Rational Field,
+     (2, 4): Chain complex with at most 4 nonzero terms over Rational Field,
+     (3,): Chain complex with at most 4 nonzero terms over Rational Field,
+     (3, 4): Chain complex with at most 4 nonzero terms over Rational Field,
+     (4,): Chain complex with at most 4 nonzero terms over Rational Field}
+
+From this, we can extract the nucleus complex of any U. For example, if `G` is the cycle graph on four vertices, applying all_nucleus_complexes will compute all the nucleus complexes for all subsets of the vertices. Taking the Uth element of that dictionary will return the Uth nucleus complex. We illustrate this below with `U = \{0,1\}`::
+
+    sage: from sage.graphs.elser_numbers import nucleus_complex
+    sage: G = graphs.CycleGraph(4)
+    sage: G.all_nucleus_complexes()[(0,1)] == nucleus_complex(graphs.CycleGraph(4),[0,1])
+    True
+
+We can also compute the Betti numbers of these complexes. This method allows you the option of specifying a vertex subset `U` or not. If a U is given, then only the relevant Betti numbers will be returned. Otherwise, the Betti numbers of all nucleus complexes are given::
+
+    sage: G = Graph([[1,2],[1,3],[1,4],[2,3],[2,4]]);
+    sage: G.nucleus_complex_bettis([1])
+    {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+
+    sage: G = Graph([[1,2],[1,3],[1,4],[2,3],[2,4]]);
+    sage: G.nucleus_complex_bettis()[(1,2)]
+    {1: 0, 2: 0, 3: 1, 4: 0, 5: 0}
+
+Authors
+-------
+
+- Galen Dorpalen-Barry, Cyrus Hettle, David C. Livingston, Jeremy L. Martin, George Nasr, Julianne Vega, and Hays Whitlatch (2021-06-21), initial implementation
 
 Methods
 ---------
@@ -245,9 +298,6 @@ def elser_number(G,k):
 
         sage: G = graphs.PathGraph(5); [G.elser_number(k) for k in range(10)]
         [0, 0, 2, 24, 194, 1320, 8162, 47544, 266114, 1448520]
-
-        sage: G = graphs.PathGraph(6); [G.elser_number(k) for k in range(10)] == [6**k - 2*(6-1)**k + (6-2)**k for k in range(10)]
-        True
 
     .. SEEALSO::
 
