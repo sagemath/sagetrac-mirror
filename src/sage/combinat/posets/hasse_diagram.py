@@ -673,14 +673,16 @@ class HasseDiagram(DiGraph):
         step = set([y])
         for z in range(y, x, -1):
             if z in step:
-                step.add(t for t in self.neighbor_in_iterator(z) if x <= t)
+                step.update(t for t in self.neighbor_in_iterator(z)
+                            if x <= t)
         if x not in step:
             return
         resu = set([x])
         for z in sorted(step):
             if z in resu:
                 yield z
-                resu.add(t for t in self.neighbor_out_iterator(z) if t in step)
+                resu.update(t for t in self.neighbor_out_iterator(z)
+                            if t in step)
         return resu
 
     closed_interval = interval
