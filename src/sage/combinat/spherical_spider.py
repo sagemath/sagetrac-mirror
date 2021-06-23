@@ -1631,25 +1631,91 @@ def SL2_relations(delta=None):
     L = FreeSphericalSpider(delta.parent(), [])
     return tuple([S.loop(Strand()), delta*L(S.empty())])
 
-"""
-def A2():
 
+def A2_relations(delta=None):
+    """
     The quantum `A_2` skein relations.
 
+    EXAMPLES::
 
+        sage: from sage.combinat.spherical_spider import A2_relations
+        sage: A2_relations()
+    """
+    if delta == None:
+        delta = PolynomialRing(ZZ, 'delta').gen()
 
-def B2():
+    sp = Strand(oriented=1, colour='black')
+    sm = Strand(oriented=-1, colour='black')
+    vm = SphericalSpider([sm]*3).vertex()
+    vp = SphericalSpider([sp]*3).vertex()
+    Kp = vp.glue(vm, 1)
+    Km = vm.glue(vp, 1)
+    Hp = Kp.rotate(1)
+    Hm = Km.rotate(1)
 
+    relations = []
+
+    S = SphericalSpider([])
+    L = FreeSphericalSpider(delta.parent(), [])
+    relations.append(tuple([S.loop(sp), (delta**2-1)*L(S.empty())]))
+    relations.append(tuple([S.loop(sm), (delta**2-1)*L(S.empty())]))
+
+    S = SphericalSpider([sp, sm])
+    L = FreeSphericalSpider(delta.parent(), [sp, sm])
+    relations.append(tuple([vp.glue(vm,2), -delta*L(SphericalSpider([sp,sm]).vertex())]))
+
+    S = SphericalSpider([sm, sp])
+    L = FreeSphericalSpider(delta.parent(), [sm, sp])
+    relations.append(tuple([vm.glue(vp,2), -delta*L(SphericalSpider([sm,sp]).vertex())]))
+
+    return relations
+
+def B2_relations(delta=None):
+    """
     The quantum `B_2` skein relations.
 
+    EXAMPLES::
 
+        sage: from sage.combinat.spherical_spider import B2_relations
+        sage: B2_relations()
+    """
+    if delta == None:
+        delta = PolynomialRing(ZZ, 'delta').gen()
 
-def G2():
+    sy = Strand(oriented=0, colour='black')
+    so = Strand(oriented=0, colour='green')
+    u = SphericalSpider([so,sy,sy]).vertex()
+    v = SphericalSpider([sy,sy,so]).vertex()
+    K = v.glue(u, 1)
+    H = K.rotate(1)
 
+    relations = []
+
+    S = SphericalSpider([])
+    L = FreeSphericalSpider(delta.parent(), [])
+    relations.append(tuple([S.loop(sy), (delta**2+delta-2)*L(S.empty())]))
+    relations.append(tuple([S.loop(so), (delta**3-2*delta+1)*L(S.empty())]))
+
+    S = SphericalSpider([so])
+    L = FreeSphericalSpider(delta.parent(), [so])
+    tadpole = u.glue(SphericalSpider([sy,sy]).vertex(),2)
+    relations.append(tuple([tadpole, 0*L(tadpole)]))
+
+    S = SphericalSpider([so,so])
+    L = FreeSphericalSpider(delta.parent(), [so,so])
+    relations.append(tuple([u.glue(v,2),-(delta+2)*L(S.vertex())]))
+
+    return relations
+
+def G2(q):
+    """
     The quantum `G_2` skein relations.
 
+    """
+    if q == None:
+        q = LaurentPolynomialRing(ZZ, 'q').gen()
 
-
+"""
 def F4():
 
     The `F_4` skein relations.
