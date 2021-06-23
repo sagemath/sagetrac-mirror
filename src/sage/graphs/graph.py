@@ -9309,6 +9309,7 @@ class Graph(GenericGraph):
     from sage.graphs.elser_numbers import nuclei_by_size
     from sage.graphs.elser_numbers import elser_number
     from sage.graphs.elser_numbers import nucleus_complex
+    from sage.graphs.elser_numbers import all_nucleus_complexes
 
 _additional_categories = {
     "is_long_hole_free"         : "Graph properties",
@@ -9357,7 +9358,8 @@ _additional_categories = {
     "connected_subgraphs_of"    : "Basic methods",
     "nuclei_by_size"            : "Leftovers",
     "elser_number"              : "Leftovers",
-    "nucleus_complex"           : "Leftovers"
+    "nucleus_complex"           : "Leftovers",
+    "all_nucleus_complexes"     : "Leftovers"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

@@ -306,7 +306,7 @@ def coboundary_entry(Nyuck,k,i,j):
         return 0
 
 @doc_index("Leftovers")
-def nucleus_complex(G,U, ring=QQ):
+def nucleus_complex(G, U, ring=QQ):
     '''
     For a graph G and vertex subset U, computes the U-nucleus comples of G defined in [(DB)HLMNVW 2021].
 
@@ -346,3 +346,50 @@ def nucleus_complex(G,U, ring=QQ):
     HomSupport_Indices = list(Nyuck.keys())
     HomSupport_Indices.remove(min(HomSupport_Indices))
     return ChainComplex({k-1: Cooboundary(k) for k in HomSupport_Indices})
+
+@doc_index("Leftovers")
+def all_nucleus_complexes(G, ring=QQ):
+    '''
+    INPUT:
+
+    - ``G`` -- a graph
+    - ``ring`` -- a ring (if no ring is specified, the field of rational numbers is used)
+
+    OUTPUT:
+
+    all summands of the Elser complex, as a dictionary
+
+    Note: This is a slight improvement over the function nucleus_complex, as we compute the complete list of nuclei by size at first, then refer to it to compute each summand, one U at a time. Its faster if we want to compute all the Elser summands.
+
+    EXAMPLES::
+
+        sage: G = Graph([[1,2],[1,3],[1,4],[2,3],[2,4]]); G.all_nucleus_complexes()[(3,4)]
+        Chain complex with at most 4 nonzero terms over Rational Field
+        sage: from sage.graphs.elser_numbers import nucleus_complex
+        sage: G = graphs.CycleGraph(4); G.all_nucleus_complexes()[(0,1)] == nucleus_complex(graphs.CycleGraph(4),[0,1])
+        True
+        sage: G = graphs.PathGraph(5); G.all_nucleus_complexes()[(0,1)] == nucleus_complex(graphs.PathGraph(5),[0,1])
+        True
+
+    TESTS::
+
+        sage: G = Graph([[1,2],[1,3],[1,4],[2,3],[2,4]]); NC = G.all_nucleus_complexes(); bet = NC[(2,3,4)].betti(); [bet[deg] for deg in bet]
+        [0, 3, 0, 0]
+
+    '''
+    EDGES = list(G.edges())
+    nuclei = nuclei_by_size(G)
+    Summands = {}
+    for U in powerset(G.vertices()):
+        Nyuck = {}
+        for i in nuclei:
+            U_compatible = []
+            for N in nuclei[i]:
+                if set(U).issubset(N.vertices()):
+                    U_compatible.append(N)
+            Nyuck[i] = [sorted([EDGES.index(e) for e in list(N.edges())]) for N in U_compatible]
+        Cooboundary = lambda k: matrix(ring,len(Nyuck[k]),len(Nyuck[k-1]),lambda i,j: coboundary_entry(Nyuck,k,i,j))
+        HomSupport_Indices = list(Nyuck.keys())
+        HomSupport_Indices.remove(min(HomSupport_Indices))
+        Summands[tuple(U)] = ChainComplex({k-1: Cooboundary(k) for k in HomSupport_Indices})
+    return Summands
