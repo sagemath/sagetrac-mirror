@@ -537,5 +537,40 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
             """
             if scalar in self.parent()._semigroup and self_on_left == (self.parent()._side == 'right'):
                 return self
-            return super()._acted_upon_(scalar, self_on_left)
 
+            return None
+
+
+# Group action should be lifted on the module because????
+
+# Confused about the representatoin vs lift to module business.
+
+class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
+    r"""
+    Construct the `\chi`-twisted invariant submodule of `M`. When a semigroup `S` acts on a module
+    `M`, the `\chi`-twisted invariant submodule of `M` is the isotypic component of the representation
+    `M` corresponding to the irreducible character `\chi`.
+
+    For more information, see [Sta1979]_.
+    """
+
+#     def __init__(self, R, character = 'trivial'):
+
+#         super.__init__(R)
+
+#         if character != 'trivial':
+
+#             pass
+
+
+#     def projection(self, element):
+#         """
+#         Give the projection of element (in `self.module()`) onto self
+#         """
+#         pass
+
+#     # class Element
+
+#     #     _lmul_
+#     #     _rmul_
+#     #     _acted_upon_
