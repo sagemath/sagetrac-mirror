@@ -314,6 +314,16 @@ class HasseDiagram(DiGraph):
         """
         return i == j or (i < j and j in self.breadth_first_search(i))
 
+    def is_lequal_new(self, i, j):
+        if i == j:
+            return True
+        step = set([i])
+        for z in range(i, j):
+            if z in step:
+                step.update(t for t in self.neighbor_out_iterator(z)
+                            if t <= j)
+        return j in step
+
     def is_less_than(self, x, y):
         r"""
         Return ``True`` if ``x`` is less than but not equal to ``y`` in the
@@ -648,6 +658,7 @@ class HasseDiagram(DiGraph):
         """
         return [z for z in range(x, y + 1) if
                 self.is_lequal(x, z) and self.is_lequal(z, y)]
+        # return list(self.interval_iterator(x, y))
 
     def interval_iterator(self, x, y):
         r"""
