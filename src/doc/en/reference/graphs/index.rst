@@ -113,5 +113,6 @@ Libraries of algorithms
    sage/graphs/orientations
    sage/graphs/connectivity
    sage/graphs/domination
+   sage/graphs/elser_numbers
 
 .. include:: ../footer.txt
