@@ -1689,8 +1689,17 @@ def B2_relations(delta=None):
 
     EXAMPLES::
 
-        sage: from sage.combinat.spherical_spider import B2_relations
-        sage: B2_relations()
+        sage: sage.combinat.spherical_spider.B2_relations()
+        [(A closed spherical web with 1 edges.,
+          (delta^2+delta-2)*B[A closed spherical web with 0 edges.]),
+         (A closed spherical web with 1 edges.,
+          (delta^3-2*delta+1)*B[A closed spherical web with 0 edges.]),
+         (The spherical web with c = (1, 2, 0) and e = (2, 1)., 0),
+         (The spherical web with c = (2, 4, 3, 0, 5, 1) and e = (5, 4, 3, 2).,
+          (-delta-2)*B[The spherical web with c = (1, 0) and e = ().]),
+         (The spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).,
+          0)]
+
     """
     if delta == None:
         delta = PolynomialRing(ZZ, 'delta').gen()
@@ -1704,29 +1713,103 @@ def B2_relations(delta=None):
 
     relations = []
 
+    # Loop relations
     S = SphericalSpider([])
     L = FreeSphericalSpider(delta.parent(), [])
     relations.append(tuple([S.loop(sy), (delta**2+delta-2)*L(S.empty())]))
     relations.append(tuple([S.loop(so), (delta**3-2*delta+1)*L(S.empty())]))
 
+    # Tadpole relation
     S = SphericalSpider([so])
     L = FreeSphericalSpider(delta.parent(), [so])
     tadpole = u.glue(SphericalSpider([sy,sy]).vertex(),2)
     relations.append(tuple([tadpole, 0*L(tadpole)]))
 
+    # Digon relation
     S = SphericalSpider([so,so])
     L = FreeSphericalSpider(delta.parent(), [so,so])
     relations.append(tuple([u.glue(v,2),-(delta+2)*L(S.vertex())]))
 
+    # Triangle relation
+    S = SphericalSpider([so,so,so])
+    L = FreeSphericalSpider(delta.parent(), [so,so,so])
+    v = SphericalSpider([so,so,so]).vertex()
+    triangle = S.polygon([v]*3)
+    relations.append(tuple([triangle, 0*L(triangle)]))
+
     return relations
 
-def G2(q):
+def G2_relations(delta=None):
     """
     The quantum `G_2` skein relations.
 
+    EXAMPLES::
+
+        sage: sage.combinat.spherical_spider.G2_relations()
+        [(A closed spherical web with 1 edges.,
+          (delta^5+delta^4-5*delta^3-4*delta^2+6*delta+3)*B[A closed spherical web with 0 edges.]),
+         (The spherical web with c = (1, 2, 0) and e = (2, 1)., 0),
+         (The spherical web with c = (2, 4, 3, 0, 5, 1) and e = (5, 4, 3, 2).,
+          (-delta^3-delta^2+2*delta+2)*B[The spherical web with c = (1, 0) and e = ().]),
+         (The spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).,
+          (delta^2-1)*B[The spherical web with c = (1, 2, 0) and e = ().]),
+         (The spherical web with c = (4, 6, 8, 10, 5, 0, 7, 1, 9, 2, 11, 3) and e = (7, 10, 9, 4, 11, 6, 5, 8).,
+          -delta*B[The spherical web with c = (1, 4, 3, 5, 0, 2) and e = (5, 4).] - delta*B[The spherical web with c = (4, 2, 5, 0, 3, 1) and e = (5, 4).] + (delta^2-1)*B[The spherical web with c = (1, 0, 3, 2) and e = ().] + (delta^2-1)*B[The spherical web with c = (3, 2, 1, 0) and e = ().]),
+         (The spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4) and e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11).,
+          B[The spherical web with c = (1, 2, 0, 4, 3) and e = ().] + B[The spherical web with c = (1, 4, 3, 2, 0) and e = ().] + B[The spherical web with c = (3, 2, 1, 4, 0) and e = ().] + B[The spherical web with c = (1, 0, 3, 4, 2) and e = ().] + B[The spherical web with c = (4, 2, 3, 1, 0) and e = ().] - B[The spherical web with c = (1, 5, 6, 4, 8, 0, 7, 2, 3) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 6, 3, 8, 0, 4, 7, 1, 2) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 2, 7, 4, 8, 6, 0, 1, 3) and e = (7, 8, 5, 6).] - B[The spherical web with c = (1, 5, 3, 6, 7, 0, 2, 8, 4) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 2, 6, 7, 0, 4, 1, 8, 3) and e = (7, 8, 5, 6).])]
     """
-    if q == None:
-        q = LaurentPolynomialRing(ZZ, 'q').gen()
+    if delta == None:
+        delta = PolynomialRing(ZZ, 'delta').gen()
+
+    s = Strand(oriented=0, colour='black')
+    edge = SphericalSpider([s]*2).vertex()
+    v = SphericalSpider([s]*3).vertex()
+
+    relations = []
+
+    # Loop relations
+    S = SphericalSpider([])
+    L = FreeSphericalSpider(delta.parent(), [])
+    relations.append(tuple([S.loop(s), (delta**5+delta**4-5*delta**3-4*delta**2+6*delta+3)*L(S.empty())]))
+
+    # Tadpole relation
+    S = SphericalSpider([s])
+    L = FreeSphericalSpider(delta.parent(), [s])
+    tadpole = v.glue(edge,2)
+    relations.append(tuple([tadpole, 0*L(tadpole)]))
+
+    # Digon relation
+    S = SphericalSpider([s]*2)
+    L = FreeSphericalSpider(delta.parent(), [s]*2)
+    relations.append(tuple([v.glue(v,2),-(delta+1)*(delta**2-2)*L(edge)]))
+
+    # Triangle relation
+    S = SphericalSpider([s]*3)
+    L = FreeSphericalSpider(delta.parent(), [s]*3)
+    triangle = S.polygon([v]*3)
+    relations.append(tuple([triangle, (delta**2-1)*L(v)]))
+
+    # Square relation
+    S = SphericalSpider([s]*4)
+    L = FreeSphericalSpider(delta.parent(), [s]*4)
+    square = S.polygon([v]*4)
+    H = v.glue(v, 1)
+    K = H.rotate(1)
+    U = edge.glue(edge, 0)
+    I = U.rotate(1)
+    relations.append(tuple([square, -delta*(L(H)+L(K))+(delta**2-1)*(L(U)+L(I))]))
+
+    # Pentagon relation
+    S = SphericalSpider([s]*5)
+    L = FreeSphericalSpider(delta.parent(), [s]*5)
+    pentagon = S.polygon([v]*5)
+    a = v.glue(edge, 0)
+    ar = sum([L(a.rotate(i)) for i in range(5)], L(0))
+    b = v.glue(v.glue(v, 1), 1)
+    br = sum([L(b.rotate(i)) for i in range(5)], L(0))
+    relations.append(tuple([pentagon, ar-br]))
+
+    return relations
 
 """
 def F4():
