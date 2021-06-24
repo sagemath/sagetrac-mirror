@@ -16,8 +16,8 @@ SAGE_SPKG_CONFIGURE([lcalc], [
       AC_LANG_PROGRAM([[#include <lcalc/L.h>]],
                       [[initialize_globals();
                         vector<Double> zeros;
-			L_function<int> zeta;
-			zeta.find_zeros(1, 0, 1025, -1, "", &zeros);
+                        L_function<int> zeta;
+                        zeta.find_zeros(1, 0, 1025, -1, "", &zeros);
                         return 0;]])
     ], [
       AC_MSG_RESULT([found; using lcalc from the system])
