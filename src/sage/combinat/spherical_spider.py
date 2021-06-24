@@ -1618,8 +1618,7 @@ def SL2_relations(delta=None):
 
     EXAMPLES::
 
-        sage: from sage.combinat.spherical_spider import SL2_relations
-        sage: SL2_relations()
+        sage: sage.combinat.spherical_spider.SL2_relations()
         (A closed spherical web with 1 edges.,
          delta*B[A closed spherical web with 0 edges.])
     """
@@ -1631,15 +1630,21 @@ def SL2_relations(delta=None):
     L = FreeSphericalSpider(delta.parent(), [])
     return tuple([S.loop(Strand()), delta*L(S.empty())])
 
-
 def A2_relations(delta=None):
     """
     The quantum `A_2` skein relations.
 
     EXAMPLES::
 
-        sage: from sage.combinat.spherical_spider import A2_relations
-        sage: A2_relations()
+        sage: sage.combinat.spherical_spider.A2_relations()
+        [(A closed spherical web with 1 edges.,
+          (delta^2-1)*B[A closed spherical web with 0 edges.]),
+         (A closed spherical web with 1 edges.,
+          (delta^2-1)*B[A closed spherical web with 0 edges.]),
+         (The spherical web with c = (2, 4, 3, 0, 5, 1) and e = (5, 4, 3, 2).,
+          -delta*B[The spherical web with c = (1, 0) and e = ().]),
+         (The spherical web with c = (4, 6, 8, 10, 5, 0, 7, 1, 9, 2, 11, 3) and e = (7, 10, 9, 4, 11, 6, 5, 8).,
+          B[The spherical web with c = (1, 0, 3, 2) and e = ().] + B[The spherical web with c = (3, 2, 1, 0) and e = ().])]
     """
     if delta == None:
         delta = PolynomialRing(ZZ, 'delta').gen()
@@ -1648,25 +1653,33 @@ def A2_relations(delta=None):
     sm = Strand(oriented=-1, colour='black')
     vm = SphericalSpider([sm]*3).vertex()
     vp = SphericalSpider([sp]*3).vertex()
-    Kp = vp.glue(vm, 1)
-    Km = vm.glue(vp, 1)
-    Hp = Kp.rotate(1)
-    Hm = Km.rotate(1)
+    #Kp = vp.glue(vm, 1)
+    #Km = vm.glue(vp, 1)
+    #Hp = Kp.rotate(1)
+    #Hm = Km.rotate(1)
 
     relations = []
 
+    # Loop relations
     S = SphericalSpider([])
     L = FreeSphericalSpider(delta.parent(), [])
     relations.append(tuple([S.loop(sp), (delta**2-1)*L(S.empty())]))
     relations.append(tuple([S.loop(sm), (delta**2-1)*L(S.empty())]))
 
+    # Digon relation
     S = SphericalSpider([sp, sm])
     L = FreeSphericalSpider(delta.parent(), [sp, sm])
     relations.append(tuple([vp.glue(vm,2), -delta*L(SphericalSpider([sp,sm]).vertex())]))
 
-    S = SphericalSpider([sm, sp])
-    L = FreeSphericalSpider(delta.parent(), [sm, sp])
-    relations.append(tuple([vm.glue(vp,2), -delta*L(SphericalSpider([sm,sp]).vertex())]))
+    # Square relation
+    S = SphericalSpider([sm, sp, sm, sp])
+    square = S.polygon([vm, vp, vm, vp])
+    edgep = SphericalSpider([sm,sp]).vertex()
+    U = edgep.glue(edgep, 0)
+    edgem = SphericalSpider([sp,sm]).vertex()
+    I = edgem.glue(edgem, 0).rotate(1)
+    L = FreeSphericalSpider(delta.parent(), [sm, sp, sm, sp])
+    relations.append(tuple([square, L(U)+L(I)]))
 
     return relations
 
