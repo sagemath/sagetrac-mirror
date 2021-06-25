@@ -18,6 +18,7 @@ from sage.modules.with_basis.subquotient import SubmoduleWithBasis
 from sage.categories.finitely_generated_semigroups import FinitelyGeneratedSemigroups
 from sage.categories.finite_dimensional_modules_with_basis import FiniteDimensionalModulesWithBasis
 from sage.categories.groups import Groups
+from sage.categories.finite_groups import FiniteGroups
 from sage.sets.family import Family
 from sage.modules.with_basis.representation import TrivialRepresentation, RegularRepresentation
 
@@ -552,7 +553,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
 
     INPUTS:
 
-    - ``R`` - a representation of the (finitely generated) semigroup `S` over a 
+    - ``R`` - a representation of the (finite) semigroup `S` over a 
               finite dimensional module `M`.
 
     - ``character`` - (default: None) a list, dictionary, function. If a list,
@@ -610,7 +611,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
 
             return super().__new__(cls, R, character)
 
-    def __init__(self, R, character):
+    def __init__(self, R, character, **kwargs):
 
         import types
 
@@ -623,7 +624,26 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         # This is currently only implemented when R.semigroup() is finite.
         self._check_character(character)
 
+        # Now that we know the character is valid, we can do things with it.
+        self._semigroup_representation = R
 
+        # Project the basis of the representation, remove projections onto zero
+        # and check their independence.
+        basis_proj = [self.projection(b) for b in self._semigroup_representation.basis()]
+        spanning_set = [b for b in basis_proj if b != self._semigroup_representation(0)]
+
+        basis = self._compute_basis_from_spanning(spanning_set)
+
+        self._basis = Family(basis)
+
+        category = kwargs.pop('category', R.category().Subobjects())
+
+        super().__init__(self._basis,
+                        support_order = self._semigroup_representation._compute_support_order(basis),
+                        ambient = self._semigroup_representation,
+                        unitriangular = False,#is this right?
+                        category = category,
+                        *args, **kwargs)
 
     def _check_character(self, chi):
 
@@ -631,19 +651,28 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         self._check_irreducible_character(chi)
 
     def _check_valid_character(self, chi):
+        r"""
+        Check that the given character defines a valid character.
 
-        if self._semigroup in Groups():
-            # check that all members of the same conjugacy class have
-            # the same character value
+        .. TODO::
 
+            Extend this to compact groups.
+
+        """
+
+        # check that all members of the same conjugacy class have
+        # the same character value
+        if self._semigroup in FiniteGroups(): 
             classes_element_values = dict()
 
             for g in self._semigroup:
                 conj_class = g.conjugacy_class() 
 
+                # if we have a new conjugacy class, add it
                 if conj_class not in classes_element_values.keys():
                     classes_element_values[g.conjugacy_class()] = self._character(g) 
 
+                # if we have seen it before, check that they agree.
                 elif conj_class in classes_element_values.keys() and classes_element_values[conj_class] != self._character(g):
                     raise ValueError(f'{self._semigroup} is a group, but \
                                     `character` is not a valid class function')
@@ -667,8 +696,9 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
                                         `character` is not valid')
 
     def _check_irreducible_character(self, chi):
-        # this only works for finite semigroups. 
-        #
+        r"""
+        Check that the given character is irreducible.
+        """
         def inner_product(chi):
 
             return 1/len(self._semigroup)*sum(chi(s)*conjugate(chi(s)) for g in self._semigroup)
@@ -676,153 +706,34 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         if inner_product(chi) != 1:
             raise ValueError(f'The provided character is not irreducible')
 
+    def _compute_basis_from_spanning(self, spanning_set):
 
-    class Element(SubmoduleWithBasis.Element):
+        # a matrix whose rows are given by the spanning set
+        mat = matrix([v.to_vector() for v in spanning_set]) 
 
-        def __init__(self):
-            pass
-#-----------------
+        # a matrix whose rows form a basis for the span of spanning_set
+        mat = mat.echelon_form()[:A.rank()]
 
-# Group action should be lifted on the module because????
+        return [self._semigroup_representation.from_vector(r) for r in mat]
 
-# Confused about the representatoin vs lift to module business.
+    def basis(self):
 
-class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
-    r"""
-    Construct the `\chi`-twisted invariant submodule of `M`. When a semigroup `S` acts on a module
-    `M`, the `\chi`-twisted invariant submodule of `M` is the isotypic component of the representation
-    `M` corresponding to the irreducible character `\chi`.
+        return self._basis
 
-    For more information, see [Sta1979]_.
+    def projection(self, x = None):
+        P = x.parent()
+        return P.from_vector(self.projection_matrix()*x.to_vector())
 
-    INPUTS:
-
-    - ``R`` - a representation of the (finitely generated) semigroup `S` over a 
-              finite dimensional module `M`.
-
-    - ``character`` - (default: None) a list, dictionary, function. If a list,
-              the values of the list should either agree with the character values
-              on ``S.conjugacy_class()`` or ``S.gens()``. If a ``dict``, the keys
-              should be group elements, and the values should be their character 
-              values. If a function, it should be defined on ``S`` and g
-
-    OUTPUTS:
-
-    - ``R_chi`` - the `\chi`-isotypic component of the invariant module
-
-    """
-
-    def __new__(self, R, character = None):
-        """
-        If the character is trivial, return an instance of FiniteDimensionalInvariantModule.
-
-        EXAMPLES::
-
-            sage: G = CyclicPermutationGroup(3); G.rename('G')
-            sage: M = CombinatorialFreeModule(ZZ, [1,2,3], prefix='M'); M.rename('M')
-            sage: from sage.modules.with_basis.representation import Representation
-            sage: R = Representation(G, M, lambda g,x: M.monomial(g(x)))
-            sage: from sage.modules.with_basis.representation import FiniteDimensionalTwistedInvariantModule
-            sage: I = FiniteDimensionalTwistedInvariantModule(R); I
-            (G)-invariant submodule of M
-            sage: I = FiniteDimensionalTwistedInvariantModule(R, character='trivial'); I
-            (G)-invariant submodule of M
-
-            sage: R = G.trivial_representation(QQ)
-            sage: I = FiniteDimensionalTwistedInvariantModule(R); I
-            (G)-invariant submodule of Free module generated by {'v'} over Rational Field
-
-            sage: G = SymmetricGroup(3); G.rename('G')
-            sage: M = CombinatorialFreeModule(ZZ, [1,2,3], prefix='M'); M.rename('M')
-            sage: R = Representation(G, M, lambda g,x: M.monomial(g(x))) 
-        """
-        if character == 'trivial' or character == None or isinstance(R, TrivialRepresentation):
-
-            return FiniteDimensionalInvariantModule(R)
-
-        else:
-            if not isinstance(character, ):
-                raise TypeError 
-
-            return super().__new__(cls, R, character)
-
-    def __init__(self, R, character):
-
-        self._semigroup_representation = R
-        self._semigroup = R.semigroup()
-        self._ambient_dimension = R.dimension()
-        self._character_values = character
-
-
-#         super.__init__(R)
-
-#         if character != 'trivial':
-
-#             pass
-    
-    def _check_character_is_irreducible(self, chi):
+    def projection_matrix(self):
         r"""
-        
-        If chi is irreducible, return True, if chi is not
-        irreducible, return False.
+        Give the matrix which gives the projection operator from the full
+        representation onto the isotypic component
         """
+        mat = sum([self._character(s)*self.matrix_representation(s) for s in self._semigroup])
 
-        # check by computing the inner product of chi with itself.
+        return (self._dimension/len(self._semigroup))*mat
 
-    def projection(self, r):
-        r"""
-        
-        INPUTS:
-
-        - ``self`` - an instance of ``FiniteDimensionalTwistedInvariantModule``
-        - ``r`` - an element of the representation ``self.semigroup_representation()``
-                  or an element which can be coerced to be in the representation,
-                  for example, an element of the ambient module.
-
-        OUTPUTS:
-
-        - ``p`` - the projection of r onto self
-        """
-        P = m.parent()
-        return P.from_vector(self.projection_operator()*m.to_vector())
-
-    def projection_operator(self):
-        r"""
-        Give the projection operator `\pi` onto ``self``. If `\rho` is
-        a representation `S \rightarrow M`, then the projection of `m \in M`
-        onto ``self`` (that is, the isotypic component corresponding to
-        the irreducible character `\chi`) is given by the formula:
-
-        .. MATH:
-
-            \pi = \frac{\chi(1)}{|G|} \sum_{g} \chi(g) \rho(g)
-
-        """
-        
-        if element not in self._semigroup_representation:
-            try:
-                element = self._semigroup_representation(element)
-            except:
-                raise ValueError(f'Element can not be interpreted as an element of {self._semigroup_representation}')
-        
-        # there is a more refined description for the regular representation
-        # which we can use without passing to 
-        if isinstance(self._semigroup_representation, RegularRepresentation):
-           return self._projection_operator_from_regular_representation()
-
-        else:
-            class_value_pairs = zip(self._semigroup.conjugacy_classes(), self._character_values)
-
-            # exclude zero because it is multiplied in a sum.
-            element_value_pairs = [[(chi,g) for g in C] for C,chi in class_value_pairs if chi != 0 ] 
-
-            return (self._ambient_dimension/self._semigroup.order())*sum([chi*self._matrix_representation(g) for chi,g in element_value_pairs])
-            
-    def _projection_operator_from_regular_representation(self):
-
-        pass
-
-    def _matrix_representation(self, g):
+    def matrix_representation(self, g):
         r"""
         
         EXAMPLES::
@@ -840,13 +751,13 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             sage: R = Representation(G,M,lambda g,m: M.monomial(g(m))) 
             sage: I = FiniteDimensionalTwistedInvariantModule(R, [2,0,-1])
             sage: g = G((1,3,2))
-            sage: I._matrix_representation(g)
+            sage: I.matrix_representation(g)
             [[0, 1, 0, 0],
              [0, 0, 1, 0],
              [1, 0, 0, 0],
              [0, 0, 0, 1]]
             sage: g = G((2,3))
-            sage: I._matrix_representation(g)
+            sage: I.matrix_representation(g)
             [[1, 0, 0, 0],
              [0, 0, 1, 0],
              [0, 1, 0, 0],
@@ -856,15 +767,60 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
 
         return matrix([(g*b).to_vector() for b in self._semigroup_representation.basis()]).transpose()
 
+    def character(self):
 
+        return self._character
 
-    def semigroup(self):
+    class Element(SubmoduleWithBasis.Element):
 
-        return self._semigroup_representation._semigroup
+        def _mul_(self, other):
+            """
+            EXAMPLES::
 
+            """
+            P = self.parent()
+            try:
+                return P.retract(P.lift(self) * P.lift(other))
+            except:
+                return P.retract(P.lift(self)*other)
 
-#     # class Element
+        def _lmul_(self, right):
+            """
 
-#     #     _lmul_
-#     #     _rmul_
-#     #     _acted_upon_
+            """
+
+            if right in self.parent()._semigroup and self.parent()._semigroup_representation.side() == 'right':
+                return self
+
+            elif right in self.parent()._semigroup_representation._module.base_ring():
+                # This preserves the structure of the invariant as a 
+                # ``.base_ring()``-module
+                return self._mul_(right)
+
+            return super()._lmul_(right)
+
+        def _rmul_(self, left):
+            """
+ 
+            """
+            if left in self.parent()._semigroup and self.parent()._semigroup_representation.side() == 'left':
+                return self
+
+            elif left in self.parent()._semigroup_representation._module.base_ring():
+                return self._mul_(left)
+
+            return super()._rmul_(left)
+
+        def _acted_upon_(self, scalar, self_on_left = False):
+            """
+            EXAMPLES::
+                
+
+            """
+
+            if scalar in self.parent()._semigroup and self_on_left == (self.parent()._semigroup_representation.side() == 'right'):
+
+                return self
+
+            return None
+
