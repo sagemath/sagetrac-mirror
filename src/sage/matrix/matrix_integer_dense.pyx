@@ -116,6 +116,7 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
 
+from .matrix_modn_dense_flint cimport Matrix_modn_dense_flint
 from .matrix_modn_dense_float cimport Matrix_modn_dense_template
 from .matrix_modn_dense_float cimport Matrix_modn_dense_float
 from .matrix_modn_dense_double cimport Matrix_modn_dense_double
@@ -132,11 +133,14 @@ from .matrix cimport Matrix
 cimport sage.structure.element
 
 import sage.matrix.matrix_space as matrix_space
+import sys
 
 ################
 # Used for modular HNF
 from sage.rings.fast_arith cimport arith_int
 cdef arith_int ai = arith_int()
+from sage.libs.flint.ulong_extras cimport n_precompute_inverse
+from sage.libs.flint.nmod_mat cimport nmod_mat_set_entry
 
 ######### linbox interface ##########
 from sage.libs.linbox.linbox_flint_interface cimport *
@@ -1569,11 +1573,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [     1      2]
             [999998      3]
         """
-        cdef mod_int c = modulus
-        if int(c) != modulus:
-            raise OverflowError
-        else:
-            return self._mod_int_c(modulus)
+        if modulus > sys.maxsize:
+            raise ValueError("p too large")
+        return self._mod_int_c(modulus)
 
     cdef _mod_two(self):
         """
@@ -1590,62 +1592,70 @@ cdef class Matrix_integer_dense(Matrix_dense):
         return Matrix_mod2_dense(MS, self, True, True)
 
     cdef _mod_int_c(self, mod_int p):
-        from .matrix_modn_dense_float import MAX_MODULUS as MAX_MODULUS_FLOAT
-        from .matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_DOUBLE
-
         cdef Py_ssize_t i, j
-        cdef mpz_t* self_row
-
         cdef float* res_row_f
         cdef Matrix_modn_dense_float res_f
 
         cdef double* res_row_d
         cdef Matrix_modn_dense_double res_d
 
+        parent = matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False)
+
         if p == 2:
             return self._mod_two()
-        elif p < MAX_MODULUS_FLOAT:
+        elif parent.Element is Matrix_modn_dense_float:
             res_f = Matrix_modn_dense_float.__new__(Matrix_modn_dense_float,
-                                                    matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False), None, None, None)
+                                                    parent, None, None, None)
             for i from 0 <= i < self._nrows:
                 res_row_f = res_f._matrix[i]
                 for j from 0 <= j < self._ncols:
                     res_row_f[j] = <float>fmpz_fdiv_ui(fmpz_mat_entry(self._matrix,i,j), p)
             return res_f
 
-        elif p < MAX_MODULUS_DOUBLE:
+        elif parent.Element is Matrix_modn_dense_double:
             res_d = Matrix_modn_dense_double.__new__(Matrix_modn_dense_double,
-                                                     matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False), None, None, None)
+                                                     parent, None, None, None)
             for i from 0 <= i < self._nrows:
                 res_row_d = res_d._matrix[i]
                 for j from 0 <= j < self._ncols:
                     res_row_d[j] = <double>fmpz_fdiv_ui(fmpz_mat_entry(self._matrix,i,j), p)
             return res_d
-        else:
-            raise ValueError("p to big.")
+        elif p > sys.maxsize:
+            raise ValueError("p too large")
+        R = IntegerModRing(p)
+        cdef Matrix_modn_dense_flint ans = Matrix_modn_dense_flint.__new__(Matrix_modn_dense_flint, parent)
+        ans._parent = parent
+        cdef double pinv = n_precompute_inverse(p)
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                nmod_mat_set_entry(
+                    ans._matrix, i, j,
+                    fmpz_fdiv_ui(fmpz_mat_entry(self._matrix, i, j), p))
+        return ans
 
     def _reduce(self, moduli):
-        from .matrix_modn_dense_float import MAX_MODULUS as MAX_MODULUS_FLOAT
-        from .matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_DOUBLE
-
         if isinstance(moduli, (int, long, Integer)):
             return self._mod_int(moduli)
         elif isinstance(moduli, list):
             moduli = MultiModularBasis(moduli)
 
         cdef MultiModularBasis mm
+        cdef Matrix_modn_dense_flint mat
         mm = moduli
 
         res = []
         for p in mm:
-            if p < MAX_MODULUS_FLOAT:
+            parent = matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False)
+            if parent.Element is Matrix_modn_dense_float:
                 res.append( Matrix_modn_dense_float.__new__(Matrix_modn_dense_float,
-                                                            matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False),
-                                                            None, None, None) )
-            elif p < MAX_MODULUS_DOUBLE:
+                                                            parent, None, None, None) )
+            elif parent.Element is Matrix_modn_dense_double:
                 res.append( Matrix_modn_dense_double.__new__(Matrix_modn_dense_double,
-                                                             matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False),
-                                                             None, None, None) )
+                                                             parent, None, None, None) )
+            elif p < sys.maxsize:
+                mat = Matrix_modn_dense_flint.__new__(Matrix_modn_dense_flint, parent)
+                mat._parent = parent
+                res.append(mat)
             else:
                 raise ValueError("p=%d too big."%p)
 
@@ -1669,9 +1679,11 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 mm.mpz_reduce(tmp, entry_list)
                 for k from 0 <= k < n:
                     if isinstance(res[k], Matrix_modn_dense_float):
-                        (<Matrix_modn_dense_float>res[k])._matrix[i][j] = (<float>entry_list[k])%(<Matrix_modn_dense_float>res[k]).p
+                        (<Matrix_modn_dense_float>res[k])._matrix[i][j] = (<float>entry_list[k]) % mm.moduli[k]
+                    elif isinstance(res[k], Matrix_modn_dense_double):
+                        (<Matrix_modn_dense_double>res[k])._matrix[i][j] = (<double>entry_list[k]) % mm.moduli[k]
                     else:
-                        (<Matrix_modn_dense_double>res[k])._matrix[i][j] = (<double>entry_list[k])%(<Matrix_modn_dense_double>res[k]).p
+                        nmod_mat_set_entry((<Matrix_modn_dense_flint>res[k])._matrix, i, j, entry_list[k] % mm.moduli[k])
         sig_off()
         mpz_clear(tmp)
         sig_free(entry_list)
@@ -6002,8 +6014,8 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     mm = moduli
 
     for b in residues:
-        if not (isinstance(b, Matrix_modn_dense_float) or
-                isinstance(b, Matrix_modn_dense_double)):
+        if not isinstance(b, (Matrix_modn_dense_double, Matrix_modn_dense_float, Matrix_modn_dense_flint)):
+            print(type(b))
             raise TypeError("Can only perform CRT on list of matrices mod n.")
 
     cdef mod_int **row_list
@@ -6022,10 +6034,14 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
 
     for i in range(nr):
         for k in range(n):
-            (<Matrix_modn_dense_template>residues[k])._copy_row_to_mod_int_array(row_list[k],i)
+            mat = residues[k]
+            if isinstance(mat, Matrix_modn_dense_template):
+                (<Matrix_modn_dense_template>mat)._copy_row_to_mod_int_array(row_list[k], i)
+            else:
+                (<Matrix_modn_dense_flint>mat)._copy_row_to_mod_int_array(row_list[k], i)
         mm.mpz_crt_vec(tmp, row_list, nc)
         for j in range(nc):
-            M.set_unsafe_mpz(i,j,tmp[j])
+            M.set_unsafe_mpz(i, j, tmp[j])
 
     for k in range(n):
         sig_free(row_list[k])

@@ -61,7 +61,7 @@ cdef class Matrix_modn_dense_float(Matrix_modn_dense_template):
 
         TESTS::
 
-            sage: A = random_matrix(GF(7), 4, 4)
+            sage: A = random_matrix(GF(7), 4, 4, implementation='linbox')
             sage: type(A[0,0])
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
         """
@@ -73,7 +73,7 @@ cdef class Matrix_modn_dense_float(Matrix_modn_dense_template):
 
         EXAMPLES::
 
-            sage: A = random_matrix(GF(7), 4, 4); A
+            sage: A = random_matrix(GF(7), 4, 4, implementation='linbox'); A
             [3 1 6 6]
             [4 4 2 2]
             [3 5 4 5]
@@ -84,7 +84,7 @@ cdef class Matrix_modn_dense_float(Matrix_modn_dense_template):
             [3 5 4 5]
             [6 2 2 1]
 
-            sage: B = random_matrix(Integers(100), 4, 4); B
+            sage: B = random_matrix(Integers(100), 4, 4, implementation='linbox'); B
             [13 95  1 16]
             [18 33  7 31]
             [92 19 18 93]
@@ -97,6 +97,13 @@ cdef class Matrix_modn_dense_float(Matrix_modn_dense_template):
         """
         self._matrix[i][j] = <float>value
 
+    cdef unsigned long get_unsafe_ui(self, Py_ssize_t i, Py_ssize_t j):
+        cdef float result = (<Matrix_modn_dense_template>self)._matrix[i][j]
+        return <int_fast64_t>result
+
+    cdef void set_unsafe_ui(self, Py_ssize_t i, Py_ssize_t j, unsigned long value):
+        self._matrix[i][j] = <float>value
+
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, x):
         r"""
         Set the (i,j) entry with no bounds-checking, or any other checks.
@@ -105,7 +112,7 @@ cdef class Matrix_modn_dense_float(Matrix_modn_dense_template):
 
         EXAMPLES::
 
-            sage: A = random_matrix(GF(13), 4, 4); A
+            sage: A = random_matrix(GF(13), 4, 4, implementation='linbox'); A
             [ 0  0  2  9]
             [10  6 11  8]
             [10 12  8  8]
@@ -118,7 +125,7 @@ cdef class Matrix_modn_dense_float(Matrix_modn_dense_template):
             [10 12  8  8]
             [ 3  6  8  0]
 
-            sage: B = random_matrix(Integers(200), 4, 4); B
+            sage: B = random_matrix(Integers(200), 4, 4, implementation='linbox'); B
             [ 13  95 101 116]
             [118 133   7 131]
             [192  19 118 193]
@@ -144,7 +151,7 @@ cdef class Matrix_modn_dense_float(Matrix_modn_dense_template):
 
         EXAMPLES::
 
-            sage: A = random_matrix(Integers(100), 4, 4); A
+            sage: A = random_matrix(Integers(100), 4, 4, implementation='linbox'); A
             [ 4 95 83 47]
             [44 57 91 53]
             [75 53 15 39]
@@ -154,7 +161,7 @@ cdef class Matrix_modn_dense_float(Matrix_modn_dense_template):
             sage: a in A.base_ring()
             True
 
-            sage: B = random_matrix(Integers(100), 4, 4); B
+            sage: B = random_matrix(Integers(100), 4, 4, implementation='linbox'); B
             [13 95  1 16]
             [18 33  7 31]
             [92 19 18 93]

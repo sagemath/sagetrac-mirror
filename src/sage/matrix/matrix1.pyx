@@ -1497,7 +1497,7 @@ cdef class Matrix(Matrix0):
             other = <Matrix>bottom
         else:
             if hasattr(bottom, '_vector_'):
-                bottom = bottom.row()
+                bottom = bottom.row(implementation=self.parent().Element)
             else:
                 raise TypeError('a matrix must be stacked with '
                         'another matrix or a vector')
@@ -1522,6 +1522,9 @@ cdef class Matrix(Matrix0):
                 other = other.sparse_matrix()
             elif other.is_sparse_c() and not self.is_sparse_c():
                 self = self.sparse_matrix()
+            if type(self) is not type(other):
+                # If still not the same type, try using _change_implementation
+                other = other._change_implementation(self.parent().Element)
 
         Z = self._stack_impl(other)
         if subdivide:
@@ -1670,16 +1673,15 @@ cdef class Matrix(Matrix0):
             [2 3|3 4 5]
             [4 5|6 7 8]
 
-        The result retains the base ring of ``self`` by coercing the
-        elements of ``right`` into the base ring of ``self``. ::
+        The base ring of the result is the pushout of the base rings of the inputs::
 
             sage: A = matrix(QQ, 2, [1,2])
             sage: B = matrix(RR, 2, [sin(1.1), sin(2.2)])
             sage: C = A.augment(B); C
-            [                  1 183017397/205358938]
-            [                  2 106580492/131825561]
+            [ 1.00000000000000 0.891207360061435]
+            [ 2.00000000000000 0.808496403819590]
             sage: C.parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            Full MatrixSpace of 2 by 2 dense matrices over Real Field with 53 bits of precision
 
             sage: D = B.augment(A); D
             [0.89120736006...  1.00000000000000]
@@ -1687,13 +1689,11 @@ cdef class Matrix(Matrix0):
             sage: D.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Real Field with 53 bits of precision
 
-        Sometimes it is not possible to coerce into the base ring of
-        ``self``.  A solution is to change the base ring of ``self`` to
-        a more expansive ring.  Here we mix the rationals with a ring of
-        polynomials with rational coefficients.  ::
+        The base ring of the result is the pushout of the base rings of
+        the inputs::
 
-            sage: R.<y> = PolynomialRing(QQ)
-            sage: A = matrix(QQ, 1, [1,2])
+            sage: R.<y> = PolynomialRing(ZZ)
+            sage: A = matrix(QQ, 1, [1, 2])
             sage: B = matrix(R, 1, [y, y^2])
 
             sage: C = B.augment(A); C
@@ -1701,16 +1701,16 @@ cdef class Matrix(Matrix0):
             sage: C.parent()
             Full MatrixSpace of 1 by 4 dense matrices over Univariate Polynomial Ring in y over Rational Field
 
-            sage: D = A.augment(B)
-            Traceback (most recent call last):
-            ...
-            TypeError: not a constant polynomial
+            sage: D = A.augment(B); D
+            [  1   2   y y^2]
+            sage: D.parent()
+            Full MatrixSpace of 1 by 4 dense matrices over Univariate Polynomial Ring in y over Rational Field
 
             sage: E = A.change_ring(R)
             sage: F = E.augment(B); F
             [  1   2   y y^2]
             sage: F.parent()
-            Full MatrixSpace of 1 by 4 dense matrices over Univariate Polynomial Ring in y over Rational Field
+            Full MatrixSpace of 1 by 4 dense matrices over Univariate Polynomial Ring in y over Integer Ring
 
         AUTHORS:
 
@@ -1721,7 +1721,7 @@ cdef class Matrix(Matrix0):
 
         if not isinstance(right, sage.matrix.matrix1.Matrix):
             if hasattr(right, '_vector_'):
-                right = right.column()
+                right = right.column(implementation=self.parent().Element)
             else:
                 raise TypeError("a matrix must be augmented with another matrix, "
                     "or a vector")
@@ -1732,8 +1732,24 @@ cdef class Matrix(Matrix0):
         if self._nrows != other._nrows:
             raise TypeError('number of rows must be the same, '
                 '{0} != {1}'.format(self._nrows, other._nrows))
-        if not (self._base_ring is other.base_ring()):
-            other = other.change_ring(self._base_ring)
+        left_ring = self._base_ring
+        right_ring = other._base_ring
+        if left_ring is not right_ring:
+            R = coercion_model.common_parent(left_ring, right_ring)
+            if left_ring is not R:
+                self = self.change_ring(R)
+            if right_ring is not R:
+                other = other.change_ring(R)
+
+        if type(self) is not type(other):
+            # If one of the matrices is sparse, return a sparse matrix
+            if self.is_sparse_c() and not other.is_sparse_c():
+                other = other.sparse_matrix()
+            elif other.is_sparse_c() and not self.is_sparse_c():
+                self = self.sparse_matrix()
+            if type(self) is not type(other):
+                # If still not the same type, try using _change_implementation
+                other = other._change_implementation(self.parent().Element)
 
         cdef Matrix Z
         Z = self.new_matrix(ncols = self._ncols + other._ncols)

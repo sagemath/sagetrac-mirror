@@ -1074,11 +1074,11 @@ class FGP_Module_class(Module):
             [0 0 4]
             sage: T = D.gens_to_smith()*D.smith_to_gens()
             sage: T
-            [ 3  0 15  0  0]
-            [ 0 33  0  0  3]
-            [ 2  0 10  0  0]
+            [ 3  0  6  0  0]
+            [ 0  9  0  0  3]
+            [ 2  0  4  0  0]
             [ 0  0  0  1  0]
-            [ 0 44  0  0  4]
+            [ 0 12  0  0  4]
 
         The matrix `T` now satisfies a certain congruence::
 
@@ -1120,14 +1120,14 @@ class FGP_Module_class(Module):
             [  0   0   0 1/3   0]
             [  0   0   0   0 2/3]
             sage: D.smith_to_gens()
-            [ 0  0  0  1  0]
-            [ 1  0  5  0  0]
-            [ 0 11  0  0  1]
+            [0 0 0 1 0]
+            [1 0 2 0 0]
+            [0 3 0 0 1]
             sage: T = D.smith_to_gens()*D.gens_to_smith()
             sage: T
             [ 1  0  0]
-            [ 0 13  0]
-            [ 0  0 37]
+            [ 0  7  0]
+            [ 0  0 13]
 
         This matrix satisfies the congruence::
 
@@ -1148,7 +1148,7 @@ class FGP_Module_class(Module):
         of the user defined generators that is x::
 
             sage: x.vector() * D.smith_to_gens()
-            (2, 33, 10, 1, 3)
+            (2, 9, 4, 1, 3)
         """
         if self.base_ring() != ZZ:
             # it is not
@@ -1209,7 +1209,7 @@ class FGP_Module_class(Module):
 
             sage: v = D.gens_vector(x)
             sage: v
-            (2, 9, 10, 1, 33)
+            (2, 9, 4, 1, 6)
 
         The output can be further reduced::
 

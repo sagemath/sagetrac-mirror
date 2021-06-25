@@ -418,7 +418,7 @@ cdef class MatrixArgs:
         INPUT:
 
         - ``convert`` -- If ``True``, the entries are converted to the
-          base right. If ``False``, the entries are returned as given.
+          base ring. If ``False``, the entries are returned as given.
 
         - ``sparse`` -- See OUTPUT below.
 
@@ -432,7 +432,7 @@ cdef class MatrixArgs:
 
         - If ``sparse`` is True: yield instances of
           :class:`SparseEntry`. The indices ``(i, j)`` are guaranteed to
-          lie within the matrix. Zero entries in the input are *not*
+          lie within the matrix. Zero entries in the input are *not necessarily*
           skipped.
 
         .. WARNING::
