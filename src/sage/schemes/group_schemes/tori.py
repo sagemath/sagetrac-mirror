@@ -429,7 +429,7 @@ class AlgebraicTorus(Scheme):
         """
         return self._lattice._group
 
-    def is_rational(self, ruple, subgp=None):
+    def is_rational(self, ruple, subgroup=None):
         r"""
         Detect if a point is rational over the base field.
 
@@ -438,7 +438,7 @@ class AlgebraicTorus(Scheme):
         - ``ruple`` -- a point of the torus given as an r-tuple of points over the
           splitting field, where r is the rank of the torus
 
-        - ``subgp`` -- optional, subgroup of the Galois group corresponding to an
+        - ``subgroup`` -- optional, subgroup of the Galois group corresponding to an
           intermediate extension; if specified, the algorithm will test the rationality
           over the intermediate extension
 
@@ -457,12 +457,12 @@ class AlgebraicTorus(Scheme):
             False
         """
         lat = self.cocharacter_lattice()
-        if subgp is None:
-            subgp = self.galois_group()
+        if subgroup is None:
+            subgroup = self.galois_group()
         else:
-            lat = lat.subgroup_lattice(subgp)
+            lat = lat.subgroup_lattice(subgroup)
         elt = matrix(self.rank(), ruple)
-        gens = subgp.gens()
+        gens = subgroup.gens()
         for g in range(len(gens)):
             res = lat._action_matrices[g] * matrix(self.rank(), [gens[g](x) for x in ruple])
             if res != elt:
@@ -758,13 +758,13 @@ class AlgebraicTorus(Scheme):
         """
         return AlgebraicTorus(self._lattice.induced_lattice(group))
 
-    def tamagawa_number(self, subgrps = []):
+    def tamagawa_number(self, subgroups = []):
         """
         Computes the Tamagwa number of an algebraic torus.
 
         INPUT:
 
-        - ``subgrps`` -- To be used when the group is not the Galois group
+        - ``subgroups`` -- To be used when the group is not the Galois group
           of some number field, but just a permutation group. In that case
           this argument should be the list of ramified decomposition groups,
           which have to be manually added. If left blank, the method will assume
@@ -807,14 +807,14 @@ class AlgebraicTorus(Scheme):
         """
         from sage.misc.misc_c import prod
         if self._base_field is None:
-            ram_decomp = subgrps
+            ram_decomp = subgroups
             lat2 = self.character_lattice()
         else:
             from sage.groups.perm_gps.permgroup import PermutationGroup
             perm_group = PermutationGroup(self.galois_group().gens())
             ram_primes = self._top_field.discriminant().prime_divisors()
             ram_decomp = []
-            for p in ram_primes: 
+            for p in ram_primes:
                 SG = self._top_field.prime_above(p).decomposition_group()
                 SGperm = PermutationGroup(SG.gens())
                 if not(SGperm.is_cyclic()):
