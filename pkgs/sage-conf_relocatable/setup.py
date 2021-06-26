@@ -84,47 +84,58 @@ class build_py(setuptools_build_py):
         #
         # The file exclusions here duplicate what is done in MANIFEST.in
         def ignore(path, names):
-            # exclude embedded src trees -- except for the one of sage_conf
+            # exclude all embedded src trees
             if any(fnmatch.fnmatch(path, spkg) for spkg in ('*/build/pkgs/sagelib',
+                                                            '*/build/pkgs/sage_conf',
                                                             '*/build/pkgs/sage_docbuild',
+                                                            '*/build/pkgs/sage_setup',
                                                             '*/build/pkgs/sage_sws2rst')):
                 return ['src']
             return []
-        shutil.copytree(os.path.join(HERE, 'sage_root_source'), SAGE_ROOT,
-                        ignore=ignore)  # will fail if already exists
-
         try:
-            print(f"Created SAGE_ROOT={SAGE_ROOT}")
+            shutil.copytree(os.path.join(HERE, 'sage_root_source'), SAGE_ROOT,
+                            ignore=ignore)  # will fail if already exists
+        except Exception:
+            print(f"hint:\n\n    To reuse a build tree left in {SAGE_ROOT} by a failed or interrupted build, first use\n\n    $ mv {SAGE_ROOT} {SAGE_ROOT_BUILD}\n")
+            raise
+        try:
+            print(f"Created SAGE_ROOT={SAGE_ROOT}", flush=True)
             # Because of the above 'copytree',
             # within this try...finally block, SAGE_ROOT is a physical directory.
 
+            os.symlink(os.path.join(SAGE_ROOT, 'pkgs', 'sage-conf'),
+                       os.path.join(SAGE_ROOT, 'build', 'pkgs', 'sage_conf', 'src'))
             # Use our copy of the sage_conf template, which contains the relocation logic
             shutil.copyfile(os.path.join(HERE, 'sage_conf.py.in'),
-                            os.path.join(SAGE_ROOT, 'build', 'pkgs', 'sage_conf', 'src', 'sage_conf.py.in'))
+                            os.path.join(SAGE_ROOT, 'pkgs', 'sage-conf', 'sage_conf.py.in'))
 
             if os.path.exists(SAGE_LOCAL_BUILD):
                 # Previously built, start from there
-                print(f"### Reusing {SAGE_LOCAL_BUILD}")
+                print(f"### Reusing {SAGE_LOCAL_BUILD}", flush=True)
                 shutil.move(SAGE_LOCAL_BUILD, SAGE_LOCAL)
 
             if os.path.exists(SAGE_VENV_BUILD):
-                print(f"### Reusing {SAGE_VENV_BUILD}")
+                print(f"### Reusing {SAGE_VENV_BUILD}", flush=True)
                 shutil.move(SAGE_VENV_BUILD, SAGE_VENV)
 
             if os.path.exists(SAGE_LOGS_BUILD):
-                print(f"### Reusing {SAGE_LOGS_BUILD}")
+                print(f"### Reusing {SAGE_LOGS_BUILD}", flush=True)
                 shutil.move(SAGE_LOGS_BUILD, SAGE_LOGS)
 
             # Delete old SAGE_ROOT_BUILD (if any), all the useful things have been moved from there.
             shutil.rmtree(SAGE_ROOT_BUILD, ignore_errors=True)
 
-            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-sage-venv={SAGE_VENV} --with-python={sys.executable} --enable-build-as-root --with-system-python3=force --with-mp=gmp --without-system-mpfr --without-system-readline --without-system-boost_cropped --without-system-zeromq --enable-download-from-upstream-url --enable-fat-binary --disable-notebook --disable-r --disable-doc"
+            CONFIGURE_ARGS = f"--prefix={SAGE_LOCAL} --with-sage-venv={SAGE_VENV} --with-python={sys.executable} --enable-build-as-root --with-system-python3=force --with-mp=gmp --without-system-mpfr --without-system-readline --without-system-boost_cropped --without-system-zeromq --enable-download-from-upstream-url --enable-fat-binary --disable-notebook --disable-r --disable-doc"
             # These may be set by tox.ini
             if 'CONFIGURED_CC' in os.environ:
-                cmd += ' CC="$CONFIGURED_CC"'
+                CONFIGURE_ARGS += ' CC="$CONFIGURED_CC"'
             if 'CONFIGURED_CXX' in os.environ:
-                cmd += ' CXX="$CONFIGURED_CXX"'
-            print(f"Running {cmd}")
+                CONFIGURE_ARGS += ' CXX="$CONFIGURED_CXX"'
+            with open(os.path.join(SAGE_ROOT, "run-configure.sh"), "w") as f:
+                f.write(f"./configure {CONFIGURE_ARGS}")
+            # We run it through sage-logger... just to prefix all outputs
+            cmd = fr'cd {SAGE_ROOT} && {SETENV} && V=1 build/bin/sage-logger -p "sh run-configure.sh" logs/sage-conf_relocatable.log'
+            print(f"Running {cmd}", flush=True)
             if os.system(cmd) != 0:
                 raise DistutilsSetupError("configure failed")
 
@@ -138,7 +149,9 @@ class build_py(setuptools_build_py):
 
             SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads | cut -d" " -f 2)"; fi'
             TARGETS = 'build'
-            cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 {TARGETS}'
+            # We run it through sage-logger... just to prefix all outputs
+            cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && V=1 build/bin/sage-logger -p "$MAKE V=0 {TARGETS}" logs/sage-conf_relocatable.log'
+            print(f"Running {cmd}", flush=True)
             if os.system(cmd) != 0:
                 raise DistutilsSetupError(f"make {TARGETS} failed")
 
@@ -147,13 +160,13 @@ class build_py(setuptools_build_py):
 
         except Exception as e:
             print(e)
-            print(f"Left SAGE_ROOT={SAGE_ROOT} in place. To reuse its contents for the next build, rename it to {SAGE_ROOT_BUILD} first")
+            print(f"Left SAGE_ROOT={SAGE_ROOT} in place. To reuse its contents for the next build, use 'mv {SAGE_ROOT} {SAGE_ROOT_BUILD}' first", flush=True)
 
         else:
             shutil.move(SAGE_ROOT, SAGE_ROOT_BUILD)
 
         # Install configuration
-        shutil.copyfile(os.path.join(SAGE_ROOT_BUILD, 'build', 'pkgs', 'sage_conf', 'src', 'sage_conf.py'),
+        shutil.copyfile(os.path.join(SAGE_ROOT_BUILD, 'pkgs', 'sage-conf', 'sage_conf.py'),
                         os.path.join(HERE, 'sage_conf.py'))
         if not self.distribution.py_modules:
             self.py_modules = self.distribution.py_modules = []
@@ -210,17 +223,23 @@ class egg_info(setuptools_egg_info):
         self.distribution.install_requires = []
         version = self.distribution.metadata.version
         download_url = f'https://github.com/sagemath/sage-wheels/releases/download/{version}'
-        for f in Path(cmd_build_py.SAGE_SPKG_WHEELS_BUILD).glob("*.whl"):
-            parts = str(f.stem).split('-')
-            if parts[-1] != 'any':
-                # Binary wheel, include as an install_requires
-                distribution = parts[0]
-                if distribution not in ('Cython',              # has extension modules but binary compatibility is not needed
-                                        'sagemath_standard',   # we are a dependency of that
-                                        'tornado',             # does not need to run in the same process
-                                        ):
-                    self.distribution.install_requires.append(
-                        f'{distribution} @ {download_url}/{f.name}')
+        try:
+            SAGE_SPKG_WHEELS_BUILD = cmd_build_py.SAGE_SPKG_WHEELS_BUILD
+        except AttributeError:
+            # egg_info invoked separately, not as part of bdist_wheel
+            pass
+        else:
+            for f in Path(SAGE_SPKG_WHEELS_BUILD).glob("*.whl"):
+                parts = str(f.stem).split('-')
+                if parts[-1] != 'any':
+                    # Binary wheel, include as an install_requires
+                    distribution = parts[0]
+                    if distribution not in ('Cython',              # has extension modules but binary compatibility is not needed
+                                            'sagemath_standard',   # we are a dependency of that
+                                            'tornado',             # does not need to run in the same process
+                                            ):
+                        self.distribution.install_requires.append(
+                            f'{distribution} @ {download_url}/{f.name}')
 
         setuptools_egg_info.finalize_options(self)
 
