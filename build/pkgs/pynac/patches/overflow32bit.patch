@@ -1,5 +1,5 @@
 diff --git a/ginac/numeric.cpp b/ginac/numeric.cpp
-index 20e17e7..51ee959 100644
+index 20e17e7..512a6c8 100644
 --- a/ginac/numeric.cpp
 +++ b/ginac/numeric.cpp
 @@ -1432,11 +1432,10 @@ const numeric numeric::mul(const numeric &other) const {
@@ -58,7 +58,18 @@ index 20e17e7..51ee959 100644
                  lh.t = MPZ;
                  mpz_init_set_si(lh.v._bigint, lh.v._long);
                  mpz_mul_si(lh.v._bigint, lh.v._bigint, rh.v._long);
-@@ -4222,7 +4226,9 @@ const ex numeric::sqrt_as_ex() const
+@@ -2407,6 +2411,10 @@ numeric & operator/=(numeric & lh, const numeric & rh)
+         }
+         switch (lh.t) {
+         case LONG: {
++                if (rh.v._long == -1) { // use multiplication to avoid possible overflow
++                        lh *= -1;
++                        return lh;
++                }
+                 auto ld = std::div(lh.v._long, rh.v._long);
+                 if (ld.rem == 0) {
+                         lh.v._long = ld.quot;
+@@ -4222,7 +4230,9 @@ const ex numeric::sqrt_as_ex() const
  const numeric numeric::abs() const {
          switch (t) {
          case LONG:
