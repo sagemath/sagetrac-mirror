@@ -155,9 +155,12 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.algebras import Algebras
 from sage.rings.semirings.all import NN
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.groups.braid import BraidGroup
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+from sage.modules.free_module_element import vector
+from sage.rings.ring import Algebra
 
 Strand  = namedtuple('Strand', ['oriented','colour'], defaults=[0,'black'])
 
@@ -1509,63 +1512,87 @@ class FreeSphericalSpider(CombinatorialFreeModule):
         on_basis = lambda x : codomain(x.rotate(k))
         return self.module_morphism(codomain=codomain, on_basis=on_basis)
 
-    def _glue_right(self, diagram, k):
+    class Element(CombinatorialFreeModule.Element):
         r"""
-        Extend :method`glue` by linearity.
+        A class for elements of FreeSphericalSpider.
+
+            TESTS::
 
         """
-        bs = self.boundary
-        bo = diagram.boundary
-        if k == 0:
-            bd = bs+bo
-        else:
-            bd = bs[:-k]+bo[k:]
-        codomain = FreeSphericalSpider(self.base(), bd)
-        on_basis = lambda x : codomain(x.glue(diagram, k))
-        return self.module_morphism(codomain=codomain, on_basis=on_basis)
 
-    def glue(self, other, k):
-        r"""
-        Extend :method`glue` by bilinearity.
+        def rotate(self, k):
+            r"""
+            Extend :method'rotate' by linearity
 
-        """
-        # This could probably also be done using tensor.
-        bs = self.boundary
-        bo = other.boundary
-        if k == 0:
-            bd = bs+bo
-        else:
-            bd = bs[:-k]+bo[k:]
-        codomain = FreeSphericalSpider(self.base(), bd)
-        on_basis = lambda x : codomain(self._glue_right(x, k))
-        return self.module_morphism(codomain=codomain, on_basis=on_basis)
+            EXAMPLES::
 
-    def apply_rule(self, term, replacement):
-        r"""
-        Extend :method'apply_rule' by linearity
+                sage: from sage.combinat.spherical_spider import Strand
+                sage: L = FreeSphericalSpider(QQ,[Strand()]*3)
+                sage: L.vertex().rotate(1)
+                B[The spherical web with c = (1, 2, 0) and e = ().]
+            """
+            b = self.parent().boundary()
+            L = FreeSphericalSpider(self.parent().base(), b[k:]+b[:k])
+            mc = self.monomial_coefficients()
+            return L.sum_of_terms([(a.rotate(k), mc[a]) for a in mc])
 
-        EXAMPLES::
+        def _glue_right(self, diagram, k):
+            r"""
+            Extend :method`glue` by linearity.
 
-        """
-        codomain = self
-        on_basis = lambda x : codomain(x.apply_rule(term, replacement))
-        return self.module_morphism(codomain=codomain, on_basis=on_basis)
+            """
+            bs = self.boundary
+            bo = diagram.boundary
+            if k == 0:
+                bd = bs+bo
+            else:
+                bd = bs[:-k]+bo[k:]
+            codomain = FreeSphericalSpider(self.base(), bd)
+            on_basis = lambda x : codomain(x.glue(diagram, k))
+            return self.module_morphism(codomain=codomain, on_basis=on_basis)
 
-    def simplify(self, term, replacement):
-        r"""
-        Simplify by repeatedly applying :method'apply_rule'
+        def glue(self, other, k):
+            r"""
+            Extend :method`glue` by bilinearity.
 
-        EXAMPLES::
+            """
+            # This could probably also be done using tensor.
+            bs = self.boundary
+            bo = other.boundary
+            if k == 0:
+                bd = bs+bo
+            else:
+                bd = bs[:-k]+bo[k:]
+            codomain = FreeSphericalSpider(self.base(), bd)
+            on_basis = lambda x : codomain(self._glue_right(x, k))
+            return self.module_morphism(codomain=codomain, on_basis=on_basis)
 
-        """
-        new = self
-        finished = False
-        while not finished:
-            old = new
-            new = old.apply_rule(term, replacement)
-            finished = new == old
+        def apply_rule(self, term, replacement):
+            r"""
+            Extend :method'apply_rule' by linearity
 
-        return old
+            EXAMPLES::
+
+            """
+            codomain = self
+            on_basis = lambda x : codomain(x.apply_rule(term, replacement))
+            return self.module_morphism(codomain=codomain, on_basis=on_basis)
+
+        def simplify(self, term, replacement):
+            r"""
+            Simplify by repeatedly applying :method'apply_rule'
+
+            EXAMPLES::
+
+            """
+            new = self
+            finished = False
+            while not finished:
+                old = new
+                new = old.apply_rule(term, replacement)
+                finished = new == old
+
+            return old
 
 class LinearSphericalSpider(FreeSphericalSpider):
     r"""
@@ -1756,7 +1783,7 @@ def G2_relations(delta=None):
          (The spherical web with c = (4, 6, 8, 10, 5, 0, 7, 1, 9, 2, 11, 3) and e = (7, 10, 9, 4, 11, 6, 5, 8).,
           -delta*B[The spherical web with c = (1, 4, 3, 5, 0, 2) and e = (5, 4).] - delta*B[The spherical web with c = (4, 2, 5, 0, 3, 1) and e = (5, 4).] + (delta^2-1)*B[The spherical web with c = (1, 0, 3, 2) and e = ().] + (delta^2-1)*B[The spherical web with c = (3, 2, 1, 0) and e = ().]),
          (The spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4) and e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11).,
-          B[The spherical web with c = (1, 2, 0, 4, 3) and e = ().] + B[The spherical web with c = (1, 4, 3, 2, 0) and e = ().] + B[The spherical web with c = (3, 2, 1, 4, 0) and e = ().] + B[The spherical web with c = (1, 0, 3, 4, 2) and e = ().] + B[The spherical web with c = (4, 2, 3, 1, 0) and e = ().] - B[The spherical web with c = (1, 5, 6, 4, 8, 0, 7, 2, 3) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 6, 3, 8, 0, 4, 7, 1, 2) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 2, 7, 4, 8, 6, 0, 1, 3) and e = (7, 8, 5, 6).] - B[The spherical web with c = (1, 5, 3, 6, 7, 0, 2, 8, 4) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 2, 6, 7, 0, 4, 1, 8, 3) and e = (7, 8, 5, 6).])]
+          B[The spherical web with c = (1, 2, 0, 4, 3) and e = ().] + ... - B[The spherical web with c = (1, 5, 6, 4, 8, 0, 7, 2, 3) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 6, 3, 8, 0, 4, 7, 1, 2) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 2, 7, 4, 8, 6, 0, 1, 3) and e = (7, 8, 5, 6).] - B[The spherical web with c = (1, 5, 3, 6, 7, 0, 2, 8, 4) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 2, 6, 7, 0, 4, 1, 8, 3) and e = (7, 8, 5, 6).])]
     """
     if delta == None:
         delta = PolynomialRing(ZZ, 'delta').gen()
@@ -1818,7 +1845,7 @@ def F4():
 
 """
 
-class WebAlgebra(CombinatorialFreeModule):
+class WebAlgebra(CombinatorialFreeModule, Algebra):
     r"""
     Linear combinations of spherical webs.
     """
@@ -2037,3 +2064,66 @@ def from_diagram(n, delta):
 
     return domain.module_morphism(codomain=codomain, on_basis=on_basis)
 
+class Path():
+    r"""
+    An instance of this class is a generalisation of a highest weight word in a tensor product of (finite) crystals.
+    """
+    def __init__(self, steps, weight_path, Dyck_path):
+        r"""
+        A path is a sequence of steps and each step is labelled as up or down.
+        The sequence of up/down labels is a Dyck path.
+        """
+        spaces = {a.parent() for a in steps}
+        if len(spaces) > 1:
+            raise ValueError("All steps must be in the same vector space.")
+        if len(spaces) == 0:
+            raise ValueError("The set of steps must be non-empty")
+        space = spaces.pop()
+        self.space = space
+        self.rank = space.dimension()
+
+        n = len(weight_path)
+        if len(Dyck_path) != n:
+            raise ValueError("The weight_path and the Dyck_path must have the same length.")
+        self.length = n
+
+        if any(abs(x) != 1 for x in Dyck_paths):
+            raise ValueError("Dyck_path must be a sequence of +1 or -1.")
+        self.Dyck_path = Dyck_path
+
+        if any(a not in steps for a in weight_path):
+            raise ValueError("Every element of the weight_path must be an element of steps.")
+        self.steps = steps
+        self.weight_path = weight_path
+
+        heights = [None]*(n+1)
+        heights[0] = space(0)
+        for i in range(n):
+            heights[i+1] = heights[i] + Dyck_path[i]*weight_path[i]
+
+        if any( any(i<0 for i in a) for a in heights):
+            raise ValueError("The path is not dominant.")
+
+        self.heights = heights
+
+    def switch(self, i):
+        r"""
+        Change a down-up to an up-down,
+
+        """
+        if self.Dyck_path[i] != -1:
+            raise RuntimeError(f"Position {i} of {self.Dyck_path} must be -1")
+        if self.Dyck_path[i+1] != 1:
+            raise RuntimeError(f"Position {i+1} of {self.Dyck_path} must be +1")
+
+        left  = [max(x-y,0) for x, y in zip(weight_path[i], weight_path[i+1])]
+        right = [max(0,y-x) for x, y in zip(weight_path[i], weight_path[i+1])]
+
+        wp = copy(self.weight_path)
+        wp[i] = vector(QQ, left)
+        wp[i+1] = vector(QQ, right)
+        Dp = copy(self.Dyck_path)
+        Dp[i] = 1
+        Dp[i+1] = -1
+
+        return Path(self.steps, wp, Dp)
