@@ -1020,12 +1020,12 @@ class SphericalWeb(Element):
             sage: v = SphericalSpider([Strand()]*4).vertex()
             sage: w = SphericalSpider([Strand()]*2).vertex()
             sage: v.glue(w,2)._latex_()
-            '\\begin{tikzpicture}\n\\draw (0,0) circle (1cm);\n\\draw (-1.00000000000000,0.0) -- (0.0,0.0);\n\\draw (1.00000000000000,0.0) -- (0.0,0.0);\n\\end{tikzpicture}\n'
+            '\\draw (0,0) circle (1cm);\n\\draw (-1.00000000000000,0.0) -- (0.0,0.0);\n\\draw (1.00000000000000,0.0) -- (0.0,0.0);\n'
 
         If there are no boundary points only the boundary circle is drawn.
 
             sage: SphericalSpider([]).loop(Strand())._latex_()
-            '\\begin{tikzpicture}\n\\draw (0,0) circle (1cm);\n\\end{tikzpicture}\n'
+            '\\draw (0,0) circle (1cm);\n'
 
         TODO::
 
@@ -1033,11 +1033,11 @@ class SphericalWeb(Element):
         """
         lines = self._layout()
 
-        result = "\\begin{tikzpicture}\n"
-        result += "\\draw (0,0) circle (1cm);\n"
+        #result = "\\begin{tikzpicture}\n"
+        result = "\\draw (0,0) circle (1cm);\n"
         for a in lines:
             result += "\\draw ({},{}) -- ({},{});\n".format(a[0][0],a[1][0],a[1][0],a[1][1])
-        result += "\\end{tikzpicture}\n"
+        #result += "\\end{tikzpicture}\n"
 
         return result
 
@@ -1204,7 +1204,6 @@ class SphericalSpider(UniqueRepresentation, Parent):
             boundary = [Strand()]*boundary
 
         return super(SphericalSpider, cls).__classcall__(cls, tuple(boundary))
-
 
     def __init__(self, boundary):
         r"""
@@ -1524,6 +1523,18 @@ class FreeSphericalSpider(CombinatorialFreeModule):
 
         """
 
+        def _latex_(self):
+            r"""
+            Return a LaTeX representation of ``self``.
+
+            EXAMPLES::
+                sage: from sage.combinat.spherical_spider import SL2_relations
+                sage: (SL2_relations()[0][1])._latex_()
+                '\\delta\\draw (0,0) circle (1cm);\n'
+            """
+            mc = self.monomial_coefficients()
+            return ''.join([(mc[a])._latex_()+a._latex_() for a in mc])
+
         def rotate(self, k):
             r"""
             Extend :method'rotate' by linearity
@@ -1651,8 +1662,8 @@ def SL2_relations(delta=None):
     EXAMPLES::
 
         sage: sage.combinat.spherical_spider.SL2_relations()
-        (A closed spherical web with 1 edges.,
-         delta*B[A closed spherical web with 0 edges.])
+        ((A closed spherical web with 1 edges.,
+         delta*B[A closed spherical web with 0 edges.]),)
     """
 
     if delta == None:
@@ -1660,7 +1671,7 @@ def SL2_relations(delta=None):
 
     S = SphericalSpider([])
     L = FreeSphericalSpider(delta.parent(), [])
-    return tuple([S.loop(Strand()), delta*L(S.empty())])
+    return tuple([tuple([S.loop(Strand()), delta*L(S.empty())])])
 
 def A2_relations(delta=None):
     """
@@ -1669,14 +1680,14 @@ def A2_relations(delta=None):
     EXAMPLES::
 
         sage: sage.combinat.spherical_spider.A2_relations()
-        [(A closed spherical web with 1 edges.,
+        ((A closed spherical web with 1 edges.,
           (delta^2-1)*B[A closed spherical web with 0 edges.]),
          (A closed spherical web with 1 edges.,
           (delta^2-1)*B[A closed spherical web with 0 edges.]),
          (The spherical web with c = (2, 4, 3, 0, 5, 1) and e = (5, 4, 3, 2).,
           -delta*B[The spherical web with c = (1, 0) and e = ().]),
          (The spherical web with c = (4, 6, 8, 10, 5, 0, 7, 1, 9, 2, 11, 3) and e = (7, 10, 9, 4, 11, 6, 5, 8).,
-          B[The spherical web with c = (1, 0, 3, 2) and e = ().] + B[The spherical web with c = (3, 2, 1, 0) and e = ().])]
+          B[The spherical web with c = (1, 0, 3, 2) and e = ().] + B[The spherical web with c = (3, 2, 1, 0) and e = ().]))
     """
     if delta == None:
         delta = PolynomialRing(ZZ, 'delta').gen()
@@ -1685,10 +1696,6 @@ def A2_relations(delta=None):
     sm = Strand(oriented=-1, colour='black')
     vm = SphericalSpider([sm]*3).vertex()
     vp = SphericalSpider([sp]*3).vertex()
-    #Kp = vp.glue(vm, 1)
-    #Km = vm.glue(vp, 1)
-    #Hp = Kp.rotate(1)
-    #Hm = Km.rotate(1)
 
     relations = []
 
@@ -1713,7 +1720,7 @@ def A2_relations(delta=None):
     L = FreeSphericalSpider(delta.parent(), [sm, sp, sm, sp])
     relations.append(tuple([square, L(U)+L(I)]))
 
-    return relations
+    return tuple(relations)
 
 def B2_relations(delta=None):
     """
@@ -1722,7 +1729,7 @@ def B2_relations(delta=None):
     EXAMPLES::
 
         sage: sage.combinat.spherical_spider.B2_relations()
-        [(A closed spherical web with 1 edges.,
+        ((A closed spherical web with 1 edges.,
           (delta^2+delta-2)*B[A closed spherical web with 0 edges.]),
          (A closed spherical web with 1 edges.,
           (delta^3-2*delta+1)*B[A closed spherical web with 0 edges.]),
@@ -1730,7 +1737,7 @@ def B2_relations(delta=None):
          (The spherical web with c = (2, 4, 3, 0, 5, 1) and e = (5, 4, 3, 2).,
           (-delta-2)*B[The spherical web with c = (1, 0) and e = ().]),
          (The spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).,
-          0)]
+          0))
 
     """
     if delta == None:
@@ -1769,7 +1776,7 @@ def B2_relations(delta=None):
     triangle = S.polygon([v]*3)
     relations.append(tuple([triangle, 0*L(triangle)]))
 
-    return relations
+    return tuple(relations)
 
 def G2_relations(delta=None):
     """
@@ -1778,7 +1785,7 @@ def G2_relations(delta=None):
     EXAMPLES::
 
         sage: sage.combinat.spherical_spider.G2_relations()
-        [(A closed spherical web with 1 edges.,
+        ((A closed spherical web with 1 edges.,
           (delta^5+delta^4-5*delta^3-4*delta^2+6*delta+3)*B[A closed spherical web with 0 edges.]),
          (The spherical web with c = (1, 2, 0) and e = (2, 1)., 0),
          (The spherical web with c = (2, 4, 3, 0, 5, 1) and e = (5, 4, 3, 2).,
@@ -1788,7 +1795,7 @@ def G2_relations(delta=None):
          (The spherical web with c = (4, 6, 8, 10, 5, 0, 7, 1, 9, 2, 11, 3) and e = (7, 10, 9, 4, 11, 6, 5, 8).,
           -delta*B[The spherical web with c = (1, 4, 3, 5, 0, 2) and e = (5, 4).] - delta*B[The spherical web with c = (4, 2, 5, 0, 3, 1) and e = (5, 4).] + (delta^2-1)*B[The spherical web with c = (1, 0, 3, 2) and e = ().] + (delta^2-1)*B[The spherical web with c = (3, 2, 1, 0) and e = ().]),
          (The spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4) and e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11).,
-          B[The spherical web with c = (1, 2, 0, 4, 3) and e = ().] + ... - B[The spherical web with c = (1, 5, 6, 4, 8, 0, 7, 2, 3) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 6, 3, 8, 0, 4, 7, 1, 2) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 2, 7, 4, 8, 6, 0, 1, 3) and e = (7, 8, 5, 6).] - B[The spherical web with c = (1, 5, 3, 6, 7, 0, 2, 8, 4) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 2, 6, 7, 0, 4, 1, 8, 3) and e = (7, 8, 5, 6).])]
+          B[The spherical web with c = (1, 2, 0, 4, 3) and e = ().] + ... - B[The spherical web with c = (1, 5, 6, 4, 8, 0, 7, 2, 3) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 6, 3, 8, 0, 4, 7, 1, 2) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 2, 7, 4, 8, 6, 0, 1, 3) and e = (7, 8, 5, 6).] - B[The spherical web with c = (1, 5, 3, 6, 7, 0, 2, 8, 4) and e = (7, 8, 5, 6).] - B[The spherical web with c = (5, 2, 6, 7, 0, 4, 1, 8, 3) and e = (7, 8, 5, 6).]))
     """
     if delta == None:
         delta = PolynomialRing(ZZ, 'delta').gen()
@@ -1841,7 +1848,7 @@ def G2_relations(delta=None):
     br = sum([L(b.rotate(i)) for i in range(5)], L(0))
     relations.append(tuple([pentagon, ar-br]))
 
-    return relations
+    return tuple(relations)
 
 """
 def F4():
