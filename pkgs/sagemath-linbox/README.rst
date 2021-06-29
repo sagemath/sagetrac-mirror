@@ -1,6 +1,6 @@
-=========================================================================
- Sage: Open Source Mathematics Software: Sage categories and basic rings
-=========================================================================
+==================================================================================================================
+ Sage: Open Source Mathematics Software: Exact high-performance linear algebra using LinBox, fflas-ffpack, Givaro
+==================================================================================================================
 
 About SageMath
 --------------
@@ -20,7 +20,7 @@ The traditional and recommended way to install SageMath is from source via Sage-
 About this experimental pip-installable source distribution
 -----------------------------------------------------------
 
-This pip-installable source distribution `sagemath-categories` is an experimental distribution of a small part of the Sage Library.  Use at your own risk.  It provides a small subset of the modules of the Sage library ("sagelib", `sagemath-standard`).  It is a superset of the `sagemath-objects` (providing Sage objects, the element/parent framework, categories, the coercion system and the related metaclasses), making various additional categories available without introducing dependencies on additional mathematical libraries.
+This pip-installable source distribution `sagemath-linbox` is an experimental distribution of a small part of the Sage Library.  Use at your own risk.  It provides a small subset of the modules of the Sage library ("sagelib", `sagemath-standard`).  It is a superset of the `sagemath-categories` and `sagemath-objects` distributions.
 
 
 Documentation
