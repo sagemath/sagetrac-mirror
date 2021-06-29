@@ -192,11 +192,11 @@ class halfedge():
 
         sage: from sage.combinat.spherical_spider import halfedge
         sage: halfedge()._repr_()
-        '(0,black)'
+        '(0,black,False)'
         sage: halfedge() # indirect test
         <sage.combinat.spherical_spider.halfedge object at ...>
         """
-        return f"({self.strand.oriented},{self.strand.colour})"
+        return f"({self.strand.oriented},{self.strand.colour},{self.crossing})"
 
     def dual(self):
         """
@@ -209,7 +209,7 @@ class halfedge():
             <sage.combinat.spherical_spider.halfedge object at ...>
         """
         st = self.strand
-        return (halfedge(Strand(-st.oriented, st.colour)))
+        return halfedge(Strand(-st.oriented, st.colour),self.crossing)
 
 class SphericalWeb(Element):
     r"""The class of webs.
@@ -266,7 +266,7 @@ class SphericalWeb(Element):
             sage: SphericalSpider([Strand(0,'black')]*3).vertex().__copy__()
             The spherical web with c = (1, 2, 0) and e = ().
         """
-        D = {a:halfedge(a.strand) for a in self.cp}
+        D = {a:halfedge(a.strand,a.crossing) for a in self.cp}
         c = {D[a]:D[self.cp[a]] for a in self.cp}
         e = {D[a]:D[self.e[a]] for a in self.e}
         b = [D[a] for a in self.b]
@@ -410,6 +410,10 @@ class SphericalWeb(Element):
             (4, 6, 8, 10, 5, 0, 7, 1, 9, 2, 11, 3)
             sage: en
             (7, 10, 9, 4, 11, 6, 5, 8)
+
+        TODO::
+
+            This needs to record information on the halfedges.
         """
         b = self.b
         c = self.cp
@@ -617,6 +621,9 @@ class SphericalWeb(Element):
     def mirror_image(self):
         r"""
         Construct the mirror image of ``self``.
+
+        This should be called dual and is not correct.
+        It is not currently called.
 
         EXAMPLES::
 
@@ -968,14 +975,14 @@ class SphericalWeb(Element):
             sage: u.glue(u,1).plot()
             Graphics object consisting of 6 graphics primitives
 
-            If the graph is not simple the diagram will degenerate.
+        If the graph is not simple the diagram will degenerate.
 
             sage: v = SphericalSpider([Strand()]*4).vertex()
             sage: w = SphericalSpider([Strand()]*2).vertex()
             sage: v.glue(w,2).plot()
             Graphics object consisting of 3 graphics primitives
 
-            If there are no boundary points only the boundary circle is drawn.
+        If there are no boundary points only the boundary circle is drawn.
 
             sage: SphericalSpider([]).loop(Strand()).plot()
             Graphics object consisting of 1 graphics primitive
@@ -1008,14 +1015,14 @@ class SphericalWeb(Element):
             sage: u.glue(u,1)._latex_()
             ...
 
-            If the graph is not simple the diagram will degenerate.
+        If the graph is not simple the diagram will degenerate.
 
             sage: v = SphericalSpider([Strand()]*4).vertex()
             sage: w = SphericalSpider([Strand()]*2).vertex()
             sage: v.glue(w,2)._latex_()
             '\\begin{tikzpicture}\n\\draw (0,0) circle (1cm);\n\\draw (-1.00000000000000,0.0) -- (0.0,0.0);\n\\draw (1.00000000000000,0.0) -- (0.0,0.0);\n\\end{tikzpicture}\n'
 
-            If there are no boundary points only the boundary circle is drawn.
+        If there are no boundary points only the boundary circle is drawn.
 
             sage: SphericalSpider([]).loop(Strand())._latex_()
             '\\begin{tikzpicture}\n\\draw (0,0) circle (1cm);\n\\end{tikzpicture}\n'
@@ -1051,7 +1058,7 @@ class SphericalWeb(Element):
 
         TODO::
 
-            This should be rewritten to use :meth:``_traversal``.
+        This should be rewritten to use :meth:``_traversal``.
         """
 
         def test(x):
@@ -1120,8 +1127,8 @@ class SphericalWeb(Element):
         if any( u.dual().strand != v.strand for u,v in zip(h.b, k.b)):
             raise ValueError(f"boundaries of {k} and {h} must match")
 
-        Ds = {a:halfedge(a.strand) for a in self.cp if not a in D.values()}
-        Dk = {a:halfedge(a.strand) for a in k.cp}
+        Ds = {a:halfedge(a.strand,a.crossing) for a in self.cp if not a in D.values()}
+        Dk = {a:halfedge(a.strand,a.crossing) for a in k.cp}
         c = {Ds[a]:Ds[self.cp[a]] for a in Ds}
         c.update({Dk[a]:Dk[k.cp[a]] for a in Dk})
 
@@ -1159,11 +1166,8 @@ class SphericalWeb(Element):
         L = FreeSphericalSpider(R, self.parent())
 
         mc = k.monomial_coefficients()
-        result = L(0)
-        for a in mc:
-            result += mc[a] * L(self.replace(a, D, h))
 
-        return result
+        return L.sum_of_terms([(self.replace(a, D, h),mc[a]) for a in mc])
 
     def apply_rule(self, term, replacement):
         r"""
@@ -1190,9 +1194,9 @@ class SphericalSpider(UniqueRepresentation, Parent):
 
         sage: from sage.combinat.spherical_spider import Strand
         sage: SphericalSpider([Strand(0,'black'),Strand(0,'black')])
-        The spherical spider with boundary (Strand(oriented=0, colour='black'), ...)
+        The spherical spider with boundary [(0, 'black'), (0, 'black')]
         sage: SphericalSpider([])
-        The spherical spider with boundary ()
+        The spherical spider with boundary []
     """
     @staticmethod
     def __classcall__(cls, boundary):
@@ -1210,7 +1214,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
 
             sage: from sage.combinat.spherical_spider import Strand
             sage: SphericalSpider([Strand(0,'black'),Strand(0,'black')])
-            The spherical spider with boundary (Strand(oriented=0, colour='black'), ...)
+            The spherical spider with boundary [(0, 'black'), (0, 'black')]
             sage: SphericalSpider(2) == SphericalSpider([Strand(0,'black'),Strand(0,'black')])
             True
         """
@@ -1228,9 +1232,9 @@ class SphericalSpider(UniqueRepresentation, Parent):
             sage: from sage.combinat.spherical_spider import Strand
             sage: P = SphericalSpider([Strand(0,'black')]*3)
             sage: P._repr_()
-            "The spherical spider with boundary (Strand(oriented=0, colour='black'),  ...)"
+            "The spherical spider with boundary [(0, 'black'), (0, 'black'), (0, 'black')]"
         """
-        return f"The spherical spider with boundary {self.boundary}"
+        return f"The spherical spider with boundary {[(a.oriented,a.colour) for a in self.boundary]}"
 
     Element = SphericalWeb
 
@@ -1467,7 +1471,7 @@ class FreeSphericalSpider(CombinatorialFreeModule):
         EXAMPLES::FreeSphericalSpider
 
             sage: FreeSphericalSpider(QQ,[])
-            Free module generated by The spherical spider with boundary () over Rational Field
+            Free module generated by The spherical spider with boundary [] over Rational Field
             sage: FreeSphericalSpider(QQ,[]).an_element()
             0
             sage: F = FreeSphericalSpider(QQ,[])
@@ -1556,16 +1560,17 @@ class FreeSphericalSpider(CombinatorialFreeModule):
             Extend :method`glue` by bilinearity.
 
             """
-            # This could probably also be done using tensor.
-            bs = self.boundary
-            bo = other.boundary
+            from itertools import product
+            bs = self.parent().boundary
+            bo = other.parent().boundary
             if k == 0:
                 bd = bs+bo
             else:
                 bd = bs[:-k]+bo[k:]
-            codomain = FreeSphericalSpider(self.base(), bd)
-            on_basis = lambda x : codomain(self._glue_right(x, k))
-            return self.module_morphism(codomain=codomain, on_basis=on_basis)
+            L = FreeSphericalSpider(self.parent().base(), bd)
+            ms = self.monomial_coefficients()
+            mo = other.monomial_coefficients()
+            return L.sum((x.glue(y, k), ms[x]*mo[y]) for x,y in product(ms, mo))
 
         def apply_rule(self, term, replacement):
             r"""
@@ -1613,7 +1618,7 @@ class LinearSphericalSpider(FreeSphericalSpider):
 
             sage: from sage.combinat.spherical_spider import SL2_relations
             sage: LinearSphericalSpider(QQ, [], SL2_relations())
-            Free module generated by The spherical spider with boundary () over Rational Field
+            Free module generated by The spherical spider with boundary [] over Rational Field
             sage: LinearSphericalSpider(QQ,[]).an_element()
             0
             sage: F = LinearSphericalSpider(QQ,[])
@@ -1866,7 +1871,7 @@ class WebAlgebra(CombinatorialFreeModule, Algebra):
         EXAMPLES::
 
             sage: WebAlgebra(QQ,[])
-            Free module generated by The spherical spider with boundary () over Rational Field
+            Free module generated by The spherical spider with boundary [] over Rational Field
             sage: WebAlgebra(QQ,[]).an_element()
             0
         """
@@ -1992,7 +1997,7 @@ def temperley_lieb(n, R=ZZ, q=None):
         sage: temperley_lieb(2)
             Generic morphism:
                 From: Algebra of Braid group on 2 strands over Integer Ring
-                To:   Free module generated by The spherical spider with boundary (...) over ... in q over Integer Ring
+                To:   Free module generated by The spherical spider with boundary [...] over ... in q over Integer Ring
         sage: braid = BraidGroup(2).algebra(ZZ)(BraidGroup(2)([1]))
         sage: s = temperley_lieb(2)(braid); s
         q*B[The spherical web with c = (3, 2, 1, 0) and e = ().] - B[The spherical web with c = (1, 0, 3, 2) and e = ().]
