@@ -129,6 +129,11 @@ Mathematical Proceedings of the Cambridge Philosophical Society,
 Vol. 144, (2008), pp 217-240
 :arxiv:`math/0601209`
 
+.. [7] Colin Scott Hagemeyer
+Spiders and Generalized Confluence
+Dissertation, UC Davis (2018)
+:arxiv:`math/1809.10338`
+
 AUTHORS:
 
 - Bruce Westbury (2021): initial version
@@ -182,7 +187,15 @@ class halfedge():
         self.crossing = crossing
 
     def __hash__(self):
-        return hash(self.strand)
+        r"""
+        A hash function for :class:`halfedge`
+
+        EXAMPLES::
+
+            sage: from sage.combinat.spherical_spider import halfedge
+            sage: halfedge().__hash__() # random
+        """
+        return hash((self.strand, self.crossing))
 
     def _repr_(self):
         """
@@ -193,7 +206,7 @@ class halfedge():
         sage: from sage.combinat.spherical_spider import halfedge
         sage: halfedge()._repr_()
         '(0,black,False)'
-        sage: halfedge() # indirect test
+        sage: halfedge()
         <sage.combinat.spherical_spider.halfedge object at ...>
         """
         return f"({self.strand.oriented},{self.strand.colour},{self.crossing})"
@@ -228,7 +241,7 @@ class SphericalWeb(Element):
 
     def __init__(self, c:  dict, e: dict, b: list, check=True):
         r"""
-        Initialise an instance of :class`SphericalWeb`.
+        Initialise an instance of :class:`SphericalWeb`.
 
         INPUT:
 
@@ -241,7 +254,7 @@ class SphericalWeb(Element):
             sage: from sage.combinat.spherical_spider import halfedge
             sage: b = [halfedge(),halfedge()]
             sage: c = {b[0]:b[1], b[1]:b[0]}
-            sage: SphericalWeb(c, {}, b)
+            sage: SphericalWeb(c, dict([]), b)
             The spherical web with c = (1, 0), e = ()
              and edges ().
         """
@@ -399,7 +412,7 @@ class SphericalWeb(Element):
         r"""
         A canonical labelling of the elements of ``self``.
 
-        This returns two lists of integers such that ``self``
+        This returns two lists of integers and a list of strands such that ``self``
         can be recovered, up to isomorphism, from these two sequences.
 
         Let ``self`` have `n` elements and `k` boundary elements.
@@ -417,12 +430,7 @@ class SphericalWeb(Element):
             (7, 10, 9, 4, 11, 6, 5, 8)
             sage: hn
             ('(0,black,False)',
-             '(0,black,False)',
-             '(0,black,False)',
-             '(0,black,False)',
-             '(0,black,False)',
-             '(0,black,False)',
-             '(0,black,False)',
+             ...
              '(0,black,False)')
         """
         b = self.b
@@ -438,7 +446,7 @@ class SphericalWeb(Element):
 
     def __hash__(self):
         r"""
-        Overload the :method:`__hash__`.
+        Overload the :meth:`__hash__`.
 
         This is needed to put a :class:`SphericalWeb` into a :class:`set`
         or to use it as a key in a :class:`dict'.
@@ -474,9 +482,12 @@ class SphericalWeb(Element):
             ...
             TypeError: '<' not supported between ... and 'SphericalWeb'
 
-        TODO::
+        There is a problem with this as :meth:`canonical` does not
+        see anything not conected to the boundary.
 
-            This should take the parent and/or type into account.
+            sage: S = SphericalSpider([])
+            sage: S.loop(Strand()) == S.empty()
+            True
         """
         if op == op_EQ or op == op_NE:
             return richcmp(self.canonical(), other.canonical(), op)
@@ -505,32 +516,32 @@ class SphericalWeb(Element):
             initial = tuple([initial])
         else:
             initial = tuple(initial)
-        if not set(initial).issubset(self.cp):
+        if not set(initial).issubset(self.cp.keys()):
             raise ValueError("initial must be a subset of the set of elements")
 
         c = self.cp
         e = self.e
-        b = self.b
+        #b = self.b
 
         visited = list(initial)
         new = list()
         flag = True
         while flag:
             flag = False
-            for a in visited:
-                b = c[a]
-                while b not in visited:
-                    new.append(b)
-                    yield b
+            for u in visited:
+                v = c[u]
+                while v not in visited:
+                    new.append(v)
+                    yield v
                     flag = True
-                    b = c[b]
+                    v = c[v]
             visited += new
-            for a in visited:
-                if a in e:
-                    b = e[a]
-                    if b not in visited:
-                        new.append(b)
-                        yield b
+            for u in visited:
+                if u in e:
+                    v = e[u]
+                    if v not in visited:
+                        new.append(v)
+                        yield v
                         flag = True
             visited += new
             new = list()
@@ -553,8 +564,7 @@ class SphericalWeb(Element):
             (5, 4)
         """
         st = x.strand
-        xd = Strand(-st.oriented, st.colour)
-        if y.strand != xd:
+        if y.strand != Strand(-st.oriented, st.colour):
             raise ValueError(f"{x.strand} and {y.strand} must be dual")
 
         u = halfedge(y.strand)
@@ -601,16 +611,18 @@ class SphericalWeb(Element):
             sage: u.glue(v,0)
             The spherical web with c = (1, 2, 0, 4, 5, 3), e = ()
              and edges ().
+            sage: u.glue(v,-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: n=-1 cannot be negative
             sage: u.glue(v,4)
             Traceback (most recent call last):
             ...
             ValueError: n=4 is too large
         """
-        #if n < 0:
-        #    raise ValueError(f"n={n} cannot be negative")
-        #parent = self.parent()
-        #if parent != other.parent():
-        #    raise ValueError(f"the two parents {self.parent()} and {other.parent()} are different")
+        if n < 0:
+            raise ValueError(f"n={n} cannot be negative")
+
         if n > len(self.b) or n > len(other.b):
             raise ValueError(f"n={n} is too large")
 
@@ -884,9 +896,9 @@ class SphericalWeb(Element):
         c = self.cp
         e = self.e
         G = Graph({a:[c[a]] for a in c})
-        # This adds each edge twice.
         for a in e:
-            G.add_edge(a,e[a],'e')
+            if not G.has_edge(e[a], a, "e"):
+                G.add_edge(a, e[a], "e")
         return G
 
     def show(self):
@@ -896,9 +908,9 @@ class SphericalWeb(Element):
 
             sage: from sage.combinat.spherical_spider import Strand
             sage: SphericalSpider([Strand()]*3).vertex().show()
-            Graphics object consisting of 4 graphics primitives
+            Graphics object consisting of 7 graphics primitives
         """
-        return self.to_graph().plot(vertex_labels=False)
+        return self.to_graph().plot(vertex_labels=False, edge_labels=True)
 
     def _layout(self):
         r"""
@@ -1060,6 +1072,17 @@ class SphericalWeb(Element):
 
         return result
 
+    def to_snappy():
+        r"""
+        If SnapPy is installed (see https://snappy.math.uic.edu/installing.html)
+        then construct the link from the web. For information on planar diagrams
+        in SnapPy see https://snappy.math.uic.edu/spherogram.html
+        """
+        # The documentation in  mod:`sage.misc.package` says not to use this but to use
+        # the framework in :mod:`sage.features` instead. I need some help with this.
+        if not is_package_installed('snappy'):
+            raise ValueError("This requires the optional package SnapPy.")
+
 #### End of methods for working with webs ####
 
 #### Start of methods for rewriting ####
@@ -1195,6 +1218,14 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
+            sage: from sage.combinat.spherical_spider import Strand
+            sage: S = SphericalSpider([])
+            sage: term = S.loop(Strand())
+            sage: delta = PolynomialRing(ZZ, 'delta').gen()
+            sage: L = FreeSphericalSpider(delta.parent(),[])
+            sage: replacement = delta * L(S.empty())
+            sage: S.loop(Strand()).apply_rule(S.loop(Strand()), replacement)
+
         """
         try:
             D = next(self.search(term))
@@ -1281,6 +1312,27 @@ class SphericalSpider(UniqueRepresentation, Parent):
         return SphericalWeb(c,e,b)
 
     @staticmethod
+    def crossing():
+        r"""
+        Construct an unoriented crossing.
+
+        EXAMPLES::
+
+            sage: s = SphericalSpider([]).crossing(); s
+            The spherical web with c = (1, 2, 3, 0), e = ()
+             and edges ().
+            sage: s.show()
+            Graphics object consisting of 9 graphics primitives
+        """
+        b = [None]*4
+        for i in range(2):
+            b[2*i] = halfedge(Strand(), False)
+            b[2*i+1] = halfedge(Strand(), True)
+        c = {b[i-1]:b[i] for i in range(4)}
+
+        return SphericalWeb(c, dict([]), b)
+
+    @staticmethod
     def loop(st: Strand):
         r"""
         Construct a loop.
@@ -1320,7 +1372,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
 
             sage: from sage.combinat.spherical_spider import Strand
             sage: u = SphericalSpider([Strand(0,'black')]*3).vertex()
-            sage: SphericalSpider(tuple([])).polygon([u,u,u])
+            sage: SphericalSpider([]).polygon([u,u,u])
             The spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2), e = (6, 7, 8, 3, 4, 5)
              and edges ('(0,black,False)', ..., '(0,black,False)').
             sage: SphericalSpider([]).polygon([])
@@ -1342,7 +1394,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
         c = reduce(lambda r, s: {**r, **s}, [a.cp for a in corners])
         e = reduce(lambda r, s: {**r, **s}, [a.e for a in corners])
 
-        for u,v in zip(corners,corners[1:]):
+        for u,v in zip(corners, corners[1:]):
             x = u.b[-1]
             y = v.b[0]
             c,e = SphericalWeb._stitch(c,e,x,y)
@@ -1353,6 +1405,27 @@ class SphericalSpider(UniqueRepresentation, Parent):
 
         b = sum([list(a.b[1:-1]) for a in corners],[])
         return SphericalWeb(c, e, b)
+
+    @staticmethod
+    def trefoil():
+        r"""
+        The trefoil as an unoriented long knot.
+
+        EXAMPLES::
+
+            sage: SphericalSpider([]).trefoil()
+            The spherical web with c = (2, 5, 3, 4, 0, 6, 7, 1, 11, 8, 9, 10), e = (7, 8, 9, 10, 11, 2, 3, 4, 5, 6)
+             and edges ('(0,black,True)', '(0,black,False)',  ..., '(0,black,True)', '(0,black,False)').
+            sage: SphericalSpider([]).trefoil().show()
+            Graphics object consisting of 35 graphics primitives
+        """
+        s = SphericalSpider([]).crossing()
+        #s.b[0].crossing = True
+        #s.b[2].crossing = True
+
+        result = SphericalSpider([]).polygon([s,s,s]).rotate(1)
+        cap = SphericalSpider([Strand()]*2).vertex()
+        return result.glue(cap.glue(cap,0),4)
 
     @staticmethod
     def from_permutation(pi, baxter=True):
@@ -1442,7 +1515,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
     @staticmethod
     def from_Gauss_code(G):
         r"""
-        Construct a knot diagram from A Gauss code.
+        Construct the shadow diagram from a Gauss code.
 
         EXAMPLES::
 
@@ -1473,6 +1546,27 @@ class SphericalSpider(UniqueRepresentation, Parent):
             c.update({h[2*r]:h[2*r+1], h[2*r+1]:h[2*s], h[2*s]:h[2*s+1], h[2*s+1]:h[2*r]})
 
         return SphericalWeb(c,e,[])
+
+    @staticmethod
+    def from_snappy():
+        r"""
+        If SnapPy is installed (see https://snappy.math.uic.edu/installing.html)
+        then construct the web from the link. For information on planar diagrams
+        in SnapPy see https://snappy.math.uic.edu/spherogram.html
+
+        EXAMPLES::
+
+            sage: SphericalSpider([]).from_snappy()
+            Traceback (most recent call last):
+            ...
+            ValueError: This requires the optional package SnapPy.
+        """
+        # The documentation in  mod:`sage.misc.package` says not to use this but to use
+        # the framework in :mod:`sage.features` instead. I need some help with this.
+        from sage.misc.package import is_package_installed
+
+        if not is_package_installed('snappy'):
+            raise ValueError("This requires the optional package SnapPy.")
 
 #### End of Parent ####
 
@@ -1524,7 +1618,7 @@ class FreeSphericalSpider(CombinatorialFreeModule):
 
     def rotate(self, k):
         r"""
-        Extend :method'rotate' by linearity
+        Extend :meth:'rotate' by linearity
 
         EXAMPLES::
 
@@ -1563,7 +1657,7 @@ class FreeSphericalSpider(CombinatorialFreeModule):
 
         def rotate(self, k):
             r"""
-            Extend :method'rotate' by linearity
+            Extend :meth:'rotate' by linearity
 
             EXAMPLES::
 
@@ -1595,7 +1689,7 @@ class FreeSphericalSpider(CombinatorialFreeModule):
 
         def glue(self, other, k):
             r"""
-            Extend :method`glue` by bilinearity.
+            Extend :meth:`glue` by bilinearity.
 
             """
             from itertools import product
@@ -1623,7 +1717,7 @@ class FreeSphericalSpider(CombinatorialFreeModule):
 
         def simplify(self, term, replacement):
             r"""
-            Simplify by repeatedly applying :method'apply_rule'
+            Simplify by repeatedly applying :meth:'apply_rule'
 
             EXAMPLES::
 
@@ -1716,7 +1810,7 @@ def A2_relations(delta=None):
         -delta*B[The spherical web with c = (1, 0), e = ()
         and edges ().]),
         (The spherical web with c = (4, 6, 8, 10, 5, 0, 7, 1, 9, 2, 11, 3), e = (7, 10, 9, 4, 11, 6, 5, 8)
-        and edges ('(-1,black,False)', '(-1,black,False)', '(1,black,False)', '(1,black,False)', '(-1,black,False)', '(-1,black,False)', '(1,black,False)', '(1,black,False)').,
+        and edges ('(-1,black,False)', ..., '(1,black,False)').,
         B[The spherical web with c = (1, 0, 3, 2), e = ()
         and edges ().] + B[The spherical web with c = (3, 2, 1, 0), e = ()
         and edges ().]))
@@ -1773,7 +1867,7 @@ def B2_relations(delta=None):
         (-delta-2)*B[The spherical web with c = (1, 0), e = ()
         and edges ().]),
         (The spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2), e = (6, 7, 8, 3, 4, 5)
-        and edges ('(0,green,False)', '(0,green,False)', '(0,green,False)', '(0,green,False)', '(0,green,False)', '(0,green,False)').,
+        and edges ('(0,green,False)', ..., '(0,green,False)').,
         0))
     """
     if delta == None:
@@ -1831,29 +1925,22 @@ def G2_relations(delta=None):
         (-delta^3-delta^2+2*delta+2)*B[The spherical web with c = (1, 0), e = ()
         and edges ().]),
         (The spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2), e = (6, 7, 8, 3, 4, 5)
-        and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').,
+        and edges ('(0,black,False)', '(0,black,False)', ..., '(0,black,False)').,
         (delta^2-1)*B[The spherical web with c = (1, 2, 0), e = ()
         and edges ().]),
         (The spherical web with c = (4, 6, 8, 10, 5, 0, 7, 1, 9, 2, 11, 3), e = (7, 10, 9, 4, 11, 6, 5, 8)
-        and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').,
+        and edges ('(0,black,False)', ..., '(0,black,False)', '(0,black,False)').,
         -delta*B[The spherical web with c = (1, 4, 3, 5, 0, 2), e = (5, 4)
         and edges ('(0,black,False)', '(0,black,False)').] - delta*B[The spherical web with c = (4, 2, 5, 0, 3, 1), e = (5, 4)
         and edges ('(0,black,False)', '(0,black,False)').] + (delta^2-1)*B[The spherical web with c = (1, 0, 3, 2), e = ()
         and edges ().] + (delta^2-1)*B[The spherical web with c = (3, 2, 1, 0), e = ()
         and edges ().]),
         (The spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4), e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11)
-        and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').,
+        and edges ('(0,black,False)', ..., '(0,black,False)').,
         B[The spherical web with c = (1, 2, 0, 4, 3), e = ()
         and edges ().] + B[The spherical web with c = (1, 4, 3, 2, 0), e = ()
-        and edges ().] + B[The spherical web with c = (3, 2, 1, 4, 0), e = ()
-        and edges ().] + B[The spherical web with c = (1, 0, 3, 4, 2), e = ()
-        and edges ().] + B[The spherical web with c = (4, 2, 3, 1, 0), e = ()
-        and edges ().] - B[The spherical web with c = (1, 5, 6, 4, 8, 0, 7, 2, 3), e = (7, 8, 5, 6)
-        and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').] - B[The spherical web with c = (5, 6, 3, 8, 0, 4, 7, 1, 2), e = (7, 8, 5, 6)
-        and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').] - B[The spherical web with c = (5, 2, 7, 4, 8, 6, 0, 1, 3), e = (7, 8, 5, 6)
-        and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').] - B[The spherical web with c = (1, 5, 3, 6, 7, 0, 2, 8, 4), e = (7, 8, 5, 6)
-        and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').] - B[The spherical web with c = (5, 2, 6, 7, 0, 4, 1, 8, 3), e = (7, 8, 5, 6)
-        and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').]))
+        ...
+        and edges ('(0,black,False)', ..., '(0,black,False)').]))
     """
     if delta == None:
         delta = PolynomialRing(ZZ, 'delta').gen()
