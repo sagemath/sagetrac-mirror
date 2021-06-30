@@ -4,25 +4,20 @@ Rtree
 Description
 -----------
 
-Rtree is a ctypes Python wrapper of libspatialindex that provides a number of advanced spatial indexing features for the spatially curious Python user. These features include:
-
-Nearest neighbor search
-Intersection search
-Multi-dimensional indexes
-Clustered indexes (store Python pickles directly with index entries)
-Bulk loading
-Deletion
-Disk serialization
-Custom storage implementation (to implement spatial indexing in ZODB, for example)
-
+Rtree is a ctypes Python wrapper of libspatialindex that provides a number of advanced spatial indexing features for the spatially curious Python user.
 License
 -------
 
-AABBTree is open source and freely available under the terms of the MIT license.
+MIT license.
 
+
+Upstream Contact
+----------------
+
+https://pypi.org/project/Rtree/
 
 Dependencies
 ------------
 
-Python
-
+* Python
+* libspatialindex
