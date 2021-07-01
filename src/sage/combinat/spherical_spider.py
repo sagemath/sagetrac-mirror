@@ -1098,10 +1098,23 @@ class SphericalWeb(Element):
             sage: len(list(SphericalSpider([]).polygon([u]*4).search(u)))
             12
 
+        TESTS::
+
+        sage: from sage.combinat.spherical_spider import Strand
+            sage: S = SphericalSpider([])
+            sage: list(S.loop(Strand()).search(S.loop(Strand())))
+            Traceback (most recent call last):
+                ...
+            ValueError: The web h must have a non-empty boundary.
+
         TODO::
+
+        Check h is connected
 
         This should be rewritten to use :meth:``_traversal``.
         """
+        if len(h.b) == 0:
+            raise ValueError("The web h must have a non-empty boundary.")
 
         def test(x):
             flag = True
@@ -1218,20 +1231,42 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: from sage.combinat.spherical_spider import Strand
-            sage: S = SphericalSpider([])
-            sage: term = S.loop(Strand())
-            sage: delta = PolynomialRing(ZZ, 'delta').gen()
-            sage: L = FreeSphericalSpider(delta.parent(),[])
-            sage: replacement = delta * L(S.empty())
-            sage: S.loop(Strand()).apply_rule(S.loop(Strand()), replacement)
-
+            #sage: from sage.combinat.spherical_spider import Strand
+            #sage: S = SphericalSpider([])
+            #sage: term = S.loop(Strand())
+            #sage: delta = PolynomialRing(ZZ, 'delta').gen()
+            #sage: L = FreeSphericalSpider(delta.parent(),[])
+            #sage: replacement = delta * L(S.empty())
+            #sage: S.loop(Strand()).apply_rule(S.loop(Strand()), replacement)
         """
         try:
             D = next(self.search(term))
             return self.replace_linear(replacement, D, term)
         except StopIteration:
             return self
+
+    def remove_loops(self):
+        r"""
+        Return a sphericalweb with no loops and the number of loops in ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.spherical_spider import Strand
+            sage: SphericalSpider([]).loop(Strand()).remove_loops()
+            (A closed spherical web with 0 edges., 1)
+            sage: SphericalSpider([]).empty().remove_loops()
+            (A closed spherical web with 0 edges., 0)
+        """
+        web = copy(self)
+        c = web.cp
+        e = web.e
+
+        loops = [u for u in c if c[c[u]] == u]
+        for u in loops:
+            c.pop(u)
+            e.pop(u)
+
+        return SphericalWeb(c,e,web.b), len(loops)//2
 
 #### End  of methods for rewriting ####
 
