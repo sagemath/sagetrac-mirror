@@ -10,19 +10,19 @@ such that the images $s_i$ of the braid generators satisfy a cubic equation:
     s_i^3 = u s_i^2 - v s_i + w
 
 Here $u, v, w$ are elements in an arbitrary integral domain and $i$ is a positive
-integer less than $n$, the number of the braid group's strands. By the analogue to the
-*Iwahori Hecke algebras* (see :class:`~sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra`),
-in which the braid generators satisfy a quadratic relation these algebras have been called
-*cubic Hecke algebras*. The relations inherited from the braid group are:
+integer less than $n$, the number of the braid group's strands. By the analogue
+to the *Iwahori Hecke algebras* (see :class:`~sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra`),
+in which the braid generators satisfy a quadratic relation these algebras have been
+called *cubic Hecke algebras*. The relations inherited from the braid group are:
 
 .. MATH::
 
     s_i s_{i+1} s_i = s_{i+1} s_i s_{i+1} \mbox{ where } 1\leq i < n-1 \mbox{ and }
     s_i s_j = s_j s_i \mbox{ where } 1 \leq i < j - 1 < n - 1.
 
-The algebra epimorphism from the braid group algebra over the same base ring is realized
-inside the element constructor of the present class, for example in the case of the 3
-strand cubic Hecke algebra::
+The algebra epimorphism from the braid group algebra over the same base ring is
+realized inside the element constructor of the present class, for example in the
+case of the 3 strand cubic Hecke algebra::
 
     sage: CHA3 = algebras.CubicHecke(3)
     sage: BG3 = CHA3.braid_group()
@@ -33,36 +33,41 @@ strand cubic Hecke algebra::
     + ((u^2*v-v^2)/w)*c0*c1*c0^-1 + (-u^2)*c0^-1*c1 + u*c1*c0^-1*c1
     + u*v*c0*c1^-1*c0^-1
 
-If the ring elements $u, v, w$ (which will be called the *cubic equation parameters*
-in the sequel) are taken to be $u = v = 0, w = 1$ the cubic Hecke algebra specializes to the
-group algebra of the *cubic braid group*, which is the factor group of the Artin braid
-group under setting the generators order to be three. A sage-class to handle these groups
-is attached and can be obtained by :meth:`CubicHeckeAlgebra.cubic_braid_group`.
+If the ring elements $u, v, w$ (which will be called the *cubic equation
+parameters* in the sequel) are taken to be $u = v = 0, w = 1$ the cubic Hecke
+algebra specializes to the group algebra of the *cubic braid group*, which is
+the factor group of the Artin braid group under setting the generators order to
+be three. A sage-class to handle these groups is attached and can be obtained by
+:meth:`CubicHeckeAlgebra.cubic_braid_group`.
 
-It is well known, that these algebras are free of finite rank as long as the number of braid
-generators is less than six and infinite dimensional else wise. In the former (non trivial)
-cases they are also known as *cyclotomic Hecke algebras* corresponding to the complex reflection
-groups having Shepard-Todd number $4, 25$ and $32$.
+It is well known, that these algebras are free of finite rank as long as the
+number of braid generators is less than six and infinite dimensional else wise.
+In the former (non trivial) cases they are also known as *cyclotomic Hecke
+algebras* corresponding to the complex reflection groups having Shepard-Todd
+number $4, 25$ and $32$.
 
-Since the *Broué, Malle, Rouquiere* conjecture has been proved in all these cases (for references
-see [Mar2012]_) there exists a finite free basis of the cubic Hecke algebra which is in
-bijection to the cubic braid group and compatible with the specialization to the cubic braid group
-algebra as explained above.
+Since the *Broué, Malle, Rouquiere* conjecture has been proved in all these cases
+(for references see [Mar2012]_) there exists a finite free basis of the cubic Hecke
+algebra which is in bijection to the cubic braid group and compatible with the
+specialization to the cubic braid group algebra as explained above.
 
-For the algebras corresponding to braid groups of less than five strands such a basis has been
-calculated by Ivan Marin. This one is used here. In the case of 5 strands such a basis is not
-available, right now. Instead the elements of the cubic braid group class themselves are used as
-basis elements. This is also the case when the cubic braid group is infinite, even though it is
-not known if these elements span all of the cubic Hecke algebra.
+For the algebras corresponding to braid groups of less than five strands such a
+basis has been calculated by Ivan Marin. This one is used here. In the case of 5
+strands such a basis is not available, right now. Instead the elements of the cubic
+braid group class themselves are used as basis elements. This is also the case when
+the cubic braid group is infinite, even though it is not known if these elements
+span all of the cubic Hecke algebra.
 
-Accordingly, be aware that the module embedding of the group algebra of the cubic braid groups
-is known to be an isomorphism of free modules only in the cases of less than five strands.
+Accordingly, be aware that the module embedding of the group algebra of the cubic
+braid groups is known to be an isomorphism of free modules only in the cases of less
+than five strands.
 
 EXAMPLES:
 
-1. Consider the obstruction ``b`` of the *triple quadratic algebra* from section 2.6 of [Mar2018]_.
-We verify that the third power of it is a scalar multiple of itself (explicitly ``2*w^2`` times the
-*Schur element* of the three dimensional irreducible representation)::
+1. Consider the obstruction ``b`` of the *triple quadratic algebra* from section
+2.6 of [Mar2018]_. We verify that the third power of it is a scalar multiple of
+itself (explicitly ``2*w^2`` times the *Schur element* of the three dimensional
+irreducible representation)::
 
     sage: CHA3 = algebras.CubicHecke(3)
     sage: c1, c2 = CHA3.gens()
@@ -83,8 +88,9 @@ We verify that the third power of it is a scalar multiple of itself (explicitly 
     sage: b3 == f*b
     True
 
-2. Defining the cubic Hecke algebra on 6 strands will need some seconds for initializing. But
-than you can do calculations inside the infinite algebra as well::
+2. Defining the cubic Hecke algebra on 6 strands will need some seconds for
+initializing. But than you can do calculations inside the infinite algebra as
+well::
 
     sage: CHA6 = algebras.CubicHecke(6)                                   # long time
     sage: CHA6.inject_variables()                                         # long time
@@ -191,8 +197,6 @@ class MarkovTraceMuduleBasis(Enum):
             return tups > tupo
         return NotImplemented
 
-
-
     def description(self):
         r"""
         Return a description of link corresponding to this basis element.
@@ -227,9 +231,10 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
     r"""
     Element class of :class:`CubicHeckeAlgebra`.
 
-    It is inherited from :class:`CombinatorialFreeModule.Element` according to the parent class being
-    inherited from :class:`CombinatorialFreeModule`. The construction of the elements is
-    realized via :meth:`_element_constructor_` of the parent class.
+    It is inherited from :class:`CombinatorialFreeModule.Element` according to
+    the parent class being inherited from :class:`CombinatorialFreeModule`. The
+    construction of the elements is realized via :meth:`_element_constructor_`
+    of the parent class.
 
     For more information see the parent class.
 
@@ -280,13 +285,13 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
     def Tietze(self):
         r"""
-        Return the Tietze presentation of ``self`` if ``self`` belongs to the basis of its parent
-        and ``None`` else.
+        Return the Tietze presentation of ``self`` if ``self`` belongs to the
+        basis of its parent and ``None`` else.
 
         OUTPUT:
 
-        A tuple representing the pre image braid of ``self`` if ``self`` is a monomial from the basis
-        ``None`` else-wise
+        A tuple representing the pre image braid of ``self`` if ``self`` is a
+        monomial from the basis ``None`` else-wise
 
         EXAMPLES::
 
@@ -311,7 +316,8 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
     def max_len(self):
         r"""
-        Return the maximum of the length of Tietze expressions among the support of ``self``.
+        Return the maximum of the length of Tietze expressions among the support
+        of ``self``.
 
         EXAMPLES::
 
@@ -329,12 +335,13 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
     def braid_group_algebra_pre_image(self):
         r"""
-        Return a pre image of ``self`` in the group algebra of the braid_group (with respect to the
-        basis given by Iwan Marin).
+        Return a pre image of ``self`` in the group algebra of the braid_group
+        (with respect to the basis given by Iwan Marin).
 
         OUTPUT:
 
-        The pre image of ``self`` as instance of the element class of the group algebra of the BraidGroup
+        The pre image of ``self`` as instance of the element class of the group
+        algebra of the BraidGroup
 
         EXAMPLES::
 
@@ -363,11 +370,13 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
     def cubic_braid_group_algebra_pre_image(self):
         r"""
-        Return a pre image of ``self`` in the group algebra of the cubic_braid_group.
+        Return a pre image of ``self`` in the group algebra of the cubic braid
+        group.
 
         OUTPUT:
 
-        The pre image of ``self`` as instance of the element class of the group algebra of the CubicBraidGroup
+        The pre image of ``self`` as instance of the element class of the group
+        algebra of the :class:`CubicBraidGroup`.
 
         EXAMPLES::
 
@@ -399,34 +408,39 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         r"""
         Return certain types of matrix representations of ``self``.
 
-        The absolutely irreducible representations of the cubic Hecke algebra are constructed using
-        the *GAP3*-Interface and the *CHEVIE* package if GAP3 and CHEVIE are installed on the system.
-        Furthermore, the representations given on Ivan Marin's homepage are used:
+        The absolutely irreducible representations of the cubic Hecke algebra
+        are constructed using the *GAP3*-Interface and the *CHEVIE* package if
+        GAP3 and CHEVIE are installed on the system. Furthermore, the
+        representations given on Ivan Marin's homepage are used:
 
         http://www.lamfa.u-picardie.fr/marin/softs/H4
 
         INPUT:
 
-        -  ``subdivide``  -- boolean (default = False): this boolean is passed to the block_matrix
-           function
+        -  ``subdivide``  -- boolean (default = False): this boolean is passed
+           to the block_matrix function
         -  ``representation_type`` -- instance of enum :class:`RepresentationType`.
-           This can be obtained by the attribute :attr:`CubicHeckeAlgebra.repr_type` of ``self``. The following values are possible:
+           This can be obtained by the attribute :attr:`CubicHeckeAlgebra.repr_type`
+           of ``self``. The following values are possible:
 
-           -  ``RegularLeft``     --  (regular left  representation given on the above URL)
-           -  ``RegularRight``    --  (regular right representation given on the above URL)
-           -  ``SplitIrredChevie`` -- (split irreducible representations given via GAP3 CHEVIE)
-           -  ``SplitIrredMarin`` --  (split irreducible representations given on the above URL)
-           -  default:  ``SplitIrredChevie`` taken if GAP3 and CHEVIE are installed on the system, otherwise the
-              default will be ``SplitIrredMarin``
-        -  ``original``   -- boolean (default = False): if set to true the base_ring of the matrix will be the
-           generic base_ring resp. generic extension ring (for the split versions) of the parent of ``self``
+           -  ``RegularLeft``     --  (regular left repr. from the above URL)
+           -  ``RegularRight``    --  (regular right repr. from the above URL)
+           -  ``SplitIrredChevie`` -- (split irred. repr. via CHEVIE)
+           -  ``SplitIrredMarin`` --  (split irred. repr. from the above URL)
+           -  default:  ``SplitIrredChevie`` taken if GAP3 and CHEVIE are installed
+              on the system, otherwise the default will be ``SplitIrredMarin``
+        -  ``original``   -- boolean (default = False): if set to true the base
+           ring of the matrix will be the generic base_ring resp. generic extension
+           ring (for the split versions) of the parent of ``self``
 
         OUTPUT:
 
         An instance of the class :class:`~sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep.CubicHeckeMatrixRep`
-        which is inherited from :class:`~sage.matrix.matrix_generic_dense.Matrix_generic_dense`. In the case of the irreducible representations
-        the matrix is given as a block matrix. Each single irreducible can be obtained as item indexed by the members of the enum
-        :class:`AbsIrreducibeRep` available via :attr:`CubicHeckeAlgebra.irred_repr`. For details type: ``CubicHeckeAlgebra.irred_repr?``.
+        which is inherited from :class:`~sage.matrix.matrix_generic_dense.Matrix_generic_dense`.
+        In the case of the irreducible representations the matrix is given as a
+        block matrix. Each single irreducible can be obtained as item indexed by
+        the members of the enum :class:`AbsIrreducibeRep` available via
+        :attr:`CubicHeckeAlgebra.irred_repr`. For details type: ``CubicHeckeAlgebra.irred_repr?``.
 
 
         EXAMPLES::
@@ -507,8 +521,9 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
     def revert_orientation(self):
         r"""
-        Return the image of ``self`` under the anti involution reverting the orientation of braids.
-        See also :meth:`CubicHeckeAlgebra.orientation_antiinvolution` of the parent class.
+        Return the image of ``self`` under the anti involution reverting the
+        orientation of braids. See also :meth:`CubicHeckeAlgebra.orientation_antiinvolution`
+        of the parent class.
 
         EXAMPLES::
 
@@ -534,8 +549,8 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
         ..NOTE::
 
-            Today it is not known if these expressions themself belong to a Markov trace,
-            i.e. corresponde to a polynomial link invariant.
+            Currently it is not known if these expressions themself belong to
+            a Markov trace, i.e. corresponde to a polynomial link invariant.
 
         EXAMPLES::
 
@@ -589,56 +604,71 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
 class CubicHeckeAlgebra(CombinatorialFreeModule):
     r"""
-    Return the Cubic-Hecke algebra with respect to the Artin braid group on $n$ strands.
+    Return the Cubic-Hecke algebra with respect to the Artin braid group on
+    $n$ strands.
 
-    This is a quotient of the group algebra of the Artin braid group, such that the images $s_i$ ($1 \leq i < n$) of the
-    braid generators satisfy a cubic equation (see module header :mod:`~sage.algebras.hecke_algebras.cubic_hecke_algebra`
-    for more information, in a session type ``sage.algebras.hecke_algebras.cubic_hecke_algebra?``):
+    This is a quotient of the group algebra of the Artin braid group, such that
+    the images $s_i$ ($1 \leq i < n$) of the braid generators satisfy a cubic
+    equation (see module header :mod:`~sage.algebras.hecke_algebras.cubic_hecke_algebra`
+    for more information, in a session type
+    ``sage.algebras.hecke_algebras.cubic_hecke_algebra?``):
 
     .. MATH::
 
         s_i^3 = u s_i^2 - v s_i + w
 
-    The base ring of this algebra can be specified by giving optional keywords described below. If no keywords are given the
-    base ring will be an instance of the special class :class:`CubicHeckeRingOfDefinition` which is constructed as the polynomial
-    ring in $u, v$ over the Laurent polynomial ring in $w$ over the integers. This ring will be called the *ring of
-    definition* or sometimes for short *generic base ring*. But note, that in this context the word *generic* should
-    not remind in a generic point of the corresponding scheme.
+    The base ring of this algebra can be specified by giving optional keywords
+    described below. If no keywords are given the base ring will be an instance
+    of the special class :class:`CubicHeckeRingOfDefinition` which is constructed
+    as the polynomial ring in $u, v$ over the Laurent polynomial ring in $w$ over
+    the integers. This ring will be called the *ring of definition* or sometimes
+    for short *generic base ring*. But note, that in this context the word
+    *generic* should not remind in a generic point of the corresponding scheme.
 
-    In addition to the base ring another ring containing the roots ($a, b$ and $c$) of the cubic equation will be needed
-    to handle the split irreducible representations. This ring will be called *extension ring*. Generically, the extension
-    ring will be an instance of the special class
+    In addition to the base ring another ring containing the roots ($a, b$ and $c$)
+    of the cubic equation will be needed to handle the split irreducible
+    representations. This ring will be called *extension ring*. Generically, the
+    extension ring will be an instance of the special class
     :class:`~sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring.CubicHeckeExtensionRing`
-    which is constructed as the Laurent polynomial ring in $a, b$ and $c$ over the integers adjoined with a primitive third
-    root of unity. A special form of this *generic extension ring* is constructed as an instance of
-    :class:`~sage.algebras.splitting_algebra.SplittingAlgebra` for the roots of the cubic equation and a primitive third
-    root of unity over the ring of definition. This ring will be called the *default extension ring*.
+    which is constructed as the Laurent polynomial ring in $a, b$ and $c$ over
+    the integers adjoined with a primitive third root of unity. A special form
+    of this *generic extension ring* is constructed as an instance of
+    :class:`~sage.algebras.splitting_algebra.SplittingAlgebra` for the roots of
+    the cubic equation and a primitive third root of unity over the ring of
+    definition. This ring will be called the *default extension ring*.
 
-    This class uses a static and a dynamic data library. The first one is defined as instance of
-    :class:`~sage.databases.cubic_hecke_db.CubicHeckeDataBase` and contains the complete basis for the algebras with
-    less than 5 strands and various types of representation matrices of the generators. These data have been calculated by
-    Ivan Marin and have been imported from:
+    This class uses a static and a dynamic data library. The first one is defined
+    as instance of :class:`~sage.databases.cubic_hecke_db.CubicHeckeDataBase`
+    and contains the complete basis for the algebras with less than 5 strands
+    and various types of representation matrices of the generators. These data
+    have been calculated by Ivan Marin and have been imported from:
 
         http://www.lamfa.u-picardie.fr/marin/softs/
 
-    Furthermore, representation matrices can be obtained from the *CHEVIE* package of *GAP3* via the GAP3 interface
-    if GAP3 is installed inside sage. For more information on how to obtain representation matrices to elements of this
+    Furthermore, representation matrices can be obtained from the *CHEVIE* package
+    of *GAP3* via the GAP3 interface if GAP3 is installed inside sage. For more
+    information on how to obtain representation matrices to elements of this
     class see the documentation of the matrix-method of the element class:
 
         ``algebras.CubicHecke.Element?`` or ``algebras.CubicHecke.Element.matrix?``
 
-    The second library is created as instance of :class:`~sage.databases.cubic_hecke_db.CubicHeckeFileCache` and
-    used while working with the class to achieve a better performance. This file cache contains images of braids and
-    representation matrices of basis elements from former calculations. A refresh of the file cache can be done
-    using the :meth:`reset_filecache`.
+    The second library is created as instance of
+    :class:`~sage.databases.cubic_hecke_db.CubicHeckeFileCache` and used while
+    working with the class to achieve a better performance. This file cache
+    contains images of braids and representation matrices of basis elements
+    from former calculations. A refresh of the file cache can be done using
+    the :meth:`reset_filecache`.
 
     INPUT:
 
-    -  ``names`` -- string containing the names of the generators as images of the braid group generators
-    -  ``cubic_equation_parameters`` --  tuple ``(u, v, w)`` of three elements in an integral domain used as coefficients
-       in the cubic equation. If this argument is given the base ring will be set to the common parent of ``u, v, w``. In
-       addition a conversion map from the generic base ring is supplied. This keyword can also be used to change the
-       variable names of the generic base ring (see example 3 below).
+    -  ``names`` -- string containing the names of the generators as images of
+       the braid group generators
+    -  ``cubic_equation_parameters`` --  tuple ``(u, v, w)`` of three elements
+       in an integral domain used as coefficients in the cubic equation. If this
+       argument is given the base ring will be set to the common parent of
+       ``u, v, w``. In addition a conversion map from the generic base ring is
+       supplied. This keyword can also be used to change the variable names of
+       the generic base ring (see example 3 below).
     -  ``cubic_equation_roots`` --  tuple ``(a, b, c)`` of three elements in an integral domain which stand for the roots
        of the cubic equation. If this argument is given the extension ring will be set to the common parent of ``a, b, c``.
        In addition a conversion map from the generic extension ring and the generic base ring is supplied. This keyword
