@@ -468,7 +468,8 @@ class SphericalWeb(Element):
         """
         return hash((self.parent(), *self.canonical()))
 
-    def _richcmp_(self, other, op):
+    #def _richcmp_(self, other, op_EQ):
+    def __eq__(self, other):
         """
         Overload :meth:`__eq__` and :meth:`__ne__`.
 
@@ -477,24 +478,51 @@ class SphericalWeb(Element):
             sage: from sage.combinat.spherical_spider import Strand
             sage: u = SphericalSpider([Strand(0,'black')]*4).vertex()
             sage: v = SphericalSpider([Strand(0,'black')]*4).vertex()
-            sage: u is v, u == v, u != v # indirect doctest
-            (False, True, False)
+            sage: u is v, u == v
+            (False, True)
             sage: u < v # indirect doctest
             Traceback (most recent call last):
             ...
             TypeError: '<' not supported between ... and 'SphericalWeb'
 
-        There is a problem with this as :meth:`canonical` does not
-        see anything not conected to the boundary.
+        .. WARNING::
+
+            There is a problem with this as :meth:`canonical` does not
+            see anything not connected to the boundary. If this returns ``False``
+            then they are different. This returns ``True`` if the boundary components are the same
+            and the closed components have the same degrees and same face degrees.
+            So, for example, if we took two different shadow knot diagrams with the same number of vertices
+            and the same face degrees this would return ``True``.
 
             sage: S = SphericalSpider([])
             sage: S.loop(Strand()) == S.empty()
-            True
+            False
         """
-        if op == op_EQ or op == op_NE:
-            return richcmp(self.canonical(), other.canonical(), op)
+        if sorted([len(a) for a in self.vertices()]) != sorted([len(a) for a in other.vertices()]):
+            return False
 
-        return NotImplemented
+        if sorted([len(a) for a in self.faces()]) != sorted([len(a) for a in other.faces()]):
+            return False
+
+        if self.canonical() != other.canonical():
+            return False
+
+        # This should be restricted to the closed component.
+        return self.to_graph().is_isomorphic(other.to_graph(), edge_labels=True)
+
+    def __ne__(self, other):
+        """
+        Check inequality.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.spherical_spider import Strand
+            sage: u = SphericalSpider([Strand(0,'black')]*4).vertex()
+            sage: v = SphericalSpider([Strand(0,'black')]*4).vertex()
+            sage: u != v
+            False
+        """
+        return not self == other
 
 #### End of underscore methods ####
 
@@ -547,7 +575,6 @@ class SphericalWeb(Element):
                         flag = True
             visited += new
             new = list()
-        return
 
     @staticmethod
     def _stitch(c, e, x, y):
@@ -600,7 +627,7 @@ class SphericalWeb(Element):
         return SphericalWeb(result.cp, result.e, nb)
 
     def glue(self, other, n):
-        r"""Glue two ribbon graphs together.
+        r"""Glue two spherical webs together.
 
         EXAMPLES::
 
@@ -1272,7 +1299,7 @@ class SphericalWeb(Element):
 
         mc = k.monomial_coefficients()
 
-        return L.sum_of_terms([(self.replace(a, D, h), mc[a]) for a in mc])
+        return L.sum_of_terms((self.replace(a, D, h), mc[a]) for a in mc)
 
     def apply_rule(self, term, replacement):
         r"""
@@ -1733,20 +1760,25 @@ class FreeSphericalSpider(CombinatorialFreeModule):
             b = self.parent().boundary()
             L = FreeSphericalSpider(self.parent().base(), b[k:]+b[:k])
             mc = self.monomial_coefficients()
-            return L.sum_of_terms([(a.rotate(k), mc[a]) for a in mc])
+            return L.sum_of_terms((a.rotate(k), mc[a]) for a in mc)
 
-        def glue(self, other, k):
+        def glue_linear(self, other, k):
             r"""
             Extend :meth:`glue` by bilinearity.
 
             EXAMPLES::
 
-            Glue two monomials.
-
+                sage: from sage.combinat.spherical_spider import Strand
+                sage: L = FreeSphericalSpider(QQ, [])
+                sage: lp = L(SphericalSpider([]).loop(Strand()))
+                sage: lr = lp.glue_linear(lp, 0); lr
+                B[A closed spherical web with 2 edges.]
+                sage: lp.glue_linear(lp+lr, 0)
+                B[A closed spherical web with 2 edges.] + B[A closed spherical web with 3 edges.]
             """
             from itertools import product
-            bs = self.parent().boundary
-            bo = other.parent().boundary
+            bs = self.parent().boundary()
+            bo = other.parent().boundary()
             if k == 0:
                 bd = bs+bo
             else:
@@ -1754,15 +1786,27 @@ class FreeSphericalSpider(CombinatorialFreeModule):
             L = FreeSphericalSpider(self.parent().base(), bd)
             ms = self.monomial_coefficients()
             mo = other.monomial_coefficients()
-            return L.sum((x.glue(y, k), ms[x]*mo[y]) for x, y in product(ms, mo))
+            return L.sum_of_terms((x.glue(y, k), ms[x]*mo[y]) for x, y in product(ms.keys(), mo.keys()))
 
         def remove_loops(self, st: Strand, delta):
             r"""
             Remove loops of type ``st``.
 
+
+                sage: from sage.combinat.spherical_spider import Strand
+                sage: L = FreeSphericalSpider(QQ, [])
+                sage: lp = SphericalSpider([]).loop(Strand())
+                sage: L(lp).remove_loops(Strand(), 2)
+                2*B[A closed spherical web with 0 edges.]
+                sage: L(lp.glue(lp, 0)).remove_loops(Strand(), 2)
+                4*B[A closed spherical web with 0 edges.]
+                sage: u = L(lp) + L(lp.glue(lp, 0)); u
+                B[A closed spherical web with 1 edges.] + B[A closed spherical web with 2 edges.]
+                sage: u.remove_loops(Strand(), 2)
+                6*B[A closed spherical web with 0 edges.]
             """
             mc = self.monomial_coefficients()
-            D = {a: a[0].remove_loops(st)}
+            D = {a: a.remove_loops(st) for a in mc}
             L = self.parent()
 
             return L.sum_of_terms((D[a][0], delta**D[a][1]*mc[a]) for a in mc)
@@ -2240,7 +2284,11 @@ def temperley_lieb(n, R=ZZ, q=None):
         sage: t = temperley_lieb(2)(braid); t
         (q^-1)*B[The spherical web ...] - B[The spherical web ...]
         sage: s * t
-        B[The spherical web ...] - (q^-1-1+q)*B[The spherical web ...]
+        B[The spherical web with c = (3, 2, 1, 0), e = ()
+         and edges ().] - (q^-1+q)*B[The spherical web with c = (1, 0, 3, 2), e = ()
+         and edges ().] + B[The spherical web with c = (1, 0, 3, 2), e = ()
+         and edges ().]
+
         sage: s1 = temperley_lieb(3)(BraidGroup(3).algebra(ZZ)(BraidGroup(2)([1])))
         sage: s2 = temperley_lieb(3)(BraidGroup(3).algebra(ZZ)(BraidGroup(2)([1])))
         sage: s1 * s2 * s1 == s2 *s1 * s2
