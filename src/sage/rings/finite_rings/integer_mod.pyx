@@ -1504,7 +1504,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 if self == 1:
                     if all:
                         return [s*K(p*k+m.lift()) for k in range(p**(k-(2 if p==2 else 1))) for m in modp for s in sign]
-                    else: return K(modp)
+                    else:
+                        return K(modp.lift())
                 else:
                     if all: return []
                     else: raise ValueError("no nth root")
