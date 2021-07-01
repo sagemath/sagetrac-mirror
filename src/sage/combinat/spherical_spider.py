@@ -333,6 +333,8 @@ class SphericalWeb(Element):
         #    if 0 < j < i:
         #       raise ValueError("boundary is inconsistent")
 
+        # Check crossings.
+
     def normalize(self):
         r"""
         This removes nearly all vertices of degree two.
@@ -855,7 +857,7 @@ class SphericalWeb(Element):
             sage: from sage.combinat.spherical_spider import Strand
             sage: u = SphericalSpider([Strand()]*2).vertex()
             sage: v = SphericalSpider([Strand()]*4).vertex()
-            sage: v.glue(u,2).is_separable()
+            sage: v.glue(u, 2).is_separable()
             True
         """
         from itertools import product
@@ -879,6 +881,42 @@ class SphericalWeb(Element):
             False
         """
         return all(len(x) > 2 for x in self.faces())
+
+    def has_tadpole(self):
+        r"""
+        Return ``True`` if ``self`` has a genralised tadpole.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.spherical_spider import Strand
+            sage: u = SphericalSpider([Strand()]*2).vertex()
+            sage: v = SphericalSpider([Strand()]*3).vertex()
+            sage: t = v.glue(u, 2); t.has_tadpole()
+            True
+            sage: w = SphericalSpider([Strand()]*4).vertex()
+            sage: w.glue(u, 2).has_tadpole()
+            False
+            sage: t.glue(v, 1).has_tadpole()
+            True
+            sage: t.glue(t, 1).has_tadpole()
+            True
+            sage: w.glue(v, 3).has_tadpole()
+            True
+        """
+        e = self.e
+        faces = self.faces()
+
+        for f in faces:
+            if f[0] in self.b:
+                if self.cp[f[-1]] == f[0]:
+                    return True
+
+        for f in faces:
+            for a in f:
+                if a in e and e[a] in f:
+                    return True
+
+        return False
 
     def to_graph(self):
         r"""
@@ -1081,7 +1119,9 @@ class SphericalWeb(Element):
         EXAMPLES::
 
             sage: SphericalSpider([]).empty().to_snappy()
-
+            Traceback (most recent call last):
+            ...
+            ValueError: This requires the optional package SnapPy.
         """
         # The documentation in  mod:`sage.misc.package` says not to use this but to use
         # the framework in :mod:`sage.features` instead. I need some help with this.
@@ -1254,23 +1294,23 @@ class SphericalWeb(Element):
         except StopIteration:
             return self
 
-    def remove_loops(self):
+    def remove_loops(self, st: Strand):
         r"""
-        Return a sphericalweb with no loops and the number of loops in ``self``.
+        Return a spherical web with no loops and the number of loops in ``self``.
 
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: SphericalSpider([]).loop(Strand()).remove_loops()
+            sage: SphericalSpider([]).loop(Strand()).remove_loops(Strand())
             (A closed spherical web with 0 edges., 1)
-            sage: SphericalSpider([]).empty().remove_loops()
+            sage: SphericalSpider([]).empty().remove_loops(Strand())
             (A closed spherical web with 0 edges., 0)
         """
         web = copy(self)
         c = web.cp
         e = web.e
 
-        loops = [u for u in c if c[c[u]] == u]
+        loops = [u for u in c if c[c[u]] == u and u.strand == st]
         for u in loops:
             c.pop(u)
             e.pop(u)
@@ -1695,24 +1735,13 @@ class FreeSphericalSpider(CombinatorialFreeModule):
             mc = self.monomial_coefficients()
             return L.sum_of_terms([(a.rotate(k), mc[a]) for a in mc])
 
-        def _glue_right(self, diagram, k):
-            r"""
-            Extend :method`glue` by linearity.
-
-            """
-            bs = self.boundary
-            bo = diagram.boundary
-            if k == 0:
-                bd = bs+bo
-            else:
-                bd = bs[:-k]+bo[k:]
-            codomain = FreeSphericalSpider(self.base(), bd)
-            on_basis = lambda x: codomain(x.glue(diagram, k))
-            return self.module_morphism(codomain=codomain, on_basis=on_basis)
-
         def glue(self, other, k):
             r"""
             Extend :meth:`glue` by bilinearity.
+
+            EXAMPLES::
+
+            Glue two monomials.
 
             """
             from itertools import product
@@ -1726,6 +1755,29 @@ class FreeSphericalSpider(CombinatorialFreeModule):
             ms = self.monomial_coefficients()
             mo = other.monomial_coefficients()
             return L.sum((x.glue(y, k), ms[x]*mo[y]) for x, y in product(ms, mo))
+
+        def remove_loops(self, st: Strand, delta):
+            r"""
+            Remove loops of type ``st``.
+
+            """
+            mc = self.monomial_coefficients()
+            D = {a: a[0].remove_loops(st)}
+            L = self.parent()
+
+            return L.sum_of_terms((D[a][0], delta**D[a][1]*mc[a]) for a in mc)
+
+        def remove_tadpoles(self):
+            r"""
+            Remove all generalised tadpoles from ``self``.
+
+            EXAMPLES::
+
+            """
+            mc = self.monomial_coefficients()
+            L = self.parent()
+
+            return L.sum_of_terms((a, mc[a]) for a in mc if a.has_tadpole())
 
         def apply_rule(self, term, replacement):
             r"""
@@ -1763,7 +1815,17 @@ class LinearSphericalSpider(FreeSphericalSpider):
         if boundary in NN:
             boundary = [Strand()]*boundary
 
-        return super(FreeSphericalSpider, cls).__classcall__(cls, base, tuple(boundary), rewrite_rules)
+        if boundary is None:
+            bd = tuple([])
+        else:
+            bd = tuple(boundary)
+
+        if rewrite_rules is None:
+            rw = tuple([])
+        else:
+            rw = tuple(rewrite_rules)
+
+        return super(FreeSphericalSpider, cls).__classcall__(cls, base, bd, rw)
 
     def __init__(self, base, boundary, rewrite_rules):
         r"""
@@ -1783,18 +1845,6 @@ class LinearSphericalSpider(FreeSphericalSpider):
         FreeSphericalSpider.__init__(self, base, boundary)
         self.rewrite_rules = rewrite_rules
 
-    def normal_form(self):
-        r"""
-        Reduce to normal form.
-
-        """
-
-    def glue(self, other, k):
-        r"""
-        The version of glue which  applies the rewrite rules.
-
-        """
-        return lambda self, other: super(self).glue(other, k).normal_form()
 
 def SL2_relations(delta=None):
     r"""
@@ -2015,6 +2065,13 @@ def G2_relations(delta=None):
     relations.append(tuple([pentagon, ar-br]))
 
     return tuple(relations)
+
+"""
+def B3():
+
+    The `B_3` skein relations.
+
+"""
 
 """
 def F4():
