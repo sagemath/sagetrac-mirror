@@ -1169,6 +1169,10 @@ class SphericalWeb(Element):
             sage: len(list(SphericalSpider([]).polygon([u]*4).search(u)))
             12
 
+            sage: S = SphericalSpider([])
+            sage: len(list(S.trefoil().search(S.crossing())))
+            6
+
         TESTS::
 
             sage: S = SphericalSpider([])
@@ -1194,14 +1198,26 @@ class SphericalWeb(Element):
                 for a in Dm:
                     while not c[a] in Dm:
                         if a in Dm:
+                            if c[a].crossing != self.cp[Dm[a]].crossing:
+                                return False
+                            if c[a].strand != self.cp[Dm[a]].strand:
+                                return False
                             newD[c[a]] = self.cp[Dm[a]]
                         elif a in newD:
+                            if c[a].crossing != self.cp[newD[a]].crossing:
+                                return False
+                            if c[a].strand != self.cp[newD[a]].strand:
+                                return False
                             newD[c[a]] = self.cp[newD[a]]
                         a = c[a]
                 for a in Dm:
                     if a in e:
                         if not e[a] in Dm:
                             if not Dm[a] in self.e:
+                                return False
+                            if e[a].crossing != self.e[Dm[a]].crossing:
+                                return False
+                            if e[a].strand != self.e[Dm[a]].strand:
                                 return False
                             newD[e[a]] = self.e[Dm[a]]
                 if len(newD) != 0:
