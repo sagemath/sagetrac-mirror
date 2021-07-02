@@ -1244,7 +1244,7 @@ class SphericalWeb(Element):
                 if len(set(Dm.values())) == len(Dm):
                     yield Dm
 
-    def replace(self, k, D, h):
+    def replace(self, D, h, k):
         r"""
         Replace image of map D:h -> ``self`` by k
 
@@ -1253,20 +1253,12 @@ class SphericalWeb(Element):
             sage: h = SphericalSpider(3).vertex()
             sage: g = SphericalSpider([]).polygon([h]*3)
             sage: D = next(g.search(h))
-            sage: g.replace(g,D,h)
+            sage: g.replace(D, h, g)
             The spherical web with c = ..., e = (9, 10, 8, 11, 12, 5, 3, 4, 6, 7, 14, 13)
              and edges ('(0,black,False)', ..., '(0,black,False)').
         """
-        parent = self.parent()
-        if parent != k.parent():
-            raise ValueError(f"the two parents {self.parent()} and {k.parent()} are different")
-        if parent != h.parent():
-            raise ValueError(f"the two parents {self.parent()} and {h.parent()} are different")
-
-        if len(h.b) != len(k.b):
-            raise ValueError(f"boundaries of {k} and {h} must have the same length")
-        if any(u.dual().strand != v.strand for u, v in zip(h.b, k.b)):
-            raise ValueError(f"boundaries of {k} and {h} must match")
+        if h.parent() != k.parent():
+            raise ValueError(f"the two parents {h.parent()} and {k.parent()} are different")
 
         Ds = {a:halfedge(a.strand, a.crossing) for a in self.cp if not a in D.values()}
         Dk = {a:halfedge(a.strand, a.crossing) for a in k.cp}
@@ -1293,22 +1285,33 @@ class SphericalWeb(Element):
 
         return SphericalWeb(c, e, b)
 
-    def replace_linear(self, k, D, h):
+    def replace_linear(self, D, h, k):
         r"""
         Replace image of map D:h -> ``self`` by the linear combination k
 
         EXAMPLES::
 
+            sage: tr = SphericalSpider([]).trefoil()
+            sage: cs = SphericalSpider([]).crossing()
+            sage: A = LaurentPolynomialRing(ZZ, 'A').gen()
+            sage: edge = FreeSphericalSpider(A.parent(), 2).vertex()
+            sage: u = edge.glue(edge, 0)
+            sage: rp = A*u + u.rotate(1)/A
+            sage: D = next(tr.search(cs))
+            sage: tr.replace_linear(D, cs, rp)
+            A*B[The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
+             and edges (...).] + (A^-1)*B[The spherical web with c = (2, 5, 3, 4, 0, 6, 7, 1), e = (7, 6, 5, 4, 3, 2)
+             and edges (...).]
         """
         if h.parent() != k.parent().basis().keys():
             raise ValueError("boundaries are different")
 
         R = k.parent().base()
-        L = FreeSphericalSpider(R, self.parent())
+        L = FreeSphericalSpider(R, self.parent().boundary)
 
         mc = k.monomial_coefficients()
 
-        return L.sum_of_terms((self.replace(a, D, h), mc[a]) for a in mc)
+        return L.sum_of_terms([(self.replace(D, h, a), mc[a]) for a in mc])
 
     def apply_rule(self, term, replacement):
         r"""
