@@ -1296,9 +1296,8 @@ class SphericalWeb(Element):
             sage: A = LaurentPolynomialRing(ZZ, 'A').gen()
             sage: edge = FreeSphericalSpider(A.parent(), 2).vertex()
             sage: u = edge.glue(edge, 0)
-            sage: rp = A*u + u.rotate(1)/A
             sage: D = next(tr.search(cs))
-            sage: tr.replace_linear(D, cs, rp)
+            sage: tr.replace_linear(D, cs, A*u + u.rotate(1)/A)
             A*B[The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
              and edges (...).] + (A^-1)*B[The spherical web with c = (2, 5, 3, 4, 0, 6, 7, 1), e = (7, 6, 5, 4, 3, 2)
              and edges (...).]
@@ -1319,16 +1318,19 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            #sage: S = SphericalSpider([])
-            #sage: term = S.loop()
-            #sage: delta = PolynomialRing(ZZ, 'delta').gen()
-            #sage: L = FreeSphericalSpider(delta.parent(),[])
-            #sage: replacement = delta * L(S.empty())
-            #sage: S.loop().apply_rule(S.loop(), replacement)
+            sage: tr = SphericalSpider([]).trefoil()
+            sage: cs = SphericalSpider([]).crossing()
+            sage: A = LaurentPolynomialRing(ZZ, 'A').gen()
+            sage: edge = FreeSphericalSpider(A.parent(), 2).vertex()
+            sage: u = edge.glue(edge, 0)
+            sage: tr.apply_rule(cs, A*u + u.rotate(1)/A)
+            A*B[The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
+             and edges (...).] + (A^-1)*B[The spherical web with c = (2, 5, 3, 4, 0, 6, 7, 1), e = (7, 6, 5, 4, 3, 2)
+             and edges (...).]
         """
         try:
             D = next(self.search(term))
-            return self.replace_linear(replacement, D, term)
+            return self.replace_linear(D, term, replacement)
         except StopIteration:
             return self
 
