@@ -406,9 +406,9 @@ cdef class SymbolicRing(CommutativeRing):
             return prod([SR(p)**e for p,e in x], SR(x.unit()))
         elif x in Sets():
             from sage.rings.all import NN, ZZ, QQ, AA
-            from sage.sets.real_set import RealSet
+            from sage.sets.set import Set_base
             if (x.is_finite() or x in (NN, ZZ, QQ, AA)
-                    or isinstance(x, RealSet)):
+                    or isinstance(x, Set_base)):
                 exp = x
             else:
                 raise TypeError(f"unable to convert {x!r} to a symbolic expression")
