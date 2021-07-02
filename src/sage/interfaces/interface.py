@@ -333,7 +333,7 @@ class Interface(WithEqualityById, ParentWithBase):
 
     def _coerce_impl(self, x, use_special=True):
         r"""
-        Coerce pur Python types via corresponding Sage objects.
+        Coerce pure Python types via corresponding Sage objects.
 
         TESTS:
 
@@ -1182,7 +1182,7 @@ class InterfaceElement(Element):
             2
             sage: x = var('x')
             sage: giac(x)
-            x
+            sageVARx
             sage: giac(5)
             5
             sage: M = matrix(QQ,2,range(4))
