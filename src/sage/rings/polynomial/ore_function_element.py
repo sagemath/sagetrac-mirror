@@ -558,6 +558,9 @@ class OreFunction(AlgebraElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: cannot divide by zero
+
+        We check that :trac:`32109` is fixed::
+
             sage: K(0)/K(0)
             Traceback (most recent call last):
             ...
