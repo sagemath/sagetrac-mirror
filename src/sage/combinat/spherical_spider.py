@@ -386,29 +386,26 @@ class SphericalWeb(Element):
             flag = False
             c = self.cp
             e = self.e
-            rm = [a for a in e if c[c[a]] == a]
-            if len(rm) != 0:
-                x = rm[0]
-                z = e[x]
-                y = c[x]
-                if y in e and z != y:
+            for x in e:
+                if c[c[x]] == x and e[x] != c[x]:
                     flag = True
-                    e[z] = e[y]
-                    e[e[y]] = z
-                    c.pop(x)
-                    c.pop(y)
+                    z = e[x]
+                    y = c[x]
+                    if y in e:
+                        e[z] = e[y]
+                        e[e[y]] = z
+                        c.pop(y)
+                        e.pop(y)
+                    else:
+                        c[y] = c[z]
+                        w = [a for a in c if c[a] == z][0]
+                        c[w] = y
+                        y.crossing = z.crossing
+                        c.pop(z)
+                        e.pop(z)
                     e.pop(x)
-                    e.pop(y)
-                elif y in self.b:
-                    flag = True
-                    c[y] = c[z]
-                    w = [a for a in c if c[a] == z][0]
-                    c[w] = y
-                    y.crossing = z.crossing
                     c.pop(x)
-                    c.pop(z)
-                    e.pop(x)
-                    e.pop(z)
+                    break
 
     def _repr_(self):
         r"""
