@@ -518,6 +518,20 @@ class Components(SageObject):
         r"""
         Allows user to create a sparse iterator over 
         ``self._comp``.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(QQ, 4, name='M', start_index=1)
+            sage: m = M.basis('m')
+            sage: a = m[1] + 3 * m[2] - 4 * m[4]
+            sage: a_iter = iter(a.comp()) # creates iterator over components of a
+            sage: for c in a_iter:
+            sage:     c.display()
+
+            m_1
+            3 m_2
+            -4 m_4
+
         """
         for multi_idx in self._comp.keys():
             # access value in dictionary
@@ -525,8 +539,8 @@ class Components(SageObject):
             try:
                 result = 1
                 for idx in multi_idx:
-                    _idx = idx - self._sindex
-                    # accumulate tensor product
+                    _idx = idx - self._sindex + 1
+                    # accumulate product
                     result *= self._frame[_idx]
                 yield coef * result
             except StopIteration:
