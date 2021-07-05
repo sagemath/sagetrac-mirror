@@ -308,7 +308,10 @@ class SphericalWeb(Element):
         c = self.cp
         e = self.e
         b = self.b
-        h = c.keys()
+        try:
+            h = c.keys()
+        except AttributeError:
+            print(c)
         if not all(isinstance(a, halfedge) for a in h):
             raise ValueError("every element must be a half-edge")
         if set(c.values()) != h:
@@ -838,14 +841,14 @@ class SphericalWeb(Element):
             sage: u = SphericalSpider(3).vertex()
             sage: u.components()
             (The spherical web with c = (1, 2, 0), e = ()
-             and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)').,
+             and edges ..., vertices (3,), faces (1, 1, 1).,
             A closed spherical web with 0 edges.)
             sage: u.glue(u,0)
             The spherical web with c = (1, 2, 0, 4, 5, 3), e = ()
-             and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').
+             and edges  ..., vertices (3, 3), faces (1, 1, 1, 1, 1, 1).
             sage: u.glue(u,0).components()
             (The spherical web with c = (1, 2, 0, 4, 5, 3), e = ()
-             and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').,
+             and edges ..., vertices (3, 3), faces (1, 1, 1, 1, 1, 1).,
             A closed spherical web with 0 edges.)
         """
         Dn = {a:halfedge(a.strand) for a in self.b}
@@ -1262,8 +1265,7 @@ class SphericalWeb(Element):
             sage: g = SphericalSpider([]).polygon([h]*3)
             sage: g.replace(next(g.search(h)), h, g)
             The spherical web with c = ..., e = (9, 10, 8, 11, 12, 5, 3, 4, 6, 7, 14, 13)
-             and edges ('(0,black,False)', ..., '(0,black,False)').
-
+             and edges ..., vertices (3, 3, 3, 3, 3), faces (2, 3, 3, 3, 4).
             sage: cr = SphericalSpider([]).crossing()
             sage: edge = SphericalSpider(2).vertex()
             sage: tw = cr.glue(edge, 2)
@@ -1285,7 +1287,7 @@ class SphericalWeb(Element):
         e = {Ds[a]:Ds[self.e[a]] for a in Ds if a in self.e and self.e[a] in Ds}
         e.update({Dk[a]:Dk[k.e[a]] for a in k.e})
 
-        Db = {x:y for x, y in zip(h.b, k.b)}
+        Db = dict(zip(h.b, k.b))
         b = [None]*len(self.b)
         for i, a in enumerate(self.b):
             if a in Ds:
@@ -1335,6 +1337,9 @@ class SphericalWeb(Element):
             sage: tw = cs.glue(SphericalSpider(2).vertex(), 2)
             sage: D = next(tw.search(cs))
             sage: tw.replace_linear(D, cs, A*u + u.rotate(1)/A)
+            A*B[The spherical web with c = (1, 0), e = ()
+             and edges ('(0,black,False)', '(0,black,False)'), vertices (2, 2), faces (1, 1, 1, 1).] + (A^-1)*B[The spherical web with c = (1, 0), e = ()
+             and edges ('(0,black,False)', '(0,black,False)'), vertices (2,), faces (1, 1).]
         """
         if h.parent() != k.parent().basis().keys():
             raise ValueError("boundaries are different")
@@ -1454,7 +1459,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
             sage: from sage.combinat.spherical_spider import Strand
             sage: SphericalSpider([Strand(0,'black')]*4).vertex()
             The spherical web with c = (1, 2, 3, 0), e = ()
-             and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').
+             and edges ..., vertices (4,), faces (1, 1, 1, 1).
         """
         bd = self.boundary
         n = len(bd)
@@ -1477,7 +1482,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
 
             sage: s = SphericalSpider([]).crossing(); s
             The spherical web with c = (1, 2, 3, 0), e = ()
-             and edges ('(0,black,False)', '(0,black,True)', '(0,black,False)', '(0,black,True)').
+             and edges ('(0,black,False)', '(0,black,True)', '(0,black,False)', '(0,black,True)'), vertices (4,), faces (1, 1, 1, 1).
             sage: s.show()
             Graphics object consisting of 9 graphics primitives
         """
@@ -1530,7 +1535,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
             sage: u = SphericalSpider([Strand(0,'black')]*3).vertex()
             sage: SphericalSpider([]).polygon([u,u,u])
             The spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2), e = (6, 7, 8, 3, 4, 5)
-             and edges ('(0,black,False)', ..., '(0,black,False)').
+             and edges ..., vertices (3, 3, 3), faces (2, 2, 2, 3).
             sage: SphericalSpider([]).polygon([])
             A closed spherical web with 0 edges.
         """
@@ -1571,13 +1576,11 @@ class SphericalSpider(UniqueRepresentation, Parent):
 
             sage: SphericalSpider([]).trefoil()
             The spherical web with c = (2, 5, 3, 4, 0, 6, 7, 1, 11, 8, 9, 10), e = (7, 8, 9, 10, 11, 2, 3, 4, 5, 6)
-             and edges ('(0,black,False)', '(0,black,True)', '(0,black,True)', '(0,black,False)', '(0,black,True)', '(0,black,False)', '(0,black,True)', '(0,black,False)', '(0,black,True)', '(0,black,False)', '(0,black,True)', '(0,black,False)').
+             and edges ..., vertices (4, 4, 4), faces (2, 2, 2, 3, 3).
             sage: SphericalSpider([]).trefoil().show()
             Graphics object consisting of 35 graphics primitives
         """
         s = SphericalSpider([]).crossing()
-        #s.b[0].crossing = True
-        #s.b[2].crossing = True
 
         result = SphericalSpider([]).polygon([s, s, s]).rotate(1)
         cap = SphericalSpider([Strand()]*2).vertex()
@@ -1597,7 +1600,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
             sage: pi = Permutation([5,3,4,9,7,8,10,6,1,2])
             sage: S.from_permutation(pi)
             The spherical web with c = (1, 3, 6, 4, 5, 0, 7, 2, 10, 8, 9), e = (7, 8, 9, 10, 3, 4, 5, 6)
-             and edges ('(0,black,False)',... '(0,black,False)').
+             and edges ..., vertices (3, 3, 5), faces (1, 2, 2, 3, 3).
             sage: pi = Permutation([2,4,1,3])
             sage: S.from_permutation(pi)
             Traceback (most recent call last):
@@ -1605,7 +1608,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
             ValueError: [2, 4, 1, 3] is not a Baxter permutation
             sage: S.from_permutation(pi,baxter=False)
             The spherical web with c = (1, 0), e = ()
-             and edges ('(0,black,False)', '(0,black,False)').
+             and edges ..., vertices (2,), faces (1, 1).
         """
         if baxter:
             if not pi in BaxterPermutations():
@@ -1776,7 +1779,7 @@ class FreeSphericalSpider(CombinatorialFreeModule):
              and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)'), vertices (3,), faces (1, 1, 1).]
             """
         v = self.basis().keys().vertex()
-        return self.monomial(v)
+        return self(v)
 
     class Element(CombinatorialFreeModule.Element):
         r"""
@@ -1839,7 +1842,7 @@ class FreeSphericalSpider(CombinatorialFreeModule):
             mo = other.monomial_coefficients()
             return L.sum_of_terms((x.glue(y, k), ms[x]*mo[y]) for x, y in product(ms.keys(), mo.keys()))
 
-        def remove_loops(self, delta, st = Strand()):
+        def remove_loops(self, delta, st=Strand()):
             r"""
             Remove loops of type ``st``.
 
@@ -1925,13 +1928,10 @@ class FreeSphericalSpider(CombinatorialFreeModule):
             sage: edge = SphericalSpider(2).vertex()
             sage: u = edge.glue(edge, 0)
             sage: F4 = FreeSphericalSpider(A.parent(), 4)
-            sage: rp1 = A*F4(u)
-            sage: rp2 = (A**-1)*F4(u.rotate(1))
-            sage: rp = rp1 + rp2; rp
-            #sage: F(tr).simplify(cs, rp)
-            A*B[The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
-             and edges (...).] + (A^-1)*B[The spherical web with c = (2, 5, 3, 4, 0, 6, 7, 1), e = (7, 6, 5, 4, 3, 2)
-             and edges (...).]
+            sage: F(tr).simplify(cs, A*F4(u) + (A**-1)*F4(u.rotate(1)))
+            A*B[The spherical web with c = (1, 0, 3, 2), e = ()
+             and edges ..., vertices (2, 2), faces (1, 1, 1, 1).] + (A^-1)*B[The spherical web with c = (3, 2, 1, 0), e = ()
+             and edges ..., vertices (2, 2), faces (1, 1, 1, 1).]
             """
             new = self
             finished = False
@@ -2106,9 +2106,10 @@ def G2_relations(delta=None):
 
         sage: sage.combinat.spherical_spider.G2_relations()
         ((A closed spherical web with 1 edges.,
-         (delta^5+delta^4-5*delta^3-4*delta^2+6*delta+3)*B[A closed spherical web with 0 edges.]),
-        (The spherical web with c = (1, 2, 0), e = (2, 1)
-          and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)').,
+          (delta^5+delta^4-5*delta^3-4*delta^2+6*delta+3)*B[A closed spherical web with 0 edges.]),
+         (The spherical web with c = (1, 2, 0), e = (2, 1)
+          and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)'), vertices (3,), faces (1, 2).,
+         0),
         ...
     """
     if delta is None:
@@ -2235,16 +2236,16 @@ class WebAlgebra(CombinatorialFreeModule, Algebra):
             A closed spherical web with 0 edges.
             sage: WebAlgebra(QQ, 3).one_basis()
             The spherical web with c = (5, 4, 3, 2, 1, 0), e = ()
-             and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').
+             and edges ..., vertices (2, 2, 2), faces (1, 1, 1, 1, 1, 1).
             sage: WebAlgebra(QQ, 3).one()
             B[The spherical web with c = (5, 4, 3, 2, 1, 0), e = ()
-             and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').]
+             and edges ..., vertices (2, 2, 2), faces (1, 1, 1, 1, 1, 1).]
         """
         from sage.combinat.spherical_spider import halfedge
         b = list(self.basis().keys().boundary)
 
         h = [halfedge(a) for a in b]
-        c = {x: y for x, y in zip(h, reversed(h))}
+        c = dict(zip(h, reversed(h)))
 
         return SphericalWeb(c, {}, h)
 
@@ -2289,7 +2290,7 @@ class WebAlgebra(CombinatorialFreeModule, Algebra):
 
             sage: WebAlgebra(QQ,2).U(1)
             B[The spherical web with c = (1, 0, 3, 2), e = ()
-             and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').]
+             and edges ..., vertices (2, 2), faces (1, 1, 1, 1).]
             sage: A = WebAlgebra(QQ,3)
             sage: A.U(1) * A.U(2) * A.U(1) == A.U(1)
             True
@@ -2331,17 +2332,13 @@ def temperley_lieb(n, R=ZZ, q=None):
         sage: braid = BraidGroup(2).algebra(ZZ)(BraidGroup(2)([1]))
         sage: s = temperley_lieb(2)(braid); s
         q*B[The spherical web with c = (3, 2, 1, 0), e = ()
-         and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').] - B[The spherical web with c = (1, 0, 3, 2), e = ()
-         and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').]
+        ...
         sage: braid = BraidGroup(2).algebra(ZZ)(BraidGroup(2)([-1]))
         sage: t = temperley_lieb(2)(braid); t
         (q^-1)*B[The spherical web ...] - B[The spherical web ...]
         sage: s * t
         B[The spherical web with c = (3, 2, 1, 0), e = ()
-         and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').] - (q^-1+q)*B[The spherical web with c = (1, 0, 3, 2), e = ()
-         and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').] + B[The spherical web with c = (1, 0, 3, 2), e = ()
-         and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').]
-
+        ...
         sage: s1 = temperley_lieb(3)(BraidGroup(3).algebra(ZZ)(BraidGroup(2)([1])))
         sage: s2 = temperley_lieb(3)(BraidGroup(3).algebra(ZZ)(BraidGroup(2)([1])))
         sage: s1 * s2 * s1 == s2 *s1 * s2
@@ -2386,8 +2383,7 @@ def from_diagram(n, delta):
         To:   Free module generated by The spherical spider with boundary ... over Integer Ring
         sage: from_diagram(2,2)(t)
         2*B[The spherical web with c = (1, 0, 3, 2), e = ()
-         and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').] + 2*B[The spherical web with c = (3, 2, 1, 0), e = ()
-         and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)').]
+        ...
         """
     from sage.combinat.diagram_algebras import TemperleyLiebAlgebra
     from sage.combinat.spherical_spider import halfedge
