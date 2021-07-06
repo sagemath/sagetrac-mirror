@@ -109,4 +109,10 @@ fi
 
 # Trac #31335: Avoid include paths leaking in from homebrew python3's distutils.cfg
 # by using setuptools' own copy of distutils instead of relying on stdlib distutils.
-export SETUPTOOLS_USE_DISTUTILS=local
+if [ -z "$CONDA_PREFIX" ]; then
+    export SETUPTOOLS_USE_DISTUTILS=local
+else
+    # Trac #32087: But as a workaround for conda, do NOT use setuptools' own copy of
+    # distutils.
+    export SETUPTOOLS_USE_DISTUTILS=stdlib
+fi
