@@ -368,10 +368,6 @@ class SphericalWeb(Element):
             The spherical web with c = (1, 0), e = ()
              and edges ('(0,black,False)', '(0,black,False)'), vertices (2,), faces (1, 1).
 
-        TESTS::
-
-        This should not ever happen.
-
             sage: SphericalSpider(2).vertex() # indirect doctest
             The spherical web with c = (1, 0), e = ()
              and edges ('(0,black,False)', '(0,black,False)'), vertices (2,), faces (1, 1).
@@ -382,27 +378,25 @@ class SphericalWeb(Element):
             A closed spherical web with 1 edges.
         """
         flag = True
+        c = self.cp
+        e = self.e
         while flag:
             flag = False
-            c = self.cp
-            e = self.e
-            for x in e:
-                if c[c[x]] == x and e[x] != c[x]:
+            for x, z in e.items():
+                y = c[x]
+                if c[y] == x and z != y: # KeyError
                     flag = True
-                    z = e[x]
-                    y = c[x]
-                    if y in e:
-                        e[z] = e[y]
-                        e[e[y]] = z
-                        c.pop(y)
+                    try:
+                        w = e[y]
+                        e[z] = w
+                        e[w] = z
                         e.pop(y)
-                    else:
-                        c[y] = c[z]
-                        w = [a for a in c if c[a] == z][0]
-                        c[w] = y
-                        y.crossing = z.crossing
-                        c.pop(z)
+                    except KeyError:
+                        b = self.b
+                        i = b.index(y)
+                        b[i] = z
                         e.pop(z)
+                    c.pop(y)
                     e.pop(x)
                     c.pop(x)
                     break
@@ -422,7 +416,7 @@ class SphericalWeb(Element):
             cn, en, hn, vs, fs = self.canonical()
             return f"The spherical web with c = {cn}, e = {en}\n and edges {hn}, vertices {vs}, faces {fs}."
 
-        return f"A closed spherical web with {int(len(self.e)/2)} edges."
+        return f"A closed spherical web with {len(self.e)//2} edges."
 
     @cached_method
     def canonical(self):
@@ -1902,7 +1896,11 @@ class FreeSphericalSpider(CombinatorialFreeModule):
             A*B[The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
              and edges (...).] + (A^-1)*B[The spherical web with c = (2, 5, 3, 4, 0, 6, 7, 1), e = (7, 6, 5, 4, 3, 2)
              and edges (...).]
-            sage: tr1 = tr2.apply_rule(cs, A*u + u.rotate(1)/A); tr1
+            sage: tr2.apply_rule(cs, A*u + u.rotate(1)/A)
+            A^2*B[The spherical web with c = (1, 0), e = ()
+             and edges ('(0,black,False)', '(0,black,False)'), vertices (2, 4), faces (1, 1, 1, 1, 2).] + 2*B[The spherical web with c = (1, 2, 3, 0), e = (3, 2)
+             and edges ('(0,black,False)', '(0,black,True)', '(0,black,False)', '(0,black,True)'), vertices (4,), faces (1, 1, 2).] + (A^-2)*B[The spherical web with c = (2, 0, 3, 1), e = (3, 2)
+             and edges ('(0,black,False)', '(0,black,True)', '(0,black,True)', '(0,black,False)'), vertices (4,), faces (1, 1, 2).]
             """
             mc = self.monomial_coefficients()
             P = self.parent()
