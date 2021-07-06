@@ -40,7 +40,6 @@ from sage.quadratic_forms.special_values import quadratic_L_function__exact
 lazy_import('sage.quadratic_forms.genera.normal_form', '_min_nonsquare')
 lazy_import('sage.interfaces.magma', 'magma')
 
-
 def genera(sig_pair, determinant, max_scale=None, even=False):
     r"""
     Return a list of all global genera with the given conditions.
@@ -2586,6 +2585,8 @@ class Genus_Symbol_p_adic_ring(object):
         symbol = self._symbol
         return canonical_2_adic_compartments(symbol)
 
+
+
 class GenusSymbol_global_ring(object):
     r"""
     This represents a collection of local genus symbols (at primes)
@@ -3330,6 +3331,15 @@ class GenusSymbol_global_ring(object):
             return self._representatives
         except AttributeError:
             pass
+        from sage.modules.genera_db import genera_tommy, reps_tommy
+        if self in genera_tommy:
+            i = genera_tommy.index(self)
+            reps = reps_tommy[i]
+            self._representatives = reps
+            assert all(Genus(a)==self for a in reps)
+            from sage.quadratic_forms.all import QuadraticForm
+            #assert self.mass()==sum([1/QuadraticForm(-a).number_of_automorphisms() for a in reps])
+            return self._representatives
         n = self.dimension()
         representatives = []
         if n == 0:

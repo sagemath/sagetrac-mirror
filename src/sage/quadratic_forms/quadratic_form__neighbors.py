@@ -230,7 +230,7 @@ def find_p_neighbor_from_vec(self, p, y):
     return QF(Gnew)
 
 
-def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
+def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
                        algorithm=None, max_neighbors=500, verbose=True):
     r"""
     Return all classes in the `p`-neighbor graph of ``self``.
@@ -348,12 +348,12 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
     if len(isom_classes) >= max_classes:
         warn("reached the maximum number of isometry classes=%s. Increase the optional argument max_classes to obtain more." %max_classes)
 
-    if mass is not None:
-        if mass_count < mass:
-            if verbose:
-                print("Remaining mass: %s"%(mass - mass_count))
-            isom_classes = neighbor_iteration(seeds=isom_classes,p=p,mass=mass,max_neighbors=max_neighbors,max_classes=max_classes,algorithm=algorithm,verbose=verbose)
-        assert mass_count == mass, "Warning: not all classes in the genus were found"
+    assert mass is not None
+    if mass_count < mass:
+        if verbose:
+            print("Remaining mass: %s"%(mass - mass_count))
+        return neighbor_iteration(seeds=isom_classes,p=p,mass=mass,max_neighbors=max_neighbors,max_classes=max_classes,algorithm=algorithm,verbose=verbose)
+    assert mass_count == mass, "Warning: not all classes in the genus were found"
     return isom_classes
 
 def orbits_lines_mod_p(self, p):
