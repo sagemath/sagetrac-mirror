@@ -266,7 +266,7 @@ class SphericalWeb(Element):
         self.cp = c
         self.e = e
         self.b = b
-        self.normalize()
+        self._normalize()
         if check:
             self.check()
 
@@ -353,7 +353,7 @@ class SphericalWeb(Element):
                 if w.strand.oriented != -u.strand.oriented or w.strand.colour != u.strand.colour:
                     raise ValueError("Oposite strands must be dual.")
 
-    def normalize(self):
+    def _normalize(self):
         r"""
         This removes nearly all vertices of degree two.
 
@@ -384,7 +384,7 @@ class SphericalWeb(Element):
             flag = False
             for x, z in e.items():
                 y = c[x]
-                if c[y] == x and z != y: # KeyError
+                if c[y] == x and z != y:
                     flag = True
                     try:
                         w = e[y]
@@ -1362,7 +1362,9 @@ class SphericalWeb(Element):
             D = next(self.search(term))
             return self.replace_linear(D, term, replace, check=check)
         except StopIteration:
-            return self
+            R = replace.parent().base()
+            L = FreeSphericalSpider(R, self.parent().boundary)
+            return L(self)
 
     def remove_loops(self, st=Strand()):
         r"""
@@ -1896,11 +1898,18 @@ class FreeSphericalSpider(CombinatorialFreeModule):
             A*B[The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
              and edges (...).] + (A^-1)*B[The spherical web with c = (2, 5, 3, 4, 0, 6, 7, 1), e = (7, 6, 5, 4, 3, 2)
              and edges (...).]
-            sage: tr2.apply_rule(cs, A*u + u.rotate(1)/A)
+            sage: tr1 = tr2.apply_rule(cs, A*u + u.rotate(1)/A); tr1
             A^2*B[The spherical web with c = (1, 0), e = ()
              and edges ('(0,black,False)', '(0,black,False)'), vertices (2, 4), faces (1, 1, 1, 1, 2).] + 2*B[The spherical web with c = (1, 2, 3, 0), e = (3, 2)
              and edges ('(0,black,False)', '(0,black,True)', '(0,black,False)', '(0,black,True)'), vertices (4,), faces (1, 1, 2).] + (A^-2)*B[The spherical web with c = (2, 0, 3, 1), e = (3, 2)
              and edges ('(0,black,False)', '(0,black,True)', '(0,black,True)', '(0,black,False)'), vertices (4,), faces (1, 1, 2).]
+            sage: tr0 = tr1.apply_rule(cs, A*u + u.rotate(1)/A); tr0
+            A^3*B[The spherical web with c = (1, 0), e = ()
+             and edges ('(0,black,False)', '(0,black,False)'), vertices (2, 2, 2), faces (1, 1, 1, 1, 1, 1).] + (A^-3+3*A)*B[The spherical web with c = (1, 0), e = ()
+             and edges ('(0,black,False)', '(0,black,False)'), vertices (2, 2), faces (1, 1, 1, 1).] + (3*A^-1)*B[The spherical web with c = (1, 0), e = ()
+             and edges ('(0,black,False)', '(0,black,False)'), vertices (2,), faces (1, 1).]
+            sage: tr0 == tr0.apply_rule(cs, A*u + u.rotate(1)/A)
+            True
             """
             mc = self.monomial_coefficients()
             P = self.parent()
@@ -1920,13 +1929,13 @@ class FreeSphericalSpider(CombinatorialFreeModule):
             sage: cs = SphericalSpider([]).crossing()
             sage: A = LaurentPolynomialRing(ZZ, 'A').gen()
             sage: F = FreeSphericalSpider(A.parent(), 2)
-            sage: edge = SphericalSpider(2).vertex()
+            sage: edge = F.vertex()
             sage: u = edge.glue(edge, 0)
-            sage: F4 = FreeSphericalSpider(A.parent(), 4)
-            sage: F(tr).simplify(cs, A*F4(u) + (A**-1)*F4(u.rotate(1)))
-            A*B[The spherical web with c = (1, 0, 3, 2), e = ()
-             and edges ..., vertices (2, 2), faces (1, 1, 1, 1).] + (A^-1)*B[The spherical web with c = (3, 2, 1, 0), e = ()
-             and edges ..., vertices (2, 2), faces (1, 1, 1, 1).]
+            sage: F(tr).simplify(cs, A*u + (A**-1)*u.rotate(1))
+            A^3*B[The spherical web with c = (1, 0), e = ()
+             and edges ('(0,black,False)', '(0,black,False)'), vertices (2, 2, 2), faces (1, 1, 1, 1, 1, 1).] + (A^-3+3*A)*B[The spherical web with c = (1, 0), e = ()
+             and edges ('(0,black,False)', '(0,black,False)'), vertices (2, 2), faces (1, 1, 1, 1).] + (3*A^-1)*B[The spherical web with c = (1, 0), e = ()
+             and edges ('(0,black,False)', '(0,black,False)'), vertices (2,), faces (1, 1).]
             """
             new = self
             finished = False
