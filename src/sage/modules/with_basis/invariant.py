@@ -297,14 +297,9 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
             sage: latex(R.invariant_module(G))
             \left( \Bold{Q}[\langle (1,2,3) \rangle] \right)^{\langle (1,2,3) \rangle}
         """
-        M = self._ambient
-        from sage.modules.with_basis.representation import Representation
-        if isinstance(self._ambient, Representation):
-            M = M._module
-        from sage.misc.latex import latex
-        return "\\left( {} \\right)^{{{}}}".format(latex(M), latex(self._semigroup))
+        return self._semigroup_representation
 
-    def _test_invariant(self, **options):
+    def _test_invariant(self,**options):
         """
         Check (on some elements) that ``self`` is invariant.
 
@@ -318,28 +313,25 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
             sage: G = SymmetricGroup(10)
             sage: M = CombinatorialFreeModule(QQ, list(range(1,11)), prefix='M')
-            sage: def action(g, x): return M.monomial(g(x))
-            sage: I = M.invariant_module(G, action_on_basis=action)
-            sage: I._test_invariant(max_runs=10)
+            sage: action = lambda g,x: M.term(g(x))
+            sage: R = Representation(G, M, action)
+            sage: I._test_invariant(max_runs=20)
+
         """
         tester = self._tester(**options)
         X = tester.some_elements()
         L = []
-        max_len = tester._max_runs
-
-        # FIXME: This is max_len * dim number of runs!!!
-        for i, x in enumerate(self._semigroup):
+        max_len = int(tester._max_runs) + 1
+        for i,x in enumerate(self._semigroup):
             L.append(x)
             if i >= max_len:
                 break
-
         for x in L:
-            for elt in X:
-                lifted = self.lift(elt)
-                if self._side == 'left':
-                    tester.assertEqual(self._action(x, lifted), lifted)
+            for elt in S:
+                if self._semigroup_representation.side() == 'left':
+                    tester.assertEqual(x*elt, elt)
                 else:
-                    tester.assertEqual(self._action(lifted, x), lifted)
+                    tester.assertEqual(elt*x, elt)
 
     def semigroup(self):
         r"""
