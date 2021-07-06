@@ -1,0 +1,44 @@
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3, rkT = None
+completed purely non-symplectic order 3^3 
+completed purely non-symplectic order 3^e*2 
+completed purely non-symplectic order 2^e*5 
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5, rkT = None
+completed purely non-symplectic order 2^5 
