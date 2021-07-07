@@ -65,11 +65,11 @@ export CVXOPT_BLAS_LIB="$(cvxopt_output l blas)"
 export CVXOPT_BLAS_LIB_DIR="$(pkg-config --variable=libdir blas)"
 export CVXOPT_LAPACK_LIB="$(cvxopt_output l lapack)"
 
-export CVXOPT_SUITESPARSE_LIB_DIR="${SAGE_SUITESPARSE_PREFIX:-${SAGE_LOCAL}}"
+export CVXOPT_SUITESPARSE_LIB_DIR="${SAGE_SUITESPARSE_PREFIX:-${SAGE_LOCAL}}/lib"
 export CVXOPT_SUITESPARSE_INC_DIR="${SAGE_SUITESPARSE_PREFIX:-${SAGE_LOCAL}}/include"
 
 export CVXOPT_BUILD_GLPK=1
-export CVXOPT_GLPK_LIB_DIR="${SAGE_LOCAL}"
+export CVXOPT_GLPK_LIB_DIR="${SAGE_LOCAL}/lib"
 export CVXOPT_GLPK_INC_DIR="${SAGE_LOCAL}/include"
 
 export CVXOPT_BUILD_GSL=1
