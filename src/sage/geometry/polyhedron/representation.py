@@ -23,11 +23,13 @@ from copy import copy
 
 
 # Numeric values to distinguish representation types
+STRICT_INEQUALITY = -1
 INEQUALITY = 0
 EQUATION = 1
 VERTEX = 2
 RAY = 3
 LINE = 4
+STRICT_RAY = 5
 
 
 #########################################################################
@@ -59,11 +61,13 @@ class PolyhedronRepresentation(SageObject):
     """
 
     # Numeric values for the output of the type() method
+    STRICT_INEQUALITY = STRICT_INEQUALITY
     INEQUALITY = INEQUALITY
     EQUATION = EQUATION
     VERTEX = VERTEX
     RAY = RAY
     LINE = LINE
+    STRICT_RAY = STRICT_RAY
 
     def __len__(self):
         """
@@ -462,7 +466,7 @@ class Hrepresentation(PolyhedronRepresentation):
 
     def is_inequality(self):
         """
-        Return True if the object is an inequality of the H-representation.
+        Return True if the object is a (non-strict) inequality of the H-representation.
 
         EXAMPLES::
 
@@ -725,10 +729,115 @@ class Hrepresentation(PolyhedronRepresentation):
         return self.repr_pretty(latex=True)
 
 
+class StrictInequality(Hrepresentation):
+    """
+    A strict linear inequality.
+
+    Inherits from ``Hrepresentation``.
+    """
+
+    def type(self):
+        r"""
+        Return the type (strict inequality/inequality/equation/vertex/ray/line) as an
+        integer.
+
+        OUTPUT:
+
+        This version of the method returns ``PolyhedronRepresentation.STRICT_INEQUALITY``.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices=[[0,0,0], [1,1,0], [1,2,0]])
+            sage: from sage.geometry.polyhedron.representation import StrictInequality
+            sage: repr_obj = StrictInequality(p.parent())
+            sage: p._Hrepresentation = list(p._Hrepresentation)   # temporary workaround
+            sage: repr_obj._set_data(p, [-5, 2, 3, 4])
+            sage: repr_obj.type() == repr_obj.STRICT_INEQUALITY
+            True
+        """
+        return self.STRICT_INEQUALITY
+
+    def _repr_(self):
+        """
+        The string representation of the inequality.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices=[[0,0,0], [1,1,0], [1,2,0]])
+            sage: from sage.geometry.polyhedron.representation import StrictInequality
+            sage: repr_obj = StrictInequality(p.parent())
+            sage: p._Hrepresentation = list(p._Hrepresentation)   # temporary workaround
+            sage: repr_obj._set_data(p, [-5, 2, 3, 4])
+            sage: repr_obj._repr_()
+            'A strict inequality (2, 3, 4) x - 5 > 0'
+        """
+        s = 'A strict inequality '
+        have_A = not self.A().is_zero()
+        if have_A:
+            s += repr(self.A()) + ' x '
+        if self.b() >= 0:
+            if have_A:
+                s += '+'
+        else:
+            s += '-'
+        if have_A:
+            s += ' '
+        s += repr(abs(self.b())) + ' > 0'
+        return s
+
+    def contains(self, Vobj):
+        """
+        Tests whether the open halfspace defined by the strict inequality contains the given vertex or point.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices = [[0,0,0], [1,1,0], [1,2,0]])
+            sage: from sage.geometry.polyhedron.representation import StrictInequality
+            sage: repr_obj = StrictInequality(p.parent())
+            sage: p._Hrepresentation = list(p._Hrepresentation)   # temporary workaround
+            sage: repr_obj._set_data(p, [-5, 2, 3, 4])
+            sage: [repr_obj.contains(q) for q in p.vertex_generator()]
+            [False, False, True]
+        """
+        try:
+            if Vobj.is_vector():  # assume we were passed a point
+                return self.polyhedron()._is_positive( self.eval(Vobj) )
+        except AttributeError:
+            pass
+
+        if Vobj.is_vertex():
+            return self.polyhedron()._is_positive( self.eval(Vobj) )
+
+        raise NotImplementedError
+
+    interior_contains = contains
+
+    def outer_normal(self):
+        r"""
+        Return the outer normal vector of ``self``.
+
+        OUTPUT:
+
+        The normal vector directed away from the interior of the polyhedron.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices = [[0,0,0], [1,1,0], [1,2,0]])
+            sage: from sage.geometry.polyhedron.representation import StrictInequality
+            sage: repr_obj = StrictInequality(p.parent())
+            sage: p._Hrepresentation = list(p._Hrepresentation)   # temporary workaround
+            sage: repr_obj._set_data(p, [-5, 2, 3, 4])
+            sage: repr_obj.outer_normal()
+            (-2, -3, -4)
+        """
+        return -self.A()
+
+
 class Inequality(Hrepresentation):
     """
-    A linear inequality (supporting hyperplane) of the
-    polyhedron. Inherits from ``Hrepresentation``.
+    A (non-strict) linear inequality (defining a closed halfspace).
+
+    Inherits from ``Hrepresentation``.
     """
 
     def type(self):
