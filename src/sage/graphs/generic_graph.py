@@ -6249,16 +6249,18 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = digraphs.RandomDirectedGNP(28, .3) # reduced from 30 to 28, cf. #9584
             sage: k = Integer(g.edge_connectivity())
-            sage: arborescences = g.edge_disjoint_spanning_trees(k)  # long time (up to 15s on sage.math, 2011)
-            sage: all(a.is_directed_acyclic() for a in arborescences)  # long time
+            sage: arborescences = g.edge_disjoint_spanning_trees(k)  # long time (up to 15s on sage.math, 2011)  # not tested, known bug (see :trac:`32169')
+            sage: all(a.is_directed_acyclic() for a in arborescences)  # long time  # not tested, known bug (see :trac:`32169')
             True
-            sage: all(a.is_connected() for a in arborescences)  # long time
+            sage: all(a.is_connected() for a in arborescences)  # long time  # not tested, known bug (see :trac:`32169')
             True
 
         In the undirected case, we can only ensure half of it::
 
-            sage: g = graphs.RandomGNP(30, .3)
-            sage: k = Integer(g.edge_connectivity()) // 2
+            sage: k = 0
+            sage: while not k:
+            ....:     g = graphs.RandomGNP(30, .3)
+            ....:     k = Integer(g.edge_connectivity()) // 2
             sage: trees = g.edge_disjoint_spanning_trees(k)
             sage: all(t.is_tree() for t in trees)
             True
