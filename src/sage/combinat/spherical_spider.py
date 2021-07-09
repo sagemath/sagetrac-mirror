@@ -1698,18 +1698,19 @@ class SphericalSpider(UniqueRepresentation, Parent):
         return SphericalWeb(c, e, b)
 
     @staticmethod
-    def from_gauss_code(G):
+    def from_gauss_code(G, check=True):
         r"""
-        Construct the shadow diagram from a Gauss code.
+        Construct the long knot diagram from a Gauss code.
 
         EXAMPLES::
 
             sage: SphericalSpider([]).from_gauss_code([1,2,3,1,2,3])
-            A closed spherical web with 6 edges.
-
-            sage: G = [1, 2, 4, 5, 8, 1, 3, 4, 6, 7, 2, 3, 5, 6, 7, 8]
-            sage: SphericalSpider([]).from_gauss_code(G)
-            A closed spherical web with 16 edges.
+            The spherical web with c = (2, 5, 3, 4, 0, 6, 7, 1, 11, 8, 9, 10), e = (8, 9, 5, 4, 10, 11, 2, 3, 6, 7)
+             and edges ... vertices (4, 4, 4), faces (2, 2, 2, 3, 3).
+            sage: code = [1, 2, 4, 5, 8, 1, 3, 4, 6, 7, 2, 3, 5, 6, 7, 8]
+            sage: SphericalSpider([]).from_gauss_code(code)
+            The spherical web with ...
+            ...
         """
         from sage.combinat.spherical_spider import halfedge
         from sage.knots.gauss_code import recover_orientations
@@ -1720,8 +1721,24 @@ class SphericalSpider(UniqueRepresentation, Parent):
         for i in range(2*n):
             h[i] = halfedge()
 
-        e = {h[2*i-1]: h[2*i] for i in range(n)}
-        e.update({h[2*i]: h[2*i-1] for i in range(n)})
+        for r, s in positive:
+            if [ori[changed[r]-1]] == -1:
+                h[2*r].crossing = True
+                h[2*s].crossing = True
+            else:
+                h[2*r+1].crossing = True
+                h[2*s+1].crossing = True
+
+        for r, s in negative:
+            if [ori[changed[r]-1]] == 1:
+                h[2*r].crossing = True
+                h[2*s].crossing = True
+            else:
+                h[2*r+1].crossing = True
+                h[2*s+1].crossing = True
+
+        e = {h[2*i+1]: h[2*i+2] for i in range(n-1)}
+        e.update({h[2*i+2]: h[2*i+1] for i in range(n-1)})
 
         c = dict([])
         for r, s in positive:
@@ -1730,7 +1747,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
         for r, s in negative:
             c.update({h[2*r]:h[2*r+1], h[2*r+1]:h[2*s], h[2*s]:h[2*s+1], h[2*s+1]:h[2*r]})
 
-        return SphericalWeb(c, e, [])
+        return SphericalWeb(c, e, [h[0], h[-1]], check=check)
 
     @staticmethod
     def from_snappy():
