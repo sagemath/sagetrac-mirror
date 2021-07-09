@@ -1009,6 +1009,66 @@ class FiniteRankFreeModuleMorphism(Morphism):
         self._is_identity = True
         return True
 
+    def diagonalize(self):
+        r"""
+        Return new bases for domain and codomain such that the matrix 
+        representation of the homomorphism in the new bases is diagonal.
+
+        Currently only supports modules over `RDF`.  
+
+        OUTPUT:
+        - new bases for the domain and codomain, respectively, such that the
+        matrix representation of ``self`` in the new bases is diagonal. 
+        
+        EXAMPLES:
+
+            sage: M = FiniteRankFreeModule(RDF, 3, name='M')
+            sage: N = FiniteRankFreeModule(RDF, 2, name='N')
+            sage: e = M.basis('e');  f = N.basis('f')
+            sage: phi = M.hom(N, [[1, 2, 3], [4, 5, 6]])
+            sage: e_new, f_new = phi.diagonalize()
+            
+        
+        """
+        from sage.matrix.constructor import matrix
+        domain = self.domain()
+        codomain = self.codomain()
+
+        # get basis
+        basis1 = domain.default_basis()
+        basis2 = codomain.default_basis()
+
+        # get matrix representation
+        A = self.matrix()
+        # perform SVD
+        U, S, V_t = A.SVD()
+        V = V_t.transpose()
+
+        # construct new basis for domain
+        family1 = []
+        for idx in range(domain.rank()):
+            # get appropriate linear combination from matrix
+            coefs_list = V[idx,:].list()
+            # create and append new basis vectors one by one
+            family1.append(domain(coefs_list, basis=basis1))
+        # convert family into tuple for passing in change-of-basis argument
+        family1 = tuple(family1)
+
+        # construct new basis for codomain
+        family2 = []
+        for idx in range(codomain.rank()):
+            # get appropriate linear combination from matrix
+            coefs_list = U[idx,:].list()
+            # create and append new basis vectors one by one
+            family2.append(codomain(coefs_list, basis=basis2))
+        # convert family into tuple for passing in change-of-basis argument
+        family2 = tuple(family2)
+
+        # construct the two new bases with the same symbol
+        basis1_new = domain.basis(basis1._symbol, from_family=family1)
+        basis2_new = codomain.basis(basis2._symbol, from_family=family2)
+        return basis1_new, basis2_new
+
     #
     # End of Morphism methods
     #
@@ -1185,6 +1245,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
                     self._matrices[(basis1, basis2)] = \
                                         mat2 * self._matrices[(nb1,nb2)] * mat1
         return self._matrices[(basis1, basis2)]
+
 
     def _common_bases(self, other):
         r"""
