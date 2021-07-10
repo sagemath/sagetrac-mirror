@@ -664,7 +664,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         """
         cmd = '%s:=%s:;'%(var,value)   #if giac is not in maple mode ( maple_mode(0))
         out = self.eval(cmd)
-        if out.find("error") != -1:
+        if out.find("error") != -1 or out.find("unable to handle infinite boundaries") != -1:
             raise TypeError("Error executing code in Giac\nCODE:\n\t%s\nGiac ERROR:\n\t%s"%(cmd, out))
 
 
