@@ -3119,7 +3119,7 @@ class GenusSymbol_global_ring(object):
             local_symbols.append(sym_p)
         return GenusSymbol_global_ring(signature_pair, local_symbols)
 
-    def discriminant_form(self):
+    def discriminant_form(self,p=None):
         r"""
         Return the discriminant form associated to this genus.
 
@@ -3145,7 +3145,11 @@ class GenusSymbol_global_ring(object):
         """
         from sage.modules.torsion_quadratic_module import TorsionQuadraticForm
         qL = []
-        for gs in self._local_symbols:
+        if p is None:
+          sym = self._local_symbols
+        else:
+          sym = [s for s in self._local_symbols if s.prime() == p]
+        for gs in sym:
             p = gs._prime
             for block in gs.symbol_tuple_list():
                 qL.append(_gram_from_jordan_block(p, block, True))
