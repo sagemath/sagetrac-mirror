@@ -6313,12 +6313,12 @@ class GenericGraph(GenericGraph_pyx):
             # A tree has n-1 edges
             p.add_constraint(p.sum(edge[e, c] for e in D.edge_iterator(labels=False)) == n - 1)
 
-            # A vertex of the tree has at most 1 incoming edge
+            # Each vertex has 1 incoming edge, except the root which has none
             for u in D:
                 if u == root:
                     p.add_constraint(p.sum(edge[e, c] for e in D.incoming_edge_iterator(root, labels=False)) == 0)
                 else:
-                    p.add_constraint(p.sum(edge[e, c] for e in D.incoming_edge_iterator(u, labels=False)) <= 1)
+                    p.add_constraint(p.sum(edge[e, c] for e in D.incoming_edge_iterator(u, labels=False)) == 1)
 
             # A vertex has at least one incident edge
             for u in D:
