@@ -585,25 +585,9 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         - Add check for irreducibility of ``chi``
     """
 
-    #def __classcall_private(self, M, G, chi, action=operator.mul, side='left', **kwargs):
-    #   Normalize the input to make chi a tuple
-    #   but if chi is a dict with keys given by conjugacy classes, that would be
-    #   good to keep. or a class function
-
-    #  {str(c):i for c,i in zip(G.conjugacy_classes(),chi)}
-    #    if not hasattr(chi, '__iter__'):
-    #        raise ValueError(f"{chi} is not iterable")
-    #    if len(chi) != len(G.conjugacy_classes()):
-    #        raise ValueError(f"{chi} must correspond to conjugacy_classes of {G}")
-
-
-    #def __new__(cls, M, G, chi, action=operator.mul, side='left', **kwargs):
     @staticmethod
     def __classcall_private__(cls, M, G, chi, 
                               action=operator.mul, side='left', **kwargs):
-    #   if the trivial character is passed, return an instance of
-    #   :class:`~sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule`
-
         """
 
         TESTS:
@@ -653,7 +637,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
 
         We know that the permutation representation decomposes as a direct
         sum of one copy of the standard representation which is two-dimensional
-        and one copy of the trivial representation, ::
+        and one copy of the trivial representation::
 
             sage: T.basis() 
             Finite family {0: B[0], 1: B[1]}
@@ -685,23 +669,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         g = G.order()
         proj_matrix = (n/g)*proj_matrix
 
-        def _projection_map(x):
-            r"""
-            Give the projection of the vector ``x`` in ``M``
-            to the isotypic component corresponding to ``chi``. The projection
-            map is
-
-            .. MATH:
-
-                \pi = \frac{n}{g} \sum_{t \in G} \chi(t)^*\rho_t
-
-            - `n` is the degree of the irreducible
-            - `g` is the order of ``G``
-            - `\chi(t)^*` is the complex-conjugate of the character value of `t`
-            - `\rho_t` is the map in `GL(M)` representing the element `t \in G`
-
-            """
-            return M.from_vector(proj_matrix*x.to_vector())
+        def _projection_map(x): return M.from_vector(proj_matrix*x.to_vector())
 
         self._action = action
         self._projection_map = _projection_map
