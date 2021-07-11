@@ -105,23 +105,10 @@ class ClassFunction_gap(SageObject,CachedRepresentation):
         sage: loads(dumps(chi)) == chi
         True
     """
-    @staticmethod
-    def __classcall_private__(cls, G, values):
-        r"""
-        Normalize the input to pass to CachedRepresentation.
 
-        EXAMPLES::
+    def __hash__(self):
 
-            sage: G = SymmetricGroup(3)
-            sage: chi1 = ClassFunction(G, [1,1,1])
-            sage: chi2 = ClassFunction(G, (1,1,1))
-            sage: chi1 is chi2
-            True
-        """
-
-        values = tuple(values)
-
-        return super(ClassFunction_gap,cls).__classcall__(cls, G, values)
+        return hash(self.__repr__())
 
     def __init__(self, G, values):
         r"""
