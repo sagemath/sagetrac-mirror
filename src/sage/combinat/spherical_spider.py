@@ -298,12 +298,10 @@ class SphericalWeb(Element):
         parent = SphericalSpider(bd)
         Element.__init__(self, parent)
 
-        c, e, b = self._normalize(dict(c), e, list(b))
+        c, e, b = self._normalize(dict(c), dict(e), list(b))
 
         self.cp = frozenset(c.items())
-
-        self.e = e
-
+        self.e = frozenset(e.items())
         self.b = tuple(b)
 
         if check:
@@ -321,9 +319,10 @@ class SphericalWeb(Element):
              and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)'), vertices (3,), faces (1, 1, 1).
         """
         cp = dict(self.cp)
+        e = dict(self.e)
         D = {a:halfedge(a.strand, a.crossing) for a in cp}
         c = {D[a]:D[cp[a]] for a in cp}
-        e = {D[a]:D[self.e[a]] for a in self.e}
+        e = {D[a]:D[e[a]] for a in e}
         b = [D[a] for a in self.b]
         return SphericalWeb(c, e, b)
 
@@ -346,7 +345,7 @@ class SphericalWeb(Element):
             ValueError: the mapping c has at least one fixed point
         """
         c = dict(self.cp)
-        e = self.e
+        e = dict(self.e)
         bs = set(self.b)
         h = c.keys()
         if not all(isinstance(a, halfedge) for a in h):
@@ -487,7 +486,7 @@ class SphericalWeb(Element):
         """
         b = self.b
         c = dict(self.cp)
-        e = self.e
+        e = dict(self.e)
         k = len(b)
         Dp = {a:i for i, a in enumerate(b)}
         Dp.update({a:(k+i) for i, a in enumerate(self._traversal(b))})
@@ -596,6 +595,7 @@ class SphericalWeb(Element):
             <generator object SphericalWeb._traversal at ...>
         """
         c = dict(self.cp)
+        e = dict(self.e)
         if isinstance(initial, halfedge):
             initial = tuple([initial])
         else:
@@ -604,7 +604,7 @@ class SphericalWeb(Element):
             raise ValueError("initial must be a subset of the set of elements")
 
         #c = self.cp
-        e = self.e
+        #e = self.e
         #b = self.b
 
         visited = list(initial)
@@ -647,6 +647,7 @@ class SphericalWeb(Element):
         """
 
         c = dict(cp)
+        e = dict(e)
 
         st = x.strand
         if y.strand != Strand(-st.oriented, st.colour):
@@ -721,7 +722,7 @@ class SphericalWeb(Element):
             b = bs[:-n]+bo[n:]
 
         c = {**dict(ns.cp), **dict(no.cp)}
-        e = {**ns.e, **no.e}
+        e = {**dict(ns.e), **dict(no.e)}
 
         for x, y in zip(reversed(bs[-n:]), bo[:n]):
             c, e = self._stitch(c, e, x, y)
@@ -751,9 +752,10 @@ class SphericalWeb(Element):
             False
         """
         cp = dict(self.cp)
+        e = dict(self.e)
         D = {a:halfedge() for a in cp}
         cn = {D[cp[a]]:D[a] for a in D}
-        en = {D[a]:D[self.e[a]] for a in self.e}
+        en = {D[a]:D[e[a]] for a in e}
         bn = tuple(reversed([D[a] for a in self.b]))
         return SphericalWeb(cn, en, bn)
 
@@ -801,7 +803,7 @@ class SphericalWeb(Element):
             6
         """
         c = dict(self.cp)
-        e = self.e
+        e = dict(self.e)
         he = set(c.keys())
         result = set()
 
@@ -978,7 +980,7 @@ class SphericalWeb(Element):
             True
         """
         cp = dict(self.cp)
-        e = self.e
+        e = dict(self.e)
         faces = self.faces()
 
         for f in faces:
@@ -1006,7 +1008,7 @@ class SphericalWeb(Element):
             Graph on 9 vertices
         """
         c = dict(self.cp)
-        e = self.e
+        e = dict(self.e)
         G = Graph({a:[c[a]] for a in c})
         for a in e:
             if not G.has_edge(e[a], a, "e"):
@@ -1087,6 +1089,7 @@ class SphericalWeb(Element):
         pos = [(r[0], s[0]) for r, s in zip(Mi*U, Mi*V)]
 
         cp = dict(self.cp)
+        e = dict(self.e)
         result = set()
         for i, u in enumerate(vt):
             for j, b in enumerate(self.b):
@@ -1094,7 +1097,7 @@ class SphericalWeb(Element):
                     x = cos(2*pi*j/d).n()
                     y = sin(2*pi*j/d).n()
                     result.add(((x, y), pos[i],))
-            x = set(self.e[a] for a in u if a in self.e)
+            x = set(e[a] for a in u if a in e)
             for j, v in enumerate(vt):
                 if i < j:
                     if any(r in v for r in x):
@@ -1428,7 +1431,7 @@ class SphericalWeb(Element):
         """
         web = copy(self)
         c = dict(web.cp)
-        e = web.e
+        e = dict(web.e)
 
         loops = [u for u in c if c[c[u]] == u and u.strand == st]
         for u in loops:
@@ -1597,7 +1600,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
         corners = cn
 
         c = reduce(lambda r, s: {**r, **s}, [dict(a.cp) for a in corners])
-        e = reduce(lambda r, s: {**r, **s}, [a.e for a in corners])
+        e = reduce(lambda r, s: {**r, **s}, [dict(a.e) for a in corners])
 
         for u, v in zip(corners, corners[1:]):
             x = u.b[-1]
