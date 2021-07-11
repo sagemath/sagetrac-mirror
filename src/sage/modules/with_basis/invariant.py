@@ -549,8 +549,8 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
 class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
     r"""
-    Construct the `\chi`-twisted invariant submodule of `M`. When a semigroup 
-    `S` acts on a module `M`, the `\chi`-twisted invariant submodule of `M` 
+    Construct the `\chi`-twisted invariant submodule of `M`. When a group 
+    `G` acts on a module `M`, the `\chi`-twisted invariant submodule of `M` 
     is the isotypic component of the representation `M` corresponding to the
     irreducible character `\chi`.
 
@@ -567,13 +567,13 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
                 representation on which you want to project. The values must agree
                 with the order of ``G.conjugacy_classes()``.
 
-    - ``action`` - (default: ``operator.mul``) the action of ``S`` on ``M``.
+    - ``action`` - (default: ``operator.mul``) the action of ``G`` on ``M``.
 
-    - ``side`` - (default: ``'left'``) the side on which ``S`` acts.
-    
+    - ``side`` - (default: ``'left'``) the side on which ``G`` acts.
+
     .. WARNING:
 
-        The current implementation does not check if ``chi`` is irreducible. 
+        The current implementation does not check if ``chi`` is irreducible.
         Passing character values of non-irreducible representations may lead
         to mathematically incorrect results.
 
@@ -597,14 +597,14 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
 
 
     def __new__(self):
-    #   if the trivial character is passed, return an instance of 
+    #   if the trivial character is passed, return an instance of
     #   :class:`~sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule`
 
         """
-        
+
         TESTS:
 
-        Check that it works when the character values are not an 
+        Check that it works when the character values are not an instance of
         :class:`~sage.rings.integer.Integer`::
 
             sage: chi = [1.0, 1.0, 1.0] # a list of real numbers
@@ -644,7 +644,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             sage: chi = ClassFunction(G,[2,0,-1]) # the standard representation character values
             sage: action = lambda g,x: M.term(g(x))
             sage: T = M.twisted_invariant_module(G,chi,action_on_basis=action)
-        
+
         We know that the permutation representation decomposes as a direct
         sum of one copy of the standard representation and one copy of the
         trivial representation::
@@ -664,8 +664,8 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         def _projection_map(x):
             r"""
             Give the projection of the vector ``x`` in ``M``
-            to the isotypic component corresponding to ``chi``. The projection 
-            map is 
+            to the isotypic component corresponding to ``chi``. The projection
+            map is
 
             .. MATH:
 

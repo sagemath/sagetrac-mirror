@@ -424,7 +424,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return FiniteDimensionalInvariantModule(M, S, action=action, side=side, **kwargs)
 
         def twisted_invariant_module(self, G, chi,
-                                     action=operator.mul, 
+                                     action=operator.mul,
                                      action_on_basis=None,
                                      side='left',
                                      **kwargs):
@@ -436,7 +436,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 M = self
 
             from sage.modules.with_basis.invariant import FiniteDimensionalTwistedInvariantModule
-            return FiniteDimensionalTwistedInvariantModule(M, G, chi, 
+            return FiniteDimensionalTwistedInvariantModule(M, G, chi,
                                                            action=action,
                                                            side=side,
                                                            **kwargs)
