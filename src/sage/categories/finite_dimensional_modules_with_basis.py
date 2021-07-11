@@ -423,6 +423,24 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
             return FiniteDimensionalInvariantModule(M, S, action=action, side=side, **kwargs)
 
+        def twisted_invariant_module(self, G, chi,
+                                     action=operator.mul, 
+                                     action_on_basis=None,
+                                     side='left',
+                                     **kwargs):
+
+            if action_on_basis is not None:
+                from sage.modules.with_basis.representation import Representation
+                M = Representation(G, self, action_on_basis, side=side)
+            else:
+                M = self
+
+            from sage.modules.with_basis.invariant import FiniteDimensionalTwistedInvariantModule
+            return FiniteDimensionalTwistedInvariantModule(M, G, chi, 
+                                                           action=action,
+                                                           side=side,
+                                                           **kwargs)
+
     class ElementMethods:
         def dense_coefficient_list(self, order=None):
             """
