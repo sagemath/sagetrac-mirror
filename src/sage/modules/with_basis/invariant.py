@@ -19,6 +19,7 @@ from sage.categories.finitely_generated_semigroups import FinitelyGeneratedSemig
 from sage.categories.finite_dimensional_modules_with_basis import FiniteDimensionalModulesWithBasis
 from sage.categories.groups import Groups
 from sage.sets.family import Family
+from sage.matrix.constructor import Matrix
 
 class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
     r"""
@@ -596,7 +597,10 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
     #        raise ValueError(f"{chi} must correspond to conjugacy_classes of {G}")
 
 
-    def __new__(self):
+    #def __new__(cls, M, G, chi, action=operator.mul, side='left', **kwargs):
+    @staticmethod
+    def __classcall_private__(cls, M, G, chi, 
+                              action=operator.mul, side='left', **kwargs):
     #   if the trivial character is passed, return an instance of
     #   :class:`~sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule`
 
@@ -626,7 +630,9 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
                 return M.invariant_module(G, action_on_basis=action_on_basis)
             return M.invariant_module(G,action)
 
-        return super().__new__(cls, M, G, chi, action, side='left', **kwargs)
+        return super(FiniteDimensionalTwistedInvariantModule,
+                    cls).__classcall__(cls, M, G, chi, action=operator.mul,
+                    side='left', **kwargs)
 
     def __init__(self, M, G, chi, action=operator.mul, side='left', **kwargs):
         r"""
@@ -646,11 +652,13 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             sage: T = M.twisted_invariant_module(G,chi,action_on_basis=action)
 
         We know that the permutation representation decomposes as a direct
-        sum of one copy of the standard representation and one copy of the
-        trivial representation::
+        sum of one copy of the standard representation which is two-dimensional
+        and one copy of the trivial representation, ::
 
-            sage: T.basis()
-            [M[1] - M[2], M[1] - M[3]]
+            sage: T.basis() 
+            Finite family {0: B[0], 1: B[1]}
+            sage: [T.lift(b) for b in T.basis()]
+            [M[1] - M[3], M[2] - M[3]]
 
         """
 
@@ -660,6 +668,22 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             raise ValueError(f"{M} is not a finite dimensional module with a distinguished basis")
 
         self._chi = chi # assumed to be a ClassFunction
+
+        if side == 'left':
+            __action = action
+        elif side == 'right':
+            def __action(g, x):
+                return action(x, g)
+        else:
+            raise ValueError("side must either be 'left' or 'right'")
+
+        proj_matrix = Matrix(M.dimension()) #initialize the zero-matrix
+        for g in G:
+            proj_matrix += chi(g)*Matrix((__action(g,b)).to_vector() for b in M.basis())
+        
+        n = chi(G.identity()) # chi(1) is the dimension
+        g = G.order()
+        proj_matrix = (n/g)*proj_matrix
 
         def _projection_map(x):
             r"""
@@ -677,26 +701,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             - `\rho_t` is the map in `GL(M)` representing the element `t \in G`
 
             """
-            if side == "left":
-                __action = action
-            if side == "right":
-                def __action(g, x):
-                    return action(x, g)
-            else:
-                raise ValueError("side must either be 'left' or 'right'")
-
-            n = chi(G.identity()) # chi(1) is the dimension
-            g = G.order()
-
-            projection_matrix = matrix(M.dimension()) #initialize the zero-matrix
-            for g in G:
-                projection_matrix += chi(g)*matrix((__action(g,b)).to_vector() for b in M.basis())
-
-            projection_matrix = (n/g)*projection_matrix
-
-            pi = lambda x: M.from_vector(projection_matrix*x.to_vector())
-
-            return pi
+            return M.from_vector(proj_matrix*x.to_vector())
 
         self._action = action
         self._projection_map = _projection_map
@@ -707,7 +712,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         # Give the kernel of the map `\pi(x)-x` to determine when `x` lies
         # within the isotypic component of `R`.
         basis = M.annihilator_basis(G.gens(),
-                                    action=lambda x: _projection_map(x)-x,
+                                    action=lambda g,x: _projection_map(x)-x,
                                     side="left")
 
         super().__init__(Family(basis),
@@ -715,7 +720,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
                          ambient=M,
                          unitriangular=False,
                          category=category,
-                         *args, **kwargs)
+                         **kwargs)
 
     def project(self, x):
         r"""

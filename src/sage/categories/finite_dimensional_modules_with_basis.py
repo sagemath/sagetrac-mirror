@@ -437,9 +437,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             from sage.modules.with_basis.invariant import FiniteDimensionalTwistedInvariantModule
             return FiniteDimensionalTwistedInvariantModule(M, G, chi,
-                                                           action=action,
-                                                           side=side,
-                                                           **kwargs)
+                                                       action, side, **kwargs)
 
     class ElementMethods:
         def dense_coefficient_list(self, order=None):
