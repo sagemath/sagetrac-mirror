@@ -1321,14 +1321,17 @@ class SphericalWeb(Element):
             raise ValueError(f"the two parents {h.parent()} and {k.parent()} are different")
 
         cp = dict(self.cp)
+        eo = dict(self.e)
+        ck = dict(k.cp)
 
         Ds = {a:halfedge(a.strand, a.crossing) for a in cp if not a in D.values()}
-        Dk = {a:halfedge(a.strand, a.crossing) for a in k.cp}
+        Dk = {a:halfedge(a.strand, a.crossing) for a in ck}
         c = {Ds[a]:Ds[cp[a]] for a in Ds}
-        c.update({Dk[a]:Dk[k.cp[a]] for a in Dk})
+        c.update({Dk[a]:Dk[ck[a]] for a in Dk})
 
-        e = {Ds[a]:Ds[self.e[a]] for a in Ds if a in self.e and self.e[a] in Ds}
-        e.update({Dk[a]:Dk[k.e[a]] for a in k.e})
+        e = {Ds[a]:Ds[eo[a]] for a in Ds if a in eo and eo[a] in Ds}
+        ek = dict(k.e)
+        e.update({Dk[a]:Dk[ek[a]] for a in ek})
 
         Db = dict(zip(h.b, k.b))
         b = [None]*len(self.b)
@@ -1345,7 +1348,7 @@ class SphericalWeb(Element):
 
         for a in h.b:
             try:
-                u = self.e[D[a]]
+                u = eo[D[a]]
                 try:
                     x = Ds[u]
                     y = Dk[Db[a]]
