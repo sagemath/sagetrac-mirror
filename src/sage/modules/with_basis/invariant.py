@@ -589,14 +589,38 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
     def __classcall_private__(cls, M, G, chi, 
                               action=operator.mul, side='left', **kwargs):
         """
+        
+        EXAMPLES:
+
+        Suppose that the symmetric group `S_3` acts on a four dimensional
+        vector space by permuting the first three coordinates only::
+
+            sage: M = CombinatorialFreeModule(QQ,[1,2,3,4])
+            sage: G = SymmetricGroup(3)
+            sage: action = lambda g,x: M.term(g(x))
+            sage: chi = ClassFunction(G.conjugacy_classes(),[1,1,1])
+            sage: T = M.twisted_invariant_module(G,chi,action_on_basis=action)
+            sage: type(T)
+            <class `sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule`>
+
 
         TESTS:
 
         Check that it works when the character values are not an instance of
         :class:`~sage.rings.integer.Integer`::
 
+            sage: M = CombinatorialFreeModule(QQ,[1,2,3])
+            sage: G = SymmetricGroup(3)
+            sage: action = lambda g,x: M.term(g(x))
             sage: chi = [1.0, 1.0, 1.0] # a list of real numbers
+            sage: T = M.twisted_invariant_module(G,chi,action_on_basis=action)
+            sage: type(T)
+            <class `sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule`>
+
             sage: chi = (CC(1), CC(1), CC(1)) # a tuple of complex numbers
+            sage: T = M.twisted_invariant_module(G,chi,action_on_basis=action)
+            sage: type(T)
+            <class `sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule`>
 
         """
 
