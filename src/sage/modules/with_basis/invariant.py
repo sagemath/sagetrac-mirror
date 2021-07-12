@@ -598,11 +598,10 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             sage: M = CombinatorialFreeModule(QQ,[1,2,3,4])
             sage: G = SymmetricGroup(3)
             sage: action = lambda g,x: M.term(g(x))
-            sage: chi = ClassFunction(G.conjugacy_classes(),[1,1,1])
+            sage: chi = ClassFunction(G,(1,1,1))
             sage: T = M.twisted_invariant_module(G,chi,action_on_basis=action)
             sage: type(T)
-            <class `sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule`>
-
+            <class 'sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule_with_category'>
 
         TESTS:
 
@@ -615,12 +614,12 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             sage: chi = [1.0, 1.0, 1.0] # a list of real numbers
             sage: T = M.twisted_invariant_module(G,chi,action_on_basis=action)
             sage: type(T)
-            <class `sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule`>
+            <class 'sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule_with_category'>
 
             sage: chi = (CC(1), CC(1), CC(1)) # a tuple of complex numbers
             sage: T = M.twisted_invariant_module(G,chi,action_on_basis=action)
             sage: type(T)
-            <class `sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule`>
+            <class 'sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule_with_category'>
 
         """
 
@@ -636,7 +635,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             action_on_basis = kwargs.pop('action_on_basis', None)
             if action_on_basis is not None:
                 return M.invariant_module(G, action_on_basis=action_on_basis)
-            return M.invariant_module(G,action)
+            return M.invariant_module(G, action=action)
 
         return super(FiniteDimensionalTwistedInvariantModule,
                     cls).__classcall__(cls, M, G, chi, action=operator.mul,
