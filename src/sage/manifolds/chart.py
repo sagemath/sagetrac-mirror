@@ -38,18 +38,19 @@ REFERENCES:
 # ****************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import SR
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
 from sage.misc.decorators import options
+from sage.misc.fast_methods import WithEqualityById
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.manifolds.chart_func import ChartFunctionRing
 from sage.manifolds.calculus_method import CalculusMethod
 from sage.symbolic.expression import Expression
 from sage.ext.fast_callable import fast_callable
 
 
-class Chart(UniqueRepresentation, SageObject):
+class Chart(SageObject, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     Chart on a topological manifold.
 
@@ -288,8 +289,8 @@ class Chart(UniqueRepresentation, SageObject):
         try:
             return domain._charts_by_coord[coord_string]
         except KeyError:
-            self = super().__classcall__(cls, domain, coordinates,
-                                         calc_method, **coordinate_options)
+            self = type.__call__(cls, domain, coordinates,
+                                 calc_method, **coordinate_options)
             domain._charts_by_coord[coord_string] = self
             return self
 
@@ -440,6 +441,21 @@ class Chart(UniqueRepresentation, SageObject):
             xx_list.append(coord_var)
             period_list.append(period)
         return tuple(xx_list), dict(periods=tuple(period_list))
+
+    __eq__ = WithEqualityById.__eq__
+    __hash__ = WithEqualityById.__hash__
+
+    def __reduce__(self):
+        r"""
+        TESTS::
+
+            sage: M = Manifold(2, 'M', field='complex', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: X.__reduce__()
+            (<class 'sage.manifolds.chart.Chart'>,
+            (Complex 2-dimensional topological manifold M, (x, y)))
+        """
+        return (self.__class__, (self._domain, self._xx))
 
     def _repr_(self):
         r"""
