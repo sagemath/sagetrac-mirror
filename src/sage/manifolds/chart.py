@@ -1027,12 +1027,17 @@ class Chart(SageObject, WithEqualityById, metaclass=InheritComparisonClasscallMe
              { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x > 0 }
         """
         if isinstance(coord_restrictions, tuple): # case of 'or' conditions
+            if not coord_restrictions:
+                return universe
             A = self._restrict_set(universe, coord_restrictions[0])
             if len(coord_restrictions) == 1:
                 return A
             else:
                 return A.union(self._restrict_set(universe, coord_restrictions[1:]))
         elif isinstance(coord_restrictions, (list, set, frozenset)): # case of 'and' conditions
+            if not coord_restrictions:
+                return universe
+            coord_restrictions = list(coord_restrictions)
             A = self._restrict_set(universe, coord_restrictions[0])
             if len(coord_restrictions) == 1:
                 return A
