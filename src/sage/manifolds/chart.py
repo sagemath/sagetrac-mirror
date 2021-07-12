@@ -277,6 +277,16 @@ class Chart(UniqueRepresentation, SageObject):
             []
             sage: TestSuite(X).run()
 
+        Check that :trac:`32112` has been fixed::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: V = M.open_subset('V')
+            sage: XU = U.chart('x y')
+            sage: XV = V.chart('x y')
+            sage: M.top_charts()
+            [Chart (U, (x, y)), Chart (V, (x, y))]
+
         """
         from sage.manifolds.manifold import TopologicalManifold
         if not isinstance(domain, TopologicalManifold):
@@ -320,11 +330,12 @@ class Chart(UniqueRepresentation, SageObject):
         # The chart is added to the domain's atlas, as well as to all the
         # atlases of the domain's supersets; moreover the first defined chart
         # is considered as the default chart
-        for sd in self._domain.open_supersets():
-            # the chart is added in the top charts only if its coordinates have
-            # not been used:
+        for sd in domain.open_supersets():
+            # the chart is added in the top charts iff its coordinates have
+            # not been used on a domain including the chart's domain:
             for chart in sd._atlas:
-                if self._xx == chart._xx:
+                if (domain.is_subset(chart._domain)
+                    and self._xx == chart._xx):
                     break
             else:
                 sd._top_charts.append(self)
@@ -332,7 +343,7 @@ class Chart(UniqueRepresentation, SageObject):
             if sd._def_chart is None:
                 sd._def_chart = self
         # The chart is added to the list of the domain's covering charts:
-        self._domain._covering_charts.append(self)
+        domain._covering_charts.append(self)
         # Initialization of the set of charts that are restrictions of the
         # current chart to subsets of the chart domain:
         self._subcharts = set([self])
@@ -346,7 +357,7 @@ class Chart(UniqueRepresentation, SageObject):
         # The null and one functions of the coordinates:
         # Expression in self of the zero and one scalar fields of open sets
         # containing the domain of self:
-        for dom in self._domain.open_supersets():
+        for dom in domain.open_supersets():
             dom._zero_scalar_field._express[self] = self.function_ring().zero()
             dom._one_scalar_field._express[self] = self.function_ring().one()
 
@@ -411,7 +422,7 @@ class Chart(UniqueRepresentation, SageObject):
             Chart (M, (x, y))
 
         """
-        return 'Chart ({}, {})'.format(self._domain._name, self._xx)
+        return 'Chart ({}, {})'.format(self.domain()._name, self._xx)
 
     def _latex_(self):
         r"""
@@ -430,7 +441,7 @@ class Chart(UniqueRepresentation, SageObject):
             \left(M,({\zeta_1}, {\zeta2})\right)
 
         """
-        description = r'\left(' + latex(self._domain).strip() + ',('
+        description = r'\left(' + latex(self.domain()).strip() + ',('
         n = len(self._xx)
         for i in range(n-1):
             description += latex(self._xx[i]).strip() + ', '
@@ -712,10 +723,10 @@ class Chart(UniqueRepresentation, SageObject):
             Chart (B, (z1, z2))
 
         """
-        if subset == self._domain:
+        if subset == self.domain():
             return self
         if subset not in self._dom_restrict:
-            if not subset.is_subset(self._domain):
+            if not subset.is_subset(self.domain()):
                 raise ValueError("the specified subset is not a subset " +
                                  "of the domain of definition of the chart")
             coordinates = ""
@@ -784,7 +795,7 @@ class Chart(UniqueRepresentation, SageObject):
             False
 
         """
-        if len(coordinates) != self._domain._dim:
+        if len(coordinates) != self.domain()._dim:
             return False
         if 'parameters' in kwds:
             parameters = kwds['parameters']
@@ -840,19 +851,72 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
         if isinstance(restrict, tuple): # case of 'or' conditions
-            combine = False
-            for cond in restrict:
-                combine = combine or self._check_restrictions(cond,
-                                                              substitutions)
-            return combine
-        elif isinstance(restrict, list): # case of 'and' conditions
-            combine = True
-            for cond in restrict:
-                combine = combine and self._check_restrictions(cond,
-                                                               substitutions)
-            return combine
+            return any(self._check_restrictions(cond, substitutions)
+                       for cond in restrict)
+        elif isinstance(restrict, (list, set, frozenset)): # case of 'and' conditions
+            return all(self._check_restrictions(cond, substitutions)
+                       for cond in restrict)
         # Case of a single condition:
         return bool(restrict.subs(substitutions))
+
+    def codomain(self):
+        r"""
+        Return the codomain of ``self`` as a set.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', field='complex', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: X.codomain()
+            Vector space of dimension 2 over Complex Field with 53 bits of precision
+
+        """
+        from sage.modules.free_module import VectorSpace
+        ambient = VectorSpace(self.manifold().base_field(), self.manifold().dimension())
+        if self._restrictions:
+            return self._restrict_set(ambient, self._restrictions)
+        else:
+            return ambient
+
+    def _restrict_set(self, universe, coord_restrictions):
+        """
+        Return a set corresponding to coordinate restrictions.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: universe = RR^2
+            sage: X._restrict_set(universe, x>0)
+            { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x > 0 }
+            sage: X._restrict_set(universe, x>0)
+            { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x > 0 }
+            sage: X._restrict_set(universe, (x>0, [x<y, y<0]))
+            Set-theoretic union of
+             { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x > 0 } and
+             { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x < y, y < 0 }
+            sage: X._restrict_set(universe, [(x<y, y<0), x>0])
+            Set-theoretic intersection of
+             Set-theoretic union of
+              { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x < y } and
+              { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : y < 0 } and
+             { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x > 0 }
+        """
+        if isinstance(coord_restrictions, tuple): # case of 'or' conditions
+            A = self._restrict_set(universe, coord_restrictions[0])
+            if len(coord_restrictions) == 1:
+                return A
+            else:
+                return A.union(self._restrict_set(universe, coord_restrictions[1:]))
+        elif isinstance(coord_restrictions, (list, set, frozenset)): # case of 'and' conditions
+            A = self._restrict_set(universe, coord_restrictions[0])
+            if len(coord_restrictions) == 1:
+                return A
+            else:
+                return A.intersection(self._restrict_set(universe, coord_restrictions[1:]))
+        # Case of a single condition:
+        from sage.sets.condition_set import ConditionSet
+        return ConditionSet(universe, coord_restrictions, vars=self._xx)
 
     def transition_map(self, other, transformations, intersection_name=None,
                        restrictions1=None, restrictions2=None):
@@ -962,8 +1026,8 @@ class Chart(UniqueRepresentation, SageObject):
             [Chart (R^2, (x, y)), Chart (U, (r, phi)), Chart (U, (x, y))]
 
         """
-        dom1 = self._domain
-        dom2 = other._domain
+        dom1 = self.domain()
+        dom2 = other.domain()
         dom = dom1.intersection(dom2, name=intersection_name)
         if dom is dom1:
             chart1 = self
@@ -1054,7 +1118,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: type(f)
             <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
             sage: f.display()
-            (x, y) |--> sin(x*y)
+            (x, y) ↦ sin(x*y)
             sage: f(2,3)
             sin(6)
 
@@ -1109,7 +1173,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.zero_function()
             0
             sage: X.zero_function().display()
-            (x, y) |--> 0
+            (x, y) ↦ 0
             sage: type(X.zero_function())
             <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
@@ -1127,7 +1191,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.zero_function()
             0
             sage: X.zero_function().display()
-            (x, y) |--> 0
+            (x, y) ↦ 0
 
         """
         return self.function_ring().zero()
@@ -1163,7 +1227,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.one_function()
             1
             sage: X.one_function().display()
-            (x, y) |--> 1
+            (x, y) ↦ 1
             sage: type(X.one_function())
             <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
@@ -1181,7 +1245,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.one_function()
             1 + O(5^20)
             sage: X.one_function().display()
-            (x, y) |--> 1 + O(5^20)
+            (x, y) ↦ 1 + O(5^20)
 
         """
         return self.function_ring().one()
@@ -1229,7 +1293,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: parent(f.expr())
             Symbolic Ring
             sage: f.display()
-            (x, y) |--> x^2 + cos(y)*sin(x)
+            (x, y) ↦ x^2 + cos(y)*sin(x)
 
         Changing to SymPy::
 
@@ -1241,13 +1305,13 @@ class Chart(UniqueRepresentation, SageObject):
             sage: parent(f.expr())
             <class 'sympy.core.add.Add'>
             sage: f.display()
-            (x, y) |--> x**2 + sin(x)*cos(y)
+            (x, y) ↦ x**2 + sin(x)*cos(y)
 
         Back to the Symbolic Ring::
 
             sage: X.calculus_method().set('SR')
             sage: f.display()
-            (x, y) |--> x^2 + cos(y)*sin(x)
+            (x, y) ↦ x^2 + cos(y)*sin(x)
 
         """
         return self._calc_method
@@ -1758,6 +1822,49 @@ class RealChart(Chart):
         else:
             return self._bounds[i-self._sindex]
 
+    def codomain(self):
+        """
+        Return the codomain of ``self`` as a set.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: U = M.open_subset('U') # the complement of the half line {y=0, x >= 0}
+            sage: c_spher.<r,phi> = U.chart(r'r:(0,+oo) phi:(0,2*pi):\phi')
+            sage: c_spher.codomain()
+            The Cartesian product of ((0, +oo), (0, 2*pi))
+
+            sage: M = Manifold(3, 'R^3', r'\RR^3', structure='topological', start_index=1)
+            sage: c_cart.<x,y,z> = M.chart()
+            sage: c_cart.codomain()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+
+        In the current implementation, the codomain of periodic coordinates are represented
+        by a fundamental domain::
+
+            sage: V = M.open_subset('V')
+            sage: c_spher1.<r,th,ph1> = \
+            ....: V.chart(r'r:(0,+oo) th:(0,pi):\theta ph1:(0,2*pi):periodic:\phi_1')
+            sage: c_spher1.codomain()
+            The Cartesian product of ((0, +oo), (0, pi), [0, 2*pi))
+        """
+        from sage.sets.real_set import RealSet
+        from sage.modules.free_module import VectorSpace
+        from sage.categories.cartesian_product import cartesian_product
+        intervals = tuple(RealSet.interval(xmin, xmax,
+                                           lower_closed=(min_included == 'periodic' or min_included),
+                                           upper_closed=(max_included != 'periodic' and max_included))
+                          for ((xmin, min_included), (xmax, max_included)) in self._bounds)
+        if all(interval.is_universe()
+               for interval in intervals):
+            ambient = VectorSpace(self.manifold().base_field(), self.manifold().dimension())
+        else:
+            ambient = cartesian_product(intervals)
+        if self._restrictions:
+            return self._restrict_set(ambient, self._restrictions)
+        else:
+            return ambient
+
     def coord_range(self, xx=None):
         r"""
         Display the range of a coordinate (or all coordinates), as an
@@ -2024,10 +2131,10 @@ class RealChart(Chart):
             True
 
         """
-        if subset == self._domain:
+        if subset == self.domain():
             return self
         if subset not in self._dom_restrict:
-            if not subset.is_subset(self._domain):
+            if not subset.is_subset(self.domain()):
                 raise ValueError("the specified subset is not a subset " +
                                  "of the domain of definition of the chart")
             coordinates = ""
@@ -2719,10 +2826,10 @@ class RealChart(Chart):
             transf = None # to be the MultiCoordFunction object relating self
                           # to the ambient chart
             if mapping is None:
-                if not self._domain.is_subset(chart._domain):
+                if not self.domain().is_subset(chart.domain()):
                     raise ValueError("the domain of {} is not ".format(self) +
                                      "included in that of {}".format(chart))
-                coord_changes = chart._domain._coord_changes
+                coord_changes = chart.domain()._coord_changes
                 for chart_pair in coord_changes:
                     if chart_pair == (self, chart):
                         transf = coord_changes[chart_pair]._transf
@@ -2737,10 +2844,10 @@ class RealChart(Chart):
                 if not isinstance(mapping, ContinuousMap):
                     raise TypeError("the argument 'mapping' must be a "
                                     "continuous manifold map")
-                if not self._domain.is_subset(mapping._domain):
+                if not self.domain().is_subset(mapping.domain()):
                     raise ValueError("the domain of {} is not ".format(self) +
                                      "included in that of {}".format(mapping))
-                if not chart._domain.is_subset(mapping._codomain):
+                if not chart.domain().is_subset(mapping._codomain):
                     raise ValueError("the domain of {} is not ".format(chart) +
                                      "included in the codomain of {}".format(
                                                                       mapping))
@@ -3000,8 +3107,8 @@ class CoordChange(SageObject):
         self._inverse = None
         # If the two charts are on the same open subset, the coordinate change
         # is added to the subset (and supersets) dictionary:
-        if chart1._domain == chart2._domain:
-            domain = chart1._domain
+        if chart1.domain() == chart2.domain():
+            domain = chart1.domain()
             for sdom in domain.open_supersets():
                 sdom._coord_changes[(chart1, chart2)] = self
 

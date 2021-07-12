@@ -242,9 +242,9 @@ class DiffChart(Chart):
     A vector frame is naturally associated to each chart::
 
         sage: X.frame()
-        Coordinate frame (M, (d/dx,d/dy))
+        Coordinate frame (M, (∂/∂x,∂/∂y))
         sage: Y.frame()
-        Coordinate frame (U, (d/dz1,d/dz2))
+        Coordinate frame (U, (∂/∂z1,∂/∂z2))
 
     as well as a dual frame (basis of 1-forms)::
 
@@ -391,8 +391,8 @@ class DiffChart(Chart):
             [Chart (R^2, (x, y)), Chart (U, (r, phi)), Chart (U, (x, y))]
 
         """
-        dom1 = self._domain
-        dom2 = other._domain
+        dom1 = self.domain()
+        dom2 = other.domain()
         dom = dom1.intersection(dom2, name=intersection_name)
         if dom is dom1:
             chart1 = self
@@ -423,7 +423,7 @@ class DiffChart(Chart):
             sage: M = Manifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()
             sage: c_xy.frame()
-            Coordinate frame (M, (d/dx,d/dy))
+            Coordinate frame (M, (∂/∂x,∂/∂y))
             sage: type(c_xy.frame())
             <class 'sage.manifolds.differentiable.vectorframe.CoordFrame'>
 
@@ -431,21 +431,21 @@ class DiffChart(Chart):
         with the coordinates `(x,y)`::
 
             sage: ex = c_xy.frame()[0] ; ex
-            Vector field d/dx on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂x on the 2-dimensional differentiable manifold M
             sage: ey = c_xy.frame()[1] ; ey
-            Vector field d/dy on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂y on the 2-dimensional differentiable manifold M
             sage: ex(M.scalar_field(x)).display()
-            1: M --> R
-               (x, y) |--> 1
+            1: M → ℝ
+               (x, y) ↦ 1
             sage: ex(M.scalar_field(y)).display()
-            zero: M --> R
-               (x, y) |--> 0
+            zero: M → ℝ
+               (x, y) ↦ 0
             sage: ey(M.scalar_field(x)).display()
-            zero: M --> R
-               (x, y) |--> 0
+            zero: M → ℝ
+               (x, y) ↦ 0
             sage: ey(M.scalar_field(y)).display()
-            1: M --> R
-               (x, y) |--> 1
+            1: M → ℝ
+               (x, y) ↦ 1
 
         """
         return self._frame
@@ -480,21 +480,21 @@ class DiffChart(Chart):
             sage: dy = c_xy.coframe()[1] ; dy
             1-form dy on the 2-dimensional differentiable manifold M
             sage: ex = c_xy.frame()[0] ; ex
-            Vector field d/dx on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂x on the 2-dimensional differentiable manifold M
             sage: ey = c_xy.frame()[1] ; ey
-            Vector field d/dy on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂y on the 2-dimensional differentiable manifold M
             sage: dx(ex).display()
-            dx(d/dx): M --> R
-               (x, y) |--> 1
+            dx(∂/∂x): M → ℝ
+               (x, y) ↦ 1
             sage: dx(ey).display()
-            dx(d/dy): M --> R
-               (x, y) |--> 0
+            dx(∂/∂y): M → ℝ
+               (x, y) ↦ 0
             sage: dy(ex).display()
-            dy(d/dx): M --> R
-               (x, y) |--> 0
+            dy(∂/∂x): M → ℝ
+               (x, y) ↦ 0
             sage: dy(ey).display()
-            dy(d/dy): M --> R
-               (x, y) |--> 1
+            dy(∂/∂y): M → ℝ
+               (x, y) ↦ 1
 
         """
         return self._coframe
@@ -548,7 +548,7 @@ class DiffChart(Chart):
             Chart (B, (z1, z2))
 
         """
-        if subset == self._domain:
+        if subset == self.domain():
             return self
         if subset not in self._dom_restrict:
             resu = Chart.restrict(self, subset, restrictions=restrictions)
@@ -558,8 +558,8 @@ class DiffChart(Chart):
                 sframe._subframes.add(resu._frame)
                 sframe._restrictions[subset] = resu._frame
             # The subchart frame is not a "top frame" in the supersets
-            # (including self._domain):
-            for dom in self._domain.open_supersets():
+            # (including self.domain()):
+            for dom in self.domain().open_supersets():
                 if resu._frame in dom._top_frames:
                     # it was added by the Chart constructor invoked in
                     # Chart.restrict above
@@ -927,9 +927,9 @@ class RealDiffChart(DiffChart, RealChart):
     A vector frame is naturally associated to each chart::
 
         sage: c_cart.frame()
-        Coordinate frame (R^3, (d/dx,d/dy,d/dz))
+        Coordinate frame (R^3, (∂/∂x,∂/∂y,∂/∂z))
         sage: c_spher.frame()
-        Coordinate frame (U, (d/dr,d/dth,d/dph))
+        Coordinate frame (U, (∂/∂r,∂/∂th,∂/∂ph))
 
     as well as a dual frame (basis of 1-forms)::
 
@@ -1031,7 +1031,7 @@ class RealDiffChart(DiffChart, RealChart):
             True
 
         """
-        if subset == self._domain:
+        if subset == self.domain():
             return self
         if subset not in self._dom_restrict:
             resu = RealChart.restrict(self, subset, restrictions=restrictions)
@@ -1041,8 +1041,8 @@ class RealDiffChart(DiffChart, RealChart):
                 sframe._subframes.add(resu._frame)
                 sframe._restrictions[subset] = resu._frame
             # The subchart frame is not a "top frame" in the supersets
-            # (including self._domain):
-            for dom in self._domain.open_supersets():
+            # (including self.domain()):
+            for dom in self.domain().open_supersets():
                 if resu._frame in dom._top_frames:
                     # it was added by the Chart constructor invoked in
                     # Chart.restrict above
@@ -1125,8 +1125,8 @@ class DiffCoordChange(CoordChange):
         self._jacobian  = self._transf.jacobian()
         # If the two charts are on the same open subset, the Jacobian matrix is
         # added to the dictionary of changes of frame:
-        if chart1._domain == chart2._domain:
-            domain = chart1._domain
+        if chart1.domain() == chart2.domain():
+            domain = chart1.domain()
             frame1 = chart1._frame
             frame2 = chart2._frame
             vf_module = domain.vector_field_module()
