@@ -31,6 +31,7 @@ from sage.rings.all import CyclotomicField
 from sage.libs.gap.element import GapElement
 from sage.libs.gap.libgap import libgap
 from sage.libs.gap.element import GapElement as LibGapElement
+from sage.structure.unique_representation import CachedRepresentation
 
 # TODO:
 #
@@ -86,7 +87,7 @@ def ClassFunction(group, values):
 
 
 @richcmp_method
-class ClassFunction_gap(SageObject):
+class ClassFunction_gap(SageObject,CachedRepresentation):
     """
     A wrapper of GAP's ClassFunction function.
 
@@ -104,6 +105,24 @@ class ClassFunction_gap(SageObject):
         sage: loads(dumps(chi)) == chi
         True
     """
+    @staticmethod
+    def __classcall_private__(cls, G, values):
+        r"""
+        Normalize the input to pass to CachedRepresentation.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(3)
+            sage: chi1 = ClassFunction(G, [1,1,1])
+            sage: chi2 = ClassFunction(G, (1,1,1))
+            sage: chi1 is chi2
+            True
+        """
+
+        values = tuple(values)
+
+        return super(ClassFunction_gap,cls).__classcall__(cls, G, values)
+
     def __init__(self, G, values):
         r"""
         Return the character of the group ``G`` with values given by the list
