@@ -38,8 +38,13 @@ REFERENCES:
 # ****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.categories.sets_cat import Sets
+from sage.categories.topological_spaces import TopologicalSpaces
+from sage.categories.homset import Hom
+from sage.categories.map import Map
 from sage.symbolic.ring import SR
 from sage.rings.infinity import Infinity
+from sage.modules.free_module import VectorSpace
 from sage.misc.latex import latex
 from sage.misc.decorators import options
 from sage.misc.fast_methods import WithEqualityById
@@ -50,7 +55,7 @@ from sage.symbolic.expression import Expression
 from sage.ext.fast_callable import fast_callable
 
 
-class Chart(SageObject, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass):
+class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     Chart on a topological manifold.
 
@@ -282,6 +287,24 @@ class Chart(SageObject, WithEqualityById, metaclass=InheritComparisonClasscallMe
         sage: X.valid_coordinates(i, 1)
         False
 
+    A chart is a map, so it has domain::
+
+        sage: M = Manifold(2, 'M', structure='topological')
+        sage: X.<x,y> = M.chart()
+        sage: X.domain()
+        2-dimensional topological manifold M
+        sage: U = M.open_subset('U')
+        sage: Y.<u,v> = U.chart()
+        sage: Y.domain()
+        Open subset U of the 2-dimensional topological manifold M
+
+    ... and a codomain::
+
+        sage: M = Manifold(2, 'M', field='complex', structure='topological')
+        sage: X.<x,y> = M.chart()
+        sage: X.codomain()
+        Vector space of dimension 2 over Complex Field with 53 bits of precision
+
     .. SEEALSO::
 
         :class:`sage.manifolds.chart.RealChart` for charts on topological
@@ -331,6 +354,7 @@ class Chart(SageObject, WithEqualityById, metaclass=InheritComparisonClasscallMe
 
         TESTS::
 
+            sage: forget()   # for doctests only
             sage: M = Manifold(2, 'M', field='complex', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: X
@@ -380,6 +404,28 @@ class Chart(SageObject, WithEqualityById, metaclass=InheritComparisonClasscallMe
         #
         # Additional restrictions on the coordinates.
         self._restrictions = sorted(coord_restrictions, key=str)
+
+
+        if self._periods:
+            # If any coordinate is periodic, we would need to make the codomain a torus
+            # in order to declare that the chart is a continuous map.  But Sage does not
+            # have a suitable class for this.
+            cat = Sets()
+        else:
+            # We would like to say TopologicalSpaces() here but "Vector space of
+            # dimension 2 over Complex Field with 53 bits of precision is not
+            # in Category of topological spaces".
+            #cat = TopologicalSpaces()
+            cat = Sets()
+
+        ambient = VectorSpace(domain.base_field(), domain.dimension())
+        if self._restrictions:
+            codomain = self._restrict_set(ambient, self._restrictions)
+        else:
+            codomain = ambient
+
+        Map.__init__(self, Hom(domain, codomain, cat))
+
         #
         # The chart is added to the domain's atlas, as well as to all the
         # atlases of the domain's supersets; moreover the first defined chart
@@ -657,24 +703,6 @@ class Chart(SageObject, WithEqualityById, metaclass=InheritComparisonClasscallMe
 
         """
         return point.coord(self)
-
-    def domain(self):
-        r"""
-        Return the open subset on which the chart is defined.
-
-        EXAMPLES::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: X.domain()
-            2-dimensional topological manifold M
-            sage: U = M.open_subset('U')
-            sage: Y.<u,v> = U.chart()
-            sage: Y.domain()
-            Open subset U of the 2-dimensional topological manifold M
-
-        """
-        return self._domain
 
     def manifold(self):
         r"""
@@ -982,25 +1010,6 @@ class Chart(SageObject, WithEqualityById, metaclass=InheritComparisonClasscallMe
                        for cond in restrict)
         # Case of a single condition:
         return bool(restrict.subs(substitutions))
-
-    def codomain(self):
-        r"""
-        Return the codomain of ``self`` as a set.
-
-        EXAMPLES::
-
-            sage: M = Manifold(2, 'M', field='complex', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: X.codomain()
-            Vector space of dimension 2 over Complex Field with 53 bits of precision
-
-        """
-        from sage.modules.free_module import VectorSpace
-        ambient = VectorSpace(self.manifold().base_field(), self.manifold().dimension())
-        if self._restrictions:
-            return self._restrict_set(ambient, self._restrictions)
-        else:
-            return ambient
 
     def _restrict_set(self, universe, coord_restrictions):
         """
