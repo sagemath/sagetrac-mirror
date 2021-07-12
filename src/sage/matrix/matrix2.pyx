@@ -15159,6 +15159,92 @@ cdef class Matrix(Matrix1):
         r = min(self.nrows(), self.ncols())
         return [d[i,i] for i in xrange(r)]
 
+    def generalized_jordan_form(self, subdivide=True):
+        """
+        Compute the generalized Jordan form and the transformation matrix.
+
+        INPUT:
+
+        - ``subdivide`` -- boolean (default ``True``)
+
+        OUTPUT
+
+        - `F` -- a matrix, the generalized Jordan form of ``self``
+        - `T` -- the transformation matrix between `F` and ``self``
+
+        The generalized Jordan form is a canonical form for square
+        matrices over any field.
+
+        EXAMPLES::
+
+            sage: M = matrix(QQ, 10, 10, [-23, 19, -9, -75, 34, 9, 56, 15, -34, -9,
+            ....: -2, 2, -1, -6, 3, 1, 4, 2, -3, 0,
+            ....: 4, -4, 3, 10, -5, -1, -6, -4, 5, 1,
+            ....: -2, 2, -1, -5, 3, 1, 3, 2, -3, 0,
+            ....: 0, 0, 0, 0, 2, 0, 0, 0, 0, 0,
+            ....: 12, -12, 6, 33, -18, -4, -18, -12, 18, 0,
+            ....: -1, -3, 0, 2, 1, 0, 1, 1, 2, 1,
+            ....: -26, 22, -10, -83, 36, 10, 61, 18, -39, -10,
+            ....: -1, -3, 0, 1, 1, 0, 2, 1, 2, 0,
+            ....: 8, -12, 4, 27, -12, -4, -12, -7, 15, 0])
+            sage: A, B  = M.generalized_jordan_form(subdivide=False)
+            sage: ~B * A * B == M
+            True
+            sage: A
+            [ 2  0  0  0  0  0  0  0  0  0]
+            [ 0  2  0  0  0  0  0  0  0  0]
+            [ 0  0  2  1  0  0  0  0  0  0]
+            [ 0  0  0  2  0  0  0  0  0  0]
+            [ 0  0  0  0  0  1  0  0  0  0]
+            [ 0  0  0  0  3 -4  0  0  0  0]
+            [ 0  0  0  0  0  0  0  1  0  0]
+            [ 0  0  0  0  0  0  3 -4  1  0]
+            [ 0  0  0  0  0  0  0  0  0  1]
+            [ 0  0  0  0  0  0  0  0  3 -4]
+
+        Over a finite field::
+
+            sage: P0 = posets.TamariLattice(4)
+            sage: p0 = P0.coxeter_transformation().change_ring(GF(2))
+            sage: P1 = RootSystem('A3').root_poset().order_ideals_lattice()
+            sage: p1 = P1.coxeter_transformation().change_ring(GF(2))
+            sage: a0, b0 = p0.generalized_jordan_form()
+            sage: a1, b1 = p1.generalized_jordan_form()
+            sage: a0 == a1
+            True
+
+        REFERENCES:
+
+        .. [Steel] Allan Steel. *A New Algorithm for the Computation of
+           Canonical Forms of Matrices over Fields*.
+           J. Symbolic Comp., 24(3):409--432, 1997. :doi:`10.1006/jsco.1996.0142`
+        """
+        from sage.matrix.generalized_jordan_form import J_matrix, TJ_matrix, decompose, split_primary
+        from sage.matrix.special import block_diagonal_matrix, block_matrix 
+
+        VV, p, e, v = decompose(self)
+        ring = p[0].base_ring()
+
+        resu = []
+        for i in range(len(VV)):
+            if not v[i]:
+                m, ww = split_primary(VV[i], self, p[i], e[i])
+                resu += [(p[i], k, ww[k, l + 1]) for k in m.keys()
+                         for l in range(m[k])]
+            else:
+                resu += [(p[i], e[i], v[i])]
+
+        resu.sort(key=lambda pev: (pev[0], pev[1]))
+
+        F = block_diagonal_matrix([J_matrix(pp, ee) for pp, ee, _ in resu],
+                                  subdivide=subdivide)
+
+        T = block_matrix(ring, len(resu), 1, [TJ_matrix(self, vv, pp, ee)
+                                              for pp, ee, vv in resu],
+                         subdivide=subdivide)
+
+        return F, T
+
     def smith_form(self, transformation=True, integral=None, exact=True):
         r"""
         Return a Smith normal form of this matrix.
