@@ -2205,17 +2205,39 @@ class TopologicalManifold(ManifoldSubset):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: N = Manifold(3, 'N', structure='topological')
             sage: H = M._Hom_(N); H
-            Set of Morphisms from 2-dimensional topological manifold M to
-             3-dimensional topological manifold N in Category of manifolds over
-             Real Field with 53 bits of precision
+            Set of Morphisms
+             from 2-dimensional topological manifold M
+             to 3-dimensional topological manifold N
+             in Category of manifolds over Real Field with 53 bits of precision
 
         The result is cached::
 
             sage: H is Hom(M, N)
             True
 
+        Homsets in other categories::
+
+            sage: from sage.categories.topological_spaces import TopologicalSpaces
+            sage: Hom(M, N, category=TopologicalSpaces())
+            Set of Morphisms
+             from 2-dimensional topological manifold M
+             to 3-dimensional topological manifold N
+             in Category of topological spaces
+            sage: Hom(M, Set([0, 1]))
+            Set of Morphisms
+             from 2-dimensional topological manifold M
+             to {0, 1}
+             in Category of sets
+
         """
-        return self._structure.homset(self, other)
+        self_category = Manifolds(self._field)
+        self_category = self._structure.subcategory(self_category)
+        homset_category = self_category | other.category()
+        if category is not None:
+            homset_category |= category
+        if homset_category.is_subcategory(self_category):
+            return self._structure.homset(self, other)
+        raise TypeError
 
     def continuous_map(self, codomain, coord_functions=None, chart1=None,
                        chart2=None, name=None, latex_name=None):
