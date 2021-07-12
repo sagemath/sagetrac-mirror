@@ -43,13 +43,15 @@ from sage.symbolic.ring import SR
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
 from sage.misc.decorators import options
+from sage.misc.cachefunc import cached_method
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.manifolds.chart_func import ChartFunctionRing
 from sage.manifolds.calculus_method import CalculusMethod
 from sage.symbolic.expression import Expression
 from sage.ext.fast_callable import fast_callable
 
 
-class Chart(UniqueRepresentation, SageObject):
+class Chart(SageObject, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     Chart on a topological manifold.
 
@@ -288,8 +290,8 @@ class Chart(UniqueRepresentation, SageObject):
         try:
             return domain._charts_by_coord[coord_string]
         except KeyError:
-            self = super().__classcall__(cls, domain, coordinates,
-                                         calc_method, **coordinate_options)
+            self = type.__call__(cls, domain, coordinates,
+                                 calc_method, **coordinate_options)
             domain._charts_by_coord[coord_string] = self
             return self
 
@@ -440,6 +442,50 @@ class Chart(UniqueRepresentation, SageObject):
             xx_list.append(coord_var)
             period_list.append(period)
         return tuple(xx_list), dict(periods=tuple(period_list))
+
+    def __hash__(self):
+        try:
+            return self._hash
+        except AttributeError:
+            # Do not hash the domain because it owns self
+            # Do not hash sheafy attributes: _subcharts, _supercharts, _dom_restrict
+            self._hash = hash((self._domain._name, self._sindex,
+                               ## _calc_method is not hashable
+                               #self._calc_method,
+                               self._xx,
+                               tuple(self._periods.items()),
+                               repr(self._restrictions), # hash the string of the unhashable
+                               ))
+            return self._hash
+
+    def _non_sheafy_attributes(self):
+        for key, value in self.__dict__.items():
+            if key not in ('_subcharts', '_supercharts', '_dom_restrict',
+                           # also ignore these ones
+                           '_calc_method', 'simplify'):
+                yield key, value
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+        if type(self) != type(other):
+            return False
+        if self._xx != other._xx:
+            return False
+        return dict(self._non_sheafy_attributes()) == dict(other._non_sheafy_attributes())
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+        # Following is shared with __init__; could also go in a __new__ method
+        self._subcharts = set([self])
+        self._supercharts = set([self])
+
+
+    def __getstate__(self):
+        return dict(self._non_sheafy_attributes())
 
     def _repr_(self):
         r"""
@@ -1072,6 +1118,7 @@ class Chart(UniqueRepresentation, SageObject):
                 transformations = [transformations]
         return CoordChange(chart1, chart2, *transformations)
 
+    @cached_method(key=id)
     def function_ring(self):
         """
         Return the ring of coordinate functions on ``self``.

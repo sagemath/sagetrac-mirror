@@ -39,7 +39,7 @@ from sage.categories.topological_spaces import TopologicalSpaces
 from sage.symbolic.ring import SR
 from sage.manifolds.scalarfield import ScalarField
 
-class ScalarFieldAlgebra(UniqueRepresentation, Parent):
+class ScalarFieldAlgebra(Parent):
     r"""
     Commutative algebra of scalar fields on a topological manifold.
 

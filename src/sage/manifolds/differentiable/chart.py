@@ -282,6 +282,22 @@ class DiffChart(Chart):
         self._frame = CoordFrame(self)
         self._coframe = self._frame._coframe
 
+    def __getstate__(self):
+        d = super().__getstate__().copy()
+        # These are keyed to self via UniqueRepresentation
+        try:
+            del d['_frame']
+        except KeyError:
+            pass
+        del d['_coframe']
+        return d
+
+    def __setstate__(self, d):
+        super().__setstate__(d)
+        # Reconstruct the coordinate frame associated to the chart:
+        self._frame = CoordFrame(self)
+        self._coframe = self._frame._coframe
+
     def transition_map(self, other, transformations, intersection_name=None,
                        restrictions1=None, restrictions2=None):
         r"""
@@ -1189,7 +1205,7 @@ class DiffCoordChange(CoordChange):
         """
         return self._jacobian  # has been computed in __init__
 
-    @cached_method
+    @cached_method(key=id, do_pickle=True)
     def jacobian_det(self):
         r"""
         Return the Jacobian determinant of ``self``.

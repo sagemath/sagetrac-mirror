@@ -36,7 +36,6 @@ AUTHORS:
 from sage.structure.element import AlgebraElement, ModuleElementWithMutability
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.manifolds.utilities import ExpressionNice
 from sage.misc.cachefunc import cached_method
@@ -2641,7 +2640,7 @@ class ChartFunction(AlgebraElement, ModuleElementWithMutability):
         self._del_derived()
         return self
 
-class ChartFunctionRing(Parent, UniqueRepresentation):
+class ChartFunctionRing(Parent):
     """
     Ring of all chart functions on a chart.
 
