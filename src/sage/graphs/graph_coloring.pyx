@@ -810,7 +810,7 @@ def fractional_chromatic_index(G, solver="PPL", verbose_constraints=False, verbo
     solvers::
 
         sage: g = graphs.PetersenGraph()
-        sage: g.fractional_chromatic_index(solver='GLPK')  # known bug (#23798)
+        sage: g.fractional_chromatic_index(solver='GLPK')
         3.0
         sage: g.fractional_chromatic_index(solver='PPL')
         3
@@ -850,13 +850,16 @@ def fractional_chromatic_index(G, solver="PPL", verbose_constraints=False, verbo
 
     obj = p.solve(log=verbose)
 
+    # Tolerance gap for numerical LP solvers (see trac 23798)
+    tol = 0 if solver == 'PPL' else 1e-6
+
     while True:
 
         # Update the weights of edges for the matching problem
         M.set_objective(M.sum(p.get_values(r[fe]) * b[fe] for fe in frozen_edges))
 
         # If the maximum matching has weight at most 1, we are done !
-        if M.solve(log=verbose) <= 1:
+        if M.solve(log=verbose) <= 1 + tol:
             break
 
         # Otherwise, we add a new constraint
