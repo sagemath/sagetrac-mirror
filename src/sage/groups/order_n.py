@@ -25,6 +25,8 @@ AUTHORS:
 # ****************************************************************************
 
 def order_n(*k):
+    import sage.libs.gap.all
+    import sage.groups.all
     r"""
     Return the list of groups of order less than or equal to `n` in the GAP library.
 
