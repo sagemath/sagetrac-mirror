@@ -289,7 +289,7 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
         sage: X.valid_coordinates(i, 1)
         False
 
-    A chart is a map, so it has domain::
+    A chart is a map, so it has domain and codomain::
 
         sage: M = Manifold(2, 'M', structure='topological')
         sage: X.<x,y> = M.chart()
@@ -299,12 +299,17 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
         sage: Y.<u,v> = U.chart()
         sage: Y.domain()
         Open subset U of the 2-dimensional topological manifold M
-
-    ... and a codomain::
+        sage: Y.codomain()
+        Vector space of dimension 2 over Real Field with 53 bits of precision
 
         sage: M = Manifold(2, 'M', field='complex', structure='topological')
         sage: X.<x,y> = M.chart()
         sage: X.codomain()
+        Vector space of dimension 2 over Complex Field with 53 bits of precision
+
+        sage: N = Manifold(2, 'N', field='complex', structure='topological')
+        sage: XN.<Z1,Z2> = N.chart('Z1:period=1+2*I Z2')
+        sage: XN.codomain()
         Vector space of dimension 2 over Complex Field with 53 bits of precision
 
     .. SEEALSO::
@@ -407,7 +412,8 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
 
         codomain = self._codomain_set()
         Map.__init__(self, Hom(domain, codomain, cat))
-        self._inverse = ChartInverse(Hom(codomain, domain, inverse_cat), self)
+        ext_codomain = self._codomain_set(periodic_extension=True)
+        self._inverse = ChartInverse(Hom(ext_codomain, domain, inverse_cat), self)
 
         #
         # The chart is added to the domain's atlas, as well as to all the
@@ -444,7 +450,7 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
             dom._zero_scalar_field._express[self] = self.function_ring().zero()
             dom._one_scalar_field._express[self] = self.function_ring().one()
 
-    def _init_coordinates(self, coordinates, *, periods, coord_restrictions):
+    def _init_coordinates(self, coordinates, *, periods=None, coord_restrictions):
         # Treatment of the coordinates:
         if periods is None:
             self._periods = {}
@@ -1040,7 +1046,7 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
         # Case of a single condition:
         return bool(restrict.subs(substitutions))
 
-    def _codomain_set(self):
+    def _codomain_set(self, periodic_extension=False):
         r"""
         Return the codomain of ``self`` as a set.
 
@@ -1054,6 +1060,7 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
         """
         from sage.modules.free_module import VectorSpace
         ambient = VectorSpace(self.manifold().base_field(), self.manifold().dimension())
+        # TODO: Handle complex periodic coordinates (with periodic_extension=False)
         if self._restrictions:
             return self._restrict_set(ambient, self._restrictions)
         else:
@@ -2087,7 +2094,7 @@ class RealChart(Chart):
         else:
             return self._bounds[i-self._sindex]
 
-    def _codomain_set(self):
+    def _codomain_set(self, periodic_extension=False):
         """
         Return the codomain of ``self`` as a set.
 
@@ -2116,10 +2123,15 @@ class RealChart(Chart):
         from sage.sets.real_set import RealSet
         from sage.modules.free_module import VectorSpace
         from sage.categories.cartesian_product import cartesian_product
-        intervals = tuple(RealSet.interval(xmin, xmax,
-                                           lower_closed=(min_included == 'periodic' or min_included),
-                                           upper_closed=(max_included != 'periodic' and max_included))
-                          for ((xmin, min_included), (xmax, max_included)) in self._bounds)
+        def interval_from_bounds(bounds):
+            ((xmin, min_included), (xmax, max_included)) = bounds
+            if min_included == 'periodic' and periodic_extension:
+                return RealSet(-Infinity, Infinity)
+            return RealSet.interval(xmin, xmax,
+                                    lower_closed=(min_included == 'periodic' or min_included),
+                                    upper_closed=(max_included != 'periodic' and max_included))
+        intervals = tuple(interval_from_bounds(bounds)
+                          for bounds in self._bounds)
         if all(interval.is_universe()
                for interval in intervals):
             ambient = VectorSpace(self.manifold().base_field(), self.manifold().dimension())
