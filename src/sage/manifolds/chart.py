@@ -45,6 +45,7 @@ from sage.categories.map import Map
 from sage.symbolic.ring import SR
 from sage.rings.infinity import Infinity
 from sage.modules.free_module import VectorSpace
+from sage.modules.free_module_element import vector
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
 from sage.misc.decorators import options
@@ -704,7 +705,7 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
             return self._xx[start:stop:i.step]
         return self._xx[i-self._sindex]
 
-    def __call__(self, point):
+    def _call_(self, point):
         r"""
         Return the coordinates of a given point.
 
@@ -727,7 +728,7 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
             (0, 0)
 
         """
-        return point.coord(self)
+        return vector(point.coord(self))
 
     def manifold(self):
         r"""
@@ -1552,6 +1553,22 @@ class ChartInverse(Map, WithEqualityById, metaclass=InheritComparisonClasscallMe
 
     __eq__ = WithEqualityById.__eq__
     __hash__ = WithEqualityById.__hash__
+
+    def _call_(self, coords):
+        """
+        TESTS::
+
+            sage: M = Manifold(2, 'M', field='complex', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: p = M.point((1+i, 2-i), chart=X)
+            sage: p_X = X(p); p_X
+            (I + 1, -I + 2)
+            sage: p2 = X.inverse()(p_X); p2
+            Point on the Complex 2-dimensional topological manifold M
+            sage: p2 == p
+            True
+            """
+        return self.codomain().point(coords, chart=self._chart)
 
     def is_injective(self):
         """
