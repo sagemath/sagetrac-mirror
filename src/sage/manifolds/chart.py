@@ -363,7 +363,7 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
             <class 'sage.manifolds.chart.Chart'>
             sage: assumptions() # no assumptions on x,y set
             []
-            sage: TestSuite(X).run()
+            sage: TestSuite(X).run(skip='_test_category')
 
         Check that :trac:`32112` has been fixed::
 
@@ -1809,7 +1809,7 @@ class RealChart(Chart):
             <class 'sage.manifolds.chart.RealChart'>
             sage: assumptions()  # assumptions set in X._init_coordinates
             [x is real, y is real]
-            sage: TestSuite(X).run()
+            sage: TestSuite(X).run(skip='_test_category')
 
         """
         super().__init__(domain, coordinates, calc_method=calc_method,

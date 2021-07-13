@@ -290,7 +290,7 @@ class DiffChart(Chart):
             <class 'sage.manifolds.differentiable.chart.DiffChart'>
             sage: assumptions() # no assumptions on x,y set by X._init_coordinates
             []
-            sage: TestSuite(X).run()
+            sage: TestSuite(X).run(skip='_test_category')
 
         """
         super().__init__(domain, coordinates, calc_method=calc_method,
@@ -992,7 +992,7 @@ class RealDiffChart(DiffChart, RealChart):
             <class 'sage.manifolds.differentiable.chart.RealDiffChart'>
             sage: assumptions()  # assumptions set in X._init_coordinates
             [x is real, y is real]
-            sage: TestSuite(X).run()
+            sage: TestSuite(X).run(skip='_test_category')
 
         """
         RealChart.__init__(self, domain, coordinates, calc_method=calc_method,
