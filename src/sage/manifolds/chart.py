@@ -408,17 +408,19 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
         self._restrictions = sorted(coord_restrictions, key=str)
 
 
+        # We would like to say TopologicalSpaces() here but "Vector space of
+        # dimension 2 over Complex Field with 53 bits of precision is not
+        # in Category of topological spaces".
+        #inverse_cat = TopologicalSpaces()
+        inverse_cat = Sets()
         if self._periods:
             # If any coordinate is periodic, we would need to make the codomain a torus
             # in order to declare that the chart is a continuous map.  But Sage does not
-            # have a suitable class for this.
+            # have a suitable class for this.  So instead we make the chart merely a
+            # section map of its inverse, and use the category of Sets
             cat = Sets()
         else:
-            # We would like to say TopologicalSpaces() here but "Vector space of
-            # dimension 2 over Complex Field with 53 bits of precision is not
-            # in Category of topological spaces".
-            #cat = TopologicalSpaces()
-            cat = Sets()
+            cat = inverse_cat
 
         ambient = VectorSpace(domain.base_field(), domain.dimension())
         if self._restrictions:
@@ -427,6 +429,7 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
             codomain = ambient
 
         Map.__init__(self, Hom(domain, codomain, cat))
+        self._inverse = ChartInverse(Hom(codomain, domain, inverse_cat), self)
 
         #
         # The chart is added to the domain's atlas, as well as to all the
@@ -580,9 +583,12 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
 
     def is_injective(self):
         """
-        Return whether this map is surjective.
+        Return whether this map is injective.
 
-        As charts are homeomorphisms, this method returns ``True``.
+        As non-periodic charts are homeomorphisms, this method returns ``True`` for them.
+
+        We consider periodic charts as section maps of the mapping from coordinate vectors
+        to manifold points.  Hence this method also returns ``True`` for them.
         """
         return True
 
@@ -590,13 +596,14 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
         """
         Return whether this map is surjective.
 
-        As charts are homeomorphisms, this method returns ``True``.
-        """
-        return True
+        As non-periodic charts are homeomorphisms, this method returns ``True`` for them.
 
-    @cached_method
+        Periodic charts are not surjective.
+        """
+        return not self._periods
+
     def inverse(self):
-        return ChartInverse(self)
+        return self._inverse
 
     __invert__ = inverse
 
@@ -1540,16 +1547,19 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
 
 class ChartInverse(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass):
 
-    def __init__(self, chart):
+    def __init__(self, parent, chart):
         """
         TESTS::
 
             sage: M = Manifold(2, 'M', field='complex', structure='topological')
             sage: X = M.chart('x y'); X
+            Chart (M, (x, y))
             sage: TestSuite(X.inverse()).run(skip='_test_category')
         """
-        Map.__init__(self, Hom(chart.codomain(), chart.domain(), chart.category_for()))
+        Map.__init__(self, parent)
         self._chart = chart
+        if self.is_injective():
+            self.inverse = self.section
 
     __eq__ = WithEqualityById.__eq__
     __hash__ = WithEqualityById.__hash__
@@ -1572,24 +1582,28 @@ class ChartInverse(Map, WithEqualityById, metaclass=InheritComparisonClasscallMe
 
     def is_injective(self):
         """
-        Return whether this map is surjective.
+        Return whether this map is injective.
 
-        As charts are homeomorphisms, this method returns ``True``.
+        For non-periodic charts (which are homeomorphisms), this method returns ``True``.
         """
-        return True
+        return not self._chart._periods
 
     def is_surjective(self):
         """
         Return whether this map is surjective.
 
-        As charts are homeomorphisms, this method returns ``True``.
+        This method returns ``True``.
         """
         return True
 
-    def inverse(self):
+    def section(self):
+        """
+        Return a section map of ``self``.
+
+        This method returns the chart.
+        """
         return self._chart
 
-    section = inverse
 
 # *****************************************************************************
 
