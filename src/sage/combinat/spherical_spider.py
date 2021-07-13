@@ -140,12 +140,12 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2021 Bruce Westbury bruce.westbury@gmail.com
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
 from copy import copy
 from collections import namedtuple
@@ -155,7 +155,7 @@ from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.graphs.graph import Graph
 from sage.combinat.baxter_permutations import BaxterPermutations
-#from sage.structure.richcmp import richcmp, op_EQ, op_NE
+# from sage.structure.richcmp import richcmp, op_EQ, op_NE
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.algebras import Algebras
 from sage.rings.semirings.all import NN
@@ -168,6 +168,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.ring import Algebra
 
 Strand = namedtuple('Strand', ['oriented', 'colour'], defaults=[0, 'black'])
+
 
 class halfedge():
     """
@@ -223,6 +224,7 @@ class halfedge():
         """
         st = self.strand
         return halfedge(Strand(-st.oriented, st.colour), self.crossing)
+
 
 class SphericalWeb(Element):
     r"""The class of webs.
@@ -316,7 +318,7 @@ class SphericalWeb(Element):
             sage: from sage.combinat.spherical_spider import Strand
             sage: copy(SphericalSpider([Strand(0,'black')]*3).vertex())
             The spherical web with c = (1, 2, 0), e = ()
-             and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)'), vertices (3,), faces (1, 1, 1).
+             and edges ..., vertices (3,), faces (1, 1, 1).
         """
         cp = dict(self.cp)
         e = dict(self.e)
@@ -366,13 +368,6 @@ class SphericalWeb(Element):
             raise ValueError("the domain of e must not intersect the boundary")
         if len(h) != len(e) + len(bs):
             raise ValueError("domain of c must be the union of domain of e and boundary")
-        #for i,a in enumerate(b):
-        #    u = a
-        #    while c[u] in e:
-        #        u = e[c[u]]
-        #    j = b.index(c[u])
-        #    if 0 < j < i:
-        #       raise ValueError("boundary is inconsistent")
 
         # Check crossings.
         for a in c:
@@ -488,8 +483,8 @@ class SphericalWeb(Element):
         c = dict(self.cp)
         e = dict(self.e)
         k = len(b)
-        Dp = {a:i for i, a in enumerate(b)}
-        Dp.update({a:(k+i) for i, a in enumerate(self._traversal(b))})
+        Dp = {a: i for i, a in enumerate(b)}
+        Dp.update({a: (k+i) for i, a in enumerate(self._traversal(b))})
         cn = tuple([Dp[c[a]] for a in b]+[Dp[c[a]] for a in self._traversal(b)])
         en = tuple([Dp[e[a]] for a in self._traversal(b)])
         hn = tuple([a._repr_() for a in self.b]+[a._repr_() for a in self._traversal(b)])
@@ -521,7 +516,7 @@ class SphericalWeb(Element):
         """
         return hash((self.parent(), *self.canonical()))
 
-    #def _richcmp_(self, other, op_EQ):
+    # def _richcmp_(self, other, op_EQ):
     def __eq__(self, other):
         """
         Overload :meth:`__eq__` and :meth:`__ne__`.
@@ -576,9 +571,9 @@ class SphericalWeb(Element):
         """
         return not self == other
 
-#### End of underscore methods ####
+# End of underscore methods #
 
-#### Start of methods for working with webs ####
+# Start of methods for working with webs #
 
     def _traversal(self, initial):
         """
@@ -602,10 +597,6 @@ class SphericalWeb(Element):
             initial = tuple(initial)
         if not set(initial) <= c.keys():
             raise ValueError("initial must be a subset of the set of elements")
-
-        #c = self.cp
-        #e = self.e
-        #b = self.b
 
         visited = list(initial)
         new = list()
@@ -692,10 +683,10 @@ class SphericalWeb(Element):
             sage: v = SphericalSpider([Strand(0,'black')]*3).vertex()
             sage: u.glue(v,1)
             The spherical web with c = (1, 4, 3, 5, 0, 2), e = (5, 4)
-             and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)'), vertices (3, 3), faces (1, 1, 2, 2).
+             and edges ..., vertices (3, 3), faces (1, 1, 2, 2).
             sage: u.glue(v,0)
             The spherical web with c = (1, 2, 0, 4, 5, 3), e = ()
-             and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)'), vertices (3, 3), faces (1, 1, 1, 1, 1, 1).
+             and edges ..., vertices (3, 3), faces (1, 1, 1, 1, 1, 1).
             sage: u.glue(v,-1)
             Traceback (most recent call last):
             ...
@@ -746,16 +737,16 @@ class SphericalWeb(Element):
             sage: v = SphericalSpider([Strand(0,'black')]*4).vertex()
             sage: u.glue(v,1).mirror_image()
             The spherical web with c = (1, 2, 5, 4, 6, 0, 3), e = (6, 5)
-             and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)'), vertices (3, 4), faces (1, 1, 1, 2, 2).
+             and edges ..., vertices (3, 4), faces (1, 1, 1, 2, 2).
             sage: w = u.glue(u,1).glue(v,1)
             sage: w == w.mirror_image()
             False
         """
         cp = dict(self.cp)
         e = dict(self.e)
-        D = {a:halfedge() for a in cp}
-        cn = {D[cp[a]]:D[a] for a in D}
-        en = {D[a]:D[e[a]] for a in e}
+        D = {a: halfedge() for a in cp}
+        cn = {D[cp[a]]: D[a] for a in D}
+        en = {D[a]: D[e[a]] for a in e}
         bn = tuple(reversed([D[a] for a in self.b]))
         return SphericalWeb(cn, en, bn)
 
@@ -888,18 +879,18 @@ class SphericalWeb(Element):
             A closed spherical web with 0 edges.)
         """
         cp = dict(self.cp)
-        Dn = {a:halfedge(a.strand) for a in self.b}
+        Dn = {a: halfedge(a.strand) for a in self.b}
         for a in self._traversal(self.b[0]):
             Dn[a] = halfedge(a.strand)
 
-        cn = {Dn[a]:Dn[cp[a]] for a in cp}
-        en = {Dn[a]:Dn[self.e[a]] for a in self.e}
+        cn = {Dn[a]: Dn[cp[a]] for a in cp}
+        en = {Dn[a]: Dn[self.e[a]] for a in self.e}
         bn = [Dn[a] for a in self.b]
         wb = SphericalWeb(cn, en, bn)
 
-        Dc = {a:halfedge(a.strand) for a in cp if not a in Dn}
-        cc = {Dc[a]:Dc[cp[a]] for a in Dc}
-        ec = {Dc[a]:Dc[self.e[a]] for a in Dc}
+        Dc = {a: halfedge(a.strand) for a in cp if a not in Dn}
+        cc = {Dc[a]: Dc[cp[a]] for a in Dc}
+        ec = {Dc[a]: Dc[self.e[a]] for a in Dc}
         wc = SphericalWeb(cc, ec, [])
 
         return wb, wc
@@ -1009,7 +1000,7 @@ class SphericalWeb(Element):
         """
         c = dict(self.cp)
         e = dict(self.e)
-        G = Graph({a:[c[a]] for a in c})
+        G = Graph({a: [c[a]] for a in c})
         for a in e:
             if not G.has_edge(e[a], a, "e"):
                 G.add_edge(a, e[a], "e")
@@ -1176,11 +1167,9 @@ class SphericalWeb(Element):
         """
         lines = self._layout()
 
-        #result = "\\begin{tikzpicture}\n"
         result = "\\draw (0,0) circle (1cm);\n"
         for a in lines:
             result += "\\draw ({},{}) -- ({},{});\n".format(a[0][0], a[1][0], a[1][0], a[1][1])
-        #result += "\\end{tikzpicture}\n"
 
         return result
 
@@ -1206,9 +1195,9 @@ class SphericalWeb(Element):
 
         return NotImplemented
 
-#### End of methods for working with webs ####
+# End of methods for working with webs #
 
-#### Start of methods for rewriting ####
+# Start of methods for rewriting #
 
     def search(self, h):
         r"""
@@ -1242,6 +1231,7 @@ class SphericalWeb(Element):
             raise ValueError("The web h must have a non-empty boundary.")
 
         cp = dict(self.cp)
+
         def test():
             flag = True
             while flag:
@@ -1290,23 +1280,21 @@ class SphericalWeb(Element):
         c = dict(h.cp)
         e = h.e
         for x in cp:
-            Dm = {h.b[0]:x}
+            Dm = {h.b[0]: x}
             if test():
-                assert [a for a in c if not a in Dm] == [], "Mapping is not fully defined."
+                assert [a for a in c if a not in Dm] == [], "Mapping is not fully defined."
                 if len(set(Dm.values())) == len(Dm):
                     yield Dm
 
     def replace(self, D, h, k, check=True):
         r"""
-        Replace image of map D:h -> ``self`` by k
+        Replace image of map D: h -> ``self`` by k
 
         EXAMPLES::
 
             sage: h = SphericalSpider(3).vertex()
             sage: g = SphericalSpider([]).polygon([h]*3)
-            sage: g.replace(next(g.search(h)), h, g)
-            The spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2, 11, 12, 13, 14, 9, 10), e = (9, 7, 10, 11, 4, 12, 3, 5, 6, 8, 14, 13)
-            ...
+            sage: g.replace(next(g.search(h)), h, g) # random
             sage: cr = SphericalSpider([]).crossing()
             sage: edge = SphericalSpider(2).vertex()
             sage: tw = cr.glue(edge, 2)
@@ -1325,13 +1313,13 @@ class SphericalWeb(Element):
         ck = dict(k.cp)
         ek = dict(k.e)
 
-        Ds = {a:halfedge(a.strand, a.crossing) for a in cp if not a in D.values()}
-        Dk = {a:halfedge(a.strand, a.crossing) for a in ck}
-        c = {Ds[a]:Ds[cp[a]] for a in Ds}
-        c.update({Dk[a]:Dk[ck[a]] for a in Dk})
+        Ds = {a: halfedge(a.strand, a.crossing) for a in cp if a not in D.values()}
+        Dk = {a: halfedge(a.strand, a.crossing) for a in ck}
+        c = {Ds[a]: Ds[cp[a]] for a in Ds}
+        c.update({Dk[a]: Dk[ck[a]] for a in Dk})
 
-        e = {Ds[a]:Ds[eo[a]] for a in Ds if a in eo and eo[a] in Ds}
-        e.update({Dk[a]:Dk[ek[a]] for a in ek})
+        e = {Ds[a]: Ds[eo[a]] for a in Ds if a in eo and eo[a] in Ds}
+        e.update({Dk[a]: Dk[ek[a]] for a in ek})
 
         Db = dict(zip(h.b, k.b))
         b = [None]*len(self.b)
@@ -1386,18 +1374,10 @@ class SphericalWeb(Element):
             sage: edge = LinearSphericalSpider(A.parent(), 2).vertex()
             sage: u = edge.glue(edge, 0)
             sage: D = next(tr.search(cs))
-            sage: tr.replace_linear(D, cs, A*u + u.rotate(1)/A)
-            frozenset({(The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
-            ...
+            sage: tr.replace_linear(D, cs, A*u + u.rotate(1)/A) # random
             sage: tw = cs.glue(SphericalSpider(2).vertex(), 2)
             sage: D = next(tw.search(cs))
-            sage: tw.replace_linear(D, cs, A*u + u.rotate(1)/A)
-            frozenset({(The spherical web with c = (1, 0), e = ()
-                         and edges ('(0,black,False)', '(0,black,False)'), vertices (2, 2), faces (1, 1, 1, 1).,
-                        A),
-                       (The spherical web with c = (1, 0), e = ()
-                         and edges ('(0,black,False)', '(0,black,False)'), vertices (2,), faces (1, 1).,
-                        A^-1)})
+            sage: tw.replace_linear(D, cs, A*u + u.rotate(1)/A) # random
         """
         if any(a.parent() != h.parent() for a, coeff in k):
             raise RuntimeError("Parents don't match.")
@@ -1424,9 +1404,7 @@ class SphericalWeb(Element):
             sage: A = LaurentPolynomialRing(ZZ, 'A').gen()
             sage: edge = LinearSphericalSpider(A.parent(), 2).vertex()
             sage: u = edge.glue(edge, 0)
-            sage: tr.apply_rule(cs, A*u + u.rotate(1)/A)
-            frozenset({(The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
-            ...
+            sage: tr.apply_rule(cs, A*u + u.rotate(1)/A) # random
         """
         try:
             embedding = next(self.search(term))
@@ -1453,16 +1431,17 @@ class SphericalWeb(Element):
         e = dict(web.e)
 
         strands = {st, Strand(-st.oriented, st.colour)}
-        loops = [u for u in c if c[c[u]] == u and u.strand in strands]
+        loops = [u for u in c if c[c[u]] == u and u in e and u.strand in strands]
         for u in loops:
             _ = c.pop(u)
             _ = e.pop(u)
 
         return SphericalWeb(c, e, web.b), len(loops)//2
 
-#### End  of methods for rewriting ####
+# End  of methods for rewriting #
 
-#### Start of Parent ####
+# Start of Parent #
+
 
 class SphericalSpider(UniqueRepresentation, Parent):
     r"""
@@ -1534,7 +1513,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
         b = [None]*n
         for i, a in enumerate(bd):
             b[i] = halfedge(a)
-        c = {b[i-1]:b[i] for i in range(n)}
+        c = {b[i-1]: b[i] for i in range(n)}
         e = dict([])
         return SphericalWeb(c, e, b)
 
@@ -1557,7 +1536,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
         b[2] = b[0].dual()
         b[3] = b[1].dual()
 
-        c = {b[i-1]:b[i] for i in range(4)}
+        c = {b[i-1]: b[i] for i in range(4)}
 
         return SphericalWeb(c, dict([]), b)
 
@@ -1573,8 +1552,8 @@ class SphericalSpider(UniqueRepresentation, Parent):
         """
 
         h = [halfedge(st), halfedge(st)]
-        c = {h[0]:h[1], h[1]:h[0]}
-        e = {h[0]:h[1], h[1]:h[0]}
+        c = {h[0]: h[1], h[1]: h[0]}
+        e = {h[0]: h[1], h[1]: h[0]}
         return SphericalWeb(c, e, [])
 
     @staticmethod
@@ -1678,15 +1657,15 @@ class SphericalSpider(UniqueRepresentation, Parent):
              and edges ..., vertices (2,), faces (1, 1).
         """
         if baxter:
-            if not pi in BaxterPermutations():
+            if pi not in BaxterPermutations():
                 raise ValueError(f"{pi} is not a Baxter permutation")
         black = set((i+1, a) for i, a in enumerate(pi))
         n = len(pi)
         white = set([(1/2, 1/2), (n+1/2, n+1/2)])
         ascents = [i+1 for i, a in enumerate(zip(pi, pi[1:])) if a[0] < a[1]]
         for a in ascents:
-            l = max(pi[i] for i in range(a) if pi[i] < pi[a])
-            white.add((a+1/2, l+1/2))
+            mx = max(pi[i] for i in range(a) if pi[i] < pi[a])
+            white.add((a+1/2, mx+1/2))
 
         Dup = {}
         Ddn = {}
@@ -1780,10 +1759,10 @@ class SphericalSpider(UniqueRepresentation, Parent):
 
         c = dict([])
         for r, s in positive:
-            c.update({h[2*r]:h[2*s+1], h[2*s+1]:h[2*s], h[2*s]:h[2*r+1], h[2*r+1]:h[2*r]})
+            c.update({h[2*r]: h[2*s+1], h[2*s+1]: h[2*s], h[2*s]: h[2*r+1], h[2*r+1]: h[2*r]})
 
         for r, s in negative:
-            c.update({h[2*r]:h[2*r+1], h[2*r+1]:h[2*s], h[2*s]:h[2*s+1], h[2*s+1]:h[2*r]})
+            c.update({h[2*r]: h[2*r+1], h[2*r+1]: h[2*s], h[2*s]: h[2*s+1], h[2*s+1]: h[2*r]})
 
         return SphericalWeb(c, e, [h[0], h[-1]], check=check)
 
@@ -1808,7 +1787,8 @@ class SphericalSpider(UniqueRepresentation, Parent):
         if not is_package_installed('snappy'):
             raise ValueError("This requires the optional package SnapPy.")
 
-#### End of Parent ####
+# End of Parent #
+
 
 class LinearSphericalSpider(CombinatorialFreeModule):
     r"""
@@ -1942,12 +1922,6 @@ class LinearSphericalSpider(CombinatorialFreeModule):
                 sage: u.remove_loops(2, Strand())
                 6*B[A closed spherical web with 0 edges.]
             """
-            #mc = self.monomial_coefficients()
-            #D = {a: a.remove_loops(st) for a in self.support()}
-            #L = self.parent()
-
-            #return L.sum_of_terms((D[a][0], delta**D[a][1]*coeff) for a, coeff in mc.items())
-
             def rmv(a, coeff):
                 u, n = a.remove_loops(st)
                 return u, delta**n*coeff
@@ -1992,15 +1966,9 @@ class LinearSphericalSpider(CombinatorialFreeModule):
             sage: F = LinearSphericalSpider(A.parent(), 2)
             sage: edge = F.vertex()
             sage: u = edge.glue(edge, 0)
-            sage: tr2 = F(tr3).apply_rule(cs, A*u + u.rotate(1)/A); tr2
-            A*B[The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
-            ...
-            sage: tr1 = tr2.apply_rule(cs, A*u + u.rotate(1)/A); tr1
-            A^2*B[The spherical web with c = (1, 0), e = ()
-            ...
-            sage: tr0 = tr1.apply_rule(cs, A*u + u.rotate(1)/A); tr0
-            A^3*B[The spherical web with c = (1, 0), e = ()
-            ...
+            sage: tr2 = F(tr3).apply_rule(cs, A*u + u.rotate(1)/A)
+            sage: tr1 = tr2.apply_rule(cs, A*u + u.rotate(1)/A)
+            sage: tr0 = tr1.apply_rule(cs, A*u + u.rotate(1)/A)
             sage: tr0 == tr0.apply_rule(cs, A*u + u.rotate(1)/A)
             True
             """
@@ -2024,9 +1992,7 @@ class LinearSphericalSpider(CombinatorialFreeModule):
             sage: F = LinearSphericalSpider(A.parent(), 2)
             sage: edge = F.vertex()
             sage: u = edge.glue(edge, 0)
-            sage: F(tr).simplify(cs, A*u + (A**-1)*u.rotate(1))
-            (3*A^-1)*B[The spherical web with c = (1, 0), e = ()
-             ...
+            sage: F(tr).simplify(cs, A*u + (A**-1)*u.rotate(1)) # random
             """
             new = self
             finished = False
@@ -2051,14 +2017,14 @@ class LinearSphericalSpider(CombinatorialFreeModule):
                 sage: L(tr)._normalize(frozenset(), frozenset()) == L(tr)
                 True
                 sage: L(tr)._normalize()
-                (3*A^-1)*B[The spherical web with c = (1, 0), e = ()
-                ...
+                -(A^-5+A^3-A^7)*B[The spherical web with c = (1, 0), e = ()
+                 and edges ('(0,black,False)', '(0,black,False)'), vertices (2,), faces (1, 1).]
             """
             if loops is None:
                 loops = self.parent().loops
 
             if rewrite_rules is None:
-               rewrite_rules = self.parent().rewrite_rules
+                rewrite_rules = self.parent().rewrite_rules
 
             new = self
             finished = False
@@ -2066,12 +2032,13 @@ class LinearSphericalSpider(CombinatorialFreeModule):
                 old = new
                 for term, replace in rewrite_rules:
                     new = new.simplify(term, replace, check=check)
-                    #for st, delta in loops:
-                    #    new = new.remove_loops(delta, st)
+                    for st, delta in loops:
+                        new = new.remove_loops(delta, st)
                     new = new.remove_tadpoles()
                 finished = new == old
 
             return old
+
 
 def SL2_relations(delta=None):
     r"""
@@ -2092,6 +2059,7 @@ def SL2_relations(delta=None):
     lps = {Strand(): delta}
     return frozenset(lps.items()), frozenset()
 
+
 def SL2_braided(A=None):
     r"""
 
@@ -2110,13 +2078,12 @@ def SL2_braided(A=None):
     lps, rw = SL2_relations(delta)
     rw = dict(rw)
     cr = SphericalSpider([]).crossing()
-    #F = LinearSphericalSpider(A.parent(), 2)
     edge = SphericalSpider(2).vertex()
     u = edge.glue(edge, 0)
-    #rw[cr] = A*u + (A**-1)*u.rotate(1)
     rw[cr] = frozenset({(u, A), (u.rotate(1), A**-1)})
 
     return A.parent(), lps, frozenset(rw.items())
+
 
 def SL2SphericalSpider(boundary, A=None):
     r"""
@@ -2129,6 +2096,7 @@ def SL2SphericalSpider(boundary, A=None):
     from sage.combinat.spherical_spider import SL2_braided
     R, loops, rewrite_rules = SL2_braided(A)
     return LinearSphericalSpider(R, boundary, loops, rewrite_rules)
+
 
 def A2_relations(delta=None):
     """
@@ -2154,7 +2122,6 @@ def A2_relations(delta=None):
     relations = dict([])
 
     # Digon relation
-    #S = SphericalSpider([sp, sm])
     edgep = SphericalSpider([sm, sp]).vertex()
     edgem = SphericalSpider([sp, sm]).vertex()
     L = LinearSphericalSpider(delta.parent(), [sp, sm])
@@ -2166,11 +2133,12 @@ def A2_relations(delta=None):
 
     U = edgep.glue(edgep, 0)
 
-    I = edgem.glue(edgem, 0).rotate(1)
+    identity = edgem.glue(edgem, 0).rotate(1)
     L = LinearSphericalSpider(delta.parent(), [sm, sp, sm, sp])
-    relations[square] = L(U)+L(I)
+    relations[square] = L(U)+L(identity)
 
     return frozenset(lps.items()), frozenset(relations.items())
+
 
 def A2_braided(q=None):
     r"""
@@ -2187,13 +2155,9 @@ def A2_braided(q=None):
 
     delta = q + 1/q
     lps, rw = A2_relations(delta)
-    #cr = SphericalSpider([]).crossing()
-    #F = LinearSphericalSpider(q.parent(), 2)
-    #edge = F.vertex()
-    #u = edge.glue(edge, 0)
-    #rw.append((cr, A*u + (A**-1)*u.rotate(1)))
 
     return lps, rw
+
 
 def B2_relations(delta=None):
     """
@@ -2232,6 +2196,7 @@ def B2_relations(delta=None):
     relations[triangle] = L(0)
 
     return frozenset(lps.items()), frozenset(relations.items())
+
 
 def G2_relations(delta=None):
     """
@@ -2273,8 +2238,8 @@ def G2_relations(delta=None):
     H = v.glue(v, 1)
     K = H.rotate(1)
     U = edge.glue(edge, 0)
-    I = U.rotate(1)
-    relations.append(tuple([square, -delta*(L(H)+L(K))+(delta**2-1)*(L(U)+L(I))]))
+    identity = U.rotate(1)
+    relations.append(tuple([square, -delta*(L(H)+L(K))+(delta**2-1)*(L(U)+L(identity))]))
 
     # Pentagon relation
     S = SphericalSpider([s]*5)
@@ -2287,6 +2252,7 @@ def G2_relations(delta=None):
     relations.append(tuple([pentagon, ar-br]))
 
     return frozenset(lps.items()), tuple(relations)
+
 
 """
 def B3():
@@ -2301,6 +2267,7 @@ def F4():
     The `F_4` skein relations.
 
 """
+
 
 class WebAlgebra(CombinatorialFreeModule, Algebra):
     r"""
@@ -2339,12 +2306,6 @@ class WebAlgebra(CombinatorialFreeModule, Algebra):
                                          category=Algebras(base).WithBasis().Unital())
         self.rewrite_rules = rewrite_rules
         self.loops = loops
-
-    #@cached_method
-    #def boundary(self):
-    #    sbp = list(self.semi_boundary)
-    #    sbn = [Strand(-a.oriented, a.colour) for a in sbp]
-    #    return tuple(sbp + list(reversed(sbn)))
 
     @cached_method
     def one_basis(self):
@@ -2419,7 +2380,6 @@ class WebAlgebra(CombinatorialFreeModule, Algebra):
         if b[k-1] != Strand(-b[k].oriented, b[k].colour):
             return NotImplemented
 
-
         h = [halfedge(a) for a in b]
         c = {h[i]: h[n-i-1] for i in range(n)}
         c[h[k]] = h[k-1]
@@ -2452,6 +2412,7 @@ class WebAlgebra(CombinatorialFreeModule, Algebra):
             mc = self.monomial_coefficients()
             return self.parent().sum_of_terms((a.glue(caps, n), mc[a]) for a in mc)
 
+
 def temperley_lieb(n, R=ZZ, q=None):
     r"""
     Construct the algebra homomorphism from the group algebra of the `n`-string braid group
@@ -2481,7 +2442,7 @@ def temperley_lieb(n, R=ZZ, q=None):
     """
     from sage.combinat.spherical_spider import SL2_relations
 
-    if not n in NN:
+    if n not in NN:
         raise ValueError(f"{n} must be nonnegative")
 
     domain = BraidGroup(n).algebra(R)
@@ -2503,6 +2464,7 @@ def temperley_lieb(n, R=ZZ, q=None):
         return result
 
     return domain.module_morphism(codomain=codomain, on_basis=on_basis)
+
 
 def from_diagram(n, delta):
     r"""
@@ -2528,6 +2490,7 @@ def from_diagram(n, delta):
 
     domain = TemperleyLiebAlgebra(n, delta, delta.parent())
     codomain = WebAlgebra(delta.parent(), n, *SL2_relations())
+
     def on_basis(x):
         h = [halfedge() for _ in range(2*n)]
         m = {i+1: i for i in range(n)}
@@ -2541,15 +2504,16 @@ def from_diagram(n, delta):
 
     return domain.module_morphism(codomain=codomain, on_basis=on_basis)
 
-#####################################################################################################
+# ####################################################################################################
 # Experimental
-#####################################################################################################
+# ####################################################################################################
+
 
 class Path():
     r"""
     An instance of this class is a generalisation of a highest weight word in a tensor product of (finite) crystals.
     """
-    #from sage.combinat.dyck_word import Dyck_paths, Dyck
+    # from sage.combinat.dyck_word import Dyck_paths, Dyck
 
     def __init__(self, steps, weight_path, Dyck_path):
         r"""
