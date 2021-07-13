@@ -630,7 +630,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         three on the indices of a six-dimensional module::
 
             sage: M = CombinatorialFreeModule(QQ,[0,1,2,3,4,5],prefix='M')
-            sage: action = lambda g,x: M.term(g(x%3 + 1)-1)
+            sage: action = lambda g,x: M.term(g(x%3 + 1)-1 + (x>=3)*3)
             sage: T = M.twisted_invariant_module(G,[2,0,-1],action_on_basis=action)
             sage: T.basis()
             Finite family {0: B[0], 1: B[1], 2: B[2], 3: B[3]}
@@ -665,7 +665,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
 
             sage: M = CombinatorialFreeModule(QQ,[1,2,3])
             sage: G = SymmetricGroup(3)
-            sage: action = lambda g,x: M.term(g(x))
+            sage: def action(g,x): return M.term(g(x))
             sage: T = M.twisted_invariant_module(G,[2,0,-1],action_on_basis=action)
             sage: TestSuite(T).run()
 
@@ -685,7 +685,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
 
             sage: M = CombinatorialFreeModule(QQ,[1,2,3])
             sage: G = SymmetricGroup(3)
-            sage: action = lambda g,x: M.term(g(x))
+            sage: def action(g,x): return M.term(g(x))
             sage: chi = [QQ(2),QQ(0),QQ(-1)]
             sage: T = M.twisted_invariant_module(G,chi,action_on_basis=action)
             sage: TestSuite(T).run()
@@ -768,7 +768,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         if M not in FiniteDimensionalModulesWithBasis:
             raise ValueError(f"{M} is not a finite dimensional module with a distinguished basis")
 
-        self._chi = chi # assumed to be a ClassFunction
+        self._chi = chi
 
         if side == 'left':
             __action = action
@@ -796,8 +796,10 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
 
         # Give the kernel of the map `\pi(x)-x` to determine when `x` lies
         # within the isotypic component of `R`.
-        basis = M.annihilator_basis(G.gens(),
-                                    action=lambda g,x: _projection_map(x)-x,
+        def proj_difference(g,x): return _projection_map(x)-x
+
+        basis = M.annihilator_basis(M.basis(),
+                                    action=proj_difference,
                                     side="left")
 
         super().__init__(Family(basis),
@@ -816,3 +818,5 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             raise ValueError(f'{x} must be in the ambient module ({self._ambient})')
 
         return self._projection_map(x)
+
+TwistedInvariantModule = FiniteDimensionalTwistedInvariantModule
