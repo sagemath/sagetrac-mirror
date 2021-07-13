@@ -314,15 +314,15 @@ class SphericalWeb(Element):
         EXAMPLES::
 
             sage: from sage.combinat.spherical_spider import Strand
-            sage: SphericalSpider([Strand(0,'black')]*3).vertex().__copy__()
+            sage: copy(SphericalSpider([Strand(0,'black')]*3).vertex())
             The spherical web with c = (1, 2, 0), e = ()
              and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)'), vertices (3,), faces (1, 1, 1).
         """
         cp = dict(self.cp)
         e = dict(self.e)
-        D = {a:halfedge(a.strand, a.crossing) for a in cp}
-        c = {D[a]:D[cp[a]] for a in cp}
-        e = {D[a]:D[e[a]] for a in e}
+        D = {a: halfedge(a.strand, a.crossing) for a in cp}
+        c = {D[a]: D[cp[a]] for a in cp}
+        e = {D[a]: D[e[a]] for a in e}
         b = [D[a] for a in self.b]
         return SphericalWeb(c, e, b)
 
@@ -677,7 +677,7 @@ class SphericalWeb(Element):
             The spherical web with c = (1, 2, 3, 4, 0), e = ()
              and edges ('(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)', '(0,black,False)'), vertices (5,), faces (1, 1, 1, 1, 1).
         """
-        result = self.__copy__()
+        result = copy(self)
         b = result.b
         nb = b[k:]+b[:k]
         return SphericalWeb(result.cp, result.e, nb)
@@ -711,8 +711,8 @@ class SphericalWeb(Element):
         if n > len(self.b) or n > len(other.b):
             raise ValueError(f"n={n} is too large")
 
-        ns = self.__copy__()
-        no = other.__copy__()
+        ns = copy(self)
+        no = copy(other)
 
         bs = list(ns.b)
         bo = list(no.b)
@@ -1305,8 +1305,8 @@ class SphericalWeb(Element):
             sage: h = SphericalSpider(3).vertex()
             sage: g = SphericalSpider([]).polygon([h]*3)
             sage: g.replace(next(g.search(h)), h, g)
-            The spherical web with c = ..., e = (9, 10, 8, 11, 12, 5, 3, 4, 6, 7, 14, 13)
-             and edges ..., vertices (3, 3, 3, 3, 3), faces (2, 3, 3, 3, 4).
+            The spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2, 11, 12, 13, 14, 9, 10), e = (9, 7, 10, 11, 4, 12, 3, 5, 6, 8, 14, 13)
+            ...
             sage: cr = SphericalSpider([]).crossing()
             sage: edge = SphericalSpider(2).vertex()
             sage: tw = cr.glue(edge, 2)
@@ -1323,6 +1323,7 @@ class SphericalWeb(Element):
         cp = dict(self.cp)
         eo = dict(self.e)
         ck = dict(k.cp)
+        ek = dict(k.e)
 
         Ds = {a:halfedge(a.strand, a.crossing) for a in cp if not a in D.values()}
         Dk = {a:halfedge(a.strand, a.crossing) for a in ck}
@@ -1330,7 +1331,6 @@ class SphericalWeb(Element):
         c.update({Dk[a]:Dk[ck[a]] for a in Dk})
 
         e = {Ds[a]:Ds[eo[a]] for a in Ds if a in eo and eo[a] in Ds}
-        ek = dict(k.e)
         e.update({Dk[a]:Dk[ek[a]] for a in ek})
 
         Db = dict(zip(h.b, k.b))
@@ -1366,7 +1366,17 @@ class SphericalWeb(Element):
 
     def replace_linear(self, D, h, k, check=True):
         r"""
-        Replace image of map D:h -> ``self`` by the linear combination k
+        Replace image of map ``D`` by the linear combination ``k``
+
+        INPUT:
+
+            - ``D`` a dictionary, representing an embedding of ``h`` in ``self``.
+            - ``h`` is a ``SphericalWeb``
+            - ``k`` is a set of pairs (as in :meth:`monomial_coefficients`)
+
+        OUTPUT:
+
+            - a set of pairs (as in :meth:`monomial_coefficients`)
 
         EXAMPLES::
 
@@ -1377,29 +1387,35 @@ class SphericalWeb(Element):
             sage: u = edge.glue(edge, 0)
             sage: D = next(tr.search(cs))
             sage: tr.replace_linear(D, cs, A*u + u.rotate(1)/A)
-            A*B[The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
-             and edges (...).] + (A^-1)*B[The spherical web with c = (2, 5, 3, 4, 0, 6, 7, 1), e = (7, 6, 5, 4, 3, 2)
-             and edges (...).]
+            frozenset({(The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
+            ...
             sage: tw = cs.glue(SphericalSpider(2).vertex(), 2)
             sage: D = next(tw.search(cs))
             sage: tw.replace_linear(D, cs, A*u + u.rotate(1)/A)
-            A*B[The spherical web with c = (1, 0), e = ()
-             and edges ('(0,black,False)', '(0,black,False)'), vertices (2, 2), faces (1, 1, 1, 1).] + (A^-1)*B[The spherical web with c = (1, 0), e = ()
-             and edges ('(0,black,False)', '(0,black,False)'), vertices (2,), faces (1, 1).]
+            frozenset({(The spherical web with c = (1, 0), e = ()
+                         and edges ('(0,black,False)', '(0,black,False)'), vertices (2, 2), faces (1, 1, 1, 1).,
+                        A),
+                       (The spherical web with c = (1, 0), e = ()
+                         and edges ('(0,black,False)', '(0,black,False)'), vertices (2,), faces (1, 1).,
+                        A^-1)})
         """
-        if h.parent() != k.parent().basis().keys():
-            raise ValueError("boundaries are different")
+        if any(a.parent() != h.parent() for a, coeff in k):
+            raise RuntimeError("Parents don't match.")
 
-        R = k.parent().base()
-        L = LinearSphericalSpider(R, self.parent().boundary, k.parent().loops, k.parent().rewrite_rules)
-
-        # mc = k.monomial_coefficients()
-
-        return L.sum_of_terms([(self.replace(D, h, a, check=check), coeff) for a, coeff in k])
+        return frozenset((self.replace(D, h, a, check=check), coeff) for a, coeff in k)
 
     def apply_rule(self, term, replace, check=True):
         r"""
-        Find ``term`` in ``self`` and replace with the linear combination ``replacement``.
+        Find ``term`` in ``self`` and replace with the linear combination ``replace``.
+
+        INPUT:
+
+            - ``term`` is a ``SphericalWeb``
+            - ``replace`` is a set of pairs (as in :meth:`monomial_coefficients`)
+
+        OUTPUT:
+
+            - a set of pairs (as in :meth:`monomial_coefficients`)
 
         EXAMPLES::
 
@@ -1409,37 +1425,38 @@ class SphericalWeb(Element):
             sage: edge = LinearSphericalSpider(A.parent(), 2).vertex()
             sage: u = edge.glue(edge, 0)
             sage: tr.apply_rule(cs, A*u + u.rotate(1)/A)
-            A*B[The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
-             and edges (...).] + (A^-1)*B[The spherical web with c = (2, 5, 3, 4, 0, 6, 7, 1), e = (7, 6, 5, 4, 3, 2)
-             and edges (...).]
+            frozenset({(The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
+            ...
         """
         try:
-            D = next(self.search(term))
-            return self.replace_linear(D, term, replace, check=check)
+            embedding = next(self.search(term))
+            return self.replace_linear(embedding, term, replace, check=check)
         except StopIteration:
-            R = replace.parent().base()
-            L = LinearSphericalSpider(R, self.parent().boundary, replace.parent().loops, replace.parent().rewrite_rules)
-            return L(self)
+            return frozenset([(self, 1)])
 
-    def remove_loops(self, st=Strand()):
+    def remove_loops(self, st):
         r"""
         Return a spherical web with no loops and the number of loops in ``self``.
 
         EXAMPLES::
 
-            sage: SphericalSpider([]).loop().remove_loops()
+            sage: from sage.combinat.spherical_spider import Strand
+            sage: SphericalSpider([]).loop().remove_loops(Strand())
             (A closed spherical web with 0 edges., 1)
-            sage: SphericalSpider([]).empty().remove_loops()
+            sage: SphericalSpider([]).empty().remove_loops(Strand())
             (A closed spherical web with 0 edges., 0)
         """
+        from sage.combinat.spherical_spider import Strand
+
         web = copy(self)
         c = dict(web.cp)
         e = dict(web.e)
 
-        loops = [u for u in c if c[c[u]] == u and u.strand == st]
+        strands = {st, Strand(-st.oriented, st.colour)}
+        loops = [u for u in c if c[c[u]] == u and u.strand in strands]
         for u in loops:
-            c.pop(u)
-            e.pop(u)
+            _ = c.pop(u)
+            _ = e.pop(u)
 
         return SphericalWeb(c, e, web.b), len(loops)//2
 
@@ -1567,7 +1584,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.combinat.spherical_spider import Strand
+            #sage: from sage.combinat.spherical_spider import Strand
             sage: SphericalSpider([]).empty()
             A closed spherical web with 0 edges.
         """
@@ -1909,26 +1926,33 @@ class LinearSphericalSpider(CombinatorialFreeModule):
             mo = other.monomial_coefficients()
             return L.sum_of_terms((x.glue(y, k), ms[x]*mo[y]) for x, y in product(ms.keys(), mo.keys()))
 
-        def remove_loops(self, delta, st=Strand()):
+        def remove_loops(self, delta, st):
             r"""
-            Remove loops of type ``st``.
+            Remove loops of type ``st`` multiplying by ``delta`` for each loop.
 
+                sage: from sage.combinat.spherical_spider import Strand
                 sage: L = LinearSphericalSpider(QQ, [])
                 sage: lp = SphericalSpider([]).loop()
-                sage: L(lp).remove_loops(2)
+                sage: L(lp).remove_loops(2, Strand())
                 2*B[A closed spherical web with 0 edges.]
-                sage: L(lp.glue(lp, 0)).remove_loops(2)
+                sage: L(lp.glue(lp, 0)).remove_loops(2, Strand())
                 4*B[A closed spherical web with 0 edges.]
                 sage: u = L(lp) + L(lp.glue(lp, 0)); u
                 B[A closed spherical web with 1 edges.] + B[A closed spherical web with 2 edges.]
-                sage: u.remove_loops(2)
+                sage: u.remove_loops(2, Strand())
                 6*B[A closed spherical web with 0 edges.]
             """
-            mc = self.monomial_coefficients()
-            D = {a: a.remove_loops(st) for a in mc}
-            L = self.parent()
+            #mc = self.monomial_coefficients()
+            #D = {a: a.remove_loops(st) for a in self.support()}
+            #L = self.parent()
 
-            return L.sum_of_terms((D[a][0], delta**D[a][1]*mc[a]) for a in mc)
+            #return L.sum_of_terms((D[a][0], delta**D[a][1]*coeff) for a, coeff in mc.items())
+
+            def rmv(a, coeff):
+                u, n = a.remove_loops(st)
+                return u, delta**n*coeff
+
+            return self.map_item(rmv)
 
         def remove_tadpoles(self):
             r"""
@@ -1958,7 +1982,7 @@ class LinearSphericalSpider(CombinatorialFreeModule):
 
         def apply_rule(self, term, replace, check=True):
             r"""
-            Extend :method'apply_rule' by linearity
+            Extend :meth:`apply_rule` by linearity
 
             EXAMPLES::
 
@@ -1970,18 +1994,13 @@ class LinearSphericalSpider(CombinatorialFreeModule):
             sage: u = edge.glue(edge, 0)
             sage: tr2 = F(tr3).apply_rule(cs, A*u + u.rotate(1)/A); tr2
             A*B[The spherical web with c = (1, 2, 3, 0, 6, 4, 7, 5), e = (4, 5, 2, 3, 7, 6)
-             and edges (...).] + (A^-1)*B[The spherical web with c = (2, 5, 3, 4, 0, 6, 7, 1), e = (7, 6, 5, 4, 3, 2)
-             and edges (...).]
+            ...
             sage: tr1 = tr2.apply_rule(cs, A*u + u.rotate(1)/A); tr1
             A^2*B[The spherical web with c = (1, 0), e = ()
-             and edges ('(0,black,False)', '(0,black,False)'), vertices (2, 4), faces (1, 1, 1, 1, 2).] + 2*B[The spherical web with c = (1, 2, 3, 0), e = (3, 2)
-             and edges ('(0,black,False)', '(0,black,True)', '(0,black,False)', '(0,black,True)'), vertices (4,), faces (1, 1, 2).] + (A^-2)*B[The spherical web with c = (2, 0, 3, 1), e = (3, 2)
-             and edges ('(0,black,False)', '(0,black,True)', '(0,black,True)', '(0,black,False)'), vertices (4,), faces (1, 1, 2).]
+            ...
             sage: tr0 = tr1.apply_rule(cs, A*u + u.rotate(1)/A); tr0
             A^3*B[The spherical web with c = (1, 0), e = ()
-             and edges ('(0,black,False)', '(0,black,False)'), vertices (2, 2, 2), faces (1, 1, 1, 1, 1, 1).] + (A^-3+3*A)*B[The spherical web with c = (1, 0), e = ()
-             and edges ('(0,black,False)', '(0,black,False)'), vertices (2, 2), faces (1, 1, 1, 1).] + (3*A^-1)*B[The spherical web with c = (1, 0), e = ()
-             and edges ('(0,black,False)', '(0,black,False)'), vertices (2,), faces (1, 1).]
+            ...
             sage: tr0 == tr0.apply_rule(cs, A*u + u.rotate(1)/A)
             True
             """
@@ -1989,7 +2008,7 @@ class LinearSphericalSpider(CombinatorialFreeModule):
             P = self.parent()
             result = P(0)
             for a in mc:
-                result += mc[a]*(a.apply_rule(term, replace, check=check))
+                result += mc[a]*P.sum_of_terms(a.apply_rule(term, replace, check=check))
 
             return result
 
@@ -2006,9 +2025,8 @@ class LinearSphericalSpider(CombinatorialFreeModule):
             sage: edge = F.vertex()
             sage: u = edge.glue(edge, 0)
             sage: F(tr).simplify(cs, A*u + (A**-1)*u.rotate(1))
-            A^3*B[The spherical web with c = (1, 0), e = ()
+            (3*A^-1)*B[The spherical web with c = (1, 0), e = ()
              ...
-             and edges ('(0,black,False)', '(0,black,False)'), vertices (2,), faces (1, 1).]
             """
             new = self
             finished = False
@@ -2033,26 +2051,23 @@ class LinearSphericalSpider(CombinatorialFreeModule):
                 sage: L(tr)._normalize(frozenset(), frozenset()) == L(tr)
                 True
                 sage: L(tr)._normalize()
-
-
+                (3*A^-1)*B[The spherical web with c = (1, 0), e = ()
+                ...
             """
             if loops is None:
-                loops = dict(self.parent().loops)
+                loops = self.parent().loops
 
             if rewrite_rules is None:
-                rewrite_rules = dict(self.parent().rewrite_rules)
-
-            lps = dict(loops)
-            rw = dict(rewrite_rules)
+               rewrite_rules = self.parent().rewrite_rules
 
             new = self
             finished = False
             while not finished:
                 old = new
-                for term, replace in rw.items():
+                for term, replace in rewrite_rules:
                     new = new.simplify(term, replace, check=check)
-                    for st, delta in lps.items():
-                        new = new.remove_loops(delta, st)
+                    #for st, delta in loops:
+                    #    new = new.remove_loops(delta, st)
                     new = new.remove_tadpoles()
                 finished = new == old
 
@@ -2085,9 +2100,8 @@ def SL2_braided(A=None):
             sage: sage.combinat.spherical_spider.SL2_braided()
             (Univariate Laurent Polynomial Ring in A over Integer Ring,
              frozenset({(Strand(oriented=0, colour='black'), -A^-2 - A^2)}),
-             {The spherical web with c = (1, 2, 3, 0), e = ()
-               ...
-               and edges ..., vertices (2, 2), faces (1, 1, 1, 1).]})
+             frozenset({(The spherical web with c = (1, 2, 3, 0), e = ()
+            ...
     """
     if A is None:
         A = LaurentPolynomialRing(ZZ, 'A').gen()
@@ -2096,12 +2110,25 @@ def SL2_braided(A=None):
     lps, rw = SL2_relations(delta)
     rw = dict(rw)
     cr = SphericalSpider([]).crossing()
-    F = LinearSphericalSpider(A.parent(), 2)
-    edge = F.vertex()
+    #F = LinearSphericalSpider(A.parent(), 2)
+    edge = SphericalSpider(2).vertex()
     u = edge.glue(edge, 0)
-    rw[cr] = A*u + (A**-1)*u.rotate(1)
+    #rw[cr] = A*u + (A**-1)*u.rotate(1)
+    rw[cr] = frozenset({(u, A), (u.rotate(1), A**-1)})
 
-    return A.parent(), lps, rw
+    return A.parent(), lps, frozenset(rw.items())
+
+def SL2SphericalSpider(boundary, A=None):
+    r"""
+
+    EXAMPLES::
+
+        sage: sage.combinat.spherical_spider.SL2SphericalSpider([])
+        Free module generated by The spherical spider with boundary [] over Univariate Laurent Polynomial Ring in A over Integer Ring
+    """
+    from sage.combinat.spherical_spider import SL2_braided
+    R, loops, rewrite_rules = SL2_braided(A)
+    return LinearSphericalSpider(R, boundary, loops, rewrite_rules)
 
 def A2_relations(delta=None):
     """
