@@ -350,7 +350,7 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
             domain._charts_by_coord[coord_string] = self
             return self
 
-    def __init__(self, domain, coordinates, calc_method=None, periods=None, coord_restrictions=None):
+    def __init__(self, domain, coordinates, calc_method=None, **coordinate_options):
         r"""
         Construct a chart.
 
@@ -383,30 +383,13 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
             raise TypeError("the first argument must be an open subset of " +
                             "a topological manifold")
         self._manifold = domain.manifold()
-        self._domain = domain
         self._sindex = self._manifold.start_index()
         # Handling of calculus methods available on this chart:
         self._calc_method = CalculusMethod(current=calc_method,
                              base_field_type=self.manifold().base_field_type())
         self.simplify = self._calc_method.simplify
 
-        # Treatment of the coordinates:
-        if periods is None:
-            self._periods = {}
-        else:
-            # dictionary of periods (if any); key = coord. index
-            self._periods = {self._sindex + i: period
-                             for i, period in enumerate(periods)
-                             if period is not None}
-
-        if len(coordinates) != self._manifold.dim():
-            raise ValueError("the list of coordinates must contain " +
-                             "{} elements".format(self._manifold.dim()))
-        self._xx = coordinates
-        #
-        # Additional restrictions on the coordinates.
-        self._restrictions = sorted(coord_restrictions, key=str)
-
+        self._init_coordinates(coordinates, **coordinate_options)
 
         # We would like to say TopologicalSpaces() here but "Vector space of
         # dimension 2 over Complex Field with 53 bits of precision is not
@@ -422,12 +405,7 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
         else:
             cat = inverse_cat
 
-        ambient = VectorSpace(domain.base_field(), domain.dimension())
-        if self._restrictions:
-            codomain = self._restrict_set(ambient, self._restrictions)
-        else:
-            codomain = ambient
-
+        codomain = self._codomain_set()
         Map.__init__(self, Hom(domain, codomain, cat))
         self._inverse = ChartInverse(Hom(codomain, domain, inverse_cat), self)
 
@@ -439,7 +417,7 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
             # the chart is added in the top charts iff its coordinates have
             # not been used on a domain including the chart's domain:
             for chart in sd._atlas:
-                if (domain.is_subset(chart._domain)
+                if (domain.is_subset(chart.domain())
                     and self._xx == chart._xx):
                     break
             else:
@@ -465,6 +443,24 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
         for dom in domain.open_supersets():
             dom._zero_scalar_field._express[self] = self.function_ring().zero()
             dom._one_scalar_field._express[self] = self.function_ring().one()
+
+    def _init_coordinates(self, coordinates, *, periods, coord_restrictions):
+        # Treatment of the coordinates:
+        if periods is None:
+            self._periods = {}
+        else:
+            # dictionary of periods (if any); key = coord. index
+            self._periods = {self._sindex + i: period
+                             for i, period in enumerate(periods)
+                             if period is not None}
+
+        if len(coordinates) != self._manifold.dim():
+            raise ValueError("the list of coordinates must contain " +
+                             "{} elements".format(self._manifold.dim()))
+        self._xx = coordinates
+        #
+        # Additional restrictions on the coordinates.
+        self._restrictions = sorted(coord_restrictions, key=str)
 
     @classmethod
     def _parse_coordinates(cls, domain, coordinates):
@@ -579,7 +575,7 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
             (<class 'sage.manifolds.chart.Chart'>,
             (Complex 2-dimensional topological manifold M, (x, y)))
         """
-        return (self.__class__, (self._domain, self._xx))
+        return (self.__class__, (self.domain(), self._xx))
 
     def is_injective(self):
         """
@@ -1043,6 +1039,25 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
                        for cond in restrict)
         # Case of a single condition:
         return bool(restrict.subs(substitutions))
+
+    def _codomain_set(self):
+        r"""
+        Return the codomain of ``self`` as a set.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', field='complex', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: X.codomain()
+            Vector space of dimension 2 over Complex Field with 53 bits of precision
+
+        """
+        from sage.modules.free_module import VectorSpace
+        ambient = VectorSpace(self.manifold().base_field(), self.manifold().dimension())
+        if self._restrictions:
+            return self._restrict_set(ambient, self._restrictions)
+        else:
+            return ambient
 
     def _restrict_set(self, universe, coord_restrictions):
         """
@@ -1887,10 +1902,8 @@ class RealChart(Chart):
     :meth:`plot`.
 
     """
-    def __init__(self, domain, coordinates, calc_method=None, bounds=None, periods=None, coord_restrictions=None):
-        r"""
-        Construct a chart on a real topological manifold.
-
+    def _init_coordinates(self, coordinates, *, bounds, **coordinate_options):
+        """
         TESTS::
 
             sage: forget()  # for doctests only
@@ -1903,10 +1916,8 @@ class RealChart(Chart):
             sage: assumptions()  # assumptions set in X._init_coordinates
             [x is real, y is real]
             sage: TestSuite(X).run(skip='_test_category')
-
         """
-        super().__init__(domain, coordinates, calc_method=calc_method,
-                         periods=periods, coord_restrictions=coord_restrictions)
+        super()._init_coordinates(coordinates, **coordinate_options)
         self._bounds = bounds
         self._tighten_bounds()
         self._fast_valid_coordinates = None
@@ -2076,7 +2087,7 @@ class RealChart(Chart):
         else:
             return self._bounds[i-self._sindex]
 
-    def codomain(self):
+    def _codomain_set(self):
         """
         Return the codomain of ``self`` as a set.
 
