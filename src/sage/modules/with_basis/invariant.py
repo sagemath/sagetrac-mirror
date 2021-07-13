@@ -660,7 +660,6 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         """
         TESTS:
 
-
         Check that it works for lists::
 
             sage: M = CombinatorialFreeModule(QQ,[1,2,3])
@@ -683,9 +682,6 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         Check that it works when the character values are not an instance of
         :class:`~sage.rings.integer.Integer`::
 
-            sage: M = CombinatorialFreeModule(QQ,[1,2,3])
-            sage: G = SymmetricGroup(3)
-            sage: def action(g,x): return M.term(g(x))
             sage: chi = [QQ(2),QQ(0),QQ(-1)]
             sage: T = M.twisted_invariant_module(G,chi,action_on_basis=action)
             sage: TestSuite(T).run()
