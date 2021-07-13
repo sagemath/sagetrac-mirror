@@ -203,6 +203,9 @@ from cysignals.memory cimport sig_free
 
 from copy import copy
 
+from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+from sage.numerical.mip cimport mip_variable_is_true
+
 #####################
 # Greedy Algorithms #
 #####################
@@ -430,7 +433,6 @@ def is_comparability_MILP(g, certificate=False, solver=None, verbose=0):
       sage: is_comparability(g, certificate = True)[1].is_transitive()
       True
     """
-    from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
     cdef int i
 
     p = MixedIntegerLinearProgram(solver=solver)
@@ -473,7 +475,7 @@ def is_comparability_MILP(g, certificate=False, solver=None, verbose=0):
 
         o = p.get_values(o)
         for u,v in g.edge_iterator(labels=False):
-            if o[u,v] > .5:
+            if mip_variable_is_true(o[u,v]):
                 d.add_edge(u,v)
             else:
                 d.add_edge(v,u)

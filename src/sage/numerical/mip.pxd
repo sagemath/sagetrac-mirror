@@ -38,3 +38,8 @@ cdef class MIPVariable(SageObject):
     cdef _matrix_lmul_impl(self, m)
 
 
+cpdef inline bint mip_variable_is_true(value, tolerance=1e-6):
+    """
+    Helpher function to convert inexact 0/1 value to boolean
+    """
+    return value >= (1 - tolerance)
