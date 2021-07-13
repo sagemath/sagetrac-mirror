@@ -564,9 +564,9 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
 
     - ``G`` - a finitely generated group.
 
-    - ``chi`` - list/tuple/iterable of the character values of the irreducible
-                representation on which you want to project. The values must agree
-                with the order of ``G.conjugacy_classes()``.
+    - ``chi`` - list/tuple of the character values of the irreducible representation
+                onto which you want to project. The order of values of `chi` must
+                agree with the order of ``G.conjugacy_classes()``.
 
     - ``action`` - (default: ``operator.mul``) the action of ``G`` on ``M``.
 
@@ -611,25 +611,19 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             sage: M = CombinatorialFreeModule(QQ,[1,2,3])
             sage: G = SymmetricGroup(3)
             sage: action = lambda g,x: M.term(g(x))
-            sage: chi = [1.0, 1.0, 1.0] # a list of real numbers
+            sage: chi = [QQ(1),QQ(1),QQ(1)] # a list
             sage: T = M.twisted_invariant_module(G,chi,action_on_basis=action)
             sage: type(T)
             <class 'sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule_with_category'>
-
-            sage: chi = (CC(1), CC(1), CC(1)) # a tuple of complex numbers
-            sage: T = M.twisted_invariant_module(G,chi,action_on_basis=action)
-            sage: type(T)
-            <class 'sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule_with_category'>
-
         """
 
-        from sage.groups.class_function import ClassFunction
+        from sage.groups.class_function import ClassFunction, ClassFunction_gap
 
-        if isinstance(chi, dict):
-            L = sorted(chi.values(), key = lambda x: G.conjugacy_classes().index(x))
-            chi = ClassFunction(G, L)
-        elif hasattr(chi,'__iter__'):
+        if isinstance(chi,(list,tuple)):
             chi = ClassFunction(G, chi)
+        elif not isinstance(chi, ClassFunction_gap):
+            raise ValueError(f'chi must be a list/tuple or instance of \
+                             sage.groups.class_function.ClassFunction_gap')
 
         if all([chi(g) == 1 for g in G]):
             action_on_basis = kwargs.pop('action_on_basis', None)
