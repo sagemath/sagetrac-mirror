@@ -46,6 +46,7 @@ from sage.symbolic.ring import SR
 from sage.rings.infinity import Infinity
 from sage.modules.free_module import VectorSpace
 from sage.misc.latex import latex
+from sage.misc.cachefunc import cached_method
 from sage.misc.decorators import options
 from sage.misc.fast_methods import WithEqualityById
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -575,6 +576,30 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
             (Complex 2-dimensional topological manifold M, (x, y)))
         """
         return (self.__class__, (self._domain, self._xx))
+
+    def is_injective(self):
+        """
+        Return whether this map is surjective.
+
+        As charts are homeomorphisms, this method returns ``True``.
+        """
+        return True
+
+    def is_surjective(self):
+        """
+        Return whether this map is surjective.
+
+        As charts are homeomorphisms, this method returns ``True``.
+        """
+        return True
+
+    @cached_method
+    def inverse(self):
+        return ChartInverse(self)
+
+    __invert__ = inverse
+
+    section = inverse
 
     def _repr_(self):
         r"""
@@ -1511,6 +1536,43 @@ class Chart(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass
         from sage.manifolds.chart_func import MultiCoordFunction
         return MultiCoordFunction(self, expressions)
 
+
+class ChartInverse(Map, WithEqualityById, metaclass=InheritComparisonClasscallMetaclass):
+
+    def __init__(self, chart):
+        """
+        TESTS::
+
+            sage: M = Manifold(2, 'M', field='complex', structure='topological')
+            sage: X = M.chart('x y'); X
+            sage: TestSuite(X.inverse()).run(skip='_test_category')
+        """
+        Map.__init__(self, Hom(chart.codomain(), chart.domain(), chart.category_for()))
+        self._chart = chart
+
+    __eq__ = WithEqualityById.__eq__
+    __hash__ = WithEqualityById.__hash__
+
+    def is_injective(self):
+        """
+        Return whether this map is surjective.
+
+        As charts are homeomorphisms, this method returns ``True``.
+        """
+        return True
+
+    def is_surjective(self):
+        """
+        Return whether this map is surjective.
+
+        As charts are homeomorphisms, this method returns ``True``.
+        """
+        return True
+
+    def inverse(self):
+        return self._chart
+
+    section = inverse
 
 # *****************************************************************************
 
