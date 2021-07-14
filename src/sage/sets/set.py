@@ -1967,3 +1967,113 @@ class Set_object_symmetric_difference(Set_object_binary):
         from sage.interfaces.sympy import sympy_init
         sympy_init()
         return SymmetricDifference(self._X._sympy_(), self._Y._sympy_())
+
+
+from sage.categories.map import Map
+from sage.categories.homset import Homset
+from sage.structure.unique_representation import UniqueRepresentation
+
+class IndicatorFunction(Map):
+
+    def __init__(self, parent, set):
+        Map.__init__(self, parent)
+        self._set = set
+
+    def _repr_type(self):
+        return "Indicator"
+
+    def _repr_(self):
+        return f'[ {self._set} ⊆ {self.parent().domain()} ]'
+
+    __mul__ = Element.__mul__  # override Map.__mul__
+
+    def _mul_(self, other):
+        r"""
+        Pointwise multiplication
+        """
+        self_set = self._set
+        other_set = other._set
+        try:
+            intersection = self_set.intersection(other_set)
+        except (AttributeError, TypeError):
+            self_set = Set(self_set)
+            other_set = Set(other_set)
+            intersection = self_set.intersection(other_set)
+        return self.parent()(intersection)
+
+    def _call_(self, x):
+        return self.parent().base()(x in self._set)
+
+    def __bool__(self):
+        """
+        Whether the function is nonzero.
+
+        This is assuming that the set can decide emptiness.
+        """
+        try:
+            return not self.is_empty()
+        except AttributeError:
+            self_set = Set(self._set)
+            return not self_set.is_empty()
+
+    def __eq__(self, other):
+        return self._set == other._set
+
+    def __hash__(self):
+        return hash(self._set)
+
+
+class IndicatorFunctionsMonoid(Homset, UniqueRepresentation):
+
+    r"""
+    Multiplication corresponds to set intersection.
+
+    EXAMPLES::
+
+        sage: from sage.sets.set import IndicatorFunctionsMonoid
+        sage: M = IndicatorFunctionsMonoid(ZZ)
+        sage: M.one()
+        sage: M.one()^2
+        sage: chi_123 = M(Set([1, 2, 3])); chi_123
+        sage: chi_245 = M(Set([2, 4, 5])); chi_245
+        sage: chi_123 * chi_245
+
+        sage: A = M.algebra(QQ)
+        sage: A(chi_123)
+        B[[ {1, 2, 3} ⊆ Integer Ring ]]
+        sage: A(chi_123)^2
+        B[[ {1, 2, 3} ⊆ Integer Ring ]]
+        sage: A(chi_123)^0
+        B[[ Integer Ring ⊆ Integer Ring ]]
+
+        sage: A(chi_123)-A(chi_245)
+        B[[ {1, 2, 3} ⊆ Integer Ring ]] + B[[ {2, 4, 5} ⊆ Integer Ring ]]
+        sage: (A(chi_123)-A(chi_245))*A(chi_245)
+        B[[ {2} ⊆ Integer Ring ]] + B[[ {2, 4, 5} ⊆ Integer Ring ]]
+
+        sage: chi_45 = M(Set([4, 5]))
+
+    """
+
+    @staticmethod
+    def __classcall_private__(cls, domain, base_ring=None):
+        if base_ring is None:
+            from sage.rings.integer_ring import ZZ
+            base_ring = ZZ
+        return super().__classcall__(cls, domain, base_ring)
+
+    def __init__(self, domain, base_ring):
+        Homset.__init__(self, domain, base_ring,
+                        base=base_ring, category=Sets())
+        #self._domain = domain
+
+    def _element_constructor_(self, x):
+        return IndicatorFunction(self, x)
+
+    def one(self):
+        """
+        Return the unit of this monoid.
+
+        This is the indicator function of the domain.
+        """
+        return self(self._domain)

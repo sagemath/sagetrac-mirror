@@ -1718,8 +1718,11 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 sage: F is Set([1, 2])
                 False
                 sage: sF = F._sympy_(); sF
-                SageSet({1, 2})
+                Set(1, 2)
                 sage: sF._sage_() is F
+                Traceback (most recent call last):
+                ...
+                AttributeError: 'Set' object has no attribute '_sage_'
                 True
             """
             from sage.interfaces.sympy_wrapper import SageSet
@@ -2083,6 +2086,35 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     'A subobject of An example of a semigroup: the left zero semigroup'
                 """
                 return "A subobject of {}".format(self.ambient())
+
+            def indicator_functions_monoid(self, base_ring=None):
+                from sage.sets.set import IndicatorFunctionsMonoid
+                return IndicatorFunctionsMonoid(self.ambient(), base_ring)
+
+            def indicator_function(self, base_ring=None):
+                """
+                Return the indicator function of ``self`` with respect to its ambient set.
+
+                EXAMPLES::
+
+                    sage: R = RealSet(-oo, oo, structure='differentiable'); R
+                    Real number line ℝ
+                    sage: I02 = RealSet([0, 2], ambient=R); I02
+                    Subset [0, 2] of the Real number line ℝ
+                    sage: chi_I02 = I02.indicator_function(); chi_I02
+                    [ Subset [0, 2] of the Real number line ℝ ⊆ Real number line ℝ ]
+                    sage: chi_I02((-1,))
+                    0
+                    sage: chi_I02((1,))
+                    1
+                    sage: I13 = RealSet([1, 3], ambient=R); I13
+                    Subset [1, 3] of the Real number line ℝ
+                    sage: chi_I13 = I13.indicator_function(); chi_I13
+                    [ Subset [1, 3] of the Real number line ℝ ⊆ Real number line ℝ ]
+                    sage: chi_I02 * chi_I13
+                    [ Subset [0, 2]_inter_[1, 3] of the Real number line ℝ ⊆ Real number line ℝ ]
+                """
+                return self.indicator_functions_monoid(base_ring=base_ring)(self)
 
     class IsomorphicObjects(IsomorphicObjectsCategory):
         """
