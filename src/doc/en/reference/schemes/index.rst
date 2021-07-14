@@ -101,4 +101,12 @@ Berkovich Analytic Space
    sage/schemes/berkovich/berkovich_cp_element
    sage/schemes/berkovich/berkovich_space
 
+Group Schemes
+--------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/schemes/group_schemes/tori
+
 .. include:: ../footer.txt

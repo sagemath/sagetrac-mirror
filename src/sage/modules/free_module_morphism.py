@@ -46,8 +46,6 @@ from sage.categories.morphism import Morphism
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import richcmp, rich_to_bool
 
-from . import free_module_homspace
-
 
 def is_FreeModuleMorphism(x):
     """
@@ -79,8 +77,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             sage: type(phi)
             <class 'sage.modules.free_module_morphism.FreeModuleMorphism'>
         """
-        if not free_module_homspace.is_FreeModuleHomspace(parent):
-            raise TypeError("parent (=%s) must be a free module hom space"%parent)
+        
         if isinstance(A, matrix_morphism.MatrixMorphism):
             A = A.matrix()
         A = parent._matrix_space(side)(A)

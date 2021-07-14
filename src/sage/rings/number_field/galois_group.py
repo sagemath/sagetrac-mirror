@@ -600,8 +600,8 @@ class GaloisGroup_v2(GaloisGroup_perm):
             return [self.element_class(x, self, check=False) for x in new_gens]
 
     def _element_constructor_(self, x, check=True):
-        """
-        Create an element of ``self`` from ``x``.
+        r"""
+        Create an element of this Galois group
 
         INPUT:
 
