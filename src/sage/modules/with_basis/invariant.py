@@ -665,6 +665,8 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             sage: M = CombinatorialFreeModule(QQ,[1,2,3])
             sage: G = SymmetricGroup(3)
             sage: def action(g,x): return M.term(g(x))
+            sage: import __main__
+            sage: __main__.action = action
             sage: T = M.twisted_invariant_module(G,[2,0,-1],action_on_basis=action)
             sage: TestSuite(T).run()
 
