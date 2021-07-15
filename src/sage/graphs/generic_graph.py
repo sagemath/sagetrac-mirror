@@ -6326,10 +6326,22 @@ class GenericGraph(GenericGraph_pyx):
                                 + p.sum(edge[e, c] for e in D.outgoing_edge_iterator(u, labels=False))
                                 >= 1)
 
-            # We use the Miller-Tucker-Zemlin subtour elimination constraints.
-            # If edge uv is selected, v is after u in the partial ordering
+            # We use the Miller-Tucker-Zemlin subtour elimination constraints
+            # combined with the Desrosiers-Langevin strengthening constraints
             for u, v in D.edge_iterator(labels=False):
-                p.add_constraint(pos[v, c] >= pos[u, c] + 1 - n * (1 - edge[(u, v), c]))
+                if D.has_edge(v, u):
+                    # DL
+                    p.add_constraint(pos[u, c] + (n - 1)*edge[(u, v), c] + (n - 3)*edge[(v, u), c]
+                                         <= pos[v, c] + n - 2)
+                else:
+                    # MTZ: If edge uv is selected, v is after u in the partial ordering
+                    p.add_constraint(pos[u, c] + 1 - n * (1 - edge[(u, v), c]) <= pos[v, c])
+
+            # and extra strengthening constraints on the minimum distance
+            # between the root of the spanning tree and any vertex
+            BFS = dict(D.breadth_first_search(root, report_distance=True))
+            for u in D:
+                p.add_constraint(pos[root, c] + BFS[u] <= pos[u, c])
 
         # We now solve this program and extract the solution
         try:
