@@ -388,7 +388,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
                     polys, C))
             genus = C.genus()
             if a.degree() > genus:
-                polys = cantor_reduction(a, b, f, h, genus)
+                a, b = cantor_reduction(a, b, f, h, genus)
         self.__polys = a, b
 
     def _printing_polys(self):
