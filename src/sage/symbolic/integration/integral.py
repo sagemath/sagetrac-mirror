@@ -983,7 +983,19 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: integrate(elliptic_e(x,m).diff(x), x) # long time
         elliptic_e(x, m)
 
+    Check that :trac:`32160` is fixed::
 
+        sage: f = (2*(x - floor(x))^3 - 3*(x - floor(x))^2 + x - floor(x))*(10*x^3/(x^2 + 1)^6 - 3*x/(x^2 + 1)^5)
+        sage: ans_sage = integrate(f, x, 1, +Infinity)
+        sage: ans_sage
+        integrate((7*x^2 - 3)*(2*x - 2*floor(x) - 1)*(x - floor(x))*(x - floor(x) - 1)*x/(x^2 + 1)^6, x, 1, +Infinity)
+        sage: ans_sage.n()
+        0.0009945490551909021
+
+        sage: from scipy import integrate
+        sage: ans_scipy = integrate.quad(f, 1, +Infinity)
+        sage: ans_scipy[0]
+        0.0009945480575073787
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:
