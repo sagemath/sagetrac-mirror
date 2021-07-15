@@ -284,6 +284,13 @@ class DefiniteIntegral(BuiltinFunction):
             sage: F(x) = integrate(f(t),t,0,x)
             sage: F(x).diff(x)
             f(x)
+
+        :trac:`32184 fixed::
+            sage: x,y = var("x,y")
+            sage: f = integrate(-2*(2*(x - floor(x))^3 - 3*(x - floor(x))^2 + x - floor(x))*(8*x^3/(x^2 + y^2)^5 - 3*x/(x^2 + y^2)^4), x, 1, +Infinity, hold=True)
+            sage: assume(y>0)
+            sage: f.diff(y)
+            16*integrate((2*(x - floor(x))^3 - 3*(x - floor(x))^2 + x - floor(x))*(10*x^3*y/(x^2 + y^2)^6 - 3*x*y/(x^2 + y^2)^5), x, 1, +Infinity)
         """
         if not x.has(diff_param):
             # integration variable != differentiation variable
