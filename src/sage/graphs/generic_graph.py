@@ -6276,6 +6276,23 @@ class GenericGraph(GenericGraph_pyx):
              Digraph on 28 vertices,
              Digraph on 28 vertices,
              Digraph on 28 vertices]
+
+        Small cases::
+
+            sage: Graph().edge_disjoint_spanning_trees(0)
+            []
+            sage: Graph(1).edge_disjoint_spanning_trees(0)
+            []
+            sage: Graph(2).edge_disjoint_spanning_trees(0)
+            []
+            sage: Graph([(0, 1)]).edge_disjoint_spanning_trees(0)
+            []
+            sage: Graph([(0, 1)]).edge_disjoint_spanning_trees(1)
+            [Graph on 2 vertices]
+            sage: Graph([(0, 1)]).edge_disjoint_spanning_trees(2)
+            Traceback (most recent call last):
+            ...
+            EmptySetError: this graph does not contain the required number of trees/arborescences
         """
         self._scream_if_not_simple()
         from sage.graphs.digraph import DiGraph
@@ -6283,11 +6300,22 @@ class GenericGraph(GenericGraph_pyx):
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 
         G = self
-        D = G if G.is_directed() else DiGraph(G)
         n = G.order()
+
+        if not n or not k:
+            return []
 
         if root is None:
             root = next(G.vertex_iterator())
+
+        if k == 1:
+            E = G.min_spanning_tree(starting_vertex=root)
+            if not E:
+                raise EmptySetError("this graph does not contain the required "
+                                    "number of trees/arborescences")
+            return [DiGraph(E) if G.is_directed() else Graph(E)]
+
+        D = G if G.is_directed() else DiGraph(G)
 
         # The colors we can use (one color per tree)
         colors = list(range(k))
