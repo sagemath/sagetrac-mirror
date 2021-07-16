@@ -925,6 +925,16 @@ cdef class Map(Element):
             sage: phi_xy = SetMorphism(Hom(X, Y, Rings()), lambda p: p[0])
             sage: phi_yz = SetMorphism(Hom(Y, Z, CommutativeAdditiveMonoids()), lambda y: QQ(y)/2)
             sage: phi_yz * phi_xy
+            Composite map:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Rational Field
+              Defn:   Generic morphism:
+                      From: Univariate Polynomial Ring in x over Integer Ring
+                      To:   Integer Ring
+                    then
+                      Generic morphism:
+                      From: Integer Ring
+                      To:   Rational Field
         """
         return self.__matmul__(right)
 
