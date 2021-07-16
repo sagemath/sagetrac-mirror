@@ -297,9 +297,12 @@ class FanMorphism(FreeModuleMorphism):
             elif check:
                 self._validate()
 
-    def __mul__(self, right):
+    def __matmul__(self, right):
         """
         Return the composition of ``self`` and ``right``.
+
+        Both the multiplication operator ``*`` and the matrix-multiplication operator ``@``
+        are morphism composition.
 
         INPUT:
 
@@ -335,7 +338,7 @@ class FanMorphism(FreeModuleMorphism):
         # We don't need it, we just check compatibility of fans:
         FanMorphism(identity_matrix(self.domain().dimension()),
                     right.codomain_fan(), self.domain_fan())
-        m = right.matrix() * self.matrix()
+        m = right.matrix() @ self.matrix()
         return FanMorphism(m, right.domain_fan(), self.codomain_fan())
 
     def _RISGIS(self):
