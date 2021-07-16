@@ -96,8 +96,13 @@ class ConstructionFunctor(Functor):
         (a + b)*x
 
     """
-    def __mul__(self, other):
+    def __matmul__(self, other):
         """
+        Functor composition
+
+        Both the multiplication operator ``*`` and the matrix-multiplication operator ``@``
+        are map composition.
+
         Compose ``self`` and ``other`` to a composite construction
         functor, unless one of them is the identity.
 
@@ -112,15 +117,15 @@ class ConstructionFunctor(Functor):
             sage: I = IdentityConstructionFunctor()
             sage: F = QQ.construction()[0]
             sage: P = ZZ['t'].construction()[0]
-            sage: F*P
+            sage: F @ P
             FractionField(Poly[t](...))
-            sage: P*F
+            sage: P @ F
             Poly[t](FractionField(...))
-            sage: (F*P)(ZZ)
+            sage: (F @ P)(ZZ)
             Fraction Field of Univariate Polynomial Ring in t over Integer Ring
-            sage: I*P is P
+            sage: I @ P is P
             True
-            sage: F*I is F
+            sage: F @ I is F
             True
 
         """
@@ -131,6 +136,27 @@ class ConstructionFunctor(Functor):
         if isinstance(self, IdentityConstructionFunctor):
             return other
         return CompositeConstructionFunctor(other, self)
+
+    def __mul__(self, other):
+        r"""
+        Functor composition
+
+        Both the multiplication operator ``*`` and the matrix-multiplication operator ``@``
+        are map composition.
+
+        :meth:`__mul__` just delegates to :meth:`__matmul__`. Subclasses should override
+        ``__matmul__`` in order to customize functor composition.
+
+        TESTS::
+
+            sage: from sage.categories.pushout import IdentityConstructionFunctor
+            sage: I = IdentityConstructionFunctor()
+            sage: F = QQ.construction()[0]
+            sage: P = ZZ['t'].construction()[0]
+            sage: F * P
+            FractionField(Poly[t](...))
+        """
+        return self.__matmul__(other)
 
     def pushout(self, other):
         """
@@ -153,9 +179,9 @@ class ConstructionFunctor(Functor):
 
         """
         if self.rank > other.rank:
-            return self * other
+            return self @ other
         else:
-            return other * self
+            return other @ self
 
     def __eq__(self, other):
         """
@@ -299,7 +325,7 @@ class ConstructionFunctor(Functor):
             sage: Q.expand()
             [QuotientFunctor]
             sage: P = ZZ['t'].construction()[0]
-            sage: FP = F*P
+            sage: FP = F @ P
             sage: FP.expand()
             [FractionField, Poly[t]]
 
@@ -509,7 +535,7 @@ class CompositeConstructionFunctor(ConstructionFunctor):
 
     __hash__ = ConstructionFunctor.__hash__
 
-    def __mul__(self, other):
+    def __matmul__(self, other):
         """
         Compose construction functors to a composit construction functor, unless one of them is the identity.
 
@@ -523,7 +549,7 @@ class CompositeConstructionFunctor(ConstructionFunctor):
             sage: from sage.categories.pushout import CompositeConstructionFunctor
             sage: F1 = CompositeConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0])
             sage: F2 = CompositeConstructionFunctor(QQ.construction()[0],ZZ['y'].construction()[0])
-            sage: F1*F2
+            sage: F1 @ F2
             Poly[x](FractionField(Poly[y](FractionField(...))))
 
         """
@@ -664,7 +690,7 @@ class IdentityConstructionFunctor(ConstructionFunctor):
 
     __hash__ = ConstructionFunctor.__hash__
 
-    def __mul__(self, other):
+    def __matmul__(self, other):
         """
         Compose construction functors to a composit construction functor, unless one of them is the identity.
 
@@ -679,13 +705,13 @@ class IdentityConstructionFunctor(ConstructionFunctor):
             sage: I = IdentityConstructionFunctor()
             sage: F = QQ.construction()[0]
             sage: P = ZZ['t'].construction()[0]
-            sage: I*F is F     # indirect doctest
+            sage: I @ F is F     # indirect doctest
             True
-            sage: F*I is F
+            sage: F @ I is F
             True
-            sage: I*P is P
+            sage: I @ P is P
             True
-            sage: P*I is P
+            sage: P @ I is P
             True
 
         """
@@ -1057,7 +1083,7 @@ class MultiPolynomialFunctor(ConstructionFunctor):
 
     __hash__ = ConstructionFunctor.__hash__
 
-    def __mul__(self, other):
+    def __matmul__(self, other):
         """
         If two MPoly functors are given in a row, form a single MPoly functor
         with all of the variables.
@@ -1066,7 +1092,7 @@ class MultiPolynomialFunctor(ConstructionFunctor):
 
             sage: F = sage.categories.pushout.MultiPolynomialFunctor(['x','y'], None)
             sage: G = sage.categories.pushout.MultiPolynomialFunctor(['t'], None)
-            sage: G*F
+            sage: G @ F
             MPoly[x,y,t]
         """
         if isinstance(other, IdentityConstructionFunctor):
@@ -1079,7 +1105,7 @@ class MultiPolynomialFunctor(ConstructionFunctor):
             return MultiPolynomialFunctor(other.vars + self.vars, self.term_order)
         elif (isinstance(other, CompositeConstructionFunctor)
               and isinstance(other.all[-1], MultiPolynomialFunctor)):
-            return CompositeConstructionFunctor(other.all[:-1], self * other.all[-1])
+            return CompositeConstructionFunctor(other.all[:-1], self @ other.all[-1])
         else:
             return CompositeConstructionFunctor(other, self)
 
@@ -1174,7 +1200,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
         sage: B.<x,y,a_3,a_1> = PolynomialRing(QQ, order='lex')
         sage: B.construction()
         (MPoly[x,y,a_3,a_1], Rational Field)
-        sage: A.construction()[0]*B.construction()[0]
+        sage: A.construction()[0] @ B.construction()[0]
         InfPoly{[a,b], "lex", "dense"}(MPoly[x,y](...))
 
     Apparently the variables `a_1,a_3` of the polynomial ring are merged with the variables
@@ -1182,7 +1208,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
     However, if the polynomial ring was given a different ordering, merging would not be allowed,
     resulting in a name conflict::
 
-        sage: A.construction()[0]*PolynomialRing(QQ,names=['x','y','a_3','a_1']).construction()[0]
+        sage: A.construction()[0] @ PolynomialRing(QQ,names=['x','y','a_3','a_1']).construction()[0]
         Traceback (most recent call last):
         ...
         CoercionException: Incompatible term orders lex, degrevlex
@@ -1190,7 +1216,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
     In an infinite polynomial ring with generator `a_\ast`, the variable `a_3` will always be greater
     than the variable `a_1`. Hence, the orders are incompatible in the next example as well::
 
-        sage: A.construction()[0]*PolynomialRing(QQ,names=['x','y','a_1','a_3'], order='lex').construction()[0]
+        sage: A.construction()[0] @ PolynomialRing(QQ,names=['x','y','a_1','a_3'], order='lex').construction()[0]
         Traceback (most recent call last):
         ...
         CoercionException: Overlapping variables (('a', 'b'),['a_1', 'a_3']) are incompatible
@@ -1199,7 +1225,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
     This is not the case in the following example, since it is not clear whether the variables `x,y`
     should be greater or smaller than the variables `b_\ast`::
 
-        sage: A.construction()[0]*PolynomialRing(QQ,names=['a_3','a_1','x','y'], order='lex').construction()[0]
+        sage: A.construction()[0] @ PolynomialRing(QQ,names=['a_3','a_1','x','y'], order='lex').construction()[0]
         Traceback (most recent call last):
         ...
         CoercionException: Overlapping variables (('a', 'b'),['a_3', 'a_1']) are incompatible
@@ -1327,7 +1353,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
 
     __hash__ = ConstructionFunctor.__hash__
 
-    def __mul__(self, other):
+    def __matmul__(self, other):
         """
         Compose construction functors to a composite construction functor, unless one of them is the identity.
 
@@ -1344,12 +1370,12 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
             InfPoly{[x,y], "degrevlex", "dense"}
             sage: F3 = InfinitePolynomialRing(QQ, ['x','y'],order='degrevlex',implementation='sparse').construction()[0]; F3
             InfPoly{[x,y], "degrevlex", "sparse"}
-            sage: F2*F1
+            sage: F2 @ F1
             InfPoly{[x,y], "degrevlex", "dense"}(Poly[a](...))
-            sage: F3*F1
+            sage: F3 @ F1
             InfPoly{[x,y], "degrevlex", "sparse"}(Poly[a](...))
             sage: F4 = sage.categories.pushout.FractionField()
-            sage: F2*F4
+            sage: F2 @ F4
             InfPoly{[x,y], "degrevlex", "dense"}(FractionField(...))
 
         """
@@ -1468,14 +1494,14 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
             return self
         return None
         try:
-            OUT = self * other
+            OUT = self  @  other
             # The following happens if "other" has the same order type etc.
             if not isinstance(OUT, CompositeConstructionFunctor):
                 return OUT
         except CoercionException:
             pass
         if isinstance(other, InfinitePolynomialFunctor):
-            # We don't require that the orders coincide. This is a difference to self*other
+            # We don't require that the orders coincide. This is a difference to self @ other
             # We only merge if other's generators are an ordered subset of self's generators
             for g in other._gens:
                 if g not in self._gens:
@@ -2642,7 +2668,7 @@ class CompletionFunctor(ConstructionFunctor):
             sage: C(R) is Frac(C(P))
             True
             sage: F = R.construction()[0]
-            sage: (C*F)(ZZ['x']) is (F*C)(ZZ['x'])
+            sage: (C @ F)(ZZ['x']) is (F @ C)(ZZ['x'])
             True
 
         The following was fixed in :trac:`15329` (it used to result
@@ -3356,7 +3382,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
                 and kwds_self == kwds_other):
             return AlgebraicExtensionFunctor([self.polys[0].lcm(other.polys[0])], [None], **kwds_self)
 
-    def __mul__(self, other):
+    def __matmul__(self, other):
         """
         Compose construction functors to a composite construction functor, unless one of them is the identity.
 
@@ -3389,7 +3415,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
                                              **self.kwds)
         elif (isinstance(other, CompositeConstructionFunctor)
               and isinstance(other.all[-1], AlgebraicExtensionFunctor)):
-            return CompositeConstructionFunctor(other.all[:-1], self * other.all[-1])
+            return CompositeConstructionFunctor(other.all[:-1], self @ other.all[-1])
         else:
             return CompositeConstructionFunctor(other, self)
 
@@ -4133,9 +4159,9 @@ def pushout(R, S):
             Yc = Sc if Xc is Rc else Rc
             Y_tower = S_tower if Xc is Rc else R_tower
             Y_partial = Y_tower[len(Yc)][1]
-            if not (c * all)(Z).has_coerce_map_from(Y_partial):
+            if not (c @ all)(Z).has_coerce_map_from(Y_partial):
                 return all
-        return c * all
+        return c @ all
 
     try:
         while Rc or Sc:
@@ -4159,7 +4185,7 @@ def pushout(R, S):
                     cS = Sc.pop()
                     c = cR.merge(cS) or cS.merge(cR)
                     if c:
-                        all = c * all
+                        all = c @ all
                     else:
                         raise CoercionException("Incompatible Base Extension %r, %r (on %r, %r)" % (R, S, cR, cS))
                 else:
@@ -4176,14 +4202,14 @@ def pushout(R, S):
                         all = apply_from(Rc)
                     # If, perchance, the two functors commute, then we may do them in any order.
                     elif Rc[-1].commutes(Sc[-1]) or Sc[-1].commutes(Rc[-1]):
-                        all = Sc.pop() * Rc.pop() * all
+                        all = Sc.pop() @ Rc.pop() @ all
                     else:
                         # try and merge (default merge is failure for unequal functors)
                         cR = Rc.pop()
                         cS = Sc.pop()
                         c = cR.merge(cS) or cS.merge(cR)
                         if c is not None:
-                            all = c * all
+                            all = c @ all
                         else:
                             # Otherwise, we cannot proceed.
                             raise CoercionException("Ambiguous Base Extension", R, S)
@@ -4349,7 +4375,7 @@ def pushout_lattice(R, S):
         for i in range(1, S_loc):
             map = lattice[R_loc, i + 1].coerce_map_from(lattice[R_loc, i])
             # The functor used is implicit here, should it be?
-            R_map = map * R_map
+            R_map = map @ R_map
     else:
         R_map = R.coerce_map_from(R)  # id
 
@@ -4358,7 +4384,7 @@ def pushout_lattice(R, S):
         S_map = lattice[1, S_loc].coerce_map_from(S)
         for i in range(1, R_loc):
             map = lattice[i + 1, S_loc].coerce_map_from(lattice[i, S_loc])
-            S_map = map * S_map
+            S_map = map @ S_map
     else:
         S_map = S.coerce_map_from(S)  # id
 
