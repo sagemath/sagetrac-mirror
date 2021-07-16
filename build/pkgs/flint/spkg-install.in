@@ -11,23 +11,11 @@ fi
 
 cd src
 
-echo "Configuring FLINT."
-# Trac #29607: We must always supply --with-gmp, --with-mpfr,
-# --with-ntl because otherwise FLINT's configure script uses
-# /usr/local, which is always wrong.
-# This is why we do not use $SAGE_CONFIGURE_GMP etc. here.
-# The value $SAGE_LOCAL is always a safe choice even if the library
-# is coming from the system and is found using what is in
-# LIBRARY_PATH or LDFLAGS etc.
-./configure \
-    --disable-static \
-    --prefix="$SAGE_LOCAL" \
-    --with-gmp="$SAGE_LOCAL" \
-    --with-mpfr="$SAGE_LOCAL" \
-    --with-ntl="$SAGE_LOCAL" \
-    $FLINT_CONFIGURE || sdh_die "Error: Failed to configure FLINT."
-
-sdh_make verbose
+## mkdir build
+## cd build
+## cmake -G"Unix Makefiles" -DWITH_NTL=yes -DBUILD_TESTING=yes -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="${SAGE_INST_LOCAL}" -DCMAKE_INSTALL_LIBDIR=lib ..
+sdh_cmake -G"Unix Makefiles" -DWITH_NTL=yes -DBUILD_TESTING=yes -DCMAKE_BUILD_TYPE=Release
+sdh_make
 
 echo "Deleting old FLINT files."
 rm -f $SAGE_LOCAL/lib/libflint*
