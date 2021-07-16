@@ -592,6 +592,17 @@ class UnsignedInfinityRing_class(Singleton, Ring):
         """
         return 1
 
+    def is_field(self, proof=True):
+        """
+        The unsigned infinity ring isn't a field.
+
+        EXAMPLES::
+
+            sage: UnsignedInfinityRing.is_field()
+            False
+        """
+        return False
+
     def fraction_field(self):
         """
         The unsigned infinity ring isn't an integral domain.
@@ -1009,6 +1020,17 @@ class InfinityRing_class(Singleton, Ring):
             False
         """
         Ring.__init__(self, self, names=('oo',), normalize=False)
+
+    def is_field(self, proof=True):
+        """
+        The unsigned infinity ring isn't a field.
+
+        EXAMPLES::
+
+            sage: InfinityRing.is_field()
+            False
+        """
+        return False
 
     def fraction_field(self):
         """
