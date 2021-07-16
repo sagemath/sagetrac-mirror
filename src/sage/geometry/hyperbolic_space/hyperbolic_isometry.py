@@ -255,6 +255,25 @@ class HyperbolicIsometry(Morphism):
         raise NotImplementedError("composition is not defined between a "
                                   "hyperbolic isometry and {0}".format(other))
 
+    def __matmul__(self, other):
+        r"""
+        EXAMPLES::
+
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: A = UHP.get_isometry(Matrix(2,[5,2,1,2]))
+            sage: PD = HyperbolicPlane().PD()
+            sage: B = PD.get_isometry(Matrix(2, [3*I + 1, -3, 3, 3*I - 1]))
+            sage: A @ B
+            Isometry in UHP
+            [  5 -32]
+            [  1  -8]
+        """
+        if isinstance(other, HyperbolicIsometry):
+            # Map.__matmul__ does not handle the automatic "to_model" coercion
+            # that is supported by our _composition method.
+            return self._composition(other)
+        return super().__matmul__(other)
+
     def __mul__(self, other):
         r"""
         EXAMPLES::
@@ -282,7 +301,7 @@ class HyperbolicIsometry(Morphism):
             return self(other)
         if isinstance(other, HyperbolicGeodesic):
             return self.codomain().get_geodesic(self(other.start()), self(other.end()))
-        return super().__mul__(other)
+        return super().__mul__(other)  # Map.__mul__ also delegates to __matmul__
 
     def _call_(self, p):
         r"""
