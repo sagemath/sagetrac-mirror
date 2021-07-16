@@ -448,7 +448,8 @@ integer of type ``int``, then code for the return statement would be
     from sage.rings.integer import Integer
     return Integer(i)
 
-A notable definite exception to this rule is the ``__hash__`` special method.
+Notable definite exceptions to this rule are special methods like ``__hash__``,
+``__len__``, and ``__int__``.
 
 
 Importing
