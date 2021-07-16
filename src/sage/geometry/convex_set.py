@@ -14,7 +14,7 @@ Convex Sets
 
 from sage.structure.sage_object import SageObject
 from sage.sets.set import Set_base
-from sage.categories.sets_cat import EmptySetError
+from sage.categories.sets_cat import Sets, EmptySetError
 from sage.misc.abstract_method import abstract_method
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
@@ -678,6 +678,10 @@ class ConvexSet_base(SageObject, Set_base):
                     tester.assertTrue(self.contains(point))
                     tester.assertTrue(point in self)
 
+    indicator_functions_monoid = Sets.Subobjects.ParentMethods.indicator_functions_monoid
+
+    indicator_function = Sets.Subobjects.ParentMethods.indicator_function
+
     def _convex_indicator(self, x):
         r"""
         The convex indicator: `0` on ``self``, `+\infty` otherwise
@@ -709,6 +713,10 @@ class ConvexSet_base(SageObject, Set_base):
           :meth:`ambient_vector_space` to construct the set-theoretic
           domain of the function
 
+        .. SEEALSO::
+
+            :meth:`~sage.sets.set.Set_base.indicator_function`
+
         EXAMPLES::
 
             sage: P = Polyhedron(vertices=[[0], [1]])
@@ -728,7 +736,6 @@ class ConvexSet_base(SageObject, Set_base):
         from sage.categories.morphism import SetMorphism
         from sage.categories.sets_cat import Sets
         from sage.categories.homset import Hom
-        from sage.rings.infinity import InfinityRing
         if ambient is None:
             ambient = self.ambient_vector_space(base_field=base_field)
         homset = Hom(ambient, RDF, Sets())
