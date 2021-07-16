@@ -481,7 +481,10 @@ cdef class IdentityMorphism(Morphism):
         else:
             return C._element_constructor(x, *args, **kwds)
 
-    def __mul__(left, right):
+    def __matmul__(left, right):
+        r"""
+        Map composition
+        """
         if not isinstance(right, Map):
             raise TypeError("right (=%s) must be a map to multiply it by %s"%(right, left))
         if not isinstance(left, Map):
