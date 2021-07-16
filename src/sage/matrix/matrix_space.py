@@ -926,7 +926,9 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
         - ``self_on_left`` -- whether the operation is on left or on right
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Matrix-matrix action using ``*``::
 
             sage: V = QQ^(2,3)
             sage: W1 = QQ^(3,4); W2 = QQ^(2,2)
@@ -937,7 +939,16 @@ class MatrixSpace(UniqueRepresentation, Parent):
             sage: V.get_action(W2, operator.mul, self_on_left=False)
             Left action by Full MatrixSpace of 2 by 2 dense matrices over Rational Field on Full MatrixSpace of 2 by 3 dense matrices over Rational Field
 
-        ::
+        Matrix-matrix action using ``@``::
+
+            sage: V.get_action(W1, operator.matmul)
+            Left action by Full MatrixSpace of 2 by 3 dense matrices over Rational Field on Full MatrixSpace of 3 by 4 dense matrices over Rational Field
+            sage: V.get_action(W2, operator.matmul)
+            sage: V.get_action(W1, operator.matmul, self_on_left=False)
+            sage: V.get_action(W2, operator.matmul, self_on_left=False)
+            Left action by Full MatrixSpace of 2 by 2 dense matrices over Rational Field on Full MatrixSpace of 2 by 3 dense matrices over Rational Field
+
+        Matrix-vector action using ``*``::
 
             sage: V2 = QQ^2; V3 = QQ^3
             sage: V.get_action(V3, operator.mul)
@@ -947,12 +958,24 @@ class MatrixSpace(UniqueRepresentation, Parent):
             sage: V.get_action(V2, operator.mul, self_on_left=False)
             Right action by Full MatrixSpace of 2 by 3 dense matrices over Rational Field on Vector space of dimension 2 over Rational Field
 
-        ::
+        No matrix-vector action using ``@``::
+
+            sage: V.get_action(V3, operator.matmul)
+            sage: V.get_action(V2, operator.matmul)
+            sage: V.get_action(V3, operator.matmul, self_on_left=False)
+            sage: V.get_action(V2, operator.matmul, self_on_left=False)
+
+        Matrix-scalar action using ``*``::
 
             sage: V.get_action(ZZ, operator.mul)
             Right scalar multiplication by Integer Ring on Full MatrixSpace of 2 by 3 dense matrices over Rational Field
             sage: V.get_action(ZZ, operator.mul, self_on_left=False)
             Left scalar multiplication by Integer Ring on Full MatrixSpace of 2 by 3 dense matrices over Rational Field
+
+        No matrix-scalar action using ``@``::
+
+            sage: V.get_action(ZZ, operator.matmul)
+            sage: V.get_action(ZZ, operator.matmul, self_on_left=False)
         """
         try:
             from sage.schemes.generic.homset import SchemeHomset_generic
@@ -983,6 +1006,17 @@ class MatrixSpace(UniqueRepresentation, Parent):
                     else:
                         # action of base ring
                         return sage.structure.coerce.LeftModuleAction(S, self)
+            elif op is operator.matmul:
+                from . import action as matrix_action
+                if self_on_left:
+                    if is_MatrixSpace(S):
+                        # matrix multiplications
+                        return matrix_action.MatrixMatrixAction(self, S)
+                else:
+                    if is_MatrixSpace(S):
+                        # matrix multiplications
+                        return matrix_action.MatrixMatrixAction(S, self)
+
         except TypeError:
             return None
 
