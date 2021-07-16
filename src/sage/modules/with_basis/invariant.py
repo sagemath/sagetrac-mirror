@@ -580,105 +580,177 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
 
     EXAMPLES:
 
-        Suppose that the symmetric group `S_3` acts on a four dimensional
-        vector space by permuting the first three coordinates only::
+    Suppose that the symmetric group `S_3` acts on a four dimensional
+    vector space by permuting the first three coordinates only::
 
-            sage: M = CombinatorialFreeModule(QQ, [1,2,3,4], prefix='M')
-            sage: G = SymmetricGroup(3)
-            sage: action = lambda g,x: M.term(g(x))
+        sage: M = CombinatorialFreeModule(QQ, [1,2,3,4], prefix='M')
+        sage: G = SymmetricGroup(3)
+        sage: action = lambda g,x: M.term(g(x))
 
-        The trivial representation corresponds to the usual invariant module,
-        so trying to create the twisted invariant module when there is no twist
-        returns a :class:`~sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule`::
+    The trivial representation corresponds to the usual invariant module,
+    so trying to create the twisted invariant module when there is no twist
+    returns a :class:`~sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule`::
 
-            sage: chi = ClassFunction(G, (1,1,1))
-            sage: T = M.twisted_invariant_module(G, chi, action_on_basis=action)
-            sage: type(T)
-            <class 'sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule_with_category'>
-        
-        In this case, there are two copies of the trivial representation, one
-        coming from the first three coordinates and the other coming from the
-        fact that `S_3` does not touch the fourth coordinate::
+        sage: chi = ClassFunction(G, (1,1,1))
+        sage: T = M.twisted_invariant_module(G, chi, action_on_basis=action)
+        sage: type(T)
+        <class 'sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule_with_category'>
 
-            sage: T.basis()
-            Finite family {0: B[0], 1: B[1]}
-            sage: [T.lift(b) for b in T.basis()]
-            [M[1] + M[2] + M[3], M[4]]
-        
-        The character values of the standard representation are `2,0,-1`::
+    In this case, there are two copies of the trivial representation, one
+    coming from the first three coordinates and the other coming from the
+    fact that `S_3` does not touch the fourth coordinate::
 
-            sage: chi = ClassFunction(G, [2,0,-1])
-            sage: T = M.twisted_invariant_module(G, chi, action_on_basis=action)
-            sage: type(T)
-            <class 'sage.modules.with_basis.invariant.FiniteDimensionalTwistedInvariantModule_with_category'>
-            sage: T.basis()
-            Finite family {0: B[0], 1: B[1]}
-            sage: [T.lift(b) for b in T.basis()]
-            [M[1] - M[3], M[2] - M[3]]
+        sage: T.basis()
+        Finite family {0: B[0], 1: B[1]}
+        sage: [T.lift(b) for b in T.basis()]
+        [M[1] + M[2] + M[3], M[4]]
 
-        The permutation representation is the direct sum of the standard
-        representation with the trivial representation, and the action on the
-        basis element ``B[4]`` is itself a copy of the trivial representation,
-        so the sign representation does not appear in the decomposition::
+    The character values of the standard representation are `2,0,-1`::
 
-            sage: T = M.twisted_invariant_module(G, [1,-1,1], action_on_basis=action)
-            sage: T.basis()
-            Finite family {}
+        sage: chi = ClassFunction(G, [2,0,-1])
+        sage: T = M.twisted_invariant_module(G, chi, action_on_basis=action)
+        sage: type(T)
+        <class 'sage.modules.with_basis.invariant.FiniteDimensionalTwistedInvariantModule_with_category'>
+        sage: T.basis()
+        Finite family {0: B[0], 1: B[1]}
+        sage: [T.lift(b) for b in T.basis()]
+        [M[1] - M[3], M[2] - M[3]]
 
-        We can also get two copies of the standard representation by looking at
-        two copies of the permutation representation, found by reduction modulo
-        three on the indices of a six-dimensional module::
+    The permutation representation is the direct sum of the standard
+    representation with the trivial representation, and the action on the
+    basis element ``B[4]`` is itself a copy of the trivial representation,
+    so the sign representation does not appear in the decomposition::
 
-            sage: M = CombinatorialFreeModule(QQ, [0,1,2,3,4,5], prefix='M')
-            sage: action = lambda g,x: M.term(g(x%3 + 1)-1 + (x>=3)*3)
-            sage: T = M.twisted_invariant_module(G, [2,0,-1], action_on_basis=action)
-            sage: T.basis()
-            Finite family {0: B[0], 1: B[1], 2: B[2], 3: B[3]}
-            sage: [T.lift(b) for b in T.basis()]
-            [M[0] - M[2], M[1] - M[2], M[3] - M[5], M[4] - M[5]]
+        sage: T = M.twisted_invariant_module(G, [1,-1,1], action_on_basis=action)
+        sage: T.basis()
+        Finite family {}
 
-            sage: T = M.twisted_invariant_module(G, [1,1,1], action_on_basis=action)
-            sage: T.basis()
-            Finite family {0: B[0], 1: B[1]}
-            sage: [T.lift(b) for b in T.basis()]
-            [M[0] + M[1] + M[2], M[3] + M[4] + M[5]]
+    We can also get two copies of the standard representation by looking at
+    two copies of the permutation representation, found by reduction modulo
+    three on the indices of a six-dimensional module::
 
-        There are still no copies of the sign representation::
+        sage: M = CombinatorialFreeModule(QQ, [0,1,2,3,4,5], prefix='M')
+        sage: action = lambda g,x: M.term(g(x%3 + 1)-1 + (x>=3)*3)
+        sage: T = M.twisted_invariant_module(G, [2,0,-1], action_on_basis=action)
+        sage: T.basis()
+        Finite family {0: B[0], 1: B[1], 2: B[2], 3: B[3]}
+        sage: [T.lift(b) for b in T.basis()]
+        [M[0] - M[2], M[1] - M[2], M[3] - M[5], M[4] - M[5]]
 
-            sage: T = M.twisted_invariant_module(G, [1,-1,1], action_on_basis=action)
-            sage: T.basis()
-            Finite family {}
+        sage: T = M.twisted_invariant_module(G, [1,1,1], action_on_basis=action)
+        sage: T.basis()
+        Finite family {0: B[0], 1: B[1]}
+        sage: [T.lift(b) for b in T.basis()]
+        [M[0] + M[1] + M[2], M[3] + M[4] + M[5]]
 
-        The trivial representation also contains no copies of the sign
-        representation::
+    There are still no copies of the sign representation::
 
-            sage: R = G.trivial_representation(QQ)
-            sage: T = R.twisted_invariant_module([1,-1,1])
-            sage: T.basis()
-            Finite family {}
+        sage: T = M.twisted_invariant_module(G, [1,-1,1], action_on_basis=action)
+        sage: T.basis()
+        Finite family {}
 
-        The regular representation contains two copies of the standard
-        representation and one copy each of the trivial and the sign::
+    The trivial representation also contains no copies of the sign
+    representation::
 
-            sage: R = G.regular_representation(QQ)
-            sage: std = R.twisted_invariant_module([2,0,-1])
-            sage: std.basis()
-            Finite family {0: B[0], 1: B[1], 2: B[2], 3: B[3]}
-            sage: [std.lift(b) for b in std.basis()]
-            [() - (1,2,3), -(1,2,3) + (1,3,2), (2,3) - (1,2), -(1,2) + (1,3)]
+        sage: R = G.trivial_representation(QQ)
+        sage: T = R.twisted_invariant_module([1,-1,1])
+        sage: T.basis()
+        Finite family {}
 
-            sage: triv = R.twisted_invariant_module([1,1,1])
-            sage: triv.basis()
-            Finite family {0: B[0]}
-            sage: [triv.lift(b) for b in triv.basis()]
-            [() + (2,3) + (1,2) + (1,2,3) + (1,3,2) + (1,3)]
+    The regular representation contains two copies of the standard
+    representation and one copy each of the trivial and the sign::
 
-            sage: sgn = R.twisted_invariant_module([1,-1,1])
-            sage: sgn.basis()
-            Finite family {0: B[0]}
-            sage: [sgn.lift(b) for b in sgn.basis()]
-            [() - (2,3) - (1,2) + (1,2,3) + (1,3,2) - (1,3)]
+        sage: R = G.regular_representation(QQ)
+        sage: std = R.twisted_invariant_module([2,0,-1])
+        sage: std.basis()
+        Finite family {0: B[0], 1: B[1], 2: B[2], 3: B[3]}
+        sage: [std.lift(b) for b in std.basis()]
+        [() - (1,2,3), -(1,2,3) + (1,3,2), (2,3) - (1,2), -(1,2) + (1,3)]
 
+        sage: triv = R.twisted_invariant_module([1,1,1])
+        sage: triv.basis()
+        Finite family {0: B[0]}
+        sage: [triv.lift(b) for b in triv.basis()]
+        [() + (2,3) + (1,2) + (1,2,3) + (1,3,2) + (1,3)]
+
+        sage: sgn = R.twisted_invariant_module([1,-1,1])
+        sage: sgn.basis()
+        Finite family {0: B[0]}
+        sage: [sgn.lift(b) for b in sgn.basis()]
+        [() - (2,3) - (1,2) + (1,2,3) + (1,3,2) - (1,3)]
+
+    TESTS::
+
+        sage: from sage.combinat.free_module import CombinatorialFreeModule
+        sage: from sage.sets.family import Family
+        sage: from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+        sage: from sage.misc.cachefunc import cached_method
+
+    Load a wrapper class to test for coinvariant algebras, whose multiplicity
+    we can determine from the fake degree formula::
+
+        sage: class QuotientRingWrapper(CombinatorialFreeModule):
+        ....:    def __init__(self, polys):
+        ....:        R = polys[0].parent()
+        ....:        I = R.ideal(polys)
+        ....:        Q = R.quotient(I)
+        ....:        self._quo = Q
+        ....:        B = set([Q.one()])
+        ....:        for g in Q.gens():
+        ....:            B.update(g.monomials())
+        ....:        gens = list(B)
+        ....:        self._gens = gens
+        ....:        cur = B
+        ....:        while cur:
+        ....:            next_level = set()
+        ....:            for g in gens:
+        ....:                for b in cur:
+        ....:                    mons = set((b * g).monomials()).difference(B)
+        ....:                    B.update(mons)
+        ....:                    next_level.update(mons)
+        ....:            cur = next_level
+        ....:        self._basis = list(B)
+        ....:        I = FiniteEnumeratedSet(range(len(B)))
+        ....:        BR = R.base_ring()
+        ....:        cat = Algebras(BR).WithBasis().FiniteDimensional()
+        ....:        CombinatorialFreeModule.__init__(self, BR, I, prefix='C', category=cat)
+        ....:
+        ....:    @cached_method
+        ....:    def one_basis(self):
+        ....:        return self._basis.index(Q.one())
+        ....:
+        ....:    @cached_method
+        ....:    def algebra_generators(self):
+        ....:        B = self._basis
+        ....:        return Family([self.monomial(B.index(m)) for m in self._gens])
+        ....:
+        ....:    class Element(CombinatorialFreeModule.Element):
+        ....:        def _mul_(self, other):
+        ....:            P = self.parent()
+        ....:            x = P._quo.sum(c * P._basis[i] for i, c in self)
+        ....:            y = P._quo.sum(c * P._basis[i] for i, c in other)
+        ....:            ret = x * y
+        ....:            return P._from_dict({P._basis.index(Q(m)): c for c,m in ret.lift()})
+
+    First we'll create the coinvariant algebra for `S_4` acting on a polynomial ring in
+    four variables::
+
+        sage: Sym = SymmetricFunctions(QQ)
+        sage: R = PolynomialRing(QQ,'x',4)
+        sage: J = tuple([R(Sym.elementary()[i].expand(4)) for i in range(1,4)])
+        sage: J[0]
+        x0 + x1 + x2 + x3
+        sage: attach('quotient_polyring_wrapper.sage')
+        sage: C = QuotientRingWrapper(J)
+        sage: W = ReflectionGroup(['A',4])
+        sage: W.fake_degrees()
+        [q^10,
+         q^9 + q^8 + q^7 + q^6,
+         q^8 + q^7 + q^6 + q^5 + q^4,
+         q^7 + q^6 + 2*q^5 + q^4 + q^3,
+         q^6 + q^5 + q^4 + q^3 + q^2,
+         q^4 + q^3 + q^2 + q,
+         1]
 
     .. TODO:
 
@@ -965,7 +1037,6 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             [0 0 0]
             [0 0 0]
         """
-        
         return self._projection_matrix
 
     class Element(SubmoduleWithBasis.Element):
