@@ -1576,14 +1576,14 @@ cdef class CoercionModel:
             if fix:
                 connecting = R_map.domain()._internal_coerce_map_from(R)
                 if connecting is not None:
-                    R_map = R_map * connecting
+                    R_map = R_map @ connecting
             if R_map.domain() is not R:
                 raise RuntimeError("BUG in coercion model, left domain must be original parent", R, R_map)
         if S_map is not None and S_map.domain() is not S:
             if fix:
                 connecting = S_map.domain()._internal_coerce_map_from(S)
                 if connecting is not None:
-                    S_map = S_map * connecting
+                    S_map = S_map @ connecting
             if S_map.domain() is not S:
                 raise RuntimeError("BUG in coercion model, right domain must be original parent", S, S_map)
         # Make sure the codomains are correct
@@ -1591,11 +1591,11 @@ cdef class CoercionModel:
             if fix:
                 connecting = R_map.codomain()._internal_coerce_map_from(S_map.codomain())
                 if connecting is not None:
-                    S_map = connecting * S_map
+                    S_map = connecting @ S_map
                 else:
                     connecting = S_map.codomain()._internal_coerce_map_from(R_map.codomain())
                     if connecting is not None:
-                        R_map = connecting * R_map
+                        R_map = connecting @ R_map
             if R_map.codomain() is not S_map.codomain():
                 raise RuntimeError("BUG in coercion model, codomains must be identical", R_map, S_map)
         if isinstance(R_map, IdentityMorphism):
