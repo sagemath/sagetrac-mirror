@@ -47,6 +47,8 @@ def register_sage_classes():
         True
         sage: isinstance(QQbar(I), numbers.Complex)
         True
+        sage: isinstance(QuadraticField(2).gen(), numbers.Number)
+        True
 
     This doesn't work with symbolic expressions at all::
 
@@ -73,6 +75,7 @@ def register_sage_classes():
     from sage.rings.complex_double import ComplexDoubleElement
     from sage.rings.complex_mpc import MPComplexNumber
     from sage.rings.qqbar import AlgebraicReal, AlgebraicNumber
+    from sage.rings.number_field.number_field_element import NumberFieldElement
 
     numbers.Integral.register(Integer)
     numbers.Rational.register(Rational)
@@ -83,5 +86,6 @@ def register_sage_classes():
     numbers.Complex.register(MPComplexNumber)
     numbers.Complex.register(ComplexDoubleElement)
     numbers.Complex.register(AlgebraicNumber)
+    numbers.Number.register(NumberFieldElement)
 
 register_sage_classes()
