@@ -617,10 +617,19 @@ class TensorWithIndices(SageObject):
             sage: s = ai.__mul__(bi) ; s  # no repeated indices ==> tensor product
             Type-(2,1) tensor a*b on the 3-dimensional vector space M over the
              Rational Field
+            sage: s == ai * bi
+            True
+            sage: s == ai @ bi
+            True
             sage: s == a * b
             True
-            sage: s == a @ b
-            True
+            sage: a @ b
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for @:
+            'Free module of type-(2,0) tensors
+             on the 3-dimensional vector space M over the Rational Field' and
+            'Dual of the 3-dimensional vector space M over the Rational Field'
             sage: s[:]
             [[[4, 2, 1], [-8, -4, -2], [12, 6, 3]],
              [[-16, -8, -4], [20, 10, 5], [-24, -12, -6]],
