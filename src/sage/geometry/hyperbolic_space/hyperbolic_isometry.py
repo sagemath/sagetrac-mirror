@@ -935,7 +935,7 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
         _image = moebius_transform(self._matrix, coords)
         return self.codomain().get_point(_image)
 
-    def __mul__(self, other): #PD
+    def _composition(self, other): #PD
         r"""
         Return image of ``p`` under the action of ``self``.
 
@@ -950,9 +950,9 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
 
         """
         if isinstance(other, HyperbolicIsometry):
-            M = self._cached_isometry*other._cached_isometry
+            M = self._cached_isometry @ other._cached_isometry
             return M.to_model('PD')
-        return super(HyperbolicIsometryPD, self).__mul__(other)
+        raise NotImplementedError
 
     def __pow__(self, n): #PD
         r"""
