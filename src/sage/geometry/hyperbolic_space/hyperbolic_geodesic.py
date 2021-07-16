@@ -548,7 +548,7 @@ class HyperbolicGeodesic(SageObject):
 
         A = self.reflection_involution()
         B = other.reflection_involution()
-        return (A * B).classification() == 'hyperbolic'
+        return (A @ B).classification() == 'hyperbolic'
 
     def is_parallel(self, other):
         r"""
@@ -615,7 +615,7 @@ class HyperbolicGeodesic(SageObject):
 
         A = self.reflection_involution()
         B = other.reflection_involution()
-        return (A * B).classification() in ['parabolic', 'hyperbolic']
+        return (A @ B).classification() in ['parabolic', 'hyperbolic']
 
     def ideal_endpoints(self):
         r"""
@@ -1301,7 +1301,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         A = self.reflection_involution()
         B = other.reflection_involution()
-        C = A * B
+        C = A @ B
         if C.classification() != 'hyperbolic':
             raise ValueError("geodesics intersect; " +
                              "no common perpendicular exists")
@@ -1357,7 +1357,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             return end_1
         A = self.reflection_involution()
         B = other.reflection_involution()
-        C = A * B
+        C = A @ B
         if C.classification() in ['hyperbolic', 'parabolic']:
             return []
         return C.fixed_point_set()
