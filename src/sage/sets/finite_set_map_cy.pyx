@@ -613,15 +613,15 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
         sage: TestSuite(fs).run()
     """
 
-    def __mul__(FiniteSetEndoMap_N self, FiniteSetEndoMap_N other):
+    def __matmul__(FiniteSetEndoMap_N self, FiniteSetEndoMap_N other):
         """
         TESTS::
 
             sage: F = FiniteSetMaps(3)
-            sage: F([1, 0, 2]) * F([2, 1, 0])
+            sage: F([1, 0, 2]) @ F([2, 1, 0])
             [2, 0, 1]
             sage: F = FiniteSetMaps(3, action="right")
-            sage: F([1, 0, 2]) * F([2, 1, 0])
+            sage: F([1, 0, 2]) @ F([2, 1, 0])
             [1, 2, 0]
         """
         assert(self._parent is other._parent), "Parent mismatch"
@@ -629,6 +629,16 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
             return self._compose_internal_(other, self._parent)
         else:
             return other._compose_internal_(self, self._parent)
+
+    def __mul__(FiniteSetEndoMap_N self, FiniteSetEndoMap_N other):
+        """
+        TESTS::
+
+            sage: F = FiniteSetMaps(3)
+            sage: F([1, 0, 2]) * F([2, 1, 0]) == F([1, 0, 2]) @ F([2, 1, 0])
+            True
+        """
+        return self.__matmul__(other)
 
     def __pow__(self, n, dummy):
         """
@@ -668,6 +678,26 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
         sage: TestSuite(f).run()
     """
 
+    def __matmul__(FiniteSetEndoMap_Set self, FiniteSetEndoMap_Set other):
+        """
+        TESTS::
+
+            sage: F = FiniteSetMaps(["a", "b", "c"])
+            sage: f = F.from_dict({"a": "b", "b": "a", "c": "b"}); f
+            map: a -> b, b -> a, c -> b
+            sage: g = F.from_dict({"a": "c", "b": "c", "c": "a"}); g
+            map: a -> c, b -> c, c -> a
+            sage: f @ g
+            map: a -> b, b -> b, c -> b
+            sage: g @ f
+            map: a -> c, b -> c, c -> c
+        """
+        assert(self._parent is other._parent), "Parent mismatch"
+        if self._parent._action == "right":
+            return self._compose_internal_(other, self._parent)
+        else:
+            return other._compose_internal_(self, self._parent)
+
     def __mul__(FiniteSetEndoMap_Set self, FiniteSetEndoMap_Set other):
         """
         TESTS::
@@ -677,16 +707,10 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
             map: a -> b, b -> a, c -> b
             sage: g = F.from_dict({"a": "c", "b": "c", "c": "a"}); g
             map: a -> c, b -> c, c -> a
-            sage: f * g
-            map: a -> b, b -> b, c -> b
-            sage: g * f
-            map: a -> c, b -> c, c -> c
+            sage: g * f == g @ f
+            True
         """
-        assert(self._parent is other._parent), "Parent mismatch"
-        if self._parent._action == "right":
-            return self._compose_internal_(other, self._parent)
-        else:
-            return other._compose_internal_(self, self._parent)
+        return self.__matmul__(other)
 
     def __pow__(self, n, dummy):
         """
