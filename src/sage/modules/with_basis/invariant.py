@@ -700,7 +700,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         ....:            B.update(g.monomials())
         ....:        gens = list(B)
         ....:        self._gens = gens
-        ....:        cur = B
+        ....:        cur = B.copy()
         ....:        while cur:
         ....:            next_level = set()
         ....:            for g in gens:
@@ -736,14 +736,14 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
     four variables::
 
         sage: Sym = SymmetricFunctions(QQ)
-        sage: R = PolynomialRing(QQ,'x',4)
-        sage: J = tuple([R(Sym.elementary()[i].expand(4)) for i in range(1,4)])
-        sage: J[0]
-        x0 + x1 + x2 + x3
-        sage: attach('quotient_polyring_wrapper.sage')
+        sage: R.<x,y,z,w> = PolynomialRing(QQ)
+        sage: J = (x + y + z + w,
+        ....:      x*y + x*z + x*w + y*z + y*w + z*w,
+        ....:      x*y*z + x*y*w + x*z*w + y*z*w,
+        ....:      x*y*z*w)
         sage: C = QuotientRingWrapper(J)
-        sage: W = ReflectionGroup(['A',4])
-        sage: W.fake_degrees()
+        sage: W = ReflectionGroup(['A',4]) # optional -- gap3
+        sage: W.fake_degrees() # optional -- gap3
         [q^10,
          q^9 + q^8 + q^7 + q^6,
          q^8 + q^7 + q^6 + q^5 + q^4,
@@ -1085,5 +1085,3 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             """
             P = self.parent()
             return P.retract(P.lift(self) * P.lift(other))
-            
-TwistedInvariantModule = FiniteDimensionalTwistedInvariantModule
