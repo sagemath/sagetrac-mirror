@@ -2662,6 +2662,11 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: s1 == s
             True
 
+        The matrix-multiplication operator ``@`` can be used in the same way::
+
+            sage: a['_i'] @ b['^i'] == s
+            True
+
         In the present case, performing the contraction is identical to
         applying the linear form to the module element::
 
