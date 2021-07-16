@@ -481,9 +481,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             try:
                 return self._convert_factors_(data)
             except ValueError as e:
-                from .misc import combine_exceptions
-                raise combine_exceptions(
-                    ValueError('%s is not in %s.' % (raw_data, self)), e)
+                raise ValueError('%s is not in %s.' % (raw_data, self)) from e
 
         if data == 1:
             return self.one()
@@ -593,16 +591,12 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                         try:
                             element, todo = e.element.split()
                         except NotImplementedError as nie:
-                            raise combine_exceptions(
-                                ValueError('cannot split {}: no splitting '
-                                           'implemented'.format(e.element)),
-                                nie)
+                            raise ValueError('cannot split {}: no splitting '
+                                             'implemented'.format(e.element)) from nie
                         except ValueError as ve:
-                            raise combine_exceptions(
-                                ValueError('cannot split {} after failed '
-                                           'conversion into element of '
-                                           '{}'.format(e.element, factor)),
-                                ve)
+                            raise ValueError('cannot split {} after failed '
+                                             'conversion into element of '
+                                             '{}'.format(e.element, factor)) from ve
                         assert todo is not None
                         result.append((factor, element))
                         data = todo
@@ -1115,10 +1109,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                                 if factor != factor.parent().one()),
                            tuple())
             except (ArithmeticError, TypeError, ValueError) as e:
-                from .misc import combine_exceptions
-                raise combine_exceptions(
-                    ArithmeticError('Cannot build log(%s) in %s.' %
-                                    (self, self.parent())), e)
+                raise ArithmeticError('Cannot build log(%s) in %s.' %
+                                      (self, self.parent())) from e
 
 
         from .growth_group import _rpow_

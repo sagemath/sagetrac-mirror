@@ -672,7 +672,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                             'when creating an element of %s.' % (summands, parent))
 
         if convert:
-            from .misc import combine_exceptions
             from .term_monoid import ZeroCoefficientError
 
             def convert_terms(element):
@@ -682,9 +681,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 except ZeroCoefficientError:
                     return None
                 except (ValueError, TypeError) as e:
-                    raise combine_exceptions(
-                        ValueError('Cannot include %s with parent %s in %s' %
-                                   (element, element.parent(), parent)), e)
+                    raise ValueError('Cannot include %s with parent %s in %s' %
+                                     (element, element.parent(), parent)) from e
             new_summands = summands.copy()
             new_summands.map(convert_terms, topological=True, reverse=True)
             self._summands_ = new_summands
@@ -1701,9 +1699,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         try:
             return (exponent * self.log(precision=precision)).exp(precision=precision)
         except (TypeError, ValueError, ZeroDivisionError) as e:
-            from .misc import combine_exceptions
-            raise combine_exceptions(
-                ValueError('Cannot take %s to the exponent %s.' % (self, exponent)), e)
+            raise ValueError('Cannot take %s to the exponent %s.' % (self, exponent)) from e
 
 
     pow = __pow__
@@ -2225,11 +2221,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                                                 term.parent())
                 for term in large_terms)
         except (TypeError, ValueError) as e:
-            from .misc import combine_exceptions
-            raise combine_exceptions(
-                ValueError('Cannot construct the power of %s to the '
-                           'exponent %s in %s.' %
-                           (base, self, self.parent())), e)
+            raise ValueError('Cannot construct the power of %s to the '
+                             'exponent %s in %s.' %
+                             (base, self, self.parent())) from e
 
         # then: expand expr_o
 
@@ -2685,16 +2679,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         try:
             return self._substitute_(locals)
         except (ArithmeticError, TypeError, ValueError) as e:
-            from .misc import combine_exceptions
             rules = '{' + ', '.join(
                 '%s: %s' % (k, v)
                 for k, v in sorted(locals.items(),
                                    key=lambda k: str(k[0]))
                 if not k.startswith('_') and
                 not any(k == str(g) and v is g for g in gens)) + '}'
-            raise combine_exceptions(
-                TypeError('Cannot apply the substitution rules %s on %s '
-                          'in %s.' % (rules, self, self.parent())), e)
+            raise TypeError('Cannot apply the substitution rules %s on %s '
+                            'in %s.' % (rules, self, self.parent())) from e
 
     subs = substitute
 
@@ -4041,7 +4033,6 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
         except AttributeError:
             return self.create_summand('exact', data)
 
-        from .misc import combine_exceptions
         from sage.symbolic.ring import SymbolicRing
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
@@ -4057,9 +4048,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
                     try:
                         summands.append(self.create_summand('exact', summand))
                     except ValueError as e:
-                        raise combine_exceptions(
-                            ValueError('Symbolic expression %s is not in %s.' %
-                                       (data, self)), e)
+                        raise ValueError('Symbolic expression %s is not in %s.' %
+                                         (data, self)) from e
                 return sum(summands, self.zero())
 
         elif is_PolynomialRing(P):
@@ -4070,8 +4060,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
                                 for i, c in enumerate(data)),
                            self.zero())
             except ValueError as e:
-                raise combine_exceptions(
-                    ValueError('Polynomial %s is not in %s' % (data, self)), e)
+                raise ValueError('Polynomial %s is not in %s' % (data, self)) from e
 
         elif is_MPolynomialRing(P):
             try:
@@ -4079,8 +4068,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
                                 for c, g in iter(data)),
                            self.zero())
             except ValueError as e:
-                raise combine_exceptions(
-                    ValueError('Polynomial %s is not in %s' % (data, self)), e)
+                raise ValueError('Polynomial %s is not in %s' % (data, self)) from e
 
         elif is_PowerSeriesRing(P):
             raise NotImplementedError(
@@ -4094,16 +4082,14 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             try:
                 result = self(data.polynomial())
             except ValueError as e:
-                raise combine_exceptions(
-                    ValueError('Powerseries %s is not in %s' % (data, self)), e)
+                raise ValueError('Powerseries %s is not in %s' % (data, self)) from e
             prec = data.precision_absolute()
             if prec < PlusInfinity():
                 try:
                     result += self.create_summand('O', growth=p**prec)
                 except ValueError as e:
-                    raise combine_exceptions(
-                        ValueError('Powerseries %s is not in %s' %
-                                   (data, self)), e)
+                    raise ValueError('Powerseries %s is not in %s' %
+                                     (data, self)) from e
             return result
 
         return self.create_summand('exact', data)

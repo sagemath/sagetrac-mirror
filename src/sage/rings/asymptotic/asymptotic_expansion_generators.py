@@ -556,9 +556,7 @@ class AsymptoticExpansionGenerators(SageObject):
         try:
             SCR.coerce(k)
         except TypeError as e:
-            from .misc import combine_exceptions
-            raise combine_exceptions(
-                TypeError('Cannot use k={}.'.format(k)), e)
+            raise TypeError('Cannot use k={}.'.format(k)) from e
 
         S = AsymptoticExpansionGenerators._log_StirlingNegativePowers_(
                 var, precision=max(precision - 2,0))

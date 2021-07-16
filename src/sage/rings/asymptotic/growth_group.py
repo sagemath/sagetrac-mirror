@@ -748,9 +748,7 @@ class PartialConversionElement(SageObject):
         try:
             here = self.growth_group.element_class(self.growth_group, raw_here)
         except PartialConversionValueError as e:
-            from .misc import combine_exceptions
-            raise combine_exceptions(
-                ValueError('cannot split {}'.format(self)), e)
+            raise ValueError('cannot split {}'.format(self)) from e
 
         other = PartialConversionElement(self.growth_group, raw_other)
         return here, other
@@ -1106,10 +1104,8 @@ def _rpow_(self, base):
     try:
         return self.parent().one() * element
     except (TypeError, ValueError) as e:
-        from .misc import combine_exceptions, repr_op
-        raise combine_exceptions(
-            ArithmeticError('Cannot construct %s in %s' %
-                            (repr_op(base, '^', var), self.parent())), e)
+        raise ArithmeticError('Cannot construct %s in %s' %
+                              (repr_op(base, '^', var), self.parent())) from e
 
 
 class GenericGrowthElement(MultiplicativeGroupElement):
@@ -1176,15 +1172,12 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         try:
             self._raw_element_ = parent.base()(raw_element)
         except (TypeError, ValueError) as e:
-            from .misc import combine_exceptions
             from sage.structure.element import parent as parent_function
-            raise combine_exceptions(
-                PartialConversionValueError(
+            raise PartialConversionValueError(
                     PartialConversionElement(parent, raw_element),
                     '{} ({}) is not in {}'.format(raw_element,
                                                   parent_function(raw_element),
-                                                  parent.base())),
-                e)
+                                                  parent.base())) from e
 
         self._check_()
 
@@ -2168,8 +2161,6 @@ class GenericGrowthGroup(UniqueRepresentation, Parent, WithLocals):
             sage: G(b), UU(c)
             ((1/42)^n, (-1)^n)
         """
-        from .misc import combine_exceptions
-
         if raw_element is None:
             if isinstance(data, int) and data == 0:
                 raise ValueError('No input specified. Cannot continue.')
@@ -2186,8 +2177,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent, WithLocals):
                     try:
                         raw_element = self.base()(data._raw_element_)
                     except (TypeError, ValueError) as e:
-                        raise combine_exceptions(
-                            ValueError('%s is not in %s.' % (data, self)), e)
+                        raise ValueError('%s is not in %s.' % (data, self)) from e
 
             elif isinstance(data, GenericGrowthElement):
                 if data.is_one():

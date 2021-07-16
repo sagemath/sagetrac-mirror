@@ -431,9 +431,8 @@ def substitute_raise_exception(element, e):
         Exception: Cannot substitute in x in Symbolic Ring.
         > *previous* Exception: blub
     """
-    raise combine_exceptions(
-        type(e)('Cannot substitute in %s in %s.' %
-                (element, element.parent())), e)
+    raise type(e)('Cannot substitute in %s in %s.' %
+                  (element, element.parent())) from e
 
 
 def bidirectional_merge_overlapping(A, B, key=None):

@@ -522,10 +522,8 @@ class GenericTerm(MultiplicativeGroupElement):
         try:
             zero ** exponent
         except (TypeError, ValueError, ZeroDivisionError) as e:
-            from .misc import combine_exceptions
-            raise combine_exceptions(
-                ZeroDivisionError('Cannot take %s to exponent %s.' %
-                                  (self, exponent)), e)
+            raise ZeroDivisionError('Cannot take %s to exponent %s.' %
+                                    (self, exponent)) from e
         return self._calculate_pow_(exponent)
 
     def _calculate_pow_(self, exponent, new_coefficient=None):
@@ -572,9 +570,7 @@ class GenericTerm(MultiplicativeGroupElement):
         try:
             g = self.growth ** exponent
         except (ValueError, TypeError, ZeroDivisionError) as e:
-            from .misc import combine_exceptions
-            raise combine_exceptions(
-                ValueError('Cannot take %s to the exponent %s.' % (self, exponent)), e)
+            raise ValueError('Cannot take %s to the exponent %s.' % (self, exponent)) from e
 
         return self.parent()._create_element_in_extension_(g, new_coefficient)
 
@@ -1811,20 +1807,17 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
             raise ValueError('No input specified. Cannot continue '
                              'creating an element of %s.' % (self,))
 
-        from .misc import combine_exceptions
         if coefficient is not None:
             try:
                 data = self.growth_group(data)
             except (ValueError, TypeError) as e:
-                raise combine_exceptions(
-                    ValueError('Growth %s is not in %s.' % (data, self)), e)
+                raise ValueError('Growth %s is not in %s.' % (data, self)) from e
             return self._create_element_(data, coefficient)
 
         try:
             growth, coefficient = self._split_growth_and_coefficient_(data)
         except ValueError as e:
-            raise combine_exceptions(
-                ValueError('%s is not in %s.' % (data, self)), e)
+            raise ValueError('%s is not in %s.' % (data, self)) from e
 
         return self._create_element_(growth, coefficient)
 
@@ -2707,11 +2700,9 @@ class OTermMonoid(GenericTermMonoid):
             try:
                 self.coefficient_ring(coefficient)
             except (TypeError, ValueError) as e:
-                from .misc import combine_exceptions
-                raise combine_exceptions(
-                    ValueError('Cannot create O(%s) since given coefficient %s '
-                               'is not valid in %s.' %
-                               (growth, coefficient, self)), e)
+                raise ValueError('Cannot create O(%s) since given coefficient %s '
+                                 'is not valid in %s.' %
+                                 (growth, coefficient, self)) from e
         return self.element_class(self, growth)
 
     def _coerce_map_from_(self, S):
@@ -2998,11 +2989,9 @@ class TermWithCoefficient(GenericTerm):
         try:
             c = self.coefficient ** exponent
         except (TypeError, ValueError, ZeroDivisionError) as e:
-            from .misc import combine_exceptions
-            raise combine_exceptions(
-                ArithmeticError('Cannot take %s to the exponent %s in %s since its '
-                                'coefficient %s cannot be taken to this exponent.' %
-                                (self, exponent, self.parent(), self.coefficient)), e)
+            raise ArithmeticError('Cannot take %s to the exponent %s in %s since its '
+                                  'coefficient %s cannot be taken to this exponent.' %
+                                  (self, exponent, self.parent(), self.coefficient)) from e
         return super(TermWithCoefficient, self)._calculate_pow_(exponent, new_coefficient=c)
 
     def _log_coefficient_(self, base=None, locals=None):
