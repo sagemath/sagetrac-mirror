@@ -18,6 +18,8 @@ from sage.categories.sets_cat import EmptySetError
 from sage.misc.abstract_method import abstract_method
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
+from sage.rings.real_double import RDF
+
 
 class ConvexSet_base(SageObject, Set_base):
     """
@@ -675,6 +677,62 @@ class ConvexSet_base(SageObject, Set_base):
                 for point in points:
                     tester.assertTrue(self.contains(point))
                     tester.assertTrue(point in self)
+
+    def _convex_indicator(self, x):
+        r"""
+        The convex indicator: `0` on ``self``, `+\infty` otherwise
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[0], [1]])
+            sage: chi_P = P._convex_indicator
+            sage: chi_P(vector([1]))
+            0.0
+            sage: chi_P(vector([2]))
+            +infinity
+        """
+        if x in self:
+            return RDF(0)
+        else:
+            return RDF(infinity)
+
+    def convex_indicator_function(self, *, ambient=None, base_field=None):
+        r"""
+        The convex indicator function: `0` on ``self``, `+\infty` otherwise
+
+        INPUT:
+
+        - ``ambient`` -- (default: :meth:`ambient_vector_space`) the set-theoretic
+          domain of the function
+
+        - ``base_field`` -- if ``ambient`` is ``None``, pass this to
+          :meth:`ambient_vector_space` to construct the set-theoretic
+          domain of the function
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[0], [1]])
+            sage: chi_P = P.convex_indicator_function(); chi_P
+            Generic morphism:
+              From: Vector space of dimension 1 over Rational Field
+              To:   Real Double Field
+            sage: chi_P(vector([1]))
+            0.0
+            sage: _.parent()
+            Real Double Field
+            sage: chi_P(vector([2]))
+            +infinity
+            sage: _.parent()
+            Real Double Field
+        """
+        from sage.categories.morphism import SetMorphism
+        from sage.categories.sets_cat import Sets
+        from sage.categories.homset import Hom
+        from sage.rings.infinity import InfinityRing
+        if ambient is None:
+            ambient = self.ambient_vector_space(base_field=base_field)
+        homset = Hom(ambient, RDF, Sets())
+        return SetMorphism(homset, self._convex_indicator)
 
 
 class ConvexSet_closed(ConvexSet_base):
