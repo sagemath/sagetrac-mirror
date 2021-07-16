@@ -3563,6 +3563,55 @@ cdef class Matrix(ModuleElement):
     cdef bint is_dense_c(self):
         raise NotImplementedError
 
+    def __matmul__(left, right):
+        """
+        Multiplication of matrix by matrix
+
+        TESTS::
+
+            sage: parent(matrix(ZZ,2,2,[1,2,3,4]) @ matrix(ZZ,2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+            sage: parent(matrix(QQ,2,2,[1,2,3,4]) @ matrix(ZZ,2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: parent(matrix(ZZ,2,2,[1,2,3,4]) @ matrix(QQ,2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: parent(matrix(QQ,2,2,[1,2,3,4]) @ matrix(QQ,2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+
+            sage: parent(matrix(QQ,2,2,[1,2,3,4]) @ matrix(ZZ['x'],2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(matrix(ZZ['x'],2,2,[1,2,3,4]) @ matrix(QQ,2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(matrix(QQ,2,2,[1,2,3,4]) @ matrix(ZZ['x']['y'],2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(matrix(ZZ['x']['y'],2,2,[1,2,3,4]) @ matrix(QQ,2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(matrix(QQ['x'],2,2,[1,2,3,4]) @ matrix(ZZ['x']['y'],2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(matrix(ZZ['x']['y'],2,2,[1,2,3,4]) @ matrix(QQ['x'],2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(matrix(QQ['y'],2,2,[1,2,3,4]) @ matrix(ZZ['x']['y'],2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(matrix(ZZ['x']['y'],2,2,[1,2,3,4]) @ matrix(QQ['y'],2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+        """
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
+            # If they are matrices with the same parent, they had
+            # better be square for the product to be defined.
+            if (<Matrix>left)._nrows == (<Matrix>left)._ncols:
+                return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
+            else:
+                parent = (<Matrix>left)._parent
+                raise TypeError("unsupported operand parent(s) for @: '{}' and '{}'".format(parent, parent))
+
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, matmul)
+
     def __mul__(left, right):
         """
         Multiplication of matrix by matrix, vector, or scalar

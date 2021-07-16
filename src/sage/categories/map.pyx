@@ -76,6 +76,9 @@ cdef class Map(Element):
         be done in the sub classes, by overloading ``_call_`` and possibly also
         ``_call_with_args``.
 
+    ``Map``s can be composed using the matrix-multiplication operator ``@``,
+    as well as the multiplication operator ``*``.
+
     EXAMPLES:
 
     Usually, instances of this class will not be constructed directly, but
@@ -820,9 +823,12 @@ cdef class Map(Element):
         else:
             raise NotImplementedError("_call_with_args not overridden to accept arguments for %s" % type(self))
 
-    def __mul__(self, right):
+    def __matmul__(self, right):
         r"""
-        The multiplication * operator is operator composition
+        Map composition
+
+        Both the multiplication operator ``*`` and the matrix-multiplication operator ``@``
+        are map composition.
 
         IMPLEMENTATION:
 
@@ -858,6 +864,8 @@ cdef class Map(Element):
                       Generic morphism:
                       From: Integer Ring
                       To:   Rational Field
+            sage: phi_yz @ phi_xy == phi_yz * phi_xy
+            True
 
         If ``right`` is a ring homomorphism given by the images of
         generators, then it is attempted to form the composition
@@ -895,6 +903,40 @@ cdef class Map(Element):
         if right.codomain() != self.domain():
             raise TypeError("self (=%s) domain must equal right (=%s) codomain" % (self, right))
         return self._composition(right)
+
+    def __mul__(self, right):
+        r"""
+        Map composition
+
+        Both the multiplication operator ``*`` and the matrix-multiplication operator ``@``
+        are map composition.
+
+        :meth:`__mul__` just delegates to :meth:`__matmul__`. Subclasses should override
+        ``__matmul__`` in order to customize map composition.  Subclasses should override
+        ``__mul__`` if the multiplication operator is intended to denote a different
+        operation.
+
+        EXAMPLES::
+
+            sage: from sage.categories.morphism import SetMorphism
+            sage: X.<x> = ZZ[]
+            sage: Y = ZZ
+            sage: Z = QQ
+            sage: phi_xy = SetMorphism(Hom(X, Y, Rings()), lambda p: p[0])
+            sage: phi_yz = SetMorphism(Hom(Y, Z, CommutativeAdditiveMonoids()), lambda y: QQ(y)/2)
+            sage: phi_yz * phi_xy
+            Composite map:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Rational Field
+              Defn:   Generic morphism:
+                      From: Univariate Polynomial Ring in x over Integer Ring
+                      To:   Integer Ring
+                    then
+                      Generic morphism:
+                      From: Integer Ring
+                      To:   Rational Field
+        """
+        return self.__matmul__(right)
 
     def _composition(self, right):
         """

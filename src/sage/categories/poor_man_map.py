@@ -179,9 +179,12 @@ class PoorManMap(sage.structure.sage_object.SageObject):
         """
         return hash((self._functions, self._domain, self._codomain, self._name))
 
-    def __mul__(self, other):
+    def __matmul__(self, other):
         r"""
         Composition
+
+        Both the multiplication operator ``*`` and the matrix-multiplication operator ``@``
+        are map composition.
 
         INPUT:
          - ``self`` -- a map `f`
@@ -194,7 +197,7 @@ class PoorManMap(sage.structure.sage_object.SageObject):
             sage: from sage.categories.poor_man_map import PoorManMap
             sage: f = PoorManMap(lambda x: x+1, domain = (1,2,3), codomain = (2,3,4))
             sage: g = PoorManMap(lambda x: -x,  domain = (2,3,4), codomain = (-2,-3,-4))
-            sage: g*f
+            sage: g @ f
             A map from (1, 2, 3) to (-2, -3, -4)
 
         Note that the compatibility of the domains and codomains is for performance
@@ -241,6 +244,28 @@ class PoorManMap(sage.structure.sage_object.SageObject):
             other = (other,)
 
         return PoorManMap(self._functions + other, domain=domain, codomain=codomain)
+
+    def __mul__(self, other):
+        r"""
+        Map composition
+
+        Both the multiplication operator ``*`` and the matrix-multiplication operator ``@``
+        are map composition.
+
+        :meth:`__mul__` just delegates to :meth:`__matmul__`. Subclasses should override
+        ``__matmul__`` in order to customize map composition.  Subclasses should override
+        ``__mul__`` if the multiplication operator is intended to denote a different
+        operation.
+
+        EXAMPLES::
+
+            sage: from sage.categories.poor_man_map import PoorManMap
+            sage: f = PoorManMap(lambda x: x+1, domain = (1,2,3), codomain = (2,3,4))
+            sage: g = PoorManMap(lambda x: -x,  domain = (2,3,4), codomain = (-2,-3,-4))
+            sage: g * f
+            A map from (1, 2, 3) to (-2, -3, -4)
+        """
+        return self.__matmul__(other)
 
     def __call__(self, *args):
         """

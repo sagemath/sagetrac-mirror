@@ -920,9 +920,12 @@ class WordMorphism(SageObject):
         else:
             raise ValueError('unknown latex_layout(=%s)' % latex_layout)
 
-    def __mul__(self, other):
+    def __matmul__(self, other):
         r"""
-        Returns the morphism ``self``\*``other``.
+        Composition of morphisms
+
+        Both the multiplication operator ``*`` and the matrix-multiplication operator ``@``
+        are composition.
 
         EXAMPLES::
 
@@ -934,6 +937,8 @@ class WordMorphism(SageObject):
             WordMorphism: a->aba, b->ab
             sage: m*fibo
             WordMorphism: a->abba, b->ab
+            sage: m*fibo == m @ fibo
+            True
 
         ::
 
@@ -975,6 +980,8 @@ class WordMorphism(SageObject):
             WordMorphism:
         """
         return WordMorphism(dict((key, self(w)) for key, w in other._morph.items()), codomain=self.codomain())
+
+    __mul__ = __matmul__
 
     def __pow__(self, exp):
         r"""

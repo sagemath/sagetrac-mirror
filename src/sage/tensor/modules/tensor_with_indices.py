@@ -601,6 +601,8 @@ class TensorWithIndices(SageObject):
         r"""
         Tensor product or contraction on specified indices.
 
+        Both ``*`` and ``@`` can be used.
+
         EXAMPLES::
 
             sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
@@ -615,8 +617,19 @@ class TensorWithIndices(SageObject):
             sage: s = ai.__mul__(bi) ; s  # no repeated indices ==> tensor product
             Type-(2,1) tensor a*b on the 3-dimensional vector space M over the
              Rational Field
-            sage: s == a*b
+            sage: s == ai * bi
             True
+            sage: s == ai @ bi
+            True
+            sage: s == a * b
+            True
+            sage: a @ b
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for @:
+            'Free module of type-(2,0) tensors
+             on the 3-dimensional vector space M over the Rational Field' and
+            'Dual of the 3-dimensional vector space M over the Rational Field'
             sage: s[:]
             [[[4, 2, 1], [-8, -4, -2], [12, 6, 3]],
              [[-16, -8, -4], [20, 10, 5], [-24, -12, -6]],
@@ -624,6 +637,8 @@ class TensorWithIndices(SageObject):
             sage: ai = TensorWithIndices(a, '^kj')
             sage: s = ai.__mul__(bi) ; s  # repeated index k ==> contraction
             Element of the 3-dimensional vector space M over the Rational Field
+            sage: s == ai.__matmul__(bi)
+            True
             sage: s == a.contract(0, b)
             True
             sage: s[:]
@@ -660,6 +675,8 @@ class TensorWithIndices(SageObject):
         pos2 = [contraction_pairs[i][1] for i in range(ncontr)]
         args = pos1 + [other._tensor] + pos2
         return self._tensor.contract(*args)
+
+    __matmul__ = __mul__
 
     def __rmul__(self, other):
         r"""

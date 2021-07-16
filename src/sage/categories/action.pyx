@@ -607,7 +607,7 @@ cdef class ActionEndomorphism(Morphism):
         return "Action of %s on %s under %s."%(self._g,
                                                self._action.underlying_set(), self._action)
 
-    def __mul__(left, right):
+    def __matmul__(left, right):
         cdef ActionEndomorphism left_c, right_c
         if isinstance(left, ActionEndomorphism) and isinstance(right, ActionEndomorphism):
             left_c = left
@@ -617,7 +617,7 @@ cdef class ActionEndomorphism(Morphism):
                     return ActionEndomorphism(left_c._action, left_c._g * right_c._g)
                 else:
                     return ActionEndomorphism(left_c._action, right_c._g * left_c._g)
-        return Morphism.__mul__(left, right)
+        return Morphism.__matmul__(left, right)
 
     def __invert__(self):
         inv_g = ~self._g
