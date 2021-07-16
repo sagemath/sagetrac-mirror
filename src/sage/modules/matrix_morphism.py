@@ -383,9 +383,9 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: m = matrix(QQ, [[2, 1], [3, 4]])
             sage: phi = V.hom(m, U)
             sage: inv = phi.inverse()
-            sage: (inv*phi).is_identity()
+            sage: (inv @ phi).is_identity()
             True
-            sage: (phi*inv).is_identity()
+            sage: (phi @ inv).is_identity()
             True
         """
         return ~self
@@ -407,19 +407,24 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         R = self.base_ring()
         return self.parent()(R(left) * self.matrix())
 
-    def __mul__(self, right):
+    def __matmul__(self, right):
         r"""
-        Composition of morphisms, denoted by \*.
+        Composition of morphisms
+
+        Both the multiplication operator ``*`` and the matrix-multiplication operator ``@``
+        are composition.
 
         EXAMPLES::
 
             sage: V = ZZ^2; phi = V.hom([V.0+V.1, 2*V.1])
-            sage: phi*phi
+            sage: phi @ phi
             Free module morphism defined by the matrix
             [1 3]
             [0 4]
             Domain: Ambient free module of rank 2 over the principal ideal domain ...
             Codomain: Ambient free module of rank 2 over the principal ideal domain ...
+            sage: phi * phi == phi @ phi
+            True
 
             sage: V = QQ^3
             sage: E = V.endomorphism_ring()
@@ -430,7 +435,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             [6 7 8]
             Domain: Vector space of dimension 3 over Rational Field
             Codomain: Vector space of dimension 3 over Rational Field
-            sage: phi*phi
+            sage: phi @ phi
             Vector space morphism represented by the matrix:
             [ 15  18  21]
             [ 42  54  66]
@@ -453,18 +458,18 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             [ 8  9 10 11]
             Domain: Vector space of dimension 3 over Rational Field
             Codomain: Vector space of dimension 4 over Rational Field
-            sage: psi*phi
+            sage: psi @ phi
             Vector space morphism represented by the matrix:
             [ 20  23  26  29]
             [ 56  68  80  92]
             [ 92 113 134 155]
             Domain: Vector space of dimension 3 over Rational Field
             Codomain: Vector space of dimension 4 over Rational Field
-            sage: phi*psi
+            sage: phi @ psi
             Traceback (most recent call last):
             ...
             TypeError: Incompatible composition of morphisms: domain of left morphism must be codomain of right.
-            sage: phi.matrix()*psi.matrix()
+            sage: phi.matrix() @ psi.matrix()
             [ 20  23  26  29]
             [ 56  68  80  92]
             [ 92 113 134 155]
@@ -473,7 +478,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
 
             sage: K.<a> = NumberField(x^2 + 23)
             sage: V, VtoK, KtoV = K.vector_space()
-            sage: f = V.hom([V.0 - V.1, V.0 + V.1])*KtoV; f
+            sage: f = V.hom([V.0 - V.1, V.0 + V.1]) @ KtoV; f
             Composite map:
             From: Number Field in a with defining polynomial x^2 + 23
             To:   Vector space of dimension 2 over Rational Field
@@ -491,12 +496,12 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         """
         if not isinstance(right, MatrixMorphism):
             if isinstance(right, (sage.categories.morphism.Morphism, sage.categories.map.Map)):
-                return sage.categories.map.Map.__mul__(self, right)
+                return sage.categories.map.Map.__matmul__(self, right)
             R = self.base_ring()
             return self.parent()(self.matrix() * R(right))
         if self.domain() != right.codomain():
             raise TypeError("Incompatible composition of morphisms: domain of left morphism must be codomain of right.")
-        M = right.matrix() * self.matrix()
+        M = right.matrix() @ self.matrix()
         return right.domain().Hom(self.codomain())(M)
 
     def __add__(self, right):
@@ -646,7 +651,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         else:
             B = D.basis_matrix()
             R = D.base_ring()
-            return Sequence([D.submodule((V.basis_matrix() * B).row_module(R),
+            return Sequence([D.submodule((V.basis_matrix() @ B).row_module(R),
                                          check=False) for V, _ in E],
                             cr=True, check=False)
 
@@ -719,7 +724,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             # Transform V to ambient space
             # This is a matrix multiply:  we take the linear combinations of the basis for
             # D given by the elements of the basis for V.
-            B = V.basis_matrix() * D.basis_matrix()
+            B = V.basis_matrix() @ D.basis_matrix()
             V = B.row_module(D.base_ring())
         return self.domain().submodule(V, check=False)
 
@@ -764,7 +769,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             # Transform V to ambient space
             # This is a matrix multiply:  we take the linear combinations of the basis for
             # D given by the elements of the basis for V.
-            B = V.basis_matrix() * D.basis_matrix()
+            B = V.basis_matrix() @ D.basis_matrix()
             V = B.row_module(self.domain().base_ring())
         return self.codomain().submodule(V, check=False)
 
