@@ -235,17 +235,31 @@ class HyperbolicIsometry(Morphism):
         """
         return self.__class__(self.domain(), self._matrix**n)
 
-    def __mul__(self, other):
+    def _composition(self, other):
         r"""
         EXAMPLES::
 
             sage: UHP = HyperbolicPlane().UHP()
             sage: A = UHP.get_isometry(Matrix(2,[5,2,1,2]))
             sage: B = UHP.get_isometry(Matrix(2,[3,1,1,2]))
-            sage: B * A
+            sage: B @ A
             Isometry in UHP
             [16  8]
             [ 7  6]
+            sage: B * A == B @ A
+            True
+        """
+        if isinstance(other, HyperbolicIsometry):
+            other = other.to_model(self.codomain())
+            return self.__class__(self.codomain(), self._matrix @ other._matrix)
+        raise NotImplementedError("composition is not defined between a "
+                                  "hyperbolic isometry and {0}".format(other))
+
+    def __mul__(self, other):
+        r"""
+        EXAMPLES::
+
+            sage: UHP = HyperbolicPlane().UHP()
             sage: A = UHP.get_isometry(Matrix(2,[5,2,1,2]))
             sage: p = UHP.get_point(2 + I)
             sage: A * p
@@ -263,17 +277,12 @@ class HyperbolicIsometry(Morphism):
             sage: A * p
             Point in HM (0, -1, sqrt(2))
         """
-        if isinstance(other, HyperbolicIsometry):
-            other = other.to_model(self.codomain())
-            return self.__class__(self.codomain(), self._matrix*other._matrix)
         from sage.geometry.hyperbolic_space.hyperbolic_point import HyperbolicPoint
         if isinstance(other, HyperbolicPoint):
             return self(other)
         if isinstance(other, HyperbolicGeodesic):
             return self.codomain().get_geodesic(self(other.start()), self(other.end()))
-
-        raise NotImplementedError("multiplication is not defined between a "
-                                  "hyperbolic isometry and {0}".format(other))
+        return super().__mul__(other)
 
     def _call_(self, p):
         r"""
