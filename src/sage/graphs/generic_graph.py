@@ -6188,7 +6188,8 @@ class GenericGraph(GenericGraph_pyx):
         st.delete_vertices(v for v in g if not st.degree(v))
         return st
 
-    def edge_disjoint_spanning_trees(self, k, root=None, solver=None, verbose=0):
+    def edge_disjoint_spanning_trees(self, k, root=None, solver=None, verbose=0,
+                                      *, integrality_tolerance=1e-3):
         r"""
         Return the desired number of edge-disjoint spanning trees/arborescences.
 
@@ -6201,16 +6202,20 @@ class GenericGraph(GenericGraph_pyx):
           arborescences when the graph is directed.  If set to ``None``, the
           first vertex in the graph is picked.
 
-        - ``solver`` -- string (default: ``None``); specify a Linear Program
-          (LP) solver to be used. If set to ``None``, the default one is
-          used. For more information on LP solvers and which default solver is
-          used, see the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         ALGORITHM:
 
@@ -6383,9 +6388,9 @@ class GenericGraph(GenericGraph_pyx):
         H.set_pos(G.get_pos())
         classes = [H.copy() for c in colors]
 
-        edges = p.get_values(edge)
-        for (e, c), val in edges.items():
-            if val == 1:
+        edges = p.get_values(edge, convert=bool, tolerance=integrality_tolerance)
+        for (e, c), b in edges.items():
+            if b:
                 classes[c].add_edge(e)
 
         return classes
