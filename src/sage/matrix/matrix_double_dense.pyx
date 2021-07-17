@@ -2071,7 +2071,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             A.subdivide(*self.subdivisions())
         return A
 
-    def SVD(self):
+    def SVD(self, *, algorithm='scipy'):
         r"""
         Return the singular value decomposition of this matrix.
 
@@ -2174,6 +2174,9 @@ cdef class Matrix_double_dense(Matrix_dense):
             True
             True
         """
+        if algorithm != 'scipy':
+            return Matrix_dense.SVD(self, algorithm=algorithm)
+
         global scipy, numpy
         cdef Py_ssize_t i
         cdef Matrix_double_dense U, S, V

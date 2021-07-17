@@ -11775,6 +11775,43 @@ cdef class Matrix(Matrix1):
             except (ValueError, RuntimeError, NotImplementedError):
                 raise RuntimeError('unable to compute transformation for similar matrices')
 
+    def SVD(self, *, algorithm='sympy'):
+        r"""
+        Return the singular value decomposition of this matrix.
+
+        The U and V matrices are not unique and may be returned with different
+        values in the future or on different systems. The S matrix is unique
+        and contains the singular values in descending order.
+
+        The computed decomposition is cached and returned on subsequent calls.
+
+        INPUT:
+
+        - A -- a matrix
+
+        OUTPUT:
+
+        - U, S, V -- immutable matrices such that `A = U*S*V.conj().transpose()`
+          where U and V are orthogonal and S is zero off of the diagonal.
+
+        Note that if self is m-by-n, then the dimensions of the
+        matrices that this returns are (m,m), (m,n), and (n, n).
+
+        .. NOTE::
+
+            If all you need is the singular values of the matrix, see
+            the more convenient :meth:`singular_values`.
+        """
+        USV = self.fetch('SVD_factors')
+        if USV is None:
+            # TODO
+            raise NotImplementedError
+
+            USV = U, S, V
+            for M in USV: M.set_immutable()
+            self.cache('SVD_factors', USV)
+        return USV
+
     def symplectic_form(self):
         r"""
         Find a symplectic form for self if self is an anti-symmetric,
