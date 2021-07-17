@@ -679,79 +679,6 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         sage: [sgn.lift(b) for b in sgn.basis()]
         [() - (2,3) - (1,2) + (1,2,3) + (1,3,2) - (1,3)]
 
-    TESTS::
-
-        sage: from sage.combinat.free_module import CombinatorialFreeModule
-        sage: from sage.sets.family import Family
-        sage: from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-        sage: from sage.misc.cachefunc import cached_method
-
-    Load a wrapper class to test for coinvariant algebras, whose multiplicity
-    we can determine from the fake degree formula::
-
-        sage: class QuotientRingWrapper(CombinatorialFreeModule):
-        ....:    def __init__(self, polys):
-        ....:        R = polys[0].parent()
-        ....:        I = R.ideal(polys)
-        ....:        Q = R.quotient(I)
-        ....:        self._quo = Q
-        ....:        B = set([Q.one()])
-        ....:        for g in Q.gens():
-        ....:            B.update(g.monomials())
-        ....:        gens = list(B)
-        ....:        self._gens = gens
-        ....:        cur = B.copy()
-        ....:        while cur:
-        ....:            next_level = set()
-        ....:            for g in gens:
-        ....:                for b in cur:
-        ....:                    mons = set((b * g).monomials()).difference(B)
-        ....:                    B.update(mons)
-        ....:                    next_level.update(mons)
-        ....:            cur = next_level
-        ....:        self._basis = list(B)
-        ....:        I = FiniteEnumeratedSet(range(len(B)))
-        ....:        BR = R.base_ring()
-        ....:        cat = Algebras(BR).WithBasis().FiniteDimensional()
-        ....:        CombinatorialFreeModule.__init__(self, BR, I, prefix='C', category=cat)
-        ....:
-        ....:    @cached_method
-        ....:    def one_basis(self):
-        ....:        return self._basis.index(Q.one())
-        ....:
-        ....:    @cached_method
-        ....:    def algebra_generators(self):
-        ....:        B = self._basis
-        ....:        return Family([self.monomial(B.index(m)) for m in self._gens])
-        ....:
-        ....:    class Element(CombinatorialFreeModule.Element):
-        ....:        def _mul_(self, other):
-        ....:            P = self.parent()
-        ....:            x = P._quo.sum(c * P._basis[i] for i, c in self)
-        ....:            y = P._quo.sum(c * P._basis[i] for i, c in other)
-        ....:            ret = x * y
-        ....:            return P._from_dict({P._basis.index(Q(m)): c for c,m in ret.lift()})
-
-    First we'll create the coinvariant algebra for `S_4` acting on a polynomial ring in
-    four variables::
-
-        sage: Sym = SymmetricFunctions(QQ)
-        sage: R.<x,y,z,w> = PolynomialRing(QQ)
-        sage: J = (x + y + z + w,
-        ....:      x*y + x*z + x*w + y*z + y*w + z*w,
-        ....:      x*y*z + x*y*w + x*z*w + y*z*w,
-        ....:      x*y*z*w)
-        sage: C = QuotientRingWrapper(J)
-        sage: W = ReflectionGroup(['A',4]) # optional -- gap3
-        sage: W.fake_degrees() # optional -- gap3
-        [q^10,
-         q^9 + q^8 + q^7 + q^6,
-         q^8 + q^7 + q^6 + q^5 + q^4,
-         q^7 + q^6 + 2*q^5 + q^4 + q^3,
-         q^6 + q^5 + q^4 + q^3 + q^2,
-         q^4 + q^3 + q^2 + q,
-         1]
-
     .. TODO:
 
         - Replace ``G`` by ``S`` in :class:`~sage.categories.finitely_generated_semigroups.FinitelyGeneratedSemigroups`
@@ -828,7 +755,12 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             raise ValueError(f'chi must be a list/tuple or instance of \
                              sage.groups.class_function.ClassFunction_gap')
 
-        if all([chi(conj.an_element()) == 1 for conj in G.conjugacy_classes()]):
+        try:
+            is_trivial = all([chi(conj.an_element()) == 1 for conj in G.conjugacy_classes()])
+        except AttributeError: # to handle ReflectionGroups
+            is_trivial = all([chi(G(list(conj)[0])) == 1 for conj in G.conjugacy_classes().values()])
+
+        if is_trivial:
             action_on_basis = kwargs.pop('action_on_basis', None)
             if action_on_basis is not None:
                 return M.invariant_module(G, action_on_basis=action_on_basis)
