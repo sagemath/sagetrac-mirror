@@ -355,18 +355,29 @@ class ParametrizedSurface3D(PseudoRiemannianSubmanifold):
             Parametrized surface ('Enneper Surface') with equation (-u^3 + 3*u*v^2 + 3*u, 3*u^2*v - v^3 + 3*v, 3*u^2 - 3*v^2)
 
         """
-        self.equation = tuple(equation)
+        ambient = EuclideanSpace(3)
+        cartesian = ambient.default_chart()
 
         PseudoRiemannianSubmanifold.__init__(self, 2, name or "S",
-                                             ambient=EuclideanSpace(3), start_index=1)
+                                             ambient=ambient, start_index=1)
         if variables_range is None:
             bounds = tuple(((-Infinity, False), (Infinity, False))
                            for i in range(2))
         else:
             bounds = tuple(((xmin, False), (xmax, False))
                            for (xmin, xmax) in variables_range)
-        self.chart(variables, bounds=bounds)
+        chart = self.chart(variables, bounds=bounds)
         assert list(variables) == self.variables_list
+
+        immersion = self.diff_map(ambient, {(chart, cartesian): equation})
+        self.set_immersion(immersion)
+
+    @lazy_attribute
+    def equation(self):
+        immersion = self.immersion()
+        return tuple(func.expr()
+                     for func in immersion.coord_functions(self.default_chart(),
+                                                           immersion.codomain().default_chart()))
 
     @lazy_attribute
     def name(self):
