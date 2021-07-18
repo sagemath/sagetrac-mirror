@@ -1430,7 +1430,7 @@ class TopologicalManifold(ManifoldSubset):
         return bool(self._covering_charts)
 
     def chart(self, coordinates='', names=None, calc_method=None,
-              coord_restrictions=None):
+              coord_restrictions=None, **kwds):
         r"""
         Define a chart, the domain of which is the manifold.
 
@@ -1464,6 +1464,8 @@ class TopologicalManifold(ManifoldSubset):
             used (cf. :meth:`set_calculus_method`)
         - ``coord_restrictions``: Additional restrictions on the coordinates.
           See below.
+        - ``**kwds``: Passed on to the :class:`~sage.manifolds.chart.Chart`
+          constructor
 
         The coordinates declared in the string ``coordinates`` are
         separated by ``' '`` (whitespace) and each coordinate has at most four
@@ -1603,7 +1605,7 @@ class TopologicalManifold(ManifoldSubset):
             calc_method = self._calculus_method
         return self._structure.chart(self, coordinates=coordinates,
                                      names=names, calc_method=calc_method,
-                                     coord_restrictions=coord_restrictions)
+                                     coord_restrictions=coord_restrictions, **kwds)
 
     def is_open(self):
         """

@@ -22,6 +22,7 @@ from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
 from sage.calculus.functional import diff
 from sage.functions.other import sqrt
+from sage.rings.infinity import Infinity
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.symbolic.ring import SR
@@ -355,11 +356,16 @@ class ParametrizedSurface3D(PseudoRiemannianSubmanifold):
 
         """
         self.equation = tuple(equation)
-        self.variables_range = variables_range  # TODO
 
         PseudoRiemannianSubmanifold.__init__(self, 2, name or "S",
                                              ambient=EuclideanSpace(3), start_index=1)
-        self.chart(" ".join(str(v) for v in variables))
+        if variables_range is None:
+            bounds = tuple(((-Infinity, False), (Infinity, False))
+                           for i in range(2))
+        else:
+            bounds = tuple(((xmin, False), (xmax, False))
+                           for (xmin, xmax) in variables_range)
+        self.chart(variables, bounds=bounds)
         assert list(variables) == self.variables_list
 
     @lazy_attribute
@@ -370,9 +376,10 @@ class ParametrizedSurface3D(PseudoRiemannianSubmanifold):
     def variables_list(self):
         return list(self.default_chart()[1:3])
 
-    ## @lazy_attribute
-    ## def variables_range(self):
-    ##     return self._var
+    @lazy_attribute
+    def variables_range(self):
+        return [[xmin, xmax]
+                for ((xmin, min_included), (xmax, max_included)) in self.default_chart().coord_bounds()]
 
     @lazy_attribute
     def variables(self):
