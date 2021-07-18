@@ -26,6 +26,7 @@ from sage.misc.cachefunc import cached_method
 from sage.symbolic.ring import SR
 from sage.symbolic.constants import pi
 
+from sage.manifolds.differentiable.pseudo_riemannian_submanifold import PseudoRiemannianSubmanifold
 
 def _simplify_full_rad(f):
     """
@@ -46,7 +47,7 @@ def _simplify_full_rad(f):
     return f.simplify_full().canonicalize_radical()
 
 
-class ParametrizedSurface3D(SageObject):
+class ParametrizedSurface3D(PseudoRiemannianSubmanifold):
     r"""
     Class representing a parametrized two-dimensional surface in
     Euclidian three-space.  Provides methods for calculating the main
@@ -317,9 +318,20 @@ class ParametrizedSurface3D(SageObject):
         sage: (S.plot(opacity=0.3) + line3d(g1,color='red') + line3d(g2,color='red') + line3d(g3,color='red')).show()
 
     """
+    @staticmethod
+    def __classcall_private__(cls, equation, variables, name=None):
+        r"""
+        Normalize arguments for unique representation
+        """
+        equation = tuple(equation)
+        if isinstance(variables[0], (list, tuple)):
+            variables = tuple(tuple(v) for v in variables)
+        else:
+            variables = tuple(variables)
 
+        return super().__classcall__(cls, equation, variables, name)
 
-    def __init__(self, equation, variables, name=None):
+    def __init__(self, equation, variables, name):
         r"""
         See ``ParametrizedSurface3D`` for full documentation.
 
@@ -341,7 +353,7 @@ class ParametrizedSurface3D(SageObject):
         """
         self.equation = tuple(equation)
 
-        if len(variables[0]):
+        if isinstance(variables[0], (list, tuple)):
             self.variables_range = (variables[0][1:3], variables[1][1:3])
             self.variables_list = (variables[0][0], variables[1][0])
         else:
