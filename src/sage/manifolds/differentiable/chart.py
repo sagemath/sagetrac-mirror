@@ -72,10 +72,6 @@ class DiffChart(Chart):
       If no period and no LaTeX spelling are to be set for any coordinate, the
       argument ``coordinates`` can be omitted when the shortcut operator
       ``<,>`` is used to declare the chart (see examples below).
-    - ``names`` -- (default: ``None``) unused argument, except if
-      ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranteed if the shortcut operator
-      ``<,>`` is used).
     - ``calc_method`` -- (default: ``None``) string defining the calculus
       method for computations involving coordinates of the chart; must be
       one of
@@ -85,6 +81,27 @@ class DiffChart(Chart):
       - ``None``: the default of
         :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
         used
+    - ``names`` -- (default: ``None``) unused argument, except if
+      ``coordinates`` is not provided; it must then be a tuple containing
+      the coordinate symbols (this is guaranteed if the shortcut operator
+      ``<,>`` is used).
+    - ``coord_restrictions``: Additional restrictions on the coordinates.
+      A restriction can be any symbolic equality or inequality involving
+      the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+      of the list (or set or frozenset) ``coord_restrictions`` are combined
+      with the ``and`` operator; if some restrictions are to be combined with
+      the ``or`` operator instead, they have to be passed as a tuple in some
+      single item of the list (or set or frozenset) ``coord_restrictions``.
+      For example::
+
+        coord_restrictions=[x > y, (x != 0, y != 0), z^2 < x]
+
+      means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+      If the list ``coord_restrictions`` contains only one item, this
+      item can be passed as such, i.e. writing ``x > y`` instead
+      of the single element list ``[x > y]``.  If the chart variables have
+      not been declared as variables yet, ``coord_restrictions`` must
+      be ``lambda``-quoted.
 
     EXAMPLES:
 
@@ -242,9 +259,9 @@ class DiffChart(Chart):
     A vector frame is naturally associated to each chart::
 
         sage: X.frame()
-        Coordinate frame (M, (d/dx,d/dy))
+        Coordinate frame (M, (∂/∂x,∂/∂y))
         sage: Y.frame()
-        Coordinate frame (U, (d/dz1,d/dz2))
+        Coordinate frame (U, (∂/∂z1,∂/∂z2))
 
     as well as a dual frame (basis of 1-forms)::
 
@@ -259,7 +276,7 @@ class DiffChart(Chart):
         on differentiable manifolds over `\RR`.
 
     """
-    def __init__(self, domain, coordinates, calc_method=None, periods=None):
+    def __init__(self, domain, coordinates, calc_method=None, periods=None, coord_restrictions=None):
         r"""
         Construct a chart.
 
@@ -276,8 +293,8 @@ class DiffChart(Chart):
             sage: TestSuite(X).run()
 
         """
-        super().__init__(domain, coordinates,
-                         calc_method=calc_method, periods=periods)
+        super().__init__(domain, coordinates, calc_method=calc_method,
+                         periods=periods, coord_restrictions=coord_restrictions)
         # Construction of the coordinate frame associated to the chart:
         self._frame = CoordFrame(self)
         self._coframe = self._frame._coframe
@@ -423,7 +440,7 @@ class DiffChart(Chart):
             sage: M = Manifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()
             sage: c_xy.frame()
-            Coordinate frame (M, (d/dx,d/dy))
+            Coordinate frame (M, (∂/∂x,∂/∂y))
             sage: type(c_xy.frame())
             <class 'sage.manifolds.differentiable.vectorframe.CoordFrame'>
 
@@ -431,21 +448,21 @@ class DiffChart(Chart):
         with the coordinates `(x,y)`::
 
             sage: ex = c_xy.frame()[0] ; ex
-            Vector field d/dx on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂x on the 2-dimensional differentiable manifold M
             sage: ey = c_xy.frame()[1] ; ey
-            Vector field d/dy on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂y on the 2-dimensional differentiable manifold M
             sage: ex(M.scalar_field(x)).display()
-            1: M --> R
-               (x, y) |--> 1
+            1: M → ℝ
+               (x, y) ↦ 1
             sage: ex(M.scalar_field(y)).display()
-            zero: M --> R
-               (x, y) |--> 0
+            zero: M → ℝ
+               (x, y) ↦ 0
             sage: ey(M.scalar_field(x)).display()
-            zero: M --> R
-               (x, y) |--> 0
+            zero: M → ℝ
+               (x, y) ↦ 0
             sage: ey(M.scalar_field(y)).display()
-            1: M --> R
-               (x, y) |--> 1
+            1: M → ℝ
+               (x, y) ↦ 1
 
         """
         return self._frame
@@ -480,21 +497,21 @@ class DiffChart(Chart):
             sage: dy = c_xy.coframe()[1] ; dy
             1-form dy on the 2-dimensional differentiable manifold M
             sage: ex = c_xy.frame()[0] ; ex
-            Vector field d/dx on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂x on the 2-dimensional differentiable manifold M
             sage: ey = c_xy.frame()[1] ; ey
-            Vector field d/dy on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂y on the 2-dimensional differentiable manifold M
             sage: dx(ex).display()
-            dx(d/dx): M --> R
-               (x, y) |--> 1
+            dx(∂/∂x): M → ℝ
+               (x, y) ↦ 1
             sage: dx(ey).display()
-            dx(d/dy): M --> R
-               (x, y) |--> 0
+            dx(∂/∂y): M → ℝ
+               (x, y) ↦ 0
             sage: dy(ex).display()
-            dy(d/dx): M --> R
-               (x, y) |--> 0
+            dy(∂/∂x): M → ℝ
+               (x, y) ↦ 0
             sage: dy(ey).display()
-            dy(d/dy): M --> R
-               (x, y) |--> 1
+            dy(∂/∂y): M → ℝ
+               (x, y) ↦ 1
 
         """
         return self._coframe
@@ -709,10 +726,6 @@ class RealDiffChart(DiffChart, RealChart):
       If interval range, no period and no LaTeX spelling are to be set for any
       coordinate, the argument ``coordinates`` can be omitted when the shortcut
       operator ``<,>`` is used to declare the chart (see examples below).
-    - ``names`` -- (default: ``None``) unused argument, except if
-      ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranteed if the shortcut operator
-      ``<,>`` is used).
     - ``calc_method`` -- (default: ``None``) string defining the calculus
       method for computations involving coordinates of the chart; must be
       one of
@@ -722,6 +735,27 @@ class RealDiffChart(DiffChart, RealChart):
       - ``None``: the default of
         :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
         used
+    - ``names`` -- (default: ``None``) unused argument, except if
+      ``coordinates`` is not provided; it must then be a tuple containing
+      the coordinate symbols (this is guaranteed if the shortcut operator
+      ``<,>`` is used).
+    - ``coord_restrictions``: Additional restrictions on the coordinates.
+      A restriction can be any symbolic equality or inequality involving
+      the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+      of the list (or set or frozenset) ``coord_restrictions`` are combined
+      with the ``and`` operator; if some restrictions are to be combined with
+      the ``or`` operator instead, they have to be passed as a tuple in some
+      single item of the list (or set or frozenset) ``coord_restrictions``.
+      For example::
+
+        coord_restrictions=[x > y, (x != 0, y != 0), z^2 < x]
+
+      means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+      If the list ``coord_restrictions`` contains only one item, this
+      item can be passed as such, i.e. writing ``x > y`` instead
+      of the single element list ``[x > y]``.  If the chart variables have
+      not been declared as variables yet, ``coord_restrictions`` must
+      be ``lambda``-quoted.
 
     EXAMPLES:
 
@@ -908,9 +942,9 @@ class RealDiffChart(DiffChart, RealChart):
     `\{y=0, x\geq 0\}`, we must have `y\not=0` or `x<0` on U. Accordingly,
     we set::
 
-        sage: c_cartU.<x,y,z> = U.chart()
-        sage: c_cartU.add_restrictions((y!=0, x<0)) # the tuple (y!=0, x<0) means y!=0 or x<0
-        sage: # c_cartU.add_restrictions([y!=0, x<0]) would have meant y!=0 AND x<0
+        sage: c_cartU.<x,y,z> = U.chart(coord_restrictions=lambda x,y,z: (y!=0, x<0))
+        ....:    # the tuple (y!=0, x<0) means y!=0 or x<0
+        ....:    #           [y!=0, x<0] would have meant y!=0 AND x<0
         sage: U.atlas()
         [Chart (U, (r, th, ph)), Chart (U, (x, y, z))]
         sage: M.atlas()
@@ -927,9 +961,9 @@ class RealDiffChart(DiffChart, RealChart):
     A vector frame is naturally associated to each chart::
 
         sage: c_cart.frame()
-        Coordinate frame (R^3, (d/dx,d/dy,d/dz))
+        Coordinate frame (R^3, (∂/∂x,∂/∂y,∂/∂z))
         sage: c_spher.frame()
-        Coordinate frame (U, (d/dr,d/dth,d/dph))
+        Coordinate frame (U, (∂/∂r,∂/∂th,∂/∂ph))
 
     as well as a dual frame (basis of 1-forms)::
 
@@ -942,7 +976,8 @@ class RealDiffChart(DiffChart, RealChart):
     :meth:`~sage.manifolds.chart.RealChart.plot`.
 
     """
-    def __init__(self, domain, coordinates, calc_method=None, bounds=None, periods=None):
+    def __init__(self, domain, coordinates, calc_method=None,
+                 bounds=None, periods=None, coord_restrictions=None):
         r"""
         Construct a chart on a real differentiable manifold.
 
@@ -960,8 +995,8 @@ class RealDiffChart(DiffChart, RealChart):
             sage: TestSuite(X).run()
 
         """
-        RealChart.__init__(self, domain, coordinates,
-                           calc_method=calc_method, bounds=bounds, periods=periods)
+        RealChart.__init__(self, domain, coordinates, calc_method=calc_method,
+                           bounds=bounds, periods=periods, coord_restrictions=coord_restrictions)
         # Construction of the coordinate frame associated to the chart:
         self._frame = CoordFrame(self)
         self._coframe = self._frame._coframe
