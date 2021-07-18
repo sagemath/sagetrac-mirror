@@ -256,3 +256,17 @@ def Torus(R=2, r=1, names=None):
     M.induced_metric()
     return M
 
+
+from .differentiable.examples.surface3d_generators import surfaces as _surfaces
+
+Catenoid = _surfaces.Catenoid
+Crosscap = _surfaces.Crosscap
+Dini = _surfaces.Dini
+Ellipsoid = _surfaces.Ellipsoid
+Enneper = _surfaces.Enneper
+Helicoid = _surfaces.Helicoid
+Klein = _surfaces.Klein
+MonkeySaddle = _surfaces.MonkeySaddle
+Paraboloid = _surfaces.Paraboloid
+# Sphere, Torus are duplicated
+WhitneyUmbrella = _surfaces.WhitneyUmbrella
