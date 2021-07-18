@@ -23,10 +23,12 @@ from sage.matrix.constructor import matrix
 from sage.calculus.functional import diff
 from sage.functions.other import sqrt
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.symbolic.ring import SR
 from sage.symbolic.constants import pi
 
 from sage.manifolds.differentiable.pseudo_riemannian_submanifold import PseudoRiemannianSubmanifold
+from .euclidean import EuclideanSpace
 
 def _simplify_full_rad(f):
     """
@@ -319,19 +321,20 @@ class ParametrizedSurface3D(PseudoRiemannianSubmanifold):
 
     """
     @staticmethod
-    def __classcall_private__(cls, equation, variables, name=None):
+    def __classcall_private__(cls, equation, variables, name=None, *, variables_range=None):
         r"""
         Normalize arguments for unique representation
         """
         equation = tuple(equation)
         if isinstance(variables[0], (list, tuple)):
-            variables = tuple(tuple(v) for v in variables)
+            variables_range = (tuple(variables[0][1:3]), tuple(variables[1][1:3]))
+            variables = (variables[0][0], variables[1][0])
         else:
             variables = tuple(variables)
 
-        return super().__classcall__(cls, equation, variables, name)
+        return super().__classcall__(cls, equation, variables, name, variables_range)
 
-    def __init__(self, equation, variables, name):
+    def __init__(self, equation, variables, name, variables_range):
         r"""
         See ``ParametrizedSurface3D`` for full documentation.
 
@@ -352,16 +355,28 @@ class ParametrizedSurface3D(PseudoRiemannianSubmanifold):
 
         """
         self.equation = tuple(equation)
+        self.variables_range = variables_range  # TODO
 
-        if isinstance(variables[0], (list, tuple)):
-            self.variables_range = (variables[0][1:3], variables[1][1:3])
-            self.variables_list = (variables[0][0], variables[1][0])
-        else:
-            self.variables_range = None
-            self.variables_list = variables
+        PseudoRiemannianSubmanifold.__init__(self, 2, name or "S",
+                                             ambient=EuclideanSpace(3), start_index=1)
+        self.chart(" ".join(str(v) for v in variables))
+        assert list(variables) == self.variables_list
 
-        self.variables = {1:self.variables_list[0], 2:self.variables_list[1]}
-        self.name = name
+    @lazy_attribute
+    def name(self):
+        return self._name
+
+    @lazy_attribute
+    def variables_list(self):
+        return list(self.default_chart()[1:3])
+
+    ## @lazy_attribute
+    ## def variables_range(self):
+    ##     return self._var
+
+    @lazy_attribute
+    def variables(self):
+        return {1:self.variables_list[0], 2:self.variables_list[1]}
 
     def _latex_(self):
         r"""
