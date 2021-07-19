@@ -2243,8 +2243,6 @@ class SingularFunction(ExpectFunction):
             sage: 'groebner' in singular.groebner.__doc__
             True
         """
-        if not nodes:
-            generate_docstring_dictionary()
 
         prefix = \
 """
@@ -2259,15 +2257,11 @@ EXAMPLES::
     sage: groebner(singular(I))
     x+y,
     y^2-y
-""" % (self._name,)
-        prefix2 = \
-"""
 
-The Singular documentation for '%s' is given below.
-""" % (self._name,)
+"""%(self._name,)
 
         try:
-            return prefix + prefix2 + nodes[node_names[self._name]]
+            return prefix + get_docstring(self._name, prefix=True, code=True)
         except KeyError:
             return prefix
 
@@ -2283,12 +2277,11 @@ class SingularFunctionElement(FunctionElement):
             sage: 'matrix_expression' in A.nrows.__doc__
             True
         """
-        if not nodes:
-            generate_docstring_dictionary()
         try:
-            return nodes[node_names[self._name]]
+            return get_docstring(self._name, code=True)
         except KeyError:
             return ""
+
 
 def is_SingularElement(x):
     r"""
@@ -2305,65 +2298,32 @@ def is_SingularElement(x):
     return isinstance(x, SingularElement)
 
 
-nodes = {}
-node_names = {}
-
-def generate_docstring_dictionary():
-    """
-    Generate global dictionaries which hold the docstrings for
-    Singular functions.
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.singular import generate_docstring_dictionary
-        sage: generate_docstring_dictionary()
-    """
-
-    global nodes
-    global node_names
-
-    nodes.clear()
-    node_names.clear()
-
-    new_node = re.compile(r"File: singular\.[a-z]*,  Node: ([^,]*),.*")
-    new_lookup = re.compile(r"\* ([^:]*):*([^.]*)\..*")
-
-    L, in_node, curr_node = [], False, None
-
-    from sage.libs.singular.singular import get_resource
-    singular_info_file = get_resource('i')
-
-    # singular.hlp contains a few iso-8859-1 encoded special characters
-    with io.open(singular_info_file,
-                 encoding='latin-1') as f:
-        for line in f:
-            m = re.match(new_node,line)
-            if m:
-                # a new node starts
-                in_node = True
-                nodes[curr_node] = "".join(L)
-                L = []
-                curr_node, = m.groups()
-            elif in_node: # we are in a node
-               L.append(line)
-            else:
-               m = re.match(new_lookup, line)
-               if m:
-                   a,b = m.groups()
-                   node_names[a] = b.strip()
-
-            if line == "6 Index\n":
-                in_node = False
-
-    nodes[curr_node] = "".join(L) # last node
-
-def get_docstring(name):
+def get_docstring(name, prefix=False, code=False):
     """
     Return the docstring for the function ``name``.
 
     INPUT:
 
-    - ``name`` - a Singular function name
+    - ``name`` -- string; a Singular function name.
+
+    - ``prefix`` -- boolean (default: False); whether or not to include
+      the prefix stating that what follows is from the Singular
+      documentation.
+
+    - ``code`` -- boolean (default: False); whether or not to format the
+      result as a reStructuredText code block. This is intended to support
+      the feature requested in :trac:`11268`.
+
+    OUTPUT:
+
+    A string describing the Singular function ``name``. A ``KeyError``
+    is raised if no such function was found in the Singular
+    documentation. If "info" is not found in the user's ``PATH``,
+    a plain-text string is returned suggesting that GNU Info be
+    installed.
+
+    A ``CalledProcessError`` may be returned if the "info" program
+    returns a non-zero result for some reason.
 
     EXAMPLES::
 
@@ -2373,13 +2333,61 @@ def get_docstring(name):
         sage: 'standard.lib' in get_docstring('groebner')
         True
 
+    TESTS:
+
+    Non-existent functions raise a ``KeyError``::
+
+        sage: from sage.interfaces.singular import get_docstring
+        sage: get_docstring("mysql_real_escape_string")
+        Traceback (most recent call last):
+        ...
+        KeyError: 'Singular function "mysql_real_escape_string" not found'
+
     """
-    if not nodes:
-        generate_docstring_dictionary()
+    import subprocess
+    from sage.libs.singular.singular import get_resource
+    info_file = get_resource('i')
+    cmd_and_args = ["info", f"--file={info_file}", f"--node={name}"]
+
     try:
-        return nodes[node_names[name]]
-    except KeyError:
-        return ""
+        result = subprocess.run(cmd_and_args,
+                                capture_output=True,
+                                check=True,
+                                text=True)
+    except FileNotFoundError:
+        return ("The relevant Singular documentation will be shown " +
+                "here if you install GNU Texinfo, the stand-alone " +
+                "GNU Info program, or the SageMath \"info\" SPKG.")
+
+    # The subprocess call will succeed even if "name" is junk. But
+    # since we are expecting to retrieve the docs for a function, upon
+    # success we should retrieve a subsection of the "Functions"
+    # section in the Info page. Thus we can check for the string
+    # "Up: Functions" on the first line of the result (the navigation
+    # header) to determine whether or not ``name`` had its own entry in
+    # the Singular "Functions" section. This is a _bit_ lazy, since there
+    # could be more than one "Functions" section... but specifying the
+    # full path down to the entry we want is probably more risky, since
+    # it will fail if upstream ever tweaks the name of a (sub)section.
+    offset = result.stdout.find("\n")
+    line0 = result.stdout[:offset]
+    if not "Up: Functions" in line0:
+        raise KeyError(f'Singular function "{name}" not found')
+
+    # If the first line was the navigation header, the second line should
+    # be blank; by incrementing the offset by two, we're skipping over it.
+    offset += 2
+    result = result.stdout[offset:]
+
+    if code:
+        result = "::\n\n    " + "\n    ".join(result.split('\n'))
+
+    if prefix:
+        result = (f'The Singular documentation for "{name}" is given below.'
+                  + "\n\n" + result)
+
+    return result
+
 
 ##################################
 

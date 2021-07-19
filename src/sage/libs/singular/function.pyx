@@ -105,8 +105,6 @@ from sage.libs.singular.singular cimport sa2si, si2sa, si2sa_intvec
 
 from sage.libs.singular.singular import error_messages
 
-from sage.interfaces.singular import get_docstring
-
 from sage.misc.verbose import get_verbose
 
 from sage.structure.sequence import Sequence, Sequence_generic
@@ -1385,14 +1383,13 @@ EXAMPLES::
      [x2, x1^2],
      [x2, x1^2]]
 
-The Singular documentation for '%s' is given below.
-"""%(self._name,self._name)
-        # Trac ticket #11268: Include the Singular documentation as a block of code
-        singular_doc = get_docstring(self._name).split('\n')
-        if len(singular_doc) > 1:
-            return prefix + "\n::\n\n"+'\n'.join(["    "+L for L in singular_doc])
-        else:
-            return prefix + "\n::\n\n"+"    Singular documentation not found"
+"""%(self._name,)
+
+        from sage.interfaces.singular import get_docstring
+        try:
+            return prefix + get_docstring(self._name, prefix=True, code=True)
+        except FileNotFoundError:
+            return prefix
 
     cdef common_ring(self, tuple args, ring=None):
         """
