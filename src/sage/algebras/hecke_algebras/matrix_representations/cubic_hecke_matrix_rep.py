@@ -438,6 +438,39 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
                 return matrix(self.submatrix(s, s, d, d))
         raise ValueError('no irreducible representation for this index')
 
+    @cached_method
+    def _irr_to_ind(self, irr):
+        r"""
+        Return the index if the given split irreducible representation of ``self``.
+
+        INPUT:
+
+        - ``irr`` -- an instance of :class:`AbsIrreducibeRep` specifying an absolute irreducible
+          representation of the cubic Hecke algebra
+
+        EXAMPLES::
+
+            sage: CHA2.<c1> = algebras.CubicHecke(2)
+            sage: m1 = c1.matrix()
+            sage: m1._irr_to_ind(CHA2.irred_repr.W2_001)
+            1
+            sage: m1._irr_to_ind(CHA2.irred_repr.W3_001)
+            Traceback (most recent call last):
+            ...
+            TypeError: representation must have 1 generators
+        """
+        representation_type = self.parent()._representation_type
+        if not representation_type.is_split():
+            raise TypeError( "representation type is non split" )
+
+        ch_algebra = self.parent()._cubic_hecke_algebra
+        if ch_algebra.strands() != irr.number_gens() +1 :
+            raise TypeError( "representation must have %d generators" %(ch_algebra.strands()-1 ) )
+
+        ind = irr.gap_index()
+        if  representation_type == RepresentationType.SplitIrredMarin:
+            ind = irr.internal_index()
+        return ind
 
     @cached_method
     def __getitem__(self, item):
@@ -459,26 +492,14 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
         EXAMPLES::
 
             sage: CHA2.<c1> = algebras.CubicHecke(2)
-            sage: c1.matrix()[0]                      # indirect doctest
+            sage: m1 = c1.matrix()
+            sage: m1[0]                       # indirect doctest
             [a]
-            sage: c1.matrix()[CHA2.irred_repr.W2_001]  # indirect doctest
+            sage: m1[CHA2.irred_repr.W2_001]  # indirect doctest
             [b]
         """
-
-
         if isinstance(item, AbsIrreducibeRep):
-            representation_type = self.parent()._representation_type
-            if not representation_type.is_split():
-                raise TypeError( "representation type is non split" )
-
-            ch_algebra = self.parent()._cubic_hecke_algebra
-            if ch_algebra.strands() != item.number_gens() +1 :
-                raise TypeError( "representation must have %d generators" %(ch_algebra.strands()-1 ) )
-
-            ind = item.gap_index()
-            if  representation_type == RepresentationType.SplitIrredMarin:
-                ind = item.internal_index()
-            return self._get_block(ind)
+            return self._get_block(self._irr_to_ind(item))
         elif isinstance(item, (Integer,int)):
             return self._get_block(item)
 
@@ -504,6 +525,48 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
         n = self.parent()._cubic_hecke_algebra.strands()
         l = representation_type.number_of_representations(n)
         return [self._get_block(i) for i in range(l)]
+
+    @cached_method
+    def reduce_to_irr_block(self, irr):
+        r"""
+        Return a copy of ``self`` with zeroes outside the block corresponding to
+        ``irr`` but the block according to the input identical to that of ``self``.
+
+        INPUT:
+
+        - ``irr`` -- an instance of :class:`AbsIrreducibeRep` specifying an
+          absolute irreducible representation of the cubic Hecke algebra.
+          Alternatively, it can be specified by list index (see
+          :meth:`internal_index` repectively :meth:`gap_index`)
+
+        OUTPUT:
+
+        An instance of :class:`Matrix_generic_dense` with exactly one non zero block
+        according to ``irr``.
+
+
+        EXAMPLES::
+
+            sage: CHA2.<c1> = algebras.CubicHecke(2)
+            sage: m1 = c1.matrix()
+            sage: m1.reduce_to_irr_block(0)
+            [a 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: m1.reduce_to_irr_block(CHA2.irred_repr.W2_001)
+            [0 0 0]
+            [0 b 0]
+            [0 0 0]
+        """
+        if isinstance(irr, AbsIrreducibeRep):
+            ind = self._irr_to_ind(irr)
+        else:
+            ind = Integer(irr)
+        from copy import copy
+        mat_list = copy(self.parent().zero().block_diagonal_list())
+        mat_list[ind] = self[ind]
+        return block_diagonal_matrix(mat_list, subdivide=self.parent()._subdivide, sparse=True)
+
 
 
 
@@ -615,7 +678,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         else:
             specialize    = cubic_hecke_algebra._ring_of_definition_map
 
-        verbose("original_base_ring %s base_ring %s" %(original_base_ring, base_ring))
+        verbose("original_base_ring %s base_ring %s" %(original_base_ring, base_ring), level=2)
 
         self._original_base_ring = original_base_ring
         self._specialize         = specialize
@@ -623,6 +686,12 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         super(CubicHeckeMatrixSpace, self).__init__(base_ring, dimension, cols, sparse=sparse, implementation=implementation)
         self.Element = CubicHeckeMatrixRep
         return
+
+    def construction(self):
+        r"""
+        Return ``None`` since this construction is not functorial.
+        """
+        return None
 
     def __reduce__(self):
         r"""
@@ -694,6 +763,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
         return self.element_class(self, matrix)
 
+    @cached_method
     def __call__(self, entries=None, coerce=True, copy=None):
         r"""
         Perform the instance call. This method needs to be overloaded here
@@ -722,6 +792,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
 
 
+    @cached_method
     def _specialize_matrix(self, mat):
         r"""
         Return the given matrix specializing the original coefficients
@@ -789,9 +860,9 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             sage: MSreg = chmr.CubicHeckeMatrixSpace(CHA2, representation_type=CHA2.repr_type.RegularRight)
             sage: MSreg._image_on_gen(-1)
             [
-            [        0         1 (-w^-1)*u]
-            [        0         0      w^-1]
-            [        1         0  (w^-1)*v]
+            [     0      1 (-u)/w]
+            [     0      0    1/w]
+            [     1      0    v/w]
             ]
         """
 
@@ -881,7 +952,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         ele_Tietze = basis_element.Tietze()
         matrix_list = filecache.read_matrix_representation(representation_type, ele_Tietze, original_base_ring)
         if matrix_list is None:
-            verbose("not in  memory %s (Tietze %s)" %(basis_element, ele_Tietze))
+            verbose("not in  memory %s (Tietze %s)" %(basis_element, ele_Tietze), level=2)
             if len(ele_Tietze) == 0 :
                 matrix_list = ch_algebra._create_matrix_list_for_one(representation_type)
             else:
@@ -894,11 +965,12 @@ class CubicHeckeMatrixSpace(MatrixSpace):
                             matrix_list[i] *= gen_matrix_list[i]
 
             filecache.write_matrix_representation(representation_type, ele_Tietze, matrix_list)
-            verbose("%s saved to memory" %(basis_element))
+            verbose("%s saved to memory" %(basis_element), level=2)
 
         mat =  block_diagonal_matrix(matrix_list, subdivide=self._subdivide, sparse=True)
         return self._specialize_matrix(mat)
 
+    @cached_method
     def zero(self):
         r"""
         Return the zero element of ``self``.
@@ -926,6 +998,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         z.set_immutable()
         return z
 
+    @cached_method
     def one(self):
         r"""
         Return the one element of ``self``.
@@ -953,6 +1026,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         o.set_immutable()
         return o
 
+    @cached_method
     def _an_element_(self):
         r"""
         Return an element of ``self``.
@@ -972,6 +1046,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         x = self._cubic_hecke_algebra.an_element()
         return self(x)
 
+    @cached_method
     def some_elements(self):
         r"""
         Return a generator of elements of ``self``.

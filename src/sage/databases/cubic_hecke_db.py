@@ -82,7 +82,12 @@ def convert_poly_to_dict_recursive(ring_elem):
     else:
         if ring_elem in ZZ:
             return int(ring_elem)
-        return ring_elem
+        elif hasattr(ring_elem, 'numerator'):
+            # treat the case of elements of localization and fraction fields
+            dict_res['n'] = convert_poly_to_dict_recursive(ring_elem.numerator())
+            dict_res['d'] = convert_poly_to_dict_recursive(ring_elem.denominator())
+        else:
+            return ring_elem
     return dict_res
 
 
@@ -443,7 +448,7 @@ class CubicHeckeDataBase(SageObject):
         
         base_ring = CubicHeckeRingOfDefinition()
         global u, v, w, mm1, mm2, mm3, mm1I, mm2I, mm3I, reps      # set in load
-        u, v, w = base_ring.gens_over_ground()
+        u, v, w = base_ring.gens()
 
         if right == False:
             fname = self.filename.regular_left
@@ -518,7 +523,7 @@ class CubicHeckeDataBase(SageObject):
 
         load(self.import_data(self.filename.irred_split))
 
-        a, b, c = base_ring.gens_over_ground() # now back to usual nameing
+        a, b, c = base_ring.gens() # now back to usual nameing
         cfs = [-c, b, -a, 1]
         cfse = [extension_ring(cf/c) for cf in cfs]
 
@@ -680,11 +685,11 @@ class CubicHeckeDataBase(SageObject):
         rep_list = self.read(representation_type.data_filename(), nstrands=nstrands)
         if gen_ind > 0 :
             rep_list = [rep_list[GenSign.pos][i] for i in range(num_rep)]
-            matrix_list = [matrix(ring_of_definition, rep[gen_ind-1 ], sparse=True) for rep in rep_list]
+            matrix_list = [matrix(ring_of_definition, rep[gen_ind-1], sparse=True) for rep in rep_list]
         else:
             # data of inverse of generators is stored under negative strand-index
             rep_list = [rep_list[GenSign.neg][i] for i in range(num_rep) ]
-            matrix_list = [matrix(ring_of_definition, rep[-gen_ind-1 ], sparse=True) for rep in rep_list]
+            matrix_list = [matrix(ring_of_definition, rep[-gen_ind-1], sparse=True) for rep in rep_list]
         for m in matrix_list: m.set_immutable()
         return matrix_list
 
@@ -764,8 +769,7 @@ class CubicHeckeFileCache(SageObject):
         self._file_cache_path = 'cubic_hecke'
         self._data_library = {}
 
-        from sage.misc.misc import sage_makedirs
-        from sage.misc.persist import SAGE_DB
+        from sage.misc.misc import sage_makedirs, SAGE_DB
         sage_makedirs(os.path.join(SAGE_DB, self._file_cache_path))
 
     def reset_library(self, section=None):
@@ -1021,9 +1025,9 @@ class CubicHeckeFileCache(SageObject):
             sage: m = gi.matrix(representation_type=rt.RegularRight)
             sage: cha_fc.read_matrix_representation(rt.RegularRight, git, R)
             [
-            [        0         1 (-w^-1)*u]
-            [        0         0      w^-1]
-            [        1         0  (w^-1)*v]
+            [     0      1 (-u)/w]
+            [     0      0    1/w]
+            [     1      0    v/w]
             ]
             sage: CHA2.reset_filecache(cha_fc.section.matrix_representations)
             sage: cha_fc.read_matrix_representation(rt.RegularLeft, git, R) == None
@@ -1115,10 +1119,10 @@ class CubicHeckeFileCache(SageObject):
             sage: B2 = BraidGroup(2)
             sage: b, = B2.gens(); b3 = b**3
             sage: b3_img = CHA2(b3); b3_img
-            (-u*v+w) + (u^2-v)*c + w*u*c^-1
+            (-u*v+w) + (u^2-v)*c + u*w*c^-1
             sage: cha_fc.write_braid_image(b3.Tietze(), b3_img.to_vector())
             sage: cha_fc.read_braid_image(b3.Tietze(), ring_of_definition)
-            (-u*v + w, u^2 - v, w*u)
+            (-u*v + w, u^2 - v, u*w)
             sage: cha_fc.reset_library(CubicHeckeFileCache.section.braid_images)
             sage: cha_fc.write(CubicHeckeFileCache.section.braid_images)
             sage: cha_fc.is_empty(CubicHeckeFileCache.section.braid_images)
