@@ -51,9 +51,9 @@ What about a sequence starting with `3, 7, 15, 1` ?
     2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 1, 292, ...]
 
     sage: c.comments()                                  # optional -- internet
-    0: The first 5,821,569,425 terms were computed by _Eric W. Weisstein_ on Sep 18 2011.
-    1: The first 10,672,905,501 terms were computed by _Eric W. Weisstein_ on Jul 17 2013.
-    2: The first 15,000,000,000 terms were computed by _Eric W. Weisstein_ on Jul 27 2013.
+    0: The first 5821569425 terms were computed by _Eric W. Weisstein_ on Sep 18 2011.
+    1: The first 10672905501 terms were computed by _Eric W. Weisstein_ on Jul 17 2013.
+    2: The first 15000000000 terms were computed by _Eric W. Weisstein_ on Jul 27 2013.
 
 ::
 
@@ -490,7 +490,7 @@ class OEIS:
             0: A131956: Busy Beaver variation: maximum number of steps for ...
             1: A141475: Number of Turing machines with n states following ...
             2: A131957: Busy Beaver sigma variation: maximum number of 1's ...
-            3: A052200: Number of n-state, 2-symbol, d+ in {LEFT, RIGHT}, ...
+            3: A...: ...
         """
         options = {'q': description,
                    'n': str(max_results),
@@ -1470,7 +1470,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
         """
         for x in self.first_terms():
             yield x
-        if not self.is_full():
+        if not self.is_full() is True:
             raise LookupError("Future values not provided by OEIS.")
 
     def references(self):

@@ -933,7 +933,6 @@ from __future__ import print_function
 
 import six
 from six.moves import range, zip_longest, zip
-from six import itervalues
 
 from IPython.lib.pretty import pretty
 import collections
@@ -6800,7 +6799,7 @@ class FiniteStateMachine(SageObject):
                 if is_FSMTransition(d):
                     return self._add_fsm_transition_(d)
             else:
-                d = next(itervalues(kwargs))
+                d = next(iter(kwargs.values()))
             if hasattr(d, 'items'):
                 args = []
                 kwargs = d
@@ -6907,7 +6906,7 @@ class FiniteStateMachine(SageObject):
             ....:                        final_states=[1],
             ....:                        input_alphabet=[0])
             sage: def transition_function(state, letter):
-            ....:     return(1-state, [])
+            ....:     return 1 - state, []
             sage: F.add_from_transition_function(transition_function)
             sage: F.transitions()
             [Transition from 0 to 1: 0|-,
@@ -6921,7 +6920,7 @@ class FiniteStateMachine(SageObject):
             ....:                        final_states=[1],
             ....:                        input_alphabet=[0])
             sage: def transition_function(state, letter):
-            ....:     return(1-state, [])
+            ....:     return 1 - state, []
             sage: F.add_from_transition_function(transition_function,
             ....:                                explore_existing_states=False)
             sage: F.transitions()
@@ -10031,8 +10030,7 @@ class FiniteStateMachine(SageObject):
                 open.extend(candidates)
                 unhandeled_direct_predecessors[s] = None
                 done.append(s)
-        return(done)
-
+        return done
 
     def number_of_words(self, variable=var('n'),
                         base_ring=None):

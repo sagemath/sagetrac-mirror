@@ -2393,8 +2393,8 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
             sage: C._test_dual_classical()
         """
         tester = self._tester(**options)
-        tester.assertTrue( self.classical().dual() == self.dual().classical() )
-        tester.assertTrue( self.special_node() == self.dual().special_node() )
+        tester.assertEqual(self.classical().dual(), self.dual().classical())
+        tester.assertEqual(self.special_node(), self.dual().special_node())
 
     def other_affinization(self):
         """
@@ -3066,10 +3066,10 @@ class CartanType_simple_finite(object):
 
             sage: pg_CartanType_simple_finite = unpickle_global('sage.combinat.root_system.cartan_type', 'CartanType_simple_finite')
             sage: si1 = unpickle_newobj(pg_CartanType_simple_finite, ())
-            sage: pg_unpickleModule = unpickle_global('twisted.persisted.styles', 'unpickleModule')
+            sage: from sage.misc.fpickle import unpickleModule
             sage: pg_make_integer = unpickle_global('sage.rings.integer', 'make_integer')
             sage: si2 = pg_make_integer('4')
-            sage: unpickle_build(si1, {'tools':pg_unpickleModule('sage.combinat.root_system.type_A'), 't':['A', si2], 'letter':'A', 'n':si2})
+            sage: unpickle_build(si1, {'tools':unpickleModule('sage.combinat.root_system.type_A'), 't':['A', si2], 'letter':'A', 'n':si2})
 
             sage: si1
             ['A', 4]

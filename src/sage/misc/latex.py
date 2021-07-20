@@ -10,15 +10,14 @@ AUTHORS:
 - William Stein: original implementation
 - Joel B. Mohler: latex_variable_name() drastic rewrite and many doc-tests
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 
 import os
@@ -27,9 +26,7 @@ import re
 import shutil
 import subprocess
 
-from six import iteritems, integer_types
-
-from sage.cpython.string  import str_to_bytes
+from six import integer_types
 
 from sage.misc import sage_eval
 from sage.misc.cachefunc import cached_function, cached_method
@@ -368,7 +365,7 @@ def dict_function(x):
     """
     return "".join([r"\left\{",
                     ", ".join(r"%s : %s" % (latex(key), latex(value))
-                              for key, value in iteritems(x)),
+                              for key, value in x.items()),
                     r"\right\}"])
 
 # One can add to the latex_table in order to install latexing
@@ -1033,7 +1030,7 @@ class Latex(LatexCall):
                 k = str(latex(sage_eval.sage_eval(var, locals)))
             except Exception as msg:
                 print(msg)
-                k = '\\mbox{\\rm [%s undefined]}'%var
+                k = '\\mbox{\\rm [%s undefined]}' % var
             s = s[:i] + k + t[j+1:]
 
     def eval(self, x, globals, strip=False, filename=None, debug=None,
@@ -1083,7 +1080,7 @@ class Latex(LatexCall):
             sage: fn = tmp_filename()
             sage: latex.eval("$\\ZZ[x]$", locals(), filename=fn) # not tested
             ''
-            sage: latex.eval("\ThisIsAnInvalidCommand", {}) # optional -- ImageMagick
+            sage: latex.eval(r"\ThisIsAnInvalidCommand", {}) # optional -- ImageMagick
             An error occurred...
             No pages of output...
         """
@@ -1112,7 +1109,7 @@ class Latex(LatexCall):
             O.write(MACROS)
             O.write('\\begin{document}\n')
 
-        O.write(str_to_bytes(x, encoding='utf-8'))
+        O.write(x)
         if self.__slide:
             O.write('\n\n\\end{document}')
         else:
@@ -1898,7 +1895,7 @@ class MathJax:
 
         OUTPUT:
 
-        A :calss:`MathJaxExpr`
+        A :class:`MathJaxExpr`
 
         EXAMPLES::
 
@@ -2223,8 +2220,8 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
             print(MathJax().eval(objects, mode=mode, combine_all=combine_all))
         else:
             base_dir = os.path.abspath("")
-            from sage.misc.temporary_file import graphics_filename
-            png_file = graphics_filename()
+            from sage.misc.temporary_file import tmp_filename
+            png_file = tmp_filename(ext='.png')
             png_link = "cell://" + png_file
             png(objects, os.path.join(base_dir, png_file),
                 debug=debug, engine=engine)
