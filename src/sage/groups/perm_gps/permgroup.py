@@ -136,8 +136,6 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
-from six import integer_types
 
 from functools import wraps
 
@@ -450,7 +448,7 @@ class PermutationGroup_generic(FiniteGroup):
             #Here we need to check if all of the points are integers
             #to make the domain contain all integers up to the max.
             #This is needed for backward compatibility
-            if all(isinstance(p, (Integer,) + integer_types) for p in domain):
+            if all(isinstance(p, (int, Integer)) for p in domain):
                 domain = list(range(min([1] + domain), max([1] + domain)+1))
 
         if domain not in FiniteEnumeratedSets():
@@ -787,7 +785,7 @@ class PermutationGroup_generic(FiniteGroup):
             ....:         if elt in G2:
             ....:             assert G1(G2(elt)) == elt
         """
-        if isinstance(x, integer_types + (Integer,)) and x == 1:
+        if isinstance(x, (int, Integer)) and x == 1:
             return self.identity()
 
         if isinstance(x, PermutationGroupElement):
@@ -2946,10 +2944,12 @@ class PermutationGroup_generic(FiniteGroup):
             ret_fp = ret_fp.simplified()
         return ret_fp
 
-    def quotient(self, N):
+    def quotient(self, N, **kwds):
         """
         Returns the quotient of this permutation group by the normal
         subgroup `N`, as a permutation group.
+
+        Further named arguments are passed to the permutation group constructor.
 
         Wraps the GAP operator "/".
 
@@ -2967,7 +2967,7 @@ class PermutationGroup_generic(FiniteGroup):
         # This is currently done using the right regular representation
         # FIXME: GAP certainly knows of a better way!
         phi = Q.RegularActionHomomorphism()
-        return PermutationGroup(gap_group=phi.Image())
+        return PermutationGroup(gap_group=phi.Image(), **kwds)
 
     def commutator(self, other=None):
         r"""

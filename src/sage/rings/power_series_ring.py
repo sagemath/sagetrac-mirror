@@ -122,7 +122,6 @@ TESTS::
 
 """
 from __future__ import absolute_import
-from six import integer_types
 
 from . import power_series_poly
 from . import power_series_mpoly
@@ -352,7 +351,7 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
         arg2 = names
         names = num_gens
     if (isinstance(arg2, str) and
-            isinstance(names, integer_types + (integer.Integer,))):
+            isinstance(names, (int, integer.Integer))):
         return _multi_variate(base_ring, num_gens=names, names=arg2,
                      order=order, default_prec=default_prec, sparse=sparse)
 
@@ -377,7 +376,7 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
 
     # the following is the original, univariate-only code
 
-    if isinstance(name, integer_types + (integer.Integer,)):
+    if isinstance(name, (int, integer.Integer)):
         default_prec = name
     if not names is None:
         name = names
@@ -825,9 +824,18 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             Univariate Polynomial Ring in x over Integer Ring
             sage: R == c(S)
             True
+            sage: R = PowerSeriesRing(ZZ, 'x', sparse=True)
+            sage: c, S = R.construction()
+            sage: R == c(S)
+            True
+
         """
         from sage.categories.pushout import CompletionFunctor
-        return CompletionFunctor(self._names[0], self.default_prec()), self._poly_ring()
+        if self.is_sparse():
+            extras = {'sparse': True}
+        else:
+            extras = None
+        return CompletionFunctor(self._names[0], self.default_prec(), extras), self._poly_ring()
 
     def _coerce_impl(self, x):
         """

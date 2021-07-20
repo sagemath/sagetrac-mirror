@@ -32,8 +32,6 @@ TESTS::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import iteritems, integer_types
 
 # System imports
 import sys
@@ -74,6 +72,11 @@ from sage.misc.all import lazy_attribute
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
 from sage.categories.enumerated_sets import EnumeratedSets
+
+from sage.misc.lazy_import import lazy_import
+from sage.features import PythonModule
+lazy_import('sage.matrix.matrix_gfpn_dense', ['Matrix_gfpn_dense'],
+            feature=PythonModule('sage.matrix.matrix_gfpn_dense', spkg='meataxe'))
 
 _Rings = Rings()
 _Fields = Fields()
@@ -134,6 +137,11 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         <type 'sage.matrix.matrix_gap.Matrix_gap'>
         sage: get_matrix_class(ZZ, 3, 3, False, 'generic')
         <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+
+        sage: get_matrix_class(GF(2^15), 3, 3, False, None)
+        <class 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
+        sage: get_matrix_class(GF(2^17), 3, 3, False, None)
+        <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
         sage: get_matrix_class(GF(2), 2, 2, False, 'm4ri')
         <type 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
@@ -217,9 +225,9 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                     return matrix_complex_double_dense.Matrix_complex_double_dense
 
             if sage.rings.finite_rings.finite_field_constructor.is_FiniteField(R):
-                if R.order() == 2 and R.order() <= 65536:
+                if R.order() == 2:
                     return matrix_mod2_dense.Matrix_mod2_dense
-                if R.characteristic() == 2:
+                if R.characteristic() == 2 and R.order() <= 65536:  # 65536 == 2^16
                     return matrix_gf2e_dense.Matrix_gf2e_dense
 
                 if (not R.is_prime_field()) and R.order() < 256:
@@ -276,13 +284,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
 
         if implementation == 'meataxe':
             if R.is_field() and R.order() < 256:
-                try:
-                    from . import matrix_gfpn_dense
-                except ImportError:
-                    from sage.misc.package import PackageNotFoundError
-                    raise PackageNotFoundError('meataxe')
-                else:
-                    return matrix_gfpn_dense.Matrix_gfpn_dense
+                return Matrix_gfpn_dense
             raise ValueError("'meataxe' matrix can only deal with finite fields of order < 256")
 
         if implementation == 'numpy':
@@ -1497,7 +1499,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
             ...
             AttributeError: 'MatrixSpace_with_category' object has no attribute 'list'
         """
-        if isinstance(x, integer_types + (integer.Integer,)):
+        if isinstance(x, (integer.Integer, int)):
             return self.list()[x]
         return super(MatrixSpace, self).__getitem__(x)
 
@@ -2225,7 +2227,7 @@ def dict_to_list(entries, nrows, ncols):
         [1, 0, 0, 0, 2, 0]
     """
     v = [0] * (nrows * ncols)
-    for ij, y in iteritems(entries):
+    for ij, y in entries.items():
         i, j = ij
         v[i * ncols + j] = y
     return v
