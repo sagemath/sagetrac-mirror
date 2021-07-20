@@ -195,7 +195,6 @@ FriCAS does some limits right::
 #
 #                  https://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function
 
 import re
 import os
@@ -206,10 +205,18 @@ from sage.env import DOT_SAGE, LOCAL_IDENTIFIER
 from sage.docs.instancedoc import instancedoc
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from sage.rings.infinity import infinity
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.libs.pynac.pynac', ['symbol_table'])
 lazy_import('sage.calculus.var', ['var', 'function'])
+lazy_import('sage.symbolic.constants', ['I', 'e', 'pi'])
 
+FRICAS_CONSTANTS = {'%i': I,
+                    '%e': e,
+                    '%pi': pi,
+                    'infinity': infinity,
+                    'plusInfinity': infinity,
+                    'minusInfinity': -infinity}
 
 FRICAS_SINGLE_LINE_START = 3  # where output starts when it fits next to the line number
 FRICAS_MULTI_LINE_START = 2   # and when it doesn't
@@ -254,7 +261,6 @@ FRICAS_LINENUMBER_OFF_CODE = ")lisp (setf |$IOindex| NIL)"
 FRICAS_FIRST_PROMPT = r"\(1\) -> "
 FRICAS_LINENUMBER_OFF_PROMPT = r"\(NIL\) -> "
 
-
 class FriCAS(ExtraTabCompletion, Expect):
     """
     Interface to a FriCAS interpreter.
@@ -284,7 +290,7 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: fricas(I*x).sage()                                            # optional - fricas
             I*x
         """
-        eval_using_file_cutoff = 4096-5  # magic number from Expect._eval_line (there might be a bug)
+        eval_using_file_cutoff = 4096 - 5  # magic number from Expect._eval_line (there might be a bug)
         assert max(len(c) for c in FRICAS_INIT_CODE) < eval_using_file_cutoff
         self.__eval_using_file_cutoff = eval_using_file_cutoff
         self._COMMANDS_CACHE = '%s/%s_commandlist_cache.sobj' % (DOT_SAGE, name)
@@ -435,8 +441,8 @@ http://fricas.sourceforge.net.
             names = [x for x in v if valid.search(x) is None]
 
             # replace trailing ? with _q and trailing ! with _e
-            names += [x[:-1]+"_q" for x in v if x.endswith("?")]
-            names += [x[:-1]+"_e" for x in v if x.endswith("!")]
+            names += [x[:-1] + "_q" for x in v if x.endswith("?")]
+            names += [x[:-1] + "_e" for x in v if x.endswith("!")]
 
             self.__tab_completion = names
             if len(v) > 200:
@@ -1306,9 +1312,18 @@ class FriCASElement(ExpectElement):
             sage: FriCASElement._parse_other("abc -1.23", 4)
             (-1.23, 8)
 
-        This function uses the symbol table to translate symbols
-        which are not function calls.  At least ``%pi`` is an
-        example showing that this may be necessary::
+        This function cannot use the symbol table to translate
+        symbols which are not function calls, as :trac:`31849` shows
+        - ``D`` would erroneously be interpreted as differential
+        then::
+
+            sage: var("D")
+            D
+            sage: integrate(D/x, x, algorithm="fricas")                         # optional - fricas
+            D*log(x)
+
+        However, it does have to check for constants, for example
+        ``%pi``::
 
             sage: FriCASElement._parse_other("%pi")
             (pi, 2)
@@ -1333,10 +1348,10 @@ class FriCASElement(ExpectElement):
                     e = float(e)
                 except ValueError:
                     try:
-                        e = symbol_table["fricas"][e]
+                        e = FRICAS_CONSTANTS[e]
                     except KeyError:
                         e = var(e.replace("%", "_"))
-        return e, a-1
+        return e, a - 1
 
     @staticmethod
     def _parse_string(s, start=0):
@@ -1462,6 +1477,23 @@ class FriCASElement(ExpectElement):
             sage: fricas(s).sage()                                              # optional - fricas
             1/3840*n^10 - 5/2304*n^9 + 5/1152*n^8 + 31/5760*n^7 - 229/11520*n^6 - 5/2304*n^5 + 1/36*n^4 - 1/960*n^3 - 1/80*n^2
 
+        Some checks for digamma and polygamma (:trac:`31853`)::
+
+            sage: fricas.digamma(1.0)                                           # optional - fricas
+            - 0.5772156649_0153286061
+            sage: psi(1.0)
+            -0.577215664901533
+            sage: fricas.polygamma(1, 1.0)                                      # optional - fricas
+            1.6449340668482269
+            sage: psi(1, 1).n()
+            1.64493406684823
+
+            sage: var("w")
+            w
+            sage: fricas.laplace(log(x), x, w).sage()                           # optional - fricas
+            -(euler_gamma + log(w))/w
+            sage: fricas(laplace(log(x), x, w)).sage()                          # optional - fricas
+            -(euler_gamma + log(w))/w
 
         Check that :trac:`25224` is fixed::
 
@@ -1556,22 +1588,40 @@ class FriCASElement(ExpectElement):
             sage: fricas(abs(x)).sage().subs(x=-1783)                           # optional - fricas
             1783
 
+        Check that :trac:`27310` is fixed::
+
+            sage: fricas.set("F", "operator 'f")                                # optional - fricas
+            sage: fricas("eval(D(F(x,y), [x, y], [2, 1]), x=x+y)").sage()       # optional - fricas
+            D[0, 0, 1](f)(x + y, y)
+
+        Conversion of hypergeometric functions (:trac:`31298`)::
+
+            sage: a,b,c = var("a b c")
+            sage: A = hypergeometric([a, b], [c], x)
+            sage: fricas(A).sage() - A                                          # optional - fricas
+            0
+            sage: fricas(A).D(x).sage() - diff(A, x)                            # optional - fricas
+            0
+
+        Check that :trac:`31858` is fixed::
+
+            sage: fricas.Gamma(3/2).sage()                                      # optional - fricas
+            1/2*sqrt(pi)
+            sage: fricas.Gamma(3/4).sage()                                      # optional - fricas
+            gamma(3/4)
+            sage: fricas.Gamma(3, 2).sage()                                     # optional - fricas
+            gamma(3, 2)
+
         """
         from sage.libs.pynac.pynac import register_symbol
-        from sage.symbolic.all import I
-        from sage.symbolic.constants import e, pi
         from sage.calculus.functional import diff
         from sage.functions.log import dilog, lambert_w
         from sage.functions.trig import sin, cos, tan, cot, sec, csc
         from sage.functions.hyperbolic import tanh, sinh, cosh, coth, sech, csch
+        from sage.functions.other import abs
+        from sage.functions.gamma import gamma
         from sage.misc.functional import symbolic_sum, symbolic_prod
-        from sage.rings.infinity import infinity
-        register_symbol(I, {'fricas': '%i'})
-        register_symbol(e, {'fricas': '%e'})
-        register_symbol(pi, {'fricas': 'pi'})  # fricas uses both pi and %pi
-        register_symbol(lambda: infinity, {'fricas': 'infinity'})
-        register_symbol(lambda: infinity, {'fricas': 'plusInfinity'})
-        register_symbol(lambda: -infinity, {'fricas': 'minusInfinity'})
+        register_symbol(pi, {'fricas': 'pi'}) # pi is also a function in fricas
         register_symbol(cos, {'fricas': 'cos'})
         register_symbol(sin, {'fricas': 'sin'})
         register_symbol(tan, {'fricas': 'tan'})
@@ -1584,19 +1634,31 @@ class FriCASElement(ExpectElement):
         register_symbol(coth, {'fricas': 'coth'})
         register_symbol(sech, {'fricas': 'sech'})
         register_symbol(csch, {'fricas': 'csch'})
+        register_symbol(gamma, {'fricas': 'Gamma'})
         register_symbol(lambda x, y: x + y, {'fricas': '+'})
         register_symbol(lambda x, y: x - y, {'fricas': '-'})
         register_symbol(lambda x, y: x * y, {'fricas': '*'})
         register_symbol(lambda x, y: x / y, {'fricas': '/'})
         register_symbol(lambda x, y: x ** y, {'fricas': '^'})
         register_symbol(lambda f, x: diff(f, x), {'fricas': 'D'})
-        register_symbol(lambda x, y: x + y*I, {'fricas': 'complex'})
-        register_symbol(lambda x: dilog(1-x), {'fricas': 'dilog'})
+        register_symbol(lambda x, y: x + y * I, {'fricas': 'complex'})
+        register_symbol(lambda x: dilog(1 - x), {'fricas': 'dilog'})
         register_symbol(lambda z: lambert_w(z), {'fricas': 'lambertW'})
+        register_symbol(abs, {'fricas': 'abs'})
+        # construct occurs in the InputForm of hypergeometricF
+        register_symbol(lambda *x: x, {'fricas': 'construct'})
         # the following is a hack to deal with
         # integrate(sin((x^2+1)/x),x)::INFORM giving
         # (integral (sin (/ (+ (^ x 2) 1) x)) (:: x Symbol))
         register_symbol(lambda x, y: x, {'fricas': '::'})
+
+        def _convert_eval(f, a, b):
+            # it might be that FriCAS also returns a two-argument
+            # eval, where the second argument is a list of equations,
+            # in which case this function needs to be adapted
+            return f.subs({a: b})
+
+        register_symbol(_convert_eval, {'fricas': 'eval'})
 
         def _convert_sum(x, y):
             v, seg = y.operands()
@@ -1705,7 +1767,7 @@ class FriCASElement(ExpectElement):
 
         We can also convert FriCAS's polynomials to Sage polynomials::
 
-            sage: a = fricas(x^2 + 1); a.typeOf()                               # optional - fricas
+            sage: a = fricas("x^2 + 1"); a.typeOf()                             # optional - fricas
             Polynomial(Integer)
             sage: a.sage()                                                      # optional - fricas
             x^2 + 1
@@ -1823,10 +1885,9 @@ class FriCASElement(ExpectElement):
             <BLANKLINE>
                Cannot convert the value from type Any to InputForm .
         """
-        from sage.rings.all import PolynomialRing, RDF
+        from sage.rings.all import PolynomialRing, RDF, I
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
-        from sage.symbolic.all import I
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
         from sage.structure.factorization import Factorization
@@ -1870,7 +1931,7 @@ class FriCASElement(ExpectElement):
             return self.numer().sage() / self.denom().sage()
 
         if head == "Complex":
-            return self.real().sage() + self.imag().sage()*I
+            return self.real().sage() + self.imag().sage() * I
 
         if head == "Factored":
             l = P.new('[[f.factor, f.exponent] for f in factors(%s)]' % self._name).sage()
@@ -1904,7 +1965,7 @@ class FriCASElement(ExpectElement):
             prec = max(P.new("length mantissa(%s)" % self._name).sage(), 53)
             R = RealField(prec)
             x, e, b = unparsed_InputForm.lstrip('float(').rstrip(')').split(',')
-            return R(ZZ(x)*ZZ(b)**ZZ(e))
+            return R(ZZ(x) * ZZ(b)**ZZ(e))
 
         if head == "DoubleFloat":
             return RDF(unparsed_InputForm)

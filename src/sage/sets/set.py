@@ -35,7 +35,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.misc.latex import latex
 from sage.misc.prandom import choice
@@ -84,7 +83,7 @@ def has_finite_length(obj):
         return True
 
 
-def Set(X=[]):
+def Set(X=None):
     r"""
     Create the underlying set of ``X``.
 
@@ -183,7 +182,9 @@ def Set(X=[]):
         sage: Set()
         {}
     """
-    if isinstance(X, CategoryObject):
+    if X is None:
+        X = []
+    elif isinstance(X, CategoryObject):
         if isinstance(X, Set_generic):
             return X
         elif X in Sets().Finite():
@@ -836,7 +837,7 @@ class Set_object_enumerated(Set_object):
             sage: latex(S)
             \left\{0, 1\right\}
         """
-        return '\\left\\{' + ', '.join([latex(x) for x in self.set()])  + '\\right\\}'
+        return '\\left\\{' + ', '.join(latex(x) for x in self.set())  + '\\right\\}'
 
     def _repr_(self):
         r"""

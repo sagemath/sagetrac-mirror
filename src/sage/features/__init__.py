@@ -374,7 +374,9 @@ def package_systems():
         # to obtain system package advice.
         try:
             proc = run('sage-guess-package-system', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True, check=True)
-            _cache_package_systems = [PackageSystem(proc.stdout.strip())]
+            system_name = proc.stdout.strip()
+            if system_name != 'unknown':
+                _cache_package_systems = [PackageSystem(system_name)]
         except CalledProcessError:
             pass
         more_package_systems = [SagePackageSystem(), PipPackageSystem()]
@@ -663,11 +665,17 @@ class StaticFile(Feature):
 
         EXAMPLES::
 
-            sage: from sage.features.databases import DatabaseCremona
-            sage: DatabaseCremona().absolute_path()  # optional: database_cremona_ellcurve
-            '.../local/share/cremona/cremona.db'
+            sage: from sage.features import StaticFile
+            sage: from sage.misc.temporary_file import tmp_dir
+            sage: dir_with_file = tmp_dir()
+            sage: file_path = os.path.join(dir_with_file, "file.txt")
+            sage: open(file_path, 'a').close() # make sure the file exists
+            sage: search_path = ( '/foo/bar', dir_with_file ) # file is somewhere in the search path
+            sage: feature = StaticFile(name="file", filename="file.txt", search_path=search_path)
+            sage: feature.absolute_path() == file_path
+            True
 
-        A ``FeatureNotPresentError`` is raised if the file can not be found::
+        A ``FeatureNotPresentError`` is raised if the file cannot be found::
 
             sage: from sage.features import StaticFile
             sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=(), spkg="some_spkg", url="http://rand.om").absolute_path()  # optional - sage_spkg

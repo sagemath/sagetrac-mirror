@@ -68,7 +68,6 @@ TESTS::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, division, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off, sig_check
 
@@ -1046,11 +1045,9 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     def sqrt(self, extend=True, all=False):
         r"""
-        Returns square root or square roots of ``self`` modulo
-        `n`.
+        Return square root or square roots of ``self`` modulo `n`.
 
         INPUT:
-
 
         -  ``extend`` - bool (default: ``True``);
            if ``True``, return a square root in an extension ring,
@@ -1060,7 +1057,6 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         -  ``all`` - bool (default: ``False``); if
            ``True``, return {all} square roots of self, instead of
            just one.
-
 
         ALGORITHM: Calculates the square roots mod `p` for each of
         the primes `p` dividing the order of the ring, then lifts
@@ -1162,7 +1158,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
         if not self.is_square_c():
             if extend:
-                y = 'sqrt%s'%self
+                y = 'sqrt%s' % self
                 R = self.parent()['x']
                 modulus = R.gen()**2 - R(self)
                 if self._parent.is_field():
@@ -2795,11 +2791,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def sqrt(self, extend=True, all=False):
         r"""
-        Returns square root or square roots of ``self`` modulo
-        `n`.
+        Return square root or square roots of ``self`` modulo `n`.
 
         INPUT:
-
 
         -  ``extend`` - bool (default: ``True``);
            if ``True``, return a square root in an extension ring,
@@ -2809,7 +2803,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         -  ``all`` - bool (default: ``False``); if
            ``True``, return {all} square roots of self, instead of
            just one.
-
 
         ALGORITHM: Calculates the square roots mod `p` for each of
         the primes `p` dividing the order of the ring, then lifts
@@ -2895,6 +2888,13 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             [23, 41, 87, 105]
             sage: [x for x in R if x^2==17]
             [23, 41, 87, 105]
+
+        TESTS:
+
+        Check for :trac:`30797`::
+
+            sage: GF(103)(-1).sqrt(extend=False, all=True)
+            []
         """
         cdef int_fast32_t i, n = self.__modulus.int32
         if n > 100:
@@ -2905,8 +2905,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             if jacobi_int(self.ivalue, self.__modulus.int32) == 1:
                 # it's a non-zero square, sqrt(a) = a^(p+1)/4
                 i = mod_pow_int(self.ivalue, (self.__modulus.int32+1)/4, n)
-                if i > n/2:
-                    i = n-i
+                if i > n / 2:
+                    i = n - i
                 if all:
                     return [self._new_c(i), self._new_c(n-i)]
                 else:
@@ -2914,6 +2914,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             elif self.ivalue == 0:
                 return [self] if all else self
             elif not extend:
+                if all:
+                    return []
                 raise ValueError("self must be a square")
         # Now we use a heuristic to guess whether or not it will
         # be faster to just brute-force search for squares in a c loop...

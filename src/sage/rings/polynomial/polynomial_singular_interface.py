@@ -20,7 +20,7 @@ TESTS::
 """
 #################################################################
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
@@ -41,7 +41,7 @@ import sage.rings.fraction_field
 import sage.rings.number_field as number_field
 
 from sage.interfaces.all import singular
-from sage.rings.complex_field import is_ComplexField
+from sage.rings.complex_mpfr import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_double import is_ComplexDoubleField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
@@ -165,7 +165,7 @@ class PolynomialRing_singular_repr:
             sage: R = IntegerModRing(15)['x,y']
             sage: singular(R)
             polynomial ring, over a ring (with zero-divisors), global ordering
-            //   coefficients: ZZ/bigint(15)
+            //   coefficients: ZZ/...(15)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y

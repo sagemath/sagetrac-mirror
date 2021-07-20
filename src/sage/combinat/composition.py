@@ -21,14 +21,13 @@ AUTHORS:
 - MuPAD-Combinat developers (algorithms and design inspiration)
 - Travis Scrimshaw (2013-02-03): Removed ``CombinatorialClass``
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen       <mhansen@gmail.com>
 #                     2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#              http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
+#              https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -252,7 +251,7 @@ class Composition(CombinatorialElement):
 
         cocjg = []
         for i in range(n-1):
-            cocjg += [i+1 for _ in range(0, (coofcp[n-i-1]-coofcp[n-i-2]))]
+            cocjg += [i + 1 for _ in range(coofcp[n-i-1]-coofcp[n-i-2])]
         cocjg += [n for j in range(coofcp[0])]
 
         return self.parent()([cocjg[0]] + [cocjg[i]-cocjg[i-1]+1 for i in range(1,len(cocjg))])
@@ -705,8 +704,6 @@ class Composition(CombinatorialElement):
             ....:                 for I in Compositions(n) )
             sage: all( test_meet(n) for n in range(1, 5) )
             True
-            sage: all( test_meet(n) for n in range(5, 9) )  # long time
-            True
 
         TESTS::
 
@@ -857,11 +854,11 @@ class Composition(CombinatorialElement):
             sage: c.fatten(Composition([3,1,1])).__class__ == c.__class__
             True
         """
-        result = [None] * len(grouping)
+        result = []
         j = 0
-        for i in range(len(grouping)):
-            result[i] = sum(self[j:j+grouping[i]])
-            j += grouping[i]
+        for gi in grouping:
+            result.append(sum(self[j:j + gi]))
+            j += gi
         return Compositions()(result)
 
     def fatter(self):
@@ -1191,7 +1188,7 @@ class Composition(CombinatorialElement):
             sum_outer += k - overlap
             inner.append(sum_outer + overlap)
 
-        if self != []:
+        if self:
             outer.append(self[-1] + sum_outer + overlap)
         else:
             return SkewPartition([[],[]])
@@ -1199,7 +1196,6 @@ class Composition(CombinatorialElement):
         return SkewPartition(
             [ [x for x in reversed(outer) if x != 0],
               [x for x in reversed(inner) if x != 0] ])
-
 
     def shuffle_product(self, other, overlap=False):
         r"""
@@ -1251,23 +1247,26 @@ class Composition(CombinatorialElement):
         composition more than once since a composition can be a shuffle of two
         compositions in several ways. For example::
 
-            sage: S = Composition([1]).shuffle_product([1]); S
+            sage: w1 = Composition([1])
+            sage: S = w1.shuffle_product(w1); S
             Shuffle product of [1] and [1]
             sage: S.list()
             [[1, 1], [1, 1]]
-            sage: O = Composition([1]).shuffle_product([1], overlap=True); O
+            sage: O = w1.shuffle_product(w1, overlap=True); O
             Overlapping shuffle product of [1] and [1]
             sage: O.list()
             [[1, 1], [1, 1], [2]]
 
         TESTS::
 
-            sage: Composition([]).shuffle_product([]).list()
+            sage: empty = Composition([])
+            sage: empty.shuffle_product(empty).list()
             [[]]
         """
         if overlap:
             from sage.combinat.shuffle import ShuffleProduct_overlapping
-            return ShuffleProduct_overlapping(self, other, Compositions())
+            return ShuffleProduct_overlapping(self, other,
+                                              Compositions())
         else:
             from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
             return ShuffleProduct_w1w2(self, other)
@@ -2019,4 +2018,3 @@ def composition_iterator_fast(n):
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)
-

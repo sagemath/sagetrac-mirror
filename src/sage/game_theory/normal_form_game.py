@@ -741,11 +741,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
             sage: p1 = matrix([[1, 2], [3, 4]])
             sage: p2 = matrix([[3, 3], [1, 4], [6, 6]])
-            sage: error = NormalFormGame(p1, p2)  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: __init__() takes at most 2 arguments (3 given)
-            sage: error = NormalFormGame(p1, p2)  # py3
+            sage: error = NormalFormGame(p1, p2)
             Traceback (most recent call last):
             ...
             TypeError: __init__() takes from 1 to 2 positional arguments but 3 were given
@@ -1540,7 +1536,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: cg = NormalFormGame([A])
             sage: cg.obtain_nash(algorithm='lp')
             [[(0.5, 0.5), (0.5, 0.5)]]
-            sage: cg.obtain_nash(algorithm='lp', solver='Coin') # optional - cbc
+            sage: cg.obtain_nash(algorithm='lp', solver='Coin') # optional - sage_numerical_backends_coin
             [[(0.5, 0.5), (0.5, 0.5)]]
             sage: cg.obtain_nash(algorithm='lp', solver='PPL')
             [[(1/2, 1/2), (1/2, 1/2)]]
@@ -1551,8 +1547,8 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: ne = cg.obtain_nash(algorithm='lp', solver='glpk')
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
-            sage: ne = cg.obtain_nash(algorithm='lp', solver='Coin') # optional - cbc
-            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - cbc
+            sage: ne = cg.obtain_nash(algorithm='lp', solver='Coin') # optional - sage_numerical_backends_coin
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - sage_numerical_backends_coin
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
             sage: cg.obtain_nash(algorithm='lp', solver='PPL')
             [[(2/3, 1/3), (2/3, 1/3)]]
@@ -1565,8 +1561,8 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: ne = cg.obtain_nash(algorithm='lp', solver='glpk')
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
             [[[0.333333, 0.333333, 0.333333], [0.333333, 0.333333, 0.333333]]]
-            sage: ne = cg.obtain_nash(algorithm='lp', solver='Coin') # optional - cbc
-            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - cbc
+            sage: ne = cg.obtain_nash(algorithm='lp', solver='Coin') # optional - sage_numerical_backends_coin
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - sage_numerical_backends_coin
             [[[0.333333, 0.333333, 0.333333], [0.333333, 0.333333, 0.333333]]]
             sage: cg.obtain_nash(algorithm='lp', solver='PPL')
             [[(1/3, 1/3, 1/3), (1/3, 1/3, 1/3)]]
@@ -1843,7 +1839,7 @@ class NormalFormGame(SageObject, MutableMapping):
             [[(0.5, 0.5), (0.5, 0.5)]]
             sage: g._solve_LP('gambit') # optional - gambit
             [[(0.5, 0.5), (0.5, 0.5)]]
-            sage: g._solve_LP('Coin') # optional - cbc
+            sage: g._solve_LP('Coin') # optional - sage_numerical_backends_coin
             [[(0.5, 0.5), (0.5, 0.5)]]
             sage: g._solve_LP('PPL')
             [[(1/2, 1/2), (1/2, 1/2)]]
@@ -1855,8 +1851,8 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: ne = g._solve_LP('gambit') # optional - gambit
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - gambit
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
-            sage: ne = g._solve_LP('Coin') # optional - cbc
-            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - cbc
+            sage: ne = g._solve_LP('Coin') # optional - sage_numerical_backends_coin
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - sage_numerical_backends_coin
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
             sage: g._solve_LP('PPL')
             [[(2/3, 1/3), (2/3, 1/3)]]

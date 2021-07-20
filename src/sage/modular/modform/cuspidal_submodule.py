@@ -29,7 +29,6 @@ EXAMPLES::
     q - 6*q^2 + 9*q^3 + 4*q^4 + 6*q^5 + O(q^6)
     ]
 """
-from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
@@ -649,7 +648,8 @@ def _convert_matrix_from_modsyms(symbs, T):
             basis.append(v)
             basis_images.append(X([ hecke_image_ls[m][i] for m in range(r) ]))
             Y = Ynew
-            if len(basis) == d: break
+            if len(basis) == d:
+                break
 
     # now we can compute the matrix acting on the echelonized space of mod forms
     # need to pass A as base ring since otherwise there are problems when the

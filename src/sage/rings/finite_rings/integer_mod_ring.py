@@ -59,7 +59,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
 
 import sage.misc.prandom as random
 
@@ -627,7 +626,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: Integers(5).multiplicative_subgroups()
             ((2,), (4,), ())
             sage: Integers(15).multiplicative_subgroups()
-            ((11, 7), (4, 11), (8,), (11,), (14,), (7,), (4,), ())
+            ((11, 7), (11, 4), (2,), (11,), (14,), (7,), (4,), ())
             sage: Integers(2).multiplicative_subgroups()
             ((),)
             sage: len(Integers(341).multiplicative_subgroups())
@@ -1315,7 +1314,7 @@ In the latter case, please inform the developers.""".format(self.order()))
 
         """
         # We want that GF(p) and IntegerModRing(p) evaluate unequal.
-        # However, we can not just compare the types, since the
+        # However, we cannot just compare the types, since the
         # choice of a different category also changes the type.
         # But if we go to the base class, we avoid the influence
         # of the category.

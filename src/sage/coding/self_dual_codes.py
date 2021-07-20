@@ -85,7 +85,6 @@ REFERENCES:
   "A classification of self-orthogonal codes over GF(2)", Discrete
   Math 3 (1972) 209-246.
 """
-from __future__ import print_function
 
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.matrix.matrix_space import MatrixSpace
@@ -113,7 +112,9 @@ def _MS(n):
         sage: self_dual_codes._MS(8)
         Full MatrixSpace of 4 by 8 dense matrices over Finite Field of size 2
     """
-    n2 = ZZ(n)/2; return MatrixSpace(_F, n2, n)
+    n2 = ZZ(n)/2
+    return MatrixSpace(_F, n2, n)
+
 
 def _matA(n):
     r"""

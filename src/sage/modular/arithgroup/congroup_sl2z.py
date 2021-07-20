@@ -6,7 +6,6 @@ AUTHORS:
 - Niles Johnson (2010-08): :trac:`3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 """
-from __future__ import absolute_import
 
 ################################################################################
 #
@@ -208,7 +207,8 @@ class SL2Z_class(Gamma0_class):
             [ 1 -4]
             [ 0  1]
         """
-        if bound <= 1: raise ValueError("bound must be greater than 1")
+        if bound <= 1:
+            raise ValueError("bound must be greater than 1")
         c = ZZ.random_element(1-bound, bound, *args, **kwds)
         d = ZZ.random_element(1-bound, bound, *args, **kwds)
         if gcd(c,d) != 1: # try again

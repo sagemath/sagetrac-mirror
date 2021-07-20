@@ -59,7 +59,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function, absolute_import
 
 import sys
 
@@ -77,7 +76,7 @@ from sage.calculus.functions import jacobian
 
 from sage.rings.all import Integer
 from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
-from sage.rings.complex_field import ComplexField_class
+from sage.rings.complex_mpfr import ComplexField_class
 from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
@@ -2283,7 +2282,8 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
 
         # prepare homogeneous coordinate ring of X in Singular
         from sage.rings.polynomial.term_order import TermOrder
-        T = TermOrder('degrevlex'); T._singular_ringorder_column = 1  # (c,dp) in Singular
+        T = TermOrder('degrevlex')
+        T._singular_ringorder_column = 1  # (c,dp) in Singular
         S = X.ambient_space().coordinate_ring().change_ring(order=T)
         R = S.quotient_ring(X.defining_ideal().change_ring(S))
 

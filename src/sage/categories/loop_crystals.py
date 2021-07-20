@@ -11,7 +11,6 @@ Loop Crystals
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function, division, absolute_import
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
@@ -120,8 +119,11 @@ class LoopCrystals(Category_singleton):
             """
             G = Crystals().parent_class.digraph(self, subset, index_set)
             if have_dot2tex():
-                f = lambda u_v_label: ({"backward": u_v_label[2] == 0})
-                G.set_latex_options(edge_options=f)
+                def eopt(u_v_label):
+                    if u_v_label[2] == 0:
+                        return {"dir": "back"}
+                    return {}
+                G.set_latex_options(edge_options=eopt)
             return G
 
 # TODO: Should we make "regular" an axiom?

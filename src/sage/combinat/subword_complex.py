@@ -111,14 +111,12 @@ REFERENCES:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-# python3
-from __future__ import division, print_function
 
 from copy import copy
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.homology.simplicial_complex import SimplicialComplex, Simplex
+from sage.topology.simplicial_complex import SimplicialComplex, Simplex
 from sage.categories.simplicial_complexes import SimplicialComplexes
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.cone import Cone

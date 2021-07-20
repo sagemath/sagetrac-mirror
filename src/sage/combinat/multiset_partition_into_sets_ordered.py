@@ -61,7 +61,6 @@ with 4 letters divided into 2 blocks::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, division
 
 from functools import reduce
 from itertools import chain
@@ -82,7 +81,7 @@ from sage.sets.set import Set_object
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import binomial
-from sage.calculus.var import var
+from sage.symbolic.ring import SR
 
 from sage.combinat.subset import Subsets_sk
 from sage.combinat.composition import Composition, Compositions, composition_iterator_fast
@@ -186,7 +185,7 @@ class OrderedMultisetPartitionIntoSets(ClonableArray,
             sage: d.size() == None
             True
         """
-        # Delte empty blocks
+        # Delete empty blocks
         co = [block for block in data if block]
         if not _has_nonempty_sets(co):
             raise ValueError("cannot view %s as an ordered partition of %s"%(co, parent._Xtup))
@@ -2068,7 +2067,7 @@ class OrderedMultisetPartitionsIntoSets_n(OrderedMultisetPartitionsIntoSets):
         #
         # The 2-regular partitions have a nice generating function (see OEIS:A000009).
         # Below, we take (products of) coefficients of polynomials to compute cardinality.
-        t = var('t')
+        t = SR.var('t')
         partspoly = prod(1+t**k for k in range(1,self._n+1)).coefficients()
         deg = 0
         for alpha in composition_iterator_fast(self._n):
