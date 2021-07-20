@@ -217,7 +217,6 @@ def NormOneRestrictionOfScalars(field, rk=1):
         G = field.galois_group()
         oG = G.order()
         oF = field.degree()
-        l = []
         subG = [h for h in G.conjugacy_classes_subgroups() if oG/h.order() == oF and not(h.is_normal())]
         for H in subG:
             if any(h(e) == G.identity()(e) for e in field.gens() for h in H.gens()):
