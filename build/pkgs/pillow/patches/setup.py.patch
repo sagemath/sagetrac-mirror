@@ -1,24 +1,29 @@
 diff --git a/setup.py b/setup.py
-index 15d81e4..5893d3d 100755
+index cbc2641..1a0abb3 100755
 --- a/setup.py
 +++ b/setup.py
-@@ -15,6 +15,7 @@ import re
- import struct
- import subprocess
- import sys
-+import sysconfig
- import warnings
- from distutils import ccompiler, sysconfig
- from distutils.command.build_ext import build_ext
-@@ -311,6 +312,11 @@ class pil_build_ext(build_ext):
-             # darwin ports installation directories
-             _add_directory(library_dirs, "/opt/local/lib")
-             _add_directory(include_dirs, "/opt/local/include")
-+            # Check variable introduced in #27631.
-+            sysroot = sysconfig.get_config_var('Py_MACOS_SYSROOT')
-+            if sysroot is not None:
-+                _add_directory(library_dirs, sysroot+"/usr/lib")
-+                _add_directory(include_dirs, sysroot+"/usr/include")
+@@ -480,14 +480,16 @@ class pil_build_ext(build_ext):
+                 _add_directory(include_dirs, "/usr/X11/include")
  
-             # if Homebrew is installed, use its lib and include directories
-             try:
+             # SDK install path
+-            try:
+-                sdk_path = (
+-                    subprocess.check_output(["xcrun", "--show-sdk-path"])
+-                    .strip()
+-                    .decode("latin1")
+-                )
+-            except Exception:
+-                sdk_path = None
++            sdk_path = "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
++            if not os.path.exists(sdk_path):
++                 try:
++                     sdk_path = (
++                         subprocess.check_output(["xcrun", "--show-sdk-path"])
++                         .strip()
++                         .decode("latin1")
++                     )
++                 except Exception:
++                     sdk_path = None
+             if sdk_path:
+                 _add_directory(library_dirs, os.path.join(sdk_path, "usr", "lib"))
+                 _add_directory(include_dirs, os.path.join(sdk_path, "usr", "include"))
