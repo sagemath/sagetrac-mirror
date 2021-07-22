@@ -298,9 +298,9 @@ class DefiniteIntegral(BuiltinFunction):
             ans = definite_integral(f.diff(diff_param), x, a, b)
         else:
             ans = SR.zero()
-        if hasattr(b, 'diff') and b.diff(diff_param) != 0:
+        if hasattr(b, 'diff') and not b.diff(diff_param).is_trivial_zero():
             ans += f.subs(x == b) * b.diff(diff_param)
-        if hasattr(a, 'diff') and a.diff(diff_param) != 0:
+        if hasattr(a, 'diff') and not a.diff(diff_param).is_trivial_zero():
             ans -= f.subs(x == a) * a.diff(diff_param)
         return ans
 
