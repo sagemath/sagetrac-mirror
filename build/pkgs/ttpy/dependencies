@@ -1,0 +1,4 @@
+$(PYTHON) numpy gfortran | $(PYTHON_TOOLCHAIN) cython
+
+----------
+All lines of this file are ignored except the first.

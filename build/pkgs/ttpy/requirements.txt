@@ -1,0 +1,1 @@
+ttpy @ git+https://github.com/oseledets/ttpy@c43f49ecbb34ee997a8bad9e459e051304bb8a50#egg=ttpy
