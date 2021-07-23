@@ -4303,7 +4303,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         type = kwds.pop('type', 'point')
         embedding = kwds.pop('embedding', None)
         if not embedding is None:
-            raise ValueError('the embedding keyword is deprecated')
+            raise ValueError('the embedding keyword is deprecated, see :trac:`32205`')
 
         if (n < 1):
             raise ValueError("period must be a positive integer")
@@ -4521,7 +4521,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         type = kwds.pop('type', 'point')
         embedding = kwds.pop('embedding', None)
         if not embedding is None:
-            raise ValueError('The embedding keyword is deprecated')
+            raise ValueError('The embedding keyword is deprecated, see :trac:`32205`')
         if n < 1:
             raise ValueError("period must be a positive integer")
         dom = self.domain()
