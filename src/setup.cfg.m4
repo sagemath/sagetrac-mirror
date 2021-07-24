@@ -66,7 +66,6 @@ dnl From Makefile.in: DOC_DEPENDENCIES
 dnl Other Python packages that are standard spkg, used in doctests
 dnl except for rpy2 - which is excluded in the wheel build
     esyscmd(`sage-get-system-packages install-requires \
-        cvxopt         \
         fpylll         \
         | sed "2,\$s/^/    /;"')dnl
 dnl pycryptosat  # Sage distribution installs it as part of cryptominisat. According to its README on https://pypi.org/project/pycryptosat/: "The pycryptosat python package compiles while compiling CryptoMiniSat. It cannot be compiled on its own, it must be compiled at the same time as CryptoMiniSat."
