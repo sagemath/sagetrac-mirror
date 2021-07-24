@@ -83,13 +83,13 @@ class build_py(setuptools_build_py):
         # So (until the Sage distribution supports VPATH builds - #21469), we have to make a copy of sage_root_source.
         #
         # The file exclusions here duplicate what is done in MANIFEST.in
+
+        spkg_with_src = ['sagelib', 'sage_conf', 'sage_docbuild', 'sage_setup', 'sage_sws2rst']
+
         def ignore(path, names):
             # exclude all embedded src trees
-            if any(fnmatch.fnmatch(path, spkg) for spkg in ('*/build/pkgs/sagelib',
-                                                            '*/build/pkgs/sage_conf',
-                                                            '*/build/pkgs/sage_docbuild',
-                                                            '*/build/pkgs/sage_setup',
-                                                            '*/build/pkgs/sage_sws2rst')):
+            if any(fnmatch.fnmatch(path, f'*/build/pkgs/{spkg}')
+                   for spkg in spkg_with_src):
                 return ['src']
             return []
         try:
@@ -103,8 +103,12 @@ class build_py(setuptools_build_py):
             # Because of the above 'copytree',
             # within this try...finally block, SAGE_ROOT is a physical directory.
 
-            os.symlink(os.path.join(SAGE_ROOT, 'pkgs', 'sage-conf'),
-                       os.path.join(SAGE_ROOT, 'build', 'pkgs', 'sage_conf', 'src'))
+            # Re-create the "src" symlinks ignored above
+            for spkg in spkg_with_src:
+                shutil.copy(os.path.join(HERE, 'sage_root_source', 'build', 'pkgs', spkg, 'src'),
+                            os.path.join(SAGE_ROOT, 'build', 'pkgs', spkg),
+                            follow_symlinks=False)
+
             # Use our copy of the sage_conf template, which contains the relocation logic
             shutil.copyfile(os.path.join(HERE, 'sage_conf.py.in'),
                             os.path.join(SAGE_ROOT, 'pkgs', 'sage-conf', 'sage_conf.py.in'))
@@ -142,11 +146,6 @@ class build_py(setuptools_build_py):
             shutil.copyfile(os.path.join(SAGE_ROOT, 'src', 'bin', 'sage-env-config'),
                             os.path.join(SAGE_ROOT, 'build', 'pkgs', 'sage_conf', 'src', 'bin', 'sage-env-config'))
 
-            # temporarily link in the sagelib src so that 'make sagelib' can work.
-            # FIXME: This needs a better solution.
-            os.symlink(Path(os.path.join(HERE, 'sage_root_source', 'build', 'pkgs', 'sagelib', 'src')).resolve(),
-                       os.path.join(SAGE_ROOT, 'build', 'pkgs', 'sagelib', 'src'))
-
             SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads | cut -d" " -f 2)"; fi'
             TARGETS = 'build'
             # We run it through sage-logger... just to prefix all outputs
@@ -154,9 +153,6 @@ class build_py(setuptools_build_py):
             print(f"Running {cmd}", flush=True)
             if os.system(cmd) != 0:
                 raise DistutilsSetupError(f"make {TARGETS} failed")
-
-            # remove temporary link
-            os.remove(os.path.join(SAGE_ROOT, 'build', 'pkgs', 'sagelib', 'src'))
 
         except Exception as e:
             print(e)

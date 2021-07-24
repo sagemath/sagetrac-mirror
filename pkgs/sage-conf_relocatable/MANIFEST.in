@@ -3,10 +3,18 @@ include pyproject.toml
 include sage_conf.py.in
 graft bin
 graft sage_root_source
+# Avoid the "src" symlinks, which would be expanded to copies of the trees.
+# setup.py recreates the symlinks
+prune sage_root_source/build/pkgs/*/src
+# Avoid infinite symlink recursion
+prune sage_root_source/pkgs/sage-conf_*
 # These sources are not needed because individual distributions of these are made.
-prune sage_root_source/build/pkgs/*/src*
+##prune sage_root_source/pkgs
 # Except for this one because config.status writes there
-graft sage_root_source/build/pkgs/sage_conf/src
+graft sage_root_source/pkgs/sage-conf
+#
+prune sage_root
+prune build
 #
 global-exclude .tox
 global-exclude *~*
