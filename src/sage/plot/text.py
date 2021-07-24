@@ -361,6 +361,29 @@ def text(string, xy, **options):
 
         sphinx_plot(text("So good", (-2,2), background_color='red'))
 
+    Text can include LaTeX using dollar signs. Using raw strings
+    avoids having to escape backslash characters. ::
+
+        sage: A = arc((0, 0), 1, sector=(0.0, RDF.pi()))
+        sage: a = sqrt(1./2.)
+        sage: PQ = point2d([(a, a), (-a, a)])
+        sage: botleft = dict(horizontal_alignment='left', vertical_alignment='bottom')
+        sage: tp = text(r'$e^{i\pi/4}$', (a, a), **botleft)
+        sage: botright = dict(horizontal_alignment='right', vertical_alignment='bottom')
+        sage: tq = text(r'$(\sqrt{2}/2, \sqrt{2}/2)$', (-a, a), **botright)
+        sage: A + PQ + tp + tq
+
+    .. PLOT::
+
+        A = arc((0, 0), 1, sector=(0.0, RDF.pi()))
+        a = sqrt(1./2.)
+        PQ = point2d([(a, a), (-a, a)])
+        botleft = dict(horizontal_alignment='left', vertical_alignment='bottom')
+        tp = text(r'$e^{i\pi/4}$', (a, a), **botleft)
+        botright = dict(horizontal_alignment='right', vertical_alignment='bottom')
+        tq = text(r'$(\sqrt{2}/2, \sqrt{2}/2)$', (-a, a), **botright)
+        sphinx_plot(A + PQ + tp + tq)
+
     Text must be 2D (use the text3d command for 3D text)::
 
         sage: t = text("hi",(1,2,3))
