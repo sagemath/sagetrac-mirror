@@ -4149,7 +4149,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             raise ValueError("algorithm must be either 'variety' or 'cyclegraph'")
 
-    def multiplier_spectra(self, n, **kwds):
+    def multiplier_spectra(self, n, formal=False, embedding=None, type='point'):
         r"""
         Computes the ``n`` multiplier spectra of this dynamical system.
 
@@ -4168,11 +4168,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``n`` -- a positive integer, the period
 
-        The following optional keywords are accepted:
-
         - ``formal`` -- (default: ``False``) boolean; ``True`` specifies
           to find the formal ``n`` multiplier spectra of this map and
           ``False`` specifies to find the ``n`` multiplier spectra
+
+        - ``embedding`` -- (default: ``None``) ignored. See :trac: `32205`.
 
         - ``type`` -- (default: ``'point'``) string; either ``'point'``
           or ``'cycle'`` depending on whether you compute one multiplier
@@ -4298,12 +4298,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         PS = self.domain()
         n = Integer(n)
 
-        formal = kwds.pop('formal', False)
-        use_algebraic_closure = kwds.pop('use_algebraic_closure', True)
-        type = kwds.pop('type', 'point')
-        embedding = kwds.pop('embedding', None)
         if not embedding is None:
-            raise ValueError('the embedding keyword is deprecated, see :trac:`32205`')
+            raise ValueError('do not specify an embedding')
 
         if (n < 1):
             raise ValueError("period must be a positive integer")
@@ -4517,8 +4513,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             [2, 4*t/(t^2 + 1), 0]
         """
         n = ZZ(n)
+
         if not embedding is None:
-            raise ValueError('Do not specify an embedding')
+            raise ValueError('do not specify an embedding')
         if n < 1:
             raise ValueError("period must be a positive integer")
         dom = self.domain()
