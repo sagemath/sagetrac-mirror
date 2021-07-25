@@ -4368,7 +4368,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         return multipliers
 
-    def sigma_invariants(self, n, **kwds):
+    def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
         r"""
         Computes the values of the elementary symmetric polynomials of
         the ``n`` multiplier spectra of this dynamical system.
@@ -4405,14 +4405,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``n`` -- a positive integer, the period
 
-        The following optional keywords are accepted:
-
         - ``formal`` -- (default: ``False``) boolean; ``True`` specifies
           to find the values of the elementary symmetric polynomials
           corresponding to the formal ``n`` multiplier spectra and ``False``
           specifies to instead find the values corresponding to the ``n``
           multiplier spectra, which includes the multipliers of all
           periodic points of period ``n``
+
+        - ``embedding`` -- (default: ``None``) ignored. See :trac: `32205`.
 
         - ``type`` -- (default: ``'point'``) string; either ``'point'``
           or ``'cycle'`` depending on whether you compute with one
@@ -4517,11 +4517,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             [2, 4*t/(t^2 + 1), 0]
         """
         n = ZZ(n)
-        formal = kwds.pop('formal', False)
-        type = kwds.pop('type', 'point')
-        embedding = kwds.pop('embedding', None)
         if not embedding is None:
-            raise ValueError('The embedding keyword is deprecated, see :trac:`32205`')
+            raise ValueError('Do not specify an embedding')
         if n < 1:
             raise ValueError("period must be a positive integer")
         dom = self.domain()
