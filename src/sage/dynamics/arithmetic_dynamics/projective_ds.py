@@ -4149,7 +4149,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             raise ValueError("algorithm must be either 'variety' or 'cyclegraph'")
 
-    def multiplier_spectra(self, n, formal=False, embedding=None, type='point'):
+    def multiplier_spectra(self, n, formal=False, type='point', use_algebraic_closure=True):
         r"""
         Computes the ``n`` multiplier spectra of this dynamical system.
 
@@ -4171,8 +4171,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``formal`` -- (default: ``False``) boolean; ``True`` specifies
           to find the formal ``n`` multiplier spectra of this map and
           ``False`` specifies to find the ``n`` multiplier spectra
-
-        - ``embedding`` -- (default: ``None``) ignored. See :trac: `32205`.
 
         - ``type`` -- (default: ``'point'``) string; either ``'point'``
           or ``'cycle'`` depending on whether you compute one multiplier
@@ -4298,9 +4296,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         PS = self.domain()
         n = Integer(n)
 
-        if not embedding is None:
-            raise ValueError('do not specify an embedding')
-
         if (n < 1):
             raise ValueError("period must be a positive integer")
         if not is_ProjectiveSpace(PS):
@@ -4408,7 +4403,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           multiplier spectra, which includes the multipliers of all
           periodic points of period ``n``
 
-        - ``embedding`` -- (default: ``None``) ignored. See :trac: `32205`.
+        - ``embedding`` -- (default: ``None``) must be ``None``, passing an embedding
+          is no longer supported, see :trac: `32205`.
 
         - ``type`` -- (default: ``'point'``) string; either ``'point'``
           or ``'cycle'`` depending on whether you compute with one
