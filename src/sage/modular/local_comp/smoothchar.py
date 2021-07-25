@@ -42,7 +42,7 @@ Characters are themselves group elements, and basic arithmetic on them works::
 """
 import operator
 from sage.structure.element import MultiplicativeGroupElement, parent
-from sage.structure.parent_base import ParentWithBase
+from sage.structure.parent import Parent
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import richcmp_not_equal, richcmp
 from sage.rings.all import QQ, ZZ, Zmod, NumberField
@@ -54,7 +54,7 @@ from sage.categories.groups import Groups
 from sage.categories.rings import Rings
 from sage.misc.mrange import xmrange
 from sage.misc.verbose import verbose
-from sage.modular.dirichlet     import DirichletGroup
+from sage.modular.dirichlet import DirichletGroup
 
 
 class SmoothCharacterGeneric(MultiplicativeGroupElement):
@@ -337,7 +337,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
         return self.parent().character(self.level(), [self(sig(x)) for x in self.parent().unit_gens(self.level())])
 
 
-class SmoothCharacterGroupGeneric(ParentWithBase):
+class SmoothCharacterGroupGeneric(Parent):
     r"""
     The group of smooth (i.e. locally constant) characters of a `p`-adic field,
     with values in some ring `R`. This is an abstract base class and should not
@@ -359,10 +359,10 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         """
         if base_ring not in Rings():
             raise TypeError("base ring (=%s) must be a ring" % base_ring)
-        ParentWithBase.__init__(self, base=base_ring,
-                                category=Groups().Commutative())
+        Parent.__init__(self, base=base_ring,
+                        category=Groups().Commutative())
         if not (p in ZZ and ZZ(p).is_prime()):
-            raise ValueError( "p (=%s) must be a prime integer" % p )
+            raise ValueError("p (=%s) must be a prime integer" % p)
         self._p = ZZ.coerce(p)
 
     def _element_constructor_(self, x):
@@ -1131,9 +1131,8 @@ class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupRamifiedQuadratic
             sage: G = SmoothCharacterGroupRamifiedQuadratic(3, 1, QQ)
             sage: s = G.number_field().gen()
-            sage: G.discrete_log(4, 3 + 2*s)
-            [1, 2, 2, 1]
-            sage: gs = G.unit_gens(4); gs[0] * gs[1]^2 * gs[2]^2 * gs[3] - (3 + 2*s) in G.ideal(4)
+            sage: dl = G.discrete_log(4, 3 + 2*s)
+            sage: gs = G.unit_gens(4); gs[0]^dl[0] * gs[1]^dl[1] * gs[2]^dl[2] * gs[3]^dl[3] - (3 + 2*s) in G.ideal(4)
             True
 
         An example with a custom generating set::
@@ -1191,11 +1190,11 @@ class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupUnramifiedQuadratic
             sage: G = SmoothCharacterGroupUnramifiedQuadratic(7,QQ)
             sage: G.quotient_gens(1)
-            [s]
+            [2*s - 2]
             sage: G.quotient_gens(2)
-            [23*s - 16]
+            [15*s + 21]
             sage: G.quotient_gens(3)
-            [-124*s - 2]
+            [-75*s + 33]
 
         A ramified case::
 
@@ -1208,11 +1207,11 @@ class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
 
             sage: G = SmoothCharacterGroupUnramifiedQuadratic(2,QQ)
             sage: G.quotient_gens(1)
-            [s]
+            [s + 1]
             sage: G.quotient_gens(2)
-            [-s + 1]
+            [-s + 2]
             sage: G.quotient_gens(3)
-            [7*s + 5, -s + 3]
+            [-17*s - 14, 3*s - 2]
         """
 
         # silly special case
@@ -1327,18 +1326,18 @@ class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
             sage: G.extend_character(3, chi, [1])
             Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 0, mapping 5 |--> 7
             sage: K.<z> = CyclotomicField(6); G.base_extend(K).extend_character(1, chi, [z])
-            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> z, 5 |--> 7
+            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> -z + 1, 5 |--> 7
 
         We extend the nontrivial quadratic character::
 
             sage: chi = SmoothCharacterGroupQp(5, QQ).character(1, [-1, 7])
             sage: K.<z> = CyclotomicField(24); G.base_extend(K).extend_character(1, chi, [z^6])
-            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> z^6, 5 |--> 7
+            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> -z^6, 5 |--> 7
 
         Extensions of higher level::
 
             sage: K.<z> = CyclotomicField(20); rho = G.base_extend(K).extend_character(2, chi, [z]); rho
-            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 2, mapping 11*s - 10 |--> -z^5, 6 |--> 1, 5*s + 1 |--> z^4, 5 |--> 7
+            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 2, mapping 11*s - 10 |--> z^5, 6 |--> 1, 5*s + 1 |--> z^4, 5 |--> 7
             sage: rho(3)
             -1
 

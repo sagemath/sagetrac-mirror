@@ -262,7 +262,6 @@ fi
 # Setting Sage-related location environment variables,
 # depending on SAGE_ROOT and SAGE_LOCAL which are already defined.
 if [ -n "$SAGE_LOCAL" ]; then
-    export SAGE_ETC="$SAGE_LOCAL/etc"
     export SAGE_SHARE="$SAGE_LOCAL/share"
     export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 fi
@@ -585,12 +584,6 @@ if [ "$UNAME" = "CYGWIN" -a -n "$SAGE_LOCAL" ]; then
     # and not in "lib"
     LD_LIBRARY_PATH="$SAGE_LOCAL/bin:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
 fi
-
-# See trac 7186 -- this is needed if ecl is moved
-if [ -n "$SAGE_LOCAL" ]; then
-    ECLDIR="$SAGE_LOCAL/lib/ecl/" && export ECLDIR
-fi
-
 
 # Handle parallel building/testing/...
 case "$SAGE_NUM_THREADS,$SAGE_NUM_THREADS_PARALLEL" in

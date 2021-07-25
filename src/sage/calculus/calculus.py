@@ -1278,6 +1278,11 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: limit(e^(-1/x), x=0, dir='left', algorithm='fricas')              # optional - fricas
         +Infinity
 
+    One can also call Mathematica's online interface::
+
+        sage: limit(pi+log(x)/x,x=oo, algorithm='mathematica_free') # optional - internet
+        pi
+
     TESTS::
 
         sage: lim(x^2, x=2, dir='nugget')
@@ -1431,6 +1436,8 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
             l = libgiac.limit(ex, v, a, 1).sage()
         elif dir in dir_minus:
             l = libgiac.limit(ex, v, a, -1).sage()
+    elif algorithm == 'mathematica_free':
+        return mma_free_limit(ex, v, a, dir)
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)
     return ex.parent()(l)
@@ -1438,6 +1445,45 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
 # lim is alias for limit
 lim = limit
+
+
+def mma_free_limit(expression, v, a, dir=None):
+    """
+    Limit using Mathematica's online interface.
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import mma_free_limit
+        sage: mma_free_limit(sin(x)/x, x=0) # optional - internet
+        1
+
+    Another simple limit::
+
+        sage: mma_free_limit(e^(-x), x, a=oo) # optional - internet
+        0
+    """
+    from sage.interfaces.mathematica import request_wolfram_alpha, parse_moutput_from_json, symbolic_expression_from_mathematica_string
+    dir_plus = ['plus', '+', 'above', 'right']
+    dir_minus = ['minus', '-', 'below', 'left']
+    math_expr = expression._mathematica_init_()
+    variable = v._mathematica_init_()
+    a = a._mathematica_init_()
+    if dir is None:
+        input = "Limit[{},{} -> {}]".format(math_expr, variable, a)
+    elif dir in dir_plus:
+        dir = 'Direction -> "FromAbove"'
+        input = "Limit[{}, {} -> {}, {}]".format(math_expr, variable, a, dir)
+    elif dir in dir_minus:
+        dir = 'Direction -> "FromBelow"'
+        input = "Limit[{}, {} -> {}, {}]".format(math_expr, variable, a, dir)
+    else:
+        raise ValueError('wrong input for limit')
+    json_page_data = request_wolfram_alpha(input)
+    all_outputs = parse_moutput_from_json(json_page_data)
+    if not all_outputs:
+        raise ValueError("no outputs found in the answer from Wolfram Alpha")
+    first_output = all_outputs[0]
+    return symbolic_expression_from_mathematica_string(first_output)
 
 
 ###################################################################
@@ -1560,12 +1606,12 @@ def laplace(ex, t, s, algorithm='maxima'):
         sage: inverse_laplace(L, s, t)
         t*e^(a + 2*t)*sin(t)
 
-    Unable to compute solution with Maxima::
+    Heaviside step function can be handled with different interfaces.
+    Try with Maxima::
 
         sage: laplace(heaviside(t-1), t, s)
-        laplace(heaviside(t - 1), t, s)
+        e^(-s)/s
 
-    Heaviside step function can be handled with different interfaces.
     Try with giac::
 
         sage: laplace(heaviside(t-1), t, s, algorithm='giac')
@@ -2264,8 +2310,8 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         # use a global flag so all expressions obtained via
         # evaluation of maxima code are assumed pre-simplified
         is_simplified = True
-        parser_make_Mvar.set_names(var_syms)
-        parser_make_function.set_names(function_syms)
+        SRM_parser._variable_constructor().set_names(var_syms)
+        SRM_parser._callable_constructor().set_names(function_syms)
         return SRM_parser.parse_sequence(s)
     except SyntaxError:
         raise TypeError("unable to make sense of Maxima expression '%s' in Sage" % s)
@@ -2326,7 +2372,7 @@ syms_default = dict(syms_cur)
 
 
 
-def _find_var(name):
+def _find_var(name, interface=None):
     """
     Function to pass to Parser for constructing
     variables from strings.  For internal use.
@@ -2338,10 +2384,21 @@ def _find_var(name):
         y
         sage: sage.calculus.calculus._find_var('I')
         I
+        sage: sage.calculus.calculus._find_var(repr(maxima(y)), interface='maxima')
+        y
+        sage: sage.calculus.calculus._find_var(repr(giac(y)), interface='giac')
+        y
     """
-    v = SR.symbols.get(name)
-    if v is not None:
-        return v
+    if interface == 'maxima':
+        if name.startswith("_SAGE_VAR_"):
+            return var(name[10:])
+    elif interface == 'giac':
+        if name.startswith('sageVAR'):
+            return var(name[7:])
+    else:
+        v = SR.symbols.get(name)
+        if v is not None:
+            return v
 
     # try to find the name in the global namespace
     # needed for identifiers like 'e', etc.
@@ -2394,7 +2451,8 @@ SR_parser = Parser(make_int      = lambda x: SR(Integer(x)),
                    make_var      = parser_make_var,
                    make_function = parser_make_function)
 
-def symbolic_expression_from_string(s, syms={}, accept_sequence=False):
+
+def symbolic_expression_from_string(s, syms=None, accept_sequence=False, *, parser=None):
     """
     Given a string, (attempt to) parse it and return the
     corresponding Sage symbolic expression.  Normally used
@@ -2411,6 +2469,8 @@ def symbolic_expression_from_string(s, syms={}, accept_sequence=False):
       to allow a (possibly nested) set of lists and tuples
       as input
 
+    - ``parser`` -- (default: ``SR_parser``) parser for internal use
+
     EXAMPLES::
 
         sage: y = var('y')
@@ -2425,42 +2485,34 @@ def symbolic_expression_from_string(s, syms={}, accept_sequence=False):
         0.3333333333333333333333333333
         sage: sage.calculus.calculus.symbolic_expression_from_string(str(RealField(100)(10^-500/3)))
         3.333333333333333333333333333e-501
+
+    The Giac interface uses a different parser (:trac:`30133`)::
+
+        sage: from sage.calculus.calculus import SR_parser_giac
+        sage: sage.calculus.calculus.symbolic_expression_from_string(repr(giac(SR.var('e'))), parser=SR_parser_giac)
+        e
     """
-    parse_func = SR_parser.parse_sequence if accept_sequence else SR_parser.parse_expression
-    parser_make_var.set_names({k: v for k, v in syms.items()
-                               if not _is_function(v)})
-    parser_make_function.set_names({k: v for k, v in syms.items()
-                                    if _is_function(v)})
+    if syms is None:
+        syms = {}
+    if parser is None:
+        parser = SR_parser
+    parse_func = parser.parse_sequence if accept_sequence else parser.parse_expression
+    # this assumes that the parser has constructors of type `LookupNameMaker`
+    parser._variable_constructor().set_names({k: v for k, v in syms.items()
+                                              if not _is_function(v)})
+    parser._callable_constructor().set_names({k: v for k, v in syms.items()
+                                              if _is_function(v)})
     return parse_func(s)
 
 
-def _find_Mvar(name):
-    """
-    Function to pass to Parser for constructing
-    variables from strings.  For internal use.
-
-    EXAMPLES::
-
-        sage: y = var('y')
-        sage: sage.calculus.calculus._find_var('y')
-        y
-        sage: sage.calculus.calculus._find_var('I')
-        I
-    """
-    if name[:10] == "_SAGE_VAR_":
-        return var(name[10:])
-
-    # try to find the name in the global namespace
-    # needed for identifiers like 'e', etc.
-    import sage.all
-    try:
-        return SR(sage.all.__dict__[name])
-    except (KeyError, TypeError):
-        return var(name)
-
-parser_make_Mvar = LookupNameMaker({}, fallback=_find_Mvar)
+parser_make_Mvar = LookupNameMaker({}, fallback=lambda x: _find_var(x, interface='maxima'))
 
 SRM_parser = Parser(make_int      = lambda x: SR(Integer(x)),
                     make_float    = lambda x: SR(RealDoubleElement(x)),
                     make_var      = parser_make_Mvar,
                     make_function = parser_make_function)
+
+SR_parser_giac = Parser(make_int      = lambda x: SR(Integer(x)),
+                        make_float    = lambda x: SR(create_RealNumber(x)),
+                        make_var      = LookupNameMaker({}, fallback=lambda x: _find_var(x, interface='giac')),
+                        make_function = parser_make_function)
