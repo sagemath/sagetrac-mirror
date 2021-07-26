@@ -2044,7 +2044,7 @@ class IncidenceStructure(object):
 
         One admissible 3-coloring::
 
-            sage: designs.steiner_triple_system(7).coloring() # not tested - architecture-dependent
+            sage: designs.steiner_triple_system(7).coloring() # random - solver/architecture-dependent
             [[0, 2, 5, 1], [4, 3], [6]]
 
         The chromatic number of a graph is equal to the chromatic number of its
