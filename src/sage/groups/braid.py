@@ -2116,7 +2116,7 @@ class BraidGroup_class(FiniteTypeArtinGroup):
 
         A :class:`MappingClassGroupAction`.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: B = BraidGroup(3)
             sage: B.inject_variables()
