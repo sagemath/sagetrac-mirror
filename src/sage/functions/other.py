@@ -1906,6 +1906,39 @@ class Function_sum(BuiltinFunction):
         import sympy
         return sympy.Sum(term, (k, a, n))
 
+    def _tderivative_(self, f, x, a, b, diff_param=None):
+        """
+        Return the derivative of symbolic sum.
+
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_sum as ssum
+            sage: f = function('f'); a,b=var('a,b')
+            sage: s = ssum(f(x), x,a,b)
+            sage: s.diff(x) # indirect doctest
+            0
+
+        TESTS:
+
+        Check for :trac:`32161`::
+
+            sage: from sage.functions.other import symbolic_sum as ssum
+            sage: x,y,a,b = var("x,y,a,b")
+            sage: f = function("f")
+            sage: s = ssum(f(x,y), x, a, b)
+            sage: s.diff(y)
+            sum(diff(f(x, y), y), x, a, b)
+
+        """
+
+        if not x.has(diff_param):
+            # summation variable != differentiation variable
+            ans = symbolic_sum(f.diff(diff_param), x, a, b)
+        else:
+            ans = SR.zero()
+
+        return ans
+
 symbolic_sum = Function_sum()
 
 
