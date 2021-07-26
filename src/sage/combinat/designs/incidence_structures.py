@@ -2060,7 +2060,8 @@ class IncidenceStructure(object):
         if k is None:
             for k in range(self.num_points()+1):
                 try:
-                    return self.coloring(k)
+                    return self.coloring(k, solver=solver, verbose=verbose,
+                                         integrality_tolerance=integrality_tolerance)
                 except ValueError:
                     pass
 
