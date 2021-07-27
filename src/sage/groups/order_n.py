@@ -6,6 +6,8 @@ Structure Descriptions of groups with order less than or equal to n
 
 EXAMPLES:
 
+sage: from sage.groups.order_n import order_n
+
 sage: order_n(12)                                                               
 ['1',
  'C2',
@@ -32,7 +34,7 @@ sage: order_n(12)
  'D12',
  'C6 x C2']
 
- sage: order_n(20, start = 14)                                                   
+sage: order_n(20, start = 14)                                                   
 ['D14',
  'C14',
  'C15',
@@ -63,10 +65,10 @@ sage: order_n(12)
  'D20',
  'C10 x C2']
 
- sage: order_n(10, "IsCyclic", start = 4)                                        
+sage: order_n(10, "IsCyclic", start = 4)                                        
 ['C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10']
 
-sage: order_n(20,semidirectproduct=1)                                           
+sage: order_n(20,semidirectproduct=True)                                           
 ['C3 : C4',
  '(C4 x C2) : C2',
  'C4 : C4',
@@ -76,7 +78,7 @@ sage: order_n(20,semidirectproduct=1)
  'C5 : C4',
  'C5 : C4']
 
-sage: order_n(20,semidirectproduct=1,directproduct=1)                                                                          
+sage: order_n(20,semidirectproduct=True,directproduct=True)                                                                          
 ['(C4 x C2) : C2', '(C4 x C2) : C2', '(C3 x C3) : C2']
 
 
