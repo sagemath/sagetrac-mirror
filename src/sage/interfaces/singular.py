@@ -2274,7 +2274,7 @@ class SingularFunctionElement(FunctionElement):
 
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(2,2)
-            sage: 'matrix_expression' in A.nrows.__doc__
+            sage: 'matrix_expression' in A.nrows.__doc__ # optional - info
             True
         """
         try:
@@ -2328,9 +2328,9 @@ def get_docstring(name, prefix=False, code=False):
     EXAMPLES::
 
         sage: from sage.interfaces.singular import get_docstring
-        sage: 'groebner' in get_docstring('groebner')
+        sage: 'groebner' in get_docstring('groebner') # optional - info
         True
-        sage: 'standard.lib' in get_docstring('groebner')
+        sage: 'standard.lib' in get_docstring('groebner') # optional - info
         True
 
     TESTS:
@@ -2338,7 +2338,7 @@ def get_docstring(name, prefix=False, code=False):
     Non-existent functions raise a ``KeyError``::
 
         sage: from sage.interfaces.singular import get_docstring
-        sage: get_docstring("mysql_real_escape_string")
+        sage: get_docstring("mysql_real_escape_string") # optional - info
         Traceback (most recent call last):
         ...
         KeyError: 'Singular function "mysql_real_escape_string" not found'
