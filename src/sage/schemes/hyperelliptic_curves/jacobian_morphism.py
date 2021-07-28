@@ -379,10 +379,10 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             <class 'sage.schemes.hyperelliptic_curves.jacobian_morphism.JacobianMorphism_divisor_class_field'>
         """
         SchemeMorphism.__init__(self, parent)
-        C = parent.curve()
-        f, h = C.hyperelliptic_polynomials()
-        a, b = map(f.parent(), polys)
+        a, b = tuple(map(parent._printing_ring.base_ring(), polys))
         if check:
+            C = parent.curve()
+            f, h = C.hyperelliptic_polynomials()
             if not (b**2 + h*b - f)%a == 0:
                 raise ValueError("Argument polys (= %s) must be divisor on curve %s."%(
                     polys, C))

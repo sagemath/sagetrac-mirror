@@ -115,7 +115,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         P2 = PolynomialRing(P1, name=names[1])
         self._PP = PP
         self._printing_ring = P2
-        self._hyperelliptic_polynomials = (f,h)
+        self._hyperelliptic_polynomials = (P1(f), P1(h))
         self._genus = genus
 
     def change_ring(self, R):
