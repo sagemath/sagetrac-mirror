@@ -391,3 +391,34 @@ class Ideal_nc(Ideal_generic):
                     return other
                 return other.ring().ideal(other.gens(), side='twosided')
         raise NotImplementedError("Cannot multiply non-commutative ideals.")
+
+    def reduce(self,f):
+        r"""
+        Return the reduction of the element of `f` modulo ``self``.
+
+        This is an element of `R` that is equivalent modulo `I` to `f` where
+        `I` is ``self``.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ,degrees=(1,2,3))
+            sage: I = A.ideal(x*y-z)
+            sage: J = A.ideal(x*z-y)
+            sage: Q = A.quotient(I)
+            sage: Q.gens()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Reduction not supported for non-commutative ideals
+            sage: I + J
+            Twosided Ideal (x*y - z, x*z - y) of Graded Commutative Algebra with generators ('x', 'y', 'z') in degrees (1, 2, 3) over Rational Field
+
+            sage: E.<x,y,z> = algebras.Exterior(QQ);
+            sage: I = E.ideal(x-y);
+            sage: Q = E.quotient(I);
+            sage: Q.gens()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Reduction not supported for non-commutative ideals
+        """
+        
+        raise NotImplementedError('Reduction not supported for non-commutative ideals')
