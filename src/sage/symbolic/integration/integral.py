@@ -985,17 +985,19 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
     Check that :trac:`32160` is fixed::
 
-        sage: f = (2*(x - floor(x))^3 - 3*(x - floor(x))^2 + x - floor(x))*(10*x^3/(x^2 + 1)^6 - 3*x/(x^2 + 1)^5)
-        sage: ans_sage = integrate(f, x, 1, +Infinity)
-        sage: ans_sage
-        integrate((7*x^2 - 3)*(2*x - 2*floor(x) - 1)*(x - floor(x))*(x - floor(x) - 1)*x/(x^2 + 1)^6, x, 1, +Infinity)
-        sage: ans_sage.n()
-        0.0009945490551909021
+        sage: x,y = var("x,y"); f = (x^2 + y^2)^(-2);
+        sage: p = 3; k = 2; g = bernoulli_polynomial(frac(x),p) * f.diff(x, p).diff(y, k-1); g
+        96*(2*frac(x)^3 - 3*frac(x)^2 + frac(x))*(10*x^3*y/(x^2 + y^2)^6 - 3*x*y/(x^2 + y^2)^5)
+        sage: h = integrate(g.subs(y == 1), x, 1, Infinity); h
+        96*integrate((2*frac(x)^3 - 3*frac(x)^2 + frac(x))*(10*x^3/(x^2 + 1)^6 - 3*x/(x^2 + 1)^5), x, 1, +Infinity)
+        sage: h.n()
+        0.0954767092983266
 
-        sage: from scipy import integrate
-        sage: ans_scipy = integrate.quad(f, 1, +Infinity)
-        sage: ans_scipy[0]
-        0.0009945480575073787
+        sage: from scipy import integrate as scipy_integrate
+        sage: h_scipy = scipy_integrate.quad(g.subs(y == 1), 1, Infinity)[0]
+        sage: h_scipy  # rel tol 1e-11
+        0.09547646540893426
+
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:
