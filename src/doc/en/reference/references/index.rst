@@ -374,6 +374,9 @@ REFERENCES:
 .. [Baer2020] Christian Bär. *The Faddeev-LeVerrier algorithm and the Pfaffian*.
               :arxiv:`2008.04247`, 2020.
 
+.. [Bai2006] David Bailey, *Tanh-Sinh High-Precision Quadrature*, 2006, 
+             https://www.davidhbailey.com/dhbpapers/dhb-tanh-sinh.pdf
+
 .. [BaKi2001] Bakalov and Kirillov, *Lectures on tensor categories and modular functors*,
             AMS (2001).
 
