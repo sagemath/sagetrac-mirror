@@ -506,9 +506,9 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
         True
 
     The underlying ambient module is a ``Representation`` and so the
-    Orlik-Solomon algebra itself is the ``.ambient()._module``::
+    Orlik-Solomon algebra itself is the ``.ambient()``::
 
-        sage: M.orlik_solomon_algebra(QQ) is OSG.ambient()._module
+        sage: M.orlik_solomon_algebra(QQ) is OSG.ambient()
         True
 
     There is not much structure here, so lets look at a bigger example.
@@ -546,26 +546,24 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
 
         """
         ordering = kwargs.pop('ordering',None)
-        self._OS = OrlikSolomonAlgebra(R,M,ordering)
-        self._semigroup = G
+        OS = OrlikSolomonAlgebra(R, M, ordering)
+        self._ambient = OS
 
-        if action_on_groundset:
-            self._groundset_action = action_on_groundset
-        else: # if sage knows the action, we don't need to provide it
-            self._groundset_action = lambda g,x: g.__call__(x)
+        if action_on_groundset is None:
+            # if sage knows the action, we don't need to provide it
+            action_on_groundset = lambda g, x: g(x)
 
-        from sage.modules.with_basis.representation import Representation
+        self._groundset_action = action_on_groundset
 
-        side = kwargs.pop('side','left')
-        category = kwargs.pop('category', self._OS.category().Subobjects())
+        side = kwargs.pop('side', 'left')
+        category = kwargs.pop('category', OS.category().Subobjects())
 
-        R = Representation(G, self._OS, self._basis_action,
-                           category=category, side=side)
+        def action(g, m):
+            return OS.sum(c * self._basis_action(g, x)
+                          for x,c in m._monomial_coefficients.items())
 
-        action = kwargs.pop('action', operator.mul)
-
-        FiniteDimensionalInvariantModule.__init__(self, R, G,
-                                                  action = action,
+        FiniteDimensionalInvariantModule.__init__(self, OS, G,
+                                                  action=action,
                                                   *args, **kwargs)
 
 
@@ -627,18 +625,19 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
             -OS{1, 2}
         """
 
-        OS = self._OS
+        OS = self._ambient
         if f == frozenset():
             return OS(f)
 
         # basis_elt is an n.b.c. set, but it should be
         # in a standardized order to deal with sign issues
-        basis_elt = sorted(f, key = lambda e: OS._sorting[e])
+        basis_elt = sorted(f, key=lambda e: OS._sorting[e])
 
         gx = OS.one()
 
         for e in basis_elt:
-            fset = frozenset({self._groundset_action(g,e)})
-            gx = gx*OS.subset_image(fset)
+            fset = frozenset({self._groundset_action(g, e)})
+            gx = gx * OS.subset_image(fset)
 
         return gx
+
