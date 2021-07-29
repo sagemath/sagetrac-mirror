@@ -524,6 +524,8 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
         [OS{}, OS{1} + OS{2} + OS{3} + OS{4} + OS{5} + OS{6}]
         sage: (OSG.basis()[1])^2
         0
+        sage: 5 * OSG.basis()[1]
+        5*B[1]
 
     Next, we look at the same matroid but with an `S_3 \times S_3` action
     (here realized as a Young subgroup of `S_6`)::
@@ -539,14 +541,39 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
 
         sage: M = matroids.CompleteGraphic(4)
         sage: G = SymmetricGroup(4)
-        sage: edge_map = {0: (1, 2), 1: (2, 3), 2: (3, 4), 3: (1, 3), 4: (2, 4), 5: (1,4)}
+        sage: edge_map = {i: M.groundset_to_edges([i])[0][:2] for i in M.groundset()}
         sage: inv_map = {v: k for k, v in edge_map.items()}
         sage: def vert_action(g, x):
         ....:     a, b = edge_map[x]
-        ....:     return inv_map[tuple(sorted([g(a), g(b)]))]
+        ....:     return inv_map[tuple(sorted([g(a+1)-1, g(b+1)-1]))]
         sage: OSG = M.orlik_solomon_algebra(QQ, invariant=(G, vert_action))
         sage: B = OSG.basis()
         sage: [OSG.lift(b) for b in B]
+        [OS{}, OS{0} + OS{1} + OS{2} + OS{3} + OS{4} + OS{5}]
+
+    We use this to describe the Young subgroup `S_2 \times S_2` action::
+
+        sage: H = G.young_subgroup([2,2])
+        sage: OSH = M.orlik_solomon_algebra(QQ, invariant=(H, vert_action))
+        sage: B = OSH.basis()
+        sage: [OSH.lift(b) for b in B]
+        [OS{},
+         OS{0}, OS{1} + OS{2} + OS{3} + OS{4}, OS{5},
+         OS{0, 1} + OS{0, 2} + OS{0, 3} + OS{0, 4}, OS{0, 5},
+         OS{1, 2} - 2*OS{1, 5} + OS{3, 4} - 2*OS{3, 5},
+         OS{0, 1, 2} - 2*OS{0, 1, 5} + OS{0, 3, 4} - 2*OS{0, 3, 5}]
+
+    We demonstrate the algebra structure::
+
+        sage: matrix([[b*bp for b in B] for bp in B])                                                                              
+        [ B[0]  B[1]  B[2]  B[3]  B[4]  B[5]  B[6]  B[7]]
+        [ B[1]     0 -B[4] -B[5]     0     0  B[7]     0]
+        [ B[2]  B[4]     0  B[6]     0  B[7]     0     0]
+        [ B[3]  B[5] -B[6]     0 -B[7]     0     0     0]
+        [ B[4]     0     0 -B[7]     0     0     0     0]
+        [ B[5]     0  B[7]     0     0     0     0     0]
+        [ B[6]  B[7]     0     0     0     0     0     0]
+        [ B[7]     0     0     0     0     0     0     0]
     """
     def __init__(self, R, M, G, action_on_groundset=None, *args, **kwargs):
         r"""
@@ -581,7 +608,6 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
         FiniteDimensionalInvariantModule.__init__(self, OS, G,
                                                   action=action,
                                                   *args, **kwargs)
-
 
     def _basis_action(self, g, f):
         r"""
