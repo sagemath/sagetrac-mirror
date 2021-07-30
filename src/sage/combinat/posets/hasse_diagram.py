@@ -24,9 +24,11 @@ from sage.misc.cachefunc import cached_method
 from sage.functions.other import binomial
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 from sage.combinat.posets.hasse_cython import (moebius_matrix_fast,
-                                               coxeter_matrix_fast)
+                                               coxeter_matrix_fast,
+                                               IncreasingChains)
 
 from collections import deque
+
 
 class LatticeError(ValueError):
     """
@@ -615,7 +617,7 @@ class HasseDiagram(DiGraph):
             sage: P = posets.BooleanLattice(3)
             sage: P.interval(1, 7)
             [1, 3, 5, 7]
-            sage: P._hasse_diagram._precompute_intervals()
+            sage: P._hasse_diagram._precompute_intervals() # indirect doctest
             sage: P.interval(1, 7)  # Uses this function
             [1, 3, 5, 7]
         """
@@ -1418,68 +1420,77 @@ class HasseDiagram(DiGraph):
     @lazy_attribute
     def _meet(self):
         r"""
-        Return the matrix of meets of ``self``. The ``(x,y)``-entry of
-        this matrix is the meet of ``x`` and ``y`` in ``self``.
+        Return the matrix of meets of ``self``.
+
+        The ``(x,y)``-entry of this matrix is the meet of ``x`` and
+        ``y`` in ``self`` if the meet exists; and `-1` otherwise.
 
         EXAMPLES::
 
-           sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-           sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
-           sage: H._meet
-           [0 0 0 0 0 0 0 0]
-           [0 1 0 0 1 0 0 1]
-           [0 0 2 0 2 2 2 2]
-           [0 0 0 3 0 0 3 3]
-           [0 1 2 0 4 2 2 4]
-           [0 0 2 0 2 5 2 5]
-           [0 0 2 3 2 2 6 6]
-           [0 1 2 3 4 5 6 7]
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
+            sage: H._meet
+            [0 0 0 0 0 0 0 0]
+            [0 1 0 0 1 0 0 1]
+            [0 0 2 0 2 2 2 2]
+            [0 0 0 3 0 0 3 3]
+            [0 1 2 0 4 2 2 4]
+            [0 0 2 0 2 5 2 5]
+            [0 0 2 3 2 2 6 6]
+            [0 1 2 3 4 5 6 7]
+
+            sage: H = HasseDiagram({0:[2,3],1:[2,3]})
+            sage: H._meet
+            [ 0 -1  0  0]
+            [-1  1  1  1]
+            [ 0  1  2 -1]
+            [ 0  1 -1  3]
+
+            sage: H = HasseDiagram({0:[1,2],1:[3,4],2:[3,4]})
+            sage: H._meet
+            [ 0  0  0  0  0]
+            [ 0  1  0  1  1]
+            [ 0  0  2  2  2]
+            [ 0  1  2  3 -1]
+            [ 0  1  2 -1  4]
 
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[2,3],1:[2,3]})
-            sage: H.meet_matrix()
-            Traceback (most recent call last):
-            ...
-            ValueError: not a meet-semilattice: no bottom element
-
-            sage: H = HasseDiagram({0:[1,2],1:[3,4],2:[3,4]})
-            sage: H.meet_matrix()
-            Traceback (most recent call last):
-            ...
-            LatticeError: no meet for ...
-
             sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
             sage: P = L.dual()
             sage: P.meet(2,3)
             4
         """
+        self._meet_semilattice_failure = ()
         n = self.cardinality()
         if n == 0:
             return matrix(0)
-        if not self.has_bottom():
-            raise ValueError("not a meet-semilattice: no bottom element")
-        meet = [[0 for x in range(n)] for x in range(n)]
+        meet = [[-1 for x in range(n)] for x in range(n)]
         lc = [self.neighbors_in(x) for x in range(n)]  # Lc = lower covers
 
         for x in range(n):
             meet[x][x] = x
             for y in range(x):
-                T = [meet[y][z] for z in lc[x]]
-
-                q = max(T)
-                for z in T:
-                    if meet[z][q] != z:
-                        raise LatticeError('meet', x, y)
+                T = [meet[y][z] for z in lc[x] if meet[y][z] != -1]
+                if not T:
+                    q = -1
+                else:
+                    q = max(T)
+                    for z in T:
+                        if meet[z][q] != z:
+                            q = -1
+                            break
                 meet[x][y] = q
                 meet[y][x] = q
-
+                if q == -1:
+                    self._meet_semilattice_failure += ((x, y),)
         return matrix(ZZ, meet)
 
     def meet_matrix(self):
         r"""
-        Return the matrix of meets of ``self``.
+        Return the matrix of meets of ``self``, when ``self`` is a
+        meet-semilattice; raise an error otherwise.
 
         The ``(x,y)``-entry of this matrix is the meet of ``x`` and
         ``y`` in ``self``.
@@ -1489,8 +1500,9 @@ class HasseDiagram(DiGraph):
 
         .. NOTE::
 
-            Once the matrix has been computed, it is stored in
-            :meth:`_meet_matrix`. Delete this attribute if you want to
+            If ``self`` is a meet-semilattice, then the return of this method
+            is the same as :meth:`_meet`. Once the matrix has been computed,
+            it is stored in :meth:`_meet`. Delete this attribute if you want to
             recompute the matrix.
 
         EXAMPLES::
@@ -1530,7 +1542,15 @@ class HasseDiagram(DiGraph):
             ...
             LatticeError: no meet for ...
         """
-        return self._meet
+        n = self.cardinality()
+        if (n != 0) and (not self.has_bottom()):
+            raise ValueError("not a meet-semilattice: no bottom element")
+        # call the attribute to build the matrix and _meet_semilattice_failure
+        mt = self._meet
+        if self._meet_semilattice_failure:
+            x, y = self._meet_semilattice_failure[0]
+            raise LatticeError('meet', x, y)
+        return mt
 
     def is_meet_semilattice(self):
         r"""
@@ -1551,6 +1571,10 @@ class HasseDiagram(DiGraph):
             sage: H = HasseDiagram({0:[2,3],1:[2,3]})
             sage: H.is_meet_semilattice()
             False
+
+            sage: H = HasseDiagram({0:[1,2],1:[3,4],2:[3,4]})
+            sage: H.is_meet_semilattice()
+            False
         """
         try:
             self.meet_matrix()
@@ -1563,13 +1587,13 @@ class HasseDiagram(DiGraph):
     def _join(self):
         r"""
         Computes a matrix whose ``(x,y)``-entry is the join of ``x``
-        and ``y`` in ``self``
+        and ``y`` in ``self`` if the join exists; and `-1` otherwise.
 
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
-            sage: H.join_matrix() # indirect doctest
+            sage: H._join
             [0 1 2 3 4 5 6 7]
             [1 1 4 7 4 7 7 7]
             [2 4 2 6 4 5 6 7]
@@ -1579,60 +1603,71 @@ class HasseDiagram(DiGraph):
             [6 7 6 6 7 7 6 7]
             [7 7 7 7 7 7 7 7]
 
+            sage: H = HasseDiagram({0:[2,3],1:[2,3]})
+            sage: H._join
+            [ 0 -1  2  3]
+            [-1  1  2  3]
+            [ 2  2  2 -1]
+            [ 3  3 -1  3]
+
+            sage: H = HasseDiagram({0:[2,3],1:[2,3],2:[4],3:[4]})
+            sage: H._join
+            [ 0 -1  2  3  4]
+            [-1  1  2  3  4]
+            [ 2  2  2  4  4]
+            [ 3  3  4  3  4]
+            [ 4  4  4  4  4]
+
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[2,3],1:[2,3]})
-            sage: H.join_matrix()
-            Traceback (most recent call last):
-            ...
-            ValueError: not a join-semilattice: no top element
-
-            sage: H = HasseDiagram({0:[2,3],1:[2,3],2:[4],3:[4]})
-            sage: H.join_matrix()
-            Traceback (most recent call last):
-            ...
-            LatticeError: no join for ...
-
             sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
             sage: P = L.dual()
             sage: P.join(2,3)
             0
         """
+        self._join_semilattice_failure = ()
         n = self.cardinality()
         if n == 0:
             return matrix(0)
-        if not self.has_top():
-            raise ValueError("not a join-semilattice: no top element")
-        join = [[n for x in range(n)] for x in range(n)]
+        join = [[-1 for x in range(n)] for x in range(n)]
         uc = [self.neighbors_out(x) for x in range(n)]  # uc = upper covers
 
         for x in range(n - 1, -1, -1):
             join[x][x] = x
             for y in range(n - 1, x, -1):
-                T = [join[y][z] for z in uc[x]]
-
-                q = min(T)
-                for z in T:
-                    if join[z][q] != z:
-                        raise LatticeError('join', x, y)
+                T = [join[y][z] for z in uc[x] if join[y][z] != -1]
+                if not T:
+                    q = -1
+                else:
+                    q = min(T)
+                    for z in T:
+                        if join[z][q] != z:
+                            q = -1
+                            break
                 join[x][y] = q
                 join[y][x] = q
+                if q == -1:
+                    self._join_semilattice_failure += ((x, y),)
 
         return matrix(ZZ, join)
 
     def join_matrix(self):
         r"""
-        Return the matrix of joins of ``self``. The ``(x,y)``-entry
-        of this matrix is the join of ``x`` and ``y`` in ``self``.
+        Return the matrix of joins of ``self``, when ``self`` is a
+        join-semilattice; raise an error otherwise.
+
+        The ``(x,y)``-entry of this matrix is the join of ``x`` and
+        ``y`` in ``self``.
 
         This algorithm is modelled after the algorithm of Freese-Jezek-Nation
         (p217). It can also be found on page 140 of [Gec81]_.
 
-        .. note::
+        .. NOTE::
 
-            Once the matrix has been computed, it is stored in
-            :meth:`_join_matrix`. Delete this attribute if you want
+            If ``self`` is a join-semilattice, then the return of this method
+            is the same as :meth:`_join`. Once the matrix has been computed,
+            it is stored in :meth:`_join`. Delete this attribute if you want
             to recompute the matrix.
 
         EXAMPLES::
@@ -1664,7 +1699,15 @@ class HasseDiagram(DiGraph):
             ...
             LatticeError: no join for ...
         """
-        return self._join
+        n = self.cardinality()
+        if (n != 0) and (not self.has_top()):
+            raise ValueError("not a join-semilattice: no top element")
+        # call the attribute to build the matrix and _join_semilattice_failure
+        jn = self._join
+        if self._join_semilattice_failure:
+            x, y = self._join_semilattice_failure[0]
+            raise LatticeError('join', x, y)
+        return jn
 
     def is_join_semilattice(self):
         r"""
@@ -1721,11 +1764,11 @@ class HasseDiagram(DiGraph):
             True
         """
         if meet_or_join == 'join':
-            M1 = self._join
-            M2 = self._meet
+            M1 = self.join_matrix()
+            M2 = self.meet_matrix()
         elif meet_or_join == 'meet':
-            M1 = self._meet
-            M2 = self._join
+            M1 = self.meet_matrix()
+            M2 = self.join_matrix()
         else:
             raise ValueError("meet_or_join must be 'join' or 'meet'")
 
@@ -1855,11 +1898,12 @@ class HasseDiagram(DiGraph):
             True
         """
         e = self.order() - 1
-        while self._meet[e, element] != 0:
+        mt = self.meet_matrix()
+        while mt[e, element] != 0:
             e -= 1
         e1 = e
         while e1 > 0:
-            if self._meet[e1, element] == 0 and not self.is_lequal(e1, e):
+            if mt[e1, element] == 0 and not self.is_lequal(e1, e):
                 return None
             e1 -= 1
         return e
@@ -1984,10 +2028,12 @@ class HasseDiagram(DiGraph):
                 orbit_number[e] = ind
 
         comps = [None] * n
+        mt = self.meet_matrix()
+        jn = self.join_matrix()
         for e in range(n):
             # Fix following after ticket #20727
             comps[e] = [x for x in range(n) if
-                        self._meet[e, x] == 0 and self._join[e, x] == n - 1 and
+                        mt[e, x] == 0 and jn[e, x] == n - 1 and
                         x in orbits[orbit_number[dual_isomorphism[e]]]]
 
         # Fitting is done by this recursive function:
@@ -2042,7 +2088,7 @@ class HasseDiagram(DiGraph):
 
         INPUT:
 
-        - upper, a Boolean -- if ``True``, test wheter the lattice is
+        - upper, a Boolean -- if ``True``, test whether the lattice is
           upper semimodular; otherwise test whether the lattice is
           lower semimodular.
 
@@ -2162,8 +2208,12 @@ class HasseDiagram(DiGraph):
             sage: [ (i,j) for i in H.vertices() for j in H.vertices() if H.are_incomparable(i,j)]
             [(1, 2), (1, 3), (2, 1), (3, 1)]
         """
+        if i == j:
+            return False
+        if i > j:
+            i, j = j, i
         mat = self._leq_matrix_boolean
-        return not mat[i, j] and not mat[j, i]
+        return not mat[i, j]
 
     def are_comparable(self, i, j):
         """
@@ -2182,8 +2232,12 @@ class HasseDiagram(DiGraph):
             sage: [ (i,j) for i in H.vertices() for j in H.vertices() if H.are_comparable(i,j)]
             [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (1, 0), (1, 1), (1, 4), (2, 0), (2, 2), (2, 3), (2, 4), (3, 0), (3, 2), (3, 3), (3, 4), (4, 0), (4, 1), (4, 2), (4, 3), (4, 4)]
         """
+        if i == j:
+            return True
+        if i > j:
+            i, j = j, i
         mat = self._leq_matrix_boolean
-        return bool(mat[i, j]) or bool(mat[j, i])
+        return bool(mat[i, j])
 
     def antichains(self, element_class=list):
         """
@@ -2221,22 +2275,28 @@ class HasseDiagram(DiGraph):
                                          self.are_incomparable,
                                          element_class=element_class)
 
-    def chains(self, element_class=list, exclude=None):
+    def chains(self, element_class=list, exclude=None, conversion=None):
         """
         Return all chains of ``self``, organized as a prefix tree.
 
         INPUT:
 
-        - ``element_class`` -- (default: ``list``) an iterable type
+        - ``element_class`` -- (optional, default: ``list``) an iterable type
 
         - ``exclude`` -- elements of the poset to be excluded
-          (default: ``None``)
+          (optional, default: ``None``)
+
+        - ``conversion`` -- (optional, default: ``None``) used to pass
+           the list of elements of the poset in their fixed order
 
         OUTPUT:
 
         The enumerated set (with a forest structure given by prefix
         ordering) consisting of all chains of ``self``, each of
         which is given as an ``element_class``.
+
+        If ``conversion`` is given, then the chains are converted
+        to chain of elements of this list.
 
         EXAMPLES::
 
@@ -2273,14 +2333,7 @@ class HasseDiagram(DiGraph):
 
         .. SEEALSO:: :meth:`antichains`
         """
-        from sage.combinat.subsets_pairwise import PairwiseCompatibleSubsets
-        if not(exclude is None):
-            vertices = [u for u in self.vertex_iterator() if u not in exclude]
-        else:
-            vertices = self.vertices()
-        return PairwiseCompatibleSubsets(vertices,
-                                         self.are_comparable,
-                                         element_class=element_class)
+        return IncreasingChains(self._leq_storage, element_class, exclude, conversion)
 
     def diamonds(self):
         r"""
@@ -2349,6 +2402,27 @@ class HasseDiagram(DiGraph):
         covers = set(self.neighbors_out(vertices.pop()))
         for v in vertices:
             covers = covers.intersection(self.neighbors_out(v))
+        return list(covers)
+
+    def common_lower_covers(self, vertices):
+        r"""
+        Return the list of all common lower covers of ``vertices``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1,2], 1: [3], 2: [3], 3: []})
+            sage: H.common_lower_covers([1, 2])
+            [0]
+
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: H = Posets.YoungDiagramPoset(Partition([3, 2, 2]))._hasse_diagram
+            sage: H.common_lower_covers([4, 5])
+            [3]
+        """
+        covers = set(self.neighbors_in(vertices.pop()))
+        for v in vertices:
+            covers = covers.intersection(self.neighbors_in(v))
         return list(covers)
 
     def _trivial_nonregular_congruence(self):
@@ -2425,6 +2499,8 @@ class HasseDiagram(DiGraph):
             {0}
         """
         yield elms
+        mt = self.meet_matrix()
+        jn = self.join_matrix()
         for e in range(min_e, self.cardinality()):
             if e in elms:
                 continue
@@ -2437,8 +2513,8 @@ class HasseDiagram(DiGraph):
                 if g in current_set:
                     continue
                 for x in current_set:
-                    gens.add(self._meet[x, g])
-                    gens.add(self._join[x, g])
+                    gens.add(mt[x, g])
+                    gens.add(jn[x, g])
                 current_set.add(g)
             else:
                 yield from self.sublattices_iterator(current_set, e + 1)
@@ -2648,7 +2724,7 @@ class HasseDiagram(DiGraph):
                 raise ValueError("lattice is not pseudocomplemented")
             p_atoms.append(p_atom)
         n = len(p_atoms)
-        mt = self._meet
+        mt = self.meet_matrix()
         pos = [0] * n
         meets = [self.order() - 1] * n
         result = [self.order() - 1]
@@ -2763,8 +2839,8 @@ class HasseDiagram(DiGraph):
         notneutrals = set()
         all_elements = set(range(n))
 
-        mt = self._meet
-        jn = self._join
+        mt = self.meet_matrix()
+        jn = self.join_matrix()
 
         def is_neutral(a):
             noncomp = all_elements.difference(self.depth_first_search(a))
@@ -2987,8 +3063,8 @@ class HasseDiagram(DiGraph):
         from copy import copy
 
         n = self.order()
-        mt = self._meet
-        jn = self._join
+        mt = self.meet_matrix()
+        jn = self.join_matrix()
 
         def fill_to_interval(S):
             """
@@ -3038,7 +3114,7 @@ class HasseDiagram(DiGraph):
             for a in block:  # Quadrilateral up
                 for c in self.neighbor_out_iterator(a):
                     if c not in block:
-                        d = self._join[c, b]
+                        d = jn[c, b]
                         if cong.find(d) != cong.find(c):
                             break
                 else:
@@ -3050,7 +3126,7 @@ class HasseDiagram(DiGraph):
                 for b in reversed(block):  # ...quadrilateral down
                     for d in self.neighbor_in_iterator(b):
                         if d not in block:
-                            c = self._meet[d, a]
+                            c = mt[d, a]
                             if cong.find(c) != cong.find(d):
                                 break
                     else:
@@ -3079,10 +3155,10 @@ class HasseDiagram(DiGraph):
                 if len(mins) > 1 or len(maxs) > 1:
                     c = n - 1
                     for m in mins:
-                        c = self._meet[c, m]
+                        c = mt[c, m]
                     d = 0
                     for m in maxs:
-                        d = self._join[d, m]
+                        d = jn[d, m]
 
             # This removes duplicates from todo.
             todo = set(cong.find(x) for x in todo)

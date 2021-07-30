@@ -192,7 +192,6 @@ tensor ``t`` acts on pairs formed by a linear form and a module element::
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import absolute_import
 
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElementWithMutability
@@ -376,8 +375,6 @@ class FreeModuleTensor(ModuleElementWithMutability):
             return True
         self._is_zero = True
         return False
-
-    __nonzero__ = __bool__
 
     ##### End of required methods for ModuleElement (beside arithmetic) #####
 
@@ -1507,7 +1504,8 @@ class FreeModuleTensor(ModuleElementWithMutability):
             [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring]
 
         """
-        if basis is None: basis = self._fmodule._def_basis
+        if basis is None:
+            basis = self._fmodule._def_basis
         if basis not in self._components:
             raise ValueError("the components w.r.t. the {}".format(basis) +
                              " have not been defined")

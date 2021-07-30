@@ -12,7 +12,6 @@ Check that gamma function imports are deprecated (:trac:`24411`)::
     See http://trac.sagemath.org/24411 for details.
     beta(x, x)
 """
-from __future__ import print_function
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.functions.gamma',
@@ -1937,8 +1936,8 @@ class Function_prod(BuiltinFunction):
             sage: isinstance(r.operator(),
             ....:     sage.functions.other.Function_prod) # known bug
             True
-            sage: giac(sprod(m, m, 1, n))
-            n!
+            sage: giac(sprod(m, m, 1, n)).sage()
+            factorial(n)
         """
         BuiltinFunction.__init__(self, "product", nargs=4,
                                conversions=dict(maxima='product',

@@ -14,17 +14,15 @@ overridden by subclasses.
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  https://www.gnu.org/licenses/
 ###############################################################################
-from __future__ import print_function
 
 import operator as _operator
 from sage.rings.rational_field import QQ
-from sage.symbolic.all import I, SR
+from sage.symbolic.ring import SR
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
-from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_gaussian
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 from functools import reduce
-GaussianField = I.pyobject().parent()
 
 
 class FakeExpression(object):
@@ -425,9 +423,14 @@ class InterfaceInit(Converter):
             sage: ii = InterfaceInit(gp)
             sage: ii.symbol(x)
             'x'
+            sage: g = InterfaceInit(giac)
+            sage: g.symbol(x)
+            'sageVARx'
         """
         if self.interface.name()=='maxima':
             return '_SAGE_VAR_'+repr(SR(ex))
+        elif self.interface.name() == 'giac':
+            return 'sageVAR' + repr(SR(ex))
         else:
             return repr(SR(ex))
 
@@ -437,7 +440,7 @@ class InterfaceInit(Converter):
 
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: ii = InterfaceInit(gp)
-            sage: f = 2+I
+            sage: f = 2+SR(I)
             sage: ii.pyobject(f, f.pyobject())
             'I + 2'
 
@@ -448,8 +451,7 @@ class InterfaceInit(Converter):
             'Pi'
         """
         if (self.interface.name() in ['pari','gp'] and
-            isinstance(obj, NumberFieldElement_quadratic) and
-            obj.parent() == GaussianField):
+            isinstance(obj, NumberFieldElement_gaussian)):
             return repr(obj)
         try:
             return getattr(obj, self.name_init)()
@@ -858,7 +860,7 @@ class SympyConverter(Converter):
             sage: diff(f(x, t), x)._sympy_(), diff(f(x, t), t)._sympy_()
             (Derivative(f(x, t), x), Derivative(f(x, t), t))
 
-        Check differentiating by variables with multiple occurences
+        Check differentiating by variables with multiple occurrences
         (:trac:`28964`)::
 
             sage: f = function('f')
@@ -944,6 +946,90 @@ class FriCASConverter(InterfaceInit):
     def __init__(self):
         import sage.interfaces.fricas
         super(FriCASConverter, self).__init__(sage.interfaces.fricas.fricas)
+
+    def pyobject(self, ex, obj):
+        """
+        Return a string which, when evaluated by FriCAS, returns the
+        object as an expression.
+
+        We explicitly add the coercion to the FriCAS domains
+        `Expression Integer` and `Expression Complex Integer` to make
+        sure that elements of the symbolic ring are translated to
+        these.  In particular, this is needed for integration, see
+        :trac:`28641` and :trac:`28647`.
+
+        EXAMPLES::
+
+            sage: 2._fricas_().domainOf()                                       # optional - fricas
+            PositiveInteger()
+
+            sage: (-1/2)._fricas_().domainOf()                                  # optional - fricas
+            Fraction(Integer())
+
+            sage: SR(2)._fricas_().domainOf()                                   # optional - fricas
+            Expression(Integer())
+
+            sage: (sqrt(2))._fricas_().domainOf()                               # optional - fricas
+            Expression(Integer())
+
+            sage: pi._fricas_().domainOf()                                      # optional - fricas
+            Pi()
+
+            sage: asin(pi)._fricas_()                                           # optional - fricas
+            asin(%pi)
+
+            sage: I._fricas_().domainOf()                                   # optional - fricas
+            Complex(Integer())
+
+            sage: SR(I)._fricas_().domainOf()                                   # optional - fricas
+            Expression(Complex(Integer()))
+
+            sage: ex = (I+sqrt(2)+2)
+            sage: ex._fricas_().domainOf()                                      # optional - fricas
+            Expression(Complex(Integer()))
+
+            sage: ex._fricas_()^2                                               # optional - fricas
+                       +-+
+            (4 + 2 %i)\|2  + 5 + 4 %i
+
+            sage: (ex^2)._fricas_()                                             # optional - fricas
+                       +-+
+            (4 + 2 %i)\|2  + 5 + 4 %i
+
+        """
+        try:
+            result = getattr(obj, self.name_init)()
+            if isinstance(obj, NumberFieldElement_gaussian):
+                return "((%s)::EXPR COMPLEX INT)" % result
+        except AttributeError:
+            result = repr(obj)
+        return "((%s)::EXPR INT)" % result
+
+    def symbol(self, ex):
+        """
+        Convert the argument, which is a symbol, to FriCAS.
+
+        In this case, we do not return an `Expression Integer`,
+        because FriCAS frequently requires elements of domain
+        `Symbol` or `Variable` as arguments, for example to
+        `integrate`.  Moreover, FriCAS is able to do the conversion
+        itself, whenever the argument should be interpreted as a
+        symbolic expression.
+
+        EXAMPLES::
+
+            sage: x._fricas_().domainOf()                                       # optional - fricas
+            Variable(x)
+
+            sage: (x^2)._fricas_().domainOf()                                   # optional - fricas
+            Expression(Integer())
+
+            sage: (2*x)._fricas_().integrate(x)                                 # optional - fricas
+             2
+            x
+
+        """
+        return repr(ex)
 
     def derivative(self, ex, operator):
         """
@@ -1073,6 +1159,21 @@ class AlgebraicConverter(Converter):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert pi^6 to Algebraic Field
+
+        Test that :trac:`14602` is fixed::
+
+            sage: K = QuadraticField(3)
+            sage: K(sqrt(3)).parent() is K
+            True
+            sage: sqrt(K(3)).parent() is K
+            True
+            sage: (K(3)^(1/2)).parent()
+            Symbolic Ring
+            sage: bool(K.gen() == K(3)^(1/2) == sqrt(K(3)) == K(sqrt(3)) == sqrt(3))
+            True
+            sage: L = QuadraticField(3, embedding=-AA(3).sqrt())
+            sage: bool(L.gen() == -sqrt(3))
+            True
         """
         # We try to avoid simplifying, because maxima's simplify command
         # can change the value of a radical expression (by changing which
@@ -1239,7 +1340,7 @@ def algebraic(ex, field):
         True
         sage: AA(-golden_ratio)
         -1.618033988749895?
-        sage: QQbar((2*I)^(1/2))
+        sage: QQbar((2*SR(I))^(1/2))
         1 + 1*I
         sage: QQbar(e^(pi*I/3))
         0.50000000000000000? + 0.866025403784439?*I
@@ -2080,6 +2181,7 @@ class ExpressionTreeWalker(Converter):
             sage: s = ExpressionTreeWalker(ex)
             sage: bool(s() == ex)
             True
+            sage: set_random_seed(0)  # random_expr is unstable
             sage: foo = random_expr(20, nvars=2)
             sage: s = ExpressionTreeWalker(foo)
             sage: bool(s() == foo)

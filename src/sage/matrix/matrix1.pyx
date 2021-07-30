@@ -86,8 +86,6 @@ cdef class Matrix(Matrix0):
             sage: b = pari(a); b
             [1.000000000, 2.000000000; 3.000000000, 1.000000000] # 32-bit
             [1.00000000000000, 2.00000000000000; 3.00000000000000, 1.00000000000000] # 64-bit
-            sage: b[0][0].precision()    # in words
-            3
         """
         from sage.libs.pari.all import pari
         return pari.matrix(self._nrows, self._ncols, self._list())
@@ -191,15 +189,21 @@ cdef class Matrix(Matrix0):
             |     2                 2    |
             +    x  + 8 x      - 3 x  + 5+
 
+        ::
+
+            sage: y = var('y')
+            sage: M = matrix(SR, 2, [y+sin(y), y - 4, 1/y, dilog(y)])
+            sage: M == fricas(M).sage()    # optional - fricas
+            True
         """
-        s = str(self.rows()).replace('(','[').replace(')',']')
+        s = ','.join('[' + ','.join(cf._fricas_init_() for cf in row) + ']'
+                     for row in self.rows())
         R = self.base_ring()
         try:
             R._fricas_()
         except TypeError:
-            return "matrix(%s)"%(s)
-
-        return "matrix(%s)$Matrix(%s)"%(s, R._fricas_init_())
+            return "matrix([%s])" % s
+        return "matrix([%s])$Matrix(%s)" % (s, R._fricas_init_())
 
     def _giac_init_(self):
         """
@@ -211,21 +215,23 @@ cdef class Matrix(Matrix0):
             sage: giac(M)
             [[0,1],[2,3]]
 
-        ::
-
             sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
             sage: giac(M)
             [[1,2,3],[4/3,5/3,3/2],[7,8,9]]
 
-        ::
-
             sage: P.<x> = ZZ[]
             sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
             sage: giac(M)
-            [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]]
+            [[-9*sageVARx^2-2*sageVARx+2,sageVARx-1],[sageVARx^2+8*sageVARx,-3*sageVARx^2+5]]
+
+            sage: y = var('y')
+            sage: M = matrix(SR, 2, [y+sin(y), y - 4, 1/y, dilog(y)])
+            sage: giac(M).det().sage()
+            (y^2*dilog(y) + y*dilog(y)*sin(y) - y + 4)/y
         """
-        s = str(self.rows()).replace('(','[').replace(')',']')
-        return "(%s)"%(s)
+        s = ','.join('[' + ','.join(cf._giac_init_() for cf in row) + ']'
+                     for row in self.rows())
+        return "([%s])" % s
 
     def _maxima_init_(self):
         """
@@ -373,21 +379,23 @@ cdef class Matrix(Matrix0):
             sage: maple(M)  # optional - maple
             Matrix(2, 2, [[0,1],[2,3]])
 
-        ::
-
             sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
             sage: maple(M)  # optional - maple
             Matrix(3, 3, [[1,2,3],[4/3,5/3,3/2],[7,8,9]])
-
-        ::
 
             sage: P.<x> = ZZ[]
             sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
             sage: maple(M)  # optional - maple
             Matrix(2, 2, [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]])
+
+            sage: y = var('y')
+            sage: M = matrix(SR, 2, [y+sin(y), y - 4, 1/y, dilog(y)])
+            sage: M == maple(M).sage()    # optional - maple
+            True
         """
-        s = str(self.rows()).replace('(','[').replace(')',']')
-        return "Matrix(%s,%s,%s)"%(self.nrows(), self.ncols(), s)
+        s = ','.join('[' + ','.join(cf._maple_init_() for cf in row) + ']'
+                     for row in self.rows())
+        return "Matrix(%s,%s,[%s])" % (self.nrows(), self.ncols(), s)
 
     def _polymake_(self, polymake=None):
         """
@@ -526,9 +534,10 @@ cdef class Matrix(Matrix0):
             sage: sage_input(matrix(QQ, 3, 3, [5..13])/7, verify=True)
             # Verified
             matrix(QQ, [[5/7, 6/7, 1], [8/7, 9/7, 10/7], [11/7, 12/7, 13/7]])
-            sage: sage_input(MatrixSpace(GF(5), 50, 50, sparse=True).random_element(density=0.002), verify=True)
-            # Verified
-            matrix(GF(5), 50, 50, {(4,44):2, (5,25):1, (26,9):3, (43,24):3, (44,38):4})
+            sage: M = MatrixSpace(GF(5), 50, 50, sparse=True).random_element(density=0.002)
+            sage: input = sage_input(M, verify=True)
+            sage: sage_eval(input) == M
+            True
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: matrix(RDF, [[3, 1], [4, 1]])._sage_input_(SageInputBuilder(), False)
             {call: {atomic:matrix}({atomic:RDF}, {list: ({list: ({atomic:3}, {atomic:1})}, {list: ({atomic:4}, {atomic:1})})})}
@@ -2380,7 +2389,8 @@ cdef class Matrix(Matrix0):
         cdef Matrix A
         A = self.new_matrix(self._nrows, self._ncols, self,
                 coerce=False, sparse=False)
-        A.subdivide(self.subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(self.subdivisions())
         return A
 
     def sparse_matrix(self):
@@ -2423,7 +2433,8 @@ cdef class Matrix(Matrix0):
             return self
         A = self.new_matrix(self._nrows, self._ncols, self,
                 coerce=False, sparse=True)
-        A.subdivide(self.subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(self.subdivisions())
         return A
 
     def matrix_space(self, nrows=None, ncols=None, sparse=None):

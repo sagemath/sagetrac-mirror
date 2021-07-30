@@ -47,7 +47,6 @@ Here is a list of all content related to GRS codes:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.categories.cartesian_product import cartesian_product
 
@@ -216,7 +215,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         """
         if column_multipliers:
             if len(evaluation_points) != len(column_multipliers):
-                raise ValueError("There must be the same number of evaluation points as column multipliers");
+                raise ValueError("There must be the same number of evaluation points as column multipliers")
             try:
                 common_points = vector(list(evaluation_points) + list(column_multipliers))
                 F = common_points.base_ring()

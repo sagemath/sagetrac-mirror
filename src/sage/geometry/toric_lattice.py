@@ -144,7 +144,6 @@ Or you can create a homomorphism from one lattice to any other::
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.geometry.toric_lattice_element import (ToricLatticeElement,
                                                  is_ToricLatticeElement)
@@ -426,7 +425,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             sage: N3 = ToricLattice(3, 'N3')
             sage: Q = N3 / N3.span([ N3(1,2,3) ])
             sage: Q.an_element()
-            N3[0, 0, 1]
+            N3[1, 0, 0]
             sage: N2 = ToricLattice(2, 'N2')
             sage: N2( Q.an_element() )
             N2(1, 0)
@@ -685,7 +684,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             sage: N.quotient(Ms)
             Traceback (most recent call last):
             ...
-            ValueError: M(1, 8, 0) can not generate a sublattice of
+            ValueError: M(1, 8, 0) cannot generate a sublattice of
             3-d lattice N
 
         However, if we forget the sublattice structure, then it is
@@ -716,7 +715,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             sage: K.lattice().quotient(K.orthogonal_sublattice())
             Traceback (most recent call last):
             ...
-            ValueError: M(0, 0, 1) can not generate a sublattice of
+            ValueError: M(0, 0, 1) cannot generate a sublattice of
             3-d lattice N
 
         We can quotient by the trivial sublattice::
@@ -801,7 +800,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             return ToricLattice_sublattice(A, gens)
         for g in gens:
             if is_ToricLatticeElement(g) and g not in A:
-                raise ValueError("%s can not generate a sublattice of %s"
+                raise ValueError("%s cannot generate a sublattice of %s"
                                  % (g, A))
         return super(ToricLattice_generic, self).span(gens, base_ring,
                                                       *args, **kwds)
@@ -856,7 +855,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             return ToricLattice_sublattice_with_basis(A, basis)
         for g in basis:
             if is_ToricLatticeElement(g) and g not in A:
-                raise ValueError("%s can not generate a sublattice of %s"
+                raise ValueError("%s cannot generate a sublattice of %s"
                                  % (g, A))
         return super(ToricLattice_generic, self).span_of_basis(
             basis, base_ring, *args, **kwds)
@@ -1298,9 +1297,9 @@ class ToricLattice_quotient_element(FGP_Element):
         sage: e == e2
         True
         sage: e.vector()
-        (4)
+        (-4)
         sage: e2.vector()
-        (4)
+        (-4)
     """
 
     def _latex_(self):
@@ -1408,7 +1407,7 @@ class ToricLattice_quotient(FGP_Module_class):
         sage: Q
         1-d lattice, quotient of 3-d lattice N by Sublattice <N(1, 0, 1), N(0, 1, -1)>
         sage: Q.gens()
-        (N[0, 0, 1],)
+        (N[1, 0, 0],)
 
     Here, ``sublattice`` happens to be of codimension one in ``N``. If
     you want to prescribe the sign of the quotient generator, you can
@@ -1417,15 +1416,15 @@ class ToricLattice_quotient(FGP_Module_class):
         sage: Q = N.quotient(sublattice, positive_point=N(0,0,-1)); Q
         1-d lattice, quotient of 3-d lattice N by Sublattice <N(1, 0, 1), N(0, 1, -1)>
         sage: Q.gens()
-        (N[0, 0, -1],)
+        (N[1, 0, 0],)
 
     or::
 
         sage: M = N.dual()
-        sage: Q = N.quotient(sublattice, positive_dual_point=M(0,0,-1)); Q
+        sage: Q = N.quotient(sublattice, positive_dual_point=M(1,0,0)); Q
         1-d lattice, quotient of 3-d lattice N by Sublattice <N(1, 0, 1), N(0, 1, -1)>
         sage: Q.gens()
-        (N[0, 0, -1],)
+        (N[1, 0, 0],)
 
     TESTS::
 

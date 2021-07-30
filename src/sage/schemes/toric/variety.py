@@ -315,7 +315,6 @@ implementing them on your own as a patch for inclusion!
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import sys
 
@@ -714,7 +713,7 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1._check_satisfies_equations(1)
             Traceback (most recent call last):
             ...
-            TypeError: 1 can not be used as coordinates!
+            TypeError: 1 cannot be used as coordinates!
             Use a list or a tuple.
             sage: P1xP1._check_satisfies_equations([1,1,1,P1xP1.fan()])
             Traceback (most recent call last):
@@ -725,7 +724,7 @@ class ToricVariety_field(AmbientSpace):
         try:
             coordinates = tuple(coordinates)
         except TypeError:
-            raise TypeError("%s can not be used as coordinates! "
+            raise TypeError("%s cannot be used as coordinates! "
                             "Use a list or a tuple." % coordinates)
         n = self.ngens()
         if len(coordinates) != n:
@@ -1499,7 +1498,7 @@ class ToricVariety_field(AmbientSpace):
             in Basis lattice of The toric rational divisor class group
             of a 2-d CPR-Fano toric variety covered by 4 affine patches
             sage: [ divisor_class.lift() for divisor_class in Kc.rays() ]
-            [V(x), V(s)]
+            [V(y), V(t)]
             sage: Kc.lattice()
             Basis lattice of The toric rational divisor class group of a
             2-d CPR-Fano toric variety covered by 4 affine patches
@@ -1655,7 +1654,7 @@ class ToricVariety_field(AmbientSpace):
             sage: A = toric_varieties.P2().Chow_group(); A
             Chow group of 2-d CPR-Fano toric variety covered by 3 affine patches
             sage: A.gens()
-            (( 1 | 0 | 0 ), ( 0 | 1 | 0 ), ( 0 | 0 | 1 ))
+            (( 0 | 0 | 1 ), ( 0 | 1 | 0 ), ( 1 | 0 | 0 ))
         """
         from sage.schemes.toric.chow_group import ChowGroup
         return ChowGroup(self,base_ring)
@@ -2514,7 +2513,7 @@ class ToricVariety_field(AmbientSpace):
             Multivariate Polynomial Ring in x, u, y, v, z, w over Rational Field
         """
         from sage.schemes.toric.divisor import ToricDivisorGroup
-        return ToricDivisorGroup(self, base_ring);
+        return ToricDivisorGroup(self, base_ring)
 
     def _semigroup_ring(self, cone=None, names=None):
         r"""

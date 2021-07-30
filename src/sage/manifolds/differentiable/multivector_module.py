@@ -41,6 +41,7 @@ from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
 from sage.manifolds.differentiable.multivectorfield import (
                                        MultivectorField, MultivectorFieldParal)
 
+
 class MultivectorModule(UniqueRepresentation, Parent):
     r"""
     Module of multivector fields of a given degree `p` (`p`-vector
@@ -98,7 +99,7 @@ class MultivectorModule(UniqueRepresentation, Parent):
         sage: latex(A)
         A^{2}\left(M\right)
 
-    ``A`` is nothing but the second exterior power of of ``XM``, i.e.
+    ``A`` is nothing but the second exterior power of ``XM``, i.e.
     we have `A^{2}(M) = \Lambda^2(\mathfrak{X}(M))`::
 
         sage: A is XM.exterior_power(2)
@@ -343,17 +344,14 @@ class MultivectorModule(UniqueRepresentation, Parent):
 
         """
         resu = self.element_class(self._vmodule, self._degree)
-        # Non-trivial open covers of the domain:
-        open_covers = self._domain.open_covers()[1:]  # the open cover 0
-                                                      # is trivial
-        if open_covers != []:
-            oc = open_covers[0]  # the first non-trivial open cover is
-                                 # selected
+        for oc in self._domain.open_covers(trivial=False):
+            # the first non-trivial open cover is selected
             for dom in oc:
                 vmodule_dom = dom.vector_field_module(
                                   dest_map=self._dest_map.restrict(dom))
                 dmodule_dom = vmodule_dom.exterior_power(self._degree)
                 resu.set_restriction(dmodule_dom._an_element_())
+            return resu
         return resu
 
     def _coerce_map_from_(self, other):
@@ -448,7 +446,7 @@ class MultivectorModule(UniqueRepresentation, Parent):
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
         else:
-           return self._latex_name
+            return self._latex_name
 
     def base_module(self):
         r"""

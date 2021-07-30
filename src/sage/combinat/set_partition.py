@@ -16,7 +16,7 @@ AUTHORS:
 This module defines a class for immutable partitioning of a set. For
 mutable version see :func:`DisjointSet`.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -28,9 +28,8 @@ mutable version see :func:`DisjointSet`.
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function, absolute_import, division
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.sets.set import Set, Set_generic
 
@@ -55,6 +54,7 @@ from sage.misc.prandom import random, randint
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.sets.disjoint_set import DisjointSet
 from sage.combinat.posets.hasse_diagram import HasseDiagram
+
 
 class AbstractSetPartition(ClonableArray,
         metaclass=InheritComparisonClasscallMetaclass):
@@ -445,6 +445,7 @@ class AbstractSetPartition(ClonableArray,
             [{}]
         """
         SP = SetPartitions(len(self))
+
         def union(s):
             # Return the partition obtained by combining, for every
             # part of s, those parts of self which are indexed by
@@ -474,6 +475,60 @@ class AbstractSetPartition(ClonableArray,
             [1, 2, 2, 2, 3]
         """
         return max(len(block) for block in self)
+
+    def conjugate(self):
+        r"""
+        An involution exchanging singletons and circular adjacencies.
+
+        This method implements the definition of the conjugate of
+        a set partition defined in [Cal2005]_.
+
+        INPUT:
+
+        - ``self`` -- a set partition of an ordered set
+
+        OUTPUT:
+
+        - a set partition
+
+        EXAMPLES::
+
+            sage: SetPartition([[1,6,7],[2,8],[3,4,5]]).conjugate()
+            {{1, 4, 7}, {2, 8}, {3}, {5}, {6}}
+            sage: all(sp.conjugate().conjugate()==sp for sp in SetPartitions([1,3,5,7]))
+            True
+            sage: SetPartition([]).conjugate()
+            {}
+        """
+        def next(a, support):
+            return support[(support.index(a)+1) % len(support)]
+
+        def addback(S, terminals, rsupport):
+            out = list(S)
+            for a in terminals*2:
+                if a not in out and next(a, rsupport) in out:
+                    out.append(a)
+            return out
+
+        def pre_conjugate(sp):
+            if len(sp) <= 1:
+                return SetPartition([[a] for S in sp for a in S])
+            if sp.max_block_size() == 1:
+                return SetPartition([sp.base_set()])
+            support = sorted(a for S in sp for a in S)
+            initials = [a for S in sp for a in S if next(a,support) in S]
+            singletons = [a for S in sp for a in S if len(S) == 1]
+            if not initials and not singletons:
+                return sp
+            rho = pre_conjugate(
+                SetPartition([[a for a in S if a not in initials]
+                for S in sp if len(S)>1 and any(a not in initials for a in S)]))
+            # add back initials as singletons and singletons as terminals
+            return SetPartition([addback(S, singletons, support[::-1])
+                for S in rho]+[[a] for a in initials])
+        support = sorted(a for S in self for a in S)
+        return SetPartition([[support[-support.index(a)-1] for a in S]
+            for S in pre_conjugate(self)])
 
 
 class SetPartition(AbstractSetPartition,
@@ -1947,6 +2002,7 @@ class SetPartition(AbstractSetPartition,
         diag.axes(False)
         return diag
 
+
 class SetPartitions(UniqueRepresentation, Parent):
     r"""
     An (unordered) partition of a set `S` is a set of pairwise
@@ -2138,7 +2194,7 @@ class SetPartitions(UniqueRepresentation, Parent):
         integers such that each letter is at most 1 larger than all
         the letters before to a set partition of `\{1,...,n\}`.
 
-        ``w[i]` is the index of the block containing ``i+1`` when
+        ``w[i]`` is the index of the block containing ``i+1`` when
         sorting the blocks by their minimal element.
 
         INPUT:
@@ -2223,7 +2279,7 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         If ``n`` is not given, it is first checked whether it can be
         determined from the parent, otherwise it is the maximal
-        occuring integer in the set of rooks.
+        occurring integer in the set of rooks.
 
         INPUT:
 
@@ -2603,6 +2659,7 @@ class SetPartitions(UniqueRepresentation, Parent):
                 return False
         return True
 
+
 class SetPartitions_all(SetPartitions):
     r"""
     All set partitions.
@@ -2645,6 +2702,7 @@ class SetPartitions_all(SetPartitions):
             for x in SetPartitions_set(frozenset(range(1, n+1))):
                 yield self.element_class(self, list(x))
             n += 1
+
 
 class SetPartitions_set(SetPartitions):
     """
@@ -2815,6 +2873,7 @@ class SetPartitions_set(SetPartitions):
         """
         return len(self._set)
 
+
 class SetPartitions_setparts(SetPartitions_set):
     r"""
     Set partitions with fixed partition sizes corresponding to an
@@ -2974,7 +3033,6 @@ class SetPartitions_setparts(SetPartitions_set):
                     covers[first].append(i)
         return HasseDiagram(covers)
 
-
     def __iter__(self):
         """
         An iterator for all the set partitions of the given set with
@@ -3032,6 +3090,7 @@ class SetPartitions_setparts(SetPartitions_set):
         if not SetPartitions_set.__contains__(self, x):
             return False
         return sorted(map(len, x)) == list(reversed(self._parts))
+
 
 class SetPartitions_setn(SetPartitions_set):
     """
@@ -3216,6 +3275,7 @@ def cyclic_permutations_of_set_partition(set_part):
          [[1, 4, 3, 2], [5, 7, 6]]]
     """
     return list(cyclic_permutations_of_set_partition_iterator(set_part))
+
 
 def cyclic_permutations_of_set_partition_iterator(set_part):
     """

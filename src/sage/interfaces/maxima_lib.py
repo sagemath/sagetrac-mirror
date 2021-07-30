@@ -84,8 +84,6 @@ Maxima has some flags that affect how the result gets simplified (By default, be
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 from sage.symbolic.ring import SR
 
@@ -101,7 +99,7 @@ from sage.env import MAXIMA_FAS
 ## We begin here by initializing Maxima in library mode
 ## i.e. loading it into ECL
 ecl_eval("(setf *load-verbose* NIL)")
-if MAXIMA_FAS is not None:
+if MAXIMA_FAS:
     ecl_eval("(require 'maxima \"{}\")".format(MAXIMA_FAS))
 else:
     ecl_eval("(require 'maxima)")
@@ -874,7 +872,7 @@ class MaximaLib(MaximaAbstract):
 
         """
         try:
-            return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));
+            return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]))
         except RuntimeError as error:
             s = str(error)
             if "divergent" in s:
@@ -902,16 +900,15 @@ class MaximaLib(MaximaAbstract):
 
         """
         try:
-            return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_prod],([max_prod],[sr_to_max(SR(a)) for a in args])]]));
+            return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_prod],([max_prod],[sr_to_max(SR(a)) for a in args])]]))
         except RuntimeError as error:
             s = str(error)
             if "divergent" in s:
                 raise ValueError("Product is divergent.")
-            elif "Is" in s: # Maxima asked for a condition
+            elif "Is" in s:  # Maxima asked for a condition
                 self._missing_assumption(s)
             else:
                 raise
-
 
     def sr_limit(self, expr, v, a, dir=None):
         """

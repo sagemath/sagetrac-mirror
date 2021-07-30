@@ -44,7 +44,6 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.structure.all import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
@@ -947,8 +946,8 @@ class KlyachkoBundle_class(SageObject):
            sage: V = P1.sheaves.line_bundle(H) + P1.sheaves.line_bundle(-H)
            sage: V.cohomology(dim=True, weight=(0,))
            (1, 0)
-           sage: Vtilde = V.random_deformation()
-           sage: Vtilde.cohomology(dim=True, weight=(0,))
+           sage: Vtilde = V.random_deformation()  # not tested, known bug
+           sage: Vtilde.cohomology(dim=True, weight=(0,))  # not tested, known bug
            (1, 0)
         """
         filt = self._filt.random_deformation(epsilon)

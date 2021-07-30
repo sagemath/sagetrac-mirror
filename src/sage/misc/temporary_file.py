@@ -19,7 +19,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import io
 import os
@@ -165,7 +164,7 @@ class atomic_write(object):
 
     This is to be used in a ``with`` statement, where a temporary file
     is created when entering the ``with`` and is moved in place of the
-    target file when exiting the ``with`` (if no exceptions occured).
+    target file when exiting the ``with`` (if no exceptions occurred).
 
     INPUT:
 
@@ -336,7 +335,8 @@ class atomic_write(object):
         self.tmpdir = os.path.dirname(self.target)
         self.append = append
         # Remove umask bits from mode
-        umask = os.umask(0); os.umask(umask)
+        umask = os.umask(0)
+        os.umask(umask)
         self.mode = mode & (~umask)
 
         # 'binary' mode is the default on Python 2, whereas 'text' mode is the
