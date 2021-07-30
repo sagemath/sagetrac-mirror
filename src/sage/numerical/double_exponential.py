@@ -11,10 +11,11 @@ We verify that `\int_0^1 \frac{1}{2t^{1/2}} \, dt =1`::
     sage: from sage.numerical.double_exponential import integrate_vector_unbounded
     sage: P = 100
     sage: K = RealField(P)
+    sage: V = VectorSpace(K, 1)
     sage: integrand = lambda t: V([t^(-1/2)/2])
     sage: I = integrate_vector_unbounded(integrand, P)
     sage: error = (I-V([1])).norm()
-    sage: bool(error<1e-31)
+    sage: bool(error<1e-10)
     True
 
 AUTHORS:
@@ -34,6 +35,8 @@ AUTHORS:
 
 from sage.rings.real_mpfr import RealField
 from sage.schemes.riemann_surfaces.riemann_surface import ConvergenceError
+from sage.functions.log import lambert_w
+from sage.rings.infinity import Infinity
 
 def integrate_vector_unbounded(f, prec, epsilon=None, n=1):
     r"""
@@ -44,7 +47,7 @@ def integrate_vector_unbounded(f, prec, epsilon=None, n=1):
     By the nature of the double exponential scheme and the implementation, `f`
     may by singular at `t=0` provided the integral is well defined. A heuristic
     error bound, as described in [Bai2006]_, is used to determine when 
-    convergence is achieved. Some optimisation of the method mentioned by Bailey
+    convergence is achieved. Some optimisations of the method mentioned by Bailey
     are implemented, importantly the use of a higher precision field to 
     calculate the nodes and weights, see the input section. 
 
@@ -65,15 +68,17 @@ def integrate_vector_unbounded(f, prec, epsilon=None, n=1):
 
     EXAMPLES::
 
-    We verify that `\int_0^1 \frac{1}{10t^{9/10}} \, dt =1`::
+    We verify that `\int_0^1 \frac{1}{10t^{9/10}} \, dt =1`, using `n=2` as 
+    recommended by Bailey::
 
         sage: from sage.numerical.double_exponential import integrate_vector_unbounded
         sage: P = 100
         sage: K = RealField(P)
+        sage: V = VectorSpace(K, 1)
         sage: epsilon = K(2)^(-P+3)
         sage: a = 9/10
         sage: integrand = lambda t: V([(1-a)*t^(-a)])
-        sage: I = integrate_vector_unbounded(integrand, P)
+        sage: I = integrate_vector_unbounded(integrand, P, n=2)
         sage: error = (I-V([1])).norm()
         sage: bool(error<epsilon)
         True
@@ -84,16 +89,18 @@ def integrate_vector_unbounded(f, prec, epsilon=None, n=1):
         sage: from sage.numerical.double_exponential import integrate_vector_unbounded
         sage: P = 100
         sage: K = RealField(P)
+        sage: V = VectorSpace(K, 1)
         sage: epsilon = K(2)^(-P+3)
         sage: a = 99/100
         sage: integrand = lambda t: V([(1-a)*t^(-a)])
-        sage: I = integrate_vector_unbounded(integrand, P)
+        sage: I = integrate_vector_unbounded(integrand, P, n=2)
         sage: error = (I-V([1])).norm()
         sage: bool(error<epsilon)
         False
 
     Numerical investigations suggest that the heuristic error bound is achieved
-    for integrands of the form `t^{-a}` for `a \lessapprox 0.9625`.
+    for integrands of the form `t^{-a}` for `a \lessapprox 0.9625` when taking 
+    `n=2`.
     """
     R1 = RealField(prec)
     ONE = R1(1)
@@ -113,7 +120,7 @@ def integrate_vector_unbounded(f, prec, epsilon=None, n=1):
     extra_nodes = [(1/(2*U2.exp()*U2.cosh()),U1/(2*U2.cosh()**2)) for U1, U2 in zip(u1,u2)]
     vals = [w*f(y) for y, w in reversed(extra_nodes)] + [S0] + [w*f(1-y) for y, w in extra_nodes]
     results = [sum(vals)]
-    D3 = epsilon*max([v.norm(oo) for v in vals])
+    D3 = epsilon*max([v.norm(Infinity) for v in vals])
 
     h /= 2
     Nh *= 2
@@ -123,7 +130,7 @@ def integrate_vector_unbounded(f, prec, epsilon=None, n=1):
     extra_nodes = [(1/(2*U2.exp()*U2.cosh()),U1/(2*U2.cosh()**2)) for U1, U2 in zip(u1,u2)]
     vals = [w*f(y) for y, w in reversed(extra_nodes)] + [w*f(1-y) for y, w in extra_nodes]
     results.append(h*sum(vals)+results[-1]/2)
-    D3 = max(D3,epsilon*max([v.norm(oo) for v in vals]))
+    D3 = max(D3,epsilon*max([v.norm(Infinity) for v in vals]))
 
     for k in range(2,n*(prec-3)-1):
         h /= 2
@@ -135,14 +142,14 @@ def integrate_vector_unbounded(f, prec, epsilon=None, n=1):
         extra_nodes = [(1/(2*U2.exp()*U2.cosh()),U1/(2*U2.cosh()**2)) for U1, U2 in zip(u1,u2)]
         vals = [w*f(y) for y, w in reversed(extra_nodes)] + [w*f(1-y) for y, w in extra_nodes]
         results.append(h*sum(vals)+results[-1]/2)
-        D3 = max(D3,epsilon*max([v.norm(oo) for v in vals]))
-        D4 = max([vals[j].norm(oo) for j in [-1,0]])
+        D3 = max(D3,epsilon*max([v.norm(Infinity) for v in vals]))
+        D4 = max([vals[j].norm(Infinity) for j in [-1,0]])
 
         if results[-1] == results[-2] or results[2] == results[-3]:
             D = epsilon
         else:
-            D1 = (results[-1]-results[-2]).norm(oo)
-            D2 = (results[-1]-results[-3]).norm(oo)
+            D1 = (results[-1]-results[-2]).norm(Infinity)
+            D2 = (results[-1]-results[-3]).norm(Infinity)
             D = min(ONE,max(D1**(D1.log()/D2.log()),D2**2,D3,D4,epsilon))
 
         if D <= epsilon:
