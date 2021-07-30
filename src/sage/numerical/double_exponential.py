@@ -44,7 +44,7 @@ def integrate_vector_unbounded(f, prec, epsilon=None, n=1):
     By the nature of the double exponential scheme and the implementation, `f`
     may by singular at `t=0` provided the integral is well defined. A heuristic
     error bound, as described in [Bai2006]_, is used to determine when 
-    convergence is acheived. Some optimisation of the method mentioned by Bailey
+    convergence is achieved. Some optimisation of the method mentioned by Bailey
     are implemented, importantly the use of a higher precision field to 
     calculate the nodes and weights, see the input section. 
 
@@ -79,7 +79,7 @@ def integrate_vector_unbounded(f, prec, epsilon=None, n=1):
         True
 
     The error estimate is only a heuristic and this can be seen by considering
-    poles of higher order
+    poles of higher order::
 
         sage: from sage.numerical.double_exponential import integrate_vector_unbounded
         sage: P = 100
@@ -91,6 +91,9 @@ def integrate_vector_unbounded(f, prec, epsilon=None, n=1):
         sage: error = (I-V([1])).norm()
         sage: bool(error<epsilon)
         False
+
+    Numerical investigations suggest that the heuristic error bound is achieved
+    for integrands of the form `t^{-a}` for `a \lessapprox 0.9625`.
     """
     R1 = RealField(prec)
     ONE = R1(1)
