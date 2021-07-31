@@ -1,6 +1,8 @@
 r"""
 Finite topological spaces
+
 This module implements finite topological spaces and related concepts.
+
 A *finite topological space* is a topological space with finitely many points 
 and a *finite preordered set* is a finite set with a transitive and reflexive 
 relation. Finite spaces and finite preordered sets are basically the same 
@@ -12,6 +14,7 @@ open sets constitute a basis for the topology of `X`. Indeed, any open set `U`
 of `X` is the union of the sets `U_x` with `x\in U`. This basis is called the 
 *minimal basis of* `X`. A preorder on `X` is given  by `x\leqslant y` if 
 `x\in U_y`.
+
 If `X` is now a finite preordered set, one can define a topology on `X` given 
 by the basis `\lbrace y\in X\vert y\leqslant x\rbrace_{x\in X}`. Note that if 
 `y\leqslant x`, then `y` is contained in every basic set containing `x`, and 
@@ -26,6 +29,7 @@ corresponds exactly to the `T_0` separation axiom. Recall that a topological
 space `X` is said to be `T_0` if for any pair of points in `X` there exists an
 open set containing one and only one of them. Therefore finite `T_0`-spaces are
 in correspondence with finite partially ordered sets (posets) [Bar2011]_.
+
 Now, if `X = \lbrace x_1, x_2, \ldots , x_n\rbrace` is a finite space and for
 each `i` the unique minimal open set containing `x_i` is denoted by `U_i`, a
 *topogenous matrix* of the space is the `n \times n` matrix 
@@ -35,12 +39,18 @@ each `i` the unique minimal open set containing `x_i` is denoted by `U_i`, a
 `A` defined above is similar (via a permutation matrix) to a certain upper 
 triangular matrix [Shi1968]_. This is the reason one can assume that the 
 topogenous matrix of a finite `T_0`-space is upper triangular.
+
+
 AUTHOR::
+
 - Julian Cuevas-Rozo (2021): Initial version
+
 REFERENCES:
+
 - [Ale1937]_
 - [Bar2011]_
 - [Shi1968]_
+
 """
 # ****************************************************************************
 #       Copyright (C) 2020 Julian Cuevas-Rozo <jlcrozo@gmail.com>
@@ -66,31 +76,41 @@ from sage.interfaces import kenzo
 def FiniteSpace(data, elements=None, is_T0=False):
     r"""
     Construct a finite topological space from various forms of input data.
+
     INPUT:
+
     - ``data`` -- different input are accepted by this constructor:
+
       1. A dictionary representing the minimal basis of the space.
+
       2. A list or tuple of minimal open sets (in this case the elements of the 
          space are assumed to be ``range(n)`` where ``n`` is the length of 
          ``data``).
+
       3. A topogenous matrix (assumed sparse). If ``elements=None``, the 
          elements of the space are assumed to be ``range(n)`` where ``n`` is 
          the dimension of the matrix.
+
       4. A finite poset (by now if ``poset._is_facade = False``, the methods 
       are not completely tested).
+
     - ``elements`` -- (default ``None``) it is ignored when data is of type 1, 
       2 or 4. When ``data`` is a topogenous matrix, this parameter gives the 
       underlying set of the space.
       
     - ``is_T0`` -- (default ``False``) it is a boolean that indicates, when it 
       is previously known, if the finite space is `T_0`.
+
     EXAMPLES:
+
     A dictionary as ``data``::
-        sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+        sage: from sage.topology.finite_topological_spaces import FiniteSpace
         sage: T = FiniteSpace({'a': {'a', 'c'}, 'b': {'b'}, 'c':{'a', 'c'}}) ; T
         Finite topological space of 3 points with minimal basis
          {'a': {'a', 'c'}, 'b': {'b'}, 'c': {'a', 'c'}}
         sage: type(T)
-        <class 'sage.homology.finite_topological_spaces.FiniteTopologicalSpace'>
+        <class 'sage.topology.finite_topological_spaces.FiniteTopologicalSpace'>
         sage: FiniteSpace({'a': {'a', 'b'}})
         Traceback (most recent call last):
         ...
@@ -99,23 +119,27 @@ def FiniteSpace(data, elements=None, is_T0=False):
         Traceback (most recent call last):
         ...
         ValueError: The introduced data does not define a topology
+
     When ``data`` is a tuple or a list, the elements are in ``range(n)`` where
     ``n`` is the length of ``data``::
-        sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+        sage: from sage.topology.finite_topological_spaces import FiniteSpace
         sage: T = FiniteSpace([{0, 3}, {1, 3}, {2, 3}, {3}]) ; T
         Finite T0 topological space of 4 points with minimal basis
          {0: {3, 0}, 1: {3, 1}, 2: {3, 2}, 3: {3}}
         sage: type(T)
-        <class 'sage.homology.finite_topological_spaces.FiniteTopologicalSpace_T0'>
+        <class 'sage.topology.finite_topological_spaces.FiniteTopologicalSpace_T0'>
         sage: T.underlying_set()
         {0, 1, 2, 3}
         sage: FiniteSpace(({0, 2}, {0, 2}))
         Traceback (most recent call last):
         ...
         ValueError: This kind of data assume the elements are in range(2)
+
     If ``data`` is a topogenous matrix, the parameter ``elements``, when it is 
     not ``None``, determines the list of elements of the space::
-        sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+        sage: from sage.topology.finite_topological_spaces import FiniteSpace
         sage: mat_dict = {(0, 0): 1, (0, 3): 1, (0, 4): 1, (1, 1): 1, (1, 2): 1, (2, 1): 1, \
         ....:             (2, 2): 1, (3, 3): 1, (3, 4): 1, (4, 3): 1, (4, 4): 1}
         sage: mat = matrix(mat_dict) ; mat
@@ -138,15 +162,17 @@ def FiniteSpace(data, elements=None, is_T0=False):
         Traceback (most recent call last):
         ...
         AssertionError: Not valid list of elements
+
     Finally, when ``data`` is a finite poset, the corresponding finite T0 space
     is constructed::
-        sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+        sage: from sage.topology.finite_topological_spaces import FiniteSpace
         sage: P = Poset([[1, 2], [4], [3], [4], []])
         sage: T = FiniteSpace(P) ; T
         Finite T0 topological space of 5 points with minimal basis
          {0: {0}, 1: {0, 1}, 2: {0, 2}, 3: {0, 2, 3}, 4: {0, 1, 2, 3, 4}}
         sage: type(T)
-        <class 'sage.homology.finite_topological_spaces.FiniteTopologicalSpace_T0'>
+        <class 'sage.topology.finite_topological_spaces.FiniteTopologicalSpace_T0'>
         sage: T.poset() == P
         True
     """
@@ -241,18 +267,25 @@ def FiniteSpace(data, elements=None, is_T0=False):
 def RandomFiniteT0Space(*args):
     r"""
     Return a random finite `T_0` space.
+
     INPUT:
+
     - ``args`` -- A tuple of two arguments. The first argument must be an 
       integer number, while the second argument must be either a number between 
       0 and 1, or ``True``.
+
     OUTPUT:
+
     - If ``args[1]``=``True``, a random finite `T_0` space of cardinality 
       ``args[0]`` of height 3 without beat points is returned.
+
     - If ``args[1]`` is a number, a random finite `T_0` space of cardinality 
       ``args[0]`` and density ``args[1]`` of ones in its topogenous matrix is 
       returned.
+
     EXAMPLES::
-        sage: from sage.homology.finite_topological_spaces import RandomFiniteT0Space
+
+        sage: from sage.topology.finite_topological_spaces import RandomFiniteT0Space
         sage: RandomFiniteT0Space(5, 0)                                # optional - kenzo               
         Finite T0 topological space of 5 points with minimal basis 
          {0: {0}, 1: {1}, 2: {2}, 3: {3}, 4: {4}}
@@ -289,20 +322,27 @@ def RandomFiniteT0Space(*args):
 class FiniteTopologicalSpace(Parent):
     r"""
     Finite topological spaces.
+
     Users should not call this directly, but instead use :func:`FiniteSpace`.
     See that function for more documentation.
     """
     def __init__(self, elements, minimal_basis, topogenous):
         r"""
         Define a finite topological space.
+
         INPUT:
+
         - ``elements`` -- list of the elements of the space. 
+
         - ``minimal_basis`` -- a dictionary where the values are sets 
           representing the minimal open sets containing the respective key.
+
         - ``topogenous`` -- a topogenous matrix of the finite space 
           corresponding to the order given by ``elements``.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteTopologicalSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteTopologicalSpace
             sage: elements = [1, 2, 'a', 3]
             sage: minimal_basis = {'a': {3, 'a'}, 3: {3, 'a'}, 2: {2, 1}, 1: {1}}
             sage: mat_dict = {(0, 0): 1, (0, 1): 1, (1, 1): 1, (2, 2): 1, \
@@ -324,8 +364,10 @@ class FiniteTopologicalSpace(Parent):
         Return a pair formed by the index of `element` in `self._elements` and 
         the index of `str(element)` in the sorted list consisting of the 
         strings of elements in `self._elements`.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace({0: {3, 0}, 3: {3, 0}, 2: {2, 1}, 1: {1}})
             sage: T._elements
             [1, 0, 2, 3]
@@ -341,8 +383,10 @@ class FiniteTopologicalSpace(Parent):
     def _repr_(self):
         r"""
         Print representation.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: FiniteSpace({0: {0, 1}, 1: {0, 1}})
             Finite topological space of 2 points with minimal basis
              {0: {0, 1}, 1: {0, 1}}
@@ -362,8 +406,10 @@ class FiniteTopologicalSpace(Parent):
     def __contains__(self, x):
         r"""
         Return ``True`` if ``x`` is an element of the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: P = Poset((divisors(6), attrcall("divides")), linear_extension=True)
             sage: T = FiniteSpace(P)
             sage: 3 in T
@@ -378,9 +424,11 @@ class FiniteTopologicalSpace(Parent):
         Return the list of elements in the underlying set of the finite space, 
         ordered in such a way that in the case of a T0 space, the topogenous 
         matrix is upper triangular.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
-            sage: sage: T = FiniteSpace([{0, 3}, {1, 3}, {2, 3}, {3}])
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
+            sage: T = FiniteSpace([{0, 3}, {1, 3}, {2, 3}, {3}])
             sage: T.underlying_set()
             {0, 1, 2, 3}
             sage: T.topogenous_sorting()
@@ -396,8 +444,10 @@ class FiniteTopologicalSpace(Parent):
     def underlying_set(self):
         r"""
         Return the underlying set of the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace(({0}, {1}, {2, 3}, {3}))
             sage: T.underlying_set()
             {0, 1, 2, 3}
@@ -407,11 +457,16 @@ class FiniteTopologicalSpace(Parent):
     def subspace(self, points=None, is_T0=False):
         r"""
         Return the subspace whose elements are in ``points``.
+
         INPUT:
+
         - ``points`` -- (default ``None``) A tuple, list or set contained in ``self.underlying_set()``.
+
         - ``is_T0`` -- (default ``False``) If it is known that the resulting subspace is `T_0`, fix ``True``.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace(({0}, {1, 3, 4}, {0, 2, 5}, {1, 3, 4}, {1, 3, 4}, {0, 2, 5}))
             sage: T.subspace((0, 3, 5))
             Finite T0 topological space of 3 points with minimal basis
@@ -437,8 +492,10 @@ class FiniteTopologicalSpace(Parent):
     def cardinality(self):
         r"""
         Return the number of elements in the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: P = Poset((divisors(360), attrcall("divides")), linear_extension=True)
             sage: T = FiniteSpace(P)
             sage: T.cardinality() == P.cardinality()
@@ -450,12 +507,15 @@ class FiniteTopologicalSpace(Parent):
         r"""
         Return the minimal basis that generates the topology of the finite 
         space.
+
         OUTPUT:
+
         - A dictionary whose keys are the elements of the space and the values
           are the minimal open sets containing the respective element.
+
         EXAMPLES::
         
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace(({0}, {0, 1, 2}, {0, 1, 2}, {3, 4}, {3, 4}))
             sage: T.minimal_basis()
             {0: {0}, 1: {0, 1, 2}, 2: {0, 1, 2}, 3: {3, 4}, 4: {3, 4}}
@@ -468,8 +528,10 @@ class FiniteTopologicalSpace(Parent):
     def minimal_open_set(self, x):
         r"""
         Return the minimal open set containing ``x``.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace(({0}, {0, 1, 2}, {0, 1, 2}, {3, 4}, {3, 4}))
             sage: T.minimal_open_set(1)
             {0, 1, 2}
@@ -482,11 +544,15 @@ class FiniteTopologicalSpace(Parent):
     def topogenous_matrix(self):
         r"""
         Return the topogenous matrix of the finite space.
+
         OUTPUT:
+
         - A binary matrix whose `(i,j)` entry is equal to 1 if and only if ``self._elements[i]``
           is in ``self._minimal_basis[self._elements[j]]``.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace(({0}, {1, 3, 4}, {0, 2, 5}, {1, 3, 4}, {1, 3, 4}, {0, 2, 5}))
             sage: T.topogenous_matrix()
             [1 0 1 0 0 1]
@@ -506,8 +572,10 @@ class FiniteTopologicalSpace(Parent):
     def is_T0(self):
         r"""
         Return ``True`` if the finite space satisfies the T0 separation axiom.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0}, {1}, {2, 3}, {2, 3}])
             sage: T.is_T0()
             False
@@ -519,15 +587,20 @@ class FiniteTopologicalSpace(Parent):
     def equivalent_T0(self, points=None, check=True):
         r"""
         Return a finite T0 space homotopy equivalent to ``self``.
+
         INPUT:
+
         - ``points`` -- (default ``None``) a tuple, list or set of 
           representatives elements of the equivalent classes induced by the 
           partition ``self._T0``.
+
         - ``check`` -- if ``True`` (default), it is checked that ``points`` 
           effectively defines a set of representatives of the partition 
           ``self._T0``.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace(({0}, {1, 3, 4}, {0, 2, 5}, {1, 3, 4}, {1, 3, 4}, {0, 2, 5}))
             sage: T.is_T0()
             False
@@ -574,14 +647,18 @@ class FiniteTopologicalSpace(Parent):
         r"""
         Return the list of the elements in the minimal open set containing 
         ``x``.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {5: {5}, 6: {5, 6}, 3: {3, 5}, 2: {2, 5, 6}, \
                                    4: {2, 4, 5, 6}, 1: {1, 5}}
             sage: T = FiniteSpace(minimal_basis)
             sage: T.Ux(2)
             [5, 6, 2]
+
         TESTS::
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.2))
             sage: x = random.choice(T._elements)
@@ -593,14 +670,18 @@ class FiniteTopologicalSpace(Parent):
     def Fx(self, x):
         r"""
         Return the list of the elements in the closure of `\lbrace x\rbrace`.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {5: {5}, 6: {5, 6}, 3: {3, 5}, 2: {2, 5, 6}, \
                                    4: {2, 4, 5, 6}, 1: {1, 5}}
             sage: T = FiniteSpace(minimal_basis)
             sage: T.Fx(2)
             [2, 4]
+
         TESTS::
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.2))
             sage: x = random.choice(T._elements)
@@ -615,14 +696,18 @@ class FiniteTopologicalSpace(Parent):
     def Cx(self, x):
         r"""
         Return the list of the elements in the star of ``x``.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {5: {5}, 6: {5, 6}, 3: {3, 5}, 2: {2, 5, 6}, \
                                    4: {2, 4, 5, 6}, 1: {1, 5}}
             sage: T = FiniteSpace(minimal_basis)
             sage: T.Cx(2)
             [5, 6, 2, 4]
+
         TESTS::
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.2))
             sage: x = random.choice(T._elements)
@@ -634,8 +719,10 @@ class FiniteTopologicalSpace(Parent):
     def Ux_tilded(self, x):
         r"""
         Return the list of the elements in `\widehat{U}_x = U_x - \lbrace x\rbrace`.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {5: {5}, 6: {5, 6}, 3: {3, 5}, 2: {2, 5, 6}, \
                                    4: {2, 4, 5, 6}, 1: {1, 5}}
             sage: T = FiniteSpace(minimal_basis)
@@ -647,8 +734,10 @@ class FiniteTopologicalSpace(Parent):
     def Fx_tilded(self, x):
         r"""
         Return the list of the elements in `\widehat{F}_x = F_x - \lbrace x\rbrace`.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {5: {5}, 6: {5, 6}, 3: {3, 5}, 2: {2, 5, 6}, \
                                    4: {2, 4, 5, 6}, 1: {1, 5}}
             sage: T = FiniteSpace(minimal_basis)
@@ -660,8 +749,10 @@ class FiniteTopologicalSpace(Parent):
     def Cx_tilded(self, x):
         r"""
         Return the list of the elements in `\widehat{C}_x = C_x - \lbrace x\rbrace`.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {5: {5}, 6: {5, 6}, 3: {3, 5}, 2: {2, 5, 6}, \
                                    4: {2, 4, 5, 6}, 1: {1, 5}}
             sage: T = FiniteSpace(minimal_basis)
@@ -673,8 +764,10 @@ class FiniteTopologicalSpace(Parent):
     def opposite(self):
         r"""
         Return the opposite space of ``self``.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: mat_dict = {(0, 0): 1, (0, 3): 1, (0, 4): 1, (1, 1): 1, (1, 2): 1, (2, 1): 1, \
             ....:             (2, 2): 1, (3, 3): 1, (3, 4): 1, (4, 3): 1, (4, 4): 1}
             sage: T = FiniteSpace(matrix(mat_dict))
@@ -705,8 +798,10 @@ class FiniteTopologicalSpace(Parent):
         r"""
         Return ``True`` if ``x`` is an interior point of ``E`` in the finite 
         space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
             sage: T.is_interior_point(1, {1, 2, 3})
             True
@@ -728,8 +823,10 @@ class FiniteTopologicalSpace(Parent):
     def interior(self, E):
         r"""
         Return the interior of a subset in the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
             sage: T.interior({1, 2, 3})
             {1}
@@ -737,7 +834,9 @@ class FiniteTopologicalSpace(Parent):
             {1, 2, 3, 4}
             sage: T.interior({2, 3})
             set()
+
         TESTS::
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
@@ -765,8 +864,10 @@ class FiniteTopologicalSpace(Parent):
     def is_open(self, E):
         r"""
         Return ``True`` if ``E`` is an open subset of the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
             sage: T.is_open({0})
             False
@@ -782,8 +883,10 @@ class FiniteTopologicalSpace(Parent):
     def is_closed(self, E):
         r"""
         Return ``True`` if ``E`` is a closed subset of the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace({'a':{'a','b'},'b':{'a','b'},'c':{'c','d'},'d':{'d'}})
             sage: T.is_closed({'a','b','c'})
             True
@@ -797,8 +900,10 @@ class FiniteTopologicalSpace(Parent):
         r"""
         Return ``True`` if ``x`` is an exterior point of ``E`` in the finite 
         space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
             sage: T.is_exterior_point(1, {2, 3})
             True
@@ -810,14 +915,18 @@ class FiniteTopologicalSpace(Parent):
     def exterior(self, E):
         r"""
         Return the exterior of a subset in the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
             sage: T.exterior({2})
             {0, 1, 4}
             sage: T.exterior({2, 4})
             {0, 1}
+
         TESTS::
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
@@ -846,8 +955,10 @@ class FiniteTopologicalSpace(Parent):
         r"""
         Return ``True`` if ``x`` is a boundary point of ``E`` in the finite 
         space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
             sage: T.is_boundary_point(0, {1, 2, 3})
             True
@@ -860,14 +971,18 @@ class FiniteTopologicalSpace(Parent):
     def boundary(self, E):
         r"""
         Return the boundary of a subset in the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
             sage: T.boundary({1})
             {0}
             sage: T.boundary({2, 3})
             {2, 3}
+
         TESTS::
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
@@ -901,8 +1016,10 @@ class FiniteTopologicalSpace(Parent):
     def is_limit_point(self, x, E):
         r"""
         Return ``True`` if ``x`` is a limit point of ``E`` in the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
             sage: T.is_limit_point(0, {1})
             True
@@ -915,14 +1032,18 @@ class FiniteTopologicalSpace(Parent):
     def derived(self, E):
         r"""
         Return the derived set of a subset in the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
             sage: T.derived({0, 1, 2})
             {0, 3}
             sage: T.derived({3, 4})
             {2, 3}
+
         TESTS::
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
@@ -945,8 +1066,10 @@ class FiniteTopologicalSpace(Parent):
         r"""
         Return ``True`` if ``x`` is a point of closure of ``E`` in the finite 
         space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
             sage: T.is_closure_point(3, {1})
             False
@@ -958,14 +1081,18 @@ class FiniteTopologicalSpace(Parent):
     def closure(self, E):
         r"""
         Return the closure of a subset in the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
             sage: T.closure({0, 2})
             {0, 2, 3}
             sage: T.closure({0})
             {0}
+
         TESTS::
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
@@ -997,8 +1124,10 @@ class FiniteTopologicalSpace(Parent):
     def is_dense(self, E):
         r"""
         Return ``True`` if ``E`` is dense in the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1, 2}, {0, 1, 2}, {2}])
             sage: T.is_dense({2})
             True
@@ -1012,8 +1141,10 @@ class FiniteTopologicalSpace(Parent):
         Return ``True`` if ``x`` is an isolated point of ``E`` in the finite 
         space. If ``E`` is ``None``, return ``True`` if ``x`` is an isolated 
         point of the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
             sage: T.is_isolated_point(0)
             False
@@ -1028,14 +1159,18 @@ class FiniteTopologicalSpace(Parent):
     def isolated_set(self, E=None):
         r"""
         Return the set of isolated points of a subset in the finite space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
             sage: T.isolated_set()
             {1, 4}
             sage: T.isolated_set({0, 2, 3, 4})
             {0, 4}
+
         TESTS::
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
@@ -1054,23 +1189,31 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
     r"""
     Finite topological spaces satisfying the T0 separation axiom (Kolmogorov 
     spaces).
+
     Users should not call this directly, but instead use :func:`FiniteSpace`.
     See that function for more documentation.
     """
     def __init__(self, elements, minimal_basis, topogenous, poset=None):
         r"""
         Define a finite T0 topological space.
+
         INPUT:
+
         - ``elements`` -- list of the elements of the space. 
+
         - ``minimal_basis`` -- a dictionary where the values are sets 
           representing the minimal open sets containing the respective key.
+
         - ``topogenous`` -- a topogenous matrix of the finite space 
           corresponding to the order given by ``elements`` (it is assumed upper 
           triangular).
+
         - ``poset`` -- a poset corresponding to the finite space (Alexandroff
           correspondence) (default ``None``).
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteTopologicalSpace_T0
+
+            sage: from sage.topology.finite_topological_spaces import FiniteTopologicalSpace_T0
             sage: elements = [0, 1, 2, 3]
             sage: minimal_basis = {0: {0}, 1: {0, 1}, 2: {0, 1, 2}, 3: {0, 3}}
             sage: mat_dict = {(0, 0): 1, (0, 1): 1, (0, 2): 1, (0, 3): 1, \
@@ -1099,8 +1242,10 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
     def _repr_(self):
         r"""
         Print representation.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: P = Poset((divisors(6), attrcall("divides")), linear_extension=True)
             sage: FiniteSpace(P)
             Finite T0 topological space of 4 points with minimal basis
@@ -1122,8 +1267,10 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         r"""
         Return the corresponding poset of the finite space (Alexandroff 
         correspondence).
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = ({0}, {0, 1}, {0, 1, 2}, {0, 3})
             sage: T = FiniteSpace(minimal_basis) ; T
             Finite T0 topological space of 4 points with minimal basis
@@ -1140,8 +1287,10 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
     def show(self, highlighted_edges=None):
         r"""
         Displays the Hasse diagram of the poset ``self._poset``.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace(posets.RandomPoset(15, 0.2))
             sage: T.show()
             Graphics object consisting of 31 graphics primitives
@@ -1155,8 +1304,10 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         Return the Stong matrix of the finite `T_0` space i.e. the adjacency 
         matrix of the Hasse diagram of its associated poset, with ones in its 
         diagonal.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: covers = [[9, 13], [7, 13], [4, 13], [8, 12], [7, 12], [5, 12],
             ....:           [9, 11], [6, 11], [5, 11], [8, 10], [6, 10], [4, 10],
             ....:           [3, 9], [2, 9], [3, 8], [2, 8], [3, 7], [1, 7], [3, 6],
@@ -1198,8 +1349,10 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         r"""
         Return the order complex of the finite space i.e. the simplicial 
         complex whose simplices are the nonempty chains of ``self.poset()``.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = ({0}, {0, 1}, {0, 1, 2}, {0, 3})
             sage: T = FiniteSpace(minimal_basis) ; T
             Finite T0 topological space of 4 points with minimal basis
@@ -1213,8 +1366,10 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         r"""
         Return the barycentric subdivision of the finite space i.e. the face 
         poset of its order complex.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = ({0}, {0, 1}, {0, 1, 2}, {0, 3})
             sage: T = FiniteSpace(minimal_basis) ; T
             Finite T0 topological space of 4 points with minimal basis
@@ -1232,13 +1387,18 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         r"""
         Return ``True`` if ``x`` is a down beat point of the subspace of 
         ``self`` determined by ``subspace``.
+
         INPUT:
+
         - ``x`` - an element of the finite space. In case ``subspace`` is not
           ``None``, `x`` must be one of its elements.
+
         - ``subspace`` -- (default ``None``) a list of elements in the finite 
           space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {5: {5}, 4: {4}, 2: {2}, 6: {2, 4, 6}, \
                                    1: {1, 4}, 3: {1, 3, 4}}
             sage: T = FiniteSpace(minimal_basis)
@@ -1268,13 +1428,18 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         r"""
         Return ``True`` if ``x`` is an up beat point of the subspace of 
         ``self`` determined by ``subspace``.
+
         INPUT:
+
         - ``x`` - an element of the finite space. In case ``subspace`` is not
           ``None``, `x`` must be one of its elements.
+
         - ``subspace`` -- (default ``None``) a list of elements in the finite 
           space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {5: {5}, 4: {4}, 2: {2}, 6: {2, 4, 6}, \
                                    1: {1, 4}, 3: {1, 3, 4}}
             sage: T = FiniteSpace(minimal_basis)
@@ -1304,13 +1469,18 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         r"""
         Return ``True`` if ``x`` is a beat point of the subspace of ``self``
         determined by ``subspace``.
+
         INPUT:
+
         - ``x`` - an element of the finite space. In case ``subspace`` is not
           ``None``, `x`` must be one of its elements.
+
         - ``subspace`` -- (default ``None``) a list of elements in the finite 
           space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {5: {5}, 4: {4}, 2: {2}, 6: {2, 4, 6}, \
                                    1: {1, 4}, 3: {1, 3, 4}}
             sage: T = FiniteSpace(minimal_basis)
@@ -1328,11 +1498,15 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         r"""
         Return a list of elements in a core of the subspace of ``self`` 
         determined by ``subspace``.
+
         INPUT:
+
         - ``subspace`` -- (default ``None``) a list of elements in the finite 
           space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {5: {4, 5}, 4: {4}, 2: {2}, 6: {2, 4, 6}, \
                                    1: {1, 2, 4}, 3: {1, 2, 4, 3}}
             sage: T = FiniteSpace(minimal_basis)
@@ -1342,7 +1516,9 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             [2, 1, 4, 6]
             sage: T.core_list([1, 2, 3, 4, 5])
             [5]
+
         TESTS::
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.2))
             sage: X = T._elements
@@ -1367,11 +1543,15 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
     def core(self, subspace=None):
         r"""
         Return a core of the subspace of ``self`` determined by ``subspace``.
+
         INPUT:
+
         - ``subspace`` -- (default ``None``) a list of elements in the finite 
           space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {5: {4, 5}, 4: {4}, 2: {2}, 6: {2, 4, 6}, \
                                    1: {1, 2, 4}, 3: {1, 2, 4, 3}}
             sage: T = FiniteSpace(minimal_basis)
@@ -1391,11 +1571,15 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         r"""
         Return ``True`` if the finite space is contractible (in the setting of 
         finite spaces, this is equivalent to say that its cores are singletons).
+
         INPUT:
+
         - ``subspace`` -- (default ``None``) a list of elements in the finite 
           space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {5: {4, 5}, 4: {4}, 2: {2}, 6: {2, 4, 6}, \
                                    1: {1, 2, 4}, 3: {1, 2, 4, 3}}
             sage: T = FiniteSpace(minimal_basis)
@@ -1403,7 +1587,9 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             False
             sage: T.is_contractible([1,2,3,4,5])
             True
+
         TESTS::
+
             sage: import random
             sage: P = posets.RandomPoset(20, 0.5)
             sage: X = P.list()
@@ -1422,13 +1608,18 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         r"""
         Return ``True`` if ``x`` is a weak beat point of the subspace of 
         ``self`` determined by ``subspace``.
+
         INPUT:
+
         - ``x`` - an element of the finite space. In case ``subspace`` is not
           ``None``, `x`` must be one of its elements.
+
         - ``subspace`` -- (default ``None``) a list of elements in the finite 
           space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {2: {2}, 5: {2, 5}, 1: {1}, 3: {1, 2, 3}, \
                                    4: {1, 2, 4}, 7: {1, 2, 3, 4, 7}, \
                                    6: {1, 2, 3, 4, 5, 6, 7}, \
@@ -1438,7 +1629,9 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             False
             sage: T.is_weak_point(1)
             True
+
         TESTS::
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.2))
             sage: X = T._elements
@@ -1462,11 +1655,15 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         r"""
         Return a list of elements in a weak core (finite space with no weak 
         points) of the subspace of ``self`` determined by ``subspace``.
+
         INPUT:
+
         - ``subspace`` -- (default ``None``) a list of elements in the finite 
           space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {2: {2}, 5: {2, 5}, 1: {1}, 3: {1, 2, 3}, \
                                    4: {1, 2, 4}, 7: {1, 2, 3, 4, 7}, \
                                    6: {1, 2, 3, 4, 5, 6, 7}, \
@@ -1476,7 +1673,9 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             [8]
             sage: T.weak_core_list([1,2,3,4,5])
             [1, 2, 3, 4]
+
         TESTS::
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T._elements
@@ -1500,11 +1699,15 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         r"""
         Return a weak core (finite space with no weak points) of the subspace 
         of ``self`` determined by ``subspace``.
+
         INPUT:
+
         - ``subspace`` -- (default ``None``) a list of elements in the finite 
           space.
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {2: {2}, 5: {2, 5}, 1: {1}, 3: {1, 2, 3}, \
                                    4: {1, 2, 4}, 7: {1, 2, 3, 4, 7}, \
                                    6: {1, 2, 3, 4, 5, 6, 7}, \
@@ -1524,14 +1727,18 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         Return a discrete vector field on the finite `T_0` space i.e. a 
         homologically admissible Morse matching on the Hasse diagram of the 
         associated poset.
+
         INPUT:
+
         - ``h_admissible`` -- (default ``None``) If it is ``True``, all the 
           edges `(x, y)` of the Hasse diagram are assumed to be homologically 
           admissible i.e. the subspace `\widehat{U}_y - \lbrace x\rbrace` is 
           homotopically trivial (this can be assumed when the finite space is a 
           barycentric subdivision).
+
         EXAMPLES::
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: Pcovers = [[1, 2], [2, 3], [3, 4], [3, 5], [4, 6], [5, 6], [6, 7],
             ....:            [6, 8], [8, 9], [9, 10], [1, 11], [7, 12], [9, 12],
             ....:            [7, 13], [10, 13], [11, 13], [8, 15], [7, 16], [8, 16],
@@ -1561,16 +1768,20 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
     def hregular_homology(self, deg=None, dvfield=None):
         r"""
         The homology of an h-regular finite space.
+
         INPUT:
+
         - ``deg`` -- an element of the grading group for the chain complex 
           (default ``None``); the degree in which to compute homology -- if 
           this is ``None``, return the homology in every degree in which the 
           chain complex is possibly nonzero.
+
         - ``dvfield`` -- (default ``None``) a list of edges representing a 
           discrete vector field on the finite space.
+
         EXAMPLES::
         
-            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: from sage.topology.finite_topological_spaces import FiniteSpace
             sage: covers = [[9, 13], [7, 13], [4, 13], [8, 12], [7, 12], [5, 12], [9, 11],
             ....:           [6, 11], [5, 11], [8, 10], [6, 10], [4, 10], [3, 9], [2, 9],
             ....:           [3, 8], [2, 8], [3, 7], [1, 7], [3, 6], [1, 6], [2, 5], [1, 5],
@@ -1614,3 +1825,4 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             Mh = kenzo.__copier_matrice__(kenzo.__nth__(height-1, matrices))
             result[height-1] = kenzo.quotient_group_matrices(Mh, right_null=True)
             return result
+
