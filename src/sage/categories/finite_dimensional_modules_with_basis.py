@@ -230,8 +230,8 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             mat = matrix(self.base_ring(), self.dimension(), 0)
             for s in S:
-                mat = mat.augment(matrix(self.base_ring(),
-                                         [action(s, b)._vector_() for b in self.basis()]))
+                for b in self.basis():
+                    mat = mat.augment(action(s, b)._vector_() )
             return tuple(map(self.from_vector, mat.left_kernel().basis()))
 
         @cached_method
