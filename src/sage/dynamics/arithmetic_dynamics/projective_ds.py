@@ -3868,6 +3868,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         This is done by finding the rational points on the variety
         defining the points of period ``m, n``.
 
+        The preperiodic points are returned in sorted order.
+
         For rational maps, where there are potentially infinitely many periodic
         points of a given period, you must use the ``return_scheme`` option.
         Note that this scheme will include the indeterminacy locus.
@@ -4193,6 +4195,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         r"""
         Computes the periodic points of period ``n`` of this dynamical system
         defined over the ring ``R`` or the base ring of the map.
+
+        The periodic points are returned in sorted order.
 
         This can be done either by finding the rational points on the variety
         defining the points of period ``n``, or, for finite fields,
