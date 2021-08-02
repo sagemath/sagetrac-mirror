@@ -28,13 +28,17 @@ from sage.categories.homset import Hom
 
 from sage.matrix.constructor import matrix
 
+from sage.modules.free_module_element import vector
+
 from sage.rings.all import ZZ
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import is_RationalField
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 from sage.schemes.projective.projective_morphism import SchemeMorphism_polynomial_projective_subscheme_field
+from sage.schemes.projective.reduce_cluster import ReduceCluster
 
 
 class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
@@ -1428,3 +1432,116 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
         assert all(f in rel2 for f in CH.gens()), "did not find a principal generator"
         return alp(CF)
 
+    def reduce_coefficients(self, return_transformation=False, eps=10**-6, precision=500):
+        r"""
+        Return a PGL equivalent subscheme with (possibly) smaller coefficients.
+
+        Only works for subchemes of dimension less than 1. However, subschemes of
+        higher dimension can be reduced if there is a finite and stable set of
+        special points, as then the subscheme defining the special points can be reduced.
+        See examples.
+
+        The base field of this subscheme must embed into the complex numbers.
+
+        INPUT:
+
+        - ``return_transformation`` -- (default: ``False``) If ``True``,
+          this method returns the PGL transformation used to reduce the coefficients.
+
+        - ``eps`` -- (default: `10^{-6}`) The precision after which to treat
+          a number as zero.
+
+        - ``precision`` -- (default: 500) Used to specfiy the precision of the complex
+          field to be used in approximation
+
+        OUTPUT:
+
+        - An equivalent subscheme if ``return_transformation`` is ``False``
+
+        - A tuple of the form (``X``, ``matrix``) if ``return_transformation`` is ``True``.
+          ``X`` is a subscheme equivalent to this subscheme and ``matrix`` is
+          the matrix used to find ``X``.
+
+        ALGORITHM:
+
+        We reduce the point cluster defined by this scheme. Stoll proves that there
+        exists a minimal representative which reduces the covaraint, see [Sto2009].
+        Using the ``ReduceCluster`` function, we find an approximation of such a
+        representative, and apply that transformation to this subcheme.
+
+        EXAMPLES:
+
+        We create a subscheme of dimension 1 with large coefficients and reduce::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P.subscheme([2141136680*x^2 - 27173976948*x*y + 86218809624*y^2 - 3237154682*x*z + 20541978363*y*z + 1223552253*z^2, \
+                      44083549675*x^2 - 559482008115*x*y + 1775152634668*y^2 - 66649373398*x*z + 422936963371*y*z + 25191590781*z^2, \
+                      453608122027250*x^3 - 8635374873437055*x^2*y + 54797445624349105*x*y^2 - 115909272072050820*y^3 \
+                      - 1028706119154993*x^2*z + 13055708282282128*x*y*z - 41423764177605297*y^2*z + 777643541637373*x*z^2 \
+                      - 4934687875458069*y*z^2 - 195951485913414*z^3])
+            sage: Y = X.reduce_coefficients(); Y
+            Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              -x*y + x*z,
+              -2*x*y + x*z + y*z,
+              x^2*y + x*y^2 - x^2*z + y^2*z - x*z^2 - y*z^2
+
+        Note that Y is PGL equivalent to X:
+
+            sage: Y, mat = X.reduce_coefficients(return_transformation=True)
+            sage: subs = mat.inverse()*vector(list(P.coordinate_ring().gens()))
+            sage: new_X = P.subscheme([poly(list(subs)) for poly in Y.defining_polynomials()])
+            sage: X == new_X
+            True
+
+        To reduce subschemes of higher dimension, we find a related subscheme of
+        dimension less than 1. For example, we reduce this subscheme of dimension 1
+        by reducing the subscheme defining the inflection points::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P.subscheme(390908548757*x^4 - 1083699236751*x^3*y + 835578482044*x^3*z + 1126610184312*x^2*y^2 \
+                      - 1737329379412*x^2*y*z + 669777678687*x^2*z^2 - 520542386163*x*y^3 \
+                      + 1204081445939*x*y^2*z - 928398396271*x*y*z^2 + 238611653627*x*z^3 + 90192376558*y^4 \
+                      - 278168756247*y^3*z + 321720059816*y^2*z^2 - 165373310794*y*z^3 + 31877479532*z^4)
+            sage: CR = P.coordinate_ring()
+            sage: m = matrix(3, 3, [X.defining_polynomials()[0].derivative(CR.gens()[i]).derivative(CR.gens()[j]) \
+                                   for j in range(3) for i in range(3)])
+            sage: Y = P.subscheme(m.det())
+            sage: Z = X.intersection(Y)
+            sage: _, mat = Z.reduce_coefficients(return_transformation=True)
+            sage: subs = mat*vector(list(P.coordinate_ring().gens()))
+            sage: P.subscheme([poly(list(subs)) for poly in X.defining_polynomials()])
+            Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              3*x^4 - 3*x^3*y + x^2*y^2 + 3*y^4 - 3*x^3*z - x*y^2*z + 3*y^3*z - 2*x^2*z^2 - x*y*z^2 + y^2*z^2 + 2*x*z^3 - 3*z^4
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<k> = NumberField(x^2 + 1)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: X = P.subscheme([2141136680*x^2 - 27173976948*x*y + 86218809624*y^2 - 3237154682*x*z + 20541978363*y*z + 1223552253*z^2, \
+                                  (-23886292125*k + 10098628775)*x^2 + (303150593245*k - 128165707435)*x*y \
+                                  + (-961851694100*k + 406650470284)*y^2 + (36113395312*k - 15267989043)*x*z \
+                                  + (-229164852285*k + 96886055543)*y*z + (-13649851075*k + 5770869853)*z^2, \
+                                  453608122027250*x^3 - 8635374873437055*x^2*y + 54797445624349105*x*y^2 \
+                                  - 115909272072050820*y^3 - 1028706119154993*x^2*z + 13055708282282128*x*y*z \
+                                  - 41423764177605297*y^2*z + 777643541637373*x*z^2 - 4934687875458069*y*z^2 - 195951485913414*z^3])
+            sage: X.reduce_coefficients()
+            Closed subscheme of Projective Space of dimension 2 over Number Field in k with defining polynomial x^2 + 1 defined by:
+              -x*y + x*z,
+              -x*y + (k + 1)*x*z + (k + 1)*y*z,
+              x^2*y + x*y^2 - x^2*z + y^2*z - x*z^2 - y*z^2
+        """
+        if self.dimension() >= 1:
+            raise ValueError('subscheme must be dimension less than 1')
+        K = self.base_ring()
+        subscheme = self
+        C = ComplexField(prec=precision)
+        points = subscheme.rational_points(F = C)
+        _, m1, m2 = ReduceCluster(points, eps=eps, precision=precision)
+        P = self.ambient_space()
+        CR = P.coordinate_ring()
+        subs_list = m2*vector(CR.gens())
+        new_subscheme = P.subscheme([poly(list(subs_list)) for poly in self.defining_polynomials()])
+        if return_transformation:
+            return new_subscheme, m2
+        return new_subscheme

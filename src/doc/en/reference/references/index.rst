@@ -5352,6 +5352,9 @@ REFERENCES:
 
 .. [Sti2006] Douglas R. Stinson. *Cryptography: Theory and
              Practice*. 3rd edition, Chapman \& Hall/CRC, 2006.
+             
+.. [Sto2009] Michael Stoll, *Reduction theory of point clusters in projective space*,
+             :arxiv:`0909.28081`
 
 .. [Sto1998] \A. Storjohann, An O(n^3) algorithm for Frobenius normal
              form. Proceedings of the International Symposium on
