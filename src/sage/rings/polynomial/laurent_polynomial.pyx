@@ -3218,8 +3218,22 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
             sage: x.subs({x: 2}, x=1)
             1
+
+        Test for :trac:`32327`:
+
+            sage: f.subs({-17: z})
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot substitute -17: not a variable in Multivariate Laurent Polynomial Ring in x, y, z over Rational Field
+            sage: f.subs({x^2: z})
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot substitute x^2: not a variable in Multivariate Laurent Polynomial Ring in x, y, z over Rational Field
         """
         cdef list variables = list(self._parent.gens())
+        for v in (in_dict.keys() if in_dict is not None else ()):
+            if v not in variables:
+                raise ValueError(f'cannot substitute {v}: not a variable in {self.parent()}')
         cdef Py_ssize_t i
         for i in range(len(variables)):
             if str(variables[i]) in kwds:
