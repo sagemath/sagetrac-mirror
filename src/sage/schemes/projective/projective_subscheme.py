@@ -1436,7 +1436,12 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
         r"""
         Return a PGL equivalent subscheme with (possibly) smaller coefficients.
 
-        Only works for subchemes of dimension less than 1. However, subschemes of
+        The reduced subscheme corresponds to a representative of the corresponding
+        point cluster which minimizes the covariant defined [Sto2009].
+        Note that this representative is not unique, and that minimizing the covariant
+        does not guarantee minimal coefficients.
+
+        Only works for subchemes of dimension 0. However, subschemes of
         higher dimension can be reduced if there is a finite and stable set of
         special points, as then the subscheme defining the special points can be reduced.
         See examples.
@@ -1471,7 +1476,7 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
 
         EXAMPLES:
 
-        We create a subscheme of dimension 1 with large coefficients and reduce::
+        We create a subscheme of dimension 0 with large coefficients and reduce::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: X = P.subscheme([2141136680*x^2 - 27173976948*x*y + 86218809624*y^2 - 3237154682*x*z + 20541978363*y*z + 1223552253*z^2, \
@@ -1494,7 +1499,7 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
             True
 
         To reduce subschemes of higher dimension, we find a related subscheme of
-        dimension less than 1. For example, we reduce this subscheme of dimension 1
+        dimension 0. For example, we reduce this subscheme of dimension 1
         by reducing the subscheme defining the inflection points::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
@@ -1530,10 +1535,20 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
               -x*y + x*z,
               -x*y + (k + 1)*x*z + (k + 1)*y*z,
               x^2*y + x*y^2 - x^2*z + y^2*z - x*z^2 - y*z^2
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: X = P.subscheme([2342*x^2*y - 23744*x*y^2 + 2234398*y^2*w - 239874234*x*w^2,\
+                                   223487*x*y^2 + 2342*x^2*z - 23234975*x*z^2 + 2234398*y*z*w,\
+                                   2342*x^2*w - 23284*x*w^2 + 2234398*y*w^2,\
+                                   223487*y^3 + 23744*y^2*z - 23234975*y*z^2 + 239874234*z*w^2,\
+                                   23744*y^2*w - 23284*y*w^2 + 239874234*w^3,\
+                                   -223487*y^2*w + 23234975*z^2*w - 23284*z*w^2])
+            sage: X.reduce_coefficients(return_transformation=True) #long time
         """
         if self.dimension() >= 1:
             raise ValueError('subscheme must be dimension less than 1')
-        K = self.base_ring()
         subscheme = self
         C = ComplexField(prec=precision)
         points = subscheme.rational_points(F = C)
