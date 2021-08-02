@@ -105,8 +105,9 @@ from sage.arith.all import factor
 
 def _directprod(order_n):
     """
-    This method takes in a python list of string and gives back only the strings with ``x``
-    in them (for structure descriptions, this corresponds to direct products)
+    This method takes in a python list of string and gives back only the 
+    strings with ``x`` in them (for structure descriptions, this 
+    corresponds to direct products)
     - ``order_n`` - list of python strings
     AUTHORS:
     - Alexis Newton (2021-07-21)
@@ -121,8 +122,9 @@ def _directprod(order_n):
 
 def _semidirectprod(order_n):
     """
-    This method takes in a python list of string and gives back only the strings with ``:``
-    in them (for structure descriptions, this corresponds to semi direct products)
+    This method takes in a python list of string and gives back only the 
+    strings with ``:`` in them (for structure descriptions, this corresponds 
+    to semi direct products)
     - ``order_n`` - list of python strings
     AUTHORS:
     - Alexis Newton (2021-07-21)
@@ -135,24 +137,35 @@ def _semidirectprod(order_n):
     return new_order_n
 
 
-def order_n(n, *parameter, start=1, timeout=60, memory=get_gap_memory_pool_size(), directproduct=False, semidirectproduct=False):
+def order_n(n, *parameter, start=1, timeout=60, 
+            memory=get_gap_memory_pool_size(), 
+            directproduct=False, semidirectproduct=False):
     """
-    This method produces a list of structure descriptions of all groups less than or equal to some 
-    order n. It does this by calling the gap functions and then converting them to python strings.
+    This method produces a list of structure descriptions of all groups less
+     than or equal to some order n. It does this by calling the gap functions 
+     and then converting them to python strings.
     
     INPUT:
-    - ``n`` - the value of the largest order we want a structure description for
-    - ``start`` - the lower bound on the order for the produced structure descriptions
-    - ``timeout`` - max time in seconds (default: `60`) that the program will spend on each order
-        before moving on (this is to deal with orders that have many small prime fact)
-    - ``*parameter`` -- list of properties we can narrow the output by. These include
-    "IsAbelian","IsCyclic","IsSolvable","IsNilpotent","IsSimple","IsDihedralGroup",
-    "IsSymmetricGroup","IsAlternatingGroup","IsPerfectGroup","IsPolycyclicGroup"
-    - ``memory`` - size in bytes of desired memory pool (default: `get_gap_memory_pool_size()`)
-    -``directproduct`` - (default: `0`) set to 1 if want to give only direct product options
-    -``semidirectproduct`` - (default: `0`) set to 1 if want to give only semi direct product options
+    - ``n`` - the value of the largest order we want a structure description 
+        for
+    - ``start`` - the lower bound on the order for the produced structure 
+        descriptions
+    - ``timeout`` - max time in seconds (default: `60`) that the program will 
+        spend on each order before moving on (this is to deal with orders that 
+        have many small prime fact)
+    - ``*parameter`` -- list of properties we can narrow the output by. These 
+        include "IsAbelian","IsCyclic","IsSolvable","IsNilpotent","IsSimple",
+        "IsDihedralGroup","IsSymmetricGroup","IsAlternatingGroup",
+        "IsPerfectGroup","IsPolycyclicGroup"
+    - ``memory`` - size in bytes of desired memory pool 
+        (default: `get_gap_memory_pool_size()`)
+    -``directproduct`` - (default: `0`) set to 1 if want to give only 
+        direct product options
+    -``semidirectproduct`` - (default: `0`) set to 1 if want to give only 
+        semi direct product options
 
-    OUTPUT: the list of structure descriptions for all groups found that meet the criteria 
+    OUTPUT: the list of structure descriptions for all groups found that 
+    meet the criteria 
     
     AUTHORS:
     - Alexis Newton (2021-07-21)
