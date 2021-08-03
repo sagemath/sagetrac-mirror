@@ -4,10 +4,10 @@ Stoll's algorithm for the reduction of point clusters in projective space.
 A point cluster is a formal sum of points in projective space.
 
 Given a stable point cluster, there exists a unique representative
-that minimizes the covariant that Stoll defines in [Sto2009].
-The ReduceCluster function computes an approximation to this
-representative using steepest descent. The function below was provided
-by Stoll.
+that minimizes the covariant that Stoll defines in [Sto2009]_.
+The reduce_cluster function computes an approximation to this
+representative using steepest descent. The function below was adapted
+from code provided by Stoll.
 
 AUTHORS:
 
@@ -22,19 +22,18 @@ from sage.rings.complex_mpfr import ComplexField
 from sage.rings.real_mpfr import RealField
 
 
-def ReduceCluster(S, eps=10**-6, c=1, precision=500):
+def reduce_cluster(S, eps=10**-6, c=1, precision=500, embedding=None):
     r"""
     Return an approximation to the minimal representative of a
     stable point cluster ``S``.
 
     A representative of a point cluster is minimal if it minimizes
-    the covariant Stoll defines in [Sto2009].
+    the covariant Stoll defines in [Sto2009]_.
 
     Note that this function will fail if the point cluster is not stable,
     and additionally it does NOT check if the point cluster ``S`` is not stable.
 
-    This implementation is due to Stoll and based off of his implementation
-    for Magma.
+    This implementation is adapted from code provided by Stoll.
 
     INPUT:
 
@@ -49,6 +48,9 @@ def ReduceCluster(S, eps=10**-6, c=1, precision=500):
     - ``precision``-- (default: 500) The precision to use for the real and
       complex fields when approximating.
 
+    - ``emebedding`` -- (default: ``None``) Used to specify an embedding
+      of the base ring of the points in ``S`` into the complex field.
+
     OUTPUT:
 
     A tuple (``S``, ``mat1``, ``mat2``) where ``S`` is the approximated
@@ -58,29 +60,40 @@ def ReduceCluster(S, eps=10**-6, c=1, precision=500):
 
     EXAMPLES::
 
-        sage: from sage.schemes.projective.reduce_cluster import ReduceCluster
+        sage: from sage.schemes.projective.reduce_cluster import reduce_cluster
         sage: pnts = [P(1,0,0), P(0,1,0), P(0,0,1), P(1,1,1)]
-        sage: ReduceCluster(pnts)
+        sage: reduce_cluster(pnts)
         (
                                                         [ 0  1  0]  [1 1 1]
                                                         [ 0  0  1]  [1 0 0]
         [(0, 1, 0), (0, 0, 1), (1, -1, -1), (1, 0, 0)], [ 1 -1 -1], [0 1 0]
         )
     """
-    n = S[0].parent().codomain().dimension_relative() + 1
-    cluster0 = [vector(list(pnt)) for pnt in S]
+    n = S[0].codomain().dimension_relative() + 1
+    cluster0 = []
     C = ComplexField(prec = precision)
     R = RealField(prec = precision)
-    for v in cluster0:
-        v.change_ring(C)
+    if not embedding is None:
+        for v in S:
+            t = v.change_ring(embedding)
+            t = t.change_ring(C)
+            cluster0.append(t)
+    else:
+        for v in S:
+            try:
+                cluster0.append(v.change_ring(C))
+            except TypeError:
+                raise ValueError('no embedding into the complex field defined,' +
+                ' please specify an embedding and try again')
+    cluster0 = [vector(list(pnt)) for pnt in cluster0]
     cluster = [v*1/R(v.norm()) for v in cluster0]
     Tr = matrix.identity(n)
     count = 0
     total_count = 0
-    if S[1][1].parent().is_exact():
+    if S[0][0].parent().is_exact():
         prec = precision
     else:
-        prec = S[1][1].prec()*2
+        prec = S[0][0].prec()*2
     # ideally we would like to keep iterating indefinitely
     # however we stop once we lose enough precision
     while total_count < prec:

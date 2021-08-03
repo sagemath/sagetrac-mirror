@@ -38,7 +38,7 @@ from sage.rings.rational_field import is_RationalField
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 from sage.schemes.projective.projective_morphism import SchemeMorphism_polynomial_projective_subscheme_field
-from sage.schemes.projective.reduce_cluster import ReduceCluster
+from sage.schemes.projective.reduce_cluster import reduce_cluster
 
 
 class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
@@ -1432,12 +1432,12 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
         assert all(f in rel2 for f in CH.gens()), "did not find a principal generator"
         return alp(CF)
 
-    def reduce_coefficients(self, return_transformation=False, eps=10**-6, precision=500):
+    def reduce_coefficients(self, return_transformation=False, eps=10**-6, precision=500, embedding=None):
         r"""
         Return a PGL equivalent subscheme with (possibly) smaller coefficients.
 
         The reduced subscheme corresponds to a representative of the corresponding
-        point cluster which minimizes the covariant defined [Sto2009].
+        point cluster which minimizes the covariant defined [Sto2009]_.
         Note that this representative is not unique, and that minimizing the covariant
         does not guarantee minimal coefficients.
 
@@ -1457,11 +1457,14 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
           a number as zero.
 
         - ``precision`` -- (default: 500) Used to specfiy the precision of the complex
-          field to be used in approximation
+          field to be used in approximation.
+
+        - ``embedding`` -- (default: ``None``) Used to specify an embedding of the
+          base ring of this subscheme into the complex field
 
         OUTPUT:
 
-        - An equivalent subscheme if ``return_transformation`` is ``False``
+        - An equivalent subscheme if ``return_transformation`` is ``False``.
 
         - A tuple of the form (``X``, ``matrix``) if ``return_transformation`` is ``True``.
           ``X`` is a subscheme equivalent to this subscheme and ``matrix`` is
@@ -1470,8 +1473,8 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
         ALGORITHM:
 
         We reduce the point cluster defined by this scheme. Stoll proves that there
-        exists a minimal representative which reduces the covaraint, see [Sto2009].
-        Using the ``ReduceCluster`` function, we find an approximation of such a
+        exists a minimal representative which reduces the covaraint, see [Sto2009]_.
+        Using the ``reduce_cluster`` function, we find an approximation of such a
         representative, and apply that transformation to this subcheme.
 
         EXAMPLES:
@@ -1547,12 +1550,11 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
                                    -223487*y^2*w + 23234975*z^2*w - 23284*z*w^2])
             sage: X.reduce_coefficients(return_transformation=True) #long time
         """
-        if self.dimension() >= 1:
-            raise ValueError('subscheme must be dimension less than 1')
-        subscheme = self
+        if self.dimension() != 0:
+            raise ValueError('subscheme must be dimension 0')
         C = ComplexField(prec=precision)
-        points = subscheme.rational_points(F = C)
-        _, m1, m2 = ReduceCluster(points, eps=eps, precision=precision)
+        points = self.rational_points(F = C)
+        _, m1, m2 = reduce_cluster(points, eps=eps, precision=precision, embedding=embedding)
         P = self.ambient_space()
         CR = P.coordinate_ring()
         subs_list = m2*vector(CR.gens())
