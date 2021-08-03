@@ -3899,44 +3899,45 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         OUTPUT:
 
         A list of preperiodic points of this map or the subscheme defining
-        the preperiodic points.
+        the preperiodic points.  The order of the points in the list is
+        unspecified.
 
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
             sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
-            sage: sorted(f.preperiodic_points(0, 1))
+            sage: sorted(f.preperiodic_points(0, 1), key=str)
             [(-0.618033988749895? : 1), (1 : 0), (1.618033988749895? : 1)]
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 - 29/16*y^2, y^2])
-            sage: sorted(f.preperiodic_points(1, 3))
+            sage: sorted(f.preperiodic_points(1, 3), key=str)
             [(-5/4 : 1), (1/4 : 1), (7/4 : 1)]
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([x^2 - 3/4*y^2, y^2 , z^2])
-            sage: sorted(f.preperiodic_points(0, 2, formal=True))
+            sage: sorted(f.preperiodic_points(0, 2, formal=True), key=str)
             [(-1/2 : 1 : 0), (-1/2 : 1 : 1)]
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
             sage: f = DynamicalSystem_projective([x^2 - x*y + 2*y^2, x^2 - y^2])
-            sage: sorted(f.preperiodic_points(1, 2, minimal=False))
-            [(-3.133185666641252? : 1),
-            (-1 : 1),
-            (-0.3478103847799310? - 1.028852254136693?*I : 1),
-            (-0.3478103847799310? + 1.028852254136693?*I : 1),
-            (0.8165928333206258? - 0.6710067557437100?*I : 1),
-            (0.8165928333206258? + 0.6710067557437100?*I : 1),
-            (1 : 0),
-            (1 : 1),
-            (1.695620769559862? : 1),
-            (3 : 1)]
+            sage: sorted(f.preperiodic_points(1, 2, minimal=False), key=str)
+            [(-0.3478103847799310? + 1.028852254136693?*I : 1),
+             (-0.3478103847799310? - 1.028852254136693?*I : 1),
+             (-1 : 1),
+             (-3.133185666641252? : 1),
+             (0.8165928333206258? + 0.6710067557437100?*I : 1),
+             (0.8165928333206258? - 0.6710067557437100?*I : 1),
+             (1 : 0),
+             (1 : 1),
+             (1.695620769559862? : 1),
+             (3 : 1)]
 
         ::
 
@@ -3957,7 +3958,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 + 1/4*y^2, y^2])
-            sage: sorted(f.preperiodic_points(1, 1, formal=True))
+            sage: sorted(f.preperiodic_points(1, 1, formal=True), key=str)
             [(-1/2 : 1), (1 : 0)]
 
         ::
@@ -3973,7 +3974,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: K.<v> = QuadraticField(5)
             sage: phi = QQ.embeddings(K)[0]
             sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
-            sage: sorted(f.preperiodic_points(1, 1, R=phi))
+            sage: sorted(f.preperiodic_points(1, 1, R=phi), key=str)
             [(-1/2*v - 1/2 : 1), (1/2*v - 1/2 : 1)]
 
         ::
@@ -3981,22 +3982,26 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: X = P.subscheme(2*x - y)
             sage: f = DynamicalSystem_projective([x^2 - y^2, 2*(x^2 - y^2), y^2 - z^2], domain=X)
-            sage: sorted(f.preperiodic_points(1, 1))
+            sage: sorted(f.preperiodic_points(1, 1), key=str)
             [(-1/4 : -1/2 : 1), (1 : 2 : 1)]
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([x^2 - 3/4*y^2, z^2, y^2])
-            sage: sorted(f.preperiodic_points(1, 1))
-            [(-3/2 : -1 : 1), (-3/2 : 1 : 1), (-1/2 : -1 : 1), (1/2 : -1 : 1),
-             (1/2 : 1 : 1), (3/2 : -1 : 1)]
+            sage: sorted(f.preperiodic_points(1, 1), key=str)
+            [(-1/2 : -1 : 1),
+             (-3/2 : -1 : 1),
+             (-3/2 : 1 : 1),
+             (1/2 : -1 : 1),
+             (1/2 : 1 : 1),
+             (3/2 : -1 : 1)]
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
             sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
-            sage: sorted(f.preperiodic_points(2, 1))
+            sage: sorted(f.preperiodic_points(2, 1), key=str)
             [(0 : 2 : 1), (0 : 3 : 1), (1 : 2 : 1), (1 : 3 : 1), (2 : 0 : 1), (2 : 1 : 0),
              (2 : 1 : 1), (2 : 2 : 1), (2 : 3 : 1), (2 : 4 : 1), (3 : 0 : 1), (3 : 1 : 0),
              (3 : 1 : 1), (3 : 2 : 1), (3 : 3 : 1), (3 : 4 : 1), (4 : 2 : 1), (4 : 3 : 1)]
@@ -4017,14 +4022,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: R.<z> = QQ[]
             sage: K.<v> = NumberField(z^4 - z^2 - 1)
             sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
-            sage: sorted(f.preperiodic_points(2, 1, R=K))
-            [(v : 1), (-v : 1)]
+            sage: sorted(f.preperiodic_points(2, 1, R=K), key=str)
+            [(-v : 1), (v : 1)]
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([x^2 - 3/4*y^2, y^2, z^2])
-            sage: sorted(f.preperiodic_points(0, 2, formal=True))
+            sage: sorted(f.preperiodic_points(0, 2, formal=True), key=str)
             [(-1/2 : 1 : 0), (-1/2 : 1 : 1)]
 
         ::
