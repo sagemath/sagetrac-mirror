@@ -228,11 +228,20 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 action_left = action
                 action = lambda b,s: action_left(s, b)
 
-            mat = matrix(self.base_ring(), self.dimension(), 0)
+            d = self.dimension()
+            mat = matrix(self.base_ring(), 0, d)
+
+            check_dim = True
+
             for s in S:
+                if check_dim: #on the first time through
+                    block_dim = len(action(s,self.an_element())._vector_())
+                    check_dim = False
+                block = matrix(self.base_ring(), block_dim, 0)
                 for b in self.basis():
-                    mat = mat.augment(action(s, b)._vector_() )
-            return tuple(map(self.from_vector, mat.left_kernel().basis()))
+                    block = block.augment(action(s, b)._vector_())
+                mat = mat.stack(block)
+            return tuple(map(self.from_vector, mat.right_kernel().basis()))
 
         @cached_method
         def _dense_free_module(self, base_ring=None):
