@@ -85,7 +85,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         sage: C1 = HyperellipticCurve(f1)
         sage: Q.<y> = GF(5)[]
         sage: f2 = y^5 - y^3 + y - 22
-        sage: C2 = HyperellipticCurve(f2)
+        sage: C2 = HyperellipticCurve(f2, name='z')
         sage: hash(C0) == hash(C0)
         True
         sage: hash(C0) == hash(C1)
