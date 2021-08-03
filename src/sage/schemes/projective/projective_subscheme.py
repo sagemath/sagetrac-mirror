@@ -1432,21 +1432,16 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
         assert all(f in rel2 for f in CH.gens()), "did not find a principal generator"
         return alp(CF)
 
-    def reduce_coefficients(self, return_transformation=False, eps=10**-6, precision=500, embedding=None):
+    def reduced_form(self, return_transformation=False, eps=10**-6, precision=500, embedding=None):
         r"""
-        Return a PGL equivalent subscheme with (possibly) smaller coefficients.
-
-        The reduced subscheme corresponds to a representative of the corresponding
-        point cluster which minimizes the covariant defined [Sto2009]_.
-        Note that this representative is not unique, and that minimizing the covariant
-        does not guarantee minimal coefficients.
+        Return a PGL equivalent subscheme with smaller (or at least equal) coefficients.
 
         Only works for subchemes of dimension 0. However, subschemes of
-        higher dimension can be reduced if there is a finite and stable set of
-        special points, as then the subscheme defining the special points can be reduced.
-        See examples.
+        higher dimension can be reduced if there is an associated special
+        dimension 0 subscheme. See the examples for more information.
 
-        The base field of this subscheme must embed into the complex numbers.
+        If the base ring of this subschemes fails to coerce into the complex numbers
+        and no embedding is specified, then we choose an embedding.
 
         INPUT:
 
@@ -1472,10 +1467,20 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
 
         ALGORITHM:
 
-        We reduce the point cluster defined by this scheme. Stoll proves that there
-        exists a minimal representative which reduces the covaraint, see [Sto2009]_.
-        Using the ``reduce_cluster`` function, we find an approximation of such a
-        representative, and apply that transformation to this subcheme.
+        We reduce the point cluster defined by this scheme.
+
+        Stoll proves that there exists a minimal representative which reduces
+        the covaraint, see [Sto2009]_. Using the ``reduce_cluster`` function,
+        we find an approximation of such a representative, and apply that
+        transformation to this subcheme.
+
+        This often results in smaller coefficients for the scheme we started with, but not always,
+        as we are only guarenteed that this transformation reduces the covariant for the
+        corresponding point cluster.
+
+        Note that the corresponding point cluster can fail to be stable, in which
+        case Stoll's results do not apply. Currently, ``reduce_cluster`` does not
+        check if a point cluster is stable.
 
         EXAMPLES:
 
@@ -1487,7 +1492,7 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
                       453608122027250*x^3 - 8635374873437055*x^2*y + 54797445624349105*x*y^2 - 115909272072050820*y^3 \
                       - 1028706119154993*x^2*z + 13055708282282128*x*y*z - 41423764177605297*y^2*z + 777643541637373*x*z^2 \
                       - 4934687875458069*y*z^2 - 195951485913414*z^3])
-            sage: Y = X.reduce_coefficients(); Y
+            sage: Y = X.reduced_form(); Y
             Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               -x*y + x*z,
               -2*x*y + x*z + y*z,
@@ -1495,7 +1500,7 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
 
         Note that Y is PGL equivalent to X:
 
-            sage: Y, mat = X.reduce_coefficients(return_transformation=True)
+            sage: Y, mat = X.reduced_form(return_transformation=True)
             sage: subs = mat.inverse()*vector(list(P.coordinate_ring().gens()))
             sage: new_X = P.subscheme([poly(list(subs)) for poly in Y.defining_polynomials()])
             sage: X == new_X
@@ -1515,7 +1520,7 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
                                    for j in range(3) for i in range(3)])
             sage: Y = P.subscheme(m.det())
             sage: Z = X.intersection(Y)
-            sage: _, mat = Z.reduce_coefficients(return_transformation=True)
+            sage: _, mat = Z.reduced_form(return_transformation=True)
             sage: subs = mat*vector(list(P.coordinate_ring().gens()))
             sage: P.subscheme([poly(list(subs)) for poly in X.defining_polynomials()])
             Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
@@ -1533,7 +1538,7 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
                                   453608122027250*x^3 - 8635374873437055*x^2*y + 54797445624349105*x*y^2 \
                                   - 115909272072050820*y^3 - 1028706119154993*x^2*z + 13055708282282128*x*y*z \
                                   - 41423764177605297*y^2*z + 777643541637373*x*z^2 - 4934687875458069*y*z^2 - 195951485913414*z^3])
-            sage: X.reduce_coefficients()
+            sage: X.reduced_form()
             Closed subscheme of Projective Space of dimension 2 over Number Field in k with defining polynomial x^2 + 1 defined by:
               -x*y + x*z,
               -x*y + (k + 1)*x*z + (k + 1)*y*z,
@@ -1548,17 +1553,47 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
                                    223487*y^3 + 23744*y^2*z - 23234975*y*z^2 + 239874234*z*w^2,\
                                    23744*y^2*w - 23284*y*w^2 + 239874234*w^3,\
                                    -223487*y^2*w + 23234975*z^2*w - 23284*z*w^2])
-            sage: X.reduce_coefficients(return_transformation=True) #long time
+            sage: X.reduced_form(return_transformation=True) #long time
+            (
+            Closed subscheme of Projective Space of dimension 3 over Rational Field defined by:
+              2342*x^2*y - 14376*x*y^2 - 38120*y^3 - 28104*x*y*w + 2320654*y^2*w - 239874234*x*w^2 - 479664156*y*w^2 + 1439245404*w^3,
+              223487*x*y^2 + 446974*y^3 + 2342*x^2*z + 9368*x*y*z + 9368*y^2*z - 23234975*x*z^2 - 46469950*y*z^2 - 1340922*y^2*w - 28104*x*z*w + 2178190*y*z*w + 139409850*z^2*w + 84312*z*w^2,
+              2342*x^2*w + 9368*x*y*w + 9368*y^2*w - 51388*x*w^2 + 2131622*y*w^2 + 224016*w^3,
+              223487*y^3 + 23744*y^2*z - 23234975*y*z^2 + 239874234*z*w^2,
+              23744*y^2*w - 23284*y*w^2 + 239874234*w^3,
+              -223487*y^2*w + 23234975*z^2*w - 23284*z*w^2
+
+            [ 1  2  0 -6]
+            [ 0  1  0  0]
+            [ 0  0  1  0]
+            [ 0  0  0  1]
+            )
         """
         if self.dimension() != 0:
             raise ValueError('subscheme must be dimension 0')
+        if self.base_ring().characteristic() != 0:
+            raise ValueError('base ring must be characteristic 0')
+        starting_height = max(coeff[0].global_height() for poly in self.defining_polynomials() for coeff in poly)
         C = ComplexField(prec=precision)
         points = self.rational_points(F = C)
-        _, m1, m2 = reduce_cluster(points, eps=eps, precision=precision, embedding=embedding)
+        if not embedding is None or C.has_coerce_map_from(points[0].base_ring()):
+            _, m1, m2 = reduce_cluster(points, eps=eps, precision=precision, embedding=embedding)
+        else:
+            # we need to pick an embedding
+            embeddings = points[0].base_ring().embeddings(C)
+            if embeddings:
+                _, m1, m2 = reduce_cluster(points, eps=eps, precision=precision, embedding=embeddings[0])
+            else:
+                # there are no embeddings
+                raise ValueError('base ring of subscheme fails to embed into the complex numbers')
         P = self.ambient_space()
         CR = P.coordinate_ring()
         subs_list = m2*vector(CR.gens())
         new_subscheme = P.subscheme([poly(list(subs_list)) for poly in self.defining_polynomials()])
+        new_height = max(coeff[0].global_height() for poly in self.defining_polynomials() for coeff in poly)
+        if new_height > starting_height:
+            new_subscheme = self
+            m2 = m2.parent().identity_matrix()
         if return_transformation:
             return new_subscheme, m2
         return new_subscheme

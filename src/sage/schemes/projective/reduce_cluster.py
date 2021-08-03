@@ -35,6 +35,9 @@ def reduce_cluster(S, eps=10**-6, c=1, precision=500, embedding=None):
 
     This implementation is adapted from code provided by Stoll.
 
+    Note that if the base ring of the points in ``S`` does not coerce
+    into the complex field, an embedding must be specified.
+
     INPUT:
 
     - ``S`` -- A list of points of projective space used to represent
@@ -138,11 +141,16 @@ def reduce_cluster(S, eps=10**-6, c=1, precision=500, embedding=None):
             c /= 2
         else:
             count += 1
+            # if the count is high, cluster1 will have lost precision
+            # we try to minimize precision errors by reseting cluster1,
+            # as cluster0 has not lost any precision
             if count == 10:
                 count = 0
                 Tr *= R(Tr.det())**(-1/n)
                 cluster1 = [pt*Tr for pt in cluster0]
             cluster = [v*1/R(v.norm()) for v in cluster1]
+    else:
+        raise ValueError('steepest descent failed to converge. Please try again with more precision')
     Tr = Tr*Tr.transpose()
     Tr = Tr.change_ring(R)
     Tr = (Tr + Tr.transpose())/2
@@ -156,12 +164,12 @@ def MatExp(mat, eps=1*10**-6):
 
     INPUT:
 
-    - ``mat`` -- The matrix for which to compute `e^{\text{mat}}`
+    - ``mat`` -- The matrix for which to compute `e^{\text{mat}}`.
 
     - ``eps`` -- (default: `10^{-6}`) The precision after which
-      to treat a number as zero
+      to treat a number as zero.
 
-    OUPUT: A matrix which is an approximation of `e^{\text{mat}}`
+    OUPUT: A matrix which is an approximation of `e^{\text{mat}}`.
 
     EXAMPLES::
 
@@ -186,7 +194,8 @@ def MatExp(mat, eps=1*10**-6):
     k = 1
     m = result
     # approximate e^mat via power series
-    while mat_prod(m) > eps**2:
+    square = eps**2
+    while mat_prod(m) > square:
         m *= 1/k * mat
         result += m
         k += 1
