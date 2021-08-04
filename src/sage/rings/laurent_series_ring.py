@@ -712,6 +712,25 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
         """
         return self._power_series_ring.default_prec()
 
+    def change_default_prec(self, prec):
+        """
+        Return a copy of ``self`` with default precision ``prec``.
+            
+        EXAMPLES::
+
+            sage: R = QQ[[x]]
+            sage: K = R.fraction_field()
+            sage: K.default_prec()
+            20
+            sage: L = K.change_default_prec(100)
+            sage: L
+            Laurent Series Ring in x over Rational Field
+            sage: L.default_prec()
+            100
+        
+        """
+        return self._power_series_ring.change_default_prec(prec).fraction_field()
+    
     def is_exact(self):
         """
         Laurent series rings are inexact.

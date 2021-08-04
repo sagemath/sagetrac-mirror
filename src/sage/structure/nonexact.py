@@ -87,4 +87,24 @@ class Nonexact:
         deprecation(18416, msg)
         self._default_prec = Integer(prec)
 
+    def change_default_prec(self, prec):
+        r"""
+        Return a copy of ``self`` with default precision ``prec``.
+
+        EXAMPLES::
+
+            sage: R = QQ[[x]]
+            sage: R.default_prec()
+            20
+            sage: S = R.change_default_prec(100)
+            sage: S
+            Power Series Ring in x over Rational Field 
+            sage: S.default_prec()
+            100
+
+        """
+        R = self.__copy__()
+        R._default_prec = Integer(prec)
+        return R
+
 
