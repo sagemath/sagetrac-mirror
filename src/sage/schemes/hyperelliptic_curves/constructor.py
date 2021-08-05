@@ -31,7 +31,7 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.structure.dynamic_class import dynamic_class
 
-def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True, **kwargs):
+def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
     r"""
     Returns the hyperelliptic curve `y^2 + h y = f`, for
     univariate polynomials `h` and `f`. If `h`
@@ -43,18 +43,13 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True, **kwa
 
     -  ``h`` - optional univariate polynomial
 
-    -  ``names`` (optional) - names for the coordinate functions. By default,
-       the first coordinate is taken from the input polynomials and the second
-       coordinate is named ``y``.
+    -  ``names``  (default: ``["x","y"]``) - names for the
+       coordinate functions
 
     -  ``check_squarefree`` (default: ``True``) - test if
        the input defines a hyperelliptic curve when f is
        homogenized to degree `2g+2` and h to degree
        `g+1` for some g.
-
-    -  ``name`` (optional keyword argument) - like ``names``, but for the
-       second coordinate only. The name for the first coordinate is taken from
-       the input polynomials.
 
     .. WARNING::
 
@@ -112,8 +107,6 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True, **kwa
         sage: k.<a> = GF(9); R.<x> = k[]
         sage: HyperellipticCurve(x^3 + x - 1, x+a, names=['X','Y'])
         Hyperelliptic Curve over Finite Field in a of size 3^2 defined by Y^2 + (X + a)*Y = X^3 + X + 2
-        sage: HyperellipticCurve(x^3 + x + 1, name='z')
-        Hyperelliptic Curve over Finite Field in a of size 3^2 defined by z^2 = x^3 + x + 1
 
     This class also allows curves of genus zero or one, which are strictly
     speaking not hyperelliptic::
@@ -180,7 +173,7 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True, **kwa
 
         sage: R.<u> = PolynomialRing(Rationals())
         sage: HyperellipticCurve(-12, u^4 + 7)
-        Hyperelliptic Curve over Rational Field defined by y^2 + (u^4 + 7)*y = -12
+        Hyperelliptic Curve over Rational Field defined by y^2 + (x^4 + 7)*y = -12
 
     Check that two curves with the same class name have the same class type::
 
@@ -249,14 +242,8 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True, **kwa
                               "singularity in the provided affine patch.")
     R = P.base_ring()
     PP = ProjectiveSpace(2, R)
-
     if names is None:
-        names = [P.variable_name(), kwargs.get('name','y')]
-    elif 'name' in kwargs:
-        raise TypeError('cannot pass both names= and name= to HyperellipticCurve()')
-    for k in kwargs.keys():
-        if k != 'name':
-            raise TypeError(f'unexpected keyword argument: {k}')
+        names = ["x","y"]
 
     superclass = []
     cls_name = ["HyperellipticCurve"]

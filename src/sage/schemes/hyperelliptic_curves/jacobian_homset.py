@@ -126,7 +126,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_points):
             sage: C = HyperellipticCurve(v^5-1)
             sage: D = C.jacobian()(v-1,0)
             sage: D, D + D
-            ((v - 1, y), (1))
+            ((x - 1, y), (1))
         """
         if isinstance(P, (Integer, int)) and P == 0:
             R = PolynomialRing(self.value_ring(), 'x')
