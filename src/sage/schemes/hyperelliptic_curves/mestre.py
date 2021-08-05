@@ -204,7 +204,7 @@ def HyperellipticCurve_from_invariants(i, reduced=True, precision=None,
                                    "yet implemented. " \
                                    "See trac #14755 and #14756.")
 
-    return HyperellipticCurve(f)
+    return HyperellipticCurve(f, names='x,y')
 
 
 def Mestre_conic(i, xyz=False, names='u,v,w'):

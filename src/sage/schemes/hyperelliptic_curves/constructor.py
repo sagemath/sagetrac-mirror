@@ -43,8 +43,10 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
 
     -  ``h`` - optional univariate polynomial
 
-    -  ``names``  (default: ``["x","y"]``) - names for the
-       coordinate functions
+    -  ``names`` (optional) - names for the coordinate functions.
+       By default, the first name is taken from the input polynomials and the
+       second coordinate is named ``y``. Naming only the second coordinate is
+       supported by passing ``[None,"z"]``.
 
     -  ``check_squarefree`` (default: ``True``) - test if
        the input defines a hyperelliptic curve when f is
@@ -107,6 +109,8 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
         sage: k.<a> = GF(9); R.<x> = k[]
         sage: HyperellipticCurve(x^3 + x - 1, x+a, names=['X','Y'])
         Hyperelliptic Curve over Finite Field in a of size 3^2 defined by Y^2 + (X + a)*Y = X^3 + X + 2
+        sage: HyperellipticCurve(x^3 + x + 1, names=[None,'z'])
+        Hyperelliptic Curve over Finite Field in a of size 3^2 defined by z^2 = x^3 + x + 1
 
     This class also allows curves of genus zero or one, which are strictly
     speaking not hyperelliptic::
@@ -173,7 +177,7 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
 
         sage: R.<u> = PolynomialRing(Rationals())
         sage: HyperellipticCurve(-12, u^4 + 7)
-        Hyperelliptic Curve over Rational Field defined by y^2 + (x^4 + 7)*y = -12
+        Hyperelliptic Curve over Rational Field defined by y^2 + (u^4 + 7)*y = -12
 
     Check that two curves with the same class name have the same class type::
 
@@ -242,8 +246,11 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
                               "singularity in the provided affine patch.")
     R = P.base_ring()
     PP = ProjectiveSpace(2, R)
+
     if names is None:
-        names = ["x","y"]
+        names = [None, None]
+    if not isinstance(names, str):
+        names = [names[0] or P.variable_name(), names[1] or 'y']
 
     superclass = []
     cls_name = ["HyperellipticCurve"]
