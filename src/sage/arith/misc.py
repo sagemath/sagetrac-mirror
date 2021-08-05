@@ -505,12 +505,6 @@ def is_prime(n):
         False
         sage: is_prime(-2)
         False
-        sage: is_prime(21/3)
-        True
-        sage: is_prime(7/2)
-        False
-        sage: is_prime(-21/3)
-        False
 
         sage: a = 2**2048 + 981
         sage: is_prime(a)    # not tested - takes ~ 1min

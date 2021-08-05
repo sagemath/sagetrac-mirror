@@ -3581,16 +3581,6 @@ cdef class Rational(sage.structure.element.FieldElement):
     #Function alias for checking if the number is a integer.Added to solve ticket 15500
     is_integer = is_integral
 
-    def is_prime(self):
-        """
-        Return ``True`` if ``self`` is a prime integer, and ``False`` otherwise.
-
-        EXAMPLES::
-
-            sage: [QQ(v).is_prime() for v in [5/2,-1/2,0,1,-3,7]]
-            [False, False, False, False, False, True]
-        """
-        return self.is_integral() and self.numerator().is_prime()
 
     def is_S_integral(self, S=[]):
         r"""
