@@ -479,7 +479,7 @@ def is_prime(n):
 
     INPUT:
 
-    -  ``n`` - the object for which to determine primality
+    -  ``n`` - the integer for which to determine primality
 
     .. SEEALSO::
 
@@ -499,12 +499,20 @@ def is_prime(n):
         False
         sage: is_prime(2)
         True
+        sage: is_prime(21/3)
+        True
         sage: is_prime(-1)
         False
         sage: is_prime(1)
         False
         sage: is_prime(-2)
         False
+        sage: is_prime(-21/3)
+        False
+        sage: is_prime(7/2)
+        Traceback (most recent call last):
+        ...
+        TypeError: The _function_ is_prime() only works for integers. Try using the _method_ x.is_prime() for other objects x.
 
         sage: a = 2**2048 + 981
         sage: is_prime(a)    # not tested - takes ~ 1min
@@ -514,9 +522,11 @@ def is_prime(n):
         sage: proof.arithmetic(True)
     """
     try:
-        return n.is_prime()
-    except (AttributeError, NotImplementedError):
-        return ZZ(n).is_prime()
+        n = ZZ(n)
+    except TypeError:
+        raise TypeError('The _function_ is_prime() only works for integers.'
+                       ' Try using the _method_ x.is_prime() for other objects x.')
+    return n.is_prime()
 
 
 def is_pseudoprime(n):
