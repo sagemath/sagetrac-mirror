@@ -54,36 +54,6 @@ def test_packages(packages, only_failures=False):
         +---------+------------+------------+
                    Alnuth       true
                    GAPDoc       true
-                   HAPcryst     true
-                   Hap          true
-                   QPA          true
-                   aclib        true
-                   atlasrep     true
-                   autpgrp      true
-                   cohomolo     true
-                   corelg       true
-                   crime        true
-                   cryst        true
-                   crystcat     true
-                   ctbllib      true
-                   design       true
-                   factint      true
-                   gbnp         true
-                   grape        true
-                   guava        true
-                   happrime     true
-                   hecke        true
-                   laguna       true
-                   liealgdb     true
-                   liepring     true
-                   liering      true
-                   loops        true
-                   mapclass     true
-                   polycyclic   true
-                   polymaking   true
-                   quagroup     true
-                   repsn        true
-                   sla          true
                    sonata       true
                    tomlib       true
                    toric        true
@@ -134,7 +104,7 @@ def all_installed_packages(ignore_dot_gap=False, gap=None):
         sage: from sage.tests.gap_packages import all_installed_packages
         sage: all_installed_packages()
         (...'GAPDoc'...)
-        sage: all_installed_packages() == all_installed_packages(gap=gap)
+        sage: all_installed_packages(ignore_dot_gap=True) == all_installed_packages(gap=gap, ignore_dot_gap=True)
         True
     """
     if gap is None:

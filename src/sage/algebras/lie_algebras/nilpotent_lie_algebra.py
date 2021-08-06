@@ -20,7 +20,6 @@ from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStru
 from sage.categories.lie_algebras import LieAlgebras
 from sage.structure.indexed_generators import standardize_names_index_set
 from sage.rings.integer_ring import ZZ
-from collections import defaultdict
 
 
 class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
@@ -114,10 +113,13 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
             # extract names from structural coefficients
             names = []
             for (X, Y), d in s_coeff.items():
-                if X not in names: names.append(X)
-                if Y not in names: names.append(Y)
+                if X not in names:
+                    names.append(X)
+                if Y not in names:
+                    names.append(Y)
                 for k in d:
-                    if k not in names: names.append(k)
+                    if k not in names:
+                        names.append(k)
 
         from sage.structure.indexed_generators import standardize_names_index_set
         names, index_set = standardize_names_index_set(names, index_set)
@@ -385,8 +387,8 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
                 if r >= 10:
                     raise ValueError("'index' naming scheme not supported for "
                                      "10 or more generators")
-                names = ['%s_%s' % (names[0], "".join(str(s) for s in w))
-                         for w in index_set]
+                names = ['%s_%s' % (names[0], "".join(str(s) for s in ind))
+                         for ind in index_set]
             else:
                 raise ValueError("unknown naming scheme %s" % naming)
 

@@ -1,7 +1,9 @@
 # distutils: language = c++
 # distutils: libraries = pynac gmp
 # distutils: extra_compile_args = -std=c++11 SINGULAR_CFLAGS
-# pynac/basic.h includes factory/factory.h so this ^ is needed to find it
+# distutils: include_dirs = SINGULAR_INCDIR
+# pynac/basic.h includes
+#   factory/factory.h    so this ^ is needed to find it
 """
 Declarations for pynac, a Python frontend for ginac
 
@@ -69,6 +71,7 @@ cdef extern from "pynac_wrap.h":
         unsigned get_domain()
         void set_domain(unsigned d)
         void set_texname(char* t)
+        const char* get_name "get_name().c_str" ()
 
     cdef cppclass GExPair "std::pair<ex, ex>":
         pass

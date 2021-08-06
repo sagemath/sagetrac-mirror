@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Miscellaneous arithmetic functions
 """
 
@@ -13,17 +13,15 @@ Miscellaneous arithmetic functions
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, print_function
-from six.moves import range
-
 import math
-import collections
+from collections.abc import Iterable
 
 from sage.misc.misc import powerset
 from sage.misc.misc_c import prod
 
 from sage.libs.pari.all import pari
-import sage.libs.flint.arith as flint_arith
+from sage.libs.flint.arith import (bernoulli_number as flint_bernoulli,
+                                   dedekind_sum as flint_dedekind_sum)
 
 from sage.structure.element import parent
 from sage.structure.coerce import py_scalar_to_element
@@ -33,10 +31,9 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer, GCD_list
 from sage.rings.rational import Rational
 from sage.rings.real_mpfr import RealNumber
-from sage.rings.complex_number import ComplexNumber
+from sage.rings.complex_mpfr import ComplexNumber
 
-import sage.rings.fast_arith as fast_arith
-prime_range = fast_arith.prime_range
+from sage.rings.fast_arith import arith_int, arith_llong, prime_range
 
 
 ##################################################################
@@ -44,7 +41,8 @@ prime_range = fast_arith.prime_range
 ##################################################################
 
 
-def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_digits=None, height_bound=None, proof=False):
+def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None,
+           use_digits=None, height_bound=None, proof=False):
     """
     Return an irreducible polynomial of degree at most `degree` which
     is approximately satisfied by the number `z`.
@@ -330,16 +328,16 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
     TESTS::
 
-        sage: algs = ['arb','gap','gp','pari','bernmm','flint']
+        sage: algs = ['arb', 'gap', 'gp', 'pari', 'bernmm', 'flint']
         sage: test_list = [ZZ.random_element(2, 2255) for _ in range(500)]
-        sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in test_list]  # long time (up to 21s on sage.math, 2011)
-        sage: union([len(union(x))==1 for x in vals])  # long time (depends on previous line)
-        [True]
-        sage: algs = ['gp','pari','bernmm']
+        sage: vals = [[bernoulli(i, algorithm=j) for j in algs] for i in test_list]  # long time (up to 21s on sage.math, 2011)
+        sage: all(len(set(x))==1 for x in vals)  # long time (depends on previous line)
+        True
+        sage: algs = ['gp', 'pari', 'bernmm']
         sage: test_list = [ZZ.random_element(2256, 5000) for _ in range(500)]
-        sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in test_list]  # long time (up to 30s on sage.math, 2011)
-        sage: union([len(union(x))==1 for x in vals])  # long time (depends on previous line)
-        [True]
+        sage: vals = [[bernoulli(i, algorithm=j) for j in algs] for i in test_list]  # long time (up to 30s on sage.math, 2011)
+        sage: all(len(set(x))==1 for x in vals)  # long time (depends on previous line)
+        True
         sage: from numpy import int8
         sage: bernoulli(int8(12))
         -691/2730
@@ -366,9 +364,9 @@ def bernoulli(n, algorithm='default', num_threads=1):
         return arb_arith.bernoulli(n)
     elif algorithm == 'flint':
         if n >= 100000:
-            import warnings
-            warnings.warn("flint is known to not be accurate for large Bernoulli numbers")
-        return flint_arith.bernoulli_number(n)
+            from warnings import warn
+            warn("flint is known to not be accurate for large Bernoulli numbers")
+        return flint_bernoulli(n)
     elif algorithm == 'pari':
         x = pari(n).bernfrac()         # Use the PARI C library
         return Rational(x)
@@ -1339,21 +1337,30 @@ def random_prime(n, proof=None, lbound=2):
 
     EXAMPLES::
 
-        sage: random_prime(100000)
-        30029
+        sage: p = random_prime(100000)
+        sage: p.is_prime()
+        True
+        sage: p <= 100000
+        True
         sage: random_prime(2)
         2
 
     Here we generate a random prime between 100 and 200::
 
-        sage: random_prime(200, lbound=100)
-        167
+        sage: p = random_prime(200, lbound=100)
+        sage: p.is_prime()
+        True
+        sage: 100 <= p <= 200
+        True
 
     If all we care about is finding a pseudo prime, then we can pass
     in ``proof=False`` ::
 
-        sage: random_prime(200, proof=False, lbound=100)
-        197
+        sage: p = random_prime(200, proof=False, lbound=100)
+        sage: p.is_pseudoprime()
+        True
+        sage: 100 <= p <= 200
+        True
 
     TESTS::
 
@@ -1460,13 +1467,13 @@ def divisors(n):
 
         sage: K.<a> = QuadraticField(7)
         sage: divisors(K.ideal(7))
-        [Fractional ideal (1), Fractional ideal (a), Fractional ideal (7)]
+        [Fractional ideal (1), Fractional ideal (-a), Fractional ideal (7)]
         sage: divisors(K.ideal(3))
         [Fractional ideal (1), Fractional ideal (3),
         Fractional ideal (-a + 2), Fractional ideal (-a - 2)]
         sage: divisors(K.ideal(35))
-        [Fractional ideal (1), Fractional ideal (5), Fractional ideal (a),
-        Fractional ideal (7), Fractional ideal (5*a), Fractional ideal (35)]
+        [Fractional ideal (1), Fractional ideal (5), Fractional ideal (-a),
+        Fractional ideal (7), Fractional ideal (-5*a), Fractional ideal (35)]
 
     TESTS::
 
@@ -1577,6 +1584,7 @@ class Sigma:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Sigma
             sage: Sigma().__repr__()
             'Function that adds up (k-th powers of) the divisors of n'
         """
@@ -1588,6 +1596,7 @@ class Sigma:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Sigma
             sage: q = Sigma()
             sage: q(10)
             18
@@ -1632,6 +1641,7 @@ class Sigma:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Sigma
             sage: p = Sigma().plot()
             sage: p.ymax()
             124.0
@@ -2007,6 +2017,8 @@ def xkcd(n=""):
     This function is similar to the xgcd function, but behaves
     in a completely different way.
 
+    See https://xkcd.com/json.html for more details.
+
     INPUT:
 
     - ``n`` -- an integer (optional)
@@ -2023,11 +2035,15 @@ def xkcd(n=""):
     from sage.misc.html import html
 
     # import compatible with py2 and py3
-    from six.moves.urllib.request import urlopen
-    from six.moves.urllib.error import HTTPError, URLError
+    from urllib.request import urlopen
+    from urllib.error import HTTPError, URLError
 
     data = None
-    url = "http://dynamic.xkcd.com/api-0/jsonp/comic/{}".format(n)
+    if not n:
+        # default to last comic
+        url = "http://xkcd.com/info.0.json"
+    else:
+        url = "https://xkcd.com/{}/info.0.json".format(n)
 
     try:
         with contextlib.closing(urlopen(url)) as f:
@@ -2106,9 +2122,9 @@ def get_gcd(order):
         <function gcd at ...>
     """
     if order <= 46340:   # todo: don't hard code
-        return fast_arith.arith_int().gcd_int
+        return arith_int().gcd_int
     elif order <= 2147483647:   # todo: don't hard code
-        return fast_arith.arith_llong().gcd_longlong
+        return arith_llong().gcd_longlong
     else:
         return gcd
 
@@ -2128,9 +2144,9 @@ def get_inverse_mod(order):
         <function inverse_mod at ...>
     """
     if order <= 46340:   # todo: don't hard code
-        return fast_arith.arith_int().inverse_mod_int
+        return arith_int().inverse_mod_int
     elif order <= 2147483647:   # todo: don't hard code
-        return fast_arith.arith_llong().inverse_mod_longlong
+        return arith_llong().inverse_mod_longlong
     else:
         return inverse_mod
 
@@ -2450,8 +2466,8 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
        - ``'pari'`` - (default) use the PARI c library
 
-       - ``'kash'`` - use KASH computer algebra system (requires the
-         optional kash package be installed)
+       - ``'kash'`` - use KASH computer algebra system (requires that
+         kash be installed)
 
        - ``'magma'`` - use Magma (requires magma be installed)
 
@@ -2803,7 +2819,8 @@ def is_square(n, root=False):
         sage: is_square((x-1)^2)
         Traceback (most recent call last):
         ...
-        NotImplementedError: is_square() not implemented for non numeric elements of Symbolic Ring
+        NotImplementedError: is_square() not implemented for
+        non-constant or relational elements of Symbolic Ring
 
     ::
 
@@ -2991,6 +3008,7 @@ class Euler_Phi:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Euler_Phi
             sage: Euler_Phi().__repr__()
             'Number of positive integers <=n but relatively prime to n'
         """
@@ -3002,6 +3020,7 @@ class Euler_Phi:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Euler_Phi
             sage: Euler_Phi()(10)
             4
             sage: Euler_Phi()(720)
@@ -3036,6 +3055,7 @@ class Euler_Phi:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Euler_Phi
             sage: p = Euler_Phi().plot()
             sage: p.ymax()
             46.0
@@ -3646,7 +3666,7 @@ def multinomial(*ks):
 
     - Gabriel Ebner
     """
-    if isinstance(ks[0], collections.Iterable):
+    if isinstance(ks[0], Iterable):
         if len(ks) > 1:
             raise ValueError("multinomial takes only one iterable argument")
         ks = ks[0]
@@ -4229,6 +4249,7 @@ class Moebius:
         """
         EXAMPLES::
 
+            sage: from sage.arith.misc import Moebius
             sage: Moebius().__call__(7)
             -1
         """
@@ -4256,6 +4277,7 @@ class Moebius:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Moebius
             sage: q = Moebius()
             sage: q.__repr__()
             'The Moebius function'
@@ -4285,6 +4307,7 @@ class Moebius:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Moebius
             sage: p = Moebius().plot()
             sage: p.ymax()
             1.0
@@ -4533,7 +4556,7 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     if algorithm == "pari":
         if p == -1:
             p = 0
-        return ZZ(pari(a).hilbert(b,p))
+        return ZZ(pari(a).hilbert(b, p))
 
     elif algorithm == 'direct':
         if a == 0 or b == 0:
@@ -4544,13 +4567,15 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
 
         if p != -1:
             p_sqr = p**2
-            while a%p_sqr == 0: a //= p_sqr
-            while b%p_sqr == 0: b //= p_sqr
+            while a % p_sqr == 0:
+                a //= p_sqr
+            while b % p_sqr == 0:
+                b //= p_sqr
 
-        if p != 2 and True in ( kronecker(x,p) == 1 for x in (a,b,a+b) ):
+        if p != 2 and True in (kronecker(x, p) == 1 for x in (a, b, a + b)):
             return one
-        if a%p == 0:
-            if b%p == 0:
+        if a % p == 0:
+            if b % p == 0:
                 return hilbert_symbol(p,-(b//p),p)*hilbert_symbol(a//p,b,p)
             elif p == 2 and (b%4) == 3:
                 if kronecker(a+b,p) == -1:
@@ -5228,7 +5253,7 @@ def three_squares(n):
                 break
             x -= 2
     else:  # 7 mod 8
-        raise ValueError("%s is not a sum of 3 squares"%n)
+        raise ValueError("%s is not a sum of 3 squares" % n)
 
     if x < 0:
         # We found no good x, brute force instead.
@@ -5584,7 +5609,7 @@ def _key_complex_for_display(a):
     ai = a.imag()
     if not ai:
         return (0, ar)
-    epsilon = 1e-10
+    epsilon = ar.parent()(1e-10)
     if ar.abs() < epsilon:
         ar_truncated = 0
     elif ar.prec() < 34:
@@ -5598,11 +5623,12 @@ def sort_complex_numbers_for_display(nums):
     r"""
     Given a list of complex numbers (or a list of tuples, where the
     first element of each tuple is a complex number), we sort the list
-    in a "pretty" order.  First come the real numbers (with zero
-    imaginary part), then the complex numbers sorted according to
-    their real part.  If two complex numbers have the same real part,
-    then they are sorted according to their
-    imaginary part.
+    in a "pretty" order.
+
+    Real numbers (with a zero imaginary part) come before complex numbers,
+    and are sorted. Complex numbers are sorted by their real part
+    unless their real parts are quite close, in which case they are
+    sorted by their imaginary part.
 
     This is not a useful function mathematically (not least because
     there is no principled way to determine whether the real components
@@ -5624,8 +5650,13 @@ def sort_complex_numbers_for_display(nums):
         ....:     nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
         ....:                     RDF.random_element()))
         sage: shuffle(nums)
-        sage: sort_c(nums)
-        [0.0, 1.0, 2.0, -2.862406201002009e-11 - 0.7088740263015161*I, 2.2108362706985576e-11 - 0.43681052967509904*I, 1.0000000000138833 - 0.7587654737635712*I, 0.9999999999760288 - 0.7238965893336062*I, 1.9999999999874383 - 0.4560801012073723*I, 1.9999999999869107 + 0.6090836283134269*I]
+        sage: nums = sort_c(nums)
+        sage: nums[:3]
+        [0.0, 1.0, 2.0]
+        sage: for i in range(3, len(nums)-1):
+        ....:     assert nums[i].real() <= nums[i+1].real() + 1e-10
+        ....:     if abs(nums[i].real() - nums[i+1].real()) < 1e-10:
+        ....:         assert nums[i].imag() <= nums[i+1].imag() + 1e-10
     """
     if not nums:
         return nums
@@ -5832,7 +5863,7 @@ def dedekind_sum(p, q, algorithm='default'):
     - :wikipedia:`Dedekind\_sum`
     """
     if algorithm == 'default' or algorithm == 'flint':
-        return flint_arith.dedekind_sum(p, q)
+        return flint_dedekind_sum(p, q)
 
     if algorithm == 'pari':
         import sage.interfaces.gp

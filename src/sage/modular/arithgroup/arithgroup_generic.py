@@ -9,13 +9,12 @@ Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #
 ################################################################################
-from __future__ import absolute_import
-from six.moves import range
 
 from sage.groups.old import Group
+from sage.categories.groups import Groups
 from sage.rings.all import ZZ
 from sage.arith.all import lcm
 from sage.misc.cachefunc import cached_method
@@ -29,9 +28,10 @@ from sage.structure.element import parent
 
 from .arithgroup_element import ArithmeticSubgroupElement, M2Z as Mat2Z
 
+
 def is_ArithmeticSubgroup(x):
     r"""
-    Return True if x is of type ArithmeticSubgroup.
+    Return ``True`` if ``x`` is of type :class:`ArithmeticSubgroup`.
 
     EXAMPLES::
 
@@ -41,7 +41,6 @@ def is_ArithmeticSubgroup(x):
         sage: is_ArithmeticSubgroup(Gamma0(4))
         True
     """
-
     return isinstance(x, ArithmeticSubgroup)
 
 
@@ -63,9 +62,9 @@ class ArithmeticSubgroup(Group):
 
             sage: G = Gamma1(7)
             sage: G.category() # indirect doctest
-            Category of groups
+            Category of infinite groups
         """
-        Group.__init__(self)
+        Group.__init__(self, category=Groups().Infinite())
 
     def _repr_(self):
         r"""
@@ -163,7 +162,8 @@ class ArithmeticSubgroup(Group):
             if not (x[0] in ZZ and x[1] in ZZ and x[2] in ZZ and x[3] in ZZ):
                 return False
             a,b,c,d = map(ZZ, x)
-            if a*d - b*c != 1: return False
+            if a*d - b*c != 1:
+                return False
             return self._contains_sl2(a,b,c,d)
         else:
             if parent(x) is not SL2Z:
@@ -685,6 +685,7 @@ class ArithmeticSubgroup(Group):
         r"""
         Return a sorted list of inequivalent cusps for self, i.e. a set of
         representatives for the orbits of self on `\mathbb{P}^1(\QQ)`.
+
         These should be returned in a reduced form where this makes sense.
 
         INPUT:
@@ -708,19 +709,20 @@ class ArithmeticSubgroup(Group):
         """
         try:
             return copy(self._cusp_list[algorithm])
-        except (AttributeError,KeyError):
+        except (AttributeError, KeyError):
             self._cusp_list = {}
 
         from .congroup_sl2z import is_SL2Z
-        if is_SL2Z(self):
-            s = [Cusp(1,0)]
-
         if algorithm == 'default':
-            s = self._find_cusps()
+            if is_SL2Z(self):
+                s = [Cusp(1, 0)]
+            else:
+                s = self._find_cusps()
         elif algorithm == 'modsym':
-            s = sorted([self.reduce_cusp(c) for c in self.modular_symbols().cusps()])
+            s = sorted(self.reduce_cusp(c)
+                       for c in self.modular_symbols().cusps())
         else:
-            raise ValueError("unknown algorithm: %s"%algorithm)
+            raise ValueError("unknown algorithm: %s" % algorithm)
 
         self._cusp_list[algorithm] = s
         return copy(s)
@@ -845,7 +847,8 @@ class ArithmeticSubgroup(Group):
             sage: Gamma1(4).is_regular_cusp(Cusps(oo))
             True
         """
-        if self.is_even(): return True
+        if self.is_even():
+            return True
         return (self.cusp_data(c)[2] == 1)
 
     def cusp_width(self, c):
@@ -1181,7 +1184,8 @@ class ArithmeticSubgroup(Group):
             NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
         """
         k = ZZ(k)
-        if k <= 0: return ZZ(0)
+        if k <= 0:
+            return ZZ(0)
 
         if not (k % 2):
             # k even
@@ -1231,8 +1235,10 @@ class ArithmeticSubgroup(Group):
             sage: GammaH(33, [4]).dimension_eis(1)
             4
         """
-        if k < 0: return ZZ(0)
-        if k == 0: return ZZ(1)
+        if k < 0:
+            return ZZ(0)
+        if k == 0:
+            return ZZ(1)
 
         if not (k % 2): # k even
             if k > 2:

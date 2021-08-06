@@ -19,8 +19,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from six.moves import range
 
 from sage.monoids.string_monoid import BinaryStrings
 from sage.arith.all import is_prime, lcm, primes, random_prime
@@ -316,7 +314,7 @@ def carmichael_lambda(n):
 
     A case where `\lambda(n) \neq \varphi(n)`::
 
-        sage: k = randint(1, 1000)
+        sage: k = randint(3, 1000)
         sage: carmichael_lambda(2^k) == 2^(k - 2)
         True
         sage: carmichael_lambda(2^k) == 2^(k - 2) == euler_phi(2^k)

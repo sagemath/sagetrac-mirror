@@ -25,8 +25,8 @@ Cython modules::
     sage: sage_getdoc(sage.rings.rational).lstrip()
     'Rational Numbers...'
 
-    sage: sage_getsource(sage.rings.rational)[5:]
-    'Rational Numbers...'
+    sage: sage_getsource(sage.rings.rational)
+    '# distutils: ...Rational Numbers...'
 
 Python modules::
 
@@ -112,20 +112,13 @@ defined Cython code, and with rather tricky argument lines::
     ArgSpec(args=['x', 'a', 'b'], varargs='args', keywords='kwds', defaults=(1, ')"', {False: 'bar'}))
 
 """
-from __future__ import print_function, absolute_import
-
-import six
-from six import iteritems, string_types, class_types
-from six.moves import range
 
 import ast
 import inspect
 import functools
 import os
-import sys
 import tokenize
 import re
-EMBEDDED_MODE = False
 from sage.env import SAGE_LIB
 
 try:
@@ -146,14 +139,8 @@ def loadable_module_extension():
         sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
         True
     """
-    if six.PY2:
-        if sys.platform == 'cygwin':
-            return os.path.extsep + 'dll'
-        else:
-            return os.path.extsep + 'so'
-    else:
-        # Return the full platform-specific extension module suffix
-        return import_machinery.EXTENSION_SUFFIXES[0]
+    # Return the full platform-specific extension module suffix
+    return import_machinery.EXTENSION_SUFFIXES[0]
 
 
 def isclassinstance(obj):
@@ -167,9 +154,9 @@ def isclassinstance(obj):
         sage: from sage.misc.sageinspect import isclassinstance
         sage: isclassinstance(int)
         False
-        sage: isclassinstance(FreeModule)
-        True
         sage: class myclass: pass
+        sage: isclassinstance(myclass())
+        True
         sage: isclassinstance(myclass)
         False
         sage: class mymetaclass(type): pass
@@ -200,6 +187,7 @@ File:\ (?P<FILENAME>.*?)                    # match File: then filename
 
 # Parse Python identifiers
 __identifier_re = re.compile(r"^[^\d\W]\w*")
+
 
 def _extract_embedded_position(docstring):
     r"""
@@ -276,6 +264,7 @@ def _extract_embedded_position(docstring):
     original = res.group('ORIGINAL')
     return (original, filename, lineno)
 
+
 def _extract_embedded_signature(docstring, name):
     r"""
     If docstring starts with the embedded of a method called ``name``, return
@@ -294,7 +283,7 @@ def _extract_embedded_signature(docstring, name):
         sage: from sage.misc.sageinspect import _extract_embedded_signature
         sage: from sage.misc.nested_class import MainClass
         sage: print(_extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[0])
-        File: sage/misc/nested_class.pyx (starting at line 314)
+        File: sage/misc/nested_class.pyx (starting at line ...)
         ...
         sage: _extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[1]
         ArgSpec(args=['self', 'x', 'r'], varargs='args', keywords='kwds', defaults=((1, 2, 3.4),))
@@ -313,13 +302,14 @@ def _extract_embedded_signature(docstring, name):
         return docstring, None
     signature = firstline.split(name, 1)[-1]
     if signature.startswith("(") and signature.endswith(")"):
-        docstring = L[1] if len(L)>1 else '' # Remove first line, keep the rest
-        def_string = "def "+name+signature+": pass"
+        docstring = L[1] if len(L) > 1 else ''  # Remove first line, keep the rest
+        def_string = "def " + name + signature + ": pass"
         try:
             return docstring, inspect.ArgSpec(*_sage_getargspec_cython(def_string))
         except SyntaxError:
             docstring = os.linesep.join(L)
     return docstring, None
+
 
 class BlockFinder:
     """
@@ -377,12 +367,10 @@ def _getblock(lines):
     """
     blockfinder = BlockFinder()
     iter_lines = iter(lines)
-    if six.PY2:
-        tokenizer = tokenize.generate_tokens
-        readline = lambda: next(iter_lines)
-    else:
-        tokenizer = tokenize.tokenize
-        readline = lambda: next(iter_lines).encode('utf-8')
+    tokenizer = tokenize.tokenize
+
+    def readline():
+        return next(iter_lines).encode('utf-8')
     try:
         for tok in tokenizer(readline):
             blockfinder.tokeneater(*tok)
@@ -413,8 +401,8 @@ def _extract_source(lines, lineno):
         raise ValueError("Line numbering starts at 1! (tried to extract line {})".format(lineno))
     lineno -= 1
 
-    if isinstance(lines, string_types):
-        lines = lines.splitlines(True) # true keeps the '\n'
+    if isinstance(lines, str):
+        lines = lines.splitlines(True)  # true keeps the '\n'
     if len(lines):
         # Fixes an issue with getblock
         lines[-1] += '\n'
@@ -441,9 +429,10 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         sage: sorted(v.items(), key=lambda x: str(x[0]))
         [(37.0, 'temp'), ('a', ('e', 2, [None, ({False: True}, 'pi')]))]
         sage: v = ast.parse("jc = ['veni', 'vidi', 'vici']").body[0]; v
-        <_ast.Assign object at ...>
-        sage: [x for x in dir(v) if not x.startswith('__')]
-        ['_attributes', '_fields', 'col_offset', 'lineno', 'targets', 'value']
+        <...ast.Assign object at ...>
+        sage: attrs = [x for x in dir(v) if not x.startswith('__')]
+        sage: '_attributes' in attrs and '_fields' in attrs and 'col_offset' in attrs
+        True
         sage: visitor.visit(v.targets[0])
         'jc'
         sage: visitor.visit(v.value)
@@ -475,73 +464,64 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: [type(vis(n)) for n in ['foo', 'bar']]  # py3
             [<type 'str'>, <type 'str'>]
         """
-        if six.PY2:
-            what = node.id
-            if what == 'None':
-                return None
-            elif what == 'True':
-                return True
-            elif what == 'False':
-                return False
         return node.id
 
-    if six.PY3:
-        def visit_NameConstant(self, node):
-            """
-            Visit a Python AST :class:`ast.NameConstant` node.
+    def visit_NameConstant(self, node):
+        """
+        Visit a Python AST :class:`ast.NameConstant` node.
 
-            This is an optimization added in Python 3.4 for the special cases
-            of True, False, and None.
+        This is an optimization added in Python 3.4 for the special cases
+        of True, False, and None.
 
-            INPUT:
+        INPUT:
 
-            - ``node`` - the node instance to visit
+        - ``node`` - the node instance to visit
 
-            OUTPUT:
+        OUTPUT:
 
-            - None, True, False.
+        - None, True, False.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: import ast, sage.misc.sageinspect as sms  # py3
-                sage: visitor = sms.SageArgSpecVisitor()  # py3
-                sage: vis = lambda x: visitor.visit_NameConstant(ast.parse(x).body[0].value)  # py3
-                sage: [vis(n) for n in ['True', 'False', 'None']]  # py3
-                [True, False, None]
-                sage: [type(vis(n)) for n in ['True', 'False', 'None']]  # py3
-                [<type 'bool'>, <type 'bool'>, <type 'NoneType'>]
-            """
+            sage: import ast, sage.misc.sageinspect as sms  # py3
+            sage: visitor = sms.SageArgSpecVisitor()  # py3
+            sage: vis = lambda x: visitor.visit_NameConstant(ast.parse(x).body[0].value)  # py3
+            sage: [vis(n) for n in ['True', 'False', 'None']]  # py3
+            [True, False, None]
+            sage: [type(vis(n)) for n in ['True', 'False', 'None']]  # py3
+            [<type 'bool'>, <type 'bool'>, <type 'NoneType'>]
+        """
 
-            return node.value
+        return node.value
 
-        def visit_arg(self, node):
-            r"""
-            Visit a Python AST :class:`ast.arg` node.
+    def visit_arg(self, node):
+        r"""
+        Visit a Python AST :class:`ast.arg` node.
 
-            This node type is only on Python 3, where function arguments are
-            more complex than just an identifier (e.g. they may also include
-            annotations).
+        This node type is only on Python 3, where function arguments are
+        more complex than just an identifier (e.g. they may also include
+        annotations).
 
-            For now we simply return the argument identifier as a string.
+        For now we simply return the argument identifier as a string.
 
-            INPUT:
+        INPUT:
 
-            - ``node`` -- the node instance to visit
+        - ``node`` -- the node instance to visit
 
-            OUTPUT:
+        OUTPUT:
 
-            the argument name
+        the argument name
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: import ast, sage.misc.sageinspect as sms  # py3
-                sage: s = "def f(a, b=2, c={'a': [4, 5.5, False]}, d=(None, True)):\n    return"  # py3
-                sage: visitor = sms.SageArgSpecVisitor()  # py3
-                sage: args = ast.parse(s).body[0].args.args  # py3
-                sage: [visitor.visit_arg(n) for n in args]  # py3
-                ['a', 'b', 'c', 'd']
-            """
-            return node.arg
+            sage: import ast, sage.misc.sageinspect as sms  # py3
+            sage: s = "def f(a, b=2, c={'a': [4, 5.5, False]}, d=(None, True)):\n    return"  # py3
+            sage: visitor = sms.SageArgSpecVisitor()  # py3
+            sage: args = ast.parse(s).body[0].args.args  # py3
+            sage: [visitor.visit_arg(n) for n in args]  # py3
+            ['a', 'b', 'c', 'd']
+        """
+        return node.arg
 
     def visit_Num(self, node):
         """
@@ -736,27 +716,27 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         """
         left = self.visit(node.left)
         ops = list(node.ops)
-        comparators = list(node.comparators) # the things to be compared with.
+        comparators = list(node.comparators)  # the things to be compared with.
         while ops:
             op = ops.pop(0).__class__.__name__
             right = self.visit(comparators.pop(0))
-            if op=='Lt':
-                if not left<right:
+            if op == 'Lt':
+                if not left < right:
                     return False
-            elif op=='LtE':
-                if not left<=right:
+            elif op == 'LtE':
+                if not left <= right:
                     return False
-            elif op=='Gt':
-                if not left>right:
+            elif op == 'Gt':
+                if not left > right:
                     return False
-            elif op=='GtE':
-                if not left>=right:
+            elif op == 'GtE':
+                if not left >= right:
                     return False
-            elif op=='Eq':
-                if not left==right:
+            elif op == 'Eq':
+                if not left == right:
                     return False
-            elif op=='NotEq':
-                if not left!=right:
+            elif op == 'NotEq':
+                if not left != right:
                     return False
             left = right
         return True
@@ -866,6 +846,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         if op == 'USub':
             return -self.visit(node.operand)
 
+
 def _grep_first_pair_of_parentheses(s):
     """
     Return the first matching pair of parentheses in a code string.
@@ -895,7 +876,6 @@ def _grep_first_pair_of_parentheses(s):
         Traceback (most recent call last):
         ...
         SyntaxError: The given string does not contain balanced parentheses
-
     """
     out = []
     single_quote = False
@@ -903,23 +883,24 @@ def _grep_first_pair_of_parentheses(s):
     escaped = False
     level = 0
     for c in s:
-        if level>0:
+        if level > 0:
             out.append(c)
-        if c=='(' and not single_quote and not double_quote and not escaped:
+        if c == '(' and not single_quote and not double_quote and not escaped:
             level += 1
-        elif c=='"' and not single_quote and not escaped:
+        elif c == '"' and not single_quote and not escaped:
             double_quote = not double_quote
-        elif c=="'" and not double_quote and not escaped:
+        elif c == "'" and not double_quote and not escaped:
             single_quote = not single_quote
-        elif c==')' and not single_quote and not double_quote and not escaped:
+        elif c == ')' and not single_quote and not double_quote and not escaped:
             if level == 1:
-                return '('+''.join(out)
+                return '(' + ''.join(out)
             level -= 1
         elif c=="\\" and (single_quote or double_quote):
             escaped = not escaped
         else:
             escaped = False
     raise SyntaxError("The given string does not contain balanced parentheses")
+
 
 def _split_syntactical_unit(s):
     """
@@ -983,6 +964,7 @@ def _split_syntactical_unit(s):
     s = s.strip()
     if not s:
         return s
+
     # Split a given string at the next unescaped quotation mark
     def split_string(s, quot):
         escaped = False
@@ -997,13 +979,13 @@ def _split_syntactical_unit(s):
         raise SyntaxError("EOF while scanning string literal")
     # 1. s is a triple-quoted string
     if s.startswith('"""'):
-        a,b = split_string(s[3:], '"""')
+        a, b = split_string(s[3:], '"""')
         return '"""'+a+'"""', b.strip()
     if s.startswith('r"""'):
-        a,b = split_string(s[4:], '"""')
+        a, b = split_string(s[4:], '"""')
         return 'r"""'+a+'"""', b.strip()
     if s.startswith("'''"):
-        a,b = split_string(s[3:], "'''")
+        a, b = split_string(s[3:], "'''")
         return "'''"+a+"'''", b.strip()
     if s.startswith("r'''"):
         a,b = split_string(s[4:], "'''")
@@ -1061,6 +1043,7 @@ def _split_syntactical_unit(s):
             return ''.join(out), s[1:].strip()
     raise SyntaxError("Syntactical group starting with %s did not end with %s"%(repr(start),repr(stop)))
 
+
 def _sage_getargspec_from_ast(source):
     r"""
     Return an argspec for a Python function or method by compiling its
@@ -1104,13 +1087,9 @@ def _sage_getargspec_from_ast(source):
     args = [visitor.visit(a) for a in ast_args.args]
     defaults = [visitor.visit(d) for d in ast_args.defaults]
 
-    if six.PY2:
-        vararg = ast_args.vararg
-        kwarg = ast_args.kwarg
-    else:
-        # vararg and kwarg may be None
-        vararg = getattr(ast_args.vararg, 'arg', None)
-        kwarg = getattr(ast_args.kwarg, 'arg', None)
+    # vararg and kwarg may be None
+    vararg = getattr(ast_args.vararg, 'arg', None)
+    kwarg = getattr(ast_args.kwarg, 'arg', None)
 
     return inspect.ArgSpec(args, vararg, kwarg,
                            tuple(defaults) if defaults else None)
@@ -1312,17 +1291,18 @@ def _sage_getargspec_cython(source):
     if varargs is None:
         varargs = ''
     elif not py_units or py_units[-1] == ',':
-        varargs = '*'+varargs
+        varargs = '*' + varargs
     else:
-        varargs = ',*'+varargs
+        varargs = ',*' + varargs
     if keywords is None:
         keywords = ''
     elif varargs or (py_units and py_units[-1] != ','):
-        keywords = ',**'+keywords
+        keywords = ',**' + keywords
     else:
-        keywords = '**'+keywords
-    return _sage_getargspec_from_ast('def dummy('+''.join(py_units)
-                                     +varargs+keywords+'): pass')
+        keywords = '**' + keywords
+    return _sage_getargspec_from_ast('def dummy(' + ''.join(py_units) +
+                                     varargs + keywords + '): pass')
+
 
 def sage_getfile(obj):
     r"""
@@ -1456,7 +1436,7 @@ def sage_getargspec(obj):
         sage: from sage.rings.polynomial.real_roots import bernstein_polynomial_factory_ratlist
         sage: sage_getargspec(bernstein_polynomial_factory_ratlist.coeffs_bitsize)
         ArgSpec(args=['self'], varargs=None, keywords=None, defaults=None)
-        sage: from sage.rings.polynomial.pbori import BooleanMonomialMonoid
+        sage: from sage.rings.polynomial.pbori.pbori import BooleanMonomialMonoid
         sage: sage_getargspec(BooleanMonomialMonoid.gen)
         ArgSpec(args=['self', 'i'], varargs=None, keywords=None, defaults=(0,))
         sage: I = P*[x,y]
@@ -1522,7 +1502,7 @@ def sage_getargspec(obj):
     The following produced a syntax error before the patch at :trac:`11913`,
     see also :trac:`26906`::
 
-        sage: sage.misc.sageinspect.sage_getargspec(r.lm)
+        sage: sage.misc.sageinspect.sage_getargspec(r.lm)                         # optional - rpy2
         ArgSpec(args=['self'], varargs='args', keywords='kwds', defaults=None)
 
     The following was fixed in :trac:`16309`::
@@ -1567,6 +1547,20 @@ def sage_getargspec(obj):
         sage: sage_getargspec(range)
         ArgSpec(args=[], varargs='args', keywords='kwds', defaults=None)
 
+    Test that :trac:`28524` is fixed::
+
+        sage: from sage.repl.interpreter import get_test_shell
+        sage: shell = get_test_shell()
+        sage: shell.run_cell(
+        ....:     'class Foo:\n'
+        ....:     '    def __call__(self):\n'
+        ....:     '        return None\n'
+        ....:     '    def _sage_src_(self):\n'
+        ....:     '        return "the source code string"')
+        sage: shell.run_cell('f = Foo()')
+        sage: shell.run_cell('f??')
+        ...the source code string...
+
     AUTHORS:
 
     - William Stein: a modified version of inspect.getargspec from the
@@ -1606,13 +1600,15 @@ def sage_getargspec(obj):
     if isclassinstance(obj):
         if hasattr(obj,'_sage_src_'): #it may be a decorator!
             source = sage_getsource(obj)
-            # we try to find the definition and parse it by _sage_getargspec_ast
-            proxy = 'def dummy' + _grep_first_pair_of_parentheses(source) + ':\n    return'
             try:
+                # we try to find the definition and parse it by
+                # _sage_getargspec_ast
+                proxy = 'def dummy' + _grep_first_pair_of_parentheses(source) \
+                        + ':\n    return'
                 return _sage_getargspec_from_ast(proxy)
             except SyntaxError:
                 # To fix trac #10860. See #11913 for more information.
-                # See also #26906.
+                # See also #26906 and #28524.
                 pass
         if isinstance(obj, functools.partial):
             base_spec = sage_getargspec(obj.func)
@@ -1677,7 +1673,6 @@ def formatannotation(annotation, base_module=None):
         sage: import inspect
         sage: def foo(a, *, b:int, **kwargs): # py3
         ....:     pass
-        ....:
         sage: s = inspect.signature(foo) # py3
 
         sage: a = s.parameters['a'].annotation # py3
@@ -1736,10 +1731,8 @@ def sage_formatargspec(args, varargs=None, varkw=None, defaults=None,
         sage: defaults = [3]
         sage: sage_formatargspec(args, defaults=defaults)
         '(a, b, c=3)'
-        sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults) # py2
-        True
-        sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults) # py3
-        doctest:...: DeprecationWarning: `formatargspec` is deprecated since Python 3.5. Use `signature` and the `Signature` object directly
+        sage: import warnings; warnings.simplefilter('ignore')  # py3: ignore DeprecationWarning
+        sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults)
         True
     """
     def formatargandannotation(arg):
@@ -1817,32 +1810,10 @@ def sage_getdef(obj, obj_name=''):
         # sometimes s contains "*args" or "**keywds", and the
         # asterisks confuse ReST/sphinx/docutils, so escape them:
         # change * to \*, and change ** to \**.
-        if EMBEDDED_MODE:
-            s = s.replace('**', '\\**')  # replace ** with \**
-            t = ''
-            while True:  # replace * with \*
-                i = s.find('*')
-                if i == -1:
-                    break
-                elif i > 0 and s[i-1] == '\\':
-                    if s[i+1] == "*":
-                        t += s[:i+2]
-                        s = s[i+2:]
-                    else:
-                        t += s[:i+1]
-                        s = s[i+1:]
-                    continue
-                elif i > 0 and s[i-1] == '*':
-                    t += s[:i+1]
-                    s = s[i+1:]
-                    continue
-                else:
-                    t += s[:i] + '\\*'
-                    s = s[i+1:]
-            s = t + s
         return obj_name + '(' + s + ')'
     except (AttributeError, TypeError, ValueError):
         return '%s( [noargspec] )'%obj_name
+
 
 def _sage_getdoc_unformatted(obj):
     r"""
@@ -1906,7 +1877,7 @@ def _sage_getdoc_unformatted(obj):
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
-    if isinstance(r, string_types):
+    if isinstance(r, str):
         return r
     else:
         # Not a string of any kind
@@ -1983,7 +1954,7 @@ def sage_getdoc_original(obj):
     """
     # typ is the type corresponding to obj, which is obj itself if
     # that was a type or old-style class
-    if isinstance(obj, class_types):
+    if isinstance(obj, type):
         typ = obj
     else:
         typ = type(obj)
@@ -2003,17 +1974,15 @@ def sage_getdoc_original(obj):
     return s
 
 
-def sage_getdoc(obj, obj_name='', embedded_override=False):
+def sage_getdoc(obj, obj_name='', embedded=False):
     r"""
     Return the docstring associated to ``obj`` as a string.
 
     If ``obj`` is a Cython object with an embedded position in its
     docstring, the embedded position is stripped.
 
-    If optional argument ``embedded_override`` is False (its default
-    value), then the string is formatted according to the value of
-    EMBEDDED_MODE.  If this argument is True, then it is formatted as
-    if EMBEDDED_MODE were True.
+    The optional boolean argument ``embedded`` controls the
+    string formatting. It is False by default.
 
     INPUT:
 
@@ -2044,16 +2013,17 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
     if obj is None:
         return ''
     r = sage_getdoc_original(obj)
-    s = sage.misc.sagedoc.format(r, embedded=(embedded_override or EMBEDDED_MODE))
+    s = sage.misc.sagedoc.format(r, embedded=embedded)
 
     # Fix object naming
     if obj_name != '':
         i = obj_name.find('.')
         if i != -1:
             obj_name = obj_name[:i]
-        s = s.replace('self.','%s.'%obj_name)
+        s = s.replace('self.', '%s.' % obj_name)
 
     return s
+
 
 def sage_getsource(obj):
     r"""
@@ -2246,7 +2216,7 @@ def sage_getsourcelines(obj):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix)[1]
-        22
+        21
         sage: sage_getsourcelines(matrix)[0][0]
         'def matrix(*args, **kwds):\n'
 
@@ -2256,7 +2226,7 @@ def sage_getsourcelines(obj):
 
         sage: cachedfib = cached_function(fibonacci)
         sage: sage_getsourcelines(cachedfib)[0][0]
-        'def fibonacci(n, algorithm="pari"):\n'
+        'def fibonacci(n, algorithm="pari") -> Integer:\n'
         sage: sage_getsourcelines(type(cachedfib))[0][0]
         'cdef class CachedFunction(object):\n'
 
@@ -2287,14 +2257,13 @@ def sage_getsourcelines(obj):
           '    def __cinit__(self):\n',
         ...)
         sage: sage_getsourcelines(I)
-        (['class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
+        ([...'class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
         ...)
         sage: x = var('x')
-        sage: sage_getsourcelines(x)
-        (['cdef class Expression(CommutativeRingElement):\n',
-          '    cpdef object pyobject(self):\n',
-        ...)
-        sage: sage_getsourcelines(x)[0][-1]    # last line
+        sage: lines, lineno = sage_getsourcelines(x); lines[0:2]
+        ['cdef class Expression(CommutativeRingElement):\n',
+         '    cpdef object pyobject(self):\n']
+        sage: lines[-1]    # last line
         '        return S\n'
 
     We show some enhancements provided by :trac:`11768`. First, we
@@ -2327,12 +2296,12 @@ def sage_getsourcelines(obj):
         sage: sage_getsourcelines(HC)
         (['    class Homsets(HomsetsCategory):\n', ...], ...)
 
-    Testing against a bug that has occured during work on :trac:`11768`::
+    Testing against a bug that has occurred during work on :trac:`11768`::
 
         sage: P.<x,y> = QQ[]
         sage: I = P*[x,y]
         sage: sage_getsourcelines(I)
-        (['class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
+        ([...'class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
           '                        MPolynomialIdeal_macaulay2_repr, \\\n',
           '                        MPolynomialIdeal_magma_repr, \\\n',
           '                        Ideal_generic ):\n',
@@ -2456,6 +2425,7 @@ def sage_getsourcelines(obj):
                 break
     return _extract_source(source_lines, lineno), lineno
 
+
 def sage_getvariablename(self, omit_underscore_names=True):
     """
     Attempt to get the name of a Sage object.
@@ -2495,13 +2465,14 @@ def sage_getvariablename(self, omit_underscore_names=True):
     """
     result = []
     for frame in inspect.stack():
-        for name, obj in iteritems(frame[0].f_globals):
+        for name, obj in frame[0].f_globals.items():
             if obj is self:
                 result.append(name)
     if len(result) == 1:
         return result[0]
     else:
         return sorted(result)
+
 
 __internal_teststring = '''
 import os                                  # 1
@@ -2518,6 +2489,7 @@ class test2():                             # 8
 def test3(b,                               # 12
           a=2):                            # 13
     pass # EOF                             # 14'''
+
 
 def __internal_tests():
     r"""
