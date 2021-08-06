@@ -1928,7 +1928,6 @@ class Function_sum(BuiltinFunction):
             sage: s = ssum(f(x,y), x, a, b)
             sage: s.diff(y)
             sum(diff(f(x, y), y), x, a, b)
-
         """
 
         if not x.has(diff_param):
@@ -1937,6 +1936,10 @@ class Function_sum(BuiltinFunction):
         else:
             ans = SR.zero()
 
+        if diff_param == a:
+            raise Exception("I don't think anything useful would be possible with a derivative with respect to a summation bound.")
+        if diff_param == b:
+            raise Exception("I don't think anything useful would be possible with a derivative with respect to a summation bound.")
         return ans
 
 symbolic_sum = Function_sum()
