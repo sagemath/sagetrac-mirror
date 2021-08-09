@@ -205,7 +205,23 @@ VarchenkoGelfandRing (and without the commentary)::
     X[0] --> x0
     X[] --> 1
 
+AUTHORS:
+
+- Franco Saliola, Galen Dorpalen-Barry (2021): initial version
+
 """
+
+# ****************************************************************************
+#       Copyright (C) 2021 Franco Saliola <saliola.franco at uqam.ca>
+#                          Galen Dorpalen-Barry
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 from sage.structure.parent import Parent
 from sage.misc.bindable_class import BindableClass
 from sage.categories.all import AlgebrasWithBasis
