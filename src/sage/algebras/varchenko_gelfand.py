@@ -4,13 +4,13 @@ arrangement.
 
 EXAMPLES:
 
-(The examples are writting for the Varchenko-Gelfand ring below, but it works
+(The examples are written for the Varchenko-Gelfand ring below, but it works
 similarly for the Moseley ring.)
 
 We construct the Varchenko-Gelfand ring of the reflection arrangement of
 type `A_2`::
 
-    sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
     sage: A = hyperplane_arrangements.braid(3)
     sage: VG = VarchenkoGelfandRing(QQ, A)
     sage: VG
@@ -140,7 +140,7 @@ EXAMPLES (MoseleyRing):
 These are all the examples from above, but with the MoseleyRing in place of the
 VarchenkoGelfandRing (and without the commentary)::
 
-    sage: from varchenko_gelfand_ring import MoseleyRing
+    sage: from sage.algebras.varchenko_gelfand import MoseleyRing
     sage: A = hyperplane_arrangements.braid(3)
     sage: MR = MoseleyRing(QQ, A)
     sage: MR
@@ -228,7 +228,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-            sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
             sage: A = hyperplane_arrangements.braid(3); A
             Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
             sage: VG = VarchenkoGelfandRing(QQ, A); VG
@@ -270,7 +270,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
             sage: A = hyperplane_arrangements.braid(3)
             sage: VG = VarchenkoGelfandRing(QQ, A)
             sage: VG._repr_()
@@ -284,7 +284,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
             sage: A = hyperplane_arrangements.braid(3)
             sage: VG = VarchenkoGelfandRing(QQ, A)
             sage: VG.a_realization()
@@ -299,7 +299,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
             sage: A = hyperplane_arrangements.braid(3)
             sage: VG = VarchenkoGelfandRing(QQ, A)
             sage: VG.hyperplane_arrangement()
@@ -314,7 +314,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
             sage: A = hyperplane_arrangements.braid(3)
             sage: VG = VarchenkoGelfandRing(QQ, A)
             sage: VG.underlying_polynomial_ring()
@@ -371,7 +371,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
             sage: A = hyperplane_arrangements.braid(3)
             sage: VG = VarchenkoGelfandRing(QQ, A)
             sage: C = VG.covector_basis()
@@ -430,7 +430,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
         Construct a hyperplane arrangement::
 
-            sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
             sage: H.<x,y,z> = HyperplaneArrangements(QQ)
             sage: A = H(-x + z, z, x - 5*y, x - y, x + y - 2*z, x + y)
             sage: VG = VarchenkoGelfandRing(QQ, A)
@@ -524,7 +524,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
             sage: H.<x,y,z> = HyperplaneArrangements(QQ)
             sage: A = x | x - y | x - z | y | y - z
             sage: VG = VarchenkoGelfandRing(QQ, A)
@@ -586,7 +586,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
                 EXAMPLES::
 
-                    sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                     sage: A = hyperplane_arrangements.braid(3)
                     sage: VG = VarchenkoGelfandRing(QQ, A)
                     sage: X = VG.normal_basis()
@@ -660,7 +660,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                 r"""
                 EXAMPLES::
 
-                    sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                     sage: A = hyperplane_arrangements.braid(3)
                     sage: VG = VarchenkoGelfandRing(QQ, A)
                     sage: X = VG.normal_basis()
@@ -686,7 +686,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
                 EXAMPLES::
 
-                    sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                     sage: A = hyperplane_arrangements.braid(3)
                     sage: VG = VarchenkoGelfandRing(QQ, A)
 
@@ -752,7 +752,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
                 EXAMPLES::
 
-                    sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                     sage: A = hyperplane_arrangements.braid(3)
                     sage: VG = VarchenkoGelfandRing(QQ, A)
                     sage: X = VG.normal_basis()
@@ -780,7 +780,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: M = VG.normal_basis()
@@ -810,7 +810,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: X = VG.normal_basis()
@@ -848,7 +848,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: X = VarchenkoGelfandRing(QQ, A).normal_basis()
                 sage: X._repr_term([0,1])
@@ -863,7 +863,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: X = VG.normal_basis()
@@ -880,7 +880,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             r"""
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: X = VG.normal_basis()
@@ -898,7 +898,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: R = VG.underlying_polynomial_ring()
@@ -927,7 +927,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: X = VG.normal_basis()
@@ -957,7 +957,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             r"""
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: VG.nbc_basis()
@@ -983,7 +983,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: N = VG.nbc_basis()
@@ -1013,7 +1013,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: N = VarchenkoGelfandRing(QQ, A).nbc_basis()
                 sage: N._repr_term([0,1])
@@ -1035,7 +1035,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: N = VG.nbc_basis()
@@ -1060,7 +1060,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             r"""
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: VG.covector_basis()
@@ -1084,7 +1084,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: C = VG.covector_basis()
@@ -1093,7 +1093,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             TESTS::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: C = VG.covector_basis()
@@ -1113,7 +1113,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: C = VarchenkoGelfandRing(QQ, A).covector_basis()
                 sage: C._repr_term([-1,1,-1])
@@ -1136,7 +1136,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from varchenko_gelfand_ring import VarchenkoGelfandRing
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: C = VG.covector_basis()
@@ -1194,7 +1194,7 @@ class MoseleyRing(VarchenkoGelfandRing):
         """
         EXAMPLES::
 
-            sage: from varchenko_gelfand_ring import MoseleyRing
+            sage: from sage.algebras.varchenko_gelfand import MoseleyRing
             sage: A = hyperplane_arrangements.braid(3); A
             Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
             sage: MR = MoseleyRing(QQ, A); MR
@@ -1224,7 +1224,7 @@ class MoseleyRing(VarchenkoGelfandRing):
 
         EXAMPLES::
 
-            sage: from varchenko_gelfand_ring import MoseleyRing
+            sage: from sage.algebras.varchenko_gelfand import MoseleyRing
             sage: A = hyperplane_arrangements.braid(3)
             sage: MoseleyRing(QQ, A)._repr_()
             'Moseley ring of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field'
@@ -1238,7 +1238,7 @@ class MoseleyRing(VarchenkoGelfandRing):
 
         EXAMPLES::
 
-            sage: from varchenko_gelfand_ring import MoseleyRing
+            sage: from sage.algebras.varchenko_gelfand import MoseleyRing
             sage: A = hyperplane_arrangements.braid(3)
             sage: MoseleyRing(QQ, A).underlying_polynomial_ring()
             Quotient of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field by the ideal (x0^2, x1^2, x2^2, x0*x1 - x0*x2 - x1*x2)
@@ -1286,7 +1286,7 @@ class MoseleyRing(VarchenkoGelfandRing):
 
         EXAMPLES::
 
-            sage: from varchenko_gelfand_ring import MoseleyRing
+            sage: from sage.algebras.varchenko_gelfand import MoseleyRing
             sage: A = hyperplane_arrangements.braid(3)
             sage: MR = MoseleyRing(QQ, A)
             sage: MR.hilbert_series()
@@ -1308,7 +1308,7 @@ class MoseleyRing(VarchenkoGelfandRing):
 
         EXAMPLES::
 
-            sage: from varchenko_gelfand_ring import MoseleyRing
+            sage: from sage.algebras.varchenko_gelfand import MoseleyRing
             sage: A = hyperplane_arrangements.braid(3)
             sage: MR = MoseleyRing(QQ, A)
             sage: MR.hilbert_polynomial()
@@ -1330,7 +1330,7 @@ class MoseleyRing(VarchenkoGelfandRing):
 
         EXAMPLES::
 
-            sage: from varchenko_gelfand_ring import MoseleyRing
+            sage: from sage.algebras.varchenko_gelfand import MoseleyRing
             sage: A = hyperplane_arrangements.braid(3)
             sage: MR = MoseleyRing(QQ, A)
             sage: MR.hilbert_numerator()
