@@ -266,9 +266,9 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
         self._matroid = self._arrangement.matroid()
 
         # register coercions (how to convert between the bases)
-        self.register_coercions()
+        self._register_coercions()
 
-    def register_coercions(self):
+    def _register_coercions(self):
         N = self.nbc_basis()
         C = self.covector_basis()
         X = self.normal_basis()
@@ -1230,7 +1230,7 @@ class MoseleyRing(VarchenkoGelfandRing):
         self._matroid = self._arrangement.matroid()
 
         # register coercions (how to convert between the bases)
-        self.register_coercions()
+        self._register_coercions()
 
     def _repr_(self):
         r"""
