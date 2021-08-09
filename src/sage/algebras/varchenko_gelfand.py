@@ -258,7 +258,6 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
         # initiate the parent object by specifying the category and that we
         # will be defining multiple bases (WithRealizations)
         assert(base_ring in Fields() or base_ring in Rings())
-        self._base = base_ring # FIXME: is this still needed?
         Parent.__init__(self, category=AlgebrasWithBasis(base_ring).WithRealizations())
 
         # save data for later use
@@ -1224,7 +1223,6 @@ class MoseleyRing(VarchenkoGelfandRing):
         # initiate the parent object by specifying the category and that we
         # will be defining multiple bases (WithRealizations)
         assert(base_ring in Fields() or base_ring in Rings())
-        self._base = base_ring # FIXME: is this still needed?
         Parent.__init__(self, category=AlgebrasWithBasis(base_ring).WithRealizations())
 
         # save data for later use
