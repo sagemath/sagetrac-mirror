@@ -418,9 +418,6 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
         return matrix([basis1.from_polynomial(basis0.to_polynomial_on_basis(key)).to_vector()
                                                         for key in basis0.basis().keys()])
 
-    #######################################
-    # NOT SURE WHERE TO PUT THESE METHODS #
-    #######################################
     def covectors_in_cone(self, cone_mask):
         r"""
         The covectors of the regions that lie in a cone.
@@ -434,6 +431,10 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
           in position `i` specifies whether we should consider the positive
           (+1), the negative (-1), or neither (0) halfspace associated with the
           `i`-th hyperplane.
+
+        OUTPUT:
+
+        - ``cone_covectors`` -- list of covectors
 
         *WARNING* When constructing a hyperplane arrangement, the order in
         which the hyperplanes are specified is not the order with which the
