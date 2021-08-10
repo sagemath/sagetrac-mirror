@@ -250,14 +250,15 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             sage: VG = VarchenkoGelfandRing(QQ, A); VG
             Varchenko-Gelfand ring of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
         """
-
         # test that the arrangement is central
         if not arrangement.is_central():
             raise ValueError("the hyperplane arrangement must be central")
 
         # initiate the parent object by specifying the category and that we
         # will be defining multiple bases (WithRealizations)
-        assert(base_ring in Fields() or base_ring in Rings())
+        if not (base_ring in Fields() or base_ring in Rings()):
+            raise ValueError(f"{base_ring=} must be a Ring")
+        self._base_ring = base_ring
         Parent.__init__(self, category=AlgebrasWithBasis(base_ring).WithRealizations())
 
         # save data for later use
@@ -307,6 +308,13 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
         """
         return self.covector_basis()
+
+    def base_ring(self):
+        r"""
+
+        """
+
+        return self._base_ring
 
     def hyperplane_arrangement(self):
         r"""
