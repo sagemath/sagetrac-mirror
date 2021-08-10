@@ -1231,7 +1231,9 @@ class MoseleyRing(VarchenkoGelfandRing):
 
         # initiate the parent object by specifying the category and that we
         # will be defining multiple bases (WithRealizations)
-        assert(base_ring in Fields() or base_ring in Rings())
+        if not (base_ring in Fields() or base_ring in Rings()):
+            raise ValueError(f"{base_ring=} must be a Ring")
+        self._base_ring = base_ring
         Parent.__init__(self, category=AlgebrasWithBasis(base_ring).WithRealizations())
 
         # save data for later use
