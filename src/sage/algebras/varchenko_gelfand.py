@@ -1093,7 +1093,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             """
             A = VG.hyperplane_arrangement()
             self._region_to_covector = dict((region, tuple(A.sign_vector(region.representative_point()))) for region in A.regions())
-            self._covector_to_region = dict((value, key) for (key, value) in self._region_to_covector.iteritems())
+            self._covector_to_region = dict((value, key) for (key, value) in self._region_to_covector.items())
             basis_keys = [self._region_to_covector[region] for region in A.regions()]
             CombinatorialFreeModule.__init__(self,
                                              VG.base_ring(),
