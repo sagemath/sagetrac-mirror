@@ -5578,29 +5578,41 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: F.is_lattes()
             False
 
+        ::
+
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: F = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
             sage: F.is_lattes()
             False
+
+        ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: F = DynamicalSystem_projective([x^2 + y^2 + z^2, y^2, z^2])
             sage: F.is_lattes()
             False
 
+        ::
+
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: F = DynamicalSystem_projective([(x + y)*(x - y)^3, y*(2*x+y)^3])
             sage: F.is_lattes()
             True
+
+        ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: F = DynamicalSystem_projective([(x + y)^4, 16*x*y*(x-y)^2])
             sage: F.is_lattes()
             True
 
+        ::
+
             sage: f = P.Lattes_map(EllipticCurve([0,0,0,0,2]),2)
             sage: f.is_lattes()
             True
+
+        ::
 
             sage: f = P.Lattes_map(EllipticCurve([0,0,0,0,2]),2)
             sage: L.<i> = CyclotomicField(4)
