@@ -901,6 +901,27 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         raise TypeError(_LazyString(_lazy_format, ("No conversion defined from %s to %s", R, self), {}))
 
+    def _test_call(self, **options):
+        """
+        Run generic tests on the method :meth:`__call__`.
+        """
+        tester = self._tester(**options)
+        try:
+            element = self()
+        except NotImplementedError:
+            # Nothing to test
+            return
+        hasattrs = [hasattr(element, method)
+                    for method in ('is_mutable', 'is_immutable')]
+        if any(hasattrs):
+            tester.assertTrue(all(hasattrs))
+            # Trac 29101: 1-arg call must return the same object
+            tester.assertTrue(element is self(element))
+            # Trac 29101: Element constructor MUST support keyword
+            # mutable=...
+            self(element, mutable=False)
+            self(element, mutable=True)
+
     def __mul__(self, x):
         """
         This is a multiplication method that more or less directly
