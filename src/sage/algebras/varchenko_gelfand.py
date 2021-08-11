@@ -1065,7 +1065,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                 sage: N = VG.nbc_basis()
                 sage: for nbc in A.matroid().no_broken_circuits_sets():
                 ....:     poly = N.to_polynomial_on_basis(nbc)
-                ....:     print("{:>6}: {}".format(Set(nbc), poly))
+                ....:     print("{:>6}: {}".format(str(Set(nbc)), poly))
                     {}: 1
                    {0}: x0
                    {1}: x1
@@ -1166,7 +1166,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                 sage: C = VG.covector_basis()
                 sage: for covector in C.basis().keys():
                 ....:     poly = C.to_polynomial_on_basis(covector)
-                ....:     print("{:>12}: {}".format(covector, poly))
+                ....:     print("{:>12}: {}".format(str(covector), poly))
                    (1, 1, 1): x0*x2 + x1*x2 - x2
                   (1, -1, 1): -x1*x2 + x2
                  (1, -1, -1): -x0*x2 + x0
@@ -1175,15 +1175,15 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                 (-1, -1, -1): x0*x2 + x1*x2 - x0 - x1 - x2 + 1
 
                 sage: N = VG.nbc_basis()
-                sage: for covector in C.basis().keys():
+                sage: for covector in sorted(C.basis().keys()):
                 ....:     poly = C.to_polynomial_on_basis(covector)
-                ....:     print("{:>12}: {}".format(covector, N.from_polynomial(poly)))
-                   (1, 1, 1): N[0, 1]
-                  (1, -1, 1): -N[0, 1] + N[0, 2]
-                 (1, -1, -1): N[0] - N[0, 2]
-                  (-1, 1, 1): -N[0, 2] + N[2]
+                ....:     print("{:>12}: {}".format(str(covector), N.from_polynomial(poly)))
+                (-1, -1, -1): N[0, 1] - N[0] - N[1] + N[]
                  (-1, 1, -1): -N[0, 1] + N[0, 2] + N[1] - N[2]
-                (-1, -1, -1): N[0, 1] - N[0] + N[] - N[1]
+                  (-1, 1, 1): -N[0, 2] + N[2]
+                 (1, -1, -1): - N[0, 2] + N[0]
+                  (1, -1, 1): -N[0, 1] + N[0, 2]
+                   (1, 1, 1): N[0, 1]
             """
             if 0 in covector:
                 raise(ValueError, "covector cannot contain 0")
