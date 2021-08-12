@@ -54,7 +54,7 @@ a basis. There are currently three bases implemented.
     sage: N[0] * N[1] * N[2]    # this is x0 * x1 * x2 in the ring
     N[0, 1]
     sage: N[1] * N[2]           # this is x1 * x2 in the ring, which is not part of the NBC basis
-    N[0, 1] + N[2] - N[0, 2]
+    N[2] + N[0, 1] - N[0, 2]
     sage: N.one()               # writing N[] doesn't work
     N[]
 
@@ -73,9 +73,9 @@ a basis. There are currently three bases implemented.
     C[1, 1, 1] --> x0*x2 + x1*x2 - x2
     C[1, -1, 1] --> -x1*x2 + x2
     C[1, -1, -1] --> -x0*x2 + x0
-    C[-1, 1, 1] --> -x0*x2 + x2
-    C[-1, 1, -1] --> -x1*x2 + x1
     C[-1, -1, -1] --> x0*x2 + x1*x2 - x0 - x1 - x2 + 1
+    C[-1, 1, -1] --> -x1*x2 + x1
+    C[-1, 1, 1] --> -x0*x2 + x2
 
 - *Change of basis*. You can also easily change between representations in the
   different bases. For example, to convert an element `a` to the NBC basis, use
@@ -90,10 +90,10 @@ a basis. There are currently three bases implemented.
     ....:     print("{} --> {}".format(b, N(b)))
     C[1, 1, 1] --> N[0, 1]
     C[1, -1, 1] --> -N[0, 1] + N[0, 2]
-    C[1, -1, -1] --> N[0] - N[0, 2]
-    C[-1, 1, 1] --> N[2] - N[0, 2]
-    C[-1, 1, -1] --> -N[0, 1] - N[2] + N[1] + N[0, 2]
-    C[-1, -1, -1] --> N[0, 1] - N[1] + N[] - N[0]
+    C[1, -1, -1] --> -N[0, 2] + N[0]
+    C[-1, -1, -1] --> N[0, 1] - N[0] - N[1] + N[]
+    C[-1, 1, -1] --> -N[2] - N[0, 1] + N[0, 2] + N[1]
+    C[-1, 1, 1] --> -N[0, 2] + N[2]
 
   And the other way:
 
@@ -173,18 +173,18 @@ VarchenkoGelfandRing (and without the commentary)::
     C[1, 1, 1] --> x0*x2 + x1*x2
     C[1, -1, 1] --> -x1*x2 + x2
     C[1, -1, -1] --> -x0*x2 + x0
-    C[-1, 1, 1] --> -x0*x2 + x2
-    C[-1, 1, -1] --> -x1*x2 + x1
     C[-1, -1, -1] --> x0*x2 + x1*x2 - x0 - x1 + 1
+    C[-1, 1, -1] --> -x1*x2 + x1
+    C[-1, 1, 1] --> -x0*x2 + x2
 
     sage: for b in C.basis():
     ....:     print("{} --> {}".format(b, N(b)))
     C[1, 1, 1] --> N[0, 1]
     C[1, -1, 1] --> -N[0, 1] + N[0, 2] + N[2]
-    C[1, -1, -1] --> N[0] - N[0, 2]
-    C[-1, 1, 1] --> N[2] - N[0, 2]
-    C[-1, 1, -1] --> -N[0, 1] + N[0, 2] + N[1]
+    C[1, -1, -1] --> -N[0, 2] + N[0]
     C[-1, -1, -1] --> N[0, 1] - N[0] - N[1] + N[]
+    C[-1, 1, -1] --> -N[0, 1] + N[0, 2] + N[1]
+    C[-1, 1, 1] --> -N[0, 2] + N[2]
 
     sage: for b in N.basis():
     ....:     print("{} --> {}".format(b, C(b)))
@@ -411,9 +411,9 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             [ 1  1 -1  0  0  0]
             [-1  0  1  0  0  0]
             [ 0 -1  0  0  1  0]
-            [ 0 -1  1  0  0  0]
-            [-1  0  0  1  0  0]
             [ 1  1 -1 -1 -1  1]
+            [-1  0  0  1  0  0]
+            [ 0 -1  1  0  0  0]
             sage: VG.change_of_basis_matrix(N, X)
             [ 0  0  0  0  0  1]
             [ 0  0  0  0  1  0]
@@ -475,7 +475,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
         positions 1, 3, 5, so we set ``cone_mask=(0,1,0,1,0,1)``:
 
             sage: cone_covectors = VG.covectors_in_cone((0,1,0,1,0,1))
-            sage: cone_covectors
+            sage: sorted(cone_covectors, reverse=True)
             [(1, 1, 1, 1, -1, 1),
              (1, 1, -1, 1, -1, 1),
              (-1, 1, 1, 1, 1, 1),
@@ -488,17 +488,17 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
             sage: C = VG.covector_basis()
             sage: heavisides = [C.to_polynomial_on_basis(covector) for covector in cone_covectors]
-            sage: heavisides
-            [x0*x2*x5,
-             -x0*x2*x5 - x0*x4*x5 - x3*x4*x5 + x0*x5 + x3*x5 + x4*x5 - x5,
+            sage: sorted(heavisides)
+            [-x1*x2*x5 + x1*x3*x5 - x2*x4*x5 + x3*x4*x5 + x2*x5 - x3*x5,
              x1*x2*x5 + x2*x4*x5 - x2*x5,
-             -x0*x2*x5 - x2*x4*x5 + x2*x5,
-             -x1*x2*x5 + x1*x3*x5 - x2*x4*x5 + x3*x4*x5 + x2*x5 - x3*x5,
+            -x0*x2*x5 - x2*x4*x5 + x2*x5,
+             -x0*x2*x5 - x0*x4*x5 - x3*x4*x5 + x0*x5 + x3*x5 + x4*x5 - x5,
+             x0*x2*x5,
              x0*x2*x5 + x0*x4*x5 + x2*x4*x5 - x0*x5 - x2*x5 - x4*x5 + x5]
 
         Here are the same elements, but expressed in terms of the covector basis::
 
-            sage: [C.from_polynomial(heaviside) for heaviside in heavisides]
+            sage: sorted([C.from_polynomial(heaviside) for heaviside in heavisides], reverse=True)
             [C[1, 1, 1, 1, -1, 1],
              C[1, 1, -1, 1, -1, 1],
              C[-1, 1, 1, 1, 1, 1],
@@ -512,10 +512,10 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             sage: [N.from_polynomial(heaviside) for heaviside in heavisides]
             [N[0, 2, 5],
              N[0, 3] - N[0, 2, 3],
-             N[0, 1] - N[2] - N[0, 1, 2] - N[0, 1, 4] - N[1] + N[0, 2] - N[4] - N[0, 2, 4] + N[] + N[1, 4] + N[0, 4] + N[1, 2] - N[0] + N[2, 4],
-             N[1, 5] + N[2] + N[0, 1, 4] - N[0, 2] + N[4] + N[0, 2, 4] - N[] - N[1, 4] - N[0, 4] + N[0] - N[0, 1, 5] - N[2, 4],
-             N[2] + N[0, 1, 2] + N[1, 3] - N[0, 2] + N[4] + N[0, 2, 4] - N[] - N[0, 4] - N[1, 2] + N[0] - N[0, 1, 3] - N[2, 4],
-             -N[2] + N[0, 2] - N[4] - N[0, 2, 4] + N[] + N[0, 4] - N[0] + N[2, 4]]
+             N[] - N[0] - N[2] - N[4] + N[0, 2] + N[2, 4] + N[0, 4] - N[0, 2, 4],
+             -N[] + N[0] + N[2] + N[4] - N[1, 2] - N[0, 2] + N[1, 3] - N[2, 4] - N[0, 4] + N[0, 1, 2] - N[0, 1, 3] + N[0, 2, 4],
+             -N[] + N[0] + N[2] + N[4] - N[0, 2] - N[2, 4] - N[1, 4] - N[0, 4] + N[1, 5] + N[0, 2, 4] + N[0, 1, 4] - N[0, 1, 5],
+             N[] - N[0] - N[1] - N[2] - N[4] + N[0, 1] + N[1, 2] + N[0, 2] + N[2, 4] + N[1, 4] + N[0, 4] - N[0, 1, 2] - N[0, 2, 4] - N[0, 1, 4]]
 
         Test that the ideal generated by the heaviside functions is equal to
         the ideal generated by the product of the hyperplanes defining the
@@ -562,7 +562,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
              N[1, 2],
              N[1, 3],
              N[1, 4],
-             -N[0, 3, 4] + N[0, 4],
+             N[0, 4] - N[0, 3, 4],
              N[0, 1, 2],
              N[0, 1, 3],
              N[0, 1, 4]]
@@ -615,7 +615,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                     sage: VG = VarchenkoGelfandRing(QQ, A)
                     sage: X = VG.normal_basis()
                     sage: X[0, 1] * X[1]
-                    X[0, 2] - X[2] + X[1, 2]
+                    X[0, 2] + X[1, 2] - X[2]
                     sage: X[0] * X[2]
                     X[0, 2]
 
@@ -653,12 +653,12 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                     N[1] * N[] = N[1]
                     N[1] * N[0] = N[0, 1]
                     N[1] * N[1] = N[1]
-                    N[1] * N[2] = N[0, 1] + N[2] - N[0, 2]
+                    N[1] * N[2] = N[2] + N[0, 1] - N[0, 2]
                     N[1] * N[0, 1] = N[0, 1]
                     N[1] * N[0, 2] = N[0, 1]
                     N[2] * N[] = N[2]
                     N[2] * N[0] = N[0, 2]
-                    N[2] * N[1] = N[0, 1] + N[2] - N[0, 2]
+                    N[2] * N[1] = N[2] + N[0, 1] - N[0, 2]
                     N[2] * N[2] = N[2]
                     N[2] * N[0, 1] = N[0, 1]
                     N[2] * N[0, 2] = N[0, 2]
@@ -749,14 +749,14 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                     N[0] = X[0]
                     N[1] = X[1]
                     N[2] = X[2]
-                    N[0, 1] = -X[2] + X[0, 2] + X[1, 2]
+                    N[0, 1] = X[0, 2] + X[1, 2] - X[2]
                     N[0, 2] = X[0, 2]
 
                 and conversely::
 
                     sage: for b in X.basis():
                     ....:     print("{} = {}".format(b, N.from_polynomial(b.to_polynomial())))
-                    X[1, 2] = N[0, 1] - N[0, 2] + N[2]
+                    X[1, 2] = N[2] + N[0, 1] - N[0, 2]
                     X[0, 2] = N[0, 2]
                     X[2] = N[2]
                     X[1] = N[1]
@@ -819,8 +819,8 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                                              VG.base_ring(),
                                              basis_keys,
                                              category=VG.Bases(),
-                                             prefix='X')
-
+                                             prefix='X',
+                                             sorting_key=lambda x: self.to_polynomial(x))
 
         def __getitem__(self, indices):
             """
@@ -853,7 +853,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             obtained by expressing this element in the normal basis::
 
                 sage: X[0,1,2]
-                -X[2] + X[0, 2] + X[1, 2]
+                X[0, 2] + X[1, 2] - X[2]
                 sage: x = R.gens()
                 sage: x[0] * x[1] * x[2]
                 x0*x2 + x1*x2 - x2
@@ -932,8 +932,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
                 sage: X = VG.normal_basis()
                 sage: X.from_polynomial(x[0] * x[1])
-                -X[2] + X[0, 2] + X[1, 2]
-
+                X[0, 2] + X[1, 2] - X[2]
             """
             poly = poly.lift()
             d = {}
@@ -993,7 +992,8 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                                              VG.base_ring(),
                                              basis_keys,
                                              category=VG.Bases(),
-                                             prefix='N')
+                                             prefix='N',
+                                             sorting_key=lambda x: self.to_polynomial(x))
 
         def __getitem__(self, indices):
             """
@@ -1164,24 +1164,24 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandRing(QQ, A)
                 sage: C = VG.covector_basis()
-                sage: for covector in C.basis().keys():
+                sage: for covector in sorted(C.basis().keys()):
                 ....:     poly = C.to_polynomial_on_basis(covector)
                 ....:     print("{:>12}: {}".format(str(covector), poly))
-                   (1, 1, 1): x0*x2 + x1*x2 - x2
-                  (1, -1, 1): -x1*x2 + x2
-                 (1, -1, -1): -x0*x2 + x0
-                  (-1, 1, 1): -x0*x2 + x2
-                 (-1, 1, -1): -x1*x2 + x1
                 (-1, -1, -1): x0*x2 + x1*x2 - x0 - x1 - x2 + 1
+                 (-1, 1, -1): -x1*x2 + x1
+                  (-1, 1, 1): -x0*x2 + x2
+                 (1, -1, -1): -x0*x2 + x0
+                  (1, -1, 1): -x1*x2 + x2
+                   (1, 1, 1): x0*x2 + x1*x2 - x2
 
                 sage: N = VG.nbc_basis()
                 sage: for covector in sorted(C.basis().keys()):
                 ....:     poly = C.to_polynomial_on_basis(covector)
                 ....:     print("{:>12}: {}".format(str(covector), N.from_polynomial(poly)))
-                (-1, -1, -1): N[0, 1] - N[0] - N[1] + N[]
-                 (-1, 1, -1): -N[0, 1] + N[0, 2] + N[1] - N[2]
-                  (-1, 1, 1): -N[0, 2] + N[2]
-                 (1, -1, -1): - N[0, 2] + N[0]
+                (-1, -1, -1): N[] - N[0] - N[1] + N[0, 1]
+                 (-1, 1, -1): N[1] - N[2] - N[0, 1] + N[0, 2]
+                  (-1, 1, 1): N[2] - N[0, 2]
+                 (1, -1, -1): N[0] - N[0, 2]
                   (1, -1, 1): -N[0, 1] + N[0, 2]
                    (1, 1, 1): N[0, 1]
             """
