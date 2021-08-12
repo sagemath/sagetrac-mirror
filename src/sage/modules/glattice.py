@@ -862,7 +862,7 @@ class Lattice_generic(FreeModule_generic):
         return self.left_morphism(m, lat)
 
 
-    def surjection_from_square(self):
+    def surjection_from_square(self, side="left"):
         """
         Return the natural map from the direct sum of the lattice with itself given by sending the direct sum
         to the sum.
@@ -890,7 +890,9 @@ class Lattice_generic(FreeModule_generic):
         r = self.rank()
         i = identity_matrix(r)
         m = block_matrix(1, [i, i])
-        return lat.left_morphism(m, self)
+        if side == "right":
+            m = m.transpose()
+        return lat.hom(m, self, side=side)
 
     def permutation_cover(self):
         """
@@ -970,13 +972,8 @@ class Lattice_generic(FreeModule_generic):
             [1 1 1]
             Domain: Ambient lattice of rank 3 with the trivial action of a group of order 6
         """
-        C = codomain
-        if is_Matrix(mat) and mat.ncols() == mat.nrows() and codomain == None:
-            C = self
-        else:
-            C = codomain
-        from .glattice_morphism import GLatticeMorphism_left
-        return GLatticeMorphism_left(mat, self, C)
+
+        return self.hom(mat, codomain, side="right")
 
     def group(self):
         r"""
@@ -2831,6 +2828,10 @@ class Lattice_generic(FreeModule_generic):
             raise ValueError("direction must be either `Left` or `Right`")
 
 
+    def _Hom_(self, Y, category):
+        from .glattice_homspace import GLatticeHomspace
+        return GLatticeHomspace(self, Y, category)
+
     def sublattice(self, basis, check=True):
         r"""
         Constructs the sublattice spanned by a list of vectors.
@@ -3240,6 +3241,10 @@ class SubLattice(Lattice_generic, FreeModule_submodule_pid):
         B = FreeModule_submodule_pid._mul_(self, other, switch_sides).basis()
         return self.ambient_lattice().sublattice(B, check=False)
 
+
+    
+
+
     def ambient_lattice(self):
         r"""
         Return the ambient lattice containing this sublattice.
@@ -3258,7 +3263,7 @@ class SubLattice(Lattice_generic, FreeModule_submodule_pid):
             True
         """
         return self._ambient_lattice
-    def injection_morphism(self):
+    def injection_morphism(self, side="left"):
         """
         Return the injection between two ambient lattices such that ``self`` is the image.
 
@@ -3288,7 +3293,10 @@ class SubLattice(Lattice_generic, FreeModule_submodule_pid):
         """
 
         amb = self.isomorphic_ambient_lattice()
-        inj = amb.left_morphism(matrix(self.basis()).transpose(), self.ambient_lattice()) 
+        if side == "right":
+            inj = amb.left_morphism(matrix(self.basis()).transpose(), self.ambient_lattice()) 
+        else:
+            inj = amb.left_morphism(matrix(self.basis()), self.ambient_lattice()) 
         return inj
 
     def isomorphic_ambient_lattice(self):
