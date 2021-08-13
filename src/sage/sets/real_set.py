@@ -1062,6 +1062,15 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             Traceback (most recent call last):
             ...
             ValueError: interval cannot be closed at -oo
+
+        Converting symbolic and::
+
+            sage: from sage.functions.boolean import and_symbolic
+            sage: condition = and_symbolic(x>0, x<2, x<=1); condition
+            and_symbolic(x > 0, x < 2, x <= 1)
+            sage: RealSet(condition)
+            (0, 1]
+
         """
         manifold_keywords = ('structure', 'ambient', 'names', 'coordinate')
         if any(kwds.get(kwd, None)
@@ -1104,6 +1113,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             raise TypeError(f'unless manifold keywords {manifold_keywords} are given, RealSet constructors take no keyword arguments')
 
         from sage.structure.element import Expression
+        from sage.functions.boolean import AndSymbolic
+
         if len(args) == 1 and isinstance(args[0], RealSet):
             return args[0]   # common optimization
         intervals = []
@@ -1172,6 +1183,11 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                     intervals.extend(rel_to_interval(op, arg.lhs()))
                 else:
                     raise ValueError(str(arg) + ' does not determine real interval')
+            elif isinstance(arg, Expression) and isinstance(arg.operator(), AndSymbolic):
+                intersection = RealSet.real_line()
+                for op in arg.operands():
+                    intersection &= RealSet(op)
+                intervals.extend(intersection)
             else:
                 from sage.manifolds.differentiable.examples.real_line import OpenInterval
                 from sage.manifolds.subsets.closure import ManifoldSubsetClosure
