@@ -1594,8 +1594,8 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
         """
         if self.dimension() != 0:
             raise ValueError('subscheme must be dimension 0')
-        if self.base_ring().characteristic() != 0:
-            raise ValueError('base ring must be characteristic 0')
+        if not self.base_ring() in NumberFields:
+            raise ValueError('base ring must in NumberFields')
         starting_height = max(coeff[0].global_height() for poly in self.defining_polynomials() for coeff in poly)
         C = ComplexField(prec=precision)
         old_base = self.base_ring()
