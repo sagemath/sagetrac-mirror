@@ -1442,6 +1442,7 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
         higher dimension can be reduced if there is an associated special
         dimension 0 subscheme. See the examples for more information.
 
+        The base ring of this subcheme must be the rationals, or a number field.
         If the base ring of this subschemes fails to coerce into the complex numbers
         and no embedding is specified, then we choose an embedding.
 
@@ -1599,8 +1600,7 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
         C = ComplexField(prec=precision)
         old_base = self.base_ring()
         if (not embedding is None) or C.has_coerce_map_from(self.base_ring()):
-            if self.base_ring() in NumberFields():
-                new_base = NumberField(old_base.polynomial(), embedding=embedding, names='t')
+            new_base = NumberField(old_base.polynomial(), embedding=embedding, names='t')
         else:
             # we need to pick an embedding
             embeddings = self.base_ring().embeddings(C)
