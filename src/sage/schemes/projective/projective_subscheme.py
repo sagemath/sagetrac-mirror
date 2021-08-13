@@ -25,6 +25,7 @@ from sage.arith.misc import binomial
 
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
+from sage.categories.number_fields import NumberFields
 
 from sage.matrix.constructor import matrix
 
@@ -35,6 +36,7 @@ from sage.rings.complex_mpfr import ComplexField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import is_RationalField
+from sage.rings.number_field.number_field import NumberField
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 from sage.schemes.projective.projective_morphism import SchemeMorphism_polynomial_projective_subscheme_field
@@ -1454,8 +1456,9 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
         - ``precision`` -- (default: 500) Used to specfiy the precision of the complex
           field to be used in approximation.
 
-        - ``embedding`` -- (default: ``None``) Used to specify an embedding of the
-          base ring of this subscheme into the complex field
+        - ``embedding`` -- (default: ``None``) An element, or a list of elements.
+          The images of the generators of the base ring into the complex field.
+          Used to specify an embedding of the base ring of this subscheme into the complex field.
 
         OUTPUT:
 
@@ -1568,6 +1571,25 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
             [ 0  0  1  0]
             [ 0  0  0  1]
             )
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<k> = NumberField(x^4 - x^2 + 1)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: emb = K.embeddings(CC)[0](k)
+            sage: X = P.subscheme([2141136680*x^2 - 27173976948*x*y + 86218809624*y^2 - 3237154682*x*z + 20541978363*y*z + 1223552253*z^2, \
+                                (-23886292125*k + 10098628775)*x^2 + (303150593245*k - 128165707435)*x*y \
+                                + (-961851694100*k + 406650470284)*y^2 + (36113395312*k - 15267989043)*x*z \
+                                + (-229164852285*k + 96886055543)*y*z + (-13649851075*k + 5770869853)*z^2, \
+                                453608122027250*x^3 - 8635374873437055*x^2*y + 54797445624349105*x*y^2 \
+                                - 115909272072050820*y^3 - 1028706119154993*x^2*z + 13055708282282128*x*y*z \
+                                - 41423764177605297*y^2*z + 777643541637373*x*z^2 - 4934687875458069*y*z^2 - 195951485913414*z^3])
+            sage: X.reduced_form(embedding=emb)
+            Closed subscheme of Projective Space of dimension 2 over Number Field in k with defining polynomial x^4 - x^2 + 1 defined by:
+              x*z - y*z,
+              (k + 1)*x*y + x*z + (-k - 1)*y*z,
+              -x^2*y + x*y^2 + x^2*z - y^2*z - x*z^2 + y*z^2
         """
         if self.dimension() != 0:
             raise ValueError('subscheme must be dimension 0')
@@ -1575,17 +1597,22 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
             raise ValueError('base ring must be characteristic 0')
         starting_height = max(coeff[0].global_height() for poly in self.defining_polynomials() for coeff in poly)
         C = ComplexField(prec=precision)
-        points = self.rational_points(F = C)
-        if not embedding is None or C.has_coerce_map_from(points[0].base_ring()):
-            _, m1, m2 = reduce_cluster(points, eps=eps, precision=precision, embedding=embedding)
+        old_base = self.base_ring()
+        if (not embedding is None) or C.has_coerce_map_from(self.base_ring()):
+            if self.base_ring() in NumberFields():
+                new_base = NumberField(old_base.polynomial(), embedding=embedding, names='t')
         else:
             # we need to pick an embedding
-            embeddings = points[0].base_ring().embeddings(C)
+            embeddings = self.base_ring().embeddings(C)
             if embeddings:
-                _, m1, m2 = reduce_cluster(points, eps=eps, precision=precision, embedding=embeddings[0])
+                new_base = NumberField(old_base.polynomial(), embedding=[embeddings[0](i) for i in old_base.gens()], names='t')
             else:
                 # there are no embeddings
                 raise ValueError('base ring of subscheme fails to embed into the complex numbers')
+        old_embedding = old_base.Hom(new_base)[0]
+        X = self.change_ring(old_embedding)
+        points = X.rational_points(F=C)
+        _, m1, m2 = reduce_cluster(points, eps=eps, precision=precision)
         P = self.ambient_space()
         CR = P.coordinate_ring()
         subs_list = m2*vector(CR.gens())

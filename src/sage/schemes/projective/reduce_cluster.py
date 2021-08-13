@@ -32,7 +32,7 @@ from sage.rings.complex_mpfr import ComplexField
 from sage.rings.real_mpfr import RealField
 
 
-def reduce_cluster(S, eps=10**-6, c=1, precision=500, embedding=None):
+def reduce_cluster(S, eps=10**-6, c=1, precision=500):
     r"""
     Return an approximation to the minimal representative of a
     stable point cluster ``S``.
@@ -45,8 +45,7 @@ def reduce_cluster(S, eps=10**-6, c=1, precision=500, embedding=None):
 
     This implementation is adapted from code provided by Stoll.
 
-    Note that if the base ring of the points in ``S`` does not coerce
-    into the complex field, an embedding must be specified.
+    Note that the base ring of the points must coerce into the complex field.
 
     INPUT:
 
@@ -60,9 +59,6 @@ def reduce_cluster(S, eps=10**-6, c=1, precision=500, embedding=None):
 
     - ``precision``-- (default: 500) The precision to use for the real and
       complex fields when approximating.
-
-    - ``emebedding`` -- (default: ``None``) Used to specify an embedding
-      of the base ring of the points in ``S`` into the complex field.
 
     OUTPUT:
 
@@ -86,18 +82,12 @@ def reduce_cluster(S, eps=10**-6, c=1, precision=500, embedding=None):
     cluster0 = []
     C = ComplexField(prec = precision)
     R = RealField(prec = precision)
-    if not embedding is None:
-        for v in S:
-            t = v.change_ring(embedding)
-            t = t.change_ring(C)
-            cluster0.append(t)
-    else:
-        for v in S:
-            try:
-                cluster0.append(v.change_ring(C))
-            except TypeError:
-                raise ValueError('no embedding into the complex field defined,' +
-                ' please specify an embedding and try again')
+    for v in S:
+        try:
+            cluster0.append(v.change_ring(C))
+        except TypeError:
+            raise ValueError('no embedding into the complex field defined,' +
+            ' please specify an embedding and try again')
     cluster0 = [vector(list(pnt)) for pnt in cluster0]
     cluster = [v*1/R(v.norm()) for v in cluster0]
     Tr = matrix.identity(n)
@@ -142,7 +132,7 @@ def reduce_cluster(S, eps=10**-6, c=1, precision=500, embedding=None):
         for i in range(n-1):
             for j in range(i+1, n):
                 B1[i, j] = B1[j, i]
-        B = MatExp(-c*B1, eps=eps*(1**(-20))).change_ring(R)
+        B = mat_exp(-c*B1, eps=eps*(1**(-20))).change_ring(R)
         B *= B.determinant().nth_root(n).inverse_of_unit()
         Tr *= B
         cluster1 = [B*pnt for pnt in cluster]
@@ -168,7 +158,7 @@ def reduce_cluster(S, eps=10**-6, c=1, precision=500, embedding=None):
     U1_inv = U1.inverse()
     return [v*U1_inv for v in cluster0], U1_inv, U1
 
-def MatExp(mat, eps=1*10**-6):
+def mat_exp(mat, eps=1*10**-6):
     r"""
     An approximate matrix exponential, computed via power series.
 
@@ -183,9 +173,9 @@ def MatExp(mat, eps=1*10**-6):
 
     EXAMPLES::
 
-        sage: from sage.schemes.projective.reduce_cluster import MatExp
+        sage: from sage.schemes.projective.reduce_cluster import mat_exp
         sage: m = matrix.identity(3)
-        sage: MatExp(m)
+        sage: mat_exp(m)
         [9864101/3628800               0               0]
         [              0 9864101/3628800               0]
         [              0               0 9864101/3628800]
