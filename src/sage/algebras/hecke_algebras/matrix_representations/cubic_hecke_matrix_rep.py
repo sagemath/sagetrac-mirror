@@ -690,6 +690,12 @@ class CubicHeckeMatrixSpace(MatrixSpace):
     def construction(self):
         r"""
         Return ``None`` since this construction is not functorial.
+
+        EXAMPLES::
+
+            sage: CHA2.<c1> = algebras.CubicHecke(2)
+            sage: MS = c1.matrix().parent()
+            sage: MS._test_category()   # indirect doctest
         """
         return None
 

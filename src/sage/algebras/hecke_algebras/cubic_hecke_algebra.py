@@ -153,10 +153,27 @@ class MarkovTraceMuduleBasis(Enum):
     """
     def __repr__(self):
         r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.U2    # indirect doctest
+            U2
         """
         return self.name
 
     def strands(self):
+        r"""
+        Return the number of strands of the minimal braid representative of the
+        link corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.K7.strands()
+            4
+        """
         return self.value[0]
 
     def braid_tietze(self, strands_embed=None):
@@ -3680,11 +3697,19 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``bas_ele`` -- basis element of the Markov module of ``self`` (see
-          :meth:`_markov_trace_module`). If given then the list of coefficients
-          for the basis elements of ``self`` with respect to ``bas_ele`` is
-          returned. Else the entries of the list are elements of the Markov
-          trace module.
+        - ``bas_ele`` -- basis element of the Markov trace module of ``self``
+          (see :meth:`_markov_trace_module`). If given then the list of
+          coefficients for the basis elements of ``self`` with respect to
+          ``bas_ele`` is returned. Else the entries of the list are elements
+          of the Markov trace module.
+
+        OUTPUT:
+
+        A list of elements of the Markov trace module (over the Markov trace
+        version of the generic base ring). Each entry of the list corresponds
+        to the according basis element of ``self``. If ``bas_ele`` is given
+        then instead of the module element its coefficients with respect to
+        the given ``bas_ele`` is returned.
 
         EXAMPLES::
 
@@ -3723,13 +3748,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         L = MTM.base_ring()
         u, v, w, s = L.gens()
-
-        if self.strands() == 2:
-            U1, U2 = MTM.gens()
-            if MTM(bas_ele) == U1:
-                return [L(0), s, ~s]
-            else:
-                return [L(1), L(0), L(0)]
 
         irr_coeff = self._markov_trace_irr_coeffs()[bas_ele]
         cf_vect = vector(irr_coeff)
@@ -3783,6 +3801,25 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     @cached_method
     def _markov_trace_irr_coeffs(self):
         r"""
+        Return a list of formal Markov traces as linear forms on the irreducible
+        characters of ``self``.
+
+        OUTPUT:
+
+        A dictionary from the irreducible representations of ``self`` to elements
+        of the Markov trace module (over the field embedding of the Markov trace
+        version of the generic extension ring).
+
+        EXAMPLES::
+
+            sage: CHA2 = algebras.CubicHecke(2)
+            sage: CHA2._markov_trace_irr_coeffs()
+            {U1: ((a*b*c + a*s^2)/(a^2*s - a*b*s - a*c*s + b*c*s),
+                  (-a*b*c - b*s^2)/(a*b*s - b^2*s - a*c*s + b*c*s),
+                  (a*b*c + c*s^2)/(a*b*s - a*c*s - b*c*s + c^2*s)),
+             U2: ((-a*b - a*c)/(a^2 - a*b - a*c + b*c),
+                  (a*b + b*c)/(a*b - b^2 - a*c + b*c),
+                  (-a*c - b*c)/(a*b - a*c - b*c + c^2))}
         """
         time = verbose('preparing calculation of irreducible Markov trace coefficients')
 
@@ -3790,22 +3827,34 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         chars = self.characters()
         num_char = len(chars)
 
+        MTM    = self._markov_trace_module(extended=True, field_embedding=True)
+        MTMbas = MTM.basis().keys()
+        F = MTM.base_ring()
+        a, b, c, s = F.gens()
+
+        from sage.matrix.constructor import matrix
+        from sage.misc.persist import load, save
+
+        if self.strands() == 2:
+            U1, U2 = MTMbas
+            eq = matrix(F, 3, lambda i, j: chars[j](self(self.get_order()[i])))
+            eqi = ~eq
+            v1 = vector(F, [0, s, ~s])
+            v2 = vector(F, [1, 0, 0])
+            return {U1: eqi*v1, U2: eqi*v2}
+
+        MTMbas_new = [b for b in MTMbas if b.strands() == n]
+
         sub = self.cubic_hecke_subalgebra()
         sub_basis = [sub(g) for g in sub.get_order()]
         sub_dim = sub.dimension()
         sub_mtr = [b.formal_markov_trace(extended=True, field_embedding=True) for b in sub_basis]
-        MTM    = self._markov_trace_module(extended=True, field_embedding=True)
-        MTMbas = MTM.basis().keys()
-        MTMbas_new = [b for b in MTMbas if b.strands() == n]
         sub_MTM    = sub_mtr[0].parent()
         sub_MTMbas = sub_MTM.basis().keys()
-        F = MTM.base_ring()
-        a, b, c, s = F.gens()
         new_basis_ele = [self(b.braid_tietze()) for b in MTMbas_new]
+
         time = verbose('setting up equation', t=time)
 
-        from sage.matrix.constructor import matrix
-        from sage.misc.persist import load, save
         g = self.gen(self.ngens()-1)
         eq_p = matrix(F, sub_dim, num_char, lambda i,j: chars[j](self(sub_basis[i])*g))
         eq_n = matrix(F, sub_dim, num_char, lambda i,j: chars[j](self(sub_basis[i])*~g))
