@@ -65,6 +65,7 @@ Named associative algebras
    sage/algebras/steenrod/steenrod_algebra_bases
    sage/algebras/steenrod/steenrod_algebra_misc
    sage/algebras/steenrod/steenrod_algebra_mult
+   sage/algebras/varchenko_gelfand
    sage/algebras/weyl_algebra
    sage/algebras/yangian
 
