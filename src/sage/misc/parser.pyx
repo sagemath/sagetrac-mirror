@@ -773,7 +773,7 @@ cdef class Parser:
             and_symbolic(a < b, b != c, c > d)
 
             sage: p.p_eqn(Tokenizer("a < b < c & d < e"))
-            and_symbolic(and_symbolic(a < b, b < c), d < e)
+            and_symbolic(a < b, b < c, d < e)
             sage: p.p_eqn(Tokenizer("a < b < c | d < e < f"))
             or_symbolic(and_symbolic(a < b, b < c), and_symbolic(d < e, e < f))
         """
