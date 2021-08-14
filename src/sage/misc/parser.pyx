@@ -732,7 +732,7 @@ cdef class Parser:
                 tokens.reset(start)
                 return self.p_eqn(tokens)
 
-# eqn ::= expr op expr | expr
+# eqn ::= expr (op expr)*
     cpdef p_eqn(self, Tokenizer tokens):
         r"""
         Parse an equation or expression.
@@ -758,24 +758,41 @@ cdef class Parser:
             a >= b
             sage: p.p_eqn(Tokenizer("a != b"))
             a != b
+
+            sage: p.p_eqn(Tokenizer("a < b <= c"))
+            and_symbolic(a < b, b <= c)
+            sage: p.p_eqn(Tokenizer("a < b != c > d"))
+            and_symbolic(a < b, b != c, c > d)
         """
         lhs = self.p_expr(tokens)
         cdef int op = tokens.next()
-        if op == '=':
-            return lhs == self.p_expr(tokens)
-        elif op == NOT_EQ:
-            return lhs != self.p_expr(tokens)
-        elif op == '<':
-            return lhs < self.p_expr(tokens)
-        elif op == LESS_EQ:
-            return lhs <= self.p_expr(tokens)
-        elif op == '>':
-            return lhs > self.p_expr(tokens)
-        elif op == GREATER_EQ:
-            return lhs >= self.p_expr(tokens)
-        else:
-            tokens.backtrack()
+        relations = []
+        while (op == '=' or op == NOT_EQ or op == '<'
+               or op == LESS_EQ or op == '>' or op == GREATER_EQ):
+            rhs = self.p_expr(tokens)
+            if op == '=':
+                relation = (lhs == rhs)
+            elif op == NOT_EQ:
+                relation = (lhs != rhs)
+            elif op == '<':
+                relation = (lhs < rhs)
+            elif op == LESS_EQ:
+                relation = (lhs <= rhs)
+            elif op == '>':
+                relation = (lhs > rhs)
+            elif op == GREATER_EQ:
+                relation = (lhs >= rhs)
+            relations.append(relation)
+            lhs = rhs
+            op = tokens.next()
+        tokens.backtrack()
+        if not relations:
             return lhs
+        elif len(relations) == 1:
+            return relations[0]
+        else:
+            from sage.functions.boolean import and_symbolic
+            return and_symbolic(*relations)
 
 # expr ::=  term | expr '+' term | expr '-' term
     cpdef p_expr(self, Tokenizer tokens):
