@@ -29,6 +29,7 @@ Built-in Functions
    sage/functions/generalized
    sage/functions/prime_pi
    sage/functions/min_max
+   sage/functions/boolean
 
 Please find extensive developer documentation for creating new functions
 in :ref:`symbolic-calculus`, in particular in the section
