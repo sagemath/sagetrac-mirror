@@ -125,8 +125,8 @@ cdef class Tokenizer:
 
         The single character tokens are given by::
 
-            sage: Tokenizer("+-*/^(),=<>[]{}&|").test()
-            ['+', '-', '*', '/', '^', '(', ')', ',', '=', '<', '>', '[', ']', '{', '}', '&', '|']
+            sage: Tokenizer("+-*/^(),=<>[]{}&|~").test()
+            ['+', '-', '*', '/', '^', '(', ')', ',', '=', '<', '>', '[', ']', '{', '}', '&', '|', '~']
 
         Two-character comparisons accepted are::
 
@@ -163,14 +163,19 @@ cdef class Tokenizer:
             sage: Tokenizer("P & Q and R").test()
             ['NAME(P)', '&', 'NAME(Q)', '&', 'NAME(R)']
 
-        Logical 'and' can be written as infix ``|`` or ``or``::
+        Logical 'or' can be written as infix ``|`` or ``or``::
 
             sage: Tokenizer("P | Q or R").test()
             ['NAME(P)', '|', 'NAME(Q)', '|', 'NAME(R)']
 
+        Logical 'not' can be written as prefix ``~`` or ``not``::
+
+            sage: Tokenizer("not ~~ ~ P").test()
+            ['~', '~', '~', '~', 'NAME(P)']
+
         Anything else is an error::
 
-            sage: Tokenizer("#@~").test()
+            sage: Tokenizer("#@`").test()
             ['ERROR', 'ERROR', 'ERROR']
 
         No attempt for correctness is made at this stage::
@@ -289,7 +294,7 @@ cdef class Tokenizer:
                 return '^'
 
         # simple tokens
-        if s[pos] in "+-*/^()=><,[]{}!&|":
+        if s[pos] in "+-*/^()=><,[]{}!&|~":
             type = ord(s[pos])
             self.pos += 1
             return type
@@ -340,6 +345,9 @@ cdef class Tokenizer:
             if s[self.pos:pos] == 'or':
                 self.pos = pos
                 return '|'
+            if s[self.pos:pos] == 'not':
+                self.pos = pos
+                return '~'
             self.pos = pos
             return NAME
 
