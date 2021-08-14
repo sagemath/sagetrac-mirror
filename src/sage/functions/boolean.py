@@ -41,9 +41,12 @@ class AndSymbolic(BuiltinFunction):
             sage: and_symbolic(and_symbolic(x>0, x<1), and_symbolic(y>0, y<1))
             and_symbolic(x > 0, x < 1, y > 0, y < 1)
 
+        TESTS:
+
+        Conversions to other systems::
+
             sage: and_symbolic(x>0, x>1)._sympy_()
             (x > 0) & (x > 1)
-
         """
         BuiltinFunction.__init__(self, 'and_symbolic', nargs=0,
                                  conversions=dict(sympy='And'))
@@ -113,9 +116,12 @@ class OrSymbolic(BuiltinFunction):
             sage: or_symbolic(or_symbolic(x<0, x>1), or_symbolic(y<0, y>1))
             or_symbolic(x < 0, x > 1, y < 0, y > 1)
 
+        TESTS:
+
+        Conversions to other systems::
+
             sage: or_symbolic(x<0, x>1)._sympy_()
             (x > 1) | (x < 0)
-
         """
         BuiltinFunction.__init__(self, 'or_symbolic', nargs=0,
                                  conversions=dict(sympy='Or'))
@@ -177,6 +183,15 @@ class NotSymbolic(BuiltinFunction):
             not_symbolic(x > 0)
             sage: not_symbolic(not_symbolic(x>0))
             x > 0
+
+        TESTS:
+
+        Conversions to other systems::
+
+            sage: var('P')
+            P
+            sage: not_symbolic(P)._sympy_()
+            ~P
         """
         BuiltinFunction.__init__(self, 'not_symbolic', nargs=1,
                                  conversions=dict(sympy='Not'))
