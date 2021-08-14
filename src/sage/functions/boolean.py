@@ -35,18 +35,18 @@ class AndSymbolic(BuiltinFunction):
 
     def _eval_(self, *args):
 
-        if any(arg in (0, False) for arg in args):
+        if any(arg is False for arg in args):
             return False
 
         if not args:
             # trivially true
             return True
 
-        if not any(arg in (1, True) for arg in args):
+        if not any(arg is True for arg in args):
             # leave unevaluated
             return
 
-        args = [arg for arg in args if arg not in (1, True)]
+        args = [arg for arg in args if arg is not True]
 
         if not args:
             # trivially true
