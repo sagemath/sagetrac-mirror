@@ -38,6 +38,11 @@ class AndSymbolic(BuiltinFunction):
             sage: and_symbolic(x>0, False, x<1)
             0
 
+            sage: var('y')
+            y
+            sage: and_symbolic(and_symbolic(x>0, x<1), and_symbolic(y>0, y<1))
+            and_symbolic(x > 0, x < 1, y > 0, y < 1)
+
             sage: and_symbolic(x>0, x>1)._sympy_()
             (x > 0) & (x > 1)
 
@@ -47,27 +52,31 @@ class AndSymbolic(BuiltinFunction):
 
     def _eval_(self, *args):
 
-        if any(_trivial_bool(arg) is False for arg in args):
+        def clauses(args):
+            for arg in args:
+                if _trivial_bool(arg) is not True:
+                    if is_Expression(arg) and isinstance(arg.operator(), AndSymbolic):
+                        yield from clauses(arg.operands())
+                    else:
+                        yield arg
+
+        flattened_args = list(clauses(args))
+
+        if any(_trivial_bool(arg) is False for arg in flattened_args):
             return False
 
-        if not args:
+        if not flattened_args:
             # trivially true
             return True
 
-        if not any(_trivial_bool(arg) is True for arg in args):
+        if len(args) == len(flattened_args) and all(x is y for x, y in zip(args, flattened_args)):
             # leave unevaluated
             return
 
-        args = [arg for arg in args if _trivial_bool(arg) is not True]
+        if len(flattened_args) == 1:
+            return flattened_args[0]
 
-        if not args:
-            # trivially true
-            return True
-
-        if len(args) == 1:
-            return args[0]
-
-        return and_symbolic(*args)
+        return and_symbolic(*flattened_args)
 
     def _print_latex_(self, *args):
         r"""
@@ -103,6 +112,11 @@ class OrSymbolic(BuiltinFunction):
             sage: or_symbolic(x<0, True, x>1)
             1
 
+            sage: var('y')
+            y
+            sage: or_symbolic(or_symbolic(x<0, x>1), or_symbolic(y<0, y>1))
+            or_symbolic(x < 0, x > 1, y < 0, y > 1)
+
             sage: or_symbolic(x<0, x>1)._sympy_()
             (x > 1) | (x < 0)
 
@@ -112,27 +126,31 @@ class OrSymbolic(BuiltinFunction):
 
     def _eval_(self, *args):
 
-        if any(_trivial_bool(arg) is True for arg in args):
+        def clauses(args):
+            for arg in args:
+                if _trivial_bool(arg) is not False:
+                    if is_Expression(arg) and isinstance(arg.operator(), OrSymbolic):
+                        yield from clauses(arg.operands())
+                    else:
+                        yield arg
+
+        flattened_args = list(clauses(args))
+
+        if any(_trivial_bool(arg) is True for arg in flattened_args):
             return True
 
-        if not args:
+        if not flattened_args:
             # trivially false
             return False
 
-        if not any(_trivial_bool(arg) is False for arg in args):
+        if len(args) == len(flattened_args) and all(x is y for x, y in zip(args, flattened_args)):
             # leave unevaluated
             return
 
-        args = [arg for arg in args if _trivial_bool(arg) is not False]
+        if len(flattened_args) == 1:
+            return flattened_args[0]
 
-        if not args:
-            # trivially false
-            return False
-
-        if len(args) == 1:
-            return args[0]
-
-        return or_symbolic(*args)
+        return or_symbolic(*flattened_args)
 
     def _print_latex_(self, *args):
         r"""
