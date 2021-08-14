@@ -25,7 +25,6 @@ class AndSymbolic(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: from sage.functions.boolean import and_symbolic
             sage: and_symbolic(True, True)
             1
             sage: and_symbolic(False, True)
@@ -81,7 +80,6 @@ class AndSymbolic(BuiltinFunction):
         r"""
         EXAMPLES::
 
-            sage: from sage.functions.boolean import and_symbolic
             sage: latex(and_symbolic(x>0, x<1))
             x > 0 \wedge x < 1
 
@@ -99,7 +97,6 @@ class OrSymbolic(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: from sage.functions.boolean import or_symbolic
             sage: or_symbolic(True, True)
             1
             sage: or_symbolic(False, True)
@@ -155,7 +152,6 @@ class OrSymbolic(BuiltinFunction):
         r"""
         EXAMPLES::
 
-            sage: from sage.functions.boolean import or_symbolic
             sage: latex(or_symbolic(x>0, x<1))
             x > 0 \vee x < 1
 
@@ -173,7 +169,6 @@ class NotSymbolic(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: from sage.functions.boolean import not_symbolic
             sage: not_symbolic(True)
             0
             sage: not_symbolic(False)

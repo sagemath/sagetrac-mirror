@@ -85,6 +85,8 @@ from .hypergeometric import hypergeometric, hypergeometric_M, hypergeometric_U
 from .gamma import (gamma, psi, beta, log_gamma,
                     gamma_inc, gamma_inc_lower)
 
+from .boolean import (and_symbolic, or_symbolic, not_symbolic)
+
 Γ = gamma
 ψ = psi
 ζ = zeta
