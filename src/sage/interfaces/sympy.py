@@ -910,7 +910,22 @@ def _sympysage_or(self):
     from sage.functions.boolean import or_symbolic
     return or_symbolic(*self.args)
 
+def _sympysage_not(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy.logic.boolalg import Not
+        sage: from sympy.abc import P
+        sage: Not(P)
+        ~P
+        sage: Not(P)._sage_()
+        not_symbolic(P)
+    """
+    from sage.functions.boolean import not_symbolic
+    return not_symbolic(self.args[0])
+
 #------------------------------------------------------------------
+
 from sage.repl.ipython_extension import run_once
 
 @run_once
@@ -957,7 +972,7 @@ def sympy_init():
     from sympy.functions.special.hyper import hyper
     from sympy.functions.special.spherical_harmonics import Ynm
     from sympy.functions.special.tensor_functions import KroneckerDelta
-    from sympy.logic.boolalg import BooleanTrue, BooleanFalse, And, Or
+    from sympy.logic.boolalg import BooleanTrue, BooleanFalse, And, Or, Not
     from sympy.integrals.integrals import Integral
     from sympy.polys.rootoftools import CRootOf
     from sympy.series.order import Order
@@ -1020,6 +1035,7 @@ def sympy_init():
     BooleanTrue._sage_ = _sympysage_true
     And._sage_ = _sympysage_and
     Or._sage_ = _sympysage_or
+    Not._sage_ = _sympysage_not
     ceiling._sage_ = _sympysage_ceiling
 
 
