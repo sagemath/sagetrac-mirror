@@ -945,7 +945,7 @@ cdef class Parser:
             sage: p.p_atom(Tokenizer("(1+a)^2"))
             a + 1
             sage: p.p_atom(Tokenizer("(a<1)"))
-            a + 1
+            a < 1
             sage: p.p_atom(Tokenizer("sin(1+a)"))
             sin(a + 1)
             sage: p = Parser(make_var=var, make_function={'foo': sage.misc.parser.foo})
