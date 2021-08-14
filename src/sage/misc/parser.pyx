@@ -125,8 +125,8 @@ cdef class Tokenizer:
 
         The single character tokens are given by::
 
-            sage: Tokenizer("+-*/^(),=<>[]{}").test()
-            ['+', '-', '*', '/', '^', '(', ')', ',', '=', '<', '>', '[', ']', '{', '}']
+            sage: Tokenizer("+-*/^(),=<>[]{}&").test()
+            ['+', '-', '*', '/', '^', '(', ')', ',', '=', '<', '>', '[', ']', '{', '}', '&']
 
         Two-character comparisons accepted are::
 
@@ -158,9 +158,14 @@ cdef class Tokenizer:
             sage: Tokenizer("matrix(a)").test()
             ['MATRIX', '(', 'NAME(a)', ')']
 
+        Logical 'and' can be written as infix ``&`` or ``and``::
+
+            sage: Tokenizer("P & Q and R").test()
+            ['NAME(P)', '&', 'NAME(Q)', '&', 'NAME(R)']
+
         Anything else is an error::
 
-            sage: Tokenizer("&@~").test()
+            sage: Tokenizer("#@~").test()
             ['ERROR', 'ERROR', 'ERROR']
 
         No attempt for correctness is made at this stage::
@@ -279,7 +284,7 @@ cdef class Tokenizer:
                 return '^'
 
         # simple tokens
-        if s[pos] in "+-*/^()=><,[]{}!":
+        if s[pos] in "+-*/^()=><,[]{}!&":
             type = ord(s[pos])
             self.pos += 1
             return type
@@ -324,6 +329,9 @@ cdef class Tokenizer:
             if s[self.pos:pos] == 'matrix':
                 self.pos = pos
                 return MATRIX
+            if s[self.pos:pos] == 'and':
+                self.pos = pos
+                return '&'
             self.pos = pos
             return NAME
 
