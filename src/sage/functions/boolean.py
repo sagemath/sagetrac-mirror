@@ -4,8 +4,7 @@ Symbolic Boolean Operators
 
 from sage.misc.latex import latex
 from sage.symbolic.function import BuiltinFunction
-from sage.symbolic.expression import Expression, is_Expression
-from sage.symbolic.ring import SR
+from sage.symbolic.expression import is_Expression
 
 
 def _trivial_bool(x):
