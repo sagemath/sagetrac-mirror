@@ -125,8 +125,8 @@ cdef class Tokenizer:
 
         The single character tokens are given by::
 
-            sage: Tokenizer("+-*/^(),=<>[]{}&").test()
-            ['+', '-', '*', '/', '^', '(', ')', ',', '=', '<', '>', '[', ']', '{', '}', '&']
+            sage: Tokenizer("+-*/^(),=<>[]{}&|").test()
+            ['+', '-', '*', '/', '^', '(', ')', ',', '=', '<', '>', '[', ']', '{', '}', '&', '|']
 
         Two-character comparisons accepted are::
 
@@ -162,6 +162,11 @@ cdef class Tokenizer:
 
             sage: Tokenizer("P & Q and R").test()
             ['NAME(P)', '&', 'NAME(Q)', '&', 'NAME(R)']
+
+        Logical 'and' can be written as infix ``|`` or ``or``::
+
+            sage: Tokenizer("P | Q or R").test()
+            ['NAME(P)', '|', 'NAME(Q)', '|', 'NAME(R)']
 
         Anything else is an error::
 
@@ -284,7 +289,7 @@ cdef class Tokenizer:
                 return '^'
 
         # simple tokens
-        if s[pos] in "+-*/^()=><,[]{}!&":
+        if s[pos] in "+-*/^()=><,[]{}!&|":
             type = ord(s[pos])
             self.pos += 1
             return type
@@ -332,6 +337,9 @@ cdef class Tokenizer:
             if s[self.pos:pos] == 'and':
                 self.pos = pos
                 return '&'
+            if s[self.pos:pos] == 'or':
+                self.pos = pos
+                return '|'
             self.pos = pos
             return NAME
 
@@ -732,7 +740,7 @@ cdef class Parser:
                 tokens.reset(start)
                 return self.p_eqn(tokens)
 
-# eqn ::= expr (op expr)* | expr (op expr)* '&' eqn
+# eqn ::= expr (op expr)* | expr (op expr)* ('&' | '|') eqn
     cpdef p_eqn(self, Tokenizer tokens):
         r"""
         Parse an equation or expression.
@@ -766,6 +774,8 @@ cdef class Parser:
 
             sage: p.p_eqn(Tokenizer("a < b < c & d < e"))
             and_symbolic(and_symbolic(a < b, b < c), d < e)
+            sage: p.p_eqn(Tokenizer("a < b < c | d < e < f"))
+            or_symbolic(and_symbolic(a < b, b < c), and_symbolic(d < e, e < f))
         """
         lhs = self.p_expr(tokens)
         cdef int op = tokens.next()
@@ -800,6 +810,9 @@ cdef class Parser:
         if op == '&':
             from sage.functions.boolean import and_symbolic
             return and_symbolic(lhs, self.p_eqn(tokens))
+        elif op == '|':
+            from sage.functions.boolean import or_symbolic
+            return or_symbolic(lhs, self.p_eqn(tokens))
         else:
             tokens.backtrack()
             return lhs
