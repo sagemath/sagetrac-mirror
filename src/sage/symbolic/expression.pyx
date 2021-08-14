@@ -4516,6 +4516,38 @@ cdef class Expression(Expression_abc):
         """
         return self._pow_(self._parent(other))
 
+    def __and__(self, other):
+        r"""
+        Logical and (not bitwise and!) of ``self`` and ``other``.
+
+        TESTS::
+
+            sage: (x > 0) & (x < 1)
+            and_symbolic(x > 0, x < 1)
+            sage: (x > 0) & True
+            x > 0
+            sage: True & (x > 0)
+            x > 0
+            sage: (x > 0) & False
+            0
+            sage: False & (x > 0)
+            0
+        """
+        from sage.functions.boolean import and_symbolic
+        return and_symbolic(self, other)
+
+    def __or__(self, other):
+        r"""
+        Logical or (not bitwise or!) of ``self`` and ``other``.
+
+        TESTS::
+
+            sage: (x < 0) | (x > 1)
+            or_symbolic(x < 0, x > 1)
+        """
+        from sage.functions.boolean import or_symbolic
+        return or_symbolic(self, other)
+
     def derivative(self, *args):
         """
         Return the derivative of this expressions with respect to the
