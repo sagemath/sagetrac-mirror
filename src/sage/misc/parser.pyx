@@ -914,10 +914,13 @@ cdef class Parser:
             tokens.backtrack()
             return operand1
 
-# atom ::= int | float | name | '(' expr ')' | name '(' args ')'
+# atom ::= int | float | name | '(' eqn ')' | name '(' args ')'
     cpdef p_atom(self, Tokenizer tokens):
         """
-        Parse an atom. This is either a parenthesized expression, a function call, or a literal name/int/float.
+        Parse an atom.
+
+        This is either a parenthesized equation or expression,
+        a function call, or a literal name/int/float.
 
         EXAMPLES::
 
@@ -932,6 +935,8 @@ cdef class Parser:
             sage: p.p_atom(Tokenizer("(1+a)"))
             a + 1
             sage: p.p_atom(Tokenizer("(1+a)^2"))
+            a + 1
+            sage: p.p_atom(Tokenizer("(a<1)"))
             a + 1
             sage: p.p_atom(Tokenizer("sin(1+a)"))
             sin(a + 1)
@@ -960,11 +965,11 @@ cdef class Parser:
                 tokens.backtrack()
                 return self.variable_constructor(name)
         elif token == '(':
-            expr = self.p_expr(tokens)
+            eqn = self.p_eqn(tokens)
             token = tokens.next()
             if token != ')':
                 self.parse_error(tokens, "Mismatched parentheses")
-            return expr
+            return eqn
         else:
             self.parse_error(tokens)
 
