@@ -732,7 +732,7 @@ cdef class Parser:
                 tokens.reset(start)
                 return self.p_eqn(tokens)
 
-# eqn ::= expr (op expr)*
+# eqn ::= expr (op expr)* | expr (op expr)* '&' eqn
     cpdef p_eqn(self, Tokenizer tokens):
         r"""
         Parse an equation or expression.
@@ -763,6 +763,9 @@ cdef class Parser:
             and_symbolic(a < b, b <= c)
             sage: p.p_eqn(Tokenizer("a < b != c > d"))
             and_symbolic(a < b, b != c, c > d)
+
+            sage: p.p_eqn(Tokenizer("a < b < c & d < e"))
+            and_symbolic(and_symbolic(a < b, b < c), d < e)
         """
         lhs = self.p_expr(tokens)
         cdef int op = tokens.next()
@@ -785,14 +788,21 @@ cdef class Parser:
             relations.append(relation)
             lhs = rhs
             op = tokens.next()
-        tokens.backtrack()
+
         if not relations:
-            return lhs
+            pass
         elif len(relations) == 1:
-            return relations[0]
+            lhs = relations[0]
         else:
             from sage.functions.boolean import and_symbolic
-            return and_symbolic(*relations)
+            lhs = and_symbolic(*relations)
+
+        if op == '&':
+            from sage.functions.boolean import and_symbolic
+            return and_symbolic(lhs, self.p_eqn(tokens))
+        else:
+            tokens.backtrack()
+            return lhs
 
 # expr ::=  term | expr '+' term | expr '-' term
     cpdef p_expr(self, Tokenizer tokens):
