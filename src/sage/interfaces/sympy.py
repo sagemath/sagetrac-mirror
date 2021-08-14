@@ -894,10 +894,21 @@ def _sympysage_and(self):
 
         sage: from sympy.logic.boolalg import And
         sage: And((x>0)._sympy_(), (x<1)._sympy_())._sage_()
+        and_symbolic(x > 0, x < 1)
     """
     from sage.functions.boolean import and_symbolic
-    return and_symbolic(self.args)
+    return and_symbolic(*self.args)
 
+def _sympysage_or(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy.logic.boolalg import Or
+        sage: Or((x<0)._sympy_(), (x>1)._sympy_())._sage_()
+        or_symbolic(x > 1, x < 0)
+    """
+    from sage.functions.boolean import or_symbolic
+    return or_symbolic(*self.args)
 
 #------------------------------------------------------------------
 from sage.repl.ipython_extension import run_once
@@ -946,7 +957,7 @@ def sympy_init():
     from sympy.functions.special.hyper import hyper
     from sympy.functions.special.spherical_harmonics import Ynm
     from sympy.functions.special.tensor_functions import KroneckerDelta
-    from sympy.logic.boolalg import BooleanTrue, BooleanFalse, And
+    from sympy.logic.boolalg import BooleanTrue, BooleanFalse, And, Or
     from sympy.integrals.integrals import Integral
     from sympy.polys.rootoftools import CRootOf
     from sympy.series.order import Order
@@ -1008,6 +1019,7 @@ def sympy_init():
     BooleanFalse._sage_ = _sympysage_false
     BooleanTrue._sage_ = _sympysage_true
     And._sage_ = _sympysage_and
+    Or._sage_ = _sympysage_or
     ceiling._sage_ = _sympysage_ceiling
 
 
