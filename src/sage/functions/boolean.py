@@ -165,3 +165,51 @@ class OrSymbolic(BuiltinFunction):
 
 
 or_symbolic = OrSymbolic()
+
+
+class NotSymbolic(BuiltinFunction):
+
+    def __init__(self):
+        r"""
+
+        EXAMPLES::
+
+            sage: from sage.functions.boolean import not_symbolic
+            sage: not_symbolic(True)
+            0
+            sage: not_symbolic(False)
+            1
+            sage: not_symbolic(x>0)
+            not_symbolic(x > 0)
+            sage: not_symbolic(not_symbolic(x>0))
+            x > 0
+        """
+        BuiltinFunction.__init__(self, 'not_symbolic', nargs=1,
+                                 conversions=dict(sympy='Not'))
+
+    def _eval_(self, arg):
+
+        bool_arg = _trivial_bool(arg)
+
+        if bool_arg is True:
+            return False
+        if bool_arg is False:
+            return True
+        if is_Expression(arg) and isinstance(arg.operator(), NotSymbolic):
+            return arg.op[0]
+        # leave unevaluated
+        return
+
+    def _print_latex_(self, arg):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.boolean import not_symbolic
+            sage: latex(not_symbolic(x>0))
+            \neg( x > 0 )
+
+        """
+        return r"\neg(" + latex(arg) + r")"
+
+
+not_symbolic = NotSymbolic()
