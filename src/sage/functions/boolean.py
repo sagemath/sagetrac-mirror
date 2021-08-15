@@ -108,6 +108,25 @@ class AndSymbolic(BuiltinFunction):
         return " and ".join('(' + arg + ')'
                             for arg in args_giac)
 
+    def _maxima_init_evaled_(self, *args):
+        """
+        TESTS::
+
+            sage: and_symbolic(x<0, x>1)._maxima_()
+            _SAGE_VAR_x < 0 and _SAGE_VAR_x > 1
+        """
+        # modeled after Function_gamma_inc_lower._mathematica_init_evaled_
+        args_maxima = []
+        for a in args:
+            if isinstance(a, str):
+                args_maxima.append(a)
+            elif hasattr(a, '_maxima_init_'):
+                args_maxima.append(a._maxima_init_())
+            else:
+                args_maxima.append(str(a))
+        return " and ".join('(' + arg + ')'
+                           for arg in args_maxima)
+
 
 and_symbolic = AndSymbolic()
 
@@ -201,6 +220,26 @@ class OrSymbolic(BuiltinFunction):
                 args_giac.append(str(a))
         return " or ".join('(' + arg + ')'
                            for arg in args_giac)
+
+    def _maxima_init_evaled_(self, *args):
+        """
+        TESTS::
+
+            sage: or_symbolic(x<0, x>1)._maxima_()
+            _SAGE_VAR_x < 0 or _SAGE_VAR_x > 1
+        """
+        # modeled after Function_gamma_inc_lower._mathematica_init_evaled_
+        args_maxima = []
+        for a in args:
+            if isinstance(a, str):
+                args_maxima.append(a)
+            elif hasattr(a, '_maxima_init_'):
+                args_maxima.append(a._maxima_init_())
+            else:
+                args_maxima.append(str(a))
+        return " or ".join('(' + arg + ')'
+                           for arg in args_maxima)
+
 
 or_symbolic = OrSymbolic()
 
