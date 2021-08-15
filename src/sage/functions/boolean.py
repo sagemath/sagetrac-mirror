@@ -89,6 +89,25 @@ class AndSymbolic(BuiltinFunction):
         """
         return r" \wedge ".join(latex(arg) for arg in args)
 
+    def _giac_init_evaled_(self, *args):
+        """
+        TESTS::
+
+            sage: and_symbolic(x>0, x<1)._giac_()
+            ((sageVARx>0) and (1>sageVARx))
+        """
+        # modeled after Function_gamma_inc_lower._mathematica_init_evaled_
+        args_giac = []
+        for a in args:
+            if isinstance(a, str):
+                args_giac.append(a)
+            elif hasattr(a, '_giac_init_'):
+                args_giac.append(a._giac_init_())
+            else:
+                args_giac.append(str(a))
+        return " and ".join('(' + arg + ')'
+                            for arg in args_giac)
+
 
 and_symbolic = AndSymbolic()
 
@@ -164,6 +183,24 @@ class OrSymbolic(BuiltinFunction):
         """
         return r" \vee ".join(latex(arg) for arg in args)
 
+    def _giac_init_evaled_(self, *args):
+        """
+        TESTS::
+
+            sage: or_symbolic(x<0, x>1)._giac_()
+            ((0>sageVARx) or (sageVARx>1))
+        """
+        # modeled after Function_gamma_inc_lower._mathematica_init_evaled_
+        args_giac = []
+        for a in args:
+            if isinstance(a, str):
+                args_giac.append(a)
+            elif hasattr(a, '_giac_init_'):
+                args_giac.append(a._giac_init_())
+            else:
+                args_giac.append(str(a))
+        return " or ".join('(' + arg + ')'
+                           for arg in args_giac)
 
 or_symbolic = OrSymbolic()
 
@@ -192,9 +229,15 @@ class NotSymbolic(BuiltinFunction):
             P
             sage: not_symbolic(P)._sympy_()
             ~P
+            sage: not_symbolic(P)._giac_()
+            not(sageVARP)
+            sage: not_symbolic(P)._maxima_()
+            not _SAGE_VAR_P
         """
         BuiltinFunction.__init__(self, 'not_symbolic', nargs=1,
-                                 conversions=dict(sympy='Not'))
+                                 conversions=dict(sympy='Not',
+                                                  maxima='not',
+                                                  giac='not'))
 
     def _eval_(self, arg):
 
