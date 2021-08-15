@@ -3232,7 +3232,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         """
         cdef list variables = list(self._parent.gens())
         if in_dict:
-            for v in in_dict.keys():
+            for v in in_dict:
                 if v not in variables:
                     raise ValueError(f'{v} is not a variable in {self.parent()}')
         cdef Py_ssize_t i

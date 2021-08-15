@@ -1217,7 +1217,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         variables = list(self.parent().gens())
         if fixed:
-            for v in fixed.keys():
+            for v in fixed:
                 if v not in variables:
                     raise ValueError(f'{v} is not a variable in {self.parent()}')
         for i in range(0,len(variables)):
