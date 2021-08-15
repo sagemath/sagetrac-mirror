@@ -748,7 +748,7 @@ cdef class Parser:
                 tokens.reset(start)
                 return self.p_eqn(tokens)
 
-# eqn ::= expr (op expr)* | expr (op expr)* ('&' | '|') eqn
+# eqn ::= '~'* expr (op expr)* | '~'* expr (op expr)* ('&' | '|') eqn
     cpdef p_eqn(self, Tokenizer tokens):
         r"""
         Parse an equation or expression.
@@ -784,10 +784,25 @@ cdef class Parser:
             and_symbolic(a < b, b < c, d < e)
             sage: p.p_eqn(Tokenizer("a < b < c | d < e < f"))
             or_symbolic(and_symbolic(a < b, b < c), and_symbolic(d < e, e < f))
+
+            sage: p.p_eqn(Tokenizer("not P and not Q"))
+            and_symbolic(not_symbolic(P), not_symbolic(Q))
+            sage: p.p_eqn(Tokenizer("not a < b <= c and not not d < e"))
+            and_symbolic(not_symbolic(and_symbolic(a < b, b <= c)), d < e)
         """
-        lhs = self.p_expr(tokens)
+        from sage.functions.boolean import and_symbolic, or_symbolic, not_symbolic
+
         cdef int op = tokens.next()
+        negated = False
+        while op == '~':
+            negated = not negated
+            op = tokens.next()
+        tokens.backtrack()
+
+        lhs = self.p_expr(tokens)
+        op = tokens.next()
         relations = []
+
         while (op == '=' or op == NOT_EQ or op == '<'
                or op == LESS_EQ or op == '>' or op == GREATER_EQ):
             rhs = self.p_expr(tokens)
@@ -812,14 +827,13 @@ cdef class Parser:
         elif len(relations) == 1:
             lhs = relations[0]
         else:
-            from sage.functions.boolean import and_symbolic
             lhs = and_symbolic(*relations)
+        if negated:
+            lhs = not_symbolic(lhs)
 
         if op == '&':
-            from sage.functions.boolean import and_symbolic
             return and_symbolic(lhs, self.p_eqn(tokens))
         elif op == '|':
-            from sage.functions.boolean import or_symbolic
             return or_symbolic(lhs, self.p_eqn(tokens))
         else:
             tokens.backtrack()
