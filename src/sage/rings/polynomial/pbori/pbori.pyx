@@ -4008,18 +4008,18 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f.subs({'x':var('a'),'y':var('b'),'z':var('c')})
             a*b + b*c + c + 1
 
-        TESTS::
+        TESTS:
 
-        Test for :trac:`32327`:
+        Test for :trac:`32327`::
 
             sage: f.subs({x+y: z})
             Traceback (most recent call last):
             ...
-            ValueError: cannot substitute x + y: not a variable in Boolean PolynomialRing in x, y, z
+            ValueError: x + y is not a variable in Boolean PolynomialRing in x, y, z
             sage: f.subs({1: 0})
             Traceback (most recent call last):
             ...
-            ValueError: cannot substitute 1: not a variable in Boolean PolynomialRing in x, y, z
+            ValueError: 1 is not a variable in Boolean PolynomialRing in x, y, z
         """
         P = self._parent
 
@@ -4029,12 +4029,9 @@ cdef class BooleanPolynomial(MPolynomial):
                 if isinstance(var, basestring):
                     var = P(var)
                 elif var.parent() is not P:
-                    try:
-                        var = P(var)
-                    except TypeError:
-                        raise TypeError("keys do not match self's parent")
+                    var = P(var)
                 if not var.is_generator():
-                    raise ValueError(f'cannot substitute {var}: not a variable in {P}')
+                    raise ValueError(f'{var} is not a variable in {P}')
                 try:
                     v = P(val)
                     if v.constant():

@@ -1202,23 +1202,24 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f.subs({x:5})
             25*y^2 + y + 30
 
-        TESTS::
+        TESTS:
 
-        Test for :trac:`32327`:
+        Test for :trac:`32327`::
 
             sage: f.subs({5: y})
             Traceback (most recent call last):
             ...
-            ValueError: cannot substitute 5: not a variable in Multivariate Polynomial Ring in x, y over Algebraic Field
+            ValueError: 5 is not a variable in Multivariate Polynomial Ring in x, y over Algebraic Field
             sage: f.subs({x+y: 123})
             Traceback (most recent call last):
             ...
-            ValueError: cannot substitute x + y: not a variable in Multivariate Polynomial Ring in x, y over Algebraic Field
+            ValueError: x + y is not a variable in Multivariate Polynomial Ring in x, y over Algebraic Field
         """
         variables = list(self.parent().gens())
-        for v in (fixed.keys() if fixed is not None else ()):
-            if v not in variables:
-                raise ValueError(f'cannot substitute {v}: not a variable in {self.parent()}')
+        if fixed:
+            for v in fixed.keys():
+                if v not in variables:
+                    raise ValueError(f'{v} is not a variable in {self.parent()}')
         for i in range(0,len(variables)):
             if str(variables[i]) in kw:
                 variables[i]=kw[str(variables[i])]

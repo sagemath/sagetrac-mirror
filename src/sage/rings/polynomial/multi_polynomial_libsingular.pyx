@@ -3505,17 +3505,17 @@ cdef class MPolynomial_libsingular(MPolynomial):
             ....:             assert z.subs(d) == z.subs(**ds) == vz
             ....:             assert (x+y).subs(d) == (x+y).subs(**ds) == vx+vy
 
-        Test for :trac:`32327`:
+        Test for :trac:`32327`::
 
             sage: f = x^3 + y^2
             sage: f.subs({x^3: 2})
             Traceback (most recent call last):
             ...
-            ValueError: cannot substitute x^3: not a variable in Multivariate Polynomial Ring in x, y, z over Rational Field
+            ValueError: x^3 is not a variable in Multivariate Polynomial Ring in x, y, z over Rational Field
             sage: f.subs({-1: 2})
             Traceback (most recent call last):
             ...
-            ValueError: cannot substitute -1: not a variable in Multivariate Polynomial Ring in x, y, z over Rational Field
+            ValueError: -1 is not a variable in Multivariate Polynomial Ring in x, y, z over Rational Field
         """
         cdef int mi, i, need_map, try_symbolic
 
@@ -3544,10 +3544,10 @@ cdef class MPolynomial_libsingular(MPolynomial):
                 if isinstance(m, (int, Integer)):
                     mi = m+1
                     if not 0 < mi <= _ring.N:
-                        raise ValueError(f'cannot substitute {m}: not a variable in {parent}')
+                        raise ValueError(f'{m} is not a variable in {parent}')
                 elif isinstance(m,MPolynomial_libsingular) and m.parent() is parent:
                     if not m.is_generator():
-                        raise ValueError(f'cannot substitute {m}: not a variable in {parent}')
+                        raise ValueError(f'{m} is not a variable in {parent}')
                     for i from 0 < i <= _ring.N:
                         if p_GetExp((<MPolynomial_libsingular>m)._poly, i, _ring) != 0:
                             mi = i
