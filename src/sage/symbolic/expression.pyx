@@ -4537,9 +4537,29 @@ cdef class Expression(Expression_abc):
             y
             sage: (x > 0) & (x < 1) & (y > 0) & (y < 1)
             and_symbolic(x > 0, x < 1, y > 0, y < 1)
+
+        Test coercion from subrings::
+
+            sage: var("a b")
+            (a, b)
+            sage: SR_a = SR.subring(accepting_variables=(a,))
+            sage: Pos_a = SR_a(a > 0); Pos_a.parent()
+            Symbolic Subring accepting the variable a
+            sage: SR_b = SR.subring(accepting_variables=(b,))
+            sage: Pos_b = SR_b(b > 0); Pos_b.parent()
+            Symbolic Subring accepting the variable b
+            sage: Pos_a_b = Pos_a & Pos_b; Pos_a_b
+            and_symbolic(a > 0, b > 0)
+            sage: Pos_a_b.parent()
+            Symbolic Subring accepting the variables a, b
         """
         from sage.functions.boolean import and_symbolic
-        return and_symbolic(self, other)
+        from sage.structure.element import get_coercion_model
+        try:
+            result_parent = get_coercion_model().common_parent(self, other)
+        except TypeError:
+            return NotImplemented
+        return result_parent(and_symbolic(self, other))
 
     def __or__(self, other):
         r"""
@@ -4554,9 +4574,29 @@ cdef class Expression(Expression_abc):
             y
             sage: (x < 0) | (x > 1) | (y < 0) | (y > 1)
             or_symbolic(x < 0, x > 1, y < 0, y > 1)
+
+        Test coercion from subrings::
+
+            sage: var("a b")
+            (a, b)
+            sage: SR_a = SR.subring(accepting_variables=(a,))
+            sage: Pos_a = SR_a(a > 0); Pos_a.parent()
+            Symbolic Subring accepting the variable a
+            sage: SR_b = SR.subring(accepting_variables=(b,))
+            sage: Pos_b = SR_b(b > 0); Pos_b.parent()
+            Symbolic Subring accepting the variable b
+            sage: Pos_a_or_b = Pos_a | Pos_b; Pos_a_or_b
+            or_symbolic(a > 0, b > 0)
+            sage: Pos_a_or_b.parent()
+            Symbolic Subring accepting the variables a, b
         """
         from sage.functions.boolean import or_symbolic
-        return or_symbolic(self, other)
+        from sage.structure.element import get_coercion_model
+        try:
+            result_parent = get_coercion_model().common_parent(self, other)
+        except TypeError:
+            return NotImplemented
+        return result_parent(or_symbolic(self, other))
 
     def derivative(self, *args):
         """
