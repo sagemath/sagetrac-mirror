@@ -551,7 +551,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
              C[-1, 1, -1, 1, 1, 1],
              C[-1, 1, -1, 1, -1, 1]]
 
-        Here are the same elements, but expressed in terms of the nbc basis::
+        Here are the same elements, but expressed in terms of the NBC basis::
 
             sage: N = VG.nbc_basis()
             sage: [N.from_polynomial(heaviside) for heaviside in heavisides]
@@ -751,7 +751,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             def from_polynomial(self, polynomial):
                 r"""
                 Express a polynomial in the Varchenko-Gelfand ring as a linear
-                combination of the elements of the nbc basis.
+                combination of the elements of the NBC basis.
 
                 EXAMPLES::
 
@@ -759,7 +759,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                     sage: A = hyperplane_arrangements.braid(3)
                     sage: VG = VarchenkoGelfandRing(QQ, A)
 
-                Convert the elements of the nbc basis to polynomials::
+                Convert the elements of the NBC basis to polynomials::
 
                     sage: N = VG.nbc_basis()
                     sage: for b in N.basis():
@@ -785,7 +785,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                     X[0] = x0
                     X[] = 1
 
-                Convert the elements of the nbc basis to elements of the normal
+                Convert the elements of the NBC basis to elements of the normal
                 basis::
 
                     sage: for b in N.basis():
