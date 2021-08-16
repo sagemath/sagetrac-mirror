@@ -275,6 +275,18 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
             sage: VG = VarchenkoGelfandRing(QQ, A); VG
             Varchenko-Gelfand ring of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
+
+        TESTS::
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: h = 3*x + 2*y - 5*z - 7;  h
+            Hyperplane 3*x + 2*y - 5*z - 7
+            sage: A = h | x-y
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
+            sage: VarchenkoGelfandRing(QQ,A)
+            Traceback (most recent call last):
+            ...
+            ValueError: the hyperplane arrangement must be central
         """
         # test that the arrangement is central
         if not arrangement.is_central():
@@ -296,6 +308,34 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
         self._register_coercions()
 
     def _register_coercions(self):
+        r"""
+        A method to register the different bases in the coercion model.
+
+        TESTS::
+
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: VG = VarchenkoGelfandRing(QQ, A)
+            sage: N = VG.nbc_basis()
+            sage: C = VG.covector_basis()
+            sage: X = VG.normal_basis()
+            sage: n = N.an_element()
+            sage: c = C.an_element()
+            sage: x = X.an_element()
+            sage: n*c;
+            -4*N[0, 2] + 12*N[0] + 6*N[0, 1]
+            sage: n*x;
+            25*N[2] + 29*N[0, 1] - 5*N[0, 2]
+            sage: c*n;
+            12*C[1, -1, -1] + 8*C[1, -1, 1] + 14*C[1, 1, 1]
+            sage: c*x;
+            10*C[1, -1, 1] + 14*C[1, 1, 1]
+            sage: x*n;
+            29*X[1, 2] + 24*X[0, 2] - 4*X[2]
+            sage: x*c;
+            14*X[0, 2] + 4*X[1, 2] - 4*X[2]
+
+        """
         N = self.nbc_basis()
         C = self.covector_basis()
         X = self.normal_basis()
