@@ -2,13 +2,22 @@ r"""
 The Varchenko-Gelfand ring and the Moseley ring of a central hyperplane
 arrangement.
 
+The Varchenko-Gelfand ring of a real hyperplane arrangement is the
+ring of functions which are constant on chambers in the complement.
+It can be defined for noncentral arrangements (indeed even for an
+oriented matroid) but this implementation focuses on the central case.
+Multiplication and addition are given pointwise.
+The Moseley ring is a homogenized version of the Varchenko-Gelfand ring.
+It is the equivariant cohomology ring of of the complement of an
+arrangement in a real vector space of odd dimension. The defining ideal
+which realizes the Moseley ring as a quotient of a polynomial ring is
+found by taking the leading term of the generators of the ideal of the
+Varchenko-Gelfand ring.
+
 EXAMPLES:
 
-(The examples are written for the Varchenko-Gelfand ring below, but it works
-similarly for the Moseley ring.)
-
-We construct the Varchenko-Gelfand ring of the reflection arrangement of
-type `A_2`::
+We construct the Varchenko-Gelfand ring of the reflection arrangement
+of type `A_2`::
 
     sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
     sage: A = hyperplane_arrangements.braid(3)
@@ -39,8 +48,9 @@ a basis. There are currently three bases implemented.
     N[0, 1] --> x0*x2 + x1*x2 - x2
     N[0, 2] --> x0*x2
 
-  The elements N[0], N[1], N[2] correspond to the monomials x0, x1, x2 in the
-  ring. As a conventient shorthand for defining an element, you can do the
+  The elements ``N[0]``, ``N[1]``, ``N[2]`` correspond to the monomials
+  ``x0, x1, x2`` in the ring. As a conventient shorthand for defining
+  an element, you can do the
   following::
 
     sage: N[0,2]
@@ -58,14 +68,15 @@ a basis. There are currently three bases implemented.
     sage: N.one()               # writing N[] doesn't work
     N[]
 
-- *Covector basis*. This is the basis corresponding to the functions that take
-  value 1 on a specific chamber and 0 on all other chambers (via the map that
-  sends the variable `x_i` to the function that takes value
-  1 on all chambers in the positive half-space of the `i`-th hyperplane and
-  -1 on all chambers in the negative half-space of the `i`-th hyperplane.
+- *Covector basis*. This is the basis corresponding to the functions
+  that take value 1 on a specific chamber and 0 on all other chambers.
+  This is done via the map that sends the variable `x_i` to the
+  function that takes value 1 on all chambers in the positive half-
+  space of the `i`-th hyperplane and -1 on all chambers in the negative
+  half-space of the `i`-th hyperplane.
 
-  Since the chambers are easily indexed by covectors, this basis is indexed by
-  covectors::
+  Since the chambers are easily indexed by covectors, this basis is
+  indexed by covectors::
 
     sage: C = VG.covector_basis()
     sage: for b in C.basis():
@@ -77,9 +88,32 @@ a basis. There are currently three bases implemented.
     C[-1, 1, -1] --> -x1*x2 + x1
     C[-1, 1, 1] --> -x0*x2 + x2
 
-- *Change of basis*. You can also easily change between representations in the
-  different bases. For example, to convert an element `a` to the NBC basis, use
-  `N(a)`::
+  For example the covector ``[1,1,1]`` (and thus the polynomial
+  ``x0*x2 + x1*x2 - x2``) corresponds to the chamber of `A_3` which
+  is on the positive half space of all three hyperplanes in the
+  arrangement.
+
+- *Normal Basis*. This basis is used for internally storing the
+  underlying polynomial ring. The basis itself is what is computed
+  from Sage and depends on various factors, including the monomial
+  order on the polynomial ring.
+
+  It is used to have a specific realization of this ring, and all
+  other bases are defined in relation to this basis.
+
+    sage: x = VG.normal_basis()
+    sage: for b in x.basis():
+    ....:     print("{} --> {}".format(b, b.to_polynomial()))
+    X[1, 2] --> x1*x2
+    X[0, 2] --> x0*x2
+    X[2] --> x2
+    X[1] --> x1
+    X[0] --> x0
+    X[] --> 1
+
+- *Change of basis*. You can also easily change between representations
+  in the different bases. For example, to convert an element ``a`` to
+  the NBC basis, use ``N(a)``::
 
     sage: N(C[1, -1, 1])
     -N[0, 1] + N[0, 2]
@@ -95,7 +129,7 @@ a basis. There are currently three bases implemented.
     C[-1, 1, -1] --> -N[2] - N[0, 1] + N[0, 2] + N[1]
     C[-1, 1, 1] --> -N[0, 2] + N[2]
 
-  And the other way:
+  And the other way::
 
     sage: for b in N.basis():
     ....:     print("{} --> {}".format(b, C(b)))
@@ -106,39 +140,26 @@ a basis. There are currently three bases implemented.
     N[0, 1] --> C[1, 1, 1]
     N[0, 2] --> C[1, -1, 1] + C[1, 1, 1]
 
-  This looks good since the identity element is ``N[]``, which is the sum of
-  all the indicator functions ranging over all the chambers of the arrangement.
-
-- *Normal Basis*. This basis is used for internally storing the underlying
-  polynomial ring. The basis itself is what is computed from Sage and depends
-  on various factors, including the monomial order on the polynomial ring.
-
-  It is used to have a specific realization of this ring, and all other bases
-  are defined in relation to this basis.
-
-    sage: x = VG.normal_basis()
-    sage: for b in x.basis():
-    ....:     print("{} --> {}".format(b, b.to_polynomial()))
-    X[1, 2] --> x1*x2
-    X[0, 2] --> x0*x2
-    X[2] --> x2
-    X[1] --> x1
-    X[0] --> x0
-    X[] --> 1
+  This looks good since the (multiplicative) identity element is
+  ``N[]``, which is the sum of all the indicator functions ranging
+  over all the chambers of the arrangement.
 
 - *New bases*. If you want to define a new basis, then you can define it in
   relation to any of the above bases. The simplest way is to define a method
   called ``to_polynomial_on_basis`` that converts a key of a basis element to
-  a polynomial in the underlying polynomial ring. See the class ``NBC`` for an
-  example; in particular, ``to_polynomial_on_basis`` is defined for the NBC
+  a polynomial in the underlying polynomial ring. See the class
+  :class:`~sage.algebras.varchenko_gelfand.VarchenkoGelfandRing.NBC` for an
+  example; in particular,
+  :meth:`~sage.algebras.varchenko_gelfand.VarchenkoGelfandRing.NBC.to_polynomial_on_basis`
+  is defined for the NBC
   basis by mapping an NBC set `S` to the product of `x_i` for `i` in `S` (for
   an explicit example, see the method below in which `S` is called ``nbc``).
 
 
-EXAMPLES (MoseleyRing):
+EXAMPLES:
 
-These are all the examples from above, but with the MoseleyRing in place of the
-VarchenkoGelfandRing (and without the commentary)::
+These are all the examples from above, but with the ``MoseleyRing`` in place of the
+``VarchenkoGelfandRing`` (and without commentary)::
 
     sage: from sage.algebras.varchenko_gelfand import MoseleyRing
     sage: A = hyperplane_arrangements.braid(3)
@@ -204,6 +225,11 @@ VarchenkoGelfandRing (and without the commentary)::
     X[1] --> x1
     X[0] --> x0
     X[] --> 1
+
+  Because the Moseley ring is graded, we can compute its Hilbert series::
+
+    sage: MR.hilbert_series()
+    2*t^2 + 3*t + 1
 
 AUTHORS:
 
@@ -291,6 +317,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             sage: VG = VarchenkoGelfandRing(QQ, A)
             sage: VG._repr_()
             'Varchenko-Gelfand ring of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field'
+
         """
         return "Varchenko-Gelfand ring of {} over {}".format(self.hyperplane_arrangement(), self.base_ring())
 
@@ -311,6 +338,15 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
     def base_ring(self):
         r"""
+        Returns the base ring.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: VG = VarchenkoGelfandRing(QQ, A)
+            sage: VG.base_ring()
+            Rational Field
 
         """
 
@@ -327,6 +363,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             sage: VG = VarchenkoGelfandRing(QQ, A)
             sage: VG.hyperplane_arrangement()
             Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
+
         """
         return self._arrangement
 
@@ -390,7 +427,15 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
     @cached_method
     def change_of_basis_matrix(self, basis0, basis1):
         r"""
-        The change of basis matrix from ``basis0`` to ``basis1``.
+        INPUT:
+
+        - ``basis0`` -- an instance of :class:`~sage.algebras.VarchenkoGelfandRing.Bases`.
+
+        - ``basis1`` -- an instance of :class:`~sage.algebras.VarchenkoGelfandRing.Bases`.
+
+        OUTPUT:
+
+        - ``M`` -- the change of basis matrix from ``basis0`` to ``basis1``.
 
         EXAMPLES::
 
@@ -1214,7 +1259,7 @@ class MoseleyRing(VarchenkoGelfandRing):
     r"""
     The Moseley ring of a central hyperplane arrangement.
     """
-    def __init__(self, base_ring, arrangement):
+    def __init__(self, base_ring, arrangement, monomial_order=None):
         """
         EXAMPLES::
 
@@ -1259,7 +1304,7 @@ class MoseleyRing(VarchenkoGelfandRing):
     @cached_method
     def underlying_polynomial_ring(self):
         r"""
-        The Varchenko-Gelfand ring as a polynomial ring.
+        The Moseley ring as a polynomial ring.
 
         EXAMPLES::
 
