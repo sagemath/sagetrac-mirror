@@ -151,9 +151,8 @@ a basis. There are currently three bases implemented.
   :class:`~sage.algebras.varchenko_gelfand.VarchenkoGelfandRing.NBC` for an
   example; in particular,
   :meth:`~sage.algebras.varchenko_gelfand.VarchenkoGelfandRing.NBC.to_polynomial_on_basis`
-  is defined for the NBC
-  basis by mapping an NBC set `S` to the product of `x_i` for `i` in `S` (for
-  an explicit example, see the method below in which `S` is called ``nbc``).
+  is defined for the NBC basis by mapping an NBC set `S` to the product of `x_i` for `i`
+  in `S` (for an explicit example, see the method below in which `S` is called ``nbc``).
 
 
 EXAMPLES:
@@ -278,15 +277,24 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
-            sage: h = 3*x + 2*y - 5*z - 7;  h
-            Hyperplane 3*x + 2*y - 5*z - 7
-            sage: A = h | x-y
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: h1 = x + y - 1;
+            sage: h2 = x - y + 1;
+            sage: h3 = y + 1;
+            sage: A = h1 | h2 | h3
             sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
             sage: VarchenkoGelfandRing(QQ,A)
             Traceback (most recent call last):
             ...
             ValueError: the hyperplane arrangement must be central
+
+            sage: A = hyperplane_arrangements.braid(3);
+            sage: G = SymmetricGroup(4); G.rename('S4')
+            sage: VG = VarchenkoGelfandRing(G, A)
+            Traceback (most recent call last):
+            ...
+            ValueError: base_ring=S4 must be a Ring
+
         """
         # test that the arrangement is central
         if not arrangement.is_central():
@@ -389,7 +397,6 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             Rational Field
 
         """
-
         return self._base_ring
 
     def hyperplane_arrangement(self):
@@ -410,7 +417,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
     @cached_method
     def underlying_polynomial_ring(self):
         r"""
-        The Varchenko-Gelfand ring as a polynomial ring.
+        The Varchenko-Gelfand ring as a (quotient of a) polynomial ring.
 
         EXAMPLES::
 
@@ -529,11 +536,13 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
         - ``cone_covectors`` -- list of covectors
 
-        *WARNING* When constructing a hyperplane arrangement, the order in
-        which the hyperplanes are specified is not the order with which the
-        hyperplanes are stored internally, or the order with which the sign
-        vectors are computed. Instead, they are sorted according to their
-        (implicitly defined) normal vector.
+        .. WARNING::
+
+            When constructing a hyperplane arrangement, the order in
+            which the hyperplanes are specified is not the order with which the
+            hyperplanes are stored internally, or the order with which the sign
+            vectors are computed. Instead, they are sorted according to their
+            (implicitly defined) normal vector.
 
         EXAMPLES:
 
