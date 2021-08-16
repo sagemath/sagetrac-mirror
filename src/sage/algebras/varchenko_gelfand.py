@@ -144,7 +144,9 @@ a basis. There are currently three bases implemented.
   ``N[]``, which is the sum of all the indicator functions ranging
   over all the chambers of the arrangement.
 
-- *New bases*. If you want to define a new basis, then you can define it in
+.. NOTE::
+
+  *New bases:* If you want to define a new basis, then you can define it in
   relation to any of the above bases. The simplest way is to define a method
   called ``to_polynomial_on_basis`` that converts a key of a basis element to
   a polynomial in the underlying polynomial ring. See the class
@@ -566,7 +568,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
              Hyperplane x + y + 0*z + 0)
 
         So, we are interested in the positive halfspaces of the hyperplanes in
-        positions 1, 3, 5, so we set ``cone_mask=(0,1,0,1,0,1)``:
+        positions 1, 3, 5, so we set ``cone_mask=(0,1,0,1,0,1)``::
 
             sage: cone_covectors = VG.covectors_in_cone((0,1,0,1,0,1))
             sage: sorted(cone_covectors, reverse=True)
@@ -977,7 +979,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
         @cached_method
         def one_basis(self):
             r"""
-            The multiplicative identity element of the algebra.
+            The index of the multiplicative identity element of the algebra.
 
             EXAMPLES::
 
@@ -996,6 +998,9 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
         def to_polynomial_on_basis(self, indices):
             r"""
+            Turn basis elements (indices of the variables) into
+            elements of the polynomial ring.
+
             EXAMPLES::
 
                 sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
@@ -1004,6 +1009,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                 sage: X = VG.normal_basis()
                 sage: X.to_polynomial_on_basis([0,2])
                 x0*x2
+
             """
             R = self.underlying_polynomial_ring()
             x = R.gens()
@@ -1012,7 +1018,8 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
         def from_polynomial(self, poly):
             r"""
             Create an element from a polynomial in the underlying polynomial
-            ring.
+            ring. This automatically expresses the element ``poly`` in terms
+            of the monomial basis.
 
             EXAMPLES::
 
@@ -1027,6 +1034,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                 sage: X = VG.normal_basis()
                 sage: X.from_polynomial(x[0] * x[1])
                 X[0, 2] + X[1, 2] - X[2]
+
             """
             poly = poly.lift()
             d = {}
@@ -1063,6 +1071,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                  (0, 0, 1, 0, 0, 0),
                  (1, 1, -1, 0, 0, 0),
                  (0, 1, 0, 0, 0, 0)]
+
             """
             poly = polynomial.lift()
             return vector([poly.monomial_coefficient(b.to_polynomial().lift()) for b in self.basis()])
@@ -1072,6 +1081,9 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
     class NBC(CombinatorialFreeModule, BindableClass):
         def __init__(self, VG):
             r"""
+            The no-broken-circuits (NBC) sets form a basis for the
+            Varchenko-Gelfand ring.
+
             EXAMPLES::
 
                 sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
@@ -1244,6 +1256,15 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
         def one(self):
             r"""
             The multiplicative identity element of the algebra.
+
+            TESTS::
+
+                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
+                sage: A = hyperplane_arrangements.braid(3)
+                sage: C = VarchenkoGelfandRing(QQ, A).covector_basis()
+                sage: C.one()
+                NotImplemented
+
             """
             return NotImplemented
 
@@ -1278,6 +1299,7 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
                  (1, -1, -1): N[0] - N[0, 2]
                   (1, -1, 1): -N[0, 1] + N[0, 2]
                    (1, 1, 1): N[0, 1]
+
             """
             if 0 in covector:
                 raise(ValueError, "covector cannot contain 0")
@@ -1317,8 +1339,8 @@ class MoseleyRing(VarchenkoGelfandRing):
             Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
             sage: MR = MoseleyRing(QQ, A); MR
             Moseley ring of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
-        """
 
+        """
         # test that the arrangement is central
         if not arrangement.is_central():
             raise ValueError("the hyperplane arrangement must be central")
