@@ -1,23 +1,27 @@
 r"""
-The Varchenko-Gelfand ring and the Moseley ring of a central hyperplane
-arrangement.
+The Varchenko-Gelfand and Moseley rings
 
 The Varchenko-Gelfand ring of a real hyperplane arrangement is the
 ring of functions which are constant on chambers in the complement.
 It can be defined for noncentral arrangements (indeed even for an
 oriented matroid) but this implementation focuses on the central case.
 Multiplication and addition are given pointwise.
+It can also be expressed as a quotient of a polynomial ring. Many
+computations are done by passing to the polynomial ring. The polynomial
+ring can be accessed by calling
+:meth:`~sage.algebras.varchenko_gelfand.VarchenkoGelfandRing.underlying_polynomial_ring`
+
 The Moseley ring is a homogenized version of the Varchenko-Gelfand ring.
 It is the equivariant cohomology ring of of the complement of an
 arrangement in a real vector space of odd dimension. The defining ideal
 which realizes the Moseley ring as a quotient of a polynomial ring is
-found by taking the leading term of the generators of the ideal of the
-Varchenko-Gelfand ring.
+found by taking the leading term of the generators of the ideal that
+defines the Varchenko-Gelfand ring.
 
 EXAMPLES:
 
 We construct the Varchenko-Gelfand ring of the reflection arrangement
-of type `A_2`::
+of type `A_2` using the hyperplane arrangements library::
 
     sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
     sage: A = hyperplane_arrangements.braid(3)
@@ -50,14 +54,15 @@ a basis. There are currently three bases implemented.
 
   The elements ``N[0]``, ``N[1]``, ``N[2]`` correspond to the monomials
   ``x0, x1, x2`` in the ring. As a conventient shorthand for defining
-  an element, you can do the
-  following::
+  an element, you can enclose the monomial indices in square brackets
+  after an instance of the basis. For example, the following monomial
+  is ``x0*x2``::
 
     sage: N[0,2]
     N[0, 2]
 
   If the input is not an NBC set, then the corresponding element will be
-  convert to an element in the NBC basis::
+  converted to an element in the NBC basis::
 
     sage: N[0,1,2]              # this is x0 * x1 * x2 in the ring
     N[0, 1]
@@ -69,11 +74,14 @@ a basis. There are currently three bases implemented.
     N[]
 
 - *Covector basis*. This is the basis corresponding to the functions
-  that take value 1 on a specific chamber and 0 on all other chambers.
+  that take value `1` on a specific chamber and `0` on all other chambers.
   This is done via the map that sends the variable `x_i` to the
-  function that takes value 1 on all chambers in the positive half-
-  space of the `i`-th hyperplane and -1 on all chambers in the negative
-  half-space of the `i`-th hyperplane.
+  function that takes value `1` on all chambers in the positive half-
+  space of the `i`-th hyperplane and `-1` on all chambers in the negative
+  half-space of the `i`-th hyperplane. For example the covector ``[1,1,1]``
+  (and thus the polynomial ``x0*x2 + x1*x2 - x2``) corresponds to the
+  chamber of `A_3` which is on the positive half space of all three
+  hyperplanes in the arrangement.
 
   Since the chambers are easily indexed by covectors, this basis is
   indexed by covectors::
@@ -88,18 +96,11 @@ a basis. There are currently three bases implemented.
     C[-1, 1, -1] --> -x1*x2 + x1
     C[-1, 1, 1] --> -x0*x2 + x2
 
-  For example the covector ``[1,1,1]`` (and thus the polynomial
-  ``x0*x2 + x1*x2 - x2``) corresponds to the chamber of `A_3` which
-  is on the positive half space of all three hyperplanes in the
-  arrangement.
-
-- *Normal Basis*. This basis is used for internally storing the
-  underlying polynomial ring. The basis itself is what is computed
-  from Sage and depends on various factors, including the monomial
-  order on the polynomial ring.
-
-  It is used to have a specific realization of this ring, and all
-  other bases are defined in relation to this basis.
+- *Normal Basis*. The basis computed by Sage for the Varchenko-Gelfand
+  ring as a polynomial ring quotient. The basis itself depends on
+  various factors, including the monomial order on the polynomial ring.
+  It is used to have a specific realization of this ring. All
+  other bases are defined in relation to this basis::
 
     sage: x = VG.normal_basis()
     sage: for b in x.basis():
@@ -146,7 +147,7 @@ a basis. There are currently three bases implemented.
 
 .. NOTE::
 
-  *New bases:* If you want to define a new basis, then you can define it in
+  *Defining new bases:* If you want to define a new basis, then you can define it in
   relation to any of the above bases. The simplest way is to define a method
   called ``to_polynomial_on_basis`` that converts a key of a basis element to
   a polynomial in the underlying polynomial ring. See the class
@@ -227,7 +228,7 @@ These are all the examples from above, but with the ``MoseleyRing`` in place of 
     X[0] --> x0
     X[] --> 1
 
-  Because the Moseley ring is graded, we can compute its Hilbert series::
+Because the Moseley ring is graded, we can compute its Hilbert series::
 
     sage: MR.hilbert_series()
     2*t^2 + 3*t + 1
@@ -687,12 +688,47 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
         class ParentMethods:
             def underlying_polynomial_ring(self):
+                r"""
+                Return the underlying polynomial ring.
+
+                EXAMPLES::
+
+                    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = VarchenkoGelfandRing(QQ, A)
+                    sage: VG.underlying_polynomial_ring()
+                    Quotient of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field by the ideal (x0^2 - x0, x1^2 - x1, x2^2 - x2, -x0*x1 + x0*x2 + x1*x2 - x2)
+
+                """
                 return self.realization_of().underlying_polynomial_ring()
 
             def hyperplane_arrangement(self):
+                r"""
+                Return the defining hyperplane arrangement.
+
+                EXAMPLES::
+
+                    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = VarchenkoGelfandRing(QQ, A)
+                    sage: VG.hyperplane_arrangement()
+                    Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
+
+                """
                 return self.realization_of().hyperplane_arrangement()
 
             def _repr_(self):
+                r"""
+
+                EXAMPLES::
+
+                    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = VarchenkoGelfandRing(QQ, A)
+                    sage: N = VG.nbc_basis(); N
+                    Varchenko-Gelfand ring of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over the Rational Field on the NBC basis
+
+                """
                 return "Varchenko-Gelfand ring of {} over the {} on the {} basis".format(self.hyperplane_arrangement(), self.base_ring(), self._realization_name())
 
             @cached_method
@@ -1255,7 +1291,8 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
         @cached_method
         def one(self):
             r"""
-            The multiplicative identity element of the algebra.
+            The multiplicative identity element of the algebra. This is not
+            implemented for the Covector basis.
 
             TESTS::
 
@@ -1328,7 +1365,8 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
 
 class MoseleyRing(VarchenkoGelfandRing):
     r"""
-    The Moseley ring of a central hyperplane arrangement.
+    The Moseley ring of a central hyperplane arrangement. It is defined by
+    the leading term ideal of the ideal defining the Varchenko-Gelfand ring.
     """
     def __init__(self, base_ring, arrangement, monomial_order=None):
         """
@@ -1445,7 +1483,7 @@ class MoseleyRing(VarchenkoGelfandRing):
 
     def hilbert_polynomial(self):
         r"""
-        The Hilbert series of the polynomial ring.
+        The Hilbert polynomial of the polynomial ring.
 
         EXAMPLES::
 
@@ -1467,7 +1505,7 @@ class MoseleyRing(VarchenkoGelfandRing):
 
     def hilbert_numerator(self):
         r"""
-        The Hilbert series of the polynomial ring.
+        The numerator of the Hilbert series of the polynomial ring.
 
         EXAMPLES::
 
