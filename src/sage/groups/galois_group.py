@@ -294,7 +294,10 @@ class _GaloisMixin(_GMixin):
         gens = []
         # There should be a more efficient way to do this
         for g in self:
-            if g.order() == 1:
+            m = g.order()
+            if m == 1:
+                continue
+            if not m.divides(n):
                 continue
             if g in H:
                 continue
