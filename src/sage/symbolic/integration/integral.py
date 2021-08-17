@@ -1007,15 +1007,12 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: x,y = var("x,y"); f = (x^2 + y^2)^(-2);
         sage: p = 3; k = 2; g = bernoulli_polynomial(frac(x),p) * f.diff(x, p).diff(y, k-1); g
         96*(2*frac(x)^3 - 3*frac(x)^2 + frac(x))*(10*x^3*y/(x^2 + y^2)^6 - 3*x*y/(x^2 + y^2)^5)
-        sage: h = integrate(g.subs(y == 1), x, 1, Infinity); h
-        96*integrate((2*frac(x)^3 - 3*frac(x)^2 + frac(x))*(10*x^3/(x^2 + 1)^6 - 3*x/(x^2 + 1)^5), x, 1, +Infinity)
+        sage: gy1 = g.subs(y == 1); gy1
+        96*(2*frac(x)^3 - 3*frac(x)^2 + frac(x))*(10*x^3/(x^2 + 1)^6 - 3*x/(x^2 + 1)^5)
+        sage: h = integrate(gy1, x, 1, Infinity); h
+        96*integrate(14*x^3*frac(x)^3/(x^12 + 6*x^10 + 15*x^8 + 20*x^6 + 15*x^4 + 6*x^2 + 1), x, 1, +Infinity) + 96*integrate(-21*x^3*frac(x)^2/(x^12 + 6*x^10 + 15*x^8 + 20*x^6 + 15*x^4 + 6*x^2 + 1), x, 1, +Infinity) + 96*integrate(7*x^3*frac(x)/(x^12 + 6*x^10 + 15*x^8 + 20*x^6 + 15*x^4 + 6*x^2 + 1), x, 1, +Infinity) + 96*integrate(-6*x*frac(x)^3/(x^12 + 6*x^10 + 15*x^8 + 20*x^6 + 15*x^4 + 6*x^2 + 1), x, 1, +Infinity) + 96*integrate(9*x*frac(x)^2/(x^12 + 6*x^10 + 15*x^8 + 20*x^6 + 15*x^4 + 6*x^2 + 1), x, 1, +Infinity) + 96*integrate(-3*x*frac(x)/(x^12 + 6*x^10 + 15*x^8 + 20*x^6 + 15*x^4 + 6*x^2 + 1), x, 1, +Infinity)
         sage: h.n()
-        0.0954767092983266
-
-        sage: from scipy import integrate as scipy_integrate
-        sage: h_scipy = scipy_integrate.quad(g.subs(y == 1), 1, Infinity)[0]
-        sage: h_scipy  # rel tol 1e-11
-        0.09547646540893426
+        0.0954767...
 
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
