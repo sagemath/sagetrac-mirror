@@ -11,6 +11,22 @@ computations are done by passing to the polynomial ring. The polynomial
 ring can be accessed by calling
 :meth:`~sage.algebras.varchenko_gelfand.VarchenkoGelfandRing.underlying_polynomial_ring`.
 
+Since the ring can be expressed in terms of a polynomial ring, there is a
+natural filtration `F_0 \subset F_1 \subset \ldots` of the algebra given
+by the degree of the polynomial. There is an *associated graded algebra*
+to this filtration where the graded piece `G_i` is the quotient
+
+.. MATH::
+
+    G_i = F_i/\left(\sum_{j<i}F_j\right).
+
+The associated graded is implemented as
+:class:`~sage.algebras.varchenko_gelfand.GradedVarchenkoGelfandRing`. By
+virtue of the grading, there is an associated method
+:meth:`~sage.algebras.varchenko_gelfand.GradedVarchenkoGelfandRing.hilbert_series`.
+For further details on the associated graded as a polynomial ring, see
+:meth:`~sage.algebras.varchenko_gelfand.GradedVarchenkoGelfandRing.underlying_polynomial_ring`.
+
 EXAMPLES:
 
 We construct the Varchenko-Gelfand ring of the reflection arrangement
@@ -150,10 +166,25 @@ a basis. There are currently three bases implemented.
   is defined for the NBC basis by mapping an NBC set `S` to the product of `x_i` for `i`
   in `S` (for an explicit example, see the method below in which `S` is called ``nbc``).
 
+To find the associated graded, we simply import it and use it::
+
+    sage: from sage.algebras.varchenko_gelfand import GradedVarchenkoGelfandRing
+    sage: A = hyperplane_arrangements.braid(3)
+    sage: grVG = GradedVarchenkoGelfandRing(QQ,A)
+    sage: grVG.hilbert_series()
+    2*t^2 + 3*t + 1
+
+If you are already working with a ``VarchenkoGelfandRing``, you can also get the
+associated graded by calling
+:meth:`VarchenkoGelfandRing.associated_graded<sage.algebras.varchenko_gelfand.VarcheknoGelfandRing.associated_graded>`::
+
+    sage: VG = VarchenkoGelfandRing(QQ,A)
+    sage: grVG = VG.associated_graded(); grVG
+    Associated graded Varchenko-Gelfand ring of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
+
 AUTHORS:
 
 - Franco Saliola, Galen Dorpalen-Barry (2021): initial version
-
 """
 
 # ****************************************************************************
@@ -556,6 +587,15 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             if all(cone_mask[i] / covector[i] >= 0 for i in range(len(covector))):
                 cone_covectors.append(tuple(covector))
         return cone_covectors
+
+    def associated_graded(self):
+        r"""
+
+        Return the associated graded Varchenko-Gelfand ring (associated to the
+        degree filtration as a polynomial quotient).
+
+        """
+        return GradedVarchenkoGelfandRing(self.base_ring(), self._arrangement)
 
     class Bases(Category_realization_of_parent):
         r"""
@@ -1243,3 +1283,190 @@ class VarchenkoGelfandRing(UniqueRepresentation, Parent):
             return polynomial
 
     covector_basis = Covector
+
+class GradedVarchenkoGelfandRing(VarchenkoGelfandRing):
+    r"""
+    The associated graded Varchenko-Gelfand ring of a central hyperplane arrangement.
+    """
+    def __init__(self, base_ring, arrangement):
+        """
+        EXAMPLES::
+
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
+            sage: A = hyperplane_arrangements.braid(3); A
+            Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
+            sage: grVG = VarchenkoGelfandRing(QQ,A).associated_graded()
+            Associated graded Varchenko-Gelfand ring of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
+
+        """
+
+        # test that the arrangement is central
+        if not arrangement.is_central():
+            raise ValueError("the hyperplane arrangement must be central")
+
+        # initiate the parent object by specifying the category and that we
+        # will be defining multiple bases (WithRealizations)
+        if not (base_ring in Fields() or base_ring in Rings()):
+            raise ValueError(f"{base_ring=} must be a Ring")
+        self._base_ring = base_ring
+        Parent.__init__(self, category=AlgebrasWithBasis(base_ring).WithRealizations())
+
+        # save data for later use
+        self._arrangement = arrangement
+        self._matroid = self._arrangement.matroid()
+
+        # register coercions (how to convert between the bases)
+        self._register_coercions()
+
+    def _repr_(self):
+        r"""
+        String representation of this object.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
+            sage: A = hyperplane_arrangements.braid(3); A
+            Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
+            sage: grVG = VarchenkoGelfandRing(QQ,A).associated_graded()
+            Associated graded Varchenko-Gelfand ring of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
+
+        """
+        return "Associated graded Varchenko-Gelfand ring of {} over {}".format(self.hyperplane_arrangement(), self.base_ring())
+
+    @cached_method
+    def underlying_polynomial_ring(self):
+        r"""
+        The associated graded Varchenko-Gelfand ring as a polynomial ring.
+
+        As a polynomial ring, it is the ring
+
+        .. MATH::
+
+            R[x_i]_{1 \leq i \leq n}/LT(I)
+
+        where `n` is the number of hyperplanes in the arrangement `\mathcal{A}`,
+        and `LT(I)` is the ideal of leading terms of the ideal `I` which defines
+        the Varchenko-Gelfand ring with respect to the degRevLex term order.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: grVG = VarchenkoGelfandRing(QQ,A).associated_graded()
+            sage: grVG.underlying_polynomial_ring()
+            Quotient of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field by the ideal (x0^2, x1^2, x2^2, x0*x1 - x0*x2 - x1*x2)
+
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        A = self._arrangement
+        n = A.n_hyperplanes()
+
+        var_string = ["x{}".format(i) for i in range(n)]
+
+        R = PolynomialRing(self.base_ring(), var_string, len(var_string))
+        x = R.gens()
+
+        # Build the ideal that we will quotient by.
+        # First, there is one generator of the form xi^2 for each variable xi.
+        ideal_gens = [xi * xi for xi in x]
+
+        # Second, there is one generator for each empty intersection of the form
+        #   `\cap_{i \in I} H_i^+ \cap \cap_{j \in J} H_j^- = \emptyset`,
+        # which is given by`\prod_{I}
+        #   `\prod_{i \in I} x_i \prod_{j \in J} (x_j - 1) - \prod_{i \in I} (x_i - 1) \prod_{j \in J} x_j`.
+        # It suffices to take one such generator for each circuit of the associated
+        # matroid.
+        # Unlike the usual VG ring, we take the leading term of the difference.
+
+        for circuit in self._matroid.circuits():
+            circuit = sorted(circuit)
+            m = matrix([A[i].normal() for i in circuit])
+            for v in m.left_kernel().basis():
+                I = [circuit[i] for (i, vi) in enumerate(v) if vi > 0]
+                J = [circuit[j] for (j, vj) in enumerate(v) if vj < 0]
+                gen = R.sum(R.prod(x[i] for i in I) * R.prod(x[j] for j in J if j != k) for k in J) \
+                    - R.sum(R.prod(x[i] for i in I if i != k) * R.prod(x[j] for j in J) for k in I)
+                ideal_gens.append(gen)
+
+        I = R.ideal(ideal_gens)
+        Q = R.quotient(I, names=R.variable_names())
+        return Q
+
+    def hilbert_series(self):
+        r"""
+        The Hilbert series of the polynomial ring.
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal_singular_repr.hilbert_series`
+
+        EXAMPLES::
+
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: grVG = VarchenkoGelfandRing(QQ,A).associated_graded()
+            sage: grVG.hilbert_series()
+            2*t^2 + 3*t + 1
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H(x, y, z, x+y, x+z, y+z, x-y, x-z, y-z)
+            sage: grVG = VarchenkoGelfandRing(QQ, A).associated_graded()
+            sage: grVG.hilbert_series()
+            15*t^3 + 23*t^2 + 9*t + 1
+
+        """
+        I = self.underlying_polynomial_ring().defining_ideal()
+        return I.hilbert_series()
+
+    def hilbert_polynomial(self):
+        r"""
+        The Hilbert polynomial of the polynomial ring.
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal_singular_repr.hilbert_polynomial`
+
+        EXAMPLES::
+
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: grVG = VarchenkoGelfandRing(QQ,A).associated_graded()
+            sage: grVG.hilbert_polynomial()
+            0
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H(x, y, z, x+y, x+z, y+z, x-y, x-z, y-z)
+            sage: grVG = VarchenkoGelfandRing(QQ, A).associated_graded()
+            sage: grVG.hilbert_polynomial()
+            0
+
+        """
+        I = self.underlying_polynomial_ring().defining_ideal()
+        return I.hilbert_polynomial()
+
+    def hilbert_numerator(self):
+        r"""
+        The Hilbert numerator of the polynomial ring.
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal_singular_repr.hilbert_numerator`
+
+        EXAMPLES::
+
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: grVG = VarchenkoGelfandRing(QQ,A).associated_graded()
+            sage: grVG.hilbert_numerator()
+            -2*t^5 + 3*t^4 + 2*t^3 - 4*t^2 + 1
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H(x, y, z, x+y, x+z, y+z, x-y, x-z, y-z)
+            sage: grVG = VarchenkoGelfandRing(QQ, A).associated_graded()
+            sage: grVG.hilbert_numerator()
+            -15*t^12 + 112*t^11 - 342*t^10 + 512*t^9 - 273*t^8 - 288*t^7 + 588*t^6 - 384*t^5 + 63*t^4 + 48*t^3 - 22*t^2 + 1
+
+        """
+        I = self.underlying_polynomial_ring().defining_ideal()
+        return I.hilbert_numerator()
