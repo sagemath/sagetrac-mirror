@@ -212,16 +212,11 @@ def NormOneRestrictionOfScalars(field, rk=1):
     """
     if field.is_galois():
         L = GLattice(rk).norm_one_restriction_of_scalars(field.galois_group())
-        return AlgebraicTorus(L)
     else:
         G = field.galois_group()
-        oG = G.order()
-        oF = field.degree()
-        subG = [h for h in G.conjugacy_classes_subgroups() if oG/h.order() == oF and not(h.is_normal())]
-        for H in subG:
-            if any(h(e) == G.identity()(e) for e in field.gens() for h in H.gens()):
-                L = GLattice(H, rk).norm_one_restriction_of_scalars(G)
-                return AlgebraicTorus(L)
+        H = G.stabilizer()
+        L = GLattice(H, rk).norm_one_restriction_of_scalars(G)
+    return AlgebraicTorus(L)
 
 
 class AlgebraicTorus(Scheme):
