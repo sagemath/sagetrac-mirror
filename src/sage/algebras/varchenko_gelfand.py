@@ -1295,7 +1295,7 @@ class GradedVarchenkoGelfandRing(VarchenkoGelfandRing):
             sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
             sage: A = hyperplane_arrangements.braid(3); A
             Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
-            sage: grVG = VarchenkoGelfandRing(QQ,A).associated_graded()
+            sage: grVG = VarchenkoGelfandRing(QQ,A).associated_graded(); grVG
             Associated graded Varchenko-Gelfand ring of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
 
         """
@@ -1327,7 +1327,7 @@ class GradedVarchenkoGelfandRing(VarchenkoGelfandRing):
             sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandRing
             sage: A = hyperplane_arrangements.braid(3); A
             Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
-            sage: grVG = VarchenkoGelfandRing(QQ,A).associated_graded()
+            sage: grVG = VarchenkoGelfandRing(QQ,A).associated_graded(); grVG
             Associated graded Varchenko-Gelfand ring of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
 
         """
