@@ -1457,9 +1457,8 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
         - ``precision`` -- (default: 500) Used to specfiy the precision of the complex
           field to be used in approximation.
 
-        - ``embedding`` -- (default: ``None``) An element, or a list of elements.
-          The images of the generators of the base ring into the complex field.
-          Used to specify an embedding of the base ring of this subscheme into the complex field.
+        - ``embedding`` -- (default: ``None``) An embedding of the base ring of this
+          subscheme into the complex field.
 
         OUTPUT:
 
@@ -1578,7 +1577,7 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
             sage: R.<x> = QQ[]
             sage: K.<k> = NumberField(x^4 - x^2 + 1)
             sage: P.<x,y,z> = ProjectiveSpace(K, 2)
-            sage: emb = K.embeddings(CC)[0](k)
+            sage: emb = K.embeddings(CC)[0]
             sage: X = P.subscheme([2141136680*x^2 - 27173976948*x*y + 86218809624*y^2 - 3237154682*x*z + 20541978363*y*z + 1223552253*z^2, \
                                 (-23886292125*k + 10098628775)*x^2 + (303150593245*k - 128165707435)*x*y \
                                 + (-961851694100*k + 406650470284)*y^2 + (36113395312*k - 15267989043)*x*z \
@@ -1599,18 +1598,26 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
         starting_height = max(coeff[0].global_height() for poly in self.defining_polynomials() for coeff in poly)
         C = ComplexField(prec=precision)
         old_base = self.base_ring()
-        if (not embedding is None) or C.has_coerce_map_from(self.base_ring()):
-            new_base = NumberField(old_base.polynomial(), embedding=embedding, names='t')
-        else:
-            # we need to pick an embedding
-            embeddings = self.base_ring().embeddings(C)
-            if embeddings:
-                new_base = NumberField(old_base.polynomial(), embedding=[embeddings[0](i) for i in old_base.gens()], names='t')
+        if not is_RationalField(old_base):
+            if (not (embedding is None)) or C.has_coerce_map_from(old_base):
+                # for number field construction, we need to pass embedding a list of the images of the generators
+                if C.has_coerce_map_from(old_base):
+                    embedding = [C(i) for i in old_base.gens()]
+                else:
+                    embedding = [embedding(i) for i in old_base.gens()]
+                new_base = NumberField(old_base.polynomial(), embedding=embedding, names='t')
             else:
-                # there are no embeddings
-                raise ValueError('base ring of subscheme fails to embed into the complex numbers')
-        old_embedding = old_base.Hom(new_base)[0]
-        X = self.change_ring(old_embedding)
+                # we need to pick an embedding
+                embeddings = self.base_ring().embeddings(C)
+                if embeddings:
+                    new_base = NumberField(old_base.polynomial(), embedding=[embeddings[0](i) for i in old_base.gens()], names='t')
+                else:
+                    # there are no embeddings
+                    raise ValueError('base ring of subscheme fails to embed into the complex numbers')
+            old_embedding = old_base.Hom(new_base)[0]
+            X = self.change_ring(old_embedding)
+        else:
+            X = self
         points = X.rational_points(F=C)
         _, m1, m2 = reduce_cluster(points, eps=eps, precision=precision)
         P = self.ambient_space()
