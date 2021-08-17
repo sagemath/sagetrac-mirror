@@ -9,7 +9,7 @@ Multiplication and addition are given pointwise.
 It can also be expressed as a quotient of a polynomial ring. Many
 computations are done by passing to the polynomial ring. The polynomial
 ring can be accessed by calling
-:meth:`~sage.algebras.varchenko_gelfand.VarchenkoGelfandRing.underlying_polynomial_ring`
+:meth:`~sage.algebras.varchenko_gelfand.VarchenkoGelfandRing.underlying_polynomial_ring`.
 
 EXAMPLES:
 
