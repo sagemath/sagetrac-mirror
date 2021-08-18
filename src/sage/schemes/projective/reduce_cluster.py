@@ -70,12 +70,13 @@ def reduce_cluster(S, eps=10**-6, c=1, precision=500):
     EXAMPLES::
 
         sage: from sage.schemes.projective.reduce_cluster import reduce_cluster
+        sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
         sage: pnts = [P(1,0,0), P(0,1,0), P(0,0,1), P(1,1,1)]
         sage: reduce_cluster(pnts)
         (
-                                                        [ 0  1  0]  [1 1 1]
-                                                        [ 0  0  1]  [1 0 0]
-        [(0, 1, 0), (0, 0, 1), (1, -1, -1), (1, 0, 0)], [ 1 -1 -1], [0 1 0]
+                                                         [ 0  0  1]  [1 1 0]
+                                                         [ 1  0 -1]  [1 0 1]
+        [(0, 0, 1), (1, 0, -1), (0, 1, -1), (1, 1, -1)], [ 0  1 -1], [1 0 0]
         )
     """
     n = S[0].codomain().dimension_relative() + 1
@@ -156,7 +157,7 @@ def reduce_cluster(S, eps=10**-6, c=1, precision=500):
     Tr = (Tr + Tr.transpose())/2
     U1 = Tr.LLL_gram()
     U1_inv = U1.inverse()
-    return [v*U1_inv for v in cluster0], U1_inv, U1
+    return [vector(list(v))*U1_inv for v in S], U1_inv, U1
 
 def mat_exp(mat, eps=1*10**-6):
     r"""
@@ -176,9 +177,9 @@ def mat_exp(mat, eps=1*10**-6):
         sage: from sage.schemes.projective.reduce_cluster import mat_exp
         sage: m = matrix.identity(3)
         sage: mat_exp(m)
-        [9864101/3628800               0               0]
-        [              0 9864101/3628800               0]
-        [              0               0 9864101/3628800]
+        [2.7182818011463845                0.0                0.0]
+        [               0.0 2.7182818011463845                0.0]
+        [               0.0                0.0 2.7182818011463845]
     """
     # computes the 'size' of a matrix
     def mat_prod(mat):
