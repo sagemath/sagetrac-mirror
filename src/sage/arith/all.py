@@ -30,6 +30,5 @@ from .functions import lcm
 LCM = lcm
 
 from .srange import xsrange, srange, ellipsis_iter, ellipsis_range
-sxrange = xsrange
 
 σ = sigma

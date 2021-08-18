@@ -29,8 +29,9 @@ EXAMPLES::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from collections.abc import Iterable
 
 from sage.categories.sets_cat import Sets
 
@@ -230,7 +231,7 @@ def build_alphabet(data=None, names=None, name=None):
         data = NonNegativeIntegers()
 
     # data is an iterable
-    if isinstance(data, (tuple, list, str, range)) or data in Sets():
+    if isinstance(data, Iterable) or data in Sets():
         if names is not None:
             if not isinstance(names, str):
                 raise TypeError("names must be a string when data is a set")

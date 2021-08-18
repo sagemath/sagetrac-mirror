@@ -1226,7 +1226,7 @@ class IntegratedCurve(DifferentiableCurve):
                                  domain=float)
                    for eq in (self._velocities + eqns_num)]
             ics = initial_pt_coords + initial_tgt_vec_comps
-            times = srange(t_min, t_max, step, include_endpoint=True)
+            times = list(srange(t_min, t_max, step, include_endpoint=True))
             dvars = list(chart[:]) + self._velocities
             # Setting 1.e-10 as default value for the error control
             # parameters rtol and atol:
@@ -1292,7 +1292,7 @@ class IntegratedCurve(DifferentiableCurve):
 
             T.algorithm = method
             y_0 = initial_pt_coords + initial_tgt_vec_comps
-            t_span = srange(t_min, t_max, step, include_endpoint=True)
+            t_span = list(srange(t_min, t_max, step, include_endpoint=True))
 
             if method == "bsimp":
                 # this method requires the expression of the Jacobian

@@ -1121,13 +1121,13 @@ def _parametric_plot3d_surface(f, urange, vrange, plot_points, boundary_style, *
     """
     from sage.plot.misc import setup_for_eval_on_grid
     g, ranges = setup_for_eval_on_grid(f, [urange, vrange], plot_points)
-    urange = srange(*ranges[0], include_endpoint=True)
-    vrange = srange(*ranges[1], include_endpoint=True)
+    urange = list(srange(*ranges[0], include_endpoint=True))
+    vrange = list(srange(*ranges[1], include_endpoint=True))
     G = ParametricSurface(g, (urange, vrange), **kwds)
 
     if boundary_style is not None:
         for u in (urange[0], urange[-1]):
-            G += line3d([(g[0](u,v), g[1](u,v), g[2](u,v)) for v in vrange], **boundary_style)
+            G += line3d([(g[0](u, v), g[1](u, v), g[2](u, v)) for v in vrange], **boundary_style)
         for v in (vrange[0], vrange[-1]):
-            G += line3d([(g[0](u,v), g[1](u,v), g[2](u,v)) for u in urange], **boundary_style)
+            G += line3d([(g[0](u, v), g[1](u, v), g[2](u, v)) for u in urange], **boundary_style)
     return G

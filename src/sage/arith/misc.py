@@ -1688,7 +1688,7 @@ def gcd(a, b=None, **kwargs):
         2/15
         sage: GCD([2,4,6,8])
         2
-        sage: GCD(srange(0,10000,10))  # fast  !!
+        sage: GCD(list(srange(0,10000,10)))  # fast  !!
         10
 
     Note that to take the gcd of `n` elements for `n \not= 2` you must

@@ -137,7 +137,8 @@ def enum_projective_rational_field(X, B):
     n = X.codomain().ambient_space().ngens()
     zero = (0,) * n
     pts = []
-    for c in cartesian_product_iterator([srange(-B,B+1) for _ in range(n)]):
+    for c in cartesian_product_iterator([list(srange(-B, B + 1))
+                                         for _ in range(n)]):
         if gcd(c) == 1 and c > zero:
             try:
                 pts.append(X(c))

@@ -30,7 +30,7 @@ EXAMPLES:
 
 The sine function::
 
-    sage: sines = [plot(c*sin(x), (-2*pi,2*pi), color=Color(c,0,0), ymin=-1, ymax=1) for c in sxrange(0,1,.2)]
+    sage: sines = [plot(c*sin(x), (-2*pi,2*pi), color=Color(c,0,0), ymin=-1, ymax=1) for c in srange(0,1,.2)]
     sage: a = animate(sines)
     sage: a         # optional -- ImageMagick
     Animation with 5 frames
@@ -47,7 +47,7 @@ Animate as an APNG_::
 
 An animated :class:`sage.plot.multigraphics.GraphicsArray` of rotating ellipses::
 
-    sage: E = animate((graphics_array([[ellipse((0,0),a,b,angle=t,xmin=-3,xmax=3)+circle((0,0),3,color='blue') for a in range(1,3)] for b in range(2,4)]) for t in sxrange(0,pi/4,.15)))
+    sage: E = animate((graphics_array([[ellipse((0,0),a,b,angle=t,xmin=-3,xmax=3)+circle((0,0),3,color='blue') for a in range(1,3)] for b in range(2,4)]) for t in srange(0,pi/4,.15)))
     sage: str(E)    # animations produced from a generator do not have a known length
     'Animation with unknown number of frames'
     sage: E.show()  # optional -- ImageMagick
@@ -65,7 +65,7 @@ Animations of 3d objects::
     (s, t)
     sage: def sphere_and_plane(x):
     ....:     return sphere((0,0,0),1,color='red',opacity=.5)+parametric_plot3d([t,x,s],(s,-1,1),(t,-1,1),color='green',opacity=.7)
-    sage: sp = animate([sphere_and_plane(x) for x in sxrange(-1,1,.3)])
+    sage: sp = animate([sphere_and_plane(x) for x in srange(-1,1,.3)])
     sage: sp[0]      # first frame
     Graphics3d Object
     sage: sp[-1]     # last frame
@@ -86,7 +86,7 @@ method :meth:`sage.plot.animate.Animation.make_image`.  This is
 illustrated by the following example::
 
     sage: t = var('t')
-    sage: a = animate((sin(c*pi*t) for c in sxrange(1,2,.2)))
+    sage: a = animate((sin(c*pi*t) for c in srange(1,2,.2)))
     sage: a.show()  # optional -- ImageMagick
 
 
@@ -134,7 +134,7 @@ def animate(frames, **kwds):
     EXAMPLES::
 
         sage: t = var('t')
-        sage: a = animate((cos(c*pi*t) for c in sxrange(1,2,.2)))
+        sage: a = animate((cos(c*pi*t) for c in srange(1,2,.2)))
         sage: a.show()  # optional -- ImageMagick
 
     See also :mod:`sage.plot.animate` for more examples.
@@ -207,7 +207,7 @@ class Animation(WithEqualityById, SageObject):
     Do not convert input iterator to a list, but ensure that
     the frame count is known after rendering the frames::
 
-        sage: a = animate((plot(x^p, (x,0,2)) for p in sxrange(1,2,.1)))
+        sage: a = animate((plot(x^p, (x,0,2)) for p in srange(1,2,.1)))
         sage: str(a)
         'Animation with unknown number of frames'
         sage: a.png()    # long time
@@ -504,7 +504,7 @@ class Animation(WithEqualityById, SageObject):
         Frames can be specified as a generator too; it is internally converted to a list::
 
             sage: t = var('t')
-            sage: b = animate((plot(sin(c*pi*t)) for c in sxrange(1,2,.2)))
+            sage: b = animate((plot(sin(c*pi*t)) for c in srange(1,2,.2)))
             sage: g = b.graphics_array()
             sage: g
             Graphics Array of size 2 x 3

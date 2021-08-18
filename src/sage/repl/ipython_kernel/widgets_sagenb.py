@@ -307,7 +307,7 @@ def slider(vmin, vmax=None, step_size=None, default=None, label=None, display_va
             raise NotImplementedError("range_slider does not support rational numbers")
         vmin, vmax, value = _get_min_max_value(vmin, vmax, default, step_size)
         kwds["value"] = value
-        kwds["options"] = srange(vmin, vmax, step_size, include_endpoint=True)
+        kwds["options"] = list(srange(vmin, vmax, step_size, include_endpoint=True))
         return SelectionSlider(**kwds)
     elif isinstance(zero, Real):
         if p is float:

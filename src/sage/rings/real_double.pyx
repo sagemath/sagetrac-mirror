@@ -2145,9 +2145,9 @@ cdef class RealDoubleElement(FieldElement):
             ....:   return False
             sage: all( check_error(2^x) for x in range(-100,100) )
             True
-            sage: all( check_error(x) for x in sxrange(0.01, 2.00, 0.01) )
+            sage: all( check_error(x) for x in srange(0.01, 2.00, 0.01) )
             True
-            sage: all( check_error(x) for x in sxrange(0.99, 1.01, 0.001) )
+            sage: all( check_error(x) for x in srange(0.99, 1.01, 0.001) )
             True
             sage: RDF(1.000000001).log()
             1.000000082240371e-09

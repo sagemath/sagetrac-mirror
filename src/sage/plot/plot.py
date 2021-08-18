@@ -3930,7 +3930,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01,
     from sage.plot.misc import setup_for_eval_on_grid
     ignore, ranges = setup_for_eval_on_grid([], [xrange], plot_points)
     xmin, xmax, delta = ranges[0]
-    x_values = srange(*ranges[0], include_endpoint=True)
+    x_values = list(srange(*ranges[0], include_endpoint=True))
 
     random = current_randstate().python_random().random
 

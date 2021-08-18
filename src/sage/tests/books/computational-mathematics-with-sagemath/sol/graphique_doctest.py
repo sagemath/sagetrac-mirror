@@ -61,7 +61,7 @@ Sage example in ./sol/graphique.tex, line 124::
 
 Sage example in ./sol/graphique.tex, line 154::
 
-  sage: n = 10;  L = srange(6, 18, 12 / n); R = srange(3, 9, 6 / n)
+  sage: n = 10;  L = list(srange(6, 18, 12 / n)); R = list(srange(3, 9, 6 / n))
   sage: def g(x,y): v = vector(f(x, y)); return v / v.norm()
   sage: q = plot_vector_field(g(x, y), (x, 0, 60), (y, 0, 36))
   sage: for j in range(n):
@@ -75,7 +75,7 @@ Sage example in ./sol/graphique.tex, line 185::
 
   sage: from scipy import integrate
   sage: def dX_dt(X, t=0): return [X[1], 0.5*X[1] - X[0] - X[1]^3]
-  sage: t = srange(0, 40, 0.01);  x0 = srange(-2, 2, 0.1); y0 = 2.5
+  sage: t = list(srange(0, 40, 0.01));  x0 = list(srange(-2, 2, 0.1)); y0 = 2.5
   sage: CI = [[i, y0] for i in x0] + [[i, -y0] for i in x0]
   sage: def g(x,y): v = vector(dX_dt([x, y])); return v / v.norm()
   sage: x, y = var('x, y'); n = len(CI)
@@ -89,7 +89,7 @@ Sage example in ./sol/graphique.tex, line 185::
 Sage example in ./sol/graphique.tex, line 234::
 
   sage: from scipy import integrate
-  sage: t = srange(0, 40, 0.2)
+  sage: t = list(srange(0, 40, 0.2))
   sage: n = 35; CI_cart = [[4, .2 * i] for i in range(n)]
   sage: CI = list(map(lambda x: [sqrt(x[0]^2+x[1]^2),
   ....:      pi - arctan(x[1]/x[0])], CI_cart))

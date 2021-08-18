@@ -122,11 +122,11 @@ Sage example in ./graphique.tex, line 1120::
 
   sage: import scipy; from scipy import integrate
   sage: f = lambda y, t: - cos(y * t)
-  sage: t = srange(0, 5, 0.1); p = Graphics()
+  sage: t = list(srange(0, 5, 0.1)); p = Graphics()
   sage: for k in srange(0, 10, 0.15):
   ....:       y = integrate.odeint(f, k, t)
   ....:       p += line(zip(t, flatten(y)))
-  sage: t = srange(0, -5, -0.1); q = Graphics()
+  sage: t = list(srange(0, -5, -0.1)); q = Graphics()
   sage: for k in srange(0, 10, 0.15):
   ....:       y = integrate.odeint(f, k, t)
   ....:       q += line(zip(t, flatten(y)))
@@ -140,7 +140,7 @@ Sage example in ./graphique.tex, line 1229::
   sage: a, b, c, d = 1., 0.1, 1.5, 0.75
   sage: def dX_dt(X, t=0):             # returns the population variation
   ....:     return [a*X[0] - b*X[0]*X[1], -c*X[1] + d*b*X[0]*X[1]]
-  sage: t = srange(0, 15, .01)                               # time scale
+  sage: t = list(srange(0, 15, .01))                         # time scale
   sage: X0 = [10, 5]         # initial conditions: 10 rabbits and 5 foxes
   sage: X = integrate.odeint(dX_dt, X0, t)           # numerical solution
   sage: rabbits, foxes =  X.T                # shortcut for X.transpose()
@@ -152,7 +152,7 @@ Sage example in ./graphique.tex, line 1229::
 
 Sage example in ./graphique.tex, line 1266::
 
-  sage: n = 11;  L = srange(6, 18, 12 / n); R = srange(3, 9, 6 / n)
+  sage: n = 11;  L = list(srange(6, 18, 12 / n)); R = list(srange(3, 9, 6 / n))
   sage: CI = list(zip(L, R))           # list of initial conditions
   sage: def g(x,y):
   ....:     v = vector(dX_dt([x, y]))  # for a nicer graph, we

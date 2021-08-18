@@ -84,7 +84,7 @@ The Rubik's cube group::
 We create element of a permutation group of large degree::
 
     sage: G = SymmetricGroup(30)
-    sage: s = G(srange(30,0,-1)); s
+    sage: s = G(list(srange(30,0,-1))); s
     (1,30)(2,29)(3,28)(4,27)(5,26)(6,25)(7,24)(8,23)(9,22)(10,21)(11,20)(12,19)(13,18)(14,17)(15,16)
 """
 

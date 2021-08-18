@@ -1606,7 +1606,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
         sage: from sage.calculus.desolvers import desolve_odeint
         sage: x,y=var('x,y')
         sage: f=[x*(1-y),-y*(1-x)]
-        sage: sol=desolve_odeint(f,[0.5,2],srange(0,10,0.1),[x,y])
+        sage: sol=desolve_odeint(f,[0.5,2],list(srange(0,10,0.1)),[x,y])
         sage: p=line(zip(sol[:,0],sol[:,1]))
         sage: p.show()
 
@@ -1620,7 +1620,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
         sage: # The Lorenz equations
         sage: lorenz=[sigma*(y-x),x*(rho-z)-y,x*y-beta*z]
         sage: # Time and initial conditions
-        sage: times=srange(0,50.05,0.05)
+        sage: times=list(srange(0,50.05,0.05))
         sage: ics=[0,1,1]
         sage: sol=desolve_odeint(lorenz,ics,times,[x,y,z],rtol=1e-13,atol=1e-14)
 
@@ -1630,7 +1630,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
         sage: epsilon=0.01
         sage: f=y^2*(1-y)
         sage: ic=epsilon
-        sage: t=srange(0,2/epsilon,1)
+        sage: t=list(srange(0,2/epsilon,1))
         sage: sol=desolve_odeint(f,ic,t,y,rtol=1e-9,atol=1e-10,compute_jac=True)
         sage: p=points(zip(t,sol))
         sage: p.show()
@@ -1644,7 +1644,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
         sage: f3=0.16*(y1-y3)
         sage: f=[f1,f2,f3]
         sage: ci=[0.2,0.4,0.7]
-        sage: t=srange(0,10,0.01)
+        sage: t=list(srange(0,10,0.01))
         sage: v=[y1,y2,y3]
         sage: sol=desolve_odeint(f,ci,t,v,rtol=1e-3,atol=1e-4,h0=0.1,hmax=1,hmin=1e-4,mxstep=1000,mxords=17)
 

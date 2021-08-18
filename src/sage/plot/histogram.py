@@ -297,7 +297,7 @@ def histogram(datalist, **options):
 
     We can do several data sets at once if desired::
 
-        sage: histogram([srange(0,1,.1)*10, [nv(0, 1) for _ in range(100)]], color=['red','green'], bins=5)
+        sage: histogram([list(srange(0,1,.1))*10, [nv(0, 1) for _ in range(100)]], color=['red','green'], bins=5)
         Graphics object consisting of 1 graphics primitive
 
     We have the option of stacking the data sets too::

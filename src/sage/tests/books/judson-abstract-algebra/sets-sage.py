@@ -148,17 +148,17 @@ r"""
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
-    sage: dozen = srange(12); dozen
+    sage: dozen = list(srange(12)); dozen
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
-    sage: teens = srange(13, 20); teens
+    sage: teens = list(srange(13, 20)); teens
     [13, 14, 15, 16, 17, 18, 19]
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
-    sage: decades = srange(1900, 2000, 10); decades
+    sage: decades = list(srange(1900, 2000, 10)); decades
     [1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990]
 
 """

@@ -1838,7 +1838,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                 i -= 1
         else:  # base ring QQ
             zero = (0,) * (n + 1)
-            for c in cartesian_product_iterator([srange(-B, B + 1)
+            for c in cartesian_product_iterator([list(srange(-B, B + 1))
                                                  for _ in range(n + 1)]):
                 if gcd(c) == 1 and c > zero:
                     yield self.point(c, check=False)

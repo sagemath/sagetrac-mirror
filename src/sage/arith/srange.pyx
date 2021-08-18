@@ -16,7 +16,7 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
 
@@ -220,96 +220,96 @@ def srange(*args, **kwds):
 
     EXAMPLES::
 
-        sage: v = srange(5); v
+        sage: v = list(srange(5)); v
         [0, 1, 2, 3, 4]
         sage: type(v[2])
         <type 'sage.rings.integer.Integer'>
-        sage: srange(1, 10)
+        sage: list(srange(1, 10))
         [1, 2, 3, 4, 5, 6, 7, 8, 9]
-        sage: srange(10, 1, -1)
+        sage: list(srange(10, 1, -1))
         [10, 9, 8, 7, 6, 5, 4, 3, 2]
-        sage: srange(10,1,-1, include_endpoint=True)
+        sage: list(srange(10,1,-1, include_endpoint=True))
         [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-        sage: srange(1, 10, universe=RDF)
+        sage: list(srange(1, 10, universe=RDF))
         [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
 
-        sage: srange(1, 10, 1/2)
+        sage: list(srange(1, 10, 1/2))
         [1, 3/2, 2, 5/2, 3, 7/2, 4, 9/2, 5, 11/2, 6, 13/2, 7, 15/2, 8, 17/2, 9, 19/2]
-        sage: srange(1, 5, 0.5)
+        sage: list(srange(1, 5, 0.5))
         [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
-        sage: srange(0, 1, 0.4)
+        sage: list(srange(0, 1, 0.4))
         [0.000000000000000, 0.400000000000000, 0.800000000000000]
-        sage: srange(1.0, 5.0, include_endpoint=True)
+        sage: list(srange(1.0, 5.0, include_endpoint=True))
         [1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000, 5.00000000000000]
-        sage: srange(1.0, 1.1)
+        sage: list(srange(1.0, 1.1))
         [1.00000000000000]
-        sage: srange(1.0, 1.0)
+        sage: list(srange(1.0, 1.0))
         []
         sage: V = VectorSpace(QQ, 2)
-        sage: srange(V([0,0]), V([5,5]), step=V([2,2]))
+        sage: list(srange(V([0,0]), V([5,5]), step=V([2,2])))
         [(0, 0), (2, 2), (4, 4)]
 
     Including the endpoint::
 
-        sage: srange(0, 10, step=2, include_endpoint=True)
+        sage: list(srange(0, 10, step=2, include_endpoint=True))
         [0, 2, 4, 6, 8, 10]
-        sage: srange(0, 10, step=3, include_endpoint=True)
+        sage: list(srange(0, 10, step=3, include_endpoint=True))
         [0, 3, 6, 9]
 
     Try some inexact rings::
 
-        sage: srange(0.5, 1.1, 0.1, universe=RDF, include_endpoint=False)
+        sage: list(srange(0.5, 1.1, 0.1, universe=RDF, include_endpoint=False))
         [0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999, 0.9999999999999999]
-        sage: srange(0.5, 1, 0.1, universe=RDF, include_endpoint=False)
+        sage: list(srange(0.5, 1, 0.1, universe=RDF, include_endpoint=False))
         [0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999]
-        sage: srange(0.5, 0.9, 0.1, universe=RDF, include_endpoint=False)
+        sage: list(srange(0.5, 0.9, 0.1, universe=RDF, include_endpoint=False))
         [0.5, 0.6, 0.7, 0.7999999999999999]
-        sage: srange(0, 1.1, 0.1, universe=RDF, include_endpoint=True)
+        sage: list(srange(0, 1.1, 0.1, universe=RDF, include_endpoint=True))
         [0.0, 0.1, 0.2, 0.30000000000000004, 0.4, 0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999, 0.9999999999999999, 1.1]
-        sage: srange(0, 0.2, 0.1, universe=RDF, include_endpoint=True)
+        sage: list(srange(0, 0.2, 0.1, universe=RDF, include_endpoint=True))
         [0.0, 0.1, 0.2]
-        sage: srange(0, 0.3, 0.1, universe=RDF, include_endpoint=True)
+        sage: list(srange(0, 0.3, 0.1, universe=RDF, include_endpoint=True))
         [0.0, 0.1, 0.2, 0.3]
 
     More examples::
 
         sage: Q = RationalField()
-        sage: srange(1, 10, Q('1/2'))
+        sage: list(srange(1, 10, Q('1/2')))
         [1, 3/2, 2, 5/2, 3, 7/2, 4, 9/2, 5, 11/2, 6, 13/2, 7, 15/2, 8, 17/2, 9, 19/2]
-        sage: srange(1, 5, 0.5)
+        sage: list(srange(1, 5, 0.5))
         [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
-        sage: srange(0, 1, 0.4)
+        sage: list(srange(0, 1, 0.4))
         [0.000000000000000, 0.400000000000000, 0.800000000000000]
 
     Negative steps are also allowed::
 
-        sage: srange(4, 1, -1)
+        sage: list(srange(4, 1, -1))
         [4, 3, 2]
-        sage: srange(4, 1, -1/2)
+        sage: list(srange(4, 1, -1/2))
         [4, 7/2, 3, 5/2, 2, 3/2]
 
     TESTS:
 
     These are doctests from :trac:`6409`::
 
-        sage: srange(1,QQ(0),include_endpoint=True)
+        sage: list(srange(1,QQ(0),include_endpoint=True))
         []
-        sage: srange(1,QQ(0),-1,include_endpoint=True)
+        sage: list(srange(1,QQ(0),-1,include_endpoint=True))
         [1, 0]
 
     Test :trac:`11753`::
 
-        sage: srange(1,1,0)
+        sage: list(srange(1,1,0))
         Traceback (most recent call last):
         ...
         ValueError: step argument must not be zero
 
     No problems with large lists::
 
-        sage: srange(10^5) == list(range(10^5))
+        sage: list(srange(10^5)) == list(range(10^5))
         True
     """
-    return [x for x in xsrange(*args, **kwds)]
+    return xsrange(*args, **kwds)
 
 
 def ellipsis_iter(*args, step=None):
@@ -550,7 +550,7 @@ def ellipsis_range(*args, step=None):
                 if i == step_magic:
                     L.pop()
                     start = args[i-2]
-            more = srange(start, end, step, coerce=False, include_endpoint=True)
+            more = list(srange(start, end, step, coerce=False, include_endpoint=True))
             if more:
                 if last_end == more[0]:
                     L.pop()
