@@ -1345,8 +1345,8 @@ class GradedVarchenkoGelfandRing(VarchenkoGelfandRing):
             R[x_i]_{1 \leq i \leq n}/LT(I)
 
         where `n` is the number of hyperplanes in the arrangement `\mathcal{A}`,
-        and `LT(I)` is the ideal of leading terms of the ideal `I` which defines
-        the Varchenko-Gelfand ring with respect to the degRevLex term order.
+        and `LT(I)` is the ideal of degree-initial forms of the ideal `I` which
+        defines the Varchenko-Gelfand ring with respect to the degRevLex term order.
 
         EXAMPLES::
 
