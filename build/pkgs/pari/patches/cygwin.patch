@@ -1,12 +1,30 @@
-Fix pari_mainstack_mreset() on Cygwin
-
-Rejected upstream because Cygwin is considered a dead platform
-
 diff --git a/src/language/init.c b/src/language/init.c
-index 8473a3b..d9993cc 100644
+index 8473a3bfc..54053eaaf 100644
 --- a/src/language/init.c
 +++ b/src/language/init.c
-@@ -884,8 +884,8 @@ pari_mainstack_mfree(void *s, size_t size)
+@@ -854,6 +854,11 @@ static void *
+ pari_mainstack_malloc(size_t size)
+ {
+   void *b;
++
++  /* Sage-specific patch to disable the following check on Cygwin--this check
++   * causes significant slowdown on Cygwin for not much benefit, so we disable
++   * it; see Trac #28132 */
++#ifndef __CYGWIN__
+   /* Check that the system allows reserving "size" bytes. This is just
+    * a check, we immediately free the memory. */
+   BLOCK_SIGINT_START;
+@@ -862,6 +867,9 @@ pari_mainstack_malloc(size_t size)
+   if (b == MAP_FAILED) return NULL;
+   BLOCK_SIGINT_START;
+   munmap(b, size);
++#else
++  BLOCK_SIGINT_START;
++#endif
+ 
+   /* Map again, this time with MAP_NORESERVE. On some operating systems
+    * like Cygwin, this is needed because remapping with PROT_NONE and
+@@ -884,8 +892,8 @@ pari_mainstack_mfree(void *s, size_t size)
  /* Completely discard the memory mapped between the addresses "from"
   * and "to" (which must be page-aligned).
   *
@@ -17,7 +35,7 @@ index 8473a3b..d9993cc 100644
   * still keep the mapping such that we can change the flags to
   * PROT_READ|PROT_WRITE later.
   *
-@@ -893,7 +893,12 @@ pari_mainstack_mfree(void *s, size_t size)
+@@ -893,7 +901,12 @@ pari_mainstack_mfree(void *s, size_t size)
   * calling mprotect(..., PROT_NONE) because the latter will keep the
   * memory committed (this is in particular relevant on Linux with
   * vm.overcommit = 2). This remains true even when calling
@@ -31,12 +49,14 @@ index 8473a3b..d9993cc 100644
  static void
  pari_mainstack_mreset(pari_sp from, pari_sp to)
  {
-@@ -902,11 +907,15 @@ pari_mainstack_mreset(pari_sp from, pari_sp to)
+@@ -902,11 +915,17 @@ pari_mainstack_mreset(pari_sp from, pari_sp to)
    if (!s) return;
  
    addr = (void*)from;
 +#ifdef __CYGWIN__
++  BLOCK_SIGINT_START;
 +  if (mprotect(addr, s, PROT_NONE)) pari_err(e_MEM);
++  BLOCK_SIGINT_END;
 +#else
    BLOCK_SIGINT_START;
    res = mmap(addr, s, PROT_NONE,
