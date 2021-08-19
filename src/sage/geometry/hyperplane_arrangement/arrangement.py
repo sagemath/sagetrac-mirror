@@ -3035,6 +3035,31 @@ class HyperplaneArrangementElement(Element):
             base_ring = self.base_ring()
         return self.matroid().orlik_terao_algebra(base_ring, ordering)
 
+    def varchenko_gelfand_algebra(self, base_ring=None):
+        r"""
+        Return the Varchenko-Gelfand algebra of ``self``.
+
+        INPUT:
+
+        - ``base_ring`` -- (default: the base field of ``self``) the ring
+          over which the Varchenko-Gelfand algebra will be defined
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = P(x, y, z, x+y+z, 2*x+y+z, 2*x+3*y+z, 2*x+3*y+4*z)
+            sage: A.varchenko_gelfand_algebra()
+            Varchenko-Gelfand algebra of Arrangement of 7 hyperplanes of
+             dimension 3 and rank 3 over Rational Field
+            sage: A.varchenko_gelfand_algebra(base_ring=GF(2^3))
+            Varchenko-Gelfand algebra of Arrangement of 7 hyperplanes of
+             dimension 3 and rank 3 over Finite Field in z3 of size 2^3
+        """
+        if base_ring is None:
+            base_ring = self.base_ring()
+        from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
+        return VarchenkoGelfandAlgebra(base_ring, self)
+
     @cached_method
     def minimal_generated_number(self):
         r"""
