@@ -909,22 +909,52 @@ class SympyConverter(Converter):
 
             sage: v_x, j_x, x, y = var("v_x, j_x, x, y")
             sage: F = function("F")(x, y)
-            sage: expr = F.diff(x, 3).diff(y, 1)
-            sage: expr
+            sage: expr = F.diff(x, 3).diff(y, 1); expr
             diff(F(x, y), x, x, x, y)
-            sage: expression = expr.subs(x == j_x + v_x)
-            sage: expression
+            sage: expression = expr.subs(x == j_x + v_x); expression
             D[0, 0, 0, 1](F)(j_x + v_x, y)
-            sage: ex = expression._sympy_()
-            sage: ex
+            sage: ex = expression._sympy_(); ex
             Subs(Derivative(F(_xi_1, y), (_xi_1, 3), y), _xi_1, j_x + v_x)
 
-            sage: expression = expr.subs(x == j_x * v_x)
-            sage: expression
+            sage: expression = expr.subs(x == j_x * v_x); expression
             D[0, 0, 0, 1](F)(j_x*v_x, y)
-            sage: ex = expression._sympy_()
-            sage: ex
+            sage: ex = expression._sympy_(); ex
             Subs(Derivative(F(_xi_1, y), (_xi_1, 3), y), _xi_1, j_x*v_x)
+
+            sage: expression = expr.subs(x == 0); expression
+            D[0, 0, 0, 1](F)(0, y)
+            sage: ex = expression._sympy_(); ex
+            Subs(Derivative(F(_xi_1, y), (_xi_1, 3), y), _xi_1, 0)
+
+            sage: expression = expr.subs(x == 1); expression
+            D[0, 0, 0, 1](F)(1, y)
+            sage: ex = expression._sympy_(); ex
+            Subs(Derivative(F(_xi_1, y), (_xi_1, 3), y), _xi_1, 1)
+
+            sage: expression = expr.subs(x == -1); expression
+            D[0, 0, 0, 1](F)(-1, y)
+            sage: ex = expression._sympy_(); ex
+            Subs(Derivative(F(_xi_1, y), (_xi_1, 3), y), _xi_1, -1)
+
+            sage: expression = expr.subs(x == 2); expression
+            D[0, 0, 0, 1](F)(2, y)
+            sage: ex = expression._sympy_(); ex
+            Subs(Derivative(F(_xi_1, y), (_xi_1, 3), y), _xi_1, 2)
+
+            sage: expression = expr.subs(x == 2.5); expression
+            D[0, 0, 0, 1](F)(2.50000000000000, y)
+            sage: ex = expression._sympy_(); ex
+            Subs(Derivative(F(_xi_1, y), (_xi_1, 3), y), _xi_1, 2.5)
+
+            sage: expression = expr.subs(x == Infinity); expression
+            D[0, 0, 0, 1](F)(+Infinity, y)
+            sage: ex = expression._sympy_(); ex
+            Subs(Derivative(F(_xi_1, y), (_xi_1, 3), y), _xi_1, oo)
+
+            sage: expression = expr.subs(x == -Infinity); expression
+            D[0, 0, 0, 1](F)(-Infinity, y)
+            sage: ex = expression._sympy_(); ex
+            Subs(Derivative(F(_xi_1, y), (_xi_1, 3), y), _xi_1, -oo)
 
         """
         import sympy
@@ -944,7 +974,17 @@ class SympyConverter(Converter):
         sympy_arg = []
         for idx in order:
             a = _args[idx]
-            if _args.count(a) > 1 or type(a) is sympy.core.add.Add or type(a) is sympy.core.mul.Mul:
+            if _args.count(a) > 1 \
+                    or type(a) is sympy.core.add.Add \
+                    or type(a) is sympy.core.mul.Mul \
+                    or type(a) is sympy.core.numbers.Zero \
+                    or type(a) is sympy.core.numbers.NegativeOne \
+                    or type(a) is sympy.core.numbers.One \
+                    or type(a) is sympy.core.numbers.Integer \
+                    or type(a) is sympy.core.numbers.Float \
+                    or type(a) is sympy.core.numbers.NegativeInfinity \
+                    or type(a) is sympy.core.numbers.Infinity:
+
                 D = sympy.Dummy('xi_%i' % (idx + 1))
                 # to avoid collisions with ordinary symbols when converting
                 # back to Sage, we pick an unused variable name for the dummy
