@@ -903,6 +903,29 @@ class SympyConverter(Converter):
             sage: g = f(x1, x2, xi_1).diff(x1).subs(x1==x, x2==x); g
             D[0](f)(x, x, xi_1)
             sage: assert g._sympy_()._sage_() == g
+
+        Check differentiating by variable which is a sum
+        (:trac:`32394`)::
+
+            sage: v_x, j_x, x, y = var("v_x, j_x, x, y")
+            sage: F = function("F")(x, y)
+            sage: expr = F.diff(x, 3).diff(y, 1)
+            sage: expr
+            diff(F(x, y), x, x, x, y)
+            sage: expression = expr.subs(x == j_x + v_x)
+            sage: expression
+            D[0, 0, 0, 1](F)(j_x + v_x, y)
+            sage: ex = expression._sympy_()
+            sage: ex
+            Subs(Derivative(F(_xi_1, y), (_xi_1, 3), y), _xi_1, j_x + v_x)
+
+            sage: expression = expr.subs(x == j_x * v_x)
+            sage: expression
+            D[0, 0, 0, 1](F)(j_x*v_x, y)
+            sage: ex = expression._sympy_()
+            sage: ex
+            Subs(Derivative(F(_xi_1, y), (_xi_1, 3), y), _xi_1, j_x*v_x)
+
         """
         import sympy
 
@@ -921,7 +944,7 @@ class SympyConverter(Converter):
         sympy_arg = []
         for idx in order:
             a = _args[idx]
-            if _args.count(a) > 1:
+            if _args.count(a) > 1 or type(a) is sympy.core.add.Add or type(a) is sympy.core.mul.Mul:
                 D = sympy.Dummy('xi_%i' % (idx + 1))
                 # to avoid collisions with ordinary symbols when converting
                 # back to Sage, we pick an unused variable name for the dummy
