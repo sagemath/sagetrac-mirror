@@ -3056,8 +3056,6 @@ class HyperplaneArrangementElement(Element):
             Varchenko-Gelfand algebra of Arrangement of 7 hyperplanes of
              dimension 3 and rank 3 over Finite Field in z3 of size 2^3
         """
-        if not self.is_central():
-            raise NotImplementedError("only implemented for central arrangements")
         if base_ring is None:
             base_ring = self.base_ring()
         from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
