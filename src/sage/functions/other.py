@@ -1928,6 +1928,18 @@ class Function_sum(BuiltinFunction):
             sage: s = ssum(f(x,y), x, a, b)
             sage: s.diff(y)
             sum(diff(f(x, y), y), x, a, b)
+
+            sage: try:
+            ....:     s.diff(a)
+            ....: except Exception as ex:
+            ....:     print(ex)
+            I don't think anything useful would be possible with a derivative with respect to a summation bound.
+
+            sage: try:
+            ....:     s.diff(b)
+            ....: except Exception as ex:
+            ....:     print(ex)
+            I don't think anything useful would be possible with a derivative with respect to a summation bound.
         """
 
         if not x.has(diff_param):
