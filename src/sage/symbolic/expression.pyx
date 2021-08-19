@@ -9040,10 +9040,10 @@ cdef class Expression(CommutativeRingElement):
             1/2*I*pi
             sage: SR(1/2).arccosh()
             arccosh(1/2)
-            sage: SR(CDF(1/2)).arccosh() #  rel tol 1e-15
+            sage: SR(CDF(1/2)).arccosh()  # rel tol 1e-15
             1.0471975511965976*I
-            sage: maxima('acosh(0.5)')
-            1.04719755119659...*%i
+            sage: maxima('acosh(0.5)')  # abs tol 1e-15
+            1.047197551196598*%i
 
         To prevent automatic evaluation use the ``hold`` argument::
 
