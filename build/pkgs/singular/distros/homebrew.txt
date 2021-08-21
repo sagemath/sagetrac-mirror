@@ -1,2 +1,2 @@
-# As of 2021-03-20, build of homebrew's singular from source fails
+# [2021-03-20] building from source with Homebrew's singular fails
 #singular
