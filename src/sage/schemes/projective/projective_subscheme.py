@@ -1564,8 +1564,7 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
               2342*x^2*w + 9368*x*y*w + 9368*y^2*w - 51388*x*w^2 + 2131622*y*w^2 + 224016*w^3,
               223487*y^3 + 23744*y^2*z - 23234975*y*z^2 + 239874234*z*w^2,
               23744*y^2*w - 23284*y*w^2 + 239874234*w^3,
-              -223487*y^2*w + 23234975*z^2*w - 23284*z*w^2
-
+              -223487*y^2*w + 23234975*z^2*w - 23284*z*w^2                                                                                                                                     ,
             [ 1  2  0 -6]
             [ 0  1  0  0]
             [ 0  0  1  0]
