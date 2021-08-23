@@ -338,6 +338,12 @@ cdef class FractionFieldElement(FieldElement):
         b = self.denominator()
         return a.nth_root(n) / b.nth_root(n)
 
+    def change_ring(self, R):
+        """
+        Return a copy of this fraction but with coefficients in ``R``, if at all possible.
+        """
+        return self.numerator().change_ring(R)/self.denominator().change_ring(R)
+                
     def __hash__(self):
         """
         This function hashes in a special way to ensure that generators of

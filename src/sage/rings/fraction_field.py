@@ -426,6 +426,16 @@ class FractionField_generic(ring.Field):
         """
         return self._R.base_ring()
 
+    def change_ring(self, R):
+        """
+        Return a copy of ``self`` with base ring `R`.
+
+        EXAMPLES:
+
+        #TODO
+        """
+        return self._R.change_ring(R).fraction_field()
+
     def characteristic(self):
         """
         Return the characteristic of this fraction field.
