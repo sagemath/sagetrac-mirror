@@ -563,6 +563,27 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
         """
         return PowerSeriesRing(R, names = self.variable_names(), default_prec = self.default_prec())
 
+    def change_default_prec(self, prec):
+        r"""
+        Return a copy of ``self`` with default precision ``prec``.
+
+        EXAMPLES::
+
+            sage: R.<t,u,v> = PowerSeriesRing(QQ); R
+            Multivariate Power Series Ring in t, u, v over Rational Field
+            sage: R.default_prec()
+            20
+            sage: S = R.change_default_prec(100)
+            sage: S
+            Power Series Ring in x over Rational Field 
+            sage: S.default_prec()
+            100
+            sage: R.default_prec()
+            20
+
+        """
+        return PowerSeriesRing(self.base_ring(), names = self.variable_names(), default_prec = prec)
+
 
 
     def remove_var(self, *var):
