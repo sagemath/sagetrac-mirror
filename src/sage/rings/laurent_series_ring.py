@@ -739,7 +739,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             5
         
         """
-        return LaurentSeriesRing(self._power_series_ring().change_default_prec(prec))
+        return LaurentSeriesRing(self._power_series_ring.change_default_prec(prec))
     
     def is_exact(self):
         """

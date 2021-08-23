@@ -1045,7 +1045,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             20
 
         """
-        return PowerSeriesRing(self.base_ring(), name = self.variable_name(), default_prec = prec)
+        return PowerSeriesRing(self.base_ring(), name = self.variable_name(), default_prec = prec, sparse = self.is_sparse())
 
 
     
