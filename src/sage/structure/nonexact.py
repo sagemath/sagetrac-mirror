@@ -91,6 +91,8 @@ class Nonexact:
         r"""
         Return a copy of ``self`` with default precision ``prec``.
 
+        This is a generic method.
+        
         EXAMPLES::
 
             sage: R = QQ[[x]]
@@ -101,10 +103,10 @@ class Nonexact:
             Power Series Ring in x over Rational Field 
             sage: S.default_prec()
             100
+            sage: R.default_prec()
+            20
 
         """
-        R = self.__copy__()
-        R._default_prec = Integer(prec)
-        return R
+        raise NotImplementedError("No method change_default_prec for {}".format(self))
 
 

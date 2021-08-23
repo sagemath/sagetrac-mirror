@@ -1027,6 +1027,28 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         """
         return PowerSeriesRing(self.base_ring(), names = var, sparse=self.is_sparse())
 
+    def change_default_prec(self, prec):
+        r"""
+        Return a copy of ``self`` with default precision ``prec``.
+
+        EXAMPLES::
+
+            sage: R = QQ[[x]]
+            sage: R.default_prec()
+            20
+            sage: S = R.change_default_prec(100)
+            sage: S
+            Power Series Ring in x over Rational Field 
+            sage: S.default_prec()
+            100
+            sage: R.default_prec()
+            20
+
+        """
+        return PowerSeriesRing(self.base_ring(), name = self.variable_name(), default_prec = prec)
+
+
+    
     def is_exact(self):
         """
         Return False since the ring of power series over any ring is not
