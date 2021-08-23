@@ -727,6 +727,12 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             Laurent Series Ring in x over Rational Field
             sage: L.default_prec()
             100
+            sage: K = LaurentSeriesRing(ZZ,default_prec=5)
+            sage: K.default_prec()
+            5
+            sage: L = K.change_default_prec(100)
+            sage: L.default_prec()
+            100
         
         """
         return LaurentSeriesRing(self._power_series_ring().change_default_prec(prec))
