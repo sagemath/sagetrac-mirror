@@ -1507,6 +1507,24 @@ class BooleanFormula(object):
         while i < len(str) - 1 and str[i] != '&' and str[i] != '|':
             i += 1
         return str[i]
+        
+    def getindexTrue(formula):
+        store = list()
+        table = formula.truthtable().get_table_list()
+        for i in range(1,len(table)):
+            if table[i][-1]:
+                store.append(i)
+        return store
+
+    def isConsistent(listOfFormula):
+        store = getindexTrue(listOfFormula[0])
+        copy = getindexTrue(listOfFormula[0])
+        for i in range(1,len(listOfFormula)):
+            table = listOfFormula[i].truthtable().get_table_list()
+            for j in range(len(store)):
+                if not table[store[j]][-1] and store[j] in copy:
+                    copy.remove(store[j])
+        return not copy == []
 
     def length(self):
         r"""
