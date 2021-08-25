@@ -39,7 +39,7 @@ from sage.cpython.string import bytes_to_str
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import prod
 from sage.misc.randstate import current_randstate
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecation, deprecated_function_alias
 
 from sage.rings.all import QQ, ZZ, AA
 from sage.rings.real_double import RDF
@@ -77,6 +77,9 @@ def is_Polyhedron(X):
     """
     Test whether ``X`` is a Polyhedron.
 
+    This method is deprecated; use ``isinstance`` with class
+    :class:`~sage.structure.element.Polyhedron` instead.
+
     INPUT:
 
     - ``X`` -- anything.
@@ -94,7 +97,8 @@ def is_Polyhedron(X):
         sage: is_Polyhedron(123456)
         False
     """
-    return isinstance(X, Polyhedron_base)
+    deprecation(32414, "using is_Polyhedron is deprecated; use isinstance with class sage.structure.element.Polyhedron instead")
+    return isinstance(X, Polyhedron)
 
 
 #########################################################################
