@@ -32,7 +32,7 @@ Base class for polyhedra
 
 import itertools
 
-from sage.structure.element import Element, coerce_binop, is_Vector, is_Matrix
+from sage.structure.element import Element, Polyhedron, coerce_binop, is_Vector, is_Matrix
 from sage.structure.richcmp import rich_to_bool, op_NE
 from sage.cpython.string import bytes_to_str
 
@@ -98,7 +98,7 @@ def is_Polyhedron(X):
 
 
 #########################################################################
-class Polyhedron_base(Element, ConvexSet_closed):
+class Polyhedron_base(Polyhedron, ConvexSet_closed):
     """
     Base class for Polyhedron objects
 

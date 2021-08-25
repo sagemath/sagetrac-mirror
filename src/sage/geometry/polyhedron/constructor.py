@@ -292,13 +292,14 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ########################################################################
 
+from sage.structure.element import Polyhedron
 from sage.rings.all import ZZ, RDF, RR
 
 from .misc import _make_listlist, _common_length_of
 
 
 #########################################################################
-def Polyhedron(vertices=None, rays=None, lines=None,
+def _constructor(vertices=None, rays=None, lines=None,
                ieqs=None, eqns=None,
                ambient_dim=None, base_ring=None, minimize=True, verbose=False,
                backend=None, mutable=False):

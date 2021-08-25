@@ -311,6 +311,7 @@ from sage.cpython.getattr cimport getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
+from sage.misc.lazy_import import lazy_import
 from sage.arith.long cimport integer_check_long_py
 from sage.arith.power cimport generic_power as arith_generic_power
 from sage.arith.numerical_approx cimport digits_to_bits
@@ -4225,6 +4226,11 @@ cdef class InfinityElement(RingElement):
     def __invert__(self):
         from sage.rings.all import ZZ
         return ZZ(0)
+
+
+cdef class Polyhedron(Element):
+    __new__ = lazy_import('sage.geometry.polyhedron.constructor',
+                          '_constructor')
 
 
 #################################################################################
