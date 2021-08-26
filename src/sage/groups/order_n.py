@@ -8,6 +8,10 @@ EXAMPLES:
 
 sage: from sage.groups.order_n import order_n
 
+sage: from sage.groups.order_n import _directprod
+
+sage: from sage.groups.order_n import _semidirectprod
+
 sage: order_n(12)                                                               
 ['1',
  'C2',
@@ -80,6 +84,36 @@ sage: order_n(20,semidirectproduct=True)
 
 sage: order_n(20,semidirectproduct=True,directproduct=True)                                                                          
 ['(C4 x C2) : C2', '(C4 x C2) : C2', '(C3 x C3) : C2']
+
+sage: list1 = order_n(20)                                                       
+sage: _semidirectprod(list1)                                                    
+['C3 : C4',
+ '(C4 x C2) : C2',
+ 'C4 : C4',
+ 'C8 : C2',
+ '(C4 x C2) : C2',
+ '(C3 x C3) : C2',
+ 'C5 : C4',
+ 'C5 : C4']
+
+sage: _directprod(list1)                                                        
+['C2 x C2',
+ 'C4 x C2',
+ 'C2 x C2 x C2',
+ 'C3 x C3',
+ 'C6 x C2',
+ 'C4 x C4',
+ '(C4 x C2) : C2',
+ 'C8 x C2',
+ 'C4 x C2 x C2',
+ 'C2 x D8',
+ 'C2 x Q8',
+ '(C4 x C2) : C2',
+ 'C2 x C2 x C2 x C2',
+ 'C3 x S3',
+ '(C3 x C3) : C2',
+ 'C6 x C3',
+ 'C10 x C2']
 
 
 AUTHORS:
