@@ -4228,9 +4228,65 @@ cdef class InfinityElement(RingElement):
         return ZZ(0)
 
 
+#### from https://gist.github.com/bfroehle/4041015
+def docstring_property(class_doc):
+    """Property attribute for docstrings.
+    Usage
+    -----
+    >>> class A(object):
+    ...     '''Main docstring'''
+    ...     def __init__(self, x):
+    ...         self.x = x
+    ...     @docstring_property(__doc__)
+    ...     def __doc__(self):
+    ...         return "My value of x is %s." % self.x
+    >>> A.__doc__
+    'Main docstring'
+    >>> a = A(10)
+    >>> a.__doc__
+    'My value of x is 10.'
+    """
+    def wrapper(fget):
+        return DocstringProperty(class_doc, fget)
+    return wrapper
+
+class DocstringProperty(object):
+    """Property for the `__doc__` attribute.
+    Different than `property` in the following two ways:
+    * When the attribute is accessed from the main class, it returns the value
+      of `class_doc`, *not* the property itself. This is necessary so Sphinx
+      and other documentation tools can access the class docstring.
+    * Only supports getting the attribute; setting and deleting raise an
+      `AttributeError`.
+    """
+
+    def __init__(self, class_doc, fget):
+        self.class_doc = class_doc
+        self.fget = fget
+
+    def __get__(self, obj, type=None):
+        if obj is None:
+            return self.class_doc
+        else:
+            return self.fget(obj)
+
+    def __set__(self, obj, value):
+        raise AttributeError("can't set attribute")
+
+    def __delete__(self, obj):
+        raise AttributeError("can't delete attribute")
+
+
 cdef class Polyhedron(Element):
     __new__ = lazy_import('sage.geometry.polyhedron.constructor',
                           '_constructor')
+    @docstring_property(__doc__)
+    # This should be @classmethod @property (Python >= 3.9) but Cython 0.29.21 complains:
+    # Property methods with additional decorators are not supported
+    def __doc__(self):
+        print("importing sage.geometry.polyhedron.constructor")
+        from sage.geometry.polyhedron.constructor import _constructor
+        return _constructor.__doc__
 
 
 #################################################################################
