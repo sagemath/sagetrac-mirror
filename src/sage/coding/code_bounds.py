@@ -655,10 +655,17 @@ def entropy_inverse(x, q=2):
     if x >= 1-eps:
         return ymax
 
-    # find_root will error out if the root can not be found
-    from sage.numerical.optimize import find_root
     f = lambda y: entropy(y, q) - x
-    return find_root(f, 0, ymax)
+
+    from scipy.optimize import brentq
+
+    # defaults and error check taken from sage.numerical.optimize in Sage 9.4
+    rtol = 2.0**-50
+    root = brentq(f, 0, ymax, xtol=10e-13, rtol=rtol, maxiter=100)
+    if abs(f(root)) > max(abs(root * rtol * (f(ymax) - f(0)) / ymax), 1e-6):
+        raise RuntimeError('root finding failed')
+    return root
+
 
 def gv_bound_asymp(delta,q):
     """
