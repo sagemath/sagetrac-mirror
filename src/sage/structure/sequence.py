@@ -826,7 +826,39 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: t.is_mutable() == s.is_mutable()
             True
 
+            sage: I = Sequence([1r, 2r, 3r], immutable=True)
+            sage: C = copy(I); C  # indirect doctest
+            [1, 2, 3]
+            sage: C is I
+            True
+
+            sage: M = Sequence([1000r, 2000r, 3000r], immutable=False)
+            sage: C = copy(M); C
+            [1000, 2000, 3000]
+            sage: C.parent()
+            <class 'sage.structure.sequence.Sequence_generic'>
+            sage: C.is_immutable()
+            False
+            sage: C is M
+            False
+
+            sage: i = vector(ZZ, [1r, 1r], immutable=True)
+            sage: Ii = Sequence([i, i], immutable=True); Ii
+            [(1, 1), (1, 1)]
+            sage: C = copy(Ii); C
+            [(1, 1), (1, 1)]
+            sage: C is Ii
+            True
+
+            sage: m = vector(ZZ, [1000r, 1000r], immutable=False)
+            sage: Im = Sequence([m, i], immutable=True)
+            sage: C = copy(Im); C
+            [(1000, 1000), (1, 1)]
+            sage: C is Im
+            True
         """
+        if self.is_immutable():
+            return self
         return Sequence(self, universe=self.__universe,
                         check=False,
                         immutable=self._is_immutable,
