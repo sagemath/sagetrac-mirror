@@ -864,6 +864,67 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
                         immutable=self._is_immutable,
                         cr=self.__cr_str)
 
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: I = Sequence([1r, 2r, 3r], immutable=True)
+            sage: C = deepcopy(I); C  # indirect doctest
+            [1, 2, 3]
+            sage: C is I
+            True
+
+            sage: M = Sequence([1000r, 2000r, 3000r], immutable=False)
+            sage: C = deepcopy(M); C
+            [1000, 2000, 3000]
+            sage: C.parent()
+            <class 'sage.structure.sequence.Sequence_generic'>
+            sage: C.is_immutable()
+            False
+            sage: C is M
+            False
+
+            sage: i = vector(ZZ, [1r, 1r], immutable=True)
+            sage: Ii = Sequence([i, i], immutable=True); Ii
+            [(1, 1), (1, 1)]
+            sage: C = deepcopy(Ii); C
+            [(1, 1), (1, 1)]
+            sage: C is Ii
+            True
+
+            sage: m = vector(ZZ, [1000r, 1000r], immutable=False)
+            sage: Im = Sequence([m, i, m], immutable=True)
+            sage: C = deepcopy(Im); C
+            [(1000, 1000), (1, 1), (1000, 1000)]
+            sage: C is Im
+            False
+            sage: C[0] is Im[0]
+            False
+            sage: C[1] is Im[1]
+            True
+            sage: C[2] is C[0]
+            True
+
+            sage: Mi = Sequence([i, i], immutable=False)
+            sage: C = deepcopy(Mi); C
+            [(1, 1), (1, 1)]
+            sage: C is Im
+            False
+            sage: C[0] is Im[0]
+            False
+            sage: C[1] is Im[1]
+            True
+        """
+        from copy import deepcopy
+        copies = tuple(deepcopy(x, memo) for x in self)
+        if self.is_immutable():
+            if all(x is x_copy for x, x_copy in zip(self, copies)):
+                return self
+        return Sequence(copies, universe=self.__universe,
+                        check=False,
+                        immutable=self._is_immutable,
+                        cr=self.__cr_str)
+
     def __getattr__(self, name):
         """
         Strictly for unpickling old 'Sequences'
