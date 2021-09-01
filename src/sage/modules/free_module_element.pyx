@@ -1495,6 +1495,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: copy(v)
             (1, 2, 3, 4, 5)
         """
+        if self.is_immutable():
+            return self
         if self.is_sparse():
             return self.parent()(self.dict())
         else:
@@ -4161,7 +4163,13 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             True
             sage: copy(v) is v
             False
+
+            sage: v.set_immutable()
+            sage: copy(v) is v
+            True
         """
+        if self._is_immutable:
+            return self
         return self._new_c(list(self._entries))
 
     def __init__(self, parent, entries, coerce=True, copy=True):
@@ -4589,10 +4597,16 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         EXAMPLES::
 
-            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v = vector([1, 2/3, pi], sparse=True)
             sage: v.__copy__()
             (1, 2/3, pi)
+
+            sage: v = vector([1, 2/3, pi], sparse=True, immutable=True)
+            sage: v.__copy__() is v
+            True
         """
+        if self._is_immutable:
+            return self
         return self._new_c(dict(self._entries))
 
     def __init__(self, parent, entries=0, coerce=True, copy=True):
