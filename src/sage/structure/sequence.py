@@ -910,6 +910,26 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         self._require_mutable()
         return list.__iadd__(self, other)
 
+    def __imul__(self, other):
+        r"""
+        TESTS::
+
+            sage: M = Sequence([1, 2, 3], immutable=False)
+            sage: M *= 2
+            sage: M
+            [1, 2, 3, 1, 2, 3]
+
+            sage: I = Sequence([1, 2, 3], immutable=True)
+            sage: I *= 2
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead.
+            sage: I
+            [1, 2, 3]
+        """
+        self._require_mutable()
+        return list.__imul__(self, other)
+
 
 seq = Sequence
 
