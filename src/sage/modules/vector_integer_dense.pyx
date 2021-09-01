@@ -73,6 +73,22 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         return 0
 
     def __copy__(self):
+        """
+        EXAMPLES::
+
+            sage: i = vector(ZZ, [1r, 1r], immutable=True)
+            sage: copy(i) is i
+            True
+
+            sage: m = vector(ZZ, [1000r, 1000r], immutable=False)
+            sage: c = copy(m)
+            sage: c is m
+            False
+            sage: c == m
+            True
+        """
+        if self._is_immutable:
+            return self
         cdef Vector_integer_dense y
         y = self._new_c()
         cdef Py_ssize_t i
