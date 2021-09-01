@@ -30,10 +30,10 @@ from memory_allocator cimport MemoryAllocator
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
-from sage.misc.all import prod
+from sage.misc.decorators import sage_wraps
 
 
-def chromatic_polynomial(G, return_tree_basis=False):
+def chromatic_polynomial(G, algorithm='C', return_tree_basis=False):
     """
     Compute the chromatic polynomial of the graph G.
 
@@ -45,6 +45,20 @@ def chromatic_polynomial(G, return_tree_basis=False):
         - If e is an edge of G, G' is the result of deleting the edge e, and G''
           is the result of contracting e, then the chromatic polynomial of G is
           equal to that of G' minus that of G''.
+
+    INPUT:
+
+    - ``G`` -- a Sage graph
+
+    - ``algorithm`` -- string (default: ``"C"``); the algorithm to use among
+
+      - ``"C"``, an implementation in C by Robert Miller and Gordon Royle.
+
+      - ``"Python"``, an implementation in Python using caching to avoid
+        recomputing the chromatic polynomial of a graph that has already been
+        seen. This seems faster on some dense graphs.
+
+    - ``return_tree_basis`` -- boolean (default: ``False``); not used yet
 
     EXAMPLES::
 
@@ -90,6 +104,14 @@ def chromatic_polynomial(G, return_tree_basis=False):
         sage: min(i for i in range(11) if P(i) > 0) == G.chromatic_number()
         True
 
+    Check that algorithms ``"C"`` and ``"Python"`` return the same results::
+
+        sage: G = graphs.RandomGNP(8, randint(1, 9)*0.1)
+        sage: c = G.chromatic_polynomial(algorithm='C')
+        sage: p = G.chromatic_polynomial(algorithm='Python')
+        sage: c == p
+        True
+
     TESTS:
 
     Check that :trac:`21502` is solved::
@@ -101,16 +123,27 @@ def chromatic_polynomial(G, return_tree_basis=False):
 
         sage: Graph([[1, 1]], multiedges=True, loops=True).chromatic_polynomial()
         0
+
+    Giving a wrong algorithm::
+
+        sage: Graph().chromatic_polynomial(algorithm="foo")
+        Traceback (most recent call last):
+        ...
+        ValueError: algorithm must be "C" or "Python"
     """
+    algorithm = algorithm.lower()
+    if algorithm not in ['c', 'python']:
+        raise ValueError('algorithm must be "C" or "Python"')
+    if algorithm == 'python':
+        return chromatic_polynomial_with_cache(G)
+
+    R = ZZ['x']
     if not G:
-        R = ZZ['x']
         return R.one()
     if G.has_loops():
-        R = ZZ['x']
         return R.zero()
     if not G.is_connected():
-        return prod([chromatic_polynomial(g) for g in G.connected_components_subgraphs()])
-    R = ZZ['x']
+        return R.prod([chromatic_polynomial(g) for g in G.connected_components_subgraphs()])
     x = R.gen()
     if G.is_tree():
         return x * (x - 1) ** (G.num_verts() - 1)
@@ -312,3 +345,143 @@ cdef int contract_and_count(int *chords1, int *chords2, int num_chords, int nver
                 j += 1
         contract_and_count(new_chords1, new_chords2, num, nverts - 1, tot, parent)
     mpz_add_ui(tot[nverts], tot[nverts], 1)
+
+
+#
+# Chromatic Polynomial with caching
+#
+
+def _cache_key(G):
+    """
+    Return the key used to cache the result for the graph G
+
+    This is used by the decorator :func:`_cached`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.chrompoly import _cache_key
+        sage: G = graphs.DiamondGraph()
+        sage: key = _cache_key(G)
+        sage: key == frozenset({(0, 2), (0, 3), (1, 2), (1, 3), (2, 3)})
+        True
+    """
+    return frozenset(G.canonical_label().edges(labels=False, sort=False))
+
+def _cached(func):
+    """
+    Wrapper used to cache results of the function `func`
+
+    This uses the function :func:`_cache_key`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.chrompoly import chromatic_polynomial_with_cache
+        sage: G = graphs.DiamondGraph()
+        sage: chromatic_polynomial_with_cache(G)  # indirect doctest
+        x^4 - 5*x^3 + 8*x^2 - 4*x
+    """
+    @sage_wraps(func)
+    def wrapper(G, *args, **kwds):
+        cache = kwds.setdefault('cache', {})
+        key = _cache_key(G)
+        if key in cache:
+            return cache[key]
+        result = func(G, *args, **kwds)
+        cache[key] = result
+        return result
+    wrapper.original_func = func
+    return wrapper
+
+@_cached
+def chromatic_polynomial_with_cache(G, cache=None):
+    r"""
+    Return the chromatic polynomial of the graph ``G``.
+
+    The algorithm used is a recursive one, based on the following observations
+    of Read:
+
+        - The chromatic polynomial of a tree on n vertices is `x(x-1)^{n-1}`.
+
+        - If `e` is an edge of `G`, `G'` is the result of deleting the edge `e`,
+          and `G''` is the result of contracting `e`, then the chromatic
+          polynomial of `G` is equal to that of `G'` minus that of `G''`.
+
+    INPUT:
+
+    - ``G`` -- a Sage graph
+
+    - ``cache`` -- dict (default: ``None``); a dictionary to cache the chromatic
+      polynomials generated in the recursive process. One will be created
+      automatically if not provided.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.chrompoly import chromatic_polynomial_with_cache
+        sage: chromatic_polynomial_with_cache(graphs.CycleGraph(4))
+        x^4 - 4*x^3 + 6*x^2 - 3*x
+        sage: chromatic_polynomial_with_cache(graphs.CycleGraph(3))
+        x^3 - 3*x^2 + 2*x
+        sage: chromatic_polynomial_with_cache(graphs.CubeGraph(3))
+        x^8 - 12*x^7 + 66*x^6 - 214*x^5 + 441*x^4 - 572*x^3 + 423*x^2 - 133*x
+        sage: chromatic_polynomial_with_cache(graphs.PetersenGraph())
+        x^10 - 15*x^9 + 105*x^8 - 455*x^7 + 1353*x^6 - 2861*x^5 + 4275*x^4 - 4305*x^3 + 2606*x^2 - 704*x
+        sage: chromatic_polynomial_with_cache(graphs.CompleteBipartiteGraph(3,3))
+        x^6 - 9*x^5 + 36*x^4 - 75*x^3 + 78*x^2 - 31*x
+
+    TESTS:
+
+    Corner cases::
+
+        sage: from sage.graphs.chrompoly import chromatic_polynomial_with_cache
+        sage: chromatic_polynomial_with_cache(graphs.EmptyGraph())
+        1
+        sage: chromatic_polynomial_with_cache(Graph(1))
+        x
+        sage: chromatic_polynomial_with_cache(Graph(2))
+        x^2
+        sage: chromatic_polynomial_with_cache(Graph(3))
+        x^3
+        sage: chromatic_polynomial_with_cache(Graph([[1, 1]], loops=True))
+        0
+
+    Providing an external cache::
+
+        sage: from sage.graphs.chrompoly import chromatic_polynomial_with_cache
+        sage: cache = {}
+        sage: G = graphs.RandomGNP(7,.5)
+        sage: c = chromatic_polynomial_with_cache(G, cache=cache)
+        sage: len(cache) > 0
+        True
+    """
+    if not G:
+        return ZZ['x'].one()
+    if G.has_loops():
+        return ZZ['x'].zero()
+    if not G.is_connected():
+        return ZZ['x'].prod([chromatic_polynomial_with_cache(H)
+                             for H in G.connected_components_subgraphs()])
+
+    # Since we know that G is connected it is enough to check the number of edges
+    # to test if it is a tree
+    if G.order() == G.size() + 1:
+        x = ZZ['x'].gen()
+        return x*(x - 1)**(G.order() - 1)
+
+    # Otherwise, the chromatic polynomial of G is the chromatic polynomial of G
+    # without edge e minus the chromatic polynomial of G after the contraction
+    # of edge e
+    H = G.relabel(inplace=False)
+    H.remove_multiple_edges()
+    # We try to select an edge that could disconnect the graph
+    for u, v in H.bridges(labels=False):
+        break
+    else:
+        u, v = next(H.edge_iterator(labels=False))
+
+    H.delete_edge(u,v)
+    p = chromatic_polynomial_with_cache(H)
+    H.add_edge(u,v)
+
+    H.merge_vertices([u, v])
+
+    return p - chromatic_polynomial_with_cache(H)
