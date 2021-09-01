@@ -908,11 +908,11 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: Mi = Sequence([i, i], immutable=False)
             sage: C = deepcopy(Mi); C
             [(1, 1), (1, 1)]
-            sage: C is Im
+            sage: C is Mi
             False
-            sage: C[0] is Im[0]
-            False
-            sage: C[1] is Im[1]
+            sage: C[0] is Mi[0]
+            True
+            sage: C[1] is Mi[1]
             True
         """
         from copy import deepcopy
