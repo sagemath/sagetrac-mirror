@@ -900,14 +900,15 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             [1, 2, 3, 4, 5, 6]
 
             sage: I = Sequence([1, 2, 3], immutable=True)
-            sage: I += [4, 5, 6]
-            Traceback (most recent call last):
-            ...
-            ValueError: object is immutable; please change a copy instead.
+            sage: J = I
+            sage: J += [4, 5, 6]
+            sage: J
+            [1, 2, 3, 4, 5, 6]
             sage: I
             [1, 2, 3]
         """
-        self._require_mutable()
+        if self.is_immutable():
+            return list.__add__(self, other)
         return list.__iadd__(self, other)
 
     def __imul__(self, other):
@@ -920,14 +921,15 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             [1, 2, 3, 1, 2, 3]
 
             sage: I = Sequence([1, 2, 3], immutable=True)
-            sage: I *= 2
-            Traceback (most recent call last):
-            ...
-            ValueError: object is immutable; please change a copy instead.
+            sage: J = I
+            sage: J *= 2
+            sage: J
+            [1, 2, 3, 1, 2, 3]
             sage: I
             [1, 2, 3]
         """
-        self._require_mutable()
+        if self.is_immutable():
+            return list.__mul__(self, other)
         return list.__imul__(self, other)
 
     def __delitem__(self, key):
