@@ -889,6 +889,28 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             return self.__hash
         else:
             raise AttributeError("'Sequence_generic' object has no attribute '%s'"%name)
+
+    def __iadd__(self, other):
+        r"""
+        TESTS::
+
+            sage: M = Sequence([1, 2, 3], immutable=False)
+            sage: M += [4, 5, 6]
+            sage: M
+            [1, 2, 3, 4, 5, 6]
+
+            sage: I = Sequence([1, 2, 3], immutable=True)
+            sage: I += [4, 5, 6]
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead.
+            sage: I
+            [1, 2, 3]
+        """
+        self._require_mutable()
+        return list.__iadd__(self, other)
+
+
 seq = Sequence
 
 from sage.misc.persist import register_unpickle_override
