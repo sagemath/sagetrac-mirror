@@ -96,6 +96,23 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             mpz_set(y._entries[i], self._entries[i])
         return y
 
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: i = vector(ZZ, [1r, 1r], immutable=True)
+            sage: deepcopy(i) is i
+            True
+
+            sage: m = vector(ZZ, [1000r, 1000r], immutable=False)
+            sage: c = deepcopy(m)
+            sage: c is m
+            False
+            sage: c == m
+            True
+        """
+        return self.__copy__()
+
     cdef int _init(self, Py_ssize_t degree, Parent parent) except -1:
         """
         Initialize the C data structures in this vector. After calling
