@@ -94,14 +94,15 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
     - ``check`` -- (default: True) whether to coerce the elements of x
       into the universe
 
-    - ``immutable`` - (default: True) whether or not this sequence is
+    - ``immutable`` - (default: False) whether or not this sequence is
       immutable
 
     - ``cr`` - (default: False) if True, then print a carriage return
       after each comma when printing this sequence.
 
-    - ``cr_str`` - (default: False) if True, then print a carriage return
-      after each comma when calling ``str()`` on this sequence.
+    - ``cr_str`` - (default: ``None``, i.e., taken from ``cr``) if True,
+      then print a carriage return after each comma when calling
+      ``str()`` on this sequence.
 
     - ``use_sage_types`` -- (default: False) if True, coerce the
        built-in Python numerical types int, float, complex to the
