@@ -30,6 +30,7 @@ Noncommutative Multivariate Polynomials
    :maxdepth: 1
 
    sage/rings/polynomial/plural
+   sage/algebras/gbnp
 
 .. include:: ../footer.txt
 
