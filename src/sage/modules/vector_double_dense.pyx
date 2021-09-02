@@ -165,6 +165,23 @@ cdef class Vector_double_dense(FreeModuleElement):
         from copy import copy
         return self._new(copy(self._vector_numpy))
 
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: i = vector(RDF, [1, 1], immutable=True)
+            sage: deepcopy(i) is i
+            True
+
+            sage: m = vector(RDF, [1000, 1000], immutable=False)
+            sage: c = deepcopy(m)
+            sage: c is m
+            False
+            sage: c == m
+            True
+        """
+        return self.__copy__()
+
     def __init__(self, parent, entries, coerce = True, copy = True):
         """
         Fill the vector with entries.
