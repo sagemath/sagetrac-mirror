@@ -80,6 +80,22 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
         return 0
 
     def __copy__(self):
+        """
+        EXAMPLES::
+
+            sage: i = vector(QQ, [1, 1], immutable=True)
+            sage: copy(i) is i
+            True
+
+            sage: m = vector(QQ, [1000, 1000], immutable=False)
+            sage: c = copy(m)
+            sage: c is m
+            False
+            sage: c == m
+            True
+        """
+        if self._is_immutable:
+            return self
         cdef Vector_rational_dense y
         y = self._new_c()
         cdef Py_ssize_t i
