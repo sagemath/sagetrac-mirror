@@ -100,7 +100,13 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             sage: v[5] += 1
             sage: v == w
             False
+
+            sage: v.set_immutable()
+            sage: copy(v) is v
+            True
         """
+        if self._is_immutable:
+            return self
         cdef Vector_mod2_dense y = self._new_c()
         if self._degree:
             mzd_copy(y._entries, self._entries)
