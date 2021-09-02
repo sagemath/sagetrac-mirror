@@ -1492,8 +1492,13 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
             sage: v = vector([1..5], sparse=True); v
             (1, 2, 3, 4, 5)
-            sage: copy(v)
+            sage: w = copy(v); w
             (1, 2, 3, 4, 5)
+            sage: v is w
+            False
+            sage: v.set_immutable()
+            sage: copy(v) is v
+            True
         """
         if self.is_immutable():
             return self
@@ -1501,6 +1506,66 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             return self.parent()(self.dict())
         else:
             return self.parent()(self.list())
+
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES:
+
+        Sparse::
+
+            sage: R = RIF
+            sage: i = R(1)
+            sage: Ii = vector([i, i], immutable=True, sparse=True); Ii
+            (1, 1)
+            sage: C = deepcopy(Ii); C
+            (1, 1)
+            sage: C is Ii
+            True
+
+            sage: Mi = vector([i, i], immutable=False, sparse=True); Mi
+            (1, 1)
+            sage: C = deepcopy(Mi); C
+            (1, 1)
+            sage: C is Mi
+            False
+            sage: C[0] is Mi[0]
+            True
+
+        Dense::
+
+            sage: R = RIF
+            sage: i = R(1)
+            sage: Ii = vector([i, i], immutable=True); Ii
+            (1, 1)
+            sage: C = deepcopy(Ii); C
+            (1, 1)
+            sage: C is Ii
+            True
+
+            sage: Mi = vector([i, i], immutable=False); Mi
+            (1, 1)
+            sage: C = deepcopy(Mi); C
+            (1, 1)
+            sage: C is Mi
+            False
+            sage: C[0] is Mi[0]
+            True
+        """
+        from copy import deepcopy
+        if self.is_sparse():
+            d = self.dict()
+            copies = {index: deepcopy(value, memo)
+                      for index, value in d.items()}
+            if self.is_immutable():
+                if all(x is x_copy for x, x_copy in zip(d.values(), copies.values())):
+                    return self
+            return self.parent()(copies)
+        else:
+            copies = tuple(deepcopy(x, memo) for x in self)
+            if self.is_immutable():
+                if all(x is x_copy for x, x_copy in zip(self, copies)):
+                    return self
+            return self.parent()(copies)
 
     def subs(self, in_dict=None, **kwds):
         """
