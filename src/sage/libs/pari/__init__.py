@@ -170,6 +170,13 @@ call individually::
     3.605463601432652085915820564207726774810268996598024745444380641429820491740 # 64-bit
     3.60546360143265208591582056420772677481026899659802474544                    # 32-bit
 
+TESTS:
+
+Check that cysignals interfaces the PARI/GP signals handler::
+
+    sage: from cysignals.signals import interfaces_pari_signal_handler
+    sage: interfaces_pari_signal_handler()
+    True
 """
 
 def _get_pari_instance():
