@@ -224,9 +224,9 @@ class GapIdeal(Ideal_nc):
 
         INPUT:
 
-        - ``ring`` -- the ring of the ideal. Should be a free algebra over some field.
+        - ``ring`` -- the ring of the ideal. Should be a free algebra over some field
 
-        - ``gens`` -- the generators of the ideal.
+        - ``gens`` -- the generators of the ideal
 
         EXAMPLES::
 
@@ -272,9 +272,9 @@ class GapIdeal(Ideal_nc):
 
         - ``max_iters`` (default: 10) -- the number of iterations for the
           Buchberger's Algorithm. If 0, the calculations will continue until it
-          terminates (but might not terminate at all).
+          terminates (but might not terminate at all)
 
-        - ``strong`` (default: ``True``) -- whether to compute a strong Groebner basis.
+        - ``strong`` (default: ``True``) -- whether to compute a strong Groebner basis
 
         OUTPUT:
 
@@ -324,7 +324,7 @@ class GapIdeal(Ideal_nc):
 
         INPUT:
 
-        - ``strong`` (default: ``True``) -- whether to check for a strong Groebner basis.
+        - ``strong`` (default: ``True``) -- whether to check for a strong Groebner basis
 
         OUTPUT:
 
@@ -357,10 +357,10 @@ class GapIdeal(Ideal_nc):
 
         INPUT:
 
-        - ``elem`` -- an element of the free algebra.
+        - ``elem`` -- an element of the free algebra
         - ``check`` (default: ``True``) -- if ``True``, checks whether the given
           generators form a Groebner basis, and if not compute a new Groebner
-          basis (might not terminate!).
+          basis (might not terminate!)
 
         OUTPUT:
 
@@ -407,9 +407,9 @@ class GapQuotientRing(QuotientRing_nc):
 
         INPUT:
 
-        - ``R`` -- the cover ring.
+        - ``R`` -- the cover ring
 
-        - ``I`` -- the defining ideal of the quotient.
+        - ``I`` -- the defining ideal of the quotient
 
         EXAMPLES:
 
@@ -452,12 +452,12 @@ class GapQuotientRing(QuotientRing_nc):
         INPUT:
 
         - ``maxno`` (default: 0) -- if nonzero, computes a basis until it has
-          at least this number of elements.
+          at least this number of elements
 
         OUTPUT:
 
-        A basis (or a partial set from the basis, if maxno is given) for the
-        quotient algebra.
+        A basis (or a partial set from the basis, if ``maxno`` is given) for
+        the quotient algebra.
 
         EXAMPLES:
 
@@ -519,9 +519,9 @@ class GapQuotientRing(QuotientRing_nc):
 
         INPUT:
 
-        - ``gen_index`` -- the index of the generator.
+        - ``gen_index`` -- the index of the generator
 
-        - ``basis`` -- a basis for the quotient algebra.
+        - ``basis`` -- a basis for the quotient algebra
 
         OUTPUT:
 
@@ -573,7 +573,7 @@ class GapQuotientRing(QuotientRing_nc):
 
         INPUT:
 
-        - ``basis`` -- a basis for the quotient algebra.
+        - ``basis`` -- a basis for the quotient algebra
 
         OUTPUT:
 
@@ -633,11 +633,11 @@ class GapQuotientRing(QuotientRing_nc):
 
         INPUT:
 
-        - ``elem`` -- an element of the free algebra.
+        - ``elem`` -- an element of the free algebra
 
         - ``check`` (default: ``True``) -- if ``True``, checks whether the
           generators form a Groebner basis, and if not compute a new Groebner
-          basis (might not terminate!).
+          basis (might not terminate!)
 
         OUTPUT:
 
@@ -676,7 +676,7 @@ class GapQuotientRing(QuotientRing_nc):
         INPUT:
 
         - ``gap_obj`` (default: ``False``) -- if set to ``True``, returns the monomials
-          as GBNP objects.
+          as GBNP objects
 
         OUTPUT:
 
@@ -705,7 +705,7 @@ class GapQuotientRing(QuotientRing_nc):
         INPUT:
 
         - ``exact`` (default: ``True``) -- if set to ``False`` and the growth is
-          polynomial, returns a list of the possible degrees.
+          polynomial, returns a list of the possible degrees
 
         OUTPUT:
 
@@ -806,7 +806,7 @@ class GapQuotientRing(QuotientRing_nc):
 
         INPUT:
 
-        - ``deg`` -- The maximal degree to compute in the Hilbert series.
+        - ``deg`` -- The maximal degree to compute in the Hilbert series
 
         OUTPUT:
 
@@ -835,9 +835,9 @@ class GapFreeAlgebra(FreeAlgebra_generic):
 
         INPUT:
 
-        - ``R`` -- the base ring of the algebra. Should be a field.
+        - ``R`` -- the base ring of the algebra. Should be a field
 
-        - ``n`` (default: ``None``) -- the number of generators of the algebra.
+        - ``n`` (default: ``None``) -- the number of generators of the algebra
           If None, ``names`` must be given.
 
         - ``names`` (default: ``None``) -- the names for the generators of the
@@ -872,17 +872,17 @@ class GapFreeAlgebra(FreeAlgebra_generic):
         self._gap_algebra = libgap.FreeAssociativeAlgebraWithOne(libgap(self.base_ring()),
                                         self.variable_names())
 
-    def ideal(self, *args, **kwds):
+    def ideal(self, *gens, **kwds):
         """
-        Return the ideal defined by ``x``, i.e., generated by ``x``.
+        Return the ideal generated by the elements in ``gens``.
 
         INPUT:
 
-        - ``*x`` -- list or tuple of generators (or several input arguments).
+        - ``gens`` -- list or tuple of generators (or several input arguments)
 
         OUTPUT:
 
-        The ideal generated by ``*x``, implemented in GAP.
+        The ideal generated by ``gens``, implemented in GAP.
 
         EXAMPLES::
 
@@ -892,7 +892,7 @@ class GapFreeAlgebra(FreeAlgebra_generic):
             sage: I    # optional - gbnp
             Twosided Ideal (x*y - y*x, x^2) of Free Algebra on 2 generators (x, y) over Rational Field
         """
-        I = super(FreeAlgebra_generic, self).ideal(*args, **kwds)
+        I = super(FreeAlgebra_generic, self).ideal(*gens, **kwds)
         return GapIdeal(self, I.gens())
 
     def quotient(self, rels):
@@ -901,7 +901,7 @@ class GapFreeAlgebra(FreeAlgebra_generic):
 
         INPUT:
 
-        - ``rels`` -- a list of the generators for the defining ideal of the quotient.
+        - ``rels`` -- a list of the generators for the defining ideal of the quotient
 
         OUTPUT:
 
