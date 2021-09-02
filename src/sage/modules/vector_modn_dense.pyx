@@ -170,6 +170,23 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             y._entries[i] = self._entries[i]
         return y
 
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: i = vector(GF(1013), [1, 1], immutable=True)
+            sage: deepcopy(i) is i
+            True
+
+            sage: m = vector(GF(1013), [1000, 1000], immutable=False)
+            sage: c = deepcopy(m)
+            sage: c is m
+            False
+            sage: c == m
+            True
+        """
+        return self.__copy__()
+
     cdef _init(self, Py_ssize_t degree, parent, mod_int p):
         self._degree = degree
         self._parent = parent
