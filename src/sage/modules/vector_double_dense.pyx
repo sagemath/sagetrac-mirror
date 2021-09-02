@@ -134,7 +134,6 @@ cdef class Vector_double_dense(FreeModuleElement):
         """
         return 0
 
-
     def __copy__(self, copy=True):
         """
         Return a copy of the vector
@@ -142,9 +141,25 @@ cdef class Vector_double_dense(FreeModuleElement):
         EXAMPLES::
 
             sage: a = vector(RDF, range(9))
-            sage: a == copy(a)
+            sage: c = copy(a)
+            sage: c is a
+            False
+            sage: c == a
+            True
+
+            sage: i = vector(RDF, [1, 1], immutable=True)
+            sage: copy(i) is i
+            True
+
+            sage: m = vector(RDF, [1000, 1000], immutable=False)
+            sage: c = copy(m)
+            sage: c is m
+            False
+            sage: c == m
             True
         """
+        if self._is_immutable:
+            return self
         if self._degree == 0:
             return self
         from copy import copy
@@ -490,7 +505,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         if numpy_array.ndim != 1 or len(self._vector_numpy) != numpy_array.shape[0]:
             raise ValueError("vector lengths are not the same")
 
-        self._vector_numpy = numpy_array.astype(self._numpy_dtype)
+        self._vector_numpy = numpy_array.astype(self._numpy_dtype)  # makes a copy
 
 
     def complex_vector(self):
