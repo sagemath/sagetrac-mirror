@@ -112,6 +112,18 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             mzd_copy(y._entries, self._entries)
         return y
 
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: VS = VectorSpace(GF(2),10^4)
+            sage: v = VS.random_element()
+            sage: v.set_immutable()
+            sage: deepcopy(v) is v
+            True
+        """
+        return self.__copy__()
+
     cdef _init(self, Py_ssize_t degree, parent):
         """
         EXAMPLES::
