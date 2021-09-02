@@ -126,7 +126,7 @@ class QuasiWeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRe
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None):
+    def __classcall__(cls, group=HeckeTriangleGroup(3), base_ring=ZZ, red_hom=False, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
@@ -186,7 +186,7 @@ class QuasiModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepres
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None):
+    def __classcall__(cls, group=HeckeTriangleGroup(3), base_ring=ZZ, red_hom=False, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
@@ -270,7 +270,7 @@ class QuasiCuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresent
 
         - ``group``      -- The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
 
-        - ``base_ring``  -- The base_ring (default: ``ZZ``).
+        - ``base_ring``  -- The base_ring (default: `\ZZ`).
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
@@ -306,7 +306,7 @@ class MeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, Unique
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None):
+    def __classcall__(cls, group=HeckeTriangleGroup(3), base_ring=ZZ, red_hom=False, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
@@ -366,7 +366,7 @@ class WeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueReprese
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, red_hom = False, n=None):
+    def __classcall__(cls, group=HeckeTriangleGroup(3), base_ring=ZZ, red_hom=False, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 

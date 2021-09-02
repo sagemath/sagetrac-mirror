@@ -323,10 +323,10 @@ class AnalyticType(FiniteLatticePoset):
     (and analytic types) given by "inclusion". We name the analytic type
     according to its maximal analytic properties.
 
-    For `n=3` the quasi form ``el = E6 - E2^3`` has the quasi components ``E6``
-    which is ``holomorphic`` and ``E2^3`` which is ``quasi holomorphic``.
-    So the analytic type of ``el`` is ``quasi holomorphic`` despite the fact
-    that the sum (``el``) describes a function which is zero at infinity.
+    For `n=3` the quasi form `el = E_6 - E_2^3` has the quasi components `E_6`
+    which is ``holomorphic`` and `E_2^3` which is ``quasi holomorphic``.
+    So the analytic type of `el` is ``quasi holomorphic`` despite the fact
+    that the sum (`el`) describes a function which is zero at infinity.
 
     EXAMPLES::
 
@@ -336,8 +336,8 @@ class AnalyticType(FiniteLatticePoset):
         sage: el.analytic_type()
         quasi modular
 
-        Similarly the type of the ring element ``el2 = E4/Delta - E6/Delta`` is
-        ``weakly holomorphic`` despite the fact that the sum (``el2``) describes
+        Similarly the type of the ring element `el_2 = E_4/\Delta - E_6/\Delta` is
+        ``weakly holomorphic`` despite the fact that the sum (`el_2`) describes
         a function which is holomorphic at infinity.
 
         sage: from sage.modular.modform_hecketriangle.graded_ring import WeakModularFormsRing
@@ -601,4 +601,3 @@ class AnalyticType(FiniteLatticePoset):
         """
 
         return FiniteLatticePoset(self._base_poset.order_ideals_lattice(), facade=False)
-

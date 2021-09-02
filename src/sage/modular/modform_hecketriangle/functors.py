@@ -47,13 +47,13 @@ def _get_base_ring(ring, var_name="d"):
 
     The base ring is used in the construction of the corresponding
     ``FormsRing`` or ``FormsSpace``. In particular in the construction
-    of holomorphic forms of degree (0, 1). For (binary)
+    of holomorphic forms of degree `(0, 1)`. For (binary)
     operations a general ring element is considered (coerced to)
-    a (constant) holomorphic form of degree (0, 1)
+    a (constant) holomorphic form of degree `(0, 1)`
     whose construction should be based on the returned base ring
     (and not on ``ring``!).
 
-    If ``var_name`` (default: "d") is specified then this variable
+    If ``var_name`` (default: ``"d"``) is specified then this variable
     name is used for the polynomial ring.
 
     EXAMPLES::
@@ -336,12 +336,12 @@ class FormsSpaceFunctor(ConstructionFunctor):
     r"""
     Construction functor for forms spaces.
 
-    NOTE:
+    .. NOTE::
 
-    When the base ring is not a ``BaseFacade`` the functor is first
-    merged with the ConstantFormsSpaceFunctor.  This case occurs in
-    the pushout constructions (when trying to find a common parent
-    between a forms space and a ring which is not a ``BaseFacade``).
+        When the base ring is not a ``BaseFacade`` the functor is first
+        merged with the ConstantFormsSpaceFunctor.  This case occurs in
+        the pushout constructions (when trying to find a common parent
+        between a forms space and a ring which is not a ``BaseFacade``).
     """
 
     from .analytic_type import AnalyticType
@@ -527,12 +527,12 @@ class FormsRingFunctor(ConstructionFunctor):
     r"""
     Construction functor for forms rings.
 
-    NOTE:
+    .. NOTE::
 
-    When the base ring is not a ``BaseFacade`` the functor is first
-    merged with the ConstantFormsSpaceFunctor.  This case occurs in
-    the pushout constructions.  (when trying to find a common parent
-    between a forms ring and a ring which is not a ``BaseFacade``).
+        When the base ring is not a ``BaseFacade`` the functor is first
+        merged with the ConstantFormsSpaceFunctor.  This case occurs in
+        the pushout constructions.  (when trying to find a common parent
+        between a forms ring and a ring which is not a ``BaseFacade``).
     """
 
     from .analytic_type import AnalyticType

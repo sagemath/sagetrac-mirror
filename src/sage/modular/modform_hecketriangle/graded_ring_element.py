@@ -73,23 +73,23 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
     def __init__(self, parent, rat):
         r"""
         Element of a FormsRing ``parent`` corresponding to the rational
-        function ``rat`` evaluated at ``x=f_rho``, ``y=f_i``, ``z=E2``
-        and ``d`` by the formal parameter from ``parent.coeff_ring()``.
+        function ``rat`` evaluated at `x=f_{\rho}`, `y=f_i`, `z=E_2`
+        and `d` by the formal parameter from ``parent.coeff_ring()``.
 
-        The functions ``f_rho, f_i, E2`` can be obtained from
+        The functions `f_{\rho}, f_i, E_2` can be obtained from
         ``self.parent().graded_ring()``.
 
         .. NOTE::
 
-            If ``n=Infinity`` then the variable ``x`` refers to ``E4`` instead
-            of ``f_rho=1``.
+            If ``n=Infinity`` then the variable `x` refers to `E_4` instead
+            of `f_{\rho}=1`.
 
         INPUT:
 
         - ``parent`` -- An (non abstract) instance of ``FormsRing_abstract``.
 
         - ``rat``    -- A rational function in ``parent.rat_field()``, the
-                        fraction field of the polynomial ring in ``x,y,z,d``
+                        fraction field of the polynomial ring in `x,y,z,d`
                         over the base ring of ``parent``.
 
         OUTPUT:
@@ -275,7 +275,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
 
     def hecke_n(self):
         r"""
-        Return the parameter ``n`` of the (Hecke triangle) group of ``self.parent()``.
+        Return the parameter `n` of the (Hecke triangle) group of ``self.parent()``.
 
         EXAMPLES::
 
@@ -331,7 +331,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
         the presentation of ``self`` as a rational function in the polynomial generators.
 
         The new element still compares equal to the old one but the corresponding
-        rational function no longer contains any ``d`` (in the arithmetic cases).
+        rational function no longer contains any `d` (in the arithmetic cases).
 
         EXAMPLES::
 
@@ -459,7 +459,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
     def is_weakly_holomorphic(self):
         r"""
         Return whether ``self`` is weakly holomorphic
-        in the sense that: ``self`` has at most a power of ``f_inf``
+        in the sense that: ``self`` has at most a power of `f_{\infty}`
         in its denominator.
 
         EXAMPLES::
@@ -509,7 +509,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
     def is_cuspidal(self):
         r"""
         Return whether ``self`` is cuspidal
-        in the sense that ``self`` is holomorphic and ``f_inf``
+        in the sense that ``self`` is holomorphic and `f_{\inf}`
         divides the numerator.
 
         EXAMPLES::
@@ -724,7 +724,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
 
         return self.parent()(self._rat+other._rat)
 
-    def _sub_(self,other):
+    def _sub_(self, other):
         r"""
         Return the difference of ``self`` and ``other``.
 
@@ -805,7 +805,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
         """
         return self.parent()(-self._rat)
 
-    def _mul_(self,other):
+    def _mul_(self, other):
         r"""
         Return the product of ``self`` and ``other``.
 
@@ -888,7 +888,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
         # The product of two homogeneous elements is homogeneous
         return new_parent(res).reduce()
 
-    def _div_(self,other):
+    def _div_(self, other):
         r"""
         Return the division of ``self`` by ``other``.
 
@@ -1119,7 +1119,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
     # note that this is qd/dq, resp 1/(2*pi*i)*d/dtau
     def derivative(self):
         r"""
-        Return the derivative ``d/dq = lambda/(2*pi*i) d/dtau`` of ``self``.
+        Return the derivative `d/dq = \lambda/(2*\pi*i) d/d\tau` of ``self``.
 
         Note that the parent might (probably will) change.
         In particular its analytic type will be extended
@@ -1526,7 +1526,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
 
     #precision is actually accuracy, maybe add "real precision" meaning number of rel. coef
     @cached_method
-    def _q_expansion_cached(self, prec, fix_d, subs_d, d_num_prec, fix_prec = False):
+    def _q_expansion_cached(self, prec, fix_d, subs_d, d_num_prec, fix_prec=False):
         """
         Returns the Fourier expansion of self (cached).
         Don't call this function, instead use :meth:`q_expansion`.
@@ -1594,7 +1594,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
 
         return qexp
 
-    def q_expansion(self, prec = None, fix_d = False, d_num_prec = None, fix_prec = False):
+    def q_expansion(self, prec=None, fix_d=False, d_num_prec=None, fix_prec=False):
         """
         Returns the Fourier expansion of self.
 
@@ -1698,7 +1698,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
 
         return self._q_expansion_cached(prec, fix_d, subs_d, d_num_prec, fix_prec)
 
-    def q_expansion_fixed_d(self, prec = None, d_num_prec = None, fix_prec = False):
+    def q_expansion_fixed_d(self, prec=None, d_num_prec=None, fix_prec=False):
         """
         Returns the Fourier expansion of self.
         The numerical (or exact) value for ``d`` is substituted.
@@ -1760,7 +1760,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
 
         return self.q_expansion(prec, True, d_num_prec, fix_prec)
 
-    def q_expansion_vector(self, min_exp = None, max_exp = None, prec = None, **kwargs):
+    def q_expansion_vector(self, min_exp=None, max_exp=None, prec=None, **kwargs):
         r"""
         Return (part of) the Laurent series expansion of ``self`` as a vector.
 
@@ -1831,7 +1831,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
 
         return vector([qexp[m] for m in range(min_exp, max_exp +1)])
 
-    def evaluate(self, tau, prec = None, num_prec = None, check=False):
+    def evaluate(self, tau, prec=None, num_prec=None, check=False):
         r"""
         Try to return ``self`` evaluated at a point ``tau``
         in the upper half plane, where ``self`` is interpreted
@@ -2211,7 +2211,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
                 f_rho = self.parent().graded_ring().f_rho()
                 return self._rat.subs(x=f_rho(tau), y=f_i(tau), z=E2(tau), d=dval)
 
-    def __call__(self, tau, prec = None, num_prec = None, check=False):
+    def __call__(self, tau, prec=None, num_prec=None, check=False):
         r"""
         Try to return ``self`` evaluated at a point ``tau``
         in the upper half plane, where ``self`` is interpreted

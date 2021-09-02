@@ -166,9 +166,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
     @cached_method
     def _word_S_T_data(self):
         r"""
-        Return a tuple ``(L, sgn)`` which describes the decomposition
-        of ``self`` as a product of the generators ``S`` and ``T``
-        together with a sign correction ``sgn``.
+        Return a tuple `(L, \mathrm{sgn})` which describes the decomposition
+        of ``self`` as a product of the generators `S` and `T`
+        together with a sign correction `\mathrm{sgn}`.
 
         If this decomposition is not possible a ``TypeError``
         is raised. In particular this function can be used to
@@ -177,9 +177,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         OUTPUT:
 
-        The tuple entries of ``L`` are either of the form ``(0, 1)``,
-        corresponding to ``S`` or ``(1, m)`` corresponding to
-        ``T^m``, where ``m`` is a non-trivial integer. ``sgn`` is +-1.
+        The tuple entries of `L` are either of the form `(0, 1)`,
+        corresponding to `S` or `(1, m)` corresponding to
+        `T^m`, where `m` is a non-trivial integer. `\mathrm{sgn}` is `\pm 1`.
 
         EXAMPLES::
 
@@ -231,18 +231,18 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
     def word_S_T(self):
         r"""
         Decompose ``self`` into a product of the generators
-        ``S`` and ``T`` of its parent, together with a sign
+        `S` and `T` of its parent, together with a sign
         correction matrix, namely: ``self = sgn * prod(L)``.
 
         Warning:
-        If ``self`` is +- the identity ``prod(L)`` is an empty product
-        which produces ``1`` instead of the identity matrix.
+        If ``self`` is `\pm` the identity `\mathrm{prod}(L)` is an empty product
+        which produces `1` instead of the identity matrix.
 
         OUTPUT:
 
-        The function returns a tuple ``(L, sgn)`` where the entries
-        of ``L`` are either the generator ``S`` or a non-trivial
-        integer power of the generator ``T``. ``sgn`` is +- the identity.
+        The function returns a tuple `(L, \mathrm{sgn})` where the entries
+        of `L` are either the generator `S` or a non-trivial
+        integer power of the generator `T`. `\mathrm{sgn}` is `\pm` the identity.
 
         If this decomposition is not possible a ``TypeError`` is raised.
 
@@ -536,19 +536,21 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         lambda-continued fraction expansion (lambda-CF) of the (attracting)
         hyperbolic fixed point of ``self``.
 
-        Let ``r_j in Z`` for ``j >= 0``. A finite lambda-CF is defined as:
-        ``[r_0; r_1, ..., r_k] := (T^(r_0)*S* ... *T^(r_k)*S)(infinity)``,
-        where ``S`` and ``T`` are the generators of ``self``. An infinite
-        lambda-CF is defined as a corresponding limit value (k->infinity)
+        Let `r_j \in \ZZ` for `j \geq 0`. A finite lambda-CF is defined as:
+        `[r_0; r_1, \ldots, r_k] := (T^(r_0)S\cdots T^(r_k)S)(\infty)`,
+        where `S` and `T` are the generators of ``self``. An infinite
+        lambda-CF is defined as a corresponding limit value `(k\rightarrow \infty)`
         if it exists.
 
         In this case the lambda-CF of parabolic and hyperbolic fixed points
         are returned which have an eventually periodic lambda-CF.
         The parabolic elements are exactly those with a cyclic permutation
-        of the period ``[2, 1, ..., 1]`` with ``n-3`` ones.
+        of the period `[2, 1, ..., 1]` with `n-3` ones.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         OUTPUT:
 
@@ -671,8 +673,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         In the elliptic case the primitive representative
         is either ``S`` or ``U``.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         OUTPUT:
 
@@ -880,8 +884,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         ``block`` is used. Also see :meth:`primitive_part`
         to construct the primitive part of ``self``.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         INPUT:
 
@@ -1066,8 +1072,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         If ``self`` is elliptic then the primitive part is
         chosen as a conjugate of ``S`` or ``U``.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         INPUT:
 
@@ -1153,8 +1161,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         conjugation representative of ``self`` (resp. it's
         primitive part) is choosen.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         INPUT:
 
@@ -1261,12 +1271,14 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         where ``sign = self.sign()`` and
         ``primitive_part = self.primitive_part(method)``.
 
-        Warning: For the parabolic case the sign depends on
-        the method: The "cf" method may return a negative power
-        but the "block" method never will.
+        .. WARNING::
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+            - For the parabolic case the sign depends on
+              the method: The "cf" method may return a negative power
+              but the "block" method never will.
+
+            - The case `n=\infty` is not verified at all
+              and probably wrong!
 
         INPUT:
 
@@ -1403,8 +1415,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         ``abs(trace) >= lambda * block_length`` and
         ``discriminant >= block_length^2 * lambda^2 - 4``.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         INPUT:
 
@@ -1521,8 +1535,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         Also see :meth:`block_decomposition()` for more information
         on the block decomposition.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         OUTPUT:
 
@@ -1671,8 +1687,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         This decomposition data is (also) described by
         :meth:`_block_decomposition_data`.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         EXAMPLES::
 
@@ -1765,8 +1783,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         Return a unique description of the conjugacy class of ``self``
         (by default only up to a sign).
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         INPUT:
 
@@ -1845,8 +1865,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         The method assumes that ``self`` is hyperbolic or parabolic.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         EXAMPLES::
 
@@ -1910,8 +1932,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         The method assumes that ``self`` is hyperbolic.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         EXAMPLES::
 
@@ -2003,8 +2027,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         The method assumes that ``self`` is hyperbolic.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         EXAMPLES::
 
@@ -2300,8 +2326,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         The notion is mostly used for hyperbolic and parabolic elements.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         EXAMPLES::
 
@@ -2366,8 +2394,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         Elliptic elements and +- identity are not considered reduced.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         INPUT:
 
@@ -2430,8 +2460,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         discriminant. They can be used to provide explicit
         descriptions of rational period functions.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         EXAMPLES::
 
@@ -2496,7 +2528,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         .. WARNING::
 
-            The case ``n=infinity`` is not verified at all and probably wrong!
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         EXAMPLES::
 
@@ -2558,8 +2591,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         weight ``2-k`` and sometimes ``2-k`` is used for the weight
         instead of ``k``.
 
-        Warning: The case ``n=infinity`` is not verified at all
-        and probably wrong!
+        .. WARNING::
+
+            The case `n=\infty` is not verified at all
+            and probably wrong!
 
         EXAMPLES::
 
@@ -2964,9 +2999,11 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         ``AlgebraicField`` is returned. Otherwise an element of a relative field
         extension over the base field of (the parent of) ``self`` is returned.
 
-        Warning: Relative field extensions don't support default embeddings.
-        So the correct embedding (which is the positive resp. imaginary positive
-        one) has to be choosen.
+        .. WARNING::
+
+            Relative field extensions don't support default embeddings.
+            So the correct embedding (which is the positive resp. imaginary positive
+            one) has to be choosen.
 
         EXAMPLES::
 

@@ -22,10 +22,10 @@ from sage.rings.all import ZZ, QQ, infinity, PolynomialRing, FractionField
 def rational_type(f, n=ZZ(3), base_ring=ZZ):
     r"""
     Return the basic analytic properties that can be determined
-    directly from the specified rational function ``f``
+    directly from the specified rational function `f`
     which is interpreted as a representation of an
     element of a FormsRing for the Hecke Triangle group
-    with parameter ``n`` and the specified ``base_ring``.
+    with parameter `n` and the specified ``base_ring``.
 
     In particular the following degree of the generators is assumed:
 

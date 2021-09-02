@@ -396,7 +396,9 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         The coordinate vector of ``v`` with respect
         to the basis ``self.gens()``.
 
-        Note: The coordinate vector is not an element of ``self.module()``.
+        .. NOTE::
+
+            The coordinate vector is not an element of ``self.module()``.
 
         EXAMPLES::
 
@@ -425,4 +427,3 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         """
 
         return self._module.coordinate_vector(self.ambient_coordinate_vector(v))
-
