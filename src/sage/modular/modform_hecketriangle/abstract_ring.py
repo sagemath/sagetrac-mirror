@@ -256,7 +256,7 @@ class FormsRing_abstract(Parent):
 
         return self(self.Delta())
 
-    def default_prec(self, prec = None):
+    def default_prec(self, prec=None):
         r"""
         Set the default precision ``prec`` for the Fourier expansion.
         If ``prec=None`` (default) then the current default precision is returned instead.
@@ -265,10 +265,10 @@ class FormsRing_abstract(Parent):
 
         - ``prec`` -- An integer.
 
-        NOTE:
+        .. NOTE::
 
-        This is also used as the default precision for the Fourier
-        expansion when evaluating forms.
+            This is also used as the default precision for the Fourier
+            expansion when evaluating forms.
 
         EXAMPLES::
 
@@ -293,16 +293,16 @@ class FormsRing_abstract(Parent):
         else:
             return self._prec
 
-    def disp_prec(self, prec = None):
+    def disp_prec(self, prec=None):
         r"""
         Set the maximal display precision to ``prec``.
         If ``prec="max"`` the precision is set to the default precision.
         If ``prec=None`` (default) then the current display precision is returned instead.
 
-        NOTE:
+        .. NOTE::
 
-        This is used for displaying/representing (elements of)
-        ``self`` as Fourier expansions.
+            This is used for displaying/representing (elements of)
+            ``self`` as Fourier expansions.
 
         EXAMPLES::
 
@@ -644,9 +644,9 @@ class FormsRing_abstract(Parent):
 
         return self._rat_field
 
-    def get_d(self, fix_d = False, d_num_prec = None):
+    def get_d(self, fix_d=False, d_num_prec=None):
         r"""
-        Return the parameter ``d`` of self either as a formal
+        Return the parameter `d` of ``self`` either as a formal
         parameter or as a numerical approximation with the specified
         precision (resp. an exact value in the arithmetic cases).
 
@@ -713,7 +713,7 @@ class FormsRing_abstract(Parent):
 
         return d
 
-    def get_q(self, prec = None, fix_d = False, d_num_prec = None):
+    def get_q(self, prec=None, fix_d=False, d_num_prec=None):
         r"""
         Return the generator of the power series of the Fourier expansion of ``self``.
 
@@ -770,7 +770,7 @@ class FormsRing_abstract(Parent):
     def diff_alg(self):
         r"""
         Return the algebra of differential operators
-        (over QQ) which is used on rational functions
+        (over `\QQ`) which is used on rational functions
         representing elements of ``self``.
 
         EXAMPLES::
@@ -1022,7 +1022,7 @@ class FormsRing_abstract(Parent):
 
     def homogeneous_part(self, k, ep):
         r"""
-        Return the homogeneous component of degree (``k``, ``e``) of ``self``.
+        Return the homogeneous component of degree (`k`, `e`) of ``self``.
 
         INPUT:
 
@@ -1042,9 +1042,9 @@ class FormsRing_abstract(Parent):
     @cached_method
     def J_inv(self):
         r"""
-        Return the J-invariant (Hauptmodul) of the group of ``self``.
-        It is normalized such that ``J_inv(infinity) = infinity``,
-        it has real Fourier coefficients starting with ``d > 0`` and ``J_inv(i) = 1``
+        Return the `J`-invariant (Hauptmodul) of the group of ``self``.
+        It is normalized such that `J_{\text{inv}(\infty) = \infty`,
+        it has real Fourier coefficients starting with `d > 0` and `J_{\text{inv}(i) = 1`
 
         It lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
@@ -1107,9 +1107,9 @@ class FormsRing_abstract(Parent):
     @cached_method
     def j_inv(self):
         r"""
-        Return the j-invariant (Hauptmodul) of the group of ``self``.
-        It is normalized such that ``j_inv(infinity) = infinity``,
-        and such that it has real Fourier coefficients starting with ``1``.
+        Return the `j`-invariant (Hauptmodul) of the group of ``self``.
+        It is normalized such that `j_{\inv}(\infty) = \infty`,
+        and such that it has real Fourier coefficients starting with `1`.
 
         It lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
@@ -1159,23 +1159,23 @@ class FormsRing_abstract(Parent):
     @cached_method
     def f_rho(self):
         r"""
-        Return a normalized modular form ``f_rho`` with exactly one simple
-        zero at ``rho`` (up to the group action).
+        Return a normalized modular form `f_{\rho}` with exactly one simple
+        zero at `\rho` (up to the group action).
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding space of homogeneous elements.
 
-        The polynomial variable ``x`` exactly corresponds to ``f_rho``.
+        The polynomial variable `x` exactly corresponds to `f_{\rho}`.
 
-        NOTE:
+        .. NOTE::
 
-        If ``n=infinity`` the situation is different, there we have:
-        ``f_rho=1`` (since that's the limit as ``n`` goes to infinity)
-        and the polynomial variable ``x`` no longer refers to ``f_rho``.
-        Instead it refers to ``E4`` which has exactly one simple zero
-        at the cusp ``-1``. Also note that ``E4`` is the limit of
-        ``f_rho^(n-2)``.
+            If `n=\infty` the situation is different, there we have:
+            ``f_{\rho}=1`` (since that's the limit as `n` goes to infinity)
+            and the polynomial variable `x` no longer refers to `f_{\rho}`.
+            Instead it refers to `E_4` which has exactly one simple zero
+            at the cusp `-1`. Also note that `E_4` is the limit of
+            `f_{\rho}^{n-2}`.
 
         EXAMPLES::
 
@@ -1236,14 +1236,14 @@ class FormsRing_abstract(Parent):
     @cached_method
     def f_i(self):
         r"""
-        Return a normalized modular form ``f_i`` with exactly one simple
-        zero at ``i`` (up to the group action).
+        Return a normalized modular form `f_i` with exactly one simple
+        zero at `i` (up to the group action).
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding space of homogeneous elements.
 
-        The polynomial variable ``y`` exactly corresponds to ``f_i``.
+        The polynomial variable `y` exactly corresponds to `f_i`.
 
         EXAMPLES::
 
@@ -1302,18 +1302,18 @@ class FormsRing_abstract(Parent):
     def f_inf(self):
         r"""
         Return a normalized (according to its first nontrivial Fourier
-        coefficient) cusp form ``f_inf`` with exactly one simple zero
-        at ``infinity`` (up to the group action).
+        coefficient) cusp form `f_{\infty}` with exactly one simple zero
+        at `\infty` (up to the group action).
 
         It lies in a (cuspidal) extension of the graded ring of
         ``self``. In case ``has_reduce_hom`` is ``True`` it is given
         as an element of the corresponding space of homogeneous elements.
 
-        NOTE:
+        .. NOTE::
 
-        If ``n=infinity`` then ``f_inf`` is no longer a cusp form
-        since it doesn't vanish at the cusp ``-1``. The first
-        non-trivial cusp form is given by ``E4*f_inf``.
+            If `n=\infty` then `f_{\infty}` is no longer a cusp form
+            since it doesn't vanish at the cusp `-1`. The first
+            non-trivial cusp form is given by ``E_4 f_{infty}``.
 
         EXAMPLES::
 
@@ -1376,22 +1376,22 @@ class FormsRing_abstract(Parent):
         r"""
         If `2` divides `n`: Return the G-invariant of the group of ``self``.
 
-        The G-invariant is analogous to the J-invariant but has multiplier `-1`.
-        I.e. ``G_inv(-1/t) = -G_inv(t)``. It is a holomorphic square root
-        of ``J_inv*(J_inv-1)`` with real Fourier coefficients.
+        The `G`-invariant is analogous to the `J`-invariant but has multiplier `-1`.
+        I.e. `G_{\text{inv}}(-1/t) = -G_{\text{inv}}(t)`. It is a holomorphic square root
+        of `J_{\text{inv}}(J_{\text{inv}}-1)` with real Fourier coefficients.
 
         If `2` does not divide `n` the function does not exist and an
         exception is raised.
 
-        The G-invariant lies in a (weak) extension of the graded ring of ``self``.
+        The `G`-invariant lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding space of homogeneous elements.
 
-        NOTE:
+        .. NOTE::
 
-        If ``n=infinity`` then ``G_inv`` is holomorphic everywhere except
-        at the cusp ``-1`` where it isn't even meromorphic. Consequently
-        this function raises an exception for ``n=infinity``.
+            If ``n=infinity`` then ``G_inv`` is holomorphic everywhere except
+            at the cusp ``-1`` where it isn't even meromorphic. Consequently
+            this function raises an exception for ``n=infinity``.
 
         EXAMPLES::
 
@@ -1454,26 +1454,26 @@ class FormsRing_abstract(Parent):
     @cached_method
     def g_inv(self):
         r"""
-        If `2` divides `n`: Return the g-invariant of the group of ``self``.
+        If `2` divides `n`: Return the `g`-invariant of the group of ``self``.
 
-        The g-invariant is analogous to the j-invariant but has
-        multiplier ``-1``.  I.e. ``g_inv(-1/t) = -g_inv(t)``. It is a
-        (normalized) holomorphic square root of ``J_inv*(J_inv-1)``,
+        The `g`-invariant is analogous to the `j`-invariant but has
+        multiplier `-1`.  I.e. `g_{\text{inv}}(-1/t) = -g_{\text{inv}}(t)`. It is a
+        (normalized) holomorphic square root of `J_{\text{inv}}(J_{text{inv}}-1)`,
         normalized such that its first nontrivial Fourier coefficient
-        is ``1``.
+        is `1`.
 
-        If `2` does not divide ``n`` the function does not exist and
+        If `2` does not divide `n` the function does not exist and
         an exception is raised.
 
-        The g-invariant lies in a (weak) extension of the graded ring of ``self``.
+        The `g`-invariant lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding space of homogeneous elements.
 
-        NOTE:
+        .. NOTE::
 
-        If ``n=infinity`` then ``g_inv`` is holomorphic everywhere except
-        at the cusp ``-1`` where it isn't even meromorphic. Consequently
-        this function raises an exception for ``n=infinity``.
+            If ``n=infinity`` then ``g_inv`` is holomorphic everywhere except
+            at the cusp `-1` where it isn't even meromorphic. Consequently
+            this function raises an exception for `n=\infty`.
 
         EXAMPLES::
 
@@ -1532,15 +1532,15 @@ class FormsRing_abstract(Parent):
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding space of homogeneous elements.
 
-        It is equal to ``f_rho^(n-2)``.
+        It is equal to `f_{\rho}^{n-2}`.
 
-        NOTE:
+        .. NOTE::
 
-        If ``n=infinity`` the situation is different, there we have:
-        ``f_rho=1`` (since that's the limit as ``n`` goes to infinity)
-        and the polynomial variable ``x`` refers to ``E4`` instead of
-        ``f_rho``. In that case ``E4`` has exactly one simple zero
-        at the cusp ``-1``. Also note that ``E4`` is the limit of ``f_rho^n``.
+            If `n=\infty` the situation is different, there we have:
+            `f_{\rho}=1` (since that's the limit as `n` goes to infinity)
+            and the polynomial variable `x` refers to `E_4` instead of
+            `f_{\rho}`. In that case `E_4` has exactly one simple zero
+            at the cusp `-1`. Also note that `E_4` is the limit of `f_{\rho}^n`.
 
         EXAMPLES::
 
@@ -1607,7 +1607,7 @@ class FormsRing_abstract(Parent):
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding space of homogeneous elements.
 
-        It is equal to ``f_rho^(n-3) * f_i``.
+        It is equal to `f_{\rho}^{n-3}  f_i`.
 
         EXAMPLES::
 
@@ -1674,11 +1674,11 @@ class FormsRing_abstract(Parent):
         ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding space of homogeneous elements.
 
-        It is a cusp form of weight `12` and is equal to ``d*(E4^3 -
-        E6^2)`` or (in terms of the generators) ``d*x^(2*n-6)*(x^n -
-        y^2)``.
+        It is a cusp form of weight `12` and is equal to `d(E_4^3 -
+        E_6^2)` or (in terms of the generators) `dx^{2n-6}*(x^n -
+        y^2)`.
 
-        Note that ``Delta`` is also a cusp form for ``n=infinity``.
+        Note that `\Delta` is also a cusp form for `n=\infty`.
 
         EXAMPLES::
 
@@ -1748,7 +1748,7 @@ class FormsRing_abstract(Parent):
         the corresponding space of homogeneous elements.
 
         It is in particular also a generator of the graded ring of
-        ``self`` and  the polynomial variable ``z`` exactly corresponds to ``E2``.
+        ``self`` and  the polynomial variable `z` exactly corresponds to `E_2`.
 
 
         EXAMPLES::
@@ -1809,7 +1809,7 @@ class FormsRing_abstract(Parent):
     @cached_method
     def EisensteinSeries(self, k=None):
         r"""
-        Return the normalized Eisenstein series of weight ``k``.
+        Return the normalized Eisenstein series of weight `k`.
 
         Only arithmetic groups or trivial weights (with corresponding
         one dimensional spaces) are supported.

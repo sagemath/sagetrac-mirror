@@ -4,6 +4,7 @@ Overview of Hecke triangle groups and modular forms for Hecke triangle groups
 AUTHORS:
 
 - Jonas Jermann (2013): initial version
+- David Ayotte (2021): text formatting
 
 
 Hecke triangle groups and elements:
@@ -511,8 +512,8 @@ Hecke triangle groups and elements:
   resp. their corresponding hyperbolic fixed points
   for the given discriminant.
 
-  .. WARNING:: 
-      
+  .. WARNING::
+
       The currently used algorithm is very slow!
 
   EXAMPLES::
@@ -1197,6 +1198,9 @@ Modular forms ring and spaces for Hecke triangle groups:
      sage: QF(qexp_int) == el
      True
 
+REFERENCES:
+
+For more information, see [Jer2013]_.
 
 
 Future ideas:

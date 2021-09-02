@@ -3141,6 +3141,9 @@ REFERENCES:
 .. [Jet2008] \D. Jetchev. Global divisibility of Heegner points and
              Tamagawa numbers. Compos. Math. 144 (2008), no. 4, 811--826.
 
+.. [Jer2013] \J. Jermann. *Modular functions and integrals for Hecke triangle groups*.
+             Doctoral Thesis, 2013, :doi:`10.3929/ethz-a-010060234`
+
 .. [Jeong2017] Juyoung Jeong.
                Spectral sets and functions on Euclidean Jordan algebras.
                University of Maryland, Baltimore County, Ph.D. thesis, 2017.
