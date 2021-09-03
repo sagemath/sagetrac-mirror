@@ -1,5 +1,5 @@
 r"""
-Modular forms for Hecke triangle groups
+Modular Forms for Hecke Triangle Groups
 
 AUTHORS:
 

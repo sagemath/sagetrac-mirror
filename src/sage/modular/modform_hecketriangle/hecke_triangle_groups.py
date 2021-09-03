@@ -1,5 +1,5 @@
 r"""
-Hecke triangle groups
+Hecke Triangle Groups
 
 AUTHORS:
 

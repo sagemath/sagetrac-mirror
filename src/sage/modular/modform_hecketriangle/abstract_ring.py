@@ -1,5 +1,5 @@
 r"""
-Graded rings of modular forms for Hecke triangle groups
+Graded Rings of Modular Forms for Hecke Triangle Groups
 
 AUTHORS:
 

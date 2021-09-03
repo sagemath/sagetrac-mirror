@@ -1,5 +1,5 @@
 r"""
-Hecke triangle group elements
+Hecke Triangle Group Elements
 
 AUTHORS:
 

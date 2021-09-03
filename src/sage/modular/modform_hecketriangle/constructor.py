@@ -1,5 +1,5 @@
 r"""
-Constructor for spaces of modular forms for Hecke triangle groups based on a type
+Constructor for Spaces of Modular Forms for Hecke Triangle Groups Based on a Type
 
 AUTHORS:
 
