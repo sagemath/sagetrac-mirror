@@ -384,7 +384,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
     @cached_method
     def coordinate_vector(self, v):
         r"""
-        Return the coordinate vector of ``v`` with respect to
+        Return the coordinate vector of `v` with respect to
         the basis ``self.gens()``.
 
         INPUT:
@@ -393,7 +393,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         OUTPUT:
 
-        The coordinate vector of ``v`` with respect
+        The coordinate vector of `v` with respect
         to the basis ``self.gens()``.
 
         .. NOTE::

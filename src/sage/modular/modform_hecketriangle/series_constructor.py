@@ -151,7 +151,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
     def hecke_n(self):
         r"""
-        Return the parameter ``n`` of the (Hecke triangle) group of ``self``.
+        Return the parameter `n` of the (Hecke triangle) group of ``self``.
 
         EXAMPLES::
 
@@ -180,14 +180,14 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     @cached_method
     def J_inv_ZZ(self):
         r"""
-        Return the rational Fourier expansion of ``J_inv``,
-        where the parameter ``d`` is replaced by ``1``.
+        Return the rational Fourier expansion of `J_{\mathrm{inv}}`,
+        where the parameter `d` is replaced by `1`.
 
         This is the main function used to determine all Fourier expansions!
 
         .. NOTE::
 
-            The Fourier expansion of ``J_inv`` for ``d!=1``
+            The Fourier expansion of `J_{\mathrm{inv}}` for `d\neq 1`
             is given by ``J_inv_ZZ(q/d)``.
 
         .. TODO::
@@ -246,12 +246,12 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     @cached_method
     def f_rho_ZZ(self):
         r"""
-        Return the rational Fourier expansion of ``f_rho``,
-        where the parameter ``d`` is replaced by ``1``.
+        Return the rational Fourier expansion of `f_{\rho}`,
+        where the parameter `d` is replaced by `1`.
 
         .. NOTE::
 
-            The Fourier expansion of ``f_rho`` for ``d!=1``
+            The Fourier expansion of `f_{\rho}` for `d\neq 1`
             is given by ``f_rho_ZZ(q/d)``.
 
         EXAMPLES::
@@ -280,12 +280,12 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     @cached_method
     def f_i_ZZ(self):
         r"""
-        Return the rational Fourier expansion of ``f_i``,
-        where the parameter ``d`` is replaced by ``1``.
+        Return the rational Fourier expansion of `f_i`,
+        where the parameter `d` is replaced by `1`.
 
         .. NOTE::
 
-            The Fourier expansion of ``f_i`` for ``d!=1``
+            The Fourier expansion of `f_i` for `d\neq 1`
             is given by ``f_i_ZZ(q/d)``.
 
         EXAMPLES::
@@ -314,12 +314,12 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     @cached_method
     def f_inf_ZZ(self):
         r"""
-        Return the rational Fourier expansion of ``f_inf``,
-        where the parameter ``d`` is replaced by ``1``.
+        Return the rational Fourier expansion of `f_{\infty}`,
+        where the parameter `d` is replaced by `1`.
 
         .. NOTE::
 
-            The Fourier expansion of ``f_inf`` for ``d!=1``
+            The Fourier expansion of `f_{\infty}` for `d\neq 1`
             is given by ``d*f_inf_ZZ(q/d)``.
 
         EXAMPLES::
@@ -348,12 +348,12 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     @cached_method
     def G_inv_ZZ(self):
         r"""
-        Return the rational Fourier expansion of ``G_inv``,
-        where the parameter ``d`` is replaced by ``1``.
+        Return the rational Fourier expansion of `G_\mathrm{inv}`,
+        where the parameter `d` is replaced by `1`.
 
         .. NOTE::
 
-            The Fourier expansion of ``G_inv`` for ``d!=1``
+            The Fourier expansion of `G_\mathrm{inv}` for `d\neq 1`
             is given by ``d*G_inv_ZZ(q/d)``.
 
         EXAMPLES::
@@ -385,12 +385,12 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     @cached_method
     def E4_ZZ(self):
         r"""
-        Return the rational Fourier expansion of ``E_4``,
-        where the parameter ``d`` is replaced by ``1``.
+        Return the rational Fourier expansion of `E_4`,
+        where the parameter `d` is replaced by `1`.
 
         .. NOTE::
 
-            The Fourier expansion of ``E4`` for ``d!=1``
+            The Fourier expansion of `E_4` for `d \neq 1`
             is given by ``E4_ZZ(q/d)``.
 
         EXAMPLES::
@@ -414,12 +414,12 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     @cached_method
     def E6_ZZ(self):
         r"""
-        Return the rational Fourier expansion of ``E_6``,
-        where the parameter ``d`` is replaced by ``1``.
+        Return the rational Fourier expansion of `E_6`,
+        where the parameter `d` is replaced by `1`.
 
         .. NOTE::
 
-            The Fourier expansion of ``E6`` for ``d!=1``
+            The Fourier expansion of `E_6` for `d \neq 1`
             is given by ``E6_ZZ(q/d)``.
 
         EXAMPLES::
@@ -443,12 +443,12 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     @cached_method
     def Delta_ZZ(self):
         r"""
-        Return the rational Fourier expansion of ``Delta``,
-        where the parameter ``d`` is replaced by ``1``.
+        Return the rational Fourier expansion of `\Delta`,
+        where the parameter `d` is replaced by `1`.
 
         .. NOTE::
 
-            The Fourier expansion of ``Delta`` for ``d!=1``
+            The Fourier expansion of `\Delta` for `d\neq 1`
             is given by ``d*Delta_ZZ(q/d)``.
 
         EXAMPLES::
@@ -470,12 +470,12 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     @cached_method
     def E2_ZZ(self):
         r"""
-        Return the rational Fourier expansion of ``E2``,
-        where the parameter ``d`` is replaced by ``1``.
+        Return the rational Fourier expansion of `E_2`,
+        where the parameter `d` is replaced by `1`.
 
         .. NOTE::
 
-            The Fourier expansion of ``E2`` for ``d!=1``
+            The Fourier expansion of `E_2` for `d\neq 1`
             is given by ``E2_ZZ(q/d)``.
 
         EXAMPLES::
@@ -500,9 +500,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     def EisensteinSeries_ZZ(self, k):
         r"""
         Return the rational Fourier expansion of the normalized Eisenstein series
-        of weight ``k``, where the parameter ``d`` is replaced by ``1``.
+        of weight `k`, where the parameter `d` is replaced by `1`.
 
-        Only arithmetic groups with ``n < infinity`` are supported!
+        Only arithmetic groups with `n < \infty` are supported!
 
         .. NOTE::
 

@@ -33,7 +33,7 @@ from .hecke_triangle_group_element import HeckeTriangleGroupElement, cyclic_repr
 class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
                          UniqueRepresentation):
     r"""
-    Hecke triangle group (2, n, infinity).
+    Hecke triangle group `(2, n, \infty)`.
     """
 
     Element = HeckeTriangleGroupElement
@@ -61,9 +61,9 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
     def __init__(self, n):
         r"""
-        Hecke triangle group (2, n, infinity).
+        Hecke triangle group `(2, n, \infty)`.
         Namely the von Dyck group corresponding to the triangle group
-        with angles (pi/2, pi/n, 0).
+        with angles `(\pi/2, \pi/n, 0)`.
 
         INPUT:
 
@@ -234,10 +234,10 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
     def n(self):
         r"""
-        Return the parameter ``n`` of ``self``, where
-        ``pi/n`` is the angle at ``rho`` of the corresponding
-        basic hyperbolic triangle with vertices ``i``, ``rho``
-        and ``infinity``.
+        Return the parameter `n` of ``self``, where
+        `\pi/n` is the angle at `\rho` of the corresponding
+        basic hyperbolic triangle with vertices `i`, `rho`
+        and `\infty`.
 
         EXAMPLES::
 
@@ -252,9 +252,9 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
     # TODO: rename this to a more descriptive lambda in a later update/patch
     def lam(self):
         r"""
-        Return the parameter ``lambda`` of ``self``,
-        where ``lambda`` is twice the real part of ``rho``,
-        lying between ``1`` (when ``n=3``) and ``2`` (when ``n=infinity``).
+        Return the parameter `lambda` of ``self``,
+        where `lambda` is twice the real part of `\rho`,
+        lying between `1` (when `n=3`) and `2` (when `n=\infty`).
 
         EXAMPLES::
 
@@ -276,9 +276,9 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
     def rho(self):
         r"""
-        Return the vertex ``rho`` of the basic hyperbolic
-        triangle which describes ``self``. ``rho`` has
-        absolute value 1 and angle ``pi/n``.
+        Return the vertex `\rho` of the basic hyperbolic
+        triangle which describes ``self``. `\rho` has
+        absolute value `1` and angle `\pi/n`.
 
         EXAMPLES::
 
@@ -305,7 +305,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
     def alpha(self):
         r"""
-        Return the parameter ``alpha`` of ``self``.
+        Return the parameter `\alpha` of ``self``.
         This is the first parameter of the hypergeometric series used
         in the calculation of the Hauptmodul of ``self``.
 
@@ -329,7 +329,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
     def beta(self):
         r"""
-        Return the parameter ``beta`` of ``self``.
+        Return the parameter `\beta` of ``self``.
         This is the second parameter of the hypergeometric series used
         in the calculation of the Hauptmodul of ``self``.
 
@@ -428,11 +428,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
     @cached_method
     def U(self):
         r"""
-        Return an alternative generator of ``self`` instead of ``T``.
-        ``U`` stabilizes ``rho`` and has order ``2*self.n()``.
+        Return an alternative generator of ``self`` instead of `T`.
+        `U` stabilizes `\rho` and has order `2n`.
 
-        If ``n=infinity`` then ``U`` is parabolic and has infinite order,
-        it then fixes the cusp ``[-1]``.
+        If `n=\infty` then `U` is parabolic and has infinite order,
+        it then fixes the cusp `[-1]`.
 
         EXAMPLES::
 
@@ -460,7 +460,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
     def V(self, j):
         r"""
         Return the j'th generator for the usual representatives of
-        conjugacy classes of ``self``. It is given by ``V=U^(j-1)*T``.
+        conjugacy classes of ``self``. It is given by `V=U^{j-1}T`.
 
         INPUT:
 
@@ -470,8 +470,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
         OUTPUT:
 
         The corresponding matrix/element.
-        The matrix is parabolic if ``j`` is congruent to +-1 modulo ``self.n()``.
-        It is elliptic if ``j`` is congruent to 0 modulo ``self.n()``.
+        The matrix is parabolic if `j` is congruent to `+-1` modulo `n`.
+        It is elliptic if `j` is congruent to `0` modulo `n`.
         It is hyperbolic otherwise.
 
         EXAMPLES::
@@ -509,11 +509,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
     def dvalue(self):
         r"""
-        Return a symbolic expression (or an exact value in case n=3, 4, 6)
+        Return a symbolic expression (or an exact value in case `n=3, 4, 6`)
         for the transfinite diameter (or capacity) of ``self``.
 
         This is the first nontrivial Fourier coefficient of the Hauptmodul
-        for the Hecke triangle group in case it is normalized to ``J_inv(i)=1``.
+        for the Hecke triangle group in case it is normalized to `J_{\mathrm{inv}}(i)=1`.
 
         EXAMPLES::
 
@@ -567,7 +567,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
     def get_FD(self, z):
         r"""
-        Return a tuple (A,w) which determines how to map ``z``
+        Return a tuple `(A,w)` which determines how to map `z`
         to the usual (strict) fundamental domain of ``self``.
 
         INPUT:
@@ -641,7 +641,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
     def in_FD(self, z):
         r"""
-        Returns ``True`` if ``z`` lies in the (strict) fundamental
+        Returns ``True`` if `z` lies in the (strict) fundamental
         domain of ``self``.
 
         EXAMPLES::
@@ -657,7 +657,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
     def root_extension_field(self, D):
         r"""
         Return the quadratic extension field of the base field by
-        the square root of the given discriminant ``D``.
+        the square root of the given discriminant `D`.
 
         INPUT:
 
@@ -667,8 +667,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
         OUTPUT:
 
         A relative (at most quadratic) extension to the base field
-        of self in the variable ``e`` which corresponds to ``sqrt(D)``.
-        If the extension degree is ``1`` then the base field is returned.
+        of self in the variable `e` which corresponds to `\sqrt{D}`.
+        If the extension degree is `1` then the base field is returned.
 
         The correct embedding is the positive resp. positive imaginary one.
         Unfortunately no default embedding can be specified for relative
@@ -721,7 +721,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
     def root_extension_embedding(self, D, K=None):
         r"""
         Return the correct embedding from the root extension field
-        of the given discriminant ``D``  to the field ``K``.
+        of the given discriminant `D`  to the field `K`.
 
         Also see the method ``root_extension_embedding(K)`` of
         ``HeckeTriangleGroupElement`` for more examples.
@@ -878,11 +878,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
         This is a helper function for e.g. :meth:`class_number`.
 
         The set of all (hyperbolic) conjugacy types of block length
-        ``t`` is stored in ``self._conj_block[t]``.
+        `t` is stored in ``self._conj_block[t]``.
         The set of all primitive representatives (so far) with
-        discriminant ``D`` is stored in ``self._conj_prim[D]``.
+        discriminant `D` is stored in ``self._conj_prim[D]``.
         The set of all non-primitive representatives (so far) with
-        discriminant ``D`` is stored in ``self._conj_nonprim[D]``.
+        discriminant `D` is stored in ``self._conj_nonprim[D]``.
 
         The case of non-positive discriminants is done manually.
 
@@ -1049,7 +1049,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
     def class_representatives(self, D, primitive=True):
         r"""
         Return a representative for each conjugacy class for the
-        discriminant ``D`` (ignoring the sign).
+        discriminant `D` (ignoring the sign).
 
         If ``primitive=True`` only one representative for each
         fixed point is returned (ignoring sign).
@@ -1130,10 +1130,10 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
     def class_number(self, D, primitive=True):
         r"""
-        Return the class number of ``self`` for the discriminant ``D``.
+        Return the class number of ``self`` for the discriminant `D`.
 
         This is the number of conjugacy classes of (primitive) elements
-        of discriminant ``D``.
+        of discriminant `D`.
 
         Note: Due to the 1-1 correspondence with hyperbolic fixed
         points resp. hyperbolic binary quadratic forms
@@ -1184,7 +1184,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
     def is_discriminant(self, D, primitive=True):
         r"""
-        Returns whether ``D`` is a discriminant of an element of ``self``.
+        Returns whether `D` is a discriminant of an element of ``self``.
 
         Note: Checking that something isn't a discriminant takes much
         longer than checking for valid discriminants.
@@ -1234,7 +1234,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
     def list_discriminants(self, D, primitive=True, hyperbolic=True, incomplete=False):
         r"""
-        Returns a list of all discriminants up to some upper bound ``D``.
+        Returns a list of all discriminants up to some upper bound `D`.
 
         INPUT:
 
@@ -1253,7 +1253,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
         OUTPUT:
 
-        A list of discriminants less than or equal to ``D``.
+        A list of discriminants less than or equal to `D`.
 
         EXAMPLES::
 
@@ -1295,7 +1295,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
     # TODO: non-primitive ones?
     def reduced_elements(self, D):
         r"""
-        Return all reduced (primitive) elements of discriminant ``D``.
+        Return all reduced (primitive) elements of discriminant `D`.
         Also see the element method ``is_reduced()`` for more information.
 
         - ``D`` -- An element of the base ring corresponding
@@ -1331,7 +1331,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
     def simple_elements(self, D):
         r"""
-        Return all simple elements of discriminant ``D``.
+        Return all simple elements of discriminant `D`.
         Also see the element method ``is_simple()`` for more information.
 
         - ``D`` -- An element of the base ring corresponding
@@ -1361,11 +1361,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
     def rational_period_functions(self, k, D):
         r"""
-        Return a list of basic rational period functions of weight ``k`` for discriminant ``D``.
+        Return a list of basic rational period functions of weight `k` for discriminant `D`.
         The list is expected to be a generating set for all rational period functions of the
         given weight and discriminant (unknown).
 
-        The method assumes that ``D > 0``.
+        The method assumes that `D > 0`.
         Also see the element method `rational_period_function` for more information.
 
         - ``k`` -- An even integer, the desired weight of the rational period functions.

@@ -177,7 +177,7 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group=HeckeTriangleGroup(3), base_ring=ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
@@ -339,7 +339,7 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group=HeckeTriangleGroup(3), base_ring=ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
@@ -435,7 +435,7 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
     @cached_method
     def coordinate_vector(self, v):
         r"""
-        Return the coordinate vector of ``v`` with respect to
+        Return the coordinate vector of `v` with respect to
         the basis ``self.gens()``.
 
         INPUT:
@@ -445,7 +445,7 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
         OUTPUT:
 
         An element of ``self.module()``, namely the
-        corresponding coordinate vector of ``v`` with respect
+        corresponding coordinate vector of `v` with respect
         to the basis ``self.gens()``.
 
         The module is the free module over the coefficient
@@ -603,7 +603,7 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group=HeckeTriangleGroup(3), base_ring=ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
@@ -704,7 +704,7 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     @cached_method
     def coordinate_vector(self, v):
         r"""
-        Return the coordinate vector of ``v`` with respect to
+        Return the coordinate vector of `v` with respect to
         the basis ``self.gens()``.
 
         INPUT:
@@ -746,7 +746,7 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             (1, 1/(2*d), 15/(128*d^2))
         """
 
-        vec = v.q_expansion_vector(min_exp = 0, max_exp = self.degree() - 1)
+        vec = v.q_expansion_vector(min_exp=0, max_exp=self.degree() - 1)
         return self._module(vec)
 
 class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
@@ -756,7 +756,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group=HeckeTriangleGroup(3), base_ring=ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
@@ -852,7 +852,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
     @cached_method
     def coordinate_vector(self, v):
         r"""
-        Return the coordinate vector of ``v`` with respect to
+        Return the coordinate vector of `v` with respect to
         the basis ``self.gens()``.
 
         INPUT:
@@ -862,7 +862,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
         OUTPUT:
 
         An element of ``self.module()``, namely the
-        corresponding coordinate vector of ``v`` with respect
+        corresponding coordinate vector of `v` with respect
         to the basis ``self.gens()``.
 
         The module is the free module over the coefficient
@@ -899,7 +899,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        vec = v.q_expansion_vector(min_exp = 1, max_exp = self.degree())
+        vec = v.q_expansion_vector(min_exp=1, max_exp=self.degree())
         return self._module(vec)
 
 class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
@@ -909,7 +909,7 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
+    def __classcall__(cls, group=HeckeTriangleGroup(3), base_ring=ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
@@ -999,7 +999,7 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
     def dimension(self):
         r"""
         Return the dimension of ``self``.
-        Since this is the zero module ``0`` is returned.
+        Since this is the zero module `0` is returned.
 
         EXAMPLES::
 
@@ -1013,12 +1013,12 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
     @cached_method
     def coordinate_vector(self, v):
         r"""
-        Return the coordinate vector of ``v`` with respect to
+        Return the coordinate vector of `v` with respect to
         the basis ``self.gens()``.
 
         Since this is the zero module which only contains
         the zero form the trivial vector in the trivial
-        module of dimension ``0`` is returned.
+        module of dimension `0` is returned.
 
         INPUT:
 

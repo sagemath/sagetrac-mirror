@@ -100,7 +100,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         - ``M``      -- A matrix which coerces into the matrix space
                         of ``parent``. For example with entries in a
-                        polynomial ring over ``ZZ`` with parameter ``lam``.
+                        polynomial ring over `\ZZ` with parameter ``lam``.
 
         - ``check``  -- ``True`` (default) or ``False``. If ``True``
                         then a (possibly long) check is performed
@@ -336,8 +336,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         - ``method``  -- ``default``: Use the usual representation method for matrix group elements.
 
-                         ``basic``:   The representation is given as a word in ``S`` and powers of ``T``.
-                                      Note: If ``S, T`` are defined accordingly the output can
+                         ``basic``:   The representation is given as a word in `S` and powers of `T`.
+                                      Note: If `S, T` are defined accordingly the output can
                                       be used/evaluated directly to recover ``self``.
 
                          ``conj``:    The conjugacy representative of the element is represented
@@ -345,11 +345,13 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
                                       an unspecified conjugation matrix.
 
                          ``block``:   Same as ``conj`` but the conjugation matrix is specified as well.
-                                      Note: Assuming ``S, T, U, V`` are defined accordingly the output
+                                      Note: Assuming `S, T, U, V` are defined accordingly the output
                                       can directly be used/evaluated to recover ``self``.
 
-        Warning: For ``n=infinity`` the methods ``conj`` and ``block`` are not verified at all
-        and are probably wrong!
+        WARNING:
+
+            For `n=\infty` the methods ``conj`` and ``block`` are not verified at all
+            and are probably wrong!
 
         EXAMPLES::
 
@@ -642,11 +644,11 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
     @cached_method
     def _primitive_block_decomposition_data(self):
         r"""
-        Return a tuple ``(L, R)`` which describes the
+        Return a tuple `(L, R)` which describes the
         decomposition of ``self`` into a very specific
         primitive conjugacy representative whose
-        decomposition is further described by the tuple ``L``,
-        and the corresponding  conjugation matrix ``R``.
+        decomposition is further described by the tuple `L`,
+        and the corresponding conjugation matrix `R`.
 
         Together they describe the primitive part of self.
         I.e. an element which is equal to ``self`` up
@@ -663,7 +665,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         In the hyperbolic and parabolic case the
         representative is given as a product of powers of
         ``V(j)`` (more precisely ``self.parent().V(j)``),
-        where ``1 <= j <= n-1``.
+        where `1 \leq j \leq n-1`.
 
         The number of such factors is called ``block length``
         (see :meth:`block_length`). Each block (and also
@@ -671,7 +673,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         non-negative entries.
 
         In the elliptic case the primitive representative
-        is either ``S`` or ``U``.
+        is either `S` or `U`.
 
         .. WARNING::
 
@@ -680,21 +682,21 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         OUTPUT:
 
-        A tuple ``(L, R)``, where ``R`` is an element of
+        A tuple `(L, R)`, where `R` is an element of
         the Hecke triangle group that conjugates the
         described primitive representative to the primitive
         part of ``self``.
 
-        In the hyperbolic and parabolic case ``L`` is an
-        ordered tuple of (tuple) data ``(j, k)``, corresponding
-        to a factor ``V(j)^k``.
+        In the hyperbolic and parabolic case `L` is an
+        ordered tuple of (tuple) data `(j, k)`, corresponding
+        to a factor `V(j)^k`.
 
         If the representative is the identity then ``((1,0),)``
         is returned (consistent with the previous notation).
 
-        In the elliptic case ``L=(a, 1)``, with either ``a=0``
-        corresponding to the representative ``S`` or ``a=1``
-        corresponding to the representative ``U``.
+        In the elliptic case `L=(a, 1)`, with either `a=0`
+        corresponding to the representative `S` or `a=1`
+        corresponding to the representative `U`.
 
         EXAMPLES::
 
@@ -868,11 +870,11 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
     def primitive_representative(self, method="block"):
         r"""
-        Return a tuple ``(P, R)`` which gives the
+        Return a tuple `(P, R)` which gives the
         decomposition of the primitive part of ``self``,
         namely ``R*P*R.inverse()`` into a specific
-        representative ``P`` and the corresponding
-        conjugation matrix ``R`` (the result depends on
+        representative `P` and the corresponding
+        conjugation matrix `R` (the result depends on
         the method used).
 
         Together they describe the primitive part of self.
@@ -892,9 +894,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         INPUT:
 
         - ``method`` -- ``block`` (default) or ``cf``. The method
-                        used to determine ``P`` and ``R``. If
+                        used to determine `P` and `R`. If
                         ``self`` is elliptic this parameter is
-                        ignored and if ``self`` is +- the identity
+                        ignored and if ``self`` is `\pm` the identity
                         then the ``block`` method is used.
 
                         With ``block`` the decomposition described
@@ -903,12 +905,12 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
                         With ``cf`` a reduced representative from
                         the lambda-CF of ``self`` is used (see
                         :meth:`continued_fraction`). In that case
-                        ``P`` corresponds to the period and ``R``
+                        `P` corresponds to the period and `R`
                         to the preperiod.
 
         OUTPUT:
 
-        A tuple ``(P, R)`` of group elements such that
+        A tuple `(P, R)` of group elements such that
         ``R*P*R.inverse()`` is a/the primitive part of ``self``
 
         EXAMPLES::
@@ -1059,9 +1061,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
     def primitive_part(self, method="cf"):
         r"""
         Return the primitive part of ``self``. I.e. a group element
-        ``A`` with non-negative trace such that
+        `A` with non-negative trace such that
         ``self = sign * A^power``, where ``sign = self.sign()``
-        is +- the identity (to correct the sign) and
+        is `\pm` the identity (to correct the sign) and
         ``power = self.primitive_power()``.
 
         The primitive part itself is choosen such that it cannot be
@@ -1070,7 +1072,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         (attracting) fixed point.
 
         If ``self`` is elliptic then the primitive part is
-        chosen as a conjugate of ``S`` or ``U``.
+        chosen as a conjugate of `S` or `U`.
 
         .. WARNING::
 
@@ -1082,7 +1084,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         - ``method``  -- The method used to determine the primitive
                          part (see :meth:`primitive_representative`),
                          default: "cf". The parameter is ignored
-                         for elliptic elements or +- the identity.
+                         for elliptic elements or `\pm` the identity.
 
                          The result should not depend on the method.
 
@@ -1156,7 +1158,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         Return a reduced version of ``self`` (with the same
         the same fixed points). Also see :meth:`is_reduced`.
 
-        If ``self`` is elliptic (or +- the identity) the result
+        If ``self`` is elliptic (or `\pm` the identity) the result
         is never reduced (by definition). Instead a more canonical
         conjugation representative of ``self`` (resp. it's
         primitive part) is choosen.
@@ -1216,7 +1218,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
     def sign(self):
         r"""
-        Return the sign element/matrix (+- identity) of ``self``.
+        Return the sign element/matrix (`\pm` identity) of ``self``.
         The sign is given by the sign of the trace.
         if the trace is zero it is instead given by the sign
         of the lower left entry.
@@ -1431,8 +1433,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         An integer. For hyperbolic elements a non-negative integer.
         For parabolic elements a negative sign corresponds to taking
         the inverse. For elliptic elements a (non-trivial) integer
-        with minimal absolute value is choosen. For +- the identity
-        element ``0`` is returned.
+        with minimal absolute value is choosen. For `\pm` the identity
+        element `0` is returned.
 
         EXAMPLES::
 
@@ -1518,13 +1520,13 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
     #@cached_method
     def _block_decomposition_data(self):
         r"""
-        Return a tuple ``(L, R, sgn)`` which describes the
+        Return a tuple `(L, R, \mathrm{sgn})` which describes the
         decomposition of ``self`` into a specific
         conjugacy representative whose decomposition is
-        further described by the tuple ``L``. The conjugation
-        matrix is returned as ``R`` and since all
-        factors have a positive sign, the sign ``sgn``
-        of ``self`` is supplied as well as +- 1 (which corresponds
+        further described by the tuple `L`. The conjugation
+        matrix is returned as `R` and since all
+        factors have a positive sign, the sign `sgn`
+        of ``self`` is supplied as well as `\pm 1` (which corresponds
         to the sign of the sign matrix ``self.sign()``).
 
         The function is a generalization of
@@ -1542,20 +1544,20 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         OUTPUT:
 
-        A tuple ``(L, R, sgn)``, where ``R`` is an element of
+        A tuple `(L, R, \mathrm{sgn})`, where `R` is an element of
         the Hecke triangle group that conjugates the
         described representative to ``self`` up to the given sign.
 
-        In the hyperbolic and parabolic case ``L`` is an
-        ordered tuple of (tuple) data ``(j, k)``, corresponding
-        to a factor ``V(j)^k``.
+        In the hyperbolic and parabolic case `L` is an
+        ordered tuple of (tuple) data `(j, k)`, corresponding
+        to a factor `V(j)^k`.
 
-        If the representative is the identity then ``((1, 0))``
+        If the representative is the identity then `((1, 0))`
         is returned (consistent with the previous notation).
 
-        In the elliptic case ``L=(a, k)``, with either ``a=0``
-        corresponding to the representative ``S^k`` or with
-        ``a=1`` corresponding to the representative ``U^k``.
+        In the elliptic case `L=(a, k)`, with either `a=0`
+        corresponding to the representative `S^k` or with
+        `a=1` corresponding to the representative `U^k`.
 
         EXAMPLES::
 
@@ -1676,13 +1678,13 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
     def block_decomposition(self):
         r"""
-        Return a tuple ``(L, R, sgn)`` such that
+        Return a tuple `(L, R, \mathrm{sgn})` such that
         ``self = sgn * R.acton(prod(L)) = sgn * R*prod(L)*R.inverse()``.
 
         In the parabolic and hyperbolic case the tuple entries
-        in ``L`` are powers of basic block matrices:
-        ``V(j) = U^(j-1)*T = self.parent().V(j)`` for ``1 <= j <= n-1``.
-        In the elliptic case the tuple entries are either ``S`` or ``U``.
+        in `L` are powers of basic block matrices:
+        ``V(j) = U^(j-1)*T = self.parent().V(j)`` for `1 \leq j \leq n-1`.
+        In the elliptic case the tuple entries are either `S` or `U`.
 
         This decomposition data is (also) described by
         :meth:`_block_decomposition_data`.
@@ -2262,7 +2264,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         r"""
         Return whether ``self`` is a parabolic matrix.
 
-        If ``exclude_one`` is set, then +- the identity
+        If ``exclude_one`` is set, then `\pm` the identity
         element is not considered parabolic.
 
         EXAMPLES::
@@ -2322,7 +2324,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         primitive if (up to a sign and taking inverses) it generates
         the full stabilizer subgroup of the corresponding fixed point.
         In the non-elliptic case this means that primitive elements
-        cannot be written as a `non-trivial` power of another element.
+        cannot be written as a non-trivial power of another element.
 
         The notion is mostly used for hyperbolic and parabolic elements.
 
@@ -2392,7 +2394,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         reduced elements in the conjugacy class of ``self`` form a
         finite cycle.
 
-        Elliptic elements and +- identity are not considered reduced.
+        Elliptic elements and `\pm` identity are not considered reduced.
 
         .. WARNING::
 
@@ -2450,7 +2452,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         Return whether ``self`` is simple. We call an element
         simple if it is hyperbolic, primitive, has positive sign
         and if the associated hyperbolic fixed points satisfy:
-        ``alpha' < 0 < alpha`` where ``alpha`` is the attracting
+        `\alpha' < 0 < \alpha` where `\alpha` is the attracting
         fixed point for the element.
 
         I.e. if the associated hyperbolic fixed point (resp. the
@@ -2514,15 +2516,15 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
     def is_hecke_symmetric(self):
         r"""
         Return whether the conjugacy class of the primitive part of
-        ``self``, denoted by ``[gamma]`` is `Hecke-symmetric`:
-        I.e. if ``[gamma] == [gamma^(-1)]``.
+        ``self``, denoted by `[\gamma]` is Hecke-symmetric:
+        I.e. if `[\gamma] = [\gamma^{-1}]`.
 
         This is equivalent to ``self.simple_fixed_point_set()`` being
         equal with it's `Hecke-conjugated` set (where each fixed point
         is replaced by the other (`Hecke-conjugated`) fixed point.
 
-        It is also equivalent to ``[Q] == [-Q]`` for the corresponding
-        hyperbolic binary quadratic form ``Q``.
+        It is also equivalent to `[Q] = [-Q]` for the corresponding
+        hyperbolic binary quadratic form `Q`.
 
         The method assumes that ``self`` is hyperbolic.
 
@@ -2572,15 +2574,15 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         r"""
         The method assumes that ``self`` is hyperbolic.
 
-        Return the rational period function of weight ``k`` for
+        Return the rational period function of weight `k` for
         the primitive conjugacy class of ``self``.
 
-        A `rational period function` of weight ``k`` is a
-        rational function ``q`` which satisfies:
-        ``q + q|S == 0`` and ``q + q|U + q|U^2 + ... + q|U^(n-1) == 0``,
+        A rational period function of weight `k` is a
+        rational function `q` which satisfies:
+        `q + q|S = 0` and `q + q|U + q|U^2 + \cdots + q|U^{n-1} = 0`,
         where ``S = self.parent().S()``, ``U = self.parent().U()`` and
-        ``|`` is the usual `slash-operator` of weight `k`.
-        Note that if ``k < 0`` then ``q`` is a polynomial.
+        `|` is the usual slash-operator of weight `k`.
+        Note that if `k < 0` then `q` is a polynomial.
 
         This method returns a very basic rational period function
         associated with the primitive conjugacy class of ``self``.
@@ -2588,8 +2590,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         are formed by linear combinations of such functions.
 
         There is also a close relation with modular integrals of
-        weight ``2-k`` and sometimes ``2-k`` is used for the weight
-        instead of ``k``.
+        weight `2-k` and sometimes `2-k` is used for the weight
+        instead of `k`.
 
         .. WARNING::
 
@@ -2721,18 +2723,18 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
     def linking_number(self):
         r"""
-        Let ``g`` denote a holomorphic primitive of ``E2`` in the sense:
-        ``lambda/(2*pi*i) d/dz g = E2``. Let ``gamma=self`` and let
-        ``M_gamma(z)`` be ``Log((c*z+d) * sgn(a+d))`` if ``c, a+d > 0``,
-        resp. ``Log((c*z+d) / i*sgn(c))`` if ``a+d = 0, c!=0``,
-        resp. ``0`` if ``c=0``. Let ``k=4 * n / (n-2)``, then:
+        Let `g` denote a holomorphic primitive of `E_2` in the sense:
+        `\lambda/(2\pi*i) d/dz g = E_2`. Let `\gamma=\text{self}` and let
+        `M_{\gamma}(z)` be `­\log((cz+d)  \mathrm{sgn}(a+d))` if `c, a+d > 0`,
+        resp. `\log((cz+d) / i\mathrm{sgn}(c))` if `a+d = 0, c\neq 0`,
+        resp. `0` if `c=0`. Let `k=4 n / (n-2)`, then:
 
         ``g(gamma.acton(z) - g(z) - k*M_gamma(z)`` is equal to
         ``2*pi*i / (n-2) * self.linking_number()``.
 
-        In particular it is independent of ``z`` and a conjugacy invariant.
+        In particular it is independent of `z` and a conjugacy invariant.
 
-        If ``self`` is hyperbolic then in the classical case ``n=3``
+        If ``self`` is hyperbolic then in the classical case `n=3`
         this is the linking number of the closed geodesic
         (corresponding to ``self``) with the trefoil knot.
 
@@ -3216,7 +3218,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         elements on complex points (using :meth:`acton`).
 
         For the action on matrices by conjugation :meth:`acton` has to be used explicitly
-        (to avoid confusion/ambiguity in expressions of the form gamma1*gamma2*z).
+        (to avoid confusion/ambiguity in expressions of the form `\gamma_1 \gamma_2 z`).
 
         EXAMPLES::
 
@@ -3253,8 +3255,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
     def slash(self, f, tau=None, k=None):
         r"""
-        Return the `slash-operator` of weight ``k`` to applied to ``f``,
-        evaluated at ``tau``. I.e. ``(f|_k[self])(tau)``.
+        Return the slash-operator of weight `k` to applied to `f`,
+        evaluated at ``tau``. I.e. `(f|_k[\text{self}])(\tau)`.
 
         INPUT:
 
