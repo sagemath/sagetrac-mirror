@@ -4878,8 +4878,11 @@ class BTerm(TermWithCoefficient):
                 valid_from_new[variable_name] = (self.valid_from[variable_name])
             elif variable_name in other.valid_from:
                 valid_from_new[variable_name] = (other.valid_from[variable_name])
-        q = self.growth / other.growth
-        coeff_new = self.coefficient + (other.coefficient / q._find_minimum_(valid_from_new))
+        if self.growth == other.growth:
+            coeff_new = self.coefficient + other.coefficient
+        else:
+            q = self.growth / other.growth
+            coeff_new = self.coefficient + (other.coefficient / q._find_minimum_(valid_from_new))
         return self.parent()(self.growth, coefficient=coeff_new, valid_from=valid_from_new)
 
 
