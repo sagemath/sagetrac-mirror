@@ -49,8 +49,8 @@ elements of different characteristics::
     sage: v.universe()
     Category of objects
 
-You can make a list immutable with ``v.freeze()``.  Assignment is
-never again allowed on an immutable list.
+You can make a sequence immutable with ``v.set_immutable()``.  Assignment is
+never again allowed on an immutable sequence.
 
 Creation of a sequence involves making a copy of the input list, and
 substantial coercions.  It can be greatly sped up by explicitly
@@ -891,26 +891,70 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         else:
             raise AttributeError("'Sequence_generic' object has no attribute '%s'"%name)
 
+    def __add__(self, other):
+        r"""
+        Return the concatenation of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a sequence
+
+        OUTPUT:
+
+        - an immutable sequence
+
+        TESTS::
+
+            sage: M = Sequence([1000, 2000, 3000], immutable=False)
+            sage: M + [4, 5, 6]
+            Traceback (most recent call last):
+            ...
+            TypeError: can only concatenate with another Sequence
+            sage: MM = M + Sequence([4000, 5000, 6000]); MM
+            [1000, 2000, 3000, 4000, 5000, 6000]
+            sage: MM.is_mutable()
+            False
+            sage: type(MM)
+            <class 'sage.structure.sequence.Sequence_generic'>
+        """
+        if not isinstance(other, Sequence_generic):
+            raise TypeError("can only concatenate with another Sequence")
+        return Sequence(list(self) + list(other), check=True,
+                        immutable=True, cr=self.__cr_str)
+
     def __iadd__(self, other):
         r"""
         TESTS::
 
-            sage: M = Sequence([1, 2, 3], immutable=False)
+            sage: M = Sequence([1000, 2000, 3000], immutable=False)
             sage: M += [4, 5, 6]
+            Traceback (most recent call last):
+            ...
+            TypeError: can only concatenate with another Sequence
+            sage: M += Sequence([4000, 5000, 6000])
             sage: M
-            [1, 2, 3, 4, 5, 6]
+            [1000, 2000, 3000, 4000, 5000, 6000]
+            sage: type(M)
+            <class 'sage.structure.sequence.Sequence_generic'>
+            sage: M.is_mutable()
+            True
 
             sage: I = Sequence([1, 2, 3], immutable=True)
             sage: J = I
-            sage: J += [4, 5, 6]
+            sage: J += Sequence([4, 5, 6])
             sage: J
             [1, 2, 3, 4, 5, 6]
+            sage: type(J)
+            <class 'sage.structure.sequence.Sequence_generic'>
+            sage: J.is_mutable()
+            True
             sage: I
             [1, 2, 3]
         """
-        if self.is_immutable():
-            return list.__add__(self, other)
-        return list.__iadd__(self, other)
+        if not isinstance(other, Sequence_generic):
+            raise TypeError("can only concatenate with another Sequence")
+        return Sequence(list(self) + list(other), check=True,
+                        immutable=False, cr=self.__cr_str)
 
     def __imul__(self, other):
         r"""
