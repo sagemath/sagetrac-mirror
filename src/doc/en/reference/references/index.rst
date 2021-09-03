@@ -4717,6 +4717,10 @@ REFERENCES:
               volume 6795 of Lecture Notes in Computer Science,
               Springer-Verlag, Berlin, Heidelberg, 2011, pp. 406--416
 
+.. [PS2000] \Pakianathan, J., Shankar, K., *Nilpotent Numbers*,
+            The American Mathematical Monthly, 107(7), 631-634.
+            :doi:`10.2307/2589118`
+
 .. [PS2002] Jim Pitman, Richard Stanley, *A polytope related to
             empirical distributions, plane trees, parking functions, and
             the associahedron*, J. Discrete Comput. Geom. (2002), 27:4, 603-634,

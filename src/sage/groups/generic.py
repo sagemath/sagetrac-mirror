@@ -124,6 +124,144 @@ multiplication_names = ('multiplication', 'times', 'product', '*')
 addition_names = ('addition', 'plus', 'sum', '+')
 
 
+def is_nilpotent_number(n):
+    r"""
+    Check whether `n` is a nilpotent number. A number `n` is said to be nilpotent
+    if and only if every finite group of order `n` is nilpotent. For more
+    information see [PS2000]_.
+
+    INPUT:
+
+    - ``n`` -- a positive integer
+
+    OUTPUT: A boolean indicating whether `n` is a nilpotent number.
+
+    EXAMPLES::
+
+        sage: from sage.groups.generic import is_nilpotent_number
+        sage: is_nilpotent_number(21)
+        False
+
+        sage: is_nilpotent_number(7**39)
+        True
+
+        sage: is_nilpotent_number(136)
+        False
+
+        sage: is_nilpotent_number(-4)
+        Traceback (most recent call last):
+        ...
+        ValueError: Nilpotent number check meaningless for non-positive n (=-4)
+    """
+    from sage.arith.misc import power_mod, factor
+
+    if n <= 0:
+        raise ValueError("Nilpotent number check meaningless for non-positive n (=%s)" % n)
+
+    prime_factors = list(factor(n))
+    is_nilpotent = True
+    for p_j, a_j in prime_factors:
+        for p_i, a_i in prime_factors:
+            if any([power_mod(p_i, k, p_j) == 1 for k in range(1, a_i + 1)]):
+                is_nilpotent = False
+                break
+        # n can't be nilpotent so we break out of the loop
+        if not is_nilpotent:
+            break
+
+    return is_nilpotent
+
+
+def is_abelian_number(n):
+    r"""
+    Check whether `n` is an abelian number. A number `n` is said to be abelian
+    if and only if every finite group of order `n` is abelian. For more
+    information see [PS2000]_.
+
+    INPUT:
+
+    - ``n`` -- a positive integer
+
+    OUTPUT: A boolean indicating whether `n` is an abelian number.
+
+    EXAMPLES::
+
+        sage: from sage.groups.generic import is_abelian_number
+        sage: is_abelian_number(4)
+        True
+
+        sage: is_abelian_number(random_prime(1000)**2)
+        True
+
+        sage: is_abelian_number(39)
+        False
+
+        sage: is_abelian_number(60)
+        False
+
+        sage: is_abelian_number(-4)
+        Traceback (most recent call last):
+        ...
+        ValueError: Abelian number check meaningless for non-positive n (=-4)
+    """
+    from sage.arith.misc import factor
+
+    if n <= 0:
+        raise ValueError("Abelian number check meaningless for non-positive n (=%s)" % n)
+
+    if not is_nilpotent_number(n):
+        return False
+
+    prime_factors = list(factor(n))
+    is_abelian = all(a_i < 3 for p_i, a_i in prime_factors)
+    return is_abelian
+
+
+def is_cyclic_number(n):
+    r"""
+    Check whether `n` is a cyclic number. A number `n` is said to be cyclic
+    if and only if every finite group of order `n` is cyclic. For more
+    information see [PS2000]_.
+
+    INPUT:
+
+    - ``n`` -- a positive integer
+
+    OUTPUT: A boolean indicating whether `n` is a cyclic number.
+
+    EXAMPLES::
+
+        sage: from sage.groups.generic import is_cyclic_number
+        sage: is_cyclic_number(15)
+        True
+
+        sage: is_cyclic_number(random_prime(1000)**2)
+        False
+
+        sage: is_cyclic_number(random_prime(10**10))
+        True
+
+        sage: is_cyclic_number(4)
+        False
+
+        sage: is_cyclic_number(-4)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cyclic number check meaningless for non-positive n (=-4)
+    """
+    from sage.arith.misc import factor
+
+    if n <= 0:
+        raise ValueError("Cyclic number check meaningless for non-positive n (=%s)" % n)
+
+    if not is_nilpotent_number(n):
+        return False
+
+    prime_factors = list(factor(n))
+    is_cyclic = all(a_i < 2 for p_i, a_i in prime_factors)
+    return is_cyclic
+
+
 def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
     r"""
     Return either `na` or `a^n`, where `n` is any integer and `a` is
