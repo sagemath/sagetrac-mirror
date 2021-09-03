@@ -5214,6 +5214,18 @@ class MonomialNonGrowthGroup(GenericNonGrowthGroup,
         """
         return MonomialNonGrowthGroupFunctor(self._var_), self.base()
 
+    def gens_monomial(self):
+        r"""
+        Monomial non-growth group have no monomial generators since their
+        variable cannot be interpreted as an element of the growth group.
+
+        EXAMPLES::
+
+            sage: AsymptoticRing('n^(ZZ*I)', ZZ).growth_group.gens_monomial()
+            ()
+        """
+        return tuple()
+
 
 MonomialGrowthGroup._non_growth_group_class_ = MonomialNonGrowthGroup
 
