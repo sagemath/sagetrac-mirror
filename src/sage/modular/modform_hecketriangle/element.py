@@ -1,5 +1,5 @@
 r"""
-Elements of Hecke Modular Forms Spaces
+Elements of Hecke modular forms spaces
 
 AUTHORS:
 

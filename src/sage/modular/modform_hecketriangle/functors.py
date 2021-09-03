@@ -1,5 +1,5 @@
 r"""
-Functor Construction for All Spaces
+Functor construction for all spaces
 
 AUTHORS:
 

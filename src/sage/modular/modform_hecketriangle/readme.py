@@ -1,5 +1,5 @@
 r"""
-Overview of Hecke Triangle Groups and Modular Forms for Hecke Triangle Groups
+Overview of Hecke triangle groups and modular forms for Hecke triangle groups
 
 AUTHORS:
 
@@ -7,7 +7,7 @@ AUTHORS:
 - David Ayotte (2021): text formatting
 
 
-Hecke Triangle Groups and Elements:
+Hecke triangle groups and elements:
 -----------------------------------
 
 - **Hecke triangle group:**
@@ -564,7 +564,7 @@ Hecke Triangle Groups and Elements:
 
 
 
-Modular Forms Ring and Spaces for Hecke Triangle Groups:
+Modular forms ring and spaces for Hecke triangle groups:
 --------------------------------------------------------
 
 - **Analytic type:**
@@ -1203,7 +1203,7 @@ REFERENCES:
 For more information, see [Jer2013]_.
 
 
-Future Ideas:
+Future ideas:
 -------------
 
 - Complete support for the case `n=\infty` (e.g. lambda-CF)

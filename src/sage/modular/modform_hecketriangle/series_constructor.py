@@ -1,5 +1,5 @@
 r"""
-Series Constructor for Modular Forms for Hecke Triangle Groups
+Series constructor for modular forms for Hecke triangle groups
 
 AUTHORS:
 

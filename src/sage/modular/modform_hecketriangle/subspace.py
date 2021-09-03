@@ -1,5 +1,5 @@
 r"""
-Subspaces of Modular Forms for Hecke Triangle Groups
+Subspaces of modular forms for Hecke triangle groups
 
 AUTHORS:
 
