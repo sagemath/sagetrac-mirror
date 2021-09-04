@@ -1040,6 +1040,38 @@ class Sequence_generic(SageObject, list):
         """
         return self._add(other, immutable=False)
 
+    def __mul__(self, other):
+        r"""
+        TESTS::
+
+            sage: M = Sequence([1, 2, 3], immutable=False)
+            sage: M.universe()
+            Integer Ring
+            sage: M2 = M * 2; M2
+            [1, 2, 3, 1, 2, 3]
+            sage: M2.universe()
+            Integer Ring
+            sage: M2.is_mutable()
+            False
+            sage: M3 = 3 * M; M3
+            Traceback (most recent call last):
+            ...
+            TypeError: unbound method SageObject.category() needs an argument
+            sage: M3.universe()
+            Traceback (most recent call last):
+            ...
+            NameError: name 'M3' is not defined
+            sage: M3.is_mutable()
+            Traceback (most recent call last):
+            ...
+            NameError: name 'M3' is not defined
+        """
+        return Sequence(list(self) * other,
+                        universe=self.universe(), check=False,
+                        immutable=True, cr=self.__cr_str)
+
+    __rmul__ = __mul__
+
     def __imul__(self, other):
         r"""
         TESTS::
@@ -1048,18 +1080,22 @@ class Sequence_generic(SageObject, list):
             sage: M *= 2
             sage: M
             [1, 2, 3, 1, 2, 3]
+            sage: M.is_mutable()
+            True
 
             sage: I = Sequence([1, 2, 3], immutable=True)
             sage: J = I
             sage: J *= 2
             sage: J
             [1, 2, 3, 1, 2, 3]
+            sage: J.is_mutable()
+            True
             sage: I
             [1, 2, 3]
         """
-        if self.is_immutable():
-            return list.__mul__(self, other)
-        return list.__imul__(self, other)
+        return Sequence(list(self) * other,
+                        universe=self.universe(), check=False,
+                        immutable=False, cr=self.__cr_str)
 
     def __delitem__(self, key):
         r"""
