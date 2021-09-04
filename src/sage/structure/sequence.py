@@ -961,9 +961,6 @@ class Sequence_generic(SageObject, list):
             universe = Objects()
             iterables = self, other
         else:
-            from copy import copy
-            maps = [copy(map) for map in maps]
-
             if maps[0] is None:
                 universe = self.universe()
             else:
