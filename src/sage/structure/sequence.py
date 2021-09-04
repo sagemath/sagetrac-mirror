@@ -60,7 +60,18 @@ specifying the universe of the sequence::
 """
 
 # ****************************************************************************
-#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006      Gonzalo Tornaria
+#       Copyright (C) 2006-2009 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006-2011 Martin Albrecht
+#       Copyright (C) 2008      Alexandru Ghitza
+#       Copyright (C) 2009      Burcin Erocal
+#       Copyright (C) 2009      Mike Hansen
+#       Copyright (C) 2012      André Apitzsch
+#       Copyright (C) 2013      Sebastien Labbé
+#       Copyright (C) 2016      Marc Mezzarobba
+#       Copyright (C) 2019      Jeroen Demeyer
+#       Copyright (C) 2020      Antonio Rojas
+#       Copyright (C) 2021      Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
