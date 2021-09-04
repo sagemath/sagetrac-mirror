@@ -902,28 +902,42 @@ class Sequence_generic(SageObject, list):
             sage: ZZx.<x> = ZZ[]
             sage: S_ZZx = Sequence([1, x, x^2])
             sage: S_ZZx.universe()
+            Univariate Polynomial Ring in x over Integer Ring
             sage: E_ZZx = Sequence([], universe=ZZx)
 
             sage: S_QQ = Sequence([1, 1/2, 1/3])
             sage: S_QQ.universe()
+            Rational Field
 
             sage: S_ZZx + S_ZZx
+            [1, x, x^2, 1, x, x^2]
             sage: _.universe()
+            Univariate Polynomial Ring in x over Integer Ring
 
             sage: E_ZZx + E_ZZx
+            []
             sage: _.universe()
+            Univariate Polynomial Ring in x over Integer Ring
 
             sage: S_QQ + S_ZZx
+            [1, 1/2, 1/3, 1, x, x^2]
             sage: _.universe()
+            Univariate Polynomial Ring in x over Rational Field
 
             sage: S_QQ + E_ZZx
+            [1, 1/2, 1/3]
             sage: _.universe()
+            Univariate Polynomial Ring in x over Rational Field
 
             sage: S_ZZx + S_QQ
+            [1, x, x^2, 1, 1/2, 1/3]
             sage: _.universe()
+            Univariate Polynomial Ring in x over Rational Field
 
             sage: E_ZZx + S_QQ
+            [1, 1/2, 1/3]
             sage: _.universe()
+            Univariate Polynomial Ring in x over Rational Field
         """
         if not isinstance(other, Sequence_generic):
             raise TypeError("can only concatenate with another Sequence")
@@ -936,6 +950,7 @@ class Sequence_generic(SageObject, list):
             universe = Objects()
             iterables = self, other
         else:
+            from copy import copy
             maps = [copy(map) for map in maps]
 
             if maps[0] is None:
@@ -943,7 +958,7 @@ class Sequence_generic(SageObject, list):
             else:
                 universe = maps[0].codomain()
 
-            def iterable_coerced(coercion_map, sequence):
+            def iterable_coerced(sequence, coercion_map):
                 if coercion_map is None:
                     return sequence
                 else:
@@ -951,7 +966,8 @@ class Sequence_generic(SageObject, list):
 
             iterables = iterable_coerced(self, maps[0]), iterable_coerced(other, maps[1])
 
-        return Sequence(list(itertools.chain.from_iterable(iterables)), check=False,
+        return Sequence(list(itertools.chain.from_iterable(iterables)),
+                        universe=universe, check=False,
                         immutable=immutable, cr=self.__cr_str)
 
     def __add__(self, other):
