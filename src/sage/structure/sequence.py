@@ -69,8 +69,9 @@ specifying the universe of the sequence::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+import itertools
 
-import sage.structure.sage_object
+from sage.structure.sage_object import SageObject
 import sage.structure.coerce
 
 
@@ -84,7 +85,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
 
     INPUT:
 
-    - ``x`` - a list or tuple instance
+    - ``x`` - a list or tuple instance   FIXME
 
     - ``universe`` - (default: None) the universe of elements; if None
       determined using canonical coercions and the entire list of
@@ -213,6 +214,9 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
         Traceback (most recent call last):
         ...
         TypeError: unable to convert a to an element of Integer Ring
+
+    FIXME: Add test that generators with uncoercible elements will work correctly
+
     """
     if universe is None:
         if isinstance(x, Sequence_generic):
@@ -267,7 +271,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
     return Sequence_generic(x, universe, check, immutable, cr, cr_str, use_sage_types)
 
 
-class Sequence_generic(sage.structure.sage_object.SageObject, list):
+class Sequence_generic(SageObject, list):
     """
     A mutable list of elements with a common guaranteed universe,
     which can be set immutable.
@@ -883,6 +887,73 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         else:
             raise AttributeError("'Sequence_generic' object has no attribute '%s'"%name)
 
+    def _add(self, other, *, immutable):
+        r"""
+        Return the concatenation of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a sequence
+
+        - ``immutable`` -- whether the result should be immutable
+
+        TESTS::
+
+            sage: ZZx.<x> = ZZ[]
+            sage: S_ZZx = Sequence([1, x, x^2])
+            sage: S_ZZx.universe()
+            sage: E_ZZx = Sequence([], universe=ZZx)
+
+            sage: S_QQ = Sequence([1, 1/2, 1/3])
+            sage: S_QQ.universe()
+
+            sage: S_ZZx + S_ZZx
+            sage: _.universe()
+
+            sage: E_ZZx + E_ZZx
+            sage: _.universe()
+
+            sage: S_QQ + S_ZZx
+            sage: _.universe()
+
+            sage: S_QQ + E_ZZx
+            sage: _.universe()
+
+            sage: S_ZZx + S_QQ
+            sage: _.universe()
+
+            sage: E_ZZx + S_QQ
+            sage: _.universe()
+        """
+        if not isinstance(other, Sequence_generic):
+            raise TypeError("can only concatenate with another Sequence")
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        maps = cm.coercion_maps(self.universe(), other.universe())
+        if maps is None:
+            # No common parent
+            from sage.categories.objects import Objects
+            universe = Objects()
+            iterables = self, other
+        else:
+            maps = [copy(map) for map in maps]
+
+            if maps[0] is None:
+                universe = self.universe()
+            else:
+                universe = maps[0].codomain()
+
+            def iterable_coerced(coercion_map, sequence):
+                if coercion_map is None:
+                    return sequence
+                else:
+                    return map(coercion_map, sequence)
+
+            iterables = iterable_coerced(self, maps[0]), iterable_coerced(other, maps[1])
+
+        return Sequence(list(itertools.chain.from_iterable(iterables)), check=False,
+                        immutable=immutable, cr=self.__cr_str)
+
     def __add__(self, other):
         r"""
         Return the concatenation of ``self`` and ``other``.
@@ -909,10 +980,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: type(MM)
             <class 'sage.structure.sequence.Sequence_generic'>
         """
-        if not isinstance(other, Sequence_generic):
-            raise TypeError("can only concatenate with another Sequence")
-        return Sequence(list(self) + list(other), check=True,
-                        immutable=True, cr=self.__cr_str)
+        return self._add(other, immutable=True)
 
     def __iadd__(self, other):
         r"""
@@ -943,10 +1011,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: I
             [1, 2, 3]
         """
-        if not isinstance(other, Sequence_generic):
-            raise TypeError("can only concatenate with another Sequence")
-        return Sequence(list(self) + list(other), check=True,
-                        immutable=False, cr=self.__cr_str)
+        return self._add(other, immutable=False)
 
     def __imul__(self, other):
         r"""
