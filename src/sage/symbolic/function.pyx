@@ -233,6 +233,24 @@ cdef class Function(SageObject):
 
             register_symbol(self, self._conversions)
 
+    def __copy__(self):
+        """
+        EXAMPLES::
+
+            sage: copy(sin) is sin
+            True
+        """
+        return self  # immutable
+
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: deepcopy(sin) is sin
+            True
+        """
+        return self  # immutable
+
     cdef _is_registered(self):
         """
         Check if this function is already registered. If it is, set
