@@ -110,7 +110,11 @@ defined Cython code, and with rather tricky argument lines::
     def foo(unsigned int x=1, a=')"', b={not (2+1==3):'bar'}, *args, **kwds): return
     sage: sage_getargspec(foo)
     ArgSpec(args=['x', 'a', 'b'], varargs='args', keywords='kwds', defaults=(1, ')"', {False: 'bar'}))
-
+    sage: import inspect
+    sage: inspect.signature(foo)
+    Traceback (most recent call last):
+    ...
+    ValueError: no signature found for builtin <built-in function foo>
 """
 
 import ast
@@ -1408,18 +1412,25 @@ def sage_getargspec(obj):
 
     EXAMPLES::
 
+        sage: import inspect
         sage: from sage.misc.sageinspect import sage_getargspec
         sage: def f(x, y, z=1, t=2, *args, **keywords):
         ....:     pass
         sage: sage_getargspec(f)
         ArgSpec(args=['x', 'y', 'z', 't'], varargs='args', keywords='keywords', defaults=(1, 2))
+        sage: inspect.signature(f)
+        <Signature (x, y, z=1, t=2, *args, **keywords)>
 
     We now run sage_getargspec on some functions from the Sage library::
 
         sage: sage_getargspec(identity_matrix)
         ArgSpec(args=['ring', 'n', 'sparse'], varargs=None, keywords=None, defaults=(0, False))
+        sage: inspect.signature(identity_matrix)
+        <Signature (ring, n=0, sparse=False)>
         sage: sage_getargspec(factor)
         ArgSpec(args=['n', 'proof', 'int_', 'algorithm', 'verbose'], varargs=None, keywords='kwds', defaults=(None, False, 'pari', 0))
+        sage: inspect.signature(factor)
+        <Signature (n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds)>
 
     In the case of a class or a class instance, the ``ArgSpec`` of the
     ``__new__``, ``__init__`` or ``__call__`` method is returned::
@@ -1427,8 +1438,16 @@ def sage_getargspec(obj):
         sage: P.<x,y> = QQ[]
         sage: sage_getargspec(P)
         ArgSpec(args=['base_ring', 'n', 'names', 'order'], varargs=None, keywords=None, defaults=('degrevlex',))
+        sage: inspect.signature(P)
+        Traceback (most recent call last):
+        ...
+        ValueError: callable Multivariate Polynomial Ring in x, y over Rational Field is not supported by signature
         sage: sage_getargspec(P.__class__)
         ArgSpec(args=['self', 'x'], varargs='args', keywords='kwds', defaults=(0,))
+        sage: inspect.signature(P.__class__)
+        Traceback (most recent call last):
+        ...
+        ValueError: no signature found for builtin type <class 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
 
     The following tests against various bugs that were fixed in
     :trac:`9976`::
@@ -1436,16 +1455,28 @@ def sage_getargspec(obj):
         sage: from sage.rings.polynomial.real_roots import bernstein_polynomial_factory_ratlist
         sage: sage_getargspec(bernstein_polynomial_factory_ratlist.coeffs_bitsize)
         ArgSpec(args=['self'], varargs=None, keywords=None, defaults=None)
+        sage: inspect.signature(bernstein_polynomial_factory_ratlist.coeffs_bitsize)
+        <Signature (self)>
         sage: from sage.rings.polynomial.pbori.pbori import BooleanMonomialMonoid
         sage: sage_getargspec(BooleanMonomialMonoid.gen)
         ArgSpec(args=['self', 'i'], varargs=None, keywords=None, defaults=(0,))
+        sage: inspect.signature(BooleanMonomialMonoid.gen)
+        <Signature (self, i=0)>
         sage: I = P*[x,y]
         sage: sage_getargspec(I.groebner_basis)
         ArgSpec(args=['self', 'algorithm', 'deg_bound', 'mult_bound', 'prot'],
         varargs='args', keywords='kwds', defaults=('', None, None, False))
+        sage: inspect.signature(I.groebner_basis)
+        Traceback (most recent call last):
+        ...
+        ValueError: no signature found for builtin Cached version of <function MPolynomialIdeal.groebner_basis at ...>
         sage: cython("cpdef int foo(x,y) except -1: return 1")
         sage: sage_getargspec(foo)
         ArgSpec(args=['x', 'y'], varargs=None, keywords=None, defaults=None)
+        sage: inspect.signature(foo)
+        Traceback (most recent call last):
+        ...
+        ValueError: no signature found for builtin <built-in function foo>
 
     If a ``functools.partial`` instance is involved, we see no other meaningful solution
     than to return the argspec of the underlying function::
@@ -1456,6 +1487,8 @@ def sage_getargspec(obj):
         sage: f1 = functools.partial(f, 1,c=2)
         sage: sage_getargspec(f1)
         ArgSpec(args=['a', 'b', 'c', 'd'], varargs=None, keywords=None, defaults=(1,))
+        sage: inspect.signature(f1)
+        <Signature (b, *, c=2, d=1)>
 
     TESTS:
 
@@ -1487,8 +1520,16 @@ def sage_getargspec(obj):
         ')"'
         sage: sorted(spec.defaults[1].items(), key=lambda x: str(x))
         [(3, 'bar'), (48, 5), (False, 3)]
+        sage: inspect.signature(O)
+        Traceback (most recent call last):
+        ...
+        ValueError: callable <...MyClass object at ...> is not supported by signature
         sage: sage.misc.sageinspect.sage_getargspec(O.__call__)
         ArgSpec(args=['self', 'm', 'n'], varargs=None, keywords=None, defaults=None)
+        sage: inspect.signature(O.__call__)
+        Traceback (most recent call last):
+        ...
+        ValueError: no signature found for builtin <method-wrapper '__call__' of ...MyClass object at ...>
 
     ::
 
@@ -1498,6 +1539,10 @@ def sage_getargspec(obj):
         <BLANKLINE>
         sage: sage.misc.sageinspect.sage_getargspec(foo)
         ArgSpec(args=['x', 'a', 'b'], varargs=None, keywords=None, defaults=('\')"', {False: 'bar'}))
+        sage: inspect.signature(foo)
+        Traceback (most recent call last):
+        ...
+        ValueError: no signature found for builtin <built-in function foo>
 
     The following produced a syntax error before the patch at :trac:`11913`,
     see also :trac:`26906`::
@@ -1518,15 +1563,27 @@ def sage_getargspec(obj):
         ....: ''')
         sage: sage_getargspec(Foo.join)
         ArgSpec(args=['categories', 'as_list', 'ignore_axioms', 'axioms'], varargs=None, keywords=None, defaults=(False, (), ()))
+        sage: inspect.signature(Foo.join)
+        <Signature (categories, as_list=False, ignore_axioms=(), axioms=())>
         sage: sage_getargspec(Bar.join)
         ArgSpec(args=['categories', 'as_list', 'ignore_axioms', 'axioms'], varargs=None, keywords=None, defaults=(False, (), ()))
+        sage: inspect.signature(Bar.join)
+        Traceback (most recent call last):
+        ...
+        ValueError: no signature found for builtin <built-in function join>
         sage: sage_getargspec(Bar.meet)
         ArgSpec(args=['categories', 'as_list', 'ignore_axioms', 'axioms'], varargs=None, keywords=None, defaults=(False, (), ()))
+        sage: inspect.signature(Bar.meet)
+        Traceback (most recent call last):
+        ...
+        ValueError: no signature found for builtin <method 'meet' of '...Bar' objects>
 
     Test that :trac:`17009` is fixed::
 
         sage: sage_getargspec(gap)
         ArgSpec(args=['self', 'x', 'name'], varargs=None, keywords=None, defaults=(None,))
+        sage: inspect.signature(gap)
+        <Signature (x, name=None)>
 
     By :trac:`17814`, the following gives the correct answer (previously, the
     defaults would have been found ``None``)::
@@ -1534,18 +1591,20 @@ def sage_getargspec(obj):
         sage: from sage.misc.nested_class import MainClass
         sage: sage_getargspec(MainClass.NestedClass.NestedSubClass.dummy)
         ArgSpec(args=['self', 'x', 'r'], varargs='args', keywords='kwds', defaults=((1, 2, 3.4),))
+        sage: inspect.signature(MainClass.NestedClass.NestedSubClass.dummy)
+        <Signature (self, x, *args, r=(1, 2, 3.4), **kwds)>
 
     In :trac:`18249` was decided to return a generic signature for Python
     builtin functions, rather than to raise an error (which is what Python's
     inspect module does)::
 
         sage: import inspect
-        sage: inspect.getargspec(range)  # py2
-        Traceback (most recent call last):
-        ...
-        TypeError: <built-in function range> is not a Python function
         sage: sage_getargspec(range)
         ArgSpec(args=[], varargs='args', keywords='kwds', defaults=None)
+        sage: inspect.signature(range)
+        Traceback (most recent call last):
+        ...
+        ValueError: no signature found for builtin type <class 'range'>
 
     Test that :trac:`28524` is fixed::
 
