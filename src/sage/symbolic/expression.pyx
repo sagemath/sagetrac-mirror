@@ -764,8 +764,21 @@ cdef class Expression(CommutativeRingElement):
 
             sage: copy(x)
             x
+            sage: copy(x) is x
+            True
         """
-        return new_Expression_from_GEx(self._parent, self._gobj)
+        return self  # immutable
+
+    def __deepcopy__(self, memo):
+        """
+        TESTS::
+
+            sage: deepcopy(x)
+            x
+            sage: deepcopy(x) is x
+            True
+        """
+        return self  # immutable
 
     def __enter__(self):
         """
