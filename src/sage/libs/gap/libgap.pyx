@@ -253,8 +253,8 @@ cdef class SageGap(Gap):
     """
 
     def __init__(self):
-        workspace, _ = get_workspace()
-        Gap.__init__(self, gap_root=gap_root(), workspace=workspace,
+        workspace, isitthere = get_workspace()
+        Gap.__init__(self, gap_root=gap_root(), workspace=workspace, workspace_valid=isitthere,
                      autoload=True)
 
     cpdef initialize(self):
