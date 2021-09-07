@@ -1985,11 +1985,11 @@ def is_kernel_polynomial(E, m, f):
 
     ALGORITHM:
 
-    `f` must have degree `(m-1)/2` (if `m` is odd) or degree `m/2` (if
-    `m` is even), and have the property that for each root `x` of `f`,
-    `\mu(x)` is also a root where `\mu` is the multiplication-by-`a`
-    map on `E` and `a` runs over a set of generators of
-    `(\ZZ/m\ZZ)^*/\{1,-1\}`.
+    The polynomial `f` must have degree `\lfloor m/2 \rfloor` and
+    have the property that for each `a` in a set of generators of
+    `(\ZZ/m\ZZ)^*/\{1,-1\}` and each root `x` of `f`, `\mu(x)` is
+    also a root, where `\mu` is the map on `x`-coordinates induced
+    by the multiplication-by-`a` map on `E`.
 
     EXAMPLES::
 
