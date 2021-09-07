@@ -1967,7 +1967,7 @@ def _least_semi_primitive(p):
 
 def is_kernel_polynomial(E, m, f):
     r"""
-    Test whether ``E`` has a cyclic isogeny of degree ``m`` with kernel
+    Test whether ``E`` has an isogeny of degree ``m`` with kernel
     polynomial ``f``.
 
     INPUT:
@@ -1980,7 +1980,7 @@ def is_kernel_polynomial(E, m, f):
 
     OUTPUT:
 
-    (bool) ``True`` if ``E`` has a cyclic isogeny of degree ``m`` with
+    (bool) ``True`` if ``E`` has an isogeny of degree ``m`` with
     kernel polynomial ``f``, else ``False``.
 
     ALGORITHM:
