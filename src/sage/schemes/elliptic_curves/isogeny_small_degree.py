@@ -1987,8 +1987,8 @@ def is_kernel_polynomial(E, m, f):
 
     `f` must have degree `(m-1)/2` (if `m` is odd) or degree `m/2` (if
     `m` is even), and have the property that for each root `x` of `f`,
-    `\mu(x)` is also a root where `\mu` is the multiplication-by-`m`
-    map on `E` and `m` runs over a set of generators of
+    `\mu(x)` is also a root where `\mu` is the multiplication-by-`a`
+    map on `E` and `a` runs over a set of generators of
     `(\ZZ/m\ZZ)^*/\{1,-1\}`.
 
     EXAMPLES::
