@@ -1359,7 +1359,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: s.ambient()
             (-oo, +oo)
         """
-        return RealSet.real_line()
+        return self.__class__.real_line()
 
     def lift(self, x):
         r"""
@@ -1563,8 +1563,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         else:
             return lower, upper
 
-    @staticmethod
-    def interval(lower, upper, *, lower_closed=None, upper_closed=None, **kwds):
+    @classmethod
+    def interval(cls, lower, upper, *, lower_closed=None, upper_closed=None, **kwds):
         r"""
         Construct an interval
 
@@ -1590,10 +1590,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         if lower_closed is None or upper_closed is None:
             raise ValueError('lower_closed and upper_closed must be explicitly given')
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(InternalRealInterval(lower, lower_closed, upper, upper_closed), **kwds)
+        return cls(InternalRealInterval(lower, lower_closed, upper, upper_closed), **kwds)
 
-    @staticmethod
-    def open(lower, upper, **kwds):
+    @classmethod
+    def open(cls, lower, upper, **kwds):
         r"""
         Construct an open interval
 
@@ -1614,10 +1614,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (0, 1)
         """
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(InternalRealInterval(lower, False, upper, False), **kwds)
+        return cls(InternalRealInterval(lower, False, upper, False), **kwds)
 
-    @staticmethod
-    def closed(lower, upper, **kwds):
+    @classmethod
+    def closed(cls, lower, upper, **kwds):
         r"""
         Construct a closed interval
 
@@ -1638,10 +1638,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             [0, 1]
         """
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(InternalRealInterval(lower, True, upper, True), **kwds)
+        return cls(InternalRealInterval(lower, True, upper, True), **kwds)
 
-    @staticmethod
-    def point(p, **kwds):
+    @classmethod
+    def point(cls, p, **kwds):
         r"""
         Construct an interval containing a single point
 
@@ -1661,10 +1661,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (0, 1)
         """
         p = RealSet._prep(p)
-        return RealSet(InternalRealInterval(p, True, p, True), **kwds)
+        return cls(InternalRealInterval(p, True, p, True), **kwds)
 
-    @staticmethod
-    def open_closed(lower, upper, **kwds):
+    @classmethod
+    def open_closed(cls, lower, upper, **kwds):
         r"""
         Construct a half-open interval
 
@@ -1686,10 +1686,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (0, 1]
         """
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(InternalRealInterval(lower, False, upper, True), **kwds)
+        return cls(InternalRealInterval(lower, False, upper, True), **kwds)
 
-    @staticmethod
-    def closed_open(lower, upper, **kwds):
+    @classmethod
+    def closed_open(cls, lower, upper, **kwds):
         r"""
         Construct an half-open interval
 
@@ -1711,10 +1711,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             [0, 1)
         """
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(InternalRealInterval(lower, True, upper, False), **kwds)
+        return cls(InternalRealInterval(lower, True, upper, False), **kwds)
 
-    @staticmethod
-    def unbounded_below_closed(bound, **kwds):
+    @classmethod
+    def unbounded_below_closed(cls, bound, **kwds):
         r"""
         Construct a semi-infinite interval
 
@@ -1734,10 +1734,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (-oo, 1]
         """
         bound = RealSet._prep(bound)
-        return RealSet(InternalRealInterval(minus_infinity, False, bound, True), **kwds)
+        return cls(InternalRealInterval(minus_infinity, False, bound, True), **kwds)
 
-    @staticmethod
-    def unbounded_below_open(bound, **kwds):
+    @classmethod
+    def unbounded_below_open(cls, bound, **kwds):
         r"""
         Construct a semi-infinite interval
 
@@ -1757,10 +1757,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (-oo, 1)
         """
         bound = RealSet._prep(bound)
-        return RealSet(InternalRealInterval(RLF(minus_infinity), False, RLF(bound), False), **kwds)
+        return cls(InternalRealInterval(RLF(minus_infinity), False, RLF(bound), False), **kwds)
 
-    @staticmethod
-    def unbounded_above_closed(bound, **kwds):
+    @classmethod
+    def unbounded_above_closed(cls, bound, **kwds):
         r"""
         Construct a semi-infinite interval
 
@@ -1781,10 +1781,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             [1, +oo)
         """
         bound = RealSet._prep(bound)
-        return RealSet(InternalRealInterval(RLF(bound), True, RLF(infinity), False), **kwds)
+        return cls(InternalRealInterval(RLF(bound), True, RLF(infinity), False), **kwds)
 
-    @staticmethod
-    def unbounded_above_open(bound, **kwds):
+    @classmethod
+    def unbounded_above_open(cls, bound, **kwds):
         r"""
         Construct a semi-infinite interval
 
@@ -1805,10 +1805,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (1, +oo)
         """
         bound = RealSet._prep(bound)
-        return RealSet(InternalRealInterval(RLF(bound), False, RLF(infinity), False), **kwds)
+        return cls(InternalRealInterval(RLF(bound), False, RLF(infinity), False), **kwds)
 
-    @staticmethod
-    def real_line(**kwds):
+    @classmethod
+    def real_line(cls, **kwds):
         r"""
         Construct the real line
 
@@ -1821,7 +1821,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet.real_line()
             (-oo, +oo)
         """
-        return RealSet(InternalRealInterval(RLF(minus_infinity), False, RLF(infinity), False), **kwds)
+        return cls(InternalRealInterval(RLF(minus_infinity), False, RLF(infinity), False), **kwds)
 
     def union(self, *other):
         """
@@ -1850,7 +1850,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         """
         other = RealSet(*other)
         intervals = self._intervals + other._intervals
-        return RealSet(*intervals)
+        return self.__class__(*intervals)
 
     def intersection(self, *other):
         """
@@ -1894,7 +1894,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         for i1 in self._intervals:
             for i2 in other._intervals:
                 intervals.append(i1.intersection(i2))
-        return RealSet(*intervals)
+        return self.__class__(*intervals)
 
     def inf(self):
         """
@@ -1985,7 +1985,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             i = InternalRealInterval(prev._upper, prev.upper_open(),
                              next._lower, next.lower_open())
             intervals.append(i)
-        return RealSet(*intervals)
+        return self.__class__(*intervals)
 
     def difference(self, *other):
         """
@@ -2193,7 +2193,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet((1, 2), (2, 3)).closure()
             [1, 3]
         """
-        return RealSet(*[i.closure() for i in self._intervals])
+        return self.__class__(*[i.closure() for i in self._intervals])
 
     def interior(self):
         """
@@ -2208,7 +2208,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet([1, 2], (3, 4)).interior()
             (1, 2) ∪ (3, 4)
         """
-        return RealSet(*[i.interior() for i in self._intervals])
+        return self.__class__(*[i.interior() for i in self._intervals])
 
     def boundary(self):
         """
@@ -2226,7 +2226,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             {1} ∪ {2} ∪ {3}
 
         """
-        return RealSet(*[RealSet.point(x) for i in self._intervals for x in i.boundary_points()])
+        return self.__class__(*[RealSet.point(x) for i in self._intervals for x in i.boundary_points()])
 
     def is_disjoint(self, *other):
         """
@@ -2360,10 +2360,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: (-2) * A
             (-oo, -4) ∪ [-1, 0]
         """
-        if not isinstance(right, RealSet):
-            return RealSet(*[e * right for e in self])
-        elif not isinstance(self, RealSet):
-            return RealSet(*[self * e for e in right])
+        if not isinstance(right, self.__class__):
+            return self.__class__(*[e * right for e in self])
+        elif not isinstance(self, self.__class__):
+            return self.__class__(*[self * e for e in right])
         else:
             return NotImplemented
 
@@ -2411,3 +2411,410 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         else:
             return Union(*[interval._sympy_()
                            for interval in self._intervals])
+        
+@richcmp_method
+class RealSet_rtree(RealSet):
+    def __init__(self, *intervals):
+        super().__init__(*intervals)
+        ###
+        # adding rtree as a preliminary filter to overestimate the interval 
+        # ranges, so that it can give a quicker respond to the case when the 
+        # ntervals set does NOT contain a certain point.
+        # No-list 1. intervals set is Empty, 2. intervals only have -infinity, +infinity, 0 as endpoints
+        self.multiplier = 1
+        self.rtree = None
+        
+        if len(self._intervals) == 0: #rtree is not needed, since it is empty!
+            return
+        # x_max is the largest but not infinity absolute value of intervals
+        x_max = 0
+        for interval in self._intervals:
+            lower, upper = abs(interval.lower()), abs(interval.upper())
+            if (x_max < lower) and (lower != +Infinity):
+                x_max = lower
+            if (x_max < upper) and (upper != +Infinity):
+                x_max = upper
+        if x_max == 0: #rtree is not needed, since they are only +-infinity and zero!
+            return 
+        # the multiplier should have: multiplier <= int(safebound / x_max)
+        # for safe, we can use log2(x) to deal with it
+        # that would be:
+        # log2_multiplier <= log2_safebound - log2_x_max
+        log2_safebound = 52
+        log2_multiplier = log2_safebound - int(log(x_max,2)) - 1
+        self.has_rtree = True   
+        self.multiplier = 2**log2_multiplier
+
+        from rtree import index
+        p = index.Property() 
+        p.dimension = 2
+        self.rtree = index.Index(properties = p, interleaved = False)
+        for interval in self._intervals:
+            lower, upper = floor(interval.lower()*self.multiplier), ceil(interval.upper()*self.multiplier)
+            self.rtree.insert(0,(0, 0, lower, upper))
+        ###
+    def contains(self, x):
+        """
+        Return whether `x` is contained in the set
+
+        INPUT:
+
+        - ``x`` -- a real number.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: s = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s
+            (0, 2) + [10, +oo)
+            sage: s.contains(1)
+            True
+            sage: s.contains(0)
+            False
+            sage: 10 in s    # syntactic sugar
+            True
+        """
+        ### rtree filters non-containing points
+        if self.rtree != None:
+            scaled_x = x * self.multiplier
+            if self.rtree.count((0, 0, scaled_x, scaled_x)) == 0:
+                return False
+        ###
+
+#         x = RLF(x)
+#         for interval in self._intervals:
+#             if interval.contains(x):
+#                 return True
+        return super().contains(x)
+    
+    __contains__ = contains  
+    def intersection(self, *other):
+        """
+        Return the intersection of the two sets
+
+        INPUT:
+        
+        - ``other`` -- a :class:`RealSet` or data that defines one.
+
+        OUTPUT:
+        
+        The set-theoretic intersection as a new :class:`RealSet`.
+
+        EXAMPLES::
+
+            sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
+            (0, 2) + [10, +oo)
+            sage: s2 = RealSet(1,3) + RealSet.unbounded_below_closed(-10);  s2
+            (-oo, -10] + (1, 3)
+            sage: s1.intersection(s2)
+            (1, 2)
+            sage: s1 & s2    # syntactic sugar
+            (1, 2)
+
+            sage: s1 = RealSet((0, 1), (2, 3));  s1
+            (0, 1) + (2, 3)
+            sage: s2 = RealSet([0, 1], [2, 3]);  s2
+            [0, 1] + [2, 3]
+            sage: s3 = RealSet([1, 2]);  s3
+            [1, 2]
+            sage: s1.intersection(s2)
+            (0, 1) + (2, 3)
+            sage: s1.intersection(s3)
+            {}
+            sage: s2.intersection(s3)
+            {1} + {2}
+        """
+    
+        other = RealSet(*other)
+        # TODO: this can be done in linear time since the intervals are already sorted
+        intervals = []
+        
+        ###
+        if self.rtree != None:
+             for i2 in other._intervals:
+                if self.rtree.count((0, 0, self.multiplier * i2.lower(), self.multiplier * i2.upper())) == 0:
+                    continue
+                else:
+                    for i1 in self._intervals:
+                        intervals.append(i1.intersection(i2))
+        else:
+        ###
+        
+            for i2 in other._intervals:    
+                for i1 in self._intervals:
+                    intervals.append(i1.intersection(i2))
+        return self.__class__(*intervals)
+
+    __and__ = intersection
+
+@richcmp_method
+class RealSet_rtree(RealSet):
+    def __init__(self, *intervals):
+        super().__init__(*intervals)
+        ###
+        # adding rtree as a preliminary filter to overestimate the interval 
+        # ranges, so that it can give a quicker respond to the case when the 
+        # ntervals set does NOT contain a certain point.
+        # No-list 1. intervals set is Empty, 2. intervals only have -infinity, +infinity, 0 as endpoints
+        self.multiplier = 1
+        self.rtree = None
+        
+        if len(self._intervals) == 0: #rtree is not needed, since it is empty!
+            return
+        # x_max is the largest but not infinity absolute value of intervals
+        x_max = 0
+        for interval in self._intervals:
+            lower, upper = abs(interval.lower()), abs(interval.upper())
+            if (x_max < lower) and (lower != +Infinity):
+                x_max = lower
+            if (x_max < upper) and (upper != +Infinity):
+                x_max = upper
+        if x_max == 0: #rtree is not needed, since they are only +-infinity and zero!
+            return 
+        # the multiplier should have: multiplier <= int(safebound / x_max)
+        # for safe, we can use log2(x) to deal with it
+        # that would be:
+        # log2_multiplier <= log2_safebound - log2_x_max
+        log2_safebound = 52
+        log2_multiplier = log2_safebound - int(log(x_max,2)) - 1
+        self.has_rtree = True   
+        self.multiplier = 2**log2_multiplier
+
+        from rtree import index
+        p = index.Property() 
+        p.dimension = 2
+        self.rtree = index.Index(properties = p, interleaved = False)
+        for interval in self._intervals:
+            lower, upper = floor(interval.lower()*self.multiplier), ceil(interval.upper()*self.multiplier)
+            self.rtree.insert(0,(0, 0, lower, upper))
+        ###
+    def contains(self, x):
+        """
+        Return whether `x` is contained in the set
+
+        INPUT:
+
+        - ``x`` -- a real number.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: s = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s
+            (0, 2) + [10, +oo)
+            sage: s.contains(1)
+            True
+            sage: s.contains(0)
+            False
+            sage: 10 in s    # syntactic sugar
+            True
+        """
+        ### rtree filters non-containing points
+        if self.rtree != None:
+            scaled_x = x * self.multiplier
+            if self.rtree.count((0, 0, scaled_x, scaled_x)) == 0:
+                return False
+        ###
+
+#         x = RLF(x)
+#         for interval in self._intervals:
+#             if interval.contains(x):
+#                 return True
+        return super().contains(x)
+    
+    __contains__ = contains  
+    def intersection(self, *other):
+        """
+        Return the intersection of the two sets
+
+        INPUT:
+        
+        - ``other`` -- a :class:`RealSet` or data that defines one.
+
+        OUTPUT:
+        
+        The set-theoretic intersection as a new :class:`RealSet`.
+
+        EXAMPLES::
+
+            sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
+            (0, 2) + [10, +oo)
+            sage: s2 = RealSet(1,3) + RealSet.unbounded_below_closed(-10);  s2
+            (-oo, -10] + (1, 3)
+            sage: s1.intersection(s2)
+            (1, 2)
+            sage: s1 & s2    # syntactic sugar
+            (1, 2)
+
+            sage: s1 = RealSet((0, 1), (2, 3));  s1
+            (0, 1) + (2, 3)
+            sage: s2 = RealSet([0, 1], [2, 3]);  s2
+            [0, 1] + [2, 3]
+            sage: s3 = RealSet([1, 2]);  s3
+            [1, 2]
+            sage: s1.intersection(s2)
+            (0, 1) + (2, 3)
+            sage: s1.intersection(s3)
+            {}
+            sage: s2.intersection(s3)
+            {1} + {2}
+        """
+    
+        other = RealSet(*other)
+        # TODO: this can be done in linear time since the intervals are already sorted
+        intervals = []
+        
+        ###
+        if self.rtree != None:
+             for i2 in other._intervals:
+                if self.rtree.count((0, 0, self.multiplier * i2.lower(), self.multiplier * i2.upper())) == 0:
+                    continue
+                else:
+                    for i1 in self._intervals:
+                        intervals.append(i1.intersection(i2))
+        else:
+        ###
+        
+            for i2 in other._intervals:    
+                for i1 in self._intervals:
+                    intervals.append(i1.intersection(i2))
+        return self.__class__(*intervals)
+
+    __and__ = intersection
+
+@richcmp_method
+class RealSet_rtree(RealSet):
+    def __init__(self, *intervals):
+        super().__init__(*intervals)
+        ###
+        # adding rtree as a preliminary filter to overestimate the interval 
+        # ranges, so that it can give a quicker respond to the case when the 
+        # ntervals set does NOT contain a certain point.
+        # No-list 1. intervals set is Empty, 2. intervals only have -infinity, +infinity, 0 as endpoints
+        self.multiplier = 1
+        self.rtree = None
+        
+        if len(self._intervals) == 0: #rtree is not needed, since it is empty!
+            return
+        # x_max is the largest but not infinity absolute value of intervals
+        x_max = 0
+        for interval in self._intervals:
+            lower, upper = abs(interval.lower()), abs(interval.upper())
+            if (x_max < lower) and (lower != +Infinity):
+                x_max = lower
+            if (x_max < upper) and (upper != +Infinity):
+                x_max = upper
+        if x_max == 0: #rtree is not needed, since they are only +-infinity and zero!
+            return 
+        # the multiplier should have: multiplier <= int(safebound / x_max)
+        # for safe, we can use log2(x) to deal with it
+        # that would be:
+        # log2_multiplier <= log2_safebound - log2_x_max
+        log2_safebound = 52
+        log2_multiplier = log2_safebound - int(log(x_max,2)) - 1
+        self.has_rtree = True   
+        self.multiplier = 2**log2_multiplier
+
+        from rtree import index
+        p = index.Property() 
+        p.dimension = 2
+        self.rtree = index.Index(properties = p, interleaved = False)
+        for interval in self._intervals:
+            lower, upper = floor(interval.lower()*self.multiplier), ceil(interval.upper()*self.multiplier)
+            self.rtree.insert(0,(0, 0, lower, upper))
+        ###
+    def contains(self, x):
+        """
+        Return whether `x` is contained in the set
+
+        INPUT:
+
+        - ``x`` -- a real number.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: s = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s
+            (0, 2) + [10, +oo)
+            sage: s.contains(1)
+            True
+            sage: s.contains(0)
+            False
+            sage: 10 in s    # syntactic sugar
+            True
+        """
+        ### rtree filters non-containing points
+        if self.rtree != None:
+            scaled_x = x * self.multiplier
+            if self.rtree.count((0, 0, scaled_x, scaled_x)) == 0:
+                return False
+        ###
+
+#         x = RLF(x)
+#         for interval in self._intervals:
+#             if interval.contains(x):
+#                 return True
+        return super().contains(x)
+    
+    __contains__ = contains  
+    def intersection(self, *other):
+        """
+        Return the intersection of the two sets
+
+        INPUT:
+        
+        - ``other`` -- a :class:`RealSet` or data that defines one.
+
+        OUTPUT:
+        
+        The set-theoretic intersection as a new :class:`RealSet`.
+
+        EXAMPLES::
+
+            sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
+            (0, 2) + [10, +oo)
+            sage: s2 = RealSet(1,3) + RealSet.unbounded_below_closed(-10);  s2
+            (-oo, -10] + (1, 3)
+            sage: s1.intersection(s2)
+            (1, 2)
+            sage: s1 & s2    # syntactic sugar
+            (1, 2)
+
+            sage: s1 = RealSet((0, 1), (2, 3));  s1
+            (0, 1) + (2, 3)
+            sage: s2 = RealSet([0, 1], [2, 3]);  s2
+            [0, 1] + [2, 3]
+            sage: s3 = RealSet([1, 2]);  s3
+            [1, 2]
+            sage: s1.intersection(s2)
+            (0, 1) + (2, 3)
+            sage: s1.intersection(s3)
+            {}
+            sage: s2.intersection(s3)
+            {1} + {2}
+        """
+        
+        ###
+        if self.rtree != None:
+            other = RealSet(*other)
+            # TODO: this can be done in linear time since the intervals are already sorted
+            intervals = []
+            for i2 in other._intervals:
+                if self.rtree.count((0, 0, self.multiplier * i2.lower(), self.multiplier * i2.upper())) == 0:
+                    continue
+                else:
+                    for i1 in self._intervals:
+                        intervals.append(i1.intersection(i2))
+                    return self.__class__(*intervals)
+        else:
+        ###
+            return super().intersection(self, *other)
+
+    __and__ = intersection
