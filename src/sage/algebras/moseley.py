@@ -181,6 +181,604 @@ from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
 
+class MoseleyAlgebra(UniqueRepresentation, Parent):
+    r"""
+    The Varchenko-Gelfand algebra of a central hyperplane arrangement.
+
+    EXAMPLES::
+
+        sage: A = hyperplane_arrangements.braid(3)
+        sage: A
+        Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
+        sage: VG = A.varchenko_gelfand_algebra()
+        sage: VG
+        Varchenko-Gelfand algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
+    """
+
+    def __init__(self, base_ring, arrangement, u='u'):
+        r"""
+        EXAMPLES::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: VG = A.varchenko_gelfand_algebra()
+            sage: TestSuite(VG).run()
+
+            sage: VG = A.varchenko_gelfand_algebra(ZZ)
+            sage: TestSuite(VG).run()
+
+        TESTS::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: h1 = x + y - 1;
+            sage: h2 = x - y + 1;
+            sage: h3 = y + 1;
+            sage: A = h1 | h2 | h3
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
+            sage: A.varchenko_gelfand_algebra(QQ)
+            Traceback (most recent call last):
+            ...
+            ValueError: the hyperplane arrangement must be central
+
+            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: G = SymmetricGroup(4); G.rename('S4')
+            sage: VG = VarchenkoGelfandAlgebra(G, A)
+            Traceback (most recent call last):
+            ...
+            ValueError: S4 must be a ring
+            sage: G.rename()
+        """
+
+        # test that the arrangement is central
+        if not arrangement.is_central():
+            raise ValueError("the hyperplane arrangement must be central")
+
+        # initiate the parent object by specifying the category and that we
+        # will be defining multiple bases (WithRealizations)
+        if base_ring not in Rings():
+            raise ValueError(f"{base_ring} must be a ring")
+        self._base_ring = base_ring
+        Parent.__init__(self, category=AlgebrasWithBasis(base_ring).WithRealizations())
+
+        # save data for later use
+        self._arrangement = arrangement
+        self._homogenized = True
+        self._homogenizing_variable = u
+        self._matroid = self._arrangement.matroid()
+
+        # register coercions (how to convert between the bases)
+        self._register_coercions()
+
+    def _register_coercions(self):
+        r"""
+        A method to register the different bases in the coercion model.
+
+        TESTS::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: VG = A.varchenko_gelfand_algebra()
+            sage: C = VG.covector_basis()
+            sage: X = VG.normal_basis()
+            sage: c = C.an_element()
+            sage: x = X.an_element()
+            sage: c * x
+            10*C[1, -1, 1] + 14*C[1, 1, 1]
+            sage: x * c
+            14*X[0, 2] + 4*X[1, 2] - 4*X[2]
+        """
+        C = self.covector_basis()
+        X = self.normal_basis()
+        C.module_morphism(on_basis=lambda I : X.from_polynomial(C.to_polynomial_on_basis(I)), codomain=X).register_as_coercion()
+        X.module_morphism(on_basis=lambda I : C.from_polynomial(X.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
+
+    def _repr_(self):
+        r"""
+        String representation of ``self``.
+
+        EXAMPLES::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: VG = A.varchenko_gelfand_algebra()
+            sage: VG
+            Varchenko-Gelfand algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
+        """
+        return "Moseley algebra of {} over {} with constant {}".format(self.hyperplane_arrangement(),
+                                                                       self.base_ring(),
+                                                                       self.homogenizing_variable())
+
+    def homogenizing_variable(self):
+
+        return self._homogenizing_variable
+
+    def a_realization(self):
+        r"""
+        Return the covector realization of ``self``.
+
+        EXAMPLES::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: VG = A.varchenko_gelfand_algebra()
+            sage: VG.a_realization()
+            Varchenko-Gelfand algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over the Rational Field on the Covector basis
+        """
+        return self.covector_basis()
+
+    def base_ring(self):
+        r"""
+        Return the base ring of ``self``.
+
+        EXAMPLES::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: VG = A.varchenko_gelfand_algebra()
+            sage: VG.base_ring()
+            Rational Field
+        """
+        return self._base_ring
+
+    def hyperplane_arrangement(self):
+        r"""
+        The hyperplane arrangement defining this Varchenko-Gelfand algebra.
+
+        EXAMPLES::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: VG = A.varchenko_gelfand_algebra()
+            sage: VG.hyperplane_arrangement()
+            Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
+        """
+        return self._arrangement
+
+    @cached_method
+    def underlying_polynomial_ring(self):
+        r"""
+        The Varchenko-Gelfand algebra as a (quotient of a) polynomial ring.
+
+        If the base ring is not a field, we use the polynomial ring over
+        the corresponding fraction field.
+
+        EXAMPLES::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: VG = A.varchenko_gelfand_algebra()
+            sage: VG.underlying_polynomial_ring()
+            Quotient of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+             by the ideal (x0^2 - x0, x1^2 - x1, x2^2 - x2, -x0*x1 + x0*x2 + x1*x2 - x2)
+
+            sage: VG = A.varchenko_gelfand_algebra(ZZ)
+            sage: VG.underlying_polynomial_ring()
+            Quotient of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+             by the ideal (x0^2 - x0, x1^2 - x1, x2^2 - x2, -x0*x1 + x0*x2 + x1*x2 - x2)
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        A = self._arrangement
+        n = A.n_hyperplanes()
+
+        var_string = ["x{}".format(i) for i in range(n)].append(self._homogenizing_variable)
+
+        BR = self.base_ring()
+        if BR not in Fields():
+            BR = BR.fraction_field()
+        R = PolynomialRing(BR, var_string, len(var_string))
+
+        x = R.gens()[:-1]
+        u = R.gens()[-1]
+
+        # Build the ideal that we will quotient by.
+        # First, there is one generator of the form xi^2 - xi for each variable xi.
+        ideal_gens = [xi * xi - xi * u for xi in x].append(u * u - 1)
+
+        # Second, there is one generator for each empty intersection of the form
+        #   `\cap_{i \in I} H_i^+ \cap \cap_{j \in J} H_j^- = \emptyset`,
+        # which is given by`\prod_{I}
+        #   `\prod_{i \in I} x_i \prod_{j \in J} (x_j - 1) - \prod_{i \in I} (x_i - 1) \prod_{j \in J} x_j`.
+        # It suffices to take one such generator for each circuit of the associated
+        # matroid.
+
+        for circuit in self._matroid.circuits():
+            circuit = sorted(circuit)
+            m = matrix([A[i].normal() for i in circuit])
+            for v in m.left_kernel().basis():
+                I = [circuit[i] for (i, vi) in enumerate(v) if vi > 0]
+                J = [circuit[j] for (j, vj) in enumerate(v) if vj < 0]
+                gen = R.prod(x[i] for i in I) * R.prod(x[j] - u for j in J) - R.prod(x[i] - u for i in I) * R.prod(x[j] for j in J)
+                ideal_gens.append(gen)
+
+        I = R.ideal(ideal_gens)
+        Q = R.quotient(I, names=R.variable_names())
+        return Q
+
+    @cached_method
+    def change_of_basis_matrix(self, basis0, basis1):
+        r"""
+        INPUT:
+
+        - ``basis0`` -- an instance of :class:`~sage.algebras.VarchenkoGelfandAlgebra.Bases`.
+
+        - ``basis1`` -- an instance of :class:`~sage.algebras.VarchenkoGelfandAlgebra.Bases`.
+
+        OUTPUT:
+
+        - ``M`` -- the change of basis matrix from ``basis0`` to ``basis1``.
+
+        EXAMPLES::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: VG = A.varchenko_gelfand_algebra()
+            sage: C = VG.covector_basis()
+            sage: X = VG.normal_basis()
+            sage: VG.change_of_basis_matrix(X, X)
+            [1 0 0 0 0 0]
+            [0 1 0 0 0 0]
+            [0 0 1 0 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 0 1 0]
+            [0 0 0 0 0 1]
+            sage: VG.change_of_basis_matrix(C, X)
+            [ 1  1 -1  0  0  0]
+            [-1  0  1  0  0  0]
+            [ 0 -1  0  0  1  0]
+            [ 1  1 -1 -1 -1  1]
+            [-1  0  0  1  0  0]
+            [ 0 -1  1  0  0  0]
+        """
+        return matrix([basis1.from_polynomial(basis0.to_polynomial_on_basis(key)).to_vector()
+                                                        for key in basis0.basis().keys()])
+
+    def covectors_in_cone(self, cone_mask):
+        r"""
+        The covectors of the regions that lie in a cone.
+
+        The cone is specified by prescribing which entries of the sign vectors
+        must be positive or negative.
+
+        INPUT:
+
+        - ``cone_mask`` -- list with entries in `\{1, 0, -1\}`, where the entry
+          in position `i` specifies whether we should consider the positive
+          (+1), the negative (-1), or neither (0) halfspace associated with the
+          `i`-th hyperplane.
+
+        OUTPUT:
+
+        - ``cone_covectors`` -- list of covectors
+
+        .. WARNING::
+
+            When constructing a hyperplane arrangement, the order in
+            which the hyperplanes are specified is not the order with which the
+            hyperplanes are stored internally, or the order with which the sign
+            vectors are computed. Instead, they are sorted according to their
+            (implicitly defined) normal vector.
+
+        EXAMPLES:
+
+        Construct a hyperplane arrangement::
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H(-x + z, z, x - 5*y, x - y, x + y - 2*z, x + y)
+            sage: VG = A.varchenko_gelfand_algebra()
+
+        To compute the covectors of the regions lying in the cone defined by
+        the halfspaces `z > 0`, `x - y > 0`, `x + y > 0`, identify the
+        positions of the hyperplanes in ``A.hyperplanes()``::
+
+            sage: A.hyperplanes()
+            (Hyperplane -x + 0*y + z + 0,
+             Hyperplane 0*x + 0*y + z + 0,
+             Hyperplane x - 5*y + 0*z + 0,
+             Hyperplane x - y + 0*z + 0,
+             Hyperplane x + y - 2*z + 0,
+             Hyperplane x + y + 0*z + 0)
+
+        So, we are interested in the positive halfspaces of the hyperplanes in
+        positions 1, 3, 5, so we set ``cone_mask=(0,1,0,1,0,1)``::
+
+            sage: cone_covectors = VG.covectors_in_cone((0,1,0,1,0,1))
+            sage: sorted(cone_covectors, reverse=True)
+            [(1, 1, 1, 1, -1, 1),
+             (1, 1, -1, 1, -1, 1),
+             (-1, 1, 1, 1, 1, 1),
+             (-1, 1, 1, 1, -1, 1),
+             (-1, 1, -1, 1, 1, 1),
+             (-1, 1, -1, 1, -1, 1)]
+
+        Here are the polynomials corresponding to heaviside function for each
+        of these regions::
+
+            sage: C = VG.covector_basis()
+            sage: heavisides = [C.to_polynomial_on_basis(covector) for covector in cone_covectors]
+            sage: sorted(heavisides)
+            [-x1*x2*x5 + x1*x3*x5 - x2*x4*x5 + x3*x4*x5 + x2*x5 - x3*x5,
+             x1*x2*x5 + x2*x4*x5 - x2*x5,
+            -x0*x2*x5 - x2*x4*x5 + x2*x5,
+             -x0*x2*x5 - x0*x4*x5 - x3*x4*x5 + x0*x5 + x3*x5 + x4*x5 - x5,
+             x0*x2*x5,
+             x0*x2*x5 + x0*x4*x5 + x2*x4*x5 - x0*x5 - x2*x5 - x4*x5 + x5]
+
+        Here are the same elements, but expressed in terms of the covector basis::
+
+            sage: sorted([C.from_polynomial(heaviside) for heaviside in heavisides], reverse=True)
+            [C[1, 1, 1, 1, -1, 1],
+             C[1, 1, -1, 1, -1, 1],
+             C[-1, 1, 1, 1, 1, 1],
+             C[-1, 1, 1, 1, -1, 1],
+             C[-1, 1, -1, 1, 1, 1],
+             C[-1, 1, -1, 1, -1, 1]]
+
+        Test that the ideal generated by the heaviside functions is equal to
+        the ideal generated by the product of the hyperplanes defining the
+        cone::
+
+            sage: R = VG.underlying_polynomial_ring()
+            sage: x = R.gens()
+            sage: R.ideal(heavisides) == R.ideal(x[1] * x[3] * x[5])
+            True
+
+        The product `x_1 x_3 x_4` defines a heaviside function which is `0` on
+        regions outside the cone (this can be seen by plotting the arrangement
+        in the hyperplane `z = 1`). Hence, this element should belong to the
+        above ideal. Let's vertify this::
+
+            sage: x[1] * x[3] * x[4] in R.ideal(heavisides)
+            True
+        """
+        A = self.hyperplane_arrangement()
+        cone_covectors = []
+        for region in A.regions():
+            covector = A.sign_vector(region.representative_point())
+            if all(cone_mask[i] / covector[i] >= 0 for i in range(len(covector))):
+                cone_covectors.append(tuple(covector))
+        return cone_covectors
+
+    class Bases(Category_realization_of_parent):
+        r"""
+        The category of the realizations. This contains code that will be
+        inherited by all the different bases.
+        """
+        def super_categories(self):
+            category = AlgebrasWithBasis(self.base().base_ring())
+            return [self.base().Realizations(),
+                    category.Realizations().WithBasis()]
+
+        class ParentMethods:
+            def underlying_polynomial_ring(self):
+                r"""
+                Return the underlying polynomial ring.
+
+                EXAMPLES::
+
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra()
+                    sage: VG.underlying_polynomial_ring()
+                    Quotient of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+                     by the ideal (x0^2 - x0, x1^2 - x1, x2^2 - x2, -x0*x1 + x0*x2 + x1*x2 - x2)
+                """
+                return self.realization_of().underlying_polynomial_ring()
+
+            def hyperplane_arrangement(self):
+                r"""
+                Return the defining hyperplane arrangement.
+
+                EXAMPLES::
+
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra()
+                    sage: VG.hyperplane_arrangement()
+                    Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
+                """
+                return self.realization_of().hyperplane_arrangement()
+
+            def _repr_(self):
+                r"""
+                Return a string representation of ``self``.
+
+                EXAMPLES::
+
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra()
+                    sage: N = VG.nbc_basis(); N
+                    Varchenko-Gelfand algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over the Rational Field on the NBC basis
+                """
+                return "Varchenko-Gelfand algebra of {} over the {} on the {} basis".format(
+                        self.hyperplane_arrangement(), self.base_ring(), self._realization_name())
+
+            @cached_method
+            def product_on_basis(self, x, y):
+                r"""
+                Product of two basis elements.
+
+                This is achieved by converting the elements to polynomials in
+                the underlying polynomial ring and then expanding the result in
+                the basis.
+
+                EXAMPLES::
+
+                    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra(ZZ)
+                    sage: X = VG.normal_basis()
+                    sage: X[0, 1] * X[1]
+                    X[0, 2] + X[1, 2] - X[2]
+                    sage: X[0] * X[2]
+                    X[0, 2]
+
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra()
+                    sage: N = VG.nbc_basis()
+                    sage: poly1 = N[0,2].to_polynomial(); poly1
+                    x0*x2
+                    sage: poly2 = N[1].to_polynomial(); poly2
+                    x1
+                    sage: poly1 * poly2
+                    x0*x2 + x1*x2 - x2
+                    sage: N.product_on_basis(Set([0,2]), Set([1]))
+                    N[0, 1]
+                    sage: _.to_polynomial()
+                    x0*x2 + x1*x2 - x2
+
+                A bigger example for sanity checking::
+
+                    sage: for b0 in N.basis():
+                    ....:     for b1 in N.basis():
+                    ....:         print("{} * {} = {}".format(b0, b1, b0 * b1))
+                    N[] * N[] = N[]
+                    N[] * N[0] = N[0]
+                    N[] * N[1] = N[1]
+                    N[] * N[2] = N[2]
+                    N[] * N[0, 1] = N[0, 1]
+                    N[] * N[0, 2] = N[0, 2]
+                    N[0] * N[] = N[0]
+                    N[0] * N[0] = N[0]
+                    N[0] * N[1] = N[0, 1]
+                    N[0] * N[2] = N[0, 2]
+                    N[0] * N[0, 1] = N[0, 1]
+                    N[0] * N[0, 2] = N[0, 2]
+                    N[1] * N[] = N[1]
+                    N[1] * N[0] = N[0, 1]
+                    N[1] * N[1] = N[1]
+                    N[1] * N[2] = N[2] + N[0, 1] - N[0, 2]
+                    N[1] * N[0, 1] = N[0, 1]
+                    N[1] * N[0, 2] = N[0, 1]
+                    N[2] * N[] = N[2]
+                    N[2] * N[0] = N[0, 2]
+                    N[2] * N[1] = N[2] + N[0, 1] - N[0, 2]
+                    N[2] * N[2] = N[2]
+                    N[2] * N[0, 1] = N[0, 1]
+                    N[2] * N[0, 2] = N[0, 2]
+                    N[0, 1] * N[] = N[0, 1]
+                    N[0, 1] * N[0] = N[0, 1]
+                    N[0, 1] * N[1] = N[0, 1]
+                    N[0, 1] * N[2] = N[0, 1]
+                    N[0, 1] * N[0, 1] = N[0, 1]
+                    N[0, 1] * N[0, 2] = N[0, 1]
+                    N[0, 2] * N[] = N[0, 2]
+                    N[0, 2] * N[0] = N[0, 2]
+                    N[0, 2] * N[1] = N[0, 1]
+                    N[0, 2] * N[2] = N[0, 2]
+                    N[0, 2] * N[0, 1] = N[0, 1]
+                    N[0, 2] * N[0, 2] = N[0, 2]
+                """
+                poly1 = self.to_polynomial_on_basis(x)
+                poly2 = self.to_polynomial_on_basis(y)
+                return self.from_polynomial(poly1 * poly2)
+
+            def to_polynomial(self, element):
+                r"""
+                Return ``element`` as an element of the underlying
+                polynomial ring.
+
+                EXAMPLES::
+
+                    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = VarchenkoGelfandAlgebra(QQ, A)
+                    sage: X = VG.normal_basis()
+                    sage: X.to_polynomial(X[0, 2] - X[0])
+                    x0*x2 - x0
+
+                    sage: N = VG.nbc_basis()
+                    sage: N.to_polynomial(N[0, 2] - N[0])
+                    x0*x2 - x0
+
+                    sage: C = VG.normal_basis()
+                    sage: C.to_polynomial(C[1, -1, 1] - C[1, 1, 1])
+                    x1*x2 - x1
+                """
+                R = self.underlying_polynomial_ring()
+                return R.sum(coeff * self.to_polynomial_on_basis(monom) for (monom, coeff) in element)
+
+            def from_polynomial(self, polynomial):
+                r"""
+                Express a polynomial in the Varchenko-Gelfand algebra as a linear
+                combination of the elements of the NBC basis.
+
+                EXAMPLES::
+
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra()
+
+                Convert the elements of the NBC basis to polynomials::
+
+                    sage: N = VG.nbc_basis()
+                    sage: for b in N.basis():
+                    ....:     poly = b.to_polynomial()
+                    ....:     print("{} = {}".format(N.from_polynomial(poly), poly))
+                    N[] = 1
+                    N[0] = x0
+                    N[1] = x1
+                    N[2] = x2
+                    N[0, 1] = x0*x2 + x1*x2 - x2
+                    N[0, 2] = x0*x2
+
+                Convert the elements of the normal basis to polynomials::
+
+                    sage: X = VG.normal_basis()
+                    sage: for b in X.basis():
+                    ....:     poly = b.to_polynomial()
+                    ....:     print("{} = {}".format(X.from_polynomial(poly), poly))
+                    X[1, 2] = x1*x2
+                    X[0, 2] = x0*x2
+                    X[2] = x2
+                    X[1] = x1
+                    X[0] = x0
+                    X[] = 1
+
+                Convert the elements of the NBC basis to elements of the normal
+                basis::
+
+                    sage: for b in N.basis():
+                    ....:     print("{} = {}".format(b, X.from_polynomial(b.to_polynomial())))
+                    N[] = X[]
+                    N[0] = X[0]
+                    N[1] = X[1]
+                    N[2] = X[2]
+                    N[0, 1] = X[0, 2] + X[1, 2] - X[2]
+                    N[0, 2] = X[0, 2]
+
+                and conversely::
+
+                    sage: for b in X.basis():
+                    ....:     print("{} = {}".format(b, N.from_polynomial(b.to_polynomial())))
+                    X[1, 2] = N[2] + N[0, 1] - N[0, 2]
+                    X[0, 2] = N[0, 2]
+                    X[2] = N[2]
+                    X[1] = N[1]
+                    X[0] = N[0]
+                    X[] = N[]
+
+                """
+                X = self.realization_of().normal_basis()
+                M = self.realization_of().change_of_basis_matrix(self, X)
+                v = X.from_polynomial(polynomial).to_vector()
+                return self.from_vector(M.solve_left(v))
+
+        class ElementMethods:
+            def to_polynomial(self):
+                r"""
+                The polynomial corresponding to this element.
+
+                EXAMPLES::
+
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra()
+                    sage: X = VG.normal_basis()
+                    sage: X[0,2].to_polynomial()
+                    x0*x2
+                    sage: X[0,1,2].to_polynomial()
+                    x0*x2 + x1*x2 - x2
+
+                    sage: N = VG.nbc_basis()
+                    sage: N[0, 1].to_polynomial()
+                    x0*x2 + x1*x2 - x2
+
+                    sage: C = VG.covector_basis()
+                    sage: C[1, -1, 1].to_polynomial()
+                    -x1*x2 + x2
+                """
+                return self.parent().to_polynomial(self)
+
 class VarchenkoGelfandAlgebra(UniqueRepresentation, Parent):
     r"""
     The Varchenko-Gelfand algebra of a central hyperplane arrangement.
@@ -195,7 +793,7 @@ class VarchenkoGelfandAlgebra(UniqueRepresentation, Parent):
         Varchenko-Gelfand algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
     """
     def __init__(self, base_ring, arrangement, homogenized=False):
-        """
+        r"""
         EXAMPLES::
 
             sage: A = hyperplane_arrangements.braid(3)
