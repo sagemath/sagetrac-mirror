@@ -9,7 +9,10 @@ def compiler_directives(profile: bool):
         auto_pickle=False,
         # Do not create __test__ dictionary automatically from docstrings
         autotestdict=False,
-        # When enabled, functions will bind to an instance when looked up as a class attribute (hence the name) and will emulate the attributes of Python functions, including introspections like argument names and annotations.
+        # When enabled, functions will bind to an instance when looked up as a
+        # class attribute (hence the name) and will emulate the attributes of
+        # Python functions, including introspections like argument names and
+        # annotations
         binding=True,
         # Do not check for division by 0 (this is about 35% quicker than with check)
         cdivision=True,
