@@ -191,7 +191,7 @@ grow faster than ``x`` (which is nonsense, mathematically). See
 for more details or see :ref:`above <growth_group_description>`
 for a more extensive description.
 
-Short notation also allows the construction of more complicated 
+Short notation also allows the construction of more complicated
 growth groups::
 
     sage: G = GrowthGroup('(QQ_+)^x * x^ZZ * log(x)^QQ * y^QQ')
