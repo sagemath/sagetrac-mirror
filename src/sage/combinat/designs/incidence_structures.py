@@ -1796,7 +1796,7 @@ class IncidenceStructure(object):
         """
         if algorithm == "gap":
             libgap.load_package("design")
-            DD = libgap(self).DualBlockDesign()
+            DD = self._libgap_().DualBlockDesign()
             v = DD['v'].sage()
             gB = [[x - 1 for x in b] for b in DD['blocks'].sage()]
             return IncidenceStructure(list(range(v)), gB, name=None, check=False)
