@@ -125,9 +125,9 @@ fi
 export SAGE_ENV_SOURCED="$SAGE_ENV_VERSION"
 
 # The compilers are set in order of priority by
-# 1) environment variables
+# 1) given as make arguments (e.g. ``make CC=gcc``)
 # 2) compiler installed by sage
-# 3) compiler set at configuration time 
+# 3) compiler set at configuration time
 if [ -z "$CC" ]; then
     if [ -n "$SAGE_LOCAL" -a -x "$SAGE_LOCAL/bin/gcc" ]; then
         CC=gcc

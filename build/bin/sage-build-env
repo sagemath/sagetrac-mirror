@@ -83,7 +83,7 @@ if [ "x$SAGE_BUILD_ENV_SOURCED" = "x" ]; then
     # Optimization flags.
     #
     # The compiler flags are set in order of priority by
-    # 1) environment variables
+    # 1) flags given as make arguments (e.g. ``make CFLAGS='-g'``)
     # 2) flags set at configuration time
     if [ "x$CFLAGS" = "x" ]; then
         export ORIGINAL_CFLAGS="$CONFIGURED_CFLAGS"

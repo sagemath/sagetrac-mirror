@@ -239,6 +239,11 @@ fi
 # for scripts.
 #####################################################################
 if [ -f "${SELF}-env" ]; then
+
+    # The following variables are picked up on configure and not picked up from the environment.
+    # However, ``make CC=gcc`` will still be respected, which cannot be emulated here.
+    export CC="" CXX="" FC=""
+
     . "${SELF}-env" >&2
     if [ $? -ne 0 ]; then
         echo >&2 "Error setting environment variables by sourcing '${SELF}-env';"
@@ -665,6 +670,7 @@ if [ "$1" = '-sh' -o "$1" = '--sh' -o "$1" = '-buildsh' -o "$1" = '--buildsh' ];
     # - Martin Albrecht: fix zshell prompt (#11866)
     # - John Palmieri: shorten the prompts, and don't print messages if
     #   there are more arguments to 'sage -sh' (#11790)
+
     if [ -z "$SAGE_SHPROMPT_PREFIX" ]; then
         SAGE_SHPROMPT_PREFIX=sage-sh
     fi
@@ -673,8 +679,14 @@ if [ "$1" = '-sh' -o "$1" = '--sh' -o "$1" = '-buildsh' -o "$1" = '--buildsh' ];
            echo "error: '$SAGE_ROOT' does not contain build/bin/sage-build-env-config.  Run configure first."
            exit 1
         fi
+
+        # The following variables are picked up on configure and not picked up from the environment.
+        # However, ``make CFLAGS='-g'`` will still be respected, which cannot be emulated here.
+        export CFLAGS="" CXXFLAGS="" FCFLAGS="" F77FLAGS=""
+
         . "$SAGE_ROOT"/build/bin/sage-build-env-config || (echo "error:  Error sourcing $SAGE_ROOT/build/bin/sage-build-env-config"; exit 1)
         . "$SAGE_ROOT"/build/bin/sage-build-env || (echo "error:  Error sourcing $SAGE_ROOT/build/bin/sage-build-env"; exit 1)
+
         export SAGE_SHPROMPT_PREFIX=sage-buildsh
         # We export it so that recursive invocation of 'sage-sh' from a sage-buildsh shows the sage-buildsh prompt;
         # this makes sense because all environment variables set in build/bin/sage-build-env-config
