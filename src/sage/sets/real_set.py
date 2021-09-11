@@ -2699,7 +2699,7 @@ class RealSet_rtree(RealSet):
         self.rtree = None
         
         if len(self._intervals) == 0: #rtree is not needed, since it is empty!
-            return
+            return 
         # x_max is the largest but not infinity absolute value of intervals
         x_max = 0
         for interval in self._intervals:
@@ -2720,11 +2720,19 @@ class RealSet_rtree(RealSet):
         self.multiplier = 2**log2_multiplier
 
         from rtree import index
-        p = index.Property() 
+        p = index.Property()
         p.dimension = 2
         self.rtree = index.Index(properties = p, interleaved = False)
         for interval in self._intervals:
-            lower, upper = floor(interval.lower()*self.multiplier), ceil(interval.upper()*self.multiplier)
+            # Since the floor() and ceil() can not deal with +-infinity, we have to make it seperately
+            if interval.lower() in [-infinity, infinity]:
+                lower = interval.lower()
+            else: 
+                lower = floor(interval.lower()*self.multiplier)
+            if interval.upper() in [-infinity, infinity]:
+                upper = interval.upper()
+            else: 
+                upper = ceil(interval.upper()*self.multiplier)
             self.rtree.insert(0,(0, 0, lower, upper))
         ###
     def contains(self, x):
@@ -2812,7 +2820,8 @@ class RealSet_rtree(RealSet):
                 else:
                     for i1 in self._intervals:
                         intervals.append(i1.intersection(i2))
-                    return self.__class__(*intervals)
+            return self.__class__(*intervals)
+            
         else:
         ###
             return super().intersection(self, *other)
