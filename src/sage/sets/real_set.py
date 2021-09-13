@@ -2411,10 +2411,23 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         else:
             return Union(*[interval._sympy_()
                            for interval in self._intervals])
-
+                           
 @richcmp_method
 class RealSet_rtree(RealSet):
     def __init__(self, *intervals):
+        '''
+        A subset of the real line with rtree data structure.
+        
+        sage: A = RealSet_rtree(0,1); C = A.complement(); print(type(C), "with", C.rtree)                   
+        <class '__main__.RealSet_rtree_with_category'> with rtree.index.Index(bounds=[0.0, 0.0, -inf, inf], size=2)
+        
+        sage: A = RealSet_rtree(-infinity, infinity); C = A.complement(); print(type(C), "with", C.rtree)   
+        <class '__main__.RealSet_rtree_with_category'> with None
+        
+        sage: type(RealSet_rtree(-infinity, infinity).complement())                                         
+        <class '__main__.RealSet_rtree_with_category'>
+        '''
+        
         super().__init__(*intervals)
         ###
         # adding rtree as a preliminary filter to overestimate the interval 
@@ -2463,7 +2476,9 @@ class RealSet_rtree(RealSet):
         ###
     def contains(self, x):
         """
-        Return whether `x` is contained in the set
+        Return whether `x` is contained in the set.
+        
+        Class `RealSet_rtree` provides a fast path for __contains__ when the result will be False.
 
         INPUT:
 
@@ -2475,14 +2490,17 @@ class RealSet_rtree(RealSet):
 
         EXAMPLES::
 
-            sage: s = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s
-            (0, 2) + [10, +oo)
-            sage: s.contains(1)
-            True
-            sage: s.contains(0)
-            False
-            sage: 10 in s    # syntactic sugar
-            True
+        sage: RealSet_rtree(0,1).contains(0.5)              
+        True
+        
+        sage: RealSet_rtree(0,1).contains(3)                                                                
+        False
+        
+        sage: (RealSet_rtree(0,1)+RealSet_rtree(3,4)).contains(3)                                           
+        False
+        
+        sage: (RealSet_rtree(0,1)+RealSet_rtree([3,4])).contains(3)                                         
+        True                                                
         """
         ### rtree filters non-containing points
         if self.rtree != None:
@@ -2500,39 +2518,29 @@ class RealSet_rtree(RealSet):
     __contains__ = contains  
     def intersection(self, *other):
         """
-        Return the intersection of the two sets
+        Return the intersection of the two sets with rtree data structure.
 
+        Class `RealSet_rtree` provides a fast path for computing empty intersection when the result will be empty.
+        
         INPUT:
         
-        - ``other`` -- a :class:`RealSet` or data that defines one.
+        - ``other`` -- a :class: `RealSet`, `RealSet_rtree` or data that defines either.
 
         OUTPUT:
         
-        The set-theoretic intersection as a new :class:`RealSet`.
+        The set-theoretic intersection as a new :class:`RealSet_rtree`.
 
         EXAMPLES::
 
-            sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
-            (0, 2) + [10, +oo)
-            sage: s2 = RealSet(1,3) + RealSet.unbounded_below_closed(-10);  s2
-            (-oo, -10] + (1, 3)
-            sage: s1.intersection(s2)
-            (1, 2)
-            sage: s1 & s2    # syntactic sugar
-            (1, 2)
-
-            sage: s1 = RealSet((0, 1), (2, 3));  s1
-            (0, 1) + (2, 3)
-            sage: s2 = RealSet([0, 1], [2, 3]);  s2
-            [0, 1] + [2, 3]
-            sage: s3 = RealSet([1, 2]);  s3
-            [1, 2]
-            sage: s1.intersection(s2)
-            (0, 1) + (2, 3)
-            sage: s1.intersection(s3)
-            {}
-            sage: s2.intersection(s3)
-            {1} + {2}
+            sage: A = RealSet_rtree(0,1); B = RealSet_rtree(0.5,3); C = A.intersection(B); type(C)              
+            <class '__main__.RealSet_rtree_with_category'>
+            sage: A = RealSet(0,1); B = RealSet_rtree(0.5,3); C = A.intersection(B); type(C)                    
+            <class '__main__.RealSet_with_category'>
+            sage: A = RealSet(0,1); B = RealSet_rtree(0.5,3); C = B.intersection(A); type(C)                    
+            <class '__main__.RealSet_rtree_with_category'>
+            sage: A = RealSet(0,1); B = RealSet(2,3); C = B.intersection(A); print(C, "with", type(C))          
+            {} with <class '__main__.RealSet_with_category'>
+            
         """
         
         ###
