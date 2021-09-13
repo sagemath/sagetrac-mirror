@@ -53,11 +53,11 @@ AC_DEFUN([SAGE_CHECK_BROKEN_GCC], [
 
 
 SAGE_SPKG_CONFIGURE_BASE([gcc], [
-	AC_REQUIRE([AC_PROG_CC])
-	AC_REQUIRE([AC_PROG_CPP])
-	AC_REQUIRE([AC_PROG_CXX])
-	AC_REQUIRE([AC_PROG_OBJC])
-	AC_REQUIRE([AC_PROG_OBJCXX])
+        AC_REQUIRE([AC_PROG_CC])
+        AC_REQUIRE([AC_PROG_CPP])
+        AC_REQUIRE([AC_PROG_CXX])
+        AC_REQUIRE([AC_PROG_OBJC])
+        AC_REQUIRE([AC_PROG_OBJCXX])
 
     if test -f "$SAGE_LOCAL/bin/gcc"; then
         # Special value for SAGE_INSTALL_GCC if GCC is already installed
@@ -108,21 +108,14 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
     fi
     AC_SUBST(CXX)
 
-    AC_LANG_PUSH(C)
     if test -z "$CC"; then
         SAGE_MUST_INSTALL_GCC([a C compiler is missing])
     fi
 
-    # Save compiler before checking for C99 support
-    save_CC=$CC
-    # Check that we can compile C99 code
-    AC_PROG_CC_C99()
+    # Check for C99 support detected by the AC_PROG_CC macro.
     if test "x$ac_cv_prog_cc_c99" = xno; then
         SAGE_MUST_INSTALL_GCC([your C compiler cannot compile C99 code])
     fi
-    # restore original CC
-    CC=$save_CC
-    AC_LANG_POP()
 
     if test x$GXX != xyes; then
         SAGE_SHOULD_INSTALL_GCC([your C++ compiler isn't GCC (GNU C++)])
