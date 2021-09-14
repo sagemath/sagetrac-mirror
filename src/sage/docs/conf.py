@@ -415,6 +415,7 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{22C1}{\ensuremath{\bigvee}}
     \DeclareUnicodeCharacter{22C2}{\ensuremath{\bigcap}}
     \DeclareUnicodeCharacter{22C3}{\ensuremath{\bigcup}}
+    \DeclareUnicodeCharacter{2323}{\ensuremath{\smile}}  % cup product
     \DeclareUnicodeCharacter{00B1}{\ensuremath{\pm}}
     \DeclareUnicodeCharacter{2A02}{\ensuremath{\bigotimes}}
     \DeclareUnicodeCharacter{2297}{\ensuremath{\otimes}}
@@ -431,8 +432,10 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{22C0}{\ensuremath{\bigwedge}}
     \DeclareUnicodeCharacter{2192}{\ensuremath{\to}}
     \DeclareUnicodeCharacter{21A6}{\ensuremath{\mapsto}}
-    \DeclareUnicodeCharacter{211D}{\ensuremath{\mathbb{R}}}
     \DeclareUnicodeCharacter{2102}{\ensuremath{\mathbb{C}}}
+    \DeclareUnicodeCharacter{211A}{\ensuremath{\mathbb{Q}}}
+    \DeclareUnicodeCharacter{211D}{\ensuremath{\mathbb{R}}}
+    \DeclareUnicodeCharacter{2124}{\ensuremath{\mathbb{Z}}}
     \DeclareUnicodeCharacter{2202}{\ensuremath{\partial}}
 
     \DeclareUnicodeCharacter{2070}{\ensuremath{{}^0}}
@@ -633,6 +636,7 @@ def check_nested_class_picklability(app, what, name, obj, skip, options):
                          'sage.misc.nested_class.NestedClassMetaclass.' % (
                         v.__module__ + '.' + name + '.' + nm))
 
+
 def skip_member(app, what, name, obj, skip, options):
     """
     To suppress Sphinx warnings / errors, we
@@ -643,9 +647,6 @@ def skip_member(app, what, name, obj, skip, options):
       inserted into its module by
       :class:`sage.misc.NestedClassMetaclass` only for pickling.  The
       class will be properly documented inside its surrounding class.
-
-    - Don't include
-      sagenb.notebook.twist.userchild_download_worksheets.zip.
 
     - Optionally, check whether pickling is broken for nested classes.
 
@@ -669,14 +670,12 @@ def skip_member(app, what, name, obj, skip, options):
             if objname.split('.')[-1] == name.split('.')[-1]:
                 return True
 
-    if name.find("userchild_download_worksheets.zip") != -1:
-        return True
-
     if 'SAGE_DOC_UNDERSCORE' in os.environ:
         if name.split('.')[-1].startswith('_'):
             return False
 
     return skip
+
 
 def process_dollars(app, what, name, obj, options, docstringlines):
     r"""
@@ -717,7 +716,8 @@ def process_inherited(app, what, name, obj, options, docstringlines):
 dangling_debug = False
 
 def debug_inf(app, message):
-    if dangling_debug: app.info(message)
+    if dangling_debug:
+        app.info(message)
 
 def call_intersphinx(app, env, node, contnode):
     r"""

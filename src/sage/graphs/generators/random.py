@@ -179,7 +179,7 @@ def RandomBarabasiAlbert(n, m, seed=None):
     if seed is None:
         seed = int(current_randstate().long_seed() % sys.maxsize)
     import networkx
-    return Graph(networkx.barabasi_albert_graph(n, m, seed=seed))
+    return Graph(networkx.barabasi_albert_graph(int(n), int(m), seed=seed))
 
 def RandomBipartite(n1, n2, p, set_position=False):
     r"""
@@ -603,13 +603,21 @@ def RandomBoundedToleranceGraph(n):
         sage: g = graphs.RandomBoundedToleranceGraph(8)
         sage: g.clique_number() == g.chromatic_number()
         True
+
+    TESTS:
+
+    Check that :trac:`32186` is fixed::
+
+        sage: for _ in range(100): _ = graphs.RandomBoundedToleranceGraph(1)
     """
     from sage.misc.prandom import randint
+    from sage.combinat.combination import Combinations
     from sage.graphs.generators.intersection import ToleranceGraph
 
     W = n ** 2 * 2 ** n
+    C = Combinations(W + 1, 2)
 
-    tolrep = [(l_r[0], l_r[1], randint(0, l_r[1] - l_r[0])) for l_r in [sorted((randint(0, W), randint(0, W))) for i in range(n)]]
+    tolrep = [(l_r[0], l_r[1], randint(1, l_r[1] - l_r[0])) for l_r in [C.random_element() for i in range(n)]]
 
     return ToleranceGraph(tolrep)
 
@@ -1266,7 +1274,10 @@ def RandomLobster(n, p, q, seed=None):
         sage: G.delete_vertices(leaves)                                 # path
         sage: s = G.degree_sequence()
         sage: if G:
-        ....:     assert s[-2:] == [1, 1]
+        ....:     if G.num_verts() == 1:
+        ....:         assert s == [0]
+        ....:     else:
+        ....:         assert s[-2:] == [1, 1]
         ....:     assert all(d == 2 for d in s[:-2])
 
     ::
@@ -1314,9 +1325,17 @@ def RandomTree(n):
         ....:      for i in range(100) )
         True
 
+    Random tree with one and zero vertices::
+
+        sage: graphs.RandomTree(0)
+        Graph on 0 vertices
+        sage: graphs.RandomTree(1)
+        Graph on 1 vertex
     """
     from sage.misc.prandom import randint
-    g = Graph()
+    g = Graph(n)
+    if n <= 1:
+        return g
 
     # create random Prufer code
     code = [ randint(0,n-1) for i in range(n-2) ]
@@ -1329,8 +1348,6 @@ def RandomTree(n):
     count = [0] * n
     for k in code:
         count[k] += 1
-
-    g.add_vertices(range(n))
 
     for s in code:
         for x in range(n):
