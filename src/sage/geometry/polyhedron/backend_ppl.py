@@ -96,13 +96,16 @@ class Polyhedron_ppl(Polyhedron_mutable):
             sage: Polyhedron_ppl._init_from_Vrepresentation(p, [], [], [])
         """
         gs = Generator_System()
-        if vertices is None: vertices = []
+        if vertices is None:
+            vertices = []
         for v in vertices:
             gs.insert(self._convert_generator_to_ppl(v, 2))
-        if rays is None: rays = []
+        if rays is None:
+            rays = []
         for r in rays:
             gs.insert(self._convert_generator_to_ppl(r, 3))
-        if lines is None: lines = []
+        if lines is None:
+            lines = []
         for l in lines:
             gs.insert(self._convert_generator_to_ppl(l, 4))
         if gs.empty():
@@ -135,10 +138,12 @@ class Polyhedron_ppl(Polyhedron_mutable):
             sage: Polyhedron_ppl._init_from_Hrepresentation(p, [], [])
         """
         cs = Constraint_System()
-        if ieqs is None: ieqs = []
+        if ieqs is None:
+            ieqs = []
         for ieq in ieqs:
             cs.insert(self._convert_constraint_to_ppl(ieq, 0))
-        if eqns is None: eqns = []
+        if eqns is None:
+            eqns = []
         for eqn in eqns:
             cs.insert(self._convert_constraint_to_ppl(eqn, 1))
         if cs.empty():
@@ -441,7 +446,7 @@ class Polyhedron_QQ_ppl(Polyhedron_ppl, Polyhedron_QQ):
 
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)], lines=[],
         ....:                backend='ppl', base_ring=QQ)
-        sage: TestSuite(p).run(skip='_test_pickling')
+        sage: TestSuite(p).run()
     """
     pass
 
@@ -461,6 +466,6 @@ class Polyhedron_ZZ_ppl(Polyhedron_ppl, Polyhedron_ZZ):
 
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)], lines=[],
         ....:                backend='ppl', base_ring=ZZ)
-        sage: TestSuite(p).run(skip='_test_pickling')
+        sage: TestSuite(p).run()
     """
     pass
