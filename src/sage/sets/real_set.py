@@ -2411,21 +2411,22 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         else:
             return Union(*[interval._sympy_()
                            for interval in self._intervals])
-                           
+
 @richcmp_method
 class RealSet_rtree(RealSet):
     def __init__(self, *intervals):
         '''
         A subset of the real line with rtree data structure.
         
-        sage: A = RealSet_rtree(0,1); C = A.complement(); print(type(C), "with", C.rtree)                   
-        <class '__main__.RealSet_rtree_with_category'> with rtree.index.Index(bounds=[0.0, 0.0, -inf, inf], size=2)
+        TEST::
+            sage: from sage.sets.real_set import RealSet_rtree 
+            sage: A = RealSet_rtree(0,1); C = A.complement(); print(type(C), "with", C.rtree)                   
+            <class 'sage.sets.real_set.RealSet_rtree_with_category'> with rtree.index.Index(bounds=[0.0, 0.0, -inf, inf], size=2)
+            sage: A = RealSet_rtree(-infinity, infinity); C = A.complement(); print(type(C), "with", C.rtree)   
+            <class 'sage.sets.real_set.RealSet_rtree_with_category'> with None
+            sage: type(RealSet_rtree(-infinity, infinity).complement())                                         
+            <class 'sage.sets.real_set.RealSet_rtree_with_category'>
         
-        sage: A = RealSet_rtree(-infinity, infinity); C = A.complement(); print(type(C), "with", C.rtree)   
-        <class '__main__.RealSet_rtree_with_category'> with None
-        
-        sage: type(RealSet_rtree(-infinity, infinity).complement())                                         
-        <class '__main__.RealSet_rtree_with_category'>
         '''
         
         super().__init__(*intervals)
@@ -2441,11 +2442,16 @@ class RealSet_rtree(RealSet):
             return 
         # x_max is the largest but not infinity absolute value of intervals
         x_max = 0
+        from sage.functions.log import log
+        from sage.functions.other import floor
+        from sage.functions.other import ceil
+
+
         for interval in self._intervals:
             lower, upper = abs(interval.lower()), abs(interval.upper())
-            if (x_max < lower) and (lower != +Infinity):
+            if (x_max < lower) and (lower != +infinity):
                 x_max = lower
-            if (x_max < upper) and (upper != +Infinity):
+            if (x_max < upper) and (upper != +infinity):
                 x_max = upper
         if x_max == 0: #rtree is not needed, since they are only +-infinity and zero!
             return 
@@ -2455,10 +2461,10 @@ class RealSet_rtree(RealSet):
         # log2_multiplier <= log2_safebound - log2_x_max
         log2_safebound = 52
         log2_multiplier = log2_safebound - int(log(x_max,2)) - 1
-        self.has_rtree = True   
         self.multiplier = 2**log2_multiplier
 
         from rtree import index
+        
         p = index.Property()
         p.dimension = 2
         self.rtree = index.Index(properties = p, interleaved = False)
@@ -2488,19 +2494,17 @@ class RealSet_rtree(RealSet):
 
         Boolean.
 
-        EXAMPLES::
-
-        sage: RealSet_rtree(0,1).contains(0.5)              
-        True
-        
-        sage: RealSet_rtree(0,1).contains(3)                                                                
-        False
-        
-        sage: (RealSet_rtree(0,1)+RealSet_rtree(3,4)).contains(3)                                           
-        False
-        
-        sage: (RealSet_rtree(0,1)+RealSet_rtree([3,4])).contains(3)                                         
-        True                                                
+        TESTS::
+            sage: from sage.sets.real_set import RealSet_rtree
+            sage: RealSet_rtree(0,1).contains(0.5)              
+            True
+            sage: RealSet_rtree(0,1).contains(3)                                                                
+            False
+            sage: (RealSet_rtree(0,1)+RealSet_rtree(3,4)).contains(3)                                           
+            False
+            sage: (RealSet_rtree(0,1)+RealSet_rtree([3,4])).contains(3)                                         
+            True
+                                                        
         """
         ### rtree filters non-containing points
         if self.rtree != None:
@@ -2530,17 +2534,10 @@ class RealSet_rtree(RealSet):
         
         The set-theoretic intersection as a new :class:`RealSet_rtree`.
 
-        EXAMPLES::
-
-            sage: A = RealSet_rtree(0,1); B = RealSet_rtree(0.5,3); C = A.intersection(B); type(C)              
-            <class '__main__.RealSet_rtree_with_category'>
-            sage: A = RealSet(0,1); B = RealSet_rtree(0.5,3); C = A.intersection(B); type(C)                    
-            <class '__main__.RealSet_with_category'>
-            sage: A = RealSet(0,1); B = RealSet_rtree(0.5,3); C = B.intersection(A); type(C)                    
-            <class '__main__.RealSet_rtree_with_category'>
-            sage: A = RealSet(0,1); B = RealSet(2,3); C = B.intersection(A); print(C, "with", type(C))          
-            {} with <class '__main__.RealSet_with_category'>
-            
+        TESTS::
+            sage: from sage.sets.real_set import RealSet_rtree 
+            sage: A = RealSet(0,1); B = RealSet_rtree(0.5,3); print(type(A.intersection(B)), type(B.intersection(A)))
+            <class 'sage.sets.real_set.RealSet_with_category'> <class 'sage.sets.real_set.RealSet_rtree_with_category'>
         """
         
         ###
