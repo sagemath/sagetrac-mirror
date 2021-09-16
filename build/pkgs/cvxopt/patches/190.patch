@@ -1,0 +1,36 @@
+From 353441bdcba342b9be6bea8bb9546fceaccc92e2 Mon Sep 17 00:00:00 2001
+From: Jerry James <loganjerry@gmail.com>
+Date: Mon, 22 Mar 2021 08:50:17 -0600
+Subject: [PATCH] Add missing parentheses for python 3.10 compatibility
+
+---
+ src/C/base.c   | 2 +-
+ src/C/sparse.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/C/base.c b/src/C/base.c
+index 786021a..662ca8b 100644
+--- a/src/C/base.c
++++ b/src/C/base.c
+@@ -353,7 +353,7 @@ int (*mtx_rem[])(void *, number, int) = { mtx_irem, mtx_drem };
+ /* val_type = 0: (sp)matrix if type = 0, PY_NUMBER if type = 1 */
+ int get_id(void *val, int val_type) {
+   if (!val_type) {
+-    if Matrix_Check((PyObject *)val)
++    if (Matrix_Check((PyObject *)val))
+     return MAT_ID((matrix *)val);
+     else
+       return SP_ID((spmatrix *)val);
+diff --git a/src/C/sparse.c b/src/C/sparse.c
+index 2171bef..4cea91d 100644
+--- a/src/C/sparse.c
++++ b/src/C/sparse.c
+@@ -426,7 +426,7 @@ if (!A) return NULL;
+                 SP_COL(A)[nk+1]++;
+               }
+             }
+-          } else if SpMatrix_Check(Lij) {
++          } else if (SpMatrix_Check(Lij)) {
+ 
+             int_t ik;
+             for (ik=SP_COL(Lij)[jk]; ik<SP_COL(Lij)[jk+1]; ik++) {
