@@ -1,4 +1,4 @@
-$(PYTHON) traitlets | $(PYTHON_TOOLCHAIN)
+$(PYTHON) | pip flit_core toml
 
 ----------
 All lines of this file are ignored except the first.
