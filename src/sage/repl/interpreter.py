@@ -522,7 +522,12 @@ class SageTokenTransformer(TokenTransformBase):
                 ix = 0
                 while line[ix].type in {tokenize.INDENT, tokenize.DEDENT}:
                     ix += 1
-                return cls(line[ix].start)
+                output = cls(line[ix].start)
+                jx = -1
+                while line[jx].type in {tokenize.INDENT, tokenize.DEDENT}:
+                    jx -= 1
+                output.end_line = line[jx].start[0] - 1  # Shift from 1-index to 0-index
+                return output
 
     def transform(self, lines):
         """
@@ -537,17 +542,61 @@ class SageTokenTransformer(TokenTransformBase):
             sage: S = SageTokenTransformer.find(tokens)
             sage: S.transform(lines)
             ['for i in (ellipsis_range(2 ,Ellipsis, 4)):\n', '    a = 2']
+
+        TESTS:
+
+        Check that :trac:`30953` is fixed::
+
+            sage: lines = ['f(x) = (x + \n', '1)']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageTokenTransformer.find(tokens)
+            sage: S.transform(lines)
+            ['__tmp__=var("x"); f = symbolic_expression((x + 1)).function(x)\n']
+
+        ::
+
+            sage: lines = ['f(x) = (x + \\\n', '1)']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageTokenTransformer.find(tokens)
+            sage: S.transform(lines)
+            ['__tmp__=var("x"); f = symbolic_expression((x +  1)).function(x)\n']
+
+        ::
+
+            sage: lines = ['K.<a> = QuadraticField(x^2 + \n', 'x + 1)']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageTokenTransformer.find(tokens)
+            sage: S.transform(lines)
+            ["K = QuadraticField(x^2 + x + 1, names=('a',)); (a,) = K._first_ngens(1)\n"]
+
+        ::
+
+            sage: lines = ['K.<a> = QuadraticField(x^2 + \\\n', 'x + 1)']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageTokenTransformer.find(tokens)
+            sage: S.transform(lines)
+            ["K = QuadraticField(x^2 +  x + 1, names=('a',)); (a,) = K._first_ngens(1)\n"]
         """
-        from IPython.core.inputtransformer2 import find_end_of_continued_line, assemble_continued_line
+        def assemble_line(lines, start, end_line):
+            """
+            Taken from ``IPython.core.inputtransformer2.assemble_continued_line``
+            and modified to work with implicit and explicit line continuation.
+            """
+            parts = [lines[start[0]][start[1]:]] + lines[start[0]+1:end_line+1]
+            parts = [p.rstrip() for p in parts]
+            # Remove explicit line continuation.
+            parts = [p[:-1] if p and p[-1] == '\\' else p for p in parts]
+            return ' '.join([p for p in parts[:-1]]
+                            + [parts[-1]])         # Strip newline from last line
+
         start_line, start_col = self.start_line, self.start_col
 
         indent = lines[start_line][:start_col]
-        end_line = find_end_of_continued_line(lines, start_line)
-        line = assemble_continued_line(lines, (start_line, start_col), end_line)
+        line = assemble_line(lines, (start_line, start_col), self.end_line)
         new_line = indent + preparse(line, syntax_only=True) + '\n'
 
         lines_before = lines[:start_line]
-        lines_after = lines[end_line + 1:]
+        lines_after = lines[self.end_line + 1:]
 
         return lines_before + [new_line] + lines_after
 
