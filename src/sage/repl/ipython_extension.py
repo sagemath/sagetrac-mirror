@@ -508,10 +508,12 @@ class SageCustomizations(object):
         Set up transforms (like the preparser).
         """
         from .interpreter import (SagePreparseTransformer,
-                                 SagePromptTransformer)
+                                  SagePromptTransformer,
+                                  SageTokenTransformer)
 
         self.shell.input_transformers_cleanup.insert(1, SagePromptTransformer)
         self.shell.input_transformers_post.append(SagePreparseTransformer)
+        self.shell.input_transformer_manager.token_transformers.append(SageTokenTransformer)
 
 
 class SageJupyterCustomizations(SageCustomizations):

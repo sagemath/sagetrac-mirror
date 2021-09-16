@@ -1691,7 +1691,7 @@ def preparse_generators(code):
 quote_state = None
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False,
-             numeric_literals=True):
+             numeric_literals=True, syntax_only=False):
     r"""
     Preparses a line of input.
 
@@ -1706,6 +1706,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     - ``ignore_prompts`` - a boolean (default: False)
 
     - ``numeric_literals`` - a boolean (default: True)
+
+    - ``syntax_only`` - a boolean (default: False); only make replacements regarding Sage's special syntax
 
     OUTPUT:
 
@@ -1800,7 +1802,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         # 2x -> 2*x
         L = implicit_mul(L, level = implicit_mul_level)
 
-    if numeric_literals:
+    if not syntax_only and numeric_literals:
         # Wrapping
         # 1 + 0.5 -> Integer(1) + RealNumber('0.5')
         L = preparse_numeric_literals(L, quotes=quote_state.safe_delimiter())
@@ -1811,7 +1813,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
     # Use ^ for exponentiation and ^^ for xor
     # (A side effect is that **** becomes xor as well.)
-    L = L.replace('^', '**').replace('****', '^')
+    if not syntax_only:
+        L = L.replace('^', '**').replace('****', '^')
 
     # Combine lines that use backslash continuation
     L = L.replace('\\\n', '')

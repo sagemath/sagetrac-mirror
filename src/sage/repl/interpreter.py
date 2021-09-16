@@ -147,7 +147,7 @@ from sage.repl.configuration import sage_ipython_config, SAGE_EXTENSION
 
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
-from IPython.core.inputtransformer2 import PromptStripper
+from IPython.core.inputtransformer2 import PromptStripper, TokenTransformBase, tokenize
 from IPython.core.prefilter import PrefilterTransformer
 from IPython.terminal.embed import InteractiveShellEmbed
 from IPython.terminal.ipapp import TerminalIPythonApp, IPAppCrashHandler
@@ -451,6 +451,105 @@ def SagePreparseTransformer(lines):
 
 
 SagePromptTransformer = PromptStripper(prompt_re=re.compile(r'^(\s*(:?sage: |\.\.\.\.: ))+'))
+
+
+class SageTokenTransformer(TokenTransformBase):
+    """
+    Transform with Sage's special syntax.
+
+    TESTS::
+
+        sage: from IPython import get_ipython
+        sage: ip = get_ipython()
+        sage: ip.input_transformer_manager.token_transformers[-1]  # indirect doctest
+        <class 'sage.repl.interpreter.SageTokenTransformer'>
+
+    Check that :trac:`31951` is fixed::
+
+        sage: ip = get_ipython()
+        sage: ip.input_transformer_manager.check_complete('''
+        ....: for i in [1 .. 2]:
+        ....:     a = 2''')
+        ('incomplete', 4)
+        sage: ip.input_transformer_manager.check_complete('''
+        ....: def foo(L)
+        ....:     K.<a> = L''')
+        ('invalid', None)
+        sage: ip.input_transformer_manager.check_complete('''
+        ....: def foo(L):
+        ....:     K.<a> = L''')
+        ('incomplete', 4)
+        sage: ip.input_transformer_manager.check_complete('''
+        ....: def foo(L):
+        ....:     K.<a> = L''')
+        ('incomplete', 4)
+        sage: ip.input_transformer_manager.check_complete('''
+        ....: def foo(a):
+        ....:     b = 2a''')
+        ('invalid', None)
+        sage: implicit_multiplication(True)
+        sage: ip.input_transformer_manager.check_complete('''
+        ....: def foo(a):
+        ....:     b = 2a''')
+        ('incomplete', 4)
+        sage: ip.input_transformer_manager.check_complete('''
+        ....: def foo():
+        ....:     f(x) = x^2''')
+        ('incomplete', 4)
+    """
+    # Low priority for Sage's special syntax.
+    priority = 20
+
+    @classmethod
+    def find(cls, tokens_by_line):
+        """
+        Find the first syntax transformed by sage.
+
+        EXAMPLES::
+
+            sage: from IPython.core.inputtransformer2 import make_tokens_by_line
+            sage: from sage.repl.interpreter import SageTokenTransformer
+            sage: lines = ['def foo(L):\n', '    K.<a> = L']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageTokenTransformer.find(tokens)
+            sage: S.transform(lines)
+            ['def foo(L):\n', '    K = L; (a,) = K._first_ngens(1)\n']
+        """
+        for line in tokens_by_line:
+            line_string = line[0].line
+            if preparse(line_string, syntax_only=True) != line_string:
+                # Find the first token that's not INDENT/DEDENT
+                ix = 0
+                while line[ix].type in {tokenize.INDENT, tokenize.DEDENT}:
+                    ix += 1
+                return cls(line[ix].start)
+
+    def transform(self, lines):
+        """
+        Transform syntax by the sage preparser.
+
+        EXAMPLES::
+
+            sage: from IPython.core.inputtransformer2 import make_tokens_by_line
+            sage: from sage.repl.interpreter import SageTokenTransformer
+            sage: lines = ['for i in [2 .. 4]:\n', '    a = 2']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageTokenTransformer.find(tokens)
+            sage: S.transform(lines)
+            ['for i in (ellipsis_range(2 ,Ellipsis, 4)):\n', '    a = 2']
+        """
+        from IPython.core.inputtransformer2 import find_end_of_continued_line, assemble_continued_line
+        start_line, start_col = self.start_line, self.start_col
+
+        indent = lines[start_line][:start_col]
+        end_line = find_end_of_continued_line(lines, start_line)
+        line = assemble_continued_line(lines, (start_line, start_col), end_line)
+        new_line = indent + preparse(line, syntax_only=True) + '\n'
+
+        lines_before = lines[:start_line]
+        lines_after = lines[end_line + 1:]
+
+        return lines_before + [new_line] + lines_after
 
 
 ###################
