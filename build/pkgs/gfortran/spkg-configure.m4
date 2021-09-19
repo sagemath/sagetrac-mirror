@@ -1,6 +1,6 @@
 AC_DEFUN([SAGE_NEEDS_FORTRAN], [
-        AC_MSG_NOTICE([Sage needs working Fortran compiler.])
-        AC_MSG_ERROR([$1])
+        AC_MSG_NOTICE([$1])
+        AC_MSG_ERROR([Sage needs working Fortran compiler.])
 ])
 
 dnl This macro saves current FCFLAGS for later use.
