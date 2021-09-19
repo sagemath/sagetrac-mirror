@@ -1,6 +1,6 @@
 AC_DEFUN([SAGE_NEEDS_CC], [
-        AC_MSG_NOTICE([Sage needs working C/C++ compiler.])
-        AC_MSG_ERROR([$1])
+        AC_MSG_NOTICE([$1])
+        AC_MSG_ERROR([Sage needs working C/C++ compiler.])
 ])
 
 SAGE_SPKG_CONFIGURE_BASE([gcc], [
