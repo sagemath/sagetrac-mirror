@@ -1,34 +1,6 @@
-dnl Usage: SAGE_SHOULD_INSTALL_GFORTRAN(reason)
-dnl
-dnl Use this macro to indicate that we SHOULD install GFORTRAN.
-dnl In this case, GFORTRAN will be installed unless SAGE_INSTALL_GFORTRAN=no.
-dnl In the latter case, a warning is given.
-AC_DEFUN([SAGE_SHOULD_INSTALL_GFORTRAN], [
-    if test x$SAGE_INSTALL_GFORTRAN = xexists; then
-        # Already installed in Sage, but it should remain selected
-        true
-    elif test x$SAGE_INSTALL_GFORTRAN = xno; then
-        AC_MSG_WARN([$1])
-    else
-        AC_MSG_NOTICE([Installing gfortran because $1])
-        sage_spkg_install_gfortran=yes
-    fi
-])
-
-dnl Usage: SAGE_MUST_INSTALL_GFORTRAN(reason)
-dnl
-dnl Use this macro to indicate that we MUST install GFORTRAN.
-dnl In this case, it is an error if SAGE_INSTALL_GFORTRAN=no.
-AC_DEFUN([SAGE_MUST_INSTALL_GFORTRAN], [
-    if test x$SAGE_INSTALL_GFORTRAN = xexists; then
-        # Already installed in Sage, but it should remain selected
-        true
-    elif test x$SAGE_INSTALL_GFORTRAN = xno; then
-        AC_MSG_ERROR([SAGE_INSTALL_GFORTRAN is set to 'no', but $1])
-    else
-        AC_MSG_NOTICE([Installing gfortran because $1])
-        sage_spkg_install_gfortran=yes
-    fi
+AC_DEFUN([SAGE_NEEDS_FORTRAN], [
+        AC_MSG_NOTICE([Sage needs working Fortran compiler.])
+        AC_MSG_ERROR([$1])
 ])
 
 dnl This macro saves current FCFLAGS for later use.
@@ -52,10 +24,11 @@ SAGE_SPKG_CONFIGURE([gfortran], [
     # compiler.
     AC_REQUIRE([SAGE_SAVE_FCFLAGS])
     AC_FC_FREEFORM([SAGE_HAVE_FC_FREEFORM=yes], [
+        SAGE_HAVE_FC_FREEFORM=no
         AC_MSG_NOTICE([Your Fortran compiler does not accept free-format source code])
         AC_MSG_NOTICE([which means the compiler is either seriously broken, or])
-        AC_MSG_NOTICE([is too old to build Sage.])
-        SAGE_HAVE_FC_FREEFORM=no])
+        SAGE_NEEDS_FORTRAN([is too old to build Sage.])
+	])
 
     # AC_FC_FREEFORM may have added flags.
     # However, it is up to the individual package how they invoke the
@@ -63,18 +36,8 @@ SAGE_SPKG_CONFIGURE([gfortran], [
     # We only check here, whether the compiler is suitable.
     AC_REQUIRE([SAGE_RESTORE_FCFLAGS])
 
-    AS_VAR_IF(SAGE_HAVE_FC_FREEFORM, [no], [
-        AS_VAR_SET(sage_spkg_install_gfortran, [yes])
-    ])
-
-    # Special case: If we are already installing gcc then don't install
-    # gfortran since it's included
-    if test "x$sage_spkg_install_gcc" = "xyes" -o x$SAGE_INSTALL_GCC = xexists; then
-        sage_spkg_install_gfortran=no
-
-    else
-        # AX_COMPILER_VENDOR does not work for Fortran. So we just match the name of the executable
-        AS_CASE(["$FC"],
+    # AX_COMPILER_VENDOR does not work for Fortran. So we just match the name of the executable
+    AS_CASE(["$FC"],
             [*gfortran*], [
                 AC_MSG_CHECKING([the version of $FC])
                 GFORTRAN_VERSION="`$FC -dumpversion`"
@@ -83,14 +46,12 @@ SAGE_SPKG_CONFIGURE([gfortran], [
                 # 4.6 instead of 4.6.4 (Trac #18885)
                 AS_CASE(["$GFORTRAN_VERSION.0"],
                     [[[0-3]].*|4.[[0-7]].*], [
-                        # Install our own gfortran if the system-provided one is older than gcc-4.8.
-                        SAGE_SHOULD_INSTALL_GFORTRAN([$FC is version $GFORTRAN_VERSION, which is quite old])
+                        SAGE_NEEDS_FORTRAN([$FC is version $GFORTRAN_VERSION, which is quite old])
                     ],
                     [1[[2-9]].*], [
-                        # Install our own gfortran if the system-provided one is newer than 11.x.
+                        # system-provided gfortran is newer than 11.x.
                         # See https://trac.sagemath.org/ticket/29456, https://trac.sagemath.org/ticket/31838
-                        SAGE_MUST_INSTALL_GFORTRAN([$FC is version $GFORTRAN_VERSION, which is too recent for this version of Sage])
+                        SAGE_NEEDS_FORTRAN([$FC is version $GFORTRAN_VERSION, which is too recent for this version of Sage])
                     ])
-            ])
-    fi
+    ])
 ])
