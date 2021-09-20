@@ -23,7 +23,7 @@ export PKG_CONFIG_PATH
 LIBRARY_PATH="$HOMEBREW/lib$LIBRARY_PATH"
 [ -z "$CPATH" ] || CPATH=":${CPATH}"
 CPATH="$HOMEBREW/include$CPATH"
-for l in readline bzip2 ntl; do
+for l in readline bzip2 ntl singular; do
     if [ -d "$HOMEBREW/opt/$l/lib" ]; then
         LIBRARY_PATH="$HOMEBREW/opt/$l/lib:$LIBRARY_PATH"
     fi
@@ -45,3 +45,5 @@ for l in gettext; do
     fi
 done
 export ACLOCAL_PATH
+SINGULAR_HOMEBREW_LIBDIR="$HOMEBREW/opt/singular/lib/"
+export SINGULAR_HOMEBREW_LIBDIR

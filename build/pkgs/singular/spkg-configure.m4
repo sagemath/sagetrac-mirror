@@ -12,7 +12,7 @@ SAGE_SPKG_CONFIGURE([singular], [
 
     dnl The acl_shlibext variable is set in the top-level configure.ac,
     dnl and is ultimately substituted into sage_conf as SHLIBEXT.
-    SINGULAR_LIB_BASE="libSingular"
+    SINGULAR_LIB_BASE="${SINGULAR_HOMEBREW_LIBDIR}libSingular"
     SINGULAR_LIB_FILE="${SINGULAR_LIB_BASE}.${acl_shlibext}"
 
     AC_MSG_CHECKING([if we can dlopen($SINGULAR_LIB_FILE)])
