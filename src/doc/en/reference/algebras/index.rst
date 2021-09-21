@@ -80,6 +80,15 @@ Hecke algebras
    sage/algebras/yokonuma_hecke_algebra
    cubic_hecke_algebra
 
+Graded algebras
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/algebras/finite_gca
+   sage/algebras/commutative_dga
+
 Various associative algebras
 ----------------------------
 
@@ -88,7 +97,6 @@ Various associative algebras
 
    sage/algebras/associated_graded
    sage/algebras/cellular_basis
-   sage/algebras/commutative_dga
    sage/algebras/q_system
    sage/algebras/splitting_algebra
 
