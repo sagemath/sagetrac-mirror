@@ -68,6 +68,11 @@ relation_operators = {operator.eq:'==',
                       operator.ge:'>='}
 
 class FDerivativeOperator(object):
+    """
+    Operator representing a function differentiated with respect to
+    one or multiple of its arguments.
+
+    """
     def __init__(self, function, parameter_set):
         """
         EXAMPLES::
@@ -168,3 +173,38 @@ class FDerivativeOperator(object):
             [0, 1]
         """
         return self._parameter_set
+
+class DerivativeOperator(object):
+    """
+    Derivative operator.
+
+    Acting with this operator onto a function gives a new operator (of
+    type `FDerivativeOperator`) representing the function differentiated
+    with respect to one or multiple of its arguments.
+
+    """
+    class DerivativeOperatorWithParameters(object):
+        def __init__(self, parameter_set):
+            self._parameter_set = parameter_set
+        def __call__(self, function):
+            return FDerivativeOperator(function, self._parameter_set)
+
+    def __getitem__(self, args):
+        """
+        EXAMPLES::
+
+            sage: x,y = var('x,y')
+            sage: f = function('foo')
+            sage: D[0](foo)(x,y)
+            diff(foo(x, y), x)
+            sage: D[0,1](foo)(x,y)
+            diff(foo(x, y), x, y)
+            sage: D[0,1](foo)(x,x^2)
+            D[0, 1](foo)(x, x^2)
+
+        """
+        if not isinstance(args, tuple):
+            args = (args,)
+        return self.DerivativeOperatorWithParameters(args)
+
+D = DerivativeOperator()
