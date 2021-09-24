@@ -141,17 +141,19 @@ We test that :trac:`16196` is resolved::
 import re
 from traitlets import Bool, Type
 
-from sage.repl.preparse import preparse, containing_block
-from sage.repl.prompts import InterfacePrompts
+from sage.misc.superseded import deprecation
 from sage.repl.configuration import sage_ipython_config, SAGE_EXTENSION
 
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.terminal.interactiveshell import TerminalInteractiveShell
-from IPython.core.inputtransformer2 import PromptStripper
 from IPython.core.prefilter import PrefilterTransformer
+from IPython.core.crashhandler import CrashHandler
+from IPython.core.inputtransformer2 import (PromptStripper,
+                                            TokenTransformBase,
+                                            tokenize)
+
+from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.terminal.embed import InteractiveShellEmbed
 from IPython.terminal.ipapp import TerminalIPythonApp, IPAppCrashHandler
-from IPython.core.crashhandler import CrashHandler
 
 
 # TODO: This global variable _do_preparse should be associated with an
@@ -404,6 +406,10 @@ def SagePreparseTransformer(lines):
         sage: from sage.repl.interpreter import SagePreparseTransformer
         sage: spt = SagePreparseTransformer
         sage: spt(['1+1r+2.3^2.3r\n'])
+        doctest:warning
+        ...
+        DeprecationWarning: the ``SagePreparseTransformer`` is deprecated
+        See https://trac.sagemath.org/31951 for details.
         ["Integer(1)+1+RealNumber('2.3')**2.3\n"]
         sage: preparser(False)
         sage: spt(['2.3^2\n'])
@@ -417,14 +423,14 @@ def SagePreparseTransformer(lines):
         sage: preparser(True)
         sage: bad_syntax = "R.<t> = QQ{]"
         sage: preparse(bad_syntax)
-        Traceback (most recent call last):
-        ...
-        SyntaxError: Mismatched ']'
+        'R = QQ{]; (t,) = R._first_ngens(1)'
         sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: shell.run_cell(bad_syntax)
-          File "<string>", line unknown
-        SyntaxError: Mismatched ']'
+          File "...", line 1
+            R = QQ{]; (t,) = R._first_ngens(1)
+                  ^
+        SyntaxError: invalid syntax
         <BLANKLINE>
         sage: shell.quit()
 
@@ -443,7 +449,9 @@ def SagePreparseTransformer(lines):
         ``sage.repl.interpreter.SagePreparseTransformer.has_side_effects = True``
 
     """
+    deprecation(31951, "the ``SagePreparseTransformer`` is deprecated")
     if _do_preparse:
+        from sage.repl.preparse import preparse
         # IPython ensures the input lines end with a newline, and it expects
         # the same of the output lines.
         lines = preparse(''.join(lines)).splitlines(keepends=True)
@@ -451,6 +459,433 @@ def SagePreparseTransformer(lines):
 
 
 SagePromptTransformer = PromptStripper(prompt_re=re.compile(r'^(\s*(:?sage: |\.\.\.\.: ))+'))
+
+
+class SageBackslashTransformer(TokenTransformBase):
+    r"""
+    Transform Sage's backslash operator.
+
+    TESTS::
+
+        sage: from IPython import get_ipython
+        sage: ip = get_ipython()
+        sage: ip.input_transformer_manager.transform_cell(r'''
+        ....: A\B''')
+        'A * BackslashOperator() * B\n'
+        sage: ip.input_transformer_manager.transform_cell(r'''
+        ....: a = (2, 3, \
+        ....:      4)''')
+        'a = (Integer(2), Integer(3), \\\n     Integer(4))\n'
+    """
+    priority = 20
+
+    @classmethod
+    def find(cls, tokens_by_line):
+        r"""
+        Find the first backslash operator.
+
+        EXAMPLES::
+
+            sage: from IPython.core.inputtransformer2 import make_tokens_by_line
+            sage: from sage.repl.interpreter import SageBackslashTransformer
+            sage: lines = ['for i in range(5):\n', r'    C[i] = A[i] \ B[i]']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageBackslashTransformer.find(tokens)
+            sage: S.transform(lines)
+            ['for i in range(5):\n', '    C[i] = A[i]  * BackslashOperator() *  B[i]']
+        """
+        for line in tokens_by_line:
+            for token in line:
+                if token.string == '\\':
+                    return cls(token.start)
+
+    def transform(self, lines):
+        r"""
+        Transform the backslash operator.
+
+        EXAMPLES::
+
+            sage: from IPython.core.inputtransformer2 import make_tokens_by_line
+            sage: from sage.repl.interpreter import SageBackslashTransformer
+            sage: lines = [r'A = (B \ C) \ D']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageBackslashTransformer.find(tokens)
+            sage: while S:
+            ....:     lines = S.transform(lines)
+            ....:     tokens = make_tokens_by_line(lines)
+            ....:     S = SageBackslashTransformer.find(tokens)
+            sage: lines
+            ['A = (B  * BackslashOperator() *  C) *  BackslashOperator() *  D']
+        """
+        start_line = lines[self.start_line][:self.start_col] + ' * BackslashOperator() * ' + lines[self.start_line][self.start_col + 1:]
+        return lines[:self.start_line] + [start_line] + lines[self.start_line + 1:]
+
+
+class SageGenConstructionTransformer(TokenTransformBase):
+    r"""
+    Transform Sage's construction with generators.
+
+    TESTS:
+
+        sage: from IPython import get_ipython
+        sage: ip = get_ipython()
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: K.<a> = QuadraticField(2)''')
+        "K = QuadraticField(Integer(2), names=('a',)); (a,) = K._first_ngens(1)\n"
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: K.<a, b,c> = some_large_field(
+        ....:     input1,
+        ....:     input2,
+        ....:     intput3)''')
+        "K = some_large_field(\n    input1,\n    input2,\n    intput3, names=('a', 'b', 'c',)); (a, b, c,) = K._first_ngens(3)\n"
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: def foo(L):
+        ....:     K.<a,b,c>= L
+        ....:     return K, a, b, c''')
+        'def foo(L):\n    K= L; (a, b, c,) = K._first_ngens(3)\n    return K, a, b, c\n'
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: def foo(L, M):
+        ....:     K1.<a,b,c>, K2.<d,e> = L, M
+        ....:     return a,b,c,d,e''')
+        'def foo(L, M):\n    K1, K2 = L, M; (d, e,) = K2._first_ngens(2); (a, b, c,) = K1._first_ngens(3)\n    return a,b,c,d,e\n'
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: def p in primes(2, 20):
+        ....:     K.<a> = QuadraticField(p); print(a)''')
+        "def p in primes(Integer(2), Integer(20)):\n    K = QuadraticField(p, names=('a',)); (a,) = K._first_ngens(1); print(a)\n"
+
+    Check that :trac:`30953` is fixed::
+
+        sage: K.<a> = QuadraticField(2 +  # some comment
+        ....:                        1); K, a
+        (Number Field in a with defining polynomial x^2 - 3 with a = 1.732050807568878?,
+        a)
+    """
+    priority = 25
+
+    def __init__(self, del_start, del_end, keyword_pos, argument_pos, insert_pos, name, gens):
+        """
+        INPUT:
+
+        - ``del_start`` -- start of the ``<``
+        - ``del_end`` -- end of the ``>``
+        - ``keyword_pos`` -- position to insert generator names as keyword or ``None``
+        - ``argument_pos`` -- position to insert generator names as arguments or ``None``
+        - ``names_pos`` -- position to insert the additional command to declare the generators
+        - ``name`` -- name of the field or similar
+        - ``gens`` -- names of the generators
+
+        TESTS::
+
+            sage: from IPython.core.inputtransformer2 import make_tokens_by_line
+            sage: from sage.repl.interpreter import SageGenConstructionTransformer
+            sage: lines = ['K.<a,b> = QQ[]']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageGenConstructionTransformer.find(tokens)  # indirect doctest
+            sage: S.transform(lines)
+            ["K = QQ['a', 'b']; (a, b,) = K._first_ngens(2)"]
+        """
+        super().__init__(del_start)
+        self.name = name
+        self.gens = gens
+
+        # Shift from 1-index to 0-indexed.
+        self.del_start = (del_start[0] - 1, del_start[1])
+        self.del_end = (del_end[0] - 1, del_end[1])
+        self.insert_pos = (insert_pos[0] - 1, insert_pos[1])
+        self.keyword_pos = (keyword_pos[0] - 1, keyword_pos[1]) if keyword_pos is not None else None
+        self.argument_pos = (argument_pos[0] - 1, argument_pos[1]) if argument_pos is not None else None
+
+    @classmethod
+    def find(cls, tokens_by_line):
+        r"""
+        Find the first construction with generators.
+
+        EXAMPLES::
+
+            sage: from IPython.core.inputtransformer2 import make_tokens_by_line
+            sage: from sage.repl.interpreter import SageGenConstructionTransformer
+            sage: lines = ['for p in primes(2, 20):\n', '    K.<a> = QuadraticField(p)\n', '    print(a)']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageGenConstructionTransformer.find(tokens)
+            sage: S.transform(lines)
+            ['for p in primes(2, 20):\n',
+             "    K = QuadraticField(p, names=('a',)); (a,) = K._first_ngens(1)\n",
+             '    print(a)']
+        """
+        for line in tokens_by_line:
+            name = None
+            gens = []
+            for i, token in enumerate(line[2:], 2):
+                if token.string == '<' and line[i-1].string == '.' and token.start == line[i-1].end and line[i-2].type == tokenize.NAME:
+                    if name is None:
+                        name = line[i-2].string
+                        del_start = line[i-1].start
+                    else:
+                        # Do not transform syntax errors.
+                        break
+                elif token.string == '<':
+                    # Do not transform syntax errors.
+                    break
+                elif name is None:
+                    continue
+                elif token.type == tokenize.NAME:
+                    gens.append(token.string)
+                elif token.string[:1] == '>':
+                    del_end = (token.start[0], token.start[1] + 1)
+
+                    if del_end[0] != del_start[0]:
+                        # The generators must be written in one line.
+                        break
+                    if gens == []:
+                        # At least one generator needed.
+                        break
+
+                    # Find the position to insert the declaration of the generators.
+                    ix = i + 1
+                    while not line[ix].string == ';' and not line[ix].type == tokenize.NEWLINE and ix + 1 < len(line):
+                        ix += 1
+                    while line[ix - 1].type == tokenize.COMMENT:
+                        ix -= 1
+                    insert_pos = line[ix].start
+
+                    # See if the names of the generators need to be given as keyword or argument.
+                    keyword_pos = None
+                    argument_pos = None
+                    ix -= 1
+                    while line[ix].type in {tokenize.COMMENT, tokenize.NL}:
+                        ix -= 1
+                    if line[ix].string == ')':
+                        keyword_pos = True
+                    elif line[ix].string == ']':
+                        while line[ix-1].string == ']':
+                            ix -= 1
+                        argument_pos = True
+
+                    if argument_pos or keyword_pos:
+                        ix -= 1
+                        while line[ix].type in {tokenize.COMMENT, tokenize.NL}:
+                            ix -= 1
+                        if keyword_pos:
+                            keyword_pos = line[ix].end
+                        else:
+                            if line[ix].string == '[':
+                                argument_pos = line[ix].end
+                            else:
+                                argument_pos = None
+
+                    return cls(del_start, del_end, keyword_pos, argument_pos, insert_pos, name, gens)
+                elif token.string != ',':
+                    # Do not transform syntax errors.
+                    break
+
+    def transform(self, lines):
+        r"""
+        Transform the first construction with generators.
+
+        EXAMPLES::
+
+            sage: from IPython.core.inputtransformer2 import make_tokens_by_line
+            sage: from sage.repl.interpreter import SageGenConstructionTransformer
+            sage: lines = ['F.<b>, f, g = S.field_extension()']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageGenConstructionTransformer.find(tokens)
+            sage: S.transform(lines)
+            ["F, f, g = S.field_extension(names=('b',)); (b,) = F._first_ngens(1)"]
+        """
+        lines = [l for l in lines]
+
+        new_command = '; (' + ', '.join(self.gens) + ',) = ' + self.name + "._first_ngens({})".format(len(self.gens))
+        lines[self.insert_pos[0]] = lines[self.insert_pos[0]][:self.insert_pos[1]] + new_command + lines[self.insert_pos[0]][self.insert_pos[1]:]
+
+        if self.argument_pos or self.keyword_pos:
+            names = "'" + "', '".join(self.gens) + "'"
+            if self.keyword_pos:
+                names_pos = self.keyword_pos
+                names = "names=(" + names
+                if len(self.gens):
+                    names += ","
+                names += ")"
+            else:
+                names_pos = self.argument_pos
+            if lines[names_pos[0]][names_pos[1] - 1] not in ('(', '['):
+                names = ", " + names
+            lines[names_pos[0]] = lines[names_pos[0]][:names_pos[1]] + names + lines[names_pos[0]][names_pos[1]:]
+
+        lines[self.del_start[0]] = lines[self.del_start[0]][:self.del_start[1]] + lines[self.del_start[0]][self.del_end[1]:]
+
+        return lines
+
+
+class SageCalculusTransformer(TokenTransformBase):
+    r"""
+    Supports calculus-like function assignment, e.g., transforms::
+
+       f(x,y,z) = sin(x^3 - 4*y) + y^x
+
+    into::
+
+       __tmp__=var("x,y,z")
+       f = symbolic_expression(sin(x**3 - 4*y) + y**x).function(x,y,z)
+
+    TESTS:
+
+        sage: from IPython import get_ipython
+        sage: ip = get_ipython()
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: f(x, y) = x^3 - y''')
+        '__tmp__ = var("x,y"); __tmpf__ = x**Integer(3) - y; f = symbolic_expression(__tmpf__).function(x,y)\n'
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: μ(x,y) = (x^3 -
+        ....:           y)''')
+        '__tmp__ = var("x,y"); __tmpμ__ = (x**Integer(3) -\n          y); μ = symbolic_expression(__tmpμ__).function(x,y)\n'
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: f(x,
+        ....:  y) = (x^3 -
+        ....:           y)''')
+        '__tmp__ = var("x,y"); __tmpf__ = (x**Integer(3) -\n          y); f = symbolic_expression(__tmpf__).function(x,y)\n'
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: def foo:
+        ....:     f(x,
+        ....:       y) = (x^3 -
+        ....:             y); return f''')
+        'def foo:\n    __tmp__ = var("x,y"); __tmpf__ = (x**Integer(3) -\n            y); f = symbolic_expression(__tmpf__).function(x,y); return f\n'
+
+    Check that :trac:`30953` is fixed::
+
+        sage: f(x) = (x +
+        ....:         1); f
+        x |--> x + 1
+        sage: f(x,  # Some comment
+        ....:   y,
+        ....:   z) = (x +  # Some comment
+        ....:         y +
+        ....:         z); f
+        (x, y, z) |--> x + y + z
+    """
+    priority = 30
+
+    def __init__(self, del_start, del_end, insert_pos, name, variables):
+        """
+        INPUT:
+
+        - ``del_start`` -- start of the name of the function
+        - ``del_end`` -- end of the ``)``
+        - ``insert_pos`` -- position to insert the new command
+        - ``name`` -- name of the field or similar
+        - ``variables`` -- names of the variables
+
+        TESTS::
+
+            sage: from IPython.core.inputtransformer2 import make_tokens_by_line
+            sage: from sage.repl.interpreter import SageCalculusTransformer
+            sage: lines = ['f(z,zz) = z + zz\n']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageCalculusTransformer.find(tokens)  # indirect doctest
+            sage: S.transform(lines)
+            ['__tmp__ = var("z,zz"); __tmpf__ = z + zz; f = symbolic_expression(__tmpf__).function(z,zz)\n']
+        """
+        super().__init__(del_start)
+        self.name = name
+        self.variables= variables
+
+        # Shift from 1-index to 0-indexed.
+        self.del_end = (del_end[0] - 1, del_end[1])
+        self.insert_pos = (insert_pos[0] - 1, insert_pos[1])
+
+    @classmethod
+    def find(cls, tokens_by_line):
+        r"""
+        Find the first calculus-like function assignment.
+
+        EXAMPLES::
+
+            sage: from IPython.core.inputtransformer2 import make_tokens_by_line
+            sage: from sage.repl.interpreter import SageCalculusTransformer
+            sage: lines = ['for i in range(2,20)):\n', '    f(x) = i*x\n']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageCalculusTransformer.find(tokens)
+            sage: S.transform(lines)
+            ['for i in range(2,20)):\n',
+             '    __tmp__ = var("x"); __tmpf__ = i*x; f = symbolic_expression(__tmpf__).function(x)\n']
+        """
+        for line in tokens_by_line:
+            name = None
+            gens = []
+            for i, token in enumerate(line[:-1]):
+                if token.string == ')' and line[i+1].string == '=':
+                    # Find matching '('
+                    variables = []
+                    ix = i-1
+                    while ix >= 1:
+                        if line[ix].string == '(':
+                            break
+                        elif line[ix].string == ',':
+                            pass
+                        elif line[ix].type == tokenize.NAME:
+                            variables = [line[ix].string] + variables
+                        elif line[ix].type not in {tokenize.NL, tokenize.COMMENT}:
+                            ix = 1
+                        ix -= 1
+                    else:
+                        # Incorrect syntax or first token is '('.
+                        break
+
+                    if line[ix-1].type != tokenize.NAME:
+                        # A tuple assignment.
+                        break
+
+                    name = line[ix-1].string
+
+                    del_start = line[ix-1].start
+                    del_end = token.end
+
+                    # Find the position to insert the declaration of the generators.
+                    ix = i + 1
+                    while not line[ix].string == ';' and not line[ix].type == tokenize.NEWLINE and ix + 1 < len(line):
+                        ix += 1
+                    while line[ix - 1].type == tokenize.COMMENT:
+                        ix -= 1
+                    insert_pos = line[ix].start
+
+                    return cls(del_start, del_end, insert_pos, name, variables)
+
+
+    def transform(self, lines):
+        r"""
+        Find the first calculus-like function assignment.
+
+        EXAMPLES::
+
+            sage: from IPython.core.inputtransformer2 import make_tokens_by_line
+            sage: from sage.repl.interpreter import SageCalculusTransformer
+            sage: lines = ['f(x,y,z) = sqrt(x) - y^z\n']
+            sage: tokens = make_tokens_by_line(lines)
+            sage: S = SageCalculusTransformer.find(tokens)
+            sage: S.transform(lines)
+            ['__tmp__ = var("x,y,z"); __tmpf__ = sqrt(x) - y^z; f = symbolic_expression(__tmpf__).function(x,y,z)\n']
+        """
+        start_line, start_col = self.start_line, self.start_col
+
+        lines = [l for l in lines]
+
+        tmpf = '__tmp{}__'.format(self.name)
+        variables = ','.join(self.variables)
+        line2 = '; {} = symbolic_expression({}).function({})'.format(self.name, tmpf, variables)
+
+        lines[self.insert_pos[0]] = lines[self.insert_pos[0]][:self.insert_pos[1]] + line2 + lines[self.insert_pos[0]][self.insert_pos[1]:]
+
+        line1 = lines[start_line][:start_col] + '__tmp__ = var("{}")'.format(variables) + "; " + tmpf
+        line1 += lines[self.del_end[0]][self.del_end[1]:]
+
+        lines_before = lines[:start_line]
+        lines_after = lines[self.del_end[0] + 1:]
+
+        return lines_before + [line1] + lines_after
+
+
+SageTokenTransformers = [SageBackslashTransformer,
+                         SageGenConstructionTransformer,
+                         SageCalculusTransformer]
 
 
 ###################
@@ -476,12 +911,21 @@ class InterfaceShellTransformer(PrefilterTransformer):
 
             sage: from sage.repl.interpreter import interface_shell_embed
             sage: shell = interface_shell_embed(maxima)
+            doctest:warning
+            ...
+            DeprecationWarning: the function ``interface_shell_embed`` is deprecated
+            See https://trac.sagemath.org/31951 for details.
+            doctest:warning
+            ...
+            DeprecationWarning: the class ``InterfaceShellTransformer`` is deprecated
+            See https://trac.sagemath.org/31951 for details.
             sage: ift = shell.prefilter_manager.transformers[0]
             sage: ift.temporary_objects
             set()
             sage: ift._sage_import_re.findall('sage(a) + maxima(b)')
             ['sage(', 'maxima(']
         """
+        deprecation(31951, "the class ``InterfaceShellTransformer`` is deprecated")
         super(InterfaceShellTransformer, self).__init__(*args, **kwds)
         self.temporary_objects = set()
         self._sage_import_re = re.compile(r'(?:sage|%s)\('
@@ -503,7 +947,15 @@ class InterfaceShellTransformer(PrefilterTransformer):
 
             sage: from sage.repl.interpreter import interface_shell_embed, InterfaceShellTransformer
             sage: shell = interface_shell_embed(maxima)
+            doctest:warning
+            ...
+            DeprecationWarning: the function ``interface_shell_embed`` is deprecated
+            See https://trac.sagemath.org/31951 for details.
             sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager)
+            doctest:warning
+            ...
+            DeprecationWarning: the class ``InterfaceShellTransformer`` is deprecated
+            See https://trac.sagemath.org/31951 for details.
             sage: ift.shell.ex('a = 3')
             sage: ift.preparse_imports_from_sage('2 + sage(a)')
             '2 + sage0 '
@@ -525,6 +977,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
             sage: gap.eval(line)
             '-12'
         """
+        from sage.repl.preparse import containing_block, preparse
         new_line = []
         pos = 0
         while True:
@@ -555,7 +1008,14 @@ class InterfaceShellTransformer(PrefilterTransformer):
 
             sage: from sage.repl.interpreter import interface_shell_embed, InterfaceShellTransformer
             sage: shell = interface_shell_embed(maxima)
+            ...
+            DeprecationWarning: the function ``interface_shell_embed`` is deprecated
+            See https://trac.sagemath.org/31951 for details.
             sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager)
+            doctest:warning
+            ...
+            DeprecationWarning: the class ``InterfaceShellTransformer`` is deprecated
+            See https://trac.sagemath.org/31951 for details.
             sage: ift.transform('2+2', False)   # note: output contains triple quotation marks
             'sage.misc.all.logstr(r"""4""")'
             sage: ift.shell.ex('a = 4')
@@ -611,10 +1071,16 @@ def interface_shell_embed(interface):
 
         sage: from sage.repl.interpreter import interface_shell_embed
         sage: shell = interface_shell_embed(gap)
+        doctest:warning
+        ...
+        DeprecationWarning: the function ``interface_shell_embed`` is deprecated
+        See https://trac.sagemath.org/31951 for details.
         sage: shell.run_cell('List( [1..10], IsPrime )')
         [ false, true, true, false, true, false, true, false, false, false ]
         <ExecutionResult object at ..., execution_count=None error_before_exec=None error_in_exec=None ...result=[ false, true, true, false, true, false, true, false, false, false ]>
     """
+    from sage.repl.prompts import InterfacePrompts
+    deprecation(31951, "the function ``interface_shell_embed`` is deprecated")
     cfg = sage_ipython_config.copy()
     ipshell = InteractiveShellEmbed(config=cfg,
                                     banner1='\n  --> Switching to %s <--\n\n' % interface,

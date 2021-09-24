@@ -140,7 +140,7 @@ This involves an =-, but should still be turned into a symbolic
 expression::
 
     sage: preparse('a(x) =- 5')
-    '__tmp__=var("x"); a = symbolic_expression(- Integer(5)).function(x)'
+    '__tmp__ = var("x"); __tmpa__ =- Integer(5); a = symbolic_expression(__tmpa__).function(x)'
     sage: f(x)=-x
     sage: f(10)
     -10
@@ -263,6 +263,7 @@ import re
 from types import SimpleNamespace
 
 from sage.repl.load import load_wrap
+from sage.misc.superseded import deprecated_function_alias, deprecation
 
 implicit_mul_level = False
 numeric_literal_prefix = '_sage_const_'
@@ -1105,6 +1106,7 @@ def parse_ellipsis(code, preparse_step=True):
         ix = code.find('..')
     return code
 
+
 def extract_numeric_literals(code):
     """
     Pulls out numeric literals and assigns them to global variables.
@@ -1391,12 +1393,17 @@ def strip_prompts(line):
 
         sage: from sage.repl.preparse import strip_prompts
         sage: strip_prompts("sage: 2 + 2")
+        doctest:warning
+        ...
+        DeprecationWarning: the method ``strip_prompts`` is deprecated; use :obj:`sage.repl.intepreter.SagePromptTransformer` instead
+        See https://trac.sagemath.org/31951 for details.
         '2 + 2'
         sage: strip_prompts(">>>   3 + 2")
         '3 + 2'
         sage: strip_prompts("  2 + 4")
         '  2 + 4'
     """
+    deprecation(31951, "the method ``strip_prompts`` is deprecated; use :obj:`sage.repl.intepreter.SagePromptTransformer` instead")
     for prompt in ['sage:', '>>>']:
         if line.startswith(prompt):
             line = line[len(prompt):].lstrip()
@@ -1432,21 +1439,25 @@ def preparse_calculus(code):
     EXAMPLES::
 
         sage: preparse("f(x) = x^3-x")
-        '__tmp__=var("x"); f = symbolic_expression(x**Integer(3)-x).function(x)'
+        '__tmp__ = var("x"); __tmpf__ = x**Integer(3)-x; f = symbolic_expression(__tmpf__).function(x)'
         sage: preparse("f(u,v) = u - v")
-        '__tmp__=var("u,v"); f = symbolic_expression(u - v).function(u,v)'
+        '__tmp__ = var("u,v"); __tmpf__ = u - v; f = symbolic_expression(__tmpf__).function(u,v)'
         sage: preparse("f(x) =-5")
-        '__tmp__=var("x"); f = symbolic_expression(-Integer(5)).function(x)'
+        '__tmp__ = var("x"); __tmpf__ =-Integer(5); f = symbolic_expression(__tmpf__).function(x)'
         sage: preparse("f(x) -= 5")
         'f(x) -= Integer(5)'
         sage: preparse("f(x_1, x_2) = x_1^2 - x_2^2")
-        '__tmp__=var("x_1,x_2"); f = symbolic_expression(x_1**Integer(2) - x_2**Integer(2)).function(x_1,x_2)'
+        '__tmp__ = var("x_1,x_2"); __tmpf__ = x_1**Integer(2) - x_2**Integer(2); f = symbolic_expression(__tmpf__).function(x_1,x_2)'
 
     For simplicity, this function assumes all statements begin and end
     with a semicolon::
 
         sage: from sage.repl.preparse import preparse_calculus
         sage: preparse_calculus(";f(t,s)=t^2;")
+        doctest:warning
+        ...
+        DeprecationWarning: the method ``preparse_calculus`` is deprecated; use :class:`sage.repl.intepreter.SageCalculusTransformer` instead
+        See https://trac.sagemath.org/31951 for details.
         ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
         sage: preparse_calculus(";f( t , s ) = t^2;")
         ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
@@ -1468,20 +1479,18 @@ def preparse_calculus(code):
 
         sage: from sage.repl.preparse import preparse_file
         sage: preparse_file("f(1)=x")
-        Traceback (most recent call last):
-        ...
-        ValueError: Argument names should be valid python identifiers.
+        'f(Integer(1))=x'
 
         sage: from sage.repl.preparse import preparse_file
         sage: preparse_file("f(x,1)=2")
-        Traceback (most recent call last):
-        ...
-        ValueError: Argument names should be valid python identifiers.
+        'f(x,Integer(1))=Integer(2)'
+        sage: preparse_file("f(x)=2")
+        '__tmp__ = var("x"); __tmpf__=Integer(2); f = symbolic_expression(__tmpf__).function(x)'
 
     Check support for unicode characters (:trac:`29278`)::
 
         sage: preparse("μ(x) = x^2")
-        '__tmp__=var("x"); μ = symbolic_expression(x**Integer(2)).function(x)'
+        '__tmp__ = var("x"); __tmpμ__ = x**Integer(2); μ = symbolic_expression(__tmpμ__).function(x)'
 
     Check that the parameter list can span multiple lines (:trac:`30928`)::
 
@@ -1491,9 +1500,10 @@ def preparse_calculus(code):
         ....:   c,
         ....:   d) = a + b*2 + c*3 + d*4
         ....: ''')
-        '\n__tmp__=var("a,b,c,d"); f = symbolic_expression(a + b*Integer(2) + c*Integer(3) + d*Integer(4)).function(a,b,c,d)\n'
+        '__tmp__ = var("a,b,c,d"); __tmpf__ = a + b*Integer(2) + c*Integer(3) + d*Integer(4); f = symbolic_expression(__tmpf__).function(a,b,c,d)\n'
 
     """
+    deprecation(31951, "the method ``preparse_calculus`` is deprecated; use :class:`sage.repl.intepreter.SageCalculusTransformer` instead")
     new_code = []
     last_end = 0
     #                                 f         (  vars  )   =      expr
@@ -1597,7 +1607,7 @@ def preparse_generators(code):
         sage: preparse("R.<x> = ZZ[]")
         "R = ZZ['x']; (x,) = R._first_ngens(1)"
         sage: preparse("R.<x,y> = ZZ[]")
-        "R = ZZ['x, y']; (x, y,) = R._first_ngens(2)"
+        "R = ZZ['x', 'y']; (x, y,) = R._first_ngens(2)"
 
     Names given not the same as generator names::
 
@@ -1620,7 +1630,7 @@ def preparse_generators(code):
         sage: preparse("R.<x, y> = a+b")
         'R = a+b; (x, y,) = R._first_ngens(2)'
         sage: preparse("A.<x,y,z>=FreeAlgebra(ZZ,3)")
-        "A = FreeAlgebra(ZZ,Integer(3), names=('x', 'y', 'z',)); (x, y, z,) = A._first_ngens(3)"
+        "A=FreeAlgebra(ZZ,Integer(3), names=('x', 'y', 'z',)); (x, y, z,) = A._first_ngens(3)"
 
     Ensure we do not eat too much::
 
@@ -1629,12 +1639,16 @@ def preparse_generators(code):
         sage: preparse("R.<x, y> = ZZ['x,y'];2")
         "R = ZZ['x,y']; (x, y,) = R._first_ngens(2);Integer(2)"
         sage: preparse("F.<b>, f, g = S.field_extension()")
-        "F, f, g  = S.field_extension(names=('b',)); (b,) = F._first_ngens(1)"
+        "F, f, g = S.field_extension(names=('b',)); (b,) = F._first_ngens(1)"
 
     For simplicity, this function assumes all statements begin and end
     with a semicolon::
 
         sage: preparse_generators(";  R.<x>=ZZ[];")
+        doctest:warning
+        ...
+        DeprecationWarning: the method ``preparse_generators`` is deprecated; use :class:`sage.repl.intepreter.SageGenConstructionTransformer` instead
+        See https://trac.sagemath.org/31951 for details.
         ";  R = ZZ['x']; (x,) = R._first_ngens(1);"
 
     See :trac:`16731`::
@@ -1645,8 +1659,9 @@ def preparse_generators(code):
     Check support for unicode characters (:trac:`29278`)::
 
         sage: preparse('Ω.<λ,μ> = QQ[]')
-        "Ω = QQ['λ, μ']; (λ, μ,) = Ω._first_ngens(2)"
+        "Ω = QQ['λ', 'μ']; (λ, μ,) = Ω._first_ngens(2)"
     """
+    deprecation(31951, "the method ``preparse_generators`` is deprecated; use :class:`sage.repl.intepreter.SageGenConstructionTransformer` instead")
     new_code = []
     last_end = 0
     #                                obj       .< gens >      ,  other   =   constructor
@@ -1690,8 +1705,142 @@ def preparse_generators(code):
 
 quote_state = None
 
-def preparse(line, reset=True, do_time=False, ignore_prompts=False,
-             numeric_literals=True):
+
+def preparse_multiple_lines(lines):
+    r"""
+    Preparse a list of lines.
+
+    EXAMPLES:
+
+    Numbers are parsed as Sage's numbers unless an ``r`` is appended::
+
+        sage: from sage.repl.preparse import preparse_multiple_lines
+        sage: preparse_multiple_lines(["2+2r + 4"])
+        ['Integer(2)+2 + Integer(4)']
+        sage: preparse_multiple_lines(["def foo():\n", "    return 2"])
+        ['def foo():\n', '    return Integer(2)']
+
+    Multiline-strings are left as they are::
+
+        sage: preparse_multiple_lines(["def foo():\n", "    return a + '''\n", "    2 - 3r\n", "    '''"])
+        ['def foo():\n', "    return a + '''\n", '    2 - 3r\n', "    '''"]
+
+    IPython magic is not yet preparsed::
+
+        sage: preparse_multiple_lines(["%time 2 + 2"])
+        ['%time 2 + 2']
+        sage: preparse_multiple_lines(["a = %time 2 + 2"])
+        ['a = %time 2 + 2']
+        sage: preparse_multiple_lines(["b = 2; a = %time 2 + 2"])
+        ['b = Integer(2); a = %time Integer(2) + Integer(2)']
+        sage: preparse_multiple_lines(["%%cython", "a = 2"])
+        ['%%cython', 'a = 2']
+
+    Preparses [0,2,..,n] notation::
+
+        sage: preparse_multiple_lines(["for i in [2 .. 5 ..a]"])
+        ['for i in (ellipsis_range(Integer(2) ,Ellipsis, Integer(5) ,Ellipsis,a))']
+        sage: preparse_multiple_lines(["for i in (2 .. 5r)"])
+        ['for i in (ellipsis_iter(Integer(2) ,Ellipsis, 5))']
+
+    Preparses generator access::
+
+        sage: preparse_multiple_lines(["K = QuadraticField(2)\n", "print(K.0)"])
+        ['K = QuadraticField(Integer(2))\n', 'print(K.gen(0))']
+
+    Preparses implicite multiplication::
+
+        sage: preparse_multiple_lines(["2a"])
+        ['2a']
+        sage: implicit_multiplication(True)
+        sage: preparse_multiple_lines(["2a"])
+        ['Integer(2)*a']
+        sage: implicit_multiplication(False)
+
+    Replaces ``^`` by exponentiation and ``^^`` as bitwise xor::
+
+        sage: preparse_multiple_lines(["x^2"])
+        ['x**Integer(2)']
+        sage: preparse_multiple_lines(["x^^2"])
+        ['x^Integer(2)']
+    """
+    # Save the quote state in case ``preparse`` is called with (deprecated) arguments.
+    global quote_state
+
+    quote_state = None
+    new_lines = []
+    for i in range(len(lines)):
+        line = lines[i]
+        magic_or_system = ''
+        if not quote_state:
+            if line[:2] == '%%':
+                # Cell magic. Stop the preparse.
+                new_lines += lines[i:]
+                return new_lines
+            if line[:1] in ('%', '!'):
+                # Line magic or system call.
+                # Do not preparse this line.
+                new_lines.append(line)
+                continue
+
+            # Magic or system assignments are a bit harder to detect.
+            # If we detect them, we remove the corresponding part.
+            pos_eq = line.find('=')
+            while pos_eq != -1:
+                remainder = line[pos_eq+1:].strip()
+                if remainder[:1] == '%':
+                    # Probably a magic assignment.
+                    from IPython.core.inputtransformer2 import make_tokens_by_line
+                    from IPython.core.inputtransformer2 import MagicAssign
+                    tokens = make_tokens_by_line([line])
+                    M = MagicAssign.find(tokens)
+                    if M:
+                        magic_or_system = line[M.start_col:]
+                        line = line[:M.start_col]
+                elif remainder[:1] == '!':
+                    # Probably a system assignment.
+                    from IPython.core.inputtransformer2 import make_tokens_by_line
+                    from IPython.core.inputtransformer2 import SystemAssign
+                    tokens = make_tokens_by_line([line])
+                    M = SystemAssign.find(tokens)
+                    if M:
+                        magic_or_system = line[M.start_col:]
+                        line = line[:M.start_col]
+                pos_eq = line.find('=', pos_eq + 1)
+
+        L, literals, quote_state = strip_string_literals(line, quote_state)
+
+        # Ellipsis Range
+        # [1..n]
+        try:
+            L = parse_ellipsis(L, preparse_step=False)
+        except SyntaxError:
+            pass
+
+        if implicit_mul_level:
+            # Implicit Multiplication
+            # 2x -> 2*x
+            L = implicit_mul(L, level = implicit_mul_level)
+
+        # Wrapping
+        # 1 + 0.5 -> Integer(1) + RealNumber('0.5')
+        L = preparse_numeric_literals(L, quotes=quote_state.safe_delimiter())
+
+        # Generators
+        # R.0 -> R.gen(0)
+        L = re.sub(r'(\b[^\W\d]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
+
+        # Use ^ for exponentiation and ^^ for xor
+        # (A side effect is that **** becomes xor as well.)
+        L = L.replace('^', '**').replace('****', '^')
+
+        line = L % literals + magic_or_system
+        new_lines.append(line)
+    return new_lines
+
+
+def preparse(line, reset=None, do_time=None, ignore_prompts=None,
+             numeric_literals=None):
     r"""
     Preparses a line of input.
 
@@ -1718,7 +1867,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: preparse("ZZ.<x> = ZZ['y']")
         "ZZ = ZZ['y']; (x,) = ZZ._first_ngens(1)"
         sage: preparse("ZZ.<x,y> = ZZ[]")
-        "ZZ = ZZ['x, y']; (x, y,) = ZZ._first_ngens(2)"
+        "ZZ = ZZ['x', 'y']; (x, y,) = ZZ._first_ngens(2)"
         sage: preparse("ZZ.<x,y> = ZZ['u,v']")
         "ZZ = ZZ['u,v']; (x, y,) = ZZ._first_ngens(2)"
         sage: preparse("ZZ.<x> = QQ[2^(1/3)]")
@@ -1745,6 +1894,18 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         'a  * BackslashOperator() * b \\'
 
         sage: preparse("time R.<x> = ZZ[]", do_time=True)
+        doctest:warning
+        ...
+        DeprecationWarning: arguments for ``preparse`` are deprecated
+        See https://trac.sagemath.org/31951 for details.
+        doctest:warning
+        ...
+        DeprecationWarning: the method ``preparse_generators`` is deprecated; use :class:`sage.repl.intepreter.SageGenConstructionTransformer` instead
+        See https://trac.sagemath.org/31951 for details.
+        doctest:warning
+        ...
+        DeprecationWarning: the method ``preparse_calculus`` is deprecated; use :class:`sage.repl.intepreter.SageCalculusTransformer` instead
+        See https://trac.sagemath.org/31951 for details.
         '__time__=cputime(); __wall__=walltime(); R = ZZ[\'x\']; print("Time: CPU %.2f s, Wall: %.2f s"%(cputime(__time__), walltime(__wall__))); (x,) = R._first_ngens(1)'
 
     TESTS:
@@ -1757,7 +1918,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     Check support for backslash line continuation (:trac:`30928`)::
 
         sage: preparse("f(x) = x \\\n+ 1")
-        '__tmp__=var("x"); f = symbolic_expression(x + Integer(1)).function(x)'
+        '__tmp__ = var("x"); __tmpf__ = x \\\n+ Integer(1); f = symbolic_expression(__tmpf__).function(x)'
 
     Check that multi-line strings starting with a comment are still preparsed
     (:trac:`31043`)::
@@ -1765,9 +1926,19 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: print(preparse('''# some comment
         ....: f(x) = x + 1'''))
         # some comment
-        __tmp__=var("x"); f = symbolic_expression(x + Integer(1)).function(x)
+        __tmp__ = var("x"); __tmpf__ = x + Integer(1); f = symbolic_expression(__tmpf__).function(x)
 
     """
+    if any(arg is not None for arg in [reset, do_time, ignore_prompts, numeric_literals]):
+        deprecation(31951, "arguments for ``preparse`` are deprecated")
+    else:
+        return preparse_file(line)
+
+    reset = True if reset is None else reset
+    do_time = False if do_time is None else do_time
+    ignore_prompts = False if ignore_prompts is None else ignore_prompts
+    numeric_literals = True if numeric_literals is None else numeric_literals
+
     global quote_state
     if reset:
         quote_state = None
@@ -1854,13 +2025,10 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 ## Apply the preparser to an entire file
 ######################################################
 
-def preparse_file(contents, globals=None, numeric_literals=True):
+def preparse_file(contents, globals=None, numeric_literals=None):
     """
     Preparses input, attending to numeric literals and load/attach
     file directives.
-
-    .. note:: Temporarily, if @parallel is in the input, then
-       numeric_literals is always set to False.
 
     INPUT:
 
@@ -1884,8 +2052,30 @@ def preparse_file(contents, globals=None, numeric_literals=True):
         sage: lots_of_numbers = "[%s]" % ", ".join(str(i) for i in range(3000))
         sage: _ = preparse_file(lots_of_numbers)
         sage: print(preparse_file("type(100r), type(100)"))
-        _sage_const_100 = Integer(100)
-        type(100 ), type(_sage_const_100 )
+        type(100), type(Integer(100))
+        <BLANKLINE>
+
+    Check that :trac:`4312` is fixed::
+
+        sage: file_contents = '''
+        ....: @parallel(8)
+        ....: def f(p):
+        ....:     print(p)
+        ....:     t = cputime()
+        ....:     M = ModularSymbols(p^2,sign=1)
+        ....:     w = M.atkin_lehner_operator(p)
+        ....:     K = (w-1).kernel()
+        ....:     N = K.new_subspace()
+        ....:     D = N.decomposition()'''
+        sage: t = tmp_filename(ext=".sage")
+        sage: with open(t, 'w') as f:
+        ....:     f.write(file_contents)
+        198
+        sage: load(t)
+        sage: list(f([11,17]))
+        11
+        17
+        [(((11,), {}), None), (((17,), {}), None)]
     """
     if not isinstance(contents, str):
         raise TypeError("contents must be a string")
@@ -1893,32 +2083,36 @@ def preparse_file(contents, globals=None, numeric_literals=True):
     if globals is None:
         globals = {}
 
-    # This is a hack, since when we use @parallel to parallelize code,
-    # the numeric literals that are factored out do not get copied
-    # to the subprocesses properly.  See trac #4545.
-    if '@parallel' in contents:
-        numeric_literals = False
+    if numeric_literals is not None:
+        deprecation(31951, "argument ``numeric_literals`` is deprecated")
+    else:
+        # Old default.
+        numeric_literals = True
 
     if numeric_literals:
-        contents, literals, state = strip_string_literals(contents)
-        contents, nums = extract_numeric_literals(contents)
-        contents = contents % literals
-        if nums:
-            # Stick the assignments at the top, trying not to shift
-            # the lines down.
-            ix = contents.find('\n')
-            if ix == -1:
-                ix = len(contents)
-            if not re.match(r"^ *(#.*)?$", contents[:ix]):
-                contents = "\n"+contents
-            assignments = ["%s = %s" % x for x in nums.items()]
-            # the preparser recurses on semicolons, so we only attempt
-            # to preserve line numbers if there are a few
-            if len(assignments) < 500:
-                contents = "; ".join(assignments) + contents
-            else:
-                contents = "\n".join(assignments) + "\n\n" + contents
+        ip = None
+        try:
+            ip = globals['get_ipython']()
+        except KeyError:
+            pass
 
+        if ip is not None:
+            M = ip.input_transformer_manager
+        else:
+            from IPython.core.inputtransformer2 import TransformerManager
+            from .ipython_extension import _init_line_transforms
+
+            T = TransformerManager()
+            _init_line_transforms(T)
+
+        output = T.transform_cell(contents)
+        if contents[-1:] != "\n" and output[-1:] == "\n":
+            # Strip trailing newline, if input did not have it.
+            return output[:-1]
+        else:
+            return output
+
+    # This part is deprecated.
     start = 0
     lines_out = []
     preparse_opts = dict(do_time=True, ignore_prompts=False, numeric_literals=not numeric_literals)
