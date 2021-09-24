@@ -514,7 +514,7 @@ def _init_line_transforms(M):
 
     TESTS:
 
-    Check that :trac:`30953` is fixed::
+    Check that :trac:`31951` is fixed::
 
          sage: from IPython import get_ipython
          sage: ip = get_ipython()
