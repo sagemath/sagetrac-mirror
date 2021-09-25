@@ -91,8 +91,8 @@ Check that Cython source code appears in tracebacks::
 
 Test prompt transformer::
 
-    sage: from sage.repl.interpreter import SagePromptTransformer
-    sage: spt = SagePromptTransformer
+    sage: from sage.repl.interpreter import SagePromptStripper
+    sage: spt = SagePromptStripper
     sage: spt(["sage: 2 + 2"])
     ['2 + 2']
     sage: spt([''])
@@ -141,7 +141,7 @@ We test that :trac:`16196` is resolved::
 import re
 from traitlets import Bool, Type
 
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.repl.configuration import sage_ipython_config, SAGE_EXTENSION
 
 from IPython.core.interactiveshell import InteractiveShell
@@ -458,7 +458,7 @@ def SagePreparseTransformer(lines):
     return lines
 
 
-SagePromptTransformer = PromptStripper(prompt_re=re.compile(r'^(\s*(:?sage: |\.\.\.\.: ))+'))
+SagePromptStripper = PromptStripper(prompt_re=re.compile(r'^(\s*(:?sage: |\.\.\.\.: ))+'))
 """
 Remove leading `sage: ` and `....: ` prompts so that pasting of examples from
 the documentation works.
@@ -471,12 +471,12 @@ OUTPUT: list of strings stripped of leading prompts
 
 EXAMPLES::
 
-    sage: from sage.repl.interpreter import SagePromptTransformer
-    sage: SagePromptTransformer(['sage: 2 + 2'])
+    sage: from sage.repl.interpreter import SagePromptStripper
+    sage: SagePromptStripper(['sage: 2 + 2'])
     ['2 + 2']
-    sage: SagePromptTransformer(['....:   3 + 2'])
+    sage: SagePromptStripper(['....:   3 + 2'])
     ['  3 + 2']
-    sage: SagePromptTransformer(['  2 + 4'])
+    sage: SagePromptStripper(['  2 + 4'])
     ['  2 + 4']
 """
 
@@ -545,29 +545,85 @@ class SageGenConstructionTransformer(TokenTransformBase):
     r"""
     Transform Sage's construction with generators.
 
-    TESTS:
+    TESTS::
 
         sage: from IPython import get_ipython
         sage: ip = get_ipython()
+
+    Vanilla::
+
         sage: ip.input_transformer_manager.transform_cell('''
-        ....: ZZ.<x> = ZZ['x']''')
-        "ZZ = ZZ['x']; (x,) = ZZ._first_ngens(1)\n"
+        ....: R.<x> = ZZ['x']''')
+        "R = ZZ['x']; (x,) = R._first_ngens(1)\n"
         sage: ip.input_transformer_manager.transform_cell('''
-        ....: ZZ.<x> = ZZ['y']''')
-        "ZZ = ZZ['y']; (x,) = ZZ._first_ngens(1)\n"
+        ....: R.<x,y> = ZZ['x,y']''')
+        "R = ZZ['x,y']; (x, y,) = R._first_ngens(2)\n"
+
+    No square brackets::
+
         sage: ip.input_transformer_manager.transform_cell('''
-        ....: ZZ.<x,y> = ZZ[]''')
-        "ZZ = ZZ['x', 'y']; (x, y,) = ZZ._first_ngens(2)\n"
+        ....: R.<x> = PolynomialRing(ZZ, 'x')''')
+        "R = PolynomialRing(ZZ, 'x', names=('x',)); (x,) = R._first_ngens(1)\n"
         sage: ip.input_transformer_manager.transform_cell('''
-        ....: ZZ.<x,y> = ZZ['u,v']''')
-        "ZZ = ZZ['u,v']; (x, y,) = ZZ._first_ngens(2)\n"
+        ....: R.<x,y> = PolynomialRing(ZZ, 'x,y')''')
+        "R = PolynomialRing(ZZ, 'x,y', names=('x', 'y',)); (x, y,) = R._first_ngens(2)\n"
+
+    Names filled in::
+
         sage: ip.input_transformer_manager.transform_cell('''
-        ....: ZZ.<x> = QQ[2^(1/3)]''')
-        'ZZ = QQ[Integer(2)**(Integer(1)/Integer(3))]; (x,) = ZZ._first_ngens(1)\n'
+        ....: R.<x> = ZZ[]''')
+        "R = ZZ['x']; (x,) = R._first_ngens(1)\n"
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: R.<x,y> = ZZ[]''')
+        "R = ZZ['x', 'y']; (x, y,) = R._first_ngens(2)\n"
+
+    Names given not the same as generator names::
+
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: R.<x> = ZZ['y']''')
+        "R = ZZ['y']; (x,) = R._first_ngens(1)\n"
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: R.<x,y> = ZZ['u,v']''')
+        "R = ZZ['u,v']; (x, y,) = R._first_ngens(2)\n"
+
+    Number fields::
 
         sage: ip.input_transformer_manager.transform_cell('''
         ....: K.<a> = QuadraticField(2)''')
         "K = QuadraticField(Integer(2), names=('a',)); (a,) = K._first_ngens(1)\n"
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: K.<a> = QQ[2^(1/3)]''')
+        'K = QQ[Integer(2)**(Integer(1)/Integer(3))]; (a,) = K._first_ngens(1)\n'
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: K.<a, b> = QQ[2^(1/3), 2^(1/2)]''')
+        'K = QQ[Integer(2)**(Integer(1)/Integer(3)), Integer(2)**(Integer(1)/Integer(2))]; (a, b,) = K._first_ngens(2)\n'
+
+    Just the .<> notation::
+
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: R.<x> = ZZx''')
+        'R = ZZx; (x,) = R._first_ngens(1)\n'
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: R.<x, y> = a+b''')
+        'R = a+b; (x, y,) = R._first_ngens(2)\n'
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: A.<x,y,z>=FreeAlgebra(ZZ,3)''')
+        "A=FreeAlgebra(ZZ,Integer(3), names=('x', 'y', 'z',)); (x, y, z,) = A._first_ngens(3)\n"
+
+    Ensure we do not eat too much::
+
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: R.<x, y> = ZZ;2''')
+        'R = ZZ; (x, y,) = R._first_ngens(2);Integer(2)\n'
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: R.<x, y> = ZZ['x,y'];2''')
+        "R = ZZ['x,y']; (x, y,) = R._first_ngens(2);Integer(2)\n"
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: F.<b>, f, g = S.field_extension()''')
+        "F, f, g = S.field_extension(names=('b',)); (b,) = F._first_ngens(1)\n"
+
+    Multiple lines::
+
         sage: ip.input_transformer_manager.transform_cell('''
         ....: K.<a, b,c> = some_large_field(
         ....:     input1,
@@ -588,6 +644,18 @@ class SageGenConstructionTransformer(TokenTransformBase):
         ....: def p in primes(2, 20):
         ....:     K.<a> = QuadraticField(p); print(a)''')
         "def p in primes(Integer(2), Integer(20)):\n    K = QuadraticField(p, names=('a',)); (a,) = K._first_ngens(1); print(a)\n"
+
+    See :trac:`16731`::
+
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: R.<x> = ''')
+        'R = ; (x,) = R._first_ngens(1)\n'
+
+    Check support for unicode characters (:trac:`29278`)::
+
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: Ω.<λ,μ> = QQ[]''')
+        "Ω = QQ['λ', 'μ']; (λ, μ,) = Ω._first_ngens(2)\n"
 
     Check that :trac:`30953` is fixed::
 
@@ -772,6 +840,27 @@ class SageCalculusTransformer(TokenTransformBase):
 
         sage: from IPython import get_ipython
         sage: ip = get_ipython()
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: f(x) = x^3 - x''')
+        '__tmp__ = var("x"); __tmpf__ = x**Integer(3) - x; f = symbolic_expression(__tmpf__).function(x)\n'
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: f(u,v) = u - v''')
+        '__tmp__ = var("u,v"); __tmpf__ = u - v; f = symbolic_expression(__tmpf__).function(u,v)\n'
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: f(x) =-5''')
+        '__tmp__ = var("x"); __tmpf__ =-Integer(5); f = symbolic_expression(__tmpf__).function(x)\n'
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: f(x) -= 5''')
+        'f(x) -= Integer(5)\n'
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: f(x_1, x_2) = x_1^2 - x_2^2''')
+        '__tmp__ = var("x_1,x_2"); __tmpf__ = x_1**Integer(2) - x_2**Integer(2); f = symbolic_expression(__tmpf__).function(x_1,x_2)\n'
+
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: f(t,s)=t^2''')
+        '__tmp__ = var("t,s"); __tmpf__=t**Integer(2); f = symbolic_expression(__tmpf__).function(t,s)\n'
+
+
         sage: ip.input_transformer_manager.transform_cell('''
         ....: f(x, y) = x^3 - y''')
         '__tmp__ = var("x,y"); __tmpf__ = x**Integer(3) - y; f = symbolic_expression(__tmpf__).function(x,y)\n'

@@ -556,11 +556,11 @@ def _init_line_transforms(M):
          ....:     2.factor()''')
          ('incomplete', 4)
     """
-    from .interpreter import (SagePromptTransformer,
+    from .interpreter import (SagePromptStripper,
                               SageTokenTransformers)
     from .preparse import preparse_multiple_lines
 
-    M.cleanup_transforms.insert(1, SagePromptTransformer)
+    M.cleanup_transforms.insert(1, SagePromptStripper)
     M.cleanup_transforms.append(preparse_multiple_lines)
     M.token_transformers += SageTokenTransformers
 
