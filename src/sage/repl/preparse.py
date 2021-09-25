@@ -1822,7 +1822,7 @@ def preparse_multiple_lines(lines):
             # 2x -> 2*x
             L = implicit_mul(L, level = implicit_mul_level)
 
-        # Wrapping
+        # Wrapping numeric literals
         # 1 + 0.5 -> Integer(1) + RealNumber('0.5')
         L = preparse_numeric_literals(L, quotes=quote_state.safe_delimiter())
 

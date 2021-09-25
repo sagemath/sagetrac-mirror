@@ -459,7 +459,26 @@ def SagePreparseTransformer(lines):
 
 
 SagePromptTransformer = PromptStripper(prompt_re=re.compile(r'^(\s*(:?sage: |\.\.\.\.: ))+'))
+"""
+Remove leading `sage: ` and `....: ` prompts so that pasting of examples from
+the documentation works.
 
+INPUT:
+
+- ``line`` -- a list of strings
+
+OUTPUT: list of strings stripped of leading prompts
+
+EXAMPLES::
+
+    sage: from sage.repl.interpreter import SagePromptTransformer
+    sage: SagePromptTransformer(['sage: 2 + 2'])
+    ['2 + 2']
+    sage: SagePromptTransformer(['....:   3 + 2'])
+    ['  3 + 2']
+    sage: SagePromptTransformer(['  2 + 4'])
+    ['  2 + 4']
+"""
 
 class SageBackslashTransformer(TokenTransformBase):
     r"""
@@ -515,9 +534,10 @@ class SageBackslashTransformer(TokenTransformBase):
             ....:     tokens = make_tokens_by_line(lines)
             ....:     S = SageBackslashTransformer.find(tokens)
             sage: lines
-            ['A = (B  * BackslashOperator() *  C) *  BackslashOperator() *  D']
+            ['A = (B * BackslashOperator() * C) * BackslashOperator() * D']
         """
-        start_line = lines[self.start_line][:self.start_col] + ' * BackslashOperator() * ' + lines[self.start_line][self.start_col + 1:]
+        start_line = lines[self.start_line][:self.start_col].rstrip() + ' * BackslashOperator() * ' \
+                     + lines[self.start_line][self.start_col + 1:].lstrip()
         return lines[:self.start_line] + [start_line] + lines[self.start_line + 1:]
 
 
@@ -529,6 +549,22 @@ class SageGenConstructionTransformer(TokenTransformBase):
 
         sage: from IPython import get_ipython
         sage: ip = get_ipython()
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: ZZ.<x> = ZZ['x']''')
+        "ZZ = ZZ['x']; (x,) = ZZ._first_ngens(1)\n"
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: ZZ.<x> = ZZ['y']''')
+        "ZZ = ZZ['y']; (x,) = ZZ._first_ngens(1)\n"
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: ZZ.<x,y> = ZZ[]''')
+        "ZZ = ZZ['x', 'y']; (x, y,) = ZZ._first_ngens(2)\n"
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: ZZ.<x,y> = ZZ['u,v']''')
+        "ZZ = ZZ['u,v']; (x, y,) = ZZ._first_ngens(2)\n"
+        sage: ip.input_transformer_manager.transform_cell('''
+        ....: ZZ.<x> = QQ[2^(1/3)]''')
+        'ZZ = QQ[Integer(2)**(Integer(1)/Integer(3))]; (x,) = ZZ._first_ngens(1)\n'
+
         sage: ip.input_transformer_manager.transform_cell('''
         ....: K.<a> = QuadraticField(2)''')
         "K = QuadraticField(Integer(2), names=('a',)); (a,) = K._first_ngens(1)\n"
@@ -694,8 +730,11 @@ class SageGenConstructionTransformer(TokenTransformBase):
         """
         lines = [l for l in lines]
 
-        new_command = '; (' + ', '.join(self.gens) + ',) = ' + self.name + "._first_ngens({})".format(len(self.gens))
-        lines[self.insert_pos[0]] = lines[self.insert_pos[0]][:self.insert_pos[1]] + new_command + lines[self.insert_pos[0]][self.insert_pos[1]:]
+        new_command = '; (' + ', '.join(self.gens) + ',) = ' + self.name \
+                      + "._first_ngens({})".format(len(self.gens))
+        lines[self.insert_pos[0]] = lines[self.insert_pos[0]][:self.insert_pos[1]] \
+                                    + new_command \
+                                    + lines[self.insert_pos[0]][self.insert_pos[1]:]
 
         if self.argument_pos or self.keyword_pos:
             names = "'" + "', '".join(self.gens) + "'"
@@ -709,9 +748,11 @@ class SageGenConstructionTransformer(TokenTransformBase):
                 names_pos = self.argument_pos
             if lines[names_pos[0]][names_pos[1] - 1] not in ('(', '['):
                 names = ", " + names
-            lines[names_pos[0]] = lines[names_pos[0]][:names_pos[1]] + names + lines[names_pos[0]][names_pos[1]:]
+            lines[names_pos[0]] = lines[names_pos[0]][:names_pos[1]] + names \
+                                  + lines[names_pos[0]][names_pos[1]:]
 
-        lines[self.del_start[0]] = lines[self.del_start[0]][:self.del_start[1]] + lines[self.del_start[0]][self.del_end[1]:]
+        lines[self.del_start[0]] = lines[self.del_start[0]][:self.del_start[1]] \
+                                   + lines[self.del_start[0]][self.del_end[1]:]
 
         return lines
 
@@ -841,7 +882,9 @@ class SageCalculusTransformer(TokenTransformBase):
 
                     # Find the position to insert the declaration of the generators.
                     ix = i + 1
-                    while not line[ix].string == ';' and not line[ix].type == tokenize.NEWLINE and ix + 1 < len(line):
+                    while (not line[ix].string == ';'
+                           and not line[ix].type == tokenize.NEWLINE
+                           and ix + 1 < len(line)):
                         ix += 1
                     while line[ix - 1].type == tokenize.COMMENT:
                         ix -= 1
@@ -872,7 +915,9 @@ class SageCalculusTransformer(TokenTransformBase):
         variables = ','.join(self.variables)
         line2 = '; {} = symbolic_expression({}).function({})'.format(self.name, tmpf, variables)
 
-        lines[self.insert_pos[0]] = lines[self.insert_pos[0]][:self.insert_pos[1]] + line2 + lines[self.insert_pos[0]][self.insert_pos[1]:]
+        lines[self.insert_pos[0]] = lines[self.insert_pos[0]][:self.insert_pos[1]] \
+                                    + line2 \
+                                    + lines[self.insert_pos[0]][self.insert_pos[1]:]
 
         line1 = lines[start_line][:start_col] + '__tmp__ = var("{}")'.format(variables) + "; " + tmpf
         line1 += lines[self.del_end[0]][self.del_end[1]:]
@@ -1048,8 +1093,8 @@ class InterfaceShellTransformer(PrefilterTransformer):
         try:
             t = self.shell.interface.eval(line)
         finally:
-            # Once we've evaluated the lines, we can clear the
-            # temporary objects
+            # Once we've evaluated the lines, we can clear the temporary
+            # objects
             self.temporary_objects = set()
         # We do not strip whitespace from t here as the individual interface is
         # responsible for that
