@@ -429,7 +429,7 @@ class SageCustomizations(object):
         self.shell.set_hook('editor', edit_module.edit_devel)
 
         self.init_inspector()
-        _init_line_transforms(self.shell.input_transformer_manager)
+        self.init_line_transforms()
 
         import sage.all # until sage's import hell is fixed
 
@@ -503,6 +503,56 @@ class SageCustomizations(object):
         IPython.core.oinspect.find_file = LazyImport("sage.misc.sageinspect", "sage_getfile")
         IPython.core.oinspect.getargspec = LazyImport("sage.misc.sageinspect", "sage_getargspec")
 
+    def init_line_transforms(self):
+        """
+        Set up transforms (like the preparser).
+
+        TESTS:
+
+        Check that :trac:`31951` is fixed::
+
+             sage: from IPython import get_ipython
+             sage: ip = get_ipython()
+             sage: ip.input_transformer_manager.check_complete('''  # indirect doctest
+             ....: for i in [1 .. 2]:
+             ....:     a = 2''')
+             ('incomplete', 2)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo(L)
+             ....:     K.<a> = L''')
+             ('invalid', None)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo(L):
+             ....:     K.<a> = L''')
+             ('incomplete', 4)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo(L):
+             ....:     K.<a> = L''')
+             ('incomplete', 4)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo(R):
+             ....:     a = R.0''')
+             ('incomplete', 4)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo(a):
+             ....:     b = 2a''')
+             ('invalid', None)
+             sage: implicit_multiplication(True)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo(a):
+             ....:     b = 2a''')
+             ('incomplete', 4)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo():
+             ....:     f(x) = x^2''')
+             ('incomplete', 4)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo():
+             ....:     2.factor()''')
+             ('incomplete', 4)
+        """
+        _init_line_transforms(self.shell.input_transformer_manager)
+
 
 def _init_line_transforms(M):
     """
@@ -512,56 +562,13 @@ def _init_line_transforms(M):
 
     - ``M`` -- an instance of :class:`IPython.core.inputtransformer2.TransformerManager`
 
-    TESTS:
-
-    Check that :trac:`31951` is fixed::
-
-         sage: from IPython import get_ipython
-         sage: ip = get_ipython()
-         sage: ip.input_transformer_manager.check_complete('''  # indirect doctest
-         ....: for i in [1 .. 2]:
-         ....:     a = 2''')
-         ('incomplete', 2)
-         sage: ip.input_transformer_manager.check_complete('''
-         ....: def foo(L)
-         ....:     K.<a> = L''')
-         ('invalid', None)
-         sage: ip.input_transformer_manager.check_complete('''
-         ....: def foo(L):
-         ....:     K.<a> = L''')
-         ('incomplete', 4)
-         sage: ip.input_transformer_manager.check_complete('''
-         ....: def foo(L):
-         ....:     K.<a> = L''')
-         ('incomplete', 4)
-         sage: ip.input_transformer_manager.check_complete('''
-         ....: def foo(R):
-         ....:     a = R.0''')
-         ('incomplete', 4)
-         sage: ip.input_transformer_manager.check_complete('''
-         ....: def foo(a):
-         ....:     b = 2a''')
-         ('invalid', None)
-         sage: implicit_multiplication(True)
-         sage: ip.input_transformer_manager.check_complete('''
-         ....: def foo(a):
-         ....:     b = 2a''')
-         ('incomplete', 4)
-         sage: ip.input_transformer_manager.check_complete('''
-         ....: def foo():
-         ....:     f(x) = x^2''')
-         ('incomplete', 4)
-         sage: ip.input_transformer_manager.check_complete('''
-         ....: def foo():
-         ....:     2.factor()''')
-         ('incomplete', 4)
     """
     from .interpreter import (SagePromptStripper,
+                              SageLinesPreparser,
                               SageTokenTransformers)
-    from .preparse import preparse_multiple_lines
 
     M.cleanup_transforms.insert(1, SagePromptStripper)
-    M.cleanup_transforms.append(preparse_multiple_lines)
+    M.cleanup_transforms.append(SageLinesPreparser)
     M.token_transformers += SageTokenTransformers
 
 

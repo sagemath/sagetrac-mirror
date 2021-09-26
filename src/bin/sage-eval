@@ -6,5 +6,6 @@ from sage.calculus.predefined import x
 from sage.repl.preparse import preparse
 
 if len(sys.argv) > 1:
-    s = preparse((" ".join(sys.argv[1:])).replace('\\n', '\n'))
+    s = preparse(" ".join(sys.argv[1:]))
     eval(compile(s,'<cmdline>','exec'))
+

@@ -480,6 +480,149 @@ EXAMPLES::
     ['  2 + 4']
 """
 
+# Deprecated in favor of SagePromptStripper (see trac #31951).
+SagePromptTransformer = SagePromptStripper
+
+
+quote_state = None
+
+def SageLinesPreparser(lines):
+    r"""
+    Preparse a list of lines.
+
+    EXAMPLES:
+
+    Numbers are parsed as Sage's numbers unless an ``r`` is appended::
+
+        sage: from sage.repl.interpreter  import SageLinesPreparser
+        sage: SageLinesPreparser(["2+2r + 4"])
+        ['Integer(2)+2 + Integer(4)']
+        sage: SageLinesPreparser(["def foo():\n", "    return 2"])
+        ['def foo():\n', '    return Integer(2)']
+
+    Multiline-strings are left as they are::
+
+        sage: SageLinesPreparser(["def foo():\n", "    return a + '''\n", "    2 - 3r\n", "    '''"])
+        ['def foo():\n', "    return a + '''\n", '    2 - 3r\n', "    '''"]
+
+    IPython magic is not yet preparsed::
+
+        sage: SageLinesPreparser(["%time 2 + 2"])
+        ['%time 2 + 2']
+        sage: SageLinesPreparser(["a = %time 2 + 2"])
+        ['a = %time 2 + 2']
+        sage: SageLinesPreparser(["b = 2; a = %time 2 + 2"])
+        ['b = Integer(2); a = %time Integer(2) + Integer(2)']
+        sage: SageLinesPreparser(["%%cython", "a = 2"])
+        ['%%cython', 'a = 2']
+
+    Preparses [0,2,..,n] notation::
+
+        sage: SageLinesPreparser(["for i in [2 .. 5 ..a]"])
+        ['for i in (ellipsis_range(Integer(2) ,Ellipsis, Integer(5) ,Ellipsis,a))']
+        sage: SageLinesPreparser(["for i in (2 .. 5r)"])
+        ['for i in (ellipsis_iter(Integer(2) ,Ellipsis, 5))']
+
+    Preparses generator access::
+
+        sage: SageLinesPreparser(["K = QuadraticField(2)\n", "print(K.0)"])
+        ['K = QuadraticField(Integer(2))\n', 'print(K.gen(0))']
+
+    Preparses implicit multiplication::
+
+        sage: SageLinesPreparser(["2a"])
+        ['2a']
+        sage: implicit_multiplication(True)
+        sage: SageLinesPreparser(["2a"])
+        ['Integer(2)*a']
+        sage: implicit_multiplication(False)
+
+    Replaces ``^`` by exponentiation and ``^^`` as bitwise xor::
+
+        sage: SageLinesPreparser(["x^2"])
+        ['x**Integer(2)']
+        sage: SageLinesPreparser(["x^^2"])
+        ['x^Integer(2)']
+    """
+    from .preparse import (strip_string_literals,
+                           parse_ellipsis,
+                           implicit_mul,
+                           implicit_mul_level,
+                           preparse_numeric_literals)
+    # Save the quote state.
+    global quote_state
+
+    quote_state = None
+    new_lines = []
+    for i in range(len(lines)):
+        line = lines[i]
+        magic_or_system = ''
+        if not quote_state:
+            if line[:2] == '%%':
+                # Cell magic. Stop the preparse.
+                new_lines += lines[i:]
+                return new_lines
+            if line[:1] in ('%', '!'):
+                # Line magic or system call.
+                # Do not preparse this line.
+                new_lines.append(line)
+                continue
+
+            # Magic or system assignments are a bit harder to detect.
+            # If we detect them, we remove the corresponding part.
+            pos_eq = line.find('=')
+            while pos_eq != -1:
+                remainder = line[pos_eq+1:].strip()
+                if remainder[:1] == '%':
+                    # Probably a magic assignment.
+                    from IPython.core.inputtransformer2 import make_tokens_by_line
+                    from IPython.core.inputtransformer2 import MagicAssign
+                    tokens = make_tokens_by_line([line])
+                    M = MagicAssign.find(tokens)
+                    if M:
+                        magic_or_system = line[M.start_col:]
+                        line = line[:M.start_col]
+                elif remainder[:1] == '!':
+                    # Probably a system assignment.
+                    from IPython.core.inputtransformer2 import make_tokens_by_line
+                    from IPython.core.inputtransformer2 import SystemAssign
+                    tokens = make_tokens_by_line([line])
+                    M = SystemAssign.find(tokens)
+                    if M:
+                        magic_or_system = line[M.start_col:]
+                        line = line[:M.start_col]
+                pos_eq = line.find('=', pos_eq + 1)
+
+        L, literals, quote_state = strip_string_literals(line, quote_state)
+
+        # Ellipsis Range
+        # [1..n]
+        try:
+            L = parse_ellipsis(L, preparse_step=False)
+        except SyntaxError:
+            pass
+
+        if implicit_mul_level:
+            # Implicit Multiplication
+            # 2x -> 2*x
+            L = implicit_mul(L, level = implicit_mul_level)
+
+        # Wrapping numeric literals
+        # 1 + 0.5 -> Integer(1) + RealNumber('0.5')
+        L = preparse_numeric_literals(L, quotes=quote_state.safe_delimiter())
+
+        # Generators
+        # R.0 -> R.gen(0)
+        L = re.sub(r'(\b[^\W\d]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
+
+        # Use ^ for exponentiation and ^^ for xor
+        # (A side effect is that **** becomes xor as well.)
+        L = L.replace('^', '**').replace('****', '^')
+
+        line = L % literals + magic_or_system
+        new_lines.append(line)
+    return new_lines
+
 class SageBackslashTransformer(TokenTransformBase):
     r"""
     Transform Sage's backslash operator.
