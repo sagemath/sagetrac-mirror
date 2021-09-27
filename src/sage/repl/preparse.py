@@ -1764,6 +1764,35 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         # some comment
         __tmp__ = var("x"); __tmpf__ = x + Integer(1); f = symbolic_expression(__tmpf__).function(x)
 
+    TESTS::
+
+        sage: from sage.repl.preparse import preparse
+        sage: lots_of_numbers = "[%s]" % ", ".join(str(i) for i in range(3000))
+        sage: _ = preparse(lots_of_numbers)
+        sage: print(preparse("type(100r), type(100)"))
+        type(100), type(Integer(100))
+
+    Check that :trac:`4312` is fixed::
+
+        sage: file_contents = '''
+        ....: @parallel(8)
+        ....: def f(p):
+        ....:     print(p)
+        ....:     t = cputime()
+        ....:     M = ModularSymbols(p^2,sign=1)
+        ....:     w = M.atkin_lehner_operator(p)
+        ....:     K = (w-1).kernel()
+        ....:     N = K.new_subspace()
+        ....:     D = N.decomposition()'''
+        sage: t = tmp_filename(ext=".sage")
+        sage: with open(t, 'w') as f:
+        ....:     f.write(file_contents)
+        198
+        sage: load(t)
+        sage: list(f([11,17]))
+        11
+        17
+        [(((11,), {}), None), (((17,), {}), None)]
     """
     global quote_state
     if reset:
@@ -2181,82 +2210,3 @@ def preparse_file_named(name):
     with open(tmpfilename, 'w') as out:
         preparse_file_named_to_stream(name, out)
     return tmpfilename
-
-
-#####################################################
-## Apply the preparser to an input from command line
-#####################################################
-
-def preparse_ipython(contents, globals=None):
-    """
-    Preparse ``contents`` as if it was typed into IPython command line.
-
-    INPUT:
-
-    - ``contents`` -- a string
-
-    - ``globals`` -- dict or None (default: None); if given, then
-      arguments to load/attach are evaluated in the namespace of this
-      dict.
-
-    OUTPUT: a string
-
-    TESTS::
-
-        sage: from sage.repl.preparse import preparse_ipython
-        sage: lots_of_numbers = "[%s]" % ", ".join(str(i) for i in range(3000))
-        sage: _ = preparse_ipython(lots_of_numbers)
-        sage: print(preparse_ipython("type(100r), type(100)"))
-        type(100), type(Integer(100))
-
-    Check that :trac:`4312` is fixed::
-
-        sage: file_contents = '''
-        ....: @parallel(8)
-        ....: def f(p):
-        ....:     print(p)
-        ....:     t = cputime()
-        ....:     M = ModularSymbols(p^2,sign=1)
-        ....:     w = M.atkin_lehner_operator(p)
-        ....:     K = (w-1).kernel()
-        ....:     N = K.new_subspace()
-        ....:     D = N.decomposition()'''
-        sage: t = tmp_filename(ext=".sage")
-        sage: with open(t, 'w') as f:
-        ....:     f.write(file_contents)
-        198
-        sage: load(t)
-        sage: list(f([11,17]))
-        11
-        17
-        [(((11,), {}), None), (((17,), {}), None)]
-    """
-    if not isinstance(contents, str):
-        raise TypeError("contents must be a string")
-
-    if globals is None:
-        globals = {}
-
-    ip = None
-    try:
-        ip = globals['get_ipython']()
-    except KeyError:
-        pass
-
-    if ip is not None:
-        M = ip.input_transformer_manager
-    else:
-        from IPython.core.inputtransformer2 import TransformerManager
-        from .ipython_extension import _init_line_transforms
-
-        T = TransformerManager()
-        _init_line_transforms(T)
-
-    output = T.transform_cell(contents)
-    if contents[-1:] != "\n" and output[-1:] == "\n":
-        # Strip trailing newline, if input did not have it.
-        return output[:-1]
-    else:
-        return output
-
-

@@ -551,25 +551,15 @@ class SageCustomizations(object):
              ....:     2.factor()''')
              ('incomplete', 4)
         """
-        _init_line_transforms(self.shell.input_transformer_manager)
+        from .interpreter import (SagePromptStripper,
+                                  SageLinesPreparser,
+                                  SageTokenTransformers)
 
+        M = self.shell.input_transformer_manager
 
-def _init_line_transforms(M):
-    """
-    Set up transforms (like the preparser).
-
-    INPUT:
-
-    - ``M`` -- an instance of :class:`IPython.core.inputtransformer2.TransformerManager`
-
-    """
-    from .interpreter import (SagePromptStripper,
-                              SageLinesPreparser,
-                              SageTokenTransformers)
-
-    M.cleanup_transforms.insert(1, SagePromptStripper)
-    M.cleanup_transforms.append(SageLinesPreparser)
-    M.token_transformers += SageTokenTransformers
+        M.cleanup_transforms.insert(1, SagePromptStripper)
+        M.cleanup_transforms.append(SageLinesPreparser)
+        M.token_transformers += SageTokenTransformers
 
 
 class SageJupyterCustomizations(SageCustomizations):

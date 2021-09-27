@@ -26,7 +26,7 @@ AUTHORS:
 import re
 import doctest
 from collections import defaultdict
-from sage.repl.preparse import preparse_ipython, strip_string_literals
+from sage.repl.preparse import preparse, strip_string_literals
 from Cython.Build.Dependencies import strip_string_literals as cython_strip_string_literals
 from functools import reduce
 
@@ -852,7 +852,7 @@ class SageDocTestParser(doctest.DocTestParser):
                     item.sage_source = item.source[6:]
                     if item.sage_source.lstrip().startswith('#'):
                         continue
-                    item.source = preparse_ipython(item.sage_source)
+                    item.source = preparse(item.sage_source)
             filtered.append(item)
         return filtered
 

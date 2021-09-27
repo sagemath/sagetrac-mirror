@@ -92,25 +92,25 @@ Check that Cython source code appears in tracebacks::
 Test prompt transformer::
 
     sage: from sage.repl.interpreter import SagePromptStripper
-    sage: spt = SagePromptStripper
-    sage: spt(["sage: 2 + 2"])
+    sage: sps = SagePromptStripper
+    sage: sps(["sage: 2 + 2"])
     ['2 + 2']
-    sage: spt([''])
+    sage: sps([''])
     ['']
-    sage: spt(["....: 2+2"])
+    sage: sps(["....: 2+2"])
     ['2+2']
 
 This should strip multiple prompts: see :trac:`16297`::
 
-    sage: spt(["sage:   sage: 2+2"])
+    sage: sps(["sage:   sage: 2+2"])
     ['2+2']
-    sage: spt(["   sage: ....: 2+2"])
+    sage: sps(["   sage: ....: 2+2"])
     ['2+2']
 
 The prompt contains a trailing space. Extra spaces between the
 last prompt and the remainder should not be stripped::
 
-    sage: spt(["   sage: ....:    2+2"])
+    sage: sps(["   sage: ....:    2+2"])
     ['   2+2']
 
 We test that the input transformer is enabled on the Sage command
@@ -459,26 +459,6 @@ def SagePreparseTransformer(lines):
 
 
 SagePromptStripper = PromptStripper(prompt_re=re.compile(r'^(\s*(:?sage: |\.\.\.\.: ))+'))
-"""
-Remove leading `sage: ` and `....: ` prompts so that pasting of examples from
-the documentation works.
-
-INPUT:
-
-- ``line`` -- a list of strings
-
-OUTPUT: list of strings stripped of leading prompts
-
-EXAMPLES::
-
-    sage: from sage.repl.interpreter import SagePromptStripper
-    sage: SagePromptStripper(['sage: 2 + 2'])
-    ['2 + 2']
-    sage: SagePromptStripper(['....:   3 + 2'])
-    ['  3 + 2']
-    sage: SagePromptStripper(['  2 + 4'])
-    ['  2 + 4']
-"""
 
 # Deprecated in favor of SagePromptStripper (see trac #31951).
 SagePromptTransformer = SagePromptStripper
