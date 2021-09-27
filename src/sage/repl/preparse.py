@@ -1777,7 +1777,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: file_contents = '''
         ....: @parallel(8)
         ....: def f(p):
-        ....:     print(p)
         ....:     t = cputime()
         ....:     M = ModularSymbols(p^2,sign=1)
         ....:     w = M.atkin_lehner_operator(p)
@@ -1787,11 +1786,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: t = tmp_filename(ext=".sage")
         sage: with open(t, 'w') as f:
         ....:     f.write(file_contents)
-        198
+        185
         sage: load(t)
-        sage: list(f([11,17]))
-        11
-        17
+        sage: sorted(list(f([11,17])))
         [(((11,), {}), None), (((17,), {}), None)]
     """
     global quote_state
