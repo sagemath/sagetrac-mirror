@@ -1168,21 +1168,12 @@ class InterfaceShellTransformer(PrefilterTransformer):
 
             sage: from sage.repl.interpreter import interface_shell_embed
             sage: shell = interface_shell_embed(maxima)
-            doctest:warning
-            ...
-            DeprecationWarning: the function ``interface_shell_embed`` is deprecated
-            See https://trac.sagemath.org/31951 for details.
-            doctest:warning
-            ...
-            DeprecationWarning: the class ``InterfaceShellTransformer`` is deprecated
-            See https://trac.sagemath.org/31951 for details.
             sage: ift = shell.prefilter_manager.transformers[0]
             sage: ift.temporary_objects
             set()
             sage: ift._sage_import_re.findall('sage(a) + maxima(b)')
             ['sage(', 'maxima(']
         """
-        deprecation(31951, "the class ``InterfaceShellTransformer`` is deprecated")
         super(InterfaceShellTransformer, self).__init__(*args, **kwds)
         self.temporary_objects = set()
         self._sage_import_re = re.compile(r'(?:sage|%s)\('
@@ -1204,15 +1195,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
 
             sage: from sage.repl.interpreter import interface_shell_embed, InterfaceShellTransformer
             sage: shell = interface_shell_embed(maxima)
-            doctest:warning
-            ...
-            DeprecationWarning: the function ``interface_shell_embed`` is deprecated
-            See https://trac.sagemath.org/31951 for details.
             sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager)
-            doctest:warning
-            ...
-            DeprecationWarning: the class ``InterfaceShellTransformer`` is deprecated
-            See https://trac.sagemath.org/31951 for details.
             sage: ift.shell.ex('a = 3')
             sage: ift.preparse_imports_from_sage('2 + sage(a)')
             '2 + sage0 '
@@ -1265,14 +1248,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
 
             sage: from sage.repl.interpreter import interface_shell_embed, InterfaceShellTransformer
             sage: shell = interface_shell_embed(maxima)
-            ...
-            DeprecationWarning: the function ``interface_shell_embed`` is deprecated
-            See https://trac.sagemath.org/31951 for details.
             sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager)
-            doctest:warning
-            ...
-            DeprecationWarning: the class ``InterfaceShellTransformer`` is deprecated
-            See https://trac.sagemath.org/31951 for details.
             sage: ift.transform('2+2', False)   # note: output contains triple quotation marks
             'sage.misc.all.logstr(r"""4""")'
             sage: ift.shell.ex('a = 4')
@@ -1328,16 +1304,11 @@ def interface_shell_embed(interface):
 
         sage: from sage.repl.interpreter import interface_shell_embed
         sage: shell = interface_shell_embed(gap)
-        doctest:warning
-        ...
-        DeprecationWarning: the function ``interface_shell_embed`` is deprecated
-        See https://trac.sagemath.org/31951 for details.
         sage: shell.run_cell('List( [1..10], IsPrime )')
         [ false, true, true, false, true, false, true, false, false, false ]
         <ExecutionResult object at ..., execution_count=None error_before_exec=None error_in_exec=None ...result=[ false, true, true, false, true, false, true, false, false, false ]>
     """
     from sage.repl.prompts import InterfacePrompts
-    deprecation(31951, "the function ``interface_shell_embed`` is deprecated")
     cfg = sage_ipython_config.copy()
     ipshell = InteractiveShellEmbed(config=cfg,
                                     banner1='\n  --> Switching to %s <--\n\n' % interface,
