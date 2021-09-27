@@ -84,7 +84,7 @@ sdh_configure --enable-shared $PYTHON_CONFIGURE
 # modules are linked with the right libpython; we pass this in at make time
 # only, since we don't want -L. to be saved as one of the default LDFLAGS
 # used for building third-party extension modules
-sdh_make LDFLAGS="-L. $LDFLAGS"
+sdh_make CONFIGURE_LDFLAGS="-L. -Wl,-rpath,. $LDFLAGS"
 
 if [ "$UNAME" = "Darwin" ]; then
     export DYLD_LIBRARY_PATH="."
