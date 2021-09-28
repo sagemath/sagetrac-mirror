@@ -453,6 +453,12 @@ AC_ARG_ENABLE([notebook],
     done
   ])
 
+AS_IF([test "$SAGE_ENABLE_notebook" = no -a "$SAGE_ENABLE_sagelib" = no], [
+    for pkg in jupyter_client ipykernel ipython zeromq pyzmq; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+  ])
+
 AC_ARG_ENABLE([r],
   AS_HELP_STRING([--disable-r],
                  [disable build of the R package and related packages]), [
