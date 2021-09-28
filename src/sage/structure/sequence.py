@@ -69,7 +69,7 @@ specifying the universe of the sequence::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-
+from sage.misc.persist import register_unpickle_override
 import sage.structure.sage_object
 import sage.structure.coerce
 
@@ -238,7 +238,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
             # start the pairwise coercion
             for i in range(len(x) - 1):
                 try:
-                    x[i], x[i+1] = sage.structure.element.canonical_coercion(x[i],x[i+1])
+                    x[i], x[i + 1] = sage.structure.element.canonical_coercion(x[i], x[i + 1])
                 except TypeError:
                     from sage.categories.objects import Objects
                     universe = Objects()
@@ -246,7 +246,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
                     check = False  # no point
                     break
             if universe is None:   # no type errors raised.
-                universe = sage.structure.element.parent(x[len(x)-1])
+                universe = sage.structure.element.parent(x[len(x) - 1])
 
     from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
     from sage.rings.polynomial.pbori.pbori import BooleanMonomialMonoid
@@ -493,7 +493,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         else:
             y = self.__universe(value)
         list.__setitem__(self, n, y)
-        self.__hash=None
+        self.__hash = None
 
     def __getitem__(self, n):
         """
@@ -512,20 +512,12 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         """
         if isinstance(n, slice):
             return Sequence(list.__getitem__(self, n),
-                            universe = self.__universe,
-                            check = False,
-                            immutable = False,
-                            cr = self.__cr)
+                            universe=self.__universe,
+                            check=False,
+                            immutable=False,
+                            cr=self.__cr)
         else:
-            return list.__getitem__(self,n)
-
-    # We have to define the *slice functions as long as Sage uses Python 2.*
-    # otherwise the inherited *slice functions from list are called
-    def __getslice__(self, i, j):
-        return self.__getitem__(slice(i,j))
-
-    def __setslice__(self, i, j, value):
-        return self.__setitem__(slice(i,j), value)
+            return list.__getitem__(self, n)
 
     def append(self, x):
         """
@@ -865,24 +857,26 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: hash(S)
             34
         """
-        if name == "_Sequence_generic__cr" and hasattr(self,"_Sequence__cr"):
+        if name == "_Sequence_generic__cr" and hasattr(self, "_Sequence__cr"):
             self.__cr = self._Sequence__cr
             return self.__cr
-        elif name == "_Sequence_generic__cr_str" and hasattr(self,"_Sequence__cr_str"):
+        elif name == "_Sequence_generic__cr_str" and hasattr(self, "_Sequence__cr_str"):
             self.__cr_str = self._Sequence__cr_str
             return self.__cr_str
-        elif name == "_Sequence_generic__immutable" and hasattr(self,"_Sequence__immutable"):
+        elif name == "_Sequence_generic__immutable" and hasattr(self, "_Sequence__immutable"):
             self.__immutable = self._Sequence__immutable
             return self.__immutable
-        elif name == "_Sequence_generic__universe" and hasattr(self,"_Sequence__universe"):
+        elif name == "_Sequence_generic__universe" and hasattr(self, "_Sequence__universe"):
             self.__universe = self._Sequence__universe
             return self.__universe
-        elif name == "_Sequence_generic__hash" and hasattr(self,"_Sequence__hash"):
+        elif name == "_Sequence_generic__hash" and hasattr(self, "_Sequence__hash"):
             self.__hash = self._Sequence__hash
             return self.__hash
         else:
-            raise AttributeError("'Sequence_generic' object has no attribute '%s'"%name)
+            raise AttributeError("'Sequence_generic' object has no attribute '%s'" % name)
+
+
 seq = Sequence
 
-from sage.misc.persist import register_unpickle_override
+
 register_unpickle_override('sage.structure.sequence', 'Sequence', Sequence_generic)
