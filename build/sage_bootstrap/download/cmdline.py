@@ -94,6 +94,9 @@ def run():
             ssl._create_default_https_context = ssl._create_unverified_context
         except ImportError:
             pass
+    else:
+        import ssl
+        ssl._create_default_https_context = ssl.SSLContext
     app = Application(timeout=args.timeout, quiet=args.quiet)
     if (not args.print_fastest_mirror) and (args.url_or_tarball is None):
         parser.print_help()
