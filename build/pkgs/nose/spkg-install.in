@@ -1,5 +1,9 @@
 cd src
 
+# Run 2to3 manually in case the setuptools in system python
+# is recent enough that use_2to3 support is dropped.
+2to3 -w nose
+
 # Install new version
 echo "Installing nose..."
 sdh_pip_install .
