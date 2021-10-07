@@ -73,14 +73,14 @@ returned by the method
 :meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.comp`::
 
     sage: t.comp(c_xy.frame())
-    2-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+    2-indices components w.r.t. Coordinate frame (M, (∂/∂x,∂/∂y))
 
 If no vector frame is mentioned in the argument of
 :meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.comp`,
 it is assumed to be the manifold's default frame::
 
     sage: M.default_frame()
-    Coordinate frame (M, (d/dx,d/dy))
+    Coordinate frame (M, (∂/∂x,∂/∂y))
     sage: t.comp() is t.comp(c_xy.frame())
     True
 
@@ -92,13 +92,13 @@ are :class:`scalar fields
     sage: t[[1,1]]
     Scalar field on the 2-dimensional differentiable manifold M
     sage: t[[1,1]].display()
-    M --> R
-    (x, y) |--> x^2
+    M → ℝ
+    (x, y) ↦ x^2
     sage: t[[1,2]]
     Scalar field zero on the 2-dimensional differentiable manifold M
     sage: t[[1,2]].display()
-    zero: M --> R
-       (x, y) |--> 0
+    zero: M → ℝ
+       (x, y) ↦ 0
 
 A direct access to the coordinate expression of some component is obtained
 via the single square brackets::
@@ -192,16 +192,18 @@ To keep the other components, one must use the method
 
     sage: t = M.tensor_field(1, 1, name='T')  # Let us restart
     sage: t[:] = [[1, -x], [x*y, 2]]  # by first setting the components in the frame c_xy.frame()
-    sage: # We now set the components in the frame e with add_comp:
+
+We now set the components in the frame e with add_comp::
+
     sage: t.add_comp(e)[:] = [[x+y, 0], [y, -3*x]]
 
 The expansion of the tensor field in a given frame is obtained via the method
 ``display``::
 
     sage: t.display()  # expansion in the manifold's default frame
-    T = d/dx*dx - x d/dx*dy + x*y d/dy*dx + 2 d/dy*dy
+    T = ∂/∂x⊗dx - x ∂/∂x⊗dy + x*y ∂/∂y⊗dx + 2 ∂/∂y⊗dy
     sage: t.display(e)
-    T = (x + y) e_1*e^1 + y e_2*e^1 - 3*x e_2*e^2
+    T = (x + y) e_1⊗e^1 + y e_2⊗e^1 - 3*x e_2⊗e^2
 
 See :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.display`
 for more examples.
@@ -215,9 +217,9 @@ fields; in the present case, ``T`` being of type `(1,1)`, it acts on pairs
     sage: t(a,v)
     Scalar field T(a,V) on the 2-dimensional differentiable manifold M
     sage: t(a,v).display()
-    T(a,V): M --> R
-       (x, y) |--> x^2*y^2 + 2*x + y
-       (u, v) |--> 1/16*u^4 - 1/8*u^2*v^2 + 1/16*v^4 + 3/2*u + 1/2*v
+    T(a,V): M → ℝ
+       (x, y) ↦ x^2*y^2 + 2*x + y
+       (u, v) ↦ 1/16*u^4 - 1/8*u^2*v^2 + 1/16*v^4 + 3/2*u + 1/2*v
     sage: latex(t(a,v))
     T\left(a,V\right)
 
@@ -250,7 +252,7 @@ A vector field (rank-1 contravariant tensor field)::
     sage: v.tensor_type()
     (1, 0)
     sage: v.display()
-    v = -x d/dx + y d/dy
+    v = -x ∂/∂x + y ∂/∂y
 
 A field of symmetric bilinear forms::
 
@@ -272,7 +274,7 @@ account the symmetry between the two indices::
     [ 0 -x]
     [-x  y]
     sage: q.display()
-    Q = -x dx*dy - x dy*dx + y dy*dy
+    Q = -x dx⊗dy - x dy⊗dx + y dy⊗dy
 
 More generally, tensor symmetries or antisymmetries can be specified via
 the keywords ``sym`` and ``antisym``. For instance a rank-4 covariant
@@ -411,7 +413,6 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         sage: for i in M.irange():
         ....:     for j in M.irange():
         ....:         t[i,j] = (i+1)**(j+1)
-        ....:
         sage: [[ t[i,j] for j in M.irange()] for i in M.irange()]
         [[1, 1, 1], [2, 4, 8], [3, 9, 27]]
 
@@ -449,9 +450,13 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         sage: t = M.tensor_field(2, 0, name='T')  # let us restart
         sage: t[0,0] = 2                   # sets the components in the frame e
-        sage: # We now set the components in the frame f with add_comp:
+
+    We now set the components in the frame f with add_comp::
+
         sage: t.add_comp(f)[0,0] = -3
-        sage: # The components w.r.t. frame e have been kept:
+
+    The components w.r.t. frame e have been kept::
+
         sage: t._components  # random (dictionary output)
         {Vector frame (M, (e_0,e_1,e_2)): 2-indices components w.r.t. Vector frame (M, (e_0,e_1,e_2)),
          Vector frame (M, (f_0,f_1,f_2)): 2-indices components w.r.t. Vector frame (M, (f_0,f_1,f_2))}
@@ -531,7 +536,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         no symmetry;  no antisymmetry
         sage: s.symmetries()
         no symmetry;  no antisymmetry
-        sage: # let us now make b symmetric:
+
+    Let us now make b symmetric::
+
         sage: b = M.tensor_field(2, 0, sym=(0,1))
         sage: b[0,0], b[1,1], b[2,2], b[0,2] = (4,5,6,7)
         sage: s = a + b
@@ -593,7 +600,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
          differentiable manifold M
         sage: h[0,0], h[0,1], h[2,0] = 1+t, t^2, sin(t)
         sage: h.display()
-        h = (t + 1) d/dx*d/dx + t^2 d/dx*d/dy + sin(t) d/dz*d/dx
+        h = (t + 1) ∂/∂x⊗∂/∂x + t^2 ∂/∂x⊗∂/∂y + sin(t) ∂/∂z⊗∂/∂x
 
     """
     def __init__(self, vector_field_module, tensor_type, name=None,
@@ -615,7 +622,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
              manifold M
             sage: t[:] = [[1+x^2, x*y], [0, 1+y^2]]
             sage: t.display()
-            t = (x^2 + 1) dx*dx + x*y dx*dy + (y^2 + 1) dy*dy
+            t = (x^2 + 1) dx⊗dx + x*y dx⊗dy + (y^2 + 1) dy⊗dy
             sage: t.parent()
             Free module T^(0,2)(M) of type-(0,2) tensors fields on the
              2-dimensional differentiable manifold M
@@ -718,9 +725,97 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         FreeModuleTensor._del_derived(self)
         TensorField._del_derived(self)
         if del_restrictions:
-            self._restrictions.clear()
-            self._extensions_graph = {self._domain: self}
-            self._restrictions_graph = {self._domain: self}
+            self._del_restrictions()
+
+    def _set_comp_unsafe(self, basis=None):
+        r"""
+        Return the components of the tensor field in a given vector frame
+        for assignment. This private method invokes no security check. Use
+        this method at your own risk.
+
+        The components with respect to other frames on the same domain are
+        deleted, in order to avoid any inconsistency. To keep them, use the
+        method :meth:`_add_comp_unsafe` instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) vector frame in which the
+          components are defined; if none is provided, the components are
+          assumed to refer to the tensor field domain's default frame
+
+        OUTPUT:
+
+        - components in the given frame, as an instance of the
+          class :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: e_xy = X.frame()
+            sage: t = M.tensor_field(1,1, name='t')
+            sage: t._set_comp_unsafe(e_xy)
+            2-indices components w.r.t. Coordinate frame (M, (∂/∂x,∂/∂y))
+            sage: t._set_comp_unsafe(e_xy)[1,0] = 2
+            sage: t.display(e_xy)
+            t = 2 ∂/∂y⊗dx
+
+        Setting components in a new frame (``e``)::
+
+            sage: e = M.vector_frame('e')
+            sage: t._set_comp_unsafe(e)
+            2-indices components w.r.t. Vector frame (M, (e_0,e_1))
+            sage: t._set_comp_unsafe(e)[0,1] = x
+            sage: t.display(e)
+            t = x e_0⊗e^1
+
+        The components with respect to the frame ``e_xy`` have be erased::
+
+            sage: t.display(e_xy)
+            Traceback (most recent call last):
+            ...
+            ValueError: no basis could be found for computing the components
+             in the Coordinate frame (M, (∂/∂x,∂/∂y))
+
+        Setting components in a frame defined on a subdomain deletes
+        previously defined components as well::
+
+            sage: U = M.open_subset('U', coord_def={X: x>0})
+            sage: f = U.vector_frame('f')
+            sage: t._set_comp_unsafe(f)
+            2-indices components w.r.t. Vector frame (U, (f_0,f_1))
+            sage: t._set_comp_unsafe(f)[0,1] = 1+y
+            sage: t.display(f)
+            t = (y + 1) f_0⊗f^1
+            sage: t.display(e)
+            Traceback (most recent call last):
+            ...
+            ValueError: no basis could be found for computing the components
+             in the Vector frame (M, (e_0,e_1))
+
+        """
+        if basis is None:
+            basis = self._fmodule._def_basis
+
+        if basis._domain == self._domain:
+            # Setting components on the tensor field domain with an unsafe
+            # method:
+            return FreeModuleTensor._set_comp_unsafe(self, basis=basis)
+
+        # Setting components on a subdomain:
+        #
+        # Creating or saving the restriction to the subdomain:
+        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
+        # Deleting all the components on self._domain and the derived
+        # quantities:
+        self._components.clear()
+        self._del_derived()
+        # Restoring the restriction to the subdomain (which has been
+        # deleted by _del_derived):
+        self._restrictions[basis._domain] = rst
+        # The _set_comp_unsafe operation is performed on the subdomain:
+        return rst._set_comp_unsafe(basis)
 
     def set_comp(self, basis=None):
         r"""
@@ -750,10 +845,10 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: e_xy = X.frame()
             sage: t = M.tensor_field(1,1, name='t')
             sage: t.set_comp(e_xy)
-            2-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            2-indices components w.r.t. Coordinate frame (M, (∂/∂x,∂/∂y))
             sage: t.set_comp(e_xy)[1,0] = 2
             sage: t.display(e_xy)
-            t = 2 d/dy*dx
+            t = 2 ∂/∂y⊗dx
 
         Setting components in a new frame (``e``)::
 
@@ -762,7 +857,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             2-indices components w.r.t. Vector frame (M, (e_0,e_1))
             sage: t.set_comp(e)[0,1] = x
             sage: t.display(e)
-            t = x e_0*e^1
+            t = x e_0⊗e^1
 
         The components with respect to the frame ``e_xy`` have be erased::
 
@@ -770,7 +865,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             Traceback (most recent call last):
             ...
             ValueError: no basis could be found for computing the components
-             in the Coordinate frame (M, (d/dx,d/dy))
+             in the Coordinate frame (M, (∂/∂x,∂/∂y))
 
         Setting components in a frame defined on a subdomain deletes
         previously defined components as well::
@@ -781,7 +876,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             2-indices components w.r.t. Vector frame (U, (f_0,f_1))
             sage: t.set_comp(f)[0,1] = 1+y
             sage: t.display(f)
-            t = (y + 1) f_0*f^1
+            t = (y + 1) f_0⊗f^1
             sage: t.display(e)
             Traceback (most recent call last):
             ...
@@ -789,8 +884,13 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
              in the Vector frame (M, (e_0,e_1))
 
         """
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         if basis is None:
             basis = self._fmodule._def_basis
+
+        self._is_zero = False  # a priori
 
         if basis._domain == self._domain:
             # Setting components on the tensor field domain:
@@ -809,6 +909,94 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         self._restrictions[basis._domain] = rst
         # The set_comp operation is performed on the subdomain:
         return rst.set_comp(basis=basis)
+
+    def _add_comp_unsafe(self, basis=None):
+        r"""
+        Return the components of the tensor field in a given vector frame
+        for assignment. This private method invokes no security check. Use
+        this method at your own risk.
+
+        The components with respect to other frames on the same domain are
+        kept. To delete them, use the method :meth:`_set_comp_unsafe` instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) vector frame in which the
+          components are defined; if none is provided, the components are
+          assumed to refer to the tensor field domain's default frame
+
+        OUTPUT:
+
+        - components in the given frame, as an instance of the
+          class :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: e_xy = X.frame()
+            sage: t = M.tensor_field(1,1, name='t')
+            sage: t._add_comp_unsafe(e_xy)
+            2-indices components w.r.t. Coordinate frame (M, (∂/∂x,∂/∂y))
+            sage: t._add_comp_unsafe(e_xy)[1,0] = 2
+            sage: t.display(e_xy)
+            t = 2 ∂/∂y⊗dx
+
+        Adding components with respect to a new frame (``e``)::
+
+            sage: e = M.vector_frame('e')
+            sage: t._add_comp_unsafe(e)
+            2-indices components w.r.t. Vector frame (M, (e_0,e_1))
+            sage: t._add_comp_unsafe(e)[0,1] = x
+            sage: t.display(e)
+            t = x e_0⊗e^1
+
+        The components with respect to the frame ``e_xy`` are kept::
+
+            sage: t.display(e_xy)
+            t = 2 ∂/∂y⊗dx
+
+        Adding components in a frame defined on a subdomain::
+
+            sage: U = M.open_subset('U', coord_def={X: x>0})
+            sage: f = U.vector_frame('f')
+            sage: t._add_comp_unsafe(f)
+            2-indices components w.r.t. Vector frame (U, (f_0,f_1))
+            sage: t._add_comp_unsafe(f)[0,1] = 1+y
+            sage: t.display(f)
+            t = (y + 1) f_0⊗f^1
+
+        The components previously defined are kept::
+
+            sage: t.display(e_xy)
+            t = 2 ∂/∂y⊗dx
+            sage: t.display(e)
+            t = x e_0⊗e^1
+
+        """
+        if basis is None:
+            basis = self._fmodule._def_basis
+
+        if basis._domain == self._domain:
+            # Adding components on the tensor field domain:
+            # We perform a backup of the restrictions, since
+            # they are deleted by FreeModuleTensor._add_comp_unsafe (which
+            # invokes del_derived()), and restore them afterwards
+            restrictions_save = self._restrictions.copy()
+            comp = FreeModuleTensor._add_comp_unsafe(self, basis=basis)
+            self._restrictions = restrictions_save
+            return comp
+
+        # Adding components on a subdomain:
+        #
+        # Creating or saving the restriction to the subdomain:
+        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
+        # Deleting the derived quantities except for the restrictions to
+        # subdomains:
+        self._del_derived(del_restrictions=False)
+        # The _add_comp_unsafe operation is performed on the subdomain:
+        return rst._add_comp_unsafe(basis)
 
     def add_comp(self, basis=None):
         r"""
@@ -837,10 +1025,10 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: e_xy = X.frame()
             sage: t = M.tensor_field(1,1, name='t')
             sage: t.add_comp(e_xy)
-            2-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            2-indices components w.r.t. Coordinate frame (M, (∂/∂x,∂/∂y))
             sage: t.add_comp(e_xy)[1,0] = 2
             sage: t.display(e_xy)
-            t = 2 d/dy*dx
+            t = 2 ∂/∂y⊗dx
 
         Adding components with respect to a new frame (``e``)::
 
@@ -849,12 +1037,12 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             2-indices components w.r.t. Vector frame (M, (e_0,e_1))
             sage: t.add_comp(e)[0,1] = x
             sage: t.display(e)
-            t = x e_0*e^1
+            t = x e_0⊗e^1
 
         The components with respect to the frame ``e_xy`` are kept::
 
             sage: t.display(e_xy)
-            t = 2 d/dy*dx
+            t = 2 ∂/∂y⊗dx
 
         Adding components in a frame defined on a subdomain::
 
@@ -864,18 +1052,23 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             2-indices components w.r.t. Vector frame (U, (f_0,f_1))
             sage: t.add_comp(f)[0,1] = 1+y
             sage: t.display(f)
-            t = (y + 1) f_0*f^1
+            t = (y + 1) f_0⊗f^1
 
         The components previously defined are kept::
 
             sage: t.display(e_xy)
-            t = 2 d/dy*dx
+            t = 2 ∂/∂y⊗dx
             sage: t.display(e)
-            t = x e_0*e^1
+            t = x e_0⊗e^1
 
         """
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         if basis is None:
             basis = self._fmodule._def_basis
+
+        self._is_zero = False  # a priori
 
         if basis._domain == self._domain:
             # Adding components on the tensor field domain:
@@ -925,9 +1118,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: t = M.tensor_field(1,2, name='t')
             sage: t[1,2,1] = x*y
             sage: t.comp(X.frame())
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            3-indices components w.r.t. Coordinate frame (M, (∂/∂x,∂/∂y))
             sage: t.comp()  # the default frame is X.frame()
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            3-indices components w.r.t. Coordinate frame (M, (∂/∂x,∂/∂y))
             sage: t.comp()[:]
             [[[0, 0], [x*y, 0]], [[0, 0], [0, 0]]]
             sage: e = M.vector_frame('e')
@@ -949,7 +1142,6 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         # components on a subdomain:
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
         return rst.comp(basis=basis, from_basis=from_basis)
-
 
     def _common_coord_frame(self, other):
         r"""
@@ -981,7 +1173,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: a[0,1,0] = 2
             sage: b = M.vector_field(-y, x, name='b')
             sage: a._common_coord_frame(b)
-            Coordinate frame (M, (d/dx,d/dy))
+            Coordinate frame (M, (∂/∂x,∂/∂y))
 
         Vector field defined on a new chart::
 
@@ -989,7 +1181,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: c = M.vector_field(1+u, u*v, frame=Y.frame(), chart=Y,
             ....:                    name='c')
             sage: c.display(Y.frame(), Y)
-            c = (u + 1) d/du + u*v d/dv
+            c = (u + 1) ∂/∂u + u*v ∂/∂v
 
         There is no common coordinate frame::
 
@@ -1000,15 +1192,15 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
             sage: Y_to_X = X_to_Y.inverse()
             sage: a._common_coord_frame(c)
-            Coordinate frame (M, (d/dx,d/dy))
+            Coordinate frame (M, (∂/∂x,∂/∂y))
 
         Indeed, the components of ``c`` with respect to the
-        frame ``(M, (d/dx,d/dy))`` have been computed via the
+        frame ``(M, (∂/∂x,∂/∂y))`` have been computed via the
         change-of-coordinate formulas::
 
             sage: c.display(a._common_coord_frame(c))
-            c = (1/2*x^2 - 1/2*y^2 + 1/2*x + 1/2*y + 1/2) d/dx
-             + (-1/2*x^2 + 1/2*y^2 + 1/2*x + 1/2*y + 1/2) d/dy
+            c = (1/2*x^2 - 1/2*y^2 + 1/2*x + 1/2*y + 1/2) ∂/∂x
+             + (-1/2*x^2 + 1/2*y^2 + 1/2*x + 1/2*y + 1/2) ∂/∂y
 
         """
         from sage.manifolds.differentiable.vectorframe import CoordFrame
@@ -1122,7 +1314,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: w.lie_derivative(v)
             Vector field on the 2-dimensional differentiable manifold M
             sage: w.lie_derivative(v).display()
-            ((x - 2)*y + x) d/dx + (x^2 - y^2 - 2*x - y) d/dy
+            ((x - 2)*y + x) ∂/∂x + (x^2 - y^2 - 2*x - y) ∂/∂y
 
         The result is cached::
 
@@ -1143,8 +1335,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
             sage: f = M.scalar_field(x^3 + x*y^2)
             sage: w.lie_der(v)(f).display()
-            M --> R
-            (x, y) |--> -(x + 2)*y^3 + 3*x^3 - x*y^2 + 5*(x^3 - 2*x^2)*y
+            M → ℝ
+            (x, y) ↦ -(x + 2)*y^3 + 3*x^3 - x*y^2 + 5*(x^3 - 2*x^2)*y
             sage: w.lie_der(v)(f) == v(w(f)) - w(v(f))  # rhs = commutator [v,w] acting on f
             True
 
@@ -1323,7 +1515,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             Vector field v on the Open subset D of the 2-dimensional
              differentiable manifold R^2
             sage: v_D.display()
-            v = (x + y) d/dx + (x^2 - 1) d/dy
+            v = (x + y) ∂/∂x + (x^2 - 1) ∂/∂y
 
         The symbolic expressions of the components with respect to
         Cartesian coordinates are equal::
@@ -1466,8 +1658,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: s = t.__call__(a,v); s
             Scalar field t(a,v) on the 2-dimensional differentiable manifold M
             sage: s.display()
-            t(a,v): M --> R
-               (x, y) |--> -x^3 + y^3 + (x^3 - 3*x - 3)*y - y^2 + 6*x
+            t(a,v): M → ℝ
+               (x, y) ↦ -x^3 + y^3 + (x^3 - 3*x - 3)*y - y^2 + 6*x
             sage: s.coord_function() == sum(sum(t[i,j]*a[i]*v[j] for j in [0..1])
             ....:                           for i in [0..1])
             True
@@ -1480,7 +1672,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: s = t.__call__(v); s
             Vector field t(v) on the 2-dimensional differentiable manifold M
             sage: s.display()
-            t(v) = (-(x + 1)*y + 2*x) d/dx + (-x^3 - y^2) d/dy
+            t(v) = (-(x + 1)*y + 2*x) ∂/∂x + (-x^3 - y^2) ∂/∂y
             sage: s[0] == t[0,0]*v[0] + t[0,1]*v[1]
             True
             sage: s[1] == t[1,0]*v[0] + t[1,1]*v[1]
@@ -1549,8 +1741,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: s = a.contract(0, b, 1); s
             Tensor field of type (2,0) on the 2-dimensional differentiable manifold M
             sage: s.display()
-            -x*y d/dx*d/dx + (x^2 + x*y + y^2 + x) d/dx*d/dy
-             + (-x^2 - 2*y) d/dy*d/dx + (-x^3 - x^2*y + 2*x) d/dy*d/dy
+            -x*y ∂/∂x⊗∂/∂x + (x^2 + x*y + y^2 + x) ∂/∂x⊗∂/∂y
+             + (-x^2 - 2*y) ∂/∂y⊗∂/∂x + (-x^3 - x^2*y + 2*x) ∂/∂y⊗∂/∂y
 
         Check::
 
@@ -1568,8 +1760,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: s = a.contract(1, b, 1); s
             Tensor field of type (2,0) on the 2-dimensional differentiable manifold M
             sage: s.display()
-            (-(x + 1)*y + 2) d/dx*d/dx + (x^2 + 3*x + 2*y) d/dx*d/dy
-             + (-x^2 - y^2) d/dy*d/dx + (-x^3 - (x^2 - x)*y) d/dy*d/dy
+            (-(x + 1)*y + 2) ∂/∂x⊗∂/∂x + (x^2 + 3*x + 2*y) ∂/∂x⊗∂/∂y
+             + (-x^2 - y^2) ∂/∂y⊗∂/∂x + (-x^3 - (x^2 - x)*y) ∂/∂y⊗∂/∂y
 
         Check::
 
@@ -1618,12 +1810,12 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
             sage: v = M.vector_field(-y, x, name='v')
             sage: s = a.__mul__(v); s
-            Tensor field a*v of type (1,2) on the 2-dimensional differentiable
+            Tensor field a⊗v of type (1,2) on the 2-dimensional differentiable
              manifold M
             sage: s.display()
-            a*v = -(x + 1)*y d/dx*dx*dx - 2*y d/dx*dx*dy - y^2 d/dx*dy*dx
-             + x^2*y d/dx*dy*dy + (x^2 + x) d/dy*dx*dx + 2*x d/dy*dx*dy
-             + x*y d/dy*dy*dx - x^3 d/dy*dy*dy
+            a⊗v = -(x + 1)*y ∂/∂x⊗dx⊗dx - 2*y ∂/∂x⊗dx⊗dy - y^2 ∂/∂x⊗dy⊗dx
+             + x^2*y ∂/∂x⊗dy⊗dy + (x^2 + x) ∂/∂y⊗dx⊗dx + 2*x ∂/∂y⊗dx⊗dy
+             + x*y ∂/∂y⊗dy⊗dx - x^3 ∂/∂y⊗dy⊗dy
             sage: all(s[ind] == v[ind[0]] * a[ind[1],ind[2]]
             ....:     for ind in M.index_generator(3))
             True
@@ -1632,11 +1824,11 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
             sage: f = M.scalar_field({X: x+y}, name='f')
             sage: s = a.__mul__(f); s
-            Tensor field of type (0,2) on the 2-dimensional differentiable
+            Tensor field f*a of type (0,2) on the 2-dimensional differentiable
              manifold M
             sage: s.display()
-            (x^2 + (x + 1)*y + x) dx*dx + (2*x + 2*y) dx*dy + (x*y + y^2) dy*dx
-             + (-x^3 - x^2*y) dy*dy
+            f*a = (x^2 + (x + 1)*y + x) dx⊗dx + (2*x + 2*y) dx⊗dy
+             + (x*y + y^2) dy⊗dx + (-x^3 - x^2*y) dy⊗dy
             sage: s == f*a
             True
 
@@ -1825,7 +2017,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: p = M.point((-2,3), name='p')
             sage: v = M.vector_field(y, x^2, name='v')
             sage: v.display()
-            v = y d/dx + x^2 d/dy
+            v = y ∂/∂x + x^2 ∂/∂y
             sage: vp = v.at(p) ; vp
             Tangent vector v at Point p on the 2-dimensional differentiable
              manifold M
@@ -1833,7 +2025,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             Tangent space at Point p on the 2-dimensional differentiable
              manifold M
             sage: vp.display()
-            v = 3 d/dx + 4 d/dy
+            v = 3 ∂/∂x + 4 ∂/∂y
 
         A 1-form gives birth to a linear form in the tangent space::
 
@@ -1855,7 +2047,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: t = M.tensor_field(1, 1, name='t')
             sage: t[0,0], t[0,1], t[1,1] = 1+x, x*y, 1-y
             sage: t.display()
-            t = (x + 1) d/dx*dx + x*y d/dx*dy + (-y + 1) d/dy*dy
+            t = (x + 1) ∂/∂x⊗dx + x*y ∂/∂x⊗dy + (-y + 1) ∂/∂y⊗dy
             sage: tp = t.at(p) ; tp
             Type-(1,1) tensor t on the Tangent space at Point p on the
              2-dimensional differentiable manifold M
@@ -1863,14 +2055,14 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             Free module of type-(1,1) tensors on the Tangent space at Point p
              on the 2-dimensional differentiable manifold M
             sage: tp.display()
-            t = -d/dx*dx - 6 d/dx*dy - 2 d/dy*dy
+            t = -∂/∂x⊗dx - 6 ∂/∂x⊗dy - 2 ∂/∂y⊗dy
 
         A 2-form yields an alternating form of degree 2 in the tangent space::
 
             sage: a = M.diff_form(2, name='a')
             sage: a[0,1] = x*y
             sage: a.display()
-            a = x*y dx/\dy
+            a = x*y dx∧dy
             sage: ap = a.at(p) ; ap
             Alternating form a of degree 2 on the Tangent space at Point p on
              the 2-dimensional differentiable manifold M
@@ -1878,7 +2070,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             2nd exterior power of the dual of the Tangent space at Point p on
              the 2-dimensional differentiable manifold M
             sage: ap.display()
-            a = -6 dx/\dy
+            a = -6 dx∧dy
 
         Example with a non trivial map `\Phi`::
 
@@ -1890,7 +2082,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             Vector field v along the 1-dimensional differentiable manifold U
              with values on the 2-dimensional differentiable manifold M
             sage: v.display()
-            v = (t + 1) d/dx + t^2 d/dy
+            v = (t + 1) ∂/∂x + t^2 ∂/∂y
             sage: p = U((pi/6,))
             sage: vp = v.at(p) ; vp
             Tangent vector v at Point on the 2-dimensional differentiable
@@ -1898,7 +2090,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: vp.parent() is M.tangent_space(Phi(p))
             True
             sage: vp.display()
-            v = (1/6*pi + 1) d/dx + 1/36*pi^2 d/dy
+            v = (1/6*pi + 1) ∂/∂x + 1/36*pi^2 ∂/∂y
 
         """
         if point not in self._domain:
@@ -1964,7 +2156,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             Vector field v along the Real interval (0, 2*pi) with values on
              the 2-dimensional differentiable manifold M
             sage: vU.display()
-            v = -cos(t)*sin(t) d/dx + sin(t) d/dy
+            v = -cos(t)*sin(t) ∂/∂x + sin(t) ∂/∂y
             sage: vU.parent()
             Free module X((0, 2*pi),Phi) of vector fields along the Real
              interval (0, 2*pi) mapped into the 2-dimensional differentiable
@@ -1986,7 +2178,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             Tensor field of type (0,2) along the Real interval (0, 2*pi) with
              values on the 2-dimensional differentiable manifold M
             sage: aU.display()
-            (cos(t) + 1)*sin(t) dx*dx + cos(t)*sin(t)^2 dx*dy + sin(t)^4 dy*dy
+            (cos(t) + 1)*sin(t) dx⊗dx + cos(t)*sin(t)^2 dx⊗dy + sin(t)^4 dy⊗dy
             sage: aU.parent()
             Free module T^(0,2)((0, 2*pi),Phi) of type-(0,2) tensors fields
              along the Real interval (0, 2*pi) mapped into the 2-dimensional
@@ -2176,8 +2368,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             [ 0  0  e  1]
 
         """
-        ser = self.series_expansion(symbol, order)
-        return sum(symbol**i*s for (i, s) in enumerate(ser))
+        series = self.series_expansion(symbol, order)
+        return sum(symbol**i * s for i, s in enumerate(series))
 
     def set_calc_order(self, symbol, order, truncate=False):
         r"""

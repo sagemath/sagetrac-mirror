@@ -1,5 +1,5 @@
 """
-Testing modular symbols spaces.
+Testing modular symbols spaces
 
 TESTS::
 
@@ -8,8 +8,8 @@ TESTS::
     [(1, 1), (1, 2), (2, 2), (3, 2), (6, 2), (20, 2)]
 """
 
-#*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+# ****************************************************************************
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -22,10 +22,8 @@ TESTS::
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function, absolute_import
-from six.moves import range
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import random
 
@@ -33,6 +31,7 @@ from . import modsym
 import sage.modular.dirichlet as dirichlet
 import sage.modular.arithgroup.all as arithgroup
 from sage.misc.misc import cputime
+
 
 class Test:
     """
@@ -173,7 +172,7 @@ class Test:
             sage: from sage.modular.modsym.tests import Test
             sage: Test()._modular_symbols_space_gamma1() # random
             level = 3, weight = 4, sign = 0
-            Modular Symbols space of dimension 2 for Gamma_1(3) of weight 4 with sign 0 and over Rational Field
+            Modular Symbols space of dimension 2 for Gamma_1(3) of weight 4 with sign 0 over Rational Field
         """
         level, weight, sign = self._level_weight_sign()
         M = modsym.ModularSymbols(arithgroup.Gamma1(level), weight, sign)
@@ -330,7 +329,7 @@ class Test:
             sage: Test().test_decomposition() # random
             gamma1
             level = 10, weight = 4, sign = 0
-            Modular Symbols space of dimension 18 for Gamma_1(10) of weight 4 with sign 0 and over Rational Field
+            Modular Symbols space of dimension 18 for Gamma_1(10) of weight 4 with sign 0 over Rational Field
         """
         M = self._modular_symbols_space()
         D = M.decomposition()
@@ -346,7 +345,7 @@ class Test:
             sage: Test().test_dimension() # random
             gamma1
             level = 14, weight = 2, sign = -1
-            Modular Symbols space of dimension 1 for Gamma_1(14) of weight 2 with sign -1 and over Rational Field
+            Modular Symbols space of dimension 1 for Gamma_1(14) of weight 2 with sign -1 over Rational Field
         """
         self._modular_symbols_space().dimension()
 
@@ -363,7 +362,8 @@ class Test:
             level = 18, weight = 4, sign = -1
             Modular Symbols space of dimension 0 and level 18, weight 4, character [1, -1], sign -1, over Rational Field
         """
-        tests = [a for a in Test.__dict__.keys() if a[:5] == "test_" and a != "test_random"]
+        tests = [a for a in Test.__dict__
+                 if a[:5] == "test_" and a != "test_random"]
         name = random.choice(tests)
         print("Doing random test %s" % name)
         Test.__dict__[name](self)

@@ -39,13 +39,9 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-# python3
-from __future__ import division, print_function, absolute_import
-from six.moves import range
-from six import iteritems
 
 from sage.all import ZZ, Integer, vector, SageObject, binomial
-from .decoder import Decoder, DecodingError
+from .decoder import Decoder
 
 
 def _format_decoding_interval(decoding_interval):
@@ -462,7 +458,7 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
             True
         """
         import itertools
-        from sage.all import sample
+        from sage.misc.prandom import sample
         C = self.code()
         n, k = C.length(), C.dimension()
         tau = self.decoding_interval()
@@ -547,11 +543,11 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
             sage: A.time_estimate() #random
             0.0008162108571427874
         """
-        from sage.all import sample, mean, random_vector, random_matrix, randint
-        try:
-            from time import process_time
-        except ImportError:
-            from time import clock as process_time
+        from sage.matrix.special import random_matrix
+        from sage.misc.prandom import sample, randint
+        from sage.modules.free_module_element import random_vector
+        from time import process_time
+
         C = self.code()
         G = C.generator_matrix()
         n, k = C.length(), C.dimension()
@@ -577,9 +573,8 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
             before = process_time()
             for m in scalars:
                 e = y - sum(m[i]*g[i] for i in range(p))
-                errs = e.hamming_weight()
-            return (process_time() - before)/100.
-        T = mean([ time_information_set_steps() for s in range(5) ])
+            return (process_time() - before) / 100.
+        T = sum([ time_information_set_steps() for s in range(5) ]) / 5.
         P = [ time_search_loop(p) for p in range(tau+1) ]
 
         def compute_estimate(p):

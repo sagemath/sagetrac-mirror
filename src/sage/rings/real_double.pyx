@@ -40,8 +40,6 @@ Test NumPy conversions::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function, absolute_import
-
 cimport libc.math
 from libc.string cimport memcpy
 from cpython.object cimport *
@@ -117,7 +115,7 @@ cdef class RealDoubleField_class(Field):
         sage: RDF(QQ['x'].0)
         Traceback (most recent call last):
         ...
-        TypeError: cannot coerce nonconstant polynomial to float
+        TypeError: cannot convert nonconstant polynomial
         sage: RDF(QQ['x'](3))
         3.0
 
@@ -497,10 +495,12 @@ cdef class RealDoubleField_class(Field):
 
         EXAMPLES::
 
-            sage: RDF.random_element()
-            0.7369454235661859
-            sage: RDF.random_element(min=100, max=110)
-            102.8159473516245
+            sage: RDF.random_element().parent() is RDF
+            True
+            sage: -1 <= RDF.random_element() <= 1
+            True
+            sage: 100 <= RDF.random_element(min=100, max=110) <= 110
+            True
         """
         cdef randstate rstate = current_randstate()
 
@@ -976,6 +976,20 @@ cdef class RealDoubleElement(FieldElement):
         """
         return repr(self._value)
 
+    def _mathematica_init_(self):
+        """
+        TESTS:
+
+        Check that :trac:`28814` is fixed::
+
+            sage: mathematica(RDF(1e25))   # optional - mathematica
+            1.*^25
+            sage: mathematica(RDF(1e-25))  # optional - mathematica
+            1.*^-25
+        """
+        from .real_mpfr import RR
+        return RR(self._value)._mathematica_init_()
+
     def _sage_input_(self, sib, coerced):
         r"""
         Produce an expression which will reproduce this value when evaluated.
@@ -1086,6 +1100,19 @@ cdef class RealDoubleElement(FieldElement):
         """
         return double_repr(self._value)
 
+    def __format__(self, format_spec):
+        """
+        Return a formatted string representation of this real number.
+
+        EXAMPLES::
+
+            sage: format(RDF(32/3), '.4f')
+            '10.6667'
+            sage: '{:.4e}'.format(RDF(2/3))
+            '6.6667e-01'
+        """
+        return format(float(self), format_spec)
+
     def _latex_(self):
         r"""
         Return a latex representation of ``self``.
@@ -1118,7 +1145,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return hash(self._value)
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` under the homomorphism from the rational
         field to ``codomain``.
@@ -1172,6 +1199,16 @@ cdef class RealDoubleElement(FieldElement):
 
             sage: r = RDF('-1.6')
             sage: r.__copy__() is r
+            True
+        """
+        return self
+
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: r = RDF('-1.6')
+            sage: deepcopy(r) is r
             True
         """
         return self
@@ -1240,6 +1277,24 @@ cdef class RealDoubleElement(FieldElement):
         from sage.rings.all import RR
         return RR(self._value).sign_mantissa_exponent()
 
+    def as_integer_ratio(self):
+        """
+        Return a coprime pair of integers ``(a, b)`` such that ``self``
+        equals ``a / b`` exactly.
+
+        EXAMPLES::
+
+            sage: RDF(0).as_integer_ratio()
+            (0, 1)
+            sage: RDF(1/3).as_integer_ratio()
+            (6004799503160661, 18014398509481984)
+            sage: RDF(37/16).as_integer_ratio()
+            (37, 16)
+            sage: RDF(3^60).as_integer_ratio()
+            (42391158275216203520420085760, 1)
+        """
+        nd = float.as_integer_ratio(self._value)
+        return (Integer(nd[0]), Integer(nd[1]))
 
     ########################
     #   Basic Arithmetic
@@ -1571,20 +1626,6 @@ cdef class RealDoubleElement(FieldElement):
             -2
         """
         return int(self._value)
-
-    def __long__(self):
-        """
-        Returns long integer truncation of this real number.
-
-        EXAMPLES::
-
-            sage: int(RDF(10e15))
-            10000000000000000L                   # 32-bit
-            10000000000000000                    # 64-bit
-            sage: long(RDF(2^100)) == 2^100
-            True
-        """
-        return long(self._value)
 
     def _complex_mpfr_field_(self, CC):
         """
@@ -2656,7 +2697,7 @@ cdef class RealDoubleElement(FieldElement):
 
         ALGORITHM:
 
-        Uses the PARI C-library ``algdep`` command.
+        Uses the PARI C-library :pari:`algdep` command.
 
         EXAMPLES::
 

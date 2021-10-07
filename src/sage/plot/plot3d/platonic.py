@@ -48,10 +48,9 @@ AUTHORS:
 
 - William Stein
 """
-from __future__ import absolute_import
 
 
-#*****************************************************************************
+# ****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -63,8 +62,8 @@ from __future__ import absolute_import
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.all import RDF
 from sage.matrix.constructor import matrix
@@ -515,7 +514,7 @@ def dodecahedron(center=(0, 0, 0), size=1, **kwds):
     """
     RR = RDF
     one = RR(1)
-    sqrt3 = RR(3).sqrt();
+    sqrt3 = RR(3).sqrt()
     sqrt5 = RR(5).sqrt()
     R3 = RR**3
     rot = matrix(RR, [[  -one/2,-sqrt3/2, 0],

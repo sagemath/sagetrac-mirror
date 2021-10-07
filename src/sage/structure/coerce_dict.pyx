@@ -62,8 +62,6 @@ However, this leak was fixed by :trac:`715`, using weak references::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function, absolute_import
-
 cimport cython
 from cpython.object cimport *
 from cpython.ref cimport Py_XINCREF, Py_XDECREF, Py_CLEAR
@@ -290,7 +288,7 @@ cdef class MonoDict:
         sage: L[c] = 3
 
     The key is expected to be a unique object. Hence, the item stored for ``c``
-    can not be obtained by providing another equal string::
+    cannot be obtained by providing another equal string::
 
         sage: L[a]
         1
@@ -399,10 +397,6 @@ cdef class MonoDict:
         ....:     prev = newA
         sage: len(M)
         1000
-        sage: del a  # py2 -- does not appear to be an issue on Python 3
-        Exception RuntimeError: 'maximum recursion depth exceeded...' in <function remove at ...> ignored
-        sage: len(M) > 0  # py2
-        True
 
     Check that also in the presence of circular references, :class:`MonoDict`
     gets properly collected::

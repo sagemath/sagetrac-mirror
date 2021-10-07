@@ -23,7 +23,7 @@ REFERENCES: [FH2015]_, [CS1996]_, [Weh1998]_, [Hutz2007]
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.calculus.functions import jacobian
@@ -97,13 +97,9 @@ def random_WehlerK3Surface(PP):
     EXAMPLES::
 
         sage: PP.<x0, x1, x2, y0, y1, y2> = ProductProjectiveSpaces([2, 2], GF(3))
-        sage: random_WehlerK3Surface(PP)
-        Closed subscheme of Product of projective spaces P^2 x P^2 over Finite Field of size 3 defined by:
-        x0*y0 + x1*y1 + x2*y2,
-        -x1^2*y0^2 - x2^2*y0^2 + x0^2*y0*y1 - x0*x1*y0*y1 - x1^2*y0*y1
-        + x1*x2*y0*y1 + x0^2*y1^2 + x0*x1*y1^2 - x1^2*y1^2 + x0*x2*y1^2
-        - x0^2*y0*y2 - x0*x1*y0*y2 + x0*x2*y0*y2 + x1*x2*y0*y2 + x0*x1*y1*y2
-        - x1^2*y1*y2 - x1*x2*y1*y2 - x0^2*y2^2 + x0*x1*y2^2 - x1^2*y2^2 - x0*x2*y2^2
+        sage: w = random_WehlerK3Surface(PP)
+        sage: type(w)
+        <class 'sage.dynamics.arithmetic_dynamics.wehlerK3.WehlerK3Surface_finite_field_with_category'>
     """
 
     CR = PP.coordinate_ring()
@@ -233,15 +229,15 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
     def _Lcoeff(self, component, i):
         r"""
-        Returns the polynomials  `L^x_i` or `L^y_i`.
+        Return the polynomials  `L^x_i` or `L^y_i`.
 
         These polynomials are defined as:
 
-            `L^x_i` = the coefficients of `y_i` in `L(x, y)` (Component = 0)
+        `L^x_i` = the coefficients of `y_i` in `L(x, y)` (Component = 0)
 
-            `L^y_i` = the coefficients of `x_i` in `L(x, y)` (Component = 1)
+        `L^y_i` = the coefficients of `x_i` in `L(x, y)` (Component = 1)
 
-            Definition and Notation from: [CS1996]_
+        Definition and Notation from: [CS1996]_
 
         INPUT:
 
@@ -281,15 +277,15 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
     def _Qcoeff(self, component, i, j):
         r"""
-        Returns the polynomials `Q^x_{ij}` or `Q^y_{ij}`.
+        Return the polynomials `Q^x_{ij}` or `Q^y_{ij}`.
 
         These polynomials are defined as:
 
-            `Q^x_{ij}` = the coefficients of `y_{i}y_{j}` in `Q(x, y)` (Component = 0).
+        `Q^x_{ij}` = the coefficients of `y_{i}y_{j}` in `Q(x, y)` (Component = 0).
 
-            `Q^y_{ij}` = the coefficients of `x_{i}x_{j}` in `Q(x, y)` (Component = 1).
+        `Q^y_{ij}` = the coefficients of `x_{i}x_{j}` in `Q(x, y)` (Component = 1).
 
-            Definition and Notation from: [CS1996]_.
+        Definition and Notation from: [CS1996]_.
 
         INPUT:
 
@@ -334,7 +330,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
     @cached_method
     def Gpoly(self, component, k):
         r"""
-        Returns the G polynomials  `G^*_k`.
+        Return the G polynomials  `G^*_k`.
 
         They are defined as:
         `G^*_k = \left(L^*_j\right)^2Q^*_{ii}-L^*_iL^*_jQ^*_{ij}+\left(L^*_i\right)^2Q^*_{jj}`\
@@ -378,7 +374,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
     @cached_method
     def Hpoly(self, component, i, j):
         r"""
-        Returns the H polynomials defined as `H^*_{ij}`.
+        Return the H polynomials defined as `H^*_{ij}`.
 
         This polynomial is defined by:
 
@@ -567,7 +563,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             raise TypeError("point must be in projective space of dimension 2")
         AS = self.ambient_space()
         ASC = AS.coordinate_ring()
-        PSY = AS[0];
+        PSY = AS[0]
         PSYC = PSY.coordinate_ring()
         p = ASC.hom(list(PSY.gens()) + [b[0], b[1], b[2]], PSYC)
         return (p(self.L))
@@ -812,7 +808,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         """
         PP = self.ambient_space()
         R = PP.coordinate_ring()
-        PSX = PP[0];
+        PSX = PP[0]
         vars = list(PSX.gens())
         K = FractionField(PSX.base_ring())
         R0 = PolynomialRing(K, 3, vars)
@@ -1970,8 +1966,10 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
     def fiber(self, p, component):
         r"""
-        Returns the fibers [y (component = 1) or x (Component = 0)] of a point on a
-        K3 Surface, will work for nondegenerate fibers only.
+        Return the fibers [y (component = 1) or x (Component = 0)] of
+        a point on a K3 Surface.
+
+        This will work for nondegenerate fibers only.
 
         For algorithm, see [Hutz2007]_.
 
@@ -2255,10 +2253,12 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                 Q = self.psi(Q, **kwds)
             return Q
 
-    def orbit_phi(self,P,N, **kwds):
+    def orbit_phi(self, P, N, **kwds):
         r"""
-        Returns the orbit of the `\phi` function defined by `\phi = \sigma_y \circ \sigma_x`
-        Function is defined in [CS1996]_.
+        Return the orbit of the `\phi` function defined by
+        `\phi = \sigma_y \circ \sigma_x`.
+
+        This function is defined in [CS1996]_.
 
         INPUT:
 
@@ -2315,9 +2315,10 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
     def orbit_psi(self, P, N, **kwds):
         r"""
-        Returns the orbit of the `\psi` function defined by `\psi = \sigma_x \circ \sigma_y`.
+        Return the orbit of the `\psi` function defined by
+        `\psi = \sigma_x \circ \sigma_y`.
 
-        Function is defined in [CS1996]_.
+        This function is defined in [CS1996]_.
 
         INPUT:
 

@@ -6,16 +6,15 @@ AUTHOR:
 - Martin Albrecht <malb@informatik.uni-bremen.de>
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-###############################################################################
-from __future__ import print_function, absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 include "sage/libs/ntl/decl.pxi"
 
@@ -39,7 +38,7 @@ from sage.libs.pari.all import pari
 from sage.libs.gmp.all cimport *
 
 from sage.cpython.string import FS_ENCODING
-from sage.cpython.string cimport str_to_bytes, char_to_str
+from sage.cpython.string cimport str_to_bytes, char_to_str, bytes_to_str
 
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 
@@ -256,7 +255,7 @@ cdef object si2sa_NF(number *n, ring *_ring, object base):
         sage: f.lc()
         1024*a
         sage: type(f.lc())
-        <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+        <class 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic_sqrt'>
     """
     cdef poly *z
     cdef number *c
@@ -508,7 +507,7 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     cdef char *_name
 
     # the result of nlInit2gmp() is in a plain polynomial ring over QQ (not an extension ring!),
-    # so we hace to get/create one :
+    # so we have to get/create one:
     #
     # todo: reuse qqr/ get an existing Singular polynomial ring over Q.
     _name = omStrDup("a")
@@ -772,20 +771,15 @@ cdef init_libsingular():
     from sage.env import SINGULAR_SO
     if not SINGULAR_SO or not os.path.exists(SINGULAR_SO):
         raise RuntimeError(
-            "libSingular not found--a working Singular install in $SAGE_LOCAL "
+            "libSingular not found--a working Singular install "
             "is required for Sage to work")
 
-    lib = SINGULAR_SO
-
-    if not os.path.exists(lib):
-        raise ImportError("cannot locate Singular library ({})".format(lib))
-
-    lib = str_to_bytes(lib, FS_ENCODING, "surrogateescape")
+    lib = str_to_bytes(SINGULAR_SO, FS_ENCODING, "surrogateescape")
 
     handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
     if not handle:
         err = dlerror()
-        raise ImportError("cannot load Singular library ({})".format(err))
+        raise ImportError(f"cannot load Singular library from {SINGULAR_SO} ({err})")
 
     # load SINGULAR
     siInit(lib)
@@ -813,3 +807,31 @@ init_libsingular()
 cdef void libsingular_error_callback(const_char_ptr s):
     _s = char_to_str(s)
     error_messages.append(_s)
+
+def get_resource(id):
+    """
+    Return a Singular "resource".
+
+    INPUT:
+
+    - ``id`` -- a single-character string; see
+      https://github.com/Singular/Singular/blob/spielwiese/resources/feResource.cc
+
+    OUTPUT:
+
+    A string, or ``None``.
+
+    EXAMPLES::
+
+        sage: from sage.libs.singular.singular import get_resource
+        sage: get_resource('D')            # SINGULAR_DATA_DIR
+        '...'
+        sage: get_resource('i')            # SINGULAR_INFO_FILE
+        '.../singular...'
+        sage: get_resource('7') is None    # not defined
+        True
+    """
+    cdef char *result = feGetResource(<char>ord(id))
+    if result == NULL:
+        return None
+    return bytes_to_str(result)

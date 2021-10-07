@@ -222,7 +222,7 @@ gold mine of information: the `Online Encyclopedia of Integer Sequences
 author, which contains more than 190000 sequences of integers::
 
     sage: oeis([1,1,2,5,14])                            # optional -- internet
-    0: A000108: Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!). Also called Segner numbers.
+    0: A000108: Catalan numbers: ...
     1: ...
     2: ...
 
@@ -503,10 +503,9 @@ or, more legibly,
 It is trivial to verify this equation on the closed form::
 
     sage: Cf = sage.symbolic.function_factory.function('C')
-    sage: equadiff.substitute_function(Cf, s0)
-    doctest:...: DeprecationWarning:...
+    sage: equadiff.substitute_function(Cf, s0.function(z))
     (4*z - 1)/sqrt(-4*z + 1) + sqrt(-4*z + 1) == 0
-    sage: bool(equadiff.substitute_function(Cf, s0))
+    sage: bool(equadiff.substitute_function(Cf, s0.function(z)))
     True
 
 .. On veut non seulement remplacer les occurrences de C(z), mais
@@ -673,12 +672,7 @@ result of ``len`` be an integer of type ``int``; this could cause
 overflows, and would not permit the return of {Infinity} for infinite
 sets::
 
-    sage: len(S)  #py2
-    Traceback (most recent call last):
-    ...
-    OverflowError: Python int too large to convert to C long
-
-    sage: len(S)  #py3
+    sage: len(S)
     Traceback (most recent call last):
     ...
     OverflowError: cannot fit 'int' into an index-sized integer
@@ -1272,13 +1266,6 @@ or select only the elements in positions 2, 3, and 4 (analogue of
     sage: list(itertools.islice(Permutations(3), int(1), int(4)))
     [[1, 3, 2], [2, 1, 3], [2, 3, 1]]
 
-The itertools methods ``imap`` and ``ifilter`` have been renamed to
-``map`` and ``filter`` in Python 3. You can get them also in Python 2 using::
-
-    sage: from six.moves import map, filter
-
-but they should rather be avoided, using list comprehension instead.
-
 To apply a function to all the elements, one can do::
 
     sage: list(z.cycle_type() for z in Permutations(3))
@@ -1738,8 +1725,8 @@ The Fibonacci sequence is easily recognized here, hence the name::
 
     sage: oeis(L)                                       # optional -- internet
     0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-    1: A212804: Expansion of (1-x)/(1-x-x^2).
-    2: A132636: a(n) = Fibonacci(n) mod n^3.
+    1: ...
+    2: ...
 
 This is an immediate consequence of the recurrence relation. One can
 also generate immediately all the Fibonacci words of a given length,

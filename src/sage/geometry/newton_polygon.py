@@ -11,9 +11,8 @@ slopes (and hence a last infinite slope).
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #############################################################################
-from __future__ import division
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -54,6 +53,8 @@ class NewtonPolygon_element(Element):
         Element.__init__(self, parent)
         self._polyhedron = polyhedron
         self._vertices = None
+        if polyhedron.is_mutable():
+            polyhedron._add_dependent_object(self)
 
     def _repr_(self):
         """
@@ -246,7 +247,7 @@ class NewtonPolygon_element(Element):
             sage: NP = NP1 * NP2; NP
             Infinite Newton polygon with 3 vertices: (0, 0), (1, 1), (2, 5/2) ending by an infinite line of slope 2
 
-        The slopes of ``NP`` is the union of thos of ``NP1`` and those of ``NP2``
+        The slopes of ``NP`` is the union of those of ``NP1`` and those of ``NP2``
         which are less than the last slope::
 
             sage: NP1.slopes()
@@ -596,7 +597,7 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
         sage: NP == NP2
         True
 
-    except if the contrary is explicitely mentioned::
+    except if the contrary is explicitly mentioned::
 
         sage: NewtonPolygon([0, 1, 1/2, 2/3, 1/2, 2/3, 1, 2/3], sort_slopes=False)
         Finite Newton polygon with 4 vertices: (0, 0), (1, 0), (6, 10/3), (8, 5)
@@ -729,8 +730,9 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
                 arg = list(arg)
             except TypeError:
                 raise TypeError("argument must be a list of coordinates or a list of (rational) slopes")
-        if len(arg) > 0 and arg[0] in self.base_ring():
-            if sort_slopes: arg.sort()
+        if arg and arg[0] in self.base_ring():
+            if sort_slopes:
+                arg.sort()
             x = y = 0
             vertices = [(x, y)]
             for slope in arg:

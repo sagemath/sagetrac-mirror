@@ -1,5 +1,4 @@
 "Cremona modular symbols"
-from __future__ import absolute_import, print_function
 
 from cysignals.signals cimport sig_on, sig_off
 from cython.operator cimport dereference as deref
@@ -284,6 +283,6 @@ cdef class ModularSymbols:
                 inc(iter)
         MS = MatrixSpace(base_ring, n, sparse=True)
         # The next step is the bottleneck.
-        ans = MS(entries=d)
+        ans = MS(d)
         return ans
 

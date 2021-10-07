@@ -1,4 +1,4 @@
-"""
+r"""
 Enumeration of Primitive Totally Real Fields
 
 This module contains functions for enumerating all primitive
@@ -91,8 +91,6 @@ Authors
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from cysignals.memory cimport check_calloc, sig_free
 
 import math
@@ -140,8 +138,9 @@ cpdef double odlyzko_bound_totallyreal(int n):
 
     - John Voight (2007-09-03)
 
-    NOTES:
-    The values are calculated by Martinet [Mar1980]_.
+    .. NOTE::
+
+        The values are calculated by Martinet [Mar1980]_.
     """
 
     if n <= 10:

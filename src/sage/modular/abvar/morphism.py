@@ -32,7 +32,6 @@ EXAMPLES::
     [ 3  3  0 -3]
     [-3  6  3 -3]
 """
-from __future__ import absolute_import
 
 ###########################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
@@ -50,7 +49,9 @@ from .finite_subgroup import TorsionPoint
 
 class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
     """
-    A morphism between modular abelian varieties. EXAMPLES::
+    A morphism between modular abelian varieties.
+
+    EXAMPLES::
 
         sage: t = J0(11).hecke_operator(2)
         sage: from sage.modular.abvar.morphism import Morphism
@@ -658,7 +659,7 @@ class Morphism(Morphism_abstract, sage.modules.matrix_morphism.MatrixMorphism):
         return H(MS(ims))
 
 class DegeneracyMap(Morphism):
-    def __init__(self, parent, A, t):
+    def __init__(self, parent, A, t, side="left"):
         """
         Create the degeneracy map of index t in parent defined by the
         matrix A.
@@ -685,7 +686,7 @@ class DegeneracyMap(Morphism):
         if not isinstance(t, list):
             t = [t]
         self._t = t
-        Morphism.__init__(self, parent, A)
+        Morphism.__init__(self, parent, A, side)
 
     def t(self):
         """
@@ -718,7 +719,7 @@ class HeckeOperator(Morphism):
     """
     A Hecke operator acting on a modular abelian variety.
     """
-    def __init__(self, abvar, n):
+    def __init__(self, abvar, n, side="left"):
         """
         Create the Hecke operator of index `n` acting on the
         abelian variety abvar.
@@ -747,7 +748,7 @@ class HeckeOperator(Morphism):
             raise TypeError("abvar must be a modular abelian variety")
         self.__abvar = abvar
         self.__n = n
-        sage.modules.matrix_morphism.MatrixMorphism_abstract.__init__(self, abvar.Hom(abvar))
+        sage.modules.matrix_morphism.MatrixMorphism_abstract.__init__(self, abvar.Hom(abvar), side)
 
     def _repr_(self):
         """

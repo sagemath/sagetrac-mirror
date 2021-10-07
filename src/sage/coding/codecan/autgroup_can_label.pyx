@@ -76,7 +76,7 @@ columns do share the same coloring::
     [[1],
      [2],
      [3, 5, 4],
-     [6, 19, 9, 21, 16, 14, 11, 20, 15, 8, 10, 12, 7, 13, 18, 17]]
+     [6, 19, 16, 9, 21, 10, 8, 15, 14, 11, 20, 13, 12, 7, 17, 18]]
 
 We can also restrict the group action to linear isometries::
 
@@ -101,7 +101,7 @@ and to the action of the symmetric group only::
 
 from sage.coding.codecan.codecan import PartitionRefinementLinearCode
 from sage.combinat.permutation import Permutation
-from sage.functions.other import factorial
+from sage.arith.misc import factorial
 
 
 def _cyclic_shift(n, p):

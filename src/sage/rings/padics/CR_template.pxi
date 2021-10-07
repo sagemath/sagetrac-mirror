@@ -1,5 +1,5 @@
 """
-Capped relative template for complete discrete valuation rings and their fraction fields.
+Capped relative template for complete discrete valuation rings and their fraction fields
 
 In order to use this template you need to write a linkage file and gluing file.
 For an example see mpz_linkage.pxi (linkage file) and padic_capped_relative_element.pyx (gluing file).
@@ -68,7 +68,7 @@ cdef inline int assert_nonzero(CRElement x) except -1:
     if exactzero(x.ordp):
         raise ZeroDivisionError("cannot divide by zero")
     if x.relprec == 0:
-        raise PrecisionError("cannot divide by something indistinguishable from zero.")
+        raise PrecisionError("cannot divide by something indistinguishable from zero")
 
 cdef class CRElement(pAdicTemplateElement):
     cdef int _set(self, x, long val, long xprec, absprec, relprec) except -1:
@@ -232,10 +232,10 @@ cdef class CRElement(pAdicTemplateElement):
             sage: Zp(5)(1).lift_to_precision(30)
             Traceback (most recent call last):
             ...
-            PrecisionError: Precision higher than allowed by the precision cap.
+            PrecisionError: precision higher than allowed by the precision cap
         """
         if self.relprec > self.prime_pow.ram_prec_cap:
-            raise PrecisionError("Precision higher than allowed by the precision cap.")
+            raise PrecisionError("precision higher than allowed by the precision cap")
 
     def __copy__(self):
         """
@@ -654,6 +654,16 @@ cdef class CRElement(pAdicTemplateElement):
             1 + 14*19^2 + 11*19^3 + 13*19^4 + O(19^5)
             sage: (a.log() * 19/7).exp()
             1 + 14*19^2 + 11*19^3 + 13*19^4 + O(19^5)
+
+        TESTS:
+
+        Check that :trac:`31875` is fixed::
+
+            sage: R(1)^R(0)
+            1 + O(19^5)
+            sage: S.<a> = ZqCR(4)
+            sage: S(1)^S(0)
+            1 + O(2^20)
         """
         cdef long base_level, exp_prec
         cdef mpz_t tmp
@@ -668,7 +678,7 @@ cdef class CRElement(pAdicTemplateElement):
         elif self.parent() is _right.parent():
             ## For extension elements, we need to switch to the
             ## fraction field sometimes in highly ramified extensions.
-            exact_exp = False
+            exact_exp = (<CRElement>_right)._is_exact_zero()
             pright = _right
         else:
             self, _right = canonical_coercion(self, _right)
@@ -1002,7 +1012,7 @@ cdef class CRElement(pAdicTemplateElement):
             sage: b.is_zero(6)
             Traceback (most recent call last):
             ...
-            PrecisionError: Not enough precision to determine if element is zero
+            PrecisionError: not enough precision to determine if element is zero
         """
         if absprec is None:
             return self.relprec == 0
@@ -1012,13 +1022,13 @@ cdef class CRElement(pAdicTemplateElement):
             return False
         if isinstance(absprec, int):
             if self.relprec == 0 and absprec > self.ordp:
-                raise PrecisionError("Not enough precision to determine if element is zero")
+                raise PrecisionError("not enough precision to determine if element is zero")
             return self.ordp >= absprec
         if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if self.relprec == 0:
             if mpz_cmp_si((<Integer>absprec).value, self.ordp) > 0:
-                raise PrecisionError("Not enough precision to determine if element is zero")
+                raise PrecisionError("not enough precision to determine if element is zero")
             else:
                 return True
         return mpz_cmp_si((<Integer>absprec).value, self.ordp) <= 0
@@ -1061,7 +1071,7 @@ cdef class CRElement(pAdicTemplateElement):
             sage: a.is_equal_to(aa, 15)
             Traceback (most recent call last):
             ...
-            PrecisionError: Elements not known to enough precision
+            PrecisionError: elements not known to enough precision
 
             sage: a.is_equal_to(a, 50000)
             True
@@ -1071,26 +1081,26 @@ cdef class CRElement(pAdicTemplateElement):
             sage: a.is_equal_to(b, 5)
             Traceback (most recent call last):
             ...
-            PrecisionError: Elements not known to enough precision
+            PrecisionError: elements not known to enough precision
 
             sage: b.is_equal_to(b, 5)
             Traceback (most recent call last):
             ...
-            PrecisionError: Elements not known to enough precision
+            PrecisionError: elements not known to enough precision
 
             sage: b.is_equal_to(bb, 3)
             True
             sage: b.is_equal_to(bb, 4)
             Traceback (most recent call last):
             ...
-            PrecisionError: Elements not known to enough precision
+            PrecisionError: elements not known to enough precision
 
             sage: c.is_equal_to(b, 2), c.is_equal_to(b, 3)
             (True, False)
             sage: c.is_equal_to(b, 4)
             Traceback (most recent call last):
             ...
-            PrecisionError: Elements not known to enough precision
+            PrecisionError: elements not known to enough precision
 
             sage: c.is_equal_to(cc, 2), c.is_equal_to(cc, 4), c.is_equal_to(cc, 5)
             (True, True, False)
@@ -1102,28 +1112,28 @@ cdef class CRElement(pAdicTemplateElement):
             sage: aa.is_equal_to(a, 15)
             Traceback (most recent call last):
             ...
-            PrecisionError: Elements not known to enough precision
+            PrecisionError: elements not known to enough precision
 
             sage: b.is_equal_to(a), b.is_equal_to(a, 2)
             (True, True)
             sage: b.is_equal_to(a, 5)
             Traceback (most recent call last):
             ...
-            PrecisionError: Elements not known to enough precision
+            PrecisionError: elements not known to enough precision
 
             sage: bb.is_equal_to(b, 3)
             True
             sage: bb.is_equal_to(b, 4)
             Traceback (most recent call last):
             ...
-            PrecisionError: Elements not known to enough precision
+            PrecisionError: elements not known to enough precision
 
             sage: b.is_equal_to(c, 2), b.is_equal_to(c, 3)
             (True, False)
             sage: b.is_equal_to(c, 4)
             Traceback (most recent call last):
             ...
-            PrecisionError: Elements not known to enough precision
+            PrecisionError: elements not known to enough precision
 
             sage: cc.is_equal_to(c, 2), cc.is_equal_to(c, 4), cc.is_equal_to(c, 5)
             (True, True, False)
@@ -1137,7 +1147,7 @@ cdef class CRElement(pAdicTemplateElement):
         if exactzero(self.ordp) and exactzero(right.ordp):
             return True
         elif absprec is infinity:
-            raise PrecisionError("Elements not known to enough precision")
+            raise PrecisionError("elements not known to enough precision")
         if absprec is None:
             aprec = min(self.ordp + self.relprec, right.ordp + right.relprec)
         else:
@@ -1148,10 +1158,10 @@ cdef class CRElement(pAdicTemplateElement):
                    exactzero(self.ordp) and exactzero(right.ordp):
                     return True
                 else:
-                    raise PrecisionError("Elements not known to enough precision")
+                    raise PrecisionError("elements not known to enough precision")
             aprec = mpz_get_si((<Integer>absprec).value)
             if aprec > self.ordp + self.relprec or aprec > right.ordp + right.relprec:
-                raise PrecisionError("Elements not known to enough precision")
+                raise PrecisionError("elements not known to enough precision")
         if self.ordp >= aprec and right.ordp >= aprec:
             return True
         elif self.ordp != right.ordp:
@@ -1203,9 +1213,9 @@ cdef class CRElement(pAdicTemplateElement):
             sage: c.lift_to_precision(40)
             Traceback (most recent call last):
             ...
-            PrecisionError: Precision higher than allowed by the precision cap.
+            PrecisionError: precision higher than allowed by the precision cap
         """
-        cpdef CRElement ans
+        cdef CRElement ans
         if absprec == maxordp:
             if self.relprec == 0:
                 ans = self._new_c()
@@ -1275,15 +1285,59 @@ cdef class CRElement(pAdicTemplateElement):
         if self.ordp > 0:
             self._set_exact_zero()
         elif self.ordp < 0:
-            raise ValueError("cannot set negative valuation element to Teichmuller representative.")
+            raise ValueError("cannot set negative valuation element to Teichmuller representative")
         elif self.relprec == 0:
             raise ValueError("not enough precision")
         else:
             cteichmuller(self.unit, self.unit, self.relprec, self.prime_pow)
 
+    def _polynomial_list(self, pad=False):
+        """
+        Return the coefficient list for a polynomial over the base ring
+        yielding this element.
+
+        INPUT:
+
+        - ``pad`` -- whether to pad the result with zeros of the appropriate precision
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = Qq(25)
+            sage: W.<w> = K.extension(x^3-5)
+            sage: (1 + w + O(w^11))._polynomial_list()
+            [1 + O(5^4), 1 + O(5^4)]
+            sage: (1 + w + O(w^11))._polynomial_list(pad=True)
+            [1 + O(5^4), 1 + O(5^4), O(5^3)]
+            sage: W(0)._polynomial_list()
+            []
+            sage: W(0)._polynomial_list(pad=True)
+            [0, 0, 0]
+            sage: W(O(w^7))._polynomial_list()
+            []
+            sage: W(O(w^7))._polynomial_list(pad=True)
+            [O(5^3), O(5^2), O(5^2)]
+        """
+        R = self.base_ring()
+        if exactzero(self.ordp):
+            L = []
+        else:
+            L = ccoefficients(self.unit, self.ordp, self.relprec, self.prime_pow)
+        if pad:
+            n = self.parent().relative_degree()
+            L.extend([R.zero()] * (n - len(L)))
+        if exactzero(self.ordp):
+            return L
+        e = self.parent().relative_e()
+        prec = self.precision_absolute()
+        if e == 1:
+            return [R(c, prec) for c in L]
+        else:
+            return [R(c, (prec - i - 1) // e + 1) for i, c in enumerate(L)]
+
     def polynomial(self, var='x'):
         """
-        Returns a polynomial over the base ring that yields this element
+        Return a polynomial over the base ring that yields this element
         when evaluated at the generator of the parent.
 
         INPUT:
@@ -1302,17 +1356,7 @@ cdef class CRElement(pAdicTemplateElement):
         """
         R = self.base_ring()
         S = R[var]
-        if exactzero(self.ordp):
-            return S([])
-        else:
-            prec = self.precision_absolute()
-            e = self.parent().relative_e()
-            L = ccoefficients(self.unit, self.ordp, self.relprec, self.prime_pow)
-            if e == 1:
-                L = [R(c, prec) for c in L]
-            else:
-                L = [R(c, (prec - i - 1) // e + 1) for i, c in enumerate(L)]
-            return S(L)
+        return self.base_ring()[var](self._polynomial_list())
 
     def precision_absolute(self):
         """
@@ -1459,7 +1503,7 @@ cdef class CRElement(pAdicTemplateElement):
         """
         # Since we keep this element normalized there's not much to do here.
         if p is not None and p != self.parent().prime():
-            raise ValueError('Ring (%s) residue field of the wrong characteristic.'%self.parent())
+            raise ValueError('ring (%s) residue field of the wrong characteristic'%self.parent())
         if exactzero((<CRElement>self).ordp):
             raise ValueError("unit part of 0 not defined")
         cdef Integer val = Integer.__new__(Integer)
@@ -1484,9 +1528,12 @@ cdef class CRElement(pAdicTemplateElement):
             sage: hash(R(17)) #indirect doctest
             17
 
-            sage: hash(R(-1))
-            1977822444 # 32-bit
-            95367431640624 # 64-bit
+            sage: hash(R(-1))     # py3
+            1977844648            # 32-bit
+            95367431640624        # 64-bit
+            sage: hash(R(-1))     # py2
+            1977822444            # 32-bit
+            95367431640624        # 64-bit
         """
         if exactzero(self.ordp):
             return 0

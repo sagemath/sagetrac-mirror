@@ -315,8 +315,6 @@ implementing them on your own as a patch for inclusion!
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from six.moves import range
 
 import sys
 
@@ -715,7 +713,7 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1._check_satisfies_equations(1)
             Traceback (most recent call last):
             ...
-            TypeError: 1 can not be used as coordinates!
+            TypeError: 1 cannot be used as coordinates!
             Use a list or a tuple.
             sage: P1xP1._check_satisfies_equations([1,1,1,P1xP1.fan()])
             Traceback (most recent call last):
@@ -726,7 +724,7 @@ class ToricVariety_field(AmbientSpace):
         try:
             coordinates = tuple(coordinates)
         except TypeError:
-            raise TypeError("%s can not be used as coordinates! "
+            raise TypeError("%s cannot be used as coordinates! "
                             "Use a list or a tuple." % coordinates)
         n = self.ngens()
         if len(coordinates) != n:
@@ -1500,7 +1498,7 @@ class ToricVariety_field(AmbientSpace):
             in Basis lattice of The toric rational divisor class group
             of a 2-d CPR-Fano toric variety covered by 4 affine patches
             sage: [ divisor_class.lift() for divisor_class in Kc.rays() ]
-            [V(x), V(s)]
+            [V(y), V(t)]
             sage: Kc.lattice()
             Basis lattice of The toric rational divisor class group of a
             2-d CPR-Fano toric variety covered by 4 affine patches
@@ -1656,7 +1654,7 @@ class ToricVariety_field(AmbientSpace):
             sage: A = toric_varieties.P2().Chow_group(); A
             Chow group of 2-d CPR-Fano toric variety covered by 3 affine patches
             sage: A.gens()
-            (( 1 | 0 | 0 ), ( 0 | 1 | 0 ), ( 0 | 0 | 1 ))
+            (( 0 | 0 | 1 ), ( 0 | 1 | 0 ), ( 1 | 0 | 0 ))
         """
         from sage.schemes.toric.chow_group import ChowGroup
         return ChowGroup(self,base_ring)
@@ -2176,7 +2174,8 @@ class ToricVariety_field(AmbientSpace):
         """
         assert self.is_complete(), "Can only integrate over compact varieties."
         top_form = cohomology_class.part_of_degree(self.dimension())
-        if top_form.is_zero(): return 0
+        if top_form.is_zero():
+            return 0
         return top_form.lc() / self.volume_class().lc()
 
     @property
@@ -2188,7 +2187,7 @@ class ToricVariety_field(AmbientSpace):
         for details.
 
         EXAMPLES::
-        
+
             sage: dP6 = toric_varieties.dP6()
             sage: dP6.sheaves
             Sheaf constructor on 2-d CPR-Fano toric variety covered by 6 affine patches
@@ -2515,7 +2514,7 @@ class ToricVariety_field(AmbientSpace):
             Multivariate Polynomial Ring in x, u, y, v, z, w over Rational Field
         """
         from sage.schemes.toric.divisor import ToricDivisorGroup
-        return ToricDivisorGroup(self, base_ring);
+        return ToricDivisorGroup(self, base_ring)
 
     def _semigroup_ring(self, cone=None, names=None):
         r"""
@@ -3175,7 +3174,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
             sage: toric_varieties.P2().cohomology_ring()._repr_()
             'Rational cohomology ring of a 2-d CPR-Fano toric variety covered by 3 affine patches'
         """
-        return 'Rational cohomology ring of a '+self._variety._repr_()
+        return f'Rational cohomology ring of a {self._variety._repr_()}'
 
     def _latex_(self):
         r"""
@@ -3189,9 +3188,9 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
 
             sage: cohomology_ring = toric_varieties.P2().cohomology_ring()
             sage: print(cohomology_ring._latex_())
-            H^\ast\left(\mathbb{P}_{\Delta^{2}_{15}},\QQ\right)
+            H^\ast\left(\mathbb{P}_{\Delta^{2}_{15}},\Bold{Q}\right)
         """
-        return 'H^\\ast\\left('+self._variety._latex_()+',\\QQ\\right)'
+        return fr'H^\ast\left({self._variety._latex_()},{latex(QQ)}\right)'
 
     def _element_constructor_(self,x):
         r"""
@@ -3498,10 +3497,10 @@ class CohomologyClass(QuotientRingElement):
         Q = self.parent()
         # We iterate over monomials of self.lift()
         p = [x for x in self.lift() if x[1].total_degree() == d]
-        if len(p)==0:
+        if not p:
             return Q.zero()
         else:
-            return Q(sum(x[0]*x[1] for x in p))
+            return Q.sum(x[0] * x[1] for x in p)
 
     def exp(self):
         r"""

@@ -324,9 +324,9 @@ sink.
     [1, 1, 3]
     sage: S.reduced_laplacian().dense_matrix().smith_form()
     (
-    [1 0 0]  [ 0  0  1]  [3 1 4]
-    [0 1 0]  [ 1  0  0]  [4 1 6]
-    [0 0 3], [ 0  1 -1], [4 1 5]
+    [1 0 0]  [ 1  0  0]  [1 3 5]
+    [0 1 0]  [ 0  1  0]  [1 4 6]
+    [0 0 3], [ 0 -1  1], [1 4 7]
     )
 
 Adding the identity to any recurrent configuration and stabilizing yields
@@ -669,21 +669,25 @@ faithful representation of the sandpile group on `\CC^n`.
 Approximation to the zero set (setting ``x_0 = 1``)::
 
     sage: S.solve()
-    [[-0.707107 + 0.707107*I, 0.707107 - 0.707107*I],
-    [-0.707107 - 0.707107*I, 0.707107 + 0.707107*I],
-    [-I, -I],
-    [I, I],
-    [0.707107 + 0.707107*I, -0.707107 - 0.707107*I],
-    [0.707107 - 0.707107*I, -0.707107 + 0.707107*I],
-    [1, 1],
-    [-1, -1]]
+    [[-0.707107000000000 + 0.707107000000000*I,
+      0.707107000000000 - 0.707107000000000*I],
+     [-0.707107000000000 - 0.707107000000000*I,
+      0.707107000000000 + 0.707107000000000*I],
+     [-I, -I],
+     [I, I],
+     [0.707107000000000 + 0.707107000000000*I,
+      -0.707107000000000 - 0.707107000000000*I],
+     [0.707107000000000 - 0.707107000000000*I,
+      -0.707107000000000 + 0.707107000000000*I],
+     [1, 1],
+     [-1, -1]]
     sage: len(_) == S.group_order()
     True
 
 The zeros are generated as a group by a single vector::
 
     sage: S.points()
-    [[(1/2*I + 1/2)*sqrt(2), -(1/2*I + 1/2)*sqrt(2)]]
+    [[-(1/2*I + 1/2)*sqrt(2), (1/2*I + 1/2)*sqrt(2)]]
 
 
 Resolutions
@@ -1380,12 +1384,12 @@ EXAMPLES::
 
     sage: s = sandpiles.Cycle(5)
     sage: s.group_gens()
-    [{1: 1, 2: 1, 3: 1, 4: 0}]
+    [{1: 0, 2: 1, 3: 1, 4: 1}]
     sage: s.group_gens()[0].order()
     5
     sage: s = sandpiles.Complete(5)
     sage: s.group_gens(False)
-    [[2, 2, 3, 2], [2, 3, 2, 2], [3, 2, 2, 2]]
+    [[2, 3, 2, 2], [2, 2, 3, 2], [2, 2, 2, 3]]
     sage: [i.order() for i in s.group_gens()]
     [5, 5, 5]
     sage: s.invariant_factors()
@@ -2054,7 +2058,7 @@ single generator for the group of solutions.
 
     sage: S = sandpiles.Complete(4)
     sage: S.points()
-    [[1, I, -I], [I, 1, -I]]
+    [[-I, I, 1], [-I, 1, I]]
 
 ---
 
@@ -2347,7 +2351,18 @@ EXAMPLES::
 
     sage: S = Sandpile({0: {}, 1: {2: 2}, 2: {0: 4, 1: 1}}, 0)
     sage: S.solve()
-    [[-0.707107 + 0.707107*I, 0.707107 - 0.707107*I], [-0.707107 - 0.707107*I, 0.707107 + 0.707107*I], [-I, -I], [I, I], [0.707107 + 0.707107*I, -0.707107 - 0.707107*I], [0.707107 - 0.707107*I, -0.707107 + 0.707107*I], [1, 1], [-1, -1]]
+    [[-0.707107000000000 + 0.707107000000000*I,
+      0.707107000000000 - 0.707107000000000*I],
+     [-0.707107000000000 - 0.707107000000000*I,
+      0.707107000000000 + 0.707107000000000*I],
+     [-I, -I],
+     [I, I],
+     [0.707107000000000 + 0.707107000000000*I,
+      -0.707107000000000 - 0.707107000000000*I],
+     [0.707107000000000 - 0.707107000000000*I,
+      -0.707107000000000 + 0.707107000000000*I],
+     [1, 1],
+     [-1, -1]]
     sage: len(_)
     8
     sage: S.group_order()
@@ -3995,6 +4010,7 @@ OUTPUT:
 SandpileDivisor
 
 EXAMPLES::
+
     sage: S = sandpiles.Cycle(3)
     sage: D = SandpileDivisor(S, [1,2,3])
     sage: D.dualize()
@@ -4241,7 +4257,7 @@ EXAMPLES::
     sage: D.is_linearly_equivalent([0,1,1])
     True
     sage: D.is_linearly_equivalent([0,1,1],True)
-    (1, 0, 0)
+    (0, -1, -1)
     sage: v = vector(D.is_linearly_equivalent([0,1,1],True))
     sage: vector(D.values()) - s.laplacian()*v
     (0, 1, 1)
@@ -4911,6 +4927,8 @@ Other
     EXAMPLES::
 
         sage: S = random_DAG(5, 0.3)
+        doctest:...: DeprecationWarning: method random_DAG is deprecated. Please use digraphs.RandomDirectedAcyclicGraph instead.
+        See https://trac.sagemath.org/30479 for details.
 
 ---
 
@@ -4965,8 +4983,8 @@ Other
 
         sage: P = matrix([[2,3,-7,-3],[5,2,-5,5],[8,2,5,4],[-5,-9,6,6]])
         sage: wilmes_algorithm(P)
-        [ 1642   -13 -1627    -1]
-        [   -1  1980 -1582  -397]
+        [ 3279   -79 -1599 -1600]
+        [   -1  1539  -136 -1402]
         [    0    -1  1650 -1649]
         [    0     0 -1658  1658]
 

@@ -1,3 +1,5 @@
+# sage_setup: distribution = sagemath-primecount
+
 r"""
 Interface to the primecount library
 """
@@ -16,6 +18,11 @@ from cpython.int cimport PyInt_FromString
 
 from cysignals.signals cimport sig_on, sig_off
 
+
+from sage.misc.superseded import deprecation
+deprecation(32412, "the module sage.interfaces.primecount is deprecated")
+
+
 cimport sage.libs.primecount as primecount
 
 cdef inline int _do_sig(int64_t n):
@@ -30,71 +37,32 @@ cpdef int64_t prime_pi(int64_t n, method=None) except -1:
 
     - ``n`` - an integer
 
-    - ``method`` - ``None`` or a string that determines the primecount
-      function to be called
-
-        - ``"deleglise_rivat"``
-        - ``"legendre"``
-        - ``"lehmer"``
-        - ``"lmo"``
-        - ``"meissel"``
-        - ``"primesieve"``
+    - ``method`` - deprecated, no longer supported in primecount 5
 
     EXAMPLES::
 
         sage: from sage.interfaces.primecount import prime_pi # optional - primecount
+        doctest:warning
+        ...
+        DeprecationWarning: the module sage.interfaces.primecount is deprecated
+        See https://trac.sagemath.org/32412 for details.
 
         sage: prime_pi(1000) == 168                     # optional - primecount
         True
-        sage: prime_pi(1000, "deleglise_rivat") == 168  # optional - primecount
-        True
-        sage: prime_pi(1000, "legendre") == 168         # optional - primecount
-        True
-        sage: prime_pi(1000, "lehmer") == 168           # optional - primecount
-        True
-        sage: prime_pi(1000, "lmo") == 168              # optional - primecount
-        True
-        sage: prime_pi(1000, "meissel") == 168          # optional - primecount
-        True
-        sage: prime_pi(1000, "primesieve") == 168       # optional - primecount
-        True
-        sage: prime_pi(1000, "youpi")                   # optional - primecount
-        Traceback (most recent call last):
+        sage: prime_pi(1000, method='deleglise_rivat') == 168 # optional - primecount
+        doctest:warning
         ...
-        ValueError: unknown method 'youpi'
+        DeprecationWarning: primecount 5 no longer supports the 'method' parameter
+        See https://trac.sagemath.org/28493 for details.
+        True
     """
     cdef int64_t ans
-    if method is None:
-        if _do_sig(n): sig_on()
-        ans = primecount.pi(n)
-        if _do_sig(n): sig_off()
-    elif method == "deleglise_rivat":
-        if _do_sig(n): sig_on()
-        ans = primecount.pi_deleglise_rivat(n)
-        if _do_sig(n): sig_off()
-    elif method == "legendre":
-        if _do_sig(n): sig_on()
-        ans = primecount.pi_legendre(n)
-        if _do_sig(n): sig_off()
-    elif method == "lehmer":
-        if _do_sig(n): sig_on()
-        ans = primecount.pi_lehmer(n)
-        if _do_sig(n): sig_off()
-    elif method == "lmo":
-        if _do_sig(n): sig_on()
-        ans = primecount.pi_lmo(n)
-        if _do_sig(n): sig_off()
-    elif method == "meissel":
-        if _do_sig(n): sig_on()
-        ans = primecount.pi_meissel(n)
-        if _do_sig(n): sig_off()
-    elif method == "primesieve":
-        if _do_sig(n): sig_on()
-        ans = primecount.pi_primesieve(n)
-        if _do_sig(n): sig_off()
-    else:
-        raise ValueError("unknown method {!r}".format(method))
-
+    if method is not None:
+        from sage.misc.superseded import deprecation_cython as deprecation
+        deprecation(28493, "primecount 5 no longer supports the 'method' parameter")
+    if _do_sig(n): sig_on()
+    ans = primecount.pi(n)
+    if _do_sig(n): sig_off()
     return ans
 
 cpdef prime_pi_128(n):

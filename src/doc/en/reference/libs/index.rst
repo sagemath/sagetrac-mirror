@@ -46,6 +46,13 @@ FLINT
    sage/libs/flint/fmpz_poly
    sage/libs/flint/arith
 
+Giac
+----
+.. toctree::
+   :maxdepth: 2
+
+   sage/libs/giac
+
 GMP-ECM
 -------
 .. toctree::
@@ -131,26 +138,12 @@ PARI
    sage/libs/pari/convert_sage
    sage/rings/pari_ring
 
-PPL
----
-.. toctree::
-   :maxdepth: 2
-
-   sage/libs/ppl
-
 ratpoints
 ---------
 .. toctree::
    :maxdepth: 2
 
    sage/libs/ratpoints
-
-Readline
---------
-.. toctree::
-   :maxdepth: 2
-
-   sage/libs/readline
 
 Symmetrica
 ----------

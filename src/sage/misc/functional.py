@@ -11,18 +11,16 @@ AUTHORS:
 
 - David Joyner (2005-12-20): More Examples
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
-from six.moves import range, builtins
-from six import integer_types
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+import builtins
 
 from sage.rings.complex_double import CDF
 from sage.rings.real_double import RDF, RealDoubleElement
@@ -91,7 +89,7 @@ def base_field(x):
         return x.base_field()
     except AttributeError:
         y = x.base_ring()
-        if is_field(y):
+        if y.is_field():
             return y
         else:
             raise AttributeError("The base ring of %s is not a field" % x)
@@ -128,8 +126,8 @@ def category(x):
     try:
         return x.category()
     except AttributeError:
-        import sage.categories.all
-        return sage.categories.all.Objects()
+        from sage.categories.objects import Objects
+        return Objects()
 
 
 def characteristic_polynomial(x, var='x'):
@@ -247,7 +245,7 @@ def denominator(x):
         sage: denominator(r)
         x - 1
     """
-    if isinstance(x, integer_types):
+    if isinstance(x, int):
         return 1
     return x.denominator()
 
@@ -568,7 +566,7 @@ def symbolic_sum(expression, *args, **kwds):
 
        #. Sage can currently only understand a subset of the output of Maxima, Maple and
           Mathematica, so even if the chosen backend can perform the summation the
-          result might not be convertable into a Sage expression.
+          result might not be convertible into a Sage expression.
 
     """
     if hasattr(expression, 'sum'):
@@ -675,7 +673,9 @@ def integral(x, *args, **kwds):
 
     Numerical approximation::
 
-        sage: h = integral(tan(x)/x, (x, 1, pi/3)); h
+        sage: h = integral(tan(x)/x, (x, 1, pi/3))
+        ...
+        sage: h
         integrate(tan(x)/x, x, 1, 1/3*pi)
         sage: h.n()
         0.07571599101...
@@ -748,6 +748,16 @@ def integral(x, *args, **kwds):
         sage: f = sympy.Function('f')
         sage: SR(sympy.Integral(f(x,y,z), x, y, z))
         integrate(integrate(integrate(f(x, y, z), x), y), z)
+
+    Ensure that the following integral containing a signum term from
+    :trac:`11590` can be integrated::
+
+        sage: x = SR.symbol('x', domain='real')
+        sage: result = integrate(x * sgn(x^2 - 1/4), x, -1, 0)
+        ...
+        sage: result
+        -1/4
+
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)
@@ -819,8 +829,11 @@ def is_commutative(x):
 
         sage: R = PolynomialRing(QQ, 'x')
         sage: is_commutative(R)
+        doctest:...DeprecationWarning: use X.is_commutative() or X in Rings().Commutative()
+        See https://trac.sagemath.org/32347 for details.
         True
     """
+    deprecation(32347, "use X.is_commutative() or X in Rings().Commutative()")
     return x.is_commutative()
 
 
@@ -850,16 +863,19 @@ def is_integrally_closed(x):
     EXAMPLES::
 
         sage: is_integrally_closed(QQ)
+        doctest:...DeprecationWarning: use X.is_integrally_closed()
+        See https://trac.sagemath.org/32347 for details.
         True
         sage: K.<a> = NumberField(x^2 + 189*x + 394)
         sage: R = K.order(2*a)
         sage: is_integrally_closed(R)
         False
     """
+    deprecation(32347, "use X.is_integrally_closed()")
     return x.is_integrally_closed()
 
 
-def is_field(x):
+def is_field(x, proof=True):
     """
     Return whether or not ``x`` is a field.
 
@@ -870,9 +886,12 @@ def is_field(x):
         sage: R = PolynomialRing(QQ, 'x')
         sage: F = FractionField(R)
         sage: is_field(F)
+        doctest:...DeprecationWarning: use X.is_field() or X in Fields()
+        See https://trac.sagemath.org/32347 for details.
         True
     """
-    return x.is_field()
+    deprecation(32347, "use X.is_field() or X in Fields()")
+    return x.is_field(proof=proof)
 
 
 def is_odd(x):
@@ -1137,7 +1156,7 @@ def norm(x):
 
         - :meth:`sage.rings.complex_double.ComplexDoubleElement.norm`
 
-        - :meth:`sage.rings.complex_number.ComplexNumber.norm`
+        - :meth:`sage.rings.complex_mpfr.ComplexNumber.norm`
 
         - :meth:`sage.symbolic.expression.Expression.norm`
 
@@ -1213,7 +1232,7 @@ def numerator(x):
         sage: numerator(17/11111)
         17
     """
-    if isinstance(x, integer_types):
+    if isinstance(x, int):
         return x
     return x.numerator()
 
@@ -1373,7 +1392,7 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         1.41421356237309*I
 
         sage: type(numerical_approx(CC(1/2)))
-        <type 'sage.rings.complex_number.ComplexNumber'>
+        <type 'sage.rings.complex_mpfr.ComplexNumber'>
 
     The following tests :trac:`10761`, in which ``n()`` would break when
     called on complex-valued algebraic numbers.  ::
@@ -1417,6 +1436,7 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         return numerical_approx_generic(x, prec)
     else:
         return n(prec, algorithm=algorithm)
+
 
 n = numerical_approx
 N = numerical_approx
@@ -1548,13 +1568,13 @@ def round(x, ndigits=0):
 
     .. NOTE::
 
-        This is currently slower than the builtin round function, since
-        it does more work - i.e., allocating an RDF element and
-        initializing it. To access the builtin version do
-        ``from six.moves import builtins; builtins.round``.
+        This is currently slower than the builtin round function, since it does
+        more work - i.e., allocating an RDF element and initializing it. To
+        access the builtin version do ``import builtins; builtins.round``.
     """
     try:
         if ndigits:
+            x = float(x)
             return RealDoubleElement(builtins.round(x, ndigits))
         else:
             try:
