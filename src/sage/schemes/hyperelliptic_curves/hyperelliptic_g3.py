@@ -5,7 +5,6 @@ AUTHORS:
 
 - Sorina Ionica, Elisa Lorenzo Garcia, Anna Somoza (2017-01-11): Initial version
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2017 Sorina Ionica <sorina.ionica@gmail.com>
 #                2017 Elisa Lorenzo Garcia <elisa.lorenzo@gmail.com>
