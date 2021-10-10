@@ -52,7 +52,7 @@ setenv()
 # ## Configuration
 # ########################################################
 
-if len(sys.argv) > 1 and sys.argv[1] == "sdist":
+if len(sys.argv) > 1 and (sys.argv[1] == "sdist" or sys.argv[1] == "egg_info"):
     sdist = True
 else:
     sdist = False
@@ -69,8 +69,10 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
 # ########################################################
 # ## Discovering Sources
 # ########################################################
-
-try:
+if sdist:
+    extensions = []
+    python_packages = []
+else:
     log.info("Generating auto-generated sources")
     from sage_setup.autogen import autogen_all
     autogen_all()
@@ -100,21 +102,22 @@ try:
     Cython.Compiler.Options.embed_pos_in_docstring = True
     gdb_debug = os.environ.get('SAGE_DEBUG', None) != 'no'
 
-    from Cython.Build import cythonize
-    from sage.env import cython_aliases, sage_include_directories
-    extensions = cythonize(
-        ["**/*.pyx"],
-        exclude=files_to_exclude,
-        include_path=sage_include_directories(use_sources=True) + ['.'],
-        compile_time_env=compile_time_env_variables(),
-        compiler_directives=compiler_directives(False),
-        aliases=cython_aliases(),
-        create_extension=create_extension,
-        gdb_debug=gdb_debug,
-        nthreads=4)
-except Exception as exception:
-    log.warn(f"Exception while generating and cythonizing source files: {repr(exception)}")
-    raise
+    try:
+        from Cython.Build import cythonize
+        from sage.env import cython_aliases, sage_include_directories
+        extensions = cythonize(
+            ["**/*.pyx"],
+            exclude=files_to_exclude,
+            include_path=sage_include_directories(use_sources=True) + ['.'],
+            compile_time_env=compile_time_env_variables(),
+            compiler_directives=compiler_directives(False),
+            aliases=cython_aliases(),
+            create_extension=create_extension,
+            gdb_debug=gdb_debug,
+            nthreads=4)
+    except Exception as exception:
+        log.warn(f"Exception while cythonizing source files: {repr(exception)}")
+        raise
 
 # ########################################################
 # ## Distutils
