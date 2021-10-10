@@ -12,9 +12,11 @@ from libcpp.pair cimport pair
 from sage.libs.ntl.types cimport ZZ_c
 
 
-# NOTE: eclib includes have specific dependencies and must be included
-# in a specific order. So we start by listing all relevant include files
-# in the correct order.
+# NOTE: eclib used to have specific dependencies, so that they had to
+# be included in a specific order. Although this is no longer the
+# case, we start by listing all relevant include files in the correct
+# order.
+
 cdef extern from "eclib/vector.h": pass
 cdef extern from "eclib/xmod.h": pass
 cdef extern from "eclib/svector.h": pass
@@ -145,7 +147,7 @@ cdef extern from "eclib/newforms.h":
 
         newforms(long n, int disp)
 
-        void createfromcurve(int sign, CurveRed CR)
+        void createfromcurve(int sign, CurveRed CR, int nap)
         void display()
         # Here i is the index of the relevant newform in the space,
         # which for us will always be 0:

@@ -20,13 +20,11 @@
 #        platform, or the dependency on them is satisfied by an existing
 #        system package.
 #
-#      - SAGE_STANDARD_PACKAGES - lists the names of all packages that have
-#        the "standard" type.  All "standard" packages are installed by
-#        default (if they are listed in SAGE_DUMMY_PACKAGES "installed" in
-#        this case is a no-op).
+#      - SAGE_OPTIONAL_INSTALLED_PACKAGES - lists the names of packages with the
+#        "standard", "optional", or "experimental" type that should be installed.
 #
-#      - SAGE_OPTIONAL_PACKAGES - lists the names of packages with the
-#        "optional" type that should be installed.
+#      - SAGE_OPTIONAL_UNINSTALLED_PACKAGES - lists the names of packages with the
+#        "standard", "optional", or "experimental" type that should be uninstalled.
 #
 #      - SAGE_SDIST_PACKAGES - lists the names of all packages whose sources
 #        need to be downloaded to be included in the source distribution.
@@ -107,13 +105,10 @@ SAGE_BUILT_PACKAGES=''
 # underlying system.
 SAGE_DUMMY_PACKAGES=''
 
-# Standard packages
-SAGE_STANDARD_PACKAGES=''
-
-# List of currently installed and to-be-installed optional packages - filled in SAGE_SPKG_ENABLE
-#SAGE_OPTIONAL_INSTALLED_PACKAGES
-# List of optional packages to be uninstalled - filled in SAGE_SPKG_ENABLE
-#SAGE_OPTIONAL_CLEANED_PACKAGES
+# List of currently installed and to-be-installed standard/optional/experimental packages
+SAGE_OPTIONAL_INSTALLED_PACKAGES=''
+# List of optional packages to be uninstalled
+SAGE_OPTIONAL_UNINSTALLED_PACKAGES=''
 
 # List of all packages that should be downloaded
 SAGE_SDIST_PACKAGES=''
@@ -128,6 +123,7 @@ SAGE_PIP_PACKAGES=''
 SAGE_SCRIPT_PACKAGES=''
 
 SAGE_NEED_SYSTEM_PACKAGES=""
+SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL=""
 
 # for each package in pkgs/, add them to the SAGE_PACKAGE_VERSIONS and
 # SAGE_PACKAGE_DEPENDENCIES lists, and to one or more of the above variables
@@ -164,23 +160,26 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     SAGE_PACKAGE_TREES="${SAGE_PACKAGE_TREES}$(printf '\ntrees_')${SPKG_NAME} = ${SPKG_TREE_VAR}"
 
     uninstall_message=""
+    SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES
     # Check consistency of 'DIR/type' file
     case "$SPKG_TYPE" in
     base)
         message="came preinstalled with the SageMath tarball"
         ;;
     standard)
-        SAGE_STANDARD_PACKAGES="${SAGE_STANDARD_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
-        in_sdist=yes
-        message="will be installed as an SPKG"
+        AS_VAR_IF([SAGE_ENABLE_]${SPKG_NAME}, [yes], [
+            message="$SPKG_TYPE, will be installed as an SPKG"
+        ], [
+            message="$SPKG_TYPE, but disabled using configure option"
+        ])
         ;;
     optional|experimental)
         AS_VAR_IF([SAGE_ENABLE_]${SPKG_NAME}, [yes], [
             message="$SPKG_TYPE, will be installed as an SPKG"
         ], [
             message="$SPKG_TYPE, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
+            SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL
         ])
-        uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
         ;;
     *)
         AC_MSG_ERROR([The content of "$SPKG_TYPE_FILE" must be 'base', 'standard', 'optional', or 'experimental'])
@@ -188,7 +187,11 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     esac
 
     case "$SPKG_TYPE" in
+    standard)
+        in_sdist=yes
+        ;;
     optional|experimental)
+        uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
         stampfile=""
         for f in "$SAGE_SPKG_INST/$SPKG_NAME"-*; do
             AS_IF([test -r "$f"], [
@@ -197,7 +200,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
                         multiple installation records for $SPKG_NAME:
                         m4_newline($(ls -l "$SAGE_SPKG_INST/$SPKG_NAME"-*))
                         m4_newline([only one should exist, so please delete some or all
-                        of these files and re-run \"$srcdir/configure\"])
+                        of these files and re-run "$srcdir/configure"])
                     ]))
                 ])
                 stampfile=yes
@@ -229,19 +232,19 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
             ],                               [ message="not required on your platform; SPKG will not be installed"
             ])
         ], [
-            dnl We won't use the system package.
+            dnl We will not use the system package.
             SAGE_BUILT_PACKAGES="${SAGE_BUILT_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
             AS_VAR_SET_IF([sage_use_system], [
                 AS_VAR_COPY([reason], [sage_use_system])
                 AS_CASE([$reason],
                 [yes],                       [ message="no suitable system package; $message"
-                                               AS_VAR_APPEND([SAGE_NEED_SYSTEM_PACKAGES], [" $SPKG_NAME"])
+                                               AS_VAR_APPEND([$SAGE_NEED_SYSTEM_PACKAGES_VAR], [" $SPKG_NAME"])
+                                             ],
+                [force],                     [ message="no suitable system package; this is an error"
+                                               AS_VAR_APPEND([$SAGE_NEED_SYSTEM_PACKAGES_VAR], [" $SPKG_NAME"])
                                              ],
                 [installed],                 [ message="already installed as an SPKG$uninstall_message" ],
                                              [ message="$reason; $message" ])
-            ], [
-                # Package does not use spkg-configure.m4 yet
-                message="does not support check for system package; $message"
             ])
         ])
 
@@ -284,9 +287,8 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         # we don't need to download the sources, which is what
         # "in_sdist" really means. At the time of this writing, the
         # only standard script packages are sage_conf and sagelib.
-        # The source of sage_conf is included under build/pkgs/sage_conf/src,
-        # and the source of sagelib is provided by symlinks in
-        # build/pkgs/sagelib/src.
+        # The sources of these packages are in subdirectories of
+        # $SAGE_ROOT/pkgs.
         in_sdist=no
     else
         SPKG_SOURCE=normal
@@ -295,6 +297,22 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     if test "$in_sdist" = yes; then
         SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
     fi
+
+    # Determine whether package is enabled
+    AS_VAR_SET([is_installed], [no])
+    for f in "$SAGE_SPKG_INST/${SPKG_NAME}"-*; do
+        AS_IF([test -r "$f"],
+              [AS_VAR_SET([is_installed], [yes])])
+    done
+
+    AS_VAR_IF([SAGE_ENABLE_${SPKG_NAME}}], [if_installed],
+          [AS_VAR_SET([SAGE_ENABLE_${SPKG_NAME}], $is_installed)])
+    AS_VAR_COPY([want_spkg], [SAGE_ENABLE_${SPKG_NAME}])
+
+    spkg_line=" \\$(printf '\n    ')$SPKG_NAME"
+    AS_CASE([$is_installed-$want_spkg],
+            [*-yes],  [AS_VAR_APPEND(SAGE_OPTIONAL_INSTALLED_PACKAGES, "$spkg_line")],
+            [yes-no], [AS_VAR_APPEND(SAGE_OPTIONAL_UNINSTALLED_PACKAGES, "$spkg_line")])
 
     # Determine package dependencies
     #
@@ -340,19 +358,18 @@ AC_SUBST([SAGE_PIP_PACKAGES])
 AC_SUBST([SAGE_SCRIPT_PACKAGES])
 AC_SUBST([SAGE_BUILT_PACKAGES])
 AC_SUBST([SAGE_DUMMY_PACKAGES])
-AC_SUBST([SAGE_STANDARD_PACKAGES])
 AC_SUBST([SAGE_OPTIONAL_INSTALLED_PACKAGES])
-AC_SUBST([SAGE_OPTIONAL_CLEANED_PACKAGES])
+AC_SUBST([SAGE_OPTIONAL_UNINSTALLED_PACKAGES])
 AC_SUBST([SAGE_SDIST_PACKAGES])
 ])
 
 AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [
-    AS_IF([test -n "$SAGE_NEED_SYSTEM_PACKAGES"], [
+    AS_IF([test -n "$SAGE_NEED_SYSTEM_PACKAGES" -o -n "$SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL"], [
         AC_MSG_NOTICE([
 
     notice: the following SPKGs did not find equivalent system packages:
 
-       $SAGE_NEED_SYSTEM_PACKAGES
+       $SAGE_NEED_SYSTEM_PACKAGES  $SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL
         ])
         AC_MSG_CHECKING([for the package system in use])
         SYSTEM=$(build/bin/sage-guess-package-system 2>& AS_MESSAGE_FD)
@@ -369,8 +386,27 @@ AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [
     build them (though some may have to be built anyway):
 
 $COMMAND
+])
+                AS_VAR_SET([need_reconfig_msg], [yes])
+            ])
+            SYSTEM_PACKAGES=$(build/bin/sage-get-system-packages $SYSTEM $SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL)
+            AS_IF([test -n "$SYSTEM_PACKAGES"], [
+                PRINT_SYS="build/bin/sage-print-system-package-command $SYSTEM --verbose=\"    \" --prompt=\"      \$ \" --sudo"
+                COMMAND=$(eval "$PRINT_SYS" update && eval "$PRINT_SYS" install $SYSTEM_PACKAGES && SAGE_ROOT="$SAGE_ROOT" eval "$PRINT_SYS" setup-build-env )
+                AC_MSG_NOTICE([
 
-    After installation, re-run configure using:
+    hint: installing the following system packages, if not
+    already present, may provide additional optional features:
+
+$COMMAND
+])
+                AS_VAR_SET([need_reconfig_msg], [yes])
+            ])
+            dnl Reconfigure message
+            AS_VAR_IF([need_reconfig_msg], [yes], [
+                AC_MSG_NOTICE([
+
+    hint: After installation, re-run configure using:
 
       \$ ./config.status --recheck && ./config.status
                 ])
@@ -379,4 +415,8 @@ $COMMAND
             ])
         ])
     ])
+    dnl Deferred errors from --with-system-SPKG=force
+    AS_VAR_SET_IF([SAGE_SPKG_ERRORS], [AC_MSG_ERROR([
+$SAGE_SPKG_ERRORS
+    ])])
 ])
