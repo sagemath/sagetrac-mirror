@@ -150,6 +150,8 @@ __pycache__/
 # Temporary build files
 build/temp.*/
 build/bin/sage-build-env-config
+pkgs/sage-conf/reqlib-metadata/
+src/reqlib-metadata/
 
 # Generated files in the top-level source trees
 /pkgs/*/build
@@ -157,6 +159,7 @@ build/bin/sage-build-env-config
 /pkgs/*/MANIFEST
 /pkgs/*/*.egg-info
 /pkgs/*/.tox
+/pkgs/sage-conf/pyproject.toml
 
 # same for old locations - before Trac #31577
 /build/pkgs/*/src/build
