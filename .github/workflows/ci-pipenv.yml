@@ -133,6 +133,8 @@ jobs:
         run: |
           mkdir -p .venv
           pipenv install --verbose --python /usr/bin/python${{ matrix.python-version }} || true
+          # Some of the dependencies need Cython to be installed already for egg-info
+          pipenv run pip install cython
           pipenv install fpylll==0.5.2dev --verbose || true
           pipenv install --verbose || true
           pipenv run pip list
