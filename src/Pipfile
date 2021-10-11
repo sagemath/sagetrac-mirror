@@ -34,14 +34,6 @@ six = "*"
 pkgconfig = "*"
 ipywidgets = "*"
 
-[packages.fpylll]
-version = "*"
-sys_platform = "== 'darwin'"
-
-[packages.8c46424]
-path = "./../build/pkgs/sage_conf/src"
-editable = true
-
 [packages.e1839a8]
 path = "."
 editable = true
