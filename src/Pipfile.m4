@@ -18,6 +18,7 @@ rstcheck = "*"
 [packages]
 ## We do not list packages that are already declared as install_requires
 ## in setup.cfg
+memory-allocator = "*"
 
 [packages.e1839a8]
 path = "."
