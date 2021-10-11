@@ -72,7 +72,7 @@ jobs:
       env:
         # Fix udl.h:18:1: error: unknown type name 'constexpr'
         CXXFLAGS: -std=c++11
-    - name: Test
+    - name: Run tests
       run: |
         pipenv run sage-runtests --all --timeout=300
       working-directory: src
@@ -142,7 +142,7 @@ jobs:
         run: pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
         working-directory: src
         if: always()
-      - name: Test
+      - name: Run tests
         run: |
           sudo ../.github/workflows/print_memory_usage.sh &
           pipenv run sage-runtests --all --timeout=300
