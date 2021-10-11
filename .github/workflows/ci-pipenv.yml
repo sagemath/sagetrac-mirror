@@ -55,10 +55,7 @@ jobs:
       run: |
         source ../.homebrew-build-env
         mkdir -p .venv
-        pipenv install --verbose --ignore-pipfile || true
-        # Some of the dependencies (pplpy) need Cython to be installed already for egg-info
-        pipenv run pip install cython
-        pipenv install --verbose --ignore-pipfile || true
+        pipenv install --verbose --python /usr/bin/python${{ matrix.python-version }} --ignore-pipfile
         pipenv run pip list
       working-directory: src
       env:
@@ -135,12 +132,7 @@ jobs:
       - name: Create virtual environment
         run: |
           mkdir -p .venv
-          pipenv install --verbose --python /usr/bin/python${{ matrix.python-version }} --ignore-pipfile || true
-          # Some of the dependencies (pplpy) need Cython to be installed already for egg-info
-          pipenv run pip install cython
-          # fpylll version needs to be in sync with version of fplll (which depends on the OS)
-          pipenv run pip install fpylll==0.5.2dev --upgrade
-          pipenv install --verbose --ignore-pipfile || true
+          pipenv install --verbose --python /usr/bin/python${{ matrix.python-version }} --ignore-pipfile
           pipenv run pip list
         working-directory: src
         env:
