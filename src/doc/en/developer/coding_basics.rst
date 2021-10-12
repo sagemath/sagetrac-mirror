@@ -1276,6 +1276,8 @@ This means that any changes to Python files will automatically show up every tim
 run a Python project that uses it.
 The virtual environment can be activated by running ``pipenv shell`` (from the ``src`` folder).
 
+To compile Cython files after they have changed, run ``pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation``.
+
 .. _section-coding-general-whitespace:
 
 General Coding Style Regarding Whitespace
