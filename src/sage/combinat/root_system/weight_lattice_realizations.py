@@ -363,7 +363,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 sage: RootSystem(['A',3]).ambient_lattice().rho()
                 (3, 2, 1, 0)
             """
-            return sum(self.fundamental_weights())
+            return self(sum(self.fundamental_weights()))
 
         def reduced_word_of_alcove_morphism(self, f):
             r"""

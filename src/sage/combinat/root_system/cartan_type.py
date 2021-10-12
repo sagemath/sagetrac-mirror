@@ -2663,6 +2663,8 @@ class CartanType_standard_finite(CartanType_standard, CartanType_finite):
             sage: ct.opposition_automorphism()
             Finite family {1: 1, 2: 2, 3: 3, 4: 4}
         """
+        if self == CartanType(['A', 0]):
+            return Family({})
         Q = self.root_system().root_lattice()
         W = Q.weyl_group()
         w0 = W.long_element()

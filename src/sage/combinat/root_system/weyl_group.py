@@ -191,6 +191,7 @@ def WeylGroup(x, prefix=None, implementation='matrix'):
         sage: w.reduced_word()
         [2, 0]
         sage: W = groups.misc.WeylGroup(['A',3,1])
+        sage: W = WeylGroup(['A',0])
     """
     if implementation == "permutation":
         return WeylGroup_permutation(x, prefix)
@@ -241,6 +242,8 @@ class WeylGroup_gens(UniqueRepresentation,
         # FinitelyGeneratedMatrixGroup_gap takes plain matrices as input
         gens_matrix = [self.morphism_matrix(self.domain().simple_reflection(i))
                        for i in self.index_set()]
+        if gens_matrix == []:
+            gens_matrix = [matrix.identity(self.n)]
         from sage.libs.all import libgap
         libgap_group = libgap.Group(gens_matrix)
         degree = ZZ(self.domain().dimension())

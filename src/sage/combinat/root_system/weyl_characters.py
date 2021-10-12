@@ -99,6 +99,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             True
             sage: R.base_ring() is ZZ
             True
+            sage: A0 = WeylCharacterRing("A0")
         """
         ct = CartanType(ct)
         if prefix is None:
