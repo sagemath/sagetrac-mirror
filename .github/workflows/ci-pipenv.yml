@@ -73,8 +73,7 @@ jobs:
         # Fix udl.h:18:1: error: unknown type name 'constexpr'
         CXXFLAGS: -std=c++11
     - name: Run tests
-      run: |
-        pipenv run sage-runtests --all --timeout=300
+      run: pipenv run sage-runtests --all --timeout=300
       working-directory: src
       env:
         # Set SAGE_LOCAL (required for gap)
@@ -143,13 +142,8 @@ jobs:
         working-directory: src
         if: always()
       - name: Run tests
-        run: |
-          sudo ../.github/workflows/print_memory_usage.sh &
-          pipenv run sage-runtests --all --timeout=300
+        run: pipenv run sage-runtests --all --timeout=300
         working-directory: src
         env:
           # Set SAGE_LOCAL (required for gap)
           SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-sudo-standard/local
-      - name: Print memory usage
-        if: always()
-        run: cat ./src/memory_usage.txt
