@@ -55,7 +55,7 @@ jobs:
       run: |
         source ../.homebrew-build-env
         mkdir -p .venv
-        pipenv install --verbose --python /usr/bin/python${{ matrix.python-version }} --ignore-pipfile
+        pipenv install --verbose --python ${{ matrix.python-version }} --ignore-pipfile
         pipenv run pip list
       working-directory: src
       env:
