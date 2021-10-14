@@ -149,3 +149,7 @@ jobs:
         env:
           # Set SAGE_LOCAL (required for gap)
           SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-sudo-standard/local
+          # Use Sage's version of mpmath
+          # https://trac.sagemath.org/ticket/25445
+          # https://github.com/cschwan/sage-on-gentoo/issues/628
+          MPMATH_SAGE: 1
