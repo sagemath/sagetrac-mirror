@@ -6438,6 +6438,7 @@ class GenericGraph(GenericGraph_pyx):
         from sage.graphs.digraph import DiGraph
         from sage.graphs.graph import Graph
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+        from sage.categories.sets_cat import EmptySetError
 
         if self.is_directed():
             if algorithm is not None and algorithm != "MILP":
@@ -6526,7 +6527,6 @@ class GenericGraph(GenericGraph_pyx):
         try:
             p.solve(log=verbose)
         except MIPSolverException:
-            from sage.categories.sets_cat import EmptySetError
             raise EmptySetError("this graph does not contain the required number of trees/arborescences")
 
         H = DiGraph() if G.is_directed() else Graph()
