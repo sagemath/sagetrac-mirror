@@ -1,5 +1,6 @@
 ## Pipfile with all dependencies of sagelib and version information as free as possible
 ## (for developers to generate a dev environment)
+
 [[source]]
 name = "pypi"
 url = "https://pypi.org/simple"
@@ -14,6 +15,7 @@ pytest = "*"
 rope = "*"
 six = "*"
 rstcheck = "*"
+sphinx-autobuild = "*"
 
 [packages]
 ## We do not list packages that are already declared as install_requires
