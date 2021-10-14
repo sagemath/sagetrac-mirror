@@ -21,7 +21,6 @@ jobs:
         python -m pip install --upgrade pip pipenv tox
         brew install fplll pari r
         tox -e local-homebrew-macos-usrlocal configure.ac
-        R RHOME
       env:
         SKIP_BOOTSTRAP: yes
         SKIP_CONFIGURE: yes
@@ -62,7 +61,7 @@ jobs:
       env:
         PIP_NO_BUILD_ISOLATION: false
         # Fix path to R, since otherwise sage's r is used
-        R_HOME: /usr/local/
+        R_HOME: /Library/Frameworks/R.framework/Resources/
         # Fix udl.h:18:1: error: unknown type name 'constexpr'
         CXXFLAGS: -std=c++11
     # The following is for testing purposes in case the pipenv install above fails
