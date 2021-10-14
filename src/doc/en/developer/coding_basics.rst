@@ -1258,9 +1258,17 @@ are very welcome.
 Pipenv
 ---------------------------------
 
-After following the normal procedure of setting up your local development
-environment, including a full built of the Sage distribution and all recommended system packages installed, 
-you can use Pipenv as follows:
+First, follow the normal procedure of setting up your local development
+environment, including installing all recommended system packages and a full built of the Sage distribution.
+For example, by running the following:
+
+.. CODE-BLOCK:: shell-session
+
+      $ ./bootstrap
+      $ ./configure --enable-editable
+      $ make build-local
+
+Afterwards, you can use Pipenv as follows:
 
 * Install Pipenv by running ``pip install --user pipenv``, see the 
   `official documentation <https://pipenv.pypa.io/en/latest/install/#installing-pipenv>`_ 
@@ -1275,8 +1283,19 @@ and an editable install of Sage.
 This means that any changes to Python files will automatically show up every time you 
 run a Python project that uses it.
 The virtual environment can be activated by running ``pipenv shell`` (from the ``src`` folder).
+This will spawn a new shell subprocess, which can be deactivated by using exit.
+You can also run a command in the virtual environment without launching a shell: ``pipenv run <your command>``
 
 To compile Cython files after they have changed, run ``pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation``.
+
+The dependencies can be updated as follows.
+
+* Find out what’s changed upstream: ``pipenv update --outdated``.
+
+* To upgrade packages, there are two options: ``pipenv update`` upgrades everything and ``pipenv update <pkg>`` only updates the given package.
+
+* Then commit the changes to the ``Pipfile`` and ``Pipfile.lock`` files.
+
 
 .. _section-coding-general-whitespace:
 
