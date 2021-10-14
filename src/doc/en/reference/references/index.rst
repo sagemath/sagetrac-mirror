@@ -4914,6 +4914,11 @@ REFERENCES:
 .. [Ros2002] Rosenfeld, Vladimir Raphael, 2002: Enumerating De Bruijn
              Sequences. *Communications in Math. and in Computer Chem.*
 
+.. [RT1985] James Roskind and Robert E. Tarjan. * A note on finding
+            minimum-cost edge-disjoint spanning trees*. Mathematics of
+            Operations Research, 10(4):701-708, 1985.
+            :doi:`10.1287/moor.10.4.701`
+
 .. [Rot2001] Gunter Rote, *Division-Free Algorithms for the
              Determinant and the Pfaffian: Algebraic and Combinatorial
              Approaches*, H. Alt (Ed.): Computational Discrete
