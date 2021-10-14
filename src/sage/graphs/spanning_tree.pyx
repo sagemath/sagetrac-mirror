@@ -1018,7 +1018,7 @@ def edge_disjoint_spanning_trees(G, k, by_weight=False, weight_function=None, ch
 
     This method implements the Roskind-Tarjan algorithm for finding `k`
     minimum-cost edge-disjoint spanning trees in simple undirected graphs
-    [RoTa1985]_. When the graph is weighted, the algorithm ensures that the sum
+    [RT1985]_. When the graph is weighted, the algorithm ensures that the sum
     of the weights of the returned spanning trees is minimized. The time
     complexity of the algorithm is in `O(k^2n^2)` for the unweighted case and
     otherwise in `O(m\log{m} + k^2n^2)`.
@@ -1046,7 +1046,7 @@ def edge_disjoint_spanning_trees(G, k, by_weight=False, weight_function=None, ch
 
     EXAMPLES:
 
-    Example from [RoTa1985_]::
+    Example from [RT1985]_::
 
         sage: from sage.graphs.spanning_tree import edge_disjoint_spanning_trees
         sage: G = Graph({'a': ['b', 'c', 'd', 'e'], 'b': ['c', 'e'], 'c': ['d'], 'd': ['e']})
