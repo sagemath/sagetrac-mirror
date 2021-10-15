@@ -78,6 +78,10 @@ jobs:
       env:
         # Set SAGE_LOCAL (required for gap)
         SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-homebrew-macos-usrlocal/local
+        # Use Sage's version of mpmath
+        # https://trac.sagemath.org/ticket/25445
+        # https://github.com/cschwan/sage-on-gentoo/issues/628
+        MPMATH_SAGE: 1
  
   linux:
     name: "Ubuntu: Python ${{ matrix.python-version }}"
