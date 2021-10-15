@@ -113,7 +113,7 @@ jobs:
         run: |
           tox -e local-sudo-standard build-local
           
-          . src/bin/sage-env
+          . src/bin/sage-env || true
           echo "$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/bin" >> $GITHUB_PATH
           echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
