@@ -120,6 +120,7 @@ jobs:
           echo "LIBRARY_PATH=$LIBRARY_PATH" >> $GITHUB_ENV
           echo "CPATH=$CPATH" >> $GITHUB_ENV
           echo "SAGE_SHARE=$SAGE_SHARE" >> $GITHUB_ENV
+          exit 0
         env:
           MAKE: make -j3
           SKIP_SYSTEM_PKG_INSTALL: yes
