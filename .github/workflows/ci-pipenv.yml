@@ -1,6 +1,13 @@
 name: Build & Test using pipenv
 
-on: [push, pull_request]
+on: 
+  push:
+  pull_request:
+  workflow_dispatch:
+    update:
+        description: 'Whether to try the most recent versions from PyPI (true) or the committed Pipfile.lock (false).'
+        required: false
+        default: 'false'
   
 jobs:
   mac:
@@ -66,6 +73,13 @@ jobs:
         R_HOME: /Library/Frameworks/R.framework/Resources/
         # Fix udl.h:18:1: error: unknown type name 'constexpr'
         CXXFLAGS: -std=c++11
+    # Normally, we would first update the Pipfile.lock file and then create the virtual environment
+    # However, there are currently a few packages that need a working Python environment for `pipenv lock` to be successful
+    # https://trac.sagemath.org/ticket/30922
+    - name: Update Python dependencies
+      if: github.event_name == 'workflow_dispatch' && github.event.inputs.update == 'true'
+      run: pipenv update
+      working-directory: src
     # The following is for testing purposes in case the pipenv install above fails
     - name: Install sage (again)
       run: pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
@@ -142,6 +156,13 @@ jobs:
         working-directory: src
         env:
           PIP_NO_BUILD_ISOLATION: false
+      # Normally, we would first update the Pipfile.lock file and then create the virtual environment
+      # However, there are currently a few packages that need a working Python environment for `pipenv lock` to be successful
+      # https://trac.sagemath.org/ticket/30922
+      - name: Update Python dependencies
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.update == 'true'
+        run: pipenv update
+        working-directory: src
       # The following is for testing purposes in case the pipenv install above fails
       - name: Install sage (again)
         run: pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
