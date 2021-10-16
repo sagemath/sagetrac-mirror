@@ -113,26 +113,17 @@ jobs:
         run: |
           tox -e local-sudo-standard build-local
           
-          echo Test1
-          . src/bin/sage-env >&2
-          if [ $? -ne 0 ]; then
-              echo >&2 "Error setting environment variables by sourcing sage-env"
-              exit 1
-          fi
-          if errorlevel 1 echo Unsuccessful
-          echo Test2
+          export PKG_CONFIG_PATH=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/lib/pkgconfig:PKG_CONFIG_PATH
+          export LIBRARY_PATH=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/lib:$LIBRARY_PATH
+          export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/lib:$LD_LIBRARY_PATH
+          export CPATH=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/include:$CPATH
+          export SAGE_SHARE=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/share
           echo "$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/bin" >> $GITHUB_PATH
-          echo Test3
           echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
-          echo Test4
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
-          echo Test5
           echo "LIBRARY_PATH=$LIBRARY_PATH" >> $GITHUB_ENV
-          echo Test6
           echo "CPATH=$CPATH" >> $GITHUB_ENV
-          echo Test7
           echo "SAGE_SHARE=$SAGE_SHARE" >> $GITHUB_ENV
-          exit 0
         env:
           MAKE: make -j3
           SKIP_SYSTEM_PKG_INSTALL: yes
