@@ -53,7 +53,7 @@ AUTHORS:
   problem to ensure correct Cayley graph computations.
 - Sebastian Oehms (July and Nov 2018): add other versions for
   burau_matrix (unitary + simple, see :trac:`25760` and :trac:`26657`)
-- Moritz Firsching (Sept 2021): Colored Jones polynomial
+- Moritz Firsching (Sept and Oct 2021): Colored Jones polynomial
 """
 
 ##############################################################################
@@ -1806,12 +1806,11 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: b._colored_jones_sum(4, db[0,0])
             1 + q^3 - q^8 - q^10 + q^13 + q^14 - q^15
         """
-        rqword = RightQuantumWord(qword).reduced_word()
+        rqword = RightQuantumWord(qword).duplicate_reduced_word(N)
         alg = qword.parent()
         R = alg.base_ring()
         result = R.one()
         current_word = alg.one()
-        i = 1
         continue_summing = True
         # This seemingly infinite sum is always finite if the qword comes
         # from a sum of quantum determinants; because at some point
@@ -1819,12 +1818,11 @@ class Braid(FiniteTypeArtinGroupElement):
         while continue_summing:
             current_word *= rqword
             new_rqw = RightQuantumWord(alg(current_word))
-            current_word = new_rqw.reduced_word()
+            current_word = new_rqw.duplicate_reduced_word(N)
             new_eps = new_rqw.eps(N)
             result += new_eps
             if not new_eps:
                 continue_summing = False
-            i += 1
         return result
 
     def colored_jones_polynomial(self, N, variab=None, try_inverse=True):
@@ -2058,12 +2056,59 @@ class RightQuantumWord:
             in parallel.
         """
         M = self._algebra._indices
+
         def tuple_to_word(q_tuple):
             return M.prod(self._gens[i] ** exp
                           for i, exp in enumerate(q_tuple))
         ret = {tuple_to_word(q_tuple): q_factor
                for q_tuple, q_factor in self.tuples.items() if q_factor}
         return self._algebra._from_dict(ret, remove_zeros=False)
+
+    def duplicate_reduced_word(self, N):
+        r"""
+        Return the right quantum word after applying duplicate reduction.
+
+        This is done by making use of the duplicate reduction lemma as outlined
+        in Algorithm 4 in [HL2018]_
+
+        Output:
+
+        An element in the free algebra.
+
+        EXAMPLES:
+            sage: from sage.groups.braid import RightQuantumWord
+            sage: fig_8 = BraidGroup(3)([-1, 2, -1, 2])
+            sage: (
+            ....:  bp_1, cp_1, ap_1,
+            ....:  bp_3, cp_3, ap_3,
+            ....:  bm_0, cm_0, am_0,
+            ....:  bm_2, cm_2, am_2
+            ....: ) = fig_8.deformed_burau_matrix().parent().base_ring().gens()
+            sage: q = bp_1.base_ring().gen()
+            sage: qw = RightQuantumWord(ap_1*cp_1 +
+            ....:                            q**3*bm_2*bp_1*am_0*cm_0)
+            sage: qw.duplicate_reduced_word(2)
+            0
+            sage: qw = RightQuantumWord(q^3*cp_1*am_2*ap_3*bm_0*cm_2*bp_3)
+            sage: qw.duplicate_reduced_word(2)
+            0
+            sage: qw.duplicate_reduced_word(3)
+            q^2*cp_1*bp_3*ap_3*bm_0*cm_2*am_2
+        """
+        rword = self.reduced_word()
+        alg = self._algebra
+        all_monoms = set(monom for monom, _ in rword)
+        removed_monoms = set()
+        for i in range(0, len(alg._indices.gens()), 3):
+            a = alg._indices.gens()[i + 2]
+            b = alg._indices.gens()[i]
+            c = alg._indices.gens()[i + 1]
+            for monom in all_monoms:
+                monom_dict = defaultdict(int, monom)
+                if monom_dict[a] + max(monom_dict[b], monom_dict[c]) >= N:
+                    removed_monoms.add(monom)
+        return alg.sum(alg(coeff)*alg(monom) for monom, coeff in rword
+                       if monom not in removed_monoms)
 
     def eps(self, N):
         r"""
