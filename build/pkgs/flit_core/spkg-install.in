@@ -1,2 +1,25 @@
+# filt_core is a dependency for setuptools, must install by hand
+# https://flit.readthedocs.io/en/latest/bootstrap.html
+
 cd src
-sdh_pip_install .
+mkdir dist
+python <<EOF
+
+import os
+import shutil
+import sysconfig
+
+from flit_core import build_thyself
+whl_fname = build_thyself.build_wheel('dist/')
+whl_fqn = os.path.join('dist', whl_fname)
+print(f'Built flit_core wheel at dist/{whl_fqn}')
+
+site_packages = sysconfig.get_path('purelib')
+shutil.unpack_archive(whl_fqn, site_packages, 'zip')
+print(f'Extracted to {site_packages}')
+
+SAGE_SPKG_WHEELS = os.environ['SAGE_SPKG_WHEELS']
+shutil.copy(whl_fqn, SAGE_SPKG_WHEELS)
+print(f'Copied wheel to {SAGE_SPKG_WHEELS}')
+
+EOF
