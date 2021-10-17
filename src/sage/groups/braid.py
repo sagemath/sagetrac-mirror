@@ -66,6 +66,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ##############################################################################
 
+from collections import defaultdict
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.lazy_attribute import lazy_attribute
@@ -1879,14 +1880,14 @@ class Braid(FiniteTypeArtinGroupElement):
         q = db.parent().base_ring().base_ring().gen()
         n = db.ncols()
         qword = sum((-1)**(s.cardinality() - 1)
-                    * (q * db[list(s), list(s)]).quantum_determinant(q)
+                    * (quantum_determinant(q * db[list(s), list(s)], q))
                     for s in Subsets(range(n)) if s)
         inverse_shorter = try_inverse
         if try_inverse:
             db_inv = self.inverse().deformed_burau_matrix('q')[1:, 1:]
             q_inv = db_inv.parent().base_ring().base_ring().gen()
             qword_inv = sum((-1)**(s.cardinality() - 1)
-                            * (q_inv*db_inv[list(s), list(s)]).quantum_determinant(q)
+                           * (quantum_determinant(q_inv*db_inv[list(s), list(s)], q_inv))
                             for s in Subsets(range(n)) if s)
             # Check if the inverse has a shorter expression at this point
             inverse_shorter = len(list(qword_inv)) < len(list(qword))
@@ -1898,6 +1899,40 @@ class Braid(FiniteTypeArtinGroupElement):
         self._cj_with_q[N] = cj.subs({q: 1/q}) if use_inverse else cj
         return self.colored_jones_polynomial(N, variab, try_inverse)
 
+def quantum_determinant(A, q):
+    n = A.ncols()
+    alg = A.parent().base_ring()
+    det = alg.zero()
+    for i in range(n):
+        for j in range(n):
+            A[i, j] = remove_duplicate(A[i, j], 2)
+
+    for s in Permutations(n):
+        det_factor = alg.one()
+        for i in range(n):
+            next_factor_unreduced = A[s[i] - 1, i]
+            det_factor *= next_factor_unreduced
+            det_factor = remove_duplicate(det_factor, 2)
+
+        next_summand_unreduced = (-q)**s.number_of_inversions()\
+                   * det_factor
+        det += remove_duplicate(next_summand_unreduced, 2)
+    return det
+
+def remove_duplicate(rword, N):
+    alg = rword.parent()
+    all_monoms = set(monom for monom, _ in rword)
+    removed_monoms = set()
+    for i in range(0, len(alg._indices.gens()), 3):
+        a = alg._indices.gens()[i + 2]
+        b = alg._indices.gens()[i]
+        c = alg._indices.gens()[i + 1]
+        for monom in all_monoms:
+            monom_dict = defaultdict(int, monom)
+            if monom_dict[a] + max(monom_dict[b], monom_dict[c]) >= N:
+                removed_monoms.add(monom)
+    return alg.sum(alg(coeff)*alg(monom) for monom, coeff in rword
+                    if monom not in removed_monoms)
 
 class RightQuantumWord:
     """
@@ -2096,19 +2131,7 @@ class RightQuantumWord:
             q^2*cp_1*bp_3*ap_3*bm_0*cm_2*am_2
         """
         rword = self.reduced_word()
-        alg = self._algebra
-        all_monoms = set(monom for monom, _ in rword)
-        removed_monoms = set()
-        for i in range(0, len(alg._indices.gens()), 3):
-            a = alg._indices.gens()[i + 2]
-            b = alg._indices.gens()[i]
-            c = alg._indices.gens()[i + 1]
-            for monom in all_monoms:
-                monom_dict = defaultdict(int, monom)
-                if monom_dict[a] + max(monom_dict[b], monom_dict[c]) >= N:
-                    removed_monoms.add(monom)
-        return alg.sum(alg(coeff)*alg(monom) for monom, coeff in rword
-                       if monom not in removed_monoms)
+        return remove_duplicate(rword, N)
 
     def eps(self, N):
         r"""
