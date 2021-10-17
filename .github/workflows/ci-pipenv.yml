@@ -74,7 +74,10 @@ jobs:
     # https://trac.sagemath.org/ticket/30922
     - name: Update Python dependencies
       #if: github.event_name == 'workflow_dispatch' && github.event.inputs.update == 'true'
-      run: pipenv update
+      run: |
+          pipenv update --verbose
+          pipenv run pip list
+          git diff -- Pipfile.lock
       working-directory: src
       env:
         PIP_NO_BUILD_ISOLATION: false
@@ -159,7 +162,10 @@ jobs:
       # https://trac.sagemath.org/ticket/30922
       - name: Update Python dependencies
         #if: github.event_name == 'workflow_dispatch' && github.event.inputs.update == 'true'
-        run: pipenv update
+        run: |
+          pipenv update --verbose
+          pipenv run pip list
+          git diff -- Pipfile.lock
         working-directory: src
         env:
           PIP_NO_BUILD_ISOLATION: false
