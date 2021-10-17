@@ -38,7 +38,7 @@ jobs:
         . src/bin/sage-env-config && . src/bin/sage-env
         echo "$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/bin" >> $GITHUB_PATH
         echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
-        echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=$LIBRARY_PATH" >> $GITHUB_ENV
         echo "LIBRARY_PATH=$LIBRARY_PATH" >> $GITHUB_ENV
         echo "CPATH=$CPATH" >> $GITHUB_ENV
         echo "SAGE_SHARE=$SAGE_SHARE" >> $GITHUB_ENV   
@@ -132,7 +132,7 @@ jobs:
           . src/bin/sage-env-config && . src/bin/sage-env
           echo "$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/bin" >> $GITHUB_PATH
           echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$LIBRARY_PATH" >> $GITHUB_ENV
           echo "LIBRARY_PATH=$LIBRARY_PATH" >> $GITHUB_ENV
           echo "CPATH=$CPATH" >> $GITHUB_ENV
           echo "SAGE_SHARE=$SAGE_SHARE" >> $GITHUB_ENV
