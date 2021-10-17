@@ -35,11 +35,7 @@ jobs:
       run: |
         tox -e local-homebrew-macos-usrlocal build-local
         
-        export PKG_CONFIG_PATH=$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/lib/pkgconfig:PKG_CONFIG_PATH
-        export LIBRARY_PATH=$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/lib:$LIBRARY_PATH
-        export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/lib:$LD_LIBRARY_PATH
-        export CPATH=$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/include:$CPATH
-        export SAGE_SHARE=$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/share
+        . src/bin/sage-env-config && . src/bin/sage-env
         echo "$GITHUB_WORKSPACE/.tox/local-homebrew-macos-usrlocal/local/bin" >> $GITHUB_PATH
         echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
         echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
@@ -133,11 +129,7 @@ jobs:
         run: |
           tox -e local-sudo-standard build-local
           
-          export PKG_CONFIG_PATH=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/lib/pkgconfig:PKG_CONFIG_PATH
-          export LIBRARY_PATH=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/lib:$LIBRARY_PATH
-          export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/lib:$LD_LIBRARY_PATH
-          export CPATH=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/include:$CPATH
-          export SAGE_SHARE=$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/share
+          . src/bin/sage-env-config && . src/bin/sage-env
           echo "$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/bin" >> $GITHUB_PATH
           echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
