@@ -44,8 +44,6 @@ jobs:
         echo "CPATH=$CPATH" >> $GITHUB_ENV
         echo "SAGE_SHARE=$SAGE_SHARE" >> $GITHUB_ENV   
         echo "$CFLAGS"
-        brew info gmp
-        brew info boost
         echo "CFLAGS=-I$(brew --prefix gmp)/include -L$(brew --prefix gmp)/lib -I$(brew --prefix boost)/include" >> $GITHUB_ENV
       env:
         MAKE: make -j3
