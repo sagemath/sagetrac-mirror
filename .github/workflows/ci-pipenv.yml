@@ -72,7 +72,7 @@ jobs:
     # However, there are currently a few packages that need a working Python environment for `pipenv lock` to be successful
     # https://trac.sagemath.org/ticket/30922
     - name: Update Python dependencies
-      #if: github.event_name == 'workflow_dispatch' && github.event.inputs.update == 'true'
+      if: github.event_name == 'workflow_dispatch' && github.event.inputs.update == 'true'
       run: |
           pipenv update --verbose
           pipenv run pip list
@@ -167,7 +167,7 @@ jobs:
       # However, there are currently a few packages that need a working Python environment for `pipenv lock` to be successful
       # https://trac.sagemath.org/ticket/30922
       - name: Update Python dependencies
-        #if: github.event_name == 'workflow_dispatch' && github.event.inputs.update == 'true'
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.update == 'true'
         run: |
           pipenv update --verbose
           pipenv run pip list
