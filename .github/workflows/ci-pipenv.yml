@@ -18,7 +18,8 @@ jobs:
       matrix:
         python-version: [3.8, 3.9]
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
@@ -114,13 +115,20 @@ jobs:
       matrix:
         python-version: [3.8, 3.9]
     steps:
-      - uses: actions/checkout@v2
+      # Fix problems of using checkout action in combination with a container image
+      # https://github.com/actions/checkout/issues/335
+      - name: Update git
+        run: |
+          apt-get update -y
+          apt-get install -y git
+      - name: Checkout repository
+        uses: actions/checkout@v2
       - name: Install dependencies
         run: |
           apt-get update -y
           apt-get install -y sudo
           apt-get install -y python${{ matrix.python-version }} python${{ matrix.python-version }}-dev python3-pip
-          apt-get install -y tzdata keyboard-configuration libfplll-dev fplll-tools singular-data wget git
+          apt-get install -y tzdata keyboard-configuration libfplll-dev fplll-tools singular-data wget
           python3 -m pip install --upgrade pip pipenv tox
           tox -e local-sudo-standard configure.ac
         env:
