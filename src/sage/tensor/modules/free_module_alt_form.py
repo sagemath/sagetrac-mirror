@@ -552,15 +552,6 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: b.display(format_spec=10)  # 10 bits of precision
             b = 0.33 e^1∧e^2 + 2.5 e^1∧e^3 + 4.0 e^2∧e^3
 
-        Check that the bug reported in :trac:`22520` is fixed::
-
-            sage: M = FiniteRankFreeModule(SR, 2, name='M')
-            sage: e = M.basis('e')
-            sage: a = M.alternating_form(2)
-            sage: a[0,1] = SR.var('t', domain='real')
-            sage: a.display()
-            t e^0∧e^1
-
         """
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import FormattedExpansion

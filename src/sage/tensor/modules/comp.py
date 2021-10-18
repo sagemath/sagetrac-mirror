@@ -1166,13 +1166,6 @@ class Components(SageObject):
             C_01 = 0.33
             C_21 = 0.29
 
-        Check that the bug reported in :trac:`22520` is fixed::
-
-            sage: c = Components(SR, [1, 2], 1)
-            sage: c[0] = SR.var('t', domain='real')
-            sage: c.display('c')
-            c_0 = t
-
         """
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import FormattedExpansion

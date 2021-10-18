@@ -685,14 +685,6 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: v.display(format_spec=10)  # 10 bits of precision
             v = 0.33 e_1 - 2.0 e_2
 
-        Check that the bug reported in :trac:`22520` is fixed::
-
-            sage: M = FiniteRankFreeModule(SR, 3, name='M')
-            sage: e = M.basis('e')
-            sage: t = SR.var('t', domain='real')
-            sage: (t*e[0]).display()
-            t e_0
-
         """
         from sage.misc.latex import latex
         from sage.typeset.unicode_characters import unicode_otimes
