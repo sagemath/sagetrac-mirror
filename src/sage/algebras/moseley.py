@@ -243,7 +243,6 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
         # save data for later use
         self._arrangement = arrangement
         self._homogenized = True
-        self._homogenizing_variable = u
         self._matroid = self._arrangement.matroid()
 
         # register coercions (how to convert between the bases)
