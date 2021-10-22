@@ -40,6 +40,7 @@ TESTS::
 Classes and methods
 -------------------
 """
+# sage.doctest: optional - deprecated_sage_finance
 
 from sage.structure.all import Sequence
 from datetime import date
