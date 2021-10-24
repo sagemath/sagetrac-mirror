@@ -187,6 +187,7 @@ src/*.egg-info/
 /src/pkgs/*/dist
 
 # Virtual environments
+/venv
 src/.env
 src/.venv
 src/env/
