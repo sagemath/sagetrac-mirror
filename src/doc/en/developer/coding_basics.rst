@@ -955,9 +955,9 @@ framework. Here is a comprehensive list:
 - **random:** The line will be executed, but its output will not be checked with
   the output in the documentation string::
 
-      sage: c = CombinatorialObject([1,2,3])
+      sage: c = Partition([3,2,1])
       sage: hash(c)  # random
-      1335416675971793195
+      -925386691174542831
       sage: hash(c)  # random
       This doctest passes too, as the output is not checked
 

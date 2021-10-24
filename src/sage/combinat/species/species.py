@@ -50,16 +50,17 @@ three internal nodes.
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from functools import reduce
+
+from sage.structure.parent import Parent
 from .generating_series import OrdinaryGeneratingSeriesRing, ExponentialGeneratingSeriesRing, CycleIndexSeriesRing
 from sage.rings.rational_field import QQ
-from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.combinat.species.misc import accept_size
 from sage.combinat.species.structure import StructuresWrapper, IsotypesWrapper
-from functools import reduce
 
 
-class GenericCombinatorialSpecies(SageObject):
+class GenericCombinatorialSpecies(Parent):
     def __init__(self, min=None, max=None, weight=None):
         """
         TESTS::
@@ -72,9 +73,10 @@ class GenericCombinatorialSpecies(SageObject):
             sage: P._max
             4
         """
-        self._weight = weight if weight is not None else QQ(1)
+        self._weight = weight if weight is not None else QQ.one()
         self._min = min
         self._max = max
+        Parent.__init__(self)
 
     def __hash__(self):
         """

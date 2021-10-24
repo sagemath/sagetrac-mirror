@@ -91,7 +91,7 @@ class CompositionTableau(CombinatorialElement, metaclass=ClasscallMetaclass):
             CombinatorialElement.__init__(self, parent, t._list)
             return
 
-        # CombinatorialObject verifies that t is a list
+        # CombinatorialElement verifies that t is a list
         # We must verify t is a list of lists
         if not all(isinstance(row, list) for row in t):
             raise ValueError("A composition tableau must be a list of lists.")

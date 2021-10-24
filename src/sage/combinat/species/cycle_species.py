@@ -56,7 +56,7 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
             (1,2,3)
         """
         from sage.groups.all import PermutationGroupElement
-        return PermutationGroupElement(tuple(self._list))
+        return PermutationGroupElement(tuple(self))
 
     def transport(self, perm):
         """
@@ -73,10 +73,10 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
             ('a', 'c', 'b')
         """
         p = self.permutation_group_element()
-        p = perm*p*~perm
+        p = perm * p * ~perm
         new_list = [1]
-        for i in range(len(self._list)-1):
-            new_list.append( p(new_list[-1]) )
+        for i in range(len(list(self)) - 1):
+            new_list.append(p(new_list[-1]))
         return CycleSpeciesStructure(self.parent(), self._labels, new_list)
 
     def automorphism_group(self):

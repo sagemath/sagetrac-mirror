@@ -1,7 +1,7 @@
 """
 Composition species
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -13,12 +13,13 @@ Composition species
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from .species import GenericCombinatorialSpecies
 from .structure import GenericSpeciesStructure
 from .partition_species import PartitionSpecies
 from sage.structure.unique_representation import UniqueRepresentation
+
 
 class CompositionSpeciesStructure(GenericSpeciesStructure):
     def __init__(self, parent, labels, pi, f, gs):
@@ -43,8 +44,8 @@ class CompositionSpeciesStructure(GenericSpeciesStructure):
             sage: L.structures(['a','b','c'])[0]
             F-structure: {{'a', 'b', 'c'}}; G-structures: (('a', 'b', 'c'),)
         """
-        f, gs = self._list
-        return "F-structure: %s; G-structures: %s"%(repr(f), repr(gs))
+        f, gs = self
+        return "F-structure: %s; G-structures: %s" % (repr(f), repr(gs))
 
     def transport(self, perm):
         """
@@ -59,11 +60,11 @@ class CompositionSpeciesStructure(GenericSpeciesStructure):
             sage: a.transport(p)
             F-structure: {{'a', 'b'}, {'c'}}; G-structures: (('a', 'c'), ('b'))
         """
-        f, gs = self._list
+        f, gs = self
         pi = self._partition.transport(perm)
-        f = f.change_labels(pi._list)
+        f = f.change_labels(list(pi))
         g = [g.change_labels(part) for g, part in zip(gs, pi)]  # BUG HERE ?
-        return self.__class__(self, self._labels, pi, f, gs)
+        return self.__class__(self.parent(), self._labels, pi, f, gs)
 
     def change_labels(self, labels):
         """
@@ -88,11 +89,11 @@ class CompositionSpeciesStructure(GenericSpeciesStructure):
             sage: a.change_labels([1,2,3])
             F-structure: {{1, 3}, {2}}; G-structures: [(1, 3), (2)]
         """
-        f, gs = self._list
+        f, gs = self
         pi = self._partition.change_labels(labels)
         f = f.change_labels(list(pi))
         g = [g.change_labels(part) for g, part in zip(gs, pi)]
-        return self.__class__(self, labels, pi, f, g)
+        return self.__class__(self.parent(), labels, pi, f, g)
 
 
 class CompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
@@ -122,7 +123,7 @@ class CompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         """
         self._F = F
         self._G = G
-        self._name = "Composition of (%s) and (%s)"%(F, G)
+        self._name = "Composition of (%s) and (%s)" % (F, G)
         self._state_info = [F, G]
         GenericCombinatorialSpecies.__init__(self, min=None, max=None, weight=None)
 
@@ -145,12 +146,12 @@ class CompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         TESTS::
 
             sage: a = _[2]
-            sage: f, gs = a._list
+            sage: f, gs = a
             sage: f
             {{'a', 'c'}, {'b'}}
             sage: f.parent()
             Set species
-            sage: f._list
+            sage: list(f)
             [1, 2]
             sage: f._labels
             [{'a', 'c'}, {'b'}]
@@ -158,7 +159,7 @@ class CompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             [Cyclic permutation species, Cyclic permutation species]
             sage: [g._labels for g in gs]
             [['a', 'c'], ['b']]
-            sage: [g._list for g in gs]
+            sage: [list(g) for g in gs]
             [[1, 2], [1]]
         """
         from itertools import product

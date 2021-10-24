@@ -67,7 +67,7 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
              {{'a'}, {'b'}, {'c'}}]
         """
         P = self.parent()
-        p = [len(block) for block in self._list]
+        p = [len(block) for block in self]
         return P._canonical_rep_from_partition(self.__class__, self._labels, p)
 
     def transport(self, perm):
@@ -85,7 +85,7 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
             sage: a.transport(p)
             {{2, 4}, {3}}
         """
-        l = [block.transport(perm)._list for block in self._list]
+        l = [list(block.transport(perm)) for block in self]
         l.sort(key=lambda block:(-len(block), block))
         return PartitionSpeciesStructure(self.parent(), self._labels, l)
 
@@ -104,9 +104,8 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
             Permutation Group with generators [(1,2)]
         """
         from sage.groups.all import SymmetricGroup
-        return reduce(lambda a,b: a.direct_product(b, maps=False),
-                      [SymmetricGroup(block._list) for block in self._list])
-
+        return reduce(lambda a, b: a.direct_product(b, maps=False),
+                      [SymmetricGroup(list(block)) for block in self])
 
     def change_labels(self, labels):
         """
@@ -130,7 +129,7 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
             sage: a.change_labels([1,2,3])
             {{1, 2}, {3}}
         """
-        return PartitionSpeciesStructure(self.parent(), labels, [block.change_labels(labels) for block in self._list])
+        return PartitionSpeciesStructure(self.parent(), labels, [block.change_labels(labels) for block in self])
 
 
 class PartitionSpecies(GenericCombinatorialSpecies):

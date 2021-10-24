@@ -250,11 +250,6 @@ class SkewTableau(ClonableList,
         """
         return repr(self.to_list())
 
-    # See #18024. CombinatorialObject provided __str__, though ClonableList
-    # doesn't. Emulate the old functionality. Possibly remove when
-    # CombinatorialObject is removed.
-    __str__ = _repr_list
-
     def _repr_diagram(self):
         """
         Return a string representation of ``self`` as a diagram.

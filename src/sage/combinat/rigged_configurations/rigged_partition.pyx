@@ -273,8 +273,6 @@ cdef class RiggedPartition(SageObject):
         cdef right = <RiggedPartition> other
         return richcmp((left._list, left.rigging), (right._list, right.rigging), op)
 
-    # TODO: Cythonize CombinatorialObject?
-
     def __hash__(self):
         """
         TESTS::

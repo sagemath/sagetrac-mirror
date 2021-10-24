@@ -47,7 +47,7 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
             sage: (S*S*S).structures(['a','b','c'])[13]
             ({'c'}*{'a'})*{'b'}
         """
-        left, right = map(repr, self._list)
+        left, right = map(repr, self)
         if "*" in left:
             left = "(%s)" % left
         if "*" in right:
@@ -66,7 +66,7 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
             sage: a.transport(p)
             {'a', 'c'}*{'b'}
         """
-        left, right = self._list
+        left, right = self
         new_subset = self._subset.transport(perm)
         left_labels = new_subset.label_subset()
         right_labels = new_subset.complement().label_subset()
@@ -106,7 +106,7 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
              {'a', 'b'}*{'c'},
              {'a', 'b', 'c'}*{}]
         """
-        left, right = self._list
+        left, right = self
         new_subset = self._subset.canonical_label()
         left_labels = new_subset.label_subset()
         right_labels = new_subset.complement().label_subset()
@@ -138,7 +138,7 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
             sage: a.change_labels([1,2,3])
             {}*{1, 2, 3}
         """
-        left, right = self._list
+        left, right = self
         new_subset = self._subset.change_labels(labels)
         left_labels = new_subset.label_subset()
         right_labels = new_subset.complement().label_subset()
@@ -179,11 +179,11 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
         from sage.groups.all import PermutationGroupElement, PermutationGroup
         from sage.combinat.species.misc import change_support
 
-        left, right = self._list
+        left, right = self
 
-        #Get the supports for each of the sides
-        l_support = self._subset._list
-        r_support = self._subset.complement()._list
+        # Get the supports for each of the sides
+        l_support = list(self._subset)
+        r_support = list(self._subset.complement())
 
         #Get the automorphism group for the left object and
         #make it have the correct support. Do the same to the

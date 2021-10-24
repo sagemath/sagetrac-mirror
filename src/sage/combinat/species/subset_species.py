@@ -37,7 +37,7 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
             {}
         """
         s = GenericSpeciesStructure.__repr__(self)
-        return "{"+s[1:-1]+"}"
+        return "{" + s[1:-1] + "}"
 
     def canonical_label(self):
         """
@@ -50,9 +50,8 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
             sage: [s.canonical_label() for s in S]
             [{}, {'a'}, {'a'}, {'a'}, {'a', 'b'}, {'a', 'b'}, {'a', 'b'}, {'a', 'b', 'c'}]
         """
-        rng = list(range(1, len(self._list) + 1))
+        rng = list(range(1, len(list(self)) + 1))
         return self.__class__(self.parent(), self._labels, rng)
-
 
     def label_subset(self):
         r"""
@@ -65,7 +64,7 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
             sage: [s.label_subset() for s in S]
             [[], ['a'], ['b'], ['c'], ['a', 'b'], ['a', 'c'], ['b', 'c'], ['a', 'b', 'c']]
         """
-        return [self._relabel(i) for i in self._list]
+        return [self._relabel(i) for i in self]
 
     def transport(self, perm):
         r"""
@@ -83,7 +82,7 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
             sage: a.transport(p)
             {'a', 'c'}
         """
-        l = sorted([perm(i) for i in self._list])
+        l = sorted([perm(i) for i in self])
         return SubsetSpeciesStructure(self.parent(), self._labels, l)
 
     def automorphism_group(self):
@@ -105,8 +104,8 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
             [{1, 3}, {1, 3}, {1, 3}, {1, 3}]
         """
         from sage.groups.all import SymmetricGroup, PermutationGroup
-        a = SymmetricGroup(self._list)
-        b = SymmetricGroup(self.complement()._list)
+        a = SymmetricGroup(list(self))
+        b = SymmetricGroup(list(self.complement()))
         return PermutationGroup(a.gens() + b.gens())
 
     def complement(self):
@@ -121,8 +120,10 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
             sage: a.complement()
             {'b'}
         """
-        new_list = [i for i in range(1, len(self._labels)+1) if i not in self._list]
+        slist = list(self)
+        new_list = [i for i in range(1, len(self._labels)+1) if i not in slist]
         return SubsetSpeciesStructure(self.parent(), self._labels, new_list)
+
 
 class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
     @staticmethod

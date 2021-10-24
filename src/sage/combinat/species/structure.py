@@ -22,7 +22,7 @@ Here we define this species using the default structures::
 If we ignore the parentheses, we can read off that the integer
 compositions are [3], [2, 1], [1, 2], and [1, 1, 1].
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -34,14 +34,16 @@ compositions are [3], [2, 1], [1, 2], and [1, 1, 1].
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from sage.combinat.combinat import CombinatorialClass, CombinatorialObject
-from sage.rings.integer import Integer
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from copy import copy
 
+from sage.combinat.combinat import CombinatorialClass
+from sage.rings.integer import Integer
+from sage.structure.list_clone import ClonableList
 
-class GenericSpeciesStructure(CombinatorialObject):
+
+class GenericSpeciesStructure(ClonableList):
     def __init__(self, parent, labels, list):
         """
         This is a base class from which the classes for the structures inherit.
@@ -56,26 +58,14 @@ class GenericSpeciesStructure(CombinatorialObject):
             True
             sage: a == loads(dumps(a))
             True
-        """
-        self._parent = parent
-        self._labels = labels
-        CombinatorialObject.__init__(self, list)
-
-    def parent(self):
-        """
-        Returns the species that this structure is associated with.
-
-        EXAMPLES::
 
             sage: L = species.LinearOrderSpecies()
             sage: a,b = L.structures([1,2])
             sage: a.parent()
             Linear order species
         """
-        try:
-            return self._parent
-        except AttributeError:
-            raise NotImplementedError
+        self._labels = labels
+        ClonableList.__init__(self, parent, list, check=False)
 
     def __repr__(self):
         """
@@ -86,7 +76,7 @@ class GenericSpeciesStructure(CombinatorialObject):
             sage: a
             [2, 3, 4]
         """
-        return repr([self._relabel(i) for i in self._list])
+        return repr([self._relabel(i) for i in self])
 
     def __eq__(self, other):
         """
@@ -104,7 +94,7 @@ class GenericSpeciesStructure(CombinatorialObject):
         """
         if not isinstance(other, GenericSpeciesStructure):
             return False
-        return self._list == other._list and self.labels() == other.labels()
+        return list(self) == list(other) and self.labels() == other.labels()
 
     def __ne__(self, other):
         """
@@ -176,7 +166,7 @@ class GenericSpeciesStructure(CombinatorialObject):
             [1, 2, 3]
         """
         if isinstance(i, (int, Integer)):
-            return self._labels[i-1]
+            return self._labels[i - 1]
         else:
             return i
 
@@ -196,17 +186,9 @@ class GenericSpeciesStructure(CombinatorialObject):
             return False
         if self.parent() != x.parent():
             return False
+        # We do not care about the labels for isomorphism testing
+        return list(self.canonical_label()) == list(x.canonical_label())
 
-        #We don't care about the labels for isomorphism testing
-        if self.canonical_label()._list == x.canonical_label()._list:
-            return True
-        else:
-            return False
-
-#For backward compatibility.  This should be removed in the near
-#future since I doubt that there is any code that depends directly on
-#SpeciesStructure.
-SpeciesStructure = GenericSpeciesStructure
 
 class SpeciesStructureWrapper(GenericSpeciesStructure):
     def __init__(self, parent, s, **options):
@@ -241,7 +223,7 @@ class SpeciesStructureWrapper(GenericSpeciesStructure):
         self._parent = parent
         self._s = s
         self._options = options
-        GenericSpeciesStructure.__init__(self, parent, s._labels, s._list)
+        GenericSpeciesStructure.__init__(self, parent, s._labels, list(s))
 
     def __getattr__(self, attr):
         """

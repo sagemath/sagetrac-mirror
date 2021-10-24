@@ -40,7 +40,7 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
              ['b', 'a', 'c']]
         """
         P = self.parent()
-        return P._canonical_rep_from_partition(self.__class__, self._labels, Permutation(self._list).cycle_type())
+        return P._canonical_rep_from_partition(self.__class__, self._labels, Permutation(list(self)).cycle_type())
 
     def permutation_group_element(self):
         """
@@ -55,7 +55,7 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
             sage: a.permutation_group_element()
             (2,3)
         """
-        return Permutation(self._list).to_permutation_group_element()
+        return Permutation(list(self)).to_permutation_group_element()
 
     def transport(self, perm):
         """
@@ -72,7 +72,7 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
             ['a', 'd', 'c', 'b']
         """
         p = self.permutation_group_element()
-        p = perm*p*~perm
+        p = perm * p * ~perm
         return self.__class__(self.parent(), self._labels, p.domain())
 
     def automorphism_group(self):

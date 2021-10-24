@@ -48,7 +48,8 @@ class LinearOrderSpeciesStructure(GenericSpeciesStructure):
             sage: a.transport(p)
             ['b', 'a', 'c']
         """
-        return LinearOrderSpeciesStructure(self.parent(), self._labels, [perm(i) for i in self._list])
+        return LinearOrderSpeciesStructure(self.parent(), self._labels,
+                                           [perm(i) for i in self])
 
     def automorphism_group(self):
         """
@@ -111,7 +112,7 @@ class LinearOrderSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         """
         from sage.combinat.permutation import Permutations
         for p in Permutations(len(labels)):
-            yield structure_class(self, labels, p._list)
+            yield structure_class(self, labels, list(p))
 
     def _isotypes(self, structure_class, labels):
         """
