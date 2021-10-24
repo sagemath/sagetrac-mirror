@@ -165,6 +165,7 @@ jobs:
           esac
           case "${{ matrix.stage }}" in
             *-enable-site*)  export EXTRA_CONFIGURE_ARGS="--enable-system-site-packages $EXTRA_CONFIGURE_ARGS"
+                             rm -f venv/pyvenv.cfg
                              ;;
           esac
           MAKE="make -j12" tox -e $TOX_ENV -- SAGE_NUM_THREADS=4 $TARGETS
