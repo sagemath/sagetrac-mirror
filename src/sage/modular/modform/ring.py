@@ -472,12 +472,12 @@ class ModularFormsRing(Parent):
             sage: M(f)
             Traceback (most recent call last):
             ...
-            ValueError: the group (Congruence Subgroup Gamma0(3)) and/or the base ring (Rational Field) of the given modular form is not consistant with the base space: Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+            ValueError: the group (Congruence Subgroup Gamma0(3)) and/or the base ring (Rational Field) of the given modular form is not consistant with the base space: Ring of Modular Forms for Modular Group SL(2,ℤ) over Rational Field
             sage: M = ModularFormsRing(1, base_ring=ZZ)
             sage: M(ModularForms(1,4).0)
             Traceback (most recent call last):
             ...
-            ValueError: the group (Modular Group SL(2,Z)) and/or the base ring (Rational Field) of the given modular form is not consistant with the base space: Ring of Modular Forms for Modular Group SL(2,Z) over Integer Ring
+            ValueError: the group (Modular Group SL(2,ℤ)) and/or the base ring (Rational Field) of the given modular form is not consistant with the base space: Ring of Modular Forms for Modular Group SL(2,ℤ) over Integer Ring
             sage: M('x')
             Traceback (most recent call last):
             ...

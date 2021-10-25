@@ -68,7 +68,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         EXAMPLES::
 
             sage: CuspForms(1,60) # indirect doctest
-            Cuspidal subspace of dimension 5 of Modular Forms space of dimension 6 for Modular Group SL(2,Z) of weight 60 over Rational Field
+            Cuspidal subspace of dimension 5 of Modular Forms space of dimension 6 for Modular Group SL(2,ℤ) of weight 60 over Rational Field
 
             sage: M = ModularForms(4,10)
             sage: S = sage.modular.hecke.submodule.HeckeSubmodule(M, M.submodule(M.basis()[:3]).free_module())

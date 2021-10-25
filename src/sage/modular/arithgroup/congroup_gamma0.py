@@ -226,7 +226,7 @@ class Gamma0_class(GammaH_class):
         EXAMPLES::
 
             sage: Gamma0(24).divisor_subgroups()
-            [Modular Group SL(2,Z),
+            [Modular Group SL(2,ℤ),
             Congruence Subgroup Gamma0(2),
             Congruence Subgroup Gamma0(3),
             Congruence Subgroup Gamma0(4),

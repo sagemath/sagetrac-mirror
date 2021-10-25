@@ -2645,7 +2645,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
             sage: E4 = ModularForms(1, 4).gen(0)
             sage: E4.parent()
-            Modular Forms space of dimension 1 for Modular Group SL(2,Z) of weight 4 over Rational Field
+            Modular Forms space of dimension 1 for Modular Group SL(2,ℤ) of weight 4 over Rational Field
             sage: chi = DirichletGroup(5)[1]
             sage: chi.base_ring()
             Cyclotomic Field of order 4 and degree 2
@@ -3144,7 +3144,7 @@ class GradedModularFormElement(ModuleElement):
         sage: M = ModularFormsRing(1)
         sage: D = CuspForms(1, 12).0
         sage: M(D).parent()
-        Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+        Ring of Modular Forms for Modular Group SL(2,ℤ) over Rational Field
 
     A graded modular form can be initated via a dictionnary or a list::
 
@@ -3157,7 +3157,7 @@ class GradedModularFormElement(ModuleElement):
     Also, when adding two modular forms of different weights, a graded modular form element will be created::
 
         sage: (E4 + D).parent()
-        Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+        Ring of Modular Forms for Modular Group SL(2,ℤ) over Rational Field
         sage: M([E4, D]) == E4 + D
         True
 
@@ -3202,7 +3202,7 @@ class GradedModularFormElement(ModuleElement):
             sage: M({0:E4})
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Modular Forms space of dimension 1 for Modular Group SL(2,Z) of weight 4 over Rational Field to Rational Field
+            TypeError: no canonical coercion from Modular Forms space of dimension 1 for Modular Group SL(2,ℤ) of weight 4 over Rational Field to Rational Field
             sage: M([E4, x])
             Traceback (most recent call last):
             ...
@@ -3312,7 +3312,7 @@ class GradedModularFormElement(ModuleElement):
             sage: M = ModularFormsRing(1)
             sage: E4 = M.0
             sage: E4.group()
-            Modular Group SL(2,Z)
+            Modular Group SL(2,ℤ)
             sage: M5 = ModularFormsRing(Gamma1(5))
             sage: f = M5(ModularForms(Gamma1(5)).0);
             sage: f.group()
@@ -3441,12 +3441,12 @@ class GradedModularFormElement(ModuleElement):
             sage: F = F4 + F6 + F8; F # indirect doctest
             3 + 216*q + 47448*q^2 + 933984*q^3 + 7411032*q^4 + 35955216*q^5 + O(q^6)
             sage: F.parent()
-            Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+            Ring of Modular Forms for Modular Group SL(2,ℤ) over Rational Field
             sage: g = ModularForms(Gamma1(7), 12).0
             sage: F+g #sum of two forms of different type
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for +: 'Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field' and 'Modular Forms space of dimension 25 for Congruence Subgroup Gamma1(7) of weight 12 over Rational Field'
+            TypeError: unsupported operand parent(s) for +: 'Ring of Modular Forms for Modular Group SL(2,ℤ) over Rational Field' and 'Modular Forms space of dimension 25 for Congruence Subgroup Gamma1(7) of weight 12 over Rational Field'
         """
         GM = self.__class__
         f_self = self._forms_dictionary
@@ -3521,7 +3521,7 @@ class GradedModularFormElement(ModuleElement):
             sage: I*E4 # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: 'Number Field in I with defining polynomial x^2 + 1 with I = 1*I' and 'Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field'
+            TypeError: unsupported operand parent(s) for *: 'Number Field in I with defining polynomial x^2 + 1 with I = 1*I' and 'Ring of Modular Forms for Modular Group SL(2,ℤ) over Rational Field'
         """
         GM = self.__class__
         f_self = self._forms_dictionary

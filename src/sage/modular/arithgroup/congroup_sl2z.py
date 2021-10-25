@@ -53,7 +53,7 @@ class SL2Z_class(Gamma0_class):
         EXAMPLES::
 
             sage: G = SL2Z; G
-            Modular Group SL(2,Z)
+            Modular Group SL(2,ℤ)
             sage: G.gens()
             (
             [ 0 -1]  [1 1]
@@ -129,9 +129,9 @@ class SL2Z_class(Gamma0_class):
         EXAMPLES::
 
             sage: SL2Z._repr_()
-            'Modular Group SL(2,Z)'
+            'Modular Group SL(2,ℤ)'
         """
-        return "Modular Group SL(2,Z)"
+        return "Modular Group SL(2,ℤ)"
 
     def _latex_(self):
         r"""
@@ -251,7 +251,7 @@ def _SL2Z_ref():
     EXAMPLES::
 
         sage: sage.modular.arithgroup.congroup_sl2z._SL2Z_ref()
-        Modular Group SL(2,Z)
+        Modular Group SL(2,ℤ)
         sage: sage.modular.arithgroup.congroup_sl2z._SL2Z_ref() is SL2Z
         True
     """

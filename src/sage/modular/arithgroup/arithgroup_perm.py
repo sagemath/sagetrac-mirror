@@ -1311,18 +1311,18 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         EXAMPLES::
 
             sage: Gamma1(3).as_permutation_group().congruence_closure()
-            Congruence subgroup of SL(2,Z) of level 3, preimage of:
+            Congruence subgroup of SL(2,ℤ) of level 3, preimage of:
              Matrix group over Ring of integers modulo 3 with 2 generators (
             [1 1]  [1 2]
             [0 1], [0 1]
             )
             sage: sage.modular.arithgroup.arithgroup_perm.HsuExample10().congruence_closure()  # long time (11s on sage.math, 2012)
-            Modular Group SL(2,Z)
+            Modular Group SL(2,ℤ)
         """
         if self.is_even():
             N = self.generalised_level()
         else:
-            N = 2*self.generalised_level()
+            N = 2 * self.generalised_level()
 
         from .congroup_generic import CongruenceSubgroup_constructor as CS
         return CS(N, [x.matrix() for x in self.gens()])

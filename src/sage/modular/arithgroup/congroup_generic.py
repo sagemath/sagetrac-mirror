@@ -58,25 +58,25 @@ def CongruenceSubgroup_constructor(*args):
 
         sage: from sage.modular.arithgroup.congroup_generic import CongruenceSubgroup_constructor as CS
         sage: CS(2, [[1,1,0,1]])
-        Congruence subgroup of SL(2,Z) of level 2, preimage of:
+        Congruence subgroup of SL(2,ℤ) of level 2, preimage of:
          Matrix group over Ring of integers modulo 2 with 1 generators (
         [1 1]
         [0 1]
         )
         sage: CS([matrix(Zmod(2), 2, [1,1,0,1])])
-        Congruence subgroup of SL(2,Z) of level 2, preimage of:
+        Congruence subgroup of SL(2,ℤ) of level 2, preimage of:
          Matrix group over Ring of integers modulo 2 with 1 generators (
         [1 1]
         [0 1]
         )
         sage: CS(MatrixGroup([matrix(Zmod(2), 2, [1,1,0,1])]))
-        Congruence subgroup of SL(2,Z) of level 2, preimage of:
+        Congruence subgroup of SL(2,ℤ) of level 2, preimage of:
          Matrix group over Ring of integers modulo 2 with 1 generators (
         [1 1]
         [0 1]
         )
         sage: CS(SL(2, 2))
-        Modular Group SL(2,Z)
+        Modular Group SL(2,ℤ)
 
     Some invalid inputs::
 
@@ -283,7 +283,7 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
     TESTS::
 
         sage: G = CongruenceSubgroup(5, [[0,-1,1,0]]); G
-        Congruence subgroup of SL(2,Z) of level 5, preimage of:
+        Congruence subgroup of SL(2,ℤ) of level 5, preimage of:
          Matrix group over Ring of integers modulo 5 with 1 generators (
         [0 4]
         [1 0]
@@ -337,7 +337,7 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
             Traceback (most recent call last):
             ...
             TypeError: matrix [ 0 -1]
-            [ 1  0] is not an element of Congruence subgroup of SL(2,Z) of level 2, preimage of:
+            [ 1  0] is not an element of Congruence subgroup of SL(2,ℤ) of level 2, preimage of:
              Matrix group over Ring of integers modulo 2 with 1 generators (
             [1 1]
             [1 0]
@@ -349,7 +349,7 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
             [ 0 -1]
             [ 1  0]
             sage: H([1,2,0,1]).parent()
-            Modular Group SL(2,Z)
+            Modular Group SL(2,ℤ)
         """
         try:
             self.image_mod_n()([a, b, c, d])
@@ -365,7 +365,7 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
 
             sage: G = Gamma(3)
             sage: G.to_even_subgroup()
-            Congruence subgroup of SL(2,Z) of level 3, preimage of:
+            Congruence subgroup of SL(2,ℤ) of level 3, preimage of:
              Matrix group over Ring of integers modulo 3 with 1 generators (
             [2 0]
             [0 2]
@@ -380,14 +380,14 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
 
     def _repr_(self):
         r"""
-        String representation of self.
+        String representation of ``self``.
 
         EXAMPLES::
 
             sage: sage.modular.arithgroup.congroup_generic.CongruenceSubgroupFromGroup(MatrixGroup([matrix(Zmod(2), 2, [1,1,1,0])]))._repr_()
-            'Congruence subgroup of SL(2,Z) of level 2, preimage of:\n Matrix group over Ring of integers modulo 2 with 1 generators (\n[1 1]\n[1 0]\n)'
+            'Congruence subgroup of SL(2,ℤ) of level 2, preimage of:\n Matrix group over Ring of integers modulo 2 with 1 generators (\n[1 1]\n[1 0]\n)'
         """
-        return "Congruence subgroup of SL(2,Z) of level %s, preimage of:\n %s" % (self.level(), self.image_mod_n())
+        return "Congruence subgroup of SL(2,ℤ) of level %s, preimage of:\n %s" % (self.level(), self.image_mod_n())
 
     def index(self):
         r"""

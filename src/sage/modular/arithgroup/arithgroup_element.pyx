@@ -216,13 +216,13 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             [ 3  2]
             [28 19]
             sage: x.parent()
-            Modular Group SL(2,Z)
+            Modular Group SL(2,ℤ)
 
         We check that :trac:`5048` is fixed::
 
             sage: a = Gamma0(10).1 * Gamma0(5).2; a # random
             sage: a.parent()
-            Modular Group SL(2,Z)
+            Modular Group SL(2,ℤ)
         """
         return self.__class__(self.parent(), self.__x * (<ArithmeticSubgroupElement> right).__x, check=False)
 
@@ -423,7 +423,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: (SL2Z.1).__reduce__()
-            (Modular Group SL(2,Z), (
+            (Modular Group SL(2,ℤ), (
             [1 1]
             [0 1]
             ))

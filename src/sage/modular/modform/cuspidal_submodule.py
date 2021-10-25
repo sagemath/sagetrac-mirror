@@ -5,7 +5,7 @@ EXAMPLES::
 
     sage: S = CuspForms(SL2Z,12); S
     Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for
-    Modular Group SL(2,Z) of weight 12 over Rational Field
+    Modular Group SL(2,ℤ) of weight 12 over Rational Field
     sage: S.basis()
     [
     q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
@@ -58,7 +58,7 @@ class CuspidalSubmodule(ModularFormsSubmodule):
 
             sage: S = CuspForms(SL2Z,12); S
             Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for
-            Modular Group SL(2,Z) of weight 12 over Rational Field
+            Modular Group SL(2,ℤ) of weight 12 over Rational Field
             sage: S.basis()
             [
             q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)

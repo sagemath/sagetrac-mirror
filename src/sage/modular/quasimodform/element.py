@@ -56,7 +56,7 @@ class QuasiModularFormsElement(ModuleElement):
 
         sage: E2 = QM.polygen()
         sage: E2.parent()
-        Univariate Polynomial Ring in E2 over Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+        Univariate Polynomial Ring in E2 over Ring of Modular Forms for Modular Group SL(2,ℤ) over Rational Field
         sage: QM(E2)
         1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
         sage: M = QM.modular_forms_subring()

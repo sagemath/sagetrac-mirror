@@ -287,9 +287,9 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         ::
 
             sage: CuspForms(Gamma1(1),12).group()
-            Modular Group SL(2,Z)
+            Modular Group SL(2,ℤ)
             sage: CuspForms(SL2Z,12).group()
-            Modular Group SL(2,Z)
+            Modular Group SL(2,ℤ)
         """
         return self.__group
 
@@ -1152,14 +1152,14 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: e4 + e6
             2 - 264*q - 14472*q^2 - 116256*q^3 - 515208*q^4 - 1545264*q^5 + O(q^6)
             sage: (e4 + e6).parent()
-            Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+            Ring of Modular Forms for Modular Group SL(2,ℤ) over Rational Field
             sage: (M(e4)*e6).parent()
-            Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+            Ring of Modular Forms for Modular Group SL(2,ℤ) over Rational Field
             sage: f = ModularForms(5,12).0
             sage: f+e4
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for +: 'Modular Forms space of dimension 7 for Congruence Subgroup Gamma0(5) of weight 12 over Rational Field' and 'Modular Forms space of dimension 1 for Modular Group SL(2,Z) of weight 4 over Rational Field'
+            TypeError: unsupported operand parent(s) for +: 'Modular Forms space of dimension 7 for Congruence Subgroup Gamma0(5) of weight 12 over Rational Field' and 'Modular Forms space of dimension 1 for Modular Group SL(2,ℤ) of weight 4 over Rational Field'
         """
         from .ring import ModularFormsRing
         if isinstance(other, ModularFormsSpace):

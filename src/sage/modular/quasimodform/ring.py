@@ -33,7 +33,7 @@ where `M_* \cong \CC[E_4, E_6]` is the graded ring of modular forms for
 EXAMPLES::
 
     sage: QM = QuasiModularForms(1); QM
-    Ring of Quasimodular Forms for Modular Group SL(2,Z) over Rational Field
+    Ring of Quasimodular Forms for Modular Group SL(2,ℤ) over Rational Field
     sage: QM.gens()
     [1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6),
     1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6),
@@ -42,7 +42,7 @@ EXAMPLES::
     sage: E2 * E4 + E6
     2 - 288*q - 20304*q^2 - 185472*q^3 - 855216*q^4 - 2697408*q^5 + O(q^6)
     sage: E2.parent()
-    Ring of Quasimodular Forms for Modular Group SL(2,Z) over Rational Field
+    Ring of Quasimodular Forms for Modular Group SL(2,ℤ) over Rational Field
 
 .. NOTE:
 
@@ -98,7 +98,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
     EXAMPLES::
 
         sage: QM = QuasiModularForms(1); QM
-        Ring of Quasimodular Forms for Modular Group SL(2,Z) over Rational Field
+        Ring of Quasimodular Forms for Modular Group SL(2,ℤ) over Rational Field
         sage: QM.gens()
         [1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6),
         1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6),
@@ -135,7 +135,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
             sage: M = QuasiModularForms(1)
             sage: M.group()
-            Modular Group SL(2,Z)
+            Modular Group SL(2,ℤ)
             sage: M.base_ring()
             Rational Field
             sage: QuasiModularForms(Integers(5))
@@ -175,7 +175,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
             sage: QM = QuasiModularForms(1)
             sage: QM.group()
-            Modular Group SL(2,Z)
+            Modular Group SL(2,ℤ)
             sage: QM.group() is SL2Z
             True
             sage: QuasiModularForms(3).group()
@@ -192,7 +192,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: QuasiModularForms(1).modular_forms_subring()
-            Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+            Ring of Modular Forms for Modular Group SL(2,ℤ) over Rational Field
             sage: QuasiModularForms(5).modular_forms_subring()
             Ring of Modular Forms for Congruence Subgroup Gamma0(5) over Rational Field
         """
@@ -206,7 +206,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
             sage: QM = QuasiModularForms(1)
             sage: QM.modular_forms_of_weight(12)
-            Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
+            Modular Forms space of dimension 2 for Modular Group SL(2,ℤ) of weight 12 over Rational Field
             sage: QM = QuasiModularForms(Gamma1(3))
             sage: QM.modular_forms_of_weight(4)
             Modular Forms space of dimension 2 for Congruence Subgroup Gamma1(3) of weight 4 over Rational Field
@@ -240,7 +240,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: QuasiModularForms(1)._repr_()
-            'Ring of Quasimodular Forms for Modular Group SL(2,Z) over Rational Field'
+            'Ring of Quasimodular Forms for Modular Group SL(2,ℤ) over Rational Field'
         """
         return "Ring of Quasimodular Forms for %s over %s" % (self.group(), self.base_ring())
 
@@ -313,7 +313,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             sage: QM('E2')
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from <class 'str'> to Univariate Polynomial Ring in E2 over Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+            TypeError: no canonical coercion from <class 'str'> to Univariate Polynomial Ring in E2 over Ring of Modular Forms for Modular Group SL(2,ℤ) over Rational Field
             sage: P.<q> = PowerSeriesRing(QQ)
             sage: QM(1 - 24 * q - 72 * q^2 - 96 * q^3 + O(q^4))
             Traceback (most recent call last):
@@ -349,7 +349,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             sage: E2 = QM.weight_2_eisenstein_series(); E2
             1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
             sage: E2.parent()
-            Ring of Quasimodular Forms for Modular Group SL(2,Z) over Rational Field
+            Ring of Quasimodular Forms for Modular Group SL(2,ℤ) over Rational Field
         """
         return self(self.__polynomial_subring.gen())
 
@@ -487,7 +487,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             sage: QuasiModularForms(1, name='X').polygen()
             X
             sage: QM.polygen().parent()
-            Univariate Polynomial Ring in E2 over Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+            Univariate Polynomial Ring in E2 over Ring of Modular Forms for Modular Group SL(2,ℤ) over Rational Field
         """
         return self.__polynomial_subring.gen()
 

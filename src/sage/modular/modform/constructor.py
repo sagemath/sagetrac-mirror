@@ -246,7 +246,7 @@ def ModularForms(group  = 1,
     This came up in a subtle bug (:trac:`5923`)::
 
         sage: ModularForms(gp(1), gap(12))
-        Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
+        Modular Forms space of dimension 2 for Modular Group SL(2,ℤ) of weight 12 over Rational Field
 
     This came up in another bug (related to :trac:`8630`)::
 

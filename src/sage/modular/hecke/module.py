@@ -712,7 +712,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         EXAMPLES::
 
             sage: CuspForms(1, 12).ambient()
-            Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
+            Modular Forms space of dimension 2 for Modular Group SL(2,ℤ) of weight 12 over Rational Field
         """
         return self.ambient_hecke_module()
 
@@ -725,7 +725,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         EXAMPLES::
 
             sage: CuspForms(1, 12).ambient_module()
-            Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
+            Modular Forms space of dimension 2 for Modular Group SL(2,ℤ) of weight 12 over Rational Field
             sage: sage.modular.hecke.module.HeckeModule_free_module(QQ, 10, 3).ambient_module()
             Traceback (most recent call last):
             ...

@@ -114,7 +114,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
     EXAMPLES::
 
         sage: CuspForms(1, 12).hecke_algebra() # indirect doctest
-        Full Hecke algebra acting on Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
+        Full Hecke algebra acting on Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Modular Group SL(2,ℤ) of weight 12 over Rational Field
 
     """
     @staticmethod
@@ -188,7 +188,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
         EXAMPLES::
 
             sage: CuspForms(1, 12).hecke_algebra().an_element() # indirect doctest
-            Hecke operator T_2 on Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
+            Hecke operator T_2 on Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Modular Group SL(2,ℤ) of weight 12 over Rational Field
         """
         return self.hecke_operator(self.level() + 1)
 
