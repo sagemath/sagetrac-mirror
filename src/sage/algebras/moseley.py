@@ -196,7 +196,7 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
         Moseley algebra of an Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
     """
 
-    def __init__(self, base_ring, arrangement):
+    def __init__(self, base_ring, arrangement, u = "z0"):
         r"""
         EXAMPLES::
 
@@ -242,8 +242,17 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
 
         # save data for later use
         self._arrangement = arrangement
-        self._homogenized = True
         self._matroid = self._arrangement.matroid()
+        if u:
+            self._u = u
+            if u in base_ring:
+                self._homogenized = False
+            elif isinstance(u, str):
+                self._homogenized = True
+            else:
+                raise ValueError(f"{u=} should be an element of {base_ring} or a string.")
+        else:
+            self._homogenized = False
 
         # register coercions (how to convert between the bases)
         self._register_coercions()
@@ -322,10 +331,48 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
         """
         return self._arrangement
 
+    def _get_polynomial_vars(self):
+        r"""
+        Certain specializations of the Moseley ring will be created by setting the
+        homogenizing variable to a constant. Rather than redefining the entire
+        ``underlying_polynomial_ring()`` method, this method is the one which should
+        be changed for different specializations (e.g. the Varchenko-Gelfand algebra,
+        or the Cordovil algebra).
+
+        EXAMPLES::
+
+            sage:
+            sage:
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        A = self._arrangement
+        n = A.n_hyperplanes()
+
+        var_string = ["x{}".format(i) for i in range(n)]
+
+        if self._homogenized:
+            var_string.append(self._u)
+
+        BR = self.base_ring()
+        if BR not in Fields():
+            BR = BR.fraction_field()
+
+        R = PolynomialRing(BR, var_string, len(var_string))
+
+        if self._homogenized:
+            x = R.gens()[:-1]
+            z0 = R.gens()[-1]
+        else:
+            x = R.gens()
+            z0 = R(self._u)
+
+        return x, z0
+
     @cached_method
     def underlying_polynomial_ring(self):
         r"""
-        The Varchenko-Gelfand algebra as a (quotient of a) polynomial ring.
+        The Moseley algebra as a (quotient of a) polynomial ring.
 
         If the base ring is not a field, we use the polynomial ring over
         the corresponding fraction field.
@@ -343,47 +390,29 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
             Quotient of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
              by the ideal (x0^2 - x0, x1^2 - x1, x2^2 - x2, -x0*x1 + x0*x2 + x1*x2 - x2)
         """
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        x, z0 = self._get_polynomial_vars()
 
-        A = self._arrangement
-        n = A.n_hyperplanes()
-
-        # one variable for each hyperplane, plus one for homogenization
-        var_string = ["x{}".format(i) for i in range(n)] + ["z0"]
-
-        BR = self.base_ring()
-        if BR not in Fields():
-            BR = BR.fraction_field()
-
-        R = PolynomialRing(BR, var_string, len(var_string))
-        
-        x = R.gens()[:-1]
-        z0 = R.gens()[-1]
+        R = z0.parent()
 
         # Build the ideal that we will quotient by.
-        # First, there is one generator of the form xi^2 - xi*z0 for each variable xi.
-        ideal_gens = [xi * xi - xi * z0 for xi in x] + [z0 * z0 - 1]
+        # First, there is one generator of the form xi^2 - xi for each variable xi.
+        ideal_gens = [xi * xi - xi * z0 for xi in x]
+        if self._homogenized:
+            ideal_gens.append(z0 * z0 - 1)
 
         # Second, there is one generator for each empty intersection of the form
         #   `\cap_{i \in I} H_i^+ \cap \cap_{j \in J} H_j^- = \emptyset`,
         # which is given by`\prod_{I}
-        #   `\prod_{i \in I} x_i \prod_{j \in J} (x_j - z_0) - \prod_{i \in I} (x_i - z_0) \prod_{j \in J} x_j`.
+        #   `\prod_{i \in I} x_i \prod_{j \in J} (x_j - u) - \prod_{i \in I} (x_i - u) \prod_{j \in J} x_j`.
         # It suffices to take one such generator for each circuit of the associated
         # matroid.
 
         for circuit in self._matroid.circuits():
-            circuit = sorted(circuit) # could this give a bug if given in a nonstandard order?
+            circuit = sorted(circuit)
             m = matrix([A[i].normal() for i in circuit])
             for v in m.left_kernel().basis():
-                I = list()
-                J = list()
-
-                for i, vi in enumerate(v):
-                    if vi > 0:
-                        I.append(circuit[i])
-                    elif vi < 0:
-                        J.append(circuit[i])
-
+                I = [circuit[i] for (i, vi) in enumerate(v) if vi > 0]
+                J = [circuit[j] for (j, vj) in enumerate(v) if vj < 0]
                 gen = R.prod(x[i] for i in I) * R.prod(x[j] - z0 for j in J) - R.prod(x[i] - z0 for i in I) * R.prod(x[j] for j in J)
                 ideal_gens.append(gen)
 
