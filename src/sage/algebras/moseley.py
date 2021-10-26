@@ -627,6 +627,252 @@ class VarcheckoGelfandAlgebra(MoseleyAlgebra):
                 cone_covectors.append(tuple(covector))
         return cone_covectors
 
+    class Bases(Category_realization_of_parent):
+        r"""
+        The category of the realizations. This contains code that will be
+        inherited by all the different bases.
+        """
+        def super_categories(self):
+            category = AlgebrasWithBasis(self.base().base_ring())
+            return [self.base().Realizations(),
+                    category.Realizations().WithBasis()]
+
+        class ParentMethods:
+            def underlying_polynomial_ring(self):
+                r"""
+                Return the underlying polynomial ring.
+
+                EXAMPLES::
+
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra()
+                    sage: VG.underlying_polynomial_ring()
+                    Quotient of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+                     by the ideal (x0^2 - x0, x1^2 - x1, x2^2 - x2, -x0*x1 + x0*x2 + x1*x2 - x2)
+                """
+                return self.realization_of().underlying_polynomial_ring()
+
+            def hyperplane_arrangement(self):
+                r"""
+                Return the defining hyperplane arrangement.
+
+                EXAMPLES::
+
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra()
+                    sage: VG.hyperplane_arrangement()
+                    Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
+                """
+                return self.realization_of().hyperplane_arrangement()
+
+            def _repr_(self):
+                r"""
+                Return a string representation of ``self``.
+
+                EXAMPLES::
+
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra()
+                    sage: N = VG.nbc_basis(); N
+                    Varchenko-Gelfand algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over the Rational Field on the NBC basis
+                """
+                return "Varchenko-Gelfand algebra of {} over the {} on the {} basis".format(
+                        self.hyperplane_arrangement(), self.base_ring(), self._realization_name())
+
+            @cached_method
+            def product_on_basis(self, x, y):
+                r"""
+                Product of two basis elements.
+
+                This is achieved by converting the elements to polynomials in
+                the underlying polynomial ring and then expanding the result in
+                the basis.
+
+                EXAMPLES::
+
+                    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra(ZZ)
+                    sage: X = VG.normal_basis()
+                    sage: X[0, 1] * X[1]
+                    X[0, 2] + X[1, 2] - X[2]
+                    sage: X[0] * X[2]
+                    X[0, 2]
+
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra()
+                    sage: N = VG.nbc_basis()
+                    sage: poly1 = N[0,2].to_polynomial(); poly1
+                    x0*x2
+                    sage: poly2 = N[1].to_polynomial(); poly2
+                    x1
+                    sage: poly1 * poly2
+                    x0*x2 + x1*x2 - x2
+                    sage: N.product_on_basis(Set([0,2]), Set([1]))
+                    N[0, 1]
+                    sage: _.to_polynomial()
+                    x0*x2 + x1*x2 - x2
+
+                A bigger example for sanity checking::
+
+                    sage: for b0 in N.basis():
+                    ....:     for b1 in N.basis():
+                    ....:         print("{} * {} = {}".format(b0, b1, b0 * b1))
+                    N[] * N[] = N[]
+                    N[] * N[0] = N[0]
+                    N[] * N[1] = N[1]
+                    N[] * N[2] = N[2]
+                    N[] * N[0, 1] = N[0, 1]
+                    N[] * N[0, 2] = N[0, 2]
+                    N[0] * N[] = N[0]
+                    N[0] * N[0] = N[0]
+                    N[0] * N[1] = N[0, 1]
+                    N[0] * N[2] = N[0, 2]
+                    N[0] * N[0, 1] = N[0, 1]
+                    N[0] * N[0, 2] = N[0, 2]
+                    N[1] * N[] = N[1]
+                    N[1] * N[0] = N[0, 1]
+                    N[1] * N[1] = N[1]
+                    N[1] * N[2] = N[2] + N[0, 1] - N[0, 2]
+                    N[1] * N[0, 1] = N[0, 1]
+                    N[1] * N[0, 2] = N[0, 1]
+                    N[2] * N[] = N[2]
+                    N[2] * N[0] = N[0, 2]
+                    N[2] * N[1] = N[2] + N[0, 1] - N[0, 2]
+                    N[2] * N[2] = N[2]
+                    N[2] * N[0, 1] = N[0, 1]
+                    N[2] * N[0, 2] = N[0, 2]
+                    N[0, 1] * N[] = N[0, 1]
+                    N[0, 1] * N[0] = N[0, 1]
+                    N[0, 1] * N[1] = N[0, 1]
+                    N[0, 1] * N[2] = N[0, 1]
+                    N[0, 1] * N[0, 1] = N[0, 1]
+                    N[0, 1] * N[0, 2] = N[0, 1]
+                    N[0, 2] * N[] = N[0, 2]
+                    N[0, 2] * N[0] = N[0, 2]
+                    N[0, 2] * N[1] = N[0, 1]
+                    N[0, 2] * N[2] = N[0, 2]
+                    N[0, 2] * N[0, 1] = N[0, 1]
+                    N[0, 2] * N[0, 2] = N[0, 2]
+                """
+                poly1 = self.to_polynomial_on_basis(x)
+                poly2 = self.to_polynomial_on_basis(y)
+                return self.from_polynomial(poly1 * poly2)
+
+            def to_polynomial(self, element):
+                r"""
+                Return ``element`` as an element of the underlying
+                polynomial ring.
+
+                EXAMPLES::
+
+                    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = VarchenkoGelfandAlgebra(QQ, A)
+                    sage: X = VG.normal_basis()
+                    sage: X.to_polynomial(X[0, 2] - X[0])
+                    x0*x2 - x0
+
+                    sage: N = VG.nbc_basis()
+                    sage: N.to_polynomial(N[0, 2] - N[0])
+                    x0*x2 - x0
+
+                    sage: C = VG.normal_basis()
+                    sage: C.to_polynomial(C[1, -1, 1] - C[1, 1, 1])
+                    x1*x2 - x1
+                """
+                R = self.underlying_polynomial_ring()
+                return R.sum(coeff * self.to_polynomial_on_basis(monom) for (monom, coeff) in element)
+
+            def from_polynomial(self, polynomial):
+                r"""
+                Express a polynomial in the Varchenko-Gelfand algebra as a linear
+                combination of the elements of the NBC basis.
+
+                EXAMPLES::
+
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra()
+
+                Convert the elements of the NBC basis to polynomials::
+
+                    sage: N = VG.nbc_basis()
+                    sage: for b in N.basis():
+                    ....:     poly = b.to_polynomial()
+                    ....:     print("{} = {}".format(N.from_polynomial(poly), poly))
+                    N[] = 1
+                    N[0] = x0
+                    N[1] = x1
+                    N[2] = x2
+                    N[0, 1] = x0*x2 + x1*x2 - x2
+                    N[0, 2] = x0*x2
+
+                Convert the elements of the normal basis to polynomials::
+
+                    sage: X = VG.normal_basis()
+                    sage: for b in X.basis():
+                    ....:     poly = b.to_polynomial()
+                    ....:     print("{} = {}".format(X.from_polynomial(poly), poly))
+                    X[1, 2] = x1*x2
+                    X[0, 2] = x0*x2
+                    X[2] = x2
+                    X[1] = x1
+                    X[0] = x0
+                    X[] = 1
+
+                Convert the elements of the NBC basis to elements of the normal
+                basis::
+
+                    sage: for b in N.basis():
+                    ....:     print("{} = {}".format(b, X.from_polynomial(b.to_polynomial())))
+                    N[] = X[]
+                    N[0] = X[0]
+                    N[1] = X[1]
+                    N[2] = X[2]
+                    N[0, 1] = X[0, 2] + X[1, 2] - X[2]
+                    N[0, 2] = X[0, 2]
+
+                and conversely::
+
+                    sage: for b in X.basis():
+                    ....:     print("{} = {}".format(b, N.from_polynomial(b.to_polynomial())))
+                    X[1, 2] = N[2] + N[0, 1] - N[0, 2]
+                    X[0, 2] = N[0, 2]
+                    X[2] = N[2]
+                    X[1] = N[1]
+                    X[0] = N[0]
+                    X[] = N[]
+
+                """
+                X = self.realization_of().normal_basis()
+                M = self.realization_of().change_of_basis_matrix(self, X)
+                v = X.from_polynomial(polynomial).to_vector()
+                return self.from_vector(M.solve_left(v))
+
+        class ElementMethods:
+            def to_polynomial(self):
+                r"""
+                The polynomial corresponding to this element.
+
+                EXAMPLES::
+
+                    sage: A = hyperplane_arrangements.braid(3)
+                    sage: VG = A.varchenko_gelfand_algebra()
+                    sage: X = VG.normal_basis()
+                    sage: X[0,2].to_polynomial()
+                    x0*x2
+                    sage: X[0,1,2].to_polynomial()
+                    x0*x2 + x1*x2 - x2
+
+                    sage: N = VG.nbc_basis()
+                    sage: N[0, 1].to_polynomial()
+                    x0*x2 + x1*x2 - x2
+
+                    sage: C = VG.covector_basis()
+                    sage: C[1, -1, 1].to_polynomial()
+                    -x1*x2 + x2
+                """
+                return self.parent().to_polynomial(self)
 
 class VarchenkoGelfandAlgebra(UniqueRepresentation, Parent):
     r"""
