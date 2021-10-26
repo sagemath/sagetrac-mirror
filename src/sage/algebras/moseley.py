@@ -424,9 +424,15 @@ class CordovilAlgebra(MoseleyAlgebra):
     def __init__(self, base_ring, arrangement):
         MoseleyAlgebra.__init__(self, base_ring, arrangement, 0)
 
+    def _register_coercions(self):
+        pass
+
 class VarcheckoGelfandAlgebra(MoseleyAlgebra):
     def __init__(self, base_ring, arrangement):
         MoseleyAlgebra.__init__(self, base_ring, arrangement, 1)
+
+    def _register_coercions(self):
+        pass
 
 class VarchenkoGelfandAlgebra(UniqueRepresentation, Parent):
     r"""
