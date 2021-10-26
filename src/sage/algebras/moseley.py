@@ -421,12 +421,12 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
         return Q
 
 class CordovilAlgebra(MoseleyAlgebra):
-
-    pass 
+    def __init__(self, base_ring, arrangement):
+        MoseleyAlgebra.__init__(self, base_ring, arrangement, 0)
 
 class VarcheckoGelfandAlgebra(MoseleyAlgebra):
-
-    pass
+    def __init__(self, base_ring, arrangement):
+        MoseleyAlgebra.__init__(self, base_ring, arrangement, 1)
 
 class VarchenkoGelfandAlgebra(UniqueRepresentation, Parent):
     r"""
