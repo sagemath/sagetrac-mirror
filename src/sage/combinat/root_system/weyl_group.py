@@ -242,7 +242,7 @@ class WeylGroup_gens(UniqueRepresentation,
         # FinitelyGeneratedMatrixGroup_gap takes plain matrices as input
         gens_matrix = [self.morphism_matrix(self.domain().simple_reflection(i))
                        for i in self.index_set()]
-        if gens_matrix == []:
+        if not gens_matrix:
             gens_matrix = [matrix.identity(self.n)]
         from sage.libs.all import libgap
         libgap_group = libgap.Group(gens_matrix)
