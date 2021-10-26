@@ -1092,7 +1092,7 @@ class Braid(FiniteTypeArtinGroupElement):
             last_crossing_in_row[abs(cr)] = i
         # tie up the ends of the list
         for k, i in enumerate(first_crossing_in_row):
-            if i != None:
+            if i is not None:
                 j = last_crossing_in_row[k]
                 if abs(crossings[i]["cr"]) == k:
                     crossings[i]["prev_below"] = j
@@ -1720,7 +1720,7 @@ class Braid(FiniteTypeArtinGroupElement):
     def reverse(self):
         r"""
         Return the reverse of ``self`` obtained by reversing the order of the
-        generators in its word. This defined an anti-involution on the braid
+        generators in its word. This defines an anti-involution on the braid
         group. The link closure of it has the reversed orientation (see the
         example below of a non reversible knot).
 
