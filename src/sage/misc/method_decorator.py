@@ -5,22 +5,22 @@ AUTHOR:
 
 - Martin Albrecht (2009-05): inspired by a conversation with and code by Mike Hansen
 """
-
 from sage.structure.sage_object import SageObject
+
 
 class MethodDecorator(SageObject):
     def __init__(self, f):
         """
-        EXAMPLE::
+        EXAMPLES::
+
             sage: from sage.misc.method_decorator import MethodDecorator
             sage: class Foo:
-            ...       @MethodDecorator
-            ...       def bar(self, x):
-            ...          return x**2
-            ...
+            ....:     @MethodDecorator
+            ....:     def bar(self, x):
+            ....:         return x**2
             sage: J = Foo()
             sage: J.bar
-            <class 'sage.misc.method_decorator.MethodDecorator'>
+            <sage.misc.method_decorator.MethodDecorator object at ...>
         """
         self.f = f
         if hasattr(f, "__doc__"):
@@ -33,9 +33,9 @@ class MethodDecorator(SageObject):
 
     def _sage_src_(self):
         """
-        Returns the source code for the wrapped function.
+        Return the source code for the wrapped function.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This class is rather abstract so we showcase its features
         using one of its subclasses::
@@ -50,7 +50,7 @@ class MethodDecorator(SageObject):
 
     def __call__(self, *args, **kwds):
         """
-        EXAMPLE:
+        EXAMPLES:
 
         This class is rather abstract so we showcase its features
         using one of its subclasses::
@@ -66,7 +66,7 @@ class MethodDecorator(SageObject):
 
     def __get__(self, inst, cls=None):
         """
-        EXAMPLE:
+        EXAMPLES:
 
         This class is rather abstract so we showcase its features
         using one of its subclasses::
@@ -80,4 +80,3 @@ class MethodDecorator(SageObject):
         """
         self._instance = inst
         return self
-

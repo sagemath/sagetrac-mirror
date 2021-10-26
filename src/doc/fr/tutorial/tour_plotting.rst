@@ -15,7 +15,7 @@ représentations de champs de vecteurs. Nous présentons quelques exemples
 de ces objets ici. Pour plus d'exemples de graphiques avec Sage, on
 consultera :ref:`section-systems`, :ref:`section-maxima` et aussi la
 documentation
-`Sage Constructions <http://www.sagemath.org/doc/constructions/>`_
+`Sage Constructions <http://doc.sagemath.org/html/en/constructions/>`_
 
 La commande suivante produit un cercle jaune de rayon 1 centré à l'origine :
 
@@ -149,7 +149,7 @@ Graphiques en trois dimensions
 ------------------------------
 
 Sage produit des graphes en trois dimensions en utilisant le package
-open source appelé [Jmol]_. En voici quelques exemples :
+open source appelé [ThreeJS]_. En voici quelques exemples :
 
 Le parapluie de Whitney tracé en jaune
 http://en.wikipedia.org/wiki/Whitney_umbrella:

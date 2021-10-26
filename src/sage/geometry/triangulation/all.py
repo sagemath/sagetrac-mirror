@@ -1,1 +1,1 @@
-from point_configuration import PointConfiguration
+from .point_configuration import PointConfiguration

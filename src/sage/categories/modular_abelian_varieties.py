@@ -10,11 +10,11 @@ Modular abelian varieties
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_over_base
-from category_with_axiom import CategoryWithAxiom
-from homsets import HomsetsCategory
-from rings import Rings
-from sets_cat import Sets
+from .category_types import Category_over_base
+from .category_with_axiom import CategoryWithAxiom
+from .homsets import HomsetsCategory
+from .rings import Rings
+from .sets_cat import Sets
 
 class ModularAbelianVarieties(Category_over_base):
     """

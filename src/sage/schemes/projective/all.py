@@ -4,7 +4,7 @@ all.py -- export of projective schemes to Sage
 
 #*****************************************************************************
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -20,5 +20,5 @@ all.py -- export of projective schemes to Sage
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from projective_space import ProjectiveSpace, is_ProjectiveSpace
+from .projective_space import ProjectiveSpace, is_ProjectiveSpace
 

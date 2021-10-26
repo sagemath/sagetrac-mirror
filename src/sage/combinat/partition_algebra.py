@@ -1,7 +1,7 @@
 r"""
 Partition/Diagram Algebras
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -13,39 +13,58 @@ Partition/Diagram Algebras
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from combinat import catalan_number
-from combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from .combinat import catalan_number
+from sage.combinat.free_module import CombinatorialFreeModule
+from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.combinat.set_partition import SetPartition, SetPartitions, SetPartitions_set
-from sage.sets.set import Set, is_Set
+from sage.sets.set import Set, Set_generic
 from sage.graphs.graph import Graph
-from sage.rings.arith import factorial, binomial
-from permutation import Permutations
-from sage.rings.all import Integer
-from sage.rings.real_mpfr import is_RealNumber
-from subset import Subsets
+from sage.arith.all import factorial, binomial
+from .permutation import Permutations
+from sage.rings.all import ZZ, QQ
+from .subset import Subsets
 from sage.functions.all import ceil
-import functools
-import math
 
 
-def create_set_partition_function(letter, k):
+def _int_or_half_int(k):
+    r"""
+    Check if ``k`` is an integer or half integer.
+
+    OUTPUT:
+
+    If ``k`` is not in `1/2 \ZZ`, then this raises a ``ValueError``.
+    Otherwise, we return the pair:
+
+    - boolean; ``True`` if ``k`` is an integer and ``False`` if a half integer
+    - integer; the floor of ``k``
+
+    TESTS::
+
+        sage: from sage.combinat.partition_algebra import _int_or_half_int
+        sage: _int_or_half_int(2)
+        (True, 2)
+        sage: _int_or_half_int(3/2)
+        (False, 1)
+        sage: _int_or_half_int(1.5)
+        (False, 1)
+        sage: _int_or_half_int(2.)
+        (True, 2)
+        sage: _int_or_half_int(2.1)
+        Traceback (most recent call last):
+        ...
+        ValueError: k must be an integer or an integer + 1/2
     """
-    EXAMPLES::
-
-        sage: from sage.combinat.partition_algebra import create_set_partition_function
-        sage: create_set_partition_function('A', 3)
-        Set partitions of {1, ..., 3, -1, ..., -3}
-    """
-    from sage.functions.all import floor
-    if isinstance(k, (int, Integer)):
-        if k > 0:
-            return globals()['SetPartitions' + letter + 'k_k'](k)
-    elif is_RealNumber(k):
-        if k - math.floor(k) == 0.5:
-            return globals()['SetPartitions' + letter + 'khalf_k'](floor(k))
+    if k in ZZ:
+        return True, ZZ(k)
+    # Try to see if it is a half integer
+    try:
+        k = QQ(k)
+        if k.denominator() == 2:
+            return False, k.floor()
+    except (ValueError, TypeError):
+        pass
 
     raise ValueError("k must be an integer or an integer + 1/2")
 
@@ -59,27 +78,28 @@ class SetPartitionsXkElement(SetPartition):
         """
         Check to make sure this is a set partition.
 
-        EXAMLPLES::
+        EXAMPLES::
 
             sage: A2p5 = SetPartitionsAk(2.5)
-            sage: x = A2p5.first(); x # random
-            {{1, 2, 3, -1, -3, -2}}
+            sage: x = A2p5.first(); x
+            {{-3, -2, -1, 1, 2, 3}}
             sage: x.check()
             sage: y = A2p5.next(x); y
-            {{-3, -2, -1, 2, 3}, {1}}
+            {{-3, 3}, {-2, -1, 1, 2}}
             sage: y.check()
         """
-        #Check to make sure each element of x is a set
+        # Check to make sure each element of x is a set
         for s in self:
-            assert isinstance(s, (set, frozenset)) or is_Set(s)
+            assert isinstance(s, (set, frozenset, Set_generic))
 
-#####
-#A_k#
-#####
-SetPartitionsAk = functools.partial(create_set_partition_function,"A")
-SetPartitionsAk.__doc__ = (
-    """
-    Returns the combinatorial class of set partitions of type A_k.
+
+#######
+# A_k #
+#######
+
+def SetPartitionsAk(k):
+    r"""
+    Return the combinatorial class of set partitions of type `A_k`.
 
     EXAMPLES::
 
@@ -107,7 +127,12 @@ SetPartitionsAk.__doc__ = (
         {{-1}, {-2}, {2}, {3, -3}, {1}}
         sage: A2p5.random_element() #random
         {{-1}, {-2}, {3, -3}, {1, 2}}
-    """)
+    """
+    is_int, k = _int_or_half_int(k)
+    if not is_int:
+        return SetPartitionsAkhalf_k(k)
+    return SetPartitionsAk_k(k)
+
 
 class SetPartitionsAk_k(SetPartitions_set):
     def __init__(self, k):
@@ -120,7 +145,9 @@ class SetPartitionsAk_k(SetPartitions_set):
             True
         """
         self.k = k
-        SetPartitions_set.__init__(self, frozenset(list(range(1,k+1)) + [-1*x for x in range(1,k+1)]))
+        set_k = frozenset(list(range(1, k + 1)) +
+                          [-x for x in range(1, k + 1)])
+        SetPartitions_set.__init__(self, set_k)
 
     Element = SetPartitionsXkElement
 
@@ -131,7 +158,8 @@ class SetPartitionsAk_k(SetPartitions_set):
             sage: SetPartitionsAk(3)
             Set partitions of {1, ..., 3, -1, ..., -3}
         """
-        return "Set partitions of {1, ..., %s, -1, ..., -%s}"%(self.k, self.k)
+        return "Set partitions of {1, ..., %s, -1, ..., -%s}" % (self.k, self.k)
+
 
 class SetPartitionsAkhalf_k(SetPartitions_set):
     def __init__(self, k):
@@ -144,7 +172,8 @@ class SetPartitionsAkhalf_k(SetPartitions_set):
             True
         """
         self.k = k
-        SetPartitions_set.__init__( self, frozenset(list(range(1,k+2)) + [-1*x for x in range(1,k+1)]) )
+        set_k = frozenset(list(range(1, k + 2)) + [-x for x in range(1, k + 1)])
+        SetPartitions_set.__init__(self, set_k)
 
     Element = SetPartitionsXkElement
 
@@ -155,27 +184,27 @@ class SetPartitionsAkhalf_k(SetPartitions_set):
             sage: SetPartitionsAk(2.5)
             Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block
         """
-        s = self.k+1
-        return "Set partitions of {1, ..., %s, -1, ..., -%s} with %s and -%s in the same block"%(s,s,s,s)
+        s = self.k + 1
+        return "Set partitions of {1, ..., %s, -1, ..., -%s} with %s and -%s in the same block" % (s, s, s, s)
 
     def __contains__(self, x):
         """
         TESTS::
 
             sage: A2p5 = SetPartitionsAk(2.5)
-            sage: all([ sp in A2p5 for sp in A2p5])
+            sage: all(sp in A2p5 for sp in A2p5)
             True
             sage: A3 = SetPartitionsAk(3)
-            sage: len(filter(lambda x: x in A2p5, A3))
+            sage: len([x for x in A3 if x in A2p5])
             52
             sage: A2p5.cardinality()
             52
         """
-        if x not in SetPartitionsAk_k(self.k+1):
+        if x not in SetPartitionsAk_k(self.k + 1):
             return False
 
         for part in x:
-            if self.k+1 in part and -self.k-1 not in part:
+            if self.k + 1 in part and -self.k - 1 not in part:
                 return False
 
         return True
@@ -195,28 +224,30 @@ class SetPartitionsAkhalf_k(SetPartitions_set):
 
             sage: ks = [ 1.5, 2.5, 3.5 ]
             sage: aks = map(SetPartitionsAk, ks)
-            sage: all([ak.cardinality() == len(ak.list()) for ak in aks])
+            sage: all(ak.cardinality() == len(ak.list()) for ak in aks)
             True
         """
-        kp = Set([-self.k-1])
+        kp = frozenset([-self.k - 1])
         for sp in SetPartitions_set.__iter__(self):
             res = []
             for part in sp:
-                if self.k+1 in part:
-                    res.append( part + kp )
+                if self.k + 1 in part:
+                    res.append(part.union(kp))
                 else:
                     res.append(part)
             yield self.element_class(self, res)
 
-#####
-#S_k#
-#####
-SetPartitionsSk = functools.partial(create_set_partition_function,"S")
-SetPartitionsSk.__doc__ = (
-    """
-    Returns the combinatorial class of set partitions of type S_k.  There
-    is a bijection between these set partitions and the permutations
-    of 1, ..., k.
+
+#######
+# S_k #
+#######
+
+def SetPartitionsSk(k):
+    r"""
+    Return the combinatorial class of set partitions of type `S_k`.
+
+    There is a bijection between these set partitions and the
+    permutations of `1, \ldots, k`.
 
     EXAMPLES::
 
@@ -257,7 +288,13 @@ SetPartitionsSk.__doc__ = (
         {{1, -3}, {2, -2}, {4, -4}, {3, -1}}
         sage: S3p5.random_element() #random
         {{1, -3}, {2, -2}, {4, -4}, {3, -1}}
-    """)
+    """
+    is_int, k = _int_or_half_int(k)
+    if not is_int:
+        return SetPartitionsSkhalf_k(k)
+    return SetPartitionsSk_k(k)
+
+
 class SetPartitionsSk_k(SetPartitionsAk_k):
     def _repr_(self):
         """
@@ -266,7 +303,7 @@ class SetPartitionsSk_k(SetPartitionsAk_k):
             sage: SetPartitionsSk(3)
             Set partitions of {1, ..., 3, -1, ..., -3} with propagating number 3
         """
-        return SetPartitionsAk_k._repr_(self) + " with propagating number %s"%self.k
+        return SetPartitionsAk_k._repr_(self) + " with propagating number %s" % self.k
 
     def __contains__(self, x):
         """
@@ -274,11 +311,11 @@ class SetPartitionsSk_k(SetPartitionsAk_k):
 
             sage: A3 = SetPartitionsAk(3)
             sage: S3 = SetPartitionsSk(3)
-            sage: all([ sp in S3 for sp in S3])
+            sage: all(sp in S3 for sp in S3)
             True
             sage: S3.cardinality()
             6
-            sage: len(filter(lambda x: x in S3, A3))
+            sage: len([x for x in A3 if x in S3])
             6
         """
         if not SetPartitionsAk_k.__contains__(self, x):
@@ -291,7 +328,7 @@ class SetPartitionsSk_k(SetPartitionsAk_k):
 
     def cardinality(self):
         """
-        Returns k!.
+        Return k!.
 
         TESTS::
 
@@ -317,16 +354,17 @@ class SetPartitionsSk_k(SetPartitionsAk_k):
              {{1, -2}, {2, -3}, {3, -1}},
              {{1, -3}, {2, -1}, {3, -2}},
              {{1, -3}, {2, -2}, {3, -1}}]
-            sage: ks = range(1, 6)
+            sage: ks = list(range(1, 6))
             sage: sks = map(SetPartitionsSk, ks)
-            sage: all([ sk.cardinality() == len(sk.list()) for sk in sks])
+            sage: all(sk.cardinality() == len(sk.list()) for sk in sks)
             True
         """
         for p in Permutations(self.k):
             res = []
             for i in range(self.k):
-                res.append( Set([ i+1, -p[i] ]) )
+                res.append(Set([i + 1, -p[i]]))
             yield self.element_class(self, res)
+
 
 class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
     def __contains__(self, x):
@@ -335,16 +373,16 @@ class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
 
             sage: S2p5 = SetPartitionsSk(2.5)
             sage: A3 = SetPartitionsAk(3)
-            sage: all([sp in S2p5 for sp in S2p5])
+            sage: all(sp in S2p5 for sp in S2p5)
             True
-            sage: len(filter(lambda x: x in S2p5, A3))
+            sage: len([x for x in A3 if x in S2p5])
             2
             sage: S2p5.cardinality()
             2
         """
         if not SetPartitionsAkhalf_k.__contains__(self, x):
             return False
-        if propagating_number(x) != self.k+1:
+        if propagating_number(x) != self.k + 1:
             return False
         return True
 
@@ -355,8 +393,8 @@ class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
             sage: SetPartitionsSk(2.5)
             Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and propagating number 3
         """
-        s = self.k+1
-        return SetPartitionsAkhalf_k._repr_(self) + " and propagating number %s"%s
+        s = self.k + 1
+        return SetPartitionsAkhalf_k._repr_(self) + " and propagating number %s" % s
 
     def cardinality(self):
         """
@@ -373,7 +411,7 @@ class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
 
             sage: ks = [2.5, 3.5, 4.5, 5.5]
             sage: sks = [SetPartitionsSk(k) for k in ks]
-            sage: all([ sk.cardinality() == len(sk.list()) for sk in sks])
+            sage: all(sk.cardinality() == len(sk.list()) for sk in sks)
             True
         """
         return factorial(self.k)
@@ -393,21 +431,23 @@ class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
         for p in Permutations(self.k):
             res = []
             for i in range(self.k):
-                res.append( Set([ i+1, -p[i] ]) )
+                res.append(Set([i + 1, -p[i]]))
 
-            res.append(Set([self.k+1, -self.k - 1]))
+            res.append(Set([self.k + 1, -self.k - 1]))
             yield self.element_class(self, res)
 
-#####
-#I_k#
-#####
-SetPartitionsIk = functools.partial(create_set_partition_function,"I")
-SetPartitionsIk.__doc__ = (
-    """
-    Returns the combinatorial class of set partitions of type I_k.  These
-    are set partitions with a propagating number of less than k.  Note
-    that the identity set partition {{1, -1}, ..., {k, -k}} is not
-    in I_k.
+
+#######
+# I_k #
+#######
+
+def SetPartitionsIk(k):
+    r"""
+    Return the combinatorial class of set partitions of type `I_k`.
+
+    These are set partitions with a propagating number of less than `k`.
+    Note that the identity set partition `\{\{1, -1\}, \ldots, \{k, -k\}\}`
+    is not in `I_k`.
 
     EXAMPLES::
 
@@ -434,8 +474,13 @@ SetPartitionsIk.__doc__ = (
         {{-1}, {-2}, {2}, {3, -3}, {1}}
         sage: I2p5.random_element() #random
         {{-1}, {-2}, {1, 3, -3}, {2}}
+    """
+    is_int, k = _int_or_half_int(k)
+    if not is_int:
+        return SetPartitionsIkhalf_k(k)
+    return SetPartitionsIk_k(k)
 
-    """)
+
 class SetPartitionsIk_k(SetPartitionsAk_k):
     def _repr_(self):
         """
@@ -444,7 +489,7 @@ class SetPartitionsIk_k(SetPartitionsAk_k):
             sage: SetPartitionsIk(3)
             Set partitions of {1, ..., 3, -1, ..., -3} with propagating number < 3
         """
-        return SetPartitionsAk_k._repr_(self) + " with propagating number < %s"%self.k
+        return SetPartitionsAk_k._repr_(self) + " with propagating number < %s" % self.k
 
     def __contains__(self, x):
         """
@@ -452,9 +497,9 @@ class SetPartitionsIk_k(SetPartitionsAk_k):
 
             sage: I3 = SetPartitionsIk(3)
             sage: A3 = SetPartitionsAk(3)
-            sage: all([ sp in I3 for sp in I3])
+            sage: all(sp in I3 for sp in I3)
             True
-            sage: len(filter(lambda x: x in I3, A3))
+            sage: len([x for x in A3 if x in I3])
             197
             sage: I3.cardinality()
             197
@@ -497,6 +542,7 @@ class SetPartitionsIk_k(SetPartitionsAk_k):
             if propagating_number(sp) < self.k:
                 yield sp
 
+
 class SetPartitionsIkhalf_k(SetPartitionsAkhalf_k):
     def __contains__(self, x):
         """
@@ -504,16 +550,16 @@ class SetPartitionsIkhalf_k(SetPartitionsAkhalf_k):
 
             sage: I2p5 = SetPartitionsIk(2.5)
             sage: A3 = SetPartitionsAk(3)
-            sage: all([ sp in I2p5 for sp in I2p5])
+            sage: all(sp in I2p5 for sp in I2p5)
             True
-            sage: len(filter(lambda x: x in I2p5, A3))
+            sage: len([x for x in A3 if x in I2p5])
             50
             sage: I2p5.cardinality()
             50
         """
         if not SetPartitionsAkhalf_k.__contains__(self, x):
             return False
-        if propagating_number(x) >= self.k+1:
+        if propagating_number(x) >= self.k + 1:
             return False
         return True
 
@@ -524,7 +570,7 @@ class SetPartitionsIkhalf_k(SetPartitionsAkhalf_k):
             sage: SetPartitionsIk(2.5)
             Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and propagating number < 3
         """
-        return SetPartitionsAkhalf_k._repr_(self) + " and propagating number < %s"%(self.k+1)
+        return SetPartitionsAkhalf_k._repr_(self) + " and propagating number < %s" % (self.k + 1)
 
     def cardinality(self):
         """
@@ -551,15 +597,18 @@ class SetPartitionsIkhalf_k(SetPartitionsAkhalf_k):
         """
 
         for sp in SetPartitionsAkhalf_k.__iter__(self):
-            if propagating_number(sp) < self.k+1:
+            if propagating_number(sp) < self.k + 1:
                 yield sp
-#####
-#B_k#
-#####
-SetPartitionsBk = functools.partial(create_set_partition_function,"B")
-SetPartitionsBk.__doc__ = (
-    """
-    Returns the combinatorial class of set partitions of type B_k.
+
+
+#######
+# B_k #
+#######
+
+def SetPartitionsBk(k):
+    r"""
+    Return the combinatorial class of set partitions of type `B_k`.
+
     These are the set partitions where every block has size 2.
 
     EXAMPLES::
@@ -589,7 +638,12 @@ SetPartitionsBk.__doc__ = (
 
         sage: B2p5.cardinality()
         3
-    """)
+    """
+    is_int, k = _int_or_half_int(k)
+    if not is_int:
+        return SetPartitionsBkhalf_k(k)
+    return SetPartitionsBk_k(k)
+
 
 class SetPartitionsBk_k(SetPartitionsAk_k):
     def _repr_(self):
@@ -607,7 +661,7 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
 
             sage: B3 = SetPartitionsBk(3)
             sage: A3 = SetPartitionsAk(3)
-            sage: len(filter(lambda x: x in B3, A3))
+            sage: len([x for x in A3 if x in B3])
             15
             sage: B3.cardinality()
             15
@@ -622,8 +676,9 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
         return True
 
     def cardinality(self):
-        """
-        Returns the number of set partitions in B_k where k is an integer.
+        r"""
+        Return the number of set partitions in `B_k` where `k` is an integer.
+
         This is given by (2k)!! = (2k-1)\*(2k-3)\*...\*5\*3\*1.
 
         EXAMPLES::
@@ -640,7 +695,7 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
             945
         """
         c = 1
-        for i in range(1, 2*self.k,2):
+        for i in range(1, 2 * self.k, 2):
             c *= i
         return c
 
@@ -677,12 +732,13 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
 
         ::
 
-            sage: bks = [ SetPartitionsBk(i) for i in range(1, 6) ]
-            sage: all( [ bk.cardinality() == len(bk.list()) for bk in bks] )
+            sage: bks = [SetPartitionsBk(i) for i in range(1, 6)]
+            sage: all(bk.cardinality() == len(bk.list()) for bk in bks)
             True
         """
-        for sp in SetPartitions(self._set, [2]*(len(self._set)//2)):
+        for sp in SetPartitions(self._set, [2] * (len(self._set) // 2)):
             yield self.element_class(self, sp)
+
 
 class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
     def _repr_(self):
@@ -694,16 +750,15 @@ class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
         """
         return SetPartitionsAkhalf_k._repr_(self) + " and with block size 2"
 
-
     def __contains__(self, x):
         """
         TESTS::
 
             sage: A3 = SetPartitionsAk(3)
             sage: B2p5 = SetPartitionsBk(2.5)
-            sage: all([ sp in B2p5 for sp in B2p5 ])
+            sage: all(sp in B2p5 for sp in B2p5)
             True
-            sage: len(filter(lambda x: x in B2p5, A3))
+            sage: len([x for x in A3 if x in B2p5])
             3
             sage: B2p5.cardinality()
             3
@@ -752,17 +807,19 @@ class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
              {{1, 3}, {-3, -1}, {2, -2}, {4, -4}},
              {{1, 2}, {-3, -1}, {4, -4}, {3, -2}}]
         """
-        set = list(range(1,self.k+1)) + [-1*x for x in range(1,self.k+1)]
-        for sp in SetPartitions(set, [2]*(len(set)//2) ):
-            yield self.element_class(self, Set(list(sp)) + Set([Set([self.k+1, -self.k -1])]))
+        set = list(range(1, self.k + 1)) + [-x for x in range(1, self.k + 1)]
+        for sp in SetPartitions(set, [2] * (len(set) // 2)):
+            yield self.element_class(self, Set(list(sp)) + Set([Set([self.k + 1, -self.k - 1])]))
 
-#####
-#P_k#
-#####
-SetPartitionsPk = functools.partial(create_set_partition_function,"P")
-SetPartitionsPk.__doc__ = (
-    """
-    Returns the combinatorial class of set partitions of type P_k.
+
+#######
+# P_k #
+#######
+
+def SetPartitionsPk(k):
+    r"""
+    Return the combinatorial class of set partitions of type `P_k`.
+
     These are the planar set partitions.
 
     EXAMPLES::
@@ -791,7 +848,13 @@ SetPartitionsPk.__doc__ = (
         sage: P2p5.random_element() #random
         {{1, 2, 3, -3}, {-1, -2}}
 
-    """)
+    """
+    is_int, k = _int_or_half_int(k)
+    if not is_int:
+        return SetPartitionsPkhalf_k(k)
+    return SetPartitionsPk_k(k)
+
+
 class SetPartitionsPk_k(SetPartitionsAk_k):
     def _repr_(self):
         """
@@ -808,11 +871,11 @@ class SetPartitionsPk_k(SetPartitionsAk_k):
 
             sage: P3 = SetPartitionsPk(3)
             sage: A3 = SetPartitionsAk(3)
-            sage: len(filter(lambda x: x in P3, A3))
+            sage: len([x for x in A3 if x in P3])
             132
             sage: P3.cardinality()
             132
-            sage: all([sp in P3 for sp in P3])
+            sage: all(sp in P3 for sp in P3)
             True
         """
         if not SetPartitionsAk_k.__contains__(self, x):
@@ -834,7 +897,7 @@ class SetPartitionsPk_k(SetPartitionsAk_k):
             sage: SetPartitionsPk(4).cardinality()
             1430
         """
-        return catalan_number(2*self.k)
+        return catalan_number(2 * self.k)
 
     def __iter__(self):
         """
@@ -860,6 +923,7 @@ class SetPartitionsPk_k(SetPartitionsAk_k):
             if is_planar(sp):
                 yield self.element_class(self, sp)
 
+
 class SetPartitionsPkhalf_k(SetPartitionsAkhalf_k):
     def __contains__(self, x):
         """
@@ -867,9 +931,9 @@ class SetPartitionsPkhalf_k(SetPartitionsAkhalf_k):
 
             sage: A3 = SetPartitionsAk(3)
             sage: P2p5 = SetPartitionsPk(2.5)
-            sage: all([ sp in P2p5 for sp in P2p5 ])
+            sage: all(sp in P2p5 for sp in P2p5)
             True
-            sage: len(filter(lambda x: x in P2p5, A3))
+            sage: len([x for x in A3 if x in P2p5])
             42
             sage: P2p5.cardinality()
             42
@@ -917,13 +981,14 @@ class SetPartitionsPkhalf_k(SetPartitionsAkhalf_k):
                 yield self.element_class(self, sp)
 
 
-#####
-#T_k#
-#####
-SetPartitionsTk = functools.partial(create_set_partition_function,"T")
-SetPartitionsTk.__doc__ = (
-    """
-    Returns the combinatorial class of set partitions of type T_k.
+#######
+# T_k #
+#######
+
+def SetPartitionsTk(k):
+    r"""
+    Return the combinatorial class of set partitions of type `T_k`.
+
     These are planar set partitions where every block is of size 2.
 
     EXAMPLES::
@@ -949,8 +1014,13 @@ SetPartitionsTk.__doc__ = (
         {{2, -2}, {3, -3}, {1, -1}}
         sage: T2p5.last() #random
         {{1, 2}, {3, -3}, {-1, -2}}
+    """
+    is_int, k = _int_or_half_int(k)
+    if not is_int:
+        return SetPartitionsTkhalf_k(k)
+    return SetPartitionsTk_k(k)
 
-    """)
+
 class SetPartitionsTk_k(SetPartitionsBk_k):
     def _repr_(self):
         """
@@ -967,9 +1037,9 @@ class SetPartitionsTk_k(SetPartitionsBk_k):
 
             sage: T3 = SetPartitionsTk(3)
             sage: A3 = SetPartitionsAk(3)
-            sage: all([ sp in T3 for sp in T3])
+            sage: all(sp in T3 for sp in T3)
             True
-            sage: len(filter(lambda x: x in T3, A3))
+            sage: len([x for x in A3 if x in T3])
             5
             sage: T3.cardinality()
             5
@@ -1012,6 +1082,7 @@ class SetPartitionsTk_k(SetPartitionsBk_k):
             if is_planar(sp):
                 yield self.element_class(self, sp)
 
+
 class SetPartitionsTkhalf_k(SetPartitionsBkhalf_k):
     def __contains__(self, x):
         """
@@ -1019,9 +1090,9 @@ class SetPartitionsTkhalf_k(SetPartitionsBkhalf_k):
 
             sage: A3 = SetPartitionsAk(3)
             sage: T2p5 = SetPartitionsTk(2.5)
-            sage: all([ sp in T2p5 for sp in T2p5 ])
+            sage: all(sp in T2p5 for sp in T2p5)
             True
-            sage: len(filter(lambda x: x in T2p5, A3))
+            sage: len([x for x in A3 if x in T2p5])
             2
             sage: T2p5.cardinality()
             2
@@ -1071,11 +1142,22 @@ class SetPartitionsTkhalf_k(SetPartitionsBkhalf_k):
                 yield self.element_class(self, sp)
 
 
+def SetPartitionsRk(k):
+    r"""
+    Return the combinatorial class of set partitions of type `R_k`.
 
-SetPartitionsRk = functools.partial(create_set_partition_function,"R")
-SetPartitionsRk.__doc__ = (
+    EXAMPLES::
+
+        sage: SetPartitionsRk(3)
+        Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive
+         and negative entry in each block
     """
-    """)
+    is_int, k = _int_or_half_int(k)
+    if not is_int:
+        return SetPartitionsRkhalf_k(k)
+    return SetPartitionsRk_k(k)
+
+
 class SetPartitionsRk_k(SetPartitionsAk_k):
     def __init__(self, k):
         """
@@ -1104,9 +1186,9 @@ class SetPartitionsRk_k(SetPartitionsAk_k):
 
             sage: R3 = SetPartitionsRk(3)
             sage: A3 = SetPartitionsAk(3)
-            sage: all([ sp in R3 for sp in R3])
+            sage: all(sp in R3 for sp in R3)
             True
-            sage: len(filter(lambda x: x in R3, A3))
+            sage: len([x for x in A3 if x in R3])
             34
             sage: R3.cardinality()
             34
@@ -1144,7 +1226,8 @@ class SetPartitionsRk_k(SetPartitionsAk_k):
             sage: SetPartitionsRk(5).cardinality()
             1546
         """
-        return sum( [ binomial(self.k, l)**2*factorial(l) for l in range(self.k + 1) ] )
+        return sum(binomial(self.k, l)**2 * factorial(l)
+                   for l in range(self.k + 1))
 
     def __iter__(self):
         """
@@ -1153,19 +1236,20 @@ class SetPartitionsRk_k(SetPartitionsAk_k):
             sage: len(SetPartitionsRk(3).list() ) == SetPartitionsRk(3).cardinality()
             True
         """
-        #The number of blocks with at most two things
-        positives = Set(range(1, self.k+1))
-        negatives = Set( [ -i for i in positives ] )
+        # The number of blocks with at most two things
+        positives = Set(range(1, self.k + 1))
+        negatives = Set(-i for i in positives)
 
-        yield self.element_class(self, to_set_partition([],self.k))
-        for n in range(1,self.k+1):
+        yield self.element_class(self, to_set_partition([], self.k))
+        for n in range(1, self.k + 1):
             for top in Subsets(positives, n):
                 t = list(top)
                 for bottom in Subsets(negatives, n):
                     b = list(bottom)
                     for permutation in Permutations(n):
-                        l = [ [t[i], b[ permutation[i] - 1 ] ] for i in range(n) ]
+                        l = [[t[i], b[permutation[i] - 1]] for i in range(n)]
                         yield self.element_class(self, to_set_partition(l, k=self.k))
+
 
 class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
     def __contains__(self, x):
@@ -1174,9 +1258,9 @@ class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
 
             sage: A3 = SetPartitionsAk(3)
             sage: R2p5 = SetPartitionsRk(2.5)
-            sage: all([ sp in R2p5 for sp in R2p5 ])
+            sage: all(sp in R2p5 for sp in R2p5)
             True
-            sage: len(filter(lambda x: x in R2p5, A3))
+            sage: len([x for x in A3 if x in R2p5])
             7
             sage: R2p5.cardinality()
             7
@@ -1198,7 +1282,6 @@ class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
 
                 if negatives > 1 or positives > 1:
                     return False
-
 
         return True
 
@@ -1222,7 +1305,8 @@ class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
             sage: SetPartitionsRk(4.5).cardinality()
             209
         """
-        return sum( [ binomial(self.k, l)**2*factorial(l) for l in range(self.k + 1) ] )
+        return sum(binomial(self.k, l)**2 * factorial(l)
+                   for l in range(self.k + 1))
 
     def __iter__(self):
         """
@@ -1240,24 +1324,36 @@ class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
             sage: len(L)
             7
         """
-        positives = Set(range(1, self.k+1))
-        negatives = Set( [ -i for i in positives ] )
+        positives = Set(range(1, self.k + 1))
+        negatives = Set(-i for i in positives)
 
-        yield self.element_class(self, to_set_partition([[self.k+1, -self.k-1]], self.k+1))
-        for n in range(1,self.k+1):
+        yield self.element_class(self, to_set_partition([[self.k + 1, -self.k - 1]], self.k + 1))
+        for n in range(1, self.k + 1):
             for top in Subsets(positives, n):
                 t = list(top)
                 for bottom in Subsets(negatives, n):
                     b = list(bottom)
                     for permutation in Permutations(n):
-                        l = [ [t[i], b[ permutation[i] - 1 ] ] for i in range(n) ] + [ [self.k+1, -self.k-1] ]
-                        yield self.element_class(self, to_set_partition(l, k=self.k+1))
+                        l = [[t[i], b[permutation[i] - 1]] for i in range(n)] + [[self.k + 1, -self.k - 1]]
+                        yield self.element_class(self, to_set_partition(l, k=self.k + 1))
 
 
-SetPartitionsPRk = functools.partial(create_set_partition_function,"PR")
-SetPartitionsPRk.__doc__ = (
+def SetPartitionsPRk(k):
+    r"""
+    Return the combinatorial class of set partitions of type `PR_k`.
+
+    EXAMPLES::
+
+        sage: SetPartitionsPRk(3)
+        Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive
+         and negative entry in each block and that are planar
     """
-    """)
+    is_int, k = _int_or_half_int(k)
+    if not is_int:
+        return SetPartitionsPRkhalf_k(k)
+    return SetPartitionsPRk_k(k)
+
+
 class SetPartitionsPRk_k(SetPartitionsRk_k):
     def __init__(self, k):
         """
@@ -1286,9 +1382,9 @@ class SetPartitionsPRk_k(SetPartitionsRk_k):
 
             sage: PR3 = SetPartitionsPRk(3)
             sage: A3 = SetPartitionsAk(3)
-            sage: all([ sp in PR3 for sp in PR3])
+            sage: all(sp in PR3 for sp in PR3)
             True
-            sage: len(filter(lambda x: x in PR3, A3))
+            sage: len([x for x in A3 if x in PR3])
             20
             sage: PR3.cardinality()
             20
@@ -1314,7 +1410,7 @@ class SetPartitionsPRk_k(SetPartitionsRk_k):
             sage: SetPartitionsPRk(5).cardinality()
             252
         """
-        return binomial(2*self.k, self.k)
+        return binomial(2 * self.k, self.k)
 
     def __iter__(self):
         """
@@ -1323,19 +1419,20 @@ class SetPartitionsPRk_k(SetPartitionsRk_k):
             sage: len(SetPartitionsPRk(3).list() ) == SetPartitionsPRk(3).cardinality()
             True
         """
-        #The number of blocks with at most two things
-        positives = Set(range(1, self.k+1))
-        negatives = Set( [ -i for i in positives ] )
+        # The number of blocks with at most two things
+        positives = Set(range(1, self.k + 1))
+        negatives = Set(-i for i in positives)
 
         yield self.element_class(self, to_set_partition([], self.k))
-        for n in range(1,self.k+1):
+        for n in range(1, self.k + 1):
             for top in Subsets(positives, n):
                 t = sorted(top)
                 for bottom in Subsets(negatives, n):
                     b = list(bottom)
                     b.sort(reverse=True)
-                    l = [ [t[i], b[ i ] ] for i in range(n) ]
+                    l = [[t[i], b[i]] for i in range(n)]
                     yield self.element_class(self, to_set_partition(l, k=self.k))
+
 
 class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
     def __contains__(self, x):
@@ -1344,9 +1441,9 @@ class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
 
             sage: A3 = SetPartitionsAk(3)
             sage: PR2p5 = SetPartitionsPRk(2.5)
-            sage: all([ sp in PR2p5 for sp in PR2p5 ])
+            sage: all(sp in PR2p5 for sp in PR2p5)
             True
-            sage: len(filter(lambda x: x in PR2p5, A3))
+            sage: len([x for x in A3 if x in PR2p5])
             6
             sage: PR2p5.cardinality()
             6
@@ -1379,54 +1476,69 @@ class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
             sage: SetPartitionsPRk(4.5).cardinality()
             70
         """
-        return binomial(2*self.k, self.k)
+        return binomial(2 * self.k, self.k)
 
     def __iter__(self):
         """
         TESTS::
 
-            sage: L = list(SetPartitionsPRk(2.5)); L
-            [{{-3, 3}, {-2}, {-1}, {1}, {2}}, {{-3, 3}, {-2}, {-1, 1}, {2}},
-             {{-3, 3}, {-2, 1}, {-1}, {2}}, {{-3, 3}, {-2}, {-1, 2}, {1}},
-             {{-3, 3}, {-2, 2}, {-1}, {1}}, {{-3, 3}, {-2, 2}, {-1, 1}}]
-            sage: len(L)
+            sage: next(iter(SetPartitionsPRk(2.5)))
+            {{-3, 3}, {-2}, {-1}, {1}, {2}}
+            sage: len(list(SetPartitionsPRk(2.5)))
             6
         """
-        positives = Set(range(1, self.k+1))
-        negatives = Set( [ -i for i in positives ] )
+        positives = Set(range(1, self.k + 1))
+        negatives = Set(-i for i in positives)
 
-        yield self.element_class(self, to_set_partition([[self.k+1, -self.k-1]],k=self.k+1))
-        for n in range(1,self.k+1):
+        yield self.element_class(self,
+                                 to_set_partition([[self.k + 1, -self.k - 1]],
+                                                  k=self.k + 1))
+        for n in range(1, self.k + 1):
             for top in Subsets(positives, n):
                 t = sorted(top)
                 for bottom in Subsets(negatives, n):
                     b = list(bottom)
                     b.sort(reverse=True)
-                    l = [ [t[i], b[ i ] ] for i in range(n) ] + [ [self.k+1, -self.k-1] ]
-                    yield self.element_class(self, to_set_partition(l, k=self.k+1))
+                    l = [[t[i], b[i]] for i in range(n)] + [[self.k + 1, -self.k - 1]]
+                    yield self.element_class(self,
+                                             to_set_partition(l, k=self.k + 1))
+
 
 #########################################################
-#Algebras
+# Algebras
 
-class PartitionAlgebra_generic(CombinatorialAlgebra):
+class PartitionAlgebra_generic(CombinatorialFreeModule):
     def __init__(self, R, cclass, n, k, name=None, prefix=None):
         """
         EXAMPLES::
 
             sage: from sage.combinat.partition_algebra import *
             sage: s = PartitionAlgebra_sk(QQ, 3, 1)
+            sage: TestSuite(s).run()
             sage: s == loads(dumps(s))
             True
         """
         self.k = k
         self.n = n
         self._indices = cclass
-        self._name = "Generic partition algebra with k = %s and n = %s and basis %s"%( self.k, self.n, cclass) if name is None else name
-        self._one = identity(ceil(self.k))
+        self._name = "Generic partition algebra with k = %s and n = %s and basis %s" % (self.k, self.n, cclass) if name is None else name
         self._prefix = "" if prefix is None else prefix
-        CombinatorialAlgebra.__init__(self, R)
+        CombinatorialFreeModule.__init__(self, R, cclass, category=AlgebrasWithBasis(R))
 
-    def _multiply_basis(self, left, right):
+    def one_basis(self):
+        """
+        Return the basis index for the unit of the algebra.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.partition_algebra import *
+            sage: s = PartitionAlgebra_sk(ZZ, 3, 1)
+            sage: len(s.one().support())   # indirect doctest
+            1
+        """
+        return self.basis().keys()(identity(ceil(self.k)))
+
+    def product_on_basis(self, left, right):
         """
         EXAMPLES::
 
@@ -1436,13 +1548,19 @@ class PartitionAlgebra_generic(CombinatorialAlgebra):
             sage: t12^2 == s(1) #indirect doctest
             True
         """
-        (sp, l) = set_partition_composition(left, right)
-        return {sp: self.n**l}
-class PartitionAlgebraElement_generic(CombinatorialAlgebraElement):
+        sp, l = set_partition_composition(left, right)
+        sp = self.basis().keys()(sp)
+        return self.term(sp, self.n**l)
+
+
+class PartitionAlgebraElement_generic(CombinatorialFreeModule.Element):
     pass
+
 
 class PartitionAlgebraElement_ak(PartitionAlgebraElement_generic):
     pass
+
+
 class PartitionAlgebra_ak(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
@@ -1454,13 +1572,16 @@ class PartitionAlgebra_ak(PartitionAlgebra_generic):
             True
         """
         if name is None:
-            name = "Partition algebra A_%s(%s)"%(k, n)
+            name = "Partition algebra A_%s(%s)" % (k, n)
         cclass = SetPartitionsAk(k)
         self._element_class = PartitionAlgebraElement_ak
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="A")
 
+
 class PartitionAlgebraElement_bk(PartitionAlgebraElement_generic):
     pass
+
+
 class PartitionAlgebra_bk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
@@ -1472,13 +1593,16 @@ class PartitionAlgebra_bk(PartitionAlgebra_generic):
             True
         """
         if name is None:
-            name = "Partition algebra B_%s(%s)"%(k, n)
+            name = "Partition algebra B_%s(%s)" % (k, n)
         cclass = SetPartitionsBk(k)
         self._element_class = PartitionAlgebraElement_bk
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="B")
 
+
 class PartitionAlgebraElement_sk(PartitionAlgebraElement_generic):
     pass
+
+
 class PartitionAlgebra_sk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
@@ -1490,13 +1614,16 @@ class PartitionAlgebra_sk(PartitionAlgebra_generic):
             True
         """
         if name is None:
-            name = "Partition algebra S_%s(%s)"%(k, n)
+            name = "Partition algebra S_%s(%s)" % (k, n)
         cclass = SetPartitionsSk(k)
         self._element_class = PartitionAlgebraElement_sk
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="S")
 
+
 class PartitionAlgebraElement_pk(PartitionAlgebraElement_generic):
     pass
+
+
 class PartitionAlgebra_pk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
@@ -1508,13 +1635,16 @@ class PartitionAlgebra_pk(PartitionAlgebra_generic):
             True
         """
         if name is None:
-            name = "Partition algebra P_%s(%s)"%(k, n)
+            name = "Partition algebra P_%s(%s)" % (k, n)
         cclass = SetPartitionsPk(k)
         self._element_class = PartitionAlgebraElement_pk
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="P")
 
+
 class PartitionAlgebraElement_tk(PartitionAlgebraElement_generic):
     pass
+
+
 class PartitionAlgebra_tk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
@@ -1526,13 +1656,16 @@ class PartitionAlgebra_tk(PartitionAlgebra_generic):
             True
         """
         if name is None:
-            name = "Partition algebra T_%s(%s)"%(k, n)
+            name = "Partition algebra T_%s(%s)" % (k, n)
         cclass = SetPartitionsTk(k)
         self._element_class = PartitionAlgebraElement_tk
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="T")
 
+
 class PartitionAlgebraElement_rk(PartitionAlgebraElement_generic):
     pass
+
+
 class PartitionAlgebra_rk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
@@ -1544,13 +1677,16 @@ class PartitionAlgebra_rk(PartitionAlgebra_generic):
             True
         """
         if name is None:
-            name = "Partition algebra R_%s(%s)"%(k, n)
+            name = "Partition algebra R_%s(%s)" % (k, n)
         cclass = SetPartitionsRk(k)
         self._element_class = PartitionAlgebraElement_rk
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="R")
 
+
 class PartitionAlgebraElement_prk(PartitionAlgebraElement_generic):
     pass
+
+
 class PartitionAlgebra_prk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
@@ -1562,17 +1698,18 @@ class PartitionAlgebra_prk(PartitionAlgebra_generic):
             True
         """
         if name is None:
-            name = "Partition algebra PR_%s(%s)"%(k, n)
+            name = "Partition algebra PR_%s(%s)" % (k, n)
         cclass = SetPartitionsPRk(k)
         self._element_class = PartitionAlgebraElement_prk
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="PR")
+
 
 ##########################################################
 
 def is_planar(sp):
     """
-    Returns True if the diagram corresponding to the set partition is
-    planar; otherwise, it returns False.
+    Return ``True`` if the diagram corresponding to the set partition is
+    planar; otherwise, it returns ``False``.
 
     EXAMPLES::
 
@@ -1582,65 +1719,60 @@ def is_planar(sp):
         sage: pa.is_planar( pa.to_set_partition([[1,-1],[2,-2]]))
         True
     """
-    #Singletons don't affect planarity
+    # Singletons don't affect planarity
     to_consider = [x for x in map(list, sp) if len(x) > 1]
     n = len(to_consider)
 
     for i in range(n):
-        #Get the positive and negative entries of this
-        #part
-        ap = [x for x in to_consider[i] if x>0]
-        an = [abs(x) for x in to_consider[i] if x<0]
-        #print a, ap, an
+        # Get the positive and negative entries of this
+        # part
+        ap = [x for x in to_consider[i] if x > 0]
+        an = [-x for x in to_consider[i] if x < 0]
 
-
-        #Check if a includes numbers in both the top and bottom rows
-        if len(ap) > 0 and len(an) > 0:
-
+        # Check if a includes numbers in both the top and bottom rows
+        if ap and an:
             for j in range(n):
                 if i == j:
                     continue
-                #Get the positive and negative entries of this part
-                bp = [x for x in to_consider[j] if x>0]
-                bn = [abs(x) for x in to_consider[j] if x<0]
+                # Get the positive and negative entries of this part
+                bp = [x for x in to_consider[j] if x > 0]
+                bn = [-x for x in to_consider[j] if x < 0]
 
-                #Skip the ones that don't involve numbers in both
-                #the bottom and top rows
-                if len(bn) == 0 or len(bp) == 0:
+                # Skip the ones that don't involve numbers in both
+                # the bottom and top rows
+                if not bn or not bp:
                     continue
 
-                #Make sure that if min(bp) > max(ap)
-                #then min(bn) >  max(an)
+                # Make sure that if min(bp) > max(ap)
+                # then min(bn) >  max(an)
                 if max(bp) > max(ap):
                     if min(bn) < min(an):
                         return False
 
-
-        #Go through the bottom and top rows
+        # Go through the bottom and top rows
         for row in [ap, an]:
             if len(row) > 1:
                 row.sort()
-                for s in range(len(row)-1):
-                    if row[s] + 1 == row[s+1]:
-                        #No gap, continue on
+                for s in range(len(row) - 1):
+                    if row[s] + 1 == row[s + 1]:
+                        # No gap, continue on
                         continue
                     else:
-                        rng = range(row[s] + 1, row[s+1])
+                        rng = list(range(row[s] + 1, row[s + 1]))
 
-                        #Go through and make sure any parts that
-                        #contain numbers in this range are completely
-                        #contained in this range
+                        # Go through and make sure any parts that
+                        # contain numbers in this range are completely
+                        # contained in this range
                         for j in range(n):
                             if i == j:
                                 continue
 
-                            #Make sure we make the numbers negative again
-                            #if we are in the bottom row
+                            # Make sure we make the numbers negative again
+                            # if we are in the bottom row
                             if row is ap:
                                 sr = Set(rng)
                             else:
-                                sr = Set([-1*x for x in rng])
-
+                                sr = Set(-x for x in rng)
 
                             sj = Set(to_consider[j])
                             intersection = sr.intersection(sj)
@@ -1653,15 +1785,13 @@ def is_planar(sp):
 
 def to_graph(sp):
     """
-    Returns a graph representing the set partition sp.
+    Return a graph representing the set partition ``sp``.
 
     EXAMPLES::
 
         sage: import sage.combinat.partition_algebra as pa
         sage: g = pa.to_graph( pa.to_set_partition([[1,-2],[2,-1]])); g
         Graph on 4 vertices
-
-    ::
 
         sage: g.vertices() #random
         [1, 2, -2, -1]
@@ -1671,12 +1801,13 @@ def to_graph(sp):
     g = Graph()
     for part in sp:
         part_list = list(part)
-        if len(part_list) > 0:
+        if part_list:
             g.add_vertex(part_list[0])
         for i in range(1, len(part_list)):
             g.add_vertex(part_list[i])
-            g.add_edge(part_list[i-1], part_list[i])
+            g.add_edge(part_list[i - 1], part_list[i])
     return g
+
 
 def pair_to_graph(sp1, sp2):
     """
@@ -1724,42 +1855,44 @@ def pair_to_graph(sp1, sp2):
     """
     g = Graph()
 
-    #Add the first set partition to the graph
+    # Add the first set partition to the graph
     for part in sp1:
         part_list = list(part)
-        if len(part_list) > 0:
-            g.add_vertex( (part_list[0],1) )
+        if part_list:
+            g.add_vertex((part_list[0], 1))
 
-            #Add the edge to the second part of the graph
+            # Add the edge to the second part of the graph
             if part_list[0] < 0:
-                g.add_edge( (part_list[0], 1), (abs(part_list[0]), 2)  )
+                g.add_edge((part_list[0], 1), (-part_list[0], 2))
 
         for i in range(1, len(part_list)):
-            g.add_vertex( (part_list[i], 1) )
+            g.add_vertex((part_list[i], 1))
 
-            #Add the edge to the second part of the graph
+            # Add the edge to the second part of the graph
             if part_list[i] < 0:
-                g.add_edge( (part_list[i], 1), (abs(part_list[i]), 2) )
+                g.add_edge((part_list[i], 1), (-part_list[i], 2))
 
-            #Add the edge between adjacent elements of a part
-            g.add_edge( (part_list[i-1], 1), (part_list[i], 1) )
+            # Add the edge between adjacent elements of a part
+            g.add_edge((part_list[i - 1], 1), (part_list[i], 1))
 
-    #Add the second set partition to the graph
+    # Add the second set partition to the graph
     for part in sp2:
         part_list = list(part)
-        if len(part_list) > 0:
-            g.add_vertex( (part_list[0], 2) )
+        if part_list:
+            g.add_vertex((part_list[0], 2))
         for i in range(1, len(part_list)):
-            g.add_vertex( (part_list[i], 2) )
-            g.add_edge( (part_list[i-1], 2), (part_list[i], 2) )
+            g.add_vertex((part_list[i], 2))
+            g.add_edge((part_list[i - 1], 2), (part_list[i], 2))
 
     return g
 
+
 def propagating_number(sp):
     """
-    Returns the propagating number of the set partition sp. The
-    propagating number is the number of blocks with both a positive and
-    negative number.
+    Return the propagating number of the set partition ``sp``.
+
+    The propagating number is the number of blocks with both a
+    positive and negative number.
 
     EXAMPLES::
 
@@ -1771,17 +1904,15 @@ def propagating_number(sp):
         sage: pa.propagating_number(sp2)
         0
     """
-    pn = 0
-    for part in sp:
-        if min(part) < 0  and max(part) > 0:
-            pn += 1
-    return pn
+    return sum(1 for part in sp if min(part) < 0 < max(part))
 
-def to_set_partition(l,k=None):
+
+def to_set_partition(l, k=None):
     """
-    Coverts a list of a list of numbers to a set partitions. Each list
-    of numbers in the outer list specifies the numbers contained in one
-    of the blocks in the set partition.
+    Convert a list of a list of numbers to a set partitions.
+
+    Each list of numbers in the outer list specifies the numbers
+    contained in one of the blocks in the set partition.
 
     If k is specified, then the set partition will be a set partition
     of 1, ..., k, -1, ..., -k. Otherwise, k will default to the minimum
@@ -1794,12 +1925,12 @@ def to_set_partition(l,k=None):
         True
     """
     if k is None:
-        if l == []:
+        if not l:
             return Set([])
         else:
-            k = max( (max( map(abs, x) ) for x in l) )
+            k = max((max(map(abs, x)) for x in l))
 
-    to_be_added = Set( list(range(1, k+1)) + [-1*x for x in range(1, k+1)] )
+    to_be_added = Set(list(range(1, k + 1)) + [-x for x in range(1, k + 1)])
 
     sp = []
     for part in l:
@@ -1812,9 +1943,10 @@ def to_set_partition(l,k=None):
 
     return Set(sp)
 
+
 def identity(k):
     """
-    Returns the identity set partition 1, -1, ..., k, -k
+    Return the identity set partition 1, -1, ..., k, -k
 
     EXAMPLES::
 
@@ -1822,15 +1954,12 @@ def identity(k):
         sage: pa.identity(2)
         {{2, -2}, {1, -1}}
     """
-    res = []
-    for i in range(1, k+1):
-        res.append(Set([i, -i]))
-    return Set(res)
+    return Set(Set([i, -i]) for i in range(1, k + 1))
 
 
 def set_partition_composition(sp1, sp2):
     """
-    Returns a tuple consisting of the composition of the set partitions
+    Return a tuple consisting of the composition of the set partitions
     sp1 and sp2 and the number of components removed from the middle
     rows of the graph.
 
@@ -1848,14 +1977,14 @@ def set_partition_composition(sp1, sp2):
     res = []
     total_removed = 0
     for cc in connected_components:
-        #Remove the vertices that live in the middle two rows
-        new_cc = [x for x in cc if not( (x[0]<0 and x[1] == 1) or (x[0]>0 and x[1]==2) )]
+        # Remove the vertices that live in the middle two rows
+        new_cc = [x for x in cc if not((x[0] < 0 and x[1] == 1) or
+                                       (x[0] > 0 and x[1] == 2))]
 
-        if new_cc == []:
+        if not new_cc:
             if len(cc) > 1:
                 total_removed += 1
         else:
-            res.append( Set([x[0] for x in new_cc]) )
+            res.append(Set(x[0] for x in new_cc))
 
-
-    return ( Set(res), total_removed )
+    return (Set(res), total_removed)

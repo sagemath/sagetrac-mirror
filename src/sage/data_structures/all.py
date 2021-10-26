@@ -1,2 +1,2 @@
-from bitset import Bitset, FrozenBitset
 
+from .bitset import Bitset, FrozenBitset

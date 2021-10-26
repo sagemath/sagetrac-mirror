@@ -8,6 +8,7 @@ Subsets satisfying a hereditary property
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+
 def subsets_with_hereditary_property(f,X,max_obstruction_size=None,ncpus=1):
     r"""
     Return all subsets `S` of `X` such that `f(S)` is true.
@@ -51,7 +52,7 @@ def subsets_with_hereditary_property(f,X,max_obstruction_size=None,ncpus=1):
           documentation for more information, in particular with respect to the
           memory context.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Sets whose elements all have the same remainder mod 2::
 
@@ -62,7 +63,7 @@ def subsets_with_hereditary_property(f,X,max_obstruction_size=None,ncpus=1):
 
     Same, on two threads::
 
-        sage: sorted(list(subsets_with_hereditary_property(f,range(4),ncpus=2)))
+        sage: sorted(subsets_with_hereditary_property(f,range(4),ncpus=2))
         [[], [0], [0, 2], [1], [1, 3], [2], [3]]
 
     One can use this function to compute the independent sets of a graph. We
@@ -92,7 +93,7 @@ def subsets_with_hereditary_property(f,X,max_obstruction_size=None,ncpus=1):
         []
         sage: list(subsets_with_hereditary_property(lambda x:len(x)<1,range(4)))
         [[]]
-        sage: print list(subsets_with_hereditary_property(lambda x:True,range(2)))
+        sage: list(subsets_with_hereditary_property(lambda x:True,range(2)))
         [[], [0], [1], [0, 1]]
     """
     from sage.data_structures.bitset import Bitset

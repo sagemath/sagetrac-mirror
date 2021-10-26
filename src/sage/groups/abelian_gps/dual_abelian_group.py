@@ -64,6 +64,7 @@ AUTHORS:
 ###########################################################################
 
 from sage.rings.infinity import infinity
+from sage.structure.category_object import normalize_names
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.groups.abelian_gps.dual_abelian_group_element import (
     DualAbelianGroupElement, is_DualAbelianGroupElement )
@@ -123,7 +124,7 @@ class DualAbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
        """
         self._base_ring = base_ring
         self._group = G
-        names = self.normalize_names(G.ngens(), names)
+        names = normalize_names(G.ngens(), names)
         self._assign_names(names)
         AbelianGroupBase.__init__(self) # TODO: category=CommutativeGroups()
 
@@ -161,7 +162,7 @@ class DualAbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
 
             sage: F = AbelianGroup(3,[5,64,729], names=list("abc"))
             sage: Fd = F.dual_group(base_ring=CC)
-            sage: print Fd
+            sage: print(Fd)
             DualAbelianGroup( AbelianGroup ( 3, (5, 64, 729) ) )
         """
         s = "DualAbelianGroup( AbelianGroup ( %s, %s ) )"%(self.ngens(), self.gens_orders())
@@ -206,8 +207,7 @@ class DualAbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: Fd._latex_()
             '$\\mathrm{DualAbelianGroup}( AbelianGroup ( 3, (2, 2, 2) ) )$'
         """
-        s = "$\mathrm{DualAbelianGroup}( AbelianGroup ( %s, %s ) )$"%(self.ngens(), self.gens_orders())
-        return s
+        return r"$\mathrm{DualAbelianGroup}( AbelianGroup ( %s, %s ) )$" % (self.ngens(), self.gens_orders())
 
     def random_element(self):
         """
@@ -217,8 +217,8 @@ class DualAbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
 
             sage: G = AbelianGroup([2,3,9])
             sage: Gd = G.dual_group(base_ring=CC)
-            sage: Gd.random_element()
-            X1^2
+            sage: Gd.random_element().parent() is Gd
+            True
 
             sage: N = 43^2-1
             sage: G = AbelianGroup([N],names="a")
@@ -226,10 +226,10 @@ class DualAbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: a, = G.gens()
             sage: A, = Gd.gens()
             sage: x = a^(N/4); y = a^(N/3); z = a^(N/14)
-            sage: X = A*Gd.random_element(); X
-            A^615
-            sage: len([a for a in [x,y,z] if abs(X(a)-1)>10^(-8)])
-            2
+            sage: found = [False]*4
+            sage: while not all(found):
+            ....:     X = A*Gd.random_element()
+            ....:     found[len([b for b in [x,y,z] if abs(X(b)-1)>10^(-8)])] = True
         """
         from sage.misc.prandom import randint
         result = self.one()

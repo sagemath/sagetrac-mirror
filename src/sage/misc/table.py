@@ -10,15 +10,18 @@ AUTHORS:
 - John H. Palmieri (2012-11)
 """
 
+from io import StringIO
+
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
+
 
 class table(SageObject):
     r"""
     Display a rectangular array as a table, either in plain text, LaTeX,
     or html.
 
-    INPUTS:
+    INPUT:
 
     - ``rows`` (default ``None``) - a list of lists (or list of tuples,
       etc.), containing the data to be displayed.
@@ -103,7 +106,7 @@ class table(SageObject):
     information.  The same goes for ``header_column``. Passing lists
     for both arguments simultaneously is not supported. ::
 
-        sage: table([(x,n(sin(x), digits=2)) for x in [0..3]], header_row=["$x$", "$\sin(x)$"], frame=True)
+        sage: table([(x,n(sin(x), digits=2)) for x in [0..3]], header_row=["$x$", r"$\sin(x)$"], frame=True)
         +-----+-----------+
         | $x$ | $\sin(x)$ |
         +=====+===========+
@@ -119,7 +122,7 @@ class table(SageObject):
     You can create the transpose of this table in several ways, for
     example, "by hand," that is, changing the data defining the table::
 
-        sage: table(rows=[[x for x in [0..3]], [n(sin(x), digits=2) for x in [0..3]]], header_column=['$x$', '$\sin(x)$'], frame=True)
+        sage: table(rows=[[x for x in [0..3]], [n(sin(x), digits=2) for x in [0..3]]], header_column=['$x$', r'$\sin(x)$'], frame=True)
         +-----------++------+------+------+------+
         | $x$       || 0    | 1    | 2    | 3    |
         +-----------++------+------+------+------+
@@ -129,7 +132,7 @@ class table(SageObject):
     or by passing the original data as the ``columns`` of the table
     and using ``header_column`` instead of ``header_row``::
 
-        sage: table(columns=[(x,n(sin(x), digits=2)) for x in [0..3]], header_column=['$x$', '$\sin(x)$'], frame=True)
+        sage: table(columns=[(x,n(sin(x), digits=2)) for x in [0..3]], header_column=['$x$', r'$\sin(x)$'], frame=True)
         +-----------++------+------+------+------+
         | $x$       || 0    | 1    | 2    | 3    |
         +-----------++------+------+------+------+
@@ -138,7 +141,7 @@ class table(SageObject):
 
     or by taking the :meth:`transpose` of the original table::
 
-        sage: table(rows=[(x,n(sin(x), digits=2)) for x in [0..3]], header_row=['$x$', '$\sin(x)$'], frame=True).transpose()
+        sage: table(rows=[(x,n(sin(x), digits=2)) for x in [0..3]], header_row=['$x$', r'$\sin(x)$'], frame=True).transpose()
         +-----------++------+------+------+------+
         | $x$       || 0    | 1    | 2    | 3    |
         +-----------++------+------+------+------+
@@ -165,37 +168,39 @@ class table(SageObject):
         |   4 | 5 | 60 |
         +-----+---+----+
 
-    To print HTML, use either ``table(...)._html_()`` or ``html(table(...))``::
+    To generate HTML you should use ``html(table(...))``::
 
-        sage: html(table([["$x$", "$\sin(x)$"]] + [(x,n(sin(x), digits=2)) for x in [0..3]], header_row=True, frame=True))
-        <html>
+        sage: data = [["$x$", r"$\sin(x)$"]] + [(x,n(sin(x), digits=2)) for x in [0..3]]
+        sage: output = html(table(data, header_row=True, frame=True))
+        sage: type(output)
+        <class 'sage.misc.html.HtmlFragment'>
+        sage: print(output)
         <div class="notruncate">
         <table border="1" class="table_form">
         <tbody>
         <tr>
-        <th><script type="math/tex">x</script></th>
-        <th><script type="math/tex">\sin(x)</script></th>
+        <th style="text-align:left">\(x\)</th>
+        <th style="text-align:left">\(\sin(x)\)</th>
         </tr>
         <tr class ="row-a">
-        <td><script type="math/tex">0</script></td>
-        <td><script type="math/tex">0.00</script></td>
+        <td style="text-align:left">\(0\)</td>
+        <td style="text-align:left">\(0.00\)</td>
         </tr>
         <tr class ="row-b">
-        <td><script type="math/tex">1</script></td>
-        <td><script type="math/tex">0.84</script></td>
+        <td style="text-align:left">\(1\)</td>
+        <td style="text-align:left">\(0.84\)</td>
         </tr>
         <tr class ="row-a">
-        <td><script type="math/tex">2</script></td>
-        <td><script type="math/tex">0.91</script></td>
+        <td style="text-align:left">\(2\)</td>
+        <td style="text-align:left">\(0.91\)</td>
         </tr>
         <tr class ="row-b">
-        <td><script type="math/tex">3</script></td>
-        <td><script type="math/tex">0.14</script></td>
+        <td style="text-align:left">\(3\)</td>
+        <td style="text-align:left">\(0.14\)</td>
         </tr>
         </tbody>
         </table>
         </div>
-        </html>
 
     It is an error to specify both ``rows`` and ``columns``::
 
@@ -228,7 +233,11 @@ class table(SageObject):
 
     TESTS::
 
-        sage: TestSuite(table([["$x$", "$\sin(x)$"]] + [(x,n(sin(x), digits=2)) for x in [0..3]], header_row=True, frame=True)).run()
+        sage: TestSuite(table([["$x$", r"$\sin(x)$"]] +
+        ....:                  [(x,n(sin(x), digits=2)) for x in [0..3]],
+        ....:                 header_row=True, frame=True)).run()
+
+    .. automethod:: _rich_repr_
     """
     def __init__(self, rows=None, columns=None, header_row=False,
                  header_column=False, frame=False, align='left'):
@@ -245,7 +254,7 @@ class table(SageObject):
             raise ValueError("Don't set both 'rows' and 'columns' when defining a table.")
         # If columns is set, use its transpose for rows.
         if columns:
-            rows = zip(*columns)
+            rows = list(zip(*columns))
         # Set the rest of the options.
         self._options = {}
         if header_row is True:
@@ -295,7 +304,7 @@ class table(SageObject):
         With no arguments, return the dictionary of options for this
         table. With arguments, modify options.
 
-        INPUTS:
+        INPUT:
 
         - ``header_row`` - if True, first row is highlighted.
         - ``header_column`` - if True, first column is highlighted.
@@ -317,7 +326,7 @@ class table(SageObject):
         initialization process, the header is merged with the rest of
         the data, so changing the header option later using
         ``table.options(...)`` doesn't affect the contents of the
-        table, just whether the row or column is highlighed. When
+        table, just whether the row or column is highlighted. When
         using this :meth:`options` method, no merging of data occurs,
         so here ``header_row`` and ``header_column`` should just be
         ``True`` or ``False``, not a list. ::
@@ -388,7 +397,7 @@ class table(SageObject):
             | z || 3 | 6 |
             +---++---+---+
         """
-        return table(zip(*self._rows),
+        return table(list(zip(*self._rows)),
                      header_row=self._options['header_column'],
                      header_column=self._options['header_row'],
                      frame=self._options['frame'],
@@ -450,6 +459,23 @@ class table(SageObject):
         for row in rows:
             s += self._str_table_row(row, header_row=False)
         return s.strip("\n")
+
+    def _rich_repr_(self, display_manager, **kwds):
+        """
+        Rich Output Magic Method
+
+        See :mod:`sage.repl.rich_output` for details.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: t = table([1, 2, 3])
+            sage: t._rich_repr_(dm)    # the doctest backend does not support html
+        """
+        OutputHtml = display_manager.types.OutputHtml
+        if OutputHtml in display_manager.supported_output():
+            return OutputHtml(self._html_())
 
     def _str_table_row(self, row, header_row=False):
         r"""
@@ -528,6 +554,10 @@ class table(SageObject):
         dollar signs are not automatically added, so tables can
         include both plain text and mathematics.
 
+        OUTPUT:
+
+        String.
+
         EXAMPLES::
 
             sage: from sage.misc.table import table
@@ -551,8 +581,7 @@ class table(SageObject):
             \end{array}\right)$ & $5$ & $6$ \\ \hline
             \end{tabular}
         """
-        from latex import latex, LatexExpr
-        import types
+        from .latex import latex, LatexExpr
 
         rows = self._rows
         nc = len(rows[0])
@@ -605,40 +634,45 @@ class table(SageObject):
         visible effect in the Sage notebook, depending on the version
         of the notebook.
 
+        OUTPUT:
+
+        A :class:`~sage.misc.html.HtmlFragment` instance.
+
         EXAMPLES::
 
             sage: T = table([[r'$\sin(x)$', '$x$', 'text'], [1,34342,3], [identity_matrix(2),5,6]])
             sage: T._html_()
-            <html>
+            '<div.../div>'
+            sage: print(T._html_())
             <div class="notruncate">
             <table  class="table_form">
             <tbody>
             <tr class ="row-a">
-            <td><script type="math/tex">\sin(x)</script></td>
-            <td><script type="math/tex">x</script></td>
-            <td>text</td>
+            <td style="text-align:left">\(\sin(x)\)</td>
+            <td style="text-align:left">\(x\)</td>
+            <td style="text-align:left">text</td>
             </tr>
             <tr class ="row-b">
-            <td><script type="math/tex">1</script></td>
-            <td><script type="math/tex">34342</script></td>
-            <td><script type="math/tex">3</script></td>
+            <td style="text-align:left">\(1\)</td>
+            <td style="text-align:left">\(34342\)</td>
+            <td style="text-align:left">\(3\)</td>
             </tr>
             <tr class ="row-a">
-            <td><script type="math/tex">\left(\begin{array}{rr}
+            <td style="text-align:left">\(\left(\begin{array}{rr}
             1 & 0 \\
             0 & 1
-            \end{array}\right)</script></td>
-            <td><script type="math/tex">5</script></td>
-            <td><script type="math/tex">6</script></td>
+            \end{array}\right)\)</td>
+            <td style="text-align:left">\(5\)</td>
+            <td style="text-align:left">\(6\)</td>
             </tr>
             </tbody>
             </table>
             </div>
-            </html>
 
-        Note that calling ``html(table(...))`` has the same effect as ``table(...)._html_()`::
+        Note that calling ``html(table(...))`` has the same effect as
+        calling ``table(...)._html_()``::
 
-            sage: T = table([["$x$", "$\sin(x)$"]] + [(x,n(sin(x), digits=2)) for x in [0..3]], header_row=True, frame=True)
+            sage: T = table([["$x$", r"$\sin(x)$"]] + [(x,n(sin(x), digits=2)) for x in [0..3]], header_row=True, frame=True)
             sage: T
             +-----+-----------+
             | $x$ | $\sin(x)$ |
@@ -651,37 +685,34 @@ class table(SageObject):
             +-----+-----------+
             | 3   | 0.14      |
             +-----+-----------+
-            sage: html(T)
-            <html>
+            sage: print(html(T))
             <div class="notruncate">
             <table border="1" class="table_form">
             <tbody>
             <tr>
-            <th><script type="math/tex">x</script></th>
-            <th><script type="math/tex">\sin(x)</script></th>
+            <th style="text-align:left">\(x\)</th>
+            <th style="text-align:left">\(\sin(x)\)</th>
             </tr>
             <tr class ="row-a">
-            <td><script type="math/tex">0</script></td>
-            <td><script type="math/tex">0.00</script></td>
+            <td style="text-align:left">\(0\)</td>
+            <td style="text-align:left">\(0.00\)</td>
             </tr>
             <tr class ="row-b">
-            <td><script type="math/tex">1</script></td>
-            <td><script type="math/tex">0.84</script></td>
+            <td style="text-align:left">\(1\)</td>
+            <td style="text-align:left">\(0.84\)</td>
             </tr>
             <tr class ="row-a">
-            <td><script type="math/tex">2</script></td>
-            <td><script type="math/tex">0.91</script></td>
+            <td style="text-align:left">\(2\)</td>
+            <td style="text-align:left">\(0.91\)</td>
             </tr>
             <tr class ="row-b">
-            <td><script type="math/tex">3</script></td>
-            <td><script type="math/tex">0.14</script></td>
+            <td style="text-align:left">\(3\)</td>
+            <td style="text-align:left">\(0.14\)</td>
             </tr>
             </tbody>
             </table>
             </div>
-            </html>
         """
-        import types
         from itertools import cycle
         rows = self._rows
         header_row = self._options['header_row']
@@ -689,41 +720,51 @@ class table(SageObject):
             frame = 'border="1"'
         else:
             frame = ''
-
-        if len(rows) > 0:
-            # If the table has < 100 rows, don't truncate the output in the notebook
-            if len(rows) <= 100:
-                print("<html>\n<div class=\"notruncate\">\n<table {} class=\"table_form\">\n<tbody>".format(frame))
-            else:
-                print("<html>\n<div class=\"truncate\">\n<table {} class=\"table_form\">\n<tbody>".format(frame))
-
+        s = StringIO()
+        if rows:
+            s.writelines([
+                # If the table has < 100 rows, don't truncate the output in the notebook
+                '<div class="notruncate">\n' if len(rows) <= 100 else '<div class="truncate">' ,
+                '<table {} class="table_form">\n'.format(frame),
+                '<tbody>\n',
+            ])
             # First row:
             if header_row:
-                print("<tr>")
-                self._html_table_row(rows[0], header=header_row)
-                print("</tr>")
+                s.write('<tr>\n')
+                self._html_table_row(s, rows[0], header=header_row)
+                s.write('</tr>\n')
                 rows = rows[1:]
 
             # Other rows:
             for row_class, row in zip(cycle(["row-a", "row-b"]), rows):
-                print("<tr class =\"{}\">".format(row_class))
-                self._html_table_row(row, header=False)
-                print("</tr>")
-            print("</tbody>\n</table>\n</div>\n</html>")
+                s.write('<tr class ="{}">\n'.format(row_class))
+                self._html_table_row(s, row, header=False)
+                s.write('</tr>\n')
+            s.write('</tbody>\n</table>\n</div>')
+        return s.getvalue()
 
-    def _html_table_row(self, row, header=False):
+    def _html_table_row(self, file, row, header=False):
         r"""
-        Print the items of a list as one row of an HTML table. Used by
-        the :meth:`_html_` method.
+        Write table row
 
-        INPUTS:
+        Helper method used by the :meth:`_html_` method.
 
-        - ``row`` - a list with the same number of entries as each row
+        INPUT:
+
+        - ``file`` -- file-like object. The table row data will be
+          written to it.
+
+        - ``row`` -- a list with the same number of entries as each row
           of the table.
-        - ``header`` (default False) - if True, treat this as a header
-          row, using ``<th>`` instead of ``<td>``.
 
-        Strings get printed verbatim unless they seem to be LaTeX
+        - ``header`` -- bool (default False). If True, treat this as a
+          header row, using ``<th>`` instead of ``<td>``.
+
+        OUTPUT:
+
+        This method returns nothing. All output is written to ``file``.
+
+        Strings are written verbatim unless they seem to be LaTeX
         code, in which case they are enclosed in a ``script`` tag
         appropriate for MathJax. Sage objects are printed using their
         LaTeX representations.
@@ -731,14 +772,17 @@ class table(SageObject):
         EXAMPLES::
 
             sage: T = table([['a', 'bb', 'ccccc'], [10, -12, 0], [1, 2, 3]])
-            sage: T._html_table_row(['a', 2, '$x$'])
-            <td>a</td>
-            <td><script type="math/tex">2</script></td>
-            <td><script type="math/tex">x</script></td>
+            sage: from io import StringIO
+            sage: s = StringIO()
+            sage: T._html_table_row(s, ['a', 2, '$x$'])
+            sage: print(s.getvalue())
+            <td style="text-align:left">a</td>
+            <td style="text-align:left">\(2\)</td>
+            <td style="text-align:left">\(x\)</td>
         """
         from sage.plot.all import Graphics
-        from latex import latex
-        from html import math_parse
+        from .latex import latex
+        from .html import math_parse
         import types
 
         if isinstance(row, types.GeneratorType):
@@ -746,27 +790,40 @@ class table(SageObject):
         elif not isinstance(row, (list, tuple)):
             row = [row]
 
-        column_tag = "<th>%s</th>" if header else "<td>%s</td>"
+        align_char = self._options['align'][0]   # 'l', 'c', 'r'
+
+        if align_char == 'l':
+            style = 'text-align:left'
+        elif align_char == 'c':
+            style = 'text-align:center'
+        elif align_char == 'r':
+            style = 'text-align:right'
+        else:
+            style = ''
+
+        style_attr = f' style="{style}"' if style else ''
+
+        column_tag = f'<th{style_attr}>%s</th>\n' if header else f'<td{style_attr}>%s</td>\n'
 
         if self._options['header_column']:
-            first_column_tag = "<th class=\"ch\">%s</th>" if header else "<td class=\"ch\">%s</td>"
+            first_column_tag = '<th class="ch"{style_attr}>%s</th>\n' if header else '<td class="ch"{style_attr}>%s</td>\n'
         else:
             first_column_tag = column_tag
 
-        # First entry of row:
+        # first entry of row
         entry = row[0]
         if isinstance(entry, Graphics):
-            print(first_column_tag % entry.show(linkmode = True))
+            file.write(first_column_tag % entry.show(linkmode = True))
         elif isinstance(entry, str):
-            print(first_column_tag % math_parse(entry))
+            file.write(first_column_tag % math_parse(entry))
         else:
-            print(first_column_tag % ('<script type="math/tex">%s</script>' % latex(entry)))
+            file.write(first_column_tag % (r'\(%s\)' % latex(entry)))
 
-        # Other entries:
-        for column in xrange(1,len(row)):
+        # other entries
+        for column in range(1, len(row)):
             if isinstance(row[column], Graphics):
-                print(column_tag % row[column].show(linkmode = True))
+                file.write(column_tag % row[column].show(linkmode = True))
             elif isinstance(row[column], str):
-                print(column_tag % math_parse(row[column]))
+                file.write(column_tag % math_parse(row[column]))
             else:
-                print(column_tag % ('<script type="math/tex">%s</script>' % latex(row[column])))
+                file.write(column_tag % (r'\(%s\)' % latex(row[column])))

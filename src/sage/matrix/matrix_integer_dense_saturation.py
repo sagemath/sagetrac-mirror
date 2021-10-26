@@ -2,12 +2,13 @@
 Saturation over ZZ
 """
 
-from sage.rings.all import ZZ, gcd, GF
-from sage.rings.arith import binomial
+from sage.rings.integer_ring import ZZ
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+from sage.arith.all import binomial, gcd
 from sage.matrix.constructor import identity_matrix, random_matrix
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.misc.randstate import current_randstate
-import matrix_integer_dense_hnf
+from . import matrix_integer_dense_hnf
 from copy import copy
 
 
@@ -80,21 +81,29 @@ def random_sublist_of_size(k, n):
     EXAMPLES::
 
         sage: import sage.matrix.matrix_integer_dense_saturation as s
-        sage: s.random_sublist_of_size(10,3)
-        [0, 1, 5]
-        sage: s.random_sublist_of_size(10,7)
-        [0, 1, 3, 4, 5, 7, 8]
+        sage: l = s.random_sublist_of_size(10, 3)
+        sage: len(l)
+        3
+        sage: l_check = [-1] + l + [10]
+        sage: all(l_check[i] < l_check[i+1] for i in range(4))
+        True
+        sage: l = s.random_sublist_of_size(10, 7)
+        sage: len(l)
+        7
+        sage: l_check = [-1] + l + [10]
+        sage: all(l_check[i] < l_check[i+1] for i in range(8))
+        True
     """
     if n > k:
         raise ValueError("n must be <= len(v)")
     if n == k:
-        return range(k)
-    if n >= k//2+5:
+        return list(range(k))
+    if n >= k // 2 + 5:
         # use complement
-        w = random_sublist_of_size(k, k-n)
+        w = random_sublist_of_size(k, k - n)
         m = set(w)
-        w = [z for z in xrange(k) if z not in m]
-        assert(len(w)) == n
+        w = [z for z in range(k) if z not in m]
+        assert(len(w) == n)
         return w
 
     randrange = current_randstate().python_random().randrange
@@ -104,8 +113,8 @@ def random_sublist_of_size(k, n):
         z = randrange(k)
         if not z in w:
             w.add(z)
-    w = sorted(w)
-    return w
+    return sorted(w)
+
 
 def solve_system_with_difficult_last_row(B, A):
     """
@@ -237,7 +246,8 @@ def saturation(A, proof=True, p=0, max_dets=5):
 
     if max_dets > 0:
         # Take the GCD of at most num_dets randomly chosen determinants.
-        nr = A.nrows(); nc = A.ncols()
+        nr = A.nrows()
+        nc = A.ncols()
         d = 0
         trials = min(binomial(nc, nr), max_dets)
         already_tried = []

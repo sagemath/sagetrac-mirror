@@ -15,10 +15,8 @@ Functorial composition species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies
-from structure import GenericSpeciesStructure
-from sage.misc.cachefunc import cached_function
-from sage.structure.unique_representation import UniqueRepresentation
+from .species import GenericCombinatorialSpecies
+from .structure import GenericSpeciesStructure
 
 class FunctorialCompositionStructure(GenericSpeciesStructure):
     pass

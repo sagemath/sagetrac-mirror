@@ -1,3 +1,3 @@
-from logic import SymbolicLogic
+from .logic import SymbolicLogic
 
-import propcalc
+from . import propcalc

@@ -13,7 +13,7 @@ plots of functions in rectangular coordinates; and also polar
 plots, contour plots and vector field plots. We present examples of
 some of these here. For more examples of plotting with Sage, see
 :ref:`section-systems` and :ref:`section-maxima`, and also the
-`Sage Constructions <http://www.sagemath.org/doc/constructions/>`_
+`Sage Constructions <http://doc.sagemath.org/html/en/constructions/>`_
 documentation.
 
 This command produces a yellow circle of radius 1, centered at the
@@ -158,7 +158,7 @@ Three-Dimensional Plots
 
 Sage can also be used to create three-dimensional plots. In both
 the notebook and the REPL, these plots will be displayed by default
-using the open source package [Jmol]_, which supports interactively
+using the open source package [ThreeJS]_, which supports interactively
 rotating and zooming the figure with the mouse.
 
 Use ``plot3d`` to graph a function of the form `f(x, y) = z`:

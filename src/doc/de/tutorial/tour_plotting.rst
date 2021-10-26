@@ -14,7 +14,7 @@ Polarkoordinaten, Konturplots und Plots von Vektorfeldern. Wir geben
 davon im Folgenden einige Beispiele an. Für weitere Beispiele zum
 Plotten mit Sage lesen Sie :ref:`section-systems` und
 :ref:`section-maxima`, sowie die `Sage Constructions
-<http://www.sagemath.org/doc/constructions/>`_ Dokumentation.
+<http://doc.sagemath.org/html/en/constructions/>`_ Dokumentation.
 
 Dieser Befehl erstellt einen gelben Kreis vom Radius 1 mit dem
 Ursprung als Zentrum:
@@ -160,7 +160,7 @@ Dreidimensionale Plots
 
 Sage kann auch dazu verwendet werden dreidimensionale Plots zu zeichnen.
 Sowohl im Notebook, als auch von der Kommandozeile aus werden diese
-Plots standardmäßig mit den Open-Source-Paket [Jmol]_ angezeigt,
+Plots standardmäßig mit den Open-Source-Paket [ThreeJS]_ angezeigt,
 welches interaktives Drehen und Zoomen der Grafik mit Hilfe der
 Maus unterstützt.
 

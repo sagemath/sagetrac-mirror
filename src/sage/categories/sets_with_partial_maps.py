@@ -11,7 +11,7 @@ SetsWithPartialMaps
 #******************************************************************************
 
 from sage.categories.category_singleton import Category_singleton
-from objects import Objects
+from .objects import Objects
 
 class SetsWithPartialMaps(Category_singleton):
     """

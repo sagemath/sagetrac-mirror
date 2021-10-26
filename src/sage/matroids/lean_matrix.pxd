@@ -1,4 +1,5 @@
 from sage.data_structures.bitset cimport bitset_t
+from sage.libs.gmp.types cimport mpq_t
 
 cdef class LeanMatrix:
     cdef long _nrows
@@ -31,6 +32,9 @@ cdef class LeanMatrix:
     cdef LeanMatrix transpose(self)
     cdef LeanMatrix _matrix_times_matrix_(self, LeanMatrix other)
     cdef LeanMatrix matrix_from_rows_and_columns(self, rows, columns)
+
+    cdef shifting_all(self, P_rows, P_cols, Q_rows, Q_cols, int m)
+    cdef shifting(self, U_1, V_2, U_2, V_1, z2, z1, int m)
 
 cdef class GenericMatrix(LeanMatrix):
     cdef _base_ring, _characteristic
@@ -96,14 +100,26 @@ cdef class QuaternaryMatrix(LeanMatrix):
     cdef void conjugate(self)   # Not a Sage matrix operation
 
 
-cdef class IntegerMatrix(LeanMatrix):
+cdef class PlusMinusOneMatrix(LeanMatrix):
     cdef int* _entries
 
-    cdef inline get(self, long r, long c)   # Not a Sage matrix operation
+    cdef inline int get(self, long r, long c)   # Not a Sage matrix operation
     cdef inline void set(self, long r, long c, int x)   # Not a Sage matrix operation
 
     cdef inline long row_len(self, long i) except -1   # Not a Sage matrix operation
     cdef inline row_inner_product(self, long i, long j)   # Not a Sage matrix operation
 
+cdef class RationalMatrix(LeanMatrix):
+    cdef mpq_t* _entries
+
+    cdef inline long index(self, long r, long c)   # Not a Sage matrix operation
+    cdef inline void set(self, long r, long c, mpq_t x)   # Not a Sage matrix operation
+
+    cdef inline long row_len(self, long i) except -1   # Not a Sage matrix operation
+    cdef inline row_inner_product(self, long i, long j)   # Not a Sage matrix operation
+
+    cdef int add_multiple_of_row_mpq(self, long x, long y, mpq_t s, bint col_start) except -1
+    cdef int rescale_row_mpq(self, long x, mpq_t s, bint col_start) except -1
+    cdef int rescale_column_mpq(self, long y, mpq_t s, bint start_row) except -1
 
 cpdef GenericMatrix generic_identity(n, ring)

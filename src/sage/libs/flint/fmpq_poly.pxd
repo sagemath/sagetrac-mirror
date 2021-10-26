@@ -1,3 +1,6 @@
+# distutils: libraries = flint
+# distutils: depends = flint/fmpq_poly.h
+
 #*****************************************************************************
 #          Copyright (C) 2010 Sebastian Pancratz <sfp@pancratz.org>
 #
@@ -12,7 +15,8 @@ from sage.libs.gmp.types cimport mpz_t, mpq_t
 from sage.libs.flint.types cimport *
 from sage.libs.flint.fmpz_vec cimport _fmpz_vec_max_limbs
 
-cdef extern from "flint/fmpq_poly.h":
+# flint/fmpq_poly.h
+cdef extern from "flint_wrap.h":
     # Memory management
     void fmpq_poly_init(fmpq_poly_t)
 
@@ -138,6 +142,12 @@ cdef extern from "flint/fmpq_poly.h":
 
     void fmpq_poly_resultant(fmpq_t, const fmpq_poly_t, const fmpq_poly_t)
 
+    # Power series division
+    void fmpq_poly_inv_series_newton(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_inv_series(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_div_series(
+            fmpq_poly_t, const fmpq_poly_t, const fmpq_poly_t, slong)
+
     # Derivative and integral
     void fmpq_poly_derivative(fmpq_poly_t, const fmpq_poly_t)
     void fmpq_poly_integral(fmpq_poly_t, const fmpq_poly_t)
@@ -153,7 +163,6 @@ cdef extern from "flint/fmpq_poly.h":
     void fmpq_poly_rescale(fmpq_poly_t, const fmpq_poly_t, const fmpq_t)
 
     # Revert
-    void fmpq_poly_reverse(fmpq_poly_t, fmpq_poly_t, unsigned long)
     void fmpq_poly_revert_series(fmpq_poly_t, fmpq_poly_t, unsigned long)
 
     # Gaussian content
@@ -162,6 +171,20 @@ cdef extern from "flint/fmpq_poly.h":
 
     int fmpq_poly_is_monic(const fmpq_poly_t)
     void fmpq_poly_make_monic(fmpq_poly_t, const fmpq_poly_t)
+
+    # Transcendental functions
+    void fmpq_poly_log_series(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_exp_series(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_atan_series(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_atanh_series(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_asin_series(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_asinh_series(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_tan_series(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_sin_series(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_cos_series(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_sinh_series(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_cosh_series(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_tanh_series(fmpq_poly_t, const fmpq_poly_t, slong)
 
 # since the fmpq_poly header seems to be lacking this inline function
 cdef inline sage_fmpq_poly_max_limbs(const fmpq_poly_t poly):

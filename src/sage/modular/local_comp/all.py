@@ -1,1 +1,1 @@
-from local_comp import LocalComponent
+from .local_comp import LocalComponent

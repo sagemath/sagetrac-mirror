@@ -83,7 +83,7 @@ We next verify something about the :math:`3n+1` problem.
     sage: for i in range(1000):
     ....:     n = 3*odd_part(n) + 1
     ....:     if odd_part(n)==1:
-    ....:         print i
+    ....:         print(i)
     ....:         break
     38
 
@@ -127,8 +127,9 @@ precision.
     10*11^-2 + 5*11^-1 + 4 + 2*11 + O(11^18)
 
 Much work has been done implementing rings of integers in
-:math:`p`-adic fields or number fields other than . The
-interested reader is invited to ask the experts on the
+:math:`p`-adic fields and number fields. The
+interested reader is invited to read
+:ref:`sage.rings.padics.tutorial` and ask the experts on the
 ``sage-support`` Google group for further details.
 
 A number of related methods are already implemented in the
@@ -145,9 +146,8 @@ NumberField class.
 
 ::
 
-    sage: K.galois_group(type="pari")
-    Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the Number Field
-    in a with defining polynomial x^3 + x^2 - 2*x + 8
+    sage: K.galois_group()
+    Galois group 3T2 (S3) with order 6 of x^3 + x^2 - 2*x + 8
 
 .. link
 

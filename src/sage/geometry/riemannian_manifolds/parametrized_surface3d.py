@@ -1,18 +1,19 @@
 """
-Differential Geometry of Parametrized Surfaces.
+Differential Geometry of Parametrized Surfaces
 
 AUTHORS:
-        - Mikhail Malakhaltsev (2010-09-25): initial version
-        - Joris Vankerschaver  (2010-10-25): implementation, doctests
+
+- Mikhail Malakhaltsev (2010-09-25): initial version
+- Joris Vankerschaver  (2010-10-25): implementation, doctests
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010  Mikhail Malakhaltsev <mikarm@gmail.com>
 #       Copyright (C) 2010  Joris Vankerschaver <joris.vankerschaver@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from itertools import product
 
@@ -24,7 +25,7 @@ from sage.functions.other import sqrt
 from sage.misc.cachefunc import cached_method
 from sage.symbolic.ring import SR
 from sage.symbolic.constants import pi
-from sage.symbolic.assumptions import assume
+
 
 def _simplify_full_rad(f):
     """
@@ -91,7 +92,7 @@ class ParametrizedSurface3D(SageObject):
     specified explicitly. This is mainly useful for plotting. Here we
     construct half of an ellipsoid::
 
-        sage: u1, u2 = var ('u1, u2', domain='real');
+        sage: u1, u2 = var ('u1, u2', domain='real')
         sage: coords = ((u1, -pi/2, pi/2), (u2, 0, pi))
         sage: ellipsoid_eq = (cos(u1)*cos(u2), 2*sin(u1)*cos(u2), 3*sin(u2))
         sage: ellipsoid = ParametrizedSurface3D(ellipsoid_eq, coords, 'ellipsoid'); ellipsoid
@@ -108,11 +109,11 @@ class ParametrizedSurface3D(SageObject):
 
         sage: u, v = var('u, v', domain='real')
         sage: sphere = ParametrizedSurface3D((cos(u)*cos(v), sin(u)*cos(v), sin(v)), (u, v), 'sphere')
-        sage: print latex(sphere)
+        sage: print(latex(sphere))
         \left(\cos\left(u\right) \cos\left(v\right), \cos\left(v\right) \sin\left(u\right), \sin\left(v\right)\right)
-        sage: print sphere._latex_()
+        sage: print(sphere._latex_())
         \left(\cos\left(u\right) \cos\left(v\right), \cos\left(v\right) \sin\left(u\right), \sin\left(v\right)\right)
-        sage: print sphere
+        sage: print(sphere)
         Parametrized surface ('sphere') with equation (cos(u)*cos(v), cos(v)*sin(u), sin(v))
 
     To plot a parametric surface, use the :meth:`plot` member function::
@@ -179,13 +180,13 @@ class ParametrizedSurface3D(SageObject):
     determine the numerical value of the length integral::
 
         sage: L = sqrt(ellipsoid.first_fundamental_form(du, du).substitute(u1=u1,u2=u2))
-        sage: print numerical_integral(L.substitute(a=2, b=1.5, c=1),0,1)[0]
+        sage: numerical_integral(L.substitute(a=2, b=1.5, c=1),0,1)[0] # rel tol 1e-11
         2.00127905972
 
     We find the area of the sphere of radius $R$::
 
-        sage: R = var('R', domain='real');
-        sage: u, v = var('u,v', domain='real');
+        sage: R = var('R', domain='real')
+        sage: u, v = var('u,v', domain='real')
         sage: assume(R>0)
         sage: assume(cos(v)>0)
         sage: sphere = ParametrizedSurface3D([R*cos(u)*cos(v),R*sin(u)*cos(v),R*sin(v)],[u,v],'sphere')
@@ -234,7 +235,7 @@ class ParametrizedSurface3D(SageObject):
     We can easily generate a color plot of the Gaussian curvature of a surface.
     Here we deal with the ellipsoid::
 
-        sage: u1, u2 = var('u1,u2', domain='real');
+        sage: u1, u2 = var('u1,u2', domain='real')
         sage: u = [u1,u2]
         sage: ellipsoid_equation(u1,u2) = [2*cos(u1)*cos(u2),1.5*cos(u1)*sin(u2),sin(u1)]
         sage: ellipsoid = ParametrizedSurface3D(ellipsoid_equation(u1,u2), [u1, u2],'ellipsoid')
@@ -251,7 +252,7 @@ class ParametrizedSurface3D(SageObject):
         sage: K(u1,u2) = ellipsoid.gauss_curvature()
         sage: # Make array of K values
         sage: K_array = [K(uu[0],uu[1]) for uu in u_array]
-        sage: # Find minimum and max of the gauss curvature
+        sage: # Find minimum and max of the Gauss curvature
         sage: K_max = max(K_array)
         sage: K_min = min(K_array)
         sage: # Make the array of color coefficients
@@ -340,20 +341,19 @@ class ParametrizedSurface3D(SageObject):
         """
         self.equation = tuple(equation)
 
-        if len(variables[0]) > 0:
+        if isinstance(variables[0], (list, tuple)):
             self.variables_range = (variables[0][1:3], variables[1][1:3])
-            self.variables_list  = (variables[0][0], variables[1][0])
+            self.variables_list = (variables[0][0], variables[1][0])
         else:
             self.variables_range = None
             self.variables_list = variables
 
-        self.variables = {1:self.variables_list[0],2:self.variables_list[1]}
+        self.variables = {1:self.variables_list[0], 2:self.variables_list[1]}
         self.name = name
-
 
     def _latex_(self):
         r"""
-        Returns the LaTeX representation of this parametrized surface.
+        Return the LaTeX representation of this parametrized surface.
 
         EXAMPLES::
 
@@ -378,7 +378,7 @@ class ParametrizedSurface3D(SageObject):
             sage: u, v = var('u, v', domain='real')
             sage: eq = (3*u + 3*u*v^2 - u^3, 3*v + 3*u^2*v - v^3, 3*(u^2-v^2))
             sage: enneper = ParametrizedSurface3D(eq,[u,v],'enneper_surface')
-            sage: print enneper
+            sage: print(enneper)
             Parametrized surface ('enneper_surface') with equation (-u^3 + 3*u*v^2 + 3*u, 3*u^2*v - v^3 + 3*v, 3*u^2 - 3*v^2)
             sage: enneper._repr_()
             "Parametrized surface ('enneper_surface') with equation (-u^3 + 3*u*v^2 + 3*u, 3*u^2*v - v^3 + 3*v, 3*u^2 - 3*v^2)"
@@ -653,11 +653,9 @@ class ParametrizedSurface3D(SageObject):
         """
         coefficients = {}
         for index in product((1, 2), repeat=2):
-            sorted_index = list(sorted(index))
             coefficients[index] = \
                 self._compute_first_fundamental_form_coefficient(index)
         return coefficients
-
 
     def first_fundamental_form(self, vector1, vector2):
         r"""
@@ -841,7 +839,7 @@ class ParametrizedSurface3D(SageObject):
             [                1/2 -1/2*sqrt(3)/cos(v)]
             [ 1/2*sqrt(3)*cos(v)                 1/2]
 
-        We verify that three succesive rotations over $\pi/3$ yield minus the identity::
+        We verify that three successive rotations over $\pi/3$ yield minus the identity::
 
             sage: rotation^3
             [-1  0]
@@ -1433,8 +1431,19 @@ class ParametrizedSurface3D(SageObject):
            sage: torus.principal_directions()
            [(-cos(v)/(r*cos(v) + R), [(1, 0)], 1), (-1/r, [(0, 1)], 1)]
 
+        ::
+
+            sage: u, v = var('u, v', domain='real')
+            sage: V = vector([u*cos(u+v), u*sin(u+v), u+v])
+            sage: helicoid = ParametrizedSurface3D(V, (u, v))
+            sage: helicoid.principal_directions()
+            [(-1/(u^2 + 1), [(1, -(u^2 - sqrt(u^2 + 1) + 1)/(u^2 + 1))], 1),
+            (1/(u^2 + 1), [(1, -(u^2 + sqrt(u^2 + 1) + 1)/(u^2 + 1))], 1)]
+
+
+
         """
-        return self.shape_operator().eigenvectors_left()
+        return self.shape_operator().eigenvectors_right()
 
 
     @cached_method
@@ -1497,6 +1506,7 @@ class ParametrizedSurface3D(SageObject):
         geodesic equations, used by :meth:`geodesics_numerical`.
 
         EXAMPLES::
+
            sage: p, q = var('p,q', domain='real')
            sage: sphere = ParametrizedSurface3D([cos(q)*cos(p),sin(q)*cos(p),sin(p)],[p,q],'sphere')
            sage: ode = sphere._create_geodesic_ode_system()
@@ -1505,25 +1515,25 @@ class ParametrizedSurface3D(SageObject):
 
         """
         from sage.ext.fast_eval import fast_float
-        from sage.gsl.ode import ode_solver
+        from sage.calculus.ode import ode_solver
 
         u1 = self.variables[1]
         u2 = self.variables[2]
-        v1 = SR.var('v1', domain='real')
-        v2 = SR.var('v2', domain='real')
 
         C = self.connection_coefficients()
 
-        dv1 = - C[(1,1,1)]*v1**2 - 2*C[(1,2,1)]*v1*v2 - C[(2,2,1)]*v2**2
-        dv2 = - C[(1,1,2)]*v1**2 - 2*C[(1,2,2)]*v1*v2 - C[(2,2,2)]*v2**2
-        fun1 = fast_float(dv1, str(u1), str(u2), str(v1), str(v2))
-        fun2 = fast_float(dv2, str(u1), str(u2), str(v1), str(v2))
+        with SR.temp_var(domain='real') as v1:
+            with SR.temp_var(domain='real') as v2:
+                dv1 = - C[(1,1,1)]*v1**2 - 2*C[(1,2,1)]*v1*v2 - C[(2,2,1)]*v2**2
+                dv2 = - C[(1,1,2)]*v1**2 - 2*C[(1,2,2)]*v1*v2 - C[(2,2,2)]*v2**2
+                fun1 = fast_float(dv1, str(u1), str(u2), str(v1), str(v2))
+                fun2 = fast_float(dv2, str(u1), str(u2), str(v1), str(v2))
 
-        geodesic_ode = ode_solver()
-        geodesic_ode.function = \
-                              lambda t, (u1, u2, v1, v2) : \
-                              [v1, v2, fun1(u1, u2, v1, v2), fun2(u1, u2, v1, v2)]
-        return geodesic_ode
+                geodesic_ode = ode_solver()
+                geodesic_ode.function = (
+                    lambda t, u1_u2_v1_v2:
+                    [u1_u2_v1_v2[2], u1_u2_v1_v2[3], fun1(*u1_u2_v1_v2), fun2(*u1_u2_v1_v2)])
+                return geodesic_ode
 
 
     def geodesics_numerical(self, p0, v0, tinterval):
@@ -1540,7 +1550,7 @@ class ParametrizedSurface3D(SageObject):
         ALGORITHM:
 
         The geodesic equations are integrated forward in time using
-        the ode solvers from ``sage.gsl.ode``.  See the member
+        the ode solvers from ``sage.calculus.ode``.  See the member
         function ``_create_geodesic_ode_system`` for more details.
 
         INPUT:
@@ -1579,10 +1589,6 @@ class ParametrizedSurface3D(SageObject):
            sage: [round4(p) for p in ext_points]
            [[1.000, 0.0000, 0.0000], [-0.2049, 0.6921, 0.6921], [-0.9160, -0.2836, -0.2836], [0.5803, -0.5759, -0.5759], [0.6782, 0.5196, 0.5196], [-0.8582, 0.3629, 0.3629]]
         """
-
-        u1 = self.variables[1]
-        u2 = self.variables[2]
-
         solver = self._create_geodesic_ode_system()
 
         t_interval, n = tinterval[0:2], tinterval[2]
@@ -1608,6 +1614,7 @@ class ParametrizedSurface3D(SageObject):
          - ``t`` - curve parameter
 
         EXAMPLES::
+
            sage: p, q = var('p,q', domain='real')
            sage: sphere = ParametrizedSurface3D([cos(q)*cos(p),sin(q)*cos(p),sin(p)],[p,q],'sphere')
            sage: s = var('s')
@@ -1618,12 +1625,10 @@ class ParametrizedSurface3D(SageObject):
         """
 
         from sage.ext.fast_eval import fast_float
-        from sage.gsl.ode import ode_solver
+        from sage.calculus.ode import ode_solver
 
         u1 = self.variables[1]
         u2 = self.variables[2]
-        v1 = SR.var('v1', domain='real')
-        v2 = SR.var('v2', domain='real')
 
         du1 = diff(curve[0], t)
         du2 = diff(curve[1], t)
@@ -1632,16 +1637,18 @@ class ParametrizedSurface3D(SageObject):
         for coef in C:
             C[coef] = C[coef].subs({u1: curve[0], u2: curve[1]})
 
-        dv1 = - C[(1,1,1)]*v1*du1 - C[(1,2,1)]*(du1*v2 + du2*v1) - \
-            C[(2,2,1)]*du2*v2
-        dv2 = - C[(1,1,2)]*v1*du1 - C[(1,2,2)]*(du1*v2 + du2*v1) - \
-            C[(2,2,2)]*du2*v2
-        fun1 = fast_float(dv1, str(t), str(v1), str(v2))
-        fun2 = fast_float(dv2, str(t), str(v1), str(v2))
+        with SR.temp_var(domain='real') as v1:
+            with SR.temp_var(domain='real') as v2:
+                dv1 = - C[(1,1,1)]*v1*du1 - C[(1,2,1)]*(du1*v2 + du2*v1) - \
+                    C[(2,2,1)]*du2*v2
+                dv2 = - C[(1,1,2)]*v1*du1 - C[(1,2,2)]*(du1*v2 + du2*v1) - \
+                    C[(2,2,2)]*du2*v2
+                fun1 = fast_float(dv1, str(t), str(v1), str(v2))
+                fun2 = fast_float(dv2, str(t), str(v1), str(v2))
 
-        pt_ode = ode_solver()
-        pt_ode.function = lambda t, (v1, v2): [fun1(t, v1, v2), fun2(t, v1, v2)]
-        return pt_ode
+                pt_ode = ode_solver()
+                pt_ode.function = lambda t, v1_v2: [fun1(t, v1_v2[0], v1_v2[1]), fun2(t, v1_v2[0], v1_v2[1])]
+                return pt_ode
 
 
     def parallel_translation_numerical(self,curve,t,v0,tinterval):
@@ -1657,7 +1664,7 @@ class ParametrizedSurface3D(SageObject):
         ALGORITHM:
 
         The parallel transport equations are integrated forward in time using
-        the ode solvers from ``sage.gsl.ode``. See :meth:`_create_pt_ode_system`
+        the ode solvers from ``sage.calculus.ode``. See :meth:`_create_pt_ode_system`
         for more details.
 
         INPUT:
@@ -1698,10 +1705,6 @@ class ParametrizedSurface3D(SageObject):
            [[1.000, 1.000], [0.9876, 1.025], [0.9499, 1.102], [0.8853, 1.238], [0.7920, 1.448], [0.6687, 1.762]]
 
         """
-
-        u1 = self.variables[1]
-        u2 = self.variables[2]
-
         solver = self._create_pt_ode_system(tuple(curve), t)
 
         t_interval, n = tinterval[0:2], tinterval[2]

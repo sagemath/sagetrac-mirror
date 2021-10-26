@@ -21,7 +21,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-
 from sage.plot.colors import hue
 from math import sqrt
 import random
@@ -62,7 +61,7 @@ class Triangle:
 
             sage: from sage.plot.plot3d.tri_plot import Triangle
             sage: tri = Triangle([0,0,0],[-1,2,3],[0,2,0])
-            sage: print tri.str()
+            sage: print(tri.str())
             [0, 0, 0] [-1, 2, 3] [0, 2, 0] 0
         """
         return "%s %s %s %s"%(self._a, self._b, self._c, self._color)
@@ -133,7 +132,7 @@ class SmoothTriangle(Triangle):
 
             sage: from sage.plot.plot3d.tri_plot import SmoothTriangle
             sage: t = SmoothTriangle([1,2,3],[2,3,4],[0,0,0],[0,0,1],[0,1,0],[1,0,0])
-            sage: print t.str()
+            sage: print(t.str())
             [1, 2, 3] [2, 3, 4] [0, 0, 0] 0 [0, 0, 1] [0, 1, 0] [1, 0, 0]
         """
         return "%s %s %s %s %s %s %s"%(self._a, self._b, self._c, self._color, self._da, self._db, self._dc)
@@ -228,7 +227,7 @@ class TrianglePlot:
 
     def str(self):
         """
-        Returns a string listing the objects in the instance of the TrianglePlot class.
+        Return a string listing the objects in the instance of the TrianglePlot class.
 
         TESTS::
 
@@ -238,7 +237,7 @@ class TrianglePlot:
             sage: len(t.str())
             68980
         """
-        return "".join([o.str() for o in self._objects])
+        return "".join(o.str() for o in self._objects)
 
     def __init__(self, triangle_factory, f, min_x__max_x, min_y__max_y, g = None,
                        min_depth=4, max_depth=8, num_colors = None, max_bend=.3):

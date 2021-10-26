@@ -6,4 +6,4 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from genus import Genus, LocalGenusSymbol, is_GlobalGenus
+from .genus import Genus, LocalGenusSymbol, is_GlobalGenus

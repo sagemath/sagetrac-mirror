@@ -10,8 +10,8 @@ Algebra modules
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_module
-from modules import Modules
+from .category_types import Category_module
+from .modules import Modules
 
 class AlgebraModules(Category_module):
     """

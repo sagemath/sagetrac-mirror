@@ -21,11 +21,12 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #########################################################################
 
-import space
+from .space import ModularFormsSpace
 
 import sage.modular.hecke.submodule
 
-class ModularFormsSubmodule(space.ModularFormsSpace,
+
+class ModularFormsSubmodule(ModularFormsSpace,
                             sage.modular.hecke.submodule.HeckeSubmodule):
     """
     A submodule of an ambient space of modular forms.
@@ -50,7 +51,7 @@ class ModularFormsSubmodule(space.ModularFormsSpace,
         """
         A = ambient_module
         sage.modular.hecke.submodule.HeckeSubmodule.__init__(self, A, submodule, check=check)
-        space.ModularFormsSpace.__init__(self, A.group(), A.weight(),
+        ModularFormsSpace.__init__(self, A.group(), A.weight(),
                                          A.character(), A.base_ring())
 
     def _repr_(self):

@@ -1,19 +1,38 @@
 Standard Commutative Rings
 ==========================
 
+Integers
+--------
+
 .. toctree::
    :maxdepth: 2
 
    sage/rings/integer_ring
    sage/rings/integer
+   sage/rings/bernmm
+   sage/rings/bernoulli_mod_p
+   sage/rings/factorint
+   sage/rings/fast_arith
+   sage/rings/sum_of_squares
+   sage/arith/functions
+   sage/arith/power
+   sage/arith/multi_modular
+   sage/arith/misc
 
-   sage/rings/finite_rings/integer_mod_ring
-   sage/rings/finite_rings/integer_mod
+.. SEEALSO::
+
+    - :mod:`sage.sets.integer_range`
+    - :mod:`sage.sets.positive_integers`
+    - :mod:`sage.sets.non_negative_integers`
+    - :mod:`sage.sets.primes`
+
+Rationals
+---------
+
+.. toctree::
+   :maxdepth: 2
 
    sage/rings/rational_field
    sage/rings/rational
-
-   sage/rings/finite_rings/constructor
-   sage/rings/finite_rings/element_base
 
 .. include:: ../footer.txt

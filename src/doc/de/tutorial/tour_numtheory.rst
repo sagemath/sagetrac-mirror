@@ -84,7 +84,7 @@ Als nächstes verifizieren wir ein Beispiel des :math:`3n+1` Problems.
     sage: for i in range(1000):
     ....:     n = 3*odd_part(n) + 1
     ....:     if odd_part(n)==1:
-    ....:         print i
+    ....:         print(i)
     ....:         break
     38
 
@@ -146,9 +146,8 @@ implementiert.
 
 ::
 
-    sage: K.galois_group(type="pari")
-    Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the Number Field
-    in a with defining polynomial x^3 + x^2 - 2*x + 8
+    sage: K.galois_group()
+    Galois group 3T2 (S3) with order 6 of x^3 + x^2 - 2*x + 8
 
 .. link
 

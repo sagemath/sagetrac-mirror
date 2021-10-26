@@ -19,7 +19,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.family import Family
 from sage.combinat.root_system.cartan_type import CartanType
 
-class CartanTypeFolded(SageObject, UniqueRepresentation):
+
+class CartanTypeFolded(UniqueRepresentation, SageObject):
     r"""
     A Cartan type realized from a (Dynkin) diagram folding.
 
@@ -58,7 +59,7 @@ class CartanTypeFolded(SageObject, UniqueRepresentation):
     and were chosen based on virtual crystals. In particular, the diagram
     foldings extend to crystal morphisms and gives a realization of
     Kirillov-Reshetikhin crystals for non-simply-laced types as simply-laced
-    types. See [OSShimo03]_ and [FOS09]_ for more details. Here we can compute
+    types. See [OSShimo03]_ and [FOS2009]_ for more details. Here we can compute
     `\gamma_i = \max(c) / c_i` where `(c_i)_i` are the translation factors
     of the root system. In a more type-dependent way, we can define `\gamma_i`
     as follows:
@@ -150,7 +151,7 @@ class CartanTypeFolded(SageObject, UniqueRepresentation):
 
     - :wikipedia:`Dynkin_diagram#Folding`
 
-    .. [OSShimo03] M. Okado, A. Schilling, M. Shimozono.
+    .. [OSShimo03] \M. Okado, A. Schilling, M. Shimozono.
        "Virtual crystals and fermionic formulas for type `D_{n+1}^{(2)}`,
        `A_{2n}^{(2)}`, and `C_n^{(1)}`". Representation Theory. **7** (2003).
        101-163. :doi:`10.1.1.192.2095`, :arxiv:`0810.5067`.
@@ -178,7 +179,7 @@ class CartanTypeFolded(SageObject, UniqueRepresentation):
         if isinstance(orbit, dict):
             i_set = cartan_type.index_set()
             orb = [None]*len(i_set)
-            for k,v in orbit.iteritems():
+            for k,v in orbit.items():
                 orb[i_set.index(k)] = tuple(v)
             orbit = tuple(orb)
         else:
@@ -193,6 +194,8 @@ class CartanTypeFolded(SageObject, UniqueRepresentation):
 
             sage: fct = CartanType(['C',4,1]).as_folding()
             sage: TestSuite(fct).run()
+            sage: hash(fct)  # random
+            42
         """
         self._cartan_type = cartan_type
         self._folding = folding_of
@@ -247,7 +250,7 @@ class CartanTypeFolded(SageObject, UniqueRepresentation):
 
     @cached_method
     def folding_orbit(self):
-        """
+        r"""
         Return the orbits under the automorphism `\sigma` as a
         dictionary (of tuples).
 

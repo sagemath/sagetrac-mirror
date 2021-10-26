@@ -11,7 +11,7 @@ Quartic curve constructor
 from sage.schemes.projective.projective_space import is_ProjectiveSpace, ProjectiveSpace
 from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
 
-from quartic_generic import QuarticCurve_generic
+from .quartic_generic import QuarticCurve_generic
 
 def QuarticCurve(F, PP=None, check=False):
     """

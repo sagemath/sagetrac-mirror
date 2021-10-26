@@ -1,8 +1,7 @@
 """
 Denis Simon's PARI scripts
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -14,8 +13,8 @@ Denis Simon's PARI scripts
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.parent_gens import localvars
 
@@ -23,7 +22,7 @@ from sage.interfaces.gp import Gp
 from sage.misc.sage_eval import sage_eval
 from sage.misc.randstate import current_randstate
 from sage.rings.all import QQ, ZZ
-from constructor import EllipticCurve
+
 
 gp = None
 def init():
@@ -36,8 +35,8 @@ def init():
         from sage.env import DOT_SAGE
         logfile = os.path.join(DOT_SAGE, 'gp-simon.log')
         gp = Gp(script_subdirectory='simon', logfile=logfile)
-        gp.read("ell.gp")
         gp.read("ellQ.gp")
+        gp.read("ell.gp")
         gp.read("qfsolve.gp")
         gp.read("resultant3.gp")
 
@@ -56,7 +55,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
         sage: import sage.schemes.elliptic_curves.gp_simon
         sage: E=EllipticCurve('389a1')
         sage: sage.schemes.elliptic_curves.gp_simon.simon_two_descent(E)
-        (2, 2, [(5/4 : 5/8 : 1), (-3/4 : 7/8 : 1)])
+        (2, 2, [(1 : 0 : 1), (-11/9 : 28/27 : 1)])
 
     TESTS::
 
@@ -93,13 +92,13 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
 
     K = E.base_ring()
     K_orig = K
-    # The following is to correct the bug at \#5204: the gp script
+    # The following is to correct the bug at #5204: the gp script
     # fails when K is a number field whose generator is called 'x'.
     # It also deals with relative number fields.
     E_orig = E
-    if not K is QQ:
+    if K is not QQ:
         K = K_orig.absolute_field('a')
-        from_K,to_K = K.structure()
+        from_K, to_K = K.structure()
         E = E_orig.change_ring(to_K)
         known_points = [P.change_ring(to_K) for P in known_points]
         # Simon's program requires that this name be y.
@@ -114,10 +113,10 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
         from_K = lambda x: x
         to_K = lambda x: x
 
-    # The block below mimicks the defaults in Simon's scripts, and needs to be changed
+    # The block below mimics the defaults in Simon's scripts, and needs to be changed
     # when these are updated.
     if K is QQ:
-        cmd = 'ellrank(%s, %s);' % (list(E.ainvs()), [P._pari_() for P in known_points])
+        cmd = 'ellrank(%s, %s);' % (list(E.ainvs()), [P.__pari__() for P in known_points])
         if lim1 is None:
             lim1 = 5
         if lim3 is None:
@@ -125,7 +124,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
         if limtriv is None:
             limtriv = 3
     else:
-        cmd = 'bnfellrank(K, %s, %s);' % (list(E.ainvs()), [P._pari_() for P in known_points])
+        cmd = 'bnfellrank(K, %s, %s);' % (list(E.ainvs()), [P.__pari__() for P in known_points])
         if lim1 is None:
             lim1 = 2
         if lim3 is None:
