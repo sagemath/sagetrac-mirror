@@ -463,170 +463,6 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
         return matrix([basis1.from_polynomial(basis0.to_polynomial_on_basis(key)).to_vector()
                                                         for key in basis0.basis().keys()])
 
-class CordovilAlgebra(MoseleyAlgebra):
-    def __init__(self, base_ring, arrangement):
-        MoseleyAlgebra.__init__(self, base_ring, arrangement, 0)
-
-class VarcheckoGelfandAlgebra(MoseleyAlgebra):
-    def __init__(self, base_ring, arrangement):
-        MoseleyAlgebra.__init__(self, base_ring, arrangement, 1)
-
-    def _register_coercions(self):
-        r"""
-        A method to register the different bases in the coercion model.
-
-        TESTS::
-
-            sage: A = hyperplane_arrangements.braid(3)
-            sage: VG = A.varchenko_gelfand_algebra()
-            sage: N = VG.nbc_basis()
-            sage: C = VG.covector_basis()
-            sage: X = VG.normal_basis()
-            sage: n = N.an_element()
-            sage: c = C.an_element()
-            sage: x = X.an_element()
-            sage: n * c
-            -4*N[0, 2] + 12*N[0] + 6*N[0, 1]
-            sage: n * x
-            25*N[2] + 29*N[0, 1] - 5*N[0, 2]
-            sage: c * n
-            12*C[1, -1, -1] + 8*C[1, -1, 1] + 14*C[1, 1, 1]
-            sage: c * x
-            10*C[1, -1, 1] + 14*C[1, 1, 1]
-            sage: x * n
-            29*X[1, 2] + 24*X[0, 2] - 4*X[2]
-            sage: x * c
-            14*X[0, 2] + 4*X[1, 2] - 4*X[2]
-        """
-        MoseleyAlgebra._register_coercions(self)
-
-        # the Moseley algebra does not have a covector basis, so
-        # we register those coercions here.
-        N = self.nbc_basis()
-        C = self.covector_basis()
-        X = self.normal_basis()
-        N.module_morphism(on_basis=lambda I : C.from_polynomial(N.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
-        C.module_morphism(on_basis=lambda I : C.from_polynomial(C.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
-        C.module_morphism(on_basis=lambda I : X.from_polynomial(C.to_polynomial_on_basis(I)), codomain=X).register_as_coercion()
-        X.module_morphism(on_basis=lambda I : C.from_polynomial(X.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
-
-    def covectors_in_cone(self, cone_mask):
-        r"""
-        The covectors of the regions that lie in a cone.
-
-        The cone is specified by prescribing which entries of the sign vectors
-        must be positive or negative.
-
-        INPUT:
-
-        - ``cone_mask`` -- list with entries in `\{1, 0, -1\}`, where the entry
-          in position `i` specifies whether we should consider the positive
-          (+1), the negative (-1), or neither (0) halfspace associated with the
-          `i`-th hyperplane.
-
-        OUTPUT:
-
-        - ``cone_covectors`` -- list of covectors
-
-        .. WARNING::
-
-            When constructing a hyperplane arrangement, the order in
-            which the hyperplanes are specified is not the order with which the
-            hyperplanes are stored internally, or the order with which the sign
-            vectors are computed. Instead, they are sorted according to their
-            (implicitly defined) normal vector.
-
-        EXAMPLES:
-
-        Construct a hyperplane arrangement::
-
-            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
-            sage: A = H(-x + z, z, x - 5*y, x - y, x + y - 2*z, x + y)
-            sage: VG = A.varchenko_gelfand_algebra()
-
-        To compute the covectors of the regions lying in the cone defined by
-        the halfspaces `z > 0`, `x - y > 0`, `x + y > 0`, identify the
-        positions of the hyperplanes in ``A.hyperplanes()``::
-
-            sage: A.hyperplanes()
-            (Hyperplane -x + 0*y + z + 0,
-             Hyperplane 0*x + 0*y + z + 0,
-             Hyperplane x - 5*y + 0*z + 0,
-             Hyperplane x - y + 0*z + 0,
-             Hyperplane x + y - 2*z + 0,
-             Hyperplane x + y + 0*z + 0)
-
-        So, we are interested in the positive halfspaces of the hyperplanes in
-        positions 1, 3, 5, so we set ``cone_mask=(0,1,0,1,0,1)``::
-
-            sage: cone_covectors = VG.covectors_in_cone((0,1,0,1,0,1))
-            sage: sorted(cone_covectors, reverse=True)
-            [(1, 1, 1, 1, -1, 1),
-             (1, 1, -1, 1, -1, 1),
-             (-1, 1, 1, 1, 1, 1),
-             (-1, 1, 1, 1, -1, 1),
-             (-1, 1, -1, 1, 1, 1),
-             (-1, 1, -1, 1, -1, 1)]
-
-        Here are the polynomials corresponding to heaviside function for each
-        of these regions::
-
-            sage: C = VG.covector_basis()
-            sage: heavisides = [C.to_polynomial_on_basis(covector) for covector in cone_covectors]
-            sage: sorted(heavisides)
-            [-x1*x2*x5 + x1*x3*x5 - x2*x4*x5 + x3*x4*x5 + x2*x5 - x3*x5,
-             x1*x2*x5 + x2*x4*x5 - x2*x5,
-            -x0*x2*x5 - x2*x4*x5 + x2*x5,
-             -x0*x2*x5 - x0*x4*x5 - x3*x4*x5 + x0*x5 + x3*x5 + x4*x5 - x5,
-             x0*x2*x5,
-             x0*x2*x5 + x0*x4*x5 + x2*x4*x5 - x0*x5 - x2*x5 - x4*x5 + x5]
-
-        Here are the same elements, but expressed in terms of the covector basis::
-
-            sage: sorted([C.from_polynomial(heaviside) for heaviside in heavisides], reverse=True)
-            [C[1, 1, 1, 1, -1, 1],
-             C[1, 1, -1, 1, -1, 1],
-             C[-1, 1, 1, 1, 1, 1],
-             C[-1, 1, 1, 1, -1, 1],
-             C[-1, 1, -1, 1, 1, 1],
-             C[-1, 1, -1, 1, -1, 1]]
-
-        Here are the same elements, but expressed in terms of the NBC basis::
-
-            sage: N = VG.nbc_basis()
-            sage: [N.from_polynomial(heaviside) for heaviside in heavisides]
-            [N[0, 2, 5],
-             N[0, 3] - N[0, 2, 3],
-             N[] - N[0] - N[2] - N[4] + N[0, 2] + N[2, 4] + N[0, 4] - N[0, 2, 4],
-             -N[] + N[0] + N[2] + N[4] - N[1, 2] - N[0, 2] + N[1, 3] - N[2, 4] - N[0, 4] + N[0, 1, 2] - N[0, 1, 3] + N[0, 2, 4],
-             -N[] + N[0] + N[2] + N[4] - N[0, 2] - N[2, 4] - N[1, 4] - N[0, 4] + N[1, 5] + N[0, 2, 4] + N[0, 1, 4] - N[0, 1, 5],
-             N[] - N[0] - N[1] - N[2] - N[4] + N[0, 1] + N[1, 2] + N[0, 2] + N[2, 4] + N[1, 4] + N[0, 4] - N[0, 1, 2] - N[0, 2, 4] - N[0, 1, 4]]
-
-        Test that the ideal generated by the heaviside functions is equal to
-        the ideal generated by the product of the hyperplanes defining the
-        cone::
-
-            sage: R = VG.underlying_polynomial_ring()
-            sage: x = R.gens()
-            sage: R.ideal(heavisides) == R.ideal(x[1] * x[3] * x[5])
-            True
-
-        The product `x_1 x_3 x_4` defines a heaviside function which is `0` on
-        regions outside the cone (this can be seen by plotting the arrangement
-        in the hyperplane `z = 1`). Hence, this element should belong to the
-        above ideal. Let's vertify this::
-
-            sage: x[1] * x[3] * x[4] in R.ideal(heavisides)
-            True
-        """
-        A = self.hyperplane_arrangement()
-        cone_covectors = []
-        for region in A.regions():
-            covector = A.sign_vector(region.representative_point())
-            if all(cone_mask[i] / covector[i] >= 0 for i in range(len(covector))):
-                cone_covectors.append(tuple(covector))
-        return cone_covectors
-
     class Bases(Category_realization_of_parent):
         r"""
         The category of the realizations. This contains code that will be
@@ -873,6 +709,170 @@ class VarcheckoGelfandAlgebra(MoseleyAlgebra):
                     -x1*x2 + x2
                 """
                 return self.parent().to_polynomial(self)
+
+class CordovilAlgebra(MoseleyAlgebra):
+    def __init__(self, base_ring, arrangement):
+        MoseleyAlgebra.__init__(self, base_ring, arrangement, 0)
+
+class VarcheckoGelfandAlgebra(MoseleyAlgebra):
+    def __init__(self, base_ring, arrangement):
+        MoseleyAlgebra.__init__(self, base_ring, arrangement, 1)
+
+    def _register_coercions(self):
+        r"""
+        A method to register the different bases in the coercion model.
+
+        TESTS::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: VG = A.varchenko_gelfand_algebra()
+            sage: N = VG.nbc_basis()
+            sage: C = VG.covector_basis()
+            sage: X = VG.normal_basis()
+            sage: n = N.an_element()
+            sage: c = C.an_element()
+            sage: x = X.an_element()
+            sage: n * c
+            -4*N[0, 2] + 12*N[0] + 6*N[0, 1]
+            sage: n * x
+            25*N[2] + 29*N[0, 1] - 5*N[0, 2]
+            sage: c * n
+            12*C[1, -1, -1] + 8*C[1, -1, 1] + 14*C[1, 1, 1]
+            sage: c * x
+            10*C[1, -1, 1] + 14*C[1, 1, 1]
+            sage: x * n
+            29*X[1, 2] + 24*X[0, 2] - 4*X[2]
+            sage: x * c
+            14*X[0, 2] + 4*X[1, 2] - 4*X[2]
+        """
+        MoseleyAlgebra._register_coercions(self)
+
+        # the Moseley algebra does not have a covector basis, so
+        # we register those coercions here.
+        N = self.nbc_basis()
+        C = self.covector_basis()
+        X = self.normal_basis()
+        N.module_morphism(on_basis=lambda I : C.from_polynomial(N.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
+        C.module_morphism(on_basis=lambda I : C.from_polynomial(C.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
+        C.module_morphism(on_basis=lambda I : X.from_polynomial(C.to_polynomial_on_basis(I)), codomain=X).register_as_coercion()
+        X.module_morphism(on_basis=lambda I : C.from_polynomial(X.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
+
+    def covectors_in_cone(self, cone_mask):
+        r"""
+        The covectors of the regions that lie in a cone.
+
+        The cone is specified by prescribing which entries of the sign vectors
+        must be positive or negative.
+
+        INPUT:
+
+        - ``cone_mask`` -- list with entries in `\{1, 0, -1\}`, where the entry
+          in position `i` specifies whether we should consider the positive
+          (+1), the negative (-1), or neither (0) halfspace associated with the
+          `i`-th hyperplane.
+
+        OUTPUT:
+
+        - ``cone_covectors`` -- list of covectors
+
+        .. WARNING::
+
+            When constructing a hyperplane arrangement, the order in
+            which the hyperplanes are specified is not the order with which the
+            hyperplanes are stored internally, or the order with which the sign
+            vectors are computed. Instead, they are sorted according to their
+            (implicitly defined) normal vector.
+
+        EXAMPLES:
+
+        Construct a hyperplane arrangement::
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H(-x + z, z, x - 5*y, x - y, x + y - 2*z, x + y)
+            sage: VG = A.varchenko_gelfand_algebra()
+
+        To compute the covectors of the regions lying in the cone defined by
+        the halfspaces `z > 0`, `x - y > 0`, `x + y > 0`, identify the
+        positions of the hyperplanes in ``A.hyperplanes()``::
+
+            sage: A.hyperplanes()
+            (Hyperplane -x + 0*y + z + 0,
+             Hyperplane 0*x + 0*y + z + 0,
+             Hyperplane x - 5*y + 0*z + 0,
+             Hyperplane x - y + 0*z + 0,
+             Hyperplane x + y - 2*z + 0,
+             Hyperplane x + y + 0*z + 0)
+
+        So, we are interested in the positive halfspaces of the hyperplanes in
+        positions 1, 3, 5, so we set ``cone_mask=(0,1,0,1,0,1)``::
+
+            sage: cone_covectors = VG.covectors_in_cone((0,1,0,1,0,1))
+            sage: sorted(cone_covectors, reverse=True)
+            [(1, 1, 1, 1, -1, 1),
+             (1, 1, -1, 1, -1, 1),
+             (-1, 1, 1, 1, 1, 1),
+             (-1, 1, 1, 1, -1, 1),
+             (-1, 1, -1, 1, 1, 1),
+             (-1, 1, -1, 1, -1, 1)]
+
+        Here are the polynomials corresponding to heaviside function for each
+        of these regions::
+
+            sage: C = VG.covector_basis()
+            sage: heavisides = [C.to_polynomial_on_basis(covector) for covector in cone_covectors]
+            sage: sorted(heavisides)
+            [-x1*x2*x5 + x1*x3*x5 - x2*x4*x5 + x3*x4*x5 + x2*x5 - x3*x5,
+             x1*x2*x5 + x2*x4*x5 - x2*x5,
+            -x0*x2*x5 - x2*x4*x5 + x2*x5,
+             -x0*x2*x5 - x0*x4*x5 - x3*x4*x5 + x0*x5 + x3*x5 + x4*x5 - x5,
+             x0*x2*x5,
+             x0*x2*x5 + x0*x4*x5 + x2*x4*x5 - x0*x5 - x2*x5 - x4*x5 + x5]
+
+        Here are the same elements, but expressed in terms of the covector basis::
+
+            sage: sorted([C.from_polynomial(heaviside) for heaviside in heavisides], reverse=True)
+            [C[1, 1, 1, 1, -1, 1],
+             C[1, 1, -1, 1, -1, 1],
+             C[-1, 1, 1, 1, 1, 1],
+             C[-1, 1, 1, 1, -1, 1],
+             C[-1, 1, -1, 1, 1, 1],
+             C[-1, 1, -1, 1, -1, 1]]
+
+        Here are the same elements, but expressed in terms of the NBC basis::
+
+            sage: N = VG.nbc_basis()
+            sage: [N.from_polynomial(heaviside) for heaviside in heavisides]
+            [N[0, 2, 5],
+             N[0, 3] - N[0, 2, 3],
+             N[] - N[0] - N[2] - N[4] + N[0, 2] + N[2, 4] + N[0, 4] - N[0, 2, 4],
+             -N[] + N[0] + N[2] + N[4] - N[1, 2] - N[0, 2] + N[1, 3] - N[2, 4] - N[0, 4] + N[0, 1, 2] - N[0, 1, 3] + N[0, 2, 4],
+             -N[] + N[0] + N[2] + N[4] - N[0, 2] - N[2, 4] - N[1, 4] - N[0, 4] + N[1, 5] + N[0, 2, 4] + N[0, 1, 4] - N[0, 1, 5],
+             N[] - N[0] - N[1] - N[2] - N[4] + N[0, 1] + N[1, 2] + N[0, 2] + N[2, 4] + N[1, 4] + N[0, 4] - N[0, 1, 2] - N[0, 2, 4] - N[0, 1, 4]]
+
+        Test that the ideal generated by the heaviside functions is equal to
+        the ideal generated by the product of the hyperplanes defining the
+        cone::
+
+            sage: R = VG.underlying_polynomial_ring()
+            sage: x = R.gens()
+            sage: R.ideal(heavisides) == R.ideal(x[1] * x[3] * x[5])
+            True
+
+        The product `x_1 x_3 x_4` defines a heaviside function which is `0` on
+        regions outside the cone (this can be seen by plotting the arrangement
+        in the hyperplane `z = 1`). Hence, this element should belong to the
+        above ideal. Let's vertify this::
+
+            sage: x[1] * x[3] * x[4] in R.ideal(heavisides)
+            True
+        """
+        A = self.hyperplane_arrangement()
+        cone_covectors = []
+        for region in A.regions():
+            covector = A.sign_vector(region.representative_point())
+            if all(cone_mask[i] / covector[i] >= 0 for i in range(len(covector))):
+                cone_covectors.append(tuple(covector))
+        return cone_covectors
 
 class VarchenkoGelfandAlgebra(UniqueRepresentation, Parent):
     r"""
