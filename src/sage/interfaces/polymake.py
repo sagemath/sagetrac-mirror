@@ -364,7 +364,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             try:
                 x = RDF(x)
                 return '{}'.format(x)
-            except:
+            except Exception:
                 pass
 
             raise NotImplementedError
