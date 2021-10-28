@@ -1,6 +1,14 @@
 Category Framework
 ==================
 
+Introduction
+------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/categories/quickref
+
 The Sage Category Framework
 ---------------------------
 
