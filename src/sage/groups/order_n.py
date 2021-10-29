@@ -145,6 +145,28 @@ def _directprod(order_n):
     - ``order_n`` - list of python strings
     AUTHORS:
     - Alexis Newton (2021-07-21)
+
+    EXAMPLES::
+
+    sage: from sage.groups.order_n import order_n
+    sage: from sage.groups.order_n import _directprod
+    sage: test1 = order_n(20, start = 14)
+    sage: _directprod(test1)                                                         
+    ['C4 x C4',
+    '(C4 x C2) : C2',
+    'C8 x C2',
+    'C4 x C2 x C2',
+    'C2 x D8',
+    'C2 x Q8',
+    '(C4 x C2) : C2',
+    'C2 x C2 x C2 x C2',
+    'C3 x S3',
+    '(C3 x C3) : C2',
+    'C6 x C3',
+    'C10 x C2']
+    
+
+
     """
     new_order_n = []
     for i in range(0,len(order_n)):
@@ -162,6 +184,24 @@ def _semidirectprod(order_n):
     - ``order_n`` - list of python strings
     AUTHORS:
     - Alexis Newton (2021-07-21)
+
+    EXAMPLES::
+
+    sage: from sage.groups.order_n import order_n
+    sage: from sage.groups.order_n import _semidirectprod
+    sage: test2 = order_n(20, start = 14)
+    sage: _semidirectprod(test2)                                                     
+    ['(C4 x C2) : C2',
+     'C4 : C4',
+     'C8 : C2',
+     '(C4 x C2) : C2',
+     '(C3 x C3) : C2',
+     'C5 : C4',
+     'C5 : C4']
+
+
+
+
     """
     new_order_n = []
     for i in range(0,len(order_n)):
@@ -203,6 +243,42 @@ def order_n(n, *parameter, start=1, timeout=60,
     
     AUTHORS:
     - Alexis Newton (2021-07-21)
+
+    EXAMPLES::
+
+    sage: from sage.groups.order_n import order_n
+
+    sage: from sage.groups.order_n import _directprod
+
+    sage: from sage.groups.order_n import _semidirectprod
+
+    sage: order_n(12)                                                               
+    ['1',
+     'C2',
+     'C3',
+     'C4',
+     'C2 x C2',
+     'C5',
+     'S3',
+     'C6',
+     'C7',
+     'C8',
+     'C4 x C2',
+     'D8',
+     'Q8',
+     'C2 x C2 x C2',
+     'C9',
+     'C3 x C3',
+     'D10',
+     'C10',
+     'C11',
+     'C3 : C4',
+     'C12',
+     'A4',
+     'D12',
+     'C6 x C2']
+
+
      """
     set_gap_memory_pool_size(memory)
     below_order_n = gap('EmptyPlist(1)') 
