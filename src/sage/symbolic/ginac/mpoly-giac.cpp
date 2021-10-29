@@ -1,7 +1,7 @@
 /** @file mpoly-giac.cpp
  * 
  *  GiNaC Copyright (C) 1999-2008 Johannes Gutenberg University Mainz, Germany
- *  Copyright (C) 2016  Ralf Stephan
+ *  Copyright (C) 2016	Ralf Stephan
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -57,165 +57,165 @@ static giac::gen giac_one;
 
 
 inline giac::polynome gen2pol(const giac::gen& g) {
-        return giac::polynome(giac::monomial<giac::gen>(g, the_dimension));
+	return giac::polynome(giac::monomial<giac::gen>(g, the_dimension));
 }
 
 inline giac::gen num2gen(const numeric& n) {
-        auto gp = n.to_giacgen(context_ptr);
-        if (gp != nullptr)
-                return std::move(*gp);
-        else {
-                std::stringstream ss;
-                ss << n;
-                return giac::gen(std::string(ss.str()), context_ptr);
-        }
+	auto gp = n.to_giacgen(context_ptr);
+	if (gp != nullptr)
+		return std::move(*gp);
+	else {
+		std::stringstream ss;
+		ss << n;
+		return giac::gen(std::string(ss.str()), context_ptr);
+	}
 }
 
 static giac::polynome replace_with_symbol(const ex& e, ex_int_map& map, exvector& revmap)
 {
-        // Expression already replaced? Then return the assigned symbol
-        auto it = map.find(e);
-        if (it != map.end()) {
-                const int index = it->second;
-                giac::monomial<giac::gen> mon(giac_one, index, the_dimension);
-                return giac::polynome(mon);
-        }
+	// Expression already replaced? Then return the assigned symbol
+	auto it = map.find(e);
+	if (it != map.end()) {
+		const int index = it->second;
+		giac::monomial<giac::gen> mon(giac_one, index, the_dimension);
+		return giac::polynome(mon);
+	}
 
-        // Otherwise create new symbol and add to dict
-        const int index = revmap.size() + 1;
-        map.insert(std::make_pair(e, index));
-        revmap.push_back(e);
-        giac::monomial<giac::gen> mon(giac_one, index, the_dimension);
-        return giac::polynome(mon);
+	// Otherwise create new symbol and add to dict
+	const int index = revmap.size() + 1;
+	map.insert(std::make_pair(e, index));
+	revmap.push_back(e);
+	giac::monomial<giac::gen> mon(giac_one, index, the_dimension);
+	return giac::polynome(mon);
 }
 
 const giac::polynome basic::to_polynome(ex_int_map& map, exvector& revmap)
 {
-        std::cerr << *this << std::endl;
-        throw std::runtime_error("basic::to_polynome: can't happen");
+	std::cerr << *this << std::endl;
+	throw std::runtime_error("basic::to_polynome: can't happen");
 }
 
 const giac::polynome num_to_polynome(const numeric& num,
-                ex_int_map& map, exvector& revmap)
+		ex_int_map& map, exvector& revmap)
 {
-        if (num.is_real()) {
-                if (num.is_integer() or num.is_rational())
-                        return gen2pol(num2gen(num));
-                else
-                        return replace_with_symbol(num, map, revmap);
-        } else { // complex
-                numeric re = num.real();
-                numeric im = num.imag();
-                giac::polynome re_p(the_dimension);
-                giac::polynome im_p(the_dimension);
-                if (re.is_integer() or re.is_rational())
-                        re_p = gen2pol(num2gen(re));
-                else
-                        re_p = replace_with_symbol(re, map, revmap);
-                if (im.is_integer() or im.is_rational())
-                        im_p = gen2pol(num2gen(im));
-                else
-                        im_p = replace_with_symbol(im, map, revmap);
-                giac::polynome r = re_p + im_p * replace_with_symbol(I, map, revmap);
-                return r;
-        }
+	if (num.is_real()) {
+		if (num.is_integer() or num.is_rational())
+			return gen2pol(num2gen(num));
+		else
+			return replace_with_symbol(num, map, revmap);
+	} else { // complex
+		numeric re = num.real();
+		numeric im = num.imag();
+		giac::polynome re_p(the_dimension);
+		giac::polynome im_p(the_dimension);
+		if (re.is_integer() or re.is_rational())
+			re_p = gen2pol(num2gen(re));
+		else
+			re_p = replace_with_symbol(re, map, revmap);
+		if (im.is_integer() or im.is_rational())
+			im_p = gen2pol(num2gen(im));
+		else
+			im_p = replace_with_symbol(im, map, revmap);
+		giac::polynome r = re_p + im_p * replace_with_symbol(I, map, revmap);
+		return r;
+	}
 }
 
 // Convert to giac polynomial over QQ, filling replacement dicts
 // TODO: special case numeric mpz_t, int instead of string interface
 const giac::polynome ex::to_polynome(ex_int_map& map, exvector& revmap) const
 {
-        if (is_exactly_a<add>(*this))
-        {
-                const add& a = ex_to<add>(*this);
-                giac::polynome p = gen2pol(giac_zero);
-                for (const auto& termex : a.seq) {
-                        p = p + a.recombine_pair_to_ex(termex).to_polynome(map, revmap);
-                }
-                p = p + num_to_polynome(a.overall_coeff, map, revmap);
-                return p;
-        }
-        else if (is_exactly_a<numeric>(*this))
-        {
-                return num_to_polynome(ex_to<numeric>(*this), map, revmap);
-        }
-        else if (is_exactly_a<mul>(*this))
-        {
-                const mul& m = ex_to<mul>(*this);
-                giac::polynome p = gen2pol(giac_one);
-                for (const auto& termex : m.seq) {
-                        p *= m.recombine_pair_to_ex(termex).to_polynome(map, revmap);
-                }
-                p *= num_to_polynome(m.overall_coeff, map, revmap);
-                return p;
-        }
-        else if (is_exactly_a<power>(*this))
-        {
-                const power& pow = ex_to<power>(*this);
-                if (is_exactly_a<numeric>(pow.exponent)) {
-                        numeric expo = ex_to<numeric>(pow.exponent);
-                        if (pow.exponent.info(info_flags::posint))
-                                return std::move(giac::pow(pow.basis.to_polynome(map, revmap), expo.to_int()));
-                }
-                return replace_with_symbol(*this, map, revmap);
-        }
+	if (is_exactly_a<add>(*this))
+	{
+		const add& a = ex_to<add>(*this);
+		giac::polynome p = gen2pol(giac_zero);
+		for (const auto& termex : a.seq) {
+			p = p + a.recombine_pair_to_ex(termex).to_polynome(map, revmap);
+		}
+		p = p + num_to_polynome(a.overall_coeff, map, revmap);
+		return p;
+	}
+	else if (is_exactly_a<numeric>(*this))
+	{
+		return num_to_polynome(ex_to<numeric>(*this), map, revmap);
+	}
+	else if (is_exactly_a<mul>(*this))
+	{
+		const mul& m = ex_to<mul>(*this);
+		giac::polynome p = gen2pol(giac_one);
+		for (const auto& termex : m.seq) {
+			p *= m.recombine_pair_to_ex(termex).to_polynome(map, revmap);
+		}
+		p *= num_to_polynome(m.overall_coeff, map, revmap);
+		return p;
+	}
+	else if (is_exactly_a<power>(*this))
+	{
+		const power& pow = ex_to<power>(*this);
+		if (is_exactly_a<numeric>(pow.exponent)) {
+			numeric expo = ex_to<numeric>(pow.exponent);
+			if (pow.exponent.info(info_flags::posint))
+				return std::move(giac::pow(pow.basis.to_polynome(map, revmap), expo.to_int()));
+		}
+		return replace_with_symbol(*this, map, revmap);
+	}
 
-        return replace_with_symbol(*this, map, revmap);
+	return replace_with_symbol(*this, map, revmap);
 }
 
 static ex gen2ex(const giac::gen& gen)
 {
-        // we need to handle giac types _INT_, _ZINT, and _CPLX
-        switch (gen.type) {
-        case giac::_INT_:
-                return numeric(gen.val);
-        case giac::_ZINT:
-                mpz_t bigint;
-                mpz_init_set(bigint, *(gen.ref_ZINTptr()));
-                return numeric(bigint);
-        case giac::_CPLX:
-                return (gen2ex(gen.ref_CPLXptr()[0])
-                                + I * gen2ex(gen.ref_CPLXptr()[1]));
-        case giac::_FRAC:
-                return (gen2ex(gen.ref_FRACptr()->num)
-                                / gen2ex(gen.ref_FRACptr()->den));
-        default:
-                std::ostringstream os;
-                os << "gen2ex: can't happen: " << int(gen.type) << std::flush;
-                throw std::runtime_error(os.str());
-        }
+	// we need to handle giac types _INT_, _ZINT, and _CPLX
+	switch (gen.type) {
+	case giac::_INT_:
+		return numeric(gen.val);
+	case giac::_ZINT:
+		mpz_t bigint;
+		mpz_init_set(bigint, *(gen.ref_ZINTptr()));
+		return numeric(bigint);
+	case giac::_CPLX:
+		return (gen2ex(gen.ref_CPLXptr()[0])
+				+ I * gen2ex(gen.ref_CPLXptr()[1]));
+	case giac::_FRAC:
+		return (gen2ex(gen.ref_FRACptr()->num)
+				/ gen2ex(gen.ref_FRACptr()->den));
+	default:
+		std::ostringstream os;
+		os << "gen2ex: can't happen: " << int(gen.type) << std::flush;
+		throw std::runtime_error(os.str());
+	}
 }
 
 static ex polynome_to_ex(const giac::polynome& p, const exvector& revmap)
 {
-        ex e = _ex0;
-        for (const auto& mon : p.coord) {
-                ex prod = _ex1;
-                for (unsigned int varno=0; varno<mon.index.size(); ++varno) {
-                        if (mon.index[varno] != 0)
-                                prod *= power(revmap[varno], mon.index[varno]);
-                }
-                e += gen2ex(mon.value) * prod;
-        }
-        return e;
+	ex e = _ex0;
+	for (const auto& mon : p.coord) {
+		ex prod = _ex1;
+		for (unsigned int varno=0; varno<mon.index.size(); ++varno) {
+			if (mon.index[varno] != 0)
+				prod *= power(revmap[varno], mon.index[varno]);
+		}
+		e += gen2ex(mon.value) * prod;
+	}
+	return e;
 }
 
 // GCD of two exes which are in polynomial form
 ex gcdpoly(const ex &a, const ex &b, ex *ca=nullptr, ex *cb=nullptr, bool check_args=true)
 {
-        //std::cerr << "gcd(" << a << "," << b << ") = ";
-        if (context_ptr == nullptr) {
-                context_ptr=new giac::context();
-                giac_zero = giac::gen(std::string("0"), context_ptr);
-                giac_one = giac::gen(std::string("1"), context_ptr);
-        }
+	//std::cerr << "gcd(" << a << "," << b << ") = ";
+	if (context_ptr == nullptr) {
+		context_ptr=new giac::context();
+		giac_zero = giac::gen(std::string("0"), context_ptr);
+		giac_one = giac::gen(std::string("1"), context_ptr);
+	}
 
-        if (a.is_zero())
-                return b;
-        if (b.is_zero())
-                return a;
+	if (a.is_zero())
+		return b;
+	if (b.is_zero())
+		return a;
 
-        // GCD of numerics
+	// GCD of numerics
 	if (is_exactly_a<numeric>(a) && is_exactly_a<numeric>(b)) {
 		numeric g = gcd(ex_to<numeric>(a), ex_to<numeric>(b));
 		if ((ca != nullptr) || (cb != nullptr)) {
@@ -378,154 +378,154 @@ factored_b:
 		} // p_gcd.is_equal(_ex1)
 	}
 
-        // Conversion necessary to count needed symbols beforehand
-        exmap repl;
-        ex poly_a = a.to_rational(repl);
-        ex poly_b = b.to_rational(repl);
+	// Conversion necessary to count needed symbols beforehand
+	exmap repl;
+	ex poly_a = a.to_rational(repl);
+	ex poly_b = b.to_rational(repl);
 
-        symbolset s1 = poly_a.symbols();
-        const symbolset& s2 = poly_b.symbols();
-        s1.insert(s2.begin(), s2.end());
-        the_dimension = s1.size();
+	symbolset s1 = poly_a.symbols();
+	const symbolset& s2 = poly_b.symbols();
+	s1.insert(s2.begin(), s2.end());
+	the_dimension = s1.size();
 
-        ex_int_map map;
-        exvector revmap;
+	ex_int_map map;
+	exvector revmap;
 
-        giac::polynome p = poly_a.to_polynome(map, revmap);
-        giac::polynome q = poly_b.to_polynome(map, revmap);
-        giac::polynome d(the_dimension);
-        giac::gcd(p, q, d);
+	giac::polynome p = poly_a.to_polynome(map, revmap);
+	giac::polynome q = poly_b.to_polynome(map, revmap);
+	giac::polynome d(the_dimension);
+	giac::gcd(p, q, d);
 
-        if (ca != nullptr) {
-                giac::polynome quo(the_dimension);
-                if (giac::exactquotient(p, d, quo))
-                        *ca = polynome_to_ex(quo, revmap).subs(repl, subs_options::no_pattern);
-                else
-                        throw(std::runtime_error("can't happen in gcdpoly"));
-        }
-        if (cb != nullptr) {
-                giac::polynome quo(the_dimension);
-                if (giac::exactquotient(q, d, quo))
-                        *cb = polynome_to_ex(quo, revmap).subs(repl, subs_options::no_pattern);
-                else
-                        throw(std::runtime_error("can't happen in gcdpoly"));
-        }
-        return polynome_to_ex(d, revmap).subs(repl, subs_options::no_pattern);
+	if (ca != nullptr) {
+		giac::polynome quo(the_dimension);
+		if (giac::exactquotient(p, d, quo))
+			*ca = polynome_to_ex(quo, revmap).subs(repl, subs_options::no_pattern);
+		else
+			throw(std::runtime_error("can't happen in gcdpoly"));
+	}
+	if (cb != nullptr) {
+		giac::polynome quo(the_dimension);
+		if (giac::exactquotient(q, d, quo))
+			*cb = polynome_to_ex(quo, revmap).subs(repl, subs_options::no_pattern);
+		else
+			throw(std::runtime_error("can't happen in gcdpoly"));
+	}
+	return polynome_to_ex(d, revmap).subs(repl, subs_options::no_pattern);
 }
 
 #if 0
 ex resultantpoly(const ex & ee1, const ex & ee2, const ex & s)
 {
-        // Conversion necessary to count needed symbols beforehand
-        exmap repl;
-        ex poly_a = ee1.to_rational(repl);
-        ex poly_b = ee2.to_rational(repl);
+	// Conversion necessary to count needed symbols beforehand
+	exmap repl;
+	ex poly_a = ee1.to_rational(repl);
+	ex poly_b = ee2.to_rational(repl);
 
-        symbolset s1 = poly_a.symbols();
-        const symbolset& s2 = poly_b.symbols();
-        s1.insert(s2.begin(), s2.end());
-        s1.insert(ex_to<symbol>(s));
-        the_dimension = s1.size();
+	symbolset s1 = poly_a.symbols();
+	const symbolset& s2 = poly_b.symbols();
+	s1.insert(s2.begin(), s2.end());
+	s1.insert(ex_to<symbol>(s));
+	the_dimension = s1.size();
 
-        ex_int_map map;
-        exvector revmap;
+	ex_int_map map;
+	exvector revmap;
 
-        giac::polynome p = poly_a.to_polynome(map, revmap);
-        giac::polynome q = poly_b.to_polynome(map, revmap);
-        giac::polynome d = giac::resultant(p, q);
-        return polynome_to_ex(d, revmap).subs(repl, subs_options::no_pattern);
+	giac::polynome p = poly_a.to_polynome(map, revmap);
+	giac::polynome q = poly_b.to_polynome(map, revmap);
+	giac::polynome d = giac::resultant(p, q);
+	return polynome_to_ex(d, revmap).subs(repl, subs_options::no_pattern);
 }
 #endif
 
 bool factorpoly(const ex& the_ex, ex& res_prod)
 {
-        if (is_exactly_a<numeric>(the_ex)
-            or is_exactly_a<function>(the_ex)
-            or is_exactly_a<constant>(the_ex)
-            or is_exactly_a<symbol>(the_ex))
-                return false;
+	if (is_exactly_a<numeric>(the_ex)
+	    or is_exactly_a<function>(the_ex)
+	    or is_exactly_a<constant>(the_ex)
+	    or is_exactly_a<symbol>(the_ex))
+		return false;
 
-        if (is_exactly_a<mul>(the_ex)) {
-                const mul& m = ex_to<mul>(the_ex);
-                exvector ev;
-                bool mchanged = false;
-                for (size_t i=0; i<m.nops(); ++i) {
-                        ex r;
-                        const ex& e = m.op(i);
-                        bool res = factorpoly(e, r);
-                        if (res) {
-                                ev.push_back(r);
-                                mchanged = true;
-                        }
-                        else
-                                ev.push_back(e);
-                }
-                if (mchanged)
-                        res_prod = mul(ev);
-                return mchanged;
-        }
+	if (is_exactly_a<mul>(the_ex)) {
+		const mul& m = ex_to<mul>(the_ex);
+		exvector ev;
+		bool mchanged = false;
+		for (size_t i=0; i<m.nops(); ++i) {
+			ex r;
+			const ex& e = m.op(i);
+			bool res = factorpoly(e, r);
+			if (res) {
+				ev.push_back(r);
+				mchanged = true;
+			}
+			else
+				ev.push_back(e);
+		}
+		if (mchanged)
+			res_prod = mul(ev);
+		return mchanged;
+	}
 
-        if (is_exactly_a<power>(the_ex)) {
-                const power& pow = ex_to<power>(the_ex);
-                ex prod;
-                bool res = factorpoly(pow.op(0), prod);
-                if (not res)
-                        return false;
-                res_prod = power(prod, pow.op(1));
-                return true;
-        }
+	if (is_exactly_a<power>(the_ex)) {
+		const power& pow = ex_to<power>(the_ex);
+		ex prod;
+		bool res = factorpoly(pow.op(0), prod);
+		if (not res)
+			return false;
+		res_prod = power(prod, pow.op(1));
+		return true;
+	}
 
-        if (not is_exactly_a<add>(the_ex))
-                throw(std::runtime_error("can't happen in factor"));
+	if (not is_exactly_a<add>(the_ex))
+		throw(std::runtime_error("can't happen in factor"));
 
-        if (context_ptr == nullptr) {
-                context_ptr=new giac::context();
-                giac_zero = giac::gen(std::string("0"), context_ptr);
-                giac_one = giac::gen(std::string("1"), context_ptr);
-        }
+	if (context_ptr == nullptr) {
+		context_ptr=new giac::context();
+		giac_zero = giac::gen(std::string("0"), context_ptr);
+		giac_one = giac::gen(std::string("1"), context_ptr);
+	}
 
-        exmap repl;
-        ex poly = the_ex.to_rational(repl);
-        symbolset s1 = poly.symbols();
-        the_dimension = s1.size();
+	exmap repl;
+	ex poly = the_ex.to_rational(repl);
+	symbolset s1 = poly.symbols();
+	the_dimension = s1.size();
 
-        ex_int_map map;
-        exvector revmap;
-        giac::polynome p = the_ex.to_polynome(map, revmap);
-        giac::polynome p_content(the_dimension);
-        giac::factorization f;
-        bool res = factor(p, p_content, f,
-                        false, false, false, giac_one, giac_one);
-        if (not res)
-                return false;
-        res_prod = polynome_to_ex(p_content, revmap).subs(repl, subs_options::no_pattern);
-        for (auto fpair : f)
-                res_prod = mul(res_prod,
-                                power(polynome_to_ex(fpair.fact, revmap).subs(repl, subs_options::no_pattern),
-                                        fpair.mult));
-        return true;
+	ex_int_map map;
+	exvector revmap;
+	giac::polynome p = the_ex.to_polynome(map, revmap);
+	giac::polynome p_content(the_dimension);
+	giac::factorization f;
+	bool res = factor(p, p_content, f,
+			false, false, false, giac_one, giac_one);
+	if (not res)
+		return false;
+	res_prod = polynome_to_ex(p_content, revmap).subs(repl, subs_options::no_pattern);
+	for (auto fpair : f)
+		res_prod = mul(res_prod,
+				power(polynome_to_ex(fpair.fact, revmap).subs(repl, subs_options::no_pattern),
+					fpair.mult));
+	return true;
 }
 
 ex poly_mul_expand(const ex& a, const ex& b)
 {
-        exmap repl;
-        ex poly_a = a.to_rational(repl);
-        ex poly_b = b.to_rational(repl);
+	exmap repl;
+	ex poly_a = a.to_rational(repl);
+	ex poly_b = b.to_rational(repl);
 
-        symbolset s1 = poly_a.symbols();
-        const symbolset& s2 = poly_b.symbols();
-        s1.insert(s2.begin(), s2.end());
-        the_dimension = s1.size();
+	symbolset s1 = poly_a.symbols();
+	const symbolset& s2 = poly_b.symbols();
+	s1.insert(s2.begin(), s2.end());
+	the_dimension = s1.size();
 
-        ex_int_map map;
-        exvector revmap;
+	ex_int_map map;
+	exvector revmap;
 
-        giac::polynome p = poly_a.to_polynome(map, revmap);
-        giac::polynome q = poly_b.to_polynome(map, revmap);
-        giac::polynome d(the_dimension);
-        d = p * q;
+	giac::polynome p = poly_a.to_polynome(map, revmap);
+	giac::polynome q = poly_b.to_polynome(map, revmap);
+	giac::polynome d(the_dimension);
+	d = p * q;
 
-        return polynome_to_ex(d, revmap).subs(repl, subs_options::no_pattern);
+	return polynome_to_ex(d, revmap).subs(repl, subs_options::no_pattern);
 }
 
 } // namespace GiNaC

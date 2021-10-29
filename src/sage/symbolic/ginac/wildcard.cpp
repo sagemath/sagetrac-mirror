@@ -135,7 +135,7 @@ bool haswild(const ex & x)
 bool haswild(const ex & x, const wildcard& w)
 {
 	if (is_exactly_a<wildcard>(x)
-            and ex_to<wildcard>(x).label == w.label)
+	    and ex_to<wildcard>(x).label == w.label)
 		return true;
 	for (size_t i=0; i<x.nops(); ++i)
 		if (haswild(x.op(i), w))
@@ -145,21 +145,21 @@ bool haswild(const ex & x, const wildcard& w)
 
 symbolset substitute(const wildset& w, const exmap& m)
 {
-        symbolset s;
-        for (const auto& pair : m) {
-                if (not is_exactly_a<wildcard>(pair.first))
-                        throw (std::runtime_error(""));
-                const auto& it = w.find(ex_to<wildcard>(pair.first));
-                if (it != w.end()) {
-                        const ex& e = pair.second;
-                        if (is_exactly_a<symbol>(e))
-                                s.insert(ex_to<symbol>(e));
-                        else
-                                for (const symbol& sym : e.symbols())
-                                       s.insert(sym);
-                }
-        }
-        return s;
+	symbolset s;
+	for (const auto& pair : m) {
+		if (not is_exactly_a<wildcard>(pair.first))
+			throw (std::runtime_error(""));
+		const auto& it = w.find(ex_to<wildcard>(pair.first));
+		if (it != w.end()) {
+			const ex& e = pair.second;
+			if (is_exactly_a<symbol>(e))
+				s.insert(ex_to<symbol>(e));
+			else
+				for (const symbol& sym : e.symbols())
+				       s.insert(sym);
+		}
+	}
+	return s;
 }
 
 } // namespace GiNaC

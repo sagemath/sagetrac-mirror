@@ -76,7 +76,7 @@ matrix::matrix(unsigned r, unsigned c)
 // protected
 
 /** Ctor from representation, for internal use only. */
-matrix::matrix(unsigned r, unsigned c, exvector  m2)
+matrix::matrix(unsigned r, unsigned c, exvector	 m2)
   : inherited(&matrix::tinfo_static), row(r), col(c), m(std::move(m2))
 {
 	setflag(status_flags::not_shareable);
@@ -219,7 +219,7 @@ ex matrix::eval(int level) const
 			m2[r*col+c] = m[r*col+c].eval(level);
 	
 	return (new matrix(row, col, m2))->setflag(status_flags::dynallocated |
-	                                           status_flags::evaluated);
+						   status_flags::evaluated);
 }
 
 ex matrix::subs(const exmap & mp, unsigned options) const
@@ -636,7 +636,7 @@ matrix matrix::mul_scalar(const ex & other) const
 }
 
 
-/** Power of a matrix.  Currently handles integer exponents only. */
+/** Power of a matrix.	Currently handles integer exponents only. */
 matrix matrix::pow(const ex & expn) const
 {
 	if (col!=row)
@@ -660,7 +660,7 @@ matrix matrix::pow(const ex & expn) const
 			if (b.is_zero())
 				return C;
 			// This loop computes the representation of b in base 2 from right
-			// to left and multiplies the factors whenever needed.  Note
+			// to left and multiplies the factors whenever needed.	Note
 			// that this is not entirely optimal but close to optimal and
 			// "better" algorithms are much harder to implement.  (See Knuth,
 			// TAoCP2, section "Evaluation of Powers" for a good discussion.)
@@ -669,7 +669,7 @@ matrix matrix::pow(const ex & expn) const
 					C = C.mul(A);
 					--b;
 				}
-				b /= *_num2_p;  // still integer.
+				b /= *_num2_p;	// still integer.
 				A = A.mul(A);
 			}
 			return A.mul(C);
@@ -745,7 +745,7 @@ ex matrix::determinant(unsigned algo) const
 	bool numeric_flag = true;
 	bool normal_flag = false;
 	unsigned sparse_count = 0;  // counts non-zero elements
-        for (const auto& elem : m) {
+	for (const auto& elem : m) {
 		if (not elem.info(info_flags::numeric))
 			numeric_flag = false;
 		exmap srl;  // symbol replacement list
@@ -753,7 +753,7 @@ ex matrix::determinant(unsigned algo) const
 		if (not rtest.is_zero())
 			++sparse_count;
 		if ((not rtest.info(info_flags::crational_polynomial)) and
-		        (not rtest.info(info_flags::rational_function)))
+			(not rtest.info(info_flags::rational_function)))
 			normal_flag = true;
 	}
 	
@@ -776,89 +776,89 @@ ex matrix::determinant(unsigned algo) const
 		// for consistency with non-trivial determinants...
 		if (normal_flag)
 			return m[0].normal();
-                return m[0].expand();
+		return m[0].expand();
 	}
 
 	// Compute the determinant
-        switch (algo) {
-        case determinant_algo::gauss: {
-                ex det = 1;
-                matrix tmp(*this);
-                int sign = tmp.gauss_elimination(true);
-                for (unsigned d = 0; d < row; ++d)
-                        det *= tmp.m[d * col + d];
-                if (normal_flag)
-                        return (sign * det).normal();
-                return (sign * det).normal().expand();
-        }
-        case determinant_algo::bareiss: {
-                matrix tmp(*this);
-                int sign;
-                sign = tmp.fraction_free_elimination(true);
-                if (normal_flag)
-                        return (sign * tmp.m[row * col - 1]).normal();
-                return (sign * tmp.m[row * col - 1]).expand();
-        }
-        case determinant_algo::divfree: {
-                matrix tmp(*this);
-                int sign;
-                sign = tmp.division_free_elimination(true);
-                if (sign == 0)
-                        return _ex0;
-                ex det = tmp.m[row * col - 1];
-                // factor out accumulated bogus slag
-                for (unsigned d = 0; d < row - 2; ++d)
-                        for (unsigned j = 0; j < row - d - 2; ++j)
-                                det = (det / tmp.m[d * col + d]).normal();
-                return (sign * det);
-        }
-        case determinant_algo::laplace:
-        default: {
-                // This is the minor expansion scheme.  We always develop such
-                // that the smallest minors (i.e, the trivial 1x1 ones) are on the
-                // rightmost column.  For this to be efficient, empirical tests
-                // have shown that the emptiest columns (i.e. the ones with most
-                // zeros) should be the ones on the right hand side -- although
-                // this might seem counter-intuitive (and in contradiction to some
-                // literature like the FORM manual).  Please go ahead and test it
-                // if you don't believe me!  Therefore we presort the columns of
-                // the matrix:
-                typedef std::pair<unsigned, unsigned> uintpair;
-                std::vector<uintpair> c_zeros; // number of zeros in column
-                for (unsigned c = 0; c < col; ++c) {
-                        unsigned acc = 0;
-                        for (unsigned rr = 0; rr < row; ++rr)
-                                if (m[rr * col + c].is_zero())
-                                        ++acc;
-                        c_zeros.emplace_back(acc, c);
-                }
-                std::sort(c_zeros.begin(), c_zeros.end());
-                std::vector<unsigned> pre_sort;
-                for (std::vector<uintpair>::const_iterator i = c_zeros.begin(); 
-                                i != c_zeros.end(); ++i)
-                        pre_sort.push_back(i->second);
-                std::vector<unsigned> pre_sort_test(pre_sort); // permutation_sign() modifies the vector so we make a copy here
-                int sign = permutation_sign(pre_sort_test.begin(),
-                                pre_sort_test.end());
-                exvector result(row * col); // represents sorted matrix
-                unsigned c = 0;
-                for (const auto &elem : pre_sort) {
-                        for (unsigned rr = 0; rr < row; ++rr)
-                                result[rr * col + c] = m[rr * col + elem];
-                        ++c;
-                }
+	switch (algo) {
+	case determinant_algo::gauss: {
+		ex det = 1;
+		matrix tmp(*this);
+		int sign = tmp.gauss_elimination(true);
+		for (unsigned d = 0; d < row; ++d)
+			det *= tmp.m[d * col + d];
+		if (normal_flag)
+			return (sign * det).normal();
+		return (sign * det).normal().expand();
+	}
+	case determinant_algo::bareiss: {
+		matrix tmp(*this);
+		int sign;
+		sign = tmp.fraction_free_elimination(true);
+		if (normal_flag)
+			return (sign * tmp.m[row * col - 1]).normal();
+		return (sign * tmp.m[row * col - 1]).expand();
+	}
+	case determinant_algo::divfree: {
+		matrix tmp(*this);
+		int sign;
+		sign = tmp.division_free_elimination(true);
+		if (sign == 0)
+			return _ex0;
+		ex det = tmp.m[row * col - 1];
+		// factor out accumulated bogus slag
+		for (unsigned d = 0; d < row - 2; ++d)
+			for (unsigned j = 0; j < row - d - 2; ++j)
+				det = (det / tmp.m[d * col + d]).normal();
+		return (sign * det);
+	}
+	case determinant_algo::laplace:
+	default: {
+		// This is the minor expansion scheme.	We always develop such
+		// that the smallest minors (i.e, the trivial 1x1 ones) are on the
+		// rightmost column.  For this to be efficient, empirical tests
+		// have shown that the emptiest columns (i.e. the ones with most
+		// zeros) should be the ones on the right hand side -- although
+		// this might seem counter-intuitive (and in contradiction to some
+		// literature like the FORM manual).  Please go ahead and test it
+		// if you don't believe me!  Therefore we presort the columns of
+		// the matrix:
+		typedef std::pair<unsigned, unsigned> uintpair;
+		std::vector<uintpair> c_zeros; // number of zeros in column
+		for (unsigned c = 0; c < col; ++c) {
+			unsigned acc = 0;
+			for (unsigned rr = 0; rr < row; ++rr)
+				if (m[rr * col + c].is_zero())
+					++acc;
+			c_zeros.emplace_back(acc, c);
+		}
+		std::sort(c_zeros.begin(), c_zeros.end());
+		std::vector<unsigned> pre_sort;
+		for (std::vector<uintpair>::const_iterator i = c_zeros.begin(); 
+				i != c_zeros.end(); ++i)
+			pre_sort.push_back(i->second);
+		std::vector<unsigned> pre_sort_test(pre_sort); // permutation_sign() modifies the vector so we make a copy here
+		int sign = permutation_sign(pre_sort_test.begin(),
+				pre_sort_test.end());
+		exvector result(row * col); // represents sorted matrix
+		unsigned c = 0;
+		for (const auto &elem : pre_sort) {
+			for (unsigned rr = 0; rr < row; ++rr)
+				result[rr * col + c] = m[rr * col + elem];
+			++c;
+		}
 
-                if (normal_flag)
-                        return (sign * matrix(row, col, result).
-                                        determinant_minor()).normal();
-                return sign * matrix(row, col, result).determinant_minor();
-        }
-        }
+		if (normal_flag)
+			return (sign * matrix(row, col, result).
+					determinant_minor()).normal();
+		return sign * matrix(row, col, result).determinant_minor();
+	}
+	}
 }
 
 
-/** Trace of a matrix.  The result is normalized if it is in some quotient
- *  field and expanded only otherwise.  This implies that the trace of the
+/** Trace of a matrix.	The result is normalized if it is in some quotient
+ *  field and expanded only otherwise.	This implies that the trace of the
  *  symbolic 2x2 matrix [[a/(a-b),x],[y,b/(b-a)]] is recognized to be unity.
  *
  *  @return    the sum of diagonal elements
@@ -879,7 +879,7 @@ ex matrix::trace() const
 }
 
 
-/** Characteristic Polynomial.  Following mathematica notation the
+/** Characteristic Polynomial.	Following mathematica notation the
  *  characteristic polynomial of a matrix M is defined as the determiant of
  *  (M - lambda * 1) where 1 stands for the unit matrix of the same dimension
  *  as M.  Note that some CASs define it with a sign inside the determinant
@@ -896,11 +896,11 @@ ex matrix::charpoly(const ex & lambda) const
 		throw (std::logic_error("matrix::charpoly(): matrix not square"));
 	
 	bool numeric_flag = true;
-        for (const auto & elem : m)
+	for (const auto & elem : m)
 		if (!elem.info(info_flags::numeric)) {
 			numeric_flag = false;
-                        break;
-                }
+			break;
+		}
 	
 	// The pure numeric case is traditionally rather common.  Hence, it is
 	// trapped and we use Leverrier's algorithm which goes as row^3 for
@@ -984,8 +984,8 @@ matrix matrix::inverse() const
  *  @exception runtime_error (inconsistent linear system)
  *  @see       solve_algo */
 matrix matrix::solve(const matrix & vars,
-                     const matrix & rhs,
-                     unsigned algo) const
+		     const matrix & rhs,
+		     unsigned algo) const
 {
 	const unsigned mm = this->rows();
 	const unsigned n = this->cols();
@@ -1010,11 +1010,11 @@ matrix matrix::solve(const matrix & vars,
 	
 	// Gather some statistical information about the augmented matrix:
 	bool numeric_flag = true;
-        for (const auto & elem : aug.m)
+	for (const auto & elem : aug.m)
 		if (!elem.info(info_flags::numeric)) {
 			numeric_flag = false;
-                        break;
-                }
+			break;
+		}
 	
 	// Here is the heuristics in case this routine has to decide:
 	if (algo == solve_algo::automatic) {
@@ -1030,19 +1030,19 @@ matrix matrix::solve(const matrix & vars,
 	}
 	
 	// Eliminate the augmented matrix:
-        switch (algo) {
-        case solve_algo::gauss:
-                aug.gauss_elimination();
-                break;
-        case solve_algo::divfree:
-                aug.division_free_elimination();
-                break;
-        case solve_algo::bareiss:
-        default:
-                aug.fraction_free_elimination();
-        }
+	switch (algo) {
+	case solve_algo::gauss:
+		aug.gauss_elimination();
+		break;
+	case solve_algo::divfree:
+		aug.division_free_elimination();
+		break;
+	case solve_algo::bareiss:
+	default:
+		aug.fraction_free_elimination();
+	}
 
-        // assemble the solution matrix:
+	// assemble the solution matrix:
 	matrix sol(n,p);
 	for (unsigned co=0; co<p; ++co) {
 		unsigned last_assigned_sol = n+1;
@@ -1122,8 +1122,8 @@ ex matrix::determinant_minor() const
 		return (m[0]*m[3]-m[2]*m[1]).expand();
 	if (n==3)
 		return (m[0]*m[4]*m[8]-m[0]*m[5]*m[7]-
-		        m[1]*m[3]*m[8]+m[2]*m[3]*m[7]+
-		        m[1]*m[5]*m[6]-m[2]*m[4]*m[6]).expand();
+			m[1]*m[3]*m[8]+m[2]*m[3]*m[7]+
+			m[1]*m[5]*m[6]-m[2]*m[4]*m[6]).expand();
 	
 	// This algorithm can best be understood by looking at a naive
 	// implementation of Laplace-expansion, like this one:
@@ -1132,27 +1132,27 @@ ex matrix::determinant_minor() const
 	// for (unsigned r1=0; r1<this->rows(); ++r1) {
 	//     // shortcut if element(r1,0) vanishes
 	//     if (m[r1*col].is_zero())
-	//         continue;
+	//	   continue;
 	//     // assemble the minor matrix
 	//     for (unsigned r=0; r<minorM.rows(); ++r) {
-	//         for (unsigned c=0; c<minorM.cols(); ++c) {
-	//             if (r<r1)
-	//                 minorM(r,c) = m[r*col+c+1];
-	//             else
-	//                 minorM(r,c) = m[(r+1)*col+c+1];
-	//         }
+	//	   for (unsigned c=0; c<minorM.cols(); ++c) {
+	//	       if (r<r1)
+	//		   minorM(r,c) = m[r*col+c+1];
+	//	       else
+	//		   minorM(r,c) = m[(r+1)*col+c+1];
+	//	   }
 	//     }
 	//     // recurse down and care for sign:
 	//     if (r1%2)
-	//         det -= m[r1*col] * minorM.determinant_minor();
+	//	   det -= m[r1*col] * minorM.determinant_minor();
 	//     else
-	//         det += m[r1*col] * minorM.determinant_minor();
+	//	   det += m[r1*col] * minorM.determinant_minor();
 	// }
 	// return det.expand();
 	// What happens is that while proceeding down many of the minors are
 	// computed more than once.  In particular, there are binomial(n,k)
 	// kxk minors and each one is computed factorial(n-k) times.  Therefore
-	// it is reasonable to store the results of the minors.  We proceed from
+	// it is reasonable to store the results of the minors.	 We proceed from
 	// right to left.  At each column c we only need to retrieve the minors
 	// calculated in step c-1.  We therefore only have to store at most 
 	// 2*binomial(n,n/2) minors.
@@ -1224,7 +1224,7 @@ ex matrix::determinant_minor() const
 
 
 /** Perform the steps of an ordinary Gaussian elimination to bring the m x n
- *  matrix into an upper echelon form.  The algorithm is ok for matrices
+ *  matrix into an upper echelon form.	The algorithm is ok for matrices
  *  with numeric coefficients but quite unsuited for symbolic matrices.
  *
  *  @param det may be set to true to save a lot of space if one is only
@@ -1360,11 +1360,11 @@ int matrix::fraction_free_elimination(const bool det)
 	// We also allow rational functions where the original prove still holds.
 	// However, we must care for numerator and denominator separately and
 	// "manually" work in the integral domains because of subtle cancellations
-	// (see below).  This blows up the bookkeeping a bit and the formula has
+	// (see below).	 This blows up the bookkeeping a bit and the formula has
 	// to be modified to expand like this (N{x} stands for numerator of x,
 	// D{x} for denominator of x):
 	//     N{m[k+1](r,c)} = N{m[k](k,k)}*N{m[k](r,c)}*D{m[k](r,k)}*D{m[k](k,c)}
-	//                     -N{m[k](r,k)}*N{m[k](k,c)}*D{m[k](k,k)}*D{m[k](r,c)}
+	//		       -N{m[k](r,k)}*N{m[k](k,c)}*D{m[k](k,k)}*D{m[k](r,c)}
 	//     D{m[k+1](r,c)} = D{m[k](k,k)}*D{m[k](r,c)}*D{m[k](r,k)}*D{m[k](k,c)}
 	// where for k>1 we now divide N{m[k+1](r,c)} by
 	//     N{m[k-1](k-1,k-1)}
@@ -1429,15 +1429,15 @@ int matrix::fraction_free_elimination(const bool det)
 			for (unsigned r2=r0+1; r2<mm; ++r2) {
 				for (unsigned c=c0+1; c<n; ++c) {
 					dividend_n = (tmp_n.m[r0*n+c0]*tmp_n.m[r2*n+c]*
-					              tmp_d.m[r2*n+c0]*tmp_d.m[r0*n+c]
-					             -tmp_n.m[r2*n+c0]*tmp_n.m[r0*n+c]*
-					              tmp_d.m[r0*n+c0]*tmp_d.m[r2*n+c]).expand();
+						      tmp_d.m[r2*n+c0]*tmp_d.m[r0*n+c]
+						     -tmp_n.m[r2*n+c0]*tmp_n.m[r0*n+c]*
+						      tmp_d.m[r0*n+c0]*tmp_d.m[r2*n+c]).expand();
 					dividend_d = (tmp_d.m[r2*n+c0]*tmp_d.m[r0*n+c]*
-					              tmp_d.m[r0*n+c0]*tmp_d.m[r2*n+c]).expand();
+						      tmp_d.m[r0*n+c0]*tmp_d.m[r2*n+c]).expand();
 					bool check = divide(dividend_n, divisor_n,
-					                    tmp_n.m[r2*n+c], true);
+							    tmp_n.m[r2*n+c], true);
 					check &= static_cast<int>(divide(dividend_d, divisor_d,
-					                tmp_d.m[r2*n+c], true));
+							tmp_d.m[r2*n+c], true));
 #ifdef DO_GINAC_ASSERT
 					GINAC_ASSERT(check);
 #endif

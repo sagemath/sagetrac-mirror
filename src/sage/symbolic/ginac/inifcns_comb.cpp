@@ -91,10 +91,10 @@ static ex factorial_imag_part(const ex & x)
 }
 
 REGISTER_FUNCTION(factorial, evalf_func(factorial_evalf).
-                             print_func<print_latex>(factorial_print_dflt_latex).
-                             conjugate_func(factorial_conjugate).
-                             real_part_func(factorial_real_part).
-                             imag_part_func(factorial_imag_part));
+			     print_func<print_latex>(factorial_print_dflt_latex).
+			     conjugate_func(factorial_conjugate).
+			     real_part_func(factorial_real_part).
+			     imag_part_func(factorial_imag_part));
 
 //////////
 // binomial
@@ -135,10 +135,10 @@ static void binomial_print_latex(const ex & x, const ex & y,
 
 
 REGISTER_FUNCTION(binomial, evalf_func(binomial_evalf).
-                            conjugate_func(binomial_conjugate).
-                            real_part_func(binomial_real_part).
-                            print_func<print_latex>(binomial_print_latex).
-                            imag_part_func(binomial_imag_part));
+			    conjugate_func(binomial_conjugate).
+			    real_part_func(binomial_real_part).
+			    print_func<print_latex>(binomial_print_latex).
+			    imag_part_func(binomial_imag_part));
 
 //////////
 // rising_factorial
@@ -161,13 +161,13 @@ static void rising_factorial_print_latex(const ex & x, const ex & y,
 	x.print(c);
 	c.s<<"}^{\\left({";
 	y.print(c);
-        c.s<<"}\\right)}";
+	c.s<<"}\\right)}";
 }
 
 
 REGISTER_FUNCTION(rising_factorial, eval_func(rising_factorial_eval).
-                            evalf_func(rising_factorial_evalf).
-                            print_func<print_latex>(rising_factorial_print_latex));
+			    evalf_func(rising_factorial_evalf).
+			    print_func<print_latex>(rising_factorial_print_latex));
 
 //////////
 // falling_factorial
@@ -194,7 +194,7 @@ static void falling_factorial_print_latex(const ex & x, const ex & y,
 
 
 REGISTER_FUNCTION(falling_factorial, eval_func(falling_factorial_eval).
-                            evalf_func(falling_factorial_evalf).
-                            print_func<print_latex>(falling_factorial_print_latex));
+			    evalf_func(falling_factorial_evalf).
+			    print_func<print_latex>(falling_factorial_print_latex));
 
 } // namespace GiNaC

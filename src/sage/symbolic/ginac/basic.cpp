@@ -121,7 +121,7 @@ void basic::archive(archive_node &n) const
  *  *this and the dynamic type of the supplied print context.
  *  @param c print context object that describes the output formatting
  *  @param level value that is used to identify the precedence or indentation
- *               level for placing parentheses and formatting */
+ *		 level for placing parentheses and formatting */
 void basic::print(const print_context & c, unsigned level) const
 {
 	print_dispatch(get_class_info(), c, level);
@@ -141,37 +141,37 @@ void basic::print_dispatch(const registered_class_info & ri, const print_context
 	const std::vector<print_functor> * pdt = &r_info->options.get_print_dispatch_table();
 	unsigned id = pc_info->options.get_id();
 
-        while(id >= pdt->size() or not ((*pdt)[id].is_valid())) {
+	while(id >= pdt->size() or not ((*pdt)[id].is_valid())) {
 
-                // Method not found, try parent print_context class
-                const print_context_class_info * parent_pc_info = pc_info->get_parent();
-                if (parent_pc_info != nullptr) {
-                        pc_info = parent_pc_info;
-                        id = pc_info->options.get_id();
-                        continue;
-                }
+		// Method not found, try parent print_context class
+		const print_context_class_info * parent_pc_info = pc_info->get_parent();
+		if (parent_pc_info != nullptr) {
+			pc_info = parent_pc_info;
+			id = pc_info->options.get_id();
+			continue;
+		}
 
-                // Method still not found, try parent class
-                const registered_class_info * parent_reg_info = r_info->get_parent();
-                if (parent_reg_info != nullptr) {
-                        r_info = parent_reg_info;
-                        pc_info = &c.get_class_info();
-                        pdt = &r_info->options.get_print_dispatch_table();
-                        id = pc_info->options.get_id();
-                        continue;
-                }
+		// Method still not found, try parent class
+		const registered_class_info * parent_reg_info = r_info->get_parent();
+		if (parent_reg_info != nullptr) {
+			r_info = parent_reg_info;
+			pc_info = &c.get_class_info();
+			pdt = &r_info->options.get_print_dispatch_table();
+			id = pc_info->options.get_id();
+			continue;
+		}
 
-                // Method still not found. This shouldn't happen because basic (the
-                // base class of the algebraic hierarchy) registers a method for
-                // print_context (the base class of the print context hierarchy),
-                // so if we end up here, there's something wrong with the class
-                // registry.
-                throw (std::runtime_error(std::string("basic::print(): method for ") + class_name() + "/" + c.class_name() + " not found"));
+		// Method still not found. This shouldn't happen because basic (the
+		// base class of the algebraic hierarchy) registers a method for
+		// print_context (the base class of the print context hierarchy),
+		// so if we end up here, there's something wrong with the class
+		// registry.
+		throw (std::runtime_error(std::string("basic::print(): method for ") + class_name() + "/" + c.class_name() + " not found"));
 
-        }
+	}
 
-        // Call method
-        (*pdt)[id](*this, c, level);
+	// Call method
+	(*pdt)[id](*this, c, level);
 }
 
 /** Default output to stream. */
@@ -284,11 +284,11 @@ ex & basic::operator[](size_t i)
 
 void basic::set_epseq_from(size_t i, ex e)
 {
-        dynamic_cast<expairseq&>(*this).set_pair_from(i, e);
+	dynamic_cast<expairseq&>(*this).set_pair_from(i, e);
 }
 
 /** Test for occurrence of a pattern.  An object 'has' a pattern if it matches
- *  the pattern itself or one of the children 'has' it.  As a consequence
+ *  the pattern itself or one of the children 'has' it.	 As a consequence
  *  (according to the definition of children) given e=x+y+z, e.has(x) is true
  *  but e.has(x+y) is false. */
 bool basic::has(const ex & pattern, unsigned options) const
@@ -323,10 +323,10 @@ ex basic::map(map_function & f) const
 	}
 
 	if (copy == nullptr)
-	        return *this;
+		return *this;
 
-        copy->setflag(status_flags::dynallocated);
-        copy->clearflag(status_flags::hash_calculated | status_flags::expanded);
+	copy->setflag(status_flags::dynallocated);
+	copy->clearflag(status_flags::hash_calculated | status_flags::expanded);
 	return *copy;
 }
 
@@ -354,7 +354,7 @@ ex basic::coeff(const ex & s, const ex & n) const
 	if (is_equal(ex_to<basic>(s)))
 		return n.is_one() ? _ex1 : _ex0;
 
-        return n.is_zero() ? *this : _ex0;
+	return n.is_zero() ? *this : _ex0;
 }
 
 /** Sort expanded expression in terms of powers of some object(s).
@@ -378,9 +378,9 @@ ex basic::collect(const ex & s, bool distributed) const
 
 			exmap cmap;
 			cmap[_ex1] = _ex0;
-                        for (const auto & xelem : x) {
+			for (const auto & xelem : x) {
 				ex key = _ex1;
-                                ex pre_coeff = xelem;
+				ex pre_coeff = xelem;
 				for (const auto & lelem : l) {
 					ex cexp = pre_coeff.degree(lelem);
 					pre_coeff = pre_coeff.coeff(lelem, cexp);
@@ -394,7 +394,7 @@ ex basic::collect(const ex & s, bool distributed) const
 			}
 
 			exvector resv;
-                        for (const auto & elem : cmap)
+			for (const auto & elem : cmap)
 				resv.push_back((elem.first) * (elem.second));
 			return (new add(resv))->setflag(status_flags::dynallocated);
 
@@ -413,11 +413,11 @@ ex basic::collect(const ex & s, bool distributed) const
 
 	} else {
 		// Only one object specified
-                expairvec vec;
-                ex(*this).coefficients(s, vec);
+		expairvec vec;
+		ex(*this).coefficients(s, vec);
 		for (const auto& term : vec)
 			x += term.first * power(s, term.second);
-                return x;
+		return x;
 	}
 	
 	// correct for lost fractional arguments and return
@@ -444,13 +444,13 @@ ex basic::evalf(int level, PyObject* parent) const
 {
 	if (nops() == 0)
 		return *this;
-        if (level == 1)
-                return *this;
-        if (level == -max_recursion_level)
-                throw(std::runtime_error("max recursion level reached"));
+	if (level == 1)
+		return *this;
+	if (level == -max_recursion_level)
+		throw(std::runtime_error("max recursion level reached"));
 
-        evalf_map_function map_evalf(level - 1, parent);
-        return map(map_evalf);
+	evalf_map_function map_evalf(level - 1, parent);
+	return map(map_evalf);
 }
 
 /** Evaluate sums, products and integer powers of matrices. */
@@ -541,37 +541,37 @@ bool basic::match(const ex & pattern, exmap& map) const
 		// Wildcard matches anything, but check whether we already have found
 		// a match for that wildcard first (if so, the earlier match must be
 		// the same expression)
-                const auto& it = map.find(pattern);
-                if (it != map.end())
-		        return is_equal(ex_to<basic>(it->second));
+		const auto& it = map.find(pattern);
+		if (it != map.end())
+			return is_equal(ex_to<basic>(it->second));
 		map[pattern] = *this;
 		return true;
 	} 
 
-        // Expression must be of the same type as the pattern
-        if (tinfo() != ex_to<basic>(pattern).tinfo())
-                return false;
+	// Expression must be of the same type as the pattern
+	if (tinfo() != ex_to<basic>(pattern).tinfo())
+		return false;
 
-        // Number of subexpressions must match
-        if (nops() != pattern.nops())
-                return false;
+	// Number of subexpressions must match
+	if (nops() != pattern.nops())
+		return false;
 
-        // No subexpressions? Then just compare the objects (there can't be
-        // wildcards in the pattern)
-        if (nops() == 0)
-                return is_equal_same_type(ex_to<basic>(pattern));
+	// No subexpressions? Then just compare the objects (there can't be
+	// wildcards in the pattern)
+	if (nops() == 0)
+		return is_equal_same_type(ex_to<basic>(pattern));
 
-        // Check whether attributes that are not subexpressions match
-        if (!match_same_type(ex_to<basic>(pattern)))
-                return false;
+	// Check whether attributes that are not subexpressions match
+	if (!match_same_type(ex_to<basic>(pattern)))
+		return false;
 
-        // Otherwise the subexpressions must match one-to-one
-        for (size_t i=0; i<nops(); i++)
-                if (!op(i).match(pattern.sorted_op(i), map))
-                        return false;
+	// Otherwise the subexpressions must match one-to-one
+	for (size_t i=0; i<nops(); i++)
+		if (!op(i).match(pattern.sorted_op(i), map))
+			return false;
 
-        // Looks similar enough, match found
-        return true;
+	// Looks similar enough, match found
+	return true;
 }
 
 /** Helper function for subs(). Does not recurse into subexpressions. */
@@ -579,25 +579,25 @@ ex basic::subs_one_level(const exmap & m, unsigned options) const
 {
 	exmap::const_iterator it;
 
-        if (options & subs_options::no_pattern) {
-                ex thisex = *this;
-                if (is_exactly_a<numeric>(thisex))
-                        return ex_to<numeric>(thisex).subs(m, options);
-                for (const auto & pair : m)
-                        if (thisex.is_equal(pair.first))
-                                return pair.second;
+	if (options & subs_options::no_pattern) {
+		ex thisex = *this;
+		if (is_exactly_a<numeric>(thisex))
+			return ex_to<numeric>(thisex).subs(m, options);
+		for (const auto & pair : m)
+			if (thisex.is_equal(pair.first))
+				return pair.second;
 	} else {
-                for (const auto & elem : m) {
-                        exmap map;
+		for (const auto & elem : m) {
+			exmap map;
 			if (match(ex_to<basic>(elem.first), map)) {
-			        lst repl_lst;
-                                for (const auto& pair : map)
-                                        repl_lst.append(pair.first == pair.second);
-                                // avoid infinite recursion when
-                                // re-substituting the wildcards
+				lst repl_lst;
+				for (const auto& pair : map)
+					repl_lst.append(pair.first == pair.second);
+				// avoid infinite recursion when
+				// re-substituting the wildcards
 				return elem.second.subs(repl_lst,
-                                          options | subs_options::no_pattern);
-                        }
+					  options | subs_options::no_pattern);
+			}
 		}
 	}
 
@@ -639,7 +639,7 @@ ex basic::subs(const exmap & m, unsigned options) const
 	return subs_one_level(m, options);
 }
 
-/** Default interface of nth derivative ex::diff(s, n).  It should be called
+/** Default interface of nth derivative ex::diff(s, n).	 It should be called
  *  instead of ::derivative(s) for first derivatives and for nth derivatives it
  *  just recurses down.
  *
@@ -698,8 +698,8 @@ ex basic::derivative(const symbol & s) const
 	if (nops() == 0)
 		return _ex0;
 
-        derivative_map_function map_derivative(s);
-        return map(map_derivative);
+	derivative_map_function map_derivative(s);
+	return map(map_derivative);
 }
 
 /** Returns order relation between two objects of same type.  This needs to be
@@ -712,7 +712,7 @@ int basic::compare_same_type(const basic & other) const
 	return compare_pointers(this, &other);
 }
 
-/** Returns true if two objects of same type are equal.  Normally needs
+/** Returns true if two objects of same type are equal.	 Normally needs
  *  not be reimplemented as long as it wasn't overwritten by some parent
  *  class, since it just calls compare_same_type().  The reason why this
  *  function exists is that sometimes it is easier to determine equality
@@ -786,8 +786,8 @@ ex basic::expand(unsigned options) const
 	if (nops() == 0)
 		return (options == 0) ? setflag(status_flags::expanded) : *this;
 
-        expand_map_function map_expand(options);
-        return ex_to<basic>(map(map_expand)).setflag(options == 0 ? status_flags::expanded : 0);
+	expand_map_function map_expand(options);
+	return ex_to<basic>(map(map_expand)).setflag(options == 0 ? status_flags::expanded : 0);
 	
 }
 
@@ -822,7 +822,7 @@ int basic::compare(const basic & other) const
 #endif
 		return compare_same_type(other);
 	} 
-        return (typeid_this<typeid_other ? -1 : 1);
+	return (typeid_this<typeid_other ? -1 : 1);
 }
 
 /** Test for syntactic equality.

@@ -38,26 +38,26 @@ namespace GiNaC {
 /** Used internally by operator+() to add two ex objects together. */
 static inline const ex exadd(const ex & lh, const ex & rh)
 {
-        if (is_exactly_a<numeric>(lh)
-            and is_exactly_a<numeric>(rh))
-                return ex_to<numeric>(lh).add(ex_to<numeric>(rh));
+	if (is_exactly_a<numeric>(lh)
+	    and is_exactly_a<numeric>(rh))
+		return ex_to<numeric>(lh).add(ex_to<numeric>(rh));
 	return (new add(lh,rh))->setflag(status_flags::dynallocated);
 }
 
 /** Used internally by operator*() to multiply two ex objects together. */
 static inline const ex exmul(const ex & lh, const ex & rh)
 {
-        if (is_exactly_a<numeric>(lh)
-            and is_exactly_a<numeric>(rh))
-                return ex_to<numeric>(lh).mul(ex_to<numeric>(rh));
-        return (new mul(lh,rh))->setflag(status_flags::dynallocated);
+	if (is_exactly_a<numeric>(lh)
+	    and is_exactly_a<numeric>(rh))
+		return ex_to<numeric>(lh).mul(ex_to<numeric>(rh));
+	return (new mul(lh,rh))->setflag(status_flags::dynallocated);
 }
 
 /** Used internally by operator-() and friends to change the sign of an argument. */
 static inline const ex exminus(const ex & lh)
 {
-        if (is_exactly_a<numeric>(lh))
-                return ex_to<numeric>(lh).negative();
+	if (is_exactly_a<numeric>(lh))
+		return ex_to<numeric>(lh).negative();
 	return (new mul(lh,_ex_1))->setflag(status_flags::dynallocated);
 }
 
@@ -158,20 +158,20 @@ const numeric operator-(const numeric & lh)
 /** Expression prefix increment.  Adds 1 and returns incremented ex. */
 ex & operator++(ex & rh)
 {
-        if (is_exactly_a<numeric>(rh)) {
-                rh = numeric(ex_to<numeric>(rh) + *_num1_p);
-                return rh;
-        }
+	if (is_exactly_a<numeric>(rh)) {
+		rh = numeric(ex_to<numeric>(rh) + *_num1_p);
+		return rh;
+	}
 	return rh = exadd(rh, _ex1);
 }
 
 /** Expression prefix decrement.  Subtracts 1 and returns decremented ex. */
 ex & operator--(ex & rh)
 {
-        if (is_exactly_a<numeric>(rh)) {
-                rh = numeric(ex_to<numeric>(rh) + *_num_1_p);
-                return rh;
-        }
+	if (is_exactly_a<numeric>(rh)) {
+		rh = numeric(ex_to<numeric>(rh) + *_num_1_p);
+		return rh;
+	}
 	return rh = exadd(rh, _ex_1);
 }
 
@@ -207,7 +207,7 @@ numeric& operator--(numeric & rh)
 	return rh;
 }
 
-/** Numeric postfix increment.  Returns the number and leaves the original
+/** Numeric postfix increment.	Returns the number and leaves the original
  *  incremented by 1. */
 const numeric operator++(numeric & lh, int)
 {
@@ -216,7 +216,7 @@ const numeric operator++(numeric & lh, int)
 	return tmp;
 }
 
-/** Numeric postfix decrement.  Returns the number and leaves the original
+/** Numeric postfix decrement.	Returns the number and leaves the original
  *  decremented by 1. */
 const numeric operator--(numeric & lh, int)
 {

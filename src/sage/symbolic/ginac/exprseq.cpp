@@ -29,11 +29,11 @@ namespace GiNaC {
 template<> const tinfo_static_t exprseq::tinfo_static = {};
 
 template<> registered_class_info exprseq::reg_info = \
-        registered_class_info(registered_class_options("exprseq",
-                       "basic",
-                       &exprseq::tinfo_static).
-        print_func<print_context>(&exprseq::do_print).
-        print_func<print_tree>(&exprseq::do_print_tree));
+	registered_class_info(registered_class_options("exprseq",
+		       "basic",
+		       &exprseq::tinfo_static).
+	print_func<print_context>(&exprseq::do_print).
+	print_func<print_tree>(&exprseq::do_print_tree));
 
 /** Specialization of container::get_tinfo() for exprseq. */
 template<> tinfo_t exprseq::get_tinfo() { return &exprseq::tinfo_static; }
@@ -51,27 +51,27 @@ template <>
 bool exprseq::match(const ex & pattern, exmap& map) const
 {
 	if (is_exactly_a<wildcard>(pattern)) {
-                const auto& it = map.find(pattern);
-                if (it != map.end())
-		        return is_equal(ex_to<basic>(it->second));
+		const auto& it = map.find(pattern);
+		if (it != map.end())
+			return is_equal(ex_to<basic>(it->second));
 		map[pattern] = *this;
 		return true;
 	} 
-        if (not is_exactly_a<exprseq>(pattern))
-                return false;
-        CMatcher cm(*this, pattern, map);
-        const opt_exmap& m = cm.get();
-        if (not m)
-                return false;
-        map = m.value();
-        return true;
+	if (not is_exactly_a<exprseq>(pattern))
+		return false;
+	CMatcher cm(*this, pattern, map);
+	const opt_exmap& m = cm.get();
+	if (not m)
+		return false;
+	map = m.value();
+	return true;
 }
 
 
 template <> ex exprseq::unarchive(const archive_node &n, lst &sym_lst)
 {
-        return (new exprseq(n, sym_lst))->
-                setflag(status_flags::dynallocated);
+	return (new exprseq(n, sym_lst))->
+		setflag(status_flags::dynallocated);
 }
 
 #ifdef _MSC_VER

@@ -83,13 +83,13 @@ ex ex::expand(unsigned options) const
 	if (options == 0 && ((bp->flags & status_flags::expanded) != 0u)) // The "expanded" flag only covers the standard options; someone might want to re-expand with different options
 		return *this;
 
-        return bp->expand(options);
+	return bp->expand(options);
 }
 
 /** Compute partial derivative of an expression.
  *
  *  @param s  symbol by which the expression is derived
- *  @param nth  order of derivative (default 1)
+ *  @param nth	order of derivative (default 1)
  *  @return partial derivative as a new expression */
 ex ex::diff(const symbol & s, unsigned nth) const
 {
@@ -108,35 +108,35 @@ bool ex::match(const ex & pattern) const
 
 bool ex::match(const ex & pattern, lst & repl_lst) const
 {
-        exmap map;
-        bool ret = bp->match(pattern, map);
-        for (const auto& pair : map)
-                repl_lst.append(pair.first == pair.second);
-        return ret;
+	exmap map;
+	bool ret = bp->match(pattern, map);
+	for (const auto& pair : map)
+		repl_lst.append(pair.first == pair.second);
+	return ret;
 }
 
 bool ex::match(const ex & pattern, exvector& vec) const
 {
-        exmap map;
-        bool ret = this->match(pattern, map);
-        if (not ret)
-                return ret;
-        unsigned maxl = 0;
-        for (const auto& pair : map) {
-                if (not is_exactly_a<wildcard>(pair.first))
-                        throw std::runtime_error("no wildcard");
-                unsigned l = ex_to<wildcard>(pair.first).get_label();
-                if (maxl < l)
-                        maxl = l;
-        }
-        ex nan = NaN;
-        exvector tvec(maxl+1);
-        tvec.assign(maxl+1, nan);
-        for (const auto& pair : map) {
-                tvec[ex_to<wildcard>(pair.first).get_label()] = pair.second;
-        }
-        vec = tvec;
-        return ret;
+	exmap map;
+	bool ret = this->match(pattern, map);
+	if (not ret)
+		return ret;
+	unsigned maxl = 0;
+	for (const auto& pair : map) {
+		if (not is_exactly_a<wildcard>(pair.first))
+			throw std::runtime_error("no wildcard");
+		unsigned l = ex_to<wildcard>(pair.first).get_label();
+		if (maxl < l)
+			maxl = l;
+	}
+	ex nan = NaN;
+	exvector tvec(maxl+1);
+	tvec.assign(maxl+1, nan);
+	for (const auto& pair : map) {
+		tvec[ex_to<wildcard>(pair.first).get_label()] = pair.second;
+	}
+	vec = tvec;
+	return ret;
 }
 
 /** Find all occurrences of a pattern. The found matches are appended to
@@ -201,8 +201,8 @@ ex ex::subs(const ex & e, unsigned options) const
 		return bp->subs(m, options);
 
 	}
-        
-        if (e.info(info_flags::list)) {
+	
+	if (e.info(info_flags::list)) {
 
 		// Argument is a list: convert it to a map
 		exmap m;
@@ -230,13 +230,13 @@ ex ex::subs(const ex & e, unsigned options) const
 
 ex ex::subs(const exmap& m, unsigned options) const
 {
-        if ((options & subs_options::no_pattern) != 0)
-                return bp->subs(m, options);
-        for (const auto& p : m)
-                if (haswild(p.first))
-                        return bp->subs(m, options);
+	if ((options & subs_options::no_pattern) != 0)
+		return bp->subs(m, options);
+	for (const auto& p : m)
+		if (haswild(p.first))
+			return bp->subs(m, options);
 
-        return bp->subs(m, options | subs_options::no_pattern);
+	return bp->subs(m, options | subs_options::no_pattern);
 }
 
 /** Traverse expression tree with given visitor, preorder traversal. */
@@ -360,76 +360,76 @@ bool ex::is_zero() const {
 #ifndef _MSC_VER
 	  extern const ex _ex0;
 #endif
-        if (!is_exactly_a<numeric>(*this))
-                return is_equal(_ex0);
-        return ex_to<numeric>(*this).is_zero();
+	if (!is_exactly_a<numeric>(*this))
+		return is_equal(_ex0);
+	return ex_to<numeric>(*this).is_zero();
 }
 
 bool ex::is_one() const
 {
-        if (!is_exactly_a<numeric>(*this))
-                return false;
-        const numeric& num = ex_to<numeric>(*this);
-        return num.is_one();
+	if (!is_exactly_a<numeric>(*this))
+		return false;
+	const numeric& num = ex_to<numeric>(*this);
+	return num.is_one();
 }
   
 bool ex::is_minus_one() const
 {
-        if (!is_exactly_a<numeric>(*this))
-                return false;
-        const numeric& num = ex_to<numeric>(*this);
-        return num.is_minus_one();
+	if (!is_exactly_a<numeric>(*this))
+		return false;
+	const numeric& num = ex_to<numeric>(*this);
+	return num.is_minus_one();
 }
 
 bool ex::is_negative_or_minus() const
 {
-        if (is_exactly_a<mul>(*this)
-           and ex_to<mul>(*this).get_overall_coeff().is_negative())
-                return true;
-        return is_negative();
+	if (is_exactly_a<mul>(*this)
+	   and ex_to<mul>(*this).get_overall_coeff().is_negative())
+		return true;
+	return is_negative();
 }
 
 bool ex::is_num_integer() const
 {
-        if (!is_exactly_a<numeric>(*this))
-                return false;
-        const numeric& num = ex_to<numeric>(*this);
-        return num.is_integer();
+	if (!is_exactly_a<numeric>(*this))
+		return false;
+	const numeric& num = ex_to<numeric>(*this);
+	return num.is_integer();
 }
 
 bool ex::is_num_fraction() const
 {
-        if (!is_exactly_a<numeric>(*this))
-                return false;
-        const numeric& num = ex_to<numeric>(*this);
-        return num.is_mpq();
+	if (!is_exactly_a<numeric>(*this))
+		return false;
+	const numeric& num = ex_to<numeric>(*this);
+	return num.is_mpq();
 }
 
 
 void ex::set_domain(unsigned d)
 {
-        if (is_exactly_a<symbol>(*this)) {
-                symbol &s = dynamic_cast<symbol&>(*bp);
-                s.set_domain(d);
-        }
-        else if (is_exactly_a<function>(*this)) {
-                function &f = dynamic_cast<function&>(*bp);
-                f.set_domain(d);
-        }
+	if (is_exactly_a<symbol>(*this)) {
+		symbol &s = dynamic_cast<symbol&>(*bp);
+		s.set_domain(d);
+	}
+	else if (is_exactly_a<function>(*this)) {
+		function &f = dynamic_cast<function&>(*bp);
+		f.set_domain(d);
+	}
 }
 
 static void _treesize(const ex& e, size_t& n)
 {
-        ++n;
-        for (size_t i=0; i < e.nops(); i++)
-                _treesize(e.op(i), n);
+	++n;
+	for (size_t i=0; i < e.nops(); i++)
+		_treesize(e.op(i), n);
 }
 
 size_t ex::treesize() const
 {
-        size_t n = 0;
-        _treesize(*this, n);
-        return n;
+	size_t n = 0;
+	_treesize(*this, n);
+	return n;
 }
 
 size_t ex::nsymbols() const
@@ -445,7 +445,7 @@ size_t ex::nsymbols() const
 	return res;
 }
 
-/** Return pointer to first symbol found in expression.  Due to GiNaC's
+/** Return pointer to first symbol found in expression.	 Due to GiNaC's
  *  internal ordering of terms, it may not be obvious which symbol this
  *  function returns for a given expression.
  *
@@ -458,7 +458,7 @@ bool ex::get_first_symbol(ex &x) const
 		x = *this;
 		return true;
 	} 
-        if (is_exactly_a<add>(*this) || is_exactly_a<mul>(*this)) {
+	if (is_exactly_a<add>(*this) || is_exactly_a<mul>(*this)) {
 		for (size_t i=0; i<nops(); i++)
 			if (sorted_op(i).get_first_symbol(x))
 				return true;
@@ -475,79 +475,79 @@ static void collect_symbols(const ex& e, symbolset& syms)
 		syms.insert(ex_to<symbol>(e));
 	else
 		for (size_t i=0; i < e.nops(); i++)
-                        collect_symbols(e.op(i), syms);
+			collect_symbols(e.op(i), syms);
 }
 
 symbolset ex::symbols() const
 {
-        symbolset the_set;
-        collect_symbols(*this, the_set);
+	symbolset the_set;
+	collect_symbols(*this, the_set);
 	return the_set;
 }
 
 static void collect_bound_symbols(const ex& e, symbolset& syms)
 {
-        static unsigned int sum_serial = function::find_function("sum", 4);
-        static unsigned int integral_serial = function::find_function("integrate", 4);
-        static unsigned int limit_serial = function::find_function("limit", 0);
+	static unsigned int sum_serial = function::find_function("sum", 4);
+	static unsigned int integral_serial = function::find_function("integrate", 4);
+	static unsigned int limit_serial = function::find_function("limit", 0);
 	if (is_exactly_a<function>(e)) {
-                const function& f = ex_to<function>(e);
-                if (f.get_serial() == sum_serial
-                    and is_exactly_a<symbol>(f.op(1))) {
-                        syms.insert(ex_to<symbol>(f.op(1)));
-                        return collect_bound_symbols(f.op(0), syms);
-                }
-                if (f.get_serial() == integral_serial
-                    and is_exactly_a<symbol>(f.op(1))) {
-                        syms.insert(ex_to<symbol>(f.op(1)));
-                        return collect_bound_symbols(f.op(0), syms);
-                }
-                if (f.get_serial() == limit_serial
-                    and is_exactly_a<symbol>(f.op(1))) {
-                        syms.insert(ex_to<symbol>(f.op(1)));
-                        return collect_bound_symbols(f.op(0), syms);
-                }
-        }
-        else if (is_exactly_a<fderivative>(e)) {
-                const fderivative& d = ex_to<fderivative>(e);
-                for (size_t i=0; i<d.nops(); i++)
-                        if (is_exactly_a<symbol>(d.op(i)))
-                                syms.insert(ex_to<symbol>(d.op(i)));
-                return;
-        }
+		const function& f = ex_to<function>(e);
+		if (f.get_serial() == sum_serial
+		    and is_exactly_a<symbol>(f.op(1))) {
+			syms.insert(ex_to<symbol>(f.op(1)));
+			return collect_bound_symbols(f.op(0), syms);
+		}
+		if (f.get_serial() == integral_serial
+		    and is_exactly_a<symbol>(f.op(1))) {
+			syms.insert(ex_to<symbol>(f.op(1)));
+			return collect_bound_symbols(f.op(0), syms);
+		}
+		if (f.get_serial() == limit_serial
+		    and is_exactly_a<symbol>(f.op(1))) {
+			syms.insert(ex_to<symbol>(f.op(1)));
+			return collect_bound_symbols(f.op(0), syms);
+		}
+	}
+	else if (is_exactly_a<fderivative>(e)) {
+		const fderivative& d = ex_to<fderivative>(e);
+		for (size_t i=0; i<d.nops(); i++)
+			if (is_exactly_a<symbol>(d.op(i)))
+				syms.insert(ex_to<symbol>(d.op(i)));
+		return;
+	}
 	else
 		for (size_t i=0; i < e.nops(); i++)
-                        collect_bound_symbols(e.op(i), syms);
+			collect_bound_symbols(e.op(i), syms);
 }
 
 symbolset ex::free_symbols() const
 {
-        symbolset the_set, bound_set;
-        collect_symbols(*this, the_set);
-        collect_bound_symbols(*this, bound_set);
-        for (auto it = the_set.begin(); it != the_set.end(); )
-                if (bound_set.find(*it) != bound_set.end())
-                        it = the_set.erase(it);
-                else
-                        ++it;
+	symbolset the_set, bound_set;
+	collect_symbols(*this, the_set);
+	collect_bound_symbols(*this, bound_set);
+	for (auto it = the_set.begin(); it != the_set.end(); )
+		if (bound_set.find(*it) != bound_set.end())
+			it = the_set.erase(it);
+		else
+			++it;
 	return the_set;
 }
 
 static void collect_functions(const ex& e, std::unordered_set<unsigned>& funs)
 {
 	if (is_exactly_a<function>(e)) {
-                const function& f = ex_to<function>(e);
-                funs.insert(f.get_serial());
-        }
-        for (size_t i=0; i < e.nops(); i++)
-                collect_functions(e.op(i), funs);
+		const function& f = ex_to<function>(e);
+		funs.insert(f.get_serial());
+	}
+	for (size_t i=0; i < e.nops(); i++)
+		collect_functions(e.op(i), funs);
 }
 
 std::unordered_set<unsigned> ex::functions() const
 {
-        std::unordered_set<unsigned> the_set;
-        collect_functions(*this, the_set);
-        return the_set;
+	std::unordered_set<unsigned> the_set;
+	collect_functions(*this, the_set);
+	return the_set;
 }
 
 static void collect_wilds(const ex& e, wildset& wilds)
@@ -556,13 +556,13 @@ static void collect_wilds(const ex& e, wildset& wilds)
 		wilds.insert(ex_to<wildcard>(e));
 	else
 		for (size_t i=0; i < e.nops(); i++)
-                        collect_wilds(e.op(i), wilds);
+			collect_wilds(e.op(i), wilds);
 }
 
 wildset ex::wilds() const
 {
-        wildset the_set;
-        collect_wilds(*this, the_set);
+	wildset the_set;
+	collect_wilds(*this, the_set);
 	return the_set;
 }
 
@@ -571,22 +571,22 @@ ex ex::sorted_op(size_t i) const
 	if (is_a<expairseq>(*this))
 		return dynamic_cast<const expairseq&>(*bp).stable_op(i);
 
-        return bp->op(i);
+	return bp->op(i);
 }
 
 static bool has_nonposint_power(const ex& x, const symbol& symb)
 {
-        if (is_exactly_a<power>(x)) {
-                const power& p = ex_to<power>(x);
-                if (is_exactly_a<add>(p.op(0))
-                    and has_symbol(p.op(0), symb)
-                    and (not is_exactly_a<numeric>(p.op(1))
-                    or not ex_to<numeric>(p.op(1)).is_pos_integer()))
-                return true;
-        }
-        for (size_t i=0; i<x.nops(); ++i)
-        if (has_nonposint_power(x.op(i), symb))
-                return true;
+	if (is_exactly_a<power>(x)) {
+		const power& p = ex_to<power>(x);
+		if (is_exactly_a<add>(p.op(0))
+		    and has_symbol(p.op(0), symb)
+		    and (not is_exactly_a<numeric>(p.op(1))
+		    or not ex_to<numeric>(p.op(1)).is_pos_integer()))
+		return true;
+	}
+	for (size_t i=0; i<x.nops(); ++i)
+	if (has_nonposint_power(x.op(i), symb))
+		return true;
 
 	return false;
 }
@@ -594,173 +594,173 @@ static bool has_nonposint_power(const ex& x, const symbol& symb)
 // Helper function: Return True if term is a monomial in symb.
 // If so, fill vec (applying map at the same time) with (coeff, expo) pairs.
 static bool match_monom(const ex& term, const symbol& symb,
-                expairvec& vec, const exmap& map)
+		expairvec& vec, const exmap& map)
 {
-        if (not has_free_symbol(term, symb)) {
-                return false;
-        }
-        if (term.is_equal(symb)) {
-                vec.push_back(std::make_pair(_ex1, _ex1));
-                return true;
-        }
-        if (is_exactly_a<power>(term)) {
-                const power& p = ex_to<power>(term);
-                const ex& expo = p.op(1);
-                if (p.op(0).is_equal(symb)) {
-                        vec.push_back(std::make_pair(_ex1, expo.subs(map)));
-                        return true;
-                }
+	if (not has_free_symbol(term, symb)) {
+		return false;
+	}
+	if (term.is_equal(symb)) {
+		vec.push_back(std::make_pair(_ex1, _ex1));
+		return true;
+	}
+	if (is_exactly_a<power>(term)) {
+		const power& p = ex_to<power>(term);
+		const ex& expo = p.op(1);
+		if (p.op(0).is_equal(symb)) {
+			vec.push_back(std::make_pair(_ex1, expo.subs(map)));
+			return true;
+		}
 
-                // of form (...+...)^expo
-                // we expand only those with integer exponent
-                if (is_exactly_a<numeric>(expo)
-                                and has_free_symbol(p.op(0), symb)) {
-                        const numeric& ee = ex_to<numeric>(expo);
-                        if (ee.is_integer() and ee.to_int() > 1) {
-                                expairvec tmpvec;
-                                expand(term).coefficients(symb, tmpvec);
-                                for (const auto& pair : tmpvec)
-                                        vec.push_back(std::make_pair(pair.first.subs(map),
-                                                                pair.second.subs(map)));
-                                return true;
-                        }
-                }
-        }
-        if (is_exactly_a<mul>(term)) {
-                // Handle cases C*x, C*x^c
-                for (const auto& mterm : term) {
-                        if (mterm.is_equal(symb)) {
-                                ex oth = ex_to<mul>(term).without_known_factor(symb);
-                                if (not has_free_symbol(oth, symb)) {
-                                        vec.push_back(std::make_pair(oth.subs(map), _ex1));
-                                        return true;
-                                }
-                        }
-                        if (is_exactly_a<power>(mterm)) {
-                                const power& p = ex_to<power>(mterm);
-                                if (p.op(0).is_equal(symb)) {
-                                        ex oth = ex_to<mul>(term).without_known_factor(mterm);
-                                        if (not has_free_symbol(oth, symb)) {
-                                                vec.push_back(std::make_pair(oth.subs(map), p.op(1).subs(map)));
-                                                return true;
-                                        }
-                                }
-                        }
-                }
-                // Handle C*(...+...)^c
-                for (const auto& mterm : term) {
-                        if (is_exactly_a<power>(mterm)
-                                        and is_exactly_a<numeric>(mterm.op(1))
-                                        and has_free_symbol(mterm.op(0), symb)) {
-                                numeric ee = ex_to<numeric>(mterm.op(1));
-                                if (ee.is_integer() and ee.to_int() > 1) {
-                                        expairvec tmpvec;
-                                        ex e = expand(term);
-                                        if (not is_exactly_a<add>(e))
-                                                return false;
-                                        e.coefficients(symb, tmpvec);
-                                        for (const auto& pair : tmpvec)
-                                                vec.push_back(std::make_pair(pair.first.subs(map),
-                                                        pair.second.subs(map)));
-                                        return true;
-                                }
-                        }
-                        if (is_exactly_a<add>(mterm)
-                                        and has_free_symbol(mterm, symb)) {
-                                expairvec tmpvec;
-                                expand(term).coefficients(symb, tmpvec);
-                                for (const auto& pair : tmpvec)
-                                        vec.push_back(std::make_pair(pair.first.subs(map),
-                                                pair.second.subs(map)));
-                                return true;
-                        }
-                }
-        }
-        return false;
+		// of form (...+...)^expo
+		// we expand only those with integer exponent
+		if (is_exactly_a<numeric>(expo)
+				and has_free_symbol(p.op(0), symb)) {
+			const numeric& ee = ex_to<numeric>(expo);
+			if (ee.is_integer() and ee.to_int() > 1) {
+				expairvec tmpvec;
+				expand(term).coefficients(symb, tmpvec);
+				for (const auto& pair : tmpvec)
+					vec.push_back(std::make_pair(pair.first.subs(map),
+								pair.second.subs(map)));
+				return true;
+			}
+		}
+	}
+	if (is_exactly_a<mul>(term)) {
+		// Handle cases C*x, C*x^c
+		for (const auto& mterm : term) {
+			if (mterm.is_equal(symb)) {
+				ex oth = ex_to<mul>(term).without_known_factor(symb);
+				if (not has_free_symbol(oth, symb)) {
+					vec.push_back(std::make_pair(oth.subs(map), _ex1));
+					return true;
+				}
+			}
+			if (is_exactly_a<power>(mterm)) {
+				const power& p = ex_to<power>(mterm);
+				if (p.op(0).is_equal(symb)) {
+					ex oth = ex_to<mul>(term).without_known_factor(mterm);
+					if (not has_free_symbol(oth, symb)) {
+						vec.push_back(std::make_pair(oth.subs(map), p.op(1).subs(map)));
+						return true;
+					}
+				}
+			}
+		}
+		// Handle C*(...+...)^c
+		for (const auto& mterm : term) {
+			if (is_exactly_a<power>(mterm)
+					and is_exactly_a<numeric>(mterm.op(1))
+					and has_free_symbol(mterm.op(0), symb)) {
+				numeric ee = ex_to<numeric>(mterm.op(1));
+				if (ee.is_integer() and ee.to_int() > 1) {
+					expairvec tmpvec;
+					ex e = expand(term);
+					if (not is_exactly_a<add>(e))
+						return false;
+					e.coefficients(symb, tmpvec);
+					for (const auto& pair : tmpvec)
+						vec.push_back(std::make_pair(pair.first.subs(map),
+							pair.second.subs(map)));
+					return true;
+				}
+			}
+			if (is_exactly_a<add>(mterm)
+					and has_free_symbol(mterm, symb)) {
+				expairvec tmpvec;
+				expand(term).coefficients(symb, tmpvec);
+				for (const auto& pair : tmpvec)
+					vec.push_back(std::make_pair(pair.first.subs(map),
+						pair.second.subs(map)));
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 numeric ex::degree(const ex & s) const
 {
-        return bp->degree(s);
+	return bp->degree(s);
 }
 
 numeric ex::ldegree(const ex & s) const
 {
-        return bp->ldegree(s);
+	return bp->ldegree(s);
 }
 
 static bool _collect_powers(ex& e, ex& repl, bool& collected)
 {
-        bool is_changed = false;
-        if (is_exactly_a<symbol>(e)
-            or is_exactly_a<numeric>(e)
-            or is_exactly_a<constant>(e))
-                return is_changed;
-        if (is_a<expairseq>(e)) {
-                for (size_t i=0; i<e.nops(); ++i) {
-                        ex ee, et = e.op(i);
-                        bool c = false;
-                        bool changed = _collect_powers(et, ee, c);
-                        if (changed or c)
-                                is_changed = true;
-                        if (c)
-                                e.set_epseq_from(i, ee);
-                }
-        }
-        else {
-                for (size_t i=0; i<e.nops(); ++i) {
-                        ex ee;
-                        bool c = false;
-                        bool changed = _collect_powers(e.let_op(i), ee, c);
-                        if (changed or c)
-                                is_changed = true;
-                        if (c)
-                                e.let_op(i) = ee;
-                }
-        }
+	bool is_changed = false;
+	if (is_exactly_a<symbol>(e)
+	    or is_exactly_a<numeric>(e)
+	    or is_exactly_a<constant>(e))
+		return is_changed;
+	if (is_a<expairseq>(e)) {
+		for (size_t i=0; i<e.nops(); ++i) {
+			ex ee, et = e.op(i);
+			bool c = false;
+			bool changed = _collect_powers(et, ee, c);
+			if (changed or c)
+				is_changed = true;
+			if (c)
+				e.set_epseq_from(i, ee);
+		}
+	}
+	else {
+		for (size_t i=0; i<e.nops(); ++i) {
+			ex ee;
+			bool c = false;
+			bool changed = _collect_powers(e.let_op(i), ee, c);
+			if (changed or c)
+				is_changed = true;
+			if (c)
+				e.let_op(i) = ee;
+		}
+	}
 
-        if (not is_exactly_a<mul>(e))
-                return is_changed;
-        exmap map;
-        for (auto term : e) {
-                if (is_exactly_a<power>(term)) {
-                        auto it = map.find(term.op(0));
-                        if (it == map.end())
-                                map.insert(std::make_pair(term.op(0),
-                                                          term.op(1)));
-                        else {
-                                it->second += term.op(1);
-                                collected = true;
-                        }
-                }
-                else {
-                        auto it = map.find(term);
-                        if (it == map.end())
-                                map.insert(std::make_pair(term, _ex1));
-                        else {
-                                it->second += _ex1;
-                                collected = true;
-                        }
-                }
-        }
-        if (not collected)
-                return is_changed;
-        exvector vec;
-        for (auto p : map)
-                vec.push_back(power(p.first, p.second));
-        repl = mul(vec);
-        return is_changed;
+	if (not is_exactly_a<mul>(e))
+		return is_changed;
+	exmap map;
+	for (auto term : e) {
+		if (is_exactly_a<power>(term)) {
+			auto it = map.find(term.op(0));
+			if (it == map.end())
+				map.insert(std::make_pair(term.op(0),
+							  term.op(1)));
+			else {
+				it->second += term.op(1);
+				collected = true;
+			}
+		}
+		else {
+			auto it = map.find(term);
+			if (it == map.end())
+				map.insert(std::make_pair(term, _ex1));
+			else {
+				it->second += _ex1;
+				collected = true;
+			}
+		}
+	}
+	if (not collected)
+		return is_changed;
+	exvector vec;
+	for (auto p : map)
+		vec.push_back(power(p.first, p.second));
+	repl = mul(vec);
+	return is_changed;
 }
 
 // Repeatedly: for any mul in the ex, add exponents of powers
 // with the same base
 ex ex::collect_powers() const
 {
-        ex the_ex = *this;
-        bool b;
-        ex r;
-        (void)_collect_powers(the_ex, r, b);
-        return b? r:the_ex;
+	ex the_ex = *this;
+	bool b;
+	ex r;
+	(void)_collect_powers(the_ex, r, b);
+	return b? r:the_ex;
 }
 
 /**
@@ -772,108 +772,108 @@ ex ex::collect_powers() const
  */
 void ex::coefficients(const ex & s, expairvec & vec) const
 {
-        vec.clear();
-        if (is_exactly_a<add>(s)) {
-                vec.push_back(std::make_pair(*this, _ex0));
-                return;
-        }
+	vec.clear();
+	if (is_exactly_a<add>(s)) {
+		vec.push_back(std::make_pair(*this, _ex0));
+		return;
+	}
 
-        // Replace any s with a new anonymous symbol
-        symbol symb;
-        exmap submap {{s, symb}}, revmap {{symb, s}};
-        ex sub = subs(submap);
+	// Replace any s with a new anonymous symbol
+	symbol symb;
+	exmap submap {{s, symb}}, revmap {{symb, s}};
+	ex sub = subs(submap);
 
-        if (is_exactly_a<add>(sub)) {
-                const add& addref = ex_to<add>(sub);
-                const numeric& oc = addref.get_overall_coeff();
-                if (not oc.is_zero())
-                        vec.emplace_back(std::make_pair(oc, _ex0));
-                for (const auto& term : addref.seq) {
-                        ex tmp = addref.recombine_pair_to_ex(term);
-                        if (has_nonposint_power(tmp, symb)
-                            or not match_monom(tmp, symb, vec, revmap))
-                                vec.push_back(std::make_pair(tmp.subs(revmap), _ex0));
-                }
-        }
-        else {
-                if (has_nonposint_power(sub, symb)
-                    or not match_monom(sub, symb, vec, revmap)) {
-                        vec.clear();
-                        vec.push_back(std::make_pair(*this, _ex0));
-                }
-                return;
-        }
+	if (is_exactly_a<add>(sub)) {
+		const add& addref = ex_to<add>(sub);
+		const numeric& oc = addref.get_overall_coeff();
+		if (not oc.is_zero())
+			vec.emplace_back(std::make_pair(oc, _ex0));
+		for (const auto& term : addref.seq) {
+			ex tmp = addref.recombine_pair_to_ex(term);
+			if (has_nonposint_power(tmp, symb)
+			    or not match_monom(tmp, symb, vec, revmap))
+				vec.push_back(std::make_pair(tmp.subs(revmap), _ex0));
+		}
+	}
+	else {
+		if (has_nonposint_power(sub, symb)
+		    or not match_monom(sub, symb, vec, revmap)) {
+			vec.clear();
+			vec.push_back(std::make_pair(*this, _ex0));
+		}
+		return;
+	}
 
-        // Add: Combine coefficients with the same exponent
-        std::sort(vec.begin(), vec.end(), [](const std::pair<ex,ex>& x, const std::pair<ex,ex>& y)
-        {
-                return x.second < y.second;
-        });
+	// Add: Combine coefficients with the same exponent
+	std::sort(vec.begin(), vec.end(), [](const std::pair<ex,ex>& x, const std::pair<ex,ex>& y)
+	{
+		return x.second < y.second;
+	});
 
-        auto tmp_it = vec.end();
-        for (auto it = vec.end(); it != vec.begin(); ) {
-                --it;
-                if ((it->first).is_zero()) {
-                        vec.erase(it);
-                        tmp_it = vec.end();
-                        continue;
-                }
-                if (tmp_it != vec.end() and (tmp_it->second).is_equal(it->second)) {
-                        it->first += tmp_it->first;
-                        vec.erase(tmp_it);
-                        if ((it->first).is_zero()) {
-                                vec.erase(it);
-                                tmp_it = vec.end();
-                                continue;
-                        }
-                }
-                tmp_it = it;
-        }
+	auto tmp_it = vec.end();
+	for (auto it = vec.end(); it != vec.begin(); ) {
+		--it;
+		if ((it->first).is_zero()) {
+			vec.erase(it);
+			tmp_it = vec.end();
+			continue;
+		}
+		if (tmp_it != vec.end() and (tmp_it->second).is_equal(it->second)) {
+			it->first += tmp_it->first;
+			vec.erase(tmp_it);
+			if ((it->first).is_zero()) {
+				vec.erase(it);
+				tmp_it = vec.end();
+				continue;
+			}
+		}
+		tmp_it = it;
+	}
 
 }
 
 ex ex::lcoeff(const ex & s) const
 {
-        return coeff(s, degree(s));
+	return coeff(s, degree(s));
 }
 
 ex ex::tcoeff(const ex & s) const
 {
-        return coeff(s, ldegree(s));
+	return coeff(s, ldegree(s));
 }
 
 ex ex::deep_combine_fractions(ex e)
 {
-        if (is_a<expairseq>(e)) {
-                combine_map_function func;
-                e = e.map(func);
-        }
-        else {
-                if (is_exactly_a<symbol>(e) or
-                                is_exactly_a<constant>(e) or
-                                is_exactly_a<numeric>(e))
-                        return e;
-                
-                for (unsigned int i=0; i<e.nops(); ++i) {
-                        e.let_op(i) = deep_combine_fractions(e.op(i));
-                }
-        }
+	if (is_a<expairseq>(e)) {
+		combine_map_function func;
+		e = e.map(func);
+	}
+	else {
+		if (is_exactly_a<symbol>(e) or
+				is_exactly_a<constant>(e) or
+				is_exactly_a<numeric>(e))
+			return e;
+		
+		for (unsigned int i=0; i<e.nops(); ++i) {
+			e.let_op(i) = deep_combine_fractions(e.op(i));
+		}
+	}
 
-        if (is_exactly_a<add>(e)) {
-                ex t = ex_to<add>(e).combine_fractions();
-                return t;
-        }
+	if (is_exactly_a<add>(e)) {
+		ex t = ex_to<add>(e).combine_fractions();
+		return t;
+	}
 
-        return e;
+	return e;
 }
 
 ex ex::combine_fractions(bool deep) const
 {
-        if (deep)
-                return deep_combine_fractions(*this);
-        if (is_exactly_a<add>(*this))
-                return ex_to<add>(*this).combine_fractions();
-        return *this;
+	if (deep)
+		return deep_combine_fractions(*this);
+	if (is_exactly_a<add>(*this))
+		return ex_to<add>(*this).combine_fractions();
+	return *this;
 }
 
 // private
@@ -941,20 +941,20 @@ ptr<basic> ex::construct_from_basic(const basic & other)
 		return tmpex.bp;
 	} 
 
-        // The easy case: making an "ex" out of an evaluated object.
-        if ((other.flags & status_flags::dynallocated) != 0u) {
+	// The easy case: making an "ex" out of an evaluated object.
+	if ((other.flags & status_flags::dynallocated) != 0u) {
 
-                // The object is already heap-allocated, so we can just make
-                // another reference to it.
-                return ptr<basic>(const_cast<basic &>(other));
-        } 
+		// The object is already heap-allocated, so we can just make
+		// another reference to it.
+		return ptr<basic>(const_cast<basic &>(other));
+	} 
 
-        // The object is not heap-allocated, so we create a duplicate
-        // on the heap.
-        basic *bp = other.duplicate();
-        bp->setflag(status_flags::dynallocated);
-        GINAC_ASSERT(bp->get_refcount() == 0);
-        return bp;
+	// The object is not heap-allocated, so we create a duplicate
+	// on the heap.
+	basic *bp = other.duplicate();
+	bp->setflag(status_flags::dynallocated);
+	GINAC_ASSERT(bp->get_refcount() == 0);
+	return bp;
 }
 
 basic & ex::construct_from_int(int i)
@@ -1126,7 +1126,7 @@ basic & ex::construct_from_double(double d)
 
 basic & ex::construct_from_pyobject(PyObject* o)
 {
-  Py_INCREF(o);   // since numeric steals a reference
+  Py_INCREF(o);	  // since numeric steals a reference
   basic *bp = new numeric(o);
   bp->setflag(status_flags::dynallocated);
   GINAC_ASSERT(bp->get_refcount() == 0);

@@ -55,12 +55,12 @@ fderivative::fderivative(unsigned ser, unsigned param, const exvector & args) : 
 	tinfo_key = &fderivative::tinfo_static;
 }
 
-fderivative::fderivative(unsigned ser, paramset  params, const exvector & args) : function(ser, args), parameter_set(std::move(params))
+fderivative::fderivative(unsigned ser, paramset	 params, const exvector & args) : function(ser, args), parameter_set(std::move(params))
 {
 	tinfo_key = &fderivative::tinfo_static;
 }
 
-fderivative::fderivative(unsigned ser, paramset  params, std::unique_ptr<exvector> vp) : function(ser, std::move(vp)), parameter_set(std::move(params))
+fderivative::fderivative(unsigned ser, paramset	 params, std::unique_ptr<exvector> vp) : function(ser, std::move(vp)), parameter_set(std::move(params))
 {
 	tinfo_key = &fderivative::tinfo_static;
 }
@@ -85,7 +85,7 @@ fderivative::fderivative(const archive_node &n, lst &sym_lst) : inherited(n, sym
 void fderivative::archive(archive_node &n) const
 {
 	inherited::archive(n);
-        for (const auto & elem : parameter_set)
+	for (const auto & elem : parameter_set)
 		n.add_unsigned("param", elem);
 }
 
@@ -227,7 +227,7 @@ bool fderivative::is_equal_same_type(const basic & other) const
 	if (parameter_set != o.parameter_set)
 		return false;
 
-        return inherited::is_equal_same_type(o);
+	return inherited::is_equal_same_type(o);
 }
 
 bool fderivative::match_same_type(const basic & other) const

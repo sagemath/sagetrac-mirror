@@ -59,7 +59,7 @@ constant::constant() : basic(&constant::tinfo_static), ef(nullptr), serial(next_
 
 // public
 
-constant::constant(std::string  initname, evalffunctype efun, const std::string & texname, unsigned dm)
+constant::constant(std::string	initname, evalffunctype efun, const std::string & texname, unsigned dm)
   : basic(&constant::tinfo_static), name(std::move(initname)), ef(efun), serial(next_serial++), domain(dm)
 {
 	if (texname.empty())
@@ -69,7 +69,7 @@ constant::constant(std::string  initname, evalffunctype efun, const std::string 
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
-constant::constant(std::string  initname, const numeric & initnumber, const std::string & texname, unsigned dm)
+constant::constant(std::string	initname, const numeric & initnumber, const std::string & texname, unsigned dm)
   : basic(&constant::tinfo_static), name(std::move(initname)), ef(nullptr), number(initnumber), serial(next_serial++), domain(dm)
 {
 	if (texname.empty())
@@ -100,13 +100,13 @@ ex constant::unarchive(const archive_node &n, lst &sym_lst)
 			return Euler;
 		if (s == NaN.name)
 			return NaN;
-                ans = py_funcs.py_get_constant(s.c_str());
+		ans = py_funcs.py_get_constant(s.c_str());
 
-                if (PyErr_Occurred() != nullptr)
-                        throw std::runtime_error("error while unarchiving constant");
-		return ans;      
+		if (PyErr_Occurred() != nullptr)
+			throw std::runtime_error("error while unarchiving constant");
+		return ans;	 
 	} 
-        throw (std::runtime_error("unnamed constant in archive"));
+	throw (std::runtime_error("unnamed constant in archive"));
 }
 
 void constant::archive(archive_node &n) const
@@ -148,36 +148,36 @@ void constant::do_print_python_repr(const print_python_repr & c, unsigned level)
 
 bool constant::info(unsigned inf) const
 {
-        if (name == "NaN")
-                return false;
-        switch (inf) {
-        case info_flags::polynomial:
-                return true;
-        case info_flags::inexact:
-                return false;
-        case info_flags::real:
-                return domain == domain::real or domain == domain::positive;
-        case info_flags::positive:
-                return domain == domain::positive;
-        case info_flags::nonnegative:
-                return domain == domain::positive
-                   and evalf(0, nullptr).is_zero();
-        case info_flags::nonzero:
-                return domain == domain::positive
-                or not evalf(0, nullptr).is_zero();
-        case info_flags::infinity:
-                return domain == domain::infinity;
-        default:
-                return evalf(0, nullptr).info(inf);
-        }
+	if (name == "NaN")
+		return false;
+	switch (inf) {
+	case info_flags::polynomial:
+		return true;
+	case info_flags::inexact:
+		return false;
+	case info_flags::real:
+		return domain == domain::real or domain == domain::positive;
+	case info_flags::positive:
+		return domain == domain::positive;
+	case info_flags::nonnegative:
+		return domain == domain::positive
+		   and evalf(0, nullptr).is_zero();
+	case info_flags::nonzero:
+		return domain == domain::positive
+		or not evalf(0, nullptr).is_zero();
+	case info_flags::infinity:
+		return domain == domain::infinity;
+	default:
+		return evalf(0, nullptr).info(inf);
+	}
 }
 
 ex constant::evalf(int level, PyObject* parent) const
 {
 	if (ef!=nullptr)
-                return ef(serial, parent);
+		return ef(serial, parent);
 
-        return number.evalf(level, parent);
+	return number.evalf(level, parent);
 }
 
 bool constant::is_polynomial(const ex & var) const

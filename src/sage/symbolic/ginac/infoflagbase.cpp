@@ -15,8 +15,8 @@ static bool initialized = false;
 
 infoflagbase::infoflagbase()
 {
-        if (not initialized)
-                init_index();
+	if (not initialized)
+		init_index();
 }
 
 //------------------------------------------
@@ -25,24 +25,24 @@ unsigned infoflagbase::index[info_flags::relation];
 
 void infoflagbase::init_index()
 {
-        unsigned ctr = 0;
-        for (unsigned i : flags)
-                index[i] = ctr++; 
-        initialized = true;
+	unsigned ctr = 0;
+	for (unsigned i : flags)
+		index[i] = ctr++; 
+	initialized = true;
 }
 
 bool infoflagbase::get(unsigned flag) const
 {
-        if (flag > info_flags::indefinite)
-                throw(std::runtime_error("requested wrong info flag"));
-        if (flag > info_flags::relation)
-                return false;
-        return bits[index[flag]];
+	if (flag > info_flags::indefinite)
+		throw(std::runtime_error("requested wrong info flag"));
+	if (flag > info_flags::relation)
+		return false;
+	return bits[index[flag]];
 }
 
 void infoflagbase::set(unsigned flag, bool value)
 {
-        bits[index[flag]] = value;
+	bits[index[flag]] = value;
 }
 
 } // namespace GiNaC

@@ -7,7 +7,7 @@
 
 /*
  *  GiNaC Copyright (C) 1999-2008 Johannes Gutenberg University Mainz, Germany
- *                  (C) 2016 Ralf Stephan
+ *		    (C) 2016 Ralf Stephan
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ namespace GiNaC {
  *  @param b  second polynomial in x (divisor)
  *  @param x  a and b are polynomials in x
  *  @param check_args  check whether a and b are polynomials with rational
- *         coefficients (defaults to "true")
+ *	   coefficients (defaults to "true")
  *  @return quotient of a and b in Q[x] */
 ex quo(const ex &a, const ex &b, const ex &x, bool check_args)
 {
@@ -90,7 +90,7 @@ ex quo(const ex &a, const ex &b, const ex &x, bool check_args)
 			term = rcoeff / blcoeff;
 		else {
 			if (!divide(rcoeff, blcoeff, term, false))
-                                throw std::logic_error("");
+				throw std::logic_error("");
 		}
 		term *= power(x, rdeg - bdeg);
 		v.push_back(term);
@@ -99,7 +99,7 @@ ex quo(const ex &a, const ex &b, const ex &x, bool check_args)
 			break;
 		rdeg = r.degree(x);
 	}
-        return (new add(v))->setflag(status_flags::dynallocated);
+	return (new add(v))->setflag(status_flags::dynallocated);
 }
 
 /** Remainder r(x) of polynomials a(x) and b(x) in Q[x].
@@ -109,7 +109,7 @@ ex quo(const ex &a, const ex &b, const ex &x, bool check_args)
  *  @param b  second polynomial in x (divisor)
  *  @param x  a and b are polynomials in x
  *  @param check_args  check whether a and b are polynomials with rational
- *         coefficients (defaults to "true")
+ *	   coefficients (defaults to "true")
  *  @return remainder of a(x) and b(x) in Q[x] */
 ex rem(const ex &a, const ex &b, const ex &x, bool check_args)
 {
@@ -132,7 +132,7 @@ ex rem(const ex &a, const ex &b, const ex &x, bool check_args)
 	if (r.is_zero())
 		return r;
 	numeric bdeg = b.degree(x);
-        numeric rdeg = r.degree(x);
+	numeric rdeg = r.degree(x);
 	ex blcoeff = b.expand().coeff(x, bdeg);
 	bool blcoeff_is_numeric = is_exactly_a<numeric>(blcoeff);
 	while (rdeg >= bdeg) {
@@ -141,7 +141,7 @@ ex rem(const ex &a, const ex &b, const ex &x, bool check_args)
 			term = rcoeff / blcoeff;
 		else {
 			if (!divide(rcoeff, blcoeff, term, false))
-                                throw std::logic_error("");
+				throw std::logic_error("");
 		}
 		term *= power(x, rdeg - bdeg);
 		r -= (term * b).expand();
@@ -163,66 +163,66 @@ std::pair<ex,ex> quo_rem(const ex &a, const ex &b, const ex &x, bool check_args)
 	if (a.is_equal(b))
 		return std::make_pair(_ex1, _ex0);
 #endif
-        expairvec vec1, vec2;
-        using pair_t = std::pair<ex,ex>;
-        a.expand().coefficients(x, vec1);
-        b.expand().coefficients(x, vec2);
-        if (check_args) {
-                if (std::any_of(vec1.begin(), vec1.end(),
-                             [](const pair_t& p) {
-                                return not is_exactly_a<numeric>(p.second)
-                                    or (not p.second.is_zero()
-                                        and not p.second.info(info_flags::posint)); } 
-                                    ))
-                        throw std::logic_error("nonposint exponent in quo()");
-                if (std::any_of(vec2.begin(), vec2.end(),
-                             [](const pair_t& p) {
-                                return not is_exactly_a<numeric>(p.second)
-                                    or (not p.second.is_zero()
-                                        and not p.second.info(info_flags::posint)); } 
-                                    ))
-                        throw std::logic_error("nonposint exponent in quo()");
-        }
-        const auto& mit1 = std::max_element(vec1.begin(), vec1.end(),
-                        [](const pair_t& p1, const pair_t& p2) {
-                           return ex_to<numeric>(p1.second) <
-                                  ex_to<numeric>(p2.second); } );
-        const auto& mit2 = std::max_element(vec2.begin(), vec2.end(),
-                        [](const pair_t& p1, const pair_t& p2) {
-                           return ex_to<numeric>(p1.second) <
-                                  ex_to<numeric>(p2.second); } );
-        size_t adeg = ex_to<numeric>(mit1->second).to_long();
-        size_t bdeg = ex_to<numeric>(mit2->second).to_long();
-        if (adeg < bdeg)
-                return std::make_pair(_ex0, a);
-        // make flat coeff vectors
-        std::vector<ex> avec, bvec;
-        avec.assign(adeg+1, _ex0);
-        bvec.assign(bdeg+1, _ex0);
-        for (const pair_t& p : vec1)
-                *(avec.begin() + ex_to<numeric>(p.second).to_long()) = p.first;
-        for (const pair_t& p : vec2)
-                *(bvec.begin() + ex_to<numeric>(p.second).to_long()) = p.first;
+	expairvec vec1, vec2;
+	using pair_t = std::pair<ex,ex>;
+	a.expand().coefficients(x, vec1);
+	b.expand().coefficients(x, vec2);
+	if (check_args) {
+		if (std::any_of(vec1.begin(), vec1.end(),
+			     [](const pair_t& p) {
+				return not is_exactly_a<numeric>(p.second)
+				    or (not p.second.is_zero()
+					and not p.second.info(info_flags::posint)); } 
+				    ))
+			throw std::logic_error("nonposint exponent in quo()");
+		if (std::any_of(vec2.begin(), vec2.end(),
+			     [](const pair_t& p) {
+				return not is_exactly_a<numeric>(p.second)
+				    or (not p.second.is_zero()
+					and not p.second.info(info_flags::posint)); } 
+				    ))
+			throw std::logic_error("nonposint exponent in quo()");
+	}
+	const auto& mit1 = std::max_element(vec1.begin(), vec1.end(),
+			[](const pair_t& p1, const pair_t& p2) {
+			   return ex_to<numeric>(p1.second) <
+				  ex_to<numeric>(p2.second); } );
+	const auto& mit2 = std::max_element(vec2.begin(), vec2.end(),
+			[](const pair_t& p1, const pair_t& p2) {
+			   return ex_to<numeric>(p1.second) <
+				  ex_to<numeric>(p2.second); } );
+	size_t adeg = ex_to<numeric>(mit1->second).to_long();
+	size_t bdeg = ex_to<numeric>(mit2->second).to_long();
+	if (adeg < bdeg)
+		return std::make_pair(_ex0, a);
+	// make flat coeff vectors
+	std::vector<ex> avec, bvec;
+	avec.assign(adeg+1, _ex0);
+	bvec.assign(bdeg+1, _ex0);
+	for (const pair_t& p : vec1)
+		*(avec.begin() + ex_to<numeric>(p.second).to_long()) = p.first;
+	for (const pair_t& p : vec2)
+		*(bvec.begin() + ex_to<numeric>(p.second).to_long()) = p.first;
 
-        // poly division
-        ex lc2 = bvec[bdeg];
-        exvector qvec;
-        for (int k=adeg-bdeg; k>=0; --k) {
-                ex q = avec[bdeg+k] / lc2;
-                avec[bdeg+k] = _ex0;
-                for (int j=bdeg+k-1; j>=k; --j)
-                        avec[j] = avec[j] - q * bvec[j-k];
-                qvec.insert(qvec.begin(), q);
-        }
-        for (size_t i=0; i<qvec.size(); ++i)
-                if (not qvec[i].is_zero())
-                        qvec[i] = qvec[i] * power(x, numeric(i));
-        if (avec.size() > bdeg)
-                avec.resize(bdeg);
-        for (size_t i=0; i<bdeg; ++i)
-                if (not avec[i].is_zero())
-                        avec[i] = avec[i] * power(x, numeric(i));
-        return std::make_pair(add(qvec), add(avec));
+	// poly division
+	ex lc2 = bvec[bdeg];
+	exvector qvec;
+	for (int k=adeg-bdeg; k>=0; --k) {
+		ex q = avec[bdeg+k] / lc2;
+		avec[bdeg+k] = _ex0;
+		for (int j=bdeg+k-1; j>=k; --j)
+			avec[j] = avec[j] - q * bvec[j-k];
+		qvec.insert(qvec.begin(), q);
+	}
+	for (size_t i=0; i<qvec.size(); ++i)
+		if (not qvec[i].is_zero())
+			qvec[i] = qvec[i] * power(x, numeric(i));
+	if (avec.size() > bdeg)
+		avec.resize(bdeg);
+	for (size_t i=0; i<bdeg; ++i)
+		if (not avec[i].is_zero())
+			avec[i] = avec[i] * power(x, numeric(i));
+	return std::make_pair(add(qvec), add(avec));
 }
 
 
@@ -236,13 +236,13 @@ ex decomp_rational(const ex &a, const ex &x)
 {
 	ex nd = numer_denom(a);
 	ex numer = nd.op(0), denom = nd.op(1);
-        ex q;
-        try {
-        	q = quo(numer, denom, x);
-        }
-        catch (std::logic_error) {
+	ex q;
+	try {
+		q = quo(numer, denom, x);
+	}
+	catch (std::logic_error) {
 		return a;
-        }
+	}
 	return q + rem(numer, denom, x) / denom;
 }
 
@@ -253,7 +253,7 @@ ex decomp_rational(const ex &a, const ex &x)
  *  @param b  second polynomial in x (divisor)
  *  @param x  a and b are polynomials in x
  *  @param check_args  check whether a and b are polynomials with rational
- *         coefficients (defaults to "true")
+ *	   coefficients (defaults to "true")
  *  @return pseudo-remainder of a(x) and b(x) in Q[x] */
 ex prem(const ex &a, const ex &b, const ex &x, bool check_args)
 {
@@ -304,7 +304,7 @@ ex prem(const ex &a, const ex &b, const ex &x, bool check_args)
  *  @param b  second polynomial in x (divisor)
  *  @param x  a and b are polynomials in x
  *  @param check_args  check whether a and b are polynomials with rational
- *         coefficients (defaults to "true")
+ *	   coefficients (defaults to "true")
  *  @return sparse pseudo-remainder of a(x) and b(x) in Q[x] */
 ex sprem(const ex &a, const ex &b, const ex &x, bool check_args)
 {
@@ -353,9 +353,9 @@ ex sprem(const ex &a, const ex &b, const ex &x, bool check_args)
  *  @param b  second multivariate polynomial (divisor)
  *  @param q  quotient (returned)
  *  @param check_args  check whether a and b are polynomials with rational
- *         coefficients (defaults to "true")
+ *	   coefficients (defaults to "true")
  *  @return "true" when exact division succeeds (quotient returned in q),
- *          "false" otherwise (q left untouched) */
+ *	    "false" otherwise (q left untouched) */
 bool divide(const ex &a, const ex &b, ex &q, bool check_args)
 {
 	if (b.is_zero())
@@ -368,7 +368,7 @@ bool divide(const ex &a, const ex &b, ex &q, bool check_args)
 		q = a / b;
 		return true;
 	}
-        if (is_exactly_a<numeric>(a))
+	if (is_exactly_a<numeric>(a))
 		return false;
 #if FAST_COMPARE
 	if (a.is_equal(b)) {
@@ -377,16 +377,16 @@ bool divide(const ex &a, const ex &b, ex &q, bool check_args)
 	}
 #endif
 	if (check_args && (!a.info(info_flags::rational_polynomial) ||
-	                   !b.info(info_flags::rational_polynomial)))
+			   !b.info(info_flags::rational_polynomial)))
 		throw(std::invalid_argument("divide: arguments must be polynomials over the rationals"));
 
 	// Find first symbol
 	ex x;
 	if (!a.get_first_symbol(x) && !b.get_first_symbol(x)) {
-                std::ostringstream os;
-                os << "invalid expression in divide(): " << a << " / " << b;
+		std::ostringstream os;
+		os << "invalid expression in divide(): " << a << " / " << b;
 		throw(std::invalid_argument(os.str()));
-        }
+	}
 
 	// Try to avoid expanding partially factored expressions.
 	if (is_exactly_a<mul>(b)) {
@@ -400,7 +400,7 @@ bool divide(const ex &a, const ex &b, ex &q, bool check_args)
 		q = rem_new;
 		return true;
 	}
-        if (is_exactly_a<power>(b)) {
+	if (is_exactly_a<power>(b)) {
 		const ex& bb(b.op(0));
 		int exp_b = ex_to<numeric>(b.op(1)).to_int();
 		ex rem_new, rem_old = a;
@@ -489,12 +489,12 @@ bool divide(const ex &a, const ex &b, ex &q, bool check_args)
 // Distribute a factor over all sum terms
 static ex dist(const ex& f, const ex& p)
 {
-        if (not is_exactly_a<add>(p))
-                return mul(f, p);
-        ex s = _ex0;
-        for (size_t i=0; i<p.nops(); ++i)
-                s += f*p.op(i);
-        return s;
+	if (not is_exactly_a<add>(p))
+		return mul(f, p);
+	ex s = _ex0;
+	for (size_t i=0; i<p.nops(); ++i)
+		s += f*p.op(i);
+	return s;
 }
 
 /** Compute partial fraction decomposition of expression
@@ -504,95 +504,95 @@ static ex dist(const ex& f, const ex& p)
  *  @return decomposed rational function */
 ex parfrac(const ex & a, const ex & x)
 {
-        if (is_exactly_a<add>(a)) {
-                ex s = _ex0;
-                for (size_t i=0; i<a.nops(); ++i)
-                        s += parfrac(a.op(i), x);
-                return s;
-        }
-        if (not is_exactly_a<mul>(a))
-                return a;
+	if (is_exactly_a<add>(a)) {
+		ex s = _ex0;
+		for (size_t i=0; i<a.nops(); ++i)
+			s += parfrac(a.op(i), x);
+		return s;
+	}
+	if (not is_exactly_a<mul>(a))
+		return a;
 	// Find numerator and denominator
 	ex nd = numer_denom(a);
 	ex numer = nd.op(0), denom = nd.op(1);
-        // Expand sum powers
-        if (is_exactly_a<add>(numer))
-                return parfrac(dist(_ex1/denom, numer), x);
-        if (is_exactly_a<power>(numer)
-            and is_exactly_a<add>(numer.op(0))
-            and numer.op(1).info(info_flags::posint))
-                return parfrac(dist(_ex1/denom, numer.expand()), x);
+	// Expand sum powers
+	if (is_exactly_a<add>(numer))
+		return parfrac(dist(_ex1/denom, numer), x);
+	if (is_exactly_a<power>(numer)
+	    and is_exactly_a<add>(numer.op(0))
+	    and numer.op(1).info(info_flags::posint))
+		return parfrac(dist(_ex1/denom, numer.expand()), x);
 
-        if (is_exactly_a<mul>(numer))
-                for (size_t i=0; i<numer.nops(); ++i) {
-                        const ex& t = numer.op(i);
-                        if (is_exactly_a<power>(t)
-                            and is_exactly_a<add>(t.op(0))
-                            and t.op(1).info(info_flags::posint))
-                                return parfrac(dist(_ex1/denom, numer.expand()), x);
-                }
-        std::pair<ex,ex> qr;
-        try {
-        	// Convert N(x)/D(x) -> Q(x) + R(x)/D(x), so degree(R) < degree(D)
-                qr = quo_rem(numer, denom, x, true);
-        }
-        catch (std::logic_error) {
-                return a;
-        }
+	if (is_exactly_a<mul>(numer))
+		for (size_t i=0; i<numer.nops(); ++i) {
+			const ex& t = numer.op(i);
+			if (is_exactly_a<power>(t)
+			    and is_exactly_a<add>(t.op(0))
+			    and t.op(1).info(info_flags::posint))
+				return parfrac(dist(_ex1/denom, numer.expand()), x);
+		}
+	std::pair<ex,ex> qr;
+	try {
+		// Convert N(x)/D(x) -> Q(x) + R(x)/D(x), so degree(R) < degree(D)
+		qr = quo_rem(numer, denom, x, true);
+	}
+	catch (std::logic_error) {
+		return a;
+	}
 	// Factorize denominator and compute cofactors
-        ex facmul;
-        bool r = factor(denom, facmul);
-        if (not r)
-                facmul = denom;
-//                return qr.first + qr.second/denom;
-        ex oc = _ex1;
+	ex facmul;
+	bool r = factor(denom, facmul);
+	if (not r)
+		facmul = denom;
+//		  return qr.first + qr.second/denom;
+	ex oc = _ex1;
 	exvector factor, cofac;
-        if (is_exactly_a<mul>(facmul)) {
-                size_t fsize = facmul.nops();
-                for (size_t i=0; i<fsize; i++) {
-                        const ex& e = facmul.op(i);
-                        if (is_exactly_a<numeric>(e)) {
-                                oc = e;
-                                continue;
-                        }
-                        if (is_exactly_a<power>(e)) {
-                                if (not has(e.op(0), x))
-                                        continue;
-                                const ex& ee = e.op(1);
-                                if (not is_exactly_a<numeric>(ee)
-                                    or not ee.is_integer()
-                                    or e.op(0).is_equal(x))
-                                        return a;
-                                size_t expo = ex_to<numeric>(ee).to_int();
-                                for (size_t j=1; j<=expo; ++j) {
-                                        ex eee = power(e.op(0), numeric(j));
-                                        factor.push_back(eee);
-                                        cofac.push_back((facmul/eee).expand());
-                                }
-                        }
-                        else {
-                                factor.push_back(e);
-                                cofac.push_back((facmul/e).expand());
-                        }
-                }
-        }
-        else if (is_exactly_a<power>(facmul)
-                 and is_exactly_a<numeric>(facmul.op(1))) {
-                if (facmul.op(0).is_equal(x))
-                        return a;
-                size_t expo = ex_to<numeric>(facmul.op(1)).to_int();
-                for (size_t j=1; j<=expo; ++j) {
-                        ex ee = power(facmul.op(0), numeric(j));
-                        factor.push_back(ee);
-                        cofac.push_back((facmul/ee).expand());
-                }
-        }
-        else {
-                return qr.first + qr.second/denom;
-        }
+	if (is_exactly_a<mul>(facmul)) {
+		size_t fsize = facmul.nops();
+		for (size_t i=0; i<fsize; i++) {
+			const ex& e = facmul.op(i);
+			if (is_exactly_a<numeric>(e)) {
+				oc = e;
+				continue;
+			}
+			if (is_exactly_a<power>(e)) {
+				if (not has(e.op(0), x))
+					continue;
+				const ex& ee = e.op(1);
+				if (not is_exactly_a<numeric>(ee)
+				    or not ee.is_integer()
+				    or e.op(0).is_equal(x))
+					return a;
+				size_t expo = ex_to<numeric>(ee).to_int();
+				for (size_t j=1; j<=expo; ++j) {
+					ex eee = power(e.op(0), numeric(j));
+					factor.push_back(eee);
+					cofac.push_back((facmul/eee).expand());
+				}
+			}
+			else {
+				factor.push_back(e);
+				cofac.push_back((facmul/e).expand());
+			}
+		}
+	}
+	else if (is_exactly_a<power>(facmul)
+		 and is_exactly_a<numeric>(facmul.op(1))) {
+		if (facmul.op(0).is_equal(x))
+			return a;
+		size_t expo = ex_to<numeric>(facmul.op(1)).to_int();
+		for (size_t j=1; j<=expo; ++j) {
+			ex ee = power(facmul.op(0), numeric(j));
+			factor.push_back(ee);
+			cofac.push_back((facmul/ee).expand());
+		}
+	}
+	else {
+		return qr.first + qr.second/denom;
+	}
 	size_t num_factors = factor.size();
-        //std::cerr << "factors  : " << exprseq(factor) << std::endl;
-        //std::cerr << "cofactors: " << exprseq(cofac) << std::endl;
+	//std::cerr << "factors	 : " << exprseq(factor) << std::endl;
+	//std::cerr << "cofactors: " << exprseq(cofac) << std::endl;
 
 	// Construct coefficient matrix for decomposition
 	int max_denom_deg = ex_to<numeric>(denom.degree(x)).to_int();
@@ -604,7 +604,7 @@ ex parfrac(const ex & a, const ex & x)
 		rhs(i, 0) = qr.second.coeff(x, i);
 	}
 //clog << "coeffs: " << sys << endl;
-//clog << "rhs   : " << rhs << endl;
+//clog << "rhs	 : " << rhs << endl;
 
 	// Solve resulting linear system
 	matrix vars(num_factors, 1);

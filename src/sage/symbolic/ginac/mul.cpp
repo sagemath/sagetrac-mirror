@@ -136,8 +136,8 @@ DEFAULT_ARCHIVING(mul)
 void mul::print_overall_coeff(const ex& coeff_ex, const print_context & c,
 		const char *mul_sym, bool latex) const
 {
-        if (not is_exactly_a<numeric>(coeff_ex))
-                throw std::runtime_error("mul::print_overall_coeff: can't happen");
+	if (not is_exactly_a<numeric>(coeff_ex))
+		throw std::runtime_error("mul::print_overall_coeff: can't happen");
 	const numeric & num_coeff = ex_to<numeric>(coeff_ex);
 	std::stringstream tstream;
 	std::unique_ptr<print_context> tcontext_p;
@@ -231,7 +231,7 @@ void mul::print_exvector(const exvector & v, const print_context & c,
 		const char* sep) const
 {
 	bool first = true;
-        for (const auto & elem : v) {
+	for (const auto & elem : v) {
 		if (!first)
 			c.s << sep;
 		else
@@ -260,8 +260,8 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 	// Separate factors into those with negative numeric exponent
 	// and all others
 	const epvector & sorted_seq = get_sorted_seq();
-        exvector neg_powers, others;
-        for (const auto & elem : sorted_seq) {
+	exvector neg_powers, others;
+	for (const auto & elem : sorted_seq) {
 		GINAC_ASSERT(is_exactly_a<numeric>(elem.coeff));
 		if (ex_to<numeric>(elem.coeff).is_real() &&
 				ex_to<numeric>(elem.coeff).is_negative())
@@ -320,8 +320,8 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 					others.empty() ? "" : sep,
 					latex_tags);
 			if (others.empty()
-                            and (overall_coeff.is_one()
-                                 or overall_coeff.is_minus_one())) {
+			    and (overall_coeff.is_one()
+				 or overall_coeff.is_minus_one())) {
 				c.s<<"1";
 			} else {
 				print_exvector(others, c, sep);
@@ -390,126 +390,126 @@ void mul::do_print_python_repr(const print_python_repr & c, unsigned level) cons
 
 bool mul::info(unsigned inf) const
 {
-        switch (inf) {
-        case info_flags::nonzero:
-                return is_positive()
-                or info(info_flags::negative);
-        case info_flags::polynomial:
-        case info_flags::integer_polynomial:
-        case info_flags::cinteger_polynomial:
-        case info_flags::rational_polynomial:
-        case info_flags::real:
-        case info_flags::rational:
-        case info_flags::integer:
-        case info_flags::crational:
-        case info_flags::cinteger:
-        case info_flags::crational_polynomial:
-        case info_flags::rational_function: {
-                if (not overall_coeff.is_real())
-                        return false;
-                for (const auto &elem : seq)
-                        if (!(recombine_pair_to_ex(elem).info(inf)))
-                                return false;
-                if (overall_coeff.is_one() && inf == info_flags::even)
-                        return true;
-                return overall_coeff.info(inf);
-        }
-        case info_flags::even: {
-                bool even_seen = false;
-                for (const auto &elem : seq) {
-                        const ex &e = recombine_pair_to_ex(elem);
-                        if (not e.is_integer())
-                                return false;
-                        if (e.info(info_flags::even))
-                                even_seen = true;
-                }
-                return even_seen or overall_coeff.is_even();
-        }
-        case info_flags::inexact:
-        case info_flags::algebraic: {
-                if (overall_coeff.info(inf))
-                        return true;
-                for (const auto &elem : seq)
-                        if ((recombine_pair_to_ex(elem).info(inf)))
-                                return true;
-                return false;
-        }
-        case info_flags::positive:
-        case info_flags::negative: {
-                if (not overall_coeff.is_real())
-                        return false;
-                bool pos = true;
-                for (const auto &elem : seq) {
-                        const ex &factor = recombine_pair_to_ex(elem);
-                        if (factor.is_positive())
-                                continue;
-                        if (factor.info(info_flags::negative))
-                                pos = !pos;
-                        else
-                                return false;
-                }
-                if (overall_coeff.info(info_flags::negative))
-                        pos = !pos;
-                return (inf == info_flags::positive ? pos : !pos);
-        }
-        case info_flags::nonnegative: {
-                if (not overall_coeff.is_real())
-                        return false;
-                bool pos = true;
-                for (const auto &elem : seq) {
-                        const ex &factor = recombine_pair_to_ex(elem);
-                        if (factor.info(info_flags::nonnegative)
-                            or factor.is_positive())
-                                continue;
-                        if (factor.info(info_flags::negative))
-                                pos = !pos;
-                        else
-                                return false;
-                }
-                return (overall_coeff.info(info_flags::negative) ? !pos : pos);
-        }
-        case info_flags::posint:
-        case info_flags::negint: {
-                if (not overall_coeff.is_real())
-                        return false;
-                bool pos = true;
-                for (const auto &elem : seq) {
-                        const ex &factor = recombine_pair_to_ex(elem);
-                        if (factor.info(info_flags::posint))
-                                continue;
-                        if (factor.info(info_flags::negint))
-                                pos = !pos;
-                        else
-                                return false;
-                }
-                if (overall_coeff.info(info_flags::negint))
-                        pos = !pos;
-                else if (!overall_coeff.info(info_flags::posint))
-                        return false;
-                return (inf == info_flags::posint ? pos : !pos);
-        }
-        case info_flags::nonnegint: {
-                if (not overall_coeff.is_real())
-                        return false;
-                bool pos = true;
-                for (const auto &elem : seq) {
-                        const ex &factor = recombine_pair_to_ex(elem);
-                        if (factor.info(info_flags::nonnegint)
-                            or factor.info(info_flags::posint))
-                                continue;
-                        if (factor.info(info_flags::negint))
-                                pos = !pos;
-                        else
-                                return false;
-                }
-                if (overall_coeff.info(info_flags::negint))
-                        pos = !pos;
-                else if (!overall_coeff.info(info_flags::posint))
-                        return false;
-                return pos;
-        }
-        }
-        return inherited::info(inf);
+	switch (inf) {
+	case info_flags::nonzero:
+		return is_positive()
+		or info(info_flags::negative);
+	case info_flags::polynomial:
+	case info_flags::integer_polynomial:
+	case info_flags::cinteger_polynomial:
+	case info_flags::rational_polynomial:
+	case info_flags::real:
+	case info_flags::rational:
+	case info_flags::integer:
+	case info_flags::crational:
+	case info_flags::cinteger:
+	case info_flags::crational_polynomial:
+	case info_flags::rational_function: {
+		if (not overall_coeff.is_real())
+			return false;
+		for (const auto &elem : seq)
+			if (!(recombine_pair_to_ex(elem).info(inf)))
+				return false;
+		if (overall_coeff.is_one() && inf == info_flags::even)
+			return true;
+		return overall_coeff.info(inf);
+	}
+	case info_flags::even: {
+		bool even_seen = false;
+		for (const auto &elem : seq) {
+			const ex &e = recombine_pair_to_ex(elem);
+			if (not e.is_integer())
+				return false;
+			if (e.info(info_flags::even))
+				even_seen = true;
+		}
+		return even_seen or overall_coeff.is_even();
+	}
+	case info_flags::inexact:
+	case info_flags::algebraic: {
+		if (overall_coeff.info(inf))
+			return true;
+		for (const auto &elem : seq)
+			if ((recombine_pair_to_ex(elem).info(inf)))
+				return true;
+		return false;
+	}
+	case info_flags::positive:
+	case info_flags::negative: {
+		if (not overall_coeff.is_real())
+			return false;
+		bool pos = true;
+		for (const auto &elem : seq) {
+			const ex &factor = recombine_pair_to_ex(elem);
+			if (factor.is_positive())
+				continue;
+			if (factor.info(info_flags::negative))
+				pos = !pos;
+			else
+				return false;
+		}
+		if (overall_coeff.info(info_flags::negative))
+			pos = !pos;
+		return (inf == info_flags::positive ? pos : !pos);
+	}
+	case info_flags::nonnegative: {
+		if (not overall_coeff.is_real())
+			return false;
+		bool pos = true;
+		for (const auto &elem : seq) {
+			const ex &factor = recombine_pair_to_ex(elem);
+			if (factor.info(info_flags::nonnegative)
+			    or factor.is_positive())
+				continue;
+			if (factor.info(info_flags::negative))
+				pos = !pos;
+			else
+				return false;
+		}
+		return (overall_coeff.info(info_flags::negative) ? !pos : pos);
+	}
+	case info_flags::posint:
+	case info_flags::negint: {
+		if (not overall_coeff.is_real())
+			return false;
+		bool pos = true;
+		for (const auto &elem : seq) {
+			const ex &factor = recombine_pair_to_ex(elem);
+			if (factor.info(info_flags::posint))
+				continue;
+			if (factor.info(info_flags::negint))
+				pos = !pos;
+			else
+				return false;
+		}
+		if (overall_coeff.info(info_flags::negint))
+			pos = !pos;
+		else if (!overall_coeff.info(info_flags::posint))
+			return false;
+		return (inf == info_flags::posint ? pos : !pos);
+	}
+	case info_flags::nonnegint: {
+		if (not overall_coeff.is_real())
+			return false;
+		bool pos = true;
+		for (const auto &elem : seq) {
+			const ex &factor = recombine_pair_to_ex(elem);
+			if (factor.info(info_flags::nonnegint)
+			    or factor.info(info_flags::posint))
+				continue;
+			if (factor.info(info_flags::negint))
+				pos = !pos;
+			else
+				return false;
+		}
+		if (overall_coeff.info(info_flags::negint))
+			pos = !pos;
+		else if (!overall_coeff.info(info_flags::posint))
+			return false;
+		return pos;
+	}
+	}
+	return inherited::info(inf);
 }
 
 bool mul::is_polynomial(const ex & var) const
@@ -527,20 +527,20 @@ numeric mul::degree(const ex & s) const
 {
 	// Sum up degrees of factors
 	numeric deg_sum(0);
-        for (const auto & elem : seq) {
+	for (const auto & elem : seq) {
 		if (is_exactly_a<numeric>(elem.coeff)) {
-                        const numeric& n = ex_to<numeric>(elem.coeff);
-                        if (n.is_real()) {
-			        deg_sum += n * elem.rest.degree(s);
-                        }
-                        else {
-                                if (elem.rest.has(s))
-                                        throw std::runtime_error("mul::degree() undefined degree because of complex exponent");
-		        }
-                }
-                else
-		        throw std::runtime_error("mul::degree() undefined degree because of non-integer exponent");
-        }
+			const numeric& n = ex_to<numeric>(elem.coeff);
+			if (n.is_real()) {
+				deg_sum += n * elem.rest.degree(s);
+			}
+			else {
+				if (elem.rest.has(s))
+					throw std::runtime_error("mul::degree() undefined degree because of complex exponent");
+			}
+		}
+		else
+			throw std::runtime_error("mul::degree() undefined degree because of non-integer exponent");
+	}
 	return deg_sum;
 }
 
@@ -548,20 +548,20 @@ numeric mul::ldegree(const ex & s) const
 {
 	// Sum up degrees of factors
 	numeric deg_sum(0);
-        for (const auto & elem : seq) {
+	for (const auto & elem : seq) {
 		if (is_exactly_a<numeric>(elem.coeff)) {
-                        const numeric& n = ex_to<numeric>(elem.coeff);
-                        if (n.is_real()) {
-			        deg_sum += n * elem.rest.ldegree(s);
-                        }
-                        else {
-                                if (elem.rest.has(s))
-                                        throw std::runtime_error("mul::ldegree() undefined degree because of complex exponent");
-		        }
-                }
-                else
-		        throw std::runtime_error("mul::ldegree() undefined degree because of non-integer exponent");
-        }
+			const numeric& n = ex_to<numeric>(elem.coeff);
+			if (n.is_real()) {
+				deg_sum += n * elem.rest.ldegree(s);
+			}
+			else {
+				if (elem.rest.has(s))
+					throw std::runtime_error("mul::ldegree() undefined degree because of complex exponent");
+			}
+		}
+		else
+			throw std::runtime_error("mul::ldegree() undefined degree because of non-integer exponent");
+	}
 	return deg_sum;
 }
 
@@ -573,14 +573,14 @@ ex mul::coeff(const ex & s, const ex & n) const
 	if (n.is_zero()) {
 		// product of individual coeffs
 		// if a non-zero power of s is found, the resulting product will be 0
-                for (const auto & elem : seq)
+		for (const auto & elem : seq)
 			coeffseq.push_back(recombine_pair_to_ex(elem).coeff(s,n));
 		coeffseq.emplace_back(overall_coeff);
 		return (new mul(coeffseq))->setflag(status_flags::dynallocated);
 	}
 	
 	bool coeff_found = false;
-        for (const auto & elem : seq) {
+	for (const auto & elem : seq) {
 		const ex& t = recombine_pair_to_ex(elem);
 		const ex& c = t.coeff(s, n);
 		if (!c.is_zero()) {
@@ -610,9 +610,9 @@ ex mul::coeff(const ex & s, const ex & n) const
 ex mul::eval(int level) const
 {
 #ifdef DO_GINAC_ASSERT
-        for (const auto & elem : seq) {
+	for (const auto & elem : seq) {
 		GINAC_ASSERT((!is_exactly_a<mul>(elem.rest)) ||
-		             (!(ex_to<numeric>(elem.coeff).is_integer())));
+			     (!(ex_to<numeric>(elem.coeff).is_integer())));
 		GINAC_ASSERT(!(elem.is_canonical_numeric()));
 		if (is_exactly_a<numeric>(recombine_pair_to_ex(elem)))
 		    print(print_tree(std::cerr));
@@ -637,21 +637,21 @@ ex mul::eval(int level) const
 	if (unlikely(evaled_seqp != nullptr)) {
 		// do more evaluation later
 		return (new mul(*evaled_seqp, overall_coeff))->
-		           setflag(status_flags::dynallocated);
+			   setflag(status_flags::dynallocated);
 	}
 	
 	// handle infinity, simple way
-        if (std::any_of(seq.cbegin(), seq.cend(),
-                        [](expair p)
-                                { return is_exactly_a<infinity>(p.rest); })) {
-                infinity result = infinity::from_sign(1);
-                result *= overall_coeff;
-                for (const auto& p : seq)
-		        result *= recombine_pair_to_ex(p);
-                return result;
-        }
+	if (std::any_of(seq.cbegin(), seq.cend(),
+			[](expair p)
+				{ return is_exactly_a<infinity>(p.rest); })) {
+		infinity result = infinity::from_sign(1);
+		result *= overall_coeff;
+		for (const auto& p : seq)
+			result *= recombine_pair_to_ex(p);
+		return result;
+	}
 
-        // handle exp(a)*exp(b) -> exp(a+b) and
+	// handle exp(a)*exp(b) -> exp(a+b) and
 	unsigned exp_count = 0;
 	for (auto i = seq.begin(); i != seq.end(); i++) {
 		const numeric& num_coeff = ex_to<numeric>(i->coeff);
@@ -659,7 +659,7 @@ ex mul::eval(int level) const
 			     num_coeff.is_integer())) {
 			exp_count++;
 			if (exp_count>1 or not num_coeff.is_one() or
-                                not num_coeff.is_integer())
+				not num_coeff.is_integer())
 				return eval_exponentials();
 		}
 	}
@@ -670,35 +670,35 @@ ex mul::eval(int level) const
 		// *(...,x;0) -> 0
 		return overall_coeff;
 	}
-        if (seq_size == 0) {
+	if (seq_size == 0) {
 		// *(;c) -> c
 		return overall_coeff;
 	}
-        if (seq_size == 1
-            and overall_coeff.is_one()) {
+	if (seq_size == 1
+	    and overall_coeff.is_one()) {
 		// *(x;1) -> x
 		// except in positive characteristic: 1*(x+2) = x in F_2
 		return recombine_pair_to_ex(*(seq.begin()));
 	}
-        if (seq_size == 1
+	if (seq_size == 1
 	     and is_exactly_a<add>((*seq.begin()).rest)
 	     and ex_to<numeric>((*seq.begin()).coeff).is_one()) {
 		// *(+(x,y,...);c) -> +(*(x,c),*(y,c),...) (c numeric(), no powers of +())
 		const add & addref = ex_to<add>((*seq.begin()).rest);
 		epvector distrseq;
 		distrseq.reserve(addref.seq.size());
-                for (const auto & elem : addref.seq)
+		for (const auto & elem : addref.seq)
 			distrseq.push_back(addref.combine_pair_with_coeff_to_pair(elem, overall_coeff));
 		const ex& x = (new add(distrseq,
-		                addref.overall_coeff.mul(overall_coeff))
+				addref.overall_coeff.mul(overall_coeff))
 		       )->setflag(status_flags::dynallocated | status_flags::evaluated);
-                const add & result = ex_to<add>(x);
-                if (result.seq.empty())
-                        return result.overall_coeff;
-                return x;
+		const add & result = ex_to<add>(x);
+		if (result.seq.empty())
+			return result.overall_coeff;
+		return x;
 	}
-        if (seq_size >= 2
-            and ((flags & status_flags::expanded) == 0u)) {
+	if (seq_size >= 2
+	    and ((flags & status_flags::expanded) == 0u)) {
 		// Strip the content and the unit part from each term. Thus
 		// things like (-x+a)*(3*x-3*a) automagically turn into - 3*(x-a)^2
 		auto last = seq.end();
@@ -717,15 +717,15 @@ ex mul::eval(int level) const
 			// XXX: What is the best way to check if the polynomial is a primitive? 
 			numeric c = i->rest.integer_content();
 #ifdef DO_GINAC_ASSERT
-                        if (c.is_zero())
-                                std::cerr << i->rest << "\n" << std::flush;
+			if (c.is_zero())
+				std::cerr << i->rest << "\n" << std::flush;
 #endif
 			const numeric lead_coeff =
 				ex_to<numeric>(ex_to<add>(i->rest).\
 						lead_coeff()).div(c);
 			const bool canonicalizable = (
-                                        lead_coeff.is_exact()
-                                        and lead_coeff.is_integer());
+					lead_coeff.is_exact()
+					and lead_coeff.is_integer());
 
 			// The following comment is no longer true for pynac.
 			// We use the print order to determine the main variable
@@ -736,7 +736,7 @@ ex mul::eval(int level) const
 			// variable will be the same for all terms in *this
 			const bool unit_normal = lead_coeff.is_pos_integer();
 			if (likely(((not canonicalizable) or unit_normal)
-                                   and c.is_inexact_one() )) {
+				   and c.is_inexact_one() )) {
 				++i;
 				continue;
 			}
@@ -751,10 +751,10 @@ ex mul::eval(int level) const
 				++j;
 			}
 
-                        if (!unit_normal)
-                                c = c.mul(*_num_1_p);
+			if (!unit_normal)
+				c = c.mul(*_num_1_p);
 
-                        oc = oc.mul(c);
+			oc = oc.mul(c);
 
 			// divide add by the number in place to save at least 2 .eval() calls
 			const add& addref = ex_to<add>(i->rest);
@@ -827,11 +827,11 @@ ex mul::evalf(int level, PyObject* parent) const
 	s.reserve(seq.size());
 
 	--level;
-        for (const auto & elem : seq)
-               s.push_back(combine_ex_with_coeff_to_pair(
-                        elem.rest.evalf(level, parent),
-                        ex_to<numeric>(elem.coeff)));
-        return mul(s, ex_to<numeric>(overall_coeff.evalf(level, parent)));
+	for (const auto & elem : seq)
+	       s.push_back(combine_ex_with_coeff_to_pair(
+			elem.rest.evalf(level, parent),
+			ex_to<numeric>(elem.coeff)));
+	return mul(s, ex_to<numeric>(overall_coeff.evalf(level, parent)));
 }
 
 void mul::find_real_imag(ex & rp, ex & ip) const
@@ -876,7 +876,7 @@ bool tryfactsubs(const ex & origfactor, const ex & patternfactor, int & nummatch
 	int origexpsign;
 
 	if (is_exactly_a<power>(origfactor)
-            and origfactor.op(1).is_integer()) {
+	    and origfactor.op(1).is_integer()) {
 		origbase = origfactor.op(0);
 		int expon = ex_to<numeric>(origfactor.op(1)).to_int();
 		origexponent = expon > 0 ? expon : -expon;
@@ -892,7 +892,7 @@ bool tryfactsubs(const ex & origfactor, const ex & patternfactor, int & nummatch
 	int patternexpsign;
 
 	if (is_exactly_a<power>(patternfactor)
-            and patternfactor.op(1).is_integer()) {
+	    and patternfactor.op(1).is_integer()) {
 		patternbase = patternfactor.op(0);
 		int expon = ex_to<numeric>(patternfactor.op(1)).to_int();
 		patternexponent = expon > 0 ? expon : -expon;
@@ -1015,8 +1015,8 @@ retry1:
 		}
 	}
 
-        if (std::any_of(subsed.cbegin(), subsed.cend(),
-                                [](bool b) { return b; } ))
+	if (std::any_of(subsed.cbegin(), subsed.cend(),
+				[](bool b) { return b; } ))
 		return subs_one_level(m, options | subs_options::algebraic);
 	return ((*this)/divide_by)*multiply_by;
 }
@@ -1026,7 +1026,7 @@ ex mul::conjugate() const
 	// The base class' method is wrong here because we have to be careful at
 	// branch cuts. power::conjugate takes care of that already, so use it.
 	std::unique_ptr<epvector> newepv(nullptr);
-        for (auto i=seq.begin(); i!=seq.end(); ++i) {
+	for (auto i=seq.begin(); i!=seq.end(); ++i) {
 		if (newepv) {
 			newepv->push_back(split_ex_to_pair(recombine_pair_to_ex(*i).conjugate()));
 			continue;
@@ -1043,7 +1043,7 @@ ex mul::conjugate() const
 		}
 		newepv->push_back(split_ex_to_pair(c));
 	}
-        // known to be numeric
+	// known to be numeric
 	const numeric& x = overall_coeff.conj();
 	if (not newepv and x.is_equal(overall_coeff)) {
 		return *this;
@@ -1055,7 +1055,7 @@ ex mul::conjugate() const
 
 // protected
 
-/** Implementation of ex::diff() for a product.  It applies the product rule.
+/** Implementation of ex::diff() for a product.	 It applies the product rule.
  *  @see ex::diff */
 ex mul::derivative(const symbol & s) const
 {
@@ -1068,10 +1068,10 @@ ex mul::derivative(const symbol & s) const
 	auto i2 = mulseq.begin();
 	while (i != end) {
 		expair ep = split_ex_to_pair(power(i->rest, i->coeff - _ex1) *
-		                             i->rest.diff(s));
+					     i->rest.diff(s));
 		ep.swap(*i2);
 		addseq.emplace_back((new mul(mulseq,
-                     overall_coeff.mul(ex_to<numeric>(i->coeff))))->setflag(status_flags::dynallocated));
+		     overall_coeff.mul(ex_to<numeric>(i->coeff))))->setflag(status_flags::dynallocated));
 		ep.swap(*i2);
 		++i; ++i2;
 	}
@@ -1108,26 +1108,26 @@ unsigned mul::return_type() const
 	}
 	
 	bool all_commutative = true;
-        expair noncommutative_element;
+	expair noncommutative_element;
 	
-        for (const auto & elem : seq) {
+	for (const auto & elem : seq) {
 		unsigned rt = elem.rest.return_type();
 		if (rt == return_types::noncommutative_composite)
 			return rt; // one ncc -> mul also ncc
 		if (rt == return_types::noncommutative) {
-                        if (all_commutative) {
-                                // first nc element found, remember position
-                                noncommutative_element = elem;
-                                all_commutative = false;
+			if (all_commutative) {
+				// first nc element found, remember position
+				noncommutative_element = elem;
+				all_commutative = false;
 			}
-                        else {
-                                // another nc element found, compare type_infos
-                                if (noncommutative_element.rest.return_type_tinfo() != elem.rest.return_type_tinfo()) {
-                                                // different types -> mul is ncc
-                                        return return_types::noncommutative_composite;
-                                }
-        		}
-                }
+			else {
+				// another nc element found, compare type_infos
+				if (noncommutative_element.rest.return_type_tinfo() != elem.rest.return_type_tinfo()) {
+						// different types -> mul is ncc
+					return return_types::noncommutative_composite;
+				}
+			}
+		}
 	}
 	// all factors checked
 	return all_commutative ? return_types::commutative : return_types::noncommutative;
@@ -1139,11 +1139,11 @@ tinfo_t mul::return_type_tinfo() const
 		return this;  // mul without factors: should not happen
 	
 	// return type_info of first noncommutative element
-        for (const auto & elem : seq)
+	for (const auto & elem : seq)
 		if (elem.rest.return_type() == return_types::noncommutative)
 			return elem.rest.return_type_tinfo();
 
-        // no noncommutative element found, should not happen
+	// no noncommutative element found, should not happen
 	return this;
 }
 
@@ -1168,13 +1168,13 @@ expair mul::split_ex_to_pair(const ex & e) const
 }
 	
 expair mul::combine_ex_with_coeff_to_pair(const ex & e,
-                                          const numeric & c) const
+					  const numeric & c) const
 {
-        // First, try a common shortcut:
-        if (is_exactly_a<symbol>(e))
-                return expair(e, c);
+	// First, try a common shortcut:
+	if (is_exactly_a<symbol>(e))
+		return expair(e, c);
 
-        // to avoid duplication of power simplification rules,
+	// to avoid duplication of power simplification rules,
 	// we create a temporary power object
 	// otherwise it would be hard to correctly evaluate
 	// expression like (4^(1/3))^(3/2)
@@ -1185,16 +1185,16 @@ expair mul::combine_ex_with_coeff_to_pair(const ex & e,
 }
 	
 expair mul::combine_pair_with_coeff_to_pair(const expair & p,
-                                            const numeric & c) const
+					    const numeric & c) const
 {
-        GINAC_ASSERT(is_exactly_a<numeric>(p.coeff));
+	GINAC_ASSERT(is_exactly_a<numeric>(p.coeff));
 
-        if (is_exactly_a<symbol>(p.rest))
-                return expair(p.rest, p.coeff*c);
+	if (is_exactly_a<symbol>(p.rest))
+		return expair(p.rest, p.coeff*c);
 	if (c.is_one())
 		return p;
-        if (p.coeff.is_one())
-                return expair(p.rest, c);
+	if (p.coeff.is_one())
+		return expair(p.rest, c);
 
 	// to avoid duplication of power simplification rules,
 	// we create a temporary power object
@@ -1205,11 +1205,11 @@ expair mul::combine_pair_with_coeff_to_pair(const expair & p,
 	
 ex mul::recombine_pair_to_ex(const expair & p) const
 {
-        if (unlikely(is_exactly_a<infinity>(p.rest))) {
-                infinity res = ex_to<infinity>(p.rest);
-                res *= p.coeff;
-                return res;
-        }
+	if (unlikely(is_exactly_a<infinity>(p.rest))) {
+		infinity res = ex_to<infinity>(p.rest);
+		res *= p.coeff;
+		return res;
+	}
 	if (p.coeff.is_one()) 
 		return p.rest;
 	return (new power(p.rest,p.coeff))->setflag(status_flags::dynallocated);
@@ -1236,7 +1236,7 @@ bool mul::expair_needs_further_processing(epp it)
 		}
 	}
 	return false;
-}       
+}	
 
 numeric mul::default_overall_coeff() const
 {
@@ -1252,7 +1252,7 @@ void mul::combine_overall_coeff(const numeric & c1, const numeric & c2)
 {
 	ex e = c1.power(c2);
 	if (not is_exactly_a<numeric>(e))
-                throw std::runtime_error("mul::combine_overall_coeff: can't happen");
+		throw std::runtime_error("mul::combine_overall_coeff: can't happen");
 	overall_coeff *= ex_to<numeric>(e);
 }
 
@@ -1260,8 +1260,8 @@ bool mul::can_make_flat(const expair & p) const
 {
 	GINAC_ASSERT(is_exactly_a<numeric>(p.coeff));
 
-        // (x*y)^c == x^c*y^c  if c ∈ ℤ
-        return p.coeff.is_integer();
+	// (x*y)^c == x^c*y^c  if c ∈ ℤ
+	return p.coeff.is_integer();
 }
 
 bool mul::can_be_further_expanded(const ex & e)
@@ -1281,18 +1281,18 @@ bool mul::can_be_further_expanded(const ex & e)
 ex mul::expand(unsigned options) const
 {
 	// trivial case: expanding the monomial (~ 30% of all calls)
-        bool all_intsym = true;
-        for (const auto & elem : seq) 
-                if (not is_exactly_a<symbol>(elem.rest)
-                    or not elem.coeff.is_integer())
-                {
-                        all_intsym = false;
-                        break;
-                }
-        if (all_intsym) {
-                setflag(status_flags::expanded);
-                return *this;
-        }
+	bool all_intsym = true;
+	for (const auto & elem : seq) 
+		if (not is_exactly_a<symbol>(elem.rest)
+		    or not elem.coeff.is_integer())
+		{
+			all_intsym = false;
+			break;
+		}
+	if (all_intsym) {
+		setflag(status_flags::expanded);
+		return *this;
+	}
 
 	// First, expand the children
 	std::unique_ptr<epvector> expanded_seqp = expandchildren(options);
@@ -1325,22 +1325,22 @@ ex mul::expand(unsigned options) const
 				const auto& add2end   = add2.seq.end();
 				epvector distrseq;
 				auto s = add1.seq.size()+add2.seq.size();
-//                          // the poly_mul_expand function is buggy and
-//                          // therefore cannot be used (see sage :trac:`31478`),
-//                          // so we comment out this section of code until the
-//                          // function has been fixed
-//                                if (s > 400) {
-////                                // the condition is probably too simple
-//                                        try {
-//                                        // can it be converted/expanded via Singular?
-//                                        last_expanded = poly_mul_expand(last_expanded,
-//                                                                        elem.rest);
-//                                                continue;
-//                                        }
-//                                        catch (std::runtime_error) {
-//                                                std::cerr << "can't happen while calling poly_mul_expand\n";
-//                                        }
-//                                }
+//			    // the poly_mul_expand function is buggy and
+//			    // therefore cannot be used (see sage :trac:`31478`),
+//			    // so we comment out this section of code until the
+//			    // function has been fixed
+//				  if (s > 400) {
+////				    // the condition is probably too simple
+//					  try {
+//					  // can it be converted/expanded via Singular?
+//					  last_expanded = poly_mul_expand(last_expanded,
+//									  elem.rest);
+//						  continue;
+//					  }
+//					  catch (std::runtime_error) {
+//						  std::cerr << "can't happen while calling poly_mul_expand\n";
+//					  }
+//				  }
 
 				distrseq.reserve(s);
 				// Multiply add2 with the overall coefficient of add1 and append it to distrseq:
@@ -1348,9 +1348,9 @@ ex mul::expand(unsigned options) const
 					if (add1.overall_coeff.is_one())
 						distrseq.insert(distrseq.end(),add2begin,add2end);
 					else
-                                                for (const auto & elem2 : add2.seq)
+						for (const auto & elem2 : add2.seq)
 							distrseq.emplace_back(elem2.rest,
-                                                                ex_to<numeric>(elem2.coeff).mul_dyn(add1.overall_coeff));
+								ex_to<numeric>(elem2.coeff).mul_dyn(add1.overall_coeff));
 				}
 
 				// Multiply add1 with the overall coefficient of add2 and append it to distrseq:
@@ -1358,7 +1358,7 @@ ex mul::expand(unsigned options) const
 					if (add2.overall_coeff.is_one())
 						distrseq.insert(distrseq.end(),add1begin,add1end);
 					else
-                                                for (const auto & elem1 : add1.seq)
+						for (const auto & elem1 : add1.seq)
 							distrseq.emplace_back(elem1.rest, ex_to<numeric>(elem1.coeff).mul_dyn(add2.overall_coeff));
 				}
 
@@ -1367,14 +1367,14 @@ ex mul::expand(unsigned options) const
 
 				lst dummy_subs;
 				// Multiply explicitly all non-numeric terms of add1 and add2:
-                                for (const auto & elem2 : add2.seq) {
+				for (const auto & elem2 : add2.seq) {
 					// We really have to combine terms here in order to compactify
-					// the result.  Otherwise it would become *way too big*.
+					// the result.	Otherwise it would become *way too big*.
 					numeric oc(*_num0_p);
 					epvector distrseq2;
 					distrseq2.reserve(add1.seq.size());
 					const ex& i2_new = elem2.rest;
-                                        for (const auto & elem1 : add1.seq) {
+					for (const auto & elem1 : add1.seq) {
 						// Don't push_back expairs which might have a rest that evaluates to a numeric,
 						// since that would violate an invariant of expairseq:
 						const ex rest = (new mul(elem1.rest, i2_new))->setflag(status_flags::dynallocated);
@@ -1407,7 +1407,7 @@ ex mul::expand(unsigned options) const
 
 		for (const auto term_in_expanded : last_expanded) {
 			epvector factors = non_adds;
-		        factors.push_back(split_ex_to_pair(term_in_expanded));
+			factors.push_back(split_ex_to_pair(term_in_expanded));
 			ex term = (new mul(factors, overall_coeff))->setflag(status_flags::dynallocated);
 			if (can_be_further_expanded(term)) {
 				distrseq.push_back(term.expand());
@@ -1419,18 +1419,18 @@ ex mul::expand(unsigned options) const
 		}
 
 		return ((new add(distrseq))->
-		        setflag(status_flags::dynallocated | (options == 0 ? status_flags::expanded : 0)));
+			setflag(status_flags::dynallocated | (options == 0 ? status_flags::expanded : 0)));
 	}
 
 	non_adds.push_back(split_ex_to_pair(last_expanded));
 	ex result = (new mul(non_adds, overall_coeff))->
-                setflag(status_flags::dynallocated);
+		setflag(status_flags::dynallocated);
 	if (can_be_further_expanded(result)) {
 		return result.expand();
 	} 
-        if (options == 0)
-                ex_to<basic>(result).setflag(status_flags::expanded);
-        return result;
+	if (options == 0)
+		ex_to<basic>(result).setflag(status_flags::expanded);
+	return result;
 }
 
 const epvector & mul::get_sorted_seq() const
@@ -1455,7 +1455,7 @@ const epvector & mul::get_sorted_seq() const
 //////////
 
 
-/** Member-wise expand the expairs representing this sequence.  This must be
+/** Member-wise expand the expairs representing this sequence.	This must be
  *  overridden from expairseq::expandchildren() and done iteratively in order
  *  to allow for early cancallations and thus safe memory.
  *
@@ -1504,13 +1504,13 @@ ex mul::without_known_factor(const ex& f) const
 	epvector s;
 	s.reserve(seq.size()-1);
 
-        bool found = false;
+	bool found = false;
 	for (const auto & elem : seq) {
-                ex t = recombine_pair_to_ex(elem);
-                if (not found and t.is_equal(f)) {
-                        found = true;
-                }
-                else
+		ex t = recombine_pair_to_ex(elem);
+		if (not found and t.is_equal(f)) {
+			found = true;
+		}
+		else
 			s.push_back(elem);
 	}
 

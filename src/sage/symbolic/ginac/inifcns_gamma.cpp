@@ -61,21 +61,21 @@ static ex lgamma_evalf(const ex & x, PyObject* parent)
 static ex lgamma_eval(const ex & x)
 {
 	if (x.info(info_flags::numeric)) {
-                const numeric& num = ex_to<numeric>(x);
+		const numeric& num = ex_to<numeric>(x);
 		
-                if (num.is_positive()) {
-                        if (num.is_integer())
-                                return log(factorial(x - _ex1));
-                        if (num.is_exact())
-                                return lgamma(x).hold();
-                        return lgamma(num);
-                }
-                if (num.is_integer())
-                        return Infinity;
-
-                if (not num.is_exact())
+		if (num.is_positive()) {
+			if (num.is_integer())
+				return log(factorial(x - _ex1));
+			if (num.is_exact())
+				return lgamma(x).hold();
 			return lgamma(num);
-                }
+		}
+		if (num.is_integer())
+			return Infinity;
+
+		if (not num.is_exact())
+			return lgamma(num);
+		}
 	
 	return lgamma(x).hold();
 }
@@ -85,15 +85,15 @@ static ex lgamma_deriv(const ex & x, unsigned deriv_param)
 {
 	GINAC_ASSERT(deriv_param==0);
 	
-	// d/dx  lgamma(x) -> psi(x)
+	// d/dx	 lgamma(x) -> psi(x)
 	return psi(x);
 }
 
 
 static ex lgamma_series(const ex & arg,
-                        const relational & rel,
-                        int order,
-                        unsigned options)
+			const relational & rel,
+			int order,
+			unsigned options)
 {
 	// method:
 	// Taylor series where there is no pole falls back to psi function
@@ -105,8 +105,8 @@ static ex lgamma_series(const ex & arg,
 	//   series(lgamma(x+m+1)-log(x)...-log(x+m)),x==-m,order);
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
 	if (not is_exactly_a<numeric>(arg_pt)
-            or not arg_pt.is_integer()
-            or arg_pt.info(info_flags::positive))
+	    or not arg_pt.is_integer()
+	    or arg_pt.info(info_flags::positive))
 		throw do_taylor();  // caught by function::series()
 	// if we got here we have to care for a simple pole of gamma(-m):
 	numeric m = -ex_to<numeric>(arg_pt);
@@ -132,11 +132,11 @@ static ex lgamma_conjugate(const ex & x)
 
 
 REGISTER_FUNCTION(lgamma, eval_func(lgamma_eval).
-                          evalf_func(lgamma_evalf).
-                          derivative_func(lgamma_deriv).
-                          series_func(lgamma_series).
-                          conjugate_func(lgamma_conjugate).
-                          set_name("log_gamma", "\\log \\Gamma"));
+			  evalf_func(lgamma_evalf).
+			  derivative_func(lgamma_deriv).
+			  series_func(lgamma_series).
+			  conjugate_func(lgamma_conjugate).
+			  set_name("log_gamma", "\\log \\Gamma"));
 
 
 //////////
@@ -158,7 +158,7 @@ static ex gamma_eval(const ex & x)
 			if (two_x.is_positive()) {
 				return factorial(ex_to<numeric>(x).sub(*_num1_p));
 			} 
-                        return UnsignedInfinity;
+			return UnsignedInfinity;
 			
 		}
 		// trap half integer arguments:
@@ -169,10 +169,10 @@ static ex gamma_eval(const ex & x)
 				long n = ex_to<numeric>(x).sub(*_num1_2_p).to_long();
 				return (doublefactorial(n+n-1).div(_num2_p->pow_intexp(n))) * sqrt(Pi);
 			} 
-                        // trap negative x==(-n+1/2)
-                        // gamma(-n+1/2) -> Pi^(1/2)*(-2)^n/(1*3*..*(2*n-1))
-                        long n = std::labs(ex_to<numeric>(x).sub(*_num1_2_p).to_long());
-                        return _num_2_p->pow_intexp(n).div(doublefactorial(n+n-1))*sqrt(Pi);
+			// trap negative x==(-n+1/2)
+			// gamma(-n+1/2) -> Pi^(1/2)*(-2)^n/(1*3*..*(2*n-1))
+			long n = std::labs(ex_to<numeric>(x).sub(*_num1_2_p).to_long());
+			return _num_2_p->pow_intexp(n).div(doublefactorial(n+n-1))*sqrt(Pi);
 		}
 		if (!ex_to<numeric>(x).is_exact())
 			return gamma(ex_to<numeric>(x), nullptr);
@@ -186,15 +186,15 @@ static ex gamma_deriv(const ex & x, unsigned deriv_param)
 {
 	GINAC_ASSERT(deriv_param==0);
 	
-	// d/dx  gamma(x) -> psi(x)*gamma(x)
+	// d/dx	 gamma(x) -> psi(x)*gamma(x)
 	return psi(x)*gamma(x);
 }
 
 
 static ex gamma_series(const ex & arg,
-                        const relational & rel,
-                        int order,
-                        unsigned options)
+			const relational & rel,
+			int order,
+			unsigned options)
 {
 	// method:
 	// Taylor series where there is no pole falls back to psi function
@@ -206,8 +206,8 @@ static ex gamma_series(const ex & arg,
 	//   series(gamma(x+m+1)/(x*(x+1)*...*(x+m)),x==-m,order);
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
 	if (not is_exactly_a<numeric>(arg_pt)
-            or not arg_pt.is_integer()
-            or arg_pt.info(info_flags::positive))
+	    or not arg_pt.is_integer()
+	    or arg_pt.info(info_flags::positive))
 		throw do_taylor();  // caught by function::series()
 	// if we got here we have to care for a simple pole at -m:
 	const numeric m = -ex_to<numeric>(arg_pt);
@@ -225,10 +225,10 @@ static ex gamma_conjugate(const ex & x)
 
 
 REGISTER_FUNCTION(gamma, eval_func(gamma_eval).
-                          derivative_func(gamma_deriv).
-                          series_func(gamma_series).
-                          conjugate_func(gamma_conjugate).
-                          latex_name("\\Gamma"));
+			  derivative_func(gamma_deriv).
+			  series_func(gamma_series).
+			  conjugate_func(gamma_conjugate).
+			  latex_name("\\Gamma"));
 
 
 //////////
@@ -240,7 +240,7 @@ static ex beta_evalf(const ex & x, const ex & y, PyObject* parent)
 	if (is_exactly_a<numeric>(x) && is_exactly_a<numeric>(y)) {
 		const numeric &nx = ex_to<numeric>(x);
 		const numeric &ny = ex_to<numeric>(y);
-                return beta(nx, ny, parent);
+		return beta(nx, ny, parent);
 	}
 	
 	return beta(x,y).hold();
@@ -249,8 +249,8 @@ static ex beta_evalf(const ex & x, const ex & y, PyObject* parent)
 
 static ex beta_eval(const ex & x, const ex & y)
 {
-        if (x.is_zero() or y.is_zero())
-                return NaN;
+	if (x.is_zero() or y.is_zero())
+		return NaN;
 	if (x.is_one())
 		return power(y, _ex_1);
 	if (y.is_one())
@@ -266,7 +266,7 @@ static ex beta_eval(const ex & x, const ex & y)
 			if (nx.is_negative()) {
 				if (nx<=-ny)
 					return pow(*_num_1_p, ny)*beta(1-x-y, y);
-                                throw (pole_error("beta_eval(): simple pole",1));
+				throw (pole_error("beta_eval(): simple pole",1));
 			}
 			if (ny.is_negative()) {
 				if (ny<=-nx)
@@ -305,10 +305,10 @@ static ex beta_deriv(const ex & x, const ex & y, unsigned deriv_param)
 
 
 static ex beta_series(const ex & arg1,
-                      const ex & arg2,
-                      const relational & rel,
-                      int order,
-                      unsigned options)
+		      const ex & arg2,
+		      const relational & rel,
+		      int order,
+		      unsigned options)
 {
 	// method:
 	// Taylor series where there is no pole of one of the gamma functions
@@ -343,10 +343,10 @@ static ex beta_series(const ex & arg1,
 
 
 REGISTER_FUNCTION(beta, eval_func(beta_eval).
-                        evalf_func(beta_evalf).
-                        derivative_func(beta_deriv).
-                        series_func(beta_series).
-                        latex_name("{\\rm B}"));
+			evalf_func(beta_evalf).
+			derivative_func(beta_deriv).
+			series_func(beta_series).
+			latex_name("{\\rm B}"));
 
 
 //////////
@@ -378,7 +378,7 @@ static ex psi1_eval(const ex & x)
 				numeric rat = 0;
 				for (numeric i(nx+(*_num_1_p)); i>0; --i) {
 					rat += i.inverse();
-                                }
+				}
 				return rat-Euler;
 			} 
 			// for non-positive integers there is a pole:
@@ -391,19 +391,19 @@ static ex psi1_eval(const ex & x)
 				numeric rat = 0;
 				for (numeric i = (nx+(*_num_1_p))*(*_num2_p); i>0; i-=(*_num2_p)) {
 					rat += (*_num2_p)*i.inverse();
-                                }
+				}
 				return rat-Euler-_ex2*log(_ex2);
-                        }
+			}
 
-                        // use the recurrence relation
-                        //   psi(-m-1/2) == psi(-m-1/2+1) - 1 / (-m-1/2)
-                        // to relate psi(-m-1/2) to psi(1/2):
-                        //   psi(-m-1/2) == psi(1/2) + r
-                        // where r == ((-1/2)^(-1) + ... + (-m-1/2)^(-1))
-                        numeric recur = 0;
-                        for (numeric p = nx; p<0; ++p)
-                                recur -= p.inverse();
-                        return recur+psi(_ex1_2);
+			// use the recurrence relation
+			//   psi(-m-1/2) == psi(-m-1/2+1) - 1 / (-m-1/2)
+			// to relate psi(-m-1/2) to psi(1/2):
+			//   psi(-m-1/2) == psi(1/2) + r
+			// where r == ((-1/2)^(-1) + ... + (-m-1/2)^(-1))
+			numeric recur = 0;
+			for (numeric p = nx; p<0; ++p)
+				recur -= p.inverse();
+			return recur+psi(_ex1_2);
 		}
 		if (not nx.is_exact())
 			return psi(nx);
@@ -421,9 +421,9 @@ static ex psi1_deriv(const ex & x, unsigned deriv_param)
 }
 
 static ex psi1_series(const ex & arg,
-                      const relational & rel,
-                      int order,
-                      unsigned options)
+		      const relational & rel,
+		      int order,
+		      unsigned options)
 {
 	// method:
 	// Taylor series where there is no pole falls back to polygamma function
@@ -435,8 +435,8 @@ static ex psi1_series(const ex & arg,
 	//   series(psi(x+m+1) - 1/x - 1/(x+1) - 1/(x+m)),x==-m,order);
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
 	if (not is_exactly_a<numeric>(arg_pt)
-            or not arg_pt.is_integer() 
-            or arg_pt.info(info_flags::positive))
+	    or not arg_pt.is_integer() 
+	    or arg_pt.info(info_flags::positive))
 		throw do_taylor();  // caught by function::series()
 	// if we got here we have to care for a simple pole at -m:
 	const numeric m = -ex_to<numeric>(arg_pt);
@@ -448,12 +448,12 @@ static ex psi1_series(const ex & arg,
 
 unsigned psi1_SERIAL::serial =
 	function::register_new(function_options("psi", 1).
-	                       eval_func(psi1_eval).
-	                       evalf_func(psi1_evalf).
-	                       derivative_func(psi1_deriv).
-	                       series_func(psi1_series).
-	                       latex_name("\\psi").
-	                       overloaded(2));
+			       eval_func(psi1_eval).
+			       evalf_func(psi1_evalf).
+			       derivative_func(psi1_deriv).
+			       series_func(psi1_series).
+			       latex_name("\\psi").
+			       overloaded(2));
 
 //////////
 // Psi-functions (aka polygamma-functions)  psi(0,x)==psi(x)
@@ -481,7 +481,7 @@ static ex psi2_eval(const ex & n, const ex & x)
 	if (n.is_equal(_ex_1))
 		return log(gamma(x));
 	if (is_exactly_a<numeric>(n)
-            and n.info(info_flags::posint)
+	    and n.info(info_flags::posint)
 	    and is_exactly_a<numeric>(x)) {
 		const numeric &nn = ex_to<numeric>(n);
 		const numeric &nx = ex_to<numeric>(x);
@@ -517,16 +517,16 @@ static ex psi2_eval(const ex & n, const ex & x)
 				// to revert to positive integer case
 				return psi(n,(*_num2_p)*m)*_num2_p->pow_intexp(nn+(*_num1_p))-psi(n,m);
 			} 
-                        // use the recurrence relation
-                        //   psi(n,-m-1/2) == psi(n,-m-1/2+1) - (-)^n * n! / (-m-1/2)^(n+1)
-                        // to relate psi(n,-m-1/2) to psi(n,1/2):
-                        //   psi(n,-m-1/2) == psi(n,1/2) + r
-                        // where r == (-)^(n+1) * n! * ((-1/2)^(-n-1) + ... + (-m-1/2)^(-n-1))
-                        numeric recur = 0;
-                        for (numeric p = nx; p<0; ++p)
-                                recur += p.pow_intexp(-nn+(*_num_1_p));
-                        recur *= factorial(nn)*_num_1_p->pow_intexp(nn+(*_num_1_p));
-                        return recur+psi(n,_ex1_2);
+			// use the recurrence relation
+			//   psi(n,-m-1/2) == psi(n,-m-1/2+1) - (-)^n * n! / (-m-1/2)^(n+1)
+			// to relate psi(n,-m-1/2) to psi(n,1/2):
+			//   psi(n,-m-1/2) == psi(n,1/2) + r
+			// where r == (-)^(n+1) * n! * ((-1/2)^(-n-1) + ... + (-m-1/2)^(-n-1))
+			numeric recur = 0;
+			for (numeric p = nx; p<0; ++p)
+				recur += p.pow_intexp(-nn+(*_num_1_p));
+			recur *= factorial(nn)*_num_1_p->pow_intexp(nn+(*_num_1_p));
+			return recur+psi(n,_ex1_2);
 		}
 		//  psi2_evalf should be called here once it becomes available
 	}
@@ -547,10 +547,10 @@ static ex psi2_deriv(const ex & n, const ex & x, unsigned deriv_param)
 }
 
 static ex psi2_series(const ex & n,
-                      const ex & arg,
-                      const relational & rel,
-                      int order,
-                      unsigned options)
+		      const ex & arg,
+		      const relational & rel,
+		      int order,
+		      unsigned options)
 {
 	// method:
 	// Taylor series where there is no pole falls back to polygamma function
@@ -560,11 +560,11 @@ static ex psi2_series(const ex & n,
 	// from which follows
 	//   series(psi(x),x==-m,order) == 
 	//   series(psi(x+m+1) - (-1)^n * n! * ((x)^(-n-1) + (x+1)^(-n-1) + ...
-	//                                      ... + (x+m)^(-n-1))),x==-m,order);
+	//					... + (x+m)^(-n-1))),x==-m,order);
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
 	if ((not is_exactly_a<numeric>(arg_pt)
-            and not arg_pt.is_integer())
-            or arg_pt.info(info_flags::positive))
+	    and not arg_pt.is_integer())
+	    or arg_pt.info(info_flags::positive))
 		throw do_taylor();  // caught by function::series()
 	// if we got here we have to care for a pole of order n+1 at -m:
 	const numeric m = -ex_to<numeric>(arg_pt);
@@ -577,12 +577,12 @@ static ex psi2_series(const ex & n,
 
 unsigned psi2_SERIAL::serial =
 	function::register_new(function_options("psi", 2).
-	                       eval_func(psi2_eval).
-	                       evalf_func(psi2_evalf).
-	                       derivative_func(psi2_deriv).
-	                       series_func(psi2_series).
-	                       latex_name("\\psi").
-	                       overloaded(2));
+			       eval_func(psi2_eval).
+			       evalf_func(psi2_evalf).
+			       derivative_func(psi2_deriv).
+			       series_func(psi2_series).
+			       latex_name("\\psi").
+			       overloaded(2));
 
 
 } // namespace GiNaC

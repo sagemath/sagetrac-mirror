@@ -4,7 +4,7 @@
 */
 /*
  *  GiNaC Copyright (C) 1999-2008 Johannes Gutenberg University Mainz, Germany
- *                  (C) 2016 Ralf Stephan
+ *		    (C) 2016 Ralf Stephan
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ namespace GiNaC {
 static numeric lcmcoeff(const ex &e, const numeric &l)
 {
 	if (is_exactly_a<numeric>(e)
-            and e.info(info_flags::rational))
+	    and e.info(info_flags::rational))
 		return lcm(ex_to<numeric>(e).denom(), l);
 	if (is_exactly_a<add>(e)) {
 		numeric c = *_num1_p;
@@ -53,19 +53,19 @@ static numeric lcmcoeff(const ex &e, const numeric &l)
 			c = lcmcoeff(e.op(i), c);
 		return lcm(c, l);
 	}
-        if (is_exactly_a<mul>(e)) {
+	if (is_exactly_a<mul>(e)) {
 		numeric c = *_num1_p;
 		for (size_t i=0; i<e.nops(); i++)
 			c *= lcmcoeff(e.op(i), *_num1_p);
 		return lcm(c, l);
 	}
-        if (is_exactly_a<power>(e)) {
+	if (is_exactly_a<power>(e)) {
 		if (is_exactly_a<symbol>(e.op(0)))
 			return l;
 
-                ex t = pow(lcmcoeff(e.op(0), l), ex_to<numeric>(e.op(1)));
-                if (is_exactly_a<numeric>(t))
-                        return ex_to<numeric>(t);
+		ex t = pow(lcmcoeff(e.op(0), l), ex_to<numeric>(e.op(1)));
+		if (is_exactly_a<numeric>(t))
+			return ex_to<numeric>(t);
 	}
 	return l;
 }
@@ -86,7 +86,7 @@ numeric lcm_of_coefficients_denominators(const ex &e)
  *  determined LCM of the coefficient's denominators.
  *
  *  @param e  multivariate polynomial (need not be expanded)
- *  @param lcm  LCM to multiply in */
+ *  @param lcm	LCM to multiply in */
 ex multiply_lcm(const ex &e, const numeric &lcm)
 {
 	if (is_exactly_a<mul>(e)) {
@@ -101,26 +101,26 @@ ex multiply_lcm(const ex &e, const numeric &lcm)
 		v.emplace_back(lcm / lcm_accum);
 		return (new mul(v))->setflag(status_flags::dynallocated);
 	}
-        if (is_exactly_a<add>(e)) {
+	if (is_exactly_a<add>(e)) {
 		size_t num = e.nops();
 		exvector v; v.reserve(num);
 		for (size_t i=0; i<num; i++)
 			v.push_back(multiply_lcm(e.op(i), lcm));
 		return (new add(v))->setflag(status_flags::dynallocated);
 	}
-        if (is_exactly_a<power>(e)) {
+	if (is_exactly_a<power>(e)) {
 		if (is_exactly_a<symbol>(e.op(0)))
 			return e * lcm;
-                if (not is_exactly_a<numeric>(e.op(1)))
-                        return e * lcm;
-                ex t = lcm.power(ex_to<numeric>(e.op(1)).inverse());
-                if (not is_exactly_a<numeric>(t))
-                        return e * lcm;
-                const numeric& root_of_lcm = ex_to<numeric>(t);
-                if (root_of_lcm.is_rational())
-                        return pow(multiply_lcm(e.op(0), root_of_lcm), e.op(1));
+		if (not is_exactly_a<numeric>(e.op(1)))
+			return e * lcm;
+		ex t = lcm.power(ex_to<numeric>(e.op(1)).inverse());
+		if (not is_exactly_a<numeric>(t))
+			return e * lcm;
+		const numeric& root_of_lcm = ex_to<numeric>(t);
+		if (root_of_lcm.is_rational())
+			return pow(multiply_lcm(e.op(0), root_of_lcm), e.op(1));
 	}
-        return e * lcm;
+	return e * lcm;
 }
 
 /*
@@ -140,11 +140,11 @@ ex ex::unit(const ex &x) const
 	if (is_exactly_a<numeric>(c))
 		return c.info(info_flags::negative) ?_ex_1 : _ex1;
 
-        ex y;
-        if (c.get_first_symbol(y))
-                return c.unit(y);
+	ex y;
+	if (c.get_first_symbol(y))
+		return c.unit(y);
 
-        throw(std::invalid_argument("invalid expression in unit()"));
+	throw(std::invalid_argument("invalid expression in unit()"));
 }
 
 
@@ -241,20 +241,20 @@ void ex::unitcontprim(const ex &x, ex &u, ex &c, ex &p) const
 	// Compute unit and content
 	u = unit(x);
 
-        expairvec vec;
-        coefficients(x, vec);
-        c = vec[0].first;
-        for (const auto& pair : range(vec.begin()+1, vec.end())) {
-                c = gcdpoly(c, pair.first, nullptr, nullptr, false);
-        }
+	expairvec vec;
+	coefficients(x, vec);
+	c = vec[0].first;
+	for (const auto& pair : range(vec.begin()+1, vec.end())) {
+		c = gcdpoly(c, pair.first, nullptr, nullptr, false);
+	}
 
-        p = _ex0;
-        if (is_exactly_a<numeric>(c))
-                for (const auto& pair : vec)
-                        p += (pair.first / (c * u)) * pow(x, pair.second);
-        else
-                for (const auto& pair : vec)
-                        p += quo(pair.first, c * u, x, false) * pow(x, pair.second);
+	p = _ex0;
+	if (is_exactly_a<numeric>(c))
+		for (const auto& pair : vec)
+			p += (pair.first / (c * u)) * pow(x, pair.second);
+	else
+		for (const auto& pair : vec)
+			p += quo(pair.first, c * u, x, false) * pow(x, pair.second);
 }
 
 ex resultant(const ex & e1, const ex & e2, const ex & s)
@@ -263,25 +263,25 @@ ex resultant(const ex & e1, const ex & e2, const ex & s)
 	const ex ee2 = e2.expand();
 	if (!ee1.info(info_flags::polynomial) ||
 	    !ee2.info(info_flags::polynomial)) {
-                ex res, f1, f2;
-                bool changed = factor(ee1, res);
-                if (changed)
-                        f1 = res;
-                else
-                        f1 = ee1;
-                changed = factor(ee2, res);
-                if (changed)
-                        f2 = res;
-                else
-                        f2 = ee1;
-                ex den1 = f1.denom();
-                ex den2 = f2.denom();
-                if (not den1.is_one() and den1.is_equal(den2))
-                        return resultant(f1.numer(), f2.numer(), s);
+		ex res, f1, f2;
+		bool changed = factor(ee1, res);
+		if (changed)
+			f1 = res;
+		else
+			f1 = ee1;
+		changed = factor(ee2, res);
+		if (changed)
+			f2 = res;
+		else
+			f2 = ee1;
+		ex den1 = f1.denom();
+		ex den2 = f2.denom();
+		if (not den1.is_one() and den1.is_equal(den2))
+			return resultant(f1.numer(), f2.numer(), s);
 		throw(std::runtime_error("resultant(): arguments must be polynomials"));
-        }
+	}
 
-        return resultantpoly(ee1, ee2, s);
+	return resultantpoly(ee1, ee2, s);
 }
 
 } // namespace GiNaC

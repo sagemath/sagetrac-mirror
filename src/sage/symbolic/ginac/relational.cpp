@@ -179,23 +179,23 @@ void relational::do_print_python_repr(const print_python_repr & c, unsigned leve
 
 bool relational::info(unsigned inf) const
 {
-        switch (inf) {
-        case info_flags::relation:
-                return true;
-        case info_flags::relation_equal:
-                return o == equal;
-        case info_flags::relation_not_equal:
-                return o == not_equal;
-        case info_flags::relation_less:
-                return o == less;
-        case info_flags::relation_less_or_equal:
-                return o == less_or_equal;
-        case info_flags::relation_greater:
-                return o == greater;
-        case info_flags::relation_greater_or_equal:
-                return o == greater_or_equal;
-        }
-        return false;
+	switch (inf) {
+	case info_flags::relation:
+		return true;
+	case info_flags::relation_equal:
+		return o == equal;
+	case info_flags::relation_not_equal:
+		return o == not_equal;
+	case info_flags::relation_less:
+		return o == less;
+	case info_flags::relation_less_or_equal:
+		return o == less_or_equal;
+	case info_flags::relation_greater:
+		return o == greater;
+	case info_flags::relation_greater_or_equal:
+		return o == greater_or_equal;
+	}
+	return false;
 }
 
 size_t relational::nops() const
@@ -259,30 +259,30 @@ int relational::compare_same_type(const basic & other) const
 	const relational &oth = static_cast<const relational &>(other);
 	if (o==oth.o && lh.is_equal(oth.lh) && rh.is_equal(oth.rh))
 		return 0;
-        switch (o) {
-        case equal:
-        case not_equal:
-                if (oth.o != o)
-                        return (o < oth.o) ? -1 : 1;
-                break;
-        case less:
-                if (oth.o != greater)
-                        return (o < oth.o) ? -1 : 1;
-                break;
-        case less_or_equal:
-                if (oth.o != greater_or_equal)
-                        return (o < oth.o) ? -1 : 1;
-                break;
-        case greater:
-                if (oth.o != less)
-                        return (o < oth.o) ? -1 : 1;
-                break;
-        case greater_or_equal:
-                if (oth.o != less_or_equal)
-                        return (o < oth.o) ? -1 : 1;
-                break;
-        }
-        const int lcmpval = lh.compare(oth.rh);
+	switch (o) {
+	case equal:
+	case not_equal:
+		if (oth.o != o)
+			return (o < oth.o) ? -1 : 1;
+		break;
+	case less:
+		if (oth.o != greater)
+			return (o < oth.o) ? -1 : 1;
+		break;
+	case less_or_equal:
+		if (oth.o != greater_or_equal)
+			return (o < oth.o) ? -1 : 1;
+		break;
+	case greater:
+		if (oth.o != less)
+			return (o < oth.o) ? -1 : 1;
+		break;
+	case greater_or_equal:
+		if (oth.o != less_or_equal)
+			return (o < oth.o) ? -1 : 1;
+		break;
+	}
+	const int lcmpval = lh.compare(oth.rh);
 	return (lcmpval!=0) ? lcmpval : rh.compare(oth.lh);
 }
 
@@ -313,27 +313,27 @@ long relational::calchash() const
 	long rhash = rh.gethash();
 
 	v = rotate_left(v);
-        switch (o) {
-        case equal:
-        case not_equal:
-                if (lhash > rhash) {
-                        v ^= lhash;
-                        lhash = rhash;
-                } else {
-                        v ^= rhash;
-                }
-                break;
-        case less:
-        case less_or_equal:
-                v ^= rhash;
-                break;
-        case greater:
-        case greater_or_equal:
-                v ^= lhash;
-                lhash = rhash;
-                break;
-        }
-        v = rotate_left(v);
+	switch (o) {
+	case equal:
+	case not_equal:
+		if (lhash > rhash) {
+			v ^= lhash;
+			lhash = rhash;
+		} else {
+			v ^= rhash;
+		}
+		break;
+	case less:
+	case less_or_equal:
+		v ^= rhash;
+		break;
+	case greater:
+	case greater_or_equal:
+		v ^= lhash;
+		lhash = rhash;
+		break;
+	}
+	v = rotate_left(v);
 	v ^= lhash;
 
 	// store calculated hash value only if object is already evaluated
@@ -376,21 +376,21 @@ static relational::operators flip(relational::operators op);
 
 static relational::operators flip(relational::operators op)
 {
-        switch (op) {
-        case relational::equal:
-        case relational::not_equal:
-                return op;
-        case relational::less:
-                return relational::greater;
-        case relational::less_or_equal:
-                return relational::greater_or_equal;
-        case relational::greater:
-                return relational::less;
-        case relational::greater_or_equal:
-                return relational::less_or_equal;
-        default:
-                throw(std::logic_error("invalid relational operator"));
-        }
+	switch (op) {
+	case relational::equal:
+	case relational::not_equal:
+		return op;
+	case relational::less:
+		return relational::greater;
+	case relational::less_or_equal:
+		return relational::greater_or_equal;
+	case relational::greater:
+		return relational::less;
+	case relational::greater_or_equal:
+		return relational::less_or_equal;
+	default:
+		throw(std::logic_error("invalid relational operator"));
+	}
 }
 
 relational::result relational::decide() const
@@ -400,146 +400,146 @@ relational::result relational::decide() const
 		const infinity & rh_inf = ex_to<infinity>(rh);
 		const ex df = lh_inf.get_direction() - rh_inf.get_direction();
 
-                if (!is_exactly_a<numeric>(df))
-                        return result::notimplemented;
+		if (!is_exactly_a<numeric>(df))
+			return result::notimplemented;
 
 		switch (o) {
 		case equal:
-                        if (ex_to<numeric>(df).is_zero())
-                                return result::True;
-                        else
-                                return result::False;
+			if (ex_to<numeric>(df).is_zero())
+				return result::True;
+			else
+				return result::False;
 		case not_equal:
-                        if (ex_to<numeric>(df).is_zero())
-                                return result::False;
-                        else
-                                return result::True;
+			if (ex_to<numeric>(df).is_zero())
+				return result::False;
+			else
+				return result::True;
 		case less:
 		case less_or_equal:
 			if (lh_inf.is_minus_infinity() and rh_inf.is_plus_infinity())
-                                return result::True;
-                        else
-                                return result::False;
+				return result::True;
+			else
+				return result::False;
 		case greater:
 		case greater_or_equal:
 			if (lh_inf.is_plus_infinity() and rh_inf.is_minus_infinity())
-                                return result::True;
-                        else
-                                return result::False;
+				return result::True;
+			else
+				return result::False;
 		default:
 			throw(std::logic_error("invalid relational operator"));
 		}
 		return result::notimplemented;
 	}
 
-        if (unlikely(is_exactly_a<infinity>(lh)) or unlikely(is_exactly_a<infinity>(rh))) {
-                infinity inf;
-                ex other = rh;
-                operators oper = o;
-                if (unlikely(is_exactly_a<infinity>(rh))) {
-                        other = lh;
-                        inf = ex_to<infinity>(rh);
-                        oper = flip(o);
-                }
-                else {
-                        inf = ex_to<infinity>(lh);
-                }
-                if (inf.is_unsigned_infinity() and o!=equal and o!=not_equal)
-                        return result::undecidable;
-                if (has_symbol(other))
-                        return result::notimplemented;
-                if (inf.compare_other_type(other, oper))
-                        return result::True;
-                
-                        return result::False;
-        }
+	if (unlikely(is_exactly_a<infinity>(lh)) or unlikely(is_exactly_a<infinity>(rh))) {
+		infinity inf;
+		ex other = rh;
+		operators oper = o;
+		if (unlikely(is_exactly_a<infinity>(rh))) {
+			other = lh;
+			inf = ex_to<infinity>(rh);
+			oper = flip(o);
+		}
+		else {
+			inf = ex_to<infinity>(lh);
+		}
+		if (inf.is_unsigned_infinity() and o!=equal and o!=not_equal)
+			return result::undecidable;
+		if (has_symbol(other))
+			return result::notimplemented;
+		if (inf.compare_other_type(other, oper))
+			return result::True;
+		
+			return result::False;
+	}
 
 	const ex df = lh-rh;
 	if (!is_exactly_a<numeric>(df)) {
-                switch (o) {
+		switch (o) {
 		case equal:
-                        if (df.info(info_flags::nonzero))
-                                return result::False;
-                        else if (df.is_zero())
-                                return result::True;
-                        else
-                                return result::notimplemented;
+			if (df.info(info_flags::nonzero))
+				return result::False;
+			else if (df.is_zero())
+				return result::True;
+			else
+				return result::notimplemented;
 		case not_equal:
-                        if (df.info(info_flags::nonzero))
-                                return result::True;
-                        else if (df.is_zero())
-                                return result::False;
-                        else
-                                return result::notimplemented;
-                case less:
-                        if ((-df).is_positive())
-                                return result::True;
-                        else if(df.info(info_flags::nonnegative))
-                                return result::False;
-                        else
-                                return result::notimplemented;
-                case greater:
-                        if (df.is_positive())
-                                return result::True;
-                        else if(df.is_zero()
-                                        or (-df).is_positive())
-                                return result::False;
-                        else
-                                return result::notimplemented;
+			if (df.info(info_flags::nonzero))
+				return result::True;
+			else if (df.is_zero())
+				return result::False;
+			else
+				return result::notimplemented;
+		case less:
+			if ((-df).is_positive())
+				return result::True;
+			else if(df.info(info_flags::nonnegative))
+				return result::False;
+			else
+				return result::notimplemented;
+		case greater:
+			if (df.is_positive())
+				return result::True;
+			else if(df.is_zero()
+					or (-df).is_positive())
+				return result::False;
+			else
+				return result::notimplemented;
 		case less_or_equal:
-                        if (df.is_zero() or (-df).is_positive())
-                                return result::True;
-                        else if (df.is_positive())
-                                return result::False;
-                        else
-                                return result::notimplemented;
+			if (df.is_zero() or (-df).is_positive())
+				return result::True;
+			else if (df.is_positive())
+				return result::False;
+			else
+				return result::notimplemented;
 		case greater_or_equal:
-                        if (df.is_zero() or df.is_positive())
-                                return result::True;
-                        else if(df.info(info_flags::negative))
-                                return result::False;
-                        else
-                                return result::notimplemented;
+			if (df.is_zero() or df.is_positive())
+				return result::True;
+			else if(df.info(info_flags::negative))
+				return result::False;
+			else
+				return result::notimplemented;
 		default:
-                        throw(std::logic_error("invalid relational operator"));
-                }
-                return result::notimplemented;
-        }
+			throw(std::logic_error("invalid relational operator"));
+		}
+		return result::notimplemented;
+	}
 
-        switch (o) {
-        case equal:
-                if (ex_to<numeric>(df).is_zero())
-                        return result::True;
-                else
-                        return result::False;
-        case not_equal:
-                if (!ex_to<numeric>(df).is_zero())
-                        return result::True;
-                else
-                        return result::False;
-        case less:
-                if (ex_to<numeric>(df) < (*_num0_p))
-                        return result::True;
-                else
-                        return result::False;
-        case less_or_equal:
-                if (ex_to<numeric>(df) <= (*_num0_p))
-                        return result::True;
-                else
-                        return result::False;
-        case greater:
-                if (ex_to<numeric>(df) > (*_num0_p))
-                        return result::True;
-                else
-                        return result::False;
-        case greater_or_equal:
-                if (ex_to<numeric>(df) >= (*_num0_p))
-                        return result::True;
-                else
-                        return result::False;
-        default:
-                throw(std::logic_error("invalid relational operator"));
-        }
+	switch (o) {
+	case equal:
+		if (ex_to<numeric>(df).is_zero())
+			return result::True;
+		else
+			return result::False;
+	case not_equal:
+		if (!ex_to<numeric>(df).is_zero())
+			return result::True;
+		else
+			return result::False;
+	case less:
+		if (ex_to<numeric>(df) < (*_num0_p))
+			return result::True;
+		else
+			return result::False;
+	case less_or_equal:
+		if (ex_to<numeric>(df) <= (*_num0_p))
+			return result::True;
+		else
+			return result::False;
+	case greater:
+		if (ex_to<numeric>(df) > (*_num0_p))
+			return result::True;
+		else
+			return result::False;
+	case greater_or_equal:
+		if (ex_to<numeric>(df) >= (*_num0_p))
+			return result::True;
+		else
+			return result::False;
+	default:
+		throw(std::logic_error("invalid relational operator"));
+	}
 }
 
 } // namespace GiNaC

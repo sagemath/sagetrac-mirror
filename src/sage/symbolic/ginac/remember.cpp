@@ -113,7 +113,7 @@ void remember_table_list::add_entry(function const & f, ex const & result)
 		}
 		default:
 			throw(std::logic_error("remember_table_list::add_entry(): invalid remember_strategy"));
-        }
+	}
 		GINAC_ASSERT(size()==max_assoc_size-1);
 	}
 	push_back(remember_table_entry(f,result));
@@ -166,7 +166,7 @@ void remember_table::add_entry(function const & f, ex const & result)
 	long entry = f.gethash() & (table_size-1);
 	GINAC_ASSERT(entry<size());
 	operator[](entry).add_entry(f,result);
-}        
+}	 
 
 void remember_table::clear_all_entries()
 {

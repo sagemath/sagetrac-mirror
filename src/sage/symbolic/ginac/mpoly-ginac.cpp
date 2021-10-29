@@ -6,7 +6,7 @@
 
 /*
  *  GiNaC Copyright (C) 1999-2008 Johannes Gutenberg University Mainz, Germany
- *                  (C) 2016 Ralf Stephan
+ *		    (C) 2016 Ralf Stephan
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -170,7 +170,7 @@ static void collect_symbols(const ex &e, sym_desc_vec &v)
  *  @param v  vector of sym_desc structs (filled in) */
 static void get_symbol_stats(const ex &a, const ex &b, sym_desc_vec &v)
 {
-	collect_symbols(a.eval(), v);   // eval() to expand assigned symbols
+	collect_symbols(a.eval(), v);	// eval() to expand assigned symbols
 	collect_symbols(b.eval(), v);
 	auto it = v.begin(), itend = v.end();
 	while (it != itend) {
@@ -191,7 +191,7 @@ static void get_symbol_stats(const ex &a, const ex &b, sym_desc_vec &v)
 	it = v.begin(); itend = v.end();
 	while (it != itend) {
 		std::clog << " " << it->sym << ": deg_a=" << it->deg_a << ", deg_b=" << it->deg_b << ", ldeg_a=" << it->ldeg_a << ", ldeg_b=" << it->ldeg_b << ", max_deg=" << it->max_deg << ", max_lcnops=" << it->max_lcnops << endl;
-		std::clog << "  lcoeff_a=" << a.lcoeff(it->sym) << ", lcoeff_b=" << b.lcoeff(it->sym) << endl;
+		std::clog << "	lcoeff_a=" << a.lcoeff(it->sym) << ", lcoeff_b=" << b.lcoeff(it->sym) << endl;
 		++it;
 	}
 #endif
@@ -211,9 +211,9 @@ static void get_symbol_stats(const ex &a, const ex &b, sym_desc_vec &v)
  *  @param a  first multivariate polynomial (dividend)
  *  @param b  second multivariate polynomial (divisor)
  *  @param q  quotient (returned)
- *  @param var  iterator to first element of vector of sym_desc structs
+ *  @param var	iterator to first element of vector of sym_desc structs
  *  @return "true" when exact division succeeds (the quotient is returned in
- *          q), "false" otherwise.
+ *	    q), "false" otherwise.
  *  @see get_symbol_stats */
 static bool divide_in_z(const ex &a, const ex &b, ex &q, sym_desc_vec::const_iterator var)
 {
@@ -390,7 +390,7 @@ static ex interpolate(const ex &gamma, const numeric &xi, const ex &x, int degre
  *  @param a  first multivariate polynomial
  *  @param b  second multivariate polynomial
  *  @param check_args  check whether a and b are polynomials with rational
- *         coefficients (defaults to "true")
+ *	   coefficients (defaults to "true")
  *  @return the LCM as a new expression */
 ex lcm(const ex &a, const ex &b, bool check_args)
 {
@@ -413,7 +413,7 @@ ex lcm(const ex &a, const ex &b, bool check_args)
  *  Yun's algorithm.  Used internally by sqrfree().
  *
  *  @param a  multivariate polynomial over Z[X], treated here as univariate
- *            polynomial in x (needs not be expanded).
+ *	      polynomial in x (needs not be expanded).
  *  @param x  variable to factor in
  *  @return   vector of factors sorted in ascending degree */
 static exvector sqrfree_yun(const ex &a, const symbol &x)
@@ -482,8 +482,8 @@ static exvector sqrfree_yun(const ex &a, const symbol &x)
  */
 ex sqrfree(const ex &a, const lst &l)
 {
-	if (is_exactly_a<numeric>(a) ||     // algorithm does not trap a==0
-	    is_exactly_a<symbol>(a))        // shortcut
+	if (is_exactly_a<numeric>(a) ||	    // algorithm does not trap a==0
+	    is_exactly_a<symbol>(a))	    // shortcut
 		return a;
 
 	// If no lst of variables to factorize in was specified we have to
@@ -526,11 +526,11 @@ ex sqrfree(const ex &a, const lst &l)
 
 	// Done with recursion, now construct the final result
 	ex result = _ex1;
-        {
-        int p = 1;
+	{
+	int p = 1;
 	for (const auto& elem : factors)
 		result *= power(elem, p++);
-        }
+	}
 
 	// Yun's algorithm does not account for constant factors.  (For univariate
 	// polynomials it works only in the monic case.)  We can correct this by

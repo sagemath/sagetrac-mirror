@@ -70,9 +70,9 @@ function_options::function_options(std::string const & n, std::string const & tn
 
 function_options::function_options(std::string const & n, unsigned np)
 {
-        static std::string empty;
+	static std::string empty;
 	initialize();
-        set_name(n, empty);
+	set_name(n, empty);
 	nparams = np;
 }
 
@@ -83,12 +83,12 @@ function_options::~function_options()
 
 void function_options::initialize()
 {
-        static std::string s1("unnamed_function"), s2("\\mbox{unnamed}");
+	static std::string s1("unnamed_function"), s2("\\mbox{unnamed}");
 	set_name(s1, s2);
 	nparams = 0;
 	eval_f = real_part_f = imag_part_f = conjugate_f = derivative_f
-            = pynac_eval_f = expl_derivative_f = power_f = series_f
-            = subs_f = nullptr;
+	    = pynac_eval_f = expl_derivative_f = power_f = series_f
+	    = subs_f = nullptr;
 	evalf_f = nullptr;
 	evalf_params_first = true;
 	apply_chain_rule = true;
@@ -99,7 +99,7 @@ void function_options::initialize()
 	real_part_use_exvector_args = false;
 	imag_part_use_exvector_args = false;
 	derivative_use_exvector_args = false;
-        expl_derivative_use_exvector_args = false;
+	expl_derivative_use_exvector_args = false;
 	power_use_exvector_args = false;
 	series_use_exvector_args = false;
 	print_use_exvector_args = false;
@@ -110,16 +110,16 @@ void function_options::initialize()
 }
 
 function_options & function_options::set_name(std::string const & n,
-                                              std::string const & tn)
+					      std::string const & tn)
 {
-        name.assign(n);
+	name.assign(n);
 	if (tn.empty()) {
 		TeX_name.assign("{\\rm ");
-                TeX_name += n;
-                TeX_name.append("}");
-        }
+		TeX_name += n;
+		TeX_name.append("}");
+	}
 	else
-	        TeX_name.assign(tn);
+		TeX_name.assign(tn);
 	return *this;
 }
 
@@ -134,28 +134,28 @@ function_options & function_options::eval_func(eval_funcp_1 e)
 {
 	test_and_set_nparams(1);
 	eval_f = eval_funcp(e);
-        pynac_eval_f = eval_f;
+	pynac_eval_f = eval_f;
 	return *this;
 }
 function_options & function_options::eval_func(eval_funcp_2 e)
 {
 	test_and_set_nparams(2);
 	eval_f = eval_funcp(e);
-        pynac_eval_f = eval_f;
+	pynac_eval_f = eval_f;
 	return *this;
 }
 function_options & function_options::eval_func(eval_funcp_3 e)
 {
 	test_and_set_nparams(3);
 	eval_f = eval_funcp(e);
-        pynac_eval_f = eval_f;
+	pynac_eval_f = eval_f;
 	return *this;
 }
 function_options & function_options::eval_func(eval_funcp_6 e)
 {
 	test_and_set_nparams(6);
 	eval_f = eval_funcp(e);
-        pynac_eval_f = eval_f;
+	pynac_eval_f = eval_f;
 	return *this;
 }
 
@@ -348,7 +348,7 @@ function_options& function_options::eval_func(eval_funcp_exvector e)
 {
 	eval_use_exvector_args = true;
 	eval_f = eval_funcp(e);
-        pynac_eval_f = eval_f;
+	pynac_eval_f = eval_f;
 	return *this;
 }
 function_options& function_options::evalf_func(evalf_funcp_exvector ef)
@@ -480,8 +480,8 @@ function_options & function_options::do_not_apply_chain_rule()
 }
 
 function_options & function_options::remember(unsigned size,
-                                              unsigned assoc_size,
-                                              unsigned strategy)
+					      unsigned assoc_size,
+					      unsigned strategy)
 {
 	use_remember = true;
 	remember_size = size;
@@ -505,8 +505,8 @@ void function_options::test_and_set_nparams(unsigned n)
 		// usually executed before main(), so the exception could not
 		// be caught anyhow
 		std::cerr << "WARNING: " << name << "(): number of parameters ("
-		          << n << ") differs from number set before (" 
-		          << nparams << ")" << std::endl;
+			  << n << ") differs from number set before (" 
+			  << nparams << ")" << std::endl;
 	}
 }
 
@@ -538,9 +538,9 @@ unsigned function::current_serial = 0;
 
 
 registered_class_info function::reg_info = \
-        registered_class_info(registered_class_options("function",
-                                "exprseq",
-                                &function::tinfo_static));
+	registered_class_info(registered_class_options("function",
+				"exprseq",
+				&function::tinfo_static));
 
 const tinfo_static_t function::tinfo_static = {};
 
@@ -637,7 +637,7 @@ function::function(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 	unsigned python_func;
 	bool old_python_func;
 	if (n.find_bool("python", old_python_func))
-		python_func = old_python_func ?  0xFFFF : 0;
+		python_func = old_python_func ?	 0xFFFF : 0;
 	else if(!n.find_unsigned("python", python_func))
 		throw std::runtime_error("function::function archive error: cannot read python_func flag");
 	std::string s;
@@ -664,7 +664,7 @@ function::function(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 	if (n.find_string("name", s)) {
 		unsigned int ser = 0;
 		unsigned int nargs = seq.size();
-                for (const auto & elem : registered_functions()) {
+		for (const auto & elem : registered_functions()) {
 			if (s == elem.name && nargs == elem.nparams) {
 				serial = ser;
 				return;
@@ -743,18 +743,18 @@ void function::print(const print_context & c, unsigned level) const
 		std::string* sout;
 		if (is_a<print_latex>(c)) {
 			sout = py_funcs.py_latex_function(serial, args);
-                        if (PyErr_Occurred() != nullptr) {
-                                throw(std::runtime_error("function::print(): python print function raised exception"));
-                        }
-                        c.s << *sout;
-                        c.s.flush();
+			if (PyErr_Occurred() != nullptr) {
+				throw(std::runtime_error("function::print(): python print function raised exception"));
+			}
+			c.s << *sout;
+			c.s.flush();
 		}
 		else if (is_a<print_tree>(c)) {
 			sout = py_funcs.py_print_function(serial, args);
-                        if (PyErr_Occurred() != nullptr) {
-                                throw(std::runtime_error("function::print(): python print function raised exception"));
-                        }
-                        std::string fname = sout->substr(0, sout->find_first_of('('));
+			if (PyErr_Occurred() != nullptr) {
+				throw(std::runtime_error("function::print(): python print function raised exception"));
+			}
+			std::string fname = sout->substr(0, sout->find_first_of('('));
 			c.s << std::string(level, ' ') << class_name() << " "
 			    << fname << " @" << this << ", serial=" << serial
 			    << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec
@@ -765,13 +765,13 @@ void function::print(const print_context & c, unsigned level) const
 				term.print(c, level + delta_indent);
 			c.s << std::string(level + delta_indent, ' ') << "=====" << std::endl;
 		}
-                else {
+		else {
 			sout = py_funcs.py_print_function(serial, args);
-                        if (PyErr_Occurred() != nullptr) {
-                                throw(std::runtime_error("function::print(): python print function raised exception"));
-                        }
-                        c.s << *sout;
-                        c.s.flush();
+			if (PyErr_Occurred() != nullptr) {
+				throw(std::runtime_error("function::print(): python print function raised exception"));
+			}
+			c.s << *sout;
+			c.s.flush();
 		}
 
 		delete sout;
@@ -779,23 +779,23 @@ void function::print(const print_context & c, unsigned level) const
 	} else {
 
 		if (is_a<print_latex>(c)) {
-		        PyObject* sfunc = py_funcs.py_get_sfunction_from_serial(serial);
-                        if (PyObject_HasAttrString(sfunc, "_print_latex_")) {
-                                PyObject* args = py_funcs.exvector_to_PyTuple(seq);
-                                std::string* sout;
-                                sout = py_funcs.py_latex_function(serial, args);
-                                if (PyErr_Occurred() != nullptr) {
-                                        throw(std::runtime_error("function::print(): python print function raised exception"));
-                                }
-                                c.s << *sout;
-                                c.s.flush();
-                                delete sout;
-                                Py_DECREF(args);
-                                return;
-                        }
+			PyObject* sfunc = py_funcs.py_get_sfunction_from_serial(serial);
+			if (PyObject_HasAttrString(sfunc, "_print_latex_")) {
+				PyObject* args = py_funcs.exvector_to_PyTuple(seq);
+				std::string* sout;
+				sout = py_funcs.py_latex_function(serial, args);
+				if (PyErr_Occurred() != nullptr) {
+					throw(std::runtime_error("function::print(): python print function raised exception"));
+				}
+				c.s << *sout;
+				c.s.flush();
+				delete sout;
+				Py_DECREF(args);
+				return;
+			}
 		}
 
-                const function_options &opt = registered_functions()[serial];
+		const function_options &opt = registered_functions()[serial];
 		const std::vector<print_funcp> &pdt = opt.print_dispatch_table;
 
 
@@ -835,26 +835,26 @@ next_context:
 
 		// Method found, call it
 		current_serial = serial;
-                if (opt.print_use_exvector_args)
-                        (reinterpret_cast<print_funcp_exvector>(pdt[id]))(seq, c);
-                else
-                        switch (opt.nparams) {
-                        // the following lines have been generated for max. 14 parameters
-                        case 1:
-                                (reinterpret_cast<print_funcp_1>(pdt[id]))(seq[1 - 1], c);
-                                break;
-                        case 2:
-                                (reinterpret_cast<print_funcp_2>(pdt[id]))(seq[1 - 1], seq[2 - 1], c);
-                                break;
-                        case 3:
-                                (reinterpret_cast<print_funcp_3>(pdt[id]))(seq[1 - 1], seq[2 - 1], seq[3 - 1], c);
-                                break;
+		if (opt.print_use_exvector_args)
+			(reinterpret_cast<print_funcp_exvector>(pdt[id]))(seq, c);
+		else
+			switch (opt.nparams) {
+			// the following lines have been generated for max. 14 parameters
+			case 1:
+				(reinterpret_cast<print_funcp_1>(pdt[id]))(seq[1 - 1], c);
+				break;
+			case 2:
+				(reinterpret_cast<print_funcp_2>(pdt[id]))(seq[1 - 1], seq[2 - 1], c);
+				break;
+			case 3:
+				(reinterpret_cast<print_funcp_3>(pdt[id]))(seq[1 - 1], seq[2 - 1], seq[3 - 1], c);
+				break;
 
-                        // end of generated lines
-                        default:
-                                throw(std::logic_error("function::print(): invalid nparams"));
-                        }
-        }
+			// end of generated lines
+			default:
+				throw(std::logic_error("function::print(): invalid nparams"));
+			}
+	}
 	}
 }
 
@@ -882,14 +882,14 @@ ex function::eval(int level) const
 
 	if (opt.eval_f==nullptr)
 		return this->hold();
-        eval_funcp eval_f;
-        if (opt.pynac_eval_f == nullptr)
-                eval_f = opt.eval_f;
-        else
-                eval_f = opt.pynac_eval_f;
+	eval_funcp eval_f;
+	if (opt.pynac_eval_f == nullptr)
+		eval_f = opt.eval_f;
+	else
+		eval_f = opt.pynac_eval_f;
 
 	if (opt.pynac_eval_f == nullptr
-            and (opt.python_func & function_options::eval_python_f) != 0u) {
+	    and (opt.python_func & function_options::eval_python_f) != 0u) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.eval_f with this list
@@ -951,24 +951,24 @@ ex function::evalf(int level, PyObject* kwds) const
 	else {
 		eseq.reserve(seq.size());
 		--level;
-                for (const auto & elem : seq)
+		for (const auto & elem : seq)
 			eseq.push_back(elem.evalf(level, kwds));
 	}
 
 	if (opt.evalf_f == nullptr) {
-                if (opt.nparams == 1 and is_exactly_a<numeric>(eseq[1-1])) {
-                        const numeric& n = ex_to<numeric>(eseq[1-1]);
-                        try {
-                                return n.try_py_method(get_name());
-                        }
-                        catch (std::logic_error) {
-                                try {
-                                        const numeric& nn = ex_to<numeric>(n.evalf()).try_py_method(get_name());
-                                        return nn.to_dict_parent(kwds);
-                                }
-                                catch (std::logic_error) {}
-                        }
-                }
+		if (opt.nparams == 1 and is_exactly_a<numeric>(eseq[1-1])) {
+			const numeric& n = ex_to<numeric>(eseq[1-1]);
+			try {
+				return n.try_py_method(get_name());
+			}
+			catch (std::logic_error) {
+				try {
+					const numeric& nn = ex_to<numeric>(n.evalf()).try_py_method(get_name());
+					return nn.to_dict_parent(kwds);
+				}
+				catch (std::logic_error) {}
+			}
+		}
 		return function(serial,eseq).hold();
 	}
 	current_serial = serial;
@@ -1136,7 +1136,7 @@ ex function::subs(const exmap & m, unsigned options) const
 		return result;
 	} 
 	if (opt.subs_f==nullptr)
-        	return exprseq::subs(m, options);
+		return exprseq::subs(m, options);
 
 	switch (opt.nparams) {
 	case 1:
@@ -1293,8 +1293,8 @@ ex function::imag_part() const
  *  @see ex::diff */
 ex function::derivative(const symbol & s) const
 {
-        ex result;
-        
+	ex result;
+	
 	/*
 	if (serial == Order_SERIAL::serial) {
 		// Order Term function only differentiates the argument
@@ -1303,10 +1303,10 @@ ex function::derivative(const symbol & s) const
 	GINAC_ASSERT(serial<registered_functions().size());
 	const function_options &opt = registered_functions()[serial];
 
-        try {
-                // Explicit derivation
-                return expl_derivative(s);
-        } catch (...) {}
+	try {
+		// Explicit derivation
+		return expl_derivative(s);
+	} catch (...) {}
 
 	// Check if we need to apply chain rule
 	if (!opt.apply_chain_rule) {
@@ -1346,19 +1346,19 @@ ex function::derivative(const symbol & s) const
 		return (reinterpret_cast<derivative_funcp_exvector_symbol>(opt.derivative_f))(seq, s);
 
 	} 
-        // Chain rule
-        ex arg_diff;
-        size_t num = seq.size();
-        for (size_t i=0; i<num; i++) {
-                arg_diff = seq[i].diff(s);
-                // We apply the chain rule only when it makes sense.  This is not
-                // just for performance reasons but also to allow functions to
-                // throw when differentiated with respect to one of its arguments
-                // without running into trouble with our automatic full
-                // differentiation:
-                if (!arg_diff.is_zero())
-                        result += pderivative(i)*arg_diff;
-        }
+	// Chain rule
+	ex arg_diff;
+	size_t num = seq.size();
+	for (size_t i=0; i<num; i++) {
+		arg_diff = seq[i].diff(s);
+		// We apply the chain rule only when it makes sense.  This is not
+		// just for performance reasons but also to allow functions to
+		// throw when differentiated with respect to one of its arguments
+		// without running into trouble with our automatic full
+		// differentiation:
+		if (!arg_diff.is_zero())
+			result += pderivative(i)*arg_diff;
+	}
 
 	return result;
 }
@@ -1371,7 +1371,7 @@ int function::compare_same_type(const basic & other) const
 	if (serial != o.serial)
 		return serial < o.serial ? -1 : 1;
 
-        return exprseq::compare_same_type(o);
+	return exprseq::compare_same_type(o);
 }
 
 
@@ -1397,20 +1397,20 @@ bool function::match_same_type(const basic & other) const
 bool function::match(const ex & pattern, exmap& map) const
 {
 	if (is_exactly_a<wildcard>(pattern)) {
-                const auto& it = map.find(pattern);
-                if (it != map.end())
-		        return is_equal(ex_to<basic>(it->second));
+		const auto& it = map.find(pattern);
+		if (it != map.end())
+			return is_equal(ex_to<basic>(it->second));
 		map[pattern] = *this;
 		return true;
 	} 
-        if (not is_exactly_a<function>(pattern))
-                return false;
-        CMatcher cm(*this, pattern, map);
-        const opt_exmap& m = cm.get();
-        if (not m)
-                return false;
-        map = m.value();
-        return true;
+	if (not is_exactly_a<function>(pattern))
+		return false;
+	CMatcher cm(*this, pattern, map);
+	const opt_exmap& m = cm.get();
+	if (not m)
+		return false;
+	map = m.value();
+	return true;
 }
 
 
@@ -1423,12 +1423,12 @@ unsigned function::return_type() const
 		// Return type was explicitly specified
 		return opt.return_type;
 	} 
-        // Default behavior is to use the return type of the first
-        // argument. Thus, exp() of a matrix behaves like a matrix, etc.
-        if (seq.empty())
-                return return_types::commutative;
+	// Default behavior is to use the return type of the first
+	// argument. Thus, exp() of a matrix behaves like a matrix, etc.
+	if (seq.empty())
+		return return_types::commutative;
 
-        return seq.begin()->return_type();
+	return seq.begin()->return_type();
 	
 }
 
@@ -1520,7 +1520,7 @@ ex function::expl_derivative(const symbol & s) const // explicit differentiation
 	GINAC_ASSERT(serial<registered_functions().size());
 	const function_options &opt = registered_functions()[serial];
 
-        if (opt.expl_derivative_f) {
+	if (opt.expl_derivative_f) {
 		// Invoke the defined explicit derivative function.
 		current_serial = serial;
 		if (opt.expl_derivative_use_exvector_args)
@@ -1547,7 +1547,7 @@ ex function::power(const ex & power_param) const // power of function
 	// No derivative defined? Then return abstract derivative object
 	if (opt.power_f == nullptr)
 		return (new GiNaC::power(*this, power_param))->setflag(status_flags::dynallocated |
-	                                               status_flags::evaluated);
+						       status_flags::evaluated);
 
 	current_serial = serial;
 	if ((opt.python_func & function_options::power_python_f) != 0u) {
@@ -1627,14 +1627,14 @@ unsigned function::register_new(function_options const & opt)
 		// allocating a new one.
 		//
 		//std::cerr << "WARNING: function name " << opt.name
-		//          << " already in use!" << std::endl;
+		//	    << " already in use!" << std::endl;
 	}
 	registered_functions().push_back(opt);
 	if (opt.use_remember) {
 		remember_table::remember_tables().
 			emplace_back(opt.remember_size,
-			                         opt.remember_assoc_size,
-			                         opt.remember_strategy);
+						 opt.remember_assoc_size,
+						 opt.remember_strategy);
 	} else {
 		remember_table::remember_tables().emplace_back();
 	}
@@ -1646,7 +1646,7 @@ unsigned function::register_new(function_options const & opt)
 unsigned function::find_function(const std::string &name, unsigned nparams)
 {
 	unsigned serial = 0;
-        for (const auto & elem : registered_functions()) {
+	for (const auto & elem : registered_functions()) {
 		if (elem.get_name() == name && elem.get_nparams() == nparams)
 			return serial;
 		++serial;
@@ -1663,23 +1663,23 @@ std::string function::get_name() const
 
 void function::set_domain(unsigned d)
 {
-        domain = d;
-        iflags.clear();
-        switch (d) {
-        case domain::complex:
-                break;
-        case domain::real:
-                iflags.set(info_flags::real, true);
-                break;
-        case domain::positive:
-                iflags.set(info_flags::real, true);
-                iflags.set(info_flags::positive, true);
-                break;
-        case domain::integer:
-                iflags.set(info_flags::real, true);
-                iflags.set(info_flags::integer, true);
-                break;
-        }
+	domain = d;
+	iflags.clear();
+	switch (d) {
+	case domain::complex:
+		break;
+	case domain::real:
+		iflags.set(info_flags::real, true);
+		break;
+	case domain::positive:
+		iflags.set(info_flags::real, true);
+		iflags.set(info_flags::positive, true);
+		break;
+	case domain::integer:
+		iflags.set(info_flags::real, true);
+		iflags.set(info_flags::integer, true);
+		break;
+	}
 }
 
 bool has_function(const ex & x)
@@ -1705,10 +1705,10 @@ bool has_symbol_or_function(const ex & x)
 }
 
 static bool has_oneof_function_helper(const ex& x,
-                const std::map<unsigned,int>& m)
+		const std::map<unsigned,int>& m)
 {
 	if (is_exactly_a<function>(x)
-            and m.find(ex_to<function>(x).get_serial()) != m.end())
+	    and m.find(ex_to<function>(x).get_serial()) != m.end())
 		return true;
 	for (size_t i=0; i<x.nops(); ++i)
 		if (has_oneof_function_helper(x.op(i), m))
@@ -1718,56 +1718,56 @@ static bool has_oneof_function_helper(const ex& x,
 }
 
 static void has_allof_function_helper(const ex& x,
-                std::map<unsigned,int>& m)
+		std::map<unsigned,int>& m)
 {
 	if (is_exactly_a<function>(x)) {
-                unsigned ser = ex_to<function>(x).get_serial();
-                if (m.find(ser) != m.end())
-        		m[ser] = 1;
-        }
+		unsigned ser = ex_to<function>(x).get_serial();
+		if (m.find(ser) != m.end())
+			m[ser] = 1;
+	}
 	for (size_t i=0; i<x.nops(); ++i)
 		has_allof_function_helper(x.op(i), m);
 }
 
 bool has_function(const ex& x,
-                const std::string& s)
+		const std::string& s)
 {
-        std::map<unsigned,int> m;
-        unsigned ser = 0;
-        for (const auto & elem : function::registered_functions()) {
-                if (s == elem.name)
-                        m[ser] = 0;
-                ++ser;
-        }
-        if (m.empty())
-                return false;
-        return has_oneof_function_helper(x, m);
+	std::map<unsigned,int> m;
+	unsigned ser = 0;
+	for (const auto & elem : function::registered_functions()) {
+		if (s == elem.name)
+			m[ser] = 0;
+		++ser;
+	}
+	if (m.empty())
+		return false;
+	return has_oneof_function_helper(x, m);
 }
 
 bool has_function(const ex& x,
-                const std::vector<std::string>& v,
-                bool all)
+		const std::vector<std::string>& v,
+		bool all)
 {
-        std::map<unsigned,int> m;
-        for (const auto & s : v) {
-                unsigned ser = 0;
-                for (const auto & elem : function::registered_functions()) {
-                        if (s == elem.name)
-                                m[ser] = 0;
-                        ++ser;
-                }
-        }
-        if (m.empty())
-                return false;
-        if (all) {
-                has_allof_function_helper(x, m);
-                for (const auto & p : m)
-                        // TODO: false negative if >1 func with same name
-                        if (p.second == 0)
-                                return false;
-                return true;
-        }
-        return has_oneof_function_helper(x, m);
+	std::map<unsigned,int> m;
+	for (const auto & s : v) {
+		unsigned ser = 0;
+		for (const auto & elem : function::registered_functions()) {
+			if (s == elem.name)
+				m[ser] = 0;
+			++ser;
+		}
+	}
+	if (m.empty())
+		return false;
+	if (all) {
+		has_allof_function_helper(x, m);
+		for (const auto & p : m)
+			// TODO: false negative if >1 func with same name
+			if (p.second == 0)
+				return false;
+		return true;
+	}
+	return has_oneof_function_helper(x, m);
 }
 
 } // namespace GiNaC

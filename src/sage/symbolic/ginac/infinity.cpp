@@ -45,13 +45,13 @@ GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(infinity, basic,
 
 static long hash_from_dir(const ex& direction)
 {
-        if (direction.is_one())
-                return LONG_MAX;
-        if (direction.is_zero())
-                return LONG_MAX-1;
-        if (direction.is_minus_one())
-                return LONG_MIN;
-        return 0L;
+	if (direction.is_one())
+		return LONG_MAX;
+	if (direction.is_zero())
+		return LONG_MAX-1;
+	if (direction.is_minus_one())
+		return LONG_MIN;
+	return 0L;
 }
 
 //////////
@@ -63,7 +63,7 @@ static long hash_from_dir(const ex& direction)
 infinity::infinity() 
 : basic(&infinity::tinfo_static), direction(+1)
 {
-        hashvalue = hash_from_dir(direction);
+	hashvalue = hash_from_dir(direction);
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -79,7 +79,7 @@ infinity::infinity(const numeric & _direction)
 	// Note: we cannot accept an arbirtary ex as argument 
 	// or we would take precedence over the copy constructor.
 	set_direction(_direction);
-        hashvalue = hash_from_dir(direction);
+	hashvalue = hash_from_dir(direction);
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -89,7 +89,7 @@ infinity infinity::from_direction(const ex & _direction)
 	infinity result;
 	result.set_direction(_direction);
 	result.hashvalue = hash_from_dir(result.direction);
-        return result;
+	return result;
 }
 
 infinity infinity::from_sign(int sgn)
@@ -113,7 +113,7 @@ ex infinity::unarchive(const archive_node &n, lst &sym_lst)
 	if (n.find_ex("direction", value, sym_lst))
 		return infinity::from_direction(value);
 
-        throw(std::runtime_error("infinity without direction in archive"));
+	throw(std::runtime_error("infinity without direction in archive"));
 }
 
 void infinity::archive(archive_node &n) const
@@ -154,9 +154,9 @@ void infinity::do_print_tree(const print_tree & c, unsigned level) const
 	    << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec
 	    << std::endl;
 	if (!is_unsigned_infinity()) {
-                c.s << "with direction: ";
+		c.s << "with direction: ";
 		direction.print(c, level+4);
-        }
+	}
 }
 
 void infinity::do_print_latex(const print_latex & c, unsigned level) const
@@ -175,29 +175,29 @@ void infinity::do_print_latex(const print_latex & c, unsigned level) const
 }
 
 void infinity::do_print_python_repr(const print_python_repr & c,
-                unsigned level) const
+		unsigned level) const
 {
 	c.s << class_name() << "('" << "Infinity" << "'";
-        direction.print(c, level);
+	direction.print(c, level);
 	c.s << ')';
 }
 
 bool infinity::info(unsigned inf) const
 {
-        switch (inf) {
-        case info_flags::infinity:
-                return true;
-        case info_flags::real:
-                return not direction.is_zero()
-                and direction.is_real();
-        case info_flags::positive:
-        case info_flags::negative:
-                return direction.info(inf);
-        case info_flags::nonnegative:
-                return direction.is_positive();
-        default:
-                return inherited::info(inf);
-        }
+	switch (inf) {
+	case info_flags::infinity:
+		return true;
+	case info_flags::real:
+		return not direction.is_zero()
+		and direction.is_real();
+	case info_flags::positive:
+	case info_flags::negative:
+		return direction.info(inf);
+	case info_flags::nonnegative:
+		return direction.is_positive();
+	default:
+		return inherited::info(inf);
+	}
 }
 
 ex infinity::evalf(int /*level*/, PyObject* /*parent*/) const
@@ -259,25 +259,25 @@ bool infinity::is_equal_same_type(const basic & other) const
 }
 
 bool infinity::compare_other_type(const ex & other,
-        relational::operators o) const
+	relational::operators o) const
 {
-        const ex& e = other.evalf();
-        if (not is_exactly_a<numeric>(e))
-                return false;
-        const numeric& num = ex_to<numeric>(e);
-        if (num.imag() > 0)
-                return false;
-        switch (o) {
-        case relational::not_equal:
-                return true;
-        case relational::equal:
-                return false;
-        case relational::less_or_equal:
-        case relational::less:
-                return is_minus_infinity();
-        default:
-                return is_plus_infinity();
-        }
+	const ex& e = other.evalf();
+	if (not is_exactly_a<numeric>(e))
+		return false;
+	const numeric& num = ex_to<numeric>(e);
+	if (num.imag() > 0)
+		return false;
+	switch (o) {
+	case relational::not_equal:
+		return true;
+	case relational::equal:
+		return false;
+	case relational::less_or_equal:
+	case relational::less:
+		return is_minus_infinity();
+	default:
+		return is_plus_infinity();
+	}
 }
 
 //////////
@@ -316,7 +316,7 @@ void infinity::set_direction(const ex & new_direction)
 		ex normalization = GiNaC::pow(GiNaC::abs(new_direction),-1);
 		direction = mul(new_direction, normalization);
 	}
-        hashvalue = hash_from_dir(direction);
+	hashvalue = hash_from_dir(direction);
 }
 
 const infinity & infinity::operator *= (const ex & rhs)
@@ -332,11 +332,11 @@ const infinity & infinity::operator *= (const ex & rhs)
 	else if (rhs.is_positive()) {
 		return *this;
 	}
-        if (rhs.info(info_flags::negative)) {
+	if (rhs.info(info_flags::negative)) {
 		set_direction(mul(-1, direction));
 		return *this;
 	}
-        if (rhs.nsymbols()==0) {
+	if (rhs.nsymbols()==0) {
 		set_direction(mul(direction, rhs));
 		return *this;
 	}
@@ -357,7 +357,7 @@ const infinity & infinity::operator += (const ex & rhs)
 		else
 			throw(std::runtime_error("indeterminate expression: "
 						 "infinity - infinity encountered."));
-        }
+	}
 	return *this;
 }
 

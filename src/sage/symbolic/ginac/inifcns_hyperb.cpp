@@ -82,15 +82,15 @@ static bool is_multiple_of_I(const ex & the_ex)
 
 static ex sinh_eval(const ex & x)
 {
-        // sinh() is odd
-        if (x.info(info_flags::negative))
-                return -sinh(-x);
+	// sinh() is odd
+	if (x.info(info_flags::negative))
+		return -sinh(-x);
 
 	if (is_exactly_a<numeric>(x)) {
 
 		// sinh(0) -> 0
 		if (x.is_zero())
-			return _ex0;        
+			return _ex0;	    
 
 		// sinh(float) -> float
 		if (x.info(info_flags::inexact))
@@ -113,9 +113,9 @@ static ex sinh_eval(const ex & x)
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
 
-                // sinh(log(x)) -> (x^2 - 1)/(2x)
+		// sinh(log(x)) -> (x^2 - 1)/(2x)
 		if (is_ex_the_function(x, log))
-                        return (power(t, _ex2) - _ex1)/(_ex2*t);
+			return (power(t, _ex2) - _ex1)/(_ex2*t);
 
 		// sinh(asinh(x)) -> x
 		if (is_ex_the_function(x, asinh))
@@ -158,11 +158,11 @@ static ex sinh_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(sinh, eval_func(sinh_eval).
-                        derivative_func(sinh_deriv).
-                        real_part_func(sinh_real_part).
-                        imag_part_func(sinh_imag_part).
+			derivative_func(sinh_deriv).
+			real_part_func(sinh_real_part).
+			imag_part_func(sinh_imag_part).
 			conjugate_func(sinh_conjugate).
-		        latex_name("\\sinh"));
+			latex_name("\\sinh"));
 
 //////////
 // hyperbolic cosine (trigonometric function)
@@ -178,11 +178,11 @@ static ex cosh_evalf(const ex & x, PyObject* parent)
 
 static ex cosh_eval(const ex & x)
 {
-        // cosh() is even
-        if (x.info(info_flags::negative))
-                return cosh(-x);
+	// cosh() is even
+	if (x.info(info_flags::negative))
+		return cosh(-x);
 	
-        if (is_exactly_a<numeric>(x)) {
+	if (is_exactly_a<numeric>(x)) {
 		// cosh(0) -> 1
 		if (x.is_zero())
 			return _ex1;
@@ -208,9 +208,9 @@ static ex cosh_eval(const ex & x)
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
 
-                // cosh(log(x)) -> (x + 1/x)/2
+		// cosh(log(x)) -> (x + 1/x)/2
 		if (is_ex_the_function(x, log))
-                        return (power(t, _ex2) + _ex1)/(_ex2*t);
+			return (power(t, _ex2) + _ex1)/(_ex2*t);
 
 		// cosh(acosh(x)) -> x
 		if (is_ex_the_function(x, acosh))
@@ -253,12 +253,12 @@ static ex cosh_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(cosh, eval_func(cosh_eval).
-                        evalf_func(cosh_evalf).
-                        derivative_func(cosh_deriv).
-                        real_part_func(cosh_real_part).
-                        imag_part_func(cosh_imag_part).
-                        conjugate_func(cosh_conjugate).
-                        latex_name("\\cosh"));
+			evalf_func(cosh_evalf).
+			derivative_func(cosh_deriv).
+			real_part_func(cosh_real_part).
+			imag_part_func(cosh_imag_part).
+			conjugate_func(cosh_conjugate).
+			latex_name("\\cosh"));
 
 //////////
 // hyperbolic tangent (trigonometric function)
@@ -266,9 +266,9 @@ REGISTER_FUNCTION(cosh, eval_func(cosh_eval).
 
 static ex tanh_eval(const ex & x)
 {
-        // tanh() is odd
-        if (x.info(info_flags::negative))
-                return -tanh(-x);
+	// tanh() is odd
+	if (x.info(info_flags::negative))
+		return -tanh(-x);
 
 	if (is_exactly_a<numeric>(x)) {
 		// tanh(0) -> 0
@@ -299,9 +299,9 @@ static ex tanh_eval(const ex & x)
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
 
-                // tanh(log(x)) -> (x^2 - 1)/(x^2 + 1)
+		// tanh(log(x)) -> (x^2 - 1)/(x^2 + 1)
 		if (is_ex_the_function(x, log))
-                        return (power(t, _ex2) - _ex1)/(power(t, _ex2) + _ex1);
+			return (power(t, _ex2) - _ex1)/(power(t, _ex2) + _ex1);
 
 		// tanh(atanh(x)) -> x
 		if (is_ex_the_function(x, atanh))
@@ -328,9 +328,9 @@ static ex tanh_deriv(const ex & x, unsigned deriv_param)
 }
 
 static ex tanh_series(const ex &x,
-                      const relational &rel,
-                      int order,
-                      unsigned options)
+		      const relational &rel,
+		      int order,
+		      unsigned options)
 {
 	GINAC_ASSERT(is_a<symbol>(rel.lhs()));
 	// method:
@@ -365,12 +365,12 @@ static ex tanh_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(tanh, eval_func(tanh_eval).
-                        derivative_func(tanh_deriv).
-                        series_func(tanh_series).
-                        real_part_func(tanh_real_part).
-                        imag_part_func(tanh_imag_part).
-                        conjugate_func(tanh_conjugate).
-                        latex_name("\\tanh"));
+			derivative_func(tanh_deriv).
+			series_func(tanh_series).
+			real_part_func(tanh_real_part).
+			imag_part_func(tanh_imag_part).
+			conjugate_func(tanh_conjugate).
+			latex_name("\\tanh"));
 
 //////////
 // hyperbolic cotangent (trigonometric function)
@@ -378,9 +378,9 @@ REGISTER_FUNCTION(tanh, eval_func(tanh_eval).
 
 static ex coth_eval(const ex & x)
 {
-        // coth() is odd
-        if (x.info(info_flags::negative))
-                return -coth(-x);
+	// coth() is odd
+	if (x.info(info_flags::negative))
+		return -coth(-x);
 
 	if (is_exactly_a<numeric>(x)) {
 		// coth(0) -> zoo
@@ -411,9 +411,9 @@ static ex coth_eval(const ex & x)
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
 
-                // coth(log(x)) -> (x^2 + 1)/(x^2 - 1)
+		// coth(log(x)) -> (x^2 + 1)/(x^2 - 1)
 		if (is_ex_the_function(x, log))
-                        return (power(t, _ex2) + _ex1)/(power(t, _ex2) - _ex1);
+			return (power(t, _ex2) + _ex1)/(power(t, _ex2) - _ex1);
 
 		// coth(acoth(x)) -> x
 		if (is_ex_the_function(x, acoth))
@@ -440,9 +440,9 @@ static ex coth_deriv(const ex & x, unsigned deriv_param)
 }
 
 static ex coth_series(const ex &x,
-                      const relational &rel,
-                      int order,
-                      unsigned options)
+		      const relational &rel,
+		      int order,
+		      unsigned options)
 {
 	GINAC_ASSERT(is_a<symbol>(rel.lhs()));
 	// method:
@@ -475,12 +475,12 @@ static ex coth_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(coth, eval_func(coth_eval).
-                        derivative_func(coth_deriv).
-                        series_func(coth_series).
-                        real_part_func(coth_real_part).
-                        imag_part_func(coth_imag_part).
-                        conjugate_func(coth_conjugate).
-                        latex_name("\\coth"));
+			derivative_func(coth_deriv).
+			series_func(coth_series).
+			real_part_func(coth_real_part).
+			imag_part_func(coth_imag_part).
+			conjugate_func(coth_conjugate).
+			latex_name("\\coth"));
 
 //////////
 // hyperbolic secant (trigonometric function)
@@ -488,9 +488,9 @@ REGISTER_FUNCTION(coth, eval_func(coth_eval).
 
 static ex sech_eval(const ex & x)
 {
-        // sech() is even
-        if (x.info(info_flags::negative))
-                return sech(-x);
+	// sech() is even
+	if (x.info(info_flags::negative))
+		return sech(-x);
 
 	if (is_exactly_a<numeric>(x)) {
 		// sech(0) -> 1
@@ -519,9 +519,9 @@ static ex sech_eval(const ex & x)
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
 
-                // sech(log(x)) -> 2/(x + 1/x)
+		// sech(log(x)) -> 2/(x + 1/x)
 		if (is_ex_the_function(x, log))
-                        return (_ex2*t) / (power(t, _ex2) + _ex1);
+			return (_ex2*t) / (power(t, _ex2) + _ex1);
 
 		// sech(asech(x)) -> x
 		if (is_ex_the_function(x, asech))
@@ -548,9 +548,9 @@ static ex sech_deriv(const ex & x, unsigned deriv_param)
 }
 
 static ex sech_series(const ex &x,
-                      const relational &rel,
-                      int order,
-                      unsigned options)
+		      const relational &rel,
+		      int order,
+		      unsigned options)
 {
 	GINAC_ASSERT(is_a<symbol>(rel.lhs()));
 	// method:
@@ -583,12 +583,12 @@ static ex sech_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(sech, eval_func(sech_eval).
-                        derivative_func(sech_deriv).
-                        series_func(sech_series).
-                        real_part_func(sech_real_part).
-                        imag_part_func(sech_imag_part).
-                        conjugate_func(sech_conjugate).
-                        latex_name("\\operatorname{sech}"));
+			derivative_func(sech_deriv).
+			series_func(sech_series).
+			real_part_func(sech_real_part).
+			imag_part_func(sech_imag_part).
+			conjugate_func(sech_conjugate).
+			latex_name("\\operatorname{sech}"));
 
 //////////
 // hyperbolic secant (trigonometric function)
@@ -596,9 +596,9 @@ REGISTER_FUNCTION(sech, eval_func(sech_eval).
 
 static ex csch_eval(const ex & x)
 {
-        // csch() is odd
-        if (x.info(info_flags::negative))
-                return -csch(-x);
+	// csch() is odd
+	if (x.info(info_flags::negative))
+		return -csch(-x);
 
 	if (is_exactly_a<numeric>(x)) {
 		// csch(0) -> zoo
@@ -627,9 +627,9 @@ static ex csch_eval(const ex & x)
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
 
-                // csch(log(x)) -> 2/(x - 1/x)
+		// csch(log(x)) -> 2/(x - 1/x)
 		if (is_ex_the_function(x, log))
-                        return (_ex2*t) / (power(t, _ex2) - _ex1);
+			return (_ex2*t) / (power(t, _ex2) - _ex1);
 
 		// csch(acsch(x)) -> x
 		if (is_ex_the_function(x, acsch))
@@ -656,9 +656,9 @@ static ex csch_deriv(const ex & x, unsigned deriv_param)
 }
 
 static ex csch_series(const ex &x,
-                      const relational &rel,
-                      int order,
-                      unsigned options)
+		      const relational &rel,
+		      int order,
+		      unsigned options)
 {
 	GINAC_ASSERT(is_a<symbol>(rel.lhs()));
 	// method:
@@ -691,12 +691,12 @@ static ex csch_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(csch, eval_func(csch_eval).
-                        derivative_func(csch_deriv).
-                        series_func(csch_series).
-                        real_part_func(csch_real_part).
-                        imag_part_func(csch_imag_part).
-                        conjugate_func(csch_conjugate).
-                        latex_name("\\operatorname{csch}"));
+			derivative_func(csch_deriv).
+			series_func(csch_series).
+			real_part_func(csch_real_part).
+			imag_part_func(csch_imag_part).
+			conjugate_func(csch_conjugate).
+			latex_name("\\operatorname{csch}"));
 
 //////////
 // inverse hyperbolic sine (trigonometric function)
@@ -754,8 +754,8 @@ static ex asinh_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(asinh, eval_func(asinh_eval).
-                         derivative_func(asinh_deriv).
-                         conjugate_func(asinh_conjugate).
+			 derivative_func(asinh_deriv).
+			 conjugate_func(asinh_conjugate).
 			 set_name("arcsinh"));
 
 //////////
@@ -817,8 +817,8 @@ static ex acosh_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(acosh, eval_func(acosh_eval).
-                         derivative_func(acosh_deriv).
-                         conjugate_func(acosh_conjugate).
+			 derivative_func(acosh_deriv).
+			 conjugate_func(acosh_conjugate).
 			 set_name("arccosh"));
 
 //////////
@@ -827,9 +827,9 @@ REGISTER_FUNCTION(acosh, eval_func(acosh_eval).
 
 static ex atanh_eval(const ex & x)
 {
-        if (is_exactly_a<numeric>(x)) {
+	if (is_exactly_a<numeric>(x)) {
 
-                const numeric& num = ex_to<numeric>(x);
+		const numeric& num = ex_to<numeric>(x);
 
 		// atanh(0) -> 0
 		if (num.is_zero())
@@ -855,11 +855,11 @@ static ex atanh_eval(const ex & x)
 		// atanh(float) -> float
 		if (not num.is_exact())
 			return atanh(num);
-                
-                if (num.is_integer() or num.is_rational())
-                        return _ex1_2 * log(ex((*_num1_p + num)/(*_num1_p - num)));
+		
+		if (num.is_integer() or num.is_rational())
+			return _ex1_2 * log(ex((*_num1_p + num)/(*_num1_p - num)));
 
-                return atanh(x).hold();
+		return atanh(x).hold();
 	}
 	
 	// atanh(oo) -> -i*pi/2
@@ -886,9 +886,9 @@ static ex atanh_deriv(const ex & x, unsigned deriv_param)
 }
 
 static ex atanh_series(const ex &arg,
-                       const relational &rel,
-                       int order,
-                       unsigned options)
+		       const relational &rel,
+		       int order,
+		       unsigned options)
 {
 	GINAC_ASSERT(is_a<symbol>(rel.lhs()));
 	// method:
@@ -908,22 +908,22 @@ static ex atanh_series(const ex &arg,
 		return ((log(_ex1+arg)-log(_ex1-arg))*_ex1_2).series(rel, order, options);
 	// ...and the branch cuts (the discontinuity at the cut being just I*Pi)
 	if ((options & series_options::suppress_branchcut) == 0u) {
- 		// method:
- 		// This is the branch cut: assemble the primitive series manually and
- 		// then add the corresponding complex step function.
- 		const symbol &s = ex_to<symbol>(rel.lhs());
- 		const ex &point = rel.rhs();
- 		const symbol foo;
- 		const ex replarg = series(atanh(arg), s==foo, order).subs(foo==point, subs_options::no_pattern);
+		// method:
+		// This is the branch cut: assemble the primitive series manually and
+		// then add the corresponding complex step function.
+		const symbol &s = ex_to<symbol>(rel.lhs());
+		const ex &point = rel.rhs();
+		const symbol foo;
+		const ex replarg = series(atanh(arg), s==foo, order).subs(foo==point, subs_options::no_pattern);
 		ex Order0correction = replarg.op(0)+csgn(I*arg)*Pi*I*_ex1_2;
 		if (arg_pt<_ex0)
 			Order0correction += log((arg_pt+_ex_1)/(arg_pt+_ex1))*_ex1_2;
 		else
 			Order0correction += log((arg_pt+_ex1)/(arg_pt+_ex_1))*_ex_1_2;
- 		epvector seq;
+		epvector seq;
 		seq.emplace_back(Order0correction, _ex0);
- 		seq.emplace_back(Order(_ex1), order);
- 		return series(replarg - pseries(rel, seq), rel, order);
+		seq.emplace_back(Order(_ex1), order);
+		return series(replarg - pseries(rel, seq), rel, order);
 	}
 	throw do_taylor();
 }
@@ -940,9 +940,9 @@ static ex atanh_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(atanh, eval_func(atanh_eval).
-                         derivative_func(atanh_deriv).
-                         series_func(atanh_series).
-                         conjugate_func(atanh_conjugate).
+			 derivative_func(atanh_deriv).
+			 series_func(atanh_series).
+			 conjugate_func(atanh_conjugate).
 			 set_name("arctanh"));
 
 //////////
@@ -951,23 +951,23 @@ REGISTER_FUNCTION(atanh, eval_func(atanh_eval).
 
 static ex acoth_eval(const ex & x)
 {
-        if (is_exactly_a<numeric>(x)) {
-                const numeric& num = ex_to<numeric>(x);
-                // acoth(1) -> oo
-                if (num.is_one())
-                        return Infinity;
-                // acoth(-1) -> -oo
-                if (num.is_minus_one())
-                        return NegInfinity;
-                //acoth(float) -> float 
-                if (not num.is_exact())
-                        return atanh(num.inverse());
-                // acoth() is odd
-                if (num.is_negative())
-                        return -acoth(num.negative());
-                if (num.is_integer() or num.is_rational())
-                        return _ex1_2 * log(ex((num + *_num1_p)/(num - *_num1_p)));
-        }
+	if (is_exactly_a<numeric>(x)) {
+		const numeric& num = ex_to<numeric>(x);
+		// acoth(1) -> oo
+		if (num.is_one())
+			return Infinity;
+		// acoth(-1) -> -oo
+		if (num.is_minus_one())
+			return NegInfinity;
+		//acoth(float) -> float 
+		if (not num.is_exact())
+			return atanh(num.inverse());
+		// acoth() is odd
+		if (num.is_negative())
+			return -acoth(num.negative());
+		if (num.is_integer() or num.is_rational())
+			return _ex1_2 * log(ex((num + *_num1_p)/(num - *_num1_p)));
+	}
        
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
@@ -977,42 +977,42 @@ static ex acoth_eval(const ex & x)
 			return t;
 	}
 
-        // acoth(oo) -> 0
-        // acoth(-oo) -> 0
-        // acoth(UnsignedInfinity) -> 0
-        if (x.info(info_flags::infinity)) {
-                return _ex0;
-                // x is UnsignedInfinity
-                //throw (std::runtime_error("arccoth_eval(): arccoth(unsigned_infinity) encountered"));
-        }
-        
-        return acoth(x).hold();
+	// acoth(oo) -> 0
+	// acoth(-oo) -> 0
+	// acoth(UnsignedInfinity) -> 0
+	if (x.info(info_flags::infinity)) {
+		return _ex0;
+		// x is UnsignedInfinity
+		//throw (std::runtime_error("arccoth_eval(): arccoth(unsigned_infinity) encountered"));
+	}
+	
+	return acoth(x).hold();
 }
 
 static ex acoth_deriv(const ex & x, unsigned deriv_param)
 {
-        GINAC_ASSERT(deriv_param==0);
+	GINAC_ASSERT(deriv_param==0);
 
-        // acoth(x) -> (1/2)*(ln(1 + 1/x) - ln(1 - 1/x))
-        // d/dx acoth(x) -> 1/(1-x^2)
-        return power(_ex1-power(x, _ex2), _ex_1);
+	// acoth(x) -> (1/2)*(ln(1 + 1/x) - ln(1 - 1/x))
+	// d/dx acoth(x) -> 1/(1-x^2)
+	return power(_ex1-power(x, _ex2), _ex_1);
 }
 
 static ex acoth_conjugate(const ex & x)
 {
-        // conjugate(acoth(x))==acoth(conjugate(x)) unless on the branch cuts which
-        // run along the real axis inside the interval [-1, +1].
-        if (is_exactly_a<numeric>(x) &&
-            (!x.imag_part().is_zero() || (x < *_num_1_p && x > *_num1_p))) {
-                return acoth(x.conjugate());
-        }
-        return conjugate_function(acoth(x)).hold();
+	// conjugate(acoth(x))==acoth(conjugate(x)) unless on the branch cuts which
+	// run along the real axis inside the interval [-1, +1].
+	if (is_exactly_a<numeric>(x) &&
+	    (!x.imag_part().is_zero() || (x < *_num_1_p && x > *_num1_p))) {
+		return acoth(x.conjugate());
+	}
+	return conjugate_function(acoth(x)).hold();
 }
 
 REGISTER_FUNCTION(acoth, eval_func(acoth_eval).
-                         derivative_func(acoth_deriv).
-                         conjugate_func(acoth_conjugate).
-                         set_name("arccoth"));
+			 derivative_func(acoth_deriv).
+			 conjugate_func(acoth_conjugate).
+			 set_name("arccoth"));
 
 //////////
 // inverse hyperbolic Cosecant (trigonometric function)
@@ -1020,42 +1020,42 @@ REGISTER_FUNCTION(acoth, eval_func(acoth_eval).
 
 static ex acsch_eval(const ex & x)
 {
-        if (is_exactly_a<numeric>(x)) {
-                // acsch(0) -> oo
-                if (x.is_zero())
-                        return Infinity;
-                //acsch(float) -> float 
-                if (x.info(info_flags::inexact))
-                        return asinh(ex_to<numeric>(x).inverse());
-                // acsch(-x) -> acsch(-x)
-                if (x.info(info_flags::negative))
-                        return -acsch(-x);
-        }
+	if (is_exactly_a<numeric>(x)) {
+		// acsch(0) -> oo
+		if (x.is_zero())
+			return Infinity;
+		//acsch(float) -> float 
+		if (x.info(info_flags::inexact))
+			return asinh(ex_to<numeric>(x).inverse());
+		// acsch(-x) -> acsch(-x)
+		if (x.info(info_flags::negative))
+			return -acsch(-x);
+	}
        
-        // acsch(oo) -> 0
-        // acsch(-oo) -> 0
-        // acsch(UnsignedInfinity) -> 0
-        if (x.info(info_flags::infinity)) {
-                return _ex0;
-        }
-        
-        return acsch(x).hold();
+	// acsch(oo) -> 0
+	// acsch(-oo) -> 0
+	// acsch(UnsignedInfinity) -> 0
+	if (x.info(info_flags::infinity)) {
+		return _ex0;
+	}
+	
+	return acsch(x).hold();
 }
 
 static ex acsch_deriv(const ex & x, unsigned deriv_param)
 {
-        GINAC_ASSERT(deriv_param==0);
+	GINAC_ASSERT(deriv_param==0);
 
-        // acsch(x) -> ln(1/x + sqrt(1/x^2 + 1))
-        // d/dx acsch(x) ->  -1 / [x * sqrt(1 + x^2)];
-        return (_ex_1/x)*power(_ex1+power(x, _ex2), _ex_1_2);
+	// acsch(x) -> ln(1/x + sqrt(1/x^2 + 1))
+	// d/dx acsch(x) ->  -1 / [x * sqrt(1 + x^2)];
+	return (_ex_1/x)*power(_ex1+power(x, _ex2), _ex_1_2);
 }
 
 static ex acsch_conjugate(const ex & x)
 {
-        // conjugate(acsch(x))==acsch(conjugate(x)) unless on the branch cuts which
-        // run along the imaginary axis inside the interval [-I, +I].
-        if (x.is_real())
+	// conjugate(acsch(x))==acsch(conjugate(x)) unless on the branch cuts which
+	// run along the imaginary axis inside the interval [-I, +I].
+	if (x.is_real())
 		return acsch(x);
 	if (is_exactly_a<numeric>(x)) {
 		const numeric x_re = ex_to<numeric>(x.real_part());
@@ -1068,69 +1068,69 @@ static ex acsch_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(acsch, eval_func(acsch_eval).
-                         derivative_func(acsch_deriv).
-                         conjugate_func(acsch_conjugate).
-                         set_name("arccsch"));
+			 derivative_func(acsch_deriv).
+			 conjugate_func(acsch_conjugate).
+			 set_name("arccsch"));
 //////////
 // inverse hyperbolic Secant (trigonometric function)
 //////////
 
 static ex asech_eval(const ex & x)
 {
-        if (is_exactly_a<numeric>(x)) {
-                // asech(0) -> oo
-                if (x.is_zero())
-                        return Infinity;
-                // asech(1) -> 0
-                if (x.is_one())
-                        return _ex0;
-                //asech(-1) -> I*Pi
-                if (x.is_minus_one())
-                        return Pi*I;
-                //asech(float) -> float 
-                if (x.info(info_flags::inexact))
-                        return acosh(ex_to<numeric>(x).inverse());
-                // asech(-x) -> Pi*I-asech(-x)
-                if (x.info(info_flags::negative))
-                        return Pi*I-asech(-x);
-        }
+	if (is_exactly_a<numeric>(x)) {
+		// asech(0) -> oo
+		if (x.is_zero())
+			return Infinity;
+		// asech(1) -> 0
+		if (x.is_one())
+			return _ex0;
+		//asech(-1) -> I*Pi
+		if (x.is_minus_one())
+			return Pi*I;
+		//asech(float) -> float 
+		if (x.info(info_flags::inexact))
+			return acosh(ex_to<numeric>(x).inverse());
+		// asech(-x) -> Pi*I-asech(-x)
+		if (x.info(info_flags::negative))
+			return Pi*I-asech(-x);
+	}
        
-        // asech(oo) -> Pi*I/2
-        // asech(-oo) -> Pi*I/2
-        // asech(UnsignedInfinity) -> error
-        if (x.info(info_flags::infinity)) {
-                if (x.is_equal(Infinity) || x.is_equal(NegInfinity))
+	// asech(oo) -> Pi*I/2
+	// asech(-oo) -> Pi*I/2
+	// asech(UnsignedInfinity) -> error
+	if (x.info(info_flags::infinity)) {
+		if (x.is_equal(Infinity) || x.is_equal(NegInfinity))
 			return Pi*I*numeric(1,2);
-                // x is UnsignedInfinity
-                throw (std::runtime_error("arcsech_eval(): arcsech(unsigned_infinity) encountered"));
-        }
-        
-        return asech(x).hold();
+		// x is UnsignedInfinity
+		throw (std::runtime_error("arcsech_eval(): arcsech(unsigned_infinity) encountered"));
+	}
+	
+	return asech(x).hold();
 }
 
 static ex asech_deriv(const ex & x, unsigned deriv_param)
 {
-        GINAC_ASSERT(deriv_param==0);
+	GINAC_ASSERT(deriv_param==0);
 
-        // asech(x) -> ln(1/x + sqrt(1/x^2 - 1))
-        // d/dx asech(x) ->  -1 / [x * sqrt(1 - x^2)];
-        return (_ex_1/x)*power(_ex1-power(x, _ex2), _ex_1_2);
+	// asech(x) -> ln(1/x + sqrt(1/x^2 - 1))
+	// d/dx asech(x) ->  -1 / [x * sqrt(1 - x^2)];
+	return (_ex_1/x)*power(_ex1-power(x, _ex2), _ex_1_2);
 }
 
 static ex asech_conjugate(const ex & x)
 {
-        // conjugate(asech(x))==asech(conjugate(x)) unless on the branch cuts which
-        // run along the real axis from 0 to -oo and 1 to oo.
-        if (is_exactly_a<numeric>(x) &&
-            (!x.imag_part().is_zero() || (x < *_num1_p && x > *_num0_p))) {
-                return asech(x.conjugate());
-        }
-        return conjugate_function(asech(x)).hold();
+	// conjugate(asech(x))==asech(conjugate(x)) unless on the branch cuts which
+	// run along the real axis from 0 to -oo and 1 to oo.
+	if (is_exactly_a<numeric>(x) &&
+	    (!x.imag_part().is_zero() || (x < *_num1_p && x > *_num0_p))) {
+		return asech(x.conjugate());
+	}
+	return conjugate_function(asech(x)).hold();
 }
 
 REGISTER_FUNCTION(asech, eval_func(asech_eval).
-                         derivative_func(asech_deriv).
-                         conjugate_func(asech_conjugate).
-                         set_name("arcsech"));
+			 derivative_func(asech_deriv).
+			 conjugate_func(asech_conjugate).
+			 set_name("arcsech"));
 
 } // namespace GiNaC

@@ -20,7 +20,7 @@ namespace GiNaC {
 
 static ex stieltjes1_evalf(const ex& x, PyObject* parent)
 {
-        if (is_exactly_a<numeric>(x)) {
+	if (is_exactly_a<numeric>(x)) {
 		try {
 			return stieltjes(ex_to<numeric>(x.evalf(0, parent)));
 		} catch (const dunno &e) { }
@@ -33,39 +33,39 @@ static ex stieltjes1_evalf(const ex& x, PyObject* parent)
 static ex stieltjes1_eval(const ex& arg)
 {
 	if (not is_exactly_a<numeric>(arg))
-                return stieltjes(arg).hold();
+		return stieltjes(arg).hold();
 
 	if (not arg.is_integer())
-                return stieltjes(ex_to<numeric>(arg));
+		return stieltjes(ex_to<numeric>(arg));
 
-        if (ex_to<numeric>(arg).is_zero())
-                return Euler;
+	if (ex_to<numeric>(arg).is_zero())
+		return Euler;
 
-        if (ex_to<numeric>(arg).is_negative())
-                throw std::runtime_error("Stieltjes constant of negative index");
-        return stieltjes(arg).hold();
+	if (ex_to<numeric>(arg).is_negative())
+		throw std::runtime_error("Stieltjes constant of negative index");
+	return stieltjes(arg).hold();
 }
 
 static void stieltjes1_print_latex(const ex& arg, const print_context& c)
 {
 	c.s << "\\gamma";
-        if (is_exactly_a<numeric>(arg) and ex_to<numeric>(arg).is_zero())
-                return;
-        c.s << "_{";
+	if (is_exactly_a<numeric>(arg) and ex_to<numeric>(arg).is_zero())
+		return;
+	c.s << "_{";
 	arg.print(c);
 	c.s << "}";
 }
 
 
 unsigned stieltjes1_SERIAL::serial = function::register_new(function_options("stieltjes", 1).
-                                evalf_func(stieltjes1_evalf).
-                                eval_func(stieltjes1_eval).
-                                print_func<print_latex>(stieltjes1_print_latex).
-                                overloaded(2));
+				evalf_func(stieltjes1_evalf).
+				eval_func(stieltjes1_eval).
+				print_func<print_latex>(stieltjes1_print_latex).
+				overloaded(2));
 
 //////////////////////////////////////////////////////////////////////
 //
-// Multiple zeta values  zeta(x)
+// Multiple zeta values	 zeta(x)
 //
 // GiNaC function
 //
@@ -74,7 +74,7 @@ unsigned stieltjes1_SERIAL::serial = function::register_new(function_options("st
 
 static ex zeta1_evalf(const ex& x, PyObject* parent)
 {
-        /*
+	/*
 	if (is_exactly_a<lst>(x) && (x.nops()>1)) {
 
 		// multiple zeta value
@@ -113,7 +113,7 @@ static ex zeta1_evalf(const ex& x, PyObject* parent)
 	if (x == 1) {
 		return UnsignedInfinity;
 	}
-        if (is_exactly_a<numeric>(x)) {
+	if (is_exactly_a<numeric>(x)) {
 		try {
 			return zeta(ex_to<numeric>(x.evalf(0, parent)));
 		} catch (const dunno &e) { }
@@ -160,7 +160,7 @@ static ex zeta1_eval(const ex& m)
 			if (y.is_equal(*_num1_p)) {
 				return UnsignedInfinity;
 			}
-		        return zeta(y); // y is numeric
+			return zeta(y); // y is numeric
 		}
 	}
 	return zeta(m).hold();
@@ -214,12 +214,12 @@ static void zeta1_print_latex(const ex& m_, const print_context& c)
 
 
 unsigned zeta1_SERIAL::serial = function::register_new(function_options("zeta", 1).
-                                evalf_func(zeta1_evalf).
-                                eval_func(zeta1_eval).
-                                derivative_func(zeta1_deriv).
-                                series_func(zeta1_series).
-                                print_func<print_latex>(zeta1_print_latex).
-                                overloaded(2));
+				evalf_func(zeta1_evalf).
+				eval_func(zeta1_eval).
+				derivative_func(zeta1_deriv).
+				series_func(zeta1_series).
+				print_func<print_latex>(zeta1_print_latex).
+				overloaded(2));
 
 
 //////////////////////////////////////////////////////////////////////
@@ -233,7 +233,7 @@ unsigned zeta1_SERIAL::serial = function::register_new(function_options("zeta", 
 
 static ex zeta2_evalf(const ex& x, const ex& s, PyObject* parent)
 {
-        /*
+	/*
 	if (is_exactly_a<lst>(x)) {
 
 		// alternating Euler sum
@@ -289,7 +289,7 @@ static ex zeta2_eval(const ex& m, const ex& s_)
 		}
 		return zeta(m);
 	}
-        if (s_.is_positive()) {
+	if (s_.is_positive()) {
 		return zeta(m);
 	}
 
@@ -304,12 +304,12 @@ static ex zeta2_deriv(const ex& m, const ex& s, unsigned deriv_param)
 	if (is_exactly_a<lst>(m)) {
 		return _ex0;
 	} 
-        
-        if ((is_exactly_a<lst>(s) and s.op(0).is_positive())
-            or s.is_positive()) {
-                return zetaderiv(_ex1, m);
-        }
-        return _ex0;
+	
+	if ((is_exactly_a<lst>(s) and s.op(0).is_positive())
+	    or s.is_positive()) {
+		return zetaderiv(_ex1, m);
+	}
+	return _ex0;
 }
 
 
@@ -354,11 +354,11 @@ static void zeta2_print_latex(const ex& m_, const ex& s_, const print_context& c
 
 
 unsigned zeta2_SERIAL::serial = function::register_new(function_options("zeta", 2).
-                                evalf_func(zeta2_evalf).
-                                eval_func(zeta2_eval).
-                                derivative_func(zeta2_deriv).
-                                print_func<print_latex>(zeta2_print_latex).
-                                overloaded(2));
+				evalf_func(zeta2_evalf).
+				eval_func(zeta2_eval).
+				derivative_func(zeta2_deriv).
+				print_func<print_latex>(zeta2_print_latex).
+				overloaded(2));
 
 //////////
 // Derivatives of Riemann's Zeta-function  zetaderiv(0,x)==zeta(x)
@@ -388,7 +388,7 @@ static ex zetaderiv_deriv(const ex & n, const ex & x, unsigned deriv_param)
 }
 
 REGISTER_FUNCTION(zetaderiv, eval_func(zetaderiv_eval).
-	                       	 derivative_func(zetaderiv_deriv).
-  	                         latex_name("\\zeta^\\prime"));
+				 derivative_func(zetaderiv_deriv).
+				 latex_name("\\zeta^\\prime"));
 
 } // namespace GiNaC

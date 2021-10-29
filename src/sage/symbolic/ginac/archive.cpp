@@ -97,12 +97,12 @@ ex archive::unarchive_ex(const lst &sym_lst, const char *name) const
 	// Find root node
 	std::string name_string = name;
 	archive_atom id = atomize(name_string);
-        for (const auto & elem : exprs) {
+	for (const auto & elem : exprs) {
 		if (elem.name == id) {
-                        // Recursively unarchive all nodes, starting at the root node
-                        lst sym_lst_copy = sym_lst;
-                        return nodes[elem.root].unarchive(sym_lst_copy);
-                }
+			// Recursively unarchive all nodes, starting at the root node
+			lst sym_lst_copy = sym_lst;
+			return nodes[elem.root].unarchive(sym_lst_copy);
+		}
 	}
 	throw (std::runtime_error("expression with name '" + name_string + "' not found in archive"));
 }
@@ -150,15 +150,15 @@ const archive_node &archive::get_top_node(unsigned index) const
  *   - 4 bytes signature 'GARC'
  *   - unsigned version number
  *   - unsigned number of atoms
- *      - atom strings (each zero-terminated)
+ *	- atom strings (each zero-terminated)
  *   - unsigned number of expressions
- *      - unsigned name atom
- *      - unsigned root node ID
+ *	- unsigned name atom
+ *	- unsigned root node ID
  *   - unsigned number of nodes
- *      - unsigned number of properties
- *        - unsigned containing type (PTYPE_*) in its lower 3 bits and
- *          name atom in the upper bits
- *        - unsigned property value
+ *	- unsigned number of properties
+ *	  - unsigned containing type (PTYPE_*) in its lower 3 bits and
+ *	    name atom in the upper bits
+ *	  - unsigned property value
  *
  *  Unsigned quantities are stored in a compressed format:
  *   - numbers in the range 0x00..0x7f are stored verbatim (1 byte)
@@ -167,20 +167,20 @@ const archive_node &archive::get_top_node(unsigned index) const
  *     their upper bit set
  *
  *  Examples:
- *   0x00           =   0x00
- *    ..                 ..
- *   0x7f           =   0x7f
- *   0x80 0x01      =   0x80
- *    ..   ..            ..
- *   0xff 0x01      =   0xff
- *   0x80 0x02      =  0x100
- *    ..   ..            ..
- *   0xff 0x02      =  0x17f
- *   0x80 0x03      =  0x180
- *    ..   ..            ..
- *   0xff 0x7f      = 0x3fff
+ *   0x00	    =	0x00
+ *    ..		 ..
+ *   0x7f	    =	0x7f
+ *   0x80 0x01	    =	0x80
+ *    ..   ..		 ..
+ *   0xff 0x01	    =	0xff
+ *   0x80 0x02	    =  0x100
+ *    ..   ..		 ..
+ *   0xff 0x02	    =  0x17f
+ *   0x80 0x03	    =  0x180
+ *    ..   ..		 ..
+ *   0xff 0x7f	    = 0x3fff
  *   0x80 0x80 0x01 = 0x4000
- *    ..   ..   ..       ..
+ *    ..   ..	..	 ..
  */
 
 /** Write unsigned integer quantity to stream. */
@@ -202,7 +202,7 @@ static unsigned read_unsigned(std::istream &is)
 	do {
 		char b2 = 0;
 		if (is.get(b2))
-        		b = b2;
+			b = b2;
 		ret |= (b & 0x7f) << shift;
 		shift += 7;
 	} while ((b & 0x80) != 0);
@@ -445,7 +445,7 @@ bool archive_node::find_string(const std::string &name, std::string &ret, unsign
 {
 	archive_atom name_atom = a.atomize(name);
 	unsigned found_index = 0;
-        for (const auto & elem : props) {
+	for (const auto & elem : props) {
 		if (elem.type == PTYPE_STRING && elem.name == name_atom) {
 			if (found_index == index) {
 				ret = a.unatomize(elem.value);
@@ -467,7 +467,7 @@ bool archive_node::find_ex(const std::string &name, ex &ret, lst &sym_lst, unsig
 {
 	archive_atom name_atom = a.atomize(name);
 	unsigned found_index = 0;
-        for (const auto & elem : props) {
+	for (const auto & elem : props) {
 		if (elem.type == PTYPE_NODE && elem.name == name_atom) {
 			if (found_index == index) {
 				ret = a.get_node(elem.value).unarchive(sym_lst);
@@ -483,7 +483,7 @@ const archive_node &archive_node::find_ex_node(const std::string &name, unsigned
 {
 	archive_atom name_atom = a.atomize(name);
 	unsigned found_index = 0;
-        for (const auto & elem : props) {
+	for (const auto & elem : props) {
 		if (elem.type == PTYPE_NODE && elem.name == name_atom) {
 			if (found_index == index)
 				return a.get_node(elem.value);
@@ -497,12 +497,12 @@ const archive_node &archive_node::find_ex_node(const std::string &name, unsigned
 void archive_node::get_properties(propinfovector &v) const
 {
 	v.clear();
-        for (const auto & elem : props) {
+	for (const auto & elem : props) {
 		property_type type = elem.type;
 		std::string name = a.unatomize(elem.name);
 
 		bool found = false;
-                for (auto & velem : v) {
+		for (auto & velem : v) {
 			if (velem.type == type && velem.name == name) {
 				velem.count++;
 				found = true;
@@ -519,33 +519,33 @@ using unarch_func_map = std::unordered_map<std::string, unarch_func_t>;
 
 static unarch_func_map& fill_map()
 {
-        static unarch_func_map map;
+	static unarch_func_map map;
 
-        map["symbol"] = symbol::unarchive;
-        map["lst"] = lst::unarchive;
-        map["numeric"] = numeric::unarchive;
-        map["constant"] = constant::unarchive;
-        map["function"] = function::unarchive;
-        map["fderivative"] = fderivative::unarchive;
-        map["matrix"] = matrix::unarchive;
-        map["pseries"] = pseries::unarchive;
-        map["add"] = add::unarchive;
-        map["mul"] = mul::unarchive;
-        map["power"] = power::unarchive;
-        map["infinity"] = infinity::unarchive;
-        map["exprseq"] = exprseq::unarchive;
-        map["relational"] = relational::unarchive;
+	map["symbol"] = symbol::unarchive;
+	map["lst"] = lst::unarchive;
+	map["numeric"] = numeric::unarchive;
+	map["constant"] = constant::unarchive;
+	map["function"] = function::unarchive;
+	map["fderivative"] = fderivative::unarchive;
+	map["matrix"] = matrix::unarchive;
+	map["pseries"] = pseries::unarchive;
+	map["add"] = add::unarchive;
+	map["mul"] = mul::unarchive;
+	map["power"] = power::unarchive;
+	map["infinity"] = infinity::unarchive;
+	map["exprseq"] = exprseq::unarchive;
+	map["relational"] = relational::unarchive;
 
-        return map;
+	return map;
 }
 
 static const unarch_func_t& find_unarch_func(const std::string& s)
 {
-        static unarch_func_map& map = fill_map();
-        auto it = map.find(s);
-        if (it == map.end())
-                throw std::runtime_error("can't happen");
-        return it->second;
+	static unarch_func_map& map = fill_map();
+	auto it = map.find(s);
+	if (it == map.end())
+		throw std::runtime_error("can't happen");
+	return it->second;
 }
 
 /** Convert archive node to GiNaC expression. */
@@ -599,7 +599,7 @@ void archive::printraw(std::ostream &os) const
 	os << "Atoms:\n";
 	{
 		archive_atom id = 0;
-                for (const auto & elem : atoms) {
+		for (const auto & elem : atoms) {
 			os << " " << id << " " << elem << std::endl;
 			id++;
 		}
@@ -610,7 +610,7 @@ void archive::printraw(std::ostream &os) const
 	os << "Expressions:\n";
 	{
 		unsigned index = 0;
-                for (const auto & elem : exprs) {
+		for (const auto & elem : exprs) {
 			os << " " << index << " \"" << unatomize(elem.name) << "\" root node " << elem.root << std::endl;
 			index++;
 		}
@@ -621,7 +621,7 @@ void archive::printraw(std::ostream &os) const
 	os << "Nodes:\n";
 	{
 		archive_node_id id = 0;
-                for (const auto & elem : nodes) {
+		for (const auto & elem : nodes) {
 			os << " " << id << " ";
 			elem.printraw(os);
 			id++;
@@ -639,8 +639,8 @@ void archive_node::printraw(std::ostream &os) const
 		os << "\n";
 
 	// Dump properties
-        for (const auto & elem : props) {
-		os << "  ";
+	for (const auto & elem : props) {
+		os << "	 ";
 		switch (elem.type) {
 			case PTYPE_BOOL: os << "bool"; break;
 			case PTYPE_UNSIGNED: os << "unsigned"; break;

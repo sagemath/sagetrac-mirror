@@ -88,8 +88,8 @@ numeric basic::integer_content() const
 numeric numeric::integer_content() const
 {
     if (is_real()) {
-        return abs();
-        }
+	return abs();
+	}
 	else {
 	    return real().numer().gcd(imag().numer()) / real().denom().lcm(imag().denom());
 	    }
@@ -199,150 +199,150 @@ numeric mul::max_coefficient() const
 
 bool ex::is_linear(const symbol& x, ex& a, ex& b) const
 {
-        expand();
-        if (not has_symbol(*this, x)) {
-                a = *this;
-                b = _ex0;
-                return true;
-        }
-        if (this->is_equal(x)) {
-                a = _ex0;
-                b = _ex1;
-                return true;
-        }
-        if (is_exactly_a<mul>(*this)) {
-                if (has_symbol(*this/x, x))
-                        return false;
-                a = _ex0;
-                b = *this/x;
-                return true;
-        }
-        if (not is_exactly_a<add>(*this))
-                return false;
-        const add& A = ex_to<add>(*this);
-        exvector cterms, xterms;
-        for (unsigned i=0; i<A.nops(); ++i)
-                if (has_symbol(A.op(i), x))
-                        xterms.push_back(A.op(i));
-                else
-                        cterms.push_back(A.op(i));
-        ex xt = (add(xterms) / x).normal();
-        if (has_symbol(xt, x))
-                return false;
-        a = add(cterms);
-        b = xt;
-        return true;
+	expand();
+	if (not has_symbol(*this, x)) {
+		a = *this;
+		b = _ex0;
+		return true;
+	}
+	if (this->is_equal(x)) {
+		a = _ex0;
+		b = _ex1;
+		return true;
+	}
+	if (is_exactly_a<mul>(*this)) {
+		if (has_symbol(*this/x, x))
+			return false;
+		a = _ex0;
+		b = *this/x;
+		return true;
+	}
+	if (not is_exactly_a<add>(*this))
+		return false;
+	const add& A = ex_to<add>(*this);
+	exvector cterms, xterms;
+	for (unsigned i=0; i<A.nops(); ++i)
+		if (has_symbol(A.op(i), x))
+			xterms.push_back(A.op(i));
+		else
+			cterms.push_back(A.op(i));
+	ex xt = (add(xterms) / x).normal();
+	if (has_symbol(xt, x))
+		return false;
+	a = add(cterms);
+	b = xt;
+	return true;
 }
 
 bool ex::is_quadratic(const symbol& x, ex& a, ex& b, ex& c) const
 {
-        expand();
-        expairvec coeffs;
-        coefficients(x, coeffs);
-        b = c = _ex0;
-        for (const auto& p : coeffs) {
-                const ex& d = p.second;
-                if (d.is_equal(_ex2)) {
-                        c = p.first;
-                        if (has_symbol(c,x))
-                                return false;
-                }
-                else if (d.is_equal(_ex1)) {
-                        b = p.first;
-                        if (has_symbol(b,x))
-                                return false;
-                }
-                else if (not d.is_equal(_ex0))
-                        return false;
-        }
-        a = ((*this) - c*power(x,2) - b*x).expand();
-        if (has_symbol(a,x))
-                return false;
-        return true;
+	expand();
+	expairvec coeffs;
+	coefficients(x, coeffs);
+	b = c = _ex0;
+	for (const auto& p : coeffs) {
+		const ex& d = p.second;
+		if (d.is_equal(_ex2)) {
+			c = p.first;
+			if (has_symbol(c,x))
+				return false;
+		}
+		else if (d.is_equal(_ex1)) {
+			b = p.first;
+			if (has_symbol(b,x))
+				return false;
+		}
+		else if (not d.is_equal(_ex0))
+			return false;
+	}
+	a = ((*this) - c*power(x,2) - b*x).expand();
+	if (has_symbol(a,x))
+		return false;
+	return true;
 }
 
 bool ex::is_binomial(const symbol& x, ex& a, ex& j, ex& b, ex& n) const
 {
-        expand();
-        if (is_linear(x, a, b)) {
-                j = _ex0;
-                if (b.is_zero())
-                        n = _ex0;
-                else
-                        n = _ex1;
-                return true;
-        }
-        if (is_exactly_a<power>(*this)) {
-                const power& p = ex_to<power>(*this);
-                if (has_symbol(p.op(1), x)
-                    or not p.op(0).is_equal(x))
-                        return false;
-                a = _ex1;
-                j = p.op(1);
-                b = _ex0;
-                n = _ex0;
-                return true;
-        }
-        if (is_exactly_a<mul>(*this)) {
-                const mul& m = ex_to<mul>(*this);
-                ex cprod = _ex1;
-                j = _ex0;
-                b = _ex0;
-                n = _ex0;
-                for (unsigned i=0; i<m.nops(); ++i) {
-                        const ex& factor = m.op(i);
-                        if (not has_symbol(factor, x))
-                                cprod *= factor;
-                        else if (is_exactly_a<power>(factor)) {
-                                const power& pow = ex_to<power>(factor);
-                                if (has_symbol(pow.op(1), x)
-                                    or not pow.op(0).is_equal(x))
-                                        return false;
-                                j = pow.op(1);
-                        }
-                        else if (factor.is_equal(x))
-                                j = _ex1;
-                        else
-                                return false;
-                }
-                a = cprod;
-                return true;
-        }
-        if (not is_exactly_a<add>(*this))
-                return false;
-        const add& A = ex_to<add>(*this);
-        exvector cterms, xterms;
-        for (unsigned i=0; i<A.nops(); ++i)
-                if (has_symbol(A.op(i), x))
-                        xterms.push_back(A.op(i));
-                else
-                        cterms.push_back(A.op(i));
-        if (xterms.size() > 2
-            or (xterms.size() == 2
-                and cterms.size() > 0))
-                return false;
+	expand();
+	if (is_linear(x, a, b)) {
+		j = _ex0;
+		if (b.is_zero())
+			n = _ex0;
+		else
+			n = _ex1;
+		return true;
+	}
+	if (is_exactly_a<power>(*this)) {
+		const power& p = ex_to<power>(*this);
+		if (has_symbol(p.op(1), x)
+		    or not p.op(0).is_equal(x))
+			return false;
+		a = _ex1;
+		j = p.op(1);
+		b = _ex0;
+		n = _ex0;
+		return true;
+	}
+	if (is_exactly_a<mul>(*this)) {
+		const mul& m = ex_to<mul>(*this);
+		ex cprod = _ex1;
+		j = _ex0;
+		b = _ex0;
+		n = _ex0;
+		for (unsigned i=0; i<m.nops(); ++i) {
+			const ex& factor = m.op(i);
+			if (not has_symbol(factor, x))
+				cprod *= factor;
+			else if (is_exactly_a<power>(factor)) {
+				const power& pow = ex_to<power>(factor);
+				if (has_symbol(pow.op(1), x)
+				    or not pow.op(0).is_equal(x))
+					return false;
+				j = pow.op(1);
+			}
+			else if (factor.is_equal(x))
+				j = _ex1;
+			else
+				return false;
+		}
+		a = cprod;
+		return true;
+	}
+	if (not is_exactly_a<add>(*this))
+		return false;
+	const add& A = ex_to<add>(*this);
+	exvector cterms, xterms;
+	for (unsigned i=0; i<A.nops(); ++i)
+		if (has_symbol(A.op(i), x))
+			xterms.push_back(A.op(i));
+		else
+			cterms.push_back(A.op(i));
+	if (xterms.size() > 2
+	    or (xterms.size() == 2
+		and cterms.size() > 0))
+		return false;
 
-        ex ta, tj, tb, tn;
-        bool r = xterms[0].is_binomial(x, ta, tj, tb, tn);
-        if (not r)
-                return false;
-        a = ta;
-        j = tj;
-        if (xterms.size() < 2) {
-                b = add(cterms);
-                n = _ex0;
-                return true;
-        }
-        r = xterms[1].is_binomial(x, ta, tj, tb, tn);
-        if (not r)
-                return false;
-        b = ta;
-        n = tj;
-        return true;
+	ex ta, tj, tb, tn;
+	bool r = xterms[0].is_binomial(x, ta, tj, tb, tn);
+	if (not r)
+		return false;
+	a = ta;
+	j = tj;
+	if (xterms.size() < 2) {
+		b = add(cterms);
+		n = _ex0;
+		return true;
+	}
+	r = xterms[1].is_binomial(x, ta, tj, tb, tn);
+	if (not r)
+		return false;
+	b = ta;
+	n = tj;
+	return true;
 }
 
 /** Apply symmetric modular homomorphism to an expanded multivariate
- *  polynomial.  This function was usually used internally by heur_gcd().
+ *  polynomial.	 This function was usually used internally by heur_gcd().
  *
  *  @param xi  modulus
  *  @return mapped polynomial
@@ -423,8 +423,8 @@ static ex replace_with_symbol(const ex & e, exmap & repl, exmap & rev_lookup)
 	// replacement expression doesn't itself contain symbols from repl,
 	// because subs() is not recursive
 	symbol* sp = new symbol;
-        sp->set_domain_from_ex(e_replaced);
-        ex es = sp->setflag(status_flags::dynallocated);
+	sp->set_domain_from_ex(e_replaced);
+	ex es = sp->setflag(status_flags::dynallocated);
 	repl.insert(std::make_pair(es, e_replaced));
 	rev_lookup.insert(std::make_pair(e_replaced, es));
 	return es;
@@ -449,8 +449,8 @@ static ex replace_with_symbol(const ex & e, exmap & repl)
 	// replacement expression doesn't itself contain symbols from repl,
 	// because subs() is not recursive
 	symbol* sp = new symbol;
-        sp->set_domain_from_ex(e_replaced);
-        ex es = sp->setflag(status_flags::dynallocated);
+	sp->set_domain_from_ex(e_replaced);
+	ex es = sp->setflag(status_flags::dynallocated);
 	repl.insert(std::make_pair(es, e_replaced));
 	return es;
 }
@@ -470,14 +470,14 @@ ex basic::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) 
 {
 	if (nops() == 0)
 		return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
-        if (level == 1)
-                return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
-        if (level == -max_recursion_level)
-                throw(std::runtime_error("max recursion level reached"));
-        else {
-                normal_map_function map_normal(level - 1);
-                return (new lst(replace_with_symbol(map(map_normal), repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
-        }
+	if (level == 1)
+		return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
+	if (level == -max_recursion_level)
+		throw(std::runtime_error("max recursion level reached"));
+	else {
+		normal_map_function map_normal(level - 1);
+		return (new lst(replace_with_symbol(map(map_normal), repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
+	}
 }
 
 
@@ -575,18 +575,18 @@ static ex frac_cancel(const ex &n, const ex &d)
 
 ex function::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) const
 {
-        if (get_serial() == exp_SERIAL::serial) {
-                GiNaC::power p(symbol_E, op(0));
-                return p.normal(repl, rev_lookup, level, options);
-        }
-        if (level == 1)
-                return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
-        if (level == -max_recursion_level)
-                throw(std::runtime_error("max recursion level reached"));
-        else {
-                normal_map_function map_normal(level - 1);
-                return (new lst(replace_with_symbol(map(map_normal), repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
-        }
+	if (get_serial() == exp_SERIAL::serial) {
+		GiNaC::power p(symbol_E, op(0));
+		return p.normal(repl, rev_lookup, level, options);
+	}
+	if (level == 1)
+		return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
+	if (level == -max_recursion_level)
+		throw(std::runtime_error("max recursion level reached"));
+	else {
+		normal_map_function map_normal(level - 1);
+		return (new lst(replace_with_symbol(map(map_normal), repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
+	}
 }
 
 /** Implementation of ex::normal() for a sum. It expands terms and performs
@@ -603,7 +603,7 @@ ex add::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) co
 	exvector nums, dens;
 	nums.reserve(seq.size()+1);
 	dens.reserve(seq.size()+1);
-        for (const auto& pair : seq) {
+	for (const auto& pair : seq) {
 		const ex& term = recombine_pair_to_ex(pair);
 		ex n = ex_to<basic>(term).normal(repl, rev_lookup, level-1);
 		nums.push_back(n.op(0));
@@ -638,8 +638,8 @@ ex add::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) co
 		ex co_den1, co_den2;
 		ex g = gcdpoly(den, next_den, &co_den1, &co_den2, false);
 		num = ((num * co_den2) + (next_num * co_den1));
-                if ((options & normal_options::no_expand_combined_numer) == 0u)
-                        num = num.expand();
+		if ((options & normal_options::no_expand_combined_numer) == 0u)
+			num = num.expand();
 		den *= co_den2;		// this is the lcm(den, next_den)
 	}
 //std::clog << " common denominator = " << den << std::endl;
@@ -663,7 +663,7 @@ ex mul::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) co
 	exvector num; num.reserve(seq.size());
 	exvector den; den.reserve(seq.size());
 	ex n;
-        for (const auto& pair : seq) {
+	for (const auto& pair : seq) {
 		const ex& term = recombine_pair_to_ex(pair);
 		n = ex_to<basic>(term).normal(repl, rev_lookup, level-1);
 		num.push_back(n.op(0));
@@ -675,7 +675,7 @@ ex mul::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) co
 
 	// Perform fraction cancellation
 	return frac_cancel((new mul(num))->setflag(status_flags::dynallocated),
-	                   (new mul(den))->setflag(status_flags::dynallocated));
+			   (new mul(den))->setflag(status_flags::dynallocated));
 }
 
 
@@ -700,50 +700,50 @@ ex power::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) 
 		if (n_exponent.is_positive()) {
 			// (a/b)^n -> {a^n, b^n}
 			return (new lst(power(n_basis.op(0), n_exponent),
-                                              power(n_basis.op(1), n_exponent)))
-                                ->setflag(status_flags::dynallocated);
+					      power(n_basis.op(1), n_exponent)))
+				->setflag(status_flags::dynallocated);
 
 		}
-                if (n_exponent.info(info_flags::negative)) {
+		if (n_exponent.info(info_flags::negative)) {
 			// (a/b)^-n -> {b^n, a^n}
 			return (new lst(power(n_basis.op(1), -n_exponent),
-                                              power(n_basis.op(0), -n_exponent)))
-                                ->setflag(status_flags::dynallocated);
+					      power(n_basis.op(0), -n_exponent)))
+				->setflag(status_flags::dynallocated);
 		}
 	} else {
 
 		if (n_exponent.is_positive()) {
 			// (a/b)^x -> {sym((a/b)^x), 1}
 			return (new lst(replace_with_symbol(power(n_basis.op(0) / n_basis.op(1),
-                                                                n_exponent),
-                                                            repl, rev_lookup),
-                                                _ex1))
-                                ->setflag(status_flags::dynallocated);
+								n_exponent),
+							    repl, rev_lookup),
+						_ex1))
+				->setflag(status_flags::dynallocated);
 		}
-                if (n_exponent.info(info_flags::negative)) {
+		if (n_exponent.info(info_flags::negative)) {
 
 			if (n_basis.op(1).is_one()) {
 
 				// a^-x -> {1, sym(a^x)}
 				return (new lst(_ex1,
-                                                replace_with_symbol(power(n_basis.op(0), -n_exponent),
-                                                        repl, rev_lookup)))
-                                        ->setflag(status_flags::dynallocated);
+						replace_with_symbol(power(n_basis.op(0), -n_exponent),
+							repl, rev_lookup)))
+					->setflag(status_flags::dynallocated);
 			}
 
-                // (a/b)^-x -> {sym((b/a)^x), 1}
-                return (new lst(replace_with_symbol(power(n_basis.op(1) / n_basis.op(0), -n_exponent),
-                                                repl, rev_lookup), _ex1))
-                        ->setflag(status_flags::dynallocated);
+		// (a/b)^-x -> {sym((b/a)^x), 1}
+		return (new lst(replace_with_symbol(power(n_basis.op(1) / n_basis.op(0), -n_exponent),
+						repl, rev_lookup), _ex1))
+			->setflag(status_flags::dynallocated);
 			
 		}
 	}
 
 	// (a/b)^x -> {sym((a/b)^x, 1}
 	return (new lst(replace_with_symbol(power(n_basis.op(0) / n_basis.op(1),
-                                                n_exponent),
-                                        repl, rev_lookup), _ex1))
-                ->setflag(status_flags::dynallocated);
+						n_exponent),
+					repl, rev_lookup), _ex1))
+		->setflag(status_flags::dynallocated);
 }
 
 
@@ -781,24 +781,24 @@ ex ex::normal(int level, bool noexpand_combined, bool noexpand_numer) const
 {
 	exmap repl, rev_lookup;
 
-        unsigned options = 0;
-        if (noexpand_combined)
-                options |= normal_options::no_expand_combined_numer;
-        if (noexpand_numer)
-                options |= normal_options::no_expand_fraction_numer;
+	unsigned options = 0;
+	if (noexpand_combined)
+		options |= normal_options::no_expand_combined_numer;
+	if (noexpand_numer)
+		options |= normal_options::no_expand_fraction_numer;
 
 	ex e = bp->normal(repl, rev_lookup, level, options);
 	GINAC_ASSERT(is_a<lst>(e));
 
 	// Re-insert replaced symbols and exp functions
-        e = e.subs(repl, subs_options::no_pattern);
+	e = e.subs(repl, subs_options::no_pattern);
 	e = e.subs(symbol_E == exp(1));
 
-        // Convert {numerator, denominator} form back to fraction
-        if ((options & normal_options::no_expand_fraction_numer) == 0u)
-                return e.op(0).expand() / e.op(1);
+	// Convert {numerator, denominator} form back to fraction
+	if ((options & normal_options::no_expand_fraction_numer) == 0u)
+		return e.op(0).expand() / e.op(1);
 
-        return e.op(0) / e.op(1);
+	return e.op(0) / e.op(1);
 }
 
 /** Get numerator of an expression. If the expression is not of the normal
@@ -820,7 +820,7 @@ ex ex::numer() const
 	else
 		e = e.op(0).subs(repl, subs_options::no_pattern);
 	e = e.subs(symbol_E == exp(1));
-        return e;
+	return e;
 }
 
 /** Get denominator of an expression. If the expression is not of the normal
@@ -836,13 +836,13 @@ ex ex::denom() const
 	ex e = bp->normal(repl, rev_lookup, 0);
 	GINAC_ASSERT(is_a<lst>(e));
 
-        // Re-insert replaced symbols
+	// Re-insert replaced symbols
 	if (repl.empty())
 		e = e.op(1);
 	else
 		e = e.op(1).subs(repl, subs_options::no_pattern);
 	e = e.subs(symbol_E == exp(1));
-        return e;
+	return e;
 }
 
 /** Get numerator and denominator of an expression. If the expresison is not
@@ -862,7 +862,7 @@ ex ex::numer_denom() const
 	if (not repl.empty())
 		e = e.subs(repl, subs_options::no_pattern);
 	e = e.subs(symbol_E == exp(1));
-        return e;
+	return e;
 }
 
 
@@ -1010,13 +1010,13 @@ ex power::to_polynomial(exmap & repl) const
 	{
 		ex basis_pref = collect_common_factors(basis);
 		if (is_exactly_a<mul>(basis_pref)
-                    or is_exactly_a<power>(basis_pref)) {
+		    or is_exactly_a<power>(basis_pref)) {
 			// (A*B)^n will be automagically transformed to A^n*B^n
 			ex t = power(basis_pref, exponent);
 			return t.to_polynomial(repl);
 		}
 		return power(replace_with_symbol(power(basis, _ex_1), repl),
-                                -exponent);
+				-exponent);
 	}
 	return replace_with_symbol(*this, repl);
 }
@@ -1091,11 +1091,11 @@ static ex find_common_factor(const ex & e, ex & factor, exmap & repl)
 		if (gc.is_one())
 			return e;
 #ifdef PYNAC_HAVE_LIBGIAC
-                else {
-                        ex f = 1;
-                        gc = find_common_factor(gc, f, repl);
-                        gc *= f;
-                }
+		else {
+			ex f = 1;
+			gc = find_common_factor(gc, f, repl);
+			gc *= f;
+		}
 #endif
 
 		// The GCD is the factor we pull out
@@ -1129,7 +1129,7 @@ term_done:	;
 		}
 		return (new add(terms))->setflag(status_flags::dynallocated);
 	}
-        if (is_exactly_a<mul>(e)) {
+	if (is_exactly_a<mul>(e)) {
 
 		size_t num = e.nops();
 		exvector v; v.reserve(num);
@@ -1139,7 +1139,7 @@ term_done:	;
 
 		return (new mul(v))->setflag(status_flags::dynallocated);
 	}
-        if (is_exactly_a<power>(e)) {
+	if (is_exactly_a<power>(e)) {
 		const ex e_exp(e.op(1));
 		if (e_exp.is_integer()) {
 			ex eb = e.op(0).to_polynomial(repl);
@@ -1149,8 +1149,8 @@ term_done:	;
 			return power(pre_res, e_exp);
 		}
 		return e.to_polynomial(repl);
-        }
-        return e;
+	}
+	return e;
 }
 
 
@@ -1171,61 +1171,61 @@ ex collect_common_factors(const ex & e)
 
 ex gcd(const ex &a, const ex &b)
 {
-        if (is_exactly_a<numeric>(a) && is_exactly_a<numeric>(b))
-                return gcd(ex_to<numeric>(a), ex_to<numeric>(b));
-        return gcdpoly(a, b);
+	if (is_exactly_a<numeric>(a) && is_exactly_a<numeric>(b))
+		return gcd(ex_to<numeric>(a), ex_to<numeric>(b));
+	return gcdpoly(a, b);
 }
 
 bool factor(const ex& the_ex, ex& res_ex)
 {
-        if (is_exactly_a<numeric>(the_ex)
-            or is_exactly_a<symbol>(the_ex)
-            or is_exactly_a<function>(the_ex)
-            or is_exactly_a<constant>(the_ex)) {
-                return false;
-        }
-        if (is_exactly_a<mul>(the_ex)) {
-                const mul& m = ex_to<mul>(the_ex);
-                exvector ev;
-                bool mchanged = false;
-                for (size_t i=0; i<m.nops(); ++i) {
-                        ex r;
-                        const ex& e = m.op(i);
-                        bool res = factor(e, r);
-                        if (res) {
-                                ev.push_back(r);
-                                mchanged = true;
-                        }
-                        else
-                                ev.push_back(e);
-                }
-                if (mchanged)
-                        res_ex = mul(ev);
-                return mchanged;
-        }
-        if (is_exactly_a<power>(the_ex)) {
-                const power& p = ex_to<power>(the_ex);
-                ex r;
-                bool pchanged = factor(p.op(0), r);
-                if (pchanged)
-                        res_ex = power(r, p.op(1));
-                return pchanged;
-        }
-        ex num, den;
-        ex normalized = the_ex.numer_denom();
-        num = normalized.op(0);
-        bool nres = factorpoly(num, res_ex);
-        den = normalized.op(1);
-        ex res_den;
-        bool dres = factorpoly(den, res_den);
-        if (not nres and not dres)
-                return false;
-        if (not nres)
-                res_ex = num;
-        if (not dres)
-                res_den = den;
-        res_ex = res_ex / res_den;
-        return true;
+	if (is_exactly_a<numeric>(the_ex)
+	    or is_exactly_a<symbol>(the_ex)
+	    or is_exactly_a<function>(the_ex)
+	    or is_exactly_a<constant>(the_ex)) {
+		return false;
+	}
+	if (is_exactly_a<mul>(the_ex)) {
+		const mul& m = ex_to<mul>(the_ex);
+		exvector ev;
+		bool mchanged = false;
+		for (size_t i=0; i<m.nops(); ++i) {
+			ex r;
+			const ex& e = m.op(i);
+			bool res = factor(e, r);
+			if (res) {
+				ev.push_back(r);
+				mchanged = true;
+			}
+			else
+				ev.push_back(e);
+		}
+		if (mchanged)
+			res_ex = mul(ev);
+		return mchanged;
+	}
+	if (is_exactly_a<power>(the_ex)) {
+		const power& p = ex_to<power>(the_ex);
+		ex r;
+		bool pchanged = factor(p.op(0), r);
+		if (pchanged)
+			res_ex = power(r, p.op(1));
+		return pchanged;
+	}
+	ex num, den;
+	ex normalized = the_ex.numer_denom();
+	num = normalized.op(0);
+	bool nres = factorpoly(num, res_ex);
+	den = normalized.op(1);
+	ex res_den;
+	bool dres = factorpoly(den, res_den);
+	if (not nres and not dres)
+		return false;
+	if (not nres)
+		res_ex = num;
+	if (not dres)
+		res_den = den;
+	res_ex = res_ex / res_den;
+	return true;
 }
 
 } // namespace GiNaC
