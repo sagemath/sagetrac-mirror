@@ -1047,10 +1047,9 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: gy1 = g.subs(y == 1); gy1
         96*(2*frac(x)^3 - 3*frac(x)^2 + frac(x))*(10*x^3/(x^2 + 1)^6 - 3*x/(x^2 + 1)^5)
         sage: h = integrate(gy1, x, 1, Infinity); h
-        96*integrate(14*x^3*frac(x)^3/(x^12 + 6*x^10 + 15*x^8 + 20*x^6 + 15*x^4 + 6*x^2 + 1), x, 1, +Infinity) + 96*integrate(-21*x^3*frac(x)^2/(x^12 + 6*x^10 + 15*x^8 + 20*x^6 + 15*x^4 + 6*x^2 + 1), x, 1, +Infinity) + 96*integrate(7*x^3*frac(x)/(x^12 + 6*x^10 + 15*x^8 + 20*x^6 + 15*x^4 + 6*x^2 + 1), x, 1, +Infinity) + 96*integrate(-6*x*frac(x)^3/(x^12 + 6*x^10 + 15*x^8 + 20*x^6 + 15*x^4 + 6*x^2 + 1), x, 1, +Infinity) + 96*integrate(9*x*frac(x)^2/(x^12 + 6*x^10 + 15*x^8 + 20*x^6 + 15*x^4 + 6*x^2 + 1), x, 1, +Infinity) + 96*integrate(-3*x*frac(x)/(x^12 + 6*x^10 + 15*x^8 + 20*x^6 + 15*x^4 + 6*x^2 + 1), x, 1, +Infinity)
+        96*integrate(14*x^3*frac(x)^3/(x^12 + 6*x^10 + 15*x^8 + 20*x^6 + 15*x^4 + 6*x^2 + 1), x, 1, +Infinity) + ...
         sage: h.n()
         0.0954767...
-
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:
