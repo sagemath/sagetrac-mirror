@@ -80,6 +80,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.arith.all import gcd, binomial, srange
+from sage.functions.log import log
 from sage.rings.all import (PolynomialRing,
                             Integer,
                             ZZ)
@@ -1870,7 +1871,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         - ``bound`` - a real number
 
-        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+        - ``tolerance`` - a rational number in (0,1] used in Doyle-Krumm algorithm-4
 
         - ``precision`` - the precision to use for computing the elements of bounded height of number fields.
 
@@ -1894,7 +1895,14 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: u = QQ['u'].0
             sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2, 'v'), 2)
             sage: len(list(P.points_of_bounded_height(bound=1.5, tolerance=0.1)))
-            57
+            49
+
+        ::
+
+            sage: K.<v> = QuadraticField(3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: all(Q.global_height() <= log(2)+0.01 for Q in P.points_of_bounded_height(bound=2, tolerance=0.01))
+            True
         """
         if is_RationalField(self.base_ring()):
             ftype = False  # stores whether the field is a number field or the rational field
@@ -1914,7 +1922,9 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             while not i < 0:
                 P = [zero for _ in range(i)] + [R.one()]
                 P += [zero for _ in range(n - i)]
-                yield self(P)
+                point = self(P)
+                if point.global_height() < log(bound):
+                    yield point
                 tol = kwds.pop('tolerance', 1e-2)
                 prec = kwds.pop('precision', 53)
                 iters = [R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) for _ in range(i)]
@@ -1924,7 +1934,9 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                 while j < i:
                     try:
                         P[j] = next(iters[j])
-                        yield self(P)
+                        point = self(P)
+                        if point.global_height() < log(bound):
+                            yield point
                         j = 0
                     except StopIteration:
                         iters[j] = R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec)  # reset
