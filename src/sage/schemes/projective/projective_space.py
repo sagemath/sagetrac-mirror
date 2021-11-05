@@ -1923,7 +1923,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                 P = [zero for _ in range(i)] + [R.one()]
                 P += [zero for _ in range(n - i)]
                 point = self(P)
-                if point.global_height() < log(bound):
+                if point.global_height() <= log(bound):
                     yield point
                 tol = kwds.pop('tolerance', 1e-2)
                 prec = kwds.pop('precision', 53)
@@ -1935,7 +1935,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     try:
                         P[j] = next(iters[j])
                         point = self(P)
-                        if point.global_height() < log(bound):
+                        if point.global_height() <= log(bound):
                             yield point
                         j = 0
                     except StopIteration:
