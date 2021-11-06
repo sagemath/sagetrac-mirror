@@ -6314,7 +6314,7 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
     default arguments (:trac:`12181`)::
 
         sage: from sage.sandpiles.sandpile import random_DAG
-        sage: g = random_DAG(5);DiGraph(g)
+        sage: g = random_DAG(5);DiGraph(g)  # random
         Digraph on 5 vertices
 
     Check that bad inputs are rejected::
