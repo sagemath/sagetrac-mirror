@@ -752,7 +752,9 @@ def fractional_chromatic_number(G, solver='PPL', verbose=0,
 
     return obj
 
-def fractional_chromatic_index(G, solver="PPL", verbose_constraints=False, verbose=0):
+def fractional_chromatic_index(G, solver="PPL", solver_separation=None,
+                               verbose_constraints=False, verbose=0,
+                               *, integrality_tolerance=1e-3):
     r"""
     Return the fractional chromatic index of the graph.
 
@@ -786,10 +788,11 @@ def fractional_chromatic_index(G, solver="PPL", verbose_constraints=False, verbo
     - ``G`` -- a graph
 
     - ``solver`` -- (default: ``"PPL"``); specify a Linear Program (LP) solver
-      to be used. If set to ``None``, the default one is used. For more
-      information on LP solvers and which default solver is used, see the method
-      :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
-      class :class:`MixedIntegerLinearProgram
+      to be used or the master problem. If set to ``None``, the default one is
+      used. For more information on LP solvers and which default solver is used,
+      see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+      :class:`MixedIntegerLinearProgram
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
       .. NOTE::
@@ -800,11 +803,19 @@ def fractional_chromatic_index(G, solver="PPL", verbose_constraints=False, verbo
           using some non exact solvers as reported in :trac:`23658` and
           :trac:`23798`.
 
+    - ``solver_separation`` -- (default: ``None``); specify a Linear Program
+      (LP) solver to be used or the separation problem. If set to ``None``, use
+      the same solver as for the master problem.
+
     - ``verbose_constraints`` -- boolean (default: ``False``); whether to
       display which constraints are being generated
 
     - ``verbose`` -- integer (default: `0`); sets the level of verbosity of the
       LP solver
+
+    - ``integrality_tolerance`` -- float; parameter for use with MILP solvers
+      over an inexact base ring; see
+      :meth:`MixedIntegerLinearProgram.get_values`.
 
     EXAMPLES:
 
@@ -832,10 +843,14 @@ def fractional_chromatic_index(G, solver="PPL", verbose_constraints=False, verbo
     if not G.size():
         return 1
 
+    from itertools import chain
+
     frozen_edges = [frozenset(e) for e in G.edges(labels=False, sort=False)]
+    if solver_separation is None:
+        solver_separation = solver
 
     # Initialize LP for maximum weight matching
-    M = MixedIntegerLinearProgram(solver=solver, constraint_generation=True)
+    M = MixedIntegerLinearProgram(maximization=True, solver=solver_separation)
 
     # One variable per edge
     b = M.new_variable(binary=True, nonnegative=True)
@@ -859,27 +874,55 @@ def fractional_chromatic_index(G, solver="PPL", verbose_constraints=False, verbo
         p.add_constraint(r[fe] <= 1)
 
     obj = p.solve(log=verbose)
+    r_val = p.get_values(r)
 
     # Tolerance gap for numerical LP solvers (see trac 23798)
-    tol = 0 if solver == 'PPL' else 1e-6
+    tol = 0 if solver_separation == 'PPL' else 1e-6
 
+    turn = 0  # for debug during development
     while True:
 
         # Update the weights of edges for the matching problem
-        M.set_objective(M.sum(p.get_values(r[fe]) * b[fe] for fe in frozen_edges))
+        M.set_objective(M.sum(r_val[fe] * b[fe] for fe in frozen_edges))
 
-        # If the maximum matching has weight at most 1, we are done !
-        if M.solve(log=verbose) <= 1 + tol:
-            break
+        M.solve(log=verbose)
+        matching = [fe for fe in frozen_edges
+                        if M.get_values(b[fe], convert=bool, tolerance=integrality_tolerance)]
+        if matching and len(set(chain.from_iterable(matching))) != 2 * len(matching):
+            raise ValueError("this is not a matching")
 
-        # Otherwise, we add a new constraint
-        matching = [fe for fe in frozen_edges if M.get_values(b[fe]) == 1]
+        # If the maximum matching has weight at most 1 + tol, we are done !
+        if sum(r_val[fe] for fe in matching) <= 1 + tol:
+            if solver_separation == 'PPL':
+                break
+
+            # Otherwise, we use PPL to prove that the weight is at most 1
+            MP = MixedIntegerLinearProgram(maximization=True, solver='PPL')
+            bp = MP.new_variable(binary=True, nonnegative=True)
+            for u in G:
+                MP.add_constraint(MP.sum(bp[frozenset(e)] for e in G.edges_incident(u, labels=False)) <= 1)
+            MP.set_objective(MP.sum(r_val[fe] * bp[fe] for fe in frozen_edges))
+            MP.solve(log=verbose)
+            matching = [fe for fe in frozen_edges
+                            if MP.get_values(bp[fe], convert=bool, tolerance=integrality_tolerance)]
+            if sum(r_val[fe] for fe in matching) <= 1:
+                # The bound is proved
+                break
+
+            # for debug during development
+            print("not proved, continue", sum(r_val[fe] for fe in matching))
+            if turn == 10:
+                break
+            turn += 1
+
+        # Otherwise, we add a new constraint if matching is valid
         p.add_constraint(p.sum(r[fe] for fe in matching) <= 1)
         if verbose_constraints:
             print("Adding a constraint on matching : {}".format(matching))
 
         # And solve again
         obj = p.solve(log=verbose)
+        r_val = p.get_values(r)
 
     # Accomplished !
     return obj
