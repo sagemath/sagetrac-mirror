@@ -264,11 +264,11 @@ def test_del_dictitem_by_exact_value(D, value, h):
     No action is taken if the item prescribed by key hash and value does not
     exist in the dictionary::
 
-        sage: D = {1: ZZ}
-        sage: test_del_dictitem_by_exact_value(D, ZZ, 2)
+        sage: D = {int(1): ZZ}
+        sage: test_del_dictitem_by_exact_value(D, ZZ, int(2))
         sage: D
         {1: Integer Ring}
-        sage: test_del_dictitem_by_exact_value(D, QQ, 1)
+        sage: test_del_dictitem_by_exact_value(D, QQ, int(1))
         sage: D
         {1: Integer Ring}
     """
