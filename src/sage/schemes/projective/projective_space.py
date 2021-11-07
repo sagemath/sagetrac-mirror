@@ -1916,6 +1916,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         n = self.dimension_relative()
         R = self.base_ring()
+        prec = kwds.pop('precision', 53)
+        tol = kwds.pop('tolerance', 1e-2)
         if ftype:
             zero = R.zero()
             i = n
@@ -1923,10 +1925,9 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                 P = [zero for _ in range(i)] + [R.one()]
                 P += [zero for _ in range(n - i)]
                 point = self(P)
-                if point.global_height() <= log(bound):
+                height = point.global_height(prec=prec)
+                if ((log(bound) - height).abs() <= tol) or (height <= log(bound)):
                     yield point
-                tol = kwds.pop('tolerance', 1e-2)
-                prec = kwds.pop('precision', 53)
                 iters = [R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) for _ in range(i)]
                 for x in iters:
                     next(x)  # put at zero
@@ -1935,7 +1936,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     try:
                         P[j] = next(iters[j])
                         point = self(P)
-                        if point.global_height() <= log(bound):
+                        height = point.global_height(prec=prec)
+                        if ((log(bound) - height).abs() <= tol) or (height <= log(bound)):
                             yield point
                         j = 0
                     except StopIteration:

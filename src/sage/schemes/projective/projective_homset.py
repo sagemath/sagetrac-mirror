@@ -102,7 +102,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         - a list of rational points of a projective scheme
 
         .. WARNING::
-        
+
             For numerically inexact fields such as ComplexField or RealField the
             list of points returned is very likely to be incomplete. It may also
             contain repeated points due to tolerances.
@@ -122,7 +122,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             sage: K.<v> = NumberField(u^2 + 3)
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
             sage: len(P(K).points(bound=1.8))
-            381
+            309
 
         ::
 
