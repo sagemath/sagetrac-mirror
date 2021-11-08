@@ -1178,6 +1178,8 @@ cdef class CoercionModel:
         """
         self._exceptions_cleared = False
 
+        underlying_error = None
+
         # If parents are equal, we can just call op()
         xp = parent(x)
         yp = parent(y)
@@ -1187,7 +1189,8 @@ cdef class CoercionModel:
         # Actions take preference over common-parent coercions
         try:
             action = self._action_maps.get(xp, yp, op)
-        except KeyError:
+        except KeyError as e:
+            underlying_error = e
             action = self.get_action(xp, yp, op, x, y)
         if action is not None:
             if (<Action>action)._is_left:
@@ -1198,7 +1201,8 @@ cdef class CoercionModel:
         # Now coerce to a common parent and do the operation there
         try:
             xy = self.canonical_coercion(x, y)
-        except TypeError:
+        except TypeError as e:
+            underlying_error = e
             self._record_exception()
         else:
             return PyObject_CallObject(op, xy)
@@ -1211,28 +1215,32 @@ cdef class CoercionModel:
                     if hasattr(x, '_act_on_'):
                         res = x._act_on_(y, True)
                         if res is not None: return res
-                except CoercionException:
+                except CoercionException as e:
+                    underlying_error = e
                     self._record_exception()
 
                 try:
                     if hasattr(x, '_acted_upon_'):
                         res = x._acted_upon_(y, True)
                         if res is not None: return res
-                except CoercionException:
+                except CoercionException as e:
+                    underlying_error = e
                     self._record_exception()
 
                 try:
                     if hasattr(y, '_act_on_'):
                         res = y._act_on_(x, False)
                         if res is not None: return res
-                except CoercionException:
+                except CoercionException as e:
+                    underlying_error = e
                     self._record_exception()
 
                 try:
                     if hasattr(y, '_acted_upon_'):
                         res = y._acted_upon_(x, False)
                         if res is not None: return res
-                except CoercionException:
+                except CoercionException as e:
+                    underlying_error = e
                     self._record_exception()
 
         if not isinstance(y, Element):
@@ -1243,8 +1251,8 @@ cdef class CoercionModel:
                 if res is not None and res is not NotImplemented:
                     return res
 
-        # We should really include the underlying error.
-        # This causes so much headache.
+        if underlying_error:
+            raise bin_op_exception(op, x, y) from underlying_error
         raise bin_op_exception(op, x, y)
 
     cpdef canonical_coercion(self, x, y):
