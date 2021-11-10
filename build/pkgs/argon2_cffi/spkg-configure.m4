@@ -1,0 +1,1 @@
+SAGE_SPKG_CONFIGURE([argon2-cffi], [SAGE_PYTHON_PACKAGE_CHECK([argon2-cffi])])
