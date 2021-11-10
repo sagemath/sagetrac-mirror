@@ -1563,7 +1563,7 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
             from sage.rings.real_double import RDF
             base_ring = RDF
             str_to_base_ring = RDF
-        elif 'QuadraticExtension' in T1 and 'r' in r:
+        elif 'QuadraticExtension' in T1 and 'r' in r and 'QuadraticExtension' not in r:
             i = r.find('r')
             i1 = min((r[i:] + ' ').find(' '), (r[i:] + '\n').find('\n'))
             d = int(r[i + 1: i + i1])
@@ -1579,6 +1579,11 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
             from sage.rings.rational_field import QQ
             base_ring = QQ
             str_to_base_ring = QQ
+
+        elif 'Integer' in T1:
+            from sage.rings.integer_ring import ZZ
+            base_ring = ZZ
+            str_to_base_ring = ZZ
 
         if 'Vector' in T1:
             from sage.modules.free_module_element import vector
