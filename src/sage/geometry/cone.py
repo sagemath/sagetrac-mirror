@@ -2322,7 +2322,24 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             self._dual = Cone(rays, lattice=self.dual_lattice(), check=False)
             self._dual._dual = self
         return self._dual
+    def polar(self):
+        r"""
+        Return the polar cone of ``self``.
+        
+        OUTPUT:
 
+        - :class:`cone <ConvexRationalPolyhedralCone>`.
+        EXAMPLES::
+
+            sage: cone = Cone([(1,0), (-1,3)])
+            sage: cone.polar().rays()
+            M( 0, -1),
+            M(-3, -1)
+            in 2-d lattice M
+
+        """
+        return self.dual().__neg__()
+        
     def embed(self, cone):
         r"""
         Return the cone equivalent to the given one, but sitting in ``self`` as
