@@ -49,6 +49,14 @@ dnl Make sure the path to our own m4 macros is always properly set
 dnl and doesn't depend on how autoconf is called.
 AC_CONFIG_MACRO_DIR([m4])
 
+dnl The AC_LIB_RPATH macro comes from gettext, which is one of our bootstrap
+dnl packages. It defines, among other things, the $acl_shlibext variable that
+dnl contains the shared library extension for this system. We already use the
+dnl AM_ICONV macro from gettext (which ultimately calls AC_LIB_RPATH), and we
+dnl avoid involving libtool by using it to get the shared library extension.
+AC_LIB_RPATH
+AC_SUBST(SHLIBEXT, "${acl_shlibext}")
+
 #---------------------------------------------------------
 #
 # This is essentially the configure part of the old "install" file.
@@ -89,6 +97,8 @@ AC_ARG_WITH([sage-venv],
             [SAGE_VENV="$withval"],
             [SAGE_VENV="auto"])
 AC_SUBST([SAGE_VENV])
+
+AC_SUBST([SAGE_DOCS], ['${SAGE_LOCAL}'])dnl Quoted so that it is resolved at build time by shell/Makefile
 
 #---------------------------------------------------------
 
@@ -448,7 +458,7 @@ AC_ARG_ENABLE([cvxopt],
 AC_ARG_ENABLE([notebook],
   AS_HELP_STRING([--disable-notebook],
                  [disable build of the Jupyter notebook and related packages]), [
-    for pkg in notebook nbconvert sagenb_export nbformat terminado send2trash prometheus_client mistune pandocfilters bleach defusedxml jsonschema jupyter_jsmol argon2_cffi; do
+    for pkg in notebook nbconvert sagenb_export nbformat nbclient terminado send2trash prometheus_client mistune pandocfilters bleach defusedxml jsonschema jupyter_jsmol argon2_cffi; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
   ])
@@ -465,6 +475,17 @@ AC_ARG_ENABLE([r],
     for pkg in r rpy2 r_jupyter pcre; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
+  ])
+
+AC_ARG_ENABLE([doc],
+  AS_HELP_STRING([--disable-doc],
+                 [disable build of the Sage documentation and packages depending on it]), [
+    dnl Disable packages needed for docbuilding
+    for pkg in sage_docbuild alabaster babel snowballstemmer idna urllib3 certifi charset_normalizer requests imagesize sphinx sphinxcontrib_devhelp sphinxcontrib_jsmath sphinxcontrib_serializinghtml sphinxcontrib_applehelp sphinxcontrib_htmlhelp sphinxcontrib_qthelp sphinxcontrib_websupport; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+    dnl Disable the docbuild by disabling the install tree for documentation
+    AS_VAR_SET([SAGE_DOCS], [])
   ])
 
 AC_ARG_ENABLE([sagelib],

@@ -21,6 +21,7 @@ except for the known bad apples::
     sage: allowed = [
     ....:     'IPython', 'prompt_toolkit', 'jedi',     # sage dependencies
     ....:     'threading', 'multiprocessing',  # doctest dependencies
+    ....:     'pytz', 'importlib.resources',   # doctest dependencies
     ....:     '__main__', 'sage.doctest',      # doctesting
     ....:     'signal', 'enum', 'types'        # may appear in Python 3
     ....: ]
@@ -67,14 +68,6 @@ else:
     deprecationWarning = ('ignore', None, DeprecationWarning, None, 0)
     if deprecationWarning in warnings.filters:
         warnings.filters.remove(deprecationWarning)
-
-# The psutil swap_memory() function tries to collect some statistics
-# that may not be available and that we don't need. Hide the warnings
-# that are emitted if the stats aren't available (Trac #28329). That
-# function is called in two places, so let's install this filter
-# before the first one is imported from sage.misc.all below.
-warnings.filterwarnings('ignore', category=RuntimeWarning,
-  message=r"'sin' and 'sout' swap memory stats couldn't be determined")
 
 # Ignore all deprecations from IPython etc.
 warnings.filterwarnings('ignore', category=DeprecationWarning,
