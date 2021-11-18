@@ -91,7 +91,10 @@ cdef extern from "flint_wrap.h":
 # flint/fmpq_mat.h:
 cdef extern from "flint_wrap.h":
     ctypedef struct fmpq_mat_struct:
-        pass
+        fmpq * entries
+        slong r
+        slong c
+        fmpq ** rows
 
     ctypedef fmpq_mat_struct fmpq_mat_t[1]
 

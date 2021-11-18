@@ -93,6 +93,7 @@ from sage.libs.gmp.randomize cimport (mpq_randomize_entry, mpq_randomize_entry_a
 
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpq cimport *
+from sage.libs.flint.fmpq_vec cimport *
 from sage.libs.flint.fmpz_mat cimport *
 from sage.libs.flint.fmpq_mat cimport *
 
@@ -526,27 +527,52 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: w * B
             (13/2, 8)
         """
+        cdef Matrix_rational_dense transposed = self.transpose()
+        return transposed._matrix_times_vector_(v)
+
+    cdef _matrix_times_vector_(self, Vector v):
+        """
+        Return the matrix times the vector product.
+
+        INPUT:
+
+        -  ``v`` - a free module element.
+
+        OUTPUT: The matrix times vector product ``A*v``.
+
+        TESTS::
+
+            sage: A = random_matrix(QQ, 100)
+            sage: v = random_vector(QQ, 100)
+            sage: A*v == v*A.transpose()
+            True
+        """
         cdef Vector_rational_dense w, ans
         cdef Py_ssize_t i, j
-        cdef mpq_t x, y, z
+        cdef fmpq_t x
+        cdef fmpq* w2
 
-        M = self._row_ambient_module()
+        M = self._column_ambient_module()
         w = <Vector_rational_dense> v
         ans = M.zero_vector()
 
-        mpq_init(x)
-        mpq_init(y)
-        mpq_init(z)
-        for i in range(self._ncols):
-            mpq_set_si(x, 0, 1)
-            for j in range(self._nrows):
-                fmpq_get_mpq(z, fmpq_mat_entry(self._matrix, j, i))
-                mpq_mul(y, w._entries[j], z)
-                mpq_add(x, x, y)
-            mpq_set(ans._entries[i], x)
-        mpq_clear(x)
-        mpq_clear(y)
-        mpq_clear(z)
+        fmpq_init(x)
+        w2 = _fmpq_vec_init(self._ncols)
+
+        try:
+            sig_on()
+            for j in range(self._ncols):
+                fmpq_set_mpq(w2 + j, w._entries[j])
+
+            for i in range(self._nrows):
+                _fmpq_vec_dot(x, self._matrix.rows[i], w2, self._ncols)
+                fmpq_get_mpq(ans._entries[i], x)
+
+            sig_off()
+        finally:
+            fmpq_clear(x)
+            _fmpq_vec_clear(w2, self._ncols)
+
         return ans
 
 
