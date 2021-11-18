@@ -527,8 +527,46 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: w * B
             (13/2, 8)
         """
-        cdef Matrix_rational_dense transposed = self.transpose()
-        return transposed._matrix_times_vector_(v)
+        cdef Vector_rational_dense w, ans
+        cdef Py_ssize_t i, j
+        cdef fmpq_t x
+        cdef fmpq* w_flint
+        cdef fmpq* ans_flint
+
+        M = self._row_ambient_module()
+        w = <Vector_rational_dense> v
+        ans = M.zero_vector()
+
+        w_flint = _fmpq_vec_init(self._nrows)
+        ans_flint = _fmpq_vec_init(self._ncols)
+
+        try:
+            sig_on()
+            for j in range(self._nrows):
+                fmpq_set_mpq(w_flint + j, w._entries[j])
+
+            for i in range(self._ncols):
+                fmpq_zero(ans_flint + i)
+
+            # The order is crucial:
+            # ``self._matrix.rows[j] + i`` is right next to ``self._matrix[j] + i + 1``
+            # but far away from ``self._matrix[j + 1] + i``.
+            # So in the inner loop we have very little pointer movement.
+            # Even better: Unlike with ``_matrix_times_vector`` the inner loop has
+            # no depence on the previous step.
+            for j in range(self._nrows):
+                for i in range(self._ncols):
+                    fmpq_addmul(ans_flint + i, w_flint + j, self._matrix.rows[j] + i)
+
+            for i in range(self._ncols):
+                fmpq_get_mpq(ans._entries[i], ans_flint + i)
+
+            sig_off()
+        finally:
+            _fmpq_vec_clear(w_flint, self._nrows)
+            _fmpq_vec_clear(ans_flint, self._ncols)
+
+        return ans
 
     cdef _matrix_times_vector_(self, Vector v):
         """
@@ -550,28 +588,28 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef Vector_rational_dense w, ans
         cdef Py_ssize_t i, j
         cdef fmpq_t x
-        cdef fmpq* w2
+        cdef fmpq* w_flint
 
         M = self._column_ambient_module()
         w = <Vector_rational_dense> v
         ans = M.zero_vector()
 
         fmpq_init(x)
-        w2 = _fmpq_vec_init(self._ncols)
+        w_flint = _fmpq_vec_init(self._ncols)
 
         try:
             sig_on()
             for j in range(self._ncols):
-                fmpq_set_mpq(w2 + j, w._entries[j])
+                fmpq_set_mpq(w_flint + j, w._entries[j])
 
             for i in range(self._nrows):
-                _fmpq_vec_dot(x, self._matrix.rows[i], w2, self._ncols)
+                _fmpq_vec_dot(x, self._matrix.rows[i], w_flint, self._ncols)
                 fmpq_get_mpq(ans._entries[i], x)
 
             sig_off()
         finally:
             fmpq_clear(x)
-            _fmpq_vec_clear(w2, self._ncols)
+            _fmpq_vec_clear(w_flint, self._ncols)
 
         return ans
 
