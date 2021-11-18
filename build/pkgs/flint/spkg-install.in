@@ -5,15 +5,14 @@
 ###############################################################################
 if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building a debug version of FLINT."
-    FLINT_TUNE=" $FLINT_TUNE"; export FLINT_TUNE
-    FLINT_CONFIGURE="--enable-assert $FLINT_CONFIGURE"
+    export CMAKE_BUILD_TYPE="Debug"
 fi
 
 cd src
 
-## mkdir build
-## cd build
-## cmake -G"Unix Makefiles" -DWITH_NTL=yes -DBUILD_TESTING=yes -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="${SAGE_INST_LOCAL}" -DCMAKE_INSTALL_LIBDIR=lib ..
+export GMPDIR=$SAGE_LOCAL
+export NTLDIR=$SAGE_LOCAL
+
 sdh_cmake -G"Unix Makefiles" -DWITH_NTL=yes -DBUILD_TESTING=yes -DCMAKE_BUILD_TYPE=Release
 sdh_make
 
