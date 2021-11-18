@@ -103,6 +103,7 @@ from sage.arith.multi_modular cimport MultiModularBasis
 
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_mat cimport *
+from sage.libs.flint.fmpz_vec cimport *
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational_field import QQ
@@ -1043,7 +1044,6 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         return rich_to_bool(op, 0)
 
-    # TODO: Implement better
     cdef _vector_times_matrix_(self, Vector v):
         """
         Return the vector times matrix product.
@@ -1062,27 +1062,52 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: w*B
             (14, 18)
         """
+        cdef Matrix_integer_dense transposed = self.transpose()
+        return transposed._matrix_times_vector_(v)
+
+    cdef _matrix_times_vector_(self, Vector v):
+        """
+        Return the matrix times the vector product.
+
+        INPUT:
+
+        -  ``v`` - a free module element.
+
+        OUTPUT: The matrix times vector product ``A*v``.
+
+        TESTS::
+
+            sage: A = random_matrix(ZZ, 100)
+            sage: v = random_vector(ZZ, 100)
+            sage: A*v == v*A.transpose()
+            True
+        """
         cdef Vector_integer_dense w, ans
         cdef Py_ssize_t i, j
         cdef fmpz_t x
-        cdef fmpz_t z
+        cdef fmpz* w2
 
-        M = self._row_ambient_module()
+        M = self._column_ambient_module()
         w = <Vector_integer_dense> v
         ans = M.zero_vector()
 
-        sig_on()
         fmpz_init(x)
-        fmpz_init(z)
-        for i from 0 <= i < self._ncols:
-            fmpz_set_si(x, 0)
-            for j from 0 <= j < self._nrows:
-                fmpz_set_mpz(z,w._entries[j])
-                fmpz_addmul(x, z, fmpz_mat_entry(self._matrix,j,i))
-            fmpz_get_mpz(ans._entries[i], x)
-        fmpz_clear(x)
-        fmpz_clear(z)
-        sig_off()
+        w2 = _fmpz_vec_init(self._ncols)
+
+        try:
+            sig_on()
+            for j in range(self._ncols):
+                fmpz_set_mpz(w2 + j, w._entries[j])
+
+            for i in range(self._nrows):
+                _fmpz_vec_dot(x, self._matrix.rows[i], w2, self._ncols)
+                fmpz_get_mpz(ans._entries[i], x)
+
+            sig_off()
+        finally:
+            fmpz_clear(x)
+            _fmpz_vec_clear(w2, self._ncols)
+
         return ans
 
 
