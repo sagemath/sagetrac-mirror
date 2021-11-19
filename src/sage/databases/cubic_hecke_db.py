@@ -2,10 +2,11 @@
 r"""
 Cubic Hecke Database
 
-This module contains the class :class:`CubicHeckeDataBase` which serves as an interface to
-Ivan Marin's data files with respect to the cubic Hecke algebras. Furthermore, it contains
-the class :class:`CubicHeckeFileCache` which enables :class:`CubicHeckeAlgebra` to keep
-intermediate results of calculations in the file system.
+This module contains the class :class:`CubicHeckeDataBase` which serves as an
+interface to Ivan Marin's data files with respect to the cubic Hecke algebras.
+Furthermore, it contains the class :class:`CubicHeckeFileCache` which enables
+:class:`CubicHeckeAlgebra` to keep intermediate results of calculations in the
+file system.
 
 AUTHORS:
 
@@ -28,7 +29,8 @@ import os
 from enum import Enum
 
 from sage.structure.sage_object import SageObject
-from sage.misc.persist import db_save, db, save, load
+from sage.misc.persist import _base_dumps, save, load
+from sage.misc.temporary_file import atomic_write
 from sage.misc.verbose import verbose
 from sage.env import SAGE_SHARE, SAGE_ROOT
 from sage.matrix.constructor import matrix, Matrix  # uppercase version used in Marin's file `MatricesRegH4.maple`
@@ -39,17 +41,19 @@ from sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring
 
 
 
-#----------------------------------------------------------------------------------------------------------------------------
-# functions to convert matrices and ring elements to and from flat python dictionaries in order to save matrices avoiding
-# compatibility problems with older or newer sage versions and to save disc space
-#----------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# functions to convert matrices and ring elements to and from flat python
+# dictionaries in order to save matrices avoiding compatibility problems with
+# older or newer sage versions and to save disc space
+#------------------------------------------------------------------------------
 # conversion of ring element to dictionary
-#----------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 def convert_poly_to_dict_recursive(ring_elem):
     r"""
-    Convert a ring element to a python dictionary recursively using the dict method of it.
-    By recursion the dictionaries values are converted as well as long as they posses a
-    ``dict`` method. If the values are sage Integers they are converted into python integers.
+    Convert a ring element to a python dictionary recursively using the dict
+    method of it. By recursion the dictionaries values are converted as well
+    as long as they posses a ``dict`` method. If the values are sage integers
+    they are converted into python integers.
 
     INPUT:
 
@@ -57,9 +61,10 @@ def convert_poly_to_dict_recursive(ring_elem):
 
     OUTPUT:
 
-    A python dictionary from which ``ring_elem`` can be reconstructed via element construction by recursion.
-    The values of the dictionary may be dictionaries again if the parent of ring_elem has a base_ring
-    different from itself.
+    A python dictionary from which ``ring_elem`` can be reconstructed via
+    element construction by recursion. The values of the dictionary may be
+    dictionaries again if the parent of ring_elem has a base_ring different
+    from itself.
 
     EXAMPLES::
 
@@ -95,13 +100,14 @@ def convert_poly_to_dict_recursive(ring_elem):
 
 
 
-#---------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # conversion of matrix to dictionary
-#---------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 def convert_mat_to_dict_recursive(mat):
     r"""
-    Convert a matrix to a python dictionary using the dict method of it. Furthermore, the dictionaries
-    values are converted as well by the convert_poly_to_dict_recursive function.
+    Convert a matrix to a python dictionary using the dict method of it.
+    Furthermore, the dictionaries values are converted as well by the
+    ``convert_poly_to_dict_recursive`` function.
 
     INPUT:
 
@@ -109,8 +115,9 @@ def convert_mat_to_dict_recursive(mat):
 
     OUTPUT:
 
-    A python dictionary from which mat can be reconstructed via element construction. The values of the
-    dictionary may be dictionaries again if entries of the matrix have a dict method as well.
+    A python dictionary from which ``mat`` can be reconstructed via element
+    construction. The values of the dictionary may be dictionaries again
+    if entries of the matrix have a ``dict`` method as well.
 
     EXAMPLES::
 
@@ -143,10 +150,12 @@ class CubicHeckeDataFilename(Enum):
     Enum for the different data files. The following choices are possible:
 
     - ``basis`` -- contains the basis for the cubic Hecke algebra up to 4 strands
-    - ``regular_left`` -- contains the left regular representation matrices of the generators
-    - ``regular_right`` -- contains the right regular representation matrices of the generators
-    - ``irred_split`` -- contains representation matrices of the generators of the split irreducible
-      representations
+    - ``regular_left`` -- contains the left regular representation matrices of
+      the generators
+    - ``regular_right`` -- contains the right regular representation matrices of
+      the generators
+    - ``irred_split`` -- contains representation matrices of the generators of
+      the split irreducible representations
 
 
     Examples::
@@ -219,16 +228,18 @@ class CubicHeckeDataFilename(Enum):
 
 
 
-#----------------------------------------------------------------------------------------------------------------------------
-# Class to supply data for the basis and matrix representation for the cubic Hecke algebra
-#----------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# Class to supply data for the basis and matrix representation for the cubic
+# Hecke algebra
+#-------------------------------------------------------------------------------
 class CubicHeckeDataBase(SageObject):
     r"""
     Database interface needed for :class:`CubicHeckeAlgebra`.
 
-    The original data are obtained from Ivan Marin's web-page (URL see the example below). In order
-    to have these data installed during the build process as a sage-package they are converted
-    as python files into a tarball. This tarball has been created using the method :meth:`create_spkg_tarball`.
+    The original data are obtained from Ivan Marin's web-page (URL see the
+    example below). In order to have these data installed during the build
+    process as a sage-package they are converted as python files into a tarball.
+    This tarball has been created using the method :meth:`create_spkg_tarball`.
 
     EXAMPLES::
 
@@ -323,10 +334,13 @@ class CubicHeckeDataBase(SageObject):
 
     def create_spkg_tarball(self):
         r"""
-        Create a tarball for the sage-package ``database_cubic_heck_marin`` in the ``upstream`` directory.
-        This utility should only be used by users who know what they do in case of a switch to a new
-        version of the data files (that is if the original files on Iwan Marin's homepage have changed).
-        In that case in invocation of ``sage -package fix-checksum database_cubic_hecke_marin`` will be necessary.
+        Create a tarball for the sage-package ``database_cubic_heck_marin`` in
+        the ``upstream`` directory. This utility should only be used by users
+        who know what they do in case of a switch to a new version of the data
+        files (that is if the original files on Iwan Marin's homepage have
+        changed). In that case in invocation of
+        ``sage -package fix-checksum database_cubic_hecke_marin`` will be
+        necessary.
 
         EXAMPLES::
 
@@ -434,9 +448,9 @@ class CubicHeckeDataBase(SageObject):
 
         This method is called during the build procedure for the sage-package.
 
-        The invocations are not active in the doctest, since they cause a ``MemoryError``
-        here. To refresh the data base you may call this method in a session. You will
-        have to wait (maybe up to several minutes)!
+        The invocations are not active in the doctest, since they cause a
+        ``MemoryError`` here. To refresh the data base you may call this method
+        in a session. You will have to wait (maybe up to several minutes)!
 
         EXAMPLES::
 
@@ -499,8 +513,9 @@ class CubicHeckeDataBase(SageObject):
 
     def create_static_db_marin_split(self):
         r"""
-        Create the static data base for split irreducible representations of the cubic
-        Hecke algebra according to the original data from Iwan Marin's home page.
+        Create the static data base for split irreducible representations of the
+        cubic Hecke algebra according to the original data from Iwan Marin's
+        home page.
 
         This method is called during the build procedure for the sage-package.
 
@@ -539,9 +554,9 @@ class CubicHeckeDataBase(SageObject):
            matrI = matrix(extension_ring, d1, d2, lambda i,j: extension_ring(matri[i,j]))
            return matrI
 
-        # ------------------------------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Restoring the split irreducibles from Iwan Marin's homepage
-        # ------------------------------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
 
         anz_reps = len(reps)
 
@@ -595,9 +610,9 @@ class CubicHeckeDataBase(SageObject):
 
         return
 
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # read from an sobj-file obtained from Ivan Marin's database
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def read(self, db_filename, nstrands=None):
         r"""
         Access various static data library.
@@ -647,16 +662,17 @@ class CubicHeckeDataBase(SageObject):
         return data_lib[(db_filename,nstrands)]
 
 
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # matrix_reprs_from_file_cache_
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def read_matrix_representation(self, representation_type, gen_ind, nstrands, ring_of_definition):
         r"""
         Return the matrix representations from the database.
 
         INPUT:
 
-        - ``representation_type`` -- instance of enum :class:`~sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep.RepresentationType`
+        - ``representation_type`` -- instance of enum
+          :class:`~sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep.RepresentationType`
           specifying the type of the representation
 
 
@@ -698,17 +714,24 @@ class CubicHeckeDataBase(SageObject):
 
 class CubicHeckeFileCache(SageObject):
     """
-    A class to cache calculations of the :class:`CubicHeckeAlgebra` in the local file system.
+    A class to cache calculations of the :class:`CubicHeckeAlgebra` in the local
+    file system.
     """
 
     class section(Enum):
         r"""
-        Enum for the different sections of file cache. The following choices are possible:
+        Enum for the different sections of file cache. The following choices are
+        possible:
 
-        - ``matrix_representations``  -- file cache for representation matrices of basis elements
+        - ``matrix_representations``  -- file cache for representation matrices
+          of basis elements
         - ``braid_images``  -- file cache for images of braids
-        - ``basis_extensions`` -- file cache for a dynamical growing basis used in the case of
-          cubic Hecke algebras on more than 4 strands
+        - ``basis_extensions`` -- file cache for a dynamical growing basis used
+          in the case of cubic Hecke algebras on more than 4 strands
+        - ``markov_trace`` -- file cache for intermediate results of long
+          calculations in order to recover the results already obtained by
+          preboius attemps of calculation until the corresponding intermediate
+          step
 
         Examples::
 
@@ -726,8 +749,8 @@ class CubicHeckeFileCache(SageObject):
 
             INPUT:
 
-            - ``nstrands`` -- Integer number of strands of the underlying braid group
-              if the data file depends on it. Otherwise use default None
+            - ``nstrands`` -- Integer, number of strands of the underlying braid
+              group if the data file depends on it. Otherwise use default ``None``
 
             Examples::
 
@@ -747,6 +770,7 @@ class CubicHeckeFileCache(SageObject):
         matrix_representations  = 'matrix_representations'
         braid_images            = 'braid_images'
         basis_extensions        = 'basis_extensions'
+        markov_trace            = 'markov_trace'
 
 
     def __init__(self, num_strands):
@@ -762,15 +786,17 @@ class CubicHeckeFileCache(SageObject):
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeFileCache
             sage: cha_fc = CubicHeckeFileCache(2)
-            sage: cha_fc._file_cache_path == 'cubic_hecke'
+            sage: cha_fc._file_cache_path.endswith('cubic_hecke')
             True
         """
         self._nstrands      = num_strands
-        self._file_cache_path = 'cubic_hecke'
+
+        from sage.env import DOT_SAGE
+        self._file_cache_path = os.path.join(DOT_SAGE, 'cubic_hecke')
         self._data_library = {}
 
-        from sage.misc.misc import sage_makedirs, SAGE_DB
-        sage_makedirs(os.path.join(SAGE_DB, self._file_cache_path))
+        from sage.misc.misc import sage_makedirs
+        sage_makedirs(self._file_cache_path)
 
     def reset_library(self, section=None):
         r"""
@@ -856,9 +882,9 @@ class CubicHeckeFileCache(SageObject):
        
 
 
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # save data file system
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def write(self, section=None):
         r"""
         Write data from memory to the file system.
@@ -868,6 +894,9 @@ class CubicHeckeFileCache(SageObject):
         - ``section`` -- instance of enum :class:`CubicHeckeFileCache.section`
           specifying the section where the corresponding cached data belong to.
           If omitted data of all sections is written to the file system
+        - ``step`` -- integer, to indicate the intermediate step in the
+          calculation of the Markov trace coefficients. This makes sence for
+          the ``markov_trace`` section, only
 
         EXAMPLES::
 
@@ -891,12 +920,15 @@ class CubicHeckeFileCache(SageObject):
         if section not in data_lib.keys():
             raise ValueError("No data for file %s in memory" %(section))
 
-        db_save(data_lib[section], '%s/%s' %(lib_path, section.filename(self._nstrands)))
+        verbose('saving file cache %s ...' %(section))
+        fname = os.path.join(lib_path, section.filename(self._nstrands))
+        with atomic_write(fname, binary=True) as f:
+            f.write(_base_dumps(data_lib[section]))
+            f.close()
 
-
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # read from file system
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def read(self, section):
         r"""
         Read data into memory from the file system.
@@ -930,8 +962,9 @@ class CubicHeckeFileCache(SageObject):
             return data_lib[section]
 
         verbose('loading file cache %s ...' %(section))
+        fname = os.path.join(lib_path, section.filename(self._nstrands))
         try:
-            data_lib[section] = db('%s/%s' %(lib_path, section.filename(self._nstrands)))
+            data_lib[section] = load(fname)
             verbose('... finished!')
         except IOError:
             self.reset_library(section)
@@ -942,13 +975,14 @@ class CubicHeckeFileCache(SageObject):
 
 
 
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # matrix_reprs_from_file_cache_
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def read_matrix_representation(self, representation_type, monomial_tietze, ring_of_definition):
         r"""
         Return the matrix representations of the given monomial (in Tietze form)
-        if it has been stored in the file cache before. Otherwise ``None`` is returned.
+        if it has been stored in the file cache before. Otherwise ``None`` is
+        returned.
 
         INPUT:
 
@@ -963,8 +997,8 @@ class CubicHeckeFileCache(SageObject):
 
         OUTPUT:
 
-        Dictionary containing all matrix representations of ``self`` of the given representation_type
-        which have been stored in the file cache.
+        Dictionary containing all matrix representations of ``self`` of the given
+        ``representation_type`` which have been stored in the file cache.
 
         EXAMPLES::
 
@@ -999,9 +1033,9 @@ class CubicHeckeFileCache(SageObject):
 
 
 
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # matrix_representation to file cache
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def write_matrix_representation(self, representation_type, monomial_tietze, matrix_list):
         r"""
         Write the matrix representation of a monomial to the file cache.
@@ -1013,7 +1047,8 @@ class CubicHeckeFileCache(SageObject):
 
         - ``monomial_tietze`` -- tuple representing the braid in Tietze form
 
-        - ``matrix_list`` -- list of matrices corresponding to the irreducible representations
+        - ``matrix_list`` -- list of matrices corresponding to the irreducible
+          representations
 
         EXAMPLES::
 
@@ -1052,9 +1087,9 @@ class CubicHeckeFileCache(SageObject):
         self.write(self.section.matrix_representations)
         return
 
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # read braid images from file cache
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def read_braid_image(self, braid_tietze, ring_of_definition):
         r"""
         Return the list of pre calculated braid images from file cache.
@@ -1067,7 +1102,8 @@ class CubicHeckeFileCache(SageObject):
 
         OUTPUT:
 
-        A dictionary containing the pre calculated braid image of the given braid.
+        A dictionary containing the pre calculated braid image of the given
+        braid.
 
         EXAMPLES::
 
@@ -1097,9 +1133,9 @@ class CubicHeckeFileCache(SageObject):
 
 
 
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # braid image to_file cache
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def write_braid_image(self, braid_tietze, braid_image_vect):
         r"""
         Write the braid image of the given braid to the file cache.
@@ -1107,8 +1143,8 @@ class CubicHeckeFileCache(SageObject):
         INPUT:
 
         - ``braid_tietze`` -- tuple representing the braid in Tietze form
-        - ``braid_image_vect`` -- image of the given braid as a vector with respect
-          to the basis of the cubic Hecke algebra
+        - ``braid_image_vect`` -- image of the given braid as a vector with
+          respect to the basis of the cubic Hecke algebra
 
         EXAMPLES::
 
@@ -1141,18 +1177,18 @@ class CubicHeckeFileCache(SageObject):
         return
 
 
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # basis to file cache
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def update_basis_extensions(self, new_basis_extensions):
         r"""
-        Update the file cache for basis extensions for cubic Hecke algebras on more than 4 strands
-        according to the given ``new_basis_extensions``.
+        Update the file cache for basis extensions for cubic Hecke algebras on
+        more than 4 strands according to the given ``new_basis_extensions``.
 
         INPUT:
 
-        - ``new_basis_extensions`` -- list of additional (to the static basis) basis elements which should
-          replace the former such list in the file.
+        - ``new_basis_extensions`` -- list of additional (to the static basis)
+          basis elements which should replace the former such list in the file.
  
         EXAMPLES::
 
@@ -1172,3 +1208,129 @@ class CubicHeckeFileCache(SageObject):
         self._data_library.update({self.section.basis_extensions:new_basis_extensions})
         self.write(self.section.basis_extensions)
         return
+
+    # --------------------------------------------------------------------------
+    # Intermediate results of Markov trace coefficient calculation
+    # --------------------------------------------------------------------------
+    def markov_trace(self, step, target=None):
+        r"""
+        Return a wrapper to store intermediate results obtained during the calculation
+        of the Markov trace coefficients.
+
+        INPUT:
+
+        - ``step`` -- integer or string, to indicate the intermediate step in the
+          calculation of the Markov trace coefficients. This makes sence for
+          the ``markov_trace`` section, only
+        """
+
+        class wrapper:
+            r"""
+            Wrapper that stores intermediate results obtained during the calculation
+            of the Markov trace coefficients.
+
+            INPUT (to the constructor):
+
+            - ``filecache`` -- pointer to the outer class
+            - ``step`` -- according to the method
+            """
+            def __init__(self, filecache, step, target=None):
+                r"""
+                """
+                self._fc = filecache
+                self._step = step
+                self._target = target
+                self._target_key = 'targets'
+                self._data_section = None
+                self._data_step = None
+                self._message = 'step %s for Markov trace coefficients on %s strands' %(step, filecache._nstrands)
+                self._time = verbose('Starting calulation of %s' %(self._message))
+
+            def _set_data_step(self, data):
+                r"""
+                """
+                if type(data) is list:
+                    from sage.rings.localization import LocalizationElement
+                    if isinstance(data[0], LocalizationElement):
+                         data = [convert_poly_to_dict_recursive(item) for item in data]
+                self._data_step = data
+                self._time = verbose('Calculation finished for %s' %(self._message), t=self._time)
+                return data
+
+            def _set_target(self):
+                r"""
+                Store the target of this step in the section space.
+                """
+                if not self._target:
+                    return
+
+                if not self._data_section:
+                    return
+
+                step = self._step
+                target = self._target
+                target_key = self._target_key
+                if target_key in self._data_section:
+                    targets = self._data_section[target_key]
+                else:
+                    targets = {}
+                    self._data_section[target_key] = targets
+
+                if  target in targets.keys():
+                    targets[target].append(step)
+                else:
+                    targets[target] = [step]
+                self._time = verbose('Target %s set for %s' %(target, self._message), t=self._time)
+
+            def remove_temporary_data(self):
+                r"""
+                Remove data of temporary steps if target is complete.
+                """
+                fc   = self._fc
+                step = self._step
+                target_key = self._target_key
+                data_section = self._data_section
+
+                if not data_section:
+                    return
+
+                if target_key not in data_section:
+                    return
+
+                targets = data_section[target_key]
+                if step not in targets.keys():
+                    return
+
+                for sub_step in targets[step]:
+                    self._time = verbose('Remove temporary step %s set for %s' %(sub_step, self._message), t=self._time)
+                    data_section.pop(sub_step)
+
+                fc.write(fc.section.markov_trace)
+
+            def __enter__(self):
+                r"""
+                OUTPUT:
+
+                    A pair (data, method) one of which is ``None``.
+                """
+                fc   = self._fc
+                step = self._step
+                data_section = fc.read(fc.section.markov_trace)
+                self._data_section = data_section
+                if self._target:
+                    self._set_target()
+                if step in data_section.keys():
+                    self._data_step = data_section[step]
+                    self._time = verbose('Found previous result for %s' %(self._message), t=self._time)
+                    return self._data_step, self._set_data_step
+                return None, self._set_data_step
+
+            def __exit__(self, exc_type, exc_val, exc_tb):
+                r"""
+                """
+                fc   = self._fc
+                step = self._step
+                self._data_section[step] = self._data_step
+                fc.write(fc.section.markov_trace)
+
+        return wrapper(self, step, target)
