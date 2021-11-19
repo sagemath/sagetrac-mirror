@@ -3490,12 +3490,12 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: RBF(1).Ei()
-            [1.89511781635594 +/- 4.94e-15]
+            [1.89511781635594 +/- ...e-15]
 
         TESTS::
 
             sage: RBF(Ei(1))
-            [1.89511781635594 +/- 4.94e-15]
+            [1.89511781635594 +/- ...e-15]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -3510,12 +3510,12 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: RBF(1).Si()
-            [0.946083070367183 +/- 9.22e-16]
+            [0.946083070367183 +/- ...e-16]
 
         TESTS::
 
             sage: RBF(Si(1))
-            [0.946083070367183 +/- 9.22e-16]
+            [0.946083070367183 +/- ...e-16]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -3532,12 +3532,12 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: RBF(1).Ci()
-            [0.337403922900968 +/- 3.25e-16]
+            [0.337403922900968 +/- ...e-16]
 
         TESTS::
 
             sage: RBF(Ci(1))
-            [0.337403922900968 +/- 3.25e-16]
+            [0.337403922900968 +/- ...e-16]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -3554,12 +3554,12 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: RBF(1).Shi()
-            [1.05725087537573 +/- 2.77e-15]
+            [1.05725087537573 +/- ...e-15]
 
         TESTS::
 
             sage: RBF(Shi(1))
-            [1.05725087537573 +/- 2.77e-15]
+            [1.05725087537573 +/- ...e-15]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -3576,12 +3576,12 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: RBF(1).Chi()
-            [0.837866940980208 +/- 4.72e-16]
+            [0.837866940980208 +/- ...e-16]
 
         TESTS::
 
             sage: RBF(Chi(1))
-            [0.837866940980208 +/- 4.72e-16]
+            [0.837866940980208 +/- ...e-16]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -3598,14 +3598,14 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: RBF(3).li()
-            [2.16358859466719 +/- 4.72e-15]
+            [2.16358859466719 +/- ...e-15]
 
         TESTS::
 
             sage: RBF(li(0))
             0
             sage: RBF(Li(0))
-            [-1.04516378011749 +/- 4.23e-15]
+            [-1.04516378011749 +/- ...e-15]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -3622,7 +3622,7 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: RBF(3).Li()
-            [1.11842481454970 +/- 7.61e-15]
+            [1.11842481454970 +/- ...e-15]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -3649,11 +3649,11 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: RBF(sin(3)).beta(RBF(2/3).sqrt())
-            [7.407661629415 +/- 1.07e-13]
+            [7.407661629415... +/- ...e-1...]
             sage: RealBallField(100)(7/2).beta(1)
-            [0.28571428571428571428571428571 +/- 5.23e-30]
+            [0.28571428571428571428571428571 +/- ...e-30]
             sage: RealBallField(100)(7/2).beta(1, 1/2)
-            [0.025253813613805268728601584361 +/- 2.53e-31]
+            [0.025253813613805268728601584361 +/- ...e-31]
 
         .. TODO::
 
@@ -3686,9 +3686,9 @@ cdef class RealBall(RingElement):
             sage: RBF(1/2).gamma()
             [1.772453850905516 +/- ...e-16]
             sage: RBF(gamma(3/2, RBF(2).sqrt()))
-            [0.37118875695353 +/- 3.00e-15]
+            [0.37118875695353 +/- ...e-15]
             sage: RBF(3/2).gamma_inc(RBF(2).sqrt())
-            [0.37118875695353 +/- 3.00e-15]
+            [0.37118875695353 +/- ...e-15]
 
         .. SEEALSO::
             :meth:`~sage.rings.real_arb.RealBallField.gamma`
