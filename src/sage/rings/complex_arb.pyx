@@ -4190,7 +4190,7 @@ cdef class ComplexBall(RingElement):
         TESTS:
 
             sage: CBF(Ei(I))
-            [0.337403922900968 +/- 3.76e-16] + [2.51687939716208 +/- 2.01e-15]*I
+            [0.337403922900968 +/- ...e-16] + [2.51687939716208 +/- ...e-15]*I
         """
         cdef ComplexBall result = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -4214,7 +4214,7 @@ cdef class ComplexBall(RingElement):
         TESTS:
 
             sage: CBF(Si(I))
-            [1.05725087537573 +/- 2.77e-15]*I
+            [1.05725087537573 +/- ...e-15]*I
         """
         cdef ComplexBall result = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -4240,7 +4240,7 @@ cdef class ComplexBall(RingElement):
         TESTS:
 
             sage: CBF(Ci(I))
-            [0.837866940980208 +/- 4.72e-16] + [1.570796326794897 +/- 5.54e-16]*I
+            [0.837866940980208 +/- ...e-16] + [1.570796326794897 +/- ...e-16]*I
         """
         cdef ComplexBall result = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -4266,7 +4266,7 @@ cdef class ComplexBall(RingElement):
         TESTS:
 
             sage: CBF(Shi(I))
-            [0.946083070367183 +/- 9.22e-16]*I
+            [0.946083070367183 +/- ...e-16]*I
         """
         cdef ComplexBall result = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -4292,7 +4292,7 @@ cdef class ComplexBall(RingElement):
         TESTS:
 
             sage: CBF(Chi(I))
-            [0.337403922900968 +/- 3.25e-16] + [1.570796326794897 +/- 5.54e-16]*I
+            [0.337403922900968 +/- ...e-16] + [1.570796326794897 +/- ...e-16]*I
         """
         cdef ComplexBall result = self._new()
         if _do_sig(prec(self)): sig_on()
