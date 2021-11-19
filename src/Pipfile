@@ -20,11 +20,6 @@ sphinx-autobuild = "*"
 [packages]
 ## We do not list packages that are already declared as install_requires
 ## in setup.cfg
-
-[packages.e1839a8]
-path = "."
-editable = true
-
-[packages.8c46424]
-path = "./../pkgs/sage-conf"
-editable = true
+sagemath-standard = {path = ".", editable = true}
+sage-conf = {path = "./../pkgs/sage-conf", editable = true}
+sage-setup = {path = "./../pkgs/sage-setup", editable = true}
