@@ -901,6 +901,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         from sage.databases.cubic_hecke_db import CubicHeckeDataBase, CubicHeckeFileCache
         self._database   =   CubicHeckeDataBase()
         self._filecache  =   CubicHeckeFileCache(self._nstrands)
+        self._markov_irr_coeff_step = 'irr_coeff'
 
 
         # ----------------------------------------------------------------------
@@ -3730,28 +3731,41 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         from sage.misc.persist import load, save
         n = self.strands()
 
+        # ----------------------------------------------------------------------
+        # Markov trace module
+        # ----------------------------------------------------------------------
         MTM = self._markov_trace_module()
         MTMbas = MTM.basis().keys()
         L = MTM.base_ring()
 
+        # ----------------------------------------------------------------------
+        # Setting up filecache handling
+        # ----------------------------------------------------------------------
+        fc = self._filecache
+        coeff_fc_prefix = 'coeff-'
+        last_bas_ele = MTMbas[len(MTMbas)-1]
+        irr_coeff_fc = fc.markov_trace(self._markov_irr_coeff_step, target='%s%s' %(coeff_fc_prefix, last_bas_ele.name))
+
+        # ----------------------------------------------------------------------
+        # If no bas_ele is given proceed by recursion
+        # ----------------------------------------------------------------------
         if not bas_ele:
             cfs = {bas_ele: self._markov_trace_coeffs(bas_ele=bas_ele) for bas_ele in MTMbas}
             return [sum(cfs[bas_ele][i]*MTM(bas_ele) for bas_ele in MTMbas) for i in range(self.dimension())]
 
-        # ---------------------------------------------------------------------------------------
-        # Setting up filecache handling
-        # ---------------------------------------------------------------------------------------
-        fc = self._filecache
-        filecache = fc.markov_trace('coeff-%s' %bas_ele.name)
 
         O = self.get_order()
         l = len(O)
 
-        with filecache as (mtcf, store):
+        # ----------------------------------------------------------------------
+        # If precalculated result exists completely in filecache return here
+        # ----------------------------------------------------------------------
+        coeff_fc = fc.markov_trace('%s%s' %(coeff_fc_prefix, bas_ele.name))
+        with coeff_fc as (mtcf, store):
             if mtcf:
-                # filecache already exists
+                # coeff_fc already exists
                 if len(mtcf) == l:
-                    # filecache complete
+                    # coeff_fc complete
                     mtcf = [L(cf) for cf in mtcf]
                     return mtcf
 
@@ -3759,8 +3773,21 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         u, v, w, s = L.gens()
 
-        irr_coeff = self._markov_trace_irr_coeffs()[bas_ele]
+        # ----------------------------------------------------------------------
+        # If precalculated coeffocients of the irreducible modules exist in 
+        # filcache take it from there. Otherwise calculate it in 
+        # self._markov_trace_irr_coeffs
+        # ----------------------------------------------------------------------
+        with irr_coeff_fc as (irr_coeff_all, store):
+            if not irr_coeff_all:
+                irr_coeff_all = store(self._markov_trace_irr_coeffs())
+
+        irr_coeff = irr_coeff_all[bas_ele]
         cf_vect = vector(irr_coeff)
+
+        # ----------------------------------------------------------------------
+        # Setup conversion of the coefficients to L
+        # ----------------------------------------------------------------------
         P = L.extension_ring()
         Ps = P.as_splitting_algebra()
         EZ = ZZ[P.variable_names()]
@@ -3787,7 +3814,11 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         time = verbose('start calculating %s' %bas_ele.name, t=time)
 
-        with filecache as (mtcf, store):
+        # ----------------------------------------------------------------------
+        # Perform the calculation of the coefficients and save intermediate
+        # results to the filecache
+        # ----------------------------------------------------------------------
+        with coeff_fc as (mtcf, store):
             if not mtcf:
                 mtcf = []
             s = len(mtcf)
@@ -3796,6 +3827,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 mtcf.append(convert_coeff(O[i]))
                 store(mtcf)
 
+        coeff_fc.remove_temporary_data()
         verbose('calculation of Markov trace coefficients for %s finished' %bas_ele.name, t=time)
         return mtcf
 
@@ -3823,22 +3855,28 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                   (a*b + b*c)/(a*b - b^2 - a*c + b*c),
                   (-a*c - b*c)/(a*b - a*c - b*c + c^2))}
         """
-        # --------------------------------------------------------
-        # Preparations
-        # --------------------------------------------------------
         time = verbose('preparing calculation of irreducible Markov trace coefficients')
 
+        # ----------------------------------------------------------------------
+        # Setting up filecache handling
+        # ----------------------------------------------------------------------
         fc = self._filecache
-        final_fc = 'irr_coeff'
+        final_fc = self._markov_irr_coeff_step
         irr_coeff_fc = fc.markov_trace(final_fc)
         with irr_coeff_fc as (irr_coeff, store):
             if irr_coeff:
                 return irr_coeff
 
+        # --------------------------------------------------------
+        # Preparations
+        # --------------------------------------------------------
         n = self.strands()
         chars = self.characters()
         num_char = len(chars)
 
+        # --------------------------------------------------------
+        # Define modules and rings
+        # --------------------------------------------------------
         MTM    = self._markov_trace_module(extended=True, field_embedding=True)
         MTMbas = MTM.basis().keys()
         F = MTM.base_ring()
@@ -3857,6 +3895,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         MTMbas_new = [b for b in MTMbas if b.strands() == n]
 
+        # --------------------------------------------------------
+        # incrediences from the sub algebra on one strand less
+        # --------------------------------------------------------
         sub = self.cubic_hecke_subalgebra()
         sub_basis = [sub(g) for g in sub.get_order()]
         sub_dim = sub.dimension()
@@ -3874,7 +3915,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         eq_p = matrix(F, sub_dim, num_char, lambda i,j: chars[j](self(sub_basis[i])*g))
         eq_n = matrix(F, sub_dim, num_char, lambda i,j: chars[j](self(sub_basis[i])*~g))
 
-        with fc.markov_trace(1, target=final_fc) as (eq_b, store):
+        with fc.markov_trace('eq_b', target=final_fc) as (eq_b, store):
             if not eq_b:
                 eq_b = store(eq_p.stack(eq_n))
 
@@ -3882,7 +3923,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # solve the equation
         # --------------------------------------------------------
         time = verbose('calculate kernel', t=time)
-        with fc.markov_trace(2, target=final_fc) as (ker, store):
+        with fc.markov_trace('ker', target=final_fc) as (ker, store):
             if not ker:
                 ker = store(eq_b.right_kernel())
 
@@ -3896,7 +3937,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         def vectchars(ele):
             return vector(F, [chars[j](ele) for j in range(num_char)])
 
-        with fc.markov_trace(3, target=final_fc) as (eq_adjust, store):
+        with fc.markov_trace('eq_adjust', target=final_fc) as (eq_adjust, store):
             if not eq_adjust:
                 eq_adjust = store(matrix(F, dk, dk, [list(kerm*vectchars(ele)) for ele in new_basis_ele]))
 
@@ -3908,10 +3949,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 sub_mtr_b = vector(F, [s*mtr.coefficient(bas_ele) for mtr in sub_mtr] + [~s*mtr.coefficient(bas_ele) for mtr in sub_mtr] )
                 time = verbose('solving adjusting equation for %s', t=time)
 
-                with fc.markov_trace('5%s' %bas_ele.name, target=final_fc) as (pre_image, store):
+                with fc.markov_trace('pre_image-%s' %bas_ele.name, target=final_fc) as (pre_image, store):
                     if not pre_image:
                         pre_image = store(eq_b.solve_right(sub_mtr_b))
-                with fc.markov_trace('6%s' %bas_ele.name, target=final_fc) as (image_new_basis, store):
+                with fc.markov_trace('new_image_basis-%s' %bas_ele.name, target=final_fc) as (image_new_basis, store):
                     if not image_new_basis:
                         image_new_basis = store(vector(F, [pre_image*vectchars(ele) for ele in new_basis_ele]))
             else:
@@ -3922,10 +3963,13 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         time = verbose('solve adjusting equation', t=time)
 
-        with fc.markov_trace(7, target=final_fc) as (irr_coeff, store):
+        with fc.markov_trace('pre_irr_coeff', target=final_fc) as (irr_coeff, store):
             if not irr_coeff:
                 irr_coeff = store({bas_ele: get_irr_coeff(bas_ele, time) for bas_ele in MTMbas})
 
+        # --------------------------------------------------------
+        # simplification
+        # --------------------------------------------------------
         from sage.misc.misc_c import prod
 
         def red_coeff(cf):

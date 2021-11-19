@@ -1277,7 +1277,9 @@ class CubicHeckeFileCache(SageObject):
                     self._data_section[target_key] = targets
 
                 if  target in targets.keys():
-                    targets[target].append(step)
+                    step_list = targets[target]
+                    if not step in step_list:
+                        step_list.append(step)
                 else:
                     targets[target] = [step]
                 self._time = verbose('Target %s set for %s' %(target, self._message), t=self._time)
