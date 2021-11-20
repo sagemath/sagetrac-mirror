@@ -256,6 +256,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.all import walltime, prod
 from sage.modules.all import vector, span
 from sage.rings.all import QQ, ZZ
+from sage.functions.other import floor, ceil
 
 
 def is_Fan(x):
@@ -286,7 +287,7 @@ def is_Fan(x):
 
 def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
         is_complete=None, virtual_rays=None, discard_faces=False,
-        allow_arrangement=False):
+        allow_arrangement=False, allow_rtree=False):
     r"""
     Construct a rational polyhedral fan.
 
@@ -364,10 +365,14 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
       construct a rational polyhedralfan from the cone arrangement, so that the
       union of the cones in the polyhedral fan equals to the union of the given
       cones, and each given cone is the union of some cones in the polyhedral fan.
+      
+    - ``allow_rtree`` -- If ``allow_rtree=True`` option is specified, then it will 
+      automatically construct a rational polyhedralfan with rtree data structure, 
+      which could be useful for the function ``support_contains(self, *args)``.
 
     OUTPUT:
 
-    - a :class:`fan <RationalPolyhedralFan>`.
+    - a :class:`fan <RationalPolyhedralFan>` or class:`fan <RationalPolyhedralFan_rtree>`.
 
     .. SEEALSO::
 
@@ -547,7 +552,10 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
                 if len(V) != d - R.dim() or (R + V).dim() != d:
                     raise ValueError("virtual rays must be linearly "
                     "independent and with other rays span the ambient space.")
-        return RationalPolyhedralFan(cones, R, lattice, is_complete, V)
+        if allow_rtree:
+            return RationalPolyhedralFan_rtree(cones, R, lattice, is_complete, V)
+        else:
+            return RationalPolyhedralFan(cones, R, lattice, is_complete, V)
 
     if not check and not normalize and not discard_faces and not allow_arrangement:
         return result()
@@ -660,10 +668,9 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
     return Fan((Cone([rays[n] for n in cone], lattice) for cone in cones),
                rays, lattice, is_complete=is_complete,
                virtual_rays=virtual_rays, discard_faces=discard_faces,
-               allow_arrangement=allow_arrangement)
+               allow_arrangement=allow_arrangement, allow_rtree=allow_rtree)
 
-
-def FaceFan(polytope, lattice=None):
+def FaceFan(polytope, lattice=None, allow_rtree=False):
     r"""
     Construct the face fan of the given rational ``polytope``.
 
@@ -681,6 +688,9 @@ def FaceFan(polytope, lattice=None):
       <sage.geometry.toric_lattice.ToricLatticeFactory>`, `\ZZ^n`, or any
       other object that behaves like these. If not specified, an attempt will
       be made to determine an appropriate toric lattice automatically.
+    - ``allow_rtree`` -- If ``allow_rtree=True`` option is specified, then it will 
+      automatically construct a rational polyhedralfan with rtree data structure, 
+      which could be useful for the function ``support_contains(self, *args)``.
 
     OUTPUT:
 
@@ -769,10 +779,10 @@ def FaceFan(polytope, lattice=None):
             # treat polyhedra as being there as well.
             lattice = ToricLattice(len(origin)).dual()
     return Fan(cones, rays, lattice=lattice, check=False,
-               is_complete=is_complete)
+               is_complete=is_complete, allow_rtree=allow_rtree)
 
 
-def NormalFan(polytope, lattice=None):
+def NormalFan(polytope, lattice=None, allow_rtree=False):
     r"""
     Construct the normal fan of the given rational ``polytope``.
 
@@ -790,7 +800,9 @@ def NormalFan(polytope, lattice=None):
       <sage.geometry.toric_lattice.ToricLatticeFactory>`, `\ZZ^n`, or any
       other object that behaves like these. If not specified, an attempt will
       be made to determine an appropriate toric lattice automatically.
-
+    - ``allow_rtree`` -- If ``allow_rtree=True`` option is specified, then it will 
+      automatically construct a rational polyhedralfan with rtree data structure, 
+      which could be useful for the function ``support_contains(self, *args)``.
     OUTPUT:
 
     - :class:`rational polyhedral fan <RationalPolyhedralFan>`.
@@ -853,10 +865,10 @@ def NormalFan(polytope, lattice=None):
         cones = [[ieq.index() for ieq in vertex.incident()]
                  for vertex in polytope.vertices()]
         rays = [ieq.A() for ieq in polytope.inequalities()]
-    return Fan(cones, rays, lattice=lattice, check=False, is_complete=True)
+    return Fan(cones, rays, lattice=lattice, check=False, is_complete=True, allow_rtree=allow_rtree)
 
 
-def Fan2d(rays, lattice=None):
+def Fan2d(rays, lattice=None, allow_rtree=False):
     r"""
     Construct the maximal 2-d fan with given ``rays``.
 
@@ -875,6 +887,9 @@ def Fan2d(rays, lattice=None):
       <sage.geometry.toric_lattice.ToricLatticeFactory>`, `\ZZ^n`, or any
       other object that behaves like these. If not specified, an attempt will
       be made to determine an appropriate toric lattice automatically.
+    - ``allow_rtree`` -- If ``allow_rtree=True`` option is specified, then it will 
+      automatically construct a rational polyhedralfan with rtree data structure, 
+      which could be useful for the function ``support_contains(self, *args)``.
 
     EXAMPLES::
 
@@ -954,7 +969,10 @@ def Fan2d(rays, lattice=None):
         if lattice is None or lattice.dimension() != 2:
             raise ValueError('you must specify a 2-dimensional lattice when '
                              'you construct a fan without rays.')
-        return RationalPolyhedralFan(cones=((), ), rays=(), lattice=lattice)
+        if allow_rtree:
+            return RationalPolyhedralFan_rtree(cones=((), ), rays=(), lattice=lattice)
+        else:
+            return RationalPolyhedralFan(cones=((), ), rays=(), lattice=lattice)
 
     # remove multiple rays without changing order
     rays = normalize_rays(rays, lattice)
@@ -971,7 +989,11 @@ def Fan2d(rays, lattice=None):
     n = len(rays)
     if n == 1 or n == 2 and rays[0] == -rays[1]:
         cones = [(i, ) for i in range(n)]
-        return RationalPolyhedralFan(cones, rays, lattice, False)
+        if allow_rtree:
+            return RationalPolyhedralFan_rtree(cones, rays, lattice, False)
+        else:
+            return RationalPolyhedralFan(cones, rays, lattice, False)
+
 
     import math
     # each sorted_rays entry = (angle, ray, original_ray_index)
@@ -991,7 +1013,11 @@ def Fan2d(rays, lattice=None):
             cones.append((sorted_rays[r0_index][2], sorted_rays[r1_index][2]))
         else:
             is_complete = False
-    return RationalPolyhedralFan(cones, rays, lattice, is_complete)
+    if allow_rtree:
+        return RationalPolyhedralFan_rtree(cones, rays, lattice, is_complete)
+    else:
+        return RationalPolyhedralFan(cones, rays, lattice, is_complete)
+    
 
 
 class Cone_of_fan(ConvexRationalPolyhedralCone):
@@ -1675,7 +1701,7 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
             6
         """
         assert is_Fan(other)
-        rc = super(RationalPolyhedralFan, self).cartesian_product(
+        rc = super(self.__class__, self).cartesian_product(
                                                                 other, lattice)
         self_cones = [cone.ambient_ray_indices() for cone in self]
         n = self.nrays()
@@ -1683,10 +1709,10 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
                        for cone in other]
         new_cones = [c1 + c2 for c1 in self_cones for c2 in other_cones]
         try:    # Is completeness of the result obvious?
-            return RationalPolyhedralFan(new_cones, rc.rays(), rc.lattice(),
+            return self.__class__(new_cones, rc.rays(), rc.lattice(),
                                     self._is_complete and other._is_complete)
         except AttributeError:  # The result is either incomplete or unknown.
-            return RationalPolyhedralFan(new_cones, rc.rays(), rc.lattice())
+            return self.__class__(new_cones, rc.rays(), rc.lattice())
 
     def __neg__(self):
         """
@@ -1712,7 +1738,7 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
         for r in new_rays:
             r.set_immutable()
         self_cones = [cone.ambient_ray_indices() for cone in self]
-        return RationalPolyhedralFan(self_cones, new_rays, self.lattice())
+        return self.__class__(self_cones, new_rays, self.lattice())
 
     def common_refinement(self, other):
         """
@@ -3559,6 +3585,287 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
         delta[-1] = extension
         return ChainComplex(delta, base_ring=base_ring)
 
+@richcmp_method
+class RationalPolyhedralFan_rtree(RationalPolyhedralFan):
+    r"""
+    Create a pointed rational polyhedral fan with rtree data structure, 
+    which reduces the time for determining whether a point is in the support 
+    of the fan or not.
+
+    .. WARNING::
+
+        This class does not perform any checks of correctness of input nor
+        does it convert input into the standard representation. Use
+        :func:`Fan` to construct fans from "raw data" or :func:`FaceFan` and
+        :func:`NormalFan` to get fans associated to polytopes.
+
+    Fans are immutable, but they cache most of the returned values.
+
+    INPUT:
+
+    - ``cones`` -- list of generating cones of the fan, each cone given as a
+      list of indices of its generating rays in ``rays``;
+
+    - ``rays`` -- list of immutable primitive vectors in ``lattice``
+      consisting of exactly the rays of the fan (i.e. no "extra" ones);
+
+    - ``lattice`` -- :class:`ToricLattice
+      <sage.geometry.toric_lattice.ToricLatticeFactory>`, `\ZZ^n`, or any
+      other object that behaves like these. If ``None``, it will be determined
+      as :func:`parent` of the first ray. Of course, this cannot be done if
+      there are no rays, so in this case you must give an appropriate
+      ``lattice`` directly;
+
+    - ``is_complete`` -- if given, must be ``True`` or ``False`` depending on
+      whether this fan is complete or not. By default, it will be determined
+      automatically if necessary;
+
+    - ``virtual_rays`` -- if given, must be a list of immutable primitive
+      vectors in ``lattice``, see :meth:`virtual_rays` for details. By default,
+      it will be determined automatically if necessary.
+
+    OUTPUT:
+
+    - a rational polyhedral fan with rtree if it is pointed, or a rational 
+        polyhedral fan without rtree if it is NOT pointed.
+    """
+
+    def __init__(self, cones, rays, lattice,
+                 is_complete=None, virtual_rays=None):
+        r"""
+        See :class:`RationalPolyhedralFan_rtree` for documentation.
+
+        TESTS::
+
+            sage: v1, v2= vector([0,1]), vector([1,0])
+            sage: v1.set_immutable()
+            sage: v2.set_immutable()
+            sage: f = RationalPolyhedralFan_rtree([(0,),(1,)], [v1,v2], None)
+            sage: f.is_pointed()
+            True
+        """
+        #copy generator
+        fan_indices = list(cones)
+        cones = (c_idx for c_idx in fan_indices)
+        super().__init__(cones, rays, lattice, is_complete=None, virtual_rays=None)
+        self._is_pointed = None
+        
+        # Determining whether the fan is pointed automatically. 
+        
+        if len(self._generating_cones) > 1:
+            #Trying LP solver
+            p = MixedIntegerLinearProgram(solver = 'GLPK', maximization = True)
+            x = p.new_variable()
+            b = p.new_variable()
+            B = p.new_variable()
+            p.solver_parameter("simplex_or_intopt", "simplex_only") # use simplex only
+            p.set_objective(B[0])
+            for i in range(len(rays)):
+                p.add_constraint(p.sum(x[_]*rays[i][_] for _ in range(self.dim()))<= -b[i])
+            p.add_constraint(1>= b[i] >= B[0])
+            for _ in range(self.dim()):
+                p.add_constraint( -1 <= x[_] <= 1 )
+            p.add_constraint(1>=B[0]>=0)
+
+            try:
+                # Verifying whether it is a normal vector or not
+                if p.solve() > 10e-15:
+                    temp_x = vector(p.get_values(x))
+                    if all(temp_x.dot_product(ray)< 0 for ray in rays):
+                        # Been verified, thus, the fan is pointed.
+                        self._normal_vector = temp_x     
+                        self._is_pointed = True
+            except sage.numerical.mip.MIPSolverException:
+                pass
+            # If the LP-solver fails, we may use the following facets-based method.
+            if not self._is_pointed:
+                # Trying Facets-based method.
+                # Facets-based method, computing the common intersection of all polar 
+                # cones of the generating cones in the fan. if the common intersection 
+                # is empty, then it is not pointed; otherwise, it is pointed.
+                common_intersection = self._generating_cones[0].polar()
+                for c in self._generating_cones:
+                    common_intersection = common_intersection.intersection(c.polar())
+                
+                    if common_intersection.dim() == 0:
+                        # If common_intersection is empty, then the fan is not pointed.
+                        self._is_pointed = False
+                        break
+                if self._is_pointed == None:
+                    temp_x = sum(vector(ray, QQ)/vector(ray, QQ).norm(infinity) for ray in common_intersection.rays())  
+                    if all(temp_x.dot_product(ray)< 0 for ray in rays):
+                        # Been verified, thus, the fan is pointed.
+                        self._normal_vector = temp_x      
+                        self._is_pointed = True 
+        else:
+            # An empty fan is considered as pointed, but without a normal vector.
+            self._is_pointed = True
+
+        # If the fan is pointed, then we build the rtree for it. ``self._has_rtree`` is a 
+        # trigger for the usage of rtree. Since rtree package can only store 2 to high 
+        # dimensional boxes, we give restriction below.
+        self._has_rtree = False
+        if self._is_pointed and self.dim()>=2 and len(self._generating_cones)>1:
+            # Generating a random family of directions for projections, by 
+            # neuralization of inner product of a direction with the normal vector.
+            self._has_rtree = True
+            self._normal_vector = vector(self._normal_vector)
+            self._directions = []
+            ndirections = self.dim()
+            # Finding a coordinate that is non-zero of the normal vector.
+            for i in range(self.dim()):
+                if self._normal_vector[i] != 0:
+                    coord = i
+                    break
+
+            for i in range(ndirections):
+                direction = vector([choice([-1,1])*randint(1,127) for i in range(self.dim())], QQ)
+                diff = direction.dot_product(self._normal_vector)
+                direction[coord] = direction[coord] - diff/self._normal_vector[coord]
+                self._directions.append(direction)
+            table = []
+            for (i,d) in enumerate(self._directions):
+                t_i = []
+                abs_max = 0
+                for r in rays:
+                    val = r.dot_product(d)/r.dot_product(self._normal_vector)
+                    if abs_max < abs(val):
+                        abs_max = abs(val)
+                    t_i.append(val)
+                if abs_max > 10e-15:
+                    ratio = 2**26/ceil(abs_max)
+                    self._directions[i] = ratio * self._directions[i]
+                    t_i = [val * ratio for val in t_i]
+                table.append(t_i)
+
+            # The intersection between each cone and the separating hyperplane, which is -1 distance away
+            # from the origin, is defined as the polytopical token for each cone.
+            # Let r be the point that is the intersection between a ray and the separating hyperplane, x
+            # be the unit vector of the normal vector, u be the unit vector of the ray, r = k*u, k>0.
+            # We have <-x,u>= cos t = 1 / k. Thus, k = -1/<x,u>, r = k*u = -u/<x,u>. For any vector v 
+            # whose direction is along with the ray r, v = j * u, because u = v/j, we have 
+            # r = -(v/j)/<x,v/j>, = -v/<x,v>.
+            from rtree import index
+            p = index.Property()
+            p.dimension = ndirections
+            self._rtree = index.Index(properties = p, interleaved = False)
+            time_sum = 0
+            for (i, indices) in enumerate(fan_indices):
+                box = []
+                for _ in range(ndirections):
+                    proj_min, proj_max = infinity, -infinity
+                    for idx in indices:
+                        if table[_][idx] < proj_min:
+                            proj_min = table[_][idx]
+                        if table[_][idx] > proj_max:
+                            proj_max = table[_][idx]
+                    box = box + self._adjusting_gauge(proj_min, proj_max)
+                self._rtree.insert(0, box, obj = i)
+
+            
+    def _adjusting_gauge(self, lower, upper):
+        # This function is used for inserting boxes in rtree. Since rtree has limited precision, the rational 
+        # interval has to been converted to a compatible integer interval.
+        # The domain of rtree only consists of -\infty, integers in [-2^52,2^52], +\infty.
+        prec_range = (-2**52, 2**52)
+        if lower<=prec_range[0]:
+            x_k = -infinity
+        elif lower<prec_range[1]+1:
+            x_k = floor(lower)
+        else:
+            x_k = infinity
+        if upper<prec_range[0]-1:
+            y_k = -infinity
+        elif upper<=prec_range[1]:
+            y_k = ceil(upper)
+        else:
+            y_k = infinity
+        return [x_k, y_k]
+
+
+    def is_pointed(self):
+        return self._is_pointed
+    
+    def support_contains(self, *args):
+        r"""
+        Check if a point is contained in the support of the fan.
+
+        The support of a fan is the union of all cones of the fan. If
+        you want to know whether the fan contains a given cone, you
+        should use :meth:`contains` instead.
+
+        INPUT:
+
+        - ``*args`` -- an element of ``self.lattice()`` or something
+          that can be converted to it (for example, a list of
+          coordinates).
+
+        OUTPUT:
+
+        - ``True`` if ``point`` is contained in the support of the
+          fan, ``False`` otherwise.
+
+        TESTS::
+
+            sage: cone1 = Cone([(0,-1), (1,0)])
+            sage: cone2 = Cone([(1,0), (0,1)])
+            sage: f = Fan_rtree([cone1, cone2])
+
+        We check if some points are in this fan::
+
+            sage: f.support_contains(f.lattice()(1,0))
+            True
+            sage: f.support_contains(cone1)    # a cone is not a point of the lattice
+            False
+            sage: f.support_contains((1,0))
+            True
+            sage: f.support_contains(1,1)
+            True
+            sage: f.support_contains((-1,0))
+            False
+            sage: f.support_contains(f.lattice().dual()(1,0)) #random output (warning)
+            False
+            sage: f.support_contains(f.lattice().dual()(1,0))
+            False
+            sage: f.support_contains(1)
+            False
+            sage: f.support_contains(0)   # 0 converts to the origin in the lattice
+            True
+            sage: f.support_contains(1/2, sqrt(3))
+            True
+            sage: f.support_contains(-1/2, sqrt(3))
+            False
+        """
+
+        if len(args) == 1:
+            point = args[0]
+        else:
+            point = args
+        try:
+            point = _ambient_space_point(self, point)
+        except TypeError as ex:
+            if str(ex).endswith("have incompatible lattices!"):
+                warn("you have checked if a fan contains a point "
+                     "from an incompatible lattice, this is False!",
+                     stacklevel=3)
+            return False
+        if self.is_complete():
+            return True
+        
+        # Using rtree for overestimating.
+        if self._has_rtree:
+            r = vector(point)
+            # See whether the point has a positive direction with the normal vector.
+            if r.dot_product(self._normal_vector)>=0: 
+                return False
+            box = []
+            for d in self._directions:
+                val = r.dot_product(d)/r.dot_product(self._normal_vector)
+                box = box + self._adjusting_gauge(val, val)
+            if self._rtree.count(box) == 0:
+                return False
+
+        return any(point in cone for cone in self)
 
 def discard_faces(cones):
     r"""
