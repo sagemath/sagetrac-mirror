@@ -3947,7 +3947,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             claim_new_basis = vector(F, [0]*dk)
             if bas_ele in sub_MTMbas:
                 sub_mtr_b = vector(F, [s*mtr.coefficient(bas_ele) for mtr in sub_mtr] + [~s*mtr.coefficient(bas_ele) for mtr in sub_mtr] )
-                time = verbose('solving adjusting equation for %s', t=time)
+                time = verbose('solving adjusting equation for %s' %bas_ele.name, t=time)
 
                 with fc.markov_trace('pre_image-%s' %bas_ele.name, target=final_fc) as (pre_image, store):
                     if not pre_image:
