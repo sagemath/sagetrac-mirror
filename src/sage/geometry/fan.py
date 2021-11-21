@@ -3640,7 +3640,7 @@ class RationalPolyhedralFan_rtree(RationalPolyhedralFan):
             sage: v1, v2= vector([0,1]), vector([1,0])
             sage: v1.set_immutable()
             sage: v2.set_immutable()
-            sage: f = RationalPolyhedralFan_rtree([(0,),(1,)], [v1,v2], None)
+            sage: f = sage.geometry.fan.RationalPolyhedralFan_rtree([(0,),(1,)], [v1,v2], None)
             sage: f.is_pointed()
             True
         """
@@ -3809,7 +3809,7 @@ class RationalPolyhedralFan_rtree(RationalPolyhedralFan):
 
             sage: cone1 = Cone([(0,-1), (1,0)])
             sage: cone2 = Cone([(1,0), (0,1)])
-            sage: f = Fan_rtree([cone1, cone2])
+            sage: f = Fan([cone1, cone2], allow_rtree = True)
 
         We check if some points are in this fan::
 
