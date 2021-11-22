@@ -48,6 +48,7 @@ from cpython.object cimport PyObject_RichCompare
 from sage.categories.map cimport Map
 from sage.rings.morphism cimport Morphism, RingHomomorphism
 from sage.rings.polynomial.polynomial_element cimport _dict_to_list
+from sage.rings.polynomial.ore_polynomial_evaluation import OrePolynomialEvaluation
 
 
 cdef class OrePolynomial(AlgebraElement):
@@ -324,6 +325,15 @@ cdef class OrePolynomial(AlgebraElement):
             IndexError: Ore polynomials are immutable
         """
         raise IndexError("Ore polynomials are immutable")
+
+
+    def eval(self,c):
+        return OrePolynomialEvaluation(self, c)
+
+
+
+
+
 
     def square(self):
         r"""
