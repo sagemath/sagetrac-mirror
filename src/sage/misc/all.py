@@ -1,7 +1,7 @@
 from .lazy_attribute import lazy_attribute, lazy_class_attribute
 from .lazy_import import lazy_import
 
-from .all__sage_objects import *
+from .all__sagemath_objects import *
 
 from .misc import (BackslashOperator,
                   cputime,
@@ -12,6 +12,8 @@ from .misc import (BackslashOperator,
                   SAGE_DB, SAGE_TMP,
                    newton_method_sizes, compose,
                   nest)
+lazy_import('sage.misc.misc', 'union',
+            deprecation=32096)
 
 from .banner import version, banner
 
@@ -56,8 +58,6 @@ lazy_import('pydoc', 'help', 'python_help')
 from .classgraph import class_graph
 
 from .reset import reset, restore
-
-from .getusage import get_memory_usage
 
 from .mathml import mathml
 
@@ -126,6 +126,7 @@ from .functional import (additive_order,
                         quo,
                         isqrt,
                         squarefree_part,
+                        sqrt,
                         symbolic_sum as sum,
                         symbolic_prod as product,
                         transpose)

@@ -215,8 +215,9 @@ from sage.structure.all import parent
 from sage.structure.sequence import Sequence
 from .fgp_element import DEBUG, FGP_Element
 from .fgp_morphism import FGP_Morphism, FGP_Homset
-from sage.rings.all import Integer, ZZ
-from sage.arith.all import lcm
+from sage.rings.integer_ring import ZZ
+from sage.rings.integer import Integer
+from sage.arith.functions import lcm
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix
 
@@ -1223,7 +1224,7 @@ class FGP_Module_class(Module):
         """
         x = self(x)
         v = x.vector() * self.smith_to_gens()
-        from sage.rings.all import infinity
+        from sage.rings.infinity import infinity
         if reduce and self.base_ring() == ZZ:
             orders = [g.order() for g in self.gens()]
             v = v.parent()([v[i] if orders[i] == infinity
@@ -1271,8 +1272,11 @@ class FGP_Module_class(Module):
             sage: V = span([[1/2,0,0],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = V/W; Q
             Finitely generated module V/W over Integer Ring with invariants (4, 12)
-            sage: Q.coordinate_vector(Q.0 - Q.1)
-            (1, -1)
+            sage: Q.coordinate_vector(Q.0 - Q.1, reduce=True)
+            (1, 11)
+            sage: a, b = Q.coordinate_vector(Q.0 - Q.1)
+            sage: (a % 4, b % 12)
+            (1, 11)
 
             sage: O, X = Q.optimized()
             sage: O.V()
@@ -1285,14 +1289,16 @@ class FGP_Module_class(Module):
             (0, 8)
             sage: Q.coordinate_vector(x, reduce=True)
             (0, 8)
-            sage: Q.coordinate_vector(-x, reduce=False) # random
-            (0, -8)
+            sage: a, b = Q.coordinate_vector(-x, reduce=False)
+            sage: (a % 4, b % 12)
+            (0, 4)
             sage: x == 8*Q.1
             True
             sage: x = Q(V.1); x
             (0, 11)
-            sage: Q.coordinate_vector(x)
-            (0, -1)
+            sage: a, b = Q.coordinate_vector(x)
+            sage: (a % 4, b % 12)
+            (0, 11)
             sage: x == -Q.1
             True
             sage: x = Q(V.2); x
@@ -1698,8 +1704,13 @@ class FGP_Module_class(Module):
 
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = V/W
-            sage: Q.random_element()
-            (1, 5)
+            sage: Q.random_element().parent() is Q
+            True
+            sage: Q.cardinality()
+            48
+            sage: S = set()
+            sage: while len(S) < 48:
+            ....:     S.add(Q.random_element())
         """
         return self(self._V.random_element(*args, **kwds))
 
@@ -1730,8 +1741,8 @@ class FGP_Module_class(Module):
             return self.__cardinality
         except AttributeError:
             pass
-        from sage.rings.all import infinity
-        from sage.misc.all import prod
+        from sage.rings.infinity import infinity
+        from sage.misc.misc_c import prod
         v = self.invariants()
         self.__cardinality = infinity if 0 in v else prod(v)
         return self.__cardinality
@@ -1921,7 +1932,23 @@ def random_fgp_module(n, R=ZZ, finite=False):
 
         sage: import sage.modules.fg_pid.fgp_module as fgp
         sage: fgp.random_fgp_module(4)
-        Finitely generated module V/W over Integer Ring with invariants (4)
+        Finitely generated module V/W over Integer Ring with invariants (...)
+
+    In most cases the cardinality is small or infinite::
+
+        sage: for g in (1, 2, 3, +Infinity):
+        ....:     while fgp.random_fgp_module(4).cardinality() != 1:
+        ....:         pass
+
+    One can force a finite module::
+
+        sage: fgp.random_fgp_module(4, finite=True).is_finite()
+        True
+
+    Larger finite modules appear::
+
+        sage: while fgp.random_fgp_module(4, finite=True).cardinality() < 100:
+        ....:     pass
     """
     K = R.fraction_field()
     V = K**n
@@ -1948,9 +1975,18 @@ def random_fgp_morphism_0(*args, **kwds):
     EXAMPLES::
 
         sage: import sage.modules.fg_pid.fgp_module as fgp
-        sage: fgp.random_fgp_morphism_0(4)
-        Morphism from module over Integer Ring with invariants (4,) to module with invariants (4,) that sends the generators to [(0)]
+        sage: mor = fgp.random_fgp_morphism_0(4)
+        sage: mor.domain() == mor.codomain()
+        True
+        sage: fgp.is_FGP_Module(mor.domain())
+        True
 
+    Each generator is sent to a random multiple of itself::
+
+        sage: gens = mor.domain().gens()
+        sage: im_gens = mor.im_gens()
+        sage: all(im_gens[i] == sum(im_gens[i])*gens[i] for i in range(len(gens)))
+        True
     """
     A = random_fgp_module(*args, **kwds)
     return A.hom([ZZ.random_element() * g for g in A.smith_form_gens()])
@@ -1971,7 +2007,7 @@ def test_morphism_0(*args, **kwds):
     phi = random_fgp_morphism_0(*args, **kwds)
     K = phi.kernel()
     I = phi.image()
-    from sage.misc.all import prod
+    from sage.misc.misc_c import prod
     if prod(K.invariants()):
         assert prod(phi.domain().invariants()) % prod(K.invariants()) == 0
     assert I.is_submodule(phi.codomain())

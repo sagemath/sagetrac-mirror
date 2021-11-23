@@ -41,7 +41,7 @@ sageruntime: base-toolchain
 
 # CONFIG_FILES lists all files that appear in AC_CONFIG_FILES in configure.ac;
 # except for build/make/Makefile-auto, which is unused by the build system
-CONFIG_FILES = build/make/Makefile src/bin/sage-env-config build/bin/sage-build-env-config build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg
+CONFIG_FILES = build/make/Makefile src/bin/sage-env-config build/bin/sage-build-env-config pkgs/sage-conf/sage_conf.py pkgs/sage-conf/setup.cfg
 
 # SPKG_COLLECT_FILES contains all files that influence the SAGE_SPKG_COLLECT macro
 SPKG_COLLECT_FILES = build/pkgs/*/type build/pkgs/*/package-version.txt build/pkgs/*/dependencies build/pkgs/*/requirements.txt build/pkgs/*/checksums.ini build/pkgs/*/spkg-install
@@ -79,6 +79,17 @@ download:
 dist: build/make/Makefile
 	./sage --sdist
 
+pypi-sdists: sage_setup
+	./sage --sh build/pkgs/sage_conf/spkg-src
+	./sage --sh build/pkgs/sage_setup/spkg-src
+	./sage --sh build/pkgs/sage_sws2rst/spkg-src
+	./sage --sh build/pkgs/sage_docbuild/spkg-src
+	./sage --sh build/pkgs/sage_setup/spkg-src
+	./sage --sh build/pkgs/sagelib/spkg-src
+	./sage --sh build/pkgs/sagemath_objects/spkg-src
+	./sage --sh build/pkgs/sagemath_categories/spkg-src
+	@echo "Built sdists are in upstream/"
+
 # ssl: build Sage, and also install pyOpenSSL. This is necessary for
 # running the secure notebook. This make target requires internet
 # access. Note that this requires that your system have OpenSSL
@@ -109,6 +120,7 @@ distclean: build-clean
 	@echo "Deleting all remaining output from build system ..."
 	rm -rf local
 	rm -f src/bin/sage-env-config
+	rm -f prefix venv
 
 # Delete all auto-generated files which are distributed as part of the
 # source tarball

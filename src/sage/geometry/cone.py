@@ -181,9 +181,18 @@ REFERENCES:
 """
 
 # ****************************************************************************
-#       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
-#       Copyright (C) 2012 Andrey Novoseltsev <novoselt@gmail.com>
-#       Copyright (C) 2010 William Stein <wstein@gmail.com>
+#       Copyright (C) 2010-2014 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2010-2018 Andrey Novoseltsev <novoselt@gmail.com>
+#       Copyright (C) 2010      William Stein <wstein@gmail.com>
+#       Copyright (C) 2012      Christian Stump
+#       Copyright (C) 2014-2018 Frédéric Chapoton
+#       Copyright (C) 2014      Peter Bruin
+#       Copyright (C) 2015-2017 Jori Mäntysalo
+#       Copyright (C) 2015-2020 Michael Orlitzky
+#       Copyright (C) 2016-2020 John H. Palmieri
+#       Copyright (C) 2018      David Coudert
+#       Copyright (C) 2019-2020 Jonathan Kliem
+#       Copyright (C) 2020-2021 Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -205,14 +214,23 @@ from sage.geometry.hasse_diagram import lattice_from_incidences
 from sage.geometry.toric_lattice import (ToricLattice, is_ToricLattice,
                                          is_ToricLatticeQuotient)
 from sage.geometry.toric_plotter import ToricPlotter, label_list
+from sage.geometry.relative_interior import RelativeInterior
 from sage.graphs.digraph import DiGraph
-from sage.matrix.all import column_matrix, matrix, MatrixSpace
-from sage.misc.all import cached_method, flatten, latex
-from sage.modules.all import span, vector, VectorSpace
-from sage.rings.all import QQ, ZZ
+from sage.matrix.constructor import matrix
+from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.special import column_matrix
+from sage.misc.cachefunc import cached_method
+from sage.misc.flatten import flatten
+from sage.misc.latex import latex
+from sage.modules.free_module import span, VectorSpace
+from sage.modules.free_module_element import vector
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.structure.all import SageObject, parent
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.geometry.integral_points import parallelotope_points
+from sage.geometry.convex_set import ConvexSet_closed
+import sage.geometry.abc
 
 from sage.misc.lazy_import import lazy_import
 from sage.features import PythonModule
@@ -579,8 +597,6 @@ def _ambient_space_point(body, data):
         (1.00000000000000, 3.14159265358979)
 
     """
-    from sage.rings.all import AA, RR
-
     L = body.lattice()
 
     def try_base_extend(ring):
@@ -605,6 +621,9 @@ def _ambient_space_point(body, data):
     # If we don't have a lattice element, try successively
     # less-desirable ambient spaces until (as a last resort) we
     # attempt a numerical representation.
+    from sage.rings.qqbar import AA
+    from sage.rings.real_mpfr import RR
+
     for ring in [QQ, AA, RR]:
         p = try_base_extend(ring)
         if p is not None:
@@ -710,7 +729,7 @@ def normalize_rays(rays, lattice):
             if lattice.is_ambient():
                 # Handle the most common case efficiently.
                 V = lattice.base_extend(QQ)
-                length = lambda ray: integral_length(ray)
+                length = integral_length
         except AttributeError:
             pass
         if V is None:
@@ -970,6 +989,26 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
         """
         return self._lattice
 
+    def ambient_vector_space(self, base_field=None):
+        r"""
+        Return the ambient vector space.
+
+        It is the ambient lattice (:meth:`lattice`) tensored with a field.
+
+        INPUT:
+
+        - ``base_field`` -- (default: the rationals) a field.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,0)])
+            sage: c.ambient_vector_space()
+            Vector space of dimension 2 over Rational Field
+            sage: c.ambient_vector_space(AA)
+            Vector space of dimension 2 over Algebraic Real Field
+        """
+        return self.lattice().vector_space(base_field=base_field)
+
     @cached_method
     def dual_lattice(self):
         r"""
@@ -1009,6 +1048,8 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
         r"""
         Return the dimension of the ambient lattice of ``self``.
 
+        An alias is :meth:`ambient_dim`.
+
         OUTPUT:
 
         - integer.
@@ -1022,6 +1063,8 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
             1
         """
         return self.lattice().dimension()
+
+    ambient_dim = lattice_dim
 
     def nrays(self):
         r"""
@@ -1055,7 +1098,7 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
         EXAMPLES::
 
             sage: quadrant = Cone([(1,0), (0,1)])
-            sage: quadrant.plot()
+            sage: quadrant.plot()  # optional - sage.plot
             Graphics object consisting of 9 graphics primitives
         """
         tp = ToricPlotter(options, self.lattice().degree(), self.rays())
@@ -1210,8 +1253,11 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
             sage: K.codim() == K.dual().lineality()
             True
         """
+        # same as ConvexSet_base.codim; the main point is the much more detailed
+        # docstring.
         return (self.lattice_dim() - self.dim())
 
+    codimension = codim
 
     def span(self, base_ring=None):
         r"""
@@ -1375,7 +1421,7 @@ def classify_cone_2d(ray0, ray1, check=True):
 # and ``ambient_ray_indices`` keyword parameters. See ``intersection`` method
 # for an example why this is needed.
 @richcmp_method
-class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
+class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_closed, sage.geometry.abc.ConvexRationalPolyhedralCone):
     r"""
     Create a convex rational polyhedral cone.
 
@@ -1474,7 +1520,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
             self._ambient_ray_indices = tuple(ambient_ray_indices)
             superinit(ambient.rays(self._ambient_ray_indices),
                       ambient.lattice())
-        if not PPL is None:
+        if PPL is not None:
             self._PPL_C_Polyhedron = PPL
 
     def _sage_input_(self, sib, coerced):
@@ -1711,6 +1757,43 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
            point = point[0]
         return self._contains(point, 'interior')
 
+    @cached_method
+    def interior(self):
+        r"""
+        Return the interior of ``self``.
+
+        OUTPUT:
+
+        - either ``self``, an empty polyhedron, or an instance of
+          :class:`~sage.geometry.relative_interior.RelativeInterior`.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,0,0), (0,1,0)]); c
+            2-d cone in 3-d lattice N
+            sage: c.interior()
+            The empty polyhedron in ZZ^3
+
+            sage: origin = cones.trivial(2); origin
+            0-d cone in 2-d lattice N
+            sage: origin.interior()
+            The empty polyhedron in ZZ^2
+
+            sage: K = cones.nonnegative_orthant(2); K
+            2-d cone in 2-d lattice N
+            sage: K.interior()
+            Relative interior of 2-d cone in 2-d lattice N
+
+            sage: K2 = Cone([(1,0),(-1,0),(0,1),(0,-1)]); K2
+            2-d cone in 2-d lattice N
+            sage: K2.interior() is K2
+            True
+
+        """
+        if self.is_solid():
+            return self.relative_interior()
+        return Polyhedron(ambient_dim=self.lattice_dim())
+
     def relative_interior_contains(self, *args):
         r"""
         Check if a given point is contained in the relative interior of ``self``.
@@ -1751,6 +1834,42 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
         if len(point) == 1:
            point = point[0]
         return self._contains(point, 'relative interior')
+
+    @cached_method
+    def relative_interior(self):
+        r"""
+        Return the relative interior of ``self``.
+
+        OUTPUT:
+
+        - either ``self`` or an instance of
+          :class:`~sage.geometry.relative_interior.RelativeInterior`.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,0,0), (0,1,0)]); c
+            2-d cone in 3-d lattice N
+            sage: c.relative_interior()
+            Relative interior of 2-d cone in 3-d lattice N
+
+            sage: origin = cones.trivial(2); origin
+            0-d cone in 2-d lattice N
+            sage: origin.relative_interior() is origin
+            True
+
+            sage: K1 = Cone([(1,0), (-1,0)]); K1
+            1-d cone in 2-d lattice N
+            sage: K1.relative_interior() is K1
+            True
+
+            sage: K2 = Cone([(1,0),(-1,0),(0,1),(0,-1)]); K2
+            2-d cone in 2-d lattice N
+            sage: K2.relative_interior() is K2
+            True
+        """
+        if self.is_relatively_open():
+            return self
+        return RelativeInterior(self)
 
     def cartesian_product(self, other, lattice=None):
         r"""
@@ -1894,6 +2013,27 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
         else:
             result += " face of %s" % self.ambient()
         return result
+
+    def _some_elements_(self):
+        r"""
+        Generate some points of ``self``.
+
+        EXAMPLES::
+
+            sage: K = cones.nonnegative_orthant(3)
+            sage: K.some_elements()  # indirect doctest
+            [(0, 0, 0), (1/2, 0, 0), (1/4, 1/2, 0), (1/8, 1/4, 1/2)]
+        """
+        V = self.ambient_vector_space()
+        r_iter = iter(self._rays)
+        p = V(0)
+        yield p
+        for i in range(5):
+            try:
+                p = (p + next(r_iter)) / 2
+            except StopIteration:
+                return
+            yield p
 
     def _sort_faces(self,  faces):
         r"""
@@ -3190,6 +3330,21 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
             return False
         return self.rays().matrix().elementary_divisors() == [1] * self.nrays()
 
+    def is_empty(self):
+        """
+        Return whether ``self`` is the empty set.
+
+        Because a cone always contains the origin, this method returns ``False``.
+
+        EXAMPLES::
+
+            sage: trivial_cone = cones.trivial(3)
+            sage: trivial_cone.is_empty()
+            False
+
+        """
+        return False
+
     def is_trivial(self):
         """
         Checks if the cone has no rays.
@@ -3207,6 +3362,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
             0
         """
         return self.nrays() == 0
+
+    is_compact = is_trivial
 
     def is_strictly_convex(self):
         r"""
@@ -3318,7 +3475,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
         EXAMPLES::
 
             sage: quadrant = Cone([(1,0), (0,1)])
-            sage: quadrant.plot()
+            sage: quadrant.plot()  # optional - sage.plot
             Graphics object consisting of 9 graphics primitives
         """
         # What to do with 3-d cones in 5-d? Use some projection method?
@@ -3379,6 +3536,30 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
             of 1 vertex
         """
         return Polyhedron(rays=self.rays(), vertices=[self.lattice()(0)])
+
+    def an_affine_basis(self):
+        r"""
+        Return points in ``self`` that form a basis for the affine hull.
+
+        EXAMPLES::
+
+            sage: quadrant = Cone([(1,0), (0,1)])
+            sage: quadrant.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+            sage: ray = Cone([(1, 1)])
+            sage: ray.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+            sage: line = Cone([(1,0), (-1,0)])
+            sage: line.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+        """
+        return self.polyhedron().an_affine_basis()
 
     @cached_method
     def strict_quotient(self):
@@ -4326,9 +4507,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
         The primal Normaliz algorithm, see [Normaliz]_.
         """
         if self.is_strictly_convex():
-            def not_in_linear_subspace(x): return True
+
+            def not_in_linear_subspace(x):
+                return True
         else:
             linear_subspace = self.linear_subspace()
+
             def not_in_linear_subspace(x):
                 # "x in linear_subspace" does not work, due to absence
                 # of coercion maps as of Trac ticket #10513.
@@ -4357,7 +4541,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
         else:
             return PointCollection(irreducible, self.lattice())
 
-    def Hilbert_coefficients(self, point, solver=None, verbose=0):
+    def Hilbert_coefficients(self, point, solver=None, verbose=0,
+                             *, integrality_tolerance=1e-3):
         r"""
         Return the expansion coefficients of ``point`` with respect to
         :meth:`Hilbert_basis`.
@@ -4368,14 +4553,19 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
           in the cone, or something that can be converted to a
           point. For example, a list or tuple of integers.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
-          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
+          (MILP) solver to be used. If set to ``None``, the default one is used. For
+          more information on MILP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
           of the LP solver. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
+          inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -4438,7 +4628,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
             p.add_constraint(p.sum(b[i]*x[j] for j,b in enumerate(basis)) == point[i])
         p.solve(log=verbose)
 
-        return vector(ZZ, p.get_values(x))
+        return vector(ZZ, p.get_values(x, convert=ZZ, tolerance=integrality_tolerance))
 
     def is_solid(self):
         r"""
@@ -4446,6 +4636,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
 
         A cone is said to be solid if it has nonempty interior. That
         is, if its extreme rays span the entire ambient space.
+
+        An alias is :meth:`is_full_dimensional`.
 
         OUTPUT:
 
@@ -4485,6 +4677,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
             True
         """
         return (self.dim() == self.lattice_dim())
+
+    is_full_dimensional = is_solid
 
     def is_proper(self):
         r"""
@@ -4536,6 +4730,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
         r"""
         Check if this cone is equal to its ambient vector space.
 
+        An alias is :meth:`is_universe`.
+
         OUTPUT:
 
         ``True`` if this cone equals its entire ambient vector
@@ -4572,6 +4768,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
 
         """
         return self.linear_subspace() == self.lattice().vector_space()
+
+    is_universe = is_full_space
 
     def lineality(self):
         r"""
@@ -4644,6 +4842,27 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
             0
         """
         return self.linear_subspace().dimension()
+
+    def is_relatively_open(self):
+        r"""
+        Return whether ``self`` is relatively open.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: K = cones.nonnegative_orthant(3)
+            sage: K.is_relatively_open()
+            False
+
+            sage: K1 = Cone([(1,0), (-1,0)]); K1
+            1-d cone in 2-d lattice N
+            sage: K1.is_relatively_open()
+            True
+        """
+        return self.lineality() == self.dim()
 
     @cached_method
     def discrete_complementarity_set(self):
@@ -5247,7 +5466,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
             sage: sum(K.random_element() for i in range(10)) in K.lattice()
             True
         """
-        if not ring in [ZZ, QQ]:
+        if ring not in [ZZ, QQ]:
             # This cone theoretically lives in a real vector space,
             # but in Sage, we work over the rationals to avoid
             # numerical issues. Thus ``ring`` must consist of
