@@ -17,5 +17,6 @@ set -e
 
 cd "$SAGE_ROOT"/build/pkgs/sagelib
 
-cd src
-python3 -u setup.py --no-user-cfg sdist --dist-dir "$SAGE_DISTFILES"
+for src in src*; do
+    (cd $src && python3 -u setup.py --no-user-cfg sdist --dist-dir "$SAGE_DISTFILES")
+done

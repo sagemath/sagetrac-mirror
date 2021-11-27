@@ -52,7 +52,10 @@ if [ "$SAGE_EDITABLE" = yes ]; then
 else
     # Likewise, we should remove the egg-link that may have been installed previously.
     (cd "$SITEPACKAGESDIR" && rm -f sagemath-standard.egg-link)
-    time python3 -u setup.py --no-user-cfg build install || exit 1
+    time python3 -u setup.py --no-user-cfg install || exit 1
+    # Run the installation cleaner (no longer part of the sagemath-standard install procedure.)
+    # FIXME: It needs to clean the right build directory!
+    (cd ../install-cleaner && python3 -u setup.py --no-user-cfg install)
 fi
 
 # Trac #33103: The temp.* directories are large after a full build.

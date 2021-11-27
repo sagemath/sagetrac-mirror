@@ -9,18 +9,9 @@ import setuptools
 from distutils import log
 from setuptools import setup
 
-# Work around a Cython problem in Python 3.8.x on macOS
-# https://github.com/cython/cython/issues/3262
-if os.uname().sysname == 'Darwin':
-    import multiprocessing
-    multiprocessing.set_start_method('fork', force=True)
-
 #########################################################
 ### Set source directory
 #########################################################
-
-# PEP 517 builds do not have . in sys.path
-sys.path.insert(0, os.path.dirname(__file__))
 
 import sage.env
 sage.env.SAGE_SRC = os.getcwd()
@@ -44,23 +35,15 @@ else:
     from sage_setup.setenv import setenv
     setenv()
 
+    from sage_setup.command.sage_build import sage_build
     from sage_setup.command.sage_build_cython import sage_build_cython
     from sage_setup.command.sage_build_ext import sage_build_ext
-    from sage_setup.command.sage_install import sage_develop, sage_install
+    from sage_setup.command.sage_install import sage_clean
 
-    cmdclass = dict(build_cython=sage_build_cython,
+    cmdclass = dict(build=sage_build,
+                    build_cython=sage_build_cython,
                     build_ext=sage_build_ext,
-                    develop=sage_develop,
-                    install=sage_install)
-
-#########################################################
-### Testing related stuff
-#########################################################
-
-# Remove (potentially invalid) star import caches
-import sage.misc.lazy_import_cache
-if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
-    os.unlink(sage.misc.lazy_import_cache.get_cache_file())
+                    install=sage_clean)
 
 #########################################################
 ### Discovering Sources
@@ -74,16 +57,12 @@ if sdist:
     python_modules = []
     cython_modules = []
 else:
-    log.info("Generating auto-generated sources")
-    from sage_setup.autogen import autogen_all
-    autogen_all()
-
     # TODO: This should be quiet by default
     print("Discovering Python/Cython source code....")
     t = time.time()
-    from sage.misc.package import is_package_installed_and_updated
+    from sage_setup.optional_extension import is_package_installed_and_updated
     distributions = ['']
-    optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib',
+    optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
                                          'coxeter3', 'fes', 'sirocco', 'meataxe']
     distributions += ['sagemath-{}'.format(pkg)
                       for pkg in optional_packages_with_extensions
