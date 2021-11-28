@@ -645,7 +645,6 @@ def rename_keyword(deprecated=None, deprecation=None, **renames):
     return decorator(wrapper)
 
 
-@deprecated(30884, 'not used anymore')
 class specialize:
     r"""
     A decorator generator that returns a decorator that in turn
@@ -677,6 +676,7 @@ class specialize:
         sage: greet(name = 'Javert')
         Bon Voyage, Javert!
     """
+    @deprecated(30884, 'not used anymore')
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs

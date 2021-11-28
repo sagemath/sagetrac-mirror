@@ -26,7 +26,7 @@ Functions and classes
 from warnings import warn
 import inspect
 
-from decorator import decorate, decorator
+from decorator import decorator
 
 from sage.misc.lazy_attribute import lazy_attribute
 

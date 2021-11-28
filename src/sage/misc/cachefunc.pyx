@@ -1437,9 +1437,11 @@ cdef class WeakCachedFunction(CachedFunction):
 
 
 def weak_cached_function(classmethod=False, name=None, key=None, **kwds):
-    def deco(func):
-        return decorate(func, WeakCachedFunction(func, classmethod=classmethod, name=name, key=key, **kwds))
-    return deco
+    def caller(func, *args, **kw):
+        if not hasattr(func, '__weakcachedfunction__'):
+            func.__weakcachedfunction__ = WeakCachedFunction(func, classmethod=classmethod, name=name, key=key, **kwds)
+        return func.__weakcachedfunction__(*args, **kw) 
+    return decorator(caller)
 
 
 class CachedMethodPickle(object):
