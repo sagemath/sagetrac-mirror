@@ -11,6 +11,7 @@ At the moment, Sage is not yet using any tests based on pytest.
 from __future__ import annotations
 from typing import Any
 import pytest
+from _pytest.python import Metafunc, PyCollector
 import inspect
 
 import sage.all # TODO: Remove once categories can be used without previous sage.all import
@@ -18,7 +19,6 @@ from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from _pytest.python import Metafunc, PyCollector
 from sage.categories.sets_cat_test import SetsTests
 from sage.categories.enumerated_sets_test import EnumeratedSetsTests
 from sage.categories.finite_enumerated_sets_test import FiniteEnumeratedSetsTests
