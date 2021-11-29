@@ -419,12 +419,12 @@ class DiGraph(GenericGraph):
             RuntimeError: the string seems corrupt: valid characters are
             ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
 
-    #. A NetworkX XDiGraph::
+    #. A NetworkX MultiDiGraph::
 
             sage: import networkx
             sage: g = networkx.MultiDiGraph({0: [1, 2, 3], 2: [4]})
             sage: DiGraph(g)
-            Digraph on 5 vertices
+            Multi-digraph on 5 vertices
 
 
     #. A NetworkX digraph::
@@ -697,12 +697,9 @@ class DiGraph(GenericGraph):
                 else:
                     format = 'dict_of_lists'
         if format is None and hasattr(data, 'adj'):
-            import networkx
-            if isinstance(data, (networkx.Graph, networkx.MultiGraph)):
-                data = data.to_directed()
-                format = 'NX'
-            elif isinstance(data, (networkx.DiGraph, networkx.MultiDiGraph)):
-                format = 'NX'
+            # the input is a networkx (Multi)(Di)Graph
+            format = 'NX'
+
         if (format is None          and
             hasattr(data, 'vcount') and
             hasattr(data, 'get_edgelist')):
@@ -804,34 +801,13 @@ class DiGraph(GenericGraph):
             from_dict_of_lists(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'NX':
-            # adjust for empty dicts instead of None in NetworkX default edge
-            # labels
-            if convert_empty_dict_labels_to_None is None:
-                convert_empty_dict_labels_to_None = (format == 'NX')
-
+            from sage.graphs.graph_input import from_networkx_graph
+            from_networkx_graph(self, data,
+                                weighted=weighted, multiedges=multiedges, loops=loops,
+                                convert_empty_dict_labels_to_None=convert_empty_dict_labels_to_None)
             if weighted is None:
-                import networkx
-                if isinstance(data, networkx.DiGraph):
-                    weighted = False
-                    if multiedges is None:
-                        multiedges = False
-                    if loops is None:
-                        loops = False
-                else:
-                    weighted = True
-                    if multiedges is None:
-                        multiedges = data.multiedges
-                    if loops is None:
-                        loops = data.selfloops
-            if convert_empty_dict_labels_to_None:
-                r = lambda x: None if x == {} else x
-            else:
-                r = lambda x: x
+                weighted = self.allows_multiple_edges()
 
-            self.allow_multiple_edges(multiedges, check=False)
-            self.allow_loops(loops, check=False)
-            self.add_vertices(data.nodes())
-            self.add_edges((u, v, r(l)) for u, v, l in data.edges(data=True))
         elif format == 'igraph':
             if not data.is_directed():
                 raise ValueError("a *directed* igraph graph was expected. To "
@@ -1685,14 +1661,13 @@ class DiGraph(GenericGraph):
             # Variables are binary, and their coefficient in the objective is
             # the number of occurrences of the corresponding edge, so 1 if the
             # graph is simple
-            p.set_objective( p.sum(b[u,v] for u,v in self.edge_iterator(labels=False)))
-
-            p.solve(log=verbose)
+            p.set_objective( p.sum(b[e] for e in self.edge_iterator(labels=False)))
 
             # For as long as we do not break because the digraph is acyclic....
             while True:
 
                 # Building the graph without the edges removed by the MILP
+                p.solve(log=verbose)
                 val = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
                 h = DiGraph([e for e in self.edge_iterator(labels=False) if not val[e]],
                             format='list_of_edges')
@@ -1702,7 +1677,11 @@ class DiGraph(GenericGraph):
 
                 # If so, we are done !
                 if isok:
-                    break
+                    if value_only:
+                        return sum(1 for e in self.edge_iterator(labels=False) if val[e])
+                    else:
+                        # listing the edges contained in the MFAS
+                        return [e for e in self.edge_iterator(labels=False) if val[e]]
 
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
@@ -1712,23 +1691,13 @@ class DiGraph(GenericGraph):
                         print("Adding a constraint on circuit : {}".format(certificate))
 
                     edges = zip(certificate, certificate[1:] + [certificate[0]])
-                    p.add_constraint(p.sum(b[u, v] for u, v in edges), min=1)
+                    p.add_constraint(p.sum(b[e] for e in edges), min=1)
 
                     # Is there another edge disjoint circuit ?
                     # for python3, we need to recreate the zip iterator
                     edges = zip(certificate, certificate[1:] + [certificate[0]])
                     h.delete_edges(edges)
                     isok, certificate = h.is_directed_acyclic(certificate=True)
-
-                obj = p.solve(log=verbose)
-
-            if value_only:
-                return Integer(round(obj))
-
-            else:
-                # listing the edges contained in the MFAS
-                val = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
-                return [e for e in self.edge_iterator(labels=False) if val[e]]
 
         ######################################
         # Ordering-based MILP Implementation #
@@ -1747,16 +1716,16 @@ class DiGraph(GenericGraph):
             for v in self:
                 p.add_constraint(d[v] <= n)
 
-            p.set_objective(p.sum(b[u,v] for u,v in self.edge_iterator(labels=None)))
+            p.set_objective(p.sum(b[e] for e in self.edge_iterator(labels=False)))
+
+            p.solve(log=verbose)
+
+            b_sol = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
 
             if value_only:
-                return Integer(round(p.solve(objective_only=True, log=verbose)))
+                return sum(1 for e in self.edge_iterator(labels=False) if b_sol[e])
             else:
-                p.solve(log=verbose)
-
-                b_sol = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
-
-                return [e for e in self.edge_iterator(labels=None) if b_sol[e]]
+                return [e for e in self.edge_iterator(labels=False) if b_sol[e]]
 
     ### Construction
 

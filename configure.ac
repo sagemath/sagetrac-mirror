@@ -49,6 +49,14 @@ dnl Make sure the path to our own m4 macros is always properly set
 dnl and doesn't depend on how autoconf is called.
 AC_CONFIG_MACRO_DIR([m4])
 
+dnl The AC_LIB_RPATH macro comes from gettext, which is one of our bootstrap
+dnl packages. It defines, among other things, the $acl_shlibext variable that
+dnl contains the shared library extension for this system. We already use the
+dnl AM_ICONV macro from gettext (which ultimately calls AC_LIB_RPATH), and we
+dnl avoid involving libtool by using it to get the shared library extension.
+AC_LIB_RPATH
+AC_SUBST(SHLIBEXT, "${acl_shlibext}")
+
 #---------------------------------------------------------
 #
 # This is essentially the configure part of the old "install" file.
@@ -84,7 +92,7 @@ SAGE_SRC="$SAGE_ROOT/src"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
 AC_ARG_WITH([sage-venv],
-            [AS_HELP_STRING([--with-sage-venv={auto,yes,no,SAGE_VENV}],
+            [AS_HELP_STRING([--with-sage-venv={auto (default),yes,no,SAGE_VENV}],
                             [put Python packages into an installation hierarchy separate from prefix])],
             [SAGE_VENV="$withval"],
             [SAGE_VENV="auto"])
@@ -456,7 +464,7 @@ AC_ARG_ENABLE([notebook],
 AC_ARG_ENABLE([r],
   AS_HELP_STRING([--disable-r],
                  [disable build of the R package and related packages]), [
-    for pkg in r rpy2 r_jupyter; do
+    for pkg in r rpy2 r_jupyter pcre; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
   ])
