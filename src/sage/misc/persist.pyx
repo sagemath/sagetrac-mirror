@@ -266,7 +266,24 @@ def save(obj, filename, compress=True, obj_name='_', write_protection=None, **kw
 
     .. WARNING::
 
-       This will *replace* the contents of the file if it already exists.
+       for the binary formats this will *replace* the contents of the
+       file if it already exists. To avoid this you may use the
+       ``write_protection`` keyword of the method.
+
+
+    .. NOTE::
+
+       There is no guarantee that data saved to a file can be loaded
+       under a different version of Sage (see for example the discussion
+       in :trac:`28302`). If you need a long-term usage of your data
+       you should try to save them in a human readible form (e.g. in
+       ``.py`` or ``.sage`` format). In addition you should try to
+       minimize the complexity of the data types. The closer you
+       bring your data to flat Python data types as dictionaries, lists,
+       ``int`` or ``str`` the more robust it will be against version
+       upgrades. Write your own conversion methods to simplify your
+       data accordingly before saving respectivley to recreate the
+       complex data structure from the simplified one after loading.
 
     EXAMPLES::
 
