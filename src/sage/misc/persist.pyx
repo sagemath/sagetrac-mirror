@@ -221,8 +221,17 @@ def _base_save(obj, filename, compress=True):
 
     return filename
 
+py_sage_header_text = r"""# ------------------------------------------------------------
+# This file was generated using sage_input
+#
+# on    : %s with%s write-protection
+# under : %s
+# using : Python %s
+# ------------------------------------------------------------
 
-def save(obj, filename, compress=True, obj_name='_', **kwargs):
+"""
+
+def save(obj, filename, compress=True, obj_name='_', write_protection=None, **kwargs):
     """
     Save ``obj`` to the file with name ``filename``, which will have an
     ``.sobj`` extension added if it doesn't have one and if ``obj``
@@ -232,6 +241,28 @@ def save(obj, filename, compress=True, obj_name='_', **kwargs):
     you may have to specify a specific extension, e.g. ``.png``, if you
     don't want the object to be saved as a Sage object (or likewise, if
     ``filename`` could be interpreted as already having some extension).
+
+    INPUT:
+
+    - ``obj`` -- the object that schould be saved
+    - ``filename`` -- string giving path and filename of the location
+      where the data should be stored. If no path is specified the
+      current directory will be used. If no extension is specified
+      the extension ``.sobj`` will be added. Other options for the
+      extension are ``.py``, ``.sage`` and extensions for graphical
+      files like ``.png`` depending on the object in question
+    - ``compress`` -- boolean (default ``True``) whether to compress
+      the data in case of binary file format
+    - ``obj_name`` -- string ( default ``'_'``) to specify the name
+      of the object under which is shoud be read back. This is only
+      used in connection with the human readible file formats (e.g.
+      ``.py`` and ``.sage``)
+    - ``write_protection`` -- boolean whether the created file should
+      be write protected or not. The default depends on the file
+      format. The human readible formats ``.py`` and ``.sage`` are
+      created write protected per default, whereas all other formats
+      are not
+
 
     .. WARNING::
 
@@ -270,7 +301,15 @@ def save(obj, filename, compress=True, obj_name='_', **kwargs):
         sage: _
         [   1    2]
         [   3 -5/2]
-        sage: exit_code = os.system('cat %s' %pyfile)
+        sage: exit_code = os.system('cat %s' %pyfile)   # not tested
+        # ------------------------------------------------------------
+        # This file was generated using sage_input
+        #
+        # on    : 2021-11-30 10:48:14.800212 with write-protection
+        # under : SageMath version 9.5.beta7, Release Date: 2021-11-18
+        # using : Python 3.9.7 (default, Sep 30 2021, 01:20:25)
+        # ------------------------------------------------------------
+
         _ = matrix(QQ, [[1, 2], [3, -ZZ(5)/2]])
 
         sage: sagefile = os.path.join(SAGE_TMP, 'test.sage')
@@ -278,9 +317,16 @@ def save(obj, filename, compress=True, obj_name='_', **kwargs):
         sage: load(sagefile)
         sage: A == a
         True
-        sage: exit_code = os.system('cat %s' %sagefile)
-        A = matrix(QQ, [[1, 2], [3, -5/2]])
+        sage: exit_code = os.system('cat %s' %sagefile) # not tested
+        # ------------------------------------------------------------
+        # This file was generated using sage_input
+        #
+        # on    : 2021-11-30 10:48:14.909018 with write-protection
+        # under : SageMath version 9.5.beta7, Release Date: 2021-11-18
+        # using : Python 3.9.7 (default, Sep 30 2021, 01:20:25)
+        # ------------------------------------------------------------
 
+        A = matrix(QQ, [[1, 2], [3, -5/2]])
 
 
     TESTS:
@@ -301,14 +347,26 @@ def save(obj, filename, compress=True, obj_name='_', **kwargs):
         except (AttributeError, RuntimeError, TypeError):
             _base_save(obj, filename, compress=compress)
     elif filename.endswith('.sage') or filename.endswith('.py'):
+        if write_protection is None:
+            write_protection = True
+            out=''
+        else:
+            out='out'
         from sage.misc.sage_input import sage_input
+        from datetime import datetime
+        from sage.misc.banner import version
         preparse = filename.endswith('.sage')
         s = str(sage_input(obj, verify=True, preparse=preparse))
+        header = py_sage_header_text %(datetime.today(), out, version(), sys.version.split(' \n')[0])
         with open(filename, 'w') as fobj:
+             fobj.write(header)
              fobj.write('%s = %s' %(obj_name, s.strip('# Verified\n')))
     else:
         # Saving an object to an image file.
         obj.save(filename, **kwargs)
+
+    if write_protection:
+        os.chmod(filename, 444)
 
 
 def _base_dumps(obj, compress=True):
