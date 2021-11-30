@@ -1508,6 +1508,20 @@ cdef class ETuple:
             degree += self._data[i]
         return degree
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when
+        evaluated.
+
+        EXAMPLES::
+
+            sage: R.<a, b, c> = ZZ[]
+            sage: p = a**2*b - 2*c**3 + 5
+            sage: sage_input(p.dict())     # indirect doctest
+            {(2r, 1r, 0r):1, (0r, 0r, 3r):-2, (0r, 0r, 0r):5}
+        """
+        return sib(tuple(self))
+
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cdef size_t weighted_degree(self, tuple w):

@@ -1117,6 +1117,44 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
         """
         return (unreduce, self._reduction)
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when
+        evaluated.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroup(4)
+            sage: sage_input(S, verify=True)   # indirect doctest
+            # Verified
+            from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+            FiniteEnumeratedSet
+            from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+            SymmetricGroup
+            SymmetricGroup(*(), **{'domain':FiniteEnumeratedSet(*((1r, 2r, 3r, 4r),), **{})})
+
+            sage: G = GU(2,3)
+            sage: sage_input(G, verify=True)   # indirect doctest
+            # Verified
+            R.<x> = GF(3)[]
+            from sage.groups.matrix_gps.unitary import UnitaryMatrixGroup_gap
+            UnitaryMatrixGroup_gap
+            UnitaryMatrixGroup_gap(*(2, GF(3^2, 'a', x^2 + 2*x + 2), False,
+            'General Unitary Group of degree 2 over Finite Field in a of size 3^2',
+            '\\text{GU}_{2}(\\Bold{F}_{3^{2}})', 'GU(2, 3)'), **{})
+
+        """
+        unred, data = self.__reduce__()
+        cls, args, kwds = data
+        name = cls.__name__
+        module = cls.__module__
+        sie_import = sib.import_name(module, name)
+        sie_args = sib(args).unpack_iter()
+        sie_kwds = sib.dict(kwds).unpack_dict()
+        expr = sib.name(name)(sie_args, sie_kwds)
+        sib.command(expr, sie_import)
+        return expr
+
     def __copy__(self):
         """
         Return ``self``, as a semantic copy of ``self``.

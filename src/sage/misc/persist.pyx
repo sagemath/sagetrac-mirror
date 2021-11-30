@@ -77,6 +77,10 @@ cdef _normalize_filename(s):
     """
     Append the .sobj extension to a filename if it doesn't already have it.
     """
+    if s[-5:] == '.sage':
+        return s
+    if s[-3:] == '.py':
+        return s
     if s[-5:] != '.sobj':
         return s + '.sobj'
 
@@ -218,7 +222,7 @@ def _base_save(obj, filename, compress=True):
     return filename
 
 
-def save(obj, filename, compress=True, **kwargs):
+def save(obj, filename, compress=True, obj_name='_', **kwargs):
     """
     Save ``obj`` to the file with name ``filename``, which will have an
     ``.sobj`` extension added if it doesn't have one and if ``obj``
@@ -258,6 +262,27 @@ def save(obj, filename, compress=True, **kwargs):
         sage: load(objfile_short)
         'A python string'
 
+    Writing to human readable files::
+
+        sage: pyfile = os.path.join(SAGE_TMP, 'test.py')
+        sage: save(a, pyfile)
+        sage: load(pyfile)
+        sage: _
+        [   1    2]
+        [   3 -5/2]
+        sage: exit_code = os.system('cat %s' %pyfile)
+        _ = matrix(QQ, [[1, 2], [3, -ZZ(5)/2]])
+
+        sage: sagefile = os.path.join(SAGE_TMP, 'test.sage')
+        sage: save(a, sagefile, obj_name='A')
+        sage: load(sagefile)
+        sage: A == a
+        True
+        sage: exit_code = os.system('cat %s' %sagefile)
+        A = matrix(QQ, [[1, 2], [3, -5/2]])
+
+
+
     TESTS:
 
     Check that :trac:`11577` is fixed::
@@ -267,7 +292,6 @@ def save(obj, filename, compress=True, **kwargs):
         sage: load(filename)
         (1, 1)
     """
-
     if not os.path.splitext(filename)[1] or not hasattr(obj, 'save'):
         filename = _normalize_filename(filename)
 
@@ -276,6 +300,12 @@ def save(obj, filename, compress=True, **kwargs):
             obj.save(filename=filename, compress=compress, **kwargs)
         except (AttributeError, RuntimeError, TypeError):
             _base_save(obj, filename, compress=compress)
+    elif filename.endswith('.sage') or filename.endswith('.py'):
+        from sage.misc.sage_input import sage_input
+        preparse = filename.endswith('.sage')
+        s = str(sage_input(obj, verify=True, preparse=preparse))
+        with open(filename, 'w') as fobj:
+             fobj.write('%s = %s' %(obj_name, s.strip('# Verified\n')))
     else:
         # Saving an object to an image file.
         obj.save(filename, **kwargs)

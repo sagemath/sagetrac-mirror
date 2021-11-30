@@ -1588,6 +1588,36 @@ class SageInputExpression(object):
         """
         return self._sie_unop('~')
 
+    def unpack_iter(self):
+        r"""
+        Compute an expression tree for ``*self`` if ``self``
+        represents an iterable.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: sie = sib.name('range')(sib(2))
+            sage: sie.unpack_iter()
+            {unop:* {call: {atomic:range}({atomic:2})}}
+        """
+        return self._sie_unop('*')
+
+    def unpack_dict(self):
+        r"""
+        Compute an expression tree for ``**self`` if ``self``
+        represents a dictionary.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: sie = sib.dict({'a':1, 'b':2})
+            sage: sie.unpack_dict()
+            {unop:** {dict: {{atomic:'a'}:{atomic:1}, {atomic:'b'}:{atomic:2}}}}
+        """
+        return self._sie_unop('**')
+
     def __abs__(self):
         r"""
         Compute an expression tree for ``abs(self)``.
@@ -2604,6 +2634,8 @@ class SIE_unary(SageInputExpression):
             prec = _prec_negate
         elif op == '~':
             prec = _prec_bitnot
+        elif op in ['*', '**']:
+            prec = _prec_funcall
         else:
             raise ValueError('Unhandled op {} in SIE_unary'.format(op))
 

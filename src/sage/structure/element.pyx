@@ -590,6 +590,77 @@ cdef class Element(SageObject):
         self._set_parent(state[0])
         self.__dict__ = state[1]
 
+    def _reconstruction_data(self):
+        r"""
+        Return data which allows the reconstruction of ``self`` via the
+        :meth:`_element_constructor_` of its parent, such that it can be used
+        by :meth:`_sage_input_`. In most cases, this will need a custom
+        implementation. The implementation here returns ``None`` if such data
+        can not be identified generically.
+        """
+        P = self._parent
+        def reconstructible(data):
+            r"""
+            Check if ``self`` can be reconstructed from the data.
+            """
+            try:
+                if P(data) == self:
+                    return True
+                return False
+            except (ValueError, TypeError, NotImplementedError):
+                return False
+
+        pyth_meths = ['dict', '_dict', 'list', '_list']
+        vect_meths = ['vector', 'to_vector', '_vector_', '_vector']
+        mat_meths = ['matrix', 'to_matrix', '_matrix_', '_matrix']
+        other_meths = ['Tietze']
+        for attr in pyth_meths + vect_meths + mat_meths + other_meths:
+            if hasattr(self, attr):
+                data = self.__getattribute__(attr)()
+                if reconstructible(data):
+                    return data
+        return None
+
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when
+        evaluated.
+
+        EXAMPLES::
+
+            sage: R.<a, b, c> = ZZ[]
+            sage: p = a**2*b - 2*c**3 + 5
+            sage: sage_input(p, verify=True)
+            # Verified
+            ZZ[('a', 'b', 'c')]({(2r, 1r, 0r):1, (0r, 0r, 3r):-2, (0r, 0r, 0r):5})
+
+            sage: G = GU(2,3); g = G[2]; g
+            [    0 a + 1]
+            [a + 1     2]
+            sage: sage_input(g, verify=True)
+            # Verified
+            GF_3 = GF(3)
+            R.<x> = GF_3[]
+            from sage.groups.matrix_gps.unitary import UnitaryMatrixGroup_gap
+            UnitaryMatrixGroup_gap
+            UnitaryMatrixGroup_gap(*(2, GF(3^2, 'a', x^2 + 2*x + 2), False,
+            'General Unitary Group of degree 2 over Finite Field in a of size 3^2',
+            '\\text{GU}_{2}(\\Bold{F}_{3^{2}})', 'GU(2, 3)'),
+            **{})([[GF(3^2, 'a', x^2 + 2*x + 2)(vector(GF_3, [0, 0])),
+                    GF(3^2, 'a', x^2 + 2*x + 2)(vector(GF_3, [1, 1]))],
+                   [GF(3^2, 'a', x^2 + 2*x + 2)(vector(GF_3, [1, 1])),
+                    GF(3^2, 'a', x^2 + 2*x + 2)(vector(GF_3, [2, 0]))]])
+        """
+        P = self.parent()
+        data = self._reconstruction_data()
+        if data is None:
+            raise NotImplementedError('Sage input not implemented for %s of parent %s' %(self, P))
+        sie_parent = P._sage_input_(sib, coerced)
+        sib.cache(P, sie_parent, 'P')
+        sie_data = sib(data)
+        return sie_parent(sie_data)
+
+
     def __copy__(self):
         """
         Return a copy of ``self``.
