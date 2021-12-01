@@ -1451,6 +1451,29 @@ class Sets(Category_singleton):
             """
             return None
 
+        def _sage_input_(self, sib, coerced):
+            r"""
+            Produce an expression which will reproduce this value when
+            evaluated.
+
+            EXAMPLES::
+
+                sage: R.<x,y> = ZZ[]
+                sage: F = FractionField(R)
+                sage: sage_input(F, verify=True)  # indirect doctest
+                # Verified
+                FractionField(ZZ[('x', 'y')])
+            """
+            constr = self.construction()
+            if constr is None:
+                raise NotImplementedError('Sage input not implemented for parent %s' %self )
+
+            functor, parent = constr
+            sie_functor = sib.name(functor)
+            sie_base_parent = sib(parent)
+            return sie_functor(sie_base_parent)
+
+
         def _test_construction(self, **options):
             """
             Test that the construction returned by self really yields self.

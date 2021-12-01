@@ -556,6 +556,26 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             return codomain.has_coerce_map_from(self._base)
         return True
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when
+        evaluated.
+
+        EXAMPLES::
+
+            sage: sage_input(GF(5)['x', 'y'], verify=True)
+            # Verified
+            GF(5)[('x', 'y')]
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: ZZ['z']._sage_input_(SageInputBuilder(), False)
+            {constr_parent: {subscr: {atomic:ZZ}[{atomic:'z'}]} with gens: ('z',)}
+        """
+        sie_base = sib(self.base_ring())
+        sie_self = sie_base[self.variable_names()]
+        gens_syntax = sib.empty_subscript(sie_base)
+        return sib.parent_with_gens(self, sie_self, self.variable_names(), 'R', gens_syntax=gens_syntax)
+
+
     def _magma_init_(self, magma):
         """
         Used in converting this ring to the corresponding ring in Magma.

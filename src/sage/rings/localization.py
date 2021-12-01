@@ -363,6 +363,25 @@ class LocalizationElement(IntegralDomainElement):
         """
         return self.parent()._fraction_to_element(self._value * c)
 
+    def _reconstruction_data(self):
+        r"""
+        Return a dictionary allowing the reconstruction of ``self`` for example
+        using :func:`sage_input`.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = ZZ[]
+            sage: L = R.localization(x+y)
+            sage: t = L((x-y)/(x+y))
+            sage: sage_input(t, verify=True)
+            # Verified
+            from sage.rings.localization import Localization
+            Localization
+            Localization(*(ZZ[('x', 'y')], ZZ[('x', 'y')]({(1r, 0r):1, (0r, 1r):1})),
+            **{})({'n':{(1r, 0r):1, (0r, 1r):-1}, 'd':{(1r, 0r):1, (0r, 1r):1}})
+        """
+        return self._value._reconstruction_data()
+
     def factor(self):
         r"""
 
@@ -373,7 +392,7 @@ class LocalizationElement(IntegralDomainElement):
             sage: x, y = L.gens()
             sage: p = (x^2 - y^2)/(x-y)^2
             sage: p.factor()
-            ((-1)/(-x + y)) * (x + y)
+            (1/(x - y)) * (x + y)
         """
         num = self._value.numerator()
         den = self._value.denominator()

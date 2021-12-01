@@ -338,6 +338,34 @@ cdef class FractionFieldElement(FieldElement):
         b = self.denominator()
         return a.nth_root(n) / b.nth_root(n)
 
+    def _reconstruction_data(self):
+        r"""
+        Return a dictionary allowing the reconstruction of ``self`` for example
+        using :func:`sage_input`.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = ZZ[]
+            sage: sage_input(x/y, verify=True) # indirect doctest
+            # Verified
+            FractionField(ZZ[('x', 'y')])({'n':{(1r, 0r):1}, 'd':{(0r, 1r):1}})
+        """
+        n = self.numerator()
+        d = self.denominator()
+        nr = n._reconstruction_data()
+        dr = d._reconstruction_data()
+        res = {}
+        if nr is None:
+            res['n'] = n
+            if not d.is_one():
+                res['d'] = d
+        else:
+            res['n'] = nr
+            if not d.is_one():
+                res['d'] = dr
+        return res
+
+
     def __hash__(self):
         """
         This function hashes in a special way to ensure that generators of

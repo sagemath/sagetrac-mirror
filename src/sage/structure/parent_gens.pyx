@@ -164,27 +164,6 @@ cdef class ParentWithGens(ParentWithBase):
             raise TypeError("names must be a tuple of strings")
         self._names = names
 
-    def _sage_input_(self, sib, coerced):
-        r"""
-        Produce an expression which will reproduce this value when
-        evaluated.
-
-        EXAMPLES::
-
-            sage: sage_input(GF(5)['x', 'y'], verify=True)
-            # Verified
-            GF(5)[('x', 'y')]
-            sage: from sage.misc.sage_input import SageInputBuilder
-            sage: ZZ['z']._sage_input_(SageInputBuilder(), False)
-            {constr_parent: {subscr: {atomic:ZZ}[{atomic:'z'}]} with gens: ('z',)}
-        """
-        B = self.base_ring()
-        sie_base = sib(B)
-        sie_self = sie_base[self.variable_names()]
-        gens_syntax = sib.empty_subscript(sie_base)
-        R = sib.parent_with_gens(self, sie_self, self.variable_names(), 'R', gens_syntax=gens_syntax)
-        return R
-
 
     #################################################################################
     # Give all objects with generators a dictionary, so that attribute setting
