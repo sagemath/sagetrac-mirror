@@ -1546,9 +1546,19 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             raise NotImplementedError
         return genus_group(self)
 
-    def image_in_Oq(self):
+    def image_in_Oq(self, sign=False):
         r"""
         Compute the image of the natural map O(L) --> O(L^v/L).
+
+        Input:
+
+        - ``sign`` -- (default: ``False``) if true return the image of
+                      O^+(L) --> O(L^\vee/L)
+
+        O^+(L) is the kernel of
+        O(L) --> {+-1}, g --> det(g)*spin_\RR(g)
+        Those are the isometries preserving a given orientation on maximal
+        dimensional positive definite subspaces.
 
         EXAMPLES::
 
@@ -1566,19 +1576,32 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         sig = self.signature_pair()
         if sig[0]*sig[1]==0 or self.rank()==2:
             # we can compute generators of the orthogonal group
-            gens = [Oq(g) for g in self.orthogonal_group().gens()]
+            OL = self.orthogonal_group()
+            if sign:
+                if sig[0] == 2:
+                    # if L is positive definite, then the real spinor norm is
+                    # always positive and so det*spin_RR = det
+                    # thus we get the special orthogonal group
+                    imgs = [matrix([g.matrix().det()]) for g in OL.gens()]
+                    from sage.groups.all import MatrixGroup
+                    H = MatrixGroup(imgs)
+                    imgs = [H(g) for g in imgs]
+                    gens = [Oq(OL(g)) for g in OL.hom(imgs).kernel()]
+            else:
+                gens = [Oq(g) for g in OL.gens()]
             return Oq.subgroup(gens)
         if self.rank() > 2:
             try:
                 from sage.groups.fqf_orthogonal_spin import det_spin_homomorphism
             except ImportError:
                 raise NotImplementedError()
-            f = det_spin_homomorphism(self)
+            f = det_spin_homomorphism(self,sign)
             codom = f.codomain()
             Gamma = codom._cover
-            gammaS = Gamma.gammaS()
+            gammaS = Gamma.gammaS(sign)
             sub = codom.subgroup([codom(g) for g in gammaS])
             return f.preimage(sub)
+
 
     def proj(self,S, x=None):
         r"""
@@ -1592,7 +1615,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         n = S.rank()
         def proj(x):
             c = SK.coordinates(x)
-            return sum(c[i]*SK.gen(i) for i in range(n))
+            return SK.sum(c[i]*SK.gen(i) for i in range(n))
         if x is not None:
             x = self(x)
             return proj(x)
