@@ -12,6 +12,9 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.ext.fast_eval import fast_float
+
+from sage.structure.element import is_Vector, Expression
 
 def setup_for_eval_on_grid(funcs,
                            ranges,
