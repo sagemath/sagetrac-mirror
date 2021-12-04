@@ -812,9 +812,11 @@ def xydata_from_point_list(points):
                 ydata.append(float(y))
     return xdata, ydata
 
-@options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, plot_points=200,
-         adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles=False, exclude=None, legend_label=None,
-         __original_opts=True, aspect_ratio='automatic')
+@options(alpha=1, thickness=1, fill=False, fillcolor='automatic',
+         fillalpha=0.5, plot_points=200, adaptive_tolerance=0.01,
+         adaptive_recursion=5, detect_poles=False, exclude=None,
+         legend_label=None, __original_opts=True,
+         aspect_ratio='automatic', imaginary_tolerance=1e-8)
 def plot(funcs, *args, **kwds):
     r"""
     Use plot by writing
@@ -848,6 +850,12 @@ def plot(funcs, *args, **kwds):
       before the adaptive refinement code considers it significant.  See the
       documentation further below for more information, starting at "the
       algorithm used to insert".
+
+    - ``imaginary_tolerance`` -- (default: ``1e-8``); if an imaginary
+      number arises (due, for example, to numerical issues), this
+      tolerance specifies how large it has to be in magnitude before
+      we raise an error.  In other words, imaginary parts smaller than
+      this are ignored in your plot points.
 
     - ``base`` -- (default: `10`); the base of the logarithm if
       a logarithmic scale is set. This must be greater than 1. The base
@@ -1125,6 +1133,24 @@ def plot(funcs, *args, **kwds):
         g1 = plot([x*exp(-n*x**2)/.4 for n in range(1,4)], (0, 2), color='blue', aspect_ratio=.8)
         g2 = plot([x*exp(-n*x**2)/.4 for n in range(1,4)], (0, 2), color=['red','red','green'], linestyle=['-','--','-.'], aspect_ratio=.8)
         sphinx_plot(graphics_array([[g1], [g2]]))
+
+    While plotting real functions, imaginary numbers that are "almost
+    real" will inevitably arise due to numerical issues. By tweaking
+    the ``imaginary_tolerance``, you can decide how large of an
+    imaginary part you're willing to sweep under the rug in order to
+    plot the corresponding point. If a particular value's imaginary
+    part has magnitude larger than ``imaginary_tolerance``, that point
+    will not be plotted. The default tolerance is ``1e-8``, so the
+    imaginary part in the first example below is ignored, but the
+    second example "fails," emits a warning, and produces an empty
+    graph::
+
+        sage: f = x + I*1e-12
+        sage: plot(f, x, -1, 1)
+        Graphics object consisting of 1 graphics primitive
+        sage: plot(f, x, -1, 1, imaginary_tolerance=0)
+        ...WARNING: ...Unable to compute ...
+        Graphics object consisting of 0 graphics primitives
 
     We can also build a plot step by step from an empty plot::
 
@@ -2033,7 +2059,13 @@ def _plot(funcs, xrange, parametric=False,
     Here is an explicit one::
 
         sage: from sage.plot.plot import _plot
-        sage: P = _plot(e^(-x^2),(-3,3),fill=True,color='red',plot_points=50,adaptive_tolerance=2,adaptive_recursion=True,exclude=None)
+        sage: P = _plot(e^(-x^2),(-3,3), fill=True,
+        ....:                            color='red',
+        ....:                            plot_points=50,
+        ....:                            adaptive_tolerance=2,
+        ....:                            adaptive_recursion=True,
+        ....:                            exclude=None,
+        ....:                            imaginary_tolerance=1e-8)
         sage: P.show(aspect_ratio='automatic')
 
     TESTS:
@@ -2077,7 +2109,7 @@ def _plot(funcs, xrange, parametric=False,
     plot properly (:trac:`13246`)::
 
         sage: parametric_plot((x, arcsec(x)), (x, -2, 2))
-        Graphics object consisting of 2 graphics primitives
+        Graphics object consisting of 1 graphics primitive
 
     Verify that :trac:`31089` is fixed::
 
@@ -2091,7 +2123,11 @@ def _plot(funcs, xrange, parametric=False,
         return Graphics()
     orig_funcs = funcs # keep the original functions (for use in legend labels)
     excluded_points = []
-    funcs, ranges = setup_for_eval_on_grid(funcs, [xrange], options['plot_points'])
+    imag_tol = options["imaginary_tolerance"]
+    funcs, ranges = setup_for_eval_on_grid(funcs,
+                                           [xrange],
+                                           options['plot_points'],
+                                           imaginary_tolerance=imag_tol)
     xmin, xmax, delta = ranges[0]
     xrange=ranges[0][:2]
     # parametric_plot will be a list or tuple of two functions (f,g)
@@ -2244,6 +2280,7 @@ def _plot(funcs, xrange, parametric=False,
 
     adaptive_tolerance = options.pop('adaptive_tolerance')
     adaptive_recursion = options.pop('adaptive_recursion')
+    imag_tol = options.pop('imaginary_tolerance')
     plot_points = int(options.pop('plot_points'))
 
     exclude = options.pop('exclude')
@@ -2292,13 +2329,13 @@ def _plot(funcs, xrange, parametric=False,
             f_exp, log_xrange, plot_points,
             adaptive_tolerance, adaptive_recursion,
             randomize, log_initial_points,
-            excluded=True)
+            excluded=True, imaginary_tolerance=imag_tol)
     else:
         data, extra_excluded = generate_plot_points(
             f, xrange, plot_points,
             adaptive_tolerance, adaptive_recursion,
             randomize, initial_points,
-            excluded=True)
+            excluded=True, imaginary_tolerance=imag_tol)
 
     excluded_points += extra_excluded
 
@@ -2351,8 +2388,13 @@ def _plot(funcs, xrange, parametric=False,
                 else:
                     fill_f = fill
 
-                filldata = generate_plot_points(fill_f, xrange, plot_points, adaptive_tolerance, \
-                                                adaptive_recursion, randomize)
+                filldata = generate_plot_points(fill_f,
+                                                xrange,
+                                                plot_points,
+                                                adaptive_tolerance,
+                                                adaptive_recursion,
+                                                randomize,
+                                                imaginary_tolerance=imag_tol)
                 filldata.reverse()
                 filldata += data
             else:
@@ -2362,8 +2404,13 @@ def _plot(funcs, xrange, parametric=False,
                     base_level = 0
 
             if not hasattr(fill, '__call__') and polar:
-                filldata = generate_plot_points(lambda x: base_level, xrange, plot_points, adaptive_tolerance, \
-                                                adaptive_recursion, randomize)
+                filldata = generate_plot_points(lambda x: base_level,
+                                                xrange,
+                                                plot_points,
+                                                adaptive_tolerance,
+                                                adaptive_recursion,
+                                                randomize,
+                                                imaginary_tolerance=imag_tol)
                 filldata.reverse()
                 filldata += data
             if not hasattr(fill, '__call__') and not polar:
@@ -3838,7 +3885,8 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01,
 
 def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01,
                          adaptive_recursion=5, randomize=True,
-                         initial_points=None, *, excluded=False):
+                         initial_points=None, *, excluded=False,
+                         imaginary_tolerance=1e-8):
     r"""
     Calculate plot points for a function f in the interval xrange.  The
     adaptive refinement algorithm is also automatically invoked with a
@@ -3868,6 +3916,12 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01,
 
     - ``excluded`` -- (default: ``False``); add a list of discovered x-values, for
       which ``f`` is not defined
+
+    - ``imaginary_tolerance`` -- (default: ``1e-8``); if an imaginary
+      number arises (due, for example, to numerical issues), this
+      tolerance specifies how large it has to be in magnitude before
+      we raise an error.  In other words, imaginary parts smaller than
+      this are ignored in your plot points.
 
     OUTPUT:
 
@@ -3928,7 +3982,10 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01,
         ([(1.0, 0.0)], [0.0])
     """
     from sage.plot.misc import setup_for_eval_on_grid
-    ignore, ranges = setup_for_eval_on_grid([], [xrange], plot_points)
+    f, ranges = setup_for_eval_on_grid(f,
+                                       [xrange],
+                                       plot_points,
+                                       imaginary_tolerance=imaginary_tolerance)
     xmin, xmax, delta = ranges[0]
     x_values = srange(*ranges[0], include_endpoint=True)
 
