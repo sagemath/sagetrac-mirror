@@ -67,10 +67,10 @@ cdef class RealDoubleElement_gsl(RealDoubleElement):
             if v == 1:
                 return self
             elif exponent == 0:
-                return self._new_c(1.0)
-            elif v == 0:
+                return self._new_c(libc.math.copysign(1.0, v))
+            elif v == 0:  # 0.0 or -0.0
                 if exponent < 0:
-                    raise ZeroDivisionError("0.0 cannot be raised to a negative power")
+                    return self._new_c(libc.math.copysign(libc.math.INFINITY, v))
                 return self
             sign = 1.0
         else:  # v < 0
