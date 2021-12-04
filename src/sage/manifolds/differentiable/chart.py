@@ -423,7 +423,7 @@ class DiffChart(Chart):
                 transformations = [transformations]
         return DiffCoordChange(chart1, chart2, *transformations)
 
-    def frame(self):
+    def frame(self) -> CoordFrame:
         r"""
         Return the vector frame (coordinate frame) associated with ``self``.
 

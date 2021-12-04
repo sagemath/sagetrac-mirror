@@ -438,9 +438,16 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
+from __future__ import annotations
+from typing import Optional, TYPE_CHECKING
+from collections import Sequence
 from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
+from sage.manifolds.differentiable.chart import DiffChart
+from sage.manifolds.differentiable.diff_map import DiffMap
+from sage.manifolds.differentiable.natural_bundle import Orientation, OrientationValue
+from sage.manifolds.differentiable.vectorframe import VectorFrame
+from sage.manifolds.structure import RealDifferentialStructure
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
 from sage.rings.infinity import infinity, minus_infinity
@@ -623,6 +630,8 @@ class DifferentiableManifold(TopologicalManifold):
         sage: TestSuite(M).run()
 
     """
+    _orientation: Orientation | None
+
     def __init__(self, n, name, field, structure, base_manifold=None,
                  diff_degree=infinity, latex_name=None, start_index=0,
                  category=None, unique_tag=None):
@@ -2610,7 +2619,7 @@ class DifferentiableManifold(TopologicalManifold):
         vmodule = self.vector_field_module(dest_map)
         return vmodule.identity_map()
 
-    def set_orientation(self, orientation):
+    def set_orientation(self, orientation: dict[VectorFrame, OrientationValue] | Sequence[VectorFrame | DiffChart] | VectorFrame | DiffChart):
         r"""
         Set the preferred orientation of ``self``.
 
@@ -2662,34 +2671,21 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         from .vectorframe import VectorFrame
-        chart_type = self._structure.chart
-        if isinstance(orientation, chart_type):
-            orientation = [orientation.frame()]
-        elif isinstance(orientation, VectorFrame):
+        
+        if not self._orientation:
+            self._orientation = Orientation(self)
+
+        if not isinstance(orientation, (Sequence, dict)):
             orientation = [orientation]
-        elif isinstance(orientation, (list, tuple)):
-            if isinstance(orientation[0], chart_type):
-                orientation = [c.frame() for c in orientation]
-            else:
-                orientation = list(orientation)
+        
+        if isinstance(orientation, dict):
+            self._orientation.set(orientation)
         else:
-            raise TypeError("orientation must be a chart/frame or a "
-                            "list/tuple of charts/frames")
-        dom_union = None
-        for frame in orientation:
-            if not isinstance(frame, VectorFrame):
-                raise ValueError("orientation must consist of vector frames")
-            dom = frame._domain
-            if not dom.is_subset(self):
-                raise ValueError("{} must be defined ".format(frame) +
-                                 "on a subset of {}".format(self))
-            if dom_union is not None:
-                dom_union = dom.union(dom_union)
-            else:
-                dom_union = dom
-        if dom_union != self:
-            raise ValueError("frame domains must cover {}".format(self))
-        self._orientation = orientation
+            for item in orientation:
+                self._orientation[item] = 1
+        
+        if not self._orientation.is_globally_defined():
+            raise ValueError(f"frame domains must cover {self}")
 
     def orientation(self):
         r"""
@@ -2698,6 +2694,27 @@ class DifferentiableManifold(TopologicalManifold):
         An *orientation* on a differentiable manifold is an atlas of charts
         whose transition maps are pairwise orientation preserving, i.e. whose
         Jacobian determinants are pairwise positive.
+
+        Alternatively, an orientation is a reduction of the frame bundle to 
+        the subgroup of `GL(N,\RR)` consisting of matricies with positive determinant.
+        That is, an orientation is a choice of local frames (i.e. a local trivialization
+        of the frame bundle) such that the Jacobian determinants of the transition maps
+        are pairwise positive.
+
+        Yet another definition of an orientation is given in terms of Cech cocycles.
+        For a (good) atlas `(U_\alpha, \kappa_\alpha)` the orientation cocycle `c`
+        is the Cech `1`-cocycle with values in `\Z_2` defined by setting `c_{\alpha\beta}`
+        to be equal to the sign of the determinant of the Jacobian matrix of the 
+        transition map `\kappa^{-1}_\beta \circ \kappa_\alpha`.
+        Then an orientation is a `0`-cochain `h` that trivializes `c`, i.e.
+        a collection of (locally constant) functions `h_\alpha: U_\alpha \to \Z_2` such that
+        `h_\alpha = c_{\alpha\beta} h_\beta`.
+
+        Correspondinly, an orientation can be specified in the three following ways:
+
+        - as a list of charts,
+        - as a list of local frames,
+        - as a choice of a sign on each chart.
 
         A differentiable manifold with an orientation is called *orientable*.
 
@@ -2757,34 +2774,37 @@ class DifferentiableManifold(TopologicalManifold):
             [Vector frame (W, (∂/∂x,∂/∂y))]
 
         """
-        if not self._orientation:
-            # try to get an orientation from super domains:
-            for sdom in self.open_supersets():
-                sorient = sdom._orientation
-                if sorient:
-                    rst_orient = [f.restrict(self) for f in sorient]
-                    # clear multiple domains:
-                    rst_orient = list(self._get_min_covering(rst_orient))
-                    self._orientation = rst_orient
-                    break
-            else:
-                # Trivial case:
-                if self.is_manifestly_parallelizable():
-                    # Try the default frame:
-                    def_frame = self._def_frame
-                    if def_frame is not None:
-                        if def_frame._domain is self:
-                            self._orientation = [def_frame]
-                    # Still no orientation? Choose arbitrary frame:
-                    if not self._orientation:
-                        for frame in self._covering_frames:
-                            dest_map = frame.destination_map()
-                            if dest_map.is_identity():
-                                self._orientation = [frame]
-                                break
-        return list(self._orientation)
+        if self._orientation is not None:
+            return self._orientation
 
-    def default_frame(self):
+        # Try to get an orientation from super domains
+        for super_dom in self.open_supersets():
+            super_orientation = super_dom._orientation
+            if super_orientation:
+                # TODO: Move this to a restriction method in NaturalLocalData
+                rst_orient = [f.restrict(self) for f in sorient]
+                # clear multiple domains:
+                rst_orient = list(self._get_min_covering(rst_orient))
+                self._orientation = super_orientation.restrict(self)
+                break
+        else:
+            if self.is_manifestly_parallelizable():
+                # Assume that default frame is positively oriented 
+                default_frame = self.default_frame()
+                if default_frame is not None and default_frame.domain() is self:
+                    self._orientation = Orientation(self)
+                    self._orientation[default_frame] = 1
+                    return self._orientation
+
+                # Still no orientation? Choose arbitrary frame
+                for frame in self._covering_frames:
+                    dest_map = frame.destination_map()
+                    if dest_map.is_identity():
+                        self._orientation = Orientation(self)
+                        self._orientation[frame] = 1
+                        return self._orientation
+
+    def default_frame(self) -> VectorFrame:
         r"""
         Return the default vector frame defined on ``self``.
 

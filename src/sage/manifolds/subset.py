@@ -1316,7 +1316,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
     #### End of accessors
 
-    def is_subset(self, other):
+    def is_subset(self, other: ManifoldSubset) -> bool:
         r"""
         Return ``True`` if and only if ``self`` is included in ``other``.
 
@@ -2377,7 +2377,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             S1._intersections[S2._name] = S2._intersections[S1._name] = res
         return res
 
-    def union(self, *others, name=None, latex_name=None):
+    def union(self, *others: ManifoldSubset, name: Optional[str] = None, latex_name: Optional[str] = None) -> ManifoldSubset:
         r"""
         Return the union of the current subset with other subsets.
 

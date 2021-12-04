@@ -324,10 +324,12 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import annotations
 from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
+from sage.manifolds.chart import CoordChange
+from sage.manifolds.differentiable.chart import DiffChart
 import sage.rings.abc
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
@@ -1356,7 +1358,7 @@ class TopologicalManifold(ManifoldSubset):
                             "been defined on the {}".format(self))
         return self._coord_changes[(chart1, chart2)]
 
-    def coord_changes(self):
+    def coord_changes(self) -> dict[DiffChart, CoordChange]:
         r"""
         Return the changes of coordinates (transition maps) defined on
         subsets of the manifold.

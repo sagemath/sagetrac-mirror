@@ -37,6 +37,7 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.manifolds.differentiable.chart import DiffChart
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import SR
@@ -3838,6 +3839,44 @@ class CoordChange(SageObject):
             return dom1.coord_changes()[(ch1, ch2)]
         return type(self)(self._chart1.restrict(dom1),
                           self._chart2.restrict(dom2), *(self._transf.expr()))
+
+    def source(self) -> DiffChart:
+        r"""
+        Return the source chart.
+
+        OUTPUT:
+
+        - the source chart.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
+            sage: X_to_Y.source()
+            Chart (M, (x, y))
+        """
+        return self._chart1
+
+    def target(self) -> DiffChart:
+        r"""
+        Return the target chart.
+
+        OUTPUT:
+
+        - the target chart.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
+            sage: X_to_Y.target()
+            Chart (M, (u, v))
+        """
+        return self._chart2
 
     def display(self):
         r"""

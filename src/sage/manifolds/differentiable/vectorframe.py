@@ -217,6 +217,7 @@ The change-of-frame automorphisms and their matrices::
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
+from sage.manifolds.differentiable.manifold import DifferentiableManifold
 from sage.tensor.modules.free_module_basis import (FreeModuleBasis,
                                                    FreeModuleCoBasis)
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
@@ -851,7 +852,7 @@ class VectorFrame(FreeModuleBasis):
 
     ###### End of methods to be redefined by derived classes ######
 
-    def domain(self):
+    def domain(self) -> DifferentiableManifold:
         r"""
         Return the domain on which ``self`` is defined.
 
