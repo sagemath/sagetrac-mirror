@@ -1154,14 +1154,7 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
         """
         unred, data = self.__reduce__()
         cls, args, kwds = data
-        name = cls.__name__
-        module = cls.__module__
-        sie_import = sib.import_name(module, name)
-        sie_args = sib(args).unpack_iter()
-        sie_kwds = sib.dict(kwds).unpack_dict()
-        expr = sib.name(name)(sie_args, sie_kwds)
-        sib.command(expr, sie_import)
-        return expr
+        return sib.from_class(cls, args, kwds)
 
     def __copy__(self):
         """

@@ -253,6 +253,21 @@ def sage_input(x, preparse=True, verify=False, allow_locals=False):
         (3, _sil1)
         sage: tuple(r)
         ('# Verified\n', '(3, _sil1)', {'_sil1': <function <lambda> at 0x...>})
+
+    Further exmaples::
+
+        sage: L.<x,y,z> = LieAlgebra(QQ, abelian=True); L
+        Abelian Lie algebra on 3 generators (x, y, z) over Rational Field
+        sage: l = L.an_element()
+        sage: sage_input(l, verify=True)
+        # Verified
+        from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+        FiniteEnumeratedSet
+        from sage.algebras.lie_algebras.abelian import AbelianLieAlgebra
+        AbelianLieAlgebra
+        AbelianLieAlgebra(*(QQ, ('x', 'y', 'z'),
+        FiniteEnumeratedSet(*(('x', 'y', 'z'),), **{})),
+        **{'category':None})(vector(QQ, [1, 1, 1]))
     """
     if not verify:
         sib = SageInputBuilder(allow_locals=allow_locals, preparse=preparse)
@@ -453,7 +468,11 @@ class SageInputBuilder:
             return x
 
         if hasattr(x, '_sage_input_'):
-            return x._sage_input_(self, coerced)
+            try:
+                return x._sage_input_(self, coerced)
+            except NotImplementedError:
+                # watch out for a second chance below
+                pass
 
         if x is None:
             return SIE_literal_stringrep(self, 'None')
@@ -498,6 +517,12 @@ class SageInputBuilder:
                 return self.name('float')(self.int(ZZ(rrx)))
             return self.name('float')(RR(x))
 
+        if isinstance(x, complex):
+            re = self(x.real)
+            im = self(x.imag)
+            i = self.name('complex')('1j')
+            return re + i*im
+
         if isinstance(x, str):
             return SIE_literal_stringrep(self, repr(x))
 
@@ -509,6 +534,12 @@ class SageInputBuilder:
 
         if isinstance(x, dict):
             return self.dict(x)
+
+        if hasattr(x, '__class__'):
+            ci = constructor_inspection(x)
+            if ci:
+                args, kwds = ci
+                return self.from_class(x.__class__, args, kwds)
 
         if self._allow_locals:
             loc = self._next_local
@@ -599,6 +630,33 @@ class SageInputBuilder:
             pi + e
         """
         return SIE_literal_stringrep(self, n)
+
+    def from_class(self, cls, args, kwds):
+        r"""
+        Given an instance of :class:`type` together with a
+        list of positional arguments and a dictionary of
+        keywords produces a :class:`SageInputExpression` for the
+        construction of an instance of this class.
+
+        INPUT:
+
+        - ``cls`` -- an instance of :class:`type`
+        - ``args`` -- a list of values needed for recreation of an instance
+          of ``cls``
+        - ``kwds`` -- a dictionary of key value pairs needed for recreation
+           of an instance of ``cls``
+
+        EXAMPLES::
+        """
+        name = cls.__name__
+        module = cls.__module__
+        sie_import = self.import_name(module, name)
+        sie_args = self(args).unpack_iter()
+        sie_kwds = self.dict(kwds).unpack_dict()
+        expr = self.name(name)(sie_args, sie_kwds)
+        self.command(expr, sie_import)
+        return expr
+
 
     def cache(self, x, sie, name):
         r"""
@@ -3630,3 +3688,109 @@ class SageInputAnswer(tuple):
         locals_text = ''.join('  %s: %r\n' % (k, v)
                               for k, v in locals.items())
         return 'LOCALS:\n' + locals_text + self[0] + self[1]
+
+
+def constructor_inspection(instance):
+    r"""
+    EXAMPLE::
+
+        sage: from sage.misc.sage_input import constructor_inspection
+        sage: P = I.parent()
+        sage: F, Q = P.construction()
+        sage: constructor_inspection(F)
+        ([[x^2 + 1], ['I']],
+         {'cyclotomic': None,
+          'embeddings': [1*I],
+          'implementations': [None],
+          'latex_names': ['i'],
+          'precs': [None],
+          'residue': None,
+          'structures': [None]})
+    """
+    from inspect import getfullargspec
+    try:
+        i = getfullargspec(instance.__init__)
+    except TypeError:
+        # getfullargspec throws a TypeError if the constructor
+        # is not supported. In this case we do a last atemps
+        # without any arguments
+        instance_create = instance.__class__(*[], **{})
+        if instance == instance_create:
+            return [], {}
+        else:
+            return None
+
+    d = instance.__dict__
+    args = i.args
+    if args is None:
+        args = []
+    defaults = i.defaults
+    if defaults is None:
+        defaults = []
+    num_positional = len(args) - len(defaults)
+    okwds = i.kwonlydefaults
+    if okwds is None:
+        okwds = {}
+    all_arg_names = args + list(okwds.keys())
+
+
+    # search matching
+    match = {}
+    for a in all_arg_names:
+        for var_a in (a, '_' + a, '__' + a, '_' + a + '_'):
+            if var_a in d.keys():
+                match[a] = d[var_a]
+
+    pos_args = []
+    for k in range(num_positional):
+        if args[k] == 'self':
+            continue
+        if args[k] in match.keys():
+            pos_args.append(match[args[k]])
+
+    if len(pos_args) < num_positional -1: # -1 for ``self``
+        # not enought positional arguments reconstructed
+        return None
+
+    kwds = {}
+    for k in range(num_positional,len(args)):
+        kwds[args[k]] = defaults[k-num_positional]
+        if args[k] in match.keys():
+            kwds[args[k]] = match[args[k]]
+    for k, v in okwds.items():
+        kwds[k] = v
+        if k in match.keys():
+            kwds[k] = match[k]
+
+    # check if this instance can be reconstructed
+    instance_create = None
+    try:
+        instance_create = instance.__class__(*pos_args, **kwds)
+    except (TypeError, ValueError):
+        pass
+
+    if not instance_create:
+        if i.varkw:
+            kwds[i.varkw] = instance.__dict__
+            # variable keywords are used. Maybe something from dictionary is missing
+        else:
+            if len(kwds) > 0:
+                for k, v in kwds.items():
+                    if type(v) is dict:
+                        # unsused keyword. Maybe dictionary is transfered here
+                        # Exaple ``extras`` in :class:`CompletionFunctor`
+                        v.update(instance.__dict__)
+                        if k in v.keys():
+                            v.pop(k) # to avoid recursion
+                        for k in args:
+                            if k in v.keys():
+                                v.pop(k) # remove puplicates
+                        break
+        try:
+            instance_create = instance.__class__(*pos_args, **kwds)
+        except (TypeError, ValueError):
+            return None
+
+    if instance != instance_create:
+        return None
+    return pos_args, kwds

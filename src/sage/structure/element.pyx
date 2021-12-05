@@ -597,6 +597,19 @@ cdef class Element(SageObject):
         by :meth:`_sage_input_`. In most cases, this will need a custom
         implementation. The implementation here returns ``None`` if such data
         can not be identified generically.
+
+        EXAMPLES::
+
+            sage: CLF(I)._reconstruction_data()
+            1j
+
+            sage: R.<x, y> = ZZ[]
+            sage: (x**3+2*x*y-y**2)._reconstruction_data()
+            {(0, 2): -1, (1, 1): 2, (3, 0): 1}
+
+            sage: m = matrix([[x, y**2], [-y, 3*x]])
+            sage: m._reconstruction_data()
+            {(0, 0): x, (0, 1): y^2, (1, 0): -y, (1, 1): 3*x}
         """
         P = self._parent
         def reconstructible(data):
@@ -604,7 +617,7 @@ cdef class Element(SageObject):
             Check if ``self`` can be reconstructed from the data.
             """
             try:
-                if P(data) == self:
+                if bool(P(data) == self):
                     return True
                 return False
             except (ValueError, TypeError, NotImplementedError):
@@ -619,6 +632,15 @@ cdef class Element(SageObject):
                 data = self.__getattribute__(attr)()
                 if reconstructible(data):
                     return data
+        data = None
+        for cast in (int, float, complex, str):
+            try:
+                data = cast(self)
+                if reconstructible(data):
+                    return data
+            except (TypeError, ValueError):
+                pass
+
         return None
 
     def _sage_input_(self, sib, coerced):
@@ -630,14 +652,14 @@ cdef class Element(SageObject):
 
             sage: R.<a, b, c> = ZZ[]
             sage: p = a**2*b - 2*c**3 + 5
-            sage: sage_input(p, verify=True)
+            sage: sage_input(p, verify=True)   # indirect doctest
             # Verified
             ZZ[('a', 'b', 'c')]({(2r, 1r, 0r):1, (0r, 0r, 3r):-2, (0r, 0r, 0r):5})
 
             sage: G = GU(2,3); g = G[2]; g
             [    0 a + 1]
             [a + 1     2]
-            sage: sage_input(g, verify=True)
+            sage: sage_input(g, verify=True)   # indirect doctest
             # Verified
             GF_3 = GF(3)
             R.<x> = GF_3[]
@@ -650,6 +672,20 @@ cdef class Element(SageObject):
                     GF(3^2, 'a', x^2 + 2*x + 2)(vector(GF_3, [1, 1]))],
                    [GF(3^2, 'a', x^2 + 2*x + 2)(vector(GF_3, [1, 1])),
                     GF(3^2, 'a', x^2 + 2*x + 2)(vector(GF_3, [2, 0]))]])
+
+            sage: sage_input(I, verify=True)   # indirect doctest
+            # Verified
+            R.<x> = QQ[]
+            from sage.categories.pushout import AlgebraicClosureFunctor
+            AlgebraicClosureFunctor
+            from sage.categories.pushout import CompletionFunctor
+            CompletionFunctor
+            from sage.categories.pushout import AlgebraicExtensionFunctor
+            AlgebraicExtensionFunctor
+            AlgebraicExtensionFunctor(*[[x^2 + 1], ['I']], **{'embeddings':[AlgebraicClosureFunctor(*[],
+            **{})(CompletionFunctor(*[oo, oo], **{'extras':{'type':'RLF'}})(QQ))(float(0) + complex('1j')*float(1))],
+            'structures':[None], 'cyclotomic':None, 'precs':[None], 'implementations':[None],
+            'residue':None, 'latex_names':['i']})(QQ)([QQ(0), QQ(1)])
         """
         P = self.parent()
         data = self._reconstruction_data()

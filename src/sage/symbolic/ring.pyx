@@ -98,6 +98,20 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
         """
         return the_SymbolicRing, tuple([])
 
+    def _sage_input_(self, sib, coeced):
+        r"""
+        Produce an expression which will reproduce this value when
+        evaluated.
+
+        EXAMPLES::
+
+           sage: t = sqrt(5) + var('u')
+           sage: sage_input(t, verify=True)
+           # Verified
+           SR('u + sqrt(5)')
+        """
+        return sib.name('SR')
+
     def _repr_(self):
         """
         Return a string representation of self.

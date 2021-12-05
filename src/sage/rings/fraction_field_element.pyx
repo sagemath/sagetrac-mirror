@@ -348,7 +348,9 @@ cdef class FractionFieldElement(FieldElement):
             sage: R.<x,y> = ZZ[]
             sage: sage_input(x/y, verify=True) # indirect doctest
             # Verified
-            FractionField(ZZ[('x', 'y')])({'n':{(1r, 0r):1}, 'd':{(0r, 1r):1}})
+            from sage.categories.pushout import FractionField
+            FractionField
+            FractionField(*[], **{})(ZZ[('x', 'y')])({'n':{(1r, 0r):1}, 'd':{(0r, 1r):1}})
         """
         n = self.numerator()
         d = self.denominator()

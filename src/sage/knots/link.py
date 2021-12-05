@@ -1427,6 +1427,28 @@ class Link(SageObject):
 
         raise AssertionError("invalid state")
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when
+        evaluated.
+
+        EXAMPLES::
+
+            sage: l = KnotInfo.L5a1_0.link()
+            sage: sage_input(l, verify=True)  # indirect doctest
+            # Verified
+            Link([[6, 2, 7, 1], [10, 8, 5, 7], [4, 6, 1, 5], [2, 9, 3, 10], [8, 3, 9, 4]])
+
+            sage: k = KnotInfo.K4_1.link()
+            sage: sage_input(k, verify=True)  # indirect doctest
+            # Verified
+            Knot([[4, 1, 5, 2], [8, 5, 1, 6], [6, 4, 7, 3], [2, 8, 3, 7]])
+        """
+        if self.is_knot():
+            return sib.name('Knot')(sib(self.pd_code()))
+        else:
+            return sib.name('Link')(sib(self.pd_code()))
+
     def gauss_code(self):
         r"""
         Return the Gauss code of ``self``.

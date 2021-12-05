@@ -1462,14 +1462,16 @@ class Sets(Category_singleton):
                 sage: F = FractionField(R)
                 sage: sage_input(F, verify=True)  # indirect doctest
                 # Verified
-                FractionField(ZZ[('x', 'y')])
+                from sage.categories.pushout import FractionField
+                FractionField
+                FractionField(*[], **{})(ZZ[('x', 'y')])
             """
             constr = self.construction()
             if constr is None:
                 raise NotImplementedError('Sage input not implemented for parent %s' %self )
 
             functor, parent = constr
-            sie_functor = sib.name(functor)
+            sie_functor = sib(functor)
             sie_base_parent = sib(parent)
             return sie_functor(sie_base_parent)
 
