@@ -23,7 +23,7 @@ class FFmpeg(Executable):
 
         sage: from sage.features.ffmpeg import FFmpeg
         sage: FFmpeg().is_present()  # optional: ffmpeg
-        FeatureTestResult('FFmpeg', True)
+        FeatureTestResult('ffmpeg', True)
     """
     def __init__(self):
         r"""
@@ -33,5 +33,9 @@ class FFmpeg(Executable):
             sage: isinstance(FFmpeg(), FFmpeg)
             True
         """
-        Executable.__init__(self, "FFmpeg", executable="ffmpeg",
+        Executable.__init__(self, "ffmpeg", executable="ffmpeg",
                             url="https://www.ffmpeg.org/")
+
+
+def all_features():
+    return [FFmpeg()]

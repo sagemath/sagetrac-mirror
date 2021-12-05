@@ -3,6 +3,7 @@ r"""
 Checks for bliss
 """
 from . import CythonFeature, PythonModule
+from .join_feature import JoinFeature
 
 
 TEST_CODE = """
@@ -29,7 +30,7 @@ class BlissLibrary(CythonFeature):
     EXAMPLES::
 
         sage: from sage.features.bliss import BlissLibrary
-        sage: BlissLibrary().require()  # optional: bliss
+        sage: BlissLibrary().require()  # optional: libbliss
     """
 
     def __init__(self):
@@ -38,17 +39,17 @@ class BlissLibrary(CythonFeature):
 
             sage: from sage.features.bliss import BlissLibrary
             sage: BlissLibrary()
-            Feature('Bliss')
+            Feature('libbliss')
         """
-        CythonFeature.__init__(self, "Bliss", test_code=TEST_CODE,
+        CythonFeature.__init__(self, "libbliss", test_code=TEST_CODE,
                                spkg="bliss",
                                url="http://www.tcs.hut.fi/Software/bliss/")
 
 
-class Bliss(PythonModule):
+class Bliss(JoinFeature):
     r"""
     A :class:`Feature` which describes whether the :mod:`sage.graphs.bliss`
-    module has been enabled for this build of Sage and is functional.
+    module is available in this installation of Sage.
 
     EXAMPLES::
 
@@ -61,7 +62,14 @@ class Bliss(PythonModule):
 
             sage: from sage.features.bliss import Bliss
             sage: Bliss()
-            Feature('sage.graphs.bliss')
+            Feature('bliss')
         """
-        PythonModule.__init__(self, "sage.graphs.bliss", spkg="bliss",
-                              url="http://www.tcs.hut.fi/Software/bliss/")
+        # Currently part of sagemath_standard, conditionally built.
+        # Will be changed to spkg='sagemath_bliss' later
+        JoinFeature.__init__(self, "bliss",
+                             [PythonModule("sage.graphs.bliss", spkg="bliss",
+                                           url="http://www.tcs.hut.fi/Software/bliss/")])
+
+
+def all_features():
+    return [Bliss()]
