@@ -33,7 +33,7 @@ from sage.rings.integer cimport Integer
 from sage.misc.decorators import sage_wraps
 
 
-def chromatic_polynomial(G, algorithm='C', return_tree_basis=False):
+def chromatic_polynomial(G, return_tree_basis=False, algorithm='C'):
     """
     Compute the chromatic polynomial of the graph G.
 
@@ -50,6 +50,8 @@ def chromatic_polynomial(G, algorithm='C', return_tree_basis=False):
 
     - ``G`` -- a Sage graph
 
+    - ``return_tree_basis`` -- boolean (default: ``False``); not used yet
+
     - ``algorithm`` -- string (default: ``"C"``); the algorithm to use among
 
       - ``"C"``, an implementation in C by Robert Miller and Gordon Royle.
@@ -57,8 +59,6 @@ def chromatic_polynomial(G, algorithm='C', return_tree_basis=False):
       - ``"Python"``, an implementation in Python using caching to avoid
         recomputing the chromatic polynomial of a graph that has already been
         seen. This seems faster on some dense graphs.
-
-    - ``return_tree_basis`` -- boolean (default: ``False``); not used yet
 
     EXAMPLES::
 
