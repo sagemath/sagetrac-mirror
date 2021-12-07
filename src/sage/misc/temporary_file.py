@@ -27,12 +27,13 @@ import io
 import os
 import tempfile
 import atexit
-import functools
 
 # We do not use sage.misc.cachefunc here so that this module does not depend on
 # Cython modules.
 
-@functools.cache
+_sage_tmp = None
+
+
 def sage_tmp():
     """
     EXAMPLES::
@@ -41,17 +42,21 @@ def sage_tmp():
         sage: sage_tmp()
         '.../temp/...'
     """
-    # This duplicates code that is run when sage.misc.misc is loaded;
-    # but modularized distributions may not have sage.misc.misc.
-    from sage.env import DOT_SAGE, HOSTNAME
-    os.makedirs(DOT_SAGE, mode=0o700, exist_ok=True)
+    global _sage_tmp
+    if _sage_tmp is None:
+        # This duplicates code that is run when sage.misc.misc is loaded;
+        # but modularized distributions may not have sage.misc.misc.
+        from sage.env import DOT_SAGE, HOSTNAME
+        os.makedirs(DOT_SAGE, mode=0o700, exist_ok=True)
 
-    d = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
-    os.makedirs(d, exist_ok=True)
-    return d
+        _sage_tmp = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
+        os.makedirs(_sage_tmp, exist_ok=True)
+    return _sage_tmp
 
 
-@functools.cache
+_ecl_tmp = None
+
+
 def ecl_tmp():
     """
     Temporary directory that should be used by ECL interfaces launched from
@@ -63,12 +68,13 @@ def ecl_tmp():
         sage: ecl_tmp()
         '.../temp/.../ecl'
     """
-    d = os.path.join(sage_tmp(), 'ecl')
-    os.makedirs(d, exist_ok=True)
-    return d
+    global _ecl_tmp
+    if _ecl_tmp is None:
+        _ecl_tmp = os.path.join(sage_tmp(), 'ecl')
+        os.makedirs(_ecl_tmp, exist_ok=True)
+    return _ecl_tmp
 
 
-@functools.cache
 def spyx_tmp():
     """
     EXAMPLES::
@@ -80,7 +86,9 @@ def spyx_tmp():
     return os.path.join(sage_tmp(), 'spyx')
 
 
-@functools.cache
+_sage_tmp_interface = None
+
+
 def sage_tmp_interface():
     """
     EXAMPLES::
@@ -89,9 +97,11 @@ def sage_tmp_interface():
         sage: sage_tmp_interface()
         '.../temp/.../interface'
     """
-    d = os.path.join(sage_tmp(), 'interface')
-    os.makedirs(d, exist_ok=True)
-    return d
+    global _sage_tmp_interface
+    if _sage_tmp_interface is None:
+        _sage_tmp_interface = os.path.join(sage_tmp(), 'interface')
+        os.makedirs(_sage_tmp_interface, exist_ok=True)
+    return _sage_tmp_interface
 
 
 def delete_tmpfiles():
