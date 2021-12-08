@@ -256,7 +256,11 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.all import walltime, prod
 from sage.modules.all import vector, span
 from sage.rings.all import QQ, ZZ
+
 from sage.functions.other import floor, ceil
+from sage.numerical.mip import MixedIntegerLinearProgram
+from sage.rings.infinity import infinity
+from sage.misc.prandom import choice, randint
 
 
 def is_Fan(x):
@@ -3636,11 +3640,11 @@ class RationalPolyhedralFan_rtree(RationalPolyhedralFan):
         See :class:`RationalPolyhedralFan_rtree` for documentation.
 
         TESTS::
-
+            sage: from sage.geometry.fan import RationalPolyhedralFan_rtree
             sage: v1, v2= vector([0,1]), vector([1,0])
             sage: v1.set_immutable()
             sage: v2.set_immutable()
-            sage: f = sage.geometry.fan.RationalPolyhedralFan_rtree([(0,),(1,)], [v1,v2], None)
+            sage: f = RationalPolyhedralFan_rtree([(0,),(1,)], [v1,v2], None)
             sage: f.is_pointed()
             True
         """
@@ -3806,13 +3810,10 @@ class RationalPolyhedralFan_rtree(RationalPolyhedralFan):
           fan, ``False`` otherwise.
 
         TESTS::
-
+            sage: from sage.geometry.fan import RationalPolyhedralFan_rtree
             sage: cone1 = Cone([(0,-1), (1,0)])
             sage: cone2 = Cone([(1,0), (0,1)])
-            sage: f = Fan([cone1, cone2], allow_rtree = True)
-
-        We check if some points are in this fan::
-
+            sage: f = Fan([cone1, cone2], allow_rtree = True) # We check if some points are in this fan
             sage: f.support_contains(f.lattice()(1,0))
             True
             sage: f.support_contains(cone1)    # a cone is not a point of the lattice
