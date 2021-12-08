@@ -12,18 +12,22 @@ class OrePolynomialEvaluation(RingMap):
         
         TESTS::
 
-            sage: A.<t> = GF(5^3)[]
-            sage: A = A.fraction_field()
-            sage: der = A.derivation()
+            sage: A = GF(5^3)
+            sage: Frob = A.frobenius_endomorphism()
+            sage: der = A.derivation(A.random_element(), twist = Frob)
             sage: K = OrePolynomialRing(A, der, 'X')
-            sage: P = K.random_element()
-            sage: Q = K.random_element()
+            sage: P = K.random_element(4)
+            sage: Q = K.random_element(4)
             sage: c = A.random_element()
             sage: eval = P.eval(c)
             sage: TestSuite(eval).run()
             sage: x = A.random_element()
             sage: y = A.random_element()
             sage: P.eval(c)(x) + Q.eval(c)(x) == (P+Q).eval(c)(x)
+            True
+            sage: y*(P.eval(c)(x)) == (y*P).eval(c)(x)
+            True
+            sage: (P*Q).eval(c)(x) == P.eval(c)(Q.eval(c)(x))
             True
             sage: P.hilbert_shift(y).eval(c-y)(x) == P.eval(c)(x)
             True
@@ -47,18 +51,19 @@ class OrePolynomialEvaluation(RingMap):
     def _call_(self, a):
         if len(self.coeffs) == 0:
             return self.P.parent()(0)
-        result = self.coeffs[0]
+        result = self.coeffs[0]*a
         for i in self.coeffs[1:]:
             a = self.c*self._sigma(a) + self._derivation(a)
             result += i * a
         return result
 
     def _repr_(self):
+        n = len(self.coeffs)
         if n == 0:
             s = "Defn:   a |----> 0"
             return s
         if n == 1:
-            s += "Defn:   a |----> {}".format(self.coeffs[0])
+            s += "Defn:   a |----> %s" %(self.coeffs[0])
             return s
         if self.P.parent().twisting_derivation() is None:
             der = ""
@@ -69,36 +74,35 @@ class OrePolynomialEvaluation(RingMap):
         else:
             if self.P.parent().twisting_derivation() is not None:
                 der += " + "
-            sig = "{}*sig".format(self.c)
+            sig = "%s*sig" %(self.c)
         evc = der + sig
-        s = "Ore evaluation endomorphism of {} by the pseudo-linear morphism ".format(self.P) + evc + " with :"
+        s = "Ore evaluation endomorphism of %s by the pseudo-linear morphism "%(self.P) + evc + " with :"
         if self.P.parent().twisting_derivation() is not None:
-            s += "\n der is {}".format(self._derivation)
+            s += "\n der is %s" %(self._derivation)
         if self.c != 0:
-            s += "\n sig is {}".format(self._sigma)
+            s += "\n sig is %s" %(self._sigma)
         s += "\n Defn:   a |----> "
-        n = len(self.coeffs)
         if n == 0:
             s += "0"
             return s
         if n == 1:
-            s += "{}".format(self.coeffs[0])
+            s += "%s" %(self.coeffs[0])
             return s
         for i in reversed(self.coeffs):
             n -= 1
             if n > 1:
                 if i == 1:
-                    s += "(" + evc + ")^{}(a) + ".format(n)
+                    s += "(" + evc + ")^%s(a) + " %(n)
                 elif i != 0:
-                    s += "{}*(".format(i) + evc + ")^{}(a) + ".format(n)
+                    s += "%s*(" %(i) + evc + ")^%s(a) + " %(n)
             elif n == 1:
                 if i == 1:
                     s += "(" + evc + ")(a) + "
                 elif i != 0:
-                    s += "{}*(".format(i) + evc + ")(a) + "
+                    s += "%s*(" %(i) + evc + ")(a) + "
             elif n == 0:
                 if i != 0:
-                    s += "{}+ ".format(i)
+                    s += "%s*a+ " %(i)
         s = s[:-2]
         return s
 
@@ -117,7 +121,7 @@ class OrePolynomialEvaluation(RingMap):
         else:
             if self.P.parent().twisting_derivation() is not None:
                 der += " + "
-            sig = "{}*sig".format(self.c)
+            sig = "%s*sig" %(self.c)
         evc = der + sig
         s = "a |----> "
         n = len(self.coeffs)
@@ -125,23 +129,23 @@ class OrePolynomialEvaluation(RingMap):
             s += "0"
             return s
         if n == 1:
-            s += "{}".format(self.coeffs[0])
+            s += "%s" %(self.coeffs[0])
             return s
         for i in reversed(self.coeffs):
             n -= 1
             if n > 1:
                 if i == 1:
-                    s += "(" + evc + ")^{}(a) + ".format(n)
+                    s += "(" + evc + ")^%s(a) + " %(n)
                 elif i != 0:
-                    s += "{}*(".format(i) + evc + ")^{}(a) + ".format(n)
+                    s += "%s*(" %(i) + evc + ")^%s(a) + " %(n)
             elif n == 1:
                 if i == 1:
                     s += "(" + evc + ")(a) + "
                 elif i != 0:
-                    s += "{}*(".format(i) + evc + ")(a) + "
+                    s += "%s*(" %(i) + evc + ")(a) + "
             elif n == 0:
                 if i != 0:
-                    s += "{}+ ".format(i)
+                    s += "%s*a+ " %(i)
         s = s[:-2]
         return s
   
