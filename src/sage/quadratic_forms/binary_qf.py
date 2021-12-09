@@ -547,7 +547,7 @@ class BinaryQF(SageObject):
                         q = BinaryQF(c,b,a)
                         a,b,c = c,b,a
                         t = t * Matrix(ZZ,2,[0,1,1,0])
-                    elif b % (2*a) == 0:
+                    if b % (2*a) == 0:
                         n = b//(2*a)
                         t = t * Matrix(ZZ,2,[1, -n, 0, 1])
                         gens.append(t * Matrix(ZZ,2,[1,0,0,-1]) * ~t )
