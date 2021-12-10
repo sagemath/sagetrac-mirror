@@ -212,7 +212,7 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
         Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
         sage: M = A.moseley_algebra()
         sage: M
-        Moseley algebra of an Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
+        Moseley algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
     """
 
     def __init__(self, base_ring, arrangement, u="z0"):
@@ -546,7 +546,7 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
 
                 EXAMPLES::
 
-                    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
+                    sage: from sage.algebras.moseley import VarchenkoGelfandAlgebra
                     sage: A = hyperplane_arrangements.braid(3)
                     sage: VG = A.varchenko_gelfand_algebra(ZZ)
                     sage: X = VG.normal_basis()
@@ -622,7 +622,7 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
 
                 EXAMPLES::
 
-                    sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
+                    sage: from sage.algebras.moseley import VarchenkoGelfandAlgebra
                     sage: A = hyperplane_arrangements.braid(3)
                     sage: VG = VarchenkoGelfandAlgebra(QQ, A)
                     sage: X = VG.normal_basis()
@@ -749,6 +749,10 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
             sage: VG.normal_basis()
             Varchenko-Gelfand algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over
              the Fraction Field of Univariate Polynomial Ring in t over Integer Ring on the Normal basis
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal_singular_repr.normal_basis`
         """
         def __init__(self, VG):
             r"""
@@ -776,10 +780,9 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
             basis_keys = [Set([i for (i, j) in enumerate(monom.exponents()[0]) if j]) for monom in normal_basis]
             CombinatorialFreeModule.__init__(self,
                                              VG.base_ring(),
-                                             basis_keys,
+                                             sorted(basis_keys, key=lambda x: (len(x), x)),
                                              category=VG.Bases(),
-                                             prefix='X',
-                                             sorting_key=lambda x: self.to_polynomial(x))
+                                             prefix='X')
 
         def __getitem__(self, indices):
             """
@@ -843,7 +846,7 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
+                sage: from sage.algebras.moseley import VarchenkoGelfandAlgebra
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = A.varchenko_gelfand_algebra()
                 sage: X = VG.normal_basis()
@@ -1015,7 +1018,7 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
+                sage: from sage.algebras.moseley import VarchenkoGelfandAlgebra
                 sage: A = hyperplane_arrangements.braid(3)
                 sage: VG = VarchenkoGelfandAlgebra(QQ, A)
                 sage: N = VG.nbc_basis()
