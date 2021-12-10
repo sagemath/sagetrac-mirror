@@ -45,13 +45,15 @@ a basis. There are currently three bases implemented.
 
     sage: N = VG.nbc_basis()
     sage: N
-    Varchenko-Gelfand algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over the Rational Field on the NBC basis
+    Varchenko-Gelfand algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field on the NBC basis
 
   Often, we will want to loop over the elements of the basis. For example,
   we loop through the basis elements and convert each to polynomials
   in the underlying polynomial ring::
 
-    sage: for b in sorted(N.basis()):
+    sage: for b in sorted(N.basis(), 
+    ....:                 key=lambda b: (len(b.support_of_term()),
+    ....:                                b.support_of_term())):
     ....:     print("{} --> {}".format(b, b.to_polynomial()))
     N[] --> 1
     N[0] --> x0
@@ -531,8 +533,7 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
                     sage: M = M.nbc_basis(); M
                     Moseley algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over the Rational Field on the NBC basis
                 """
-                return "Moseley algebra of {} over the {} on the {} basis".format(
-                        self.hyperplane_arrangement(), self.base_ring(), self._realization_name())
+                return "{} on the {} basis".format(self._VG._repr_(), self._realization_name())
 
             @cached_method
             def product_on_basis(self, x, y):
@@ -763,6 +764,7 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
                 sage: X = A.varchenko_gelfand_algebra(R).normal_basis()
                 sage: TestSuite(X).run()
             """
+            self._VG = VG
             PR = VG.underlying_polynomial_ring()
             I = PR.defining_ideal()
             try:
@@ -945,6 +947,7 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
                 Varchenko-Gelfand algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over the Rational Field on the NBC basis
 
             """
+            self._VG = VG
             basis_keys = [Set(nbc) for nbc in VG._matroid.no_broken_circuits_sets()]
             CombinatorialFreeModule.__init__(self,
                                              VG.base_ring(),
@@ -1091,7 +1094,20 @@ class VarchenkoGelfandAlgebra(MoseleyAlgebra):
         C.module_morphism(on_basis=lambda I: C.from_polynomial(C.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
         C.module_morphism(on_basis=lambda I: X.from_polynomial(C.to_polynomial_on_basis(I)), codomain=X).register_as_coercion()
         X.module_morphism(on_basis=lambda I: C.from_polynomial(X.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
+    
+    def _repr_(self):
+        r"""
+        String representation of ``self``.
 
+        EXAMPLES::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: M = A.varchenko_gelfand_algebra()
+            sage: M
+            Varchenko-Gelfand algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
+        """
+        return "Varchenko-Gelfand algebra of {} over {}".format(self.hyperplane_arrangement(), self.base_ring())
+    
     def covectors_in_cone(self, cone_mask):
         r"""
         The covectors of the regions that lie in a cone.
@@ -1208,6 +1224,8 @@ class VarchenkoGelfandAlgebra(MoseleyAlgebra):
             if all(cone_mask[i] / covector[i] >= 0 for i in range(len(covector))):
                 cone_covectors.append(tuple(covector))
         return cone_covectors
+
+
 
     class Covector(CombinatorialFreeModule, BindableClass):
         def __init__(self, VG):
