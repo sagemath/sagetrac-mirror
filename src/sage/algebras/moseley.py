@@ -1,6 +1,23 @@
 r"""
-The Varchenko-Gelfand algebra
+The Moseley algebra
 
+The Moseley algebra of a hyperplane arrangement is the equivariant
+cohomology ring of the complement of the hyperplane arrangment in
+`\Bold{R}^3`. It also can recover two interesting algebras by setting
+the homogenizing variable ``u`` to `1` and `0`, namely the Varchenko-
+Gelfand ring and the Cordovil ring.
+
+EXAMPLES:
+
+We construct the Moseley algebra of the reflection arrangement
+of type `A_2` using the hyperplane arrangements library::
+
+    sage: A = hyperplane_arrangements.braid(3)
+    sage: M = A.moseley_algebra(); M
+    Moseley algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
+
+By specializing the homogenizing variable to `1`, we can recover the
+Varchenko-Gelfand algebra.
 The Varchenko-Gelfand algebra of a real hyperplane arrangement is the
 ring of functions which are constant on chambers in the complement.
 It can be defined for noncentral arrangements (indeed even for an
@@ -17,8 +34,7 @@ We construct the Varchenko-Gelfand algebra of the reflection arrangement
 of type `A_2` using the hyperplane arrangements library::
 
     sage: A = hyperplane_arrangements.braid(3)
-    sage: VG = A.varchenko_gelfand_algebra()
-    sage: VG
+    sage: VG = A.varchenko_gelfand_algebra(); VG
     Varchenko-Gelfand algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
 
 In order to work with the elements of this ring, we first need to pick
@@ -35,7 +51,7 @@ a basis. There are currently three bases implemented.
   we loop through the basis elements and convert each to polynomials
   in the underlying polynomial ring::
 
-    sage: for b in N.basis():
+    sage: for b in sorted(N.basis()):
     ....:     print("{} --> {}".format(b, b.to_polynomial()))
     N[] --> 1
     N[0] --> x0
@@ -154,6 +170,7 @@ a basis. There are currently three bases implemented.
 AUTHORS:
 
 - Franco Saliola, Galen Dorpalen-Barry (2021): initial version
+- Trevor Karn (2021): refactor to make Moseley-algebra the superclass
 """
 
 # ****************************************************************************
@@ -196,16 +213,16 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
         Moseley algebra of an Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over Rational Field
     """
 
-    def __init__(self, base_ring, arrangement, u = "z0"):
+    def __init__(self, base_ring, arrangement, u="z0"):
         r"""
         EXAMPLES::
 
             sage: A = hyperplane_arrangements.braid(3)
-            sage: VG = A.varchenko_gelfand_algebra()
-            sage: TestSuite(VG).run()
+            sage: M = A.moseley_algebra()
+            sage: TestSuite(M).run()
 
-            sage: VG = A.varchenko_gelfand_algebra(ZZ)
-            sage: TestSuite(VG).run()
+            sage: M = A.moseley_algebra(ZZ)
+            sage: TestSuite(M).run()
 
         TESTS::
 
@@ -214,16 +231,16 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
             sage: h2 = x - y + 1;
             sage: h3 = y + 1;
             sage: A = h1 | h2 | h3
-            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
-            sage: A.varchenko_gelfand_algebra(QQ)
+            sage: from sage.algebras.moseley import MoseleyAlgebra
+            sage: A.moseley(QQ)
             Traceback (most recent call last):
             ...
             ValueError: the hyperplane arrangement must be central
 
-            sage: from sage.algebras.varchenko_gelfand import VarchenkoGelfandAlgebra
+            sage: from sage.algebras.moseley import MoseleyAlgebra
             sage: A = hyperplane_arrangements.braid(3)
             sage: G = SymmetricGroup(4); G.rename('S4')
-            sage: VG = VarchenkoGelfandAlgebra(G, A)
+            sage: M = MoseleyAlgebra(G, A)
             Traceback (most recent call last):
             ...
             ValueError: S4 must be a ring
@@ -264,9 +281,9 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
         TESTS::
 
             sage: A = hyperplane_arrangements.braid(3)
-            sage: VG = A.varchenko_gelfand_algebra()
-            sage: N = VG.nbc_basis()
-            sage: X = VG.normal_basis()
+            sage: M = A.moseley_algebra()
+            sage: N = M.nbc_basis()
+            sage: X = M.normal_basis()
             sage: n = N.an_element()
             sage: x = X.an_element()
             sage: n * x
@@ -276,9 +293,9 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
         """
         N = self.nbc_basis()
         X = self.normal_basis()
-        N.module_morphism(on_basis=lambda I : X.from_polynomial(N.to_polynomial_on_basis(I)), codomain=X).register_as_coercion()
-        X.module_morphism(on_basis=lambda I : N.from_polynomial(X.to_polynomial_on_basis(I)), codomain=N).register_as_coercion()
-    
+        N.module_morphism(on_basis=lambda I: X.from_polynomial(N.to_polynomial_on_basis(I)), codomain=X).register_as_coercion()
+        X.module_morphism(on_basis=lambda I: N.from_polynomial(X.to_polynomial_on_basis(I)), codomain=N).register_as_coercion()
+
     def _repr_(self):
         r"""
         String representation of ``self``.
@@ -405,6 +422,8 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
         # It suffices to take one such generator for each circuit of the associated
         # matroid.
 
+        A = self._arrangement
+
         for circuit in self._matroid.circuits():
             circuit = sorted(circuit)
             m = matrix([A[i].normal() for i in circuit])
@@ -461,7 +480,7 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
             [ 0  1  0  0  0  0]
         """
         return matrix([basis1.from_polynomial(basis0.to_polynomial_on_basis(key)).to_vector()
-                                                        for key in basis0.basis().keys()])
+                       for key in basis0.basis().keys()])
 
     class Bases(Category_realization_of_parent):
         r"""
@@ -495,8 +514,8 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
                 EXAMPLES::
 
                     sage: A = hyperplane_arrangements.braid(3)
-                    sage: VG = A.varchenko_gelfand_algebra()
-                    sage: VG.hyperplane_arrangement()
+                    sage: M = A.moseley_algebra()
+                    sage: M.hyperplane_arrangement()
                     Arrangement <t1 - t2 | t0 - t1 | t0 - t2>
                 """
                 return self.realization_of().hyperplane_arrangement()
@@ -508,11 +527,11 @@ class MoseleyAlgebra(UniqueRepresentation, Parent):
                 EXAMPLES::
 
                     sage: A = hyperplane_arrangements.braid(3)
-                    sage: VG = A.varchenko_gelfand_algebra()
-                    sage: N = VG.nbc_basis(); N
-                    Varchenko-Gelfand algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over the Rational Field on the NBC basis
+                    sage: M = A.moseley_algebra()
+                    sage: M = M.nbc_basis(); M
+                    Moseley algebra of Arrangement <t1 - t2 | t0 - t1 | t0 - t2> over the Rational Field on the NBC basis
                 """
-                return "Varchenko-Gelfand algebra of {} over the {} on the {} basis".format(
+                return "Moseley algebra of {} over the {} on the {} basis".format(
                         self.hyperplane_arrangement(), self.base_ring(), self._realization_name())
 
             @cached_method
@@ -1018,8 +1037,20 @@ class CordovilAlgebra(MoseleyAlgebra):
     def __init__(self, base_ring, arrangement):
         MoseleyAlgebra.__init__(self, base_ring, arrangement, 0)
 
-class VarcheckoGelfandAlgebra(MoseleyAlgebra):
+
+class VarchenkoGelfandAlgebra(MoseleyAlgebra):
     def __init__(self, base_ring, arrangement):
+        r"""
+        EXAMPLES::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: VG = A.varchenko_gelfand_algebra()
+            sage: TestSuite(VG).run()
+
+            sage: VG = A.varchenko_gelfand_algebra(ZZ)
+            sage: TestSuite(VG).run()
+        """
+
         MoseleyAlgebra.__init__(self, base_ring, arrangement, 1)
 
     def _register_coercions(self):
@@ -1056,10 +1087,10 @@ class VarcheckoGelfandAlgebra(MoseleyAlgebra):
         N = self.nbc_basis()
         C = self.covector_basis()
         X = self.normal_basis()
-        N.module_morphism(on_basis=lambda I : C.from_polynomial(N.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
-        C.module_morphism(on_basis=lambda I : C.from_polynomial(C.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
-        C.module_morphism(on_basis=lambda I : X.from_polynomial(C.to_polynomial_on_basis(I)), codomain=X).register_as_coercion()
-        X.module_morphism(on_basis=lambda I : C.from_polynomial(X.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
+        N.module_morphism(on_basis=lambda I: C.from_polynomial(N.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
+        C.module_morphism(on_basis=lambda I: C.from_polynomial(C.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
+        C.module_morphism(on_basis=lambda I: X.from_polynomial(C.to_polynomial_on_basis(I)), codomain=X).register_as_coercion()
+        X.module_morphism(on_basis=lambda I: C.from_polynomial(X.to_polynomial_on_basis(I)), codomain=C).register_as_coercion()
 
     def covectors_in_cone(self, cone_mask):
         r"""
