@@ -1130,7 +1130,7 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
             # Verified
             from sage.rings.localization import Localization
             Localization
-            Localization(*(ZZ[('x', 'y')], ZZ[('x', 'y')]({(1r, 0r):1})), **{})
+            Localization(*(ZZ[('x', 'y')], ZZ[('x', 'y')]({(1r, 0r):1r})), **{})
 
             sage: S = SymmetricGroup(4)
             sage: sage_input(S, verify=True)   # indirect doctest

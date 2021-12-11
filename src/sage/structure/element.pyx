@@ -590,13 +590,20 @@ cdef class Element(SageObject):
         self._set_parent(state[0])
         self.__dict__ = state[1]
 
-    def _reconstruction_data(self):
+    def _reconstruction_data(self, recursive=True):
         r"""
         Return data which allows the reconstruction of ``self`` via the
         :meth:`_element_constructor_` of its parent, such that it can be used
         by :meth:`_sage_input_`. In most cases, this will need a custom
         implementation. The implementation here returns ``None`` if such data
         can not be identified generically.
+
+        INPUT:
+
+        - ``recursive`` -- boolean (default ``True``). This means that
+          all occurences of instances of :class:`Element` will be replaced
+          by the corresponding reconstruction data recursively as long as
+          ``self`` can be reconstructed from this data.
 
         EXAMPLES::
 
@@ -609,7 +616,10 @@ cdef class Element(SageObject):
 
             sage: m = matrix([[x, y**2], [-y, 3*x]])
             sage: m._reconstruction_data()
-            {(0, 0): x, (0, 1): y^2, (1, 0): -y, (1, 1): 3*x}
+            {(0, 0): {(1, 0): 1},
+             (0, 1): {(0, 2): 1},
+             (1, 0): {(0, 1): -1},
+             (1, 1): {(1, 0): 3}}
         """
         P = self._parent
         def reconstructible(data):
@@ -623,6 +633,63 @@ cdef class Element(SageObject):
             except (ValueError, TypeError, NotImplementedError):
                 return False
 
+        def recurse(data):
+            r"""
+            Return recursive calculated data if ``self``
+            can be reconstructed from it.
+            """
+            cls = self.__class__
+            def check_inst(inst):
+                r"""
+                See if recursion is possible for the given instance
+                """
+                if isinstance(inst, cls):
+                    # avoid recursion loops
+                    # hopefully that there are no longer loop circles
+                    return False
+                return isinstance(inst, Element)
+
+            if type(data) in (list, tuple):
+                new_data = []
+                for i in range(len(data)):
+                    d = data[i]
+                    if check_inst(data[i]):
+                        D = d._reconstruction_data()
+                        if D is None:
+                            new_data.append(d)
+                        else:
+                            new_data.append(D)
+                    else:
+                        new_data.append(d)
+                if reconstructible(new_data):
+                    if type(data) == tuple:
+                        new_data = tuple(new_data)
+                    return new_data
+                else:
+                    return data
+
+            if type(data) == dict:
+                new_data = {}
+                for k, v in data.items():
+                    if check_inst(k):
+                        K = k._reconstruction_data()
+                        if K is None:
+                            K = k
+                    else:
+                        K = k
+                    if check_inst(v):
+                        V = v._reconstruction_data()
+                        if V is None:
+                            V = v
+                    else:
+                        V = v
+                    new_data[K] = V
+                if reconstructible(new_data):
+                    return new_data
+                else:
+                    return data
+            return data
+
         pyth_meths = ['dict', '_dict', 'list', '_list']
         vect_meths = ['vector', 'to_vector', '_vector_', '_vector']
         mat_meths = ['matrix', 'to_matrix', '_matrix_', '_matrix']
@@ -631,12 +698,16 @@ cdef class Element(SageObject):
             if hasattr(self, attr):
                 data = self.__getattribute__(attr)()
                 if reconstructible(data):
+                    if recursive:
+                       return recurse(data)
                     return data
         data = None
-        for cast in (int, float, complex, str):
+        for cast in (int, float, complex, str, list, dict):
             try:
                 data = cast(self)
                 if reconstructible(data):
+                    if recursive:
+                        return recurse(data)
                     return data
             except (TypeError, ValueError):
                 pass
@@ -654,7 +725,7 @@ cdef class Element(SageObject):
             sage: p = a**2*b - 2*c**3 + 5
             sage: sage_input(p, verify=True)   # indirect doctest
             # Verified
-            ZZ[('a', 'b', 'c')]({(2r, 1r, 0r):1, (0r, 0r, 3r):-2, (0r, 0r, 0r):5})
+            ZZ[('a', 'b', 'c')]({(2r, 1r, 0r):1r, (0r, 0r, 3r):-2r, (0r, 0r, 0r):5r})
 
             sage: G = GU(2,3); g = G[2]; g
             [    0 a + 1]
@@ -685,7 +756,7 @@ cdef class Element(SageObject):
             AlgebraicExtensionFunctor(*[[x^2 + 1], ['I']], **{'embeddings':[AlgebraicClosureFunctor(*[],
             **{})(CompletionFunctor(*[oo, oo], **{'extras':{'type':'RLF'}})(QQ))(float(0) + complex('1j')*float(1))],
             'structures':[None], 'cyclotomic':None, 'precs':[None], 'implementations':[None],
-            'residue':None, 'latex_names':['i']})(QQ)([QQ(0), QQ(1)])
+            'residue':None, 'latex_names':['i']})(QQ)([[QQ(0)], [QQ(1)]])
         """
         P = self.parent()
         data = self._reconstruction_data()

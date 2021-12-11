@@ -338,7 +338,7 @@ cdef class FractionFieldElement(FieldElement):
         b = self.denominator()
         return a.nth_root(n) / b.nth_root(n)
 
-    def _reconstruction_data(self):
+    def dict(self):
         r"""
         Return a dictionary allowing the reconstruction of ``self`` for example
         using :func:`sage_input`.
@@ -350,7 +350,7 @@ cdef class FractionFieldElement(FieldElement):
             # Verified
             from sage.categories.pushout import FractionField
             FractionField
-            FractionField(*[], **{})(ZZ[('x', 'y')])({'n':{(1r, 0r):1}, 'd':{(0r, 1r):1}})
+            FractionField(*[], **{})(ZZ[('x', 'y')])({'n':{(1r, 0r):1r}, 'd':{(0r, 1r):1r}})
         """
         n = self.numerator()
         d = self.denominator()

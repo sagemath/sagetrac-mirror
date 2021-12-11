@@ -448,6 +448,12 @@ class SageInputBuilder:
               _sil1: <function <lambda> at 0x...>
             # Verified
             _sil1
+            sage: K = KnotInfo.K5_2
+            sage: sage_input(K, verify=True)
+            # Verified
+            from sage.knots.knotinfo import KnotInfo
+            KnotInfo
+            KnotInfo(*['5_2'], **{})
         """
         # We want to look up x in our cache, to see if we've seen it before.
         # However, we don't want to assume that hashing x is always
@@ -534,6 +540,10 @@ class SageInputBuilder:
 
         if isinstance(x, dict):
             return self.dict(x)
+
+        from enum import Enum
+        if isinstance(x, Enum):
+            return self.from_class(x.__class__, [x.value], {})
 
         if hasattr(x, '__class__'):
             ci = constructor_inspection(x)
