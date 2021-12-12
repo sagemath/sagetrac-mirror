@@ -542,14 +542,27 @@ class SageInputBuilder:
             return self.dict(x)
 
         from enum import Enum
-        if isinstance(x, Enum):
-            return self.from_class(x.__class__, [x.value], {})
+        #if isinstance(x, Enum):
+        #    return self.from_class(x.__class__, [x.value], {})
 
         if hasattr(x, '__class__'):
             ci = constructor_inspection(x)
             if ci:
                 args, kwds = ci
                 return self.from_class(x.__class__, args, kwds)
+
+        from sage.misc.explain_pickle import PickleExplainer
+        from sage.misc.persist import dumps
+        from pickle import PicklingError
+
+        pe = PickleExplainer(self, in_current_sage=False,
+                             default_assumptions=False,
+                             pedantic=False)
+        try:
+            v = pe.run_pickle(dumps(x, compress=False))
+            return self(v)
+        except PicklingError:
+            pass
 
         if self._allow_locals:
             loc = self._next_local

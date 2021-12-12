@@ -1395,6 +1395,15 @@ class PickleExplainer(object):
         """
         module, func = name.split(' ')
 
+        # Module and name might not be compatible with Python3
+        # if the protocol used is less than 3 (Sage dumps defaults
+        # to protocol 2, so this might be the case quite often)
+        import _compat_pickle
+        if (module, name) in _compat_pickle.NAME_MAPPING:
+            module, name = _compat_pickle.NAME_MAPPING[(module, name)]
+        elif module in _compat_pickle.IMPORT_MAPPING:
+            module = _compat_pickle.IMPORT_MAPPING[module]
+
         if self.default_assumptions:
             # Should the default assumption be that sage.all does, or
             # does not, have a conflicting variable name?
