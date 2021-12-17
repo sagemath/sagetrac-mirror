@@ -837,6 +837,17 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: C.has_coerce_map_from(B)  # indirect doctest
             True
 
+        TESTS::
+
+            sage: A.<x,y> = TateAlgebra(R, log_radii=[1/2,1/3])
+            sage: B.<x,y> = TateAlgebra(R, log_radii=[3/4,-1/2])
+            sage: B.has_coerce_map_from(A)  # indirect doctest
+            False
+            sage: B.<x,y> = TateAlgebra(R, log_radii=[3/4,-1/6])
+            sage: B.has_coerce_map_from(A)  # indirect doctest
+            True
+        
+
         """
         base = self._base
         if base.has_coerce_map_from(R):
@@ -1043,7 +1054,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
 
         """
-        vars = ", ".join("%s (val >= %s)" % (var, r)
+        vars = ", ".join("%s (val >= %s)" % (var, -r)
                          for var, r in zip(self._names, self.log_radii()))
         if self._integral:
             return "Integer ring of the Tate Algebra in %s over %s" % (vars, self._field)
