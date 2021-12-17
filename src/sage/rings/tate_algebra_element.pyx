@@ -380,7 +380,11 @@ cdef class TateAlgebraTerm(MonoidElement):
             True
 
         """
-        cdef long c = other._valuation_c() - self._valuation_c()
+        cdef long c
+        if self._parent._is_polynomial_ring:
+            c = 0
+        else:
+            c = other._valuation_c() - self._valuation_c()
         if not c:
             skey = self._parent._sortkey
             ks = skey(self._exponent)
@@ -511,7 +515,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         cdef TateAlgebraTerm ans = self._new_c()
-        cdef long v = self._exponent.dotprod(self._parent._log_radii)
+        cdef long v = self._exponent.dotprod(self._parent._log_radii_num)
         ans._coeff = self._parent._field.uniformizer_pow(v)
         ans._exponent = self._exponent
         return ans
@@ -541,7 +545,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             -2
 
         """
-        return ZZ(self._valuation_c())
+        return QQ(self._valuation_c())/self._parent._log_radii_den
 
     cdef long _valuation_c(self):
         r"""
@@ -558,7 +562,10 @@ cdef class TateAlgebraTerm(MonoidElement):
             2
 
         """
-        return (<pAdicGenericElement>self._coeff).valuation_c() - <long>self._exponent.dotprod(self._parent._log_radii)
+        if self._parent._is_polynomial_ring:
+            return (<pAdicGenericElement>self._coeff).valuation_c()
+        else:
+            return (<pAdicGenericElement>self._coeff).valuation_c() - <long>self._exponent.dotprod(self._parent._log_radii_num)
 
     cdef Element _call_c(self, list arg):
         """
@@ -630,7 +637,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         args = [ A(arg) for arg in args ]
         ratio = A.absolute_e() // parent._base.absolute_e()
         for i in range(parent._ngens):
-            if args[i].valuation() < -ratio * parent._log_radii[i]:
+            if args[i].valuation() < -ratio * parent._log_radii_num[i]:
                 raise ValueError("not in the domain of convergence")
         res = self._call_c(args)
         if parent._integral:
@@ -766,7 +773,10 @@ cdef class TateAlgebraTerm(MonoidElement):
         cdef TateAlgebraTerm ans = self._new_c()
         cdef long val
         ans._exponent = self._exponent.emin(other._exponent)
-        val = min(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii)
+        if self._is_polynomial_ring:
+            val = min(self._valuation_c(), other._valuation_c())
+        else:
+            val = min(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)
         ans._coeff = self._parent._field.uniformizer_pow(val)
         return ans
 
@@ -831,7 +841,10 @@ cdef class TateAlgebraTerm(MonoidElement):
         cdef TateAlgebraTerm ans = self._new_c()
         cdef long val
         ans._exponent = self._exponent.emax(other._exponent)
-        val = max(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii)
+        if self._parent._is_polynomial_ring:
+            val = max(self._valuation_c(), other._valuation_c())
+        else:
+            val = max(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)
         ans._coeff = (self._coeff.unit_part() * other._coeff.unit_part()) << val
         return ans
 
@@ -1157,7 +1170,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef int v
         cdef pAdicGenericElement coeff
         for (e, c) in list(self._poly.__repn.items()):
-            v = (<ETuple>self._parent._log_radii).dotprod(<ETuple>e)
+            if self._parent._is_polynomial_ring:
+                v = 0
+            else:
+                v = (<ETuple>self._parent._log_radii_num).dotprod(<ETuple>e)
             coeff = self._poly.__repn[e]
             if coeff.precision_absolute() > self._prec - v:
                 coeff = coeff.add_bigoh(self._prec - v)
@@ -1912,7 +1928,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         args = [ A(arg) for arg in args ]
         ratio = A.absolute_e() // parent._base.absolute_e()
         for i in range(parent._ngens):
-            if args[i].valuation() < -ratio * parent._log_radii[i]:
+            if args[i].valuation() < -ratio * parent._log_radii_num[i]:
                 raise ValueError("not in the domain of convergence")
         res = A(0, ratio * self._prec)
         for t in self._terms_c():
@@ -2014,7 +2030,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             field = base.fraction_field()
             ngens = parent.ngens()
             for (e,c) in self._poly.__repn.items():
-                minval = ZZ(e.dotprod(<ETuple>parent._log_radii)).ceil()
+                if self._parent._is_polynomial_ring:
+                    minval = 0
+                else:
+                    minval = ZZ(e.dotprod(<ETuple>parent._log_radii_num)).ceil()
                 coeffs[e] = field(base(c) >> (minval-n)) << minval
             ans._prec = max(ZZ(0), self._prec + n)
         ans._poly = PolyDict(coeffs, None)
@@ -2988,7 +3007,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             raise ZeroDivisionError("rational division by zero")
         t = terms[0]
         shi, u = t._coeff.val_unit()
-        shi -= t._exponent.dotprod(self._parent._log_radii)
+        if not self._parent._is_polynomial_ring:
+            shi -= t._exponent.dotprod(self._parent._log_radii_num)
         ans._poly = self._poly.scalar_lmult((~u) >> shi)
         ans._prec = self._prec - shi
         return ans
