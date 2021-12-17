@@ -773,10 +773,10 @@ cdef class TateAlgebraTerm(MonoidElement):
         cdef TateAlgebraTerm ans = self._new_c()
         cdef long val
         ans._exponent = self._exponent.emin(other._exponent)
-        if self._is_polynomial_ring:
+        if self._parent._is_polynomial_ring:
             val = min(self._valuation_c(), other._valuation_c())
         else:
-            val = min(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)
+            val = min(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)/self._parent._log_radii_den
         ans._coeff = self._parent._field.uniformizer_pow(val)
         return ans
 
@@ -844,7 +844,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         if self._parent._is_polynomial_ring:
             val = max(self._valuation_c(), other._valuation_c())
         else:
-            val = max(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)
+            val = max(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)/self._parent._log_radii_den
         ans._coeff = (self._coeff.unit_part() * other._coeff.unit_part()) << val
         return ans
 
