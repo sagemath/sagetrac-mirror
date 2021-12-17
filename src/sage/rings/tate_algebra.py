@@ -699,7 +699,7 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
 ###############
 
 class TateAlgebra_generic(CommutativeAlgebra):
-    def __init__(self, field, prec, log_radii, log_radii_den, names, order, integral=False):
+    def __init__(self, field, prec, log_radii_num, log_radii_den, names, order, integral=False):
         """
         Initialize the Tate algebra
 
@@ -719,14 +719,14 @@ class TateAlgebra_generic(CommutativeAlgebra):
         self._field = field
         self._log_radii_den = log_radii_den
         self._cap = prec
-        if log_radii[0] is Infinity: # TODO: Allow mixed infinity/number log radii
+        if log_radii_num[0] is Infinity: # TODO: Allow mixed infinity/number log radii
             self._is_polynomial_ring = True
         else:
             self._is_polynomial_ring = False
         if not self._is_polynomial_ring:
-            self._log_radii_num = ETuple(log_radii)
+            self._log_radii_num = ETuple(log_radii_num)
         else: 
-            self._log_radii_num = tuple(log_radii)
+            self._log_radii_num = tuple(log_radii_num)
                         
         self._names = names
         self._latex_names = [ latex_variable_name(var) for var in names ]
@@ -750,11 +750,13 @@ class TateAlgebra_generic(CommutativeAlgebra):
             # non-integral
             if log_radii_den == 1:
                 #raise(NotImplementedError("integral algebra for non-integral log-radii is not supported"))
-                self._gens = [ self((one << log_radii[i]) * self._polynomial_ring.gen(i)) for i in range(self._ngens) ]
+                self._gens = [ self((one << log_radii_num[i]) * self._polynomial_ring.gen(i)) for i in range(self._ngens) ]
+            else:
+                self._gens = None
             self._integer_ring = self
         else:
             self._gens = [ self(g) for g in self._polynomial_ring.gens() ]
-            self._integer_ring = TateAlgebra_generic(field, prec, log_radii, log_radii_den, names, order, integral=True)
+            self._integer_ring = TateAlgebra_generic(field, prec, log_radii_num, log_radii_den, names, order, integral=True)
             self._integer_ring._rational_ring = self._rational_ring = self
 
     def _an_element_(self):
