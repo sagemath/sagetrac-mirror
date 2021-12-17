@@ -836,7 +836,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: B.has_coerce_map_from(A)  # indirect doctest
             False
 
-        If the tame order changes, there is no coercion either::
+        If the term order changes, there is no coercion either::
 
             sage: B.<x,y> = TateAlgebra(R, order="lex")
             sage: B.has_coerce_map_from(A)  # indirect doctest
