@@ -865,7 +865,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             False
             sage: B.<x,y> = TateAlgebra(R, log_radii=[3/4,-1/6])
             sage: B.has_coerce_map_from(A)  # indirect doctest
-            True
+            False
         
 
         """
@@ -883,7 +883,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
                 ratio = base.absolute_e() // Rbase.absolute_e()
                 for i in range(self._ngens) :
                     if logs[i] != ratio * Rlogs[i]:
-                        return False
+                        return False # TODO: Is it what we want? 
                 return True
         return False
 
