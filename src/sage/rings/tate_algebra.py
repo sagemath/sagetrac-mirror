@@ -266,6 +266,21 @@ class TateAlgebraFactory(UniqueFactory):
             (2-adic Field with capped relative precision 20,
              20,
              (0, 0),
+             1,
+             ('x', 'y'),
+             Degree reverse lexicographic term order)
+            sage: TateAlgebra.create_key(Zp(2), names=['x','y'], log_radii=Infinity)
+            (2-adic Field with capped relative precision 20,
+             20,
+             (+Infinity, +Infinity),
+             1,
+             ('x', 'y'),
+             Degree reverse lexicographic term order)
+            sage: TateAlgebra.create_key(Zp(2), names=['x','y'], log_radii=[1/2,-1/3])
+            (2-adic Field with capped relative precision 20,
+             20,
+             (3, -2),
+             6,
              ('x', 'y'),
              Degree reverse lexicographic term order)
 
@@ -283,14 +298,19 @@ class TateAlgebraFactory(UniqueFactory):
             Traceback (most recent call last):
             ...
             ValueError: the number of radii does not match the number of variables
-            sage: TateAlgebra.create_key(Zp(2), names=['x','y'], log_radii=[0, 1/2])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: only integral log_radii are implemented
             sage: TateAlgebra.create_key(Zp(2), names=['x','y'], order='myorder')
             Traceback (most recent call last):
             ...
             ValueError: unknown term order 'myorder'
+            sage: TateAlgebra.create_key(Zp(2), names=['x','y'], log_radii=[Infinity,2])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the log radii must all be rational numbers or all infinity
+            sage: TateAlgebra.create_key(Zp(2), names=['x','y'], log_radii=[exp,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: the log radii must be rational numbers or infinity
+        
 
         """
         if not isinstance(base, pAdicGeneric):
@@ -308,13 +328,13 @@ class TateAlgebraFactory(UniqueFactory):
             raise ValueError("the number of radii does not match the number of variables")
         if Infinity in log_radii:
             if any(not r is Infinity for r in log_radii):
-                raise NotImplementedError("the log radii must all be numbers or all infinity")
+                raise NotImplementedError("the log radii must all be rational numbers or all infinity")
         else:
             try:
                 log_radii_den = lcm([r.denominator() for r in log_radii])
                 log_radii = [(r*log_radii_den).numerator() for r in log_radii]
-            except TypeError:
-                raise NotImplementedError("log radii must be integers or infinity")
+            except AttributeError:
+                raise ValueError("the log radii must be rational numbers or infinity")
         order = TermOrder(order, ngens)
         if prec is None:
             prec = base.precision_cap()
