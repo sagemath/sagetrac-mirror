@@ -843,7 +843,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             return True
         if isinstance(R, (TateTermMonoid, TateAlgebra_generic)):
             Rbase = R.base_ring()
-            logs = self._log_radii_num
+            logs = self.log_radii()
             # TODO: Should we compare the log radii?
             Rlogs = R.log_radii()
             if (base.has_coerce_map_from(Rbase)
