@@ -732,38 +732,34 @@ cdef class Element(SageObject):
             [a + 1     2]
             sage: sage_input(g, verify=True)   # indirect doctest
             # Verified
+            from sage.misc.persist import unpickle_global as _upg
             GF_3 = GF(3)
             R.<x> = GF_3[]
-            from sage.groups.matrix_gps.unitary import UnitaryMatrixGroup_gap
-            UnitaryMatrixGroup_gap
-            UnitaryMatrixGroup_gap(*(2, GF(3^2, 'a', x^2 + 2*x + 2), False,
-            'General Unitary Group of degree 2 over Finite Field in a of size 3^2',
-            '\\text{GU}_{2}(\\Bold{F}_{3^{2}})', 'GU(2, 3)'),
-            **{})([[GF(3^2, 'a', x^2 + 2*x + 2)(vector(GF_3, [0, 0])),
-                    GF(3^2, 'a', x^2 + 2*x + 2)(vector(GF_3, [1, 1]))],
-                   [GF(3^2, 'a', x^2 + 2*x + 2)(vector(GF_3, [1, 1])),
-                    GF(3^2, 'a', x^2 + 2*x + 2)(vector(GF_3, [2, 0]))]])
+            _sieP = GF(3^2, 'a', x^2 + 2*x + 2)
+            _upg('sage.groups.matrix_gps.unitary', 'UnitaryMatrixGroup_gap')(*(2,
+            _sieP, False, 'General Unitary Group of degree 2 over Finite Field
+            in a of size 3^2', '\\text{GU}_{2}(\\Bold{F}_{3^{2}})', 'GU(2, 3)'),
+            **{})([[_sieP(vector(GF_3, [0, 0])), _sieP(vector(GF_3, [1, 1]))],
+                   [_sieP(vector(GF_3, [1, 1])), _sieP(vector(GF_3, [2, 0]))]])
 
             sage: sage_input(I, verify=True)   # indirect doctest
             # Verified
+            from sage.misc.persist import unpickle_global as _upg
             R.<x> = QQ[]
-            from sage.categories.pushout import AlgebraicClosureFunctor
-            AlgebraicClosureFunctor
-            from sage.categories.pushout import CompletionFunctor
-            CompletionFunctor
-            from sage.categories.pushout import AlgebraicExtensionFunctor
-            AlgebraicExtensionFunctor
-            AlgebraicExtensionFunctor(*[[x^2 + 1], ['I']], **{'embeddings':[AlgebraicClosureFunctor(*[],
-            **{})(CompletionFunctor(*[oo, oo], **{'extras':{'type':'RLF'}})(QQ))(float(0) + complex('1j')*float(1))],
-            'structures':[None], 'cyclotomic':None, 'precs':[None], 'implementations':[None],
-            'residue':None, 'latex_names':['i']})(QQ)([[QQ(0)], [QQ(1)]])
+            _upg('sage.categories.pushout', 'AlgebraicExtensionFunctor')(*[[x^2 + 1],
+            ['I']], **{'embeddings':[_upg('sage.categories.pushout',
+            'AlgebraicClosureFunctor')(*[], **{})(_upg('sage.categories.pushout',
+            'CompletionFunctor')(*[oo, oo], **{'extras':{'type':'RLF'}})(QQ))(float(0)
+            + complex('1j')*float(1))], 'structures':[None], 'cyclotomic':None,
+            'precs':[None], 'implementations':[None], 'residue':None,
+            'latex_names':['i']})(QQ)([[QQ(0)], [QQ(1)]])
         """
         P = self.parent()
         data = self._reconstruction_data()
         if data is None:
             raise NotImplementedError('Sage input not implemented for %s of parent %s' %(self, P))
-        sie_parent = P._sage_input_(sib, coerced)
-        sib.cache(P, sie_parent, 'P')
+        sie_parent = sib(P)
+        sib.cache(P, sie_parent, '_sieP')
         sie_data = sib(data)
         return sie_parent(sie_data)
 

@@ -78,12 +78,15 @@ def convert_poly_to_dict_recursive(ring_elem):
         sage: convert_poly_to_dict_recursive(elem)
         {(0, 1): {0: 5}, (1, 0): {-1: -3}}
     """
-
     dict_res = {}
     if hasattr(ring_elem, 'dict'):
         ring_elem_dict = ring_elem.dict()
         for k in ring_elem_dict.keys():
-            dict_res[k] = convert_poly_to_dict_recursive(ring_elem_dict[k])
+            from sage.rings.polynomial.polydict import ETuple
+            kt = k
+            if isinstance(k, ETuple):
+                kt = tuple(k)
+            dict_res[kt] = convert_poly_to_dict_recursive(ring_elem_dict[k])
     else:
         if ring_elem in ZZ:
             return int(ring_elem)
@@ -135,7 +138,6 @@ def convert_mat_to_dict_recursive(mat):
         (1, 0): {(0, 0): {1: 1}},
         (1, 1): {(0, 1): {-1: 4}}}
     """
-
     mat_dict = {}
     mat_dict_temp = mat.dict()
     for k in mat_dict_temp.keys():
@@ -217,6 +219,7 @@ class CubicHeckeDataFilename(Enum):
         if nstrands is None:
             return '%s.sobj' %(self.value[1])
         else:
+            return '%s_%s.py' %(self.value[1], nstrands)
             return '%s_%s.sobj' %(self.value[1], nstrands)
 
     basis         = ['baseH4.maple',             'monomial_basis']
@@ -606,7 +609,7 @@ class CubicHeckeDataBase(SageObject):
         for i in range(4):
             sobj_filename = '%s/%s' %(self._import_path_sobj, self.filename.irred_split.sobj(i+1))
             SplitIrredMarinDict = {GenSign.pos:representation_h[i], GenSign.neg:representation_hI[i]}
-            save(SplitIrredMarinDict, sobj_filename)
+            save(SplitIrredMarinDict, sobj_filename, write_protection=False)
 
         return
 

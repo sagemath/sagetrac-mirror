@@ -1462,9 +1462,8 @@ class Sets(Category_singleton):
                 sage: F = FractionField(R)
                 sage: sage_input(F, verify=True)  # indirect doctest
                 # Verified
-                from sage.categories.pushout import FractionField
-                FractionField
-                FractionField(*[], **{})(ZZ[('x', 'y')])
+                from sage.misc.persist import unpickle_global as _upg
+                _upg('sage.categories.pushout', 'FractionField')(*[], **{})(ZZ[('x', 'y')])
             """
             constr = self.construction()
             if constr is None:

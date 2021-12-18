@@ -172,6 +172,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.persist import unpickle_global
 
 def sage_input(x, preparse=True, verify=False, allow_locals=False):
     r"""
@@ -261,12 +262,10 @@ def sage_input(x, preparse=True, verify=False, allow_locals=False):
         sage: l = L.an_element()
         sage: sage_input(l, verify=True)
         # Verified
-        from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-        FiniteEnumeratedSet
-        from sage.algebras.lie_algebras.abelian import AbelianLieAlgebra
-        AbelianLieAlgebra
-        AbelianLieAlgebra(*(QQ, ('x', 'y', 'z'),
-        FiniteEnumeratedSet(*(('x', 'y', 'z'),), **{})),
+        from sage.misc.persist import unpickle_global as _upg
+        _upg('sage.algebras.lie_algebras.abelian', 'AbelianLieAlgebra')(*(QQ,
+        ('x', 'y', 'z'), _upg('sage.sets.finite_enumerated_set',
+        'FiniteEnumeratedSet')(*(('x', 'y', 'z'),), **{})),
         **{'category':None})(vector(QQ, [1, 1, 1]))
     """
     if not verify:
@@ -448,19 +447,18 @@ class SageInputBuilder:
               _sil1: <function <lambda> at 0x...>
             # Verified
             _sil1
+            sage: from sage.knots.knotinfo import KnotInfo
             sage: K = KnotInfo.K5_2
             sage: sage_input(K, verify=True)
             # Verified
-            from sage.knots.knotinfo import KnotInfo
-            KnotInfo
-            KnotInfo(*['5_2'], **{})
+            from sage.misc.persist import unpickle_global as _upg
+            _upg('sage.knots.knotinfo', 'KnotInfo')(*['5_2'], **{})
         """
         # We want to look up x in our cache, to see if we've seen it before.
         # However, we don't want to assume that hashing x is always
         # efficient, so we only try the lookup if some value of the same
         # type as x has been cached.
         from sage.structure.all import parent
-
         if type(x) in self._cached_types:
             v = self._cache.get((parent(x), x))
             if v is not None:
@@ -477,7 +475,7 @@ class SageInputBuilder:
             try:
                 return x._sage_input_(self, coerced)
             except NotImplementedError:
-                # watch out for a second chance below
+                # watch out for a second chance via :meth:`from_pickle` below
                 pass
 
         if x is None:
@@ -542,8 +540,8 @@ class SageInputBuilder:
             return self.dict(x)
 
         from enum import Enum
-        #if isinstance(x, Enum):
-        #    return self.from_class(x.__class__, [x.value], {})
+        if isinstance(x, Enum):
+            return self.from_class(x.__class__, [x.value], {})
 
         if hasattr(x, '__class__'):
             ci = constructor_inspection(x)
@@ -551,18 +549,6 @@ class SageInputBuilder:
                 args, kwds = ci
                 return self.from_class(x.__class__, args, kwds)
 
-        from sage.misc.explain_pickle import PickleExplainer
-        from sage.misc.persist import dumps
-        from pickle import PicklingError
-
-        pe = PickleExplainer(self, in_current_sage=False,
-                             default_assumptions=False,
-                             pedantic=False)
-        try:
-            v = pe.run_pickle(dumps(x, compress=False))
-            return self(v)
-        except PicklingError:
-            pass
 
         if self._allow_locals:
             loc = self._next_local
@@ -571,6 +557,9 @@ class SageInputBuilder:
             self._locals[loc_name] = x
             return SIE_literal_stringrep(self, loc_name)
         else:
+            sie = self.from_pickle(x)
+            if sie:
+                return sie
             raise ValueError("Can't convert {} to sage_input form".format(x))
 
     def preparse(self):
@@ -654,6 +643,58 @@ class SageInputBuilder:
         """
         return SIE_literal_stringrep(self, n)
 
+    def from_pickle(self, x):
+        r"""
+        Return a Sage input expression for ``x`` using
+        ``explain_pickle`` functionality.
+
+        INPUT:
+
+        - ``x`` -- arbitrary Sage object
+
+        OUTPUT:
+
+        An instance of :class:`SageInputExpression`` representing ``x``.
+
+        EXAMPLES::
+
+            sage: M = Matrix([[0,1,-1],[1,0,-1/2],[-1,-1/2,0]]); M
+            [   0    1   -1]
+            [   1    0 -1/2]
+            [  -1 -1/2    0]
+            sage: G = Graph(M,sparse=True); G
+            Graph on 3 vertices
+            sage: sage_input(G, verify=True)    # indirect doctest
+            # Verified
+            pg_Graph = unpickle_global('sage.graphs.graph', 'Graph')
+            si = unpickle_newobj(pg_Graph, ())
+            pg_unpickle_graph_backend = unpickle_global('sage.graphs.base.graph_backends',
+                'unpickle_graph_backend')
+            pg_make_rational = unpickle_global('sage.rings.rational', 'make_rational')
+            unpickle_build(si, {'_latex_opts':None, '_backend':pg_unpickle_graph_backend(False,
+                [0r, 1r, 2r], [(0r, 1r, pg_make_rational('1')), (0r, 2r, pg_make_rational('-1')),
+                (1r, 2r, pg_make_rational('-1/2'))], {'loops':False, 'multiedges':False}),
+                '_weighted':True, '_pos':None})
+            si
+        """
+        from sage.misc.explain_pickle import PickleExplainer, PickleObject
+        from sage.misc.persist import dumps
+        from pickle import PicklingError
+
+        if isinstance(x, PickleObject):
+            # no recursion wanted
+            return None
+
+        pe = PickleExplainer(self, in_current_sage=False,
+                             default_assumptions=False,
+                             pedantic=False)
+        try:
+            sie = self(pe.run_pickle(dumps(x, compress=False)))
+            return sie
+        except PicklingError:
+            return None
+
+
     def from_class(self, cls, args, kwds):
         r"""
         Given an instance of :class:`type` together with a
@@ -670,16 +711,34 @@ class SageInputBuilder:
            of an instance of ``cls``
 
         EXAMPLES::
+
+            sage: A = AssionGroupU(3)
+            sage: sage_input(A, verify=True)  # indirect doctest (for Enum)
+            # Verified
+            from sage.misc.persist import unpickle_global as _upg
+            _upg('sage.groups.cubic_braid', 'CubicBraidGroup')(*(('u0', 'u1'),),
+            **{'cbg_type':_upg('sage.groups.cubic_braid',
+            'CubicBraidGroup.type')(*['U'], **{})})
         """
         name = cls.__name__
         module = cls.__module__
-        sie_import = self.import_name(module, name)
-        sie_args = self(args).unpack_iter()
-        sie_kwds = self.dict(kwds).unpack_dict()
-        expr = self.name(name)(sie_args, sie_kwds)
-        self.command(expr, sie_import)
-        return expr
-
+        sie_args = self(args)._unpack_iter()
+        sie_kwds = self.dict(kwds)._unpack_dict()
+        upg = unpickle_global
+        if not (type(upg), upg) in self._cache.keys():
+            mod = upg.__module__
+            nam = upg.__name__
+            sie_upg =  self.import_name(mod, nam, alt_name='_upg')
+            self.cache(upg, sie_upg, '_upg')
+        else:
+            sie_upg = self(upg)
+        sie_name = sie_upg(module, name)
+        self.cache(cls, sie_name, '_upg_%s' %name)
+        if len(name.split('.')) > 1:
+            # names of subclasses don't need to be imported
+            # see example CubicBraidGroup.type above
+            return sie_name(sie_args, sie_kwds)
+        return sie_name(sie_args, sie_kwds)
 
     def cache(self, x, sie, name):
         r"""
@@ -1669,7 +1728,7 @@ class SageInputExpression(object):
         """
         return self._sie_unop('~')
 
-    def unpack_iter(self):
+    def _unpack_iter(self):
         r"""
         Compute an expression tree for ``*self`` if ``self``
         represents an iterable.
@@ -1679,12 +1738,12 @@ class SageInputExpression(object):
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib.name('range')(sib(2))
-            sage: sie.unpack_iter()
+            sage: sie._unpack_iter()
             {unop:* {call: {atomic:range}({atomic:2})}}
         """
         return self._sie_unop('*')
 
-    def unpack_dict(self):
+    def _unpack_dict(self):
         r"""
         Compute an expression tree for ``**self`` if ``self``
         represents a dictionary.
@@ -1694,7 +1753,7 @@ class SageInputExpression(object):
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib.dict({'a':1, 'b':2})
-            sage: sie.unpack_dict()
+            sage: sie._unpack_dict()
             {unop:** {dict: {{atomic:'a'}:{atomic:1}, {atomic:'b'}:{atomic:2}}}}
         """
         return self._sie_unop('**')
@@ -3742,6 +3801,9 @@ def constructor_inspection(instance):
             return [], {}
         else:
             return None
+
+    if not hasattr(instance, '__dict__'):
+        return None
 
     d = instance.__dict__
     args = i.args

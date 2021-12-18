@@ -1128,28 +1128,27 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
             sage: L = R.localization(x)
             sage: sage_input(L, verify=True)
             # Verified
-            from sage.rings.localization import Localization
-            Localization
-            Localization(*(ZZ[('x', 'y')], ZZ[('x', 'y')]({(1r, 0r):1r})), **{})
+            from sage.misc.persist import unpickle_global as _upg
+            _sieP = ZZ[('x', 'y')]
+            _upg('sage.rings.localization', 'Localization')(*(_sieP, _sieP({(1r, 0r):1r})), **{})
 
             sage: S = SymmetricGroup(4)
             sage: sage_input(S, verify=True)   # indirect doctest
             # Verified
-            from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-            FiniteEnumeratedSet
-            from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-            SymmetricGroup
-            SymmetricGroup(*(), **{'domain':FiniteEnumeratedSet(*((1r, 2r, 3r, 4r),), **{})})
+            from sage.misc.persist import unpickle_global as _upg
+            _upg('sage.groups.perm_gps.permgroup_named', 'SymmetricGroup')(*(),
+            **{'domain':_upg('sage.sets.finite_enumerated_set',
+            'FiniteEnumeratedSet')(*((1r, 2r, 3r, 4r),), **{})})
 
             sage: G = GU(2,3)
             sage: sage_input(G, verify=True)   # indirect doctest
             # Verified
+            from sage.misc.persist import unpickle_global as _upg
             R.<x> = GF(3)[]
-            from sage.groups.matrix_gps.unitary import UnitaryMatrixGroup_gap
-            UnitaryMatrixGroup_gap
-            UnitaryMatrixGroup_gap(*(2, GF(3^2, 'a', x^2 + 2*x + 2), False,
-            'General Unitary Group of degree 2 over Finite Field in a of size 3^2',
-            '\\text{GU}_{2}(\\Bold{F}_{3^{2}})', 'GU(2, 3)'), **{})
+            _upg('sage.groups.matrix_gps.unitary', 'UnitaryMatrixGroup_gap')(*(2,
+            GF(3^2, 'a', x^2 + 2*x + 2), False, 'General Unitary Group of degree 2
+            over Finite Field in a of size 3^2', '\\text{GU}_{2}(\\Bold{F}_{3^{2}})',
+            'GU(2, 3)'), **{})
 
         """
         unred, data = self.__reduce__()

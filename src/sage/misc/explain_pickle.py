@@ -1392,6 +1392,11 @@ class PickleExplainer(object):
             unpickle_build(si3, {})
             (si2, si3)
             result: (TestGlobalFunnyName, TestGlobalFunnyName)
+
+        Check that :trac:`?????` is fixed::
+
+            sage: explain_pickle(dumps(getattr))
+            unpickle_global('builtins', 'getattr')
         """
         module, func = name.split(' ')
 

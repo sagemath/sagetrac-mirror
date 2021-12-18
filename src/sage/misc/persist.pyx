@@ -114,6 +114,32 @@ def load(*filename, compress=True, verbose=True, **kwargs):
     some logging is printed when accessing remote files. Further keyword
     arguments are passed to :func:`pickle.load`.
 
+    .. NOTE::
+
+        If you try to load precomputed data from a ``.sobj``, ``.py`` or
+        ``.sage`` file which has been stored using :func:`save` under
+        a former version of Sage it can happen that you fail. In such a
+        case one of the following hints may be usefull:
+
+        1. If you have saved your data to a binary file (that is ``.sobj``)
+           try to read the data into a string using the commands
+           ``f = open('filename.sobj', 'rb')`` and ``string = f.read()``.
+           Than call ``explain_pickle(string)`` and try to execute the
+           output line by line until an error message is thrown.  If
+           correction hints according to the documentation of
+           :func:`register_unpickle_override` are shown then follow these
+           hints. Try to solve the errors step by step until the last line
+           which should complete the recovery of your data.
+
+        2. If you have saved your data to a human-readable file (that is
+           ``.py`` or ``.sage``) then load it into an editor and try to
+           execute the code line by line until an error message is thrown.
+           Proceed as explained under 1.
+
+        3. If none of the above hints lead to success then have a look at
+           the ticket :trac:`28302` and the related tickets and discussion
+           threads linked there for further help.
+
     EXAMPLES::
 
         sage: u = 'https://www.sagemath.org/files/test.sobj'
@@ -255,11 +281,11 @@ def save(obj, filename, compress=True, obj_name='_', write_protection=None, **kw
       the data in case of binary file format
     - ``obj_name`` -- string ( default ``'_'``) to specify the name
       of the object under which is shoud be read back. This is only
-      used in connection with the human readible file formats (e.g.
+      used in connection with the human-readable file formats (e.g.
       ``.py`` and ``.sage``)
     - ``write_protection`` -- boolean whether the created file should
       be write protected or not. The default depends on the file
-      format. The human readible formats ``.py`` and ``.sage`` are
+      format. The human-readable formats ``.py`` and ``.sage`` are
       created write protected per default, whereas all other formats
       are not
 
@@ -271,18 +297,18 @@ def save(obj, filename, compress=True, obj_name='_', write_protection=None, **kw
        ``write_protection`` keyword of the method.
 
 
-    .. NOTE::
+    .. WARNING::
 
        There is no guarantee that data saved to a file can be loaded
        under a different version of Sage (see for example the discussion
        in :trac:`28302`). If you need a long-term usage of your data
-       you should try to save them in a human readible form (e.g. in
+       you should try to save them in a human-readable form (e.g. in
        ``.py`` or ``.sage`` format). In addition you should try to
        minimize the complexity of the data types. The closer you
        bring your data to flat Python data types as dictionaries, lists,
        ``int`` or ``str`` the more robust it will be against version
        upgrades. Write your own conversion methods to simplify your
-       data accordingly before saving respectivley to recreate the
+       data accordingly before saving respectively to recreate the
        complex data structure from the simplified one after loading.
 
     EXAMPLES::
@@ -310,7 +336,7 @@ def save(obj, filename, compress=True, obj_name='_', write_protection=None, **kw
         sage: load(objfile_short)
         'A python string'
 
-    Writing to human readable files::
+    Writing to human-readable files::
 
         sage: pyfile = os.path.join(SAGE_TMP, 'test.py')
         sage: save(a, pyfile)
@@ -322,11 +348,12 @@ def save(obj, filename, compress=True, obj_name='_', write_protection=None, **kw
         # ------------------------------------------------------------
         # This file was generated using sage_input
         #
-        # on    : 2021-11-30 10:48:14.800212 with write-protection
+        # on    : 2021-12-16 08:41:30.639031 with write-protection
         # under : SageMath version 9.5.beta7, Release Date: 2021-11-18
-        # using : Python 3.9.7 (default, Sep 30 2021, 01:20:25)
+        # using : Python 3.9.7 (default, Oct 16 2021, 12:46:03)
         # ------------------------------------------------------------
-
+        <BLANKLINE>
+        # Verified
         _ = matrix(QQ, [[1, 2], [3, -ZZ(5)/2]])
 
         sage: sagefile = os.path.join(SAGE_TMP, 'test.sage')
@@ -338,13 +365,13 @@ def save(obj, filename, compress=True, obj_name='_', write_protection=None, **kw
         # ------------------------------------------------------------
         # This file was generated using sage_input
         #
-        # on    : 2021-11-30 10:48:14.909018 with write-protection
+        # on    : 2021-12-16 08:41:30.655383 with write-protection
         # under : SageMath version 9.5.beta7, Release Date: 2021-11-18
-        # using : Python 3.9.7 (default, Sep 30 2021, 01:20:25)
+        # using : Python 3.9.7 (default, Oct 16 2021, 12:46:03)
         # ------------------------------------------------------------
-
+        <BLANKLINE>
+        # Verified
         A = matrix(QQ, [[1, 2], [3, -5/2]])
-
 
     TESTS:
 
@@ -374,16 +401,20 @@ def save(obj, filename, compress=True, obj_name='_', write_protection=None, **kw
         from sage.misc.banner import version
         preparse = filename.endswith('.sage')
         s = str(sage_input(obj, verify=True, preparse=preparse))
+        sl = s.split('\n'); l = len(sl)-1
+        sl[l] = '%s = %s' %(obj_name, sl[l])
         header = py_sage_header_text %(datetime.today(), out, version(), sys.version.split(' \n')[0])
         with open(filename, 'w') as fobj:
              fobj.write(header)
-             fobj.write('%s = %s' %(obj_name, s.strip('# Verified\n')))
+             for s in sl:
+                 fobj.write(s + '\n')
+             fobj.close()
     else:
         # Saving an object to an image file.
         obj.save(filename, **kwargs)
 
     if write_protection:
-        os.chmod(filename, 444)
+        os.chmod(filename, 0o444)
 
 
 def _base_dumps(obj, compress=True):
