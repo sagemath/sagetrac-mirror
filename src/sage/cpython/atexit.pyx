@@ -142,6 +142,8 @@ cdef class restore_atexit:
             atexit._run_exitfuncs()
         _set_exithandlers(self._exithandlers)
 
+from cpython.version cimport PY_VERSION_HEX
+
 from cpython.ref cimport PyObject
 
 # Internal structures defined in the CPython source in
@@ -195,9 +197,12 @@ def _set_exithandlers(exithandlers):
     Replace the list of exit handlers registered with the atexit module
     with a new list.
     """
-
-    # Clear the existing list
-    atexit._clear()
+    # Trac #30766: Python 3.10.0 and 3.10.1 segfault
+    if 0x030a0000 <= PY_VERSION_HEX < 0x030a0200:
+        pass
+    else:
+        # Clear the existing list
+        atexit._clear()
 
     # We could do this more efficiently by directly rebuilding the array
     # of atexit_callbacks, but this is much simpler
@@ -207,4 +212,5 @@ def _set_exithandlers(exithandlers):
 
 def _clear_exithandlers():
     """Clear the atexit module of all registered exit handlers."""
+    # Trac #30766: Python 3.10.0 and 3.10.1 segfault
     atexit._clear()
