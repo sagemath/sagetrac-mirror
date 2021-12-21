@@ -796,7 +796,7 @@ def _distribution_from_data(data, domain, max_values, generating_functions=False
         if total < len(elts):
             break
         lvl = domain.element_level(elts[0])
-        if generating_functions and lvl not in levels_with_sizes:
+        if lvl not in levels_with_sizes:
             continue
         if levels_with_sizes[lvl] > total:
             # we assume that from now on levels become even larger
@@ -1315,9 +1315,9 @@ def findmap(*args, **kwargs):
             function = raw
         else:
             known_terms, domain, codomain = _data_from_iterable(raw, domain=domain,
-                                                             codomain=codomain,
-                                                             mapping=True,
-                                                             check=check_collection)
+                                                                codomain=codomain,
+                                                                mapping=True,
+                                                                check=check_collection)
             function = None
         data = _distribution_from_data(known_terms, domain, max_values)
         return known_terms, data, domain, codomain, function
@@ -2018,6 +2018,16 @@ class FindStatCombinatorialStatistic(SageObject):
 
             sage: st.generating_functions(style="list")                         # optional -- internet
             {2: [1], 4: [2, 1], 6: [5, 6, 3, 1], 8: [14, 28, 28, 20, 10, 4, 1]}
+
+
+        TESTS:
+
+        We can obtain a generating function also from a distribution search::
+
+            sage: s = findstat(distribution=findstat(41))                       # optional -- internet
+            sage: s.generating_functions(style="list")                          # optional -- internet
+            {2: [1], 4: [2, 1], 6: [5, 6, 3, 1], 8: [14, 28, 28, 20, 10, 4, 1]}
+
         """
         return _generating_functions_from_dict(self._generating_functions_dict(),
                                                style=style)
@@ -2378,6 +2388,7 @@ class FindStatStatistic(Element,
         return self.id()
 
 
+# a cache for FindStatMap instances already retrieved
 _all_statistics = {}
 class FindStatStatistics(UniqueRepresentation, Parent):
     r"""
@@ -2562,6 +2573,15 @@ class FindStatStatisticQuery(FindStatStatistic):
             assert all(param is None for param in [data, known_terms, values_of])
 
             self._distribution_of = FindStatCompoundStatistic(distribution_of)
+            def known_terms_iterator():
+                s = self._distribution_of
+                first_terms = ([[elt], [val]]
+                               for elt, val in s.first_terms().items())
+                for elts, vals in _distribution_from_data(first_terms,
+                                                          s.domain(),
+                                                          FINDSTAT_MAX_VALUES):
+                    yield [elts, vals]
+            self._known_terms = lazy_list(known_terms_iterator())
             domain = self._distribution_of.domain()
             query = {"DistributionOf": self._distribution_of.id_str()}
 
@@ -2569,6 +2589,10 @@ class FindStatStatisticQuery(FindStatStatistic):
             assert all(param is None for param in [data, known_terms, distribution_of])
 
             self._values_of = FindStatCompoundStatistic(values_of)
+            def known_terms_iterator():
+                for elt, val in self._values_of.first_terms().items():
+                    yield [[elt], [val]]
+            self._known_terms = lazy_list(known_terms_iterator())
             domain = self._values_of.domain()
             query = {"ValuesOf": self._values_of.id_str()}
 
@@ -2616,13 +2640,29 @@ class FindStatStatisticQuery(FindStatStatistic):
 
         EXAMPLES::
 
-             sage: PM = PerfectMatchings
-             sage: l = [(PM(2*n), [m.number_of_nestings() for m in PM(2*n)]) for n in range(5)]
-             sage: r = findstat(l, depth=0); r                                  # optional -- internet
-             0: St000041 (quality [99, 100])
-             1: St000042 (quality [99, 100])
-             sage: r.first_terms()                                              # optional -- internet
-             OrderedDict([([], 0), ([(1, 2)], 0)])
+            sage: PM = PerfectMatchings
+            sage: l = [(PM(2*n), [m.number_of_nestings() for m in PM(2*n)]) for n in range(5)]
+            sage: r = findstat(l, depth=0); r                                   # optional -- internet
+            0: St000041 (quality [99, 100])
+            1: St000042 (quality [99, 100])
+            sage: r.first_terms()                                               # optional -- internet
+            OrderedDict([([], 0), ([(1, 2)], 0)])
+
+            sage: s = findstat(values=findstat(41))                             # optional -- internet
+            sage: s.first_terms(2)                                              # optional -- internet
+            OrderedDict([([(1, 2)], 0), ([(1, 2), (3, 4)], 0)])
+
+        TESTS:
+
+        Check that we do not consume the iterator::
+
+            sage: s = findstat(41)                                              # optional -- internet
+            sage: t = findstat(values=s)                                        # optional -- internet
+            sage: t.first_terms(2)                                              # optional -- internet
+            OrderedDict([([(1, 2)], 0), ([(1, 2), (3, 4)], 0)])
+            sage: t.first_terms(4)                                              # optional -- internet
+            OrderedDict([([(1, 2)], 0), ([(1, 2), (3, 4)], 0), ([(1, 3), (2, 4)], 0), ([(1, 4), (2, 3)], 1)])
+
         """
         return OrderedDict((objs[0], vals[0]) for objs, vals in self._known_terms
                            if len(vals) == 1)
@@ -2633,13 +2673,13 @@ class FindStatStatisticQuery(FindStatStatistic):
 
         EXAMPLES::
 
-             sage: PM = PerfectMatchings
-             sage: l = [(PM(2*n), [m.number_of_nestings() for m in PM(2*n)]) for n in range(5)]
-             sage: r = findstat(l, depth=0); r                                  # optional -- internet
-             0: St000041 (quality [99, 100])
-             1: St000042 (quality [99, 100])
-             sage: r._first_terms_raw(100)                                      # optional -- internet
-             [('[]', 0), ('[(1, 2)]', 0)]
+            sage: PM = PerfectMatchings
+            sage: l = [(PM(2*n), [m.number_of_nestings() for m in PM(2*n)]) for n in range(5)]
+            sage: r = findstat(l, depth=0); r                                   # optional -- internet
+            0: St000041 (quality [99, 100])
+            1: St000042 (quality [99, 100])
+            sage: r._first_terms_raw(100)                                       # optional -- internet
+            [('[]', 0), ('[(1, 2)]', 0)]
         """
         to_str = self.domain().to_string()
         return [(to_str(obj), val)
@@ -3239,6 +3279,7 @@ class FindStatMap(Element,
             self._data_cache["Name"] = value
 
 
+# a cache for FindStatMap instances already retrieved
 _all_maps = {}
 class FindStatMaps(UniqueRepresentation, Parent):
     r"""
