@@ -1,0 +1,27 @@
+From f99beefdf45dd2891bb7ebdd93f7a67e44623aee Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Gonzalo=20Tornar=C3=ADa?= <tornaria@cmat.edu.uy>
+Date: Tue, 21 Dec 2021 14:54:24 -0300
+Subject: [PATCH] Fix deprecation warning
+
+In sagemath, while doctesting `src/sage/repl/ipython_kernel/install.py`:
+
+> DeprecationWarning: invalid escape sequence '\s'
+
+The solution is to make the regex a raw string.
+---
+ notebook/auth/login.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/notebook/auth/login.py b/notebook/auth/login.py
+index 1ac434dc5e..16c4e7a356 100644
+--- a/notebook/auth/login.py
++++ b/notebook/auth/login.py
+@@ -112,7 +112,7 @@ def set_login_cookie(cls, handler, user_id=None):
+         handler.set_secure_cookie(handler.cookie_name, user_id, **cookie_options)
+         return user_id
+ 
+-    auth_header_pat = re.compile('token\s+(.+)', re.IGNORECASE)
++    auth_header_pat = re.compile(r'token\s+(.+)', re.IGNORECASE)
+ 
+     @classmethod
+     def get_token(cls, handler):
