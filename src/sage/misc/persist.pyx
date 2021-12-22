@@ -400,8 +400,8 @@ def save(obj, filename, compress=True, obj_name='_', write_protection=None, **kw
         from datetime import datetime
         from sage.misc.banner import version
         preparse = filename.endswith('.sage')
-        s = str(sage_input(obj, verify=True, preparse=preparse))
-        sl = s.split('\n'); l = len(sl)-1
+        sl = list(sage_input(obj, verify=True, preparse=preparse))
+        l = len(sl) -1
         sl[l] = '%s = %s' %(obj_name, sl[l])
         header = py_sage_header_text %(datetime.today(), out, version(), sys.version.split(' \n')[0])
         with open(filename, 'w') as fobj:

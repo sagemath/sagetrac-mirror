@@ -647,7 +647,7 @@ cdef class Element(SageObject):
                     # avoid recursion loops
                     # hopefully that there are no longer loop circles
                     return False
-                return isinstance(inst, Element)
+                return hasattr(inst, '_reconstruction_data')
 
             if type(data) in (list, tuple):
                 new_data = []

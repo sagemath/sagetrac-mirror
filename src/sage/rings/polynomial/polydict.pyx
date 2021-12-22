@@ -1508,19 +1508,27 @@ cdef class ETuple:
             degree += self._data[i]
         return degree
 
-    def _sage_input_(self, sib, coerced):
+    def _reconstruction_data(self):
         r"""
-        Produce an expression which will reproduce this value when
-        evaluated.
+        Return ``self`` as a ``tuple`` since it can be reconstructed
+        from it. This helps ``sage_input`` to produce simple expression
+        for reconstricting a multivariate polynomial (see the second
+        example below).
 
         EXAMPLES::
 
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: ETuple([1,1,0])._reconstruction_data()
+            (1, 1, 0)
+            sage: type(_) is tuple
+            True
             sage: R.<a, b, c> = ZZ[]
             sage: p = a**2*b - 2*c**3 + 5
-            sage: sage_input(p.dict())     # indirect doctest
-            {(2r, 1r, 0r):1, (0r, 0r, 3r):-2, (0r, 0r, 0r):5}
+            sage: sage_input(p, verify=True)     # indirect doctest
+            # Verified
+            ZZ[('a', 'b', 'c')]({(2r, 1r, 0r):1r, (0r, 0r, 3r):-2r, (0r, 0r, 0r):5r})
         """
-        return sib(tuple(self))
+        return tuple(self)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)

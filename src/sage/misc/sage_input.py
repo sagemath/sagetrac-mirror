@@ -267,6 +267,22 @@ def sage_input(x, preparse=True, verify=False, allow_locals=False):
         ('x', 'y', 'z'), _upg('sage.sets.finite_enumerated_set',
         'FiniteEnumeratedSet')(*(('x', 'y', 'z'),), **{})),
         **{'category':None})(vector(QQ, [1, 1, 1]))
+
+        sage: R.<x,y> = ZZ[]
+        sage: sage_input(x/y, verify=True)
+        # Verified
+        from sage.misc.persist import unpickle_global as _upg
+        _upg('sage.categories.pushout', 'FractionField')(*[],
+        **{})(ZZ[('x', 'y')])('x/y')
+
+        sage: L = R.localization(x+y)
+        sage: t = L((x-y)/(x+y))
+        sage: sage_input(t, verify=True)
+        # Verified
+        from sage.misc.persist import unpickle_global as _upg
+        _sieP = ZZ[('x', 'y')]
+        _upg('sage.rings.localization', 'Localization')(*(_sieP,
+        _sieP({(1r, 0r):1r, (0r, 1r):1r})), **{})('(x - y)/(x + y)')
     """
     if not verify:
         sib = SageInputBuilder(allow_locals=allow_locals, preparse=preparse)
@@ -453,6 +469,9 @@ class SageInputBuilder:
             # Verified
             from sage.misc.persist import unpickle_global as _upg
             _upg('sage.knots.knotinfo', 'KnotInfo')(*['5_2'], **{})
+            sage: sage_input(range(1,3), verify=True)
+            # Verified
+            range(1, 3)
         """
         # We want to look up x in our cache, to see if we've seen it before.
         # However, we don't want to assume that hashing x is always
@@ -538,6 +557,9 @@ class SageInputBuilder:
 
         if isinstance(x, dict):
             return self.dict(x)
+
+        if isinstance(x, range):
+            return self.name(x)
 
         from enum import Enum
         if isinstance(x, Enum):
@@ -3796,7 +3818,11 @@ def constructor_inspection(instance):
         # getfullargspec throws a TypeError if the constructor
         # is not supported. In this case we do a last atemps
         # without any arguments
-        instance_create = instance.__class__(*[], **{})
+        try:
+            instance_create = instance.__class__(*[], **{})
+        except TypeError:
+            return None
+
         if instance == instance_create:
             return [], {}
         else:

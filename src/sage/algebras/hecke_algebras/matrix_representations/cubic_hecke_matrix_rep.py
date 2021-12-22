@@ -2,10 +2,12 @@
 r"""
 Cubic Hecke matrix representations
 
-This module contains the class :class:`CubicHeckeMatrixRep` which is used to handle the matrix representations of the
-elements of the cubic Hecke algebra (:class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra`)
-together with its parent class :class:`CubicHeckeMatrixSpace`. Furthermore, it contains enums for their
-types (:class:`RepresentationType`) and names (:class:`AbsIrreducibeRep`).
+This module contains the class :class:`CubicHeckeMatrixRep` which is used to
+handle the matrix representations of the elements of the cubic Hecke algebra
+(:class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra`)
+together with its parent class :class:`CubicHeckeMatrixSpace`. Furthermore,
+it contains enums for their types (:class:`RepresentationType`) and names
+(:class:`AbsIrreducibeRep`).
 
 
 AUTHORS:
@@ -40,9 +42,9 @@ from sage.databases.cubic_hecke_db import CubicHeckeDataFilename as fn
 
 
 
-# --------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Constants
-# --------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 # -------------------------------------------
@@ -74,8 +76,10 @@ class RepresentationType(Enum):
 
     - ``RegularLeft``  -- left regular representations
     - ``RegularRight`` -- right regular representations
-    - ``SplitIrredMarin`` -- split irreducible representations obtained from Ivan Marin's data
-    - ``SplitIrredChevie`` -- the split irreducible representations obtained from CHEVIE via the GAP3-interface
+    - ``SplitIrredMarin`` -- split irreducible representations obtained from
+      Ivan Marin's data
+    - ``SplitIrredChevie`` -- the split irreducible representations obtained
+      from CHEVIE via the GAP3-interface
 
     EXAMPLES::
 
@@ -85,7 +89,8 @@ class RepresentationType(Enum):
     """
     def is_split(self):
         r"""
-        Return True if this representation type is absolutely split, False else-wise.
+        Return ``True`` if this representation type is absolutely split,
+        ``False`` else-wise.
 
         EXAMPLES::
 
@@ -98,7 +103,8 @@ class RepresentationType(Enum):
 
     def is_regular(self):
         r"""
-        Return True if this representation type is regular, False else-wise.
+        Return ``True`` if this representation type is regular, ``False``
+        else-wise.
 
         EXAMPLES::
 
@@ -111,7 +117,8 @@ class RepresentationType(Enum):
 
     def data_filename(self):
         r"""
-        Return the name of the data file. For more information see :class:`~sage.databases.cubic_hecke_db.CubicHeckeDataBase`.
+        Return the name of the data file. For more information see
+        :class:`~sage.databases.cubic_hecke_db.CubicHeckeDataBase`.
 
         EXAMPLES::
 
@@ -152,12 +159,16 @@ class RepresentationType(Enum):
 
 class AbsIrreducibeRep(Enum):
     r"""
-    Enum class to select an absolutely irreducible representation for the cubic Hecke algebra (``CHAn``) on n-strands.
+    Enum class to select an absolutely irreducible representation for the cubic
+    Hecke algebra (``CHAn``) on n-strands.
 
-    The names are build as follows: Take the determinant of one of the generators of the ``CHAn``. This is a monomial
-    in the the generic extension ring (``GER``) of ``CHA``, say ``a^ib^jc^k`` where ``a, b`` and ``c`` are the generators
-    of ``GER``. This does not depend on the choice of the generator of ``CHA``, since these are conjugated to each other.
-    This monomial might be looked as the weight of the representation. Therefore we use as a name:
+    The names are build as follows: Take the determinant of one of the
+    generators of the ``CHAn``. This is a monomial in the the generic extension
+    ring (``GER``) of ``CHA``, say ``a^ib^jc^k`` where ``a, b`` and ``c`` are
+    the generators of ``GER``. This does not depend on the choice of the
+    generator of ``CHA``, since these are conjugated to each other. This
+    monomial might be looked as the weight of the representation. Therefore we
+    use as a name:
 
     ``Wn_ijk``
 

@@ -618,19 +618,6 @@ class FractionField_generic(ring.Field):
             sage: F(x)
             -1/2/(a^2 + a)
         """
-        if isinstance(x, dict):
-            # resume from reconstruction data
-            R = self.ring()
-            try:
-                n = R(x['n'])
-            except KeyError:
-                ValueError('Cannot construct element from %s' %x)
-            try:
-                d = R(x['d'])
-            except KeyError:
-                d = R.one()
-            return self._element_class(self, n, d, coerce=coerce)
-
         if isinstance(x, (list, tuple)) and len(x) == 1:
             x = x[0]
         if y is None:

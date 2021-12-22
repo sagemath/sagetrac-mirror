@@ -338,36 +338,6 @@ cdef class FractionFieldElement(FieldElement):
         b = self.denominator()
         return a.nth_root(n) / b.nth_root(n)
 
-    def dict(self):
-        r"""
-        Return a dictionary allowing the reconstruction of ``self`` for example
-        using :func:`sage_input`.
-
-        EXAMPLES::
-
-            sage: R.<x,y> = ZZ[]
-            sage: sage_input(x/y, verify=True) # indirect doctest
-            # Verified
-            from sage.misc.persist import unpickle_global as _upg
-            _upg('sage.categories.pushout', 'FractionField')(*[],
-            **{})(ZZ[('x', 'y')])({'n':{(1r, 0r):1r}, 'd':{(0r, 1r):1r}})
-        """
-        n = self.numerator()
-        d = self.denominator()
-        nr = n._reconstruction_data()
-        dr = d._reconstruction_data()
-        res = {}
-        if nr is None:
-            res['n'] = n
-            if not d.is_one():
-                res['d'] = d
-        else:
-            res['n'] = nr
-            if not d.is_one():
-                res['d'] = dr
-        return res
-
-
     def __hash__(self):
         """
         This function hashes in a special way to ensure that generators of

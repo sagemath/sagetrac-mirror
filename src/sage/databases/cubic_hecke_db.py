@@ -46,106 +46,42 @@ from sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring
 # dictionaries in order to save matrices avoiding compatibility problems with
 # older or newer sage versions and to save disc space
 #------------------------------------------------------------------------------
-# conversion of ring element to dictionary
-#------------------------------------------------------------------------------
-def convert_poly_to_dict_recursive(ring_elem):
+def simplify(elem):
     r"""
-    Convert a ring element to a python dictionary recursively using the dict
-    method of it. By recursion the dictionaries values are converted as well
-    as long as they posses a ``dict`` method. If the values are sage integers
-    they are converted into python integers.
+    Convert an element to a python dictionary recursively using its
+    :meth:`_reconstruction_data`.
 
     INPUT:
 
-    -- ``ring_elem`` - ring element to be converted into python dictionary
+    -- ``elem`` - element to be converted into python dictionary
 
     OUTPUT:
 
-    A python dictionary from which ``ring_elem`` can be reconstructed via
-    element construction by recursion. The values of the dictionary may be
-    dictionaries again if the parent of ring_elem has a base_ring different
-    from itself.
+    A python dictionary from which ``elem`` can be reconstructed via
+    element construction. The values of the dictionary may be
+    dictionaries again.
 
     EXAMPLES::
 
-        sage: from sage.databases.cubic_hecke_db import convert_poly_to_dict_recursive
+        sage: from sage.databases.cubic_hecke_db import simplify
         sage: L.<c>=LaurentPolynomialRing(ZZ, 'c')
         sage: P.<a,b> = L['a,b']; P
         Multivariate Polynomial Ring in a, b
           over Univariate Laurent Polynomial Ring in c over Integer Ring
         sage: elem = 5*b-3*a*~c; elem
         (-3*c^-1)*a + 5*b
-        sage: convert_poly_to_dict_recursive(elem)
+        sage: simplify(elem)
         {(0, 1): {0: 5}, (1, 0): {-1: -3}}
-    """
-    dict_res = {}
-    if hasattr(ring_elem, 'dict'):
-        ring_elem_dict = ring_elem.dict()
-        for k in ring_elem_dict.keys():
-            from sage.rings.polynomial.polydict import ETuple
-            kt = k
-            if isinstance(k, ETuple):
-                kt = tuple(k)
-            dict_res[kt] = convert_poly_to_dict_recursive(ring_elem_dict[k])
-    else:
-        if ring_elem in ZZ:
-            return int(ring_elem)
-        elif hasattr(ring_elem, 'numerator'):
-            # treat the case of elements of localization and fraction fields
-            dict_res['n'] = convert_poly_to_dict_recursive(ring_elem.numerator())
-            dict_res['d'] = convert_poly_to_dict_recursive(ring_elem.denominator())
-        else:
-            return ring_elem
-    return dict_res
-
-
-
-
-
-
-#-------------------------------------------------------------------------------
-# conversion of matrix to dictionary
-#-------------------------------------------------------------------------------
-def convert_mat_to_dict_recursive(mat):
-    r"""
-    Convert a matrix to a python dictionary using the dict method of it.
-    Furthermore, the dictionaries values are converted as well by the
-    ``convert_poly_to_dict_recursive`` function.
-
-    INPUT:
-
-    - ``mat`` -- matrix to be converted into python dictionary
-
-    OUTPUT:
-
-    A python dictionary from which ``mat`` can be reconstructed via element
-    construction. The values of the dictionary may be dictionaries again
-    if entries of the matrix have a ``dict`` method as well.
-
-    EXAMPLES::
-
-        sage: from sage.databases.cubic_hecke_db import convert_mat_to_dict_recursive
-        sage: L.<c>=LaurentPolynomialRing(ZZ, 'c')
-        sage: P.<a,b> = L['a,b']; P
-        Multivariate Polynomial Ring in a, b
-          over Univariate Laurent Polynomial Ring in c over Integer Ring
         sage: mat = matrix(P, [[2*a, -3], [c, 4*b*~c]]); mat
         [       2*a         -3]
         [         c (4*c^-1)*b]
-        sage: convert_mat_to_dict_recursive(mat)
+        sage: simplify(mat)
         {(0, 0): {(1, 0): {0: 2}},
         (0, 1): {(0, 0): {0: -3}},
         (1, 0): {(0, 0): {1: 1}},
         (1, 1): {(0, 1): {-1: 4}}}
     """
-    mat_dict = {}
-    mat_dict_temp = mat.dict()
-    for k in mat_dict_temp.keys():
-        mat_dict[k] = convert_poly_to_dict_recursive(mat_dict_temp[k]) 
-    return mat_dict
-
-
-
+    return elem._reconstruction_data()
 
 class CubicHeckeDataFilename(Enum):
     r"""
@@ -196,7 +132,8 @@ class CubicHeckeDataFilename(Enum):
     def sobj(self, nstrands=None):
         """
         Return the file name under which the data from Ivan Marin's web-page
-        is converted into sobj-files.
+        is converted into sobj-files. Now stored as `py`-Files using
+        ``sage_input``.
 
         INPUT:
 
@@ -208,19 +145,18 @@ class CubicHeckeDataFilename(Enum):
             sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
             sage: cha_db = CubicHeckeDataBase()
             sage: cha_db.filename.basis.sobj()
-            'monomial_basis.sobj'
+            'monomial_basis.py'
             sage: cha_db.filename.basis.sobj()
-            'monomial_basis.sobj'
+            'monomial_basis.py'
             sage: cha_db.filename.irred_split.sobj(2)
-            'irred_split_reprs_2.sobj'
+            'irred_split_reprs_2.py'
             sage: cha_db.filename.regular_left.sobj(3)
-            'regular_left_reprs_3.sobj'
+            'regular_left_reprs_3.py'
         """
         if nstrands is None:
-            return '%s.sobj' %(self.value[1])
+            return '%s.py' %(self.value[1])
         else:
             return '%s_%s.py' %(self.value[1], nstrands)
-            return '%s_%s.sobj' %(self.value[1], nstrands)
 
     basis         = ['baseH4.maple',             'monomial_basis']
     regular_left  = ['MatricesRegH4.maple',      'regular_left_reprs']
@@ -312,7 +248,7 @@ class CubicHeckeDataBase(SageObject):
             648
         """
         if not isinstance(filename, CubicHeckeDataBase.filename):
-            raise TypeError('File name must be an instance of enum %s' (CubicHeckeDataBase.filename))
+            raise TypeError('File name must be an instance of enum %s' %(CubicHeckeDataBase.filename))
 
         import_file = '%s/%s' %(self._import_path_py, filename.py())
 
@@ -379,7 +315,7 @@ class CubicHeckeDataBase(SageObject):
             648
         """
         if not isinstance(filename, CubicHeckeDataBase.filename):
-            raise TypeError('File name must be an instance of enum %s' (CubicHeckeDataBase.filename))
+            raise TypeError('File name must be an instance of enum %s' %(CubicHeckeDataBase.filename))
 
         import_file = '%s/%s' %(self._import_path_py, filename.py())
 
@@ -409,7 +345,7 @@ class CubicHeckeDataBase(SageObject):
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
             sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.create_static_db_marin_basis() 
+            sage: cha_db.create_static_db_marin_basis()  # not tested
         """
         global baseH4  # set by load
         load(self.import_data(self.filename.basis))
@@ -429,14 +365,14 @@ class CubicHeckeDataBase(SageObject):
         for i in ind_h4:
             set_i = set(baseH4[i])
             if 3  not in set_i and -3  not in set_i:
-                basis_h3.append( basis_h4[i] )
-                ind_h3.append(i) 
+                basis_h3.append(basis_h4[i])
+                ind_h3.append(i)
                 if 2  not in set_i and -2  not in set_i:
-                    basis_h2.append( basis_h4[i] ) 
-                    ind_h2.append(i) 
+                    basis_h2.append(basis_h4[i])
+                    ind_h2.append(i)
                     if 1  not in set_i and -1  not in set_i:
-                        basis_h1.append( basis_h4[i] ) 
-                        ind_h1.append(i) 
+                        basis_h1.append(basis_h4[i])
+                        ind_h1.append(i)
 
         # len_bas_h1 = len(basis_h1); len_bas_h2 = len(basis_h2); len_bas_h3 = len(basis_h3)
 
@@ -483,7 +419,7 @@ class CubicHeckeDataBase(SageObject):
  
             dim_mat = len(ind_h)
             mat = matrix(dim_mat, dim_mat, lambda i,j: mat_h4[ind_h[i], ind_h[j]])
-            return convert_mat_to_dict_recursive(mat)            
+            return simplify(mat)
 
         basis = self.read(self.filename.basis)
         ind_h1 = basis[1][1]
@@ -494,13 +430,13 @@ class CubicHeckeDataBase(SageObject):
         representationH[0]  = [[create_mat(ind_h1, mm1)]]
         representationH[1]  = [[create_mat(ind_h2, mm1)]]
         representationH[2]  = [[create_mat(ind_h3, mm1), create_mat(ind_h3, mm2)]]
-        representationH[3]  = [[convert_mat_to_dict_recursive(mm1), convert_mat_to_dict_recursive(mm2), convert_mat_to_dict_recursive(mm3)]]
+        representationH[3]  = [[simplify(mm1), simplify(mm2), simplify(mm3)]]
 
         representationHI ={}
         representationHI[0] = [[create_mat(ind_h1, mm1I)]]
         representationHI[1] = [[create_mat(ind_h2, mm1I)]]
         representationHI[2] = [[create_mat(ind_h3, mm1I), create_mat(ind_h3, mm2I)]]
-        representationHI[3] = [[convert_mat_to_dict_recursive(mm1I), convert_mat_to_dict_recursive(mm2I), convert_mat_to_dict_recursive(mm3I)]]
+        representationHI[3] = [[simplify(mm1I), simplify(mm2I), simplify(mm3I)]]
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import GenSign
 
         for i in range(4):
@@ -526,7 +462,7 @@ class CubicHeckeDataBase(SageObject):
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
             sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.create_static_db_marin_split()
+            sage: cha_db.create_static_db_marin_split()  # not tested
         """
         # ------------------------------------------------------
         # Ivan Marin's data file uses a, b, c for the variables
@@ -564,7 +500,7 @@ class CubicHeckeDataBase(SageObject):
         anz_reps = len(reps)
 
         representation_h ={}
-        representation_h[0]  = [[convert_mat_to_dict_recursive(Matrix(1,1,[extension_ring.one()]))]]
+        representation_h[0]  = [[simplify(Matrix(1,1,[extension_ring.one()]))]]
         representation_h[1]  = []
         representation_h[2]  = []
         representation_h[3]  = []
@@ -583,8 +519,8 @@ class CubicHeckeDataBase(SageObject):
             for j in range(3):
                 mat = matrix(repi[j])
                 matI = invert(mat)
-                mt.append(convert_mat_to_dict_recursive(mat))
-                mtI.append(convert_mat_to_dict_recursive(matI))
+                mt.append(simplify(mat))
+                mtI.append(simplify(matI))
 
             representation_h[3].append( mt )
             representation_hI[3].append( mtI )
@@ -609,7 +545,7 @@ class CubicHeckeDataBase(SageObject):
         for i in range(4):
             sobj_filename = '%s/%s' %(self._import_path_sobj, self.filename.irred_split.sobj(i+1))
             SplitIrredMarinDict = {GenSign.pos:representation_h[i], GenSign.neg:representation_hI[i]}
-            save(SplitIrredMarinDict, sobj_filename, write_protection=False)
+            save(SplitIrredMarinDict, sobj_filename)
 
         return
 
@@ -638,7 +574,7 @@ class CubicHeckeDataBase(SageObject):
             24
         """
         if not isinstance(db_filename, CubicHeckeDataFilename):
-            raise TypeError('db_filename must be an instance of enum %s' (CubicHeckeDataBase.filename))
+            raise TypeError('db_filename must be an instance of enum %s' %(CubicHeckeDataBase.filename))
 
         data_lib = self._data_library
         lib_path = self._import_path_sobj
@@ -648,7 +584,8 @@ class CubicHeckeDataBase(SageObject):
 
         verbose('loading data library %s ...' %(db_filename.sobj(nstrands=nstrands)))
         try:
-            data_lib[(db_filename,nstrands)] = load('%s/%s' %(lib_path, db_filename.sobj(nstrands=nstrands)))
+            load('%s/%s' %(lib_path, db_filename.sobj(nstrands=nstrands)))
+            data_lib[(db_filename,nstrands)] = _
         except IOError:
             if db_filename == self.filename.basis:
                 self.create_static_db_marin_basis()
@@ -698,7 +635,7 @@ class CubicHeckeDataBase(SageObject):
         """
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType, GenSign
         if not isinstance(representation_type, RepresentationType):
-            raise TypeError('representation_type must be an instance of enum %s' (RepresentationType))
+            raise TypeError('representation_type must be an instance of enum %s' %(RepresentationType))
 
         num_rep = representation_type.number_of_representations(nstrands)
         rep_list = self.read(representation_type.data_filename(), nstrands=nstrands)
@@ -829,7 +766,7 @@ class CubicHeckeFileCache(SageObject):
             return
 
         if not isinstance(section, CubicHeckeFileCache.section):
-            raise TypeError('section must be an instance of enum %s' (CubicHeckeFileCache.section))
+            raise TypeError('section must be an instance of enum %s' %(CubicHeckeFileCache.section))
   
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
         data_lib = self._data_library
@@ -866,7 +803,7 @@ class CubicHeckeFileCache(SageObject):
             return all(self.is_empty(section=sec) for sec in self.section)
 
         if not isinstance(section, CubicHeckeFileCache.section):
-            raise TypeError('section must be an instance of enum %s' (CubicHeckeFileCache.section))
+            raise TypeError('section must be an instance of enum %s' %(CubicHeckeFileCache.section))
   
         self.read(section)
         data_lib = self._data_library[section]
@@ -918,7 +855,7 @@ class CubicHeckeFileCache(SageObject):
             return
 
         if not isinstance(section, CubicHeckeFileCache.section):
-            raise TypeError('section must be an instance of enum %s' (CubicHeckeFileCache.section))
+            raise TypeError('section must be an instance of enum %s' %(CubicHeckeFileCache.section))
 
         if section not in data_lib.keys():
             raise ValueError("No data for file %s in memory" %(section))
@@ -956,7 +893,7 @@ class CubicHeckeFileCache(SageObject):
             {}
         """
         if not isinstance(section, CubicHeckeFileCache.section):
-            raise TypeError('section must be an instance of enum %s' (CubicHeckeFileCache.section))
+            raise TypeError('section must be an instance of enum %s' %(CubicHeckeFileCache.section))
 
         data_lib = self._data_library
         lib_path = self._file_cache_path
@@ -1023,7 +960,7 @@ class CubicHeckeFileCache(SageObject):
         """
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
         if not isinstance(representation_type, RepresentationType):
-            raise TypeError('representation_type must be an instance of enum %s' (RepresentationType))
+            raise TypeError('representation_type must be an instance of enum %s' %(RepresentationType))
 
         matrix_representations = self.read(self.section.matrix_representations)[representation_type]
         if monomial_tietze in matrix_representations.keys():
@@ -1076,7 +1013,7 @@ class CubicHeckeFileCache(SageObject):
         """
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
         if not isinstance(representation_type, RepresentationType):
-            raise TypeError('representation_type must be an instance of enum %s' (RepresentationType))
+            raise TypeError('representation_type must be an instance of enum %s' %(RepresentationType))
 
         matrix_representations = self.read(self.section.matrix_representations)[representation_type]
 
@@ -1084,7 +1021,7 @@ class CubicHeckeFileCache(SageObject):
             # entry already registered
             return
 
-        matrix_representation_dict = [convert_mat_to_dict_recursive(mat) for mat in list(matrix_list)]
+        matrix_representation_dict = [simplify(mat) for mat in list(matrix_list)]
         matrix_representations[monomial_tietze] = matrix_representation_dict
 
         self.write(self.section.matrix_representations)
@@ -1173,7 +1110,7 @@ class CubicHeckeFileCache(SageObject):
             # entry already registered
             return
 
-        braid_image_dict = [convert_poly_to_dict_recursive(cf) for cf in list(braid_image_vect)]
+        braid_image_dict = [simplify(cf) for cf in list(braid_image_vect)]
         braid_images[braid_tietze] = braid_image_dict
 
         self.write(self.section.braid_images)
@@ -1255,7 +1192,7 @@ class CubicHeckeFileCache(SageObject):
                 if type(data) is list:
                     from sage.rings.localization import LocalizationElement
                     if isinstance(data[0], LocalizationElement):
-                         data = [convert_poly_to_dict_recursive(item) for item in data]
+                         data = [simplify(item) for item in data]
                 self._data_step = data
                 self._time = verbose('Calculation finished for %s' %(self._message), t=self._time)
                 return data
