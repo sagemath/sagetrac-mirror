@@ -1,0 +1,16 @@
+Fix a warning when byte-compiling sagetexparse.py
+
+.../venv/share/texmf/tex/latex/sagetex/sagetexparse.py:135: SyntaxWarning: "is not" with a literal. Did you mean "!="?
+  if t.format is not '':
+
+--- a/sagetexparse.py	2020-08-12 05:35:31.000000000 -0300
++++ b/sagetexparse.py	2021-12-22 18:57:46.619024835 -0300
+@@ -132,7 +132,7 @@
+ 
+   def plotout(self, s, l, t):
+     self.result += '# \\sageplot{} from line %s:\n' % lineno(l, s)
+-    if t.format is not '':
++    if t.format != '':
+       self.result += '# format: %s' % t.format[0][1:-1] + '\n'
+     self.result += t.code[1:-1] + '\n\n'
+ 
