@@ -47,8 +47,6 @@ cdef extern from "bliss/graph.hh" namespace "bliss":
     cdef cppclass Graph(AbstractGraph):
         Graph(const unsigned int)
         void add_edge(const unsigned int, const unsigned int)
-        void find_automorphisms(Stats&, void (*)(void* , unsigned int,
-                    const unsigned int*), void*)
         void change_color(const unsigned int, const unsigned int);
         const unsigned int* canonical_form(Stats&)
 
@@ -57,11 +55,14 @@ cdef extern from "bliss/digraph.hh" namespace "bliss":
     cdef cppclass Digraph(AbstractGraph):
         Digraph(const unsigned int)
         void add_edge(const unsigned int, const unsigned int)
-        void find_automorphisms(Stats&, void (*)(void* , unsigned int,
-                    const unsigned int*), void*)
         void change_color(const unsigned int, const unsigned int);
         const unsigned int* canonical_form(Stats&)
         unsigned int get_hash()
+
+cdef extern from "bliss_find_automorphisms.h":
+
+    void bliss_find_automorphisms(Graph*, void (*)(void*, unsigned int, const unsigned int*), void*, Stats&)
+    void bliss_find_automorphisms(Digraph*, void (*)(void*, unsigned int, const unsigned int*), void*, Stats&)
 
 
 cdef int encoding_numbits(int n):
@@ -637,11 +638,11 @@ cdef automorphism_group_gens_from_edge_list(int Vnr, Vout, Vin, int Lnr=1, label
 
     if directed:
         d = bliss_digraph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
-        d.find_automorphisms(s, add_gen, <void*>data)
+        bliss_find_automorphisms(d, add_gen, <void*>data, s)
         del d
     else:
         g = bliss_graph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
-        g.find_automorphisms(s, add_gen, <void*>data)
+        bliss_find_automorphisms(g, add_gen, <void*>data, s)
         del g
 
     return [[cyc for cyc in gen if cyc[0] is not None] for gen in gens]
