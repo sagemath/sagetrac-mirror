@@ -26,10 +26,10 @@ EXAMPLES: We illustrate each of the calculus functional functions.
     -a^3 + 3*a^2*x - 3*a*x^2 + x^3
 """
 
+from sage.misc.derivative import derivative_parse
+from sage.structure.element import get_coercion_model, parent
 from .calculus import SR
 from sage.symbolic.expression import Expression
-from sage.misc.derivative import derivative_parse
-from sage.structure.element import get_coercion_model
 
 def simplify(f):
     r"""
@@ -143,18 +143,53 @@ def derivative(f, *args, **kwds):
         sage: derivative(a).display()
         da = 2 dx∧dy
 
+    The parent of the result might end up being a common parent of the
+    function and the arguments::
+
+        sage: derivative(0, SR.var('t')).parent()
+        Symbolic Ring
+        sage: R.<x> = ZZ[]
+        sage: derivative(0, x).parent()
+        Univariate Polynomial Ring in x over Integer Ring
+
+    In the following example, the parent of the result might seem confusing.
+    This behaviour of the ``derivaive`` function is a consequence of how
+    derivatives are implemented for polynomials::
+
+        sage: S.<y> = ZZ[]
+        sage: derivative(S.zero(), x).parent()
+        Univariate Polynomial Ring in y over Integer Ring
+        sage: derivative(y, x).parent()
+        Traceback (most recent call last):
+        ...
+        ValueError: cannot differentiate with respect to x
+
+        sage: S.zero().derivative(x).parent()
+        Univariate Polynomial Ring in y over Integer Ring
+        sage: y.derivative(x).parent()
+        Traceback (most recent call last):
+        ...
+        ValueError: cannot differentiate with respect to x
     """
+    # 0. plain call to f.derivative
     try:
         return f.derivative(*args, **kwds)
     except AttributeError:
         pass
-    try:
-        elts = [e for e in derivative_parse(args) if e is not None]
-        elts.append(f)
-        cm = get_coercion_model()
-        return cm.common_parent(*elts)(f).derivative(*args, **kwds)
-    except (AttributeError, TypeError):
-        pass
+
+    # 1. conversion to a common parent
+    elts = [e for e in derivative_parse(args) if e is not None]
+    elts.append(f)
+    cm = get_coercion_model()
+    P = cm.common_parent(*elts)
+    if parent(f) is not P:
+        ff = P(f)
+        try:
+            return ff.derivative(*args, **kwds)
+        except AttributeError:
+            pass
+
+    # 2. convert to symbolic ring
     if not isinstance(f, Expression):
         f = SR(f)
     return f.derivative(*args, **kwds)
