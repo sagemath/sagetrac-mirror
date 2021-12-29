@@ -6522,9 +6522,9 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
 
         sage: set_random_seed()                  # long time
         sage: K = random_cone(min_ambient_dim=3, # long time
-        ....:                 max_ambient_dim=3, # long time
-        ....:                 min_rays=7,        # long time
-        ....:                 max_rays=9)        # long time
+        ....:                 max_ambient_dim=3,
+        ....:                 min_rays=7,
+        ....:                 max_rays=9)
         sage: K.nrays() >= 7                     # long time
         True
         sage: K.lattice_dim()                    # long time

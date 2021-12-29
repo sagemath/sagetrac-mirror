@@ -1936,7 +1936,7 @@ class AbstractClonableTree(AbstractTree):
 
             sage: x = OrderedTree([[[], []],[[]]])
             sage: with x.clone() as x:
-            ....:     x[0,1] = OrderedTree([[[]]]) # indirect doctest
+            ....:     x[0,1] = OrderedTree([[[]]])
             sage: x
             [[[], [[[]]]], [[]]]
         """

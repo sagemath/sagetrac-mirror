@@ -195,8 +195,8 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         sage: T = crystals.TensorProduct(K,K)
         sage: g = T.digraph() #long time
         sage: for e in g.edges(): #long time
-        ....:     if e[0].phi(0) == 1 and e[2] == 0: #long time
-        ....:         g.delete_edge(e)  #long time
+        ....:     if e[0].phi(0) == 1 and e[2] == 0:
+        ....:         g.delete_edge(e)
 
         sage: C = crystals.AlcovePaths(['B',3,1],[0,2,0], highest_weight_crystal=False)
         sage: g2 = C.digraph() #long time
