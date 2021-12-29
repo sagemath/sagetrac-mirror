@@ -229,8 +229,8 @@ class Animation(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.3)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.3)],  # indirect doctest
+            ....:             xmin=0, xmax=2*pi, figsize=[2,1])
             sage: a           # optional -- ImageMagick
             Animation with 21 frames
         """

@@ -2495,7 +2495,7 @@ cdef class GloballyCachedMethodCaller(CachedMethodCaller):
 
             sage: class MyParent(Parent):
             ....:     pass
-            sage: class MyElement(object):
+            sage: class MyElement(object):      # indirect doctest
             ....:     def __init__(self, x):
             ....:         self.x = x
             ....:     def parent(self):
@@ -3134,7 +3134,7 @@ cdef class CachedInParentMethod(CachedMethod):
 
             sage: class MyParent(Parent):
             ....:     pass
-            sage: class Foo:
+            sage: class Foo:                         # indirect doctest
             ....:     def __init__(self, x):
             ....:         self._x = x
             ....:         self._parent = MyParent()

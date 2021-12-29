@@ -53,7 +53,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: Polyhedron(vertices=[(0,0)], rays=[(1,1)],
+            sage: Polyhedron(vertices=[(0,0)], rays=[(1,1)],               # indirect doctest
             ....:            lines=[(1,-1)], backend='cdd', base_ring=QQ)
             A 2-dimensional polyhedron in QQ^2 defined as the
             convex hull of 1 vertex, 1 ray, 1 line
@@ -105,7 +105,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: Polyhedron(ieqs=[(0,1,1)], eqns=[(0,1,-1)],
+            sage: Polyhedron(ieqs=[(0,1,1)], eqns=[(0,1,-1)],  # indirect doctest
             ....:            backend='cdd', base_ring=QQ)
             A 1-dimensional polyhedron in QQ^2 defined as the
             convex hull of 1 vertex and 1 ray
@@ -216,7 +216,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         TESTS::
 
-            sage: p = Polyhedron(vertices = [[0,0],[1,0],[0,1],[1,1]], backend='cdd', base_ring=QQ) # indirect doctest
+            sage: p = Polyhedron(vertices = [[0,0],[1,0],[0,1],[1,1]], backend='cdd', base_ring=QQ)  # indirect doctest
             sage: p.vertices()
             (A vertex at (0, 0), A vertex at (1, 0), A vertex at (0, 1), A vertex at (1, 1))
 

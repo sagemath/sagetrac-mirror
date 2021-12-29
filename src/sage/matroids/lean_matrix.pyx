@@ -984,7 +984,7 @@ cdef class BinaryMatrix(LeanMatrix):
         EXAMPLES::
 
             sage: from sage.matroids.lean_matrix import *
-            sage: A = BinaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # Indirect doctest
+            sage: A = BinaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # indirect doctest
             sage: A.nrows()
             2
         """
@@ -1008,7 +1008,7 @@ cdef class BinaryMatrix(LeanMatrix):
         EXAMPLES::
 
             sage: from sage.matroids.lean_matrix import *
-            sage: A = BinaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # Indirect doctest
+            sage: A = BinaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # indirect doctest
             sage: A.nrows()
             2
         """
@@ -1593,7 +1593,7 @@ cdef class TernaryMatrix(LeanMatrix):
         EXAMPLES::
 
             sage: from sage.matroids.lean_matrix import *
-            sage: A = TernaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # Indirect doctest
+            sage: A = TernaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # indirect doctest
             sage: A.nrows()
             2
         """
@@ -1631,7 +1631,7 @@ cdef class TernaryMatrix(LeanMatrix):
         EXAMPLES::
 
             sage: from sage.matroids.lean_matrix import *
-            sage: A = TernaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # Indirect doctest
+            sage: A = TernaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # indirect doctest
             sage: A.nrows()
             2
         """
@@ -2152,7 +2152,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
         EXAMPLES::
 
             sage: from sage.matroids.lean_matrix import *
-            sage: A = QuaternaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # Indirect doctest
+            sage: A = QuaternaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # indirect doctest
             sage: A.nrows()
             2
         """
@@ -2183,7 +2183,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
         EXAMPLES::
 
             sage: from sage.matroids.lean_matrix import *
-            sage: A = QuaternaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # Indirect doctest
+            sage: A = QuaternaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # indirect doctest
             sage: A.nrows()
             2
         """
@@ -2232,7 +2232,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
         EXAMPLES::
 
             sage: from sage.matroids.lean_matrix import *
-            sage: A = QuaternaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # Indirect doctest
+            sage: A = QuaternaryMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # indirect doctest
             sage: A.nrows()
             2
             sage: A = None
@@ -2773,7 +2773,7 @@ cdef class PlusMinusOneMatrix(LeanMatrix):
 
     EXAMPLES::
 
-        sage: M = Matroid(graphs.CompleteGraph(4).incidence_matrix(oriented=True),
+        sage: M = Matroid(graphs.CompleteGraph(4).incidence_matrix(oriented=True),  # indirect doctest
         ....:             regular=True)
         sage: M.is_isomorphic(matroids.Wheel(3))
         True
@@ -2785,7 +2785,7 @@ cdef class PlusMinusOneMatrix(LeanMatrix):
         EXAMPLES::
 
             sage: from sage.matroids.lean_matrix import *
-            sage: A = PlusMinusOneMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # Indirect doctest
+            sage: A = PlusMinusOneMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # indirect doctest
             sage: A.nrows()
             2
         """
@@ -2827,7 +2827,7 @@ cdef class PlusMinusOneMatrix(LeanMatrix):
         EXAMPLES::
 
             sage: from sage.matroids.lean_matrix import *
-            sage: A = PlusMinusOneMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # Indirect doctest
+            sage: A = PlusMinusOneMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))  # indirect doctest
             sage: A.nrows()
             2
             sage: A = None
