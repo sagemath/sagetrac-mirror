@@ -193,7 +193,7 @@ cdef class RingExtensionHomomorphism(RingMap):
                     y = backend_element(im_gens[i])
                     if current_morphism(x) != y:
                         raise ValueError("images do not define a valid homomorphism")
-                coercion_morphism = backend_morphism(domain.defining_morphism(base))
+                coercion_morphism = backend_morphism(domain.morphism_from_base(base))
                 if base_map is None:
                     backend_base_map = coercion_morphism
                 else:
@@ -747,7 +747,7 @@ cdef class MapFreeModuleToRelativeRing(Map):
         """
         self._degree = E.degree(K)
         self._basis = [ (<RingExtensionElement>x)._backend for x in E.basis_over(K) ]
-        self._f = backend_morphism(E.defining_morphism(K), forget="codomain")
+        self._f = backend_morphism(E.morphism_from_base(K), forget="codomain")
         domain = K ** self._degree
         parent = domain.Hom(E)
         Map.__init__(self, parent)
@@ -836,7 +836,7 @@ cdef class MapRelativeRingToFreeModule(Map):
 
         self._degree = (<RingExtensionWithBasis>E)._degree_over(K)
         self._basis = [ (<RingExtensionElement>x)._backend for x in E.basis_over(K) ]
-        f = backend_morphism(E.defining_morphism(K), forget="codomain")
+        f = backend_morphism(E.morphism_from_base(K), forget="codomain")
         codomain = K ** self._degree
         Map.__init__(self, E.Hom(codomain))
 

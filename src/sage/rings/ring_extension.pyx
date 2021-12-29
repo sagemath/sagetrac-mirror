@@ -1051,6 +1051,35 @@ cdef class RingExtension_generic(CommutativeAlgebra):
                 if are_equal_morphisms(f, g):
                     return RingExtensionHomomorphism(right.Hom(self), backend)
 
+    def defining_morphism(self):
+        r"""
+        Return the morphism defining this ring extension.
+
+        EXAMPLES::
+
+            sage: F = GF(5^2)
+            sage: K = GF(5^4).over(F)
+            sage: K.defining_morphism()
+            Ring morphism:
+              From: Finite Field in z2 of size 5^2
+              To:   Finite Field in z4 of size 5^4
+              Defn: z2 |--> z4^3 + z4^2 + z4 + 3
+        """
+        return self._backend_defining_morphism
+
+    def top(self):
+        r"""
+        Return the top of this ring extension.
+
+        EXAMPLES::
+
+            sage: F = GF(5^2)
+            sage: K = GF(5^4).over(F)
+            sage: K.top() == GF(5^4)
+            True
+        """
+        return self._backend
+
     def base(self):
         r"""
         Return the base of this extension.
@@ -1237,9 +1266,9 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             return b
         raise ValueError("not (explicitly) defined over %s" % base)
 
-    def defining_morphism(self, base=None):
+    def morphism_from_base(self, base=None):
         r"""
-        Return the defining morphism of this extension over ``base``.
+        Return the morphism from ``base`` to this extension.
 
         INPUT:
 
@@ -1252,13 +1281,13 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: K = GF(5^4).over(F)
             sage: L = GF(5^12).over(K)
 
-            sage: K.defining_morphism()
+            sage: K.morphism_from_base()
             Ring morphism:
               From: Finite Field in z2 of size 5^2
               To:   Field in z4 with defining polynomial x^2 + (4*z2 + 3)*x + z2 over its base
               Defn: z2 |--> z2
 
-            sage: L.defining_morphism()
+            sage: L.morphism_from_base()
             Ring morphism:
               From: Field in z4 with defining polynomial x^2 + (4*z2 + 3)*x + z2 over its base
               To:   Field in z12 with defining polynomial x^3 + (1 + (4*z2 + 2)*z4)*x^2 + (2 + 2*z4)*x - z4 over its base
@@ -1267,13 +1296,13 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         One can also pass in a base over which the extension is explicitly
         defined (see also :meth:`is_defined_over`)::
 
-            sage: L.defining_morphism(F)
+            sage: L.morphism_from_base(F)
             Ring morphism:
               From: Finite Field in z2 of size 5^2
               To:   Field in z12 with defining polynomial x^3 + (1 + (4*z2 + 2)*z4)*x^2 + (2 + 2*z4)*x - z4 over its base
               Defn: z2 |--> z2
 
-            sage: L.defining_morphism(GF(5))
+            sage: L.morphism_from_base(GF(5))
             Traceback (most recent call last):
             ...
             ValueError: not (explicitly) defined over Finite Field of size 5
@@ -1800,7 +1829,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: L = GF(5^12).over(F)
 
             sage: K.Hom(L)  # indirect doctest
-            Set of Homomorphisms from Field in z4 with defining polynomial x^2 + (4*z2 + 3)*x + z2 over its base 
+            Set of Homomorphisms from Field in z4 with defining polynomial x^2 + (4*z2 + 3)*x + z2 over its base
             to Field in z12 with defining polynomial x^6 + (4*z2 + 3)*x^5 + x^4 + (3*z2 + 1)*x^3 + x^2 + (4*z2 + 1)*x + z2 over its base
 
             sage: K.Hom(L, category=Sets())
