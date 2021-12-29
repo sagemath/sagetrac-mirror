@@ -49,3 +49,12 @@
     Hint: namespace package. Type import_statements("SOME_IDENTIFIER") to find a more specific import.
   pattern: 'from\s+sage[.](categories|misc|rings|combinat|graphs|interfaces|libs)[.]all\s+import'
   filePattern: '.*[.](py|pyx)$'
+
+# Magic doctest comments
+
+- name: 'multiline_doctest_comment: magic comment on a continuation line'
+  hint: |
+    magic doctest comments should appear on the "sage:" line, not "....:" lines
+  # see optional_regex in src/sage/doctest/parsing.py
+  # "indirect doctest" is from src/bin/sage-coverage
+  pattern: '^[ 	]*[.][.][.][.]:.*#.*(arb216|arb218|py2|py3|long time|not implemented|not tested|known bug|optional|indirect doctest)'
