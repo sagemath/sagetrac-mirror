@@ -8,6 +8,8 @@ on:
 
 env:
   DOCKER_TAG: ${{ github.sha }}
+  # FIXME: .ci/update-env.sh refers to CI_COMMIT_SHA too
+  CI_COMMIT_SHA: ${{ github.sha }}
   DEFAULT_ARTIFACT_BASE: sagemath/sagemath-dev:develop
   V: 0
 
