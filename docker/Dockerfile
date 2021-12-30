@@ -149,7 +149,7 @@ RUN if git status --porcelain | read CHANGES; then \
         touch "$HOME"/sage-context.patch; \
     fi
 WORKDIR $SAGE_ROOT
-RUN patch -p1 < "$HOME"/sage-context.patch
+RUN patch -p1 --verbose < "$HOME"/sage-context.patch
 
 ################################################################################
 # Image with a built sage but without sage's documentation.                    #
