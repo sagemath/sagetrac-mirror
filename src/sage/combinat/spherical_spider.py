@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
 r"""
-### Introduction
+Spiders
+
+Introduction
+============
+
 This is an implementation of finitely generated free spiders.
 The account below is intended as an extended introduction.
-There are technical details which I skate over and which need to
-be dealt with in the implementation.
 
 This is intended to be the first phase of a project to implement
 the Bendix-Knuth completion algorithm discussed in [5]_. This algorithm starts
 with a finite presentation and iteratively constructs new relations.
 If it terminates the final presentation is confluent.
 
-### Spiders
+Spiders
+=======
 
 The notion of spiders was introduced in [3]_.
 A spider consists of a set (or vector space) with the operations of rotate, join and stitch.
@@ -19,8 +22,8 @@ There are axioms for these operations and a spider is equivalent to a strict piv
 category or, with an extra axiom, to a strict spherical category. The motivation was
 to study the category of finite dimensional representations of a quantum group.
 These categories give examples of spiders and the main result of the paper was to
-give finite confluent presentations for the rank two examples, A2, B2=C2, G2, (the rank one example
-was known previously as the skein relation approach to the Jones polynomial).
+give finite confluent presentations for the rank two examples, `A_2`, `B_2=C_2`, `G_2`. The rank one example
+was known previously as the skein relation approach to the Jones polynomial.
 A rank three example is given in [6]_.
 
 It has been an open problem since then to construct finite confluent presentations
@@ -29,13 +32,14 @@ generated but not that these are finitely presented. A finite confuent presentat
 would give algorithms for computing link polynomials and for doing the caculations
 in [1]_.
 
-### Webs.
+Webs
+====
 
 The first phase of working with finite presentations is to understand the free objects.
 The elements of a free spider are called webs.
 
 The data for a free spider is first a (finite) set X with an involution x. Then the objects of
-the free strict spherical category with be the free monoid on X with antiinvolution given on the
+the free strict spherical category with be the free monoid on X with anti-involution given on the
 generators by x.
 
 The usual approach to webs is to define a web as a planar graph with oriented edges labelled by X.
@@ -47,7 +51,8 @@ Here we represent a web by a combinatorial structure (essentially a ribbon graph
 but we need to allow the web to have boundary points. Our basic operations are rotate and glue.
 It is clear that this is equivalent to rotate, join and stitch.
 
-### Operations
+Operations
+==========
 
 Since a spider is a set with operations and we have defined these operations for webs,
 it is clear that we have constructed a spider (assuming we have checked that the operations
@@ -84,16 +89,17 @@ of an operad. In fact this is a cyclic operad as defined in [2]_ and [4]_. Furth
 is a cyclic algebra for this cyclic operad. Taking the glueing operation as basic and
 building up operations is the componential approach to cyclic operads given in [4]_.
 
-### Implemented
+Implemented
+===========
 
 This file has two main classes: the Element class :class:`SphericalWeb` and the Parent class
-:class:`SphericalSpider`. Then :meth:`vertex` is the basic construction of a web. Then
-:meth:`glue` has input two webs and an integer and output a web; and :meth:`polygon`
+:class:`SphericalSpider`. Then :meth:`~SphericalSpider.vertex` is the basic construction of a web. Then
+:meth:`~SphericalWeb.glue` has input two webs and an integer and output a web; and :meth:`~SphericalSpider.polygon`
 has input a list of webs and output a web. These operations build more complicated webs
 starting with vertices. Once you have constructed a web you can see a picture using
 :meth:`plot`. This takes the combinatorial data for a web and outputs a graphics object.
 
-Related implementations are DiagramAlgebras and #25901
+Related implementations are DiagramAlgebras and :trac:`25901`.
 
 REFERENCES:
 
@@ -120,7 +126,7 @@ REFERENCES:
        *Confluence theory for graph*,
        Algebraic & Geometric Topology,
        Vol. 7, (2007), pp 439--478
-      :arxiv:`math/0609832`
+       :arxiv:`math/0609832`
 
 .. [6] Bruce W. Westbury,
        *Invariant tensors for the spin representation of so(7)*,
@@ -171,7 +177,7 @@ class halfedge():
     """
     The class of half edges in a surface graph.
 
-    This should probably be an attribute either of SphericalWeb or SphericalSpider
+    This should probably be an attribute either of SphericalWeb or SphericalSpider.
     """
     def __init__(self, st=Strand(), crossing=False):
         """
@@ -226,7 +232,8 @@ class halfedge():
 class SphericalWeb(Element):
     r"""The class of webs.
 
-    This consists of
+    This consists of:
+
     * a set of half-edges
     * a bijection `c` on the set of half-edges with no fixed points
     * an involution `e` on a subset of the half-edges
@@ -252,7 +259,7 @@ class SphericalWeb(Element):
 
     * :meth:`vertices` This is the set partition of the halfedges given by the orbits of ``cp``.
     * :meth:`faces` This is the set partition of the halfedges into facces
-    (both internal and external)
+      (both internal and external)
     * :meth:`is_closed`
     * :meth:`is_connected`
     * :meth:`components`
@@ -264,12 +271,13 @@ class SphericalWeb(Element):
     Then we have methods for inspecting a web. The most basic is * :meth:`to_graph`
     which returns a ``Graph`` and * :meth:`show` displays this graph. This is a low level
     inspection which was only written for debugging; it is not intended for normal use.
-    For normal use we have * :meth:`plot` and a `\laTeX` representation.
+    For normal use we have * :meth:`plot` and a `\LaTeX` representation.
 
     Finally we have the methods for working with relations. The basic methods are
-    * :meth:`search` and * :meth:`replace`. These only use webs. Then the methods
-    * :meth:`replace_linear` and * :meth:`apply_rule` return a linear combination of webs.
-    The method * :meth:`remove_loops` is a direct method for removing loops and multiplying by
+    :meth:`search` and :meth:`replace`. These only use webs. Then the methods
+    :meth:`replace_linear` and :meth:`apply_rule` return a linear combination of webs.
+
+    The method :meth:`remove_loops` is a direct method for removing loops and multiplying by
     a factor ``delta`` for each loop. These would not normally be used directly.
     """
 
@@ -833,7 +841,7 @@ class SphericalWeb(Element):
         """
         return len(self.b) == 0
 
-    def is_connected(self):
+    def is_connected(self) -> bool:
         """
         Return ``True`` if ``self`` is connected.
 
@@ -891,7 +899,7 @@ class SphericalWeb(Element):
 
         return wb, wc
 
-    def is_decomposable(self):
+    def is_decomposable(self) -> bool:
         """
         Return True if ``self`` is decomposable.
 
@@ -933,7 +941,7 @@ class SphericalWeb(Element):
                 return True
         return False
 
-    def is_simple(self):
+    def is_simple(self) -> bool:
         """
         Return ``True`` if ``self`` is a simple graph.
 
@@ -948,9 +956,9 @@ class SphericalWeb(Element):
         """
         return all(len(x) > 2 for x in self.faces())
 
-    def has_tadpole(self):
+    def has_tadpole(self) -> bool:
         r"""
-        Return ``True`` if ``self`` has a genralised tadpole.
+        Return ``True`` if ``self`` has a generalised tadpole.
 
         EXAMPLES::
 
@@ -1106,21 +1114,21 @@ class SphericalWeb(Element):
             sage: u.glue(u,1).plot()
             Graphics object consisting of 6 graphics primitives
 
-        If the graph is not simple the diagram will degenerate.
+        If the graph is not simple the diagram will degenerate::
 
             sage: v = SphericalSpider(4).vertex()
             sage: w = SphericalSpider(2).vertex()
             sage: v.glue(w,2).plot()
             Graphics object consisting of 3 graphics primitives
 
-        If there are no boundary points only the boundary circle is drawn.
+        If there are no boundary points only the boundary circle is drawn::
 
             sage: SphericalSpider([]).loop().plot()
             Graphics object consisting of 1 graphics primitive
 
-        TODO::
+        .. TODO::
 
-        Add colour, direction, under crossing.
+            Add colour, direction, under crossing.
         """
         from sage.plot.circle import circle
         from sage.plot.line import line
@@ -1157,7 +1165,7 @@ class SphericalWeb(Element):
             sage: SphericalSpider([]).loop()._latex_()
             '\\draw (0,0) circle (1cm);\n'
 
-        TODO::
+        .. TODO::
 
             Add colour, direction, under crossing.
         """
@@ -1177,7 +1185,7 @@ class SphericalWeb(Element):
 
         EXAMPLES::
 
-            sage: SphericalSpider([]).empty().to_snappy()
+            sage: SphericalSpider([]).empty().to_snappy()  # optional - snappy
             Traceback (most recent call last):
             ...
             ValueError: This requires the optional package SnapPy.
@@ -1197,7 +1205,7 @@ class SphericalWeb(Element):
 
     def search(self, h):
         r"""
-        Find copies of h in ``self``
+        Find copies of h in ``self``.
 
         EXAMPLES::
 
@@ -1217,11 +1225,11 @@ class SphericalWeb(Element):
                 ...
             ValueError: The web h must have a non-empty boundary.
 
-        TODO::
+        .. TODO::
 
-        Check h is connected
+            Check h is connected
 
-        This should be rewritten to use :meth:``_traversal``.
+        This should be rewritten to use :meth:`_traversal`.
         """
         if len(h.b) == 0:
             raise ValueError("The web h must have a non-empty boundary.")
@@ -1354,13 +1362,13 @@ class SphericalWeb(Element):
 
         INPUT:
 
-            - ``D`` a dictionary, representing an embedding of ``h`` in ``self``.
-            - ``h`` is a ``SphericalWeb``
-            - ``k`` is a set of pairs (as in :meth:`monomial_coefficients`)
+        - ``D`` -- a dictionary, representing an embedding of ``h`` in ``self``.
+        - ``h`` -- a ``SphericalWeb``
+        - ``k`` -- a set of pairs (as in :meth:`monomial_coefficients`)
 
         OUTPUT:
 
-            - a set of pairs (as in :meth:`monomial_coefficients`)
+        a set of pairs (as in :meth:`monomial_coefficients`)
 
         EXAMPLES::
 
@@ -1386,12 +1394,12 @@ class SphericalWeb(Element):
 
         INPUT:
 
-            - ``term`` is a ``SphericalWeb``
-            - ``replace`` is a set of pairs (as in :meth:`monomial_coefficients`)
+        - ``term`` -- a ``SphericalWeb``
+        - ``replace`` -- a set of pairs (as in :meth:`monomial_coefficients`)
 
         OUTPUT:
 
-            - a set of pairs (as in :meth:`monomial_coefficients`)
+        a set of pairs (as in :meth:`monomial_coefficients`)
 
         EXAMPLES::
 
@@ -1855,11 +1863,11 @@ class LinearSphericalSpider(CombinatorialFreeModule):
                 '-\\delta\\draw (0,0) circle (1cm);\n...'
             """
             mc = self.monomial_coefficients()
-            return ''.join([(mc[a])._latex_() + a._latex_() for a in mc])
+            return ''.join(mc[a]._latex_() + a._latex_() for a in mc)
 
         def rotate(self, k):
             r"""
-            Extend :meth:'rotate' by linearity
+            Extend :meth:`rotate` by linearity
 
             EXAMPLES::
 
@@ -1869,7 +1877,7 @@ class LinearSphericalSpider(CombinatorialFreeModule):
                  and edges ..., vertices (3,), faces (1, 1, 1).]
             """
             b = self.parent().boundary
-            L = LinearSphericalSpider(self.parent().base(), b[k:]+b[:k])
+            L = LinearSphericalSpider(self.parent().base(), b[k:] + b[:k])
             mc = self.monomial_coefficients()
             return L.sum_of_terms((a.rotate(k), mc[a]) for a in mc)
 
@@ -1890,9 +1898,9 @@ class LinearSphericalSpider(CombinatorialFreeModule):
             bs = self.parent().boundary
             bo = other.parent().boundary
             if k == 0:
-                bd = bs+bo
+                bd = bs + bo
             else:
-                bd = bs[:-k]+bo[k:]
+                bd = bs[:-k] + bo[k:]
             L = LinearSphericalSpider(self.parent().base(), bd)
             ms = self.monomial_coefficients()
             mo = other.monomial_coefficients()
@@ -1901,6 +1909,8 @@ class LinearSphericalSpider(CombinatorialFreeModule):
         def remove_loops(self, delta, st):
             r"""
             Remove loops of type ``st`` multiplying by ``delta`` for each loop.
+
+            EXAMPLES::
 
                 sage: from sage.combinat.spherical_spider import Strand
                 sage: L = LinearSphericalSpider(QQ, [])
@@ -1973,7 +1983,7 @@ class LinearSphericalSpider(CombinatorialFreeModule):
 
         def simplify(self, term, replace, check=True):
             r"""
-            Simplify by repeatedly applying :meth:'apply_rule'
+            Simplify by repeatedly applying :meth:`apply_rule`.
 
             EXAMPLES::
 
@@ -2527,10 +2537,10 @@ class Path():
         self.steps = steps
         self.weight_path = weight_path
 
-        heights = [None]*(n+1)
+        heights = [None] * (n + 1)
         heights[0] = space(0)
         for i in range(n):
-            heights[i+1] = heights[i] + Dyck_path[i]*weight_path[i]
+            heights[i + 1] = heights[i] + Dyck_path[i] * weight_path[i]
 
         if any(any(i < 0 for i in a) for a in heights):
             raise ValueError("The path is not dominant.")
@@ -2546,7 +2556,7 @@ class Path():
 
         if self.Dyck_path[i] != -1:
             raise RuntimeError(f"Position {i} of {self.Dyck_path} must be -1")
-        if self.Dyck_path[i+1] != 1:
+        if self.Dyck_path[i + 1] != 1:
             raise RuntimeError(f"Position {i+1} of {self.Dyck_path} must be +1")
 
         left = [max(x-y, 0) for x, y in zip(weight_path[i], weight_path[i+1])]
