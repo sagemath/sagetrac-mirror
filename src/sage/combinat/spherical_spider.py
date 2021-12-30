@@ -201,11 +201,11 @@ class halfedge():
 
         EXAMPLES::
 
-        sage: from sage.combinat.spherical_spider import halfedge
-        sage: halfedge()._repr_()
-        '(0,black,False)'
-        sage: halfedge()
-        <sage.combinat.spherical_spider.halfedge object at ...>
+            sage: from sage.combinat.spherical_spider import halfedge
+            sage: halfedge()._repr_()
+            '(0,black,False)'
+            sage: halfedge()
+            <sage.combinat.spherical_spider.halfedge object at ...>
         """
         return f"({self.strand.oriented},{self.strand.colour},{self.crossing})"
 
@@ -279,9 +279,9 @@ class SphericalWeb(Element):
 
         INPUT:
 
-            * `c` a bijection of the set of half-edges
-            * `e` a partial involution of the set of half-edges
-            * `b` the ordered list of boundary edges
+        - `c` -- a bijection of the set of half-edges
+        - `e` -- a partial involution of the set of half-edges
+        - `b` -- vthe ordered list of boundary edges
 
         EXAMPLES::
 
@@ -292,7 +292,6 @@ class SphericalWeb(Element):
             The spherical web with c = (1, 0), e = ()
              and edges ('(0,black,False)', '(0,black,False)'), vertices (2,), faces (1, 1).
         """
-
         bd = [a.strand for a in b]
         parent = SphericalSpider(bd)
         Element.__init__(self, parent)
@@ -819,7 +818,7 @@ class SphericalWeb(Element):
 
         return result
 
-    def is_closed(self):
+    def is_closed(self) -> bool:
         """
         Return ``True`` if ``self`` is closed.
 
@@ -1471,9 +1470,7 @@ class SphericalSpider(UniqueRepresentation, Parent):
             sage: SphericalSpider(2) == SphericalSpider([Strand(0,'black'),Strand(0,'black')])
             True
         """
-
         self.boundary = boundary
-
         Parent.__init__(self)
 
     def _repr_(self):
@@ -1547,7 +1544,6 @@ class SphericalSpider(UniqueRepresentation, Parent):
             sage: SphericalSpider([]).loop()
             A closed spherical web with 1 edges.
         """
-
         h = [halfedge(st), halfedge(st)]
         c = {h[0]: h[1], h[1]: h[0]}
         e = {h[0]: h[1], h[1]: h[0]}
@@ -1560,11 +1556,9 @@ class SphericalSpider(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            #sage: from sage.combinat.spherical_spider import Strand
             sage: SphericalSpider([]).empty()
             A closed spherical web with 0 edges.
         """
-
         return SphericalWeb({}, {}, [])
 
     @staticmethod
@@ -1854,13 +1848,14 @@ class LinearSphericalSpider(CombinatorialFreeModule):
             Return a LaTeX representation of ``self``.
 
             EXAMPLES::
+
                 #sage: from sage.combinat.spherical_spider import A2_relations
                 #sage: loops, rewrite_rules = A2_relations()
                 #sage: rewrite_rules[0][1]._latex_()
                 '-\\delta\\draw (0,0) circle (1cm);\n...'
             """
             mc = self.monomial_coefficients()
-            return ''.join([(mc[a])._latex_()+a._latex_() for a in mc])
+            return ''.join([(mc[a])._latex_() + a._latex_() for a in mc])
 
         def rotate(self, k):
             r"""
@@ -1957,24 +1952,23 @@ class LinearSphericalSpider(CombinatorialFreeModule):
 
             EXAMPLES::
 
-            sage: tr3 = SphericalSpider([]).trefoil()
-            sage: cs = SphericalSpider([]).crossing()
-            sage: A = LaurentPolynomialRing(ZZ, 'A').gen()
-            sage: F = LinearSphericalSpider(A.parent(), 2)
-            sage: edge = F.vertex()
-            sage: u = edge.glue(edge, 0)
-            sage: tr2 = F(tr3).apply_rule(cs, A*u + u.rotate(1)/A)
-            sage: tr1 = tr2.apply_rule(cs, A*u + u.rotate(1)/A)
-            sage: tr0 = tr1.apply_rule(cs, A*u + u.rotate(1)/A)
-            sage: tr0 == tr0.apply_rule(cs, A*u + u.rotate(1)/A)
-            True
+                sage: tr3 = SphericalSpider([]).trefoil()
+                sage: cs = SphericalSpider([]).crossing()
+                sage: A = LaurentPolynomialRing(ZZ, 'A').gen()
+                sage: F = LinearSphericalSpider(A.parent(), 2)
+                sage: edge = F.vertex()
+                sage: u = edge.glue(edge, 0)
+                sage: tr2 = F(tr3).apply_rule(cs, A*u + u.rotate(1)/A)
+                sage: tr1 = tr2.apply_rule(cs, A*u + u.rotate(1)/A)
+                sage: tr0 = tr1.apply_rule(cs, A*u + u.rotate(1)/A)
+                sage: tr0 == tr0.apply_rule(cs, A*u + u.rotate(1)/A)
+                True
             """
             mc = self.monomial_coefficients()
             P = self.parent()
-            result = P(0)
+            result = P.zero()
             for a in mc:
                 result += mc[a]*P.sum_of_terms(a.apply_rule(term, replace, check=check))
-
             return result
 
         def simplify(self, term, replace, check=True):
@@ -1983,13 +1977,13 @@ class LinearSphericalSpider(CombinatorialFreeModule):
 
             EXAMPLES::
 
-            sage: tr = SphericalSpider([]).trefoil()
-            sage: cs = SphericalSpider([]).crossing()
-            sage: A = LaurentPolynomialRing(ZZ, 'A').gen()
-            sage: F = LinearSphericalSpider(A.parent(), 2)
-            sage: edge = F.vertex()
-            sage: u = edge.glue(edge, 0)
-            sage: F(tr).simplify(cs, A*u + (A**-1)*u.rotate(1)) # random
+                sage: tr = SphericalSpider([]).trefoil()
+                sage: cs = SphericalSpider([]).crossing()
+                sage: A = LaurentPolynomialRing(ZZ, 'A').gen()
+                sage: F = LinearSphericalSpider(A.parent(), 2)
+                sage: edge = F.vertex()
+                sage: u = edge.glue(edge, 0)
+                sage: F(tr).simplify(cs, A*u + (A**-1)*u.rotate(1)) # random
             """
             new = self
             finished = False
@@ -2059,14 +2053,13 @@ def SL2_relations(delta=None):
 
 def SL2_braided(A=None):
     r"""
+    EXAMPLES::
 
-        EXAMPLES::
-
-            sage: sage.combinat.spherical_spider.SL2_braided()
-            (Univariate Laurent Polynomial Ring in A over Integer Ring,
-             frozenset({(Strand(oriented=0, colour='black'), -A^-2 - A^2)}),
-             frozenset({(The spherical web with c = (1, 2, 3, 0), e = ()
-            ...
+        sage: sage.combinat.spherical_spider.SL2_braided()
+        (Univariate Laurent Polynomial Ring in A over Integer Ring,
+         frozenset({(Strand(oriented=0, colour='black'), -A^-2 - A^2)}),
+         frozenset({(The spherical web with c = (1, 2, 3, 0), e = ()
+        ...
     """
     if A is None:
         A = LaurentPolynomialRing(ZZ, 'A').gen()
@@ -2084,7 +2077,6 @@ def SL2_braided(A=None):
 
 def SL2SphericalSpider(boundary, A=None):
     r"""
-
     EXAMPLES::
 
         sage: sage.combinat.spherical_spider.SL2SphericalSpider([])
@@ -2139,7 +2131,6 @@ def A2_relations(delta=None):
 
 def A2_braided(q=None):
     r"""
-
     EXAMPLES::
 
         sage: sage.combinat.spherical_spider.A2_braided()
@@ -2149,11 +2140,8 @@ def A2_braided(q=None):
     """
     if q is None:
         q = LaurentPolynomialRing(ZZ, 'q').gen()
-
-    delta = q + 1/q
-    lps, rw = A2_relations(delta)
-
-    return lps, rw
+    delta = q + ~q
+    return A2_relations(delta)
 
 
 def B2_relations(delta=None):
@@ -2273,7 +2261,7 @@ class WebAlgebra(CombinatorialFreeModule, Algebra):
     @staticmethod
     def __classcall__(cls, base, semi_boundary, loops, rewrite_rules):
         if semi_boundary in NN:
-            semi_boundary = [Strand()]*semi_boundary
+            semi_boundary = [Strand()] * semi_boundary
 
         sbp = tuple(semi_boundary)
 
@@ -2347,7 +2335,6 @@ class WebAlgebra(CombinatorialFreeModule, Algebra):
             True
         """
         n = len(self.semi_boundary)
-
         return self(X.glue(Y, n))
 
     def U(self, k):
@@ -2465,7 +2452,7 @@ def temperley_lieb(n, R=ZZ, q=None):
 
 def from_diagram(n, delta):
     r"""
-    Construct the algebra morhism from the Temperley-Lieb algebra as a diagram algebra
+    Construct the algebra morphism from the Temperley-Lieb algebra as a diagram algebra
     to the Temperley-Lieb algebra as a web algebra.
 
     EXAMPLES::
@@ -2501,9 +2488,9 @@ def from_diagram(n, delta):
 
     return domain.module_morphism(codomain=codomain, on_basis=on_basis)
 
-# ####################################################################################################
+# ######################################################################
 # Experimental
-# ####################################################################################################
+# ######################################################################
 
 
 class Path():
