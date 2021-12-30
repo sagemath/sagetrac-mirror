@@ -368,7 +368,7 @@ cdef class RingExtensionHomomorphism(RingMap):
         Coercion maps are not considered as identity morphisms::
 
             sage: L.<b> = GF(5^6).over(K)
-            sage: iota = L.defining_morphism()
+            sage: iota = L.coerce_map_from(L.base())
             sage: iota
             Ring morphism:
               From: Field in a with defining polynomial x^2 + 4*x + 2 over its base
@@ -388,7 +388,7 @@ cdef class RingExtensionHomomorphism(RingMap):
         EXAMPLES::
 
             sage: K = GF(5^10).over(GF(5^5))
-            sage: iota = K.defining_morphism()
+            sage: iota = K.morphism_from_base()
             sage: iota
             Ring morphism:
               From: Finite Field in z5 of size 5^5
@@ -398,7 +398,7 @@ cdef class RingExtensionHomomorphism(RingMap):
             True
 
             sage: K = GF(7).over(ZZ)
-            sage: iota = K.defining_morphism()
+            sage: iota = K.morphism_from_base()
             sage: iota
             Ring morphism:
               From: Integer Ring
@@ -416,7 +416,7 @@ cdef class RingExtensionHomomorphism(RingMap):
         EXAMPLES::
 
             sage: K = GF(5^10).over(GF(5^5))
-            sage: iota = K.defining_morphism()
+            sage: iota = K.morphism_from_base()
             sage: iota
             Ring morphism:
               From: Finite Field in z5 of size 5^5
@@ -426,7 +426,7 @@ cdef class RingExtensionHomomorphism(RingMap):
             False
 
             sage: K = GF(7).over(ZZ)
-            sage: iota = K.defining_morphism()
+            sage: iota = K.morphism_from_base()
             sage: iota
             Ring morphism:
               From: Integer Ring
