@@ -288,3 +288,8 @@ lazy_import('sage.combinat.growth', 'GrowthDiagram')
 
 # Path Tableaux
 lazy_import('sage.combinat.path_tableaux', 'catalog', as_='path_tableaux')
+
+# Spiders and Webs
+lazy_import('sage.combinat.spherical_spider',
+            ['SphericalWeb', 'SphericalSpider', 'FreeSphericalSpider',
+             'LinearSphericalSpider', 'WebAlgebra'])
