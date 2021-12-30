@@ -1,0 +1,35 @@
+# adapted from SAGE_ROOT/.gitlab-ci.yml
+name: Build Docker images
+
+on:
+  push:
+  workflow_dispatch:
+    # Allow to run manually
+
+env:
+  DOCKER_TAG: ${{ github.sha }}
+  DEFAULT_ARTIFACT_BASE: sagemath/sagemath-dev:develop
+  V: 0
+
+jobs:
+  build-from-latest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # from tox.yml
+      - name: free disk space
+        run: |
+          df -h
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo apt-get clean
+          docker rmi $(docker image ls -aq)
+          echo "Largest packages:"
+          dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 50
+          sudo apt-get --fix-broken --yes remove $(dpkg-query -f '${Package}\n' -W | grep -E '^(ghc-|google-cloud-sdk|google-chrome|firefox|mysql-server|dotnet-sdk|hhvm|mono)') || echo "(error ignored)"
+          df -h
+      - name: build Docker image
+        run: |
+          . .ci/update-env.sh
+          . .ci/setup-make-parallelity.sh
+          .ci/build-docker.sh
