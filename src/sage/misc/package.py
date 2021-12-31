@@ -389,9 +389,9 @@ def installed_packages(exclude_pip=True):
     EXAMPLES::
 
         sage: sorted(installed_packages().keys())  # optional - sage_spkg
-        [...'gmpy2', ...'sage_conf', ...]
-        sage: installed_packages()['gmpy2']  # optional - sage_spkg, random
-        '2.1.0b5'
+        [...'sage_conf', ...]
+        sage: installed_packages()['sage_conf']  # optional - sage_spkg, random
+        '9.5'
 
     .. SEEALSO::
 
