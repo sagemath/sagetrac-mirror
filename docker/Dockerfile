@@ -124,6 +124,7 @@ COPY --chown=sage:sage . sage-context
 # 3) Trash .git again to save some space.
 ARG SAGE_ROOT=/home/sage/sage
 WORKDIR $SAGE_ROOT
+
 # We create a list of all files present in the artifact-base (with a timestamp
 # of now) so we can find out later which files were added/changed/removed.
 RUN find . \( -type f -or -type l \) > $HOME/artifact-base.manifest
@@ -155,6 +156,13 @@ RUN patch -p1 --verbose < "$HOME"/sage-context.patch
 # Image with a built sage but without sage's documentation.                    #
 ################################################################################
 FROM source-from-context as make-build
+
+# Make sure build deps are present
+RUN sudo apt-get -qq update \
+    && sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install -y wget build-essential automake gettext m4 dpkg-dev python libssl-dev git rdfind \
+    && sudo apt-get -qq clean \
+    && sudo rm -r /var/lib/apt/lists/*
+
 # Make sure that the result runs on most CPUs.
 ENV SAGE_FAT_BINARY yes
 # Just to be sure Sage doesn't try to build its own GCC (even though
