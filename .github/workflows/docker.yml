@@ -11,7 +11,7 @@ env:
   # FIXME: .ci/update-env.sh refers to CI_COMMIT_SHA too
   CI_COMMIT_SHA: ${{ github.sha }}
   DEFAULT_ARTIFACT_BASE: sagemath/sagemath-dev:develop
-  V: 0
+  CAN_DEPLOY_DOCKERHUB: ${{ secrets.$SECRET_DOCKER_PASS != '' }}
 
 jobs:
   build-from-latest:
@@ -37,3 +37,10 @@ jobs:
           . .ci/update-env.sh
           . .ci/setup-make-parallelity.sh
           .ci/build-docker.sh
+
+      - name: push Docker image to Docker Hub
+        # Pushes the built dev images to Docker Hub if the Secret
+        # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
+        run: |
+          sh .ci/push-dockerhub.sh sagemath-dev
+        if: env.CAN_DEPLOY_DOCKERHUB == 'true'
