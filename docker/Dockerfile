@@ -169,7 +169,7 @@ ARG SAGE_NUM_THREADS="2"
 ENV SAGE_NUM_THREADS $SAGE_NUM_THREADS
 RUN make configure
 RUN ./configure
-RUN make build
+RUN make V=0 build
 
 ################################################################################
 # Image with a full build of sage and its documentation.                       #
