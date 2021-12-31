@@ -1051,7 +1051,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
                 if are_equal_morphisms(f, g):
                     return RingExtensionHomomorphism(right.Hom(self), backend)
 
-    def defining_morphism(self):
+    def defining_morphism(self, base=None):
         r"""
         Return the morphism defining this ring extension.
 
@@ -1060,11 +1060,19 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: F = GF(5^2)
             sage: K = GF(5^4).over(F)
             sage: K.defining_morphism()
+            ...
+            DeprecationWarning: The definition of this method has changed. Use
+            morphism_from_base() for the old definition.
+            See https://trac.sagemath.org/32627 for details.
             Ring morphism:
               From: Finite Field in z2 of size 5^2
               To:   Finite Field in z4 of size 5^4
               Defn: z2 |--> z4^3 + z4^2 + z4 + 3
         """
+        from sage.misc.superseded import deprecation
+        deprecation(32627, "The definition of this method has changed. "
+                    "Use morphism_from_base() for the old definition.")
+
         return self._backend_defining_morphism
 
     def top(self):
