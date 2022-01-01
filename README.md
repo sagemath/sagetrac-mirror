@@ -362,7 +362,7 @@ SAGE_ROOT                 Root directory (sage-x.y.z in Sage tarball)
 ├── COPYING.txt           Copyright information
 ├── pkgs                  Source trees of Python distribution packages
 │   ├── sage-conf
-│   │   ├── sage_conf.py
+│   │   ├── sage_conf/
 │   │   └── setup.py
 │   ├── sage-docbuild
 │   │   ├── sage_docbuild/

@@ -1,4 +1,9 @@
+# old version
 /sage_conf.py
+# new version
+/sage_conf/_conf.py
 /setup.cfg
 /build
+/dist
 /*.egg-info
+/.tox

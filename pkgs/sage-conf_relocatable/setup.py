@@ -110,8 +110,8 @@ class build_py(setuptools_build_py):
                             follow_symlinks=False)
 
             # Use our copy of the sage_conf template, which contains the relocation logic
-            shutil.copyfile(os.path.join(HERE, 'sage_conf.py.in'),
-                            os.path.join(SAGE_ROOT, 'pkgs', 'sage-conf', 'sage_conf.py.in'))
+            shutil.copyfile(os.path.join(HERE, 'sage_conf', '_conf.py.in'),
+                            os.path.join(SAGE_ROOT, 'pkgs', 'sage-conf', '_conf.py.in'))
 
             if os.path.exists(SAGE_LOCAL_BUILD):
                 # Previously built, start from there
@@ -157,13 +157,14 @@ class build_py(setuptools_build_py):
         except Exception as e:
             print(e)
             print(f"Left SAGE_ROOT={SAGE_ROOT} in place. To reuse its contents for the next build, use 'mv {SAGE_ROOT} {SAGE_ROOT_BUILD}' first", flush=True)
+            raise
 
         else:
             shutil.move(SAGE_ROOT, SAGE_ROOT_BUILD)
 
         # Install configuration
-        shutil.copyfile(os.path.join(SAGE_ROOT_BUILD, 'pkgs', 'sage-conf', 'sage_conf.py'),
-                        os.path.join(HERE, 'sage_conf.py'))
+        shutil.copyfile(os.path.join(SAGE_ROOT_BUILD, 'pkgs', 'sage-conf', 'sage_conf', '_conf.py'),
+                        os.path.join(HERE, 'sage_conf', '_conf.py'))
         if not self.distribution.py_modules:
             self.py_modules = self.distribution.py_modules = []
         self.distribution.py_modules.append('sage_conf')
