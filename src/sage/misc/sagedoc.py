@@ -29,7 +29,7 @@ see :trac:`12849`::
 Check that sphinx is not imported at Sage start-up::
 
     sage: os.system("sage -c \"if 'sphinx' in sys.modules: sys.exit(1)\"")
-    False
+    0
 """
 # ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -1549,7 +1549,7 @@ class _sage_doc:
         path = os.path.join(self._base_path, name, "index.html")
         if not os.path.exists(path):
             raise OSError("""The document '{0}' does not exist.  Please build it
-with 'sage -docbuild {0} html --mathjax' and try again.""".format(name))
+with 'sage -docbuild {0} html' and try again.""".format(name))
 
         if testing:
             return (url, path)
