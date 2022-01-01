@@ -462,9 +462,18 @@ AC_ARG_ENABLE([notebook],
     done
   ])
 
+AC_ARG_ENABLE([sagelib],
+  AS_HELP_STRING([--disable-sagelib],
+                 [disable build of the Sage library and packages depending on it (implies --disable-doc)]), [
+    for pkg in sagelib sage_docbuild; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+    AS_IF([test "$enableval" = no], [enable_doc=no])
+  ])
+
 AS_IF([test "$SAGE_ENABLE_notebook" = no -a "$SAGE_ENABLE_sagelib" = no], [
     for pkg in jupyter_client ipykernel ipython zeromq pyzmq; do
-      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [no])
     done
   ])
 
@@ -485,29 +494,6 @@ AC_ARG_ENABLE([doc],
     done
     dnl Disable the docbuild by disabling the install tree for documentation
     AS_VAR_SET([SAGE_DOCS], [])
-  ])
-
-AC_ARG_ENABLE([sagelib],
-  AS_HELP_STRING([--disable-sagelib],
-                 [disable build of the Sage library and packages depending on it (implies --disable-doc)]), [
-    for pkg in sagelib sage_docbuild; do
-      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
-    done
-    AS_IF([test "$enableval" = no], [enable_doc=no])
-  ])
-
-AS_IF([test "$SAGE_ENABLE_notebook" = no -a "$SAGE_ENABLE_sagelib" = no], [
-    for pkg in jupyter_client ipykernel ipython zeromq pyzmq; do
-      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
-    done
-  ])
-
-AC_ARG_ENABLE([doc],
-  AS_HELP_STRING([--disable-doc],
-                 [disable build of the Sage documentation and packages depending on it]), [
-    for pkg in sage_docbuild sphinx sphinxcontrib_devhelp sphinxcontrib_jsmath sphinxcontrib_serializinghtml sphinxcontrib_applehelp sphinxcontrib_htmlhelp sphinxcontrib_qthelp sphinxcontrib_websupport; do
-      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
-    done
   ])
 
 dnl Packages that require a special override to use the SPKG
