@@ -1,5 +1,10 @@
 cd src
 
+# Trac #33083: Needed for cpu_set_t on musl libc
+CFLAGS="$CFLAGS -D_GNU_SOURCE"
+export CFLAGS
+
+
 # Trac #29607: We must always supply --with-gmp, --with-mpfr,
 # --with-flint because otherwise ARB's configure script uses
 # /usr/local, which is always wrong.
