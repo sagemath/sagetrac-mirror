@@ -10,8 +10,8 @@ if [ "$SAGE_DEBUG" = "yes" ]; then
 fi
 
 # Trac #33083: Needed for cpu_set_t on musl libc
-CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
-export CPPFLAGS
+CFLAGS="$CFLAGS -D_GNU_SOURCE"
+export CFLAGS
 
 cd src
 
