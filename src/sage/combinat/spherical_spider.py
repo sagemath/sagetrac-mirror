@@ -1158,7 +1158,7 @@ class SphericalWeb(Element):
             sage: v = SphericalSpider(4).vertex()
             sage: w = SphericalSpider(2).vertex()
             sage: v.glue(w,2)._latex_()
-            '\\draw (0,0) circle (1cm);\n\\draw (-1.00000000000000,0.0) ... (0.0,0.0);\n'
+            '\\draw (0,0) circle (1cm);\n\\draw ... (0.0,0.0);\n'
 
         If there are no boundary points only the boundary circle is drawn.
 
