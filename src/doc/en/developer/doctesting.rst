@@ -106,11 +106,11 @@ Sage to test its own modules. Even if we have a system-wide Sage
 installation, using that version to doctest the modules of a local
 installation is a recipe for confusion.
 
-If your system Python has the ``tox`` package, you can also run the Sage
-doctester as follows::
+You can also run the Sage doctester as follows::
 
-   [jdemeyer@sage sage-6.0]$ cd src
-   [jdemeyer@sage src]$ tox -- sage/games/sudoku.py
+   [jdemeyer@sage sage-6.0]$ ./sage -tox -e doctest -- src/sage/games/sudoku.py
+
+See :ref:`chapter-tools` for more information about tox.
 
 
 Troubleshooting
@@ -854,6 +854,9 @@ This seed can be set explicitly to reproduce possible failures::
     Total time for all tests: 0.0 seconds
         cpu time: 0.0 seconds
         cumulative wall time: 0.0 seconds
+
+It can also be set explicitly using the environment variable
+``SAGE_DOCTEST_RANDOM_SEED``.
 
 .. _section-optional-doctest-flag:
 
