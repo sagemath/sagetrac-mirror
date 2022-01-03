@@ -61,6 +61,7 @@ from sage.misc.latex import latex
 from sage.modules.free_module_element import vector
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
 from sage.rings.rational cimport Rational
 from sage.structure.element cimport Element, Vector
 from sage.structure.element import is_Vector
@@ -286,7 +287,11 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
             True
         """
         Cl = self.parent()
-        return Cl._variety.divisor(Cl._lift_matrix * self)
+        if self.base_ring() is QQ:
+            return Cl._variety.divisor(Cl._lift_matrix * self)
+        else:
+            # Work around a bug, see :trac:`32991`.
+            return Cl._variety.divisor(Cl._lift_matrix * vector(ZZ, list(self)))
 
 
 def _ToricRationalDivisorClass_unpickle_v1(parent, entries,

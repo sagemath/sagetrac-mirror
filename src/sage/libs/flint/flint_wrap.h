@@ -35,6 +35,7 @@
 #include <flint/fmpq.h>
 #include <flint/fmpq_mat.h>
 #include <flint/fmpq_poly.h>
+#include <flint/fmpq_vec.h>
 #include <flint/fmpz.h>
 #include <flint/fmpz_mod.h>
 #include <flint/fmpz_mat.h>

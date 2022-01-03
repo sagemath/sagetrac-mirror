@@ -10,3 +10,4 @@ cdef extern from "flint_wrap.h":
     ulong _fmpz_vec_max_limbs(const fmpz *, slong)
     void _fmpz_vec_scalar_mod_fmpz(fmpz *, fmpz *, long, fmpz_t)
     void _fmpz_vec_scalar_smod_fmpz(fmpz *, fmpz *, long, fmpz_t)
+    void _fmpz_vec_dot(fmpz_t, const fmpz *, const fmpz *, slong)
