@@ -1096,8 +1096,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
                     fmpz_zero(ans_flint + i)
 
                 # The order is crucial:
-                # ``self._matrix.rows[j] + i`` is right next to ``self._matrix[j] + i + 1``
-                # but far away from ``self._matrix[j + 1] + i``.
+                # The index ``j, i`` is right next to ``j, i + 1``,
+                # but far away from ``j + 1, i``.
                 # So in the inner loop we have very little pointer movement.
                 # The inner loop also has no dependencies on the previous loop.
                 for j in range(self._nrows):
@@ -1152,7 +1152,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 fmpz_set_mpz(w_flint + j, w._entries[j])
 
             for i in range(self._nrows):
-                _fmpz_vec_dot(x, self._matrix.rows[i], w_flint, self._ncols)
+                fmpz_zero(x)
+                for j in range(self._ncols):
+                    fmpz_addmul(x, w_flint + j, fmpz_mat_entry(self._matrix, i, j))
                 fmpz_get_mpz(ans._entries[i], x)
 
             sig_off()

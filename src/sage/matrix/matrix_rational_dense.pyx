@@ -561,8 +561,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
                     fmpq_zero(ans_flint + i)
 
                 # The order is crucial:
-                # ``self._matrix.rows[j] + i`` is right next to ``self._matrix[j] + i + 1``
-                # but far away from ``self._matrix[j + 1] + i``.
+                # The index ``j, i`` is right next to ``j, i + 1``,
+                # but far away from ``j + 1, i``.
                 # So in the inner loop we have very little pointer movement.
                 # The inner loop also has no dependencies on the previous loop.
                 for j in range(self._nrows):
@@ -617,7 +617,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
                 fmpq_set_mpq(w_flint + j, w._entries[j])
 
             for i in range(self._nrows):
-                _fmpq_vec_dot(x, self._matrix.rows[i], w_flint, self._ncols)
+                fmpq_zero(x)
+                for j in range(self._ncols):
+                    fmpq_addmul(x, w_flint + j, fmpq_mat_entry(self._matrix, i, j))
                 fmpq_get_mpq(ans._entries[i], x)
 
             sig_off()
