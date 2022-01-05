@@ -30,6 +30,14 @@ AUTHOR:
 #*****************************************************************************
 from sage.libs.gmp.types cimport mpz_t, mpz_ptr
 
+# Singular defines in factory/factory.h the macro IntegerDomain which conflicts
+# with the type Givaro::Integerdomain (See #32959). The conflict has been fixed
+# upstream but until it is made available in every distribution, we need to
+# handle the conflict here, by forcing the include of givinteger.h before that
+# of factory.h
+cdef extern from "givaro/givinteger.h":
+    pass
+
 cdef extern from "factory/factory.h":
 
     #
