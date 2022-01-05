@@ -252,9 +252,14 @@ class FunctionHeaviside(GinacFunction):
             sage: h(x) = heaviside(x)
             sage: h(pi).numerical_approx()
             1.00000000000000
+
+        TESTS::
+
+            sage: integrate(heaviside(x),x,-1,1,algorithm='maxima')
+            1
         """
         GinacFunction.__init__(self, "heaviside", latex_name="H",
-                               conversions=dict(maxima='hstep',
+                               conversions=dict(maxima='unit_step',
                                                 mathematica='HeavisideTheta',
                                                 sympy='Heaviside',
                                                 giac='Heaviside'))
