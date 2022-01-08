@@ -3093,6 +3093,7 @@ def cached_method(f, name=None, key=None, do_pickle=None):
         return CachedSpecialMethod(f, name, key=key, do_pickle=do_pickle)
     return CachedMethod(f, name, key=key, do_pickle=do_pickle)
 
+
 cdef class CachedInParentMethod(CachedMethod):
     r"""
     A decorator that creates a cached version of an instance
