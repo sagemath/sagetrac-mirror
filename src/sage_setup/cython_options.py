@@ -1,5 +1,6 @@
 import sys
 
+
 def compiler_directives(profile: bool):
     """
     Return a list of Cython directives used for compilation.
@@ -20,7 +21,12 @@ def compiler_directives(profile: bool):
         preliminary_late_includes_cy28=True,
         # Add hooks for Python profilers into the compiled C code
         profile=profile,
+        # Free functions behave more like Python's function
+        # (in particular, they include introspections)
+        # This will be the default in Cython 3.0 and can then be removed
+        binding=True,
     )
+
 
 def compile_time_env_variables():
     """
