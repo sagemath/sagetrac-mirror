@@ -130,7 +130,7 @@ def deprecated(trac_number, message, stacklevel=4):
     """
     def wrapper(func, *args, **kw):
         deprecation(trac_number, message, stacklevel)
-        func(args, kw)
+        func(*args, **kw)
     return decorator(wrapper)
 
 
