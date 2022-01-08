@@ -425,7 +425,7 @@ from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getarg
 from inspect import isfunction
 
 from sage.misc.weak_dict cimport CachedWeakValueDictionary
-from decorator import decorator, decorate
+from sage.misc.decorators import decorator_keywords
 
 cdef frozenset special_method_names = frozenset(['__abs__', '__add__',
             '__and__', '__call__', '__cmp__', '__coerce__', '__complex__', '__contains__', '__del__',
@@ -1244,10 +1244,7 @@ cdef class CachedFunction(object):
             self.set_cache(val, *args, **kwargs)
 
 
-def cached_function(classmethod=False, name=None, key=None, do_pickle=None):
-    def deco(func):
-        return decorate(func, CachedFunction(func, classmethod=classmethod, name=name, key=key, do_pickle=do_pickle))
-    return deco
+cached_function = decorator_keywords(CachedFunction)
 
 
 cdef class WeakCachedFunction(CachedFunction):
@@ -1436,13 +1433,7 @@ cdef class WeakCachedFunction(CachedFunction):
         self.cache = CachedWeakValueDictionary(**kwds)
 
 
-def weak_cached_function(classmethod=False, name=None, key=None, **kwds):
-    def caller(func, *args, **kw):
-        if not hasattr(func, '__weakcachedfunction__'):
-            func.__weakcachedfunction__ = WeakCachedFunction(func, classmethod=classmethod, name=name, key=key, **kwds)
-        return func.__weakcachedfunction__(*args, **kw) 
-    return decorator(caller)
-
+weak_cached_function = decorator_keywords(WeakCachedFunction)
 
 class CachedMethodPickle(object):
     """
@@ -3004,8 +2995,8 @@ cdef class CachedSpecialMethod(CachedMethod):
             D[name] = Caller
         return Caller
 
-@decorator
-def cached_method(f, name=None, key=None, do_pickle=None, *args, **kw):
+@decorator_keywords
+def cached_method(f, name=None, key=None, do_pickle=None):
     """
     A decorator for cached methods.
 
@@ -3099,8 +3090,8 @@ def cached_method(f, name=None, key=None, do_pickle=None, *args, **kw):
     """
     cdef str fname = name or f.__name__
     if fname in special_method_names:
-        return CachedSpecialMethod(f, name, key=key, do_pickle=do_pickle)(*args, **kw)
-    return CachedMethod(f, name, key=key, do_pickle=do_pickle)(*args, **kw)
+        return CachedSpecialMethod(f, name, key=key, do_pickle=do_pickle)
+    return CachedMethod(f, name, key=key, do_pickle=do_pickle)
 
 cdef class CachedInParentMethod(CachedMethod):
     r"""
@@ -3313,10 +3304,7 @@ cdef class CachedInParentMethod(CachedMethod):
         return Caller
 
 
-def cached_in_parent_method(name=None, key=None, do_pickle=None):
-    def deco(func):
-        return decorate(func, CachedInParentMethod(func, name, key, do_pickle))
-    return deco
+cached_in_parent_method = decorator_keywords(CachedInParentMethod)
 
 
 class FileCache(object):
@@ -3733,3 +3721,12 @@ class disk_cached_function:
         """
         return DiskCachedFunction(f, self._dir, memory_cache=self._memory_cache, key=self._key)
 
+
+# Add support for _instancedoc_
+from sage.docs.instancedoc import instancedoc
+instancedoc(CachedFunction)
+instancedoc(WeakCachedFunction)
+instancedoc(CachedMethodCaller)
+instancedoc(CachedMethodCallerNoArgs)
+instancedoc(GloballyCachedMethodCaller)
+instancedoc(DiskCachedFunction)
