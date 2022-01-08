@@ -29,7 +29,7 @@ AUTHORS:
 from functools import (partial, update_wrapper, WRAPPER_ASSIGNMENTS,
                        WRAPPER_UPDATES)
 from copy import copy
-from sage.misc.superseded import deprecated
+from sage.misc.superseded import deprecated, deprecation
 
 from decorator import decorator
 
@@ -37,7 +37,6 @@ from sage.misc.sageinspect import (sage_getsource, sage_getsourcelines,
                                    sage_getargspec)
 from inspect import ArgSpec
 
-@deprecated(30884, 'replaced by the decorator library')
 def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
     r"""
     Decorator factory which should be used in decorators for making sure that
@@ -156,6 +155,7 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
         81
 
     """
+    deprecation(30884, 'replaced by the decorator library')
     #TRAC 9919: Workaround for bug in @update_wrapper when used with
     #non-function callables.
     assigned = set(assigned).intersection(set(dir(wrapped)))
@@ -301,7 +301,6 @@ class _infix_wrapper(object):
             return self.function(left, self.right)
 
 
-@deprecated(30884, 'replaced by the decorator library')
 def decorator_defaults(func):
     """
     This function allows a decorator to have default arguments.
@@ -339,6 +338,7 @@ def decorator_defaults(func):
         (3, 4)
         my_fun
     """
+    deprecation(30884, 'replaced by the decorator library')
     @sage_wraps(func)
     def my_wrap(*args, **kwds):
         if len(kwds) == 0 and len(args) == 1:
@@ -685,7 +685,6 @@ class specialize:
         return sage_wraps(f)(partial(f, *self.args, **self.kwargs))
 
 
-@deprecated(30884, 'replaced by the decorator library')
 def decorator_keywords(func):
     r"""
     A decorator for decorators with optional keyword arguments.
@@ -717,6 +716,7 @@ def decorator_keywords(func):
         sage: foo(1)
         1
     """
+    deprecation(30884, 'replaced by the decorator library')
     @sage_wraps(func)
     def wrapped(f=None, **kwargs):
         if f is None:
