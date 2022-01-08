@@ -37,6 +37,7 @@ from sage.misc.sageinspect import (sage_getsource, sage_getsourcelines,
                                    sage_getargspec)
 from inspect import ArgSpec
 
+
 def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
     r"""
     Decorator factory which should be used in decorators for making sure that
@@ -397,6 +398,7 @@ class suboptions(object):
             sage: sage_getargspec(f)
             ArgSpec(args=['arrow_size'], varargs='args', keywords='kwds', defaults=(2,))
         """
+        @sage_wraps(func)
         def wrapper(func, *args, **kwds):
             suboptions = copy(self.options)
             suboptions.update(kwds.pop(self.name+"options", {}))
@@ -485,6 +487,7 @@ class options(object):
             () [('__original_opts', {'alpha': 1}), ('alpha', 1), ('rgbcolor', (0, 0, 1))]
 
         """
+        @sage_wraps(func)
         def wrapper(func, *args, **kwds):
             options = copy(wrapper.options)
             if self.original_opts:
