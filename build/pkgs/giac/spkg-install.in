@@ -16,6 +16,9 @@ if [ `uname -m` = "ppc64" ]; then
     CPPFLAGS="-Dx86_64 $CPPFLAGS"
 fi
 
+# Trac #33083: Work around for musl libc (alpine, void)
+CPPFLAGS="$CPPFLAGS -DNO_BSD"
+
 # Using pari in a C++17 file with "using namespace std doesn't
 # work due to a conflict between std::rank and pari's rank
 # -std=c++17 is in the default flags on conda;
