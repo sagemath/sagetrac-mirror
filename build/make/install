@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -x
 
 ########################################################################
 # Set various environment variables
@@ -45,6 +45,13 @@ fi
 # packages.  This is necessary if configure detected a broken GCC installed
 # in Sage; Trac #25011
 $MAKE _clean-broken-gcc
+
+for flag in $MAKEFLAGS; do
+    case $flag in
+        --*)         ;;
+        *n*|*t*|*q*) exec $MAKE MAKEFLAGS="$MAKEFLAGS" "$@";;
+    esac
+done
 
 # If "make" doesn't understand the -q option (although we require
 # GNU make, which supports it), it should exit with a non-zero status
