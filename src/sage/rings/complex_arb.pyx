@@ -550,6 +550,9 @@ class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
             ....:                                 embedding=QQbar(-2)^(1/7)))
             Conversion via _acb_ method map:
             ...
+            sage: CBF.coerce_map_from(QQbar)
+            Conversion via _acb_ method map:
+            ...
         """
         if isinstance(other, RealBallField):
             return other._prec >= self._prec
