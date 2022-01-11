@@ -60,8 +60,8 @@ class build_py(setuptools_build_py):
             raise DistutilsSetupError("make build-local failed")
 
         # Install configuration
-        shutil.copyfile(os.path.join(SAGE_ROOT, 'pkgs', 'sage-conf', 'sage_conf', '_conf.py'),
-                        os.path.join(HERE, 'sage_conf', '_conf.py'))
+        shutil.copyfile(os.path.join(SAGE_ROOT, 'pkgs', 'sage-conf', '_sage_conf', '_conf.py'),
+                        os.path.join(HERE, '_sage_conf', '_conf.py'))
         shutil.copyfile(os.path.join(SAGE_ROOT, 'src', 'bin', 'sage-env-config'),
                         os.path.join(HERE, 'bin', 'sage-env-config'))
         setuptools_build_py.run(self)

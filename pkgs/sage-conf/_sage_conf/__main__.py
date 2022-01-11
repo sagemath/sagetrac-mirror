@@ -1,6 +1,6 @@
 # Entry point 'sage-config'.  It does not depend on any packages.
 
-from . import *
+from sage_conf import *
 
 def _main():
     from argparse import ArgumentParser

@@ -1,4 +1,6 @@
-from ._conf import *
+from _sage_conf._conf import *
+from _sage_conf.__main__ import _main
+
 
 # Relocation.  SAGE_ROOT is typically configured to a directory in /var/tmp (sticky).
 import os as _os

@@ -1,6 +1,6 @@
 include VERSION.txt
 include pyproject.toml
-include sage_conf/_conf.py.in
+include _sage_conf/_conf.py.in
 graft bin
 graft sage_root_source
 # Avoid the "src" symlinks, which would be expanded to copies of the trees.
