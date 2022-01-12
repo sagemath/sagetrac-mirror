@@ -1042,7 +1042,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return x
 
-    def __pow__(Polynomial_integer_dense_flint self, exp, ignored):
+    def __pow__(Polynomial_integer_dense_flint self, exp, modulus):
         """
         EXAMPLES::
 
@@ -1121,6 +1121,16 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             ...
             TypeError: no canonical coercion from Univariate Polynomial
             Ring in R over Integer Ring to Rational Field
+        
+        Test modular exponentiation(:trac: `#15867`)::
+
+            sage: x = polygen(ZZ, name="x")
+            sage: pow(x, 100, x+1)
+            1
+            sage: x = polygen(ZZ, name="x")
+            sage: pow(x, 3, x^2+1)
+            -x
+
         """
         cdef long nn
         cdef Polynomial_integer_dense_flint res
@@ -1151,16 +1161,25 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             if nn < 0:
                 sig_on()
                 fmpz_poly_pow(res.__poly, self.__poly, -nn)
+
+                if modulus is not None:
+                    res = res.quo_rem(modulus)[1]
                 sig_off()
                 return ~res
             else:
                 if self is self._parent.gen():
                     sig_on()
                     fmpz_poly_set_coeff_ui(res.__poly, nn, 1)
+
+                    if modulus is not None:
+                        res = res.quo_rem(modulus)[1]
                     sig_off()
                 else:
                     sig_on()
                     fmpz_poly_pow(res.__poly, self.__poly, nn)
+
+                    if modulus is not None:
+                        res = res.quo_rem(modulus)[1]
                     sig_off()
                 return res
 
