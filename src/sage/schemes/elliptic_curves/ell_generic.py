@@ -2108,41 +2108,34 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         if m == 0:
             raise ValueError("m must be a non-zero integer")
 
-        if x_only:
-            x = polygen(self.base_ring(), 'x')
-        else:
-            x, y = polygens(self.base_ring(), 'x,y')
+        R = PolynomialRing(self.base_ring(), 'x')
+        x, y = polygens(self.base_ring(), 'x,y')
 
         # Special case of multiplication by 1 is easy.
         if m == 1:
-            if not x_only:
-                return (x, y)
-            else:
-                return x
+            return R.gen() if x_only else (x, y)
 
         # Grab curve invariants
         a1, a2, a3, a4, a6 = self.a_invariants()
 
         if m == -1:
-            if not x_only:
-                return (x, -y-a1*x-a3)
-            else:
-                return x
+            return R.gen() if x_only else (x, -y-a1*x-a3)
 
-        # the x-coordinate does not depend on the sign of m.  The work
+        # The x-coordinate does not depend on the sign of m.  The work
         # here is done by functions defined earlier:
 
-        mx = (x.parent()(self._multiple_x_numerator(m.abs(), x))
-              / x.parent()(self._multiple_x_denominator(m.abs(), x)))
+        numx = self._multiple_x_numerator(m.abs())
+        denx = self._multiple_x_denominator(m.abs())
 
         if x_only:
             # Return it if the optional parameter x_only is set.
-            return mx
+            return R(numx) / R(denx)
 
         #  Consideration of the invariant differential
         #  w=dx/(2*y+a1*x+a3) shows that m*w = d(mx)/(2*my+a1*mx+a3)
         #  and hence 2*my+a1*mx+a3 = (1/m)*(2*y+a1*x+a3)*d(mx)/dx
 
+        mx = x.parent()(numx) / x.parent()(denx)
         my = ((2*y+a1*x+a3)*mx.derivative(x)/m - a1*mx-a3)/2
 
         return mx, my
