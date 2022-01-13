@@ -2092,6 +2092,20 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             ....:     Q = -n*P
             ....:     assert Q == E(eval(f,P))
 
+        We check that the return types are as claimed::
+
+            sage: E = EllipticCurve(GF(127), [1,1])
+            sage: fx,fy = E.multiplication_by_m(7)
+            sage: fx.parent()
+            Fraction Field of Multivariate Polynomial Ring in x, y over Finite Field of size 127
+            sage: fy.parent()
+            Fraction Field of Multivariate Polynomial Ring in x, y over Finite Field of size 127
+
+            sage: E = EllipticCurve(GF(127), [2,2])
+            sage: fx = E.multiplication_by_m(11, x_only=True)
+            sage: fx.parent()
+            Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 127
+
         The following test shows that :trac:`4364` is indeed fixed::
 
             sage: p = next_prime(2^30-41)
