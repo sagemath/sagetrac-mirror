@@ -2102,6 +2102,12 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: my_eval = lambda f,P: [fi(P[0],P[1]) for fi in f]
             sage: f = E.multiplication_by_m(2)
             sage: assert(E(eval(f,P)) == 2*P)
+
+        The following was _slow_ prior to :trac:`33156`::
+
+            sage: E = EllipticCurve(GF(65537), [5,5])
+            sage: _ = E.multiplication_by_m(127)
+            sage: _ = E.multiplication_by_m(127, x_only=True)
         """
         # Coerce the input m to be an integer
         m = rings.Integer(m)
