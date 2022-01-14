@@ -291,8 +291,6 @@ class CubicHeckeDataBase(SageObject):
         return matrix_list
 
 
-
-
 class CubicHeckeFileCache(SageObject):
     """
     A class to cache calculations of the :class:`CubicHeckeAlgebra` in the local
@@ -917,3 +915,289 @@ class CubicHeckeFileCache(SageObject):
                 fc.write(fc.section.markov_trace)
 
         return wrapper(self, step, target)
+
+# -----------------------------------------------------------------------------
+# Demo data section
+# -----------------------------------------------------------------------------
+template=r"""# generated demo data for cubic Hecke algebra
+def read_%s_generated(%snstands):
+    r\"""
+    %s
+    \"""
+    data = {}
+    data[2] = %s
+    data[3] = %s
+    return data[nstands]
+
+"""
+
+doc=r"""Return precomputed data of Ivan Marin
+
+    INPUT:
+
+    - ``a, b, c, j, u, v, w`` -- variables for the representation matrices
+    - ``nstarnds`` -- integer, number of strands of the cubic Hecke algebra in
+      question
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import read_bas_generated
+        sage: read_bas_generated(2)
+        [[], [1], [-1]]
+"""
+
+
+def create_demo_data(filename='demo_data.py'):
+        r"""
+        Return the input for the statical ``data_library`` as a dictionary
+        such that it can be stored in this file.
+
+        This makes only sense if the feature is present.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import create_demo_data
+            sage: create_demo_data()
+        """
+        from sage.algebras.hecke_algebras.cubic_hecke_algebra import CubicHeckeAlgebra
+        from textwrap import fill
+        def fl(s):
+            return fill(str(s), subsequent_indent='        ')
+        from sympy import var
+        TE = {str(x):x for x in var('a, b, c, j')}
+        TB = {str(x):x for x in var('u, v, w')}
+
+        from database_cubic_hecke import read_basis, read_irr, read_reg
+        bas2  = fl(read_basis(num_strands=2))
+        bas3  = fl(read_basis(num_strands=3))
+        irr2  = fl(read_irr(translation_dict=TE, num_strands=2))
+        irr3  = fl(read_irr(translation_dict=TE, num_strands=3))
+        regl2 = fl(read_reg(translation_dict=TB, num_strands=2))
+        regl3 = fl(read_reg(translation_dict=TB, num_strands=3))
+        regr2 = fl(read_reg(translation_dict=TB, num_strands=2, right=True))
+        regr3 = fl(read_reg(translation_dict=TB, num_strands=3, right=True))
+
+        bas  = template %('bas', '', doc, bas2, bas3)
+        irr  = template %('irr', 'a, b, c, j, ', doc, irr2, irr3)
+        regl = template %('regl', 'u, v, w, ', doc, regl2, regl3)
+        regr = template %('regr', 'u, v, w, ', doc, regr2, regr3)
+        with open(filename, 'w') as f:
+            f.write(bas)
+            f.write(irr)
+            f.write(regl)
+            f.write(regr)
+
+
+# generated demo data for cubic Hecke algebra
+def read_bas_generated(nstands):
+    r"""
+    Return precomputed data of Ivan Marin
+
+    INPUT:
+
+    - ``a, b, c, j, u, v, w`` -- variables for the representation matrices
+    - ``nstarnds`` -- integer, number of strands of the cubic Hecke algebra in
+      question
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import read_bas_generated
+        sage: read_bas_generated(2)
+        [[], [1], [-1]]
+
+    """
+    data = {}
+    data[2] = [[], [1], [-1]]
+    data[3] = [[], [1], [-1], [2], [-2], [1, 2], [1, -2], [-1, 2], [-1, -2], [1, 2,
+        1], [1, 2, -1], [-1, 2, 1], [-1, 2, -1], [1, -2, 1], [-1, -2,
+        1], [2, 1], [-2, 1], [2, -1], [-2, -1], [1, -2, -1], [-1, -2,
+        -1], [2, -1, 2], [1, 2, -1, 2], [-1, 2, -1, 2]]
+    return data[nstands]
+
+# generated demo data for cubic Hecke algebra
+def read_irr_generated(a, b, c, j, nstands):
+    r"""
+    Return precomputed data of Ivan Marin
+
+    INPUT:
+
+    - ``a, b, c, j, u, v, w`` -- variables for the representation matrices
+    - ``nstarnds`` -- integer, number of strands of the cubic Hecke algebra in
+      question
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import read_irr_generated
+        sage: read_irr_generated(3, 5, 7, 9, 2)
+        ([1, 1, 1],
+         [[{(0, 0): 3}], [{(0, 0): 7}], [{(0, 0): 5}]],
+         [[{(0, 0): 1/3}], [{(0, 0): 1/7}], [{(0, 0): 1/5}]])
+
+    """
+    data = {}
+    data[2] = ([1, 1, 1], [[{(0, 0): a}], [{(0, 0): c}], [{(0, 0): b}]], [[{(0, 0):
+        1/a}], [{(0, 0): 1/c}], [{(0, 0): 1/b}]])
+    data[3] = ([1, 1, 1, 2, 2, 2, 3], [[{(0, 0): a}, {(0, 0): a}], [{(0, 0): c},
+        {(0, 0): c}], [{(0, 0): b}, {(0, 0): b}], [{(0, 0): b, (1, 0):
+        b*c, (1, 1): c}, {(0, 0): c, (0, 1): -1, (1, 1): b}], [{(0,
+        0): a, (1, 0): a*b, (1, 1): b}, {(0, 0): b, (0, 1): -1, (1,
+        1): a}], [{(0, 0): a, (1, 0): a*c, (1, 1): c}, {(0, 0): c, (0,
+        1): -1, (1, 1): a}], [{(0, 0): c, (1, 0): a*c + b**2, (1, 1):
+        b, (2, 0): b, (2, 1): 1, (2, 2): a}, {(0, 0): a, (0, 1): -1,
+        (0, 2): b, (1, 1): b, (1, 2): -a*c - b**2, (2, 2): c}]],
+        [[{(0, 0): 1/a}, {(0, 0): 1/a}], [{(0, 0): 1/c}, {(0, 0):
+        1/c}], [{(0, 0): 1/b}, {(0, 0): 1/b}], [{(0, 0): 1/b, (1, 0):
+        -1, (1, 1): 1/c}, {(0, 0): 1/c, (0, 1): 1/(b*c), (1, 1):
+        1/b}], [{(0, 0): 1/a, (1, 0): -1, (1, 1): 1/b}, {(0, 0): 1/b,
+        (0, 1): 1/(a*b), (1, 1): 1/a}], [{(0, 0): 1/a, (1, 0): -1, (1,
+        1): 1/c}, {(0, 0): 1/c, (0, 1): 1/(a*c), (1, 1): 1/a}], [{(0,
+        0): 1/c, (1, 0): -a/b - b/c, (1, 1): 1/b, (2, 0): 1/b, (2, 1):
+        -1/(a*b), (2, 2): 1/a}, {(0, 0): 1/a, (0, 1): 1/(a*b), (0, 2):
+        1/b, (1, 1): 1/b, (1, 2): a/b + b/c, (2, 2): 1/c}]])
+    return data[nstands]
+
+# generated demo data for cubic Hecke algebra
+def read_regl_generated(u, v, w, nstands):
+    r"""
+    Return precomputed data of Ivan Marin
+
+    INPUT:
+
+    - ``a, b, c, j, u, v, w`` -- variables for the representation matrices
+    - ``nstarnds`` -- integer, number of strands of the cubic Hecke algebra in
+      question
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import read_regl_generated
+        sage: read_regl_generated(3, 5, 7, 2)
+        ([3],
+         [[{(0, 1): -5, (0, 2): 1, (1, 0): 1, (1, 1): 3, (2, 1): 7}]],
+         [[{(0, 1): 1, (0, 2): -3/7, (1, 2): 1/7, (2, 0): 1, (2, 2): 5/7}]])
+
+    """
+    data = {}
+    data[2] = ([3], [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w}]],
+        [[{(0, 1): 1, (0, 2): -u/w, (1, 2): 1/w, (2, 0): 1, (2, 2):
+        v/w}]])
+    data[3] = ([24], [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w, (3,
+        5): -v, (3, 7): 1, (4, 6): -v, (4, 8): 1, (5, 3): 1, (5, 5):
+        u, (6, 4): 1, (6, 6): u, (7, 5): w, (8, 6): w, (9, 9): u, (9,
+        15): 1, (10, 10): u, (10, 17): 1, (11, 9): w, (12, 10): w,
+        (13, 13): u, (13, 16): 1, (14, 13): w, (15, 9): -v, (15, 11):
+        1, (16, 13): -v, (16, 14): 1, (17, 10): -v, (17, 12): 1, (18,
+        19): -v, (18, 20): 1, (19, 18): 1, (19, 19): u, (20, 19): w,
+        (21, 22): -v, (21, 23): 1, (22, 21): 1, (22, 22): u, (23, 22):
+        w}, {(0, 3): -v, (0, 4): 1, (1, 15): -v, (1, 16): 1, (1, 22):
+        -v, (1, 23): u*v/w, (2, 17): -v, (2, 18): 1, (2, 23): v*(u*v -
+        w)/w, (3, 0): 1, (3, 3): u, (4, 3): w, (5, 9): -v, (5, 10): 1,
+        (5, 12): -u/w, (5, 22): u, (5, 23): -u**2/w, (6, 11): -v, (6,
+        22): w, (6, 23): -u, (7, 12): -u*v/w, (7, 13): -v, (7, 19): 1,
+        (7, 21): -v, (7, 23): -u**2*v/w, (8, 12): -v, (8, 14): -v, (8,
+        20): 1, (8, 23): -u*v, (9, 5): 1, (9, 9): u, (9, 23): u/w,
+        (10, 9): w, (10, 11): -u, (11, 6): 1, (11, 11): u, (11, 13):
+        u, (12, 13): w, (12, 23): -v, (13, 23): 1, (14, 8): 1, (14,
+        14): u, (14, 23): v, (15, 1): 1, (15, 12): u/w, (15, 15): u,
+        (16, 11): v, (16, 15): w, (16, 23): -u, (17, 2): 1, (17, 12):
+        u*v/w, (17, 17): u, (18, 12): v, (18, 17): w, (19, 21): w,
+        (19, 23): v, (20, 14): w, (21, 7): 1, (21, 21): u, (21, 23):
+        u*v/w, (22, 11): 1, (23, 12): 1, (23, 23): u}]], [[{(0, 1): 1,
+        (0, 2): -u/w, (1, 2): 1/w, (2, 0): 1, (2, 2): v/w, (3, 5): 1,
+        (3, 7): -u/w, (4, 6): 1, (4, 8): -u/w, (5, 7): 1/w, (6, 8):
+        1/w, (7, 3): 1, (7, 7): v/w, (8, 4): 1, (8, 8): v/w, (9, 11):
+        1/w, (10, 12): 1/w, (11, 11): v/w, (11, 15): 1, (12, 12): v/w,
+        (12, 17): 1, (13, 14): 1/w, (14, 14): v/w, (14, 16): 1, (15,
+        9): 1, (15, 11): -u/w, (16, 13): 1, (16, 14): -u/w, (17, 10):
+        1, (17, 12): -u/w, (18, 19): 1, (18, 20): -u/w, (19, 20): 1/w,
+        (20, 18): 1, (20, 20): v/w, (21, 22): 1, (21, 23): -u/w, (22,
+        23): 1/w, (23, 21): 1, (23, 23): v/w}, {(0, 3): 1, (0, 4):
+        -u/w, (1, 15): 1, (1, 16): -u/w, (1, 22): u*v/w, (1, 23):
+        -u/w, (2, 17): 1, (2, 18): -u/w, (3, 4): 1/w, (4, 0): 1, (4,
+        4): v/w, (5, 9): 1, (5, 10): -u/w, (5, 13): -u/w, (5, 22):
+        -u**2/w, (6, 11): 1, (6, 12): -u/w, (6, 13): -u*v/w, (6, 22):
+        -u, (7, 19): -u/w, (7, 21): 1, (8, 13): -v, (8, 14): 1, (8,
+        20): -u/w, (9, 10): 1/w, (9, 22): u/w, (10, 5): 1, (10, 6):
+        -u/w, (10, 10): v/w, (10, 13): -u**2/w, (10, 23): u/w, (11,
+        22): 1, (12, 13): -u, (12, 23): 1, (13, 12): 1/w, (13, 13):
+        v/w, (14, 20): 1/w, (15, 13): u/w, (15, 16): 1/w, (15, 22):
+        -v/w, (16, 1): 1, (16, 6): v/w, (16, 13): u*v/w, (16, 16):
+        v/w, (17, 13): u*v/w, (17, 18): 1/w, (17, 23): -v/w, (18, 2):
+        1, (18, 13): v, (18, 18): v/w, (18, 23): -v**2/w, (19, 7): 1,
+        (19, 12): v/w, (19, 19): v/w, (19, 23): u*v/w, (20, 8): 1,
+        (20, 20): v/w, (20, 23): v, (21, 13): -v/w, (21, 19): 1/w,
+        (22, 6): 1/w, (22, 13): u/w, (22, 22): v/w, (23, 13): 1}]])
+    return data[nstands]
+
+# generated demo data for cubic Hecke algebra
+def read_regr_generated(u, v, w, nstands):
+    r"""
+    Return precomputed data of Ivan Marin
+
+    INPUT:
+
+    - ``a, b, c, j, u, v, w`` -- variables for the representation matrices
+    - ``nstarnds`` -- integer, number of strands of the cubic Hecke algebra in
+      question
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import read_regr_generated
+        sage: read_regr_generated(3, 5, 7, 2)
+        ([3],
+         [[{(0, 1): -5, (0, 2): 1, (1, 0): 1, (1, 1): 3, (2, 1): 7}]],
+         [[{(0, 1): 1, (0, 2): -3/7, (1, 2): 1/7, (2, 0): 1, (2, 2): 5/7}]])
+
+    """
+    data = {}
+    data[2] = ([3], [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w}]],
+        [[{(0, 1): 1, (0, 2): -u/w, (1, 2): 1/w, (2, 0): 1, (2, 2):
+        v/w}]])
+    data[3] = ([24], [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w, (3,
+        15): -v, (3, 17): 1, (4, 16): -v, (4, 18): 1, (4, 22): v**2,
+        (4, 23): -v, (5, 9): -v, (5, 10): 1, (6, 13): -v, (6, 19): 1,
+        (6, 21): -v, (6, 22): -u*v, (7, 11): -v, (7, 12): 1, (8, 14):
+        -v, (8, 20): 1, (8, 22): -v*w, (9, 5): 1, (9, 9): u, (9, 23):
+        u/w, (10, 9): w, (10, 21): -u, (10, 22): -u**2, (11, 7): 1,
+        (11, 11): u, (11, 21): u, (11, 23): u*v/w, (12, 11): w, (12,
+        22): -u*w, (13, 6): 1, (13, 13): u, (13, 22): v, (14, 8): 1,
+        (14, 14): u, (14, 23): v, (15, 3): 1, (15, 15): u, (15, 22):
+        u, (15, 23): -u**2/w, (16, 4): 1, (16, 16): u, (16, 21): v,
+        (17, 15): w, (17, 22): u*v, (17, 23): -u, (18, 16): w, (19,
+        13): w, (20, 14): w, (21, 22): -v, (21, 23): 1, (22, 21): 1,
+        (22, 22): u, (23, 22): w}, {(0, 3): -v, (0, 4): 1, (1, 5): -v,
+        (1, 6): 1, (2, 7): -v, (2, 8): 1, (3, 0): 1, (3, 3): u, (4,
+        3): w, (5, 1): 1, (5, 5): u, (6, 5): w, (7, 2): 1, (7, 7): u,
+        (8, 7): w, (9, 9): u, (9, 15): 1, (10, 13): u, (10, 16): 1,
+        (10, 22): -v, (11, 9): w, (12, 13): w, (12, 23): -v, (13, 23):
+        1, (14, 21): w, (14, 23): v, (15, 9): -v, (15, 11): 1, (16,
+        22): w, (16, 23): -u, (17, 13): -v, (17, 14): 1, (17, 21): -v,
+        (18, 19): -v, (18, 20): 1, (19, 18): 1, (19, 19): u, (20, 19):
+        w, (21, 17): 1, (21, 21): u, (22, 10): 1, (22, 22): u, (23,
+        12): 1, (23, 23): u}]], [[{(0, 1): 1, (0, 2): -u/w, (1, 2):
+        1/w, (2, 0): 1, (2, 2): v/w, (3, 15): 1, (3, 17): -u/w, (3,
+        23): u*(u*v - w)/w**2, (4, 16): 1, (4, 18): -u/w, (4, 22): -v,
+        (4, 23): u*v/w, (5, 9): 1, (5, 10): -u/w, (5, 21): -u/w, (5,
+        22): -u**2/w, (5, 23): -u*v/w**2, (6, 13): 1, (6, 19): -u/w,
+        (6, 23): -v/w, (7, 11): 1, (7, 12): -u/w, (7, 21): -u*v/w, (7,
+        22): -u, (7, 23): -u*v**2/w**2, (8, 14): 1, (8, 20): -u/w, (8,
+        21): -v, (8, 23): -v**2/w, (9, 10): 1/w, (9, 22): u/w, (10,
+        5): 1, (10, 10): v/w, (10, 22): u*v/w, (11, 12): 1/w, (11,
+        23): u/w, (12, 7): 1, (12, 12): v/w, (12, 23): u*v/w, (13,
+        19): 1/w, (14, 20): 1/w, (15, 17): 1/w, (15, 21): u/w, (16,
+        18): 1/w, (17, 3): 1, (17, 17): v/w, (17, 21): u*v/w, (18, 4):
+        1, (18, 18): v/w, (18, 21): v, (19, 6): 1, (19, 19): v/w, (19,
+        22): v, (20, 8): 1, (20, 20): v/w, (20, 23): v, (21, 22): 1,
+        (21, 23): -u/w, (22, 23): 1/w, (23, 21): 1, (23, 23): v/w},
+        {(0, 3): 1, (0, 4): -u/w, (1, 5): 1, (1, 6): -u/w, (2, 7): 1,
+        (2, 8): -u/w, (3, 4): 1/w, (4, 0): 1, (4, 4): v/w, (5, 6):
+        1/w, (6, 1): 1, (6, 6): v/w, (7, 8): 1/w, (8, 2): 1, (8, 8):
+        v/w, (9, 11): 1/w, (10, 13): -u**2/w, (10, 16): -u/w, (10,
+        22): 1, (11, 11): v/w, (11, 15): 1, (12, 13): -u, (12, 23): 1,
+        (13, 12): 1/w, (13, 13): v/w, (14, 12): v/w, (14, 14): v/w,
+        (14, 17): 1, (15, 9): 1, (15, 11): -u/w, (16, 10): 1, (16,
+        12): -u/w, (16, 16): v/w, (17, 13): u*v/w, (17, 14): -u/w,
+        (17, 21): 1, (18, 19): 1, (18, 20): -u/w, (19, 20): 1/w, (20,
+        18): 1, (20, 20): v/w, (21, 13): -v/w, (21, 14): 1/w, (22,
+        13): u/w, (22, 16): 1/w, (23, 13): 1}]])
+    return data[nstands]
+
