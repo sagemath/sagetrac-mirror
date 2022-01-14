@@ -58,8 +58,13 @@
 .iml
 
 # VSCode
-.vscode/*
 **/.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+**/*.code-workspace
+**/.history
 
 # XCode
 xcuserdata/
@@ -144,6 +149,7 @@ __pycache__/
 !/src/sage/stats/distributions/dgs_bern.c
 !/src/sage/stats/distributions/dgs_gauss_dp.c
 !/src/sage/stats/distributions/dgs_gauss_mp.c
+!/src/sage/symbolic/ginac/*.cpp
 /src/cython_debug
 
 # Temporary build files
@@ -181,6 +187,7 @@ src/*.egg-info/
 /src/bin/sage-src-env-config
 
 # Virtual environments
+/venv
 src/.env
 src/.venv
 src/env/

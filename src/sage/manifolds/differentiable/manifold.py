@@ -70,7 +70,7 @@ Sage's symbolic variables::
     sage: y
     y
     sage: type(y)
-    <type 'sage.symbolic.expression.Expression'>
+    <class 'sage.symbolic.expression.Expression'>
 
 The South pole is the point of coordinates `(x,y)=(0,0)` in the above
 chart::
@@ -447,7 +447,7 @@ from sage.manifolds.differentiable.manifold_homset import DifferentiableManifold
 from sage.manifolds.differentiable.mixed_form_algebra import MixedFormAlgebra
 from sage.manifolds.differentiable.scalarfield_algebra import DiffScalarFieldAlgebra
 from sage.manifolds.manifold import TopologicalManifold
-from sage.rings.all import CC
+from sage.rings.cc import CC
 from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer import Integer
 from sage.rings.real_mpfr import RR

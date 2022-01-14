@@ -926,7 +926,7 @@ class RecognizableSeries(ModuleElement):
 
         A :class:`RecognizableSeries`
 
-        ALOGRITHM:
+        ALGORITHM:
 
         This method implements the minimization algorithm presented in
         Chapter 2 of [BR2010a]_.
@@ -1521,7 +1521,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         if coefficient_ring is None:
             raise ValueError('No coefficient ring specified.')
         from sage.categories.semirings import Semirings
-        if coefficient_ring not in Semirings:
+        if coefficient_ring not in Semirings():
             raise ValueError(
                 'Coefficient ring {} is not a semiring.'.format(coefficient_ring))
 

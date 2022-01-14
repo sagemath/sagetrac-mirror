@@ -86,7 +86,7 @@ def sage_makedirs(dirname, mode=0o777):
         sage: sage_makedirs(filename)
         Traceback (most recent call last):
         ...
-        OSError: [Errno ...] File exists: ...
+        FileExistsError: [Errno ...] File exists: ...
     """
     try:
         os.makedirs(dirname)
@@ -152,13 +152,13 @@ def try_read(obj, splitlines=False):
 
     I/O buffers::
 
-        sage: buf = io.StringIO(u'a\nb\nc')
+        sage: buf = io.StringIO('a\nb\nc')
         sage: print(try_read(buf))
         a
         b
         c
         sage: _ = buf.seek(0); try_read(buf, splitlines=True)
-        [u'a\n', u'b\n', u'c']
+        ['a\n', 'b\n', 'c']
         sage: buf = io.BytesIO(b'a\nb\nc')
         sage: try_read(buf) == b'a\nb\nc'
         True
@@ -759,7 +759,7 @@ def nest(f, n, x):
         x
 
     """
-    from sage.rings.all import Integer
+    from sage.rings.integer import Integer
     n = Integer(n)
 
     if n < 0:
@@ -803,6 +803,8 @@ class BackslashOperator:
         EXAMPLES::
 
             sage: A = random_matrix(ZZ, 4)
+            sage: while A.rank() != 4:
+            ....:     A = random_matrix(ZZ, 4)
             sage: B = random_matrix(ZZ, 4)
             sage: temp = A * BackslashOperator()
             sage: temp.left is A

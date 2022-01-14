@@ -60,7 +60,7 @@ they are Sage's symbolic variables::
     sage: y
     y
     sage: type(y)
-    <type 'sage.symbolic.expression.Expression'>
+    <class 'sage.symbolic.expression.Expression'>
 
 The South pole is the point of coordinates `(x, y) = (0, 0)` in the above
 chart::
@@ -336,10 +336,9 @@ from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
 from sage.manifolds.subset import ManifoldSubset
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import getrandbits
-from sage.rings.all import CC
-from sage.rings.complex_mpfr import ComplexField_class
+from sage.rings.cc import CC
 from sage.rings.integer import Integer
-from sage.rings.real_mpfr import RR, RealField_class
+from sage.rings.real_mpfr import RR
 from sage.structure.global_options import GlobalOptions
 
 #############################################################################
@@ -556,9 +555,9 @@ class TopologicalManifold(ManifoldSubset):
             if field not in Fields():
                 raise TypeError("the argument 'field' must be a field")
             self._field = field
-            if isinstance(field, RealField_class):
+            if isinstance(field, sage.rings.abc.RealField):
                 self._field_type = 'real'
-            elif isinstance(field, ComplexField_class):
+            elif isinstance(field, sage.rings.abc.ComplexField):
                 self._field_type = 'complex'
             else:
                 self._field_type = 'neither_real_nor_complex'
@@ -668,7 +667,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: p in V
             True
             sage: p.coord()
-            (-pi - 1, 0)
+            (-pi - 1, 2)
 
         """
         from sage.rings.infinity import Infinity
@@ -1552,7 +1551,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: y
             y
             sage: type(y)
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
 
         But a shorter way to proceed is to use the operator ``<,>`` in the
         left-hand side of the chart declaration (there is then no need to
@@ -2517,7 +2516,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: f.expr()
             x^2 + cos(y)*sin(x)
             sage: type(f.expr())
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
             sage: parent(f.expr())
             Symbolic Ring
             sage: f.display()
@@ -2942,14 +2941,18 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         sage: isinstance(M, sage.misc.fast_methods.WithEqualityById)
         True
     """
-    from sage.rings.infinity import infinity
-    from sage.manifolds.differentiable.manifold import DifferentiableManifold
-    from sage.manifolds.differentiable.pseudo_riemannian import PseudoRiemannianManifold
     from sage.manifolds.differentiable.degenerate import DegenerateManifold
+    from sage.manifolds.differentiable.degenerate_submanifold import \
+        DegenerateSubmanifold
+    from sage.manifolds.differentiable.differentiable_submanifold import \
+        DifferentiableSubmanifold
+    from sage.manifolds.differentiable.manifold import DifferentiableManifold
+    from sage.manifolds.differentiable.pseudo_riemannian import \
+        PseudoRiemannianManifold
+    from sage.manifolds.differentiable.pseudo_riemannian_submanifold import \
+        PseudoRiemannianSubmanifold
     from sage.manifolds.topological_submanifold import TopologicalSubmanifold
-    from sage.manifolds.differentiable.differentiable_submanifold import DifferentiableSubmanifold
-    from sage.manifolds.differentiable.pseudo_riemannian_submanifold import PseudoRiemannianSubmanifold
-    from sage.manifolds.differentiable.degenerate_submanifold import DegenerateSubmanifold
+    from sage.rings.infinity import infinity
 
     global _manifold_id
 
@@ -3018,27 +3021,15 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                       start_index=start_index,
                                       unique_tag=unique_tag())
     elif structure in ['pseudo-Riemannian', 'Riemannian', 'Lorentzian','degenerate_metric']:
-        if 'diff_degree' in extra_kwds:
-            diff_degree = extra_kwds['diff_degree']
-        else:
-            diff_degree = infinity
-        if 'metric_name' in extra_kwds:
-            metric_name = extra_kwds['metric_name']
-        else:
-            metric_name = 'g'
-        if 'metric_latex_name' in extra_kwds:
-            metric_latex_name = extra_kwds['metric_latex_name']
-        else:
-            metric_latex_name = None
+        diff_degree = extra_kwds.get('diff_degree', infinity)
+        metric_name = extra_kwds.get('metric_name', None)
+        metric_latex_name = extra_kwds.get('metric_latex_name', None)
         if structure == 'pseudo-Riemannian':
-            if 'signature' in extra_kwds:
-                signature = extra_kwds['signature']
-            else:
-                signature = None
+            signature = extra_kwds.get('signature', None)
         elif structure == 'Riemannian':
             signature = dim
         elif structure == 'degenerate_metric':
-            signature = (0,dim-1,1)
+            signature = (0, dim-1, 1)
         elif structure == 'Lorentzian':
             if 'signature' in extra_kwds:
                 signat = extra_kwds['signature']
