@@ -438,15 +438,19 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from __future__ import annotations
 
-from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
+from sage.categories.manifolds import Manifolds
+from sage.manifolds.differentiable.chart import DiffChart, RealDiffChart
+from sage.manifolds.differentiable.manifold_homset import DifferentiableManifoldHomset
+from sage.manifolds.differentiable.mixed_form_algebra import MixedFormAlgebra
+from sage.manifolds.differentiable.scalarfield_algebra import DiffScalarFieldAlgebra
+from sage.manifolds.manifold import TopologicalManifold
 from sage.rings.all import CC
-from sage.rings.real_mpfr import RR
 from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer import Integer
-from sage.manifolds.manifold import TopologicalManifold
-from sage.manifolds.differentiable.mixed_form_algebra import MixedFormAlgebra
+from sage.rings.real_mpfr import RR
 
 ###############################################################################
 
@@ -486,9 +490,6 @@ class DifferentiableManifold(TopologicalManifold):
         :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
         for other types of manifolds
 
-    - ``structure`` -- manifold structure (see
-      :class:`~sage.manifolds.structure.DifferentialStructure` or
-      :class:`~sage.manifolds.structure.RealDifferentialStructure`)
     - ``base_manifold`` -- (default: ``None``) if not ``None``, must be a
       differentiable manifold; the created object is then an open subset of
       ``base_manifold``
@@ -623,9 +624,19 @@ class DifferentiableManifold(TopologicalManifold):
         sage: TestSuite(M).run()
 
     """
-    def __init__(self, n, name, field, structure, base_manifold=None,
-                 diff_degree=infinity, latex_name=None, start_index=0,
-                 category=None, unique_tag=None):
+
+    def __init__(
+        self,
+        n,
+        name,
+        field,
+        base_manifold=None,
+        diff_degree=infinity,
+        latex_name=None,
+        start_index=0,
+        category=None,
+        unique_tag=None,
+    ):
         r"""
         Construct a differentiable manifold.
 
@@ -668,7 +679,7 @@ class DifferentiableManifold(TopologicalManifold):
         elif not isinstance(base_manifold, DifferentiableManifold):
             raise TypeError("the argument 'base_manifold' must be a " +
                             "differentiable manifold")
-        TopologicalManifold.__init__(self, n, name, field, structure,
+        TopologicalManifold.__init__(self, n, name, field,
                                      base_manifold=base_manifold,
                                      latex_name=latex_name,
                                      start_index=start_index,
@@ -701,6 +712,12 @@ class DifferentiableManifold(TopologicalManifold):
                                         # modules
         self._tensor_bundles = {} # dict of dict of all established tensor
                                   # bundles
+
+        self._name_modifier = "differentiable"
+        if self._field_type is "real":
+            self._chart_type = RealDiffChart
+        else:
+            self._chart_type = DiffChart
 
     def diff_degree(self):
         r"""
@@ -821,11 +838,15 @@ class DifferentiableManifold(TopologicalManifold):
             True
 
         """
-        resu = DifferentiableManifold(self._dim, name, self._field,
-                                      self._structure, base_manifold=self._manifold,
-                                      diff_degree=self._diff_degree,
-                                      latex_name=latex_name,
-                                      start_index=self._sindex)
+        resu = DifferentiableManifold(
+            self._dim,
+            name,
+            self._field,
+            base_manifold=self._manifold,
+            diff_degree=self._diff_degree,
+            latex_name=latex_name,
+            start_index=self._sindex,
+        )
         if supersets is None:
             supersets = [self]
         for superset in supersets:
@@ -851,13 +872,47 @@ class DifferentiableManifold(TopologicalManifold):
             sage: M = Manifold(2, 'R^2', structure='differentiable')
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
             sage: from sage.manifolds.differentiable.manifold import DifferentiableManifold
-            sage: U = DifferentiableManifold(2, 'U', field=M._field, structure=M._structure, base_manifold=M)
+            sage: U = DifferentiableManifold(2, 'U', field=M._field, base_manifold=M)
             sage: M._init_open_subset(U, coord_def={c_cart: x^2+y^2<1})
             sage: U
             Open subset U of the 2-dimensional differentiable manifold R^2
         """
         super()._init_open_subset(resu, coord_def=coord_def)
         #!# update vector frames and change of frames
+
+    def _Hom_(self, other: DifferentiableManifold, category=None):
+        r"""
+        Construct the set of morphisms (i.e. smooth maps)
+        ``self`` to ``other``.
+
+        INPUT:
+
+        - ``other`` -- an open subset of some manifold over the
+          same field as ``self``
+        - ``category`` -- (default: ``None``) not used here (to ensure
+          compatibility with generic hook ``_Hom_``)
+
+        OUTPUT:
+
+        - the homset `\mathrm{Hom}(U,V)`, where `U` is ``self``
+          and `V` is ``other``
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='differentiable')
+            sage: N = Manifold(3, 'N', structure='differentiable')
+            sage: H = M._Hom_(N); H
+            Set of Morphisms from 2-dimensional differentiable manifold M to
+             3-dimensional differentiable manifold N in Category of manifolds over
+             Real Field with 53 bits of precision
+
+        The result is cached::
+
+            sage: H is Hom(M, N)
+            True
+
+        """
+        return DifferentiableManifoldHomset(self, other)
 
     def diff_map(self, codomain, coord_functions=None, chart1=None,
                        chart2=None, name=None, latex_name=None):
@@ -1217,6 +1272,42 @@ class DifferentiableManifold(TopologicalManifold):
                 self._tensor_bundles[dest_map][(k, l)] = TensorBundle(self, k,
                                                            l, dest_map=dest_map)
         return self._tensor_bundles[dest_map][(k, l)]
+
+    @cached_method
+    def scalar_field_algebra(self):
+        r"""
+        Return the algebra of scalar fields defined the manifold.
+
+        See :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`
+        for a complete documentation.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`
+          representing the algebra `C^0(U)` of all scalar fields defined
+          on `U` = ``self``
+
+        EXAMPLES:
+
+        Scalar algebra of a 3-dimensional open subset::
+
+            sage: M = Manifold(3, 'M', structure='differentiable')
+            sage: U = M.open_subset('U')
+            sage: CU = U.scalar_field_algebra() ; CU
+            Algebra of scalar fields on the Open subset U of the 3-dimensional differentiable manifold M
+            sage: CU.category()
+            Join of Category of commutative algebras over Symbolic Ring and Category of homsets of differentiable spaces
+            sage: CU.zero()
+            Scalar field zero on the Open subset U of the 3-dimensional differentiable manifold M
+
+        The output is cached::
+
+            sage: U.scalar_field_algebra() is CU
+            True
+
+        """
+        return DiffScalarFieldAlgebra(self)
 
     def vector_field_module(self, dest_map=None, force_free=False):
         r"""
@@ -2662,13 +2753,13 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         from .vectorframe import VectorFrame
-        chart_type = self._structure.chart
-        if isinstance(orientation, chart_type):
+
+        if isinstance(orientation, self._chart_type):
             orientation = [orientation.frame()]
         elif isinstance(orientation, VectorFrame):
             orientation = [orientation]
         elif isinstance(orientation, (list, tuple)):
-            if isinstance(orientation[0], chart_type):
+            if isinstance(orientation[0], self._chart_type):
                 orientation = [c.frame() for c in orientation]
             else:
                 orientation = list(orientation)

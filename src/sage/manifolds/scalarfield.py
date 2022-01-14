@@ -2295,7 +2295,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
                                  "the domain of definition of the scalar field")
             # Special case of the zero scalar field:
             if self._is_zero:
-                return subdomain._zero_scalar_field
+                return subdomain.scalar_field_algebra().zero()
             # First one tries to get the restriction from a tighter domain:
             for dom, rst in self._restrictions.items():
                 if subdomain.is_subset(dom):

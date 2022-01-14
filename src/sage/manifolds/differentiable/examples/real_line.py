@@ -15,7 +15,7 @@ REFERENCES:
 - [Lee2013]_
 
 """
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #
@@ -23,16 +23,16 @@ REFERENCES:
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
+from sage.categories.manifolds import Manifolds
+from sage.manifolds.differentiable.manifold import DifferentiableManifold
 from sage.misc.latex import latex
 from sage.rings.infinity import infinity, minus_infinity
-from sage.symbolic.ring import SR
 from sage.rings.real_mpfr import RR
+from sage.symbolic.ring import SR
 from sage.typeset.unicode_characters import unicode_mathbbR
-from sage.manifolds.differentiable.manifold import DifferentiableManifold
-from sage.manifolds.structure import RealDifferentialStructure
-from sage.categories.manifolds import Manifolds
+
 
 class OpenInterval(DifferentiableManifold):
     r"""
@@ -355,13 +355,17 @@ class OpenInterval(DifferentiableManifold):
                 raise TypeError("the argument ambient_interval must be an open interval")
             ambient_manifold = ambient_interval.manifold()
         field = 'real'
-        structure = RealDifferentialStructure()
         category = Manifolds(RR).Smooth().Connected()
-        DifferentiableManifold.__init__(self, 1, name, field, structure,
-                                        base_manifold=ambient_manifold,
-                                        latex_name=latex_name,
-                                        start_index=start_index,
-                                        category=category)
+        DifferentiableManifold.__init__(
+            self,
+            1,
+            name,
+            field,
+            base_manifold=ambient_manifold,
+            latex_name=latex_name,
+            start_index=start_index,
+            category=category,
+        )
         if ambient_interval is None:
             if coordinate is None:
                 if names is None:

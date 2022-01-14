@@ -309,7 +309,7 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015-2020 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015      Travis Scrimshaw <tscrimsh@umn.edu>
 #       Copyright (C) 2016      Andrew Mathas
@@ -323,23 +323,24 @@ REFERENCES:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
+
+from typing import Type
 
 from sage.categories.fields import Fields
-from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
-from sage.rings.all import CC
-from sage.rings.real_mpfr import RR, RealField_class
-from sage.rings.complex_mpfr import ComplexField_class
-from sage.misc.prandom import getrandbits
-from sage.misc.cachefunc import cached_method
-from sage.rings.integer import Integer
-from sage.structure.global_options import GlobalOptions
+from sage.categories.manifolds import Manifolds
+from sage.manifolds.chart import Chart, RealChart
+from sage.manifolds.manifold_homset import TopologicalManifoldHomset
+from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
 from sage.manifolds.subset import ManifoldSubset
-from sage.manifolds.structure import(
-                            TopologicalStructure, RealTopologicalStructure,
-                            DifferentialStructure, RealDifferentialStructure)
-
+from sage.misc.cachefunc import cached_method
+from sage.misc.prandom import getrandbits
+from sage.rings.all import CC
+from sage.rings.complex_mpfr import ComplexField_class
+from sage.rings.integer import Integer
+from sage.rings.real_mpfr import RR, RealField_class
+from sage.structure.global_options import GlobalOptions
 
 #############################################################################
 ## Global options
@@ -378,9 +379,6 @@ class TopologicalManifold(ManifoldSubset):
         :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
         for other types of manifolds
 
-    - ``structure`` -- manifold structure (see
-      :class:`~sage.manifolds.structure.TopologicalStructure` or
-      :class:`~sage.manifolds.structure.RealTopologicalStructure`)
     - ``base_manifold`` -- (default: ``None``) if not ``None``, must be a
       topological manifold; the created object is then an open subset of
       ``base_manifold``
@@ -506,9 +504,21 @@ class TopologicalManifold(ManifoldSubset):
 
         :mod:`sage.manifolds.manifold`
     """
-    def __init__(self, n, name, field, structure, base_manifold=None,
-                 latex_name=None, start_index=0, category=None,
-                 unique_tag=None):
+
+    _name_modifier: str
+    _chart_type: Type[Chart]
+
+    def __init__(
+        self,
+        n,
+        name,
+        field,
+        base_manifold=None,
+        latex_name=None,
+        start_index=0,
+        category=None,
+        unique_tag=None,
+    ):
         r"""
         Construct a topological manifold.
 
@@ -535,6 +545,7 @@ class TopologicalManifold(ManifoldSubset):
         """
         # Initialization of the attributes _dim, _field, _field_type:
         self._dim = n
+
         if field == 'real':
             self._field = RR
             self._field_type = 'real'
@@ -551,12 +562,16 @@ class TopologicalManifold(ManifoldSubset):
                 self._field_type = 'complex'
             else:
                 self._field_type = 'neither_real_nor_complex'
-        # Structure and category:
-        self._structure = structure
+
+        if self._field_type is "real":
+            self._chart_type = RealChart
+        else:
+            self._chart_type = Chart
+
+        # Category
         if base_manifold is None:
             base_manifold = self
             category = Manifolds(self._field).or_subcategory(category)
-            category = self._structure.subcategory(category)
         else:
             category = base_manifold.category().Subobjects()
         # Initialization as a manifold set:
@@ -582,17 +597,13 @@ class TopologicalManifold(ManifoldSubset):
         # List of charts that individually cover self, i.e. whose
         # domains are self (if non-empty, self is a coordinate domain):
         self._covering_charts = []
-        # Algebra of scalar fields defined on self:
-        self._scalar_field_algebra = self._structure.scalar_field_algebra(self)
-        # The zero scalar field:
-        self._zero_scalar_field = self._scalar_field_algebra.zero()
-        # The unit scalar field:
-        self._one_scalar_field = self._scalar_field_algebra.one()
         # The current calculus method on the manifold
         #   (to be changed by set_calculus_method)
         self._calculus_method = 'SR'
 
-    def _repr_(self):
+        self._name_modifier = "topological"
+
+    def _repr_(self) -> str:
         r"""
         Return a string representation of the manifold.
 
@@ -620,28 +631,16 @@ class TopologicalManifold(ManifoldSubset):
             'Open subset U of the 3-dimensional topological manifold M
              over the Rational Field'
         """
-        if self is self._manifold:
-            if self._field_type == 'real':
-                return "{}-dimensional {} manifold {}".format(self._dim,
-                                                          self._structure.name,
-                                                          self._name)
-            elif self._field_type == 'complex':
-                if isinstance(self._structure, DifferentialStructure):
-                    return "{}-dimensional complex manifold {}".format(
-                                                                    self._dim,
-                                                                    self._name)
-                else:
-                    return "Complex {}-dimensional {} manifold {}".format(
-                                                          self._dim,
-                                                          self._structure.name,
-                                                          self._name)
-            return "{}-dimensional {} manifold {} over the {}".format(
-                                                          self._dim,
-                                                          self._structure.name,
-                                                          self._name,
-                                                          self._field)
-        else:
-            return "Open subset {} of the {}".format(self._name, self._manifold)
+        if self is not self._manifold:
+            return f"Open subset {self._name} of the {self._manifold}"
+
+        if self._field_type == "real":
+            return (
+                f"{self._dim}-dimensional {self._name_modifier} manifold {self._name}"
+            )
+        elif self._field_type == "complex":
+            return f"{self._dim}-dimensional complex {self._name_modifier} manifold {self._name}"
+        return f"{self.dim}-dimensional {self._name_modifier} manifold {self._name} over the {self._field}"
 
     def _an_element_(self):
         r"""
@@ -868,11 +867,14 @@ class TopologicalManifold(ManifoldSubset):
             False
 
         """
-        resu = TopologicalManifold(self._dim, name, self._field,
-                                   self._structure,
-                                   base_manifold=self._manifold,
-                                   latex_name=latex_name,
-                                   start_index=self._sindex)
+        resu = TopologicalManifold(
+            self._dim,
+            name,
+            self._field,
+            base_manifold=self._manifold,
+            latex_name=latex_name,
+            start_index=self._sindex,
+        )
         if supersets is None:
             supersets = [self]
         for superset in supersets:
@@ -898,7 +900,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: M = Manifold(2, 'R^2', structure='topological')
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
             sage: from sage.manifolds.manifold import TopologicalManifold
-            sage: U = TopologicalManifold(2, 'U', field=M._field, structure=M._structure, base_manifold=M)
+            sage: U = TopologicalManifold(2, 'U', field=M._field, base_manifold=M)
             sage: M._init_open_subset(U, coord_def={c_cart: x^2+y^2<1})
             sage: U
             Open subset U of the 2-dimensional topological manifold R^2
@@ -1601,9 +1603,13 @@ class TopologicalManifold(ManifoldSubset):
         """
         if calc_method is None:
             calc_method = self._calculus_method
-        return self._structure.chart(self, coordinates=coordinates,
-                                     names=names, calc_method=calc_method,
-                                     coord_restrictions=coord_restrictions)
+        return self._chart_type(
+            self,
+            coordinates=coordinates,
+            names=names,
+            calc_method=calc_method,
+            coord_restrictions=coord_restriction,
+        )
 
     def is_open(self):
         """
@@ -1657,8 +1663,7 @@ class TopologicalManifold(ManifoldSubset):
             [Chart (U, (x, y)), Chart (V, (u, v))]
 
         """
-        chart_type = self._structure.chart
-        if isinstance(orientation, chart_type):
+        if isinstance(orientation, self._chart_type):
             orientation = [orientation]
         elif isinstance(orientation, (tuple, list)):
             orientation = list(orientation)
@@ -1667,7 +1672,7 @@ class TopologicalManifold(ManifoldSubset):
                             "charts")
         dom_union = None
         for c in orientation:
-            if not isinstance(c, chart_type):
+            if not isinstance(c, self._chart_type):
                 raise ValueError("orientation must consist of charts")
             dom = c._domain
             if not dom.is_subset(self):
@@ -1875,6 +1880,7 @@ class TopologicalManifold(ManifoldSubset):
         return TopologicalVectorBundle(rank, name, self, field=field,
                                        latex_name=latex_name)
 
+    @cached_method
     def scalar_field_algebra(self):
         r"""
         Return the algebra of scalar fields defined the manifold.
@@ -1908,7 +1914,7 @@ class TopologicalManifold(ManifoldSubset):
             True
 
         """
-        return self._scalar_field_algebra
+        return ScalarFieldAlgebra(self)
 
     def scalar_field(self, coord_expression=None, chart=None, name=None,
                      latex_name=None):
@@ -2088,7 +2094,7 @@ class TopologicalManifold(ManifoldSubset):
             True
 
         """
-        return self._zero_scalar_field
+        return self.scalar_field_algebra().zero()
 
     def one_scalar_field(self):
         r"""
@@ -2116,7 +2122,7 @@ class TopologicalManifold(ManifoldSubset):
             True
 
         """
-        return self._one_scalar_field
+        return self.scalar_field_algebra().one()
 
     class options(GlobalOptions):
         r"""
@@ -2215,7 +2221,7 @@ class TopologicalManifold(ManifoldSubset):
             True
 
         """
-        return self._structure.homset(self, other)
+        return TopologicalManifoldHomset(self, other)
 
     def continuous_map(self, codomain, coord_functions=None, chart1=None,
                        chart2=None, name=None, latex_name=None):
@@ -2957,38 +2963,42 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
     unique_tag = lambda: getrandbits(128)*_manifold_id
 
     if structure in ['topological', 'top']:
-        if field == 'real' or isinstance(field, RealField_class):
-            structure = RealTopologicalStructure()
-        else:
-            structure = TopologicalStructure()
         if 'ambient' in extra_kwds:
             ambient = extra_kwds['ambient']
             if not isinstance(ambient, TopologicalManifold):
                 raise TypeError("ambient must be a manifold")
-            if dim>ambient._dim:
-                raise ValueError("the submanifold must be of smaller "
-                                 + "dimension than its ambient manifold")
-            return TopologicalSubmanifold(dim, name, field, structure,
-                                          ambient=ambient,
-                                          latex_name=latex_name,
-                                          start_index=start_index,
-                                          unique_tag=unique_tag())
-        return TopologicalManifold(dim, name, field, structure,
-                                   latex_name=latex_name,
-                                   start_index=start_index,
-                                   unique_tag=unique_tag())
-    elif structure in ['differentiable', 'diff', 'smooth']:
-        if 'diff_degree' in extra_kwds:
-            diff_degree = extra_kwds['diff_degree']
-            if structure == 'smooth' and diff_degree != infinity:
-                raise ValueError("diff_degree = {} is ".format(diff_degree) +
-                                 "not compatible with a smooth structure")
+            if dim > ambient._dim:
+                raise ValueError(
+                    "the submanifold must be of smaller "
+                    + "dimension than its ambient manifold"
+                )
+            return TopologicalSubmanifold(
+                dim,
+                name,
+                field,
+                ambient=ambient,
+                latex_name=latex_name,
+                start_index=start_index,
+                unique_tag=unique_tag(),
+            )
+        return TopologicalManifold(
+            dim,
+            name,
+            field,
+            latex_name=latex_name,
+            start_index=start_index,
+            unique_tag=unique_tag(),
+        )
+    elif structure in ["differentiable", "diff", "smooth"]:
+        if "diff_degree" in extra_kwds:
+            diff_degree = extra_kwds["diff_degree"]
+            if structure == "smooth" and diff_degree != infinity:
+                raise ValueError(
+                    "diff_degree = {} is ".format(diff_degree)
+                    + "not compatible with a smooth structure"
+                )
         else:
             diff_degree = infinity
-        if field == 'real' or isinstance(field, RealField_class):
-            structure = RealDifferentialStructure()
-        else:
-            structure = DifferentialStructure()
         if 'ambient' in extra_kwds:
             ambient = extra_kwds['ambient']
             if not isinstance(ambient, DifferentiableManifold):
@@ -2996,13 +3006,13 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
             if dim>ambient._dim:
                 raise ValueError("the submanifold must be of smaller "
                                  + "dimension than its ambient manifold")
-            return DifferentiableSubmanifold(dim, name, field, structure,
+            return DifferentiableSubmanifold(dim, name, field,
                                              ambient=ambient,
                                              diff_degree=diff_degree,
                                              latex_name=latex_name,
                                              start_index=start_index,
                                              unique_tag=unique_tag())
-        return DifferentiableManifold(dim, name, field, structure,
+        return DifferentiableManifold(dim, name, field,
                                       diff_degree=diff_degree,
                                       latex_name=latex_name,
                                       start_index=start_index,

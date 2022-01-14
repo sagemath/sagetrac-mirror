@@ -10,9 +10,8 @@ Degenerate manifolds
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
-from sage.rings.infinity import infinity
-from sage.manifolds.structure import DegenerateStructure
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
+from sage.rings.infinity import infinity
 
 ###############################################################################
 
@@ -121,13 +120,21 @@ class DegenerateManifold(DifferentiableManifold):
         if base_manifold and not isinstance(base_manifold, DegenerateManifold):
             raise TypeError("the argument 'base_manifold' must be a " +
                             "Degenerate manifold")
-        structure = DegenerateStructure()
-        DifferentiableManifold.__init__(self, n, name, 'real', structure,
-                                        base_manifold=base_manifold,
-                                        diff_degree=diff_degree,
-                                        latex_name=latex_name,
-                                        start_index=start_index,
-                                        category=category)
+
+        DifferentiableManifold.__init__(
+            self,
+            n,
+            name,
+            "real",
+            base_manifold=base_manifold,
+            diff_degree=diff_degree,
+            latex_name=latex_name,
+            start_index=start_index,
+            category=category,
+        )
+
+        self._name_modifier = "degenerate metric"
+
         self._metric = None # to be initialized by metric()
         self._metric_signature = signature
         if not isinstance(metric_name, str):

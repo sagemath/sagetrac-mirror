@@ -93,9 +93,6 @@ class TopologicalSubmanifold(TopologicalManifold):
         :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
         for other types of manifolds
 
-    - ``structure`` -- manifold structure (see
-      :class:`~sage.manifolds.structure.TopologicalStructure` or
-      :class:`~sage.manifolds.structure.RealTopologicalStructure`)
     - ``ambient`` -- (default: ``None``) codomain `M` of the immersion `\phi`;
       must be a topological manifold. If ``None``, it is set to ``self``
     - ``base_manifold`` -- (default: ``None``) if not ``None``, must be a
@@ -175,9 +172,19 @@ class TopologicalSubmanifold(TopologicalManifold):
         :mod:`~sage.manifolds.manifold`
 
     """
-    def __init__(self, n, name, field, structure, ambient=None,
-                 base_manifold=None, latex_name=None, start_index=0,
-                 category=None, unique_tag=None):
+
+    def __init__(
+        self,
+        n,
+        name,
+        field,
+        ambient=None,
+        base_manifold=None,
+        latex_name=None,
+        start_index=0,
+        category=None,
+        unique_tag=None,
+    ):
         r"""
         Construct a submanifold of a topological manifold.
 
@@ -190,11 +197,16 @@ class TopologicalSubmanifold(TopologicalManifold):
              3-dimensional topological manifold M
 
         """
-        TopologicalManifold.__init__(self, n, name, field, structure,
-                                     base_manifold=base_manifold,
-                                     latex_name=latex_name,
-                                     start_index=start_index,
-                                     category=category)
+        TopologicalManifold.__init__(
+            self,
+            n,
+            name,
+            field,
+            base_manifold=base_manifold,
+            latex_name=latex_name,
+            start_index=start_index,
+            category=category,
+        )
         self._init_immersion(ambient=ambient)
 
     def _init_immersion(self, ambient=None):
@@ -255,10 +267,8 @@ class TopologicalSubmanifold(TopologicalManifold):
         if self._ambient is self:
             return super(TopologicalManifold, self).__repr__()
         if self._embedded:
-            return "{}-dimensional {} submanifold {} embedded in the {}".format(
-                self._dim, self._structure.name, self._name, self._ambient)
-        return "{}-dimensional {} submanifold {} immersed in the {}".format(
-                self._dim, self._structure.name, self._name, self._ambient)
+            return f"{self._dim}-dimensional {self._name_modifier} submanifold {self._name} embedded in the {self._ambient}"
+        return f"{self._dim}-dimensional {self._name_modifier} submanifold {self._name} immersed in the {self._ambient}"
 
     def open_subset(self, name, latex_name=None, coord_def={}, supersets=None):
         r"""
@@ -320,11 +330,15 @@ class TopologicalSubmanifold(TopologicalManifold):
               3-dimensional topological manifold M
 
         """
-        resu = TopologicalSubmanifold(self._dim, name, self._field,
-                                      self._structure, self._ambient,
-                                      base_manifold=self._manifold,
-                                      latex_name=latex_name,
-                                      start_index=self._sindex)
+        resu = TopologicalSubmanifold(
+            self._dim,
+            name,
+            self._field,
+            self._ambient,
+            base_manifold=self._manifold,
+            latex_name=latex_name,
+            start_index=self._sindex,
+        )
         if supersets is None:
             supersets = [self]
         for superset in supersets:
@@ -355,7 +369,7 @@ class TopologicalSubmanifold(TopologicalManifold):
             2-dimensional topological submanifold N embedded in the
              3-dimensional topological manifold M
             sage: from sage.manifolds.topological_submanifold import TopologicalSubmanifold
-            sage: O = TopologicalSubmanifold(3, 'O', field=M._field, structure=M._structure,
+            sage: O = TopologicalSubmanifold(3, 'O', field=M._field,
             ....:                            ambient=M, base_manifold=N)
             sage: N._init_open_subset(O, {})
             sage: O

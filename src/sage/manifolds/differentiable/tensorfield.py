@@ -2634,7 +2634,7 @@ class TensorField(ModuleElementWithMutability):
         if scalar._is_zero:
             return self.parent().zero()
         # Case one:
-        if scalar is self._domain._one_scalar_field:
+        if scalar is self._domain.scalar_field_algebra().one():
             return self
         # Generic case:
         resu = self._new_instance()
@@ -2992,7 +2992,7 @@ class TensorField(ModuleElementWithMutability):
                     for chart, expr in resu_rr._express.items():
                         resu._express[chart] = expr
             if resu.is_trivial_zero():
-                return dom_resu._zero_scalar_field
+                return dom_resu.scalar_field_algebra().zero()
             # Name of the output:
             res_name = None
             if self._name is not None:
@@ -3161,7 +3161,7 @@ class TensorField(ModuleElementWithMutability):
                     for chart, funct in rst._express.items():
                         resu._express[chart] = funct
             if all_zero:
-                resu = self._domain._zero_scalar_field
+                resu = self._domain.scalar_field_algebra().zero()
         else:
             # tensor field result
             resu = self._vmodule.tensor((k_con-1, l_cov-1),
@@ -3400,7 +3400,7 @@ class TensorField(ModuleElementWithMutability):
                     for chart, funct in rst._express.items():
                         resu._express[chart] = funct
             if all_zero:
-                resu = dom_resu._zero_scalar_field
+                resu = dom_resu.scalar_field_algebra().zero()
         else:
             # tensor field result
             dest_map = self._vmodule._dest_map

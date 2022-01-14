@@ -259,21 +259,20 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2018 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
-from sage.rings.infinity import infinity
-from sage.manifolds.structure import (PseudoRiemannianStructure,
-                                      RiemannianStructure, LorentzianStructure)
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
+from sage.rings.infinity import infinity
 
 ###############################################################################
+
 
 class PseudoRiemannianManifold(DifferentiableManifold):
     r"""
@@ -436,18 +435,25 @@ class PseudoRiemannianManifold(DifferentiableManifold):
         if base_manifold and not isinstance(base_manifold, PseudoRiemannianManifold):
             raise TypeError("the argument 'base_manifold' must be a " +
                             "pseudo-Riemannian manifold")
+        DifferentiableManifold.__init__(
+            self,
+            n,
+            name,
+            "real",
+            base_manifold=base_manifold,
+            diff_degree=diff_degree,
+            latex_name=latex_name,
+            start_index=start_index,
+            category=category,
+        )
+
         if signature is None or signature == n:
-            structure = RiemannianStructure()
-        elif signature == n-2 or signature == 2-n:
-            structure = LorentzianStructure()
+            self._name_modifier = "Riemannian"
+        elif signature == n - 2 or signature == 2 - n:
+            self._name_modifier = "Lorentzian"
         else:
-            structure = PseudoRiemannianStructure()
-        DifferentiableManifold.__init__(self, n, name, 'real', structure,
-                                        base_manifold=base_manifold,
-                                        diff_degree=diff_degree,
-                                        latex_name=latex_name,
-                                        start_index=start_index,
-                                        category=category)
+            self._name_modifier = "pseudo-Riemannian"
+
         self._metric = None # to be initialized by metric()
         self._metric_signature = signature
         if not isinstance(metric_name, str):

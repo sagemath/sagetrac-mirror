@@ -411,8 +411,10 @@ class Chart(UniqueRepresentation, SageObject):
         # Expression in self of the zero and one scalar fields of open sets
         # containing the domain of self:
         for dom in domain.open_supersets():
-            dom._zero_scalar_field._express[self] = self.function_ring().zero()
-            dom._one_scalar_field._express[self] = self.function_ring().one()
+            dom.scalar_field_algebra().zero()._express[
+                self
+            ] = self.function_ring().zero()
+            dom.scalar_field_algebra().one()._express[self] = self.function_ring().one()
 
     @classmethod
     def _parse_coordinates(cls, domain, coordinates):
