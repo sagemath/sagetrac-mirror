@@ -83,88 +83,28 @@ def simplify(elem):
     """
     return elem._reconstruction_data()
 
-class CubicHeckeDataFilename(Enum):
+
+class CubicHeckeDataSection(Enum):
     r"""
-    Enum for the different data files. The following choices are possible:
+    Enum for the different sections of the database. The following choices are
+    possible:
 
-    - ``basis`` -- contains the basis for the cubic Hecke algebra up to 4 strands
-    - ``regular_left`` -- contains the left regular representation matrices of
-      the generators
-    - ``regular_right`` -- contains the right regular representation matrices of
-      the generators
-    - ``irred_split`` -- contains representation matrices of the generators of
-      the split irreducible representations
-
+    - ``basis``  -- list of basis elements
+    - ``reg_left_reprs``  -- data for the left regular representation
+    - ``reg_right_reprs``  -- data for the right regular representation
+    - ``irr_reprs`` -- data for the split irreducible representations
 
     Examples::
 
         sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
         sage: cha_db = CubicHeckeDataBase()
-        sage: cha_db.filename
-        <enum 'CubicHeckeDataFilename'>
+        sage: cha_db.section
+        <enum 'CubicHeckeDataSection'>
     """
-    def download(self):
-        """
-        Return the file name to download the data from Ivan Marin's web-page.
-
-        Examples::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.filename.basis.download()
-            'baseH4.maple'
-        """
-        return self.value[0]
-    def py(self):
-        """
-        Return the file name under which the data from Ivan Marin's web-page
-        are stored as python file.
-
-        Examples::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.filename.basis.py()
-            'baseH4.maple.py'
-        """
-        return '%s.py' %(self.value[0])
-
-    def sobj(self, nstrands=None):
-        """
-        Return the file name under which the data from Ivan Marin's web-page
-        is converted into sobj-files. Now stored as `py`-Files using
-        ``sage_input``.
-
-        INPUT:
-
-        - ``nstrands`` -- Integer number of strands of the underlying braid group
-          if the data file depends on it. Otherwise use default None
-
-        Examples::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.filename.basis.sobj()
-            'monomial_basis.py'
-            sage: cha_db.filename.basis.sobj()
-            'monomial_basis.py'
-            sage: cha_db.filename.irred_split.sobj(2)
-            'irred_split_reprs_2.py'
-            sage: cha_db.filename.regular_left.sobj(3)
-            'regular_left_reprs_3.py'
-        """
-        if nstrands is None:
-            return '%s.py' %(self.value[1])
-        else:
-            return '%s_%s.py' %(self.value[1], nstrands)
-
-    basis         = ['baseH4.maple',             'monomial_basis']
-    regular_left  = ['MatricesRegH4.maple',      'regular_left_reprs']
-    regular_right = ['MatricesRegH4right.maple', 'regular_right_reprs']
-    irred_split   = ['RepresentationsH25',       'irred_split_reprs']
-
-
-
+    basis         = 'basis'
+    regular_left  = 'regular_left'
+    regular_right = 'regular_right'
+    split_irred   = 'split_irred'
 
 
 #-------------------------------------------------------------------------------
@@ -184,11 +124,11 @@ class CubicHeckeDataBase(SageObject):
 
         sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
         sage: cha_db = CubicHeckeDataBase()
-        sage: cha_db._url_marin
-        'http://www.lamfa.u-picardie.fr/marin/softs/H4'
+        sage: cha_db._feature
+        Feature('database_cubic_hecke')
     """
 
-    filename = CubicHeckeDataFilename
+    section = CubicHeckeDataSection
 
     def __init__(self):
         r"""
@@ -197,28 +137,14 @@ class CubicHeckeDataBase(SageObject):
         EXAMPLES::
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: from sage.env import SAGE_SHARE
             sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db._import_path_sobj == SAGE_SHARE + '/cubic_hecke_marin/sobj'
-            True
+            sage: cha_db._data_library
+            {}
         """
-        self._url_marin              = 'http://www.lamfa.u-picardie.fr/marin/softs/H4'
-
-        self._package = 'database_cubic_hecke_marin'
-        version_file  = os.path.join(SAGE_ROOT, 'build/pkgs/%s/package-version.txt' %self._package)
-        f = open(version_file)
-        self._version = f.read().splitlines()[0]
-        f.close()
-
-        self._import_path      = os.path.join(SAGE_SHARE, 'cubic_hecke_marin')
-        self._import_path_py   = os.path.join(self._import_path, 'py')
-        self._import_path_sobj = os.path.join(self._import_path, 'sobj')
-
-        from sage.misc.misc import sage_makedirs
-        sage_makedirs(self._import_path_py)
-        sage_makedirs(self._import_path_sobj)
-
+        from sage.features.databases import DatabaseCubicHecke
+        self._feature   = DatabaseCubicHecke()
         self._data_library = {}
+        self._demo = None
 
     def version(self):
         r"""
@@ -228,378 +154,89 @@ class CubicHeckeDataBase(SageObject):
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
             sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.version()
-            '20200513'
+            sage: cha_db.version() > '2022.1.1'
+            True
         """
-        return self._version
+        self._feature.require()
+        from database_cubic_hecke import version
+        return version()
 
-    def _create_python_file(self, filename):
+    def demo_version(self):
         r"""
-        Return the data fetched from Iwan Marin's homepage as a python file
-        such that it can be loaded via `sage_eval`.
+        Return whether the KnotInfo databases are installed completely or
+        just the demo version is used.
 
         EXAMPLES::
 
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: load(cha_db._create_python_file(cha_db.filename.basis))    # not tested (because of internet access)
-            Importing data for monomial_basis.sobj from http://www.lamfa.u-picardie.fr/marin/softs/H4/baseH4.maple
-            sage: len(baseH4)                                                # not tested
-            648
+            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
+            sage: ki_db = KnotInfoDataBase()
+            sage: ki_db.demo_version()       # optional - database_knotinfo
+            False
         """
-        if not isinstance(filename, CubicHeckeDataBase.filename):
-            raise TypeError('File name must be an instance of enum %s' %(CubicHeckeDataBase.filename))
-
-        import_file = '%s/%s' %(self._import_path_py, filename.py())
-
-        # import directly from the internet page
-        from six.moves.urllib.request import urlopen
-        try:
-            from urllib.error import HTTPError
-        except ImportError:
-            from urllib2 import HTTPError
-
-        try:
-            url = '%s/%s' %(self._url_marin, filename.download())
-            url_data = urlopen(url).read().decode()
-            print('Importing data for %s from %s' %(filename.sobj(), url))
-            preparsed_data =url_data.replace(':=', '=').replace(';', '').replace('^', '**')
-            f = open(import_file, 'wt')
-            f.write(preparsed_data)
-            f.close()
-            return import_file
-        except HTTPError:
-            raise IOError('Data import file %s not found! Internet connection needed!' %(filename))
-
-    def create_spkg_tarball(self):
-        r"""
-        Create a tarball for the sage-package ``database_cubic_heck_marin`` in
-        the ``upstream`` directory. This utility should only be used by users
-        who know what they do in case of a switch to a new version of the data
-        files (that is if the original files on Iwan Marin's homepage have
-        changed). In that case in invocation of
-        ``sage -package fix-checksum database_cubic_hecke_marin`` will be
-        necessary.
-
-        EXAMPLES::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.create_spkg_tarball()    # not tested (because of internet access)
-            Importing data for monomial_basis.sobj
-               from http://www.lamfa.u-picardie.fr/marin/softs/H4/baseH4.maple
-            Importing data for regular_left_reprs.sobj
-               from http://www.lamfa.u-picardie.fr/marin/softs/H4/MatricesRegH4.maple
-            Importing data for regular_right_reprs.sobj
-               from http://www.lamfa.u-picardie.fr/marin/softs/H4/MatricesRegH4right.maple
-            Importing data for irred_split_reprs.sobj
-               from http://www.lamfa.u-picardie.fr/marin/softs/H4/RepresentationsH25
-            py/
-            py/MatricesRegH4.maple.py
-            py/MatricesRegH4right.maple.py
-            py/RepresentationsH25.py
-            py/baseH4.maple.py
-        """
-        for filename in CubicHeckeDataBase.filename:
-            self._create_python_file(filename)
-        os.system('cd %s; tar -cvjSf %s/upstream/%s-%s.tar.bz2 py' %(self._import_path, SAGE_ROOT, self._package, self._version) )
-
-    def import_data(self, filename, from_spkg=True):
-        r"""
-        EXAMPLES::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: load(cha_db.import_data(cha_db.filename.basis))
-            sage: len(baseH4)
-            648
-        """
-        if not isinstance(filename, CubicHeckeDataBase.filename):
-            raise TypeError('File name must be an instance of enum %s' %(CubicHeckeDataBase.filename))
-
-        import_file = '%s/%s' %(self._import_path_py, filename.py())
-
-        try:
-            open(import_file)
-            return import_file
-        except IOError:
-            if from_spkg:
-                # import from the spkg tarball
-                print('Importing cubic Hecke database from SPKG!')
-                os.system('pwd')
-                os.system('cp src/*.py %s' %(self._import_path_py))
-                open(import_file)
-                return import_file
+        if self._demo is None:
+            if self._feature.is_present():
+                self._demo = False
             else:
-                return self._create_python_file(filename)
-                
-
-    def create_static_db_marin_basis(self):
-        r"""
-        Create the basis of the cubic Hecke algebra according to the original
-        data from Iwan Marin's home page.
-
-        This method is called during the build procedure for the sage-package.
-
-        EXAMPLES::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.create_static_db_marin_basis()  # not tested
-        """
-        global baseH4  # set by load
-        load(self.import_data(self.filename.basis))
-
-        basis_h1 = []
-        basis_h2 = []
-        basis_h3 = []
-        basis_h4 = baseH4
-
-        len_baseH4 = len(baseH4)
-
-        ind_h1 = []
-        ind_h2 = []
-        ind_h3 = []
-        ind_h4 = range(len_baseH4)
-
-        for i in ind_h4:
-            set_i = set(baseH4[i])
-            if 3  not in set_i and -3  not in set_i:
-                basis_h3.append(basis_h4[i])
-                ind_h3.append(i)
-                if 2  not in set_i and -2  not in set_i:
-                    basis_h2.append(basis_h4[i])
-                    ind_h2.append(i)
-                    if 1  not in set_i and -1  not in set_i:
-                        basis_h1.append(basis_h4[i])
-                        ind_h1.append(i)
-
-        # len_bas_h1 = len(basis_h1); len_bas_h2 = len(basis_h2); len_bas_h3 = len(basis_h3)
-
-        basis = {1:[basis_h1, ind_h1], 2:[basis_h2, ind_h2], 3: [basis_h3, ind_h3], 4:[basis_h4, ind_h4]}
-        save(basis, '%s/%s' %(self._import_path_sobj, self.filename.basis.sobj()) )
-
-
-    def create_static_db_marin_regular(self, right=False):
-        r"""
-        Create the static data base for regular representations of the cubic
-        Hecke algebra according to the original data from Iwan Marin's home page.
-
-        This method is called during the build procedure for the sage-package.
-
-        The invocations are not active in the doctest, since they cause a
-        ``MemoryError`` here. To refresh the data base you may call this method
-        in a session. You will have to wait (maybe up to several minutes)!
-
-        EXAMPLES::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.create_static_db_marin_regular()             # not tested
-            sage: cha_db.create_static_db_marin_regular(right=True)   # not tested
-        """
-        
-        base_ring = CubicHeckeRingOfDefinition()
-        global u, v, w, mm1, mm2, mm3, mm1I, mm2I, mm3I, reps      # set in load
-        u, v, w = base_ring.gens()
-
-        if right == False:
-            fname = self.filename.regular_left
-        else:
-            fname = self.filename.regular_right
-        before = verbose('start loading %s' %fname)
-        load(self.import_data(fname))
-        before = verbose('end loading %s' %fname, t=before)
-
-    
-        def create_mat(ind_h, mat_h4):
-            """
-            Create restriction of regular representation of H4 to H1, H2 and H3
-            """
- 
-            dim_mat = len(ind_h)
-            mat = matrix(dim_mat, dim_mat, lambda i,j: mat_h4[ind_h[i], ind_h[j]])
-            return simplify(mat)
-
-        basis = self.read(self.filename.basis)
-        ind_h1 = basis[1][1]
-        ind_h2 = basis[2][1]
-        ind_h3 = basis[3][1]
- 
-        representationH ={}
-        representationH[0]  = [[create_mat(ind_h1, mm1)]]
-        representationH[1]  = [[create_mat(ind_h2, mm1)]]
-        representationH[2]  = [[create_mat(ind_h3, mm1), create_mat(ind_h3, mm2)]]
-        representationH[3]  = [[simplify(mm1), simplify(mm2), simplify(mm3)]]
-
-        representationHI ={}
-        representationHI[0] = [[create_mat(ind_h1, mm1I)]]
-        representationHI[1] = [[create_mat(ind_h2, mm1I)]]
-        representationHI[2] = [[create_mat(ind_h3, mm1I), create_mat(ind_h3, mm2I)]]
-        representationHI[3] = [[simplify(mm1I), simplify(mm2I), simplify(mm3I)]]
-        from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import GenSign
-
-        for i in range(4):
-            if right == False:
-                sobj_filename = '%s/%s' %(self._import_path_sobj, self.filename.regular_left.sobj(i+1))
-            else:
-                sobj_filename = '%s/%s' %(self._import_path_sobj, self.filename.regular_right.sobj(i+1))
-
-            RegularMarinDict = {GenSign.pos:representationH[i], GenSign.neg:representationHI[i]}
-            save(RegularMarinDict, sobj_filename )
-        return
-
-
-    def create_static_db_marin_split(self):
-        r"""
-        Create the static data base for split irreducible representations of the
-        cubic Hecke algebra according to the original data from Iwan Marin's
-        home page.
-
-        This method is called during the build procedure for the sage-package.
-
-        EXAMPLES::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.create_static_db_marin_split()  # not tested
-        """
-        # ------------------------------------------------------
-        # Ivan Marin's data file uses a, b, c for the variables
-        # corresponding to the eigenvalues of the cubic equation.
-        # Therefore, we have to use them temporarily in that way
-        # ------------------------------------------------------
-        base_ring = CubicHeckeRingOfDefinition()
-        extension_ring = base_ring.extension_ring()
-        global a, b, c, j
-        a, b, c = extension_ring.gens()
-        j = extension_ring.cyclotomic_generator()
-
-        load(self.import_data(self.filename.irred_split))
-
-        a, b, c = base_ring.gens() # now back to usual nameing
-        cfs = [-c, b, -a, 1]
-        cfse = [extension_ring(cf/c) for cf in cfs]
-
-        def invert(matr):
-           """
-           Return inverse matrix for generators
-           """
-
-           matri = cfse[1]*matr.parent().one()
-           matri += cfse[2]*matr
-           matri += cfse[3]*matr**2
-           d1, d2 = matr.dimensions()
-           matrI = matrix(extension_ring, d1, d2, lambda i,j: extension_ring(matri[i,j]))
-           return matrI
-
-        # ----------------------------------------------------------------------
-        # Restoring the split irreducibles from Iwan Marin's homepage
-        # ----------------------------------------------------------------------
-
-        anz_reps = len(reps)
-
-        representation_h ={}
-        representation_h[0]  = [[simplify(Matrix(1,1,[extension_ring.one()]))]]
-        representation_h[1]  = []
-        representation_h[2]  = []
-        representation_h[3]  = []
-
-        representation_hI ={}
-        representation_hI[0] = representation_h[0]
-        representation_hI[1] = []
-        representation_hI[2] = []
-        representation_hI[3] = []
-        for i in range( anz_reps ):
-            repi = reps[i]
-            if len(repi) != 3:
-               raise RuntimeError( 'Error at position %d: three generators expected, got: %d' %( i, len(repi)))
-            mt = []
-            mtI = []
-            for j in range(3):
-                mat = matrix(repi[j])
-                matI = invert(mat)
-                mt.append(simplify(mat))
-                mtI.append(simplify(matI))
-
-            representation_h[3].append( mt )
-            representation_hI[3].append( mtI )
-
-            if i < 7:
-                mt7 =  [ m for m in mt ]
-                mt7I = [ m for m in mtI ]
-                mt7.pop()
-                mt7I.pop()
-                representation_h[2].append( mt7 )
-                representation_hI[2].append( mt7I )
-
-            if i < 3:
-                mt3 =  [ m for m in mt7 ]
-                mt3I = [ m for m in mt7I ]
-                mt3.pop()
-                mt3I.pop()
-                representation_h[1].append( mt3 )
-                representation_hI[1].append( mt3I )
-
-        from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import GenSign
-        for i in range(4):
-            sobj_filename = '%s/%s' %(self._import_path_sobj, self.filename.irred_split.sobj(i+1))
-            SplitIrredMarinDict = {GenSign.pos:representation_h[i], GenSign.neg:representation_hI[i]}
-            save(SplitIrredMarinDict, sobj_filename)
-
-        return
+                self._demo = True
+                self._data_library = demo_library
+        return self._demo
 
     # --------------------------------------------------------------------------
     # read from an sobj-file obtained from Ivan Marin's database
     # --------------------------------------------------------------------------
-    def read(self, db_filename, nstrands=None):
+    def read(self, section, translation_dict=None, nstrands=4):
         r"""
         Access various static data library.
 
         INPUT:
 
-        ``db_filename`` -- instance of enum :class:`CubicHeckeDataBase.filename`
+        ``section`` -- instance of enum :class:`CubicHeckeDataSection`
           to select the data to be read in
 
         OUTPUT:
 
-        A dictionary containing the data corresponding to the db_filename.
+        A dictionary containing the data corresponding to the section.
 
         EXAMPLES::
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
             sage: cha_db = CubicHeckeDataBase()
-            sage: basis = cha_db.read(cha_db.filename.basis)
-            sage: len(basis[3][0])
+            sage: basis = cha_db.read(cha_db.section.basis, nstrands=3)
+            sage: len(basis)
             24
         """
-        if not isinstance(db_filename, CubicHeckeDataFilename):
-            raise TypeError('db_filename must be an instance of enum %s' %(CubicHeckeDataBase.filename))
+        if not isinstance(section, CubicHeckeDataSection):
+            raise TypeError('section must be an instance of enum %s' %(CubicHeckeDataBase.section))
 
         data_lib = self._data_library
-        lib_path = self._import_path_sobj
 
-        if (db_filename, nstrands) in data_lib.keys():
-            return data_lib[(db_filename, nstrands)]
+        nstrands = int(nstrands)
+        if (section, nstrands) in data_lib.keys():
+            return data_lib[(section, nstrands)]
 
-        verbose('loading data library %s ...' %(db_filename.sobj(nstrands=nstrands)))
-        try:
-            load('%s/%s' %(lib_path, db_filename.sobj(nstrands=nstrands)))
-            data_lib[(db_filename,nstrands)] = _
-        except IOError:
-            if db_filename == self.filename.basis:
-                self.create_static_db_marin_basis()
-            elif db_filename == self.filename.irred_split:
-                self.create_static_db_marin_split()
-            elif db_filename == self.filename.regular_right:
-                self.create_static_db_marin_regular(right=True)
+        verbose('loading data library %s for %s strands ...' %(section.value, nstrands))
+
+        if self.demo_version():
+            if nstrands >= 4:
+                self._feature.require()
+        else:
+            from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import GenSign
+            from database_cubic_hecke import read_basis, read_irr, read_reg
+            if section == CubicHeckeDataSection.basis:
+                data_lib[(section, nstrands)] = read_basis(num_strands=nstrands)
+            elif section == CubicHeckeDataSection.split_irred:
+                dim_list, repr_list, repr_list_inv = read_irr(translation_dict=translation_dict, num_strands=nstrands)
+                data_lib[(section, nstrands)] = {GenSign.pos:repr_list, GenSign.neg:repr_list_inv}
             else:
-                self.create_static_db_marin_regular()
-            data_lib[(db_filename, nstrands)] = load('%s/%s' %(lib_path, db_filename.sobj(nstrands=nstrands)))
+                right = False
+                if section == CubicHeckeDataSection.regular_right:
+                    right = True
+                dim_list, repr_list, repr_list_inv = read_reg(translation_dict=translation_dict, right=right, num_strands=nstrands)
+                data_lib[(section, nstrands)] = {GenSign.pos:repr_list, GenSign.neg:repr_list_inv}
 
         verbose('... finished!')
 
-        return data_lib[(db_filename,nstrands)]
+        return data_lib[(section,nstrands)]
 
 
     # --------------------------------------------------------------------------
@@ -637,8 +274,12 @@ class CubicHeckeDataBase(SageObject):
         if not isinstance(representation_type, RepresentationType):
             raise TypeError('representation_type must be an instance of enum %s' %(RepresentationType))
 
+        td = ring_of_definition.gens_dict_recursive()
+        if 'e3' in td.keys():
+            td['j'] = td['e3']
+
         num_rep = representation_type.number_of_representations(nstrands)
-        rep_list = self.read(representation_type.data_filename(), nstrands=nstrands)
+        rep_list = self.read(representation_type.data_section(), translation_dict=td, nstrands=nstrands)
         if gen_ind > 0 :
             rep_list = [rep_list[GenSign.pos][i] for i in range(num_rep)]
             matrix_list = [matrix(ring_of_definition, rep[gen_ind-1], sparse=True) for rep in rep_list]

@@ -38,7 +38,7 @@ from sage.matrix.matrix_generic_dense import Matrix_generic_dense
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.matrix.special import block_diagonal_matrix
-from sage.databases.cubic_hecke_db import CubicHeckeDataFilename as fn
+from sage.databases.cubic_hecke_db import CubicHeckeDataSection as sc
 
 
 
@@ -115,7 +115,7 @@ class RepresentationType(Enum):
         """
         return self.value['regular']
 
-    def data_filename(self):
+    def data_section(self):
         r"""
         Return the name of the data file. For more information see
         :class:`~sage.databases.cubic_hecke_db.CubicHeckeDataBase`.
@@ -124,8 +124,8 @@ class RepresentationType(Enum):
 
             sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
             sage: reg_left = chmr.RepresentationType.RegularLeft
-            sage: reg_left.data_filename()
-            <CubicHeckeDataFilename.regular_left: ['MatricesRegH4.maple', 'regular_left_reprs']>
+            sage: reg_left.data_section()
+            <CubicHeckeDataSection.regular_left: 'regular_left'>
         """
         return self.value['data']
 
@@ -149,9 +149,9 @@ class RepresentationType(Enum):
         return self.value['num_rep'][nstrands-1 ]
 
 
-    RegularLeft      = {'split':False, 'regular':True,   'data':fn.regular_left,  'num_rep':[1 ,1 ,1 ,1 ]}
-    RegularRight     = {'split':False, 'regular':True,   'data':fn.regular_right, 'num_rep':[1 ,1 ,1 ,1 ]}
-    SplitIrredMarin  = {'split':True,  'regular':False,  'data':fn.irred_split,   'num_rep':[1 ,3 ,7 ,24 ]}
+    RegularLeft      = {'split':False, 'regular':True,   'data':sc.regular_left,  'num_rep':[1 ,1 ,1 ,1 ]}
+    RegularRight     = {'split':False, 'regular':True,   'data':sc.regular_right, 'num_rep':[1 ,1 ,1 ,1 ]}
+    SplitIrredMarin  = {'split':True,  'regular':False,  'data':sc.split_irred,   'num_rep':[1 ,3 ,7 ,24 ]}
     SplitIrredChevie = {'split':True,  'regular':False,  'data':None,             'num_rep':[1 ,3 ,7 ,24 ,30 ]}
 
 

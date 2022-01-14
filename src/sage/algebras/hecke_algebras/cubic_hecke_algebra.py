@@ -1122,16 +1122,11 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         self._cubic_braid_group_algebra = GroupAlgebra(self._cubic_braid_group, R=base_ring)
         self._braid_group_algebra       = GroupAlgebra(self._braid_group, R=base_ring)
 
-
         # ----------------------------------------------------------------------
         # Setup of Basis
         # ----------------------------------------------------------------------
         # init of data libraries and fetch the basis of Ivan Marin for the
         # algebras on at most 4 strands. The fetch does not take long time.
-        # Therefore we do this absolutely silently.
-        # ----------------------------------------------------------------------
-        marin_basis_data = self._database.read(self._database.filename.basis)
-
         # ----------------------------------------------------------------------
         # An explicit list of basis element which represents a flat deformation
         # of the cubic braid group is only available in the cases where the
@@ -1159,10 +1154,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # is initialized with Marin's list and is extended on demand.
         # ----------------------------------------------------------------------
 
-        if self.strands() < 5 :
-            self._basis_static = [bas for bas in marin_basis_data[self.strands()][0]]
-        else:
-            self._basis_static = [bas for bas in marin_basis_data[4][0]]
+        db = self._database
+        ns = min(self.strands(), 4)
+        self._basis_static = db.read(db.section.basis, nstrands=ns)
 
         # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
