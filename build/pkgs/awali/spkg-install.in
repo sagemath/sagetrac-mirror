@@ -7,6 +7,5 @@ cmake ..  -DINSTALL_DIR="${SAGE_LOCAL}" \
           -DCORA=False
 
 sdh_make
-sdh_make b
 sdh_make install
 
