@@ -367,7 +367,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self._principal_curvatures = {}
         self._mean_curvature = None
         self._shape_operator = None
-        self._sgn = 1 if ambient._structure.name == "Riemannian" else -1
+        self._sgn = 1 if ambient._name_modifier == "Riemannian" else -1
 
     def _repr_(self):
         r"""
@@ -390,15 +390,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
              3-dimensional Lorentzian manifold M
 
         """
-        if self is not self._manifold:
-            return "Open subset {} of the {}".format(self._name, self._manifold)
         if self._ambient is None:
             return super(PseudoRiemannianManifold, self).__repr__()
-        if self._embedded:
-            return "{}-dimensional {} submanifold {} embedded in the {}".format(
-                self._dim, self._structure.name, self._name, self._ambient)
-        return "{}-dimensional {} submanifold {} immersed in the {}".format(
-                self._dim, self._structure.name, self._name, self._ambient)
+        return super(DifferentiableSubmanifold, self)._repr_()
 
     def open_subset(self, name, latex_name=None, coord_def={}, supersets=None):
         r"""

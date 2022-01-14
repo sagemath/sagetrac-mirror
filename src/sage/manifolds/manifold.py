@@ -327,6 +327,7 @@ REFERENCES:
 
 from typing import Type
 
+import sage.rings.abc
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
 from sage.categories.manifolds import Manifolds
@@ -638,8 +639,9 @@ class TopologicalManifold(ManifoldSubset):
                 f"{self._dim}-dimensional {self._name_modifier} manifold {self._name}"
             )
         elif self._field_type == "complex":
-            return f"{self._dim}-dimensional complex {self._name_modifier} manifold {self._name}"
-        return f"{self.dim}-dimensional {self._name_modifier} manifold {self._name} over the {self._field}"
+            return f"Complex {self._dim}-dimensional {self._name_modifier} manifold {self._name}"
+        else:
+            return f"{self._dim}-dimensional {self._name_modifier} manifold {self._name} over the {self._field}"
 
     def _an_element_(self):
         r"""
@@ -1607,7 +1609,7 @@ class TopologicalManifold(ManifoldSubset):
             coordinates=coordinates,
             names=names,
             calc_method=calc_method,
-            coord_restrictions=coord_restriction,
+            coord_restrictions=coord_restrictions,
         )
 
     def is_open(self):

@@ -464,9 +464,9 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
 
             # trivial cases
             if self == 1:
-                self._mixed_forms[nab] = A(dom._one_scalar_field)
+                self._mixed_forms[nab] = A(dom.scalar_field_algebra().one())
             elif self == 0:
-                self._mixed_forms[nab] = A(dom._zero_scalar_field)
+                self._mixed_forms[nab] = A(dom.scalar_field_algebra().zero())
             else:  # non-trivial case
                 from functools import reduce
 
@@ -1186,7 +1186,7 @@ def fast_wedge_power(form, n):
         4-form omega∧omega on the 4-dimensional differentiable manifold M
     """
     if n == 0:
-        return form._domain._one_scalar_field
+        return form._domain.scalar_field_algebra().one()
     elif n < 0:
         raise ValueError("'n' must be non-negative")
     val = form
@@ -1345,7 +1345,7 @@ class Algorithm_generic(SageObject):
             A^(TE^8, nabla_g) = 1
         """
         if n == 0:
-            return nab._domain._one_scalar_field  # no computation necessary
+            return nab._domain.scalar_field_algebra().one()  # no computation necessary
         return fast_wedge_power(self.get(nab)[i], n)
 
 
@@ -1842,7 +1842,7 @@ class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
             8-form zero on the 4-dimensional Euclidean space E^4
         """
         if n == 0:
-            return nab._domain._one_scalar_field  # no computation necessary
+            return nab._domain.scalar_field_algebra().one()  # no computation necessary
         if i == 0:
             return fast_wedge_power(EulerAlgorithm().get(nab)[0], n)
         return fast_wedge_power(PontryaginAlgorithm().get(nab)[i-1], n)

@@ -447,12 +447,14 @@ from sage.manifolds.differentiable.manifold_homset import DifferentiableManifold
 from sage.manifolds.differentiable.mixed_form_algebra import MixedFormAlgebra
 from sage.manifolds.differentiable.scalarfield_algebra import DiffScalarFieldAlgebra
 from sage.manifolds.manifold import TopologicalManifold
+from sage.misc.cachefunc import cached_method
 from sage.rings.cc import CC
 from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer import Integer
 from sage.rings.real_mpfr import RR
 
 ###############################################################################
+
 
 class DifferentiableManifold(TopologicalManifold):
     r"""
@@ -903,7 +905,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: N = Manifold(3, 'N', structure='differentiable')
             sage: H = M._Hom_(N); H
             Set of Morphisms from 2-dimensional differentiable manifold M to
-             3-dimensional differentiable manifold N in Category of manifolds over
+             3-dimensional differentiable manifold N in Category of smooth manifolds over
              Real Field with 53 bits of precision
 
         The result is cached::
@@ -1295,7 +1297,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: M = Manifold(3, 'M', structure='differentiable')
             sage: U = M.open_subset('U')
             sage: CU = U.scalar_field_algebra() ; CU
-            Algebra of scalar fields on the Open subset U of the 3-dimensional differentiable manifold M
+            Algebra of differentiable scalar fields on the Open subset U of the 3-dimensional differentiable manifold M
             sage: CU.category()
             Join of Category of commutative algebras over Symbolic Ring and Category of homsets of differentiable spaces
             sage: CU.zero()

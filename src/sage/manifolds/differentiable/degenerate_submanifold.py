@@ -249,7 +249,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
                                           start_index=start_index,
                                           category=category)
         DifferentiableSubmanifold.__init__(self, n, name, self._field,
-                                           self._structure, ambient=ambient,
+                                           ambient=ambient,
                                            base_manifold=base_manifold,
                                            latex_name=latex_name,
                                            start_index=start_index,
