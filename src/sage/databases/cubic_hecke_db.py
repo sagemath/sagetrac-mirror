@@ -216,23 +216,24 @@ class CubicHeckeDataBase(SageObject):
 
         verbose('loading data library %s for %s strands ...' %(section.value, nstrands))
 
+        from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import GenSign
         if self.demo_version():
             if nstrands >= 4:
                 self._feature.require()
         else:
-            from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import GenSign
             from database_cubic_hecke import read_basis, read_irr, read_reg
-            if section == CubicHeckeDataSection.basis:
-                data_lib[(section, nstrands)] = read_basis(num_strands=nstrands)
-            elif section == CubicHeckeDataSection.split_irred:
-                dim_list, repr_list, repr_list_inv = read_irr(translation_dict=translation_dict, num_strands=nstrands)
-                data_lib[(section, nstrands)] = {GenSign.pos:repr_list, GenSign.neg:repr_list_inv}
-            else:
-                right = False
-                if section == CubicHeckeDataSection.regular_right:
-                    right = True
-                dim_list, repr_list, repr_list_inv = read_reg(translation_dict=translation_dict, right=right, num_strands=nstrands)
-                data_lib[(section, nstrands)] = {GenSign.pos:repr_list, GenSign.neg:repr_list_inv}
+
+        if section == CubicHeckeDataSection.basis:
+            data_lib[(section, nstrands)] = read_basis(num_strands=nstrands)
+        elif section == CubicHeckeDataSection.split_irred:
+            dim_list, repr_list, repr_list_inv = read_irr(translation_dict=translation_dict, num_strands=nstrands)
+            data_lib[(section, nstrands)] = {GenSign.pos:repr_list, GenSign.neg:repr_list_inv}
+        else:
+            right = False
+            if section == CubicHeckeDataSection.regular_right:
+                right = True
+            dim_list, repr_list, repr_list_inv = read_reg(translation_dict=translation_dict, right=right, num_strands=nstrands)
+            data_lib[(section, nstrands)] = {GenSign.pos:repr_list, GenSign.neg:repr_list_inv}
 
         verbose('... finished!')
 
@@ -919,6 +920,58 @@ class CubicHeckeFileCache(SageObject):
 # -----------------------------------------------------------------------------
 # Demo data section
 # -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Wrapper for the generated code
+# -----------------------------------------------------------------------------
+
+def read_basis(num_strands=3):
+    r"""
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import read_basis
+        sage: read_basis(2)
+        [[], [1], [-1]]
+    """
+    return read_bas_generated(num_strands)
+
+
+def read_irr(translation_dict, num_strands=3):
+    r"""
+    Return the data of the irreducible split representations.
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import read_irr
+        sage: L.<a, b, c, j> = LaurentPolynomialRing(ZZ)
+        sage: read_irr(L.gens_dict_recursive(), num_strands=2)
+        ([1, 1, 1],
+        [[{(0, 0): a}], [{(0, 0): c}], [{(0, 0): b}]],
+        [[{(0, 0): a^-1}], [{(0, 0): c^-1}], [{(0, 0): b^-1}]])
+    """
+    T = translation_dict
+    return read_irr_generated(T['a'], T['b'], T['c'], T['j'], num_strands)
+
+def read_reg(translation_dict, right=False, num_strands=3):
+    r"""
+    Return the data of the regular representations.
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import read_reg
+        sage: L.<u, v, w> = LaurentPolynomialRing(ZZ)
+        sage: read_reg(L.gens_dict_recursive(), num_strands=2)
+        ([3],
+        [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w}]],
+        [[{(0, 1): 1, (0, 2): -u*w^-1, (1, 2): w^-1, (2, 0): 1, (2, 2): v*w^-1}]])
+    """
+    T = translation_dict
+    if right:
+        return read_regr_generated(T['u'], T['v'], T['w'], num_strands)
+    else:
+        return read_regl_generated(T['u'], T['v'], T['w'], num_strands)
+
+
 template=r"""# generated demo data for cubic Hecke algebra
 def read_%s_generated(%snstands):
     r\"""
@@ -949,10 +1002,10 @@ doc=r"""Return precomputed data of Ivan Marin
 
 def create_demo_data(filename='demo_data.py'):
         r"""
-        Return the input for the statical ``data_library`` as a dictionary
-        such that it can be stored in this file.
-
-        This makes only sense if the feature is present.
+        Generate code for the functions inserted below to access the
+        small cases of less than 4 strands as demonstration cases.
+        The code is written to a file with the given name from where
+        it can be copied into this source file (in case a change is needed).
 
         EXAMPLES::
 
@@ -1200,4 +1253,3 @@ def read_regr_generated(u, v, w, nstands):
         18): 1, (20, 20): v/w, (21, 13): -v/w, (21, 14): 1/w, (22,
         13): u/w, (22, 16): 1/w, (23, 13): 1}]])
     return data[nstands]
-
