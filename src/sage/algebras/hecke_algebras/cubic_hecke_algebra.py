@@ -92,14 +92,14 @@ irreducible representation)::
 initializing. But than you can do calculations inside the infinite algebra as
 well::
 
-    sage: CHA6 = algebras.CubicHecke(6)                                   # long time
-    sage: CHA6.inject_variables()                                         # long time
+    sage: CHA6 = algebras.CubicHecke(6) # optional - database_cubic_hecke long time
+    sage: CHA6.inject_variables()       # optional - database_cubic_hecke long time
     Defining c0, c1, c2, c3, c4
-    sage: s = c0*c1*c2*c3*c4; s                                           # long time
+    sage: s = c0*c1*c2*c3*c4; s         # optional - database_cubic_hecke long time
     c0*c1*c2*c3*c4
-    sage: s^2                                                             # long time
+    sage: s^2                           # optional - database_cubic_hecke long time
     (c0*c1*c2*c3*c4)^2
-    sage: t = CHA6.an_element()*c4; t                                     # long time
+    sage: t = CHA6.an_element()*c4; t   # optional - database_cubic_hecke long time
     (-w)*c0*c1^-1*c4 + v*c0*c2^-1*c4 + u*c2*c1*c4 + ((-v*w+u)/w)*c4
 
 REFERENCES:
@@ -136,8 +136,8 @@ from sage.rings.integer_ring import ZZ
 from sage.algebras.splitting_algebra import solve_with_extension
 from sage.modules.free_module_element import vector
 from sage.matrix.matrix_space import MatrixSpace
-from .base_rings_of_definition.cubic_hecke_base_ring import CubicHeckeRingOfDefinition
-from .matrix_representations.cubic_hecke_matrix_rep import CubicHeckeMatrixSpace, AbsIrreducibeRep, RepresentationType
+from sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring import CubicHeckeRingOfDefinition
+from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import CubicHeckeMatrixSpace, AbsIrreducibeRep, RepresentationType
 
 
 
@@ -1926,18 +1926,18 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: CHA5 = algebras.CubicHecke(5)                       # long time
-            sage: fc = CHA5._filecache                                # long time
-            sage: basis_extensions = fc.section.basis_extensions      # long time
-            sage: CHA5.reset_filecache(basis_extensions)              # long time   indirect doctest
-            sage: fc.read(basis_extensions)                           # long time
+            sage: CHA5 = algebras.CubicHecke(5)    # optional - database_cubic_hecke long time
+            sage: fc = CHA5._filecache             # optional - database_cubic_hecke long time
+            sage: be = fc.section.basis_extensions # optional - database_cubic_hecke long time
+            sage: CHA5.reset_filecache(be)         # optional - database_cubic_hecke long time indirect doctest
+            sage: fc.read(be)                      # optional - database_cubic_hecke long time
             [[4], [-4]]
-            sage: ele = CHA5.an_element()                             # long time
-            sage: CHA5.inject_variables()                             # long time
+            sage: ele = CHA5.an_element()          # optional - database_cubic_hecke long time
+            sage: CHA5.inject_variables()          # optional - database_cubic_hecke long time
             Defining c0, c1, c2, c3
-            sage: ele2 = ele*c3                                       # long time
-            sage: bex = fc.read(basis_extensions)                     # long time
-            sage: bex.sort(); bex                                     # long time
+            sage: ele2 = ele*c3                    # optional - database_cubic_hecke long time
+            sage: bex = fc.read(be)                # optional - database_cubic_hecke long time
+            sage: bex.sort(); bex                  # optional - database_cubic_hecke long time
             [[-4], [1, -3, 4], [1, -2, 4], [3, 2, 4], [4]]
         """
         self._basis_extension = []
@@ -2334,27 +2334,27 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: CHA5 = algebras.CubicHecke(5)
-            sage: basis_extensions = CHA5.select_filecache_section().basis_extensions
-            sage: CHA5.reset_filecache(basis_extensions)
-            sage: CHA5._basis_extension
+            sage: CHA5 = algebras.CubicHecke(5)   # optional - database_cubic_hecke
+            sage: be = CHA5.select_filecache_section().basis_extensions # optional - database_cubic_hecke
+            sage: CHA5.reset_filecache(be)        # optional - database_cubic_hecke
+            sage: CHA5._basis_extension           # optional - database_cubic_hecke
             [[4], [-4]]
-            sage: CHA5._braid_image_by_basis_extension((4,1))
+            sage: CHA5._braid_image_by_basis_extension((4,1)) # optional - database_cubic_hecke
             c3*c0
-            sage: CHA5._basis_extension
+            sage: CHA5._basis_extension           # optional - database_cubic_hecke
             [[4], [-4], [4, 1]]
 
         case where the braid already has an corresponding basis element::
 
-            sage: CHA5._braid_image_by_basis_extension((1,))
+            sage: CHA5._braid_image_by_basis_extension((1,)) # optional - database_cubic_hecke
             c0
-            sage: CHA5._basis_extension
+            sage: CHA5._basis_extension           # optional - database_cubic_hecke
             [[4], [-4], [4, 1]]
 
         case where the braid doesn't have corresponding basis element but depends
         on them::
 
-            sage: CHA5._braid_image_by_basis_extension((1,1))
+            sage: CHA5._braid_image_by_basis_extension((1,1)) # optional - database_cubic_hecke
             Traceback (most recent call last):
             ...
             NotImplementedError: no algorithm available to calculate braid image of (1, 1)
@@ -2649,15 +2649,15 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: CHA5 = algebras.CubicHecke(5)
-            sage: basis_extensions = CHA5.select_filecache_section().basis_extensions
-            sage: CHA5.reset_filecache(basis_extensions)
-            sage: CHA5._basis_extension
+            sage: CHA5 = algebras.CubicHecke(5)  # optional - database_cubic_hecke
+            sage: be = CHA5.select_filecache_section().basis_extensions  # optional - database_cubic_hecke
+            sage: CHA5.reset_filecache(be)       # optional - database_cubic_hecke
+            sage: CHA5._basis_extension          # optional - database_cubic_hecke
             [[4], [-4]]
-            sage: CBG = CHA5.cubic_braid_group()
-            sage: CHA5._cubic_braid_append_to_basis(CBG((4,1)))
+            sage: CBG = CHA5.cubic_braid_group() # optional - database_cubic_hecke
+            sage: CHA5._cubic_braid_append_to_basis(CBG((4,1))) # optional - database_cubic_hecke
             c3*c0
-            sage: CHA5._basis_extension
+            sage: CHA5._basis_extension          # optional - database_cubic_hecke
             [[4], [-4], [4, 1]]
 
         """
@@ -2856,12 +2856,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: CHA5 = algebras.CubicHecke(5)
-            sage: basis_extensions = CHA5.select_filecache_section().basis_extensions
-            sage: CHA5.is_filecache_empty(basis_extensions)
+            sage: CHA5 = algebras.CubicHecke(5)   # optional - database_cubic_hecke
+            sage: be = CHA5.select_filecache_section().basis_extensions # optional - database_cubic_hecke
+            sage: CHA5.is_filecache_empty(be)     # optional - database_cubic_hecke
             False
-            sage: CHA5.reset_filecache(basis_extensions)
-            sage: CHA5.is_filecache_empty(basis_extensions)
+            sage: CHA5.reset_filecache(be)        # optional - database_cubic_hecke
+            sage: CHA5.is_filecache_empty(be)     # optional - database_cubic_hecke
             True
         """
         fc = self._filecache
@@ -2886,8 +2886,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: CHA4 = algebras.CubicHecke(4)
-            sage: CHA4.strands()
+            sage: CHA4 = algebras.CubicHecke(4)  # optional - database_cubic_hecke
+            sage: CHA4.strands()                 # optional - database_cubic_hecke
             4
         """
         return self._nstrands

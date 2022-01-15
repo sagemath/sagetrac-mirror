@@ -154,7 +154,7 @@ class CubicHeckeDataBase(SageObject):
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
             sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.version() > '2022.1.1'
+            sage: cha_db.version() > '2022.1.1'   # optional - database_cubic_hecke
             True
         """
         self._feature.require()
@@ -178,7 +178,6 @@ class CubicHeckeDataBase(SageObject):
                 self._demo = False
             else:
                 self._demo = True
-                self._data_library = demo_library
         return self._demo
 
     # --------------------------------------------------------------------------
@@ -943,19 +942,22 @@ def read_%s_generated(%snstands):
 
 """
 
+var_input = "- ``%s`` -- variables for the representation matrices\n"
+var_decl = "L.<%> = LaurentPolynomialRing(ZZ)"
+
 doc=r"""{}Return precomputed data of Ivan Marin
 
     INPUT:
 
-    - ``a, b, c, j, u, v, w`` -- variables for the representation matrices
-    - ``nstarnds`` -- integer, number of strands of the cubic Hecke algebra in
+    %s
+    - ``nstrands`` -- integer, number of strands of the cubic Hecke algebra in
       question
 
     EXAMPLES::
 
-        sage: from sage.databases.cubic_hecke_db import read_bas_generated
-        sage: read_bas_generated(2)
-        [[], [1], [-1]]
+        sage: from sage.databases.cubic_hecke_db import read_%s_generated
+        %s
+        sage: read_%s_generated(2)
     {}
 """.format('r"""', '"""')
 
@@ -970,7 +972,7 @@ def create_demo_data(filename='demo_data.py'):
         EXAMPLES::
 
             sage: from sage.databases.cubic_hecke_db import create_demo_data
-            sage: create_demo_data()
+            sage: create_demo_data()   # optional - database_cubic_hecke
         """
         from sage.algebras.hecke_algebras.cubic_hecke_algebra import CubicHeckeAlgebra
         from textwrap import fill
@@ -979,6 +981,17 @@ def create_demo_data(filename='demo_data.py'):
         from sympy import var
         TE = {str(x):x for x in var('a, b, c, j')}
         TB = {str(x):x for x in var('u, v, w')}
+        bas_name = 'bas'
+        irr_name = 'irr'
+        regl_name = 'regl'
+        regr_name = 'regr'
+        irr_vars = 'a, b, c, j, '
+        reg_vars = 'u, v, w, '
+
+        doc_bas  = doc %('',                  bas_name, '',                  bas_name)
+        doc_irr  = doc %(var_input %irr_vars, irr_name, var_decl %irr_vars,  irr_name)
+        doc_regl = doc %(var_input %reg_vars, regl_name, var_decl %reg_vars, regl_name)
+        doc_regr = doc %(var_input %reg_vars, regr_name, var_decl %reg_vars, regr_name)
 
         from database_cubic_hecke import read_basis, read_irr, read_reg
         bas2  = fl(read_basis(num_strands=2))
@@ -990,10 +1003,10 @@ def create_demo_data(filename='demo_data.py'):
         regr2 = fl(read_reg(translation_dict=TB, num_strands=2, right=True))
         regr3 = fl(read_reg(translation_dict=TB, num_strands=3, right=True))
 
-        bas  = template %('bas', '', doc, bas2, bas3)
-        irr  = template %('irr', 'a, b, c, j, ', doc, irr2, irr3)
-        regl = template %('regl', 'u, v, w, ', doc, regl2, regl3)
-        regr = template %('regr', 'u, v, w, ', doc, regr2, regr3)
+        bas  = template %(bas_name,  '',       doc_bas,  bas2,  bas3)
+        irr  = template %(irr_name,  irr_vars, doc_irr,  irr2,  irr3)
+        regl = template %(regl_name, reg_vars, doc_regl, regl2, regl3)
+        regr = template %(regr_name, reg_vars, doc_regr, regr2, regr3)
         with open(filename, 'w') as f:
             f.write(bas)
             f.write(irr)

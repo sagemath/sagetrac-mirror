@@ -247,7 +247,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         .. SEEALSO:: :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
         """
         print_options = self._parent.print_options()
-        v = list(self._monomial_coefficients.iteritems())
+        v = list(self._monomial_coefficients.items())
         try:
             v.sort(key=lambda monomial_coeff:
                         print_options['sorting_key'](monomial_coeff[0]),
