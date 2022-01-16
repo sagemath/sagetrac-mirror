@@ -707,7 +707,7 @@ class CubicHeckeFileCache(SageObject):
             sage: cha_fc.is_empty(CubicHeckeFileCache.section.braid_images)
             True
             sage: b2_img = CHA2(b2); b2_img
-            (-v) + u*c + w*c^-1
+            w*c^-1 + u*c + (-v)
             sage: cha_fc.write_braid_image(b2.Tietze(), b2_img.to_vector())
             sage: cha_fc.read_braid_image(b2.Tietze(), ring_of_definition)
             (-v, u, w)
@@ -746,7 +746,7 @@ class CubicHeckeFileCache(SageObject):
             sage: B2 = BraidGroup(2)
             sage: b, = B2.gens(); b3 = b**3
             sage: b3_img = CHA2(b3); b3_img
-            (-u*v+w) + (u^2-v)*c + u*w*c^-1
+            u*w*c^-1 + (u^2-v)*c + (-u*v+w)
             sage: cha_fc.write_braid_image(b3.Tietze(), b3_img.to_vector())
             sage: cha_fc.read_braid_image(b3.Tietze(), ring_of_definition)
             (-u*v + w, u^2 - v, u*w)
@@ -942,22 +942,21 @@ def read_%s_generated(%snstands):
 
 """
 
-var_input = "- ``%s`` -- variables for the representation matrices\n"
-var_decl = "L.<%> = LaurentPolynomialRing(ZZ)"
+var_input = "\n    - ``%s`` -- variables for the representation matrices"
+var_decl  = "\n        sage: L.<%s> = LaurentPolynomialRing(ZZ)"
 
-doc=r"""{}Return precomputed data of Ivan Marin
+doc=r"""{}
+    Return precomputed data of Ivan Marin
 
     INPUT:
-
-    %s
+%s
     - ``nstrands`` -- integer, number of strands of the cubic Hecke algebra in
       question
 
     EXAMPLES::
 
-        sage: from sage.databases.cubic_hecke_db import read_%s_generated
-        %s
-        sage: read_%s_generated(2)
+        sage: from sage.databases.cubic_hecke_db import read_%s_generated%s
+        sage: read_%s_generated(%s2)
     {}
 """.format('r"""', '"""')
 
@@ -972,7 +971,7 @@ def create_demo_data(filename='demo_data.py'):
         EXAMPLES::
 
             sage: from sage.databases.cubic_hecke_db import create_demo_data
-            sage: create_demo_data()   # optional - database_cubic_hecke
+            sage: create_demo_data()   # not tested
         """
         from sage.algebras.hecke_algebras.cubic_hecke_algebra import CubicHeckeAlgebra
         from textwrap import fill
@@ -985,13 +984,15 @@ def create_demo_data(filename='demo_data.py'):
         irr_name = 'irr'
         regl_name = 'regl'
         regr_name = 'regr'
-        irr_vars = 'a, b, c, j, '
-        reg_vars = 'u, v, w, '
+        irr_vars = 'a, b, c, j'
+        reg_vars = 'u, v, w'
+        irr_vars2 = irr_vars + ', '
+        reg_vars2 = reg_vars + ', '
 
-        doc_bas  = doc %('',                  bas_name, '',                  bas_name)
-        doc_irr  = doc %(var_input %irr_vars, irr_name, var_decl %irr_vars,  irr_name)
-        doc_regl = doc %(var_input %reg_vars, regl_name, var_decl %reg_vars, regl_name)
-        doc_regr = doc %(var_input %reg_vars, regr_name, var_decl %reg_vars, regr_name)
+        doc_bas  = doc %('',                   bas_name, '',                  bas_name, '')
+        doc_irr  = doc %(var_input %irr_vars, irr_name,  var_decl %irr_vars, irr_name,  irr_vars2)
+        doc_regl = doc %(var_input %reg_vars, regl_name, var_decl %reg_vars, regl_name, reg_vars2)
+        doc_regr = doc %(var_input %reg_vars, regr_name, var_decl %reg_vars, regr_name, reg_vars2)
 
         from database_cubic_hecke import read_basis, read_irr, read_reg
         bas2  = fl(read_basis(num_strands=2))
@@ -1004,9 +1005,9 @@ def create_demo_data(filename='demo_data.py'):
         regr3 = fl(read_reg(translation_dict=TB, num_strands=3, right=True))
 
         bas  = template %(bas_name,  '',       doc_bas,  bas2,  bas3)
-        irr  = template %(irr_name,  irr_vars, doc_irr,  irr2,  irr3)
-        regl = template %(regl_name, reg_vars, doc_regl, regl2, regl3)
-        regr = template %(regr_name, reg_vars, doc_regr, regr2, regr3)
+        irr  = template %(irr_name,  irr_vars2, doc_irr,  irr2,  irr3)
+        regl = template %(regl_name, reg_vars2, doc_regl, regl2, regl3)
+        regr = template %(regr_name, reg_vars2, doc_regr, regr2, regr3)
         with open(filename, 'w') as f:
             f.write(bas)
             f.write(irr)
@@ -1021,8 +1022,7 @@ def read_bas_generated(nstands):
 
     INPUT:
 
-    - ``a, b, c, j, u, v, w`` -- variables for the representation matrices
-    - ``nstarnds`` -- integer, number of strands of the cubic Hecke algebra in
+    - ``nstrands`` -- integer, number of strands of the cubic Hecke algebra in
       question
 
     EXAMPLES::
@@ -1030,8 +1030,8 @@ def read_bas_generated(nstands):
         sage: from sage.databases.cubic_hecke_db import read_bas_generated
         sage: read_bas_generated(2)
         [[], [1], [-1]]
-
     """
+
     data = {}
     data[2] = [[], [1], [-1]]
     data[3] = [[], [1], [-1], [2], [-2], [1, 2], [1, -2], [-1, 2], [-1, -2], [1, 2,
@@ -1047,19 +1047,20 @@ def read_irr_generated(a, b, c, j, nstands):
 
     INPUT:
 
-    - ``a, b, c, j, u, v, w`` -- variables for the representation matrices
-    - ``nstarnds`` -- integer, number of strands of the cubic Hecke algebra in
+    - ``a, b, c, j`` -- variables for the representation matrices
+    - ``nstrands`` -- integer, number of strands of the cubic Hecke algebra in
       question
 
     EXAMPLES::
 
         sage: from sage.databases.cubic_hecke_db import read_irr_generated
-        sage: read_irr_generated(3, 5, 7, 9, 2)
+        sage: L.<a, b, c, j> = LaurentPolynomialRing(ZZ)
+        sage: read_irr_generated(a, b, c, j, 2)
         ([1, 1, 1],
-         [[{(0, 0): 3}], [{(0, 0): 7}], [{(0, 0): 5}]],
-         [[{(0, 0): 1/3}], [{(0, 0): 1/7}], [{(0, 0): 1/5}]])
-
+        [[{(0, 0): a}], [{(0, 0): c}], [{(0, 0): b}]],
+        [[{(0, 0): a^-1}], [{(0, 0): c^-1}], [{(0, 0): b^-1}]])
     """
+
     data = {}
     data[2] = ([1, 1, 1], [[{(0, 0): a}], [{(0, 0): c}], [{(0, 0): b}]], [[{(0, 0):
         1/a}], [{(0, 0): 1/c}], [{(0, 0): 1/b}]])
@@ -1089,19 +1090,20 @@ def read_regl_generated(u, v, w, nstands):
 
     INPUT:
 
-    - ``a, b, c, j, u, v, w`` -- variables for the representation matrices
-    - ``nstarnds`` -- integer, number of strands of the cubic Hecke algebra in
+    - ``u, v, w`` -- variables for the representation matrices
+    - ``nstrands`` -- integer, number of strands of the cubic Hecke algebra in
       question
 
     EXAMPLES::
 
         sage: from sage.databases.cubic_hecke_db import read_regl_generated
-        sage: read_regl_generated(3, 5, 7, 2)
+        sage: L.<u, v, w> = LaurentPolynomialRing(ZZ)
+        sage: read_regl_generated(u, v, w, 2)
         ([3],
-         [[{(0, 1): -5, (0, 2): 1, (1, 0): 1, (1, 1): 3, (2, 1): 7}]],
-         [[{(0, 1): 1, (0, 2): -3/7, (1, 2): 1/7, (2, 0): 1, (2, 2): 5/7}]])
-
+        [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w}]],
+        [[{(0, 1): 1, (0, 2): -u*w^-1, (1, 2): w^-1, (2, 0): 1, (2, 2): v*w^-1}]])
     """
+
     data = {}
     data[2] = ([3], [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w}]],
         [[{(0, 1): 1, (0, 2): -u/w, (1, 2): 1/w, (2, 0): 1, (2, 2):
@@ -1161,19 +1163,20 @@ def read_regr_generated(u, v, w, nstands):
 
     INPUT:
 
-    - ``a, b, c, j, u, v, w`` -- variables for the representation matrices
-    - ``nstarnds`` -- integer, number of strands of the cubic Hecke algebra in
+    - ``u, v, w`` -- variables for the representation matrices
+    - ``nstrands`` -- integer, number of strands of the cubic Hecke algebra in
       question
 
     EXAMPLES::
 
         sage: from sage.databases.cubic_hecke_db import read_regr_generated
-        sage: read_regr_generated(3, 5, 7, 2)
+        sage: L.<u, v, w> = LaurentPolynomialRing(ZZ)
+        sage: read_regr_generated(u, v, w, 2)
         ([3],
-         [[{(0, 1): -5, (0, 2): 1, (1, 0): 1, (1, 1): 3, (2, 1): 7}]],
-         [[{(0, 1): 1, (0, 2): -3/7, (1, 2): 1/7, (2, 0): 1, (2, 2): 5/7}]])
-
+        [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w}]],
+        [[{(0, 1): 1, (0, 2): -u*w^-1, (1, 2): w^-1, (2, 0): 1, (2, 2): v*w^-1}]])
     """
+
     data = {}
     data[2] = ([3], [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w}]],
         [[{(0, 1): 1, (0, 2): -u/w, (1, 2): 1/w, (2, 0): 1, (2, 2):
@@ -1226,3 +1229,4 @@ def read_regr_generated(u, v, w, nstands):
         18): 1, (20, 20): v/w, (21, 13): -v/w, (21, 14): 1/w, (22,
         13): u/w, (22, 16): 1/w, (23, 13): 1}]])
     return data[nstands]
+
