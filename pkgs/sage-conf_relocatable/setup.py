@@ -129,7 +129,7 @@ class build_py(setuptools_build_py):
             # Delete old SAGE_ROOT_BUILD (if any), all the useful things have been moved from there.
             shutil.rmtree(SAGE_ROOT_BUILD, ignore_errors=True)
 
-            CONFIGURE_ARGS = f"--prefix={SAGE_LOCAL} --with-sage-venv={SAGE_VENV} --with-python={sys.executable} --enable-build-as-root --with-system-python3=force --with-mp=gmp --without-system-mpfr --without-system-readline --without-system-boost_cropped --without-system-zeromq --enable-download-from-upstream-url --enable-fat-binary --disable-notebook --disable-r --disable-doc --disable-sagelib"
+            CONFIGURE_ARGS = f"--prefix={SAGE_LOCAL} --with-sage-venv={SAGE_VENV} --with-python={sys.executable} --enable-build-as-root --with-system-python3=force --without-system-mpfr --without-system-readline --without-system-boost_cropped --without-system-zeromq --enable-download-from-upstream-url --enable-fat-binary --disable-notebook --disable-r --disable-doc --disable-sagelib"
             # These may be set by tox.ini
             if 'CONFIGURED_CC' in os.environ:
                 CONFIGURE_ARGS += ' CC="$CONFIGURED_CC"'
