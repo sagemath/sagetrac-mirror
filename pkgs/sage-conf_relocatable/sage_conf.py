@@ -5,7 +5,7 @@ from _sage_conf.__main__ import _main
 
 # Relocation.  SAGE_ROOT is typically configured to a directory in /var/tmp (sticky).
 import os as _os
-SAGE_ROOT_ABS = _os.path.join(_sage_conf.__file__, 'sage_root')
+SAGE_ROOT_ABS = _os.path.join(os.path.dirname(_sage_conf.__file__), 'sage_root')
 
 try:
     _os.symlink(SAGE_ROOT_ABS, SAGE_ROOT, target_is_directory=True)
