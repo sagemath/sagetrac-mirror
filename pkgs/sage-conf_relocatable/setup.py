@@ -173,7 +173,6 @@ class build_py(setuptools_build_py):
 
         # symlink into build dir
         HERE_SAGE_ROOT = os.path.join(HERE, '_sage_conf', 'sage_root')
-        print(f'{HERE_SAGE_ROOT=}')
         if os.path.islink(HERE_SAGE_ROOT):
             os.remove(HERE_SAGE_ROOT)
         os.symlink(SAGE_ROOT_BUILD, HERE_SAGE_ROOT)
