@@ -233,7 +233,8 @@ distribution -- which then must be declared as a run-time dependency.
 *Reducing module-level run-time dependencies:*
 
 - Avoid importing from :mod:`sage.PAC.KAGE.all` modules when :mod:`sage.PAC.KAGE` is
-  a namespace package. The main purpose of the :mod:`*.all` modules is for
+  a namespace package other than :mod:`sage.categories`.
+  The main purpose of the :mod:`*.all` modules is for
   populating the global interactive environment that is available to users at
   the ``sage:`` prompt. In particular, no Sage library code should import from
   :mod:`sage.rings.all`.
