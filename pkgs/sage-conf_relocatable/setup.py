@@ -165,26 +165,24 @@ class build_py(setuptools_build_py):
         # Install configuration
         shutil.copyfile(os.path.join(SAGE_ROOT_BUILD, 'pkgs', 'sage-conf', '_sage_conf', '_conf.py'),
                         os.path.join(HERE, '_sage_conf', '_conf.py'))
-        if not self.distribution.py_modules:
-            self.py_modules = self.distribution.py_modules = []
-        self.distribution.py_modules.append('sage_conf')
         shutil.copyfile(os.path.join(SAGE_ROOT_BUILD, 'src', 'bin', 'sage-env-config'),
                         os.path.join(HERE, 'bin', 'sage-env-config'))
         # Install built SAGE_ROOT as package data
-        if not self.packages:
-            self.packages = self.distribution.packages = ['']
         if not self.distribution.package_data:
             self.package_data = self.distribution.package_data = {}
 
         # symlink into build dir
-        HERE_SAGE_ROOT = os.path.join(HERE, 'sage_root')
+        HERE_SAGE_ROOT = os.path.join(HERE, '_sage_conf', 'sage_root')
+        print(f'{HERE_SAGE_ROOT=}')
         if os.path.islink(HERE_SAGE_ROOT):
             os.remove(HERE_SAGE_ROOT)
         os.symlink(SAGE_ROOT_BUILD, HERE_SAGE_ROOT)
 
         # We do not include lib64 (a symlink) because all symlinks are followed,
         # causing another copy to be installed.
-        self.distribution.package_data[''] = (
+        old_cwd = os.getcwd()
+        os.chdir('_sage_conf')
+        self.distribution.package_data['_sage_conf'] = (
             glob.glob('sage_root/*')
             + glob.glob('sage_root/config/*')
             + glob.glob('sage_root/m4/*')
@@ -197,6 +195,7 @@ class build_py(setuptools_build_py):
             + glob.glob('sage_root/local/share/**', recursive=True)
             + glob.glob('sage_root/local/var/lib/**', recursive=True)  # omit /var/tmp
             )
+        os.chdir(old_cwd)
         #
         setuptools_build_py.run(self)
 
