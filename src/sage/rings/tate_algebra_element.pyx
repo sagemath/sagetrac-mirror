@@ -178,7 +178,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             True
 
         """
-        return hash((self._coeff, self._exponent, self._virtual_val)
+        return hash((self._coeff, self._exponent, self._virtual_val))
 
     cdef TateAlgebraTerm _new_c(self):
         r"""
@@ -281,7 +281,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             s_new = self._coeff._latex_()
             if s_new == "1": s_new = ""
         else:
-            s_new += "\\left(%s\\right)" % self._coeff._latex_()
+            s_new = "\\left(%s\\right)" % self._coeff._latex_()
         s += s_new
         for i in range(parent._ngens):
             if self._exponent[i] == 1:
@@ -586,9 +586,9 @@ cdef class TateAlgebraTerm(MonoidElement):
         if self._parent._is_polynomial_ring:
             return (<pAdicGenericElement>self._coeff).valuation_c()
         else:
-            return (<pAdicGenericElement>self._coeff).valuation_c()
+            return ((<pAdicGenericElement>self._coeff).valuation_c()
                     + self._virtual_val
-                    - <long>self._exponent.dotprod(self._parent._log_radii_num)
+                    - <long>self._exponent.dotprod(self._parent._log_radii_num))
 
     cdef Element _call_c(self, list arg):
         """
@@ -1271,7 +1271,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         vars = self._parent.variable_names()
         s_fact = self._parent._virtual_val_repr(self._virtual_val)
         s = ""
-        for t in self._terms_c(distribute_virtual_val=False):
+        for t in self._terms_c(include_zero=False, distribute_virtual_val=False):
             if t.valuation() >= self._prec:
                 continue
             st = repr(t)
@@ -1336,7 +1336,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         vars = self._parent.variable_names()
         s_fact = self._parent._virtual_val_repr(self._virtual_val)
         s = ""
-        for t in self.terms(distribute_virtual_val=False):
+        for t in self.terms(include_zero=False, distribute_virtual_val=False):
             if t.valuation() >= self._prec:
                 continue
             st = t._latex_()
@@ -1360,8 +1360,6 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             return s_fact + "*(" + s + ")"
         else:
             return s
-
-        return s
 
     cpdef _add_(self, other):
         r"""
@@ -2289,7 +2287,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             self._terms = None
         return self._terms_c()
 
-    cdef list _terms_c(self, bint include_zero=True, distribute_virtual_val=True):
+    cdef list _terms_c(self, bint include_zero=True, bint distribute_virtual_val=True):
         r"""
         Return a list of the terms of this series sorted in descending order.
 

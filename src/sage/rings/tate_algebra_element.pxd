@@ -37,7 +37,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     cdef _normalize(self)
     cdef TateAlgebraElement _new_c(self)
-    cdef list _terms_c(self, bint include_zero=*)
+    cdef list _terms_c(self, bint include_zero=*, bint distribute_virtual_val=*)
     cpdef valuation(self)
     cdef TateAlgebraElement _term_mul_c(self, TateAlgebraTerm term)
     cdef TateAlgebraElement _positive_lshift_c(self, n)
