@@ -1114,13 +1114,13 @@ class TateAlgebra_generic(CommutativeAlgebra):
     def _uniformizer_print(self):
         return self._uniformizer_repr
 
-    def _virtual_val_repr(self, val):
+    def _initial_exponent_repr(self, val):
         if val != 0:
             return "%s^(%s)" % (self._uniformizer_repr, val / self._log_radii_den)
         else:
             return ""
 
-    def _virtual_val_latex(self, val):
+    def _initial_exponent_latex(self, val):
         if val != 0:
             return "%s^(%s)" % (self._uniformizer_latex, val / self._log_radii_den)
         else:
