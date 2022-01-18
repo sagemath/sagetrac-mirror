@@ -108,8 +108,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         TypeError: a term cannot be zero
 
     """
-    def __init__(self, parent, coeff, exponent=None# , add_val=0
-                 ):
+    def __init__(self, parent, coeff, exponent=None):
         """
         Initialize a Tate algebra term
 
@@ -118,10 +117,6 @@ cdef class TateAlgebraTerm(MonoidElement):
         - ``coeff`` -- an element in the base field
 
         - ``exponent`` -- a tuple
-
-        # - ``virtual_val`` -- (default: 0) an integer. This allows to construct
-        #   terms living in a scalar extension of the Tate algebra, of the form
-        #   $\pi^{a/d} t$ where $t$ is a term of the Tate algebra.
 
         TESTS::
 
@@ -161,7 +156,10 @@ cdef class TateAlgebraTerm(MonoidElement):
             raise ValueError("this term is not in the ring of integers")
 
     def _add_virtual_val(self, add_val):
-        q,r = add_val.quo_rem(self._parent._log_radii_den)
+        # FIXME: I don't know if the compiler reduces that to a single operation
+        # I also don't know if it matters
+        q = add_val // self._parent._log_radii_den
+        r = add_val % self._parent._log_radii_den
         self._virtual_val = r
         self._coeff = self._coeff.__lshift__(q)
         
@@ -1229,7 +1227,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 self._poly.__repn[e] = coeff
 
     def _add_virtual_val(self, add_val):
-        q,r = add_val.quo_rem(self._parent._log_radii_den)
+        q = add_val // self._parent._log_radii_den
+        r = add_val % self._parent._log_radii_den
         self._virtual_val = r
         coefdict = self._poly.__repn
         for (e,c) in coefdict.items():
