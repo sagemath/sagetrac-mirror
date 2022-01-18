@@ -329,6 +329,7 @@ class TateAlgebraFactory(UniqueFactory):
         if Infinity in log_radii:
             if any(not r is Infinity for r in log_radii):
                 raise NotImplementedError("the log radii must all be rational numbers or all infinity")
+            log_radii_den = Infinity
         else:
             try:
                 log_radii_den = lcm([r.denominator() for r in log_radii])
@@ -1109,6 +1110,22 @@ class TateAlgebra_generic(CommutativeAlgebra):
                 radii = "(%s)" % radii
             s += "_{%s}" % radii
         return s
+
+    def _uniformizer_print(self):
+        return self._uniformizer_repr
+
+    def _virtual_val_repr(self, val):
+        if val != 0:
+            return "%s^(%s)" % (self._uniformizer_repr, val / self._log_radii_den)
+        else:
+            return ""
+
+    def _virtual_val_latex(self, val):
+        if val != 0:
+            return "%s^(%s)" % (self._uniformizer_latex, val / self._log_radii_den)
+        else:
+            return ""
+
 
     def variable_names(self):
         """
