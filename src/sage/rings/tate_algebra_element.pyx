@@ -807,7 +807,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             val = min(self._valuation_c(), other._valuation_c())
         else:
             val = min(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)/self._parent._log_radii_den
-        #ans._coeff = self._parent._field.uniformizer_pow(val)
+        ans._coeff = 1
         ans._add_virtual_val(val)
         return ans
 
