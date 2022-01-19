@@ -290,10 +290,18 @@ cdef class TateAlgebraTerm(MonoidElement):
         EXAMPLES::
 
             sage: R = Zp(2, print_mode='digits', prec=10)
-            sage: A.<x,y> = TateAlgebra(R)
+            sage: A.<x,y> = TateAlgebra(R, log_radii=[1/2,1/3])
             sage: T = A.monoid_of_terms()
-            sage: T(2*x*y)  # indirect doctest
+            sage: T(2*x*y)
             ...00000000010*x*y
+            sage: T(2*x*y, initial_exponent=1) # indirect doctest
+            2^(1/6)*...00000000010*x*y
+        
+            sage: R = Zp(2, prec=10)
+            sage: A.<x,y> = TateAlgebra(R, log_radii=[1/2,1/3])
+            sage: T = A.monoid_of_terms()
+            sage: T(2*x*y, initial_exponent=1) # indirect doctest
+            2^(1/6)*(2 + O(2^11))*x*y
 
         """
         parent = self._parent
@@ -321,13 +329,19 @@ cdef class TateAlgebraTerm(MonoidElement):
         EXAMPLES::
 
             sage: R = Zp(2, print_mode='digits', prec=10)
-            sage: A.<x,y> = TateAlgebra(R)
+            sage: A.<x,y> = TateAlgebra(R, log_radii=[1/2,1/3])
             sage: T = A.monoid_of_terms()
-            sage: T(2*x*y)
-            ...00000000010*x*y
             sage: T(2*x*y)._latex_()
             '...00000000010xy'
-
+            sage: T(2*x*y, initial_exponent=1)._latex_()
+            '2^(1/6)...00000000010xy'
+        
+            sage: R = Zp(2, prec=10)
+            sage: A.<x,y> = TateAlgebra(R, log_radii=[1/2,1/3])
+            sage: T = A.monoid_of_terms()
+            sage: T(2*x*y, initial_exponent=1)._latex_()
+            '2^(1/6)\\left(2 + O(2^{11})\\right)xy'
+            
         """
         from sage.misc.latex import latex
         parent = self._parent
@@ -383,6 +397,20 @@ cdef class TateAlgebraTerm(MonoidElement):
         return self._exponent
 
     def initial_exponent(self):
+        r"""
+        Return the initial exponent of this Tate algebra term.
+
+        EXAMPLES::
+
+            sage: R = Zp(2,prec=10)
+            sage: A.<x,y> = TateAlgebra(R, log_radii=[1/2,1/3])
+            sage: T = A.monoid_of_terms()
+            sage: t = T(2*x*y, initial_exponent=3); t
+            2^(1/2)*(2 + O(2^11))*x*y
+            sage: t.initial_exponent()
+            3
+
+        """
         return self._initial_exponent
     
     cpdef _mul_(self, other):
@@ -404,6 +432,15 @@ cdef class TateAlgebraTerm(MonoidElement):
             ...0000000011*x^2*y
             sage: s*t  # indirect doctest
             ...00000000110*x^3*y^2
+
+            sage: A.<x,y> = TateAlgebra(R, log_radii=[1/2,1/3])
+            sage: T = A.monoid_of_terms()
+            sage: s = T(2*x*y, initial_exponent=1); s
+            2^(1/6)*...00000000010*x*y
+            sage: t = T(3*x^2*y, initial_exponent=2); t
+            2^(1/3)*...0000000011*x^2*y
+            sage: s*t  # indirect doctest
+            2^(1/2)*...00000000110*x^3*y^2
 
         """
         cdef TateAlgebraTerm ans = self._new_c()
@@ -451,6 +488,23 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s = T(x^2*y^2)
             sage: t = T(x*y^3)
             sage: s > t  # indirect doctest
+            True
+
+            sage: s = T(2*x^2*y^2)
+            sage: t = T(1)
+            sage: s < t  # indirect doctest
+            True
+        
+            sage: A.<x,y> = TateAlgebra(R, log_radii=[1/2,1/3])
+            sage: T = A.monoid_of_terms()
+            sage: s = T(x)
+            sage: t = T(y)
+            sage: s > t  # indirect doctest
+            True
+
+            sage: s = T(x, initial_exponent=2)
+            sage: t = T(y, initial_exponent=0)
+            sage: s < t  # indirect doctest
             True
 
         """
@@ -517,6 +571,35 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s == ss
             False
 
+        In case the algebra has non-trivial log radii, they are taken into
+        account in the valuation and therefore in the preorder.
+
+            sage: A.<x,y> = TateAlgebra(R, log_radii=[1/2,1/3])
+            sage: T = A.monoid_of_terms()
+            sage: s = T(x); s
+            ...0000000001*x
+            sage: t = T(y); t
+            ...0000000001*y
+            sage: s < t  # indirect doctest
+            False
+            sage: s > t  # indirect doctest
+            True
+            sage: s <= t  # indirect doctest
+            False
+            sage: s >= t  # indirect doctest
+            True
+
+            sage: ss = T(x, initial_exponent=2); ss
+            2^(1/3)*...0000000001*x
+            sage: ss < t  # indirect doctest
+            True
+            sage: ss > t  # indirect doctest
+            False
+            sage: ss <= t  # indirect doctest
+            True
+            sage: ss >= t  # indirect doctest
+            False
+        
         """
         if op == Py_EQ:
             return ((<TateAlgebraTerm>self)._coeff == (<TateAlgebraTerm>other)._coeff
