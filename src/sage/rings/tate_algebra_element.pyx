@@ -118,6 +118,17 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         - ``exponent`` -- a tuple
 
+        - ``initial_exponent`` -- (default: 0) an integer between 0 (inclusive)
+          and the common denominator of the log radii (exclusive). This allows
+          to consider terms of the form `\pi^(a/r) t` where `t` is a Tate
+          term. The initial exponent of this term is ``a``.
+
+          This is only intended for internal use. Such terms do not live in the
+          ambient Tate algebra, and they cannot be added to terms with a
+          different initial exponent. User-level functions and methods of the
+          class are guaranteed to output terms without an initial exponent.
+        
+
         TESTS::
 
             sage: R = Zp(2, print_mode='digits', prec=10)
@@ -155,7 +166,44 @@ cdef class TateAlgebraTerm(MonoidElement):
         if not parent.base_ring().is_field() and self.valuation() < 0:
             raise ValueError("this term is not in the ring of integers")
 
-    def _add_initial_exponent(self, add_val):
+    def _set_initial_exponent(self, add_val):
+        """
+        Modify this term to add an initial exponent.
+
+        This method should not be called on an initialized term.
+
+        INPUT:
+
+        - ``add_val`` : an integer
+
+        OUTPUT:
+
+        This term is modified in such a way that its valuation is increased by
+        ``add_val / r`` where ``r`` is the denominator of the log radii.
+
+        Furthermore, the initial exponent of the term is between 0 (inclusive)
+        and ``r`` (exclusive).
+
+        TESTS::
+
+            sage: A.<x,y> = TateAlgebra(Qp(2),log_radii=[1/2,1/3])
+            sage: T = A.monoid_of_terms()
+            sage: t = T(2*x*y, initial_exponent=1) # indirect doctest
+            sage: t
+            2^(1/6)*(2 + O(2^21))*x*y
+            sage: t.valuation()
+            1/3
+            sage: t.initial_exponent()
+            1
+            sage: t._set_initial_exponent(8)
+            sage: t
+            2^(1/3)*(2^2 + O(2^22))*x*y
+            sage: t.valuation()
+            3/2
+            sage: t.initial_exponent()
+            2
+        
+        """
         # FIXME: I don't know if the compiler reduces that to a single operation
         # I also don't know if it matters
         q = add_val // self._parent._log_radii_den
@@ -180,7 +228,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
             sage: A.<x,y> = TateAlgebra(R, log_radii=1/3);
             sage: t = T(3*x^2)
-            sage: t._add_initial_exponent(1)
+            sage: t._set_initial_exponent(1)
             sage: hash(t) == hash((t.coefficient(), t.exponent(), t.initial_exponent()))
             True
 
@@ -361,7 +409,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         cdef TateAlgebraTerm ans = self._new_c()
         ans._exponent = self._exponent.eadd((<TateAlgebraTerm>other)._exponent)
         ans._coeff = self._coeff * (<TateAlgebraTerm>other)._coeff
-        ans._add_initial_exponent(self._initial_exponent + (<TateAlgebraTerm>other)._initial_exponent)
+        ans._set_initial_exponent(self._initial_exponent + (<TateAlgebraTerm>other)._initial_exponent)
         return ans
 
     #def _div_(self, other):
@@ -596,7 +644,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         if self._parent._is_polynomial_ring:
             return (<pAdicGenericElement>self._coeff).valuation_c()
         else:
-            return ((<pAdicGenericElement>self._coeff).valuation_c()
+            return ((<pAdicGenericElement>self._coeff).valuation_c()*self._parent._log_radii_den
                     + self._initial_exponent
                     - <long>self._exponent.dotprod(self._parent._log_radii_num))
 
@@ -818,9 +866,9 @@ cdef class TateAlgebraTerm(MonoidElement):
         if self._parent._is_polynomial_ring:
             val = min(self._valuation_c(), other._valuation_c())
         else:
-            val = min(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)/self._parent._log_radii_den
+            val = min(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)
         ans._coeff = self._parent._field(1)
-        ans._add_initial_exponent(val)
+        ans._set_initial_exponent(val)
         return ans
 
     @coerce_binop
@@ -865,6 +913,10 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         The result is normalized so that `\gcd(a,b) \lcm(a,b) = ab`.
 
+        If the convergence log radii are rational, the lcm need not live in the
+        Tate algebra. If that is the case, a term with a non-zero
+        initial_exponent is returned.
+
         INPUT:
 
         - ``other`` - a Tate term
@@ -895,11 +947,11 @@ cdef class TateAlgebraTerm(MonoidElement):
         if self._parent._is_polynomial_ring:
             val = max(self._valuation_c(), other._valuation_c())
         else:
-            val = max(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)/self._parent._log_radii_den
+            val = max(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)
         #ans._coeff = (self._coeff.unit_part() * other._coeff.unit_part()) <<
         #val
         ans._coeff = (self._coeff.unit_part() * other._coeff.unit_part())
-        ans._add_initial_exponent(val)
+        ans._set_initial_exponent(val)
         return ans
 
     @coerce_binop
@@ -1238,7 +1290,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             else:
                 self._poly.__repn[e] = coeff
 
-    def _add_initial_exponent(self, add_val):
+    def _set_initial_exponent(self, add_val):
         q = add_val // self._parent._log_radii_den
         r = add_val % self._parent._log_radii_den
         self._initial_exponent = r
@@ -1498,7 +1550,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         b = self.valuation() + (<TateAlgebraElement>other)._prec
         ans._poly = self._poly * (<TateAlgebraElement>other)._poly
         ans._prec = min(a, b)
-        ans._add_initial_exponent(self._initial_exponent + (<TateAlgebraElement>other)._initial_exponent)
+        ans._set_initial_exponent(self._initial_exponent + (<TateAlgebraElement>other)._initial_exponent)
         ans._normalize()
         return ans
 
@@ -2043,7 +2095,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly.term_lmult(term._exponent, term._coeff)
         ans._prec = self._prec + term._valuation_c()
-        ans._add_initial_exponent(self._initial_exponent + (<TateAlgebraTerm>term)._initial_exponent)
+        ans._set_initial_exponent(self._initial_exponent + (<TateAlgebraTerm>term)._initial_exponent)
         return ans
 
     cdef TateAlgebraElement _positive_lshift_c(self, n):
@@ -2074,7 +2126,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ans._poly = PolyDict(coeffs, None)
         ans._prec = self._prec + n
         ans._initial_exponent = self._initial_exponent
-        # FIXME: Note: we could allow n to be rational and delegate to _add_initial_exponent
+        # FIXME: Note: we could allow n to be rational and delegate to _set_initial_exponent
         return ans
 
     cdef TateAlgebraElement _lshift_c(self, n):
