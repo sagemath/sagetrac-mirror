@@ -220,6 +220,7 @@ class CubicHeckeDataBase(SageObject):
         if self.demo_version():
             if nstrands >= 4:
                 self._feature.require()
+            from sage.databases.cubic_hecke_db import read_basis, read_irr, read_regl, read_regr
         else:
             from database_cubic_hecke import read_basis, read_irr, read_reg
             def read_regl(variables, num_strands):
@@ -1019,10 +1020,10 @@ def create_demo_data(filename='demo_data.py'):
         # ---------------------------------------------------------------
         # create functions and write them to file
         # ---------------------------------------------------------------
-        bas  = create_repr_func('bas',  '',   bas2,  bas3)
-        irr  = create_repr_func('irr',  vari, irr2,  irr3)
-        regl = create_repr_func('regl', varr, regl2, regl3)
-        regr = create_repr_func('regr', varr, regr2, regr3)
+        bas  = create_repr_func('basis',  '',   bas2,  bas3)
+        irr  = create_repr_func('irr',    vari, irr2,  irr3)
+        regl = create_repr_func('regl',   varr, regl2, regl3)
+        regr = create_repr_func('regr',   varr, regr2, regr3)
 
         with open(filename, 'w') as f:
             f.write(bas)
@@ -1031,7 +1032,7 @@ def create_demo_data(filename='demo_data.py'):
             f.write(regr)
 
 
-def read_bas(num_strands=3):
+def read_basis(num_strands=3):
     r"""
     Return precomputed data of Ivan Marin
 
@@ -1044,8 +1045,8 @@ def read_bas(num_strands=3):
 
     EXAMPLES::
 
-        sage: from sage.databases.cubic_hecke_db import read_bas
-        sage: read_bas(2)
+        sage: from sage.databases.cubic_hecke_db import read_basis
+        sage: read_basis(2)
         [[], [1], [-1]]
     """
 
