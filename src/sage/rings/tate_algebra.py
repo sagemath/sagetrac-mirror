@@ -273,7 +273,7 @@ class TateAlgebraFactory(UniqueFactory):
             (2-adic Field with capped relative precision 20,
              20,
              (+Infinity, +Infinity),
-             1,
+             +Infinity,
              ('x', 'y'),
              Degree reverse lexicographic term order)
             sage: TateAlgebra.create_key(Zp(2), names=['x','y'], log_radii=[1/2,-1/3])
