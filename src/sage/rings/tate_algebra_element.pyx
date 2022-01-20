@@ -3236,6 +3236,11 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         return self.leading_term(secure=secure).monomial()
 
+    # Aliases to have the same interface as polynomials
+    lt = leading_term
+    lm = leading_monomial
+    lc = leading_coefficient
+        
     cpdef TateAlgebraElement monic(self):
         r"""
         Return this series normalized so that it has valuation 0
