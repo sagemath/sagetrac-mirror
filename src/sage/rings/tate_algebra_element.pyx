@@ -886,7 +886,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         - ``other`` - a Tate term
 
-        - ``allow_extension`` - (default: `False`) allow computing the gcd in a
+        - ``allow_extension`` - (default: `False`) allow computing the GCD in a
           scalar extension of the Tate algebra.
 
         EXAMPLES::
@@ -901,7 +901,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s.gcd(t)
             ...000000000100*x*y^2
 
-        With rational log radii, the LCM need not live in the Tate algebra.
+        With rational log radii, the GCD need not live in the Tate algebra.
 
             sage: A.<x,y> = TateAlgebra(R,log_radii=1/2)
             sage: T = A.monoid_of_terms()
@@ -929,7 +929,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         if allow_extension or res._initial_exponent == 0:
             return res
         else:
-            raise ValueError("Gcd does not exist in the Tate algebra")
+            raise ValueError("GCD does not exist in the Tate algebra")
 
     cdef TateAlgebraTerm _gcd_c(self, TateAlgebraTerm other):
         r"""
@@ -988,7 +988,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         - ``other`` - a Tate term
 
-        - ``allow_extension`` - (default: `False`) allow computing the gcd in a
+        - ``allow_extension`` - (default: `False`) allow computing the LCM in a
           scalar extension of the Tate algebra.
 
 
@@ -1034,7 +1034,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         if allow_extension or res._initial_exponent == 0:
             return res
         else:
-            raise ValueError("Lcm does not exist in the Tate algebra")
+            raise ValueError("LCM does not exist in the Tate algebra")
 
     cdef TateAlgebraTerm _lcm_c(self, TateAlgebraTerm other):
         r"""
