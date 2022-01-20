@@ -1527,7 +1527,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         base = self._parent.base_ring()
         nvars = self._parent.ngens()
         vars = self._parent.variable_names()
-        s_fact = self._parent._initial_exponent_repr(self._initial_exponent)
+        s_fact = self._parent._initial_exponent_latex(self._initial_exponent)
         s = ""
         # FIXME: Why terms here and terms_c in repr?
         for t in self.terms(distribute_initial_exponent=False):
@@ -1589,6 +1589,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly + (<TateAlgebraElement>other)._poly
         ans._prec = min(self._prec, (<TateAlgebraElement>other)._prec)
+        ans._initial_exponent = self._initial_exponent
         ans._normalize()
         return ans
 
@@ -1645,6 +1646,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly - (<TateAlgebraElement>other)._poly
         ans._prec = min(self._prec, (<TateAlgebraElement>other)._prec)
+        ans._initial_exponent = self._initial_exponent
         ans._normalize()
         return ans
 
