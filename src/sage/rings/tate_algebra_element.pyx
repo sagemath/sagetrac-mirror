@@ -1226,7 +1226,8 @@ cdef class TateAlgebraTerm(MonoidElement):
         parent = self._parent
         if (integral or not parent.base_ring().is_field()) and self.valuation() > other.valuation():
             return False
-        #FIXME: Add test for the valuations to be in the same Z+a/d
+        if self._initial_exponent != other._initial_exponent:
+            return False
         for i in range(parent._ngens):
             if self._exponent[i] > other._exponent[i]:
                 return False
