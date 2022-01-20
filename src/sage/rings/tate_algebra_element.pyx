@@ -655,7 +655,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s.monomial()
             ...0000000001*x^2*y^2
 
-        However, when log radii do not vanish, behaviors might
+        However, when log radii are not zero, behaviors might
         be different::
 
             sage: A.<x,y> = TateAlgebra(R, log_radii=1)
@@ -679,7 +679,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         cdef long v = self._exponent.dotprod(self._parent._log_radii_num)
         ans._coeff = self._parent._field.uniformizer_pow(v)
         ans._exponent = self._exponent
-        # TODO: Do we want to keep initial_exponent here?
+        # TODO: What do we want to do with initial exponent here?
         return ans
 
     def valuation(self):
@@ -711,7 +711,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
     cdef long _valuation_c(self):
         r"""
-        Return the valuation of this term.
+        Return the valuation of this term, multiplied by the denominator of the log radii.
 
         EXAMPLES::
 
@@ -871,7 +871,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             return self.valuation() == 0 or other.valuation() == 0
 
     @coerce_binop
-    def gcd(self, other):
+    def gcd(self, other, allow_extension=False):
         r"""
         Return the greatest common divisor of this term and ``other``.
 
@@ -880,11 +880,14 @@ cdef class TateAlgebraTerm(MonoidElement):
         - its valuation is equal to the smallest valuation of
           this term and ``other``
 
-        - its coefficient is a power of the uniformizer.
+        - its coefficient is a power of the uniformizer
 
         INPUT:
 
         - ``other`` - a Tate term
+
+        - ``allow_extension`` - (default: `False`) allow computing the gcd in a
+          scalar extension of the Tate algebra.
 
         EXAMPLES::
 
@@ -898,16 +901,36 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s.gcd(t)
             ...000000000100*x*y^2
 
+        With rational log radii, the LCM need not live in the Tate algebra.
+
+            sage: A.<x,y> = TateAlgebra(R,log_radii=1/2)
+            sage: T = A.monoid_of_terms()
+            sage: t = T(x*y); t
+            ...0000000001*x*y
+            sage: s = T(2*x^3); s
+            ...00000000010*x^3
+            sage: t.valuation()
+            -1
+            sage: s.valuation()
+            -1/2
+            sage: T(x).valuation()
+            -1/2
+            sage: t.gcd(s)
+            Traceback (most recent call last):
+            ...
+            ValueError: Gcd does not exist in the Tate algebra
+            sage: d = t.gcd(s, allow_extension=True); d
+            2^(1/2)*...000000000.1*x
+            sage: d.valuation()
+            -1
+
         """
         res = self._gcd_c(other)
-        if res._initial_exponent == 0:
+        if allow_extension or res._initial_exponent == 0:
             return res
         else:
             raise ValueError("Gcd does not exist in the Tate algebra")
 
-    def _gcd_internal(self, other):
-        return self._gcd_c(other)
-                    
     cdef TateAlgebraTerm _gcd_c(self, TateAlgebraTerm other):
         r"""
         Return the greatest common divisor of this term and ``other``.
@@ -955,7 +978,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         return ans
 
     @coerce_binop
-    def lcm(self, other):
+    def lcm(self, other, allow_extension=False):
         r"""
         Return the least common multiple of two Tate terms.
 
@@ -964,6 +987,10 @@ cdef class TateAlgebraTerm(MonoidElement):
         INPUT:
 
         - ``other`` - a Tate term
+
+        - ``allow_extension`` - (default: `False`) allow computing the gcd in a
+          scalar extension of the Tate algebra.
+
 
         EXAMPLES::
 
@@ -979,16 +1006,35 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s.lcm(t)
             ...0000000001000*x^2*y^3
 
+        With rational log radii, the LCM need not live in the Tate algebra.
+
+            sage: A.<x,y> = TateAlgebra(R,log_radii=1/2)
+            sage: T = A.monoid_of_terms()
+            sage: t = T(x*y); t
+            ...0000000001*x*y
+            sage: s = T(2*x^3); s
+            ...00000000010*x^3
+            sage: t.valuation()
+            -1
+            sage: s.valuation()
+            -1/2
+            sage: T(x^3*y).valuation()
+            -2
+            sage: t.lcm(s)
+            Traceback (most recent call last):
+            ...
+            ValueError: Lcm does not exist in the Tate algebra
+            sage: m = t.lcm(s, allow_extension=True); m
+            2^(1/2)*...00000000010*x^3*y
+            sage: m.valuation()
+            -1/2
+
         """
         res = self._lcm_c(other)
-        if res._initial_exponent == 0:
+        if allow_extension or res._initial_exponent == 0:
             return res
         else:
             raise ValueError("Lcm does not exist in the Tate algebra")
-
-    def _lcm_internal(self,other):
-        return self._lcm_c(other)
-
 
     cdef TateAlgebraTerm _lcm_c(self, TateAlgebraTerm other):
         r"""
