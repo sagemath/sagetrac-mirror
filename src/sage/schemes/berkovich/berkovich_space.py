@@ -719,9 +719,9 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         """
         return r"\text{Projective Berkovich line over } \Bold{C}_{%s}" %(self.prime())
 
-    def convex_hull(self, points, labels=None, return_graph=False):
+    def convex_hull(self, points, labels=None):
         """
-        Plot or return a bipartite graph containing the convex hull.
+        Return a bipartite graph containing the convex hull and options for plotting the graph.
 
         The convex hull of a set of points is the smallest
         path-connected space that contains all the points,
@@ -742,19 +742,21 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         - labels -- (optional) A list of strings to use as labels for the vertices
           bipartite graph.
 
-        - return_graph -- (default: `False`) If `True`, the bipartite graph is returned
-          and the bipartite graph is not plotted.
+        OUTPUT: A bipartite graph and options for plotting the graph
 
-        OUTPUT: None, unless ``return_graph`` is ``True``, in which case a bipartite
-                graph is returned.
+        EXAMPLES:
 
-        EXAMPLES::
+        To plot the graph showing the convex hull, use the specified options.
+        Note that the options are a dictionary, and so must be passed to the plot
+        function using **::
 
             sage: B = Berkovich_Cp_Projective(3)
             sage: Q1 = B(1/3)
             sage: Q2 = B(1/3, 3)
             sage: Q3 = B(3)
-            sage: B.convex_hull([Q1, Q2, Q3])
+            sage: G, options = B.convex_hull([Q1, Q2, Q3])
+            sage: G.plot(**options)
+            Graphics object consisting of 12 graphics primitives
 
         ::
 
@@ -766,7 +768,9 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             sage: Q5 = B(9, 1/3)
             sage: Q6 = B(1/2)
             sage: Q7 = B(7)
-            sage: B.convex_hull([Q1, Q2, Q3, Q4, Q5, Q6, Q7])
+            sage: G, options = B.convex_hull([Q1, Q2, Q3, Q4, Q5, Q6, Q7])
+            sage: G.plot(**options)
+            Graphics object consisting of 28 graphics primitives
 
         We can use ``labels`` to specify the naming of the vertices::
 
@@ -774,7 +778,7 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             sage: Q1 = B(1/5)
             sage: Q2 = B(5, 1/5)
             sage: Q3 = B(25, 1/25)
-            sage: convex_hull = B.convex_hull([Q1, Q2, Q3], ['Q1', 'Q2', 'Q3'], True)
+            sage: convex_hull, options = B.convex_hull([Q1, Q2, Q3], ['Q1', 'Q2', 'Q3'])
             sage: convex_hull.vertices()
             ['0', 'Gauss', 'Q1', 'Q1 ^ Q2', 'Q2', 'Q3', 'oo']
 
@@ -784,8 +788,8 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             sage: Q1 = B(1/3)
             sage: Q2 = B(1/3, 3)
             sage: Q3 = B(3)
-            sage: convex_hull =  B.convex_hull([Q1, Q2, Q3], return_graph=True)
-            sage: convex_hull.adjacency_matrix()
+            sage: convex_hull =  B.convex_hull([Q1, Q2, Q3])
+            sage: convex_hull[0].adjacency_matrix()
             [0 1 0 0 0 0]
             [0 0 0 1 0 0]
             [0 0 0 1 0 0]
@@ -803,8 +807,8 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             sage: Q5 = B(9, 1/3)
             sage: Q6 = B(1/2)
             sage: Q7 = B(7)
-            sage: convex_hull = B.convex_hull([Q1, Q2, Q3, Q4, Q5, Q6, Q7], return_graph=True)
-            sage: convex_hull.adjacency_matrix()
+            sage: convex_hull = B.convex_hull([Q1, Q2, Q3, Q4, Q5, Q6, Q7])
+            sage: convex_hull[0].adjacency_matrix()
             [0 0 0 0 0 0 0 0 0 0 1 0 0 0]
             [0 0 0 0 1 0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 1 0 0 0 0 0 0 0]
@@ -835,11 +839,11 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
                 raise ValueError("input to convex_hull must be a list of points of Berkovich space")
             if i.parent() != self:
                 raise ValueError("input to convex_hull must be a list of points of this Berkovich space")
-        if labels == None:
+        if labels is None:
             labels = ["P" + str(i+1) for i in range(len(points))]
         point_to_name = {}
         name_to_highlight = {}
-        V = points[:]
+        vertices = points[:]
         for i in range(len(points)):
             point_to_name[points[i]] = labels[i]
             name_to_highlight[point_to_name[points[i]]] = True
@@ -852,23 +856,23 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
 
         # we add zero, infinity, and the gauss point for reference
         for point in [zero, infinity, gauss]:
-            if point not in V:
-                V.append(point)
+            if point not in vertices:
+                vertices.append(point)
                 name_to_highlight[point_to_name[point]] = False
             else:
                 name_to_highlight[point_to_name[point]] = True
 
         # we add joins if necessary
         for i in range(len(points)):
-                for j in range(i+1,len(points)):
-                    join = points[i].join(points[j])
-                    if join not in V:
-                        V.append(join)
-                        point_to_name[join] = point_to_name[points[i]] + " ^ " + point_to_name[points[j]]
-                        name_to_highlight[point_to_name[join]] = True
+            for j in range(i+1,len(points)):
+                join = points[i].join(points[j])
+                if join not in vertices:
+                    vertices.append(join)
+                    point_to_name[join] = point_to_name[points[i]] + " ^ " + point_to_name[points[j]]
+                    name_to_highlight[point_to_name[join]] = True
 
-        points_in_below_gauss = [point for point in V if point.lt(gauss)] + [gauss]
-        points_in_above_gauss = [point for point in V if not point.lt(gauss)]
+        points_in_below_gauss = [point for point in vertices if point.lt(gauss)] + [gauss]
+        points_in_above_gauss = [point for point in vertices if not point.lt(gauss)]
 
         # if there are highlighted points both above and below the gauss point we must highlight the gauss point
         if len(points_in_below_gauss) != 2 and len(points_in_above_gauss) != 2:
@@ -876,7 +880,7 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
 
         E = {}
         red_colored_edges = []
-        for start in V:
+        for start in vertices:
             outgoing = {}
             end = infinity
             if start == end:
@@ -886,7 +890,7 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             good_end = False
             while not good_end:
                 good_end = True
-                for v in V:
+                for v in vertices:
                     if v != start and v != end:
                         if v.contained_in_interval(start, end):
                             good_end = False
@@ -907,13 +911,9 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             if name_to_highlight[vertex]:
                 red_colored_vertices.append(vertex)
         vertex_colors = {'#FF0000': red_colored_vertices}
-        if not return_graph:
-            from sage.graphs.graph_plot import GraphPlot
-            options = {'layout':'tree',
-                    'edge_colors':edge_colors,
-                    'vertex_colors':vertex_colors,
-                    'tree_orientation': 'down',
-                    'tree_root': 'oo'}
-            GraphPlot(G, options).show()
-        else:
-            return G
+        options = {'layout':'tree',
+                'edge_colors':edge_colors,
+                'vertex_colors':vertex_colors,
+                'tree_orientation': 'down',
+                'tree_root': 'oo'}
+        return G, options
