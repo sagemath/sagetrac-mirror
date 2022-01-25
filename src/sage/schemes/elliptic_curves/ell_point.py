@@ -2,17 +2,18 @@
 r"""
 Points on elliptic curves
 
-The base class ``EllipticCurvePoint_field``, derived from
-``AdditiveGroupElement``, provides support for points on elliptic
-curves defined over general fields.  The derived classes
-``EllipticCurvePoint_number_field`` and
-``EllipticCurvePoint_finite_field`` provide further support for point
-on curves defined over number fields (including the rational field
-`\QQ`) and over finite fields.
+The base class :class:`EllipticCurvePoint` provides support for
+points on elliptic curves defined over general rings, including
+somewhat generic addition formulas.
+(Note that zero divisors in the addition formulas are currently
+handled gracefully only in special cases.)
 
-The class ``EllipticCurvePoint``, which is based on
-``SchemeMorphism_point_projective_ring``, currently has little extra
-functionality.
+The derived classes :class:`EllipticCurvePoint_field` and its
+child classes :class:`EllipticCurvePoint_number_field` and
+:class:`EllipticCurvePoint_finite_field` provide further support
+for points on curves defined over general fields, as well as
+specialized functionality for points on curves over number fields
+(including the rational field `\QQ`) and finite fields.
 
 EXAMPLES:
 
