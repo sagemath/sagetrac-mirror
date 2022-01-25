@@ -147,10 +147,149 @@ class EllipticCurvePoint(SchemeMorphism_point_projective_ring):
     """
     A point on an elliptic curve.
     """
-    pass
+    def curve(self):
+        """
+        Return the curve that this point is on.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('389a')
+            sage: P = E([-1,1])
+            sage: P.curve()
+            Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+        """
+        return self.scheme()
+
+    def _add_(self, right):
+        """
+        Add self to right.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('389a')
+            sage: P = E([-1,1]); Q = E([0,0])
+            sage: P + Q
+            (1 : 0 : 1)
+            sage: P._add_(Q) == P + Q
+            True
+
+        Example to show that bug :trac:`4820` is fixed::
+
+            sage: [type(c) for c in 2*EllipticCurve('37a1').gen(0)]
+            [<... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>]
+
+        Checks that :trac:`15964` is fixed::
+
+            sage: N = 1715761513
+            sage: E = EllipticCurve(Integers(N),[3,-13])
+            sage: P = E(2,1)
+            sage: LCM([2..60])*P
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse of 1520944668 does not exist
+            (characteristic = 1715761513 = 26927*63719)
+
+            sage: N = 35
+            sage: E = EllipticCurve(Integers(N),[5,1])
+            sage: P = E(0,1)
+            sage: LCM([2..6])*P
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse of 28 does not exist
+            (characteristic = 35 = 7*5)
+        """
+        # Use Prop 7.1.7 of Cohen "A Course in Computational Algebraic
+        # Number Theory"
+        if self.is_zero():
+            return right
+        if right.is_zero():
+            return self
+        E = self.curve()
+        a1, a2, a3, a4, a6 = E.ainvs()
+        x1, y1 = self[0], self[1]
+        x2, y2 = right[0], right[1]
+        if x1 == x2 and y1 == -y2 - a1*x2 - a3:
+            return E(0)  # point at infinity
+
+        if x1 == x2 and y1 == y2:
+            try:
+                m = (3*x1*x1 + 2*a2*x1 + a4 - a1*y1) / (2*y1 + a1*x1 + a3)
+            except ZeroDivisionError:
+                R = E.base_ring()
+                if R.is_finite():
+                    N = R.characteristic()
+                    N1 = N.gcd(Integer(2*y1 + a1*x1 + a3))
+                    N2 = N//N1
+                    raise ZeroDivisionError("Inverse of %s does not exist (characteristic = %s = %s*%s)" % (2*y1 + a1*x1 + a3, N, N1, N2))
+                else:
+                    raise ZeroDivisionError("Inverse of %s does not exist" % (2*y1 + a1*x1 + a3))
+        else:
+            try:
+                m = (y1-y2)/(x1-x2)
+            except ZeroDivisionError:
+                R = E.base_ring()
+                if R.is_finite():
+                    N = R.characteristic()
+                    N1 = N.gcd(Integer(x1-x2))
+                    N2 = N//N1
+                    raise ZeroDivisionError("Inverse of %s does not exist (characteristic = %s = %s*%s)" % (x1-x2, N, N1, N2))
+                else:
+                    raise ZeroDivisionError("Inverse of %s does not exist" % (x1-x2))
+
+        x3 = -x1 - x2 - a2 + m*(m+a1)
+        y3 = -y1 - a3 - a1*x3 + m*(x1-x3)
+        # See trac #4820 for why we need to coerce 1 into the base ring here:
+        return E.point([x3, y3, E.base_ring()(1)], check=False)
+
+    def _sub_(self, right):
+        """
+        Subtract right from  self.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('389a')
+            sage: P = E([-1,1]); Q = E([0,0])
+            sage: P - Q
+            (4 : 8 : 1)
+            sage: P - Q == P._sub_(Q)
+            True
+            sage: (P - Q) + Q
+            (-1 : 1 : 1)
+            sage: P
+            (-1 : 1 : 1)
+        """
+        return self + (-right)
+
+    def _neg_(self):
+        """
+        Return the additive inverse of this point.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('389a')
+            sage: P = E([-1,1])
+            sage: Q = -P; Q
+            (-1 : -2 : 1)
+            sage: Q + P
+            (0 : 1 : 0)
+
+        Example to show that bug :trac:`4820` is fixed::
+
+            sage: [type(c) for c in -EllipticCurve('37a1').gen(0)]
+            [<... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>]
+        """
+        if self.is_zero():
+            return self
+        E, x, y = self.curve(), self[0], self[1]
+        # See trac #4820 for why we need to coerce 1 into the base ring here:
+        return E.point([x, -y - E.a1()*x - E.a3(), E.base_ring()(1)], check=False)
 
 
-class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
+class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field, EllipticCurvePoint):
     """
     A point on an elliptic curve over a field.  The point has coordinates
     in the base field.
@@ -301,6 +440,16 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         SchemeMorphism_point_abelian_variety_field.__init__(self, point_homset, v, check=False)
         # AdditiveGroupElement.__init__(self, point_homset)
+
+    # FIXME
+    # This is a hack. We want to inherit most things from
+    # SchemeMorphism_point_abelian_variety_field, but that
+    # class brings in a default implementation of _add_
+    # from ModuleElement that raises NotImplementedError.
+    # So yeah.
+    _add_ = EllipticCurvePoint._add_
+    _sub_ = EllipticCurvePoint._sub_
+    _neg_ = EllipticCurvePoint._neg_
 
     def _repr_(self):
         """
@@ -493,19 +642,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
     additive_order = order
 
-    def curve(self):
-        """
-        Return the curve that this point is on.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('389a')
-            sage: P = E([-1,1])
-            sage: P.curve()
-            Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
-        """
-        return self.scheme()
-
     def __bool__(self):
         """
         Return ``True`` if this is not the zero point on the curve.
@@ -601,134 +737,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             return plot.text("$\\infty$", (-3, 3), **args)
         else:
             return plot.point((self[0], self[1]), **args)
-
-    def _add_(self, right):
-        """
-        Add self to right.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('389a')
-            sage: P = E([-1,1]); Q = E([0,0])
-            sage: P + Q
-            (1 : 0 : 1)
-            sage: P._add_(Q) == P + Q
-            True
-
-        Example to show that bug :trac:`4820` is fixed::
-
-            sage: [type(c) for c in 2*EllipticCurve('37a1').gen(0)]
-            [<... 'sage.rings.rational.Rational'>,
-            <... 'sage.rings.rational.Rational'>,
-            <... 'sage.rings.rational.Rational'>]
-
-        Checks that :trac:`15964` is fixed::
-
-            sage: N = 1715761513
-            sage: E = EllipticCurve(Integers(N),[3,-13])
-            sage: P = E(2,1)
-            sage: LCM([2..60])*P
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: Inverse of 1520944668 does not exist
-            (characteristic = 1715761513 = 26927*63719)
-
-            sage: N = 35
-            sage: E = EllipticCurve(Integers(N),[5,1])
-            sage: P = E(0,1)
-            sage: LCM([2..6])*P
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: Inverse of 28 does not exist
-            (characteristic = 35 = 7*5)
-        """
-        # Use Prop 7.1.7 of Cohen "A Course in Computational Algebraic
-        # Number Theory"
-        if self.is_zero():
-            return right
-        if right.is_zero():
-            return self
-        E = self.curve()
-        a1, a2, a3, a4, a6 = E.ainvs()
-        x1, y1 = self[0], self[1]
-        x2, y2 = right[0], right[1]
-        if x1 == x2 and y1 == -y2 - a1*x2 - a3:
-            return E(0)  # point at infinity
-
-        if x1 == x2 and y1 == y2:
-            try:
-                m = (3*x1*x1 + 2*a2*x1 + a4 - a1*y1) / (2*y1 + a1*x1 + a3)
-            except ZeroDivisionError:
-                R = E.base_ring()
-                if R.is_finite():
-                    N = R.characteristic()
-                    N1 = N.gcd(Integer(2*y1 + a1*x1 + a3))
-                    N2 = N//N1
-                    raise ZeroDivisionError("Inverse of %s does not exist (characteristic = %s = %s*%s)" % (2*y1 + a1*x1 + a3, N, N1, N2))
-                else:
-                    raise ZeroDivisionError("Inverse of %s does not exist" % (2*y1 + a1*x1 + a3))
-        else:
-            try:
-                m = (y1-y2)/(x1-x2)
-            except ZeroDivisionError:
-                R = E.base_ring()
-                if R.is_finite():
-                    N = R.characteristic()
-                    N1 = N.gcd(Integer(x1-x2))
-                    N2 = N//N1
-                    raise ZeroDivisionError("Inverse of %s does not exist (characteristic = %s = %s*%s)" % (x1-x2, N, N1, N2))
-                else:
-                    raise ZeroDivisionError("Inverse of %s does not exist" % (x1-x2))
-
-        x3 = -x1 - x2 - a2 + m*(m+a1)
-        y3 = -y1 - a3 - a1*x3 + m*(x1-x3)
-        # See trac #4820 for why we need to coerce 1 into the base ring here:
-        return E.point([x3, y3, E.base_ring()(1)], check=False)
-
-    def _sub_(self, right):
-        """
-        Subtract right from  self.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('389a')
-            sage: P = E([-1,1]); Q = E([0,0])
-            sage: P - Q
-            (4 : 8 : 1)
-            sage: P - Q == P._sub_(Q)
-            True
-            sage: (P - Q) + Q
-            (-1 : 1 : 1)
-            sage: P
-            (-1 : 1 : 1)
-        """
-        return self + (-right)
-
-    def __neg__(self):
-        """
-        Return the additive inverse of this point.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('389a')
-            sage: P = E([-1,1])
-            sage: Q = -P; Q
-            (-1 : -2 : 1)
-            sage: Q + P
-            (0 : 1 : 0)
-
-        Example to show that bug :trac:`4820` is fixed::
-
-            sage: [type(c) for c in -EllipticCurve('37a1').gen(0)]
-            [<... 'sage.rings.rational.Rational'>,
-            <... 'sage.rings.rational.Rational'>,
-            <... 'sage.rings.rational.Rational'>]
-        """
-        if self.is_zero():
-            return self
-        E, x, y = self.curve(), self[0], self[1]
-        # See trac #4820 for why we need to coerce 1 into the base ring here:
-        return E.point([x, -y - E.a1()*x - E.a3(), E.base_ring()(1)], check=False)
 
     def xy(self):
         """
