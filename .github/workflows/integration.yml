@@ -1,0 +1,62 @@
+name: Daily integration
+
+on:
+  schedule:
+    - cron:  '37 13 * * *'
+  workflow_dispatch:
+
+env:
+  TARGETS_PRE: all-sage-local
+  TARGETS: build doc-html doc-pdf ptest
+  TARGETS_OPTIONAL: build/make/Makefile
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          repository: sagemath/sagetrac-mirror
+          ref: develop
+      - name: Fetch missing tags
+        run: |
+          git remote rename origin trac
+          git remote add orig_trac git://trac.sagemath.org/sage.git
+          git fetch orig_trac develop --tags
+      - name: Check out git-trac-command
+        uses: actions/checkout@v2
+        with:
+          repository: mkoeppe/git-trac-command
+          path: git-trac-command
+          ref: releasemgr_patchbot_status
+      - name: Install git-trac-command
+        run: |
+          python3 -m pip install --user ./git-trac-command[releasemgr]
+      - name: Merge Trac tickets
+        run: |
+          git config user.email "release@sagemath.org"
+          git config user.name "Release Manager GH Actions workflow"
+          PATH="$(pwd)/git-trac-command:$PATH" git releasemgr merge-all --milestone=current
+      - name: free disk space
+        run: |
+          df -h
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo apt-get clean
+          docker rmi $(docker image ls -aq)
+          echo "Largest packages:"
+          dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 50
+          sudo apt-get --fix-broken --yes remove $(dpkg-query -f '${Package}\n' -W | grep -E '^(ghc-|google-cloud-sdk|google-chrome|firefox|mysql-server|dotnet-sdk|hhvm|mono)') || echo "(error ignored)"
+          df -h
+      - name: Install test prerequisites
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install tox
+          sudo apt-get clean
+          df -h
+      - name: Build and test
+        env:
+          TOX_ENV: docker-ubuntu-focal-standard
+        run: |
+          EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- $TARGETS
