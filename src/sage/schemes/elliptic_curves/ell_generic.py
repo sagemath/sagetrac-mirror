@@ -53,7 +53,6 @@ AUTHORS:
 
 import math
 
-import sage.rings.abc
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import polygen, polygens
 from sage.rings.polynomial.polynomial_element import polynomial_is_variable
@@ -165,13 +164,6 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         plane_curve.ProjectivePlaneCurve.__init__(self, PP, f)
 
         self.__divpolys = (dict(), dict(), dict())
-
-        # See #1975: we deliberately set the class to
-        # EllipticCurvePoint_finite_field for finite rings, so that we
-        # can do some arithmetic on points over Z/NZ, for teaching
-        # purposes.
-        if isinstance(K, sage.rings.abc.IntegerModRing):
-            self._point = ell_point.EllipticCurvePoint_finite_field
 
     _point = ell_point.EllipticCurvePoint
 
@@ -552,10 +544,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         P = args[0]
         if isinstance(P, groups.AdditiveAbelianGroupElement) and isinstance(P.parent(),ell_torsion.EllipticCurveTorsionSubgroup):
             return self(P.element())
-        if isinstance(args[0],
-                      (ell_point.EllipticCurvePoint_field,
-                       ell_point.EllipticCurvePoint_number_field,
-                       ell_point.EllipticCurvePoint)):
+        if isinstance(args[0], ell_point.EllipticCurvePoint):
             # check if denominator of the point contains a factor of the
             # characteristic of the base ring. if so, coerce the point to
             # infinity.
