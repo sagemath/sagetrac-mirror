@@ -2,10 +2,15 @@ cd src/
 
 mkdir _build
 cd _build
-cmake ..  -DINSTALL_DIR="${SAGE_LOCAL}" \
-          -DPYTHON=python3 \
-          -DCORA=False
+cmake ..  -DCMAKE_INSTALL_PREFIX="${SAGE_LOCAL}" \
+          -DCOMPILE_MODULE_IN_INSTALL_DIR=TRUE \
+          -DFORCE_INSTALL_IN_PREFIX=TRUE \
+          -DPYTHON_BIN=python3 \
+          -DCYTHON_BIN=cython \
+          -DCORA=FALSE \
+          -DDOCUMENTATION=FALSE
 
 sdh_make
+sdh_make recommended
 sdh_make install
 
