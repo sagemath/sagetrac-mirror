@@ -9,6 +9,7 @@ env:
   TARGETS_PRE: all-sage-local
   TARGETS: build doc-html doc-pdf ptest
   TARGETS_OPTIONAL: build/make/Makefile
+  TOX_ENV: docker-ubuntu-focal-standard
 
 jobs:
   integration:
@@ -36,7 +37,9 @@ jobs:
         run: |
           git config user.email "release@sagemath.org"
           git config user.name "Release Manager GH Actions workflow"
+          git tag integration_baseline
           PATH="$(pwd)/git-trac-command:$PATH" git releasemgr merge-all --milestone=current
+          git tag integration_head
       - name: free disk space
         run: |
           df -h
@@ -54,8 +57,11 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install tox
           sudo apt-get clean
           df -h
-      - name: Build and test
-        env:
-          TOX_ENV: docker-ubuntu-focal-standard
+      - name: Build and test integration baseline
         run: |
-          EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- $TARGETS
+          git checkout integration_baseline
+          #EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- $TARGETS
+          TARGETS_PRE=config.status EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- config.status
+      - name: Build and test integration head
+        run: |
+          docker run $(tail -n 1 .tox/$TOX_ENV/Dockertags) bash -c "git checkout integration_head && make -k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0 PTESTALL=\"./sage -t -p --all --baseline-stats-path=$HOME/.sage/timings2.json\" $TARGETS"
