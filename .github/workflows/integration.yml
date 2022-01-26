@@ -16,12 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0
-          repository: sagemath/sagetrac-mirror
-          ref: develop
-      - name: Fetch missing tags
+          fetch-depth: 1000
+      - name: Fetch develop and tags from sagetrac-mirror and trac.sagemath.org
         run: |
-          git remote rename origin trac
+          git remote add trac https://github.com/sagemath/sagetrac-mirror.git
+          git fetch trac develop --tags
           git remote add orig_trac git://trac.sagemath.org/sage.git
           git fetch orig_trac develop --tags
       - name: Check out git-trac-command
@@ -55,7 +54,7 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install tox
           sudo apt-get clean
           df -h
-      - name: Build and test
+      - name: Build and test baseline
         env:
           TOX_ENV: docker-ubuntu-focal-standard
         run: |
