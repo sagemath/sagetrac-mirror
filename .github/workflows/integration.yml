@@ -54,7 +54,7 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install tox
           sudo apt-get clean
           df -h
-      - name: Build and test baseline
+      - name: Build and test
         env:
           TOX_ENV: docker-ubuntu-focal-standard
         run: |
