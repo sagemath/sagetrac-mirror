@@ -324,6 +324,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: (out, err, ret) = test_executable(["sage", "-t", script])
         sage: ret
         0
+        sage: if ret: print(out + err)
         sage: out.find("All tests passed!") >= 0
         True
         sage: (out, err, ret) = test_executable(["sage", "-t", script_py])
