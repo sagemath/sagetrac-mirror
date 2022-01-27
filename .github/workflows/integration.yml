@@ -10,7 +10,7 @@ env:
   TARGETS: build doc-html doc-pdf
   TARGETS_OPTIONAL: ptest
   TOX_ENV: docker-ubuntu-focal-standard
-  EXTRA_SAGE_PACKAGES: git
+  EXTRA_SAGE_PACKAGES: git texlive
 
 jobs:
   integration:
