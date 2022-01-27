@@ -68,6 +68,7 @@ jobs:
           ARG BASE_IMAGE
           FROM \${BASE_IMAGE}
           ADD .git .git
+          RUN git reset --hard
           EOF
           BASE_IMAGE=$(tail -n 1 .tox/$TOX_ENV/Dockertags)
           docker build --build-arg BASE_IMAGE=${BASE_IMAGE} . --tag ${BASE_IMAGE}-git
