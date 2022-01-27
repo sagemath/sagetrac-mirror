@@ -7,8 +7,8 @@ on:
 
 env:
   TARGETS_PRE: all-sage-local
-  TARGETS: build doc-html doc-pdf ptest
-  TARGETS_OPTIONAL: build/make/Makefile
+  TARGETS: build doc-html doc-pdf
+  TARGETS_OPTIONAL: ptest
   TOX_ENV: docker-ubuntu-focal-standard
   EXTRA_SAGE_PACKAGES: git
 
