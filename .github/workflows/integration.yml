@@ -65,4 +65,11 @@ jobs:
           TARGETS_PRE=config.status EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- config.status
       - name: Build and test integration head
         run: |
-          docker run $(tail -n 1 .tox/$TOX_ENV/Dockertags) bash -c "git checkout integration_head && make -k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0 PTESTALL=\"./sage -t -p --all --baseline-stats-path=$HOME/.sage/timings2.json\" $TARGETS"
+          cat > Dockerfile <<EOF
+          ARG BASE_IMAGE
+          FROM \${BASE_IMAGE}
+          ADD .git .git
+          EOF
+          BASE_IMAGE=$(tail -n 1 .tox/$TOX_ENV/Dockertags)
+          docker build --build-arg BASE_IMAGE=${BASE_IMAGE} . --tag ${BASE_IMAGE}-git
+          docker run ${BASE_IMAGE}-git bash -c "git checkout integration_head && make -k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0 PTESTALL=\"./sage -t -p --all --baseline-stats-path=$HOME/.sage/timings2.json\" $TARGETS"
