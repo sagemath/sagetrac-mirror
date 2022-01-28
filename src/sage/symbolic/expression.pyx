@@ -3109,8 +3109,8 @@ cdef class Expression(Expression_abc):
         Return ``True`` if ``self`` is the square of another symbolic expression.
 
         This is ``True`` for all constant, non-relational expressions
-        (containing no variables or comparison), and not implemented
-        otherwise.
+        (containing no variables or comparison) and if the expression is known
+        to be positive.
 
         EXAMPLES::
 
@@ -3119,6 +3119,8 @@ cdef class Expression(Expression_abc):
             sage: SR(5).is_square()
             True
             sage: pi.is_square()
+            True
+            sage: SR.symbol("t", domain='positive').is_square()
             True
             sage: x.is_square()
             Traceback (most recent call last):
@@ -3136,6 +3138,9 @@ cdef class Expression(Expression_abc):
         if self.is_constant() and not self.is_relational():
             # The square root of any "number" is in SR... just call
             # sqrt() on it.
+            return True
+
+        if self.is_positive():
             return True
 
         try:

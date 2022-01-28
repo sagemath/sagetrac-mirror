@@ -1466,6 +1466,18 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         return self._parent.zero()
 
+    def conjugate(self):
+        """
+        Return the complex conjugate of this real interval.
+        (Since this interval is real, this simply returns itself.)
+
+        EXAMPLES::
+
+            sage: RIF(1.2465).conjugate()
+            1.2465
+        """
+        return self
+
     # MPFR had an elaborate "truncation" scheme to avoid printing
     # inaccurate-looking results; this has been removed for MPFI,
     # because I think it's less confusing to get such results than to

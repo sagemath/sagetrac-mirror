@@ -12620,6 +12620,18 @@ cdef class Matrix(Matrix1):
             sage: A.cholesky()
             [   1.0    0.0]
             [-1.0*I    1.0]
+
+        Check that we can calculate the Cholesky decomposition of a
+        symbolic matrix::
+
+            sage: a_1, a_2 = SR.var('a_1,a_2')
+            sage: a_3 = (1 + a_2**2)/a_1
+            sage: assume(a_1 > 0) # This is equivalent to positive-definiteness
+            sage: A = matrix(SR, [[a_1, a_2], [a_2, a_3]])
+            sage: A.cholesky()
+            [    sqrt(b_1)             0]
+            [b_2/sqrt(b_1)   1/sqrt(b_1)]
+            sage: forget()
         """
         cdef Matrix C # output matrix
         C = self.fetch('cholesky')
