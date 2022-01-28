@@ -9,9 +9,8 @@ env:
   TARGETS_PRE: all-sage-local
   TARGETS: build doc-html doc-pdf
   TARGETS_OPTIONAL: ptest
-  # Use no-op "integration" factor to name the Docker image uniquely
-  TOX_ENV: docker-ubuntu-focal-standard-integration
-  EXTRA_SAGE_PACKAGES: git texlive
+  TOX_ENV: docker-ubuntu-focal-recommended
+  EXTRA_SAGE_PACKAGES: git
 
 defaults:
   run:
