@@ -11,6 +11,7 @@ env:
   TARGETS_OPTIONAL: ptest
   TOX_ENV: docker-ubuntu-focal-recommended
   EXTRA_SAGE_PACKAGES: git
+  DOCKER_TARGETS: configured with-targets with-targets-optional
 
 defaults:
   run:
