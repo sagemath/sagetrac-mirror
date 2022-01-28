@@ -224,7 +224,7 @@ class MarkovTraceMuduleBasis(Enum):
             sage: MarkovTraceMuduleBasis.U3.description()
             'three unlinks'
         """
-        return self.value[2]
+        return self.value[3]
 
     def link(self):
         r"""
@@ -239,16 +239,11 @@ class MarkovTraceMuduleBasis(Enum):
             Link with 1 component represented by 4 crossings
         """
         from sage.knots.link import Link
-        if len(self.braid_tietze()) == 0:
-            if self.strands() == 1:
-                return Link([])
-            elif self.strands() == 2:
-                return Link([[3, 1, 4, 2], [4, 1, 3, 2]])
-            elif self.strands() == 3:
-                return Link([[3, 7, 4, 8], [4, 7, 5, 8], [5, 1, 6, 2], [6, 1, 3, 2]])
-            else:
-                return Link([[3, 9, 4, 10], [4, 9, 5, 10], [5, 11, 6, 12],\
-                [6, 11, 7, 12], [7, 1, 8, 2], [8, 1, 3, 2]])
+        pd_code = self.value[2]
+        if pd_code is not None:
+            # since :class:`Link` does not construct disjoint union of unlinks
+            # from the braid representation, we need a pd_code here
+            return Link(pd_code)
         else:
             from sage.groups.braid import BraidGroup
             B = BraidGroup(self.strands())
@@ -273,16 +268,21 @@ class MarkovTraceMuduleBasis(Enum):
         """
         return self.link().homfly_polynomial()
 
-    U1  = [1, (), 'one unlink']
-    U2  = [2, (), 'two unlinks']
-    U3  = [3, (), 'three unlinks']
-    U4  = [4, (), 'four unlinks']
-    K4  = [3, (1, -2, 1, -2), 'figure eigth knot']
-    K4U = [4, (1, -2, 1, -2), 'figure eigth knot plus one unlink']
-    K6  = [4, (1, 1, 2, -1, -3, 2, -3),         'knot 6_1']
-    K7  = [4, (1, 1, 2, -1, 2, 2, 3, -2, 3),    'knot 7_4']
-    K91 = [4, (1, -2, -2, 3, -2, 1, -2, 3, -2), 'knot 9_29']
-    K92 = [4, (-1, 2, -1, 2, -3, 2, -1, 2, -3), 'knot 9_34']
+    U1  = [1, (), [],                                 'one unlink']
+    U2  = [2, (), [[3, 1, 4, 2], [4, 1, 3, 2]],       'two unlinks']
+    U3  = [3, (), [[3, 7, 4, 8], [4, 7, 5, 8], [5, 1, 6, 2], [6, 1, 3, 2]],
+                  'three unlinks']
+    U4  = [4, (), [[3, 9, 4, 10], [4, 9, 5, 10], [5, 11, 6, 12],\
+                   [6, 11, 7, 12], [7, 1, 8, 2], [8, 1, 3, 2]],\
+                   'four unlinks']
+    K4U = [4, (1, -2, 1, -2), [[3, 8, 4, 9], [9, 7, 10, 6], [7, 4, 8, 5],\
+                               [5, 11, 6, 10], [11, 1, 12, 2], [12, 1, 3, 2]],\
+                               'figure eigth knot plus one unlink']
+    K4  = [3, (1, -2, 1, -2),                   None, 'figure eigth knot']
+    K6  = [4, (1, 1, 2, -1, -3, 2, -3),         None, 'knot 6_1']
+    K7  = [4, (1, 1, 2, -1, 2, 2, 3, -2, 3),    None, 'knot 7_4']
+    K91 = [4, (1, -2, -2, 3, -2, 1, -2, 3, -2), None, 'knot 9_29']
+    K92 = [4, (-1, 2, -1, 2, -3, 2, -1, 2, -3), None, 'knot 9_34']
 
 
 
