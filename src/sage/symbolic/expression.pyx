@@ -3146,7 +3146,7 @@ cdef class Expression(Expression_abc):
         try:
             obj = self.pyobject()
         except TypeError as e:
-            raise NotImplementedError("is_square() not implemented for non-constant or relational elements of Symbolic Ring")
+            raise NotImplementedError(f"is_square() not implemented for the non-constant or relational element `{self}` of Symbolic Ring")
 
         return obj.is_square()
 
