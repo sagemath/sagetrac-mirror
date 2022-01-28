@@ -13,6 +13,10 @@ env:
   TOX_ENV: docker-ubuntu-focal-standard-integration
   EXTRA_SAGE_PACKAGES: git texlive
 
+defaults:
+  run:
+    working-directory: ./sage
+
 jobs:
   integration:
     runs-on: ubuntu-latest
@@ -20,6 +24,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1000
+          path: ./sage
       - name: Fetch develop and tags from sagetrac-mirror and trac.sagemath.org
         run: |
           git remote add trac https://github.com/sagemath/sagetrac-mirror.git
@@ -30,17 +35,17 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: mkoeppe/git-trac-command
-          path: git-trac-command
+          path: ./git-trac-command
           ref: releasemgr_patchbot_status
       - name: Install git-trac-command
         run: |
-          python3 -m pip install --user ./git-trac-command[releasemgr]
+          python3 -m pip install --user $GITHUB_WORKSPACE/git-trac-command[releasemgr]
       - name: Merge Trac tickets
         run: |
           git config user.email "release@sagemath.org"
           git config user.name "Release Manager GH Actions workflow"
           git tag integration_baseline
-          PATH="$(pwd)/git-trac-command:$PATH" git releasemgr merge-all --milestone=current
+          PATH="$GITHUB_WORKSPACE/git-trac-command:$PATH" git releasemgr merge-all --milestone=current
           git tag integration_head
       - name: free disk space
         run: |
