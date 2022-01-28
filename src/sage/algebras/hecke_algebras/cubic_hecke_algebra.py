@@ -141,149 +141,6 @@ from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep 
 
 
 
-class MarkovTraceMuduleBasis(Enum):
-    r"""
-    Enum for the basis elements for the Markov trace module.
-
-    EXAMPLES::
-
-        sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
-        sage: MarkovTraceMuduleBasis.K92.description()
-        'knot 9_34'
-    """
-    def __repr__(self):
-        r"""
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
-            sage: MarkovTraceMuduleBasis.U2    # indirect doctest
-            U2
-        """
-        return self.name
-
-    def strands(self):
-        r"""
-        Return the number of strands of the minimal braid representative of the
-        link corresponding to ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
-            sage: MarkovTraceMuduleBasis.K7.strands()
-            4
-        """
-        return self.value[0]
-
-    def braid_tietze(self, strands_embed=None):
-        r"""
-        Return the Tietze representation of the braid corresponding to this basis
-        element.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
-            sage: MarkovTraceMuduleBasis.U2.braid_tietze()
-            ()
-            sage: MarkovTraceMuduleBasis.U2.braid_tietze(strands_embed=4)
-            (2, 3)
-        """
-        if not strands_embed:
-            strands_embed = self.strands()
-
-        if strands_embed > self.strands():
-            last_gen = strands_embed-1
-            return self.braid_tietze(strands_embed=last_gen) + (last_gen,)
-        else:
-            return self.value[1]
-
-    def __gt__(self, other):
-        r"""
-        Implement comparision of different items in order to have ``sorted`` work.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
-            sage: sorted(MarkovTraceMuduleBasis)
-            [U1, U2, U3, K4, U4, K4U, K6, K7, K91, K92]
-        """
-        if self.__class__ is other.__class__:
-            tups = (self.strands(), len(self.braid_tietze()), self.name)
-            tupo = (other.strands(), len(other.braid_tietze()), other.name)
-            return tups > tupo
-        return NotImplemented
-
-    def description(self):
-        r"""
-        Return a description of link corresponding to this basis element.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
-            sage: MarkovTraceMuduleBasis.U3.description()
-            'three unlinks'
-        """
-        return self.value[3]
-
-    def link(self):
-        r"""
-        Return the link which represents this basis element.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
-            sage: MarkovTraceMuduleBasis.U1.link()
-            Link with 1 component represented by 0 crossings
-            sage: MarkovTraceMuduleBasis.K4.link()
-            Link with 1 component represented by 4 crossings
-        """
-        from sage.knots.link import Link
-        pd_code = self.value[2]
-        if pd_code is not None:
-            # since :class:`Link` does not construct disjoint union of unlinks
-            # from the braid representation, we need a pd_code here
-            return Link(pd_code)
-        else:
-            from sage.groups.braid import BraidGroup
-            B = BraidGroup(self.strands())
-            return Link(B(self.braid_tietze()))
-
-    def homfly_polynomial(self):
-        r"""
-        Return the Homfly-PT polynomial of the link which represents this basis
-        element.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
-            sage: MarkovTraceMuduleBasis.U1.homfly_polynomial()
-            1
-            sage: u2 = MarkovTraceMuduleBasis.U2.homfly_polynomial(); u2
-            -L*M^-1 - L^-1*M^-1
-            sage: u2**2 == MarkovTraceMuduleBasis.U3.homfly_polynomial()
-            True
-            sage: u2**3 == MarkovTraceMuduleBasis.U4.homfly_polynomial()
-            True
-        """
-        return self.link().homfly_polynomial()
-
-    U1  = [1, (), [],                                 'one unlink']
-    U2  = [2, (), [[3, 1, 4, 2], [4, 1, 3, 2]],       'two unlinks']
-    U3  = [3, (), [[3, 7, 4, 8], [4, 7, 5, 8], [5, 1, 6, 2], [6, 1, 3, 2]],
-                  'three unlinks']
-    U4  = [4, (), [[3, 9, 4, 10], [4, 9, 5, 10], [5, 11, 6, 12],\
-                   [6, 11, 7, 12], [7, 1, 8, 2], [8, 1, 3, 2]],\
-                   'four unlinks']
-    K4U = [4, (1, -2, 1, -2), [[3, 8, 4, 9], [9, 7, 10, 6], [7, 4, 8, 5],\
-                               [5, 11, 6, 10], [11, 1, 12, 2], [12, 1, 3, 2]],\
-                               'figure eigth knot plus one unlink']
-    K4  = [3, (1, -2, 1, -2),                   None, 'figure eigth knot']
-    K6  = [4, (1, 1, 2, -1, -3, 2, -3),         None, 'knot 6_1']
-    K7  = [4, (1, 1, 2, -1, 2, 2, 3, -2, 3),    None, 'knot 7_4']
-    K91 = [4, (1, -2, -2, 3, -2, 1, -2, 3, -2), None, 'knot 9_29']
-    K92 = [4, (-1, 2, -1, 2, -3, 2, -1, 2, -3), None, 'knot 9_34']
-
 
 
 ##############################################################################
@@ -4033,3 +3890,167 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         irr_coeff_fc.remove_temporary_data()
         verbose('calculation of irreducible Markov trace coefficients finished', t=time)
         return irr_coeff
+
+
+class MarkovTraceMuduleBasis(Enum):
+    r"""
+    Enum for the basis elements for the Markov trace module.
+
+    EXAMPLES::
+
+        sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+        sage: MarkovTraceMuduleBasis.K92.description()
+        'knot 9_34'
+    """
+    def __repr__(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.U2    # indirect doctest
+            U2
+        """
+        return self.name
+
+    def __gt__(self, other):
+        r"""
+        Implement comparision of different items in order to have ``sorted`` work.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: sorted(MarkovTraceMuduleBasis)
+            [U1, U2, U3, K4, U4, K4U, K6, K7, K91, K92]
+        """
+        if self.__class__ is other.__class__:
+            tups = (self.strands(), len(self.braid_tietze()), self.name)
+            tupo = (other.strands(), len(other.braid_tietze()), other.name)
+            return tups > tupo
+        return NotImplemented
+
+    def strands(self):
+        r"""
+        Return the number of strands of the minimal braid representative of the
+        link corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.K7.strands()
+            4
+        """
+        return self.value[0]
+
+    def braid_tietze(self, strands_embed=None):
+        r"""
+        Return the Tietze representation of the braid corresponding to this basis
+        element.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.U2.braid_tietze()
+            ()
+            sage: MarkovTraceMuduleBasis.U2.braid_tietze(strands_embed=4)
+            (2, 3)
+        """
+        if not strands_embed:
+            strands_embed = self.strands()
+
+        if strands_embed > self.strands():
+            last_gen = strands_embed-1
+            return self.braid_tietze(strands_embed=last_gen) + (last_gen,)
+        else:
+            return self.value[1]
+
+    def writhe(self):
+        r"""
+        Return the writhe of the link corresponding to this basis element.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.K4.writhe()
+            0
+            sage: MarkovTraceMuduleBasis.K6.writhe()
+            1
+        """
+        from sage.functions.generalized import sign
+        return sum(sign(t) for t in self.braid_tietze())
+
+    def description(self):
+        r"""
+        Return a description of link corresponding to this basis element.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.U3.description()
+            'three unlinks'
+        """
+        return self.value[3]
+
+    def link(self):
+        r"""
+        Return the link which represents this basis element.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.U1.link()
+            Link with 1 component represented by 0 crossings
+            sage: MarkovTraceMuduleBasis.K4.link()
+            Link with 1 component represented by 4 crossings
+        """
+        from sage.knots.link import Link
+        pd_code = self.value[2]
+        if pd_code is not None:
+            # since :class:`Link` does not construct disjoint union of unlinks
+            # from the braid representation, we need a pd_code here
+            return Link(pd_code)
+        else:
+            from sage.groups.braid import BraidGroup
+            B = BraidGroup(self.strands())
+            return Link(B(self.braid_tietze()))
+
+    def regular_homfly_polynomial(self):
+        r"""
+        Return the regular variant of the Homfly-PT polynomial of the link which
+        represents this basis element. This is the Homfly-PT polynomial
+        renormalized by the writhe factor such that it is an invariant of
+        gegular isotopy.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.U1.regular_homfly_polynomial()
+            1
+            sage: u2 = MarkovTraceMuduleBasis.U2.regular_homfly_polynomial(); u2
+            -L*M^-1 - L^-1*M^-1
+            sage: u2**2 == MarkovTraceMuduleBasis.U3.regular_homfly_polynomial()
+            True
+            sage: u2**3 == MarkovTraceMuduleBasis.U4.regular_homfly_polynomial()
+            True
+        """
+        H = self.link().homfly_polynomial()
+        L, M = H.parent().gens()
+        return H*L**self.writhe()
+
+    U1  = [1, (), [],                                 'one unlink']
+    U2  = [2, (), [[3, 1, 4, 2], [4, 1, 3, 2]],       'two unlinks']
+    U3  = [3, (), [[3, 7, 4, 8], [4, 7, 5, 8], [5, 1, 6, 2], [6, 1, 3, 2]],
+                  'three unlinks']
+    U4  = [4, (), [[3, 9, 4, 10], [4, 9, 5, 10], [5, 11, 6, 12],\
+                   [6, 11, 7, 12], [7, 1, 8, 2], [8, 1, 3, 2]],\
+                   'four unlinks']
+    K4U = [4, (1, -2, 1, -2), [[3, 8, 4, 9], [9, 7, 10, 6], [7, 4, 8, 5],\
+                               [5, 11, 6, 10], [11, 1, 12, 2], [12, 1, 3, 2]],\
+                               'figure eigth knot plus one unlink']
+    K4  = [3, (1, -2, 1, -2),                   None, 'figure eigth knot']
+    K6  = [4, (1, 1, 2, -1, -3, 2, -3),         None, 'knot 6_1']
+    K7  = [4, (1, 1, 2, -1, 2, 2, 3, -2, 3),    None, 'knot 7_4']
+    K91 = [4, (1, -2, -2, 3, -2, 1, -2, 3, -2), None, 'knot 9_29']
+    K92 = [4, (-1, 2, -1, 2, -3, 2, -1, 2, -3), None, 'knot 9_34']
+
