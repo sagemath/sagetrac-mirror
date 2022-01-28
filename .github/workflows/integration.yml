@@ -11,6 +11,8 @@ env:
   TARGETS_OPTIONAL: ptest
   TOX_ENV: docker-ubuntu-focal-recommended
   EXTRA_SAGE_PACKAGES: git
+  # In addition to the following packages, also "with-targets-optional-repo"
+  # is pushed to GitHub packages.
   DOCKER_TARGETS: configured with-targets with-targets-optional
 
 defaults:
@@ -92,4 +94,4 @@ jobs:
           docker push ${BASE_IMAGE}-repo
       - name: Build and test integration head
         run: |
-          docker run ${BASE_IMAGE}-git bash -c "git checkout integration_head && make -k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0 PTESTALL=\"./sage -t -p --all --baseline-stats-path=$HOME/.sage/timings2.json\" $TARGETS"
+          docker run ${BASE_IMAGE}-repo bash -c "git checkout integration_head && make -k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0 PTESTALL=\"./sage -t -p --all --baseline-stats-path=$HOME/.sage/timings2.json\" $TARGETS"
