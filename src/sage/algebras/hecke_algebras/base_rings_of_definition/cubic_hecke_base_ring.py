@@ -1529,6 +1529,10 @@ class CubicHeckeRingOfDefinition(Localization):
 
     def markov_trace_version(self):
         r"""
+        Return the extension of the ring of definition needed to handel the
+        formal Markov traces. This appends an additional variable ``s`` to
+        measure the writhe of knots and makes ``u`` and ``v`` invertible.
+
         EXAMPLES::
 
             sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
@@ -1542,3 +1546,42 @@ class CubicHeckeRingOfDefinition(Localization):
             return self
         names = self.base_ring().variable_names() + ('s',)
         return self.__class__(names=names, order=self._order, markov_trace_version=True)
+
+    def specialize_homfly(self):
+        r"""
+        Returns a map to the two variable Laurent polynomial Ring which is
+        the parent of the Homfly-PT polynomial.
+
+        EXAMPLES::
+
+            sage: CHA2 = algebras.CubicHecke(2)
+            sage: K5_1 = KnotInfo.K5_1.link()
+            sage: br = CHA2(K5_1.braid())
+            sage: mt = br.formal_markov_trace()
+            sage: MT = mt.base_ring()
+            sage: f = MT.specialize_homfly(); f
+            Ring morphism:
+            From: Multivariate Polynomial Ring in u, v, w, s over Integer Ring
+                  localized at (s, w, v, u)
+            To:   Multivariate Polynomial Ring in L, M over Integer Ring
+                  localized at (M, M - 1, L)
+            Defn: u |--> -M + 1
+            v |--> -M + 1
+            w |--> 1
+            s |--> L
+            sage: H = f.codomain()
+            sage: MTB = mt.parent().basis().keys()
+            sage: h1 = sum(f(mt.coefficient(b)) * H(b.regular_homfly_polynomial()) for b in MTB)
+            sage: L, M = H.gens()
+            sage: h2 = H(K5_1.homfly_polynomial())
+            sage: h1*L**(-5) == h2  # since the writhe of K5_1 is 5
+            True
+        """
+        if not self._is_markov_trace_version():
+            raise ValueError('Functionality available for Markov trace version, only')
+        from sage.knots.link import Link
+        H = Link([]).homfly_polynomial().parent()
+        L, M = H.gens()
+        HL = H.localization(1-M)
+        u = HL(1-M)
+        return self.hom((u, u, HL.one(), HL(L)))
