@@ -617,11 +617,16 @@ class Localization(IntegralDomain, UniqueRepresentation):
         ...
         ValueError: factor x^2 + 2 of denominator is not a unit
 
+        sage: Lau.<u, v> = LaurentPolynomialRing(ZZ)
+        sage: LauL = Lau.localization(u+1)
+        sage: LauL(~u).parent()
+        Multivariate Polynomial Ring in u, v over Integer Ring localized at (v, u, u + 1)
+
     More examples will be shown typing ``sage.rings.localization?``
 
     TESTS:
 
-    Check that :trac:`????2` is fixed::
+    Check that :trac:`?????` is fixed::
 
         sage: R = ZZ.localization(5)
         sage: R.localization(~5)
@@ -647,6 +652,11 @@ class Localization(IntegralDomain, UniqueRepresentation):
             additional_units =list(additional_units)
         if not type(additional_units) is list:
             additional_units = [additional_units]
+
+        from sage.rings.polynomial.laurent_polynomial_ring import is_LaurentPolynomialRing
+        if is_LaurentPolynomialRing(base_ring):
+            additional_units += list(base_ring.gens())
+            base_ring = base_ring.polynomial_ring()
 
         if isinstance(base_ring, Localization):
             # don't allow recursive constructions

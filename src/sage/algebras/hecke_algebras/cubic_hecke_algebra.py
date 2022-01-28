@@ -226,6 +226,53 @@ class MarkovTraceMuduleBasis(Enum):
         """
         return self.value[2]
 
+    def link(self):
+        r"""
+        Return the link which represents this basis element.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.U1.link()
+            Link with 1 component represented by 0 crossings
+            sage: MarkovTraceMuduleBasis.K4.link()
+            Link with 1 component represented by 4 crossings
+        """
+        from sage.knots.link import Link
+        if len(self.braid_tietze()) == 0:
+            if self.strands() == 1:
+                return Link([])
+            elif self.strands() == 2:
+                return Link([[3, 1, 4, 2], [4, 1, 3, 2]])
+            elif self.strands() == 3:
+                return Link([[3, 7, 4, 8], [4, 7, 5, 8], [5, 1, 6, 2], [6, 1, 3, 2]])
+            else:
+                return Link([[3, 9, 4, 10], [4, 9, 5, 10], [5, 11, 6, 12],\
+                [6, 11, 7, 12], [7, 1, 8, 2], [8, 1, 3, 2]])
+        else:
+            from sage.groups.braid import BraidGroup
+            B = BraidGroup(self.strands())
+            return Link(B(self.braid_tietze()))
+
+    def homfly_polynomial(self):
+        r"""
+        Return the Homfly-PT polynomial of the link which represents this basis
+        element.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.U1.homfly_polynomial()
+            1
+            sage: u2 = MarkovTraceMuduleBasis.U2.homfly_polynomial(); u2
+            -L*M^-1 - L^-1*M^-1
+            sage: u2**2 == MarkovTraceMuduleBasis.U3.homfly_polynomial()
+            True
+            sage: u2**3 == MarkovTraceMuduleBasis.U4.homfly_polynomial()
+            True
+        """
+        return self.link().homfly_polynomial()
+
     U1  = [1, (), 'one unlink']
     U2  = [2, (), 'two unlinks']
     U3  = [3, (), 'three unlinks']
