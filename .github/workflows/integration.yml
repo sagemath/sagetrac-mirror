@@ -47,7 +47,7 @@ jobs:
           git config user.email "release@sagemath.org"
           git config user.name "Release Manager GH Actions workflow"
           git tag integration_baseline
-          PATH="$GITHUB_WORKSPACE/git-trac-command:$PATH" git releasemgr merge-all --milestone=current
+          PATH="$GITHUB_WORKSPACE/git-trac-command:$PATH" git releasemgr --trac-context="(from $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" merge-all --milestone=current
           git tag integration_head
       - name: free disk space
         run: |
