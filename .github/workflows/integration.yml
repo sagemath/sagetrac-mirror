@@ -46,9 +46,13 @@ jobs:
         run: |
           git config user.email "release@sagemath.org"
           git config user.name "Release Manager GH Actions workflow"
-          git tag integration_baseline
+          INTEGRATION_BRANCH=${GITHUB_REF_NAME}+integration-$(date '+%Y-%m-%d')
+          git branch -f $INTEGRATION_BRANCH
+          git checkout $INTEGRATION_BRANCH
+          git tag -f $INTEGRATION_BRANCH-baseline
+          git tag -f integration-baseline
           PATH="$GITHUB_WORKSPACE/git-trac-command:$PATH" git releasemgr --trac-context="(from $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" merge-all --milestone=current
-          git tag integration_head
+          git tag -f integration-head
       - name: free disk space
         run: |
           df -h
@@ -79,7 +83,7 @@ jobs:
             fi
       - name: Build and test integration baseline
         run: |
-          git checkout integration_baseline
+          git checkout integration-baseline
           EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- $TARGETS
       - name: Add repository to Docker image
         run: |
@@ -94,4 +98,4 @@ jobs:
           docker push ${BASE_IMAGE}-repo
       - name: Build and test integration head
         run: |
-          docker run ${BASE_IMAGE}-repo bash -c "git checkout integration_head && make -k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0 PTESTALL=\"./sage -t -p --all --baseline-stats-path=$HOME/.sage/timings2.json\" $TARGETS"
+          docker run ${BASE_IMAGE}-repo bash -c "git checkout integration-head && make -k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0 PTESTALL=\"./sage -t -p --all --baseline-stats-path=$HOME/.sage/timings2.json\" $TARGETS"
