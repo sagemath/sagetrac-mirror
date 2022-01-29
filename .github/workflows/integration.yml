@@ -57,7 +57,7 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install tox
           sudo apt-get clean
           df -h
-      - name: Try to login to docker.pkg.github.com
+      - name: Try to login to ghcr.io
         # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
         run: |
             TOKEN="${{ secrets.DOCKER_PKG_GITHUB_TOKEN }}"
@@ -70,7 +70,7 @@ jobs:
             fi
       - name: Build integration baseline
         run: |
-          EXTRA_DOCKER_BUILD_ARGS="--cache-from=${DOCKER_PUSH_REPOSITORY}sage-$TOX_ENV-with-targets --build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- $TARGETS
+          EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- $TARGETS
 
   integration:
     runs-on: ubuntu-latest
@@ -127,7 +127,7 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install tox
           sudo apt-get clean
           df -h
-      - name: Try to login to docker.pkg.github.com
+      - name: Try to login to ghcr.io
         # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
         run: |
             TOKEN="${{ secrets.DOCKER_PKG_GITHUB_TOKEN }}"
@@ -141,7 +141,7 @@ jobs:
       - name: Test integration baseline
         run: |
           git checkout integration-baseline
-          EXTRA_DOCKER_BUILD_ARGS="--cache-from=${DOCKER_PUSH_REPOSITORY}sage-$TOX_ENV-with-targets --build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- $TARGETS
+          EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- $TARGETS
       - name: Add repository to Docker image
         run: |
           cat > Dockerfile <<EOF
