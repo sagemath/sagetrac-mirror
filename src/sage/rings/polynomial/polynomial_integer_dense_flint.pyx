@@ -60,6 +60,7 @@ from sage.structure.factorization import Factorization
 
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.arith.all import lcm
+from sage.arith.misc import power_mod
 
 from sage.libs.arb.arb_fmpz_poly cimport arb_fmpz_poly_evaluate_arb, arb_fmpz_poly_evaluate_acb
 from sage.libs.flint.fmpz cimport *
@@ -1175,12 +1176,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                         res = res.quo_rem(modulus)[1]
                     sig_off()
                 else:
-                    sig_on()
-                    fmpz_poly_pow(res.__poly, self.__poly, nn)
-
                     if modulus is not None:
-                        res = res.quo_rem(modulus)[1]
-                    sig_off()
+                        res = power_mod(self, exp, modulus)
                 return res
 
     cpdef Polynomial _power_trunc(self, unsigned long n, long prec):
