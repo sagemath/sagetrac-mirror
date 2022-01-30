@@ -153,4 +153,4 @@ jobs:
       - name: Build and test integration head
         run: |
           BASE_IMAGE=$(tail -n 1 .tox/$TOX_ENV/Dockertags)
-          docker run ${BASE_IMAGE}-repo bash -c "git checkout integration-head && make -k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0 PTESTALL=\"./sage -t -p --all --baseline-stats-path=$HOME/.sage/timings2.json\" $TARGETS"
+          docker run ${BASE_IMAGE}-repo bash -c "git checkout integration-head && make -k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0 PTESTALL=\"./sage -t -p --all --baseline-stats-path=$HOME/.sage/timings2.json\" $TARGETS $TARGETS_OPTIONAL"
