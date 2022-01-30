@@ -17,8 +17,6 @@ env:
   # do not get a Docker image of a failed baseline build.
   # https://stackoverflow.com/questions/66186620/get-container-id-from-docker-buildkit-for-interactive-debugging
   DOCKER_BUILDKIT: 1
-  # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
-  BUILDKIT_INLINE_CACHE: 1
 
 defaults:
   run:
@@ -69,8 +67,9 @@ jobs:
               echo "DOCKER_CONFIG_FILE=$HOME/.docker/config.json" >> $GITHUB_ENV
             fi
       - name: Build integration baseline
+        # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
         run: |
-          EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- $TARGETS
+          EXTRA_DOCKER_BUILD_ARGS="--build-arg BUILDKIT_INLINE_CACHE=1 --build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- $TARGETS
 
   integration:
     runs-on: ubuntu-latest
@@ -141,7 +140,7 @@ jobs:
       - name: Test integration baseline
         run: |
           git checkout integration-baseline
-          EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- $TARGETS
+          EXTRA_DOCKER_BUILD_ARGS="--build-arg BUILDKIT_INLINE_CACHE=1 --build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- $TARGETS
       - name: Add repository to Docker image
         run: |
           cat > Dockerfile <<EOF
