@@ -8,7 +8,7 @@ on:
 env:
   TARGETS_PRE: all-sage-local
   TARGETS: build doc-html doc-pdf
-  TARGETS_OPTIONAL: ptest
+  TARGETS_OPTIONAL: ptestlong
   TOX_ENV: docker-ubuntu-focal-recommended
   EXTRA_SAGE_PACKAGES: git
   # Use buildkit for advanced caching features. However, this means that we
