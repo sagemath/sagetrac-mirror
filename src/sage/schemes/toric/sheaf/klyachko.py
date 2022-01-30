@@ -951,6 +951,5 @@ class KlyachkoBundle_class(SageObject):
            (1, 0)
         """
         filt = self._filt.random_deformation(epsilon)
-        while not filt.is_exhaustive():
-            filt = self._filt.random_deformation(epsilon)
+        assert filt.is_exhaustive()
         return self.__class__(self.variety(), filt, check=True)

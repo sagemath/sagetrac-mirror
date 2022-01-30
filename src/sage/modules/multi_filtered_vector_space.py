@@ -705,8 +705,8 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
 
         OUTPUT:
 
-        A new multi-filtered vector space where the generating vectors
-        of subspaces are moved by ``epsilon`` times a random vector.
+        A new multi-filtered vector space where the subspaces are rotated by a
+        matrix of the form identity plus ``epsilon`` times a random matrix.
 
         EXAMPLES::
 

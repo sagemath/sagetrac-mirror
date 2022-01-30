@@ -1240,8 +1240,8 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
 
         OUTPUT:
 
-        A new filtered vector space where the generators of the
-        subspaces are moved by ``epsilon`` times a random vector.
+        A new filtered vector space where the subspaces are rotated by a
+        matrix of the form identity plus ``epsilon`` times a random matrix.
 
         EXAMPLES::
 
@@ -1263,14 +1263,26 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
 
             sage: while F.random_deformation(1/50).get_degree(2).matrix() == matrix([1, 0, 0]):
             ....:     pass
+
+        TESTS:
+
+        The dimension of the components is preserved (:trac:`32773`)::
+
+            sage: v1, v2, v3 = (1, 0, 0), (0, 1, 0), (0, 0, 1)
+            sage: V = FilteredVectorSpace({0: [v1, v2, v3], 2: [v1, v2], 4: [v1]})
+            sage: Vtilde = V.random_deformation()
+            sage: all(Vtilde.get_degree(d).dimension() == V.get_degree(d).dimension() for d in range(6))
+            True
         """
-        from sage.modules.free_module_element import random_vector
+        from sage.matrix.constructor import matrix
         R = self.base_ring()
         if epsilon is None:
             epsilon = R.one()
+        n = self.rank()
+        rot = None
+        while rot is None or rot.rank() != n:
+            rot = matrix.identity(R, n) + epsilon * matrix.random(R, n)
         filtration = dict()
         for deg, filt in self._filt[1:]:
-            generators = [v + epsilon * random_vector(R, self.rank())
-                          for v in filt.echelonized_basis()]
-            filtration[deg] = generators
+            filtration[deg] = (filt.basis_matrix() * rot).rows()
         return FilteredVectorSpace(filtration, base_ring=R, check=True)
