@@ -6,10 +6,8 @@ on:
   workflow_dispatch:
 
 env:
-  #TARGETS_PRE: all-sage-local
-  #TARGETS: build doc-html doc-pdf
-  TARGETS_PRE: config.status
-  TARGETS: config.status
+  TARGETS_PRE: all-sage-local
+  TARGETS: build doc-html doc-pdf
   TARGETS_OPTIONAL: ptest
   TOX_ENV: docker-ubuntu-focal-recommended
   EXTRA_SAGE_PACKAGES: git
