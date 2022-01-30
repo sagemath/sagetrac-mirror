@@ -1561,14 +1561,14 @@ class CubicHeckeRingOfDefinition(Localization):
             sage: MT = mt.base_ring()
             sage: f = MT.specialize_homfly(); f
             Ring morphism:
-            From: Multivariate Polynomial Ring in u, v, w, s over Integer Ring
-                  localized at (s, w, v, u)
-            To:   Multivariate Polynomial Ring in L, M over Integer Ring
-                  localized at (M, M - 1, L)
-            Defn: u |--> -M + 1
-            v |--> -M + 1
-            w |--> 1
-            s |--> L
+              From: Multivariate Polynomial Ring in u, v, w, s over Integer Ring
+                    localized at (s, w, v, u)
+              To:   Multivariate Polynomial Ring in L, M over Integer Ring
+                    localized at (M, M - 1, L)
+              Defn: u |--> -M + 1
+                    v |--> -M + 1
+                    w |--> 1
+                    s |--> L
             sage: H = f.codomain()
             sage: MTB = mt.parent().basis().keys()
             sage: h1 = sum(f(mt.coefficient(b)) * H(b.regular_homfly_polynomial()) for b in MTB)
@@ -1585,3 +1585,45 @@ class CubicHeckeRingOfDefinition(Localization):
         HL = H.localization(1-M)
         u = HL(1-M)
         return self.hom((u, u, HL.one(), HL(L)))
+
+    def specialize_kauffman(self):
+        r"""
+        Returns a map to the two variable Laurent polynomial Ring which is
+        the parent of the Kauffman polynomial.
+
+        EXAMPLES::
+
+            sage: CHA2 = algebras.CubicHecke(2)
+            sage: K5_1 = KnotInfo.K5_1.link()
+            sage: br = CHA2(K5_1.braid())
+            sage: mt = br.formal_markov_trace()
+            sage: MT = mt.base_ring()
+            sage: f = MT.specialize_kauffman(); f
+            Ring morphism:
+              From: Multivariate Polynomial Ring in u, v, w, s over Integer Ring
+                    localized at (s, w, v, u)
+              To:   Multivariate Polynomial Ring in a, z over Integer Ring
+                    localized at (z, a, a + z, a*z + 1)
+              Defn: u |--> (a*z + 1)/a
+                    v |--> (a + z)/a
+                    w |--> 1/a
+                    s |--> a
+            sage: K = f.codomain()
+            sage: MTB = mt.parent().basis().keys()
+            sage: k1 = sum(f(mt.coefficient(b)) * K(b.regular_kauffman_polynomial()) for b in MTB)
+            sage: a, z = K.gens()
+            sage: k2 = K(KnotInfo.K5_1.kauffman_polynomial())
+            sage: k1*a**(-5) == k2  # since the writhe of K5_1 is 5
+            True
+        """
+        if not self._is_markov_trace_version():
+            raise ValueError('Functionality available for Markov trace version, only')
+        from sage.knots.knotinfo import KnotInfo
+        K = KnotInfo.L2a1_1.kauffman_polynomial().parent()
+        a, z = K.gens()
+        ku = z * a +1
+        kv = z + a
+        KL = K.localization((ku, kv))
+        u = KL(ku/a)
+        v = KL(kv/a)
+        return self.hom((u, v, KL(~a), KL(a)))

@@ -3941,7 +3941,7 @@ class MarkovTraceMuduleBasis(Enum):
             sage: MarkovTraceMuduleBasis.K7.strands()
             4
         """
-        return self.value[0]
+        return self.value[1]
 
     def braid_tietze(self, strands_embed=None):
         r"""
@@ -3963,7 +3963,7 @@ class MarkovTraceMuduleBasis(Enum):
             last_gen = strands_embed-1
             return self.braid_tietze(strands_embed=last_gen) + (last_gen,)
         else:
-            return self.value[1]
+            return self.value[2]
 
     def writhe(self):
         r"""
@@ -3990,7 +3990,7 @@ class MarkovTraceMuduleBasis(Enum):
             sage: MarkovTraceMuduleBasis.U3.description()
             'three unlinks'
         """
-        return self.value[3]
+        return self.value[0]
 
     def link(self):
         r"""
@@ -4005,7 +4005,7 @@ class MarkovTraceMuduleBasis(Enum):
             Link with 1 component represented by 4 crossings
         """
         from sage.knots.link import Link
-        pd_code = self.value[2]
+        pd_code = self.value[3]
         if pd_code is not None:
             # since :class:`Link` does not construct disjoint union of unlinks
             # from the braid representation, we need a pd_code here
@@ -4020,7 +4020,7 @@ class MarkovTraceMuduleBasis(Enum):
         Return the regular variant of the Homfly-PT polynomial of the link which
         represents this basis element. This is the Homfly-PT polynomial
         renormalized by the writhe factor such that it is an invariant of
-        gegular isotopy.
+        regular isotopy.
 
         EXAMPLES::
 
@@ -4038,19 +4038,72 @@ class MarkovTraceMuduleBasis(Enum):
         L, M = H.parent().gens()
         return H*L**self.writhe()
 
-    U1  = [1, (), [],                                 'one unlink']
-    U2  = [2, (), [[3, 1, 4, 2], [4, 1, 3, 2]],       'two unlinks']
-    U3  = [3, (), [[3, 7, 4, 8], [4, 7, 5, 8], [5, 1, 6, 2], [6, 1, 3, 2]],
-                  'three unlinks']
-    U4  = [4, (), [[3, 9, 4, 10], [4, 9, 5, 10], [5, 11, 6, 12],\
-                   [6, 11, 7, 12], [7, 1, 8, 2], [8, 1, 3, 2]],\
-                   'four unlinks']
-    K4U = [4, (1, -2, 1, -2), [[3, 8, 4, 9], [9, 7, 10, 6], [7, 4, 8, 5],\
-                               [5, 11, 6, 10], [11, 1, 12, 2], [12, 1, 3, 2]],\
-                               'figure eigth knot plus one unlink']
-    K4  = [3, (1, -2, 1, -2),                   None, 'figure eigth knot']
-    K6  = [4, (1, 1, 2, -1, -3, 2, -3),         None, 'knot 6_1']
-    K7  = [4, (1, 1, 2, -1, 2, 2, 3, -2, 3),    None, 'knot 7_4']
-    K91 = [4, (1, -2, -2, 3, -2, 1, -2, 3, -2), None, 'knot 9_29']
-    K92 = [4, (-1, 2, -1, 2, -3, 2, -1, 2, -3), None, 'knot 9_34']
+    def regular_kauffman_polynomial(self):
+        r"""
+        Return the regular variant of the Kauffman polynomial of the link which
+        represents this basis element. This is the Kauffman polynomial
+        renormalized by the writhe factor such that it is an invariant of
+        regular isotopy.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras.cubic_hecke_algebra import MarkovTraceMuduleBasis
+            sage: MarkovTraceMuduleBasis.U1.regular_homfly_polynomial()
+            1
+            sage: u2 = MarkovTraceMuduleBasis.U2.regular_kauffman_polynomial(); u2
+            a*z^-1 - 1 + a^-1*z^-1
+            sage: u2**2 == MarkovTraceMuduleBasis.U3.regular_kauffman_polynomial()
+            True
+            sage: u2**3 == MarkovTraceMuduleBasis.U4.regular_kauffman_polynomial()
+            True
+        """
+        from sage.knots.knotinfo import KnotInfo
+        K = KnotInfo.L2a1_1.kauffman_polynomial().parent()
+        d = self.value[4]
+        if d:
+            return K(d)
+        U2rkp = MarkovTraceMuduleBasis.U2.regular_kauffman_polynomial()
+        if self.name == 'K4U':
+            K4rkp = MarkovTraceMuduleBasis.K4.regular_kauffman_polynomial()
+            return K4rkp * U2rkp
+        exp = self.strands() -1
+        return U2rkp**exp
+
+    U1  = ['one unlink',    1, (), [], 1]
+    U2  = ['two unlinks',   2, (), [[3, 1, 4, 2], [4, 1, 3, 2]], {(1, -1): 1, (0, 0): -1, (-1, -1): 1}]
+    U3  = ['three unlinks', 3, (), [[3, 7, 4, 8], [4, 7, 5, 8],
+                                    [5, 1, 6, 2], [6, 1, 3, 2]], None]
+    U4  = ['four unlinks',  4, (), [[3, 9, 4, 10], [4, 9, 5, 10], [5, 11, 6, 12],\
+                                    [6, 11, 7, 12], [7, 1, 8, 2], [8, 1, 3, 2]], None]
+    K4U = ['knot 4_1 plus one unlink', 4, (1, -2, 1, -2),
+                                   [[3, 8, 4, 9], [9, 7, 10, 6], [7, 4, 8, 5],\
+                                   [5, 11, 6, 10], [11, 1, 12, 2], [12, 1, 3, 2]], None]
+    K4  = ['knot 4_1',  3, (1, -2, 1, -2),                   None,\
+            {(2, 2): 1, (1, 3): 1, (2, 0): -1, (1, 1): -1, (0, 2): 2, (-1, 3): 1,\
+             (0, 0): -1, (-1, 1): -1, (-2, 2): 1, (-2, 0): -1}]
+    K6  = ['knot 6_1',  4, (1, 1, 2, -1, -3, 2, -3),         None,\
+            {(2, 2): 1, (1, 3): 1, (0, 4): 1, (-1, 5): 1, (2, 0): -1, (-1, 3): -2,\
+             (-2, 4): 2, (-3, 5): 1, (-1, 1): 2, (-2, 2): -4, (-3, 3): -3,\
+             (-4, 4): 1, (-2, 0): 1, (-3, 1): 2, (-4, 2): -3, (-4, 0): 1}]
+    K7  = ['knot 7_4',  4, (1, 1, 2, -1, 2, 2, 3, -2, 3),    None,\
+            {(-2, 2): 1, (-3, 3): 2, (-4, 4): 3, (-5, 5): 2, (-6, 6): 1,\
+             (-4, 2): -4, (-5, 3): -2, (-7, 5): 3, (-8, 6): 1, (-4, 0): 2,\
+             (-6, 2): -3, (-7, 3): -8, (-8, 4): -3, (-9, 5): 1, (-7, 1): 4,\
+             (-8, 2): 2, (-9, 3): -4, (-8, 0): -1, (-9, 1): 4}]
+    K91 = ['knot 9_29', 4, (1, -2, -2, 3, -2, 1, -2, 3, -2), None,\
+            {(7, 3): 1, (6, 4): 3, (5, 5): 6, (4, 6): 8, (3, 7): 6, (2, 8): 2,\
+             (5, 3): -5, (4, 4): -13, (3, 5): -8, (2, 6): 6, (1, 7): 9, (0, 8): 2,\
+             (5, 1): 2, (4, 2): 8, (3, 3): -1, (2, 4): -24, (1, 5): -24,\
+             (0, 6): -1, (-1, 7): 3, (4, 0): -2, (3, 1): 2, (2, 2): 17, (1, 3): 14,\
+             (0, 4): -11, (-1, 5): -10, (-2, 6): 1, (2, 0): -5, (1, 1): -1,\
+             (0, 2): 12, (-1, 3): 9, (-2, 4): -3, (0, 0): -3, (-1, 1): -1,\
+             (-2, 2): 3, (-2, 0): -1}]
+    K92 = ['knot 9_34', 4, (-1, 2, -1, 2, -3, 2, -1, 2, -3), None,\
+            {(5, 5): 1, (4, 6): 4, (3, 7): 6, (2, 8): 3, (5, 3): -1, (4, 4): -7,\
+             (3, 5): -11, (2, 6): 5, (1, 7): 14, (0, 8): 3, (4, 2): 3, (3, 3): 5,\
+             (2, 4): -19, (1, 5): -26, (0, 6): 9, (-1, 7): 8, (2, 2): 10,\
+             (1, 3): 12, (0, 4): -23, (-1, 5): -10, (-2, 6): 8, (2, 0): -1,\
+             (1, 1): -1, (0, 2): 11, (-1, 3): 4, (-2, 4): -10, (-3, 5): 4,\
+             (0, 0): -1, (-1, 1): -1, (-2, 2): 4, (-3, 3): -2, (-4, 4): 1,\
+             (-2, 0): -1}]
 
