@@ -2,6 +2,7 @@
 
 # This package is imported very early, which is why workarounds/monkey-patching
 # are done in this file.
+
 try:
     import pyjion
 except ImportError:
@@ -9,7 +10,8 @@ except ImportError:
 else:
     pyjion.enable()
     pyjion.config(pgc=False, level=0)
-    print("pyjion enabled")
+    import warnings as _warnings
+    _warnings.warn("pyjion enabled; this is experimental")
 
 # Make sure that the correct zlib library is loaded. This is needed
 # to prevent the system zlib to be loaded instead of the Sage one.
