@@ -8,7 +8,7 @@ except ImportError:
     pass
 else:
     pyjion.enable()
-    pyjion.config(pgc=False)
+    pyjion.config(pgc=False, level=0)
     print("pyjion enabled")
 
 # Make sure that the correct zlib library is loaded. This is needed
