@@ -2,6 +2,13 @@
 
 # This package is imported very early, which is why workarounds/monkey-patching
 # are done in this file.
+try:
+    import pyjion
+except ImportError:
+    pass
+else:
+    pyjion.enable()
+    print("pyjion enabled")
 
 # Make sure that the correct zlib library is loaded. This is needed
 # to prevent the system zlib to be loaded instead of the Sage one.
