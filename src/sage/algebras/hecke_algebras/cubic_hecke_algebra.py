@@ -4059,9 +4059,10 @@ class MarkovTraceMuduleBasis(Enum):
         """
         from sage.knots.knotinfo import KnotInfo
         K = KnotInfo.L2a1_1.kauffman_polynomial().parent()
+        a, z = K.gens()
         d = self.value[4]
         if d:
-            return K(d)
+            return K(d)*a**self.writhe()
         U2rkp = MarkovTraceMuduleBasis.U2.regular_kauffman_polynomial()
         if self.name == 'K4U':
             K4rkp = MarkovTraceMuduleBasis.K4.regular_kauffman_polynomial()
