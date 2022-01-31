@@ -1,9 +1,13 @@
 r"""
-Encoder
+Encoders
 
 Representation of a bijection between a message space and a code.
-"""
 
+AUTHORS:
+
+- David Lucas (2015): initial version
+
+"""
 #*****************************************************************************
 #       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
 #
@@ -23,7 +27,8 @@ class Encoder(SageObject):
     r"""
     Abstract top-class for :class:`Encoder` objects.
 
-    Every encoder class should inherit from this abstract class.
+    Every encoder class for linear codes (of any metric) should inherit from
+    this abstract class.
 
     To implement an encoder, you need to:
 
@@ -114,8 +119,8 @@ class Encoder(SageObject):
 
         This is a default implementation which assumes that the message
         space of the encoder is `F^{k}`, where `F` is
-        :meth:`sage.coding.linear_code.AbstractLinearCode.base_field`
-        and `k` is :meth:`sage.coding.linear_code.AbstractLinearCode.dimension`.
+        :meth:`sage.coding.linear_code_no_metric.AbstractLinearCodeNoMetric.base_field`
+        and `k` is :meth:`sage.coding.linear_code_no_metric.AbstractLinearCodeNoMetric.dimension`.
         If this is not the case, this method should be overwritten by the subclass.
 
         .. NOTE::
@@ -123,6 +128,10 @@ class Encoder(SageObject):
             :meth:`encode` might be a partial function over ``self``'s :meth:`message_space`.
             One should use the exception :class:`EncodingError` to catch attempts
             to encode words that are outside of the message space.
+
+        One can use the following shortcut to encode a word with an encoder ``E``::
+
+            E(word)
 
         INPUT:
 
@@ -147,16 +156,48 @@ class Encoder(SageObject):
             sage: E.encode(word)
             Traceback (most recent call last):
             ...
-            ArithmeticError: reduction modulo 2 not defined
+            ValueError: The value to encode must be in Vector space of dimension 4 over Finite Field of size 2
         """
         M = self.message_space()
         if word not in M:
             raise ValueError("The value to encode must be in %s" % M)
         return vector(word) * self.generator_matrix()
 
+    def __call__(self, m):
+        r"""
+        Transforms an element of the message space into a codeword.
+
+        This behaves the same as `self.encode`.
+        See `sage.coding.encoder.Encoder.encode` for details.
+
+        INPUT:
+
+        - ``word`` -- a vector of the message space of the ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: word = vector(GF(2), (0, 1, 1, 0))
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
+            sage: E(word)
+            (1, 1, 0, 0, 1, 1, 0)
+
+            sage: F = GF(11)
+            sage: Fx.<x> = F[]
+            sage: n, k = 10 , 5
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: E = C.encoder("EvaluationPolynomial")
+            sage: p = x^2 + 3*x + 10
+            sage: E(p)
+            (10, 3, 9, 6, 5, 6, 9, 3, 10, 8)
+        """
+        return self.encode(m)
+
+
     def unencode(self, c, nocheck=False):
         r"""
-        Returns the message corresponding to the codeword ``c``.
+        Return the message corresponding to the codeword ``c``.
 
         This is the inverse of :meth:`encode`.
 
@@ -197,15 +238,15 @@ class Encoder(SageObject):
             ...
             EncodingError: Given word is not in the code
 
-        Note that since ticket :trac: `21326`, codes cannot be of length zero::
+        Note that since :trac:`21326`, codes cannot be of length zero::
 
             sage: G = Matrix(GF(17), [])
             sage: C = LinearCode(G)
             Traceback (most recent call last):
             ...
             ValueError: length must be a non-zero positive integer
-       """
-        if nocheck == False and c not in self.code():
+        """
+        if not nocheck and c not in self.code():
             raise EncodingError("Given word is not in the code")
         return self.unencode_nocheck(c)
 
@@ -233,8 +274,10 @@ class Encoder(SageObject):
             )
         """
         info_set = self.code().information_set()
-        Gt = self.generator_matrix().matrix_from_columns(info_set)
-        return (Gt.inverse(), info_set)
+        Gtinv = self.generator_matrix().matrix_from_columns(info_set).inverse()
+        Gtinv.set_immutable()
+        M = (Gtinv, info_set)
+        return M
 
     def unencode_nocheck(self, c):
         r"""

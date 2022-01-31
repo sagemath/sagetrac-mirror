@@ -15,21 +15,21 @@ This file contains the following elements:
     - :class:`ReedMullerVectorEncoder`, an encoder with a vectorial message space (for both the two code classes)
     - :class:`ReedMullerPolynomialEncoder`, an encoder with a polynomial message space (for both the code classes)
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016 Parthasarathi Panda <parthasarathipanda314@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from operator import mul
+from functools import reduce
+
 from sage.matrix.constructor import matrix
-from sage.functions.other import binomial
-from sage.calculus.var import var
-from sage.misc.functional import symbolic_sum
+from sage.arith.misc import binomial
 from sage.coding.linear_code import AbstractLinearCode, LinearCodeSyndromeDecoder
 from sage.coding.encoder import Encoder
 from sage.combinat.subset import Subsets
@@ -39,10 +39,7 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.integer import Integer
 from sage.modules.free_module_element import vector
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.interfaces.gap import gfq_gap_to_sage
-from sage.interfaces.all import gap
 from sage.misc.cachefunc import cached_method
-from functools import reduce
 
 
 def _binomial_sum(n, k):
@@ -70,9 +67,9 @@ def _binomial_sum(n, k):
 
 def _multivariate_polynomial_interpolation(evaluation, order, polynomial_ring):
     r"""
-    Returns `f \in \GF(q)[X_1,...,X_m]` such that `f(\mathbf a) = v[i(\mathbf a)]`
-    for all `\mathbf a \in \GF(q^m)`, where `v \in GF(q){qm}` is a given
-    vector of evaluations, and `i(a)` is a specific ordering of `GF(q^m)` (see below for details)
+    Returns `f \in \GF{q}[X_1,...,X_m]` such that `f(\mathbf a) = v[i(\mathbf a)]`
+    for all `\mathbf a \in \GF{q^m}`, where `v \in \GF{q}^{q^m}` is a given
+    vector of evaluations, and `i(a)` is a specific ordering of `\GF{q^m}` (see below for details)
 
     The ordering `i(a)` is the one used by Sage when listing the elements
     of a Finite Field with a call to the method ``list``.
@@ -119,7 +116,7 @@ def _multivariate_polynomial_interpolation(evaluation, order, polynomial_ring):
             polyVector = uni_poly_ring.lagrange_polynomial(
                 points).coefficients(sparse=False)
             if len(polyVector) < d:
-                # adding zeros to represet a (d-1) degree polynomial
+                # adding zeros to represent a (d-1) degree polynomial
                 polyVector += [base_field_zero] * (d - len(polyVector))
             multipoint_evaluation_list.append(polyVector)
         poly = polynomial_ring.zero()
@@ -183,7 +180,7 @@ def ReedMullerCode(base_field, order, num_of_var):
         sage: C
         Binary Reed-Muller Code of order 2 and number of variables 2
     """
-    if not(base_field in FiniteFields):
+    if base_field not in FiniteFields():
         raise ValueError("The parameter `base_field` must be a finite field")
     q = base_field.cardinality()
     if q == 2:
@@ -256,7 +253,7 @@ class QAryReedMullerCode(AbstractLinearCode):
             ValueError: the input `base_field` must be a FiniteField
         """
         # input sanitization
-        if not(base_field in FiniteFields):
+        if base_field not in FiniteFields():
             raise ValueError("the input `base_field` must be a FiniteField")
         if not(isinstance(order, (Integer, int))):
             raise ValueError("The order of the code must be an integer")
@@ -652,16 +649,17 @@ class ReedMullerVectorEncoder(Encoder):
         order = C.order()
         num_of_var = C.number_of_variables()
         q = base_field.cardinality()
-        dimension = C.dimension()
         points = base_field**num_of_var
         matrix_list = []
         max_individual_degree = min(order, (q - 1))
         for degree in range(order + 1):
-            exponents = Subsets(range(num_of_var) * max_individual_degree,
+            exponents = Subsets(list(range(num_of_var)) * max_individual_degree,
                                 degree, submultiset=True)
             matrix_list += [[reduce(mul, [x[i] for i in exponent], 1)
                              for x in points] for exponent in exponents]
-        return matrix(base_field, matrix_list)
+        M = matrix(base_field, matrix_list)
+        M.set_immutable()
+        return M
 
     def points(self):
         r"""
@@ -682,7 +680,7 @@ class ReedMullerVectorEncoder(Encoder):
 
 class ReedMullerPolynomialEncoder(Encoder):
     r"""
-    Encoder for Reed-Muller codes which encodes appropiate multivariate polynomials into codewords.
+    Encoder for Reed-Muller codes which encodes appropriate multivariate polynomials into codewords.
 
     Consider a Reed-Muller code of order `r`, number of variables `m`, length `n`,
     dimension `k` over some finite field `F`.

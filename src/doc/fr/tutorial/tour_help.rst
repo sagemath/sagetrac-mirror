@@ -62,7 +62,7 @@ point d'interrogation :
             0.69314718055994530941723212145817656807   # 64-bit
     sage: sudoku?
     File:        sage/local/lib/python2.5/site-packages/sage/games/sudoku.py
-    Type:        <type 'function'>
+    Type:        <... 'function'>
     Definition:  sudoku(A)
     Docstring:
 
@@ -258,18 +258,8 @@ et des cubes en trois colonnes, chacune d'une largeur de six caractères.
          4     16     64
 
 La structure de données de base de Sage est la liste, qui est — comme
-son nom l'indique — une liste d'objets arbitraires. Par exemple, la
-commande ``range`` que nous avons utilisée plus haut crée en fait une
-liste :
-
-::
-
-    sage: range(2,10)
-    [2, 3, 4, 5, 6, 7, 8, 9]
-
-Voici un exemple plus compliqué de liste :
-
-::
+son nom l'indique — une liste d'objets arbitraires. Voici un exemple
+de liste::
 
     sage: v = [1, "hello", 2/3, sin(x^3)]
     sage: v

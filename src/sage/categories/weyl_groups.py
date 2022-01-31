@@ -1,5 +1,10 @@
 r"""
 Weyl Groups
+
+REFERENCES:
+
+.. [Dye] Dyer. *Bruhat intervals, polyhedral cones and Kazhdan-Lusztig-Stanley polynomials*. Math.Z., 215(2):223-236, 1994.
+.. [JahStu] Jahn and Stump. *Bruhat intervals, subword complexes and brick polyhedra for finite Coxeter groups*. Preprint, available at :arxiv:`2103.03715`, 2021.
 """
 #*****************************************************************************
 #  Copyright (C) 2009    Nicolas M. Thiery <nthiery at users.sf.net>
@@ -12,8 +17,6 @@ from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.coxeter_groups import CoxeterGroups
-from sage.rings.infinity import infinity
-from sage.rings.rational_field import QQ
 
 
 class WeylGroups(Category_singleton):
@@ -78,6 +81,19 @@ class WeylGroups(Category_singleton):
     Finite = LazyImport('sage.categories.finite_weyl_groups', 'FiniteWeylGroups')
 
     class ParentMethods:
+        def coxeter_matrix(self):
+            """
+            Return the Coxeter matrix associated to ``self``.
+
+            EXAMPLES::
+
+                sage: G = WeylGroup(['A',3])
+                sage: G.coxeter_matrix()
+                [1 3 2]
+                [3 1 3]
+                [2 3 1]
+            """
+            return self.cartan_type().coxeter_matrix()
 
         def pieri_factors(self, *args, **keywords):
             r"""
@@ -105,9 +121,27 @@ class WeylGroups(Category_singleton):
 
                 sage: W = WeylGroup(['B',3])
                 sage: PF = W.pieri_factors()
-                sage: [w.reduced_word() for w in PF]
-                [[1, 2, 3, 2, 1], [1, 2, 3, 2], [2, 3, 2], [2, 3], [3, 1, 2, 1], [1, 2, 1], [2], [1, 2], [1], [], [2, 1], [3, 2, 1], [3, 1], [2, 3, 2, 1], [3], [3, 2], [1, 2, 3], [1, 2, 3, 1], [3, 1, 2], [2, 3, 1]]
-
+                sage: sorted([w.reduced_word() for w in PF])
+                [[],
+                 [1],
+                 [1, 2],
+                 [1, 2, 1],
+                 [1, 2, 3],
+                 [1, 2, 3, 1],
+                 [1, 2, 3, 2],
+                 [1, 2, 3, 2, 1],
+                 [2],
+                 [2, 1],
+                 [2, 3],
+                 [2, 3, 1],
+                 [2, 3, 2],
+                 [2, 3, 2, 1],
+                 [3],
+                 [3, 1],
+                 [3, 1, 2],
+                 [3, 1, 2, 1],
+                 [3, 2],
+                 [3, 2, 1]]
                 sage: W = WeylGroup(['C',4,1])
                 sage: PF = W.pieri_factors()
                 sage: W.from_reduced_word([3,2,0]) in PF
@@ -116,10 +150,83 @@ class WeylGroups(Category_singleton):
             # Do not remove this line which makes sure the pieri factor
             # code is properly inserted inside the Cartan Types
             import sage.combinat.root_system.pieri_factors
+            assert sage.combinat.root_system.pieri_factors
             ct = self.cartan_type()
             if hasattr(ct, "PieriFactors"):
                 return ct.PieriFactors(self, *args, **keywords)
             raise NotImplementedError("Pieri factors for type {}".format(ct))
+        
+        def bruhat_cone(self, x, y, side='upper', backend='cdd'):
+            r"""
+            Return the (upper or lower) Bruhat cone associated to the interval ``[x,y]``.
+
+            To a cover relation `v \prec w` in strong Bruhat order you can assign a positive
+            root `\beta` given by the unique reflection `s_\beta` such that `s_\beta v = w`.
+
+            The upper Bruhat cone of the interval `[x,y]` is the non-empty, polyhedral cone generated
+            by the roots corresponding to `x \prec a` for all atoms `a` in the interval.
+            The lower Bruhat cone of the interval `[x,y]` is the non-empty, polyhedral cone generated
+            by the roots corresponding to `c \prec y` for all coatoms `c` in the interval.
+
+            INPUT:
+
+            - ``x`` - an element in the group `W`
+
+            - ``y`` - an element in the group `W`
+
+            - ``side`` (default: ``'upper'``) -- must be one of the following:
+
+              * ``'upper'`` - return the upper Bruhat cone of the interval [``x``, ``y``]
+              * ``'lower'`` - return the lower Bruhat cone of the interval [``x``, ``y``]
+
+            - ``backend`` -- string (default: ``'cdd'``); the backend to use to create the polyhedron
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',2])
+                sage: x = W.from_reduced_word([1])
+                sage: y = W.w0
+                sage: W.bruhat_cone(x, y)
+                A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex and 2 rays
+
+                sage: W = WeylGroup(['E',6])
+                sage: x = W.one()
+                sage: y = W.w0
+                sage: W.bruhat_cone(x, y, side='lower')
+                A 6-dimensional polyhedron in QQ^8 defined as the convex hull of 1 vertex and 6 rays
+
+            TESTS::
+
+                sage: W = WeylGroup(['A',2])
+                sage: x = W.one()
+                sage: y = W.w0
+                sage: W.bruhat_cone(x, y, side='nonsense')
+                Traceback (most recent call last):
+                ...
+                ValueError: side must be either 'upper' or 'lower'
+
+            REFERENCES:
+
+            - [Dye]_
+            - [JahStu]_
+            """
+            from sage.modules.free_module_element import vector
+            if side == 'upper':
+                roots = [vector((x * r * x.inverse()).reflection_to_root().to_ambient())
+                         for z, r in x.bruhat_upper_covers_reflections()
+                         if z.bruhat_le(y)]
+            elif side == 'lower':
+                roots = [vector((y * r * y.inverse()).reflection_to_root().to_ambient())
+                         for z, r in y.bruhat_lower_covers_reflections()
+                         if x.bruhat_le(z)]
+            else:
+                raise ValueError("side must be either 'upper' or 'lower'")
+
+            from sage.geometry.polyhedron.constructor import Polyhedron
+            return Polyhedron(vertices=[vector([0] * self.degree())],
+                              rays=roots,
+                              ambient_dim=self.degree(),
+                              backend=backend)
 
         @cached_method
         def quantum_bruhat_graph(self, index_set=()):
@@ -161,9 +268,6 @@ class WeylGroups(Category_singleton):
             if not self.cartan_type().is_finite():
                 raise ValueError("the Cartan type {} is not finite".format(self.cartan_type()))
 
-            # Find all the minimal length coset representatives
-            WP = [x for x in self if all(not x.has_descent(i) for i in index_set)]
-
             # This is a modified form of quantum_bruhat_successors.
             # It does not do any error checking and also is more efficient
             #   with how it handles memory and checks by using data stored
@@ -172,41 +276,47 @@ class WeylGroups(Category_singleton):
             NPR = lattice.nonparabolic_positive_roots(index_set)
             NPR_sum = sum(NPR)
             NPR_data = {}
-            full_NPR_sum = lattice.nonparabolic_positive_root_sum(())
+            double_rho = lattice.sum(lattice.positive_roots()) # = 2 * \rho
             for alpha in NPR:
                 ref = alpha.associated_reflection()
                 alphacheck = alpha.associated_coroot()
                 NPR_data[alpha] = [self.from_reduced_word(ref), # the element
-                                   len(ref) == full_NPR_sum.scalar(alphacheck) - 1, # is_quantum
+                                   len(ref) == double_rho.scalar(alphacheck) - 1, # is_quantum
                                    NPR_sum.scalar(alphacheck)] # the scalar
             # We also create a temporary cache of lengths as they are
             #   relatively expensive to compute and needed frequently
+            visited = {}
+            todo = {self.one()}
             len_cache = {}
             def length(x):
-                # It is sufficient and faster to use the matrices as the keys
-                m = x.matrix()
-                if m in len_cache:
-                    return len_cache[m]
-                len_cache[m] = x.length()
-                return len_cache[m]
-            def succ(x):
+                if x in len_cache:
+                    return len_cache[x]
+                len_cache[x] = x.length()
+                return len_cache[x]
+            while todo:
+                x = todo.pop()
                 w_length_plus_one = length(x) + 1
-                successors = []
+                adj = {}
                 for alpha in NPR:
                     elt, is_quantum, scalar = NPR_data[alpha]
                     wr = x * elt
                     wrc = wr.coset_representative(index_set)
                     # coset_representative returns wr if nothing gets changed
-                    if wrc is wr and length(wr) == w_length_plus_one:
-                        successors.append((wr, alpha))
+                    if wrc is wr and length(wrc) == w_length_plus_one:
+                        if wrc not in visited:
+                            todo.add(wrc)
+                        adj[wr] = alpha
                     elif is_quantum and length(wrc) == w_length_plus_one - scalar:
-                        successors.append((wrc, alpha))
-                return successors
+                        if wrc not in visited:
+                            todo.add(wrc)
+                        adj[wrc] = alpha
+                visited[x] = adj
 
             from sage.graphs.digraph import DiGraph
-            return DiGraph([[x,i[0],i[1]] for x in WP for i in succ(x)],
+            return DiGraph(visited,
                            name="Parabolic Quantum Bruhat Graph of %s for nodes %s"%(self, index_set),
-                           format="list_of_edges")
+                           format="dict_of_dicts",
+                           data_structure="static_sparse")
 
     class ElementMethods:
 
@@ -244,7 +354,7 @@ class WeylGroups(Category_singleton):
             return self in self.parent().pieri_factors()
 
 
-        def left_pieri_factorizations(self, max_length = infinity):
+        def left_pieri_factorizations(self, max_length=None):
             r"""
             Returns all factorizations of ``self`` as `uv`, where `u`
             is a Pieri factor and `v` is an element of the Weyl group.
@@ -300,6 +410,9 @@ class WeylGroups(Category_singleton):
                 sage: W.from_reduced_word([0,2,1,0]).left_pieri_factorizations().cardinality()
                 6
             """
+            if max_length is None:
+                from sage.rings.infinity import infinity
+                max_length = infinity
             pieri_factors = self.parent().pieri_factors()
             def predicate(u):
                 return u in pieri_factors and u.length() <= max_length
@@ -307,7 +420,7 @@ class WeylGroups(Category_singleton):
             return self.binary_factorizations(predicate)
 
         @cached_in_parent_method
-        def stanley_symmetric_function_as_polynomial(self, max_length = infinity):
+        def stanley_symmetric_function_as_polynomial(self, max_length=None):
             r"""
             Returns a multivariate generating function for the number
             of factorizations of a Weyl group element into Pieri
@@ -369,8 +482,12 @@ class WeylGroups(Category_singleton):
             by taking right factors, and in particular Grassmanian
             elements.
             """
+            if max_length is None:
+                from sage.rings.infinity import infinity
+                max_length = infinity
             W = self.parent()
             pieri_factors = W.pieri_factors()
+            from sage.rings.rational_field import QQ
             R = QQ[','.join('x%s'%l for l in range(1,pieri_factors.max_length()+1))]
             x = R.gens()
             if self.is_one():
@@ -448,6 +565,7 @@ class WeylGroups(Category_singleton):
             - [Pon2010]_
             """
             import sage.combinat.sf
+            from sage.rings.rational_field import QQ
             m = sage.combinat.sf.sf.SymmetricFunctions(QQ).monomial()
             return m.from_polynomial_exp(self.stanley_symmetric_function_as_polynomial())
 
@@ -598,6 +716,7 @@ class WeylGroups(Category_singleton):
             inv = self.inversions(side=side, inversion_type='roots')
             from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
             I = self.parent().cartan_type().index_set()
+            from sage.rings.rational_field import QQ
             H = HyperplaneArrangements(QQ, tuple(['a{}'.format(i) for i in I]))
             gens = H.gens()
             if not inv:

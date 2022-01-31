@@ -40,9 +40,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
-from six.moves import range
 
 # TODO: check off this todo list:
 # - methods to cryptanalyze the Hill, substitution, transposition, and
@@ -58,7 +55,7 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-from sage.arith.all import xgcd, gcd, inverse_mod
+from sage.arith.all import xgcd, inverse_mod
 from random import randint
 from sage.matrix.matrix_space import MatrixSpace
 
@@ -70,6 +67,7 @@ from .classical_cipher import (
     SubstitutionCipher,
     TranspositionCipher,
     VigenereCipher)
+
 
 class AffineCryptosystem(SymmetricKeyCryptosystem):
     r"""
@@ -277,8 +275,8 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
             raise TypeError("A (= %s) is not supported as a cipher domain of this affine cryptosystem." % A)
         # List L of invertible linear coefficients modulo n, where n is the
         # alphabet size. Each e in L satisfies gcd(e, n) = 1.
-        n = A.ngens()
-        self._invertible_A = [i for i in range(n) if gcd(i, n) == 1]
+        n = Integer(A.ngens())
+        self._invertible_A = n.coprime_integers(n)
         # Initialize the affine cryptosystem with the plaintext, ciphertext,
         # and key spaces.
         SymmetricKeyCryptosystem.__init__(
@@ -1284,8 +1282,9 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
         b = Integer(randint(0, n - 1))
         return (a, b)
 
+
 class HillCryptosystem(SymmetricKeyCryptosystem):
-    """
+    r"""
     Create a Hill cryptosystem defined by the `m` x `m` matrix space
     over `\ZZ / N \ZZ`, where `N` is the alphabet size of
     the string monoid ``S``.
@@ -1329,7 +1328,7 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
     """
 
     def __init__(self, S, m):
-        """
+        r"""
         See ``HillCryptosystem`` for full documentation.
 
         Create a Hill cryptosystem defined by the `m` x `m` matrix space
@@ -1465,11 +1464,10 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
             True
         """
         M = self.key_space()
-        R = M.base_ring()
         m = M.nrows()
         N = Integer(self.cipher_domain().ngens())
         while True:
-            A = M([ randint(0, N-1) for i in range(m**2) ])
+            A = M([randint(0, N-1) for i in range(m**2)])
             if N.gcd(A.det().lift()) == 1:
                 break
         return A
@@ -1500,12 +1498,12 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
         """
         S = self.plaintext_space()
         M = self.key_space()
-        if not A in M:
+        if A not in M:
             raise TypeError("A (= %s) must be a matrix in the key space of %s." % (A, self))
         m = self.block_length()
         MatZZ = MatrixSpace(ZZ, m)
-        AZ = MatZZ([ [ A[i, j].lift() for j in range(m) ] for i in range(m) ])
-        AZ_adj = AZ.adjoint()
+        AZ = MatZZ([[A[i, j].lift() for j in range(m)] for i in range(m)])
+        AZ_adj = AZ.adjugate()
         u, r, s = xgcd(A.det().lift(), S.ngens())
         if u != 1:
             raise ValueError("Argument:\n\n%s\n\nis not invertible." % (A))
@@ -2885,8 +2883,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: S = ShiftCryptosystem(AlphabeticStrings())
             sage: K = S.random_key()
             sage: while K == 0:
-            ...       K = S.random_key()
-            ...
+            ....:     K = S.random_key()
             sage: invK = S.inverse_key(K)
             sage: K + invK == S.alphabet_size()
             True
@@ -2894,8 +2891,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             True
             sage: K = S.random_key()
             sage: while K != 0:
-            ...       K = S.random_key()
-            ...
+            ....:     K = S.random_key()
             sage: invK = S.inverse_key(K)
             sage: K + invK != S.alphabet_size()
             True
@@ -2988,8 +2984,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: S = ShiftCryptosystem(AlphabeticStrings())
             sage: K = S.random_key()
             sage: while K == 0:
-            ...       K = S.random_key()
-            ...
+            ....:     K = S.random_key()
             sage: invK = S.inverse_key(K)
             sage: K + invK == S.alphabet_size()
             True
@@ -2997,8 +2992,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             True
             sage: K = S.random_key()
             sage: while K != 0:
-            ...       K = S.random_key()
-            ...
+            ....:     K = S.random_key()
             sage: invK = S.inverse_key(K)
             sage: K + invK != S.alphabet_size()
             True
@@ -3402,7 +3396,7 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
             True
         """
         if check:
-            if not K in self.key_space():
+            if K not in self.key_space():
                 raise TypeError("Argument K (= %s) is not in the key space." % K)
         return K**-1
 

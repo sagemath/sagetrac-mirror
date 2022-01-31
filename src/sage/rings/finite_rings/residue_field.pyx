@@ -107,7 +107,7 @@ First over a small non-prime field::
     sage: R.<X, Y> = PolynomialRing(Rf)
     sage: ubar = Rf(u)
     sage: I = ideal([ubar*X + Y]); I
-    Ideal ((ubar)*X + Y) of Multivariate Polynomial Ring in X, Y over Residue field in ubar of Fractional ideal (47, 517/55860*u^5 + 235/3724*u^4 + 9829/13965*u^3 + 54106/13965*u^2 + 64517/27930*u + 755696/13965)
+    Ideal (ubar*X + Y) of Multivariate Polynomial Ring in X, Y over Residue field in ubar of Fractional ideal (47, 517/55860*u^5 + 235/3724*u^4 + 9829/13965*u^3 + 54106/13965*u^2 + 64517/27930*u + 755696/13965)
     sage: I.groebner_basis()
     [X + (-19*ubar^2 - 5*ubar - 17)*Y]
 
@@ -147,6 +147,8 @@ from sage.rings.ring cimport Field
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.categories.homset import Hom
+from sage.categories.basic import Fields, Rings
+from sage.categories.pushout import AlgebraicExtensionFunctor
 from sage.rings.all import ZZ, QQ, Integers
 from sage.rings.finite_rings.finite_field_constructor import zech_log_bound, FiniteField as GF
 from sage.rings.finite_rings.finite_field_base import FiniteField
@@ -169,7 +171,8 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.structure.factory import UniqueFactory
 from sage.structure.dynamic_class import dynamic_class
-from sage.structure.element cimport parent_c
+from sage.structure.element cimport parent
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal
 
 
 class ResidueFieldFactory(UniqueFactory):
@@ -313,12 +316,12 @@ class ResidueFieldFactory(UniqueFactory):
             elif not (is_NumberFieldIdeal(p) or p.ring() is ZZ):
                 raise NotImplementedError
         if isinstance(names, tuple):
-            if len(names) > 0:
+            if names:
                 names = str(names[0])
             else:
                 names = None
         if names is None and p.ring() is not ZZ:
-            names = '%sbar'%(p.ring().fraction_field().variable_name())
+            names = '%sbar' % p.ring().fraction_field().variable_name()
         key = (p, names, impl)
         return key, kwds
 
@@ -533,6 +536,42 @@ class ResidueField_generic(Field):
             # <class 'sage.categories.finite_fields.FiniteFields.parent_class'>
             return cls.__bases__[0].__bases__[1]
 
+    def construction(self):
+        """
+        Construction of this residue field.
+
+        OUTPUT:
+
+        An :class:`~sage.categories.pushout.AlgebraicExtensionFunctor` and the
+        number field that this residue field has been obtained from.
+
+        The residue field is determined by a prime (fractional) ideal in a
+        number field. If this ideal can be coerced into a different number
+        field, then the construction functor applied to this number field will
+        return the corresponding residue field. See :trac:`15223`.
+
+        EXAMPLES::
+
+            sage: K.<z> = CyclotomicField(7)
+            sage: P = K.factor(17)[0][0]
+            sage: k = K.residue_field(P)
+            sage: k
+            Residue field in zbar of Fractional ideal (17)
+            sage: F, R = k.construction()
+            sage: F
+            AlgebraicExtensionFunctor
+            sage: R
+            Cyclotomic Field of order 7 and degree 6
+            sage: F(R) is k
+            True
+            sage: F(ZZ)
+            Residue field of Integers modulo 17
+            sage: F(CyclotomicField(49))
+            Residue field in zbar of Fractional ideal (17)
+
+        """
+        return AlgebraicExtensionFunctor([self.polynomial()], [self.variable_name()], [None], residue=self.p), self.p.ring()
+
     def ideal(self):
         r"""
         Return the maximal ideal that this residue field is the quotient by.
@@ -607,7 +646,7 @@ class ResidueField_generic(Field):
         except TypeError:
             pass
         K = OK = self.p.ring()
-        R = parent_c(x)
+        R = parent(x)
         if OK.is_field():
             OK = OK.ring_of_integers()
         else:
@@ -722,10 +761,10 @@ class ResidueField_generic(Field):
             Residue field of Fractional ideal (a)
             sage: pi = k.reduction_map(); pi
             Partially defined reduction map:
-              From: Number Field in a with defining polynomial x^3 - 2
+              From: Number Field in a with defining polynomial x^3 - 2 with a = 1.259921049894873?
               To:   Residue field of Fractional ideal (a)
             sage: pi.domain()
-            Number Field in a with defining polynomial x^3 - 2
+            Number Field in a with defining polynomial x^3 - 2 with a = 1.259921049894873?
             sage: pi.codomain()
             Residue field of Fractional ideal (a)
 
@@ -762,11 +801,11 @@ class ResidueField_generic(Field):
             sage: f = k.lift_map(); f
             Lifting map:
               From: Residue field of Fractional ideal (-a + 2)
-              To:   Maximal Order in Number Field in a with defining polynomial x^3 - 3
+              To:   Maximal Order in Number Field in a with defining polynomial x^3 - 3 with a = 1.442249570307409?
             sage: f.domain()
             Residue field of Fractional ideal (-a + 2)
             sage: f.codomain()
-            Maximal Order in Number Field in a with defining polynomial x^3 - 3
+            Maximal Order in Number Field in a with defining polynomial x^3 - 3 with a = 1.442249570307409?
             sage: f(k.0)
             1
 
@@ -785,7 +824,7 @@ class ResidueField_generic(Field):
             OK = OK.ring_of_integers()
         return self._internal_coerce_map_from(OK).section()
 
-    def __cmp__(self, x):
+    def _richcmp_(self, x, op):
         """
         Compares two residue fields: they are equal iff the primes
         defining them are equal and they have the same variable name.
@@ -810,12 +849,13 @@ class ResidueField_generic(Field):
             sage: ll == l
             False
         """
-        c = cmp(type(self), type(x))
-        if c: return c
-        c = cmp(self.p, x.p)
-        if c: return c
-        c = cmp(self.variable_name(), x.variable_name())
-        return c
+        if not isinstance(x, ResidueField_generic):
+            return NotImplemented
+        lp = self.p
+        rp = x.p
+        if lp != rp:
+            return richcmp_not_equal(lp, rp, op)
+        return richcmp(self.variable_name(), x.variable_name(), op)
 
     def __hash__(self):
         r"""
@@ -849,7 +889,7 @@ cdef class ReductionMap(Map):
         Residue field in sqrt17bar of Fractional ideal (5)
         sage: R = k.reduction_map(); R
         Partially defined reduction map:
-          From: Number Field in sqrt17 with defining polynomial x^2 - 17
+          From: Number Field in sqrt17 with defining polynomial x^2 - 17 with sqrt17 = 4.123105625617660?
           To:   Residue field in sqrt17bar of Fractional ideal (5)
 
         sage: R.<t> = GF(next_prime(2^20))[]; P = R.ideal(t^2 + t + 1)
@@ -886,6 +926,9 @@ cdef class ReductionMap(Map):
               From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
               To:   Residue field in tbar of Principal ideal (t^7 + t^6 + t^5 + t^4 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
 
+            sage: type(k)
+            <class 'sage.rings.finite_rings.residue_field.ResidueFiniteField_givaro_with_category'>
+
         """
         self._K = K
         self._F = F   # finite field
@@ -897,7 +940,7 @@ cdef class ReductionMap(Map):
         self._repr_type_str = "Partially defined reduction"
         Map.__init__(self, Hom(K, F, SetsWithPartialMaps()))
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -916,14 +959,15 @@ cdef class ReductionMap(Map):
             sage: r(2 + a) == cr(2 + a)
             True
         """
-        _slots['_K'] = self._K
-        _slots['_F'] = self._F
-        _slots['_to_vs'] = self._to_vs
-        _slots['_PBinv'] = self._PBinv
-        _slots['_to_order'] = self._to_order
-        _slots['_PB'] = self._PB
-        _slots['_section'] = self._section
-        return Map._extra_slots(self, _slots)
+        slots = Map._extra_slots(self)
+        slots['_K'] = self._K
+        slots['_F'] = self._F
+        slots['_to_vs'] = self._to_vs
+        slots['_PBinv'] = self._PBinv
+        slots['_to_order'] = self._to_order
+        slots['_PB'] = self._PB
+        slots['_section'] = self._section
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -983,12 +1027,14 @@ cdef class ReductionMap(Map):
             sage: R.<t> = GF(2)[]; h = t^5 + t^2 + 1
             sage: k.<a> = R.residue_field(h); K = R.fraction_field()
             sage: f = k.convert_map_from(K)
+            sage: type(f)
+            <class 'sage.rings.finite_rings.residue_field.ReductionMap'>
             sage: f(1/t)
             a^4 + a
             sage: f(1/h)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
 
         An example to show that the issue raised in :trac:`1951`
         has been fixed::
@@ -1074,7 +1120,7 @@ cdef class ReductionMap(Map):
             sage: f = k.convert_map_from(K)
             sage: s = f.section(); s
             Lifting map:
-              From: Residue field in abar of Fractional ideal (14*a^4 - 24*a^3 - 26*a^2 + 58*a - 15)
+              From: Residue field in abar of Fractional ideal (-14*a^4 + 24*a^3 + 26*a^2 - 58*a + 15)
               To:   Number Field in a with defining polynomial x^5 - 5*x + 2
             sage: s(k.gen())
             a
@@ -1095,8 +1141,8 @@ cdef class ReductionMap(Map):
             sage: f = k.convert_map_from(K)
             sage: f.section()
             Lifting map:
-              From: Residue field in a of Principal ideal (t^5 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
-              To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+              From: Residue field in a of Principal ideal (t^5 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
+              To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
         """
         if self._section is None:
             self._section = LiftingMap(self, self._to_order, self._PB)
@@ -1441,6 +1487,8 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             Ring morphism:
               From: Maximal Order in Cyclotomic Field of order 5 and degree 4
               To:   Residue field in a of Fractional ideal (7)
+            sage: type(phi)
+            <class 'sage.rings.finite_rings.residue_field.ResidueFieldHomomorphism_global'>
 
             sage: R.<t> = GF(2)[]; P = R.ideal(t^7 + t^6 + t^5 + t^4 + 1)
             sage: k = P.residue_field(); f = k.coerce_map_from(R)
@@ -1456,7 +1504,7 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
         self._repr_type_str = "Reduction"
         RingHomomorphism.__init__(self, Hom(K,F))
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1476,14 +1524,15 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             sage: psi(OK.an_element()) == phi(OK.an_element())
             True
         """
-        _slots['_K'] = self._K
-        _slots['_F'] = self._F
-        _slots['_to_vs'] = self._to_vs
-        _slots['_PBinv'] = self._PBinv
-        _slots['_to_order'] = self._to_order
-        _slots['_PB'] = self._PB
-        _slots['_section'] = self._section
-        return RingHomomorphism._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['_K'] = self._K
+        slots['_F'] = self._F
+        slots['_to_vs'] = self._to_vs
+        slots['_PBinv'] = self._PBinv
+        slots['_to_order'] = self._to_order
+        slots['_PB'] = self._PB
+        slots['_section'] = self._section
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1564,7 +1613,7 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             sage: f = k.coerce_map_from(K.ring_of_integers())
             sage: s = f.section(); s
             Lifting map:
-              From: Residue field in abar of Fractional ideal (14*a^4 - 24*a^3 - 26*a^2 + 58*a - 15)
+              From: Residue field in abar of Fractional ideal (-14*a^4 + 24*a^3 + 26*a^2 - 58*a + 15)
               To:   Maximal Order in Number Field in a with defining polynomial x^5 - 5*x + 2
             sage: s(k.gen())
             a
@@ -1667,10 +1716,10 @@ cdef class LiftingMap(Section):
             sage: F = K.factor(7)[0][0].residue_field()
             sage: L = F.lift_map(); L
             Lifting map:
-              From: Residue field in abar of Fractional ideal (-2*a^4 + a^3 - 4*a^2 + 2*a - 1)
+              From: Residue field in abar of Fractional ideal (2*a^4 - a^3 + 4*a^2 - 2*a + 1)
               To:   Maximal Order in Number Field in a with defining polynomial x^5 + 2
             sage: L.domain()
-            Residue field in abar of Fractional ideal (-2*a^4 + a^3 - 4*a^2 + 2*a - 1)
+            Residue field in abar of Fractional ideal (2*a^4 - a^3 + 4*a^2 - 2*a + 1)
 
             sage: K.<a> = CyclotomicField(7)
             sage: F = K.factor(5)[0][0].residue_field()
@@ -1685,7 +1734,7 @@ cdef class LiftingMap(Section):
             sage: k.<a> = R.residue_field(h)
             sage: K = R.fraction_field()
             sage: L = k.lift_map(); L.codomain()
-            Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
         """
         self._K = reduction._K
         self._F = reduction._F
@@ -1693,7 +1742,7 @@ cdef class LiftingMap(Section):
         self._PB = PB
         Section.__init__(self, reduction)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1711,11 +1760,12 @@ cdef class LiftingMap(Section):
             sage: phi(F.0) == psi(F.0)
             True
         """
-        _slots['_K'] = self._K
-        _slots['_F'] = self._F
-        _slots['_to_order'] = self._to_order
-        _slots['_PB'] = self._PB
-        return Section._extra_slots(self, _slots)
+        slots = Section._extra_slots(self)
+        slots['_K'] = self._K
+        slots['_F'] = self._F
+        slots['_to_order'] = self._to_order
+        slots['_PB'] = self._PB
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1793,7 +1843,7 @@ cdef class LiftingMap(Section):
             sage: F.<tmod> = K.factor(7)[0][0].residue_field()
             sage: F.lift_map() #indirect doctest
             Lifting map:
-              From: Residue field in tmod of Fractional ideal (-3*theta_12^2 + 1)
+              From: Residue field in tmod of Fractional ideal (theta_12^2 + 2)
               To:   Maximal Order in Cyclotomic Field of order 12 and degree 4
         """
         return "Lifting"

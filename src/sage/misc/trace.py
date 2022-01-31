@@ -1,7 +1,6 @@
 """
 Interactively tracing execution of a command
 """
-from __future__ import print_function
 
 
 def trace(code, preparse=True):
@@ -46,40 +45,33 @@ def trace(code, preparse=True):
 
     TESTS:
 
-    The only real way to test this is via pexpect spawning a
-    sage subprocess that uses IPython.
+    For tests we disable garbage collection, see :trac:`21258` ::
 
-    ::
+        sage: import gc
+        sage: gc.disable()
+
+    The only real way to test this is via pexpect spawning a
+    sage subprocess that uses IPython::
 
         sage: import pexpect
         sage: s = pexpect.spawn('sage')
         sage: _ = s.sendline("trace('print(factor(10))'); print(3+97)")
         sage: _ = s.expect('ipdb>', timeout=90)
-        sage: _ = s.sendline("s"); _ = s.sendline("c");
+        sage: _ = s.sendline("s"); _ = s.sendline("c")
         sage: _ = s.expect('100', timeout=90)
 
     Seeing the ipdb prompt and the 2 \* 5 in the output below is a
-    strong indication that the trace command worked correctly.
+    strong indication that the trace command worked correctly::
 
-    ::
-
-        sage: print(s.before[s.before.find('--'):])
+        sage: print(s.before[s.before.find(b'--'):].decode())
         --...
-        ipdb> c
-        2 * 5
+        ...ipdb> c
+        ...2 * 5...
 
-    We test what happens in notebook embedded mode::
+    Re-enable garbage collection::
 
-        sage: sage.plot.plot.EMBEDDED_MODE = True
-        sage: trace('print(factor(10))')
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: the trace command is not implemented in the Sage notebook; you must use the command line.
+        sage: gc.enable()
     """
-    from sage.plot.plot import EMBEDDED_MODE
-    if EMBEDDED_MODE:
-        raise NotImplementedError("the trace command is not implemented in the Sage notebook; you must use the command line.")
-
     from IPython.core.debugger import Pdb
     pdb = Pdb()
 

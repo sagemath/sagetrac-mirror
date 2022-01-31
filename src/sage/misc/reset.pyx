@@ -7,7 +7,9 @@ import sys
 
 # Exclude these from the reset command.
 # DATA, base64 -- needed by the notebook
-EXCLUDE = set(['sage_mode', '__DIR__', 'DIR', 'DATA', 'base64'])
+# Add exit and quit to EXCLUDE to resolve trac #22529 and trac #16704
+EXCLUDE = set(['sage_mode', '__DIR__', 'DIR', 'DATA', 'base64', 'exit', 'quit'])
+
 
 def reset(vars=None, attached=False):
     """
@@ -38,7 +40,8 @@ def reset(vars=None, attached=False):
 
         sage: fn = tmp_filename(ext='foo.py')
         sage: sage.misc.reset.EXCLUDE.add('fn')
-        sage: open(fn, 'w').write('a = 111')
+        sage: with open(fn, 'w') as f:
+        ....:     _ = f.write('a = 111')
         sage: attach(fn)
         sage: [fn] == attached_files()
         True
@@ -67,12 +70,12 @@ def reset(vars=None, attached=False):
 
     """
     from sage.symbolic.assumptions import forget
-    if not vars is None:
+    if vars is not None:
         restore(vars)
         return
     G = globals()  # this is the reason the code must be in Cython.
     T = type(sys)
-    for k in G.keys():
+    for k in list(G):
         if k[0] != '_' and not isinstance(k, T) and k not in EXCLUDE:
             try:
                 del G[k]
@@ -84,6 +87,7 @@ def reset(vars=None, attached=False):
     if attached:
         import sage.repl.attach
         sage.repl.attach.reset()
+
 
 def restore(vars=None):
     """
@@ -132,15 +136,13 @@ def restore(vars=None):
         if mode == 'cmdline':
             import sage.all_cmdline
             D = sage.all_cmdline.__dict__
-        elif mode == 'notebook':
-            import sage.all_notebook
-            D = sage.all_notebook.__dict__
         else:
             import sage.all
             D = sage.all.__dict__
     _restore(G, D, vars)
     import sage.calculus.calculus
     _restore(sage.calculus.calculus.syms_cur, sage.calculus.calculus.syms_default, vars)
+
 
 def _restore(G, D, vars):
     if vars is None:

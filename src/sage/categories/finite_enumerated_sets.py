@@ -1,15 +1,12 @@
 r"""
 Finite Enumerated Sets
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2009 Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
-from __future__ import print_function
-
-import itertools
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -18,7 +15,9 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import lazy_import
+from sage.cpython.getattr import raw_getattr
 lazy_import("sage.rings.integer", "Integer")
+
 
 class FiniteEnumeratedSets(CategoryWithAxiom):
     """
@@ -118,14 +117,14 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: class FreshExample(Example): pass
                 sage: C = FreshExample(); C.rename("FreshExample")
                 sage: C.cardinality
-                <bound method FreshExample_with_category._cardinality_from_iterator of FreshExample>
+                <bound method FiniteEnumeratedSets.ParentMethods._cardinality_from_iterator of FreshExample>
 
             This method shall return an ``Integer``; we test this
             here, because :meth:`_test_enumerated_set_iter_cardinality`
             does not do it for us::
 
                 sage: type(C._cardinality_from_iterator())
-                <type 'sage.rings.integer.Integer'>
+                <class 'sage.rings.integer.Integer'>
 
             We ignore additional inputs since during doctests classes which
             override ``cardinality()`` call up to the category rather than
@@ -138,13 +137,13 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             Here is a more complete example::
 
                 sage: class TestParent(Parent):
-                ...     def __init__(self):
-                ...         Parent.__init__(self, category=FiniteEnumeratedSets())
-                ...     def __iter__(self):
-                ...         yield 1
-                ...         return
-                ...     def cardinality(self, dummy_arg):
-                ...         return 1 # we don't want to change the semantics of cardinality()
+                ....:   def __init__(self):
+                ....:       Parent.__init__(self, category=FiniteEnumeratedSets())
+                ....:   def __iter__(self):
+                ....:       yield 1
+                ....:       return
+                ....:   def cardinality(self, dummy_arg):
+                ....:       return 1 # we don't want to change the semantics of cardinality()
                 sage: P = TestParent()
                 sage: P.cardinality(-1)
                 1
@@ -265,10 +264,10 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             - ``self.cardinality()``
             - ``self.unrank()``
 
-            .. seealso:: :meth:`_cardinality_from_list`,
+            .. SEEALSO:: :meth:`_cardinality_from_list`,
                 :meth:`_iterator_from_list`, and :meth:`_unrank_from_list`
 
-            .. warning::
+            .. WARNING::
 
                 The overriding of ``self.__iter__`` to use the cache
                 is ignored upon calls such as ``for x in C:`` or
@@ -289,14 +288,14 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     sage: C = Example()
                     sage: list(C)
                     hello!
-                    hello!
+                    ...
                     [1, 2, 3]
                     sage: list(C)
                     hello!
-                    hello!
+                    ...
                     [1, 2, 3]
 
-                Note that ``hello!`` actually gets printed twice in
+                Note that ``hello!`` actually gets printed more than once in
                 the calls to ``list(C)``. That's because of the
                 implicit calls to :meth:`__len__`, which also relies
                 on :meth:`__iter__`. Let's call :meth:`list`::
@@ -324,21 +323,21 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: class FreshExample(Example): pass
                 sage: C = FreshExample(); C.rename("FreshExample")
                 sage: C.list
-                <bound method FreshExample_with_category.list of FreshExample>
+                <bound method FiniteEnumeratedSets.ParentMethods.list of FreshExample>
                 sage: C.unrank
-                <bound method FreshExample_with_category._unrank_from_iterator of FreshExample>
+                <bound method EnumeratedSets.ParentMethods._unrank_from_iterator of FreshExample>
                 sage: C.cardinality
-                <bound method FreshExample_with_category._cardinality_from_iterator of FreshExample>
+                <bound method FiniteEnumeratedSets.ParentMethods._cardinality_from_iterator of FreshExample>
                 sage: l1 = C.list(); l1
                 [1, 2, 3]
                 sage: C.list
-                <bound method FreshExample_with_category.list of FreshExample>
+                <bound method FiniteEnumeratedSets.ParentMethods.list of FreshExample>
                 sage: C.unrank
-                <bound method FreshExample_with_category._unrank_from_list of FreshExample>
+                <bound method FiniteEnumeratedSets.ParentMethods._unrank_from_list of FreshExample>
                 sage: C.cardinality
-                <bound method FreshExample_with_category._cardinality_from_list of FreshExample>
+                <bound method FiniteEnumeratedSets.ParentMethods._cardinality_from_list of FreshExample>
                 sage: C.__iter__
-                <bound method FreshExample_with_category._iterator_from_list of FreshExample>
+                <bound method EnumeratedSets.ParentMethods._iterator_from_list of FreshExample>
 
             We finally check that nothing breaks before and after
             calling explicitly the method ``.list()``::
@@ -479,10 +478,13 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: C = FiniteEnumeratedSets().example()
-                sage: C.random_element()
-                1
-                sage: C._random_element_from_unrank()
-                2
+                sage: n = C.random_element()
+                sage: n in C
+                True
+
+                sage: n = C._random_element_from_unrank()
+                sage: n in C
+                True
 
             TODO: implement _test_random which checks uniformness
             """
@@ -558,16 +560,14 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
                 sage: from sage.categories.examples.finite_enumerated_sets import Example
                 sage: class CCls(Example):
-                ...       def cardinality(self):
-                ...           return 4
+                ....:     def cardinality(self):
+                ....:         return 4
                 sage: CC = CCls()
                 sage: CC._test_enumerated_set_iter_cardinality()
                 Traceback (most recent call last):
                 ...
                 AssertionError: 4 != 3
             """
-            # isinstance with LazyImported classes is not robust
-            from sage.rings.integer import Integer
             tester = self._tester(**options)
             if self.cardinality != self._cardinality_from_iterator:
                 card = self.cardinality()
@@ -615,12 +615,9 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: C.__iter__.__module__
                 'sage.categories.sets_cat'
             """
-
-            # Ambiguity resolution between methods inherited from
-            # Sets.CartesianProducts and from EnumeratedSets.Finite.
-            random_element = Sets.CartesianProducts.ParentMethods.random_element.__func__
-            cardinality = Sets.CartesianProducts.ParentMethods.cardinality.__func__
-            __iter__ = Sets.CartesianProducts.ParentMethods.__iter__.__func__
+            random_element = raw_getattr(Sets.CartesianProducts.ParentMethods, "random_element")
+            cardinality = raw_getattr(Sets.CartesianProducts.ParentMethods, "cardinality")
+            __iter__ = raw_getattr(Sets.CartesianProducts.ParentMethods, "__iter__")
 
             def last(self):
                 r"""

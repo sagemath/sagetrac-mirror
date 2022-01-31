@@ -15,13 +15,12 @@ Ellipses
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 from .primitive import GraphicPrimitive
-from sage.plot.misc import options, rename_keyword
+from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 from math import sin, cos, sqrt, pi, fmod
+
 
 class Ellipse(GraphicPrimitive):
     """
@@ -44,7 +43,7 @@ class Ellipse(GraphicPrimitive):
 
         sage: from sage.plot.ellipse import Ellipse
         sage: Ellipse(0, 0, 2, 1, pi/4, {})
-        Ellipse centered at (0.0, 0.0) with radii (2.0, 1.0) and angle 0.785398163397
+        Ellipse centered at (0.0, 0.0) with radii (2.0, 1.0) and angle 0.78539816339...
     """
     def __init__(self, x, y, r1, r2, angle, options):
         """
@@ -67,13 +66,14 @@ class Ellipse(GraphicPrimitive):
         self.r2 = float(r2)
         if self.r1 <= 0 or self.r2 <= 0:
             raise ValueError("both radii must be positive")
-        self.angle = fmod(angle,2*pi)
-        if self.angle < 0: self.angle += 2*pi
+        self.angle = fmod(angle, 2 * pi)
+        if self.angle < 0:
+            self.angle += 2 * pi
         GraphicPrimitive.__init__(self, options)
 
     def get_minmax_data(self):
-        """
-        Returns a dictionary with the bounding box data.
+        r"""
+        Return a dictionary with the bounding box data.
 
         The bounding box is computed to be as minimal as possible.
 
@@ -272,23 +272,51 @@ def ellipse(center, r1, r2, angle=0, **options):
         sage: ellipse((0,0),2,1)
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+    
+        E=ellipse((0,0),2,1)
+        sphinx_plot(E)
+        
     More complicated examples with tilted axes and drawing options::
 
         sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3,linestyle="dashed")
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+
+        E = ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3,linestyle="dashed")
+        sphinx_plot(E)
+        
+    other way to indicate dashed linestyle::
+    
         sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3,linestyle="--")
         Graphics object consisting of 1 graphics primitive
 
-    ::
+    .. PLOT::
+    
+        E =ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3,linestyle='--')
+        sphinx_plot(E)
+
+    with colors ::
 
         sage: ellipse((0,0),3,1,pi/6,fill=True,edgecolor='black',facecolor='red')
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        E=ellipse((0,0),3,1,pi/6,fill=True,edgecolor='black',facecolor='red')
+        sphinx_plot(E)
 
     We see that ``rgbcolor`` overrides these other options, as this plot
     is green::
 
         sage: ellipse((0,0),3,1,pi/6,fill=True,edgecolor='black',facecolor='red',rgbcolor='green')
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        E=ellipse((0,0),3,1,pi/6,fill=True,edgecolor='black',facecolor='red',rgbcolor='green')
+        sphinx_plot(E)
 
     The default aspect ratio for ellipses is 1.0::
 
@@ -306,6 +334,12 @@ def ellipse(center, r1, r2, angle=0, **options):
 
         sage: ellipse((0,0),2,1,legend_label="My ellipse", legend_color='green')
         Graphics object consisting of 1 graphics primitive
+        
+    .. PLOT::
+    
+        E=ellipse((0,0),2,1,legend_label="My ellipse", legend_color='green')
+        sphinx_plot(E)
+        
     """
     from sage.plot.all import Graphics
     g = Graphics()

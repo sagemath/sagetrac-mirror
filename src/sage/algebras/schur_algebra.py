@@ -18,7 +18,7 @@ AUTHORS:
   of irreducible modules
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Eric Webster
 #       Copyright (C) 2011 Hugh Thomas <hugh.ross.thomas@gmail.com>
 #
@@ -26,12 +26,13 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import itertools
 
-from sage.categories.all import AlgebrasWithBasis
+from sage.categories.algebras_with_basis import AlgebrasWithBasis
+from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.categories.rings import Rings
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModule_Tensor
 from sage.combinat.integer_lists import IntegerListsLex
@@ -40,11 +41,12 @@ from sage.combinat.permutation import Permutations
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
 from sage.combinat.tableau import SemistandardTableaux
-from sage.functions.other import binomial
+from sage.arith.all import binomial
 from sage.matrix.constructor import Matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 
 
 def _schur_I_nr_representatives(n, r):
@@ -146,7 +148,7 @@ def schur_representative_indices(n, r):
 
 
 def schur_representative_from_index(i0, i1):
-    """
+    r"""
     Simultaneously reorder a pair of tuples to obtain the equivalent
     element of the distinguished basis of the Schur algebra.
 
@@ -238,7 +240,7 @@ class SchurAlgebra(CombinatorialFreeModule):
             raise ValueError("n (={}) must be a positive integer".format(n))
         if r not in ZZ or r < 0:
             raise ValueError("r (={}) must be a non-negative integer".format(r))
-        if not R in Rings.Commutative():
+        if R not in Rings.Commutative():
             raise ValueError("R (={}) must be a commutative ring".format(R))
 
         self._n = n
@@ -247,7 +249,7 @@ class SchurAlgebra(CombinatorialFreeModule):
         CombinatorialFreeModule.__init__(self, R,
                                          schur_representative_indices(n, r),
                                          prefix='S', bracket=False,
-                                         category=AlgebrasWithBasis(R))
+                                         category=AlgebrasWithBasis(R).FiniteDimensional())
 
     def _repr_(self):
         """
@@ -428,12 +430,13 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
             sage: T = SchurTensorModule(QQ, 2, 3)
             sage: TestSuite(T).run()
         """
-        C = CombinatorialFreeModule(R, range(1, n + 1))
+        C = CombinatorialFreeModule(R, list(range(1, n + 1)))
         self._n = n
         self._r = r
         self._sga = SymmetricGroupAlgebra(R, r)
         self._schur = SchurAlgebra(R, n, r)
-        CombinatorialFreeModule_Tensor.__init__(self, tuple([C] * r))
+        cat = ModulesWithBasis(R).TensorProducts().FiniteDimensional()
+        CombinatorialFreeModule_Tensor.__init__(self, tuple([C] * r), category=cat)
         g = self._schur.module_morphism(self._monomial_product, codomain=self)
         self._schur_action = self.module_morphism(g, codomain=self, position=1)
 
@@ -465,7 +468,7 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
             B[1] # B[1] # B[2] + B[1] # B[2] # B[1] + B[2] # B[1] # B[1]
         """
         ret = []
-        for i in itertools.product(range(1, self._n + 1), repeat=self._r):
+        for i in itertools.product(list(range(1, self._n + 1)), repeat=self._r):
             if schur_representative_from_index(i, v) == xi:
                 ret.append(tuple(i))
         return self.sum_of_monomials(ret)
@@ -489,7 +492,7 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
                 sage: x * y
                 Traceback (most recent call last):
                 ...
-                TypeError: unsupported operand parent(s) for '*': ...
+                TypeError: unsupported operand parent(s) for *: ...
 
             ::
 
@@ -502,7 +505,7 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
                 sage: y * x
                 Traceback (most recent call last):
                 ...
-                TypeError: unsupported operand parent(s) for '*': ...
+                TypeError: unsupported operand parent(s) for *: ...
 
             ::
 
@@ -580,7 +583,7 @@ def GL_irreducible_character(n, mu, KK):
 
     #make ST the superstandard tableau of shape mu
     from sage.combinat.tableau import from_shape_and_word
-    ST = from_shape_and_word(mu, range(1, r + 1), convention='English')
+    ST = from_shape_and_word(mu, list(range(1, r + 1)), convention='English')
 
     #make ell the reading word of the highest weight tableau of shape mu
     ell = [i + 1 for i, l in enumerate(mu) for dummy in range(l)]
@@ -623,7 +626,7 @@ def GL_irreducible_character(n, mu, KK):
     # recording the list
     # of semistandard tableaux words with that content
 
-    # graded_basis will consist of the a corresponding basis element
+    # graded_basis will consist of the corresponding basis element
     graded_basis = []
     JJ = []
     for i in range(len(contents)):

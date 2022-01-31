@@ -1,10 +1,10 @@
 """
-Klyachko Bundles and Sheaves.
+Klyachko bundles and sheaves
 
 Klyachko bundles are torus-equivariant bundles on toric
 varieties. That is, the action of the maximal torus on the toric
 variety lifts to an action on the bundle. There is an equivalence of
-categories between [Klyachko]_ bundles and multiple filtrations (one for
+categories between Klyachko bundles [Kly1990]_ and multiple filtrations (one for
 each ray of the fan) of a vector space. The multi-filtrations are
 implemented in :mod:`sage.modules.multi_filtered_vector_space`.
 
@@ -31,18 +31,9 @@ EXAMPLES::
 
 REFERENCES:
 
-..  [Klyachko]
-    Klyachko, Aleksandr Anatolevich:
-    Equivariant Bundles on Toral Varieties,
-    Math USSR Izv. 35 (1990), 337-375.
-    http://iopscience.iop.org/0025-5726/35/2/A04/pdf/0025-5726_35_2_A04.pdf
+- [Kly1990]_
 
-..  [BirknerIltenPetersen]
-    Rene Birkner, Nathan Owen Ilten, and Lars Petersen:
-    Computations with equivariant toric vector bundles,
-    The Journal of Software for Algebra and Geometry: Macaulay2.
-    http://msp.org/jsag/2010/2-1/p03.xhtml
-    http://www.math.uiuc.edu/Macaulay2/doc/Macaulay2-1.8.2/share/doc/Macaulay2/ToricVectorBundles/html/
+- [BIP]_
 """
 
 #*****************************************************************************
@@ -53,17 +44,14 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.structure.all import SageObject
-from sage.rings.all import QQ, ZZ
-from sage.misc.all import uniq, cached_method
-from sage.matrix.constructor import vector, matrix, block_matrix, zero_matrix
-from sage.geometry.cone import is_Cone, IntegralRayCollection
-
-from sage.modules.filtered_vector_space import FilteredVectorSpace, is_FilteredVectorSpace
+from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
+from sage.rings.integer_ring import ZZ
+from sage.misc.cachefunc import cached_method
+from sage.matrix.constructor import vector, block_matrix, zero_matrix
 from sage.modules.multi_filtered_vector_space import MultiFilteredVectorSpace
-
+import sage.geometry.abc
 
 def is_KlyachkoBundle(X):
     """
@@ -140,7 +128,7 @@ def Bundle(toric_variety, multi_filtration, check=True):
     return KlyachkoBundle_class(toric_variety, multi_filtration, check=check)
 
 
-
+@richcmp_method
 class KlyachkoBundle_class(SageObject):
 
     def __init__(self, toric_variety, multi_filtration, check=True):
@@ -179,7 +167,8 @@ class KlyachkoBundle_class(SageObject):
         """
         self._variety = toric_variety
         self._filt = multi_filtration
-        if not check: return
+        if not check:
+            return
         from sage.sets.set import Set
         if multi_filtration.index_set() != Set(list(toric_variety.fan().rays())):
             raise ValueError('the index set of the multi-filtration must be'
@@ -309,7 +298,7 @@ class KlyachkoBundle_class(SageObject):
             return self._filt
         X = self.variety()
         fan = X.fan()
-        if is_Cone(ray):
+        if isinstance(ray, sage.geometry.abc.ConvexRationalPolyhedralCone):
             if ray.dim() != 1:
                 raise ValueError('not a one-dimensional cone')
             ray = ray.ray(0)
@@ -442,7 +431,7 @@ class KlyachkoBundle_class(SageObject):
         r"""
         Return the vector subspace ``E^\sigma(m)``.
 
-        See [Klyachko]_, equation 4.1.
+        See [Kly1990]_, equation 4.1.
 
         INPUT:
 
@@ -485,7 +474,7 @@ class KlyachkoBundle_class(SageObject):
         r"""
         Return the vector space quotient `E_\sigma(m)`.
 
-        See [Klyachko]_, equation 4.1.
+        See [Kly1990]_, equation 4.1.
 
         INPUT:
 
@@ -602,7 +591,7 @@ class KlyachkoBundle_class(SageObject):
         r"""
         Return the "cohomology complex" `C^*(m)`
 
-        See [Klyachko]_, equation 4.2.
+        See [Kly1990]_, equation 4.2.
 
         INPUT:
 
@@ -733,9 +722,9 @@ class KlyachkoBundle_class(SageObject):
             HH = vector(ZZ, [HH[i].rank() for i in range(space_dim+1) ])
         return HH
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Compare ``self`` and ``other``
+        Compare ``self`` and ``other``.
 
         .. warning::
 
@@ -749,30 +738,32 @@ class KlyachkoBundle_class(SageObject):
 
         OUTPUT:
 
-        `-1`, `0`, or `+1`.
+        Boolean.
 
         EXAMPLES::
 
             sage: X = toric_varieties.P2()
             sage: V1 = X.sheaves.trivial_bundle(1)
             sage: V2 = X.sheaves.trivial_bundle(2)
-            sage: abs(cmp(V2, V1))
-            1
-            sage: cmp(V2, V1+V1)
-            0
+            sage: V2 == V1
+            False
+            sage: V2 == V1+V1
+            True
 
             sage: T_X = X.sheaves.tangent_bundle()
             sage: O_X = X.sheaves.trivial_bundle(1)
             sage: T_X + O_X == O_X + T_X
             False
         """
-        c = cmp(type(self), type(other))
-        if c!=0: return c
-        c = cmp(self.variety(), other.variety())
-        if c!=0: return c
-        c = cmp(self._filt, other._filt)
-        if c!=0: return c
-        return 0
+        if not isinstance(other, KlyachkoBundle_class):
+            return NotImplemented
+
+        lx = self.variety()
+        rx = other.variety()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self._filt, other._filt, op)
 
     def is_isomorphic(self, other):
         """
@@ -861,7 +852,7 @@ class KlyachkoBundle_class(SageObject):
     __mul__ = tensor_product
 
     def exterior_power(self, n):
-        """
+        r"""
         Return the `n`-th exterior power.
 
         INPUT:
@@ -945,7 +936,7 @@ class KlyachkoBundle_class(SageObject):
 
         OUTPUT:
 
-        A new Klyachko bundle with randomly perturbed moduly. In
+        A new Klyachko bundle with randomly perturbed moduli. In
         particular, the same Chern classes.
 
         EXAMPLES::
@@ -960,4 +951,6 @@ class KlyachkoBundle_class(SageObject):
            (1, 0)
         """
         filt = self._filt.random_deformation(epsilon)
+        while not filt.is_exhaustive():
+            filt = self._filt.random_deformation(epsilon)
         return self.__class__(self.variety(), filt, check=True)

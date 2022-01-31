@@ -15,10 +15,9 @@ Miscellaneous Functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.groups.all import PermutationGroup, PermutationGroup_generic, PermutationGroupElement, SymmetricGroup
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from functools import wraps
 
 def change_support(perm, support, change_perm=None):
@@ -54,7 +53,7 @@ def accept_size(f):
 
         sage: from sage.combinat.species.misc import accept_size
         sage: def f(*args, **kwds):
-        ....:       print("{} {}".format(args, list(sorted(kwds.items()))))
+        ....:       print("{} {}".format(args, sorted(kwds.items())))
         sage: f = accept_size(f)
         sage: f(min=1)
         () [('min', 1)]

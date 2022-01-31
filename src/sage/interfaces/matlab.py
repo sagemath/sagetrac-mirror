@@ -146,15 +146,12 @@ language works). Use square brackets or the set function::
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import print_function
-from __future__ import absolute_import
 
 import os
 
 from .expect import Expect, ExpectElement
+from sage.docs.instancedoc import instancedoc
 
-
-#import sage.matrix.matrix_space
 
 class Matlab(Expect):
     """
@@ -321,6 +318,7 @@ for hints on how to do that).
         return MatlabElement
 
 
+@instancedoc
 class MatlabElement(ExpectElement):
     def __getitem__(self, n):
         raise RuntimeError("Use parenthesis for MATLAB matrices instead.")
@@ -345,7 +343,7 @@ class MatlabElement(ExpectElement):
             50 x 50 dense matrix over Real Field with 53 bits of precision
 
         """
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         matlab = self.parent()
         entries = matlab.strip_answer(matlab.eval("mat2str({0})".format(self.name())))
         entries = entries.strip()[1:-1].replace(';', ' ')

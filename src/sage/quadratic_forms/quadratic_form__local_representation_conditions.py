@@ -36,7 +36,7 @@ class QuadraticFormLocalRepresentationConditions():
         sage: Q4.is_locally_universal_at_all_places()
         False
         sage: L = [m  for m in range(-5, 100)  if Q4.is_locally_represented_number(m)]
-        sage: L == range(100)
+        sage: L == list(range(100))
         True
 
     ::
@@ -182,7 +182,7 @@ class QuadraticFormLocalRepresentationConditions():
                 k = 0
                 repn_flag = False
 
-                while ((repn_flag == False) and (m < 4 * N * p * p)):
+                while ((not repn_flag) and (m < 4 * N * p * p)):
                     if (local_normal_forms[i].local_density(p, m) > 0):
                         tmp_local_repn_vec[j+1] = k
                         repn_flag = True
@@ -191,7 +191,7 @@ class QuadraticFormLocalRepresentationConditions():
 
                 ## If we're not represented, write "infinity" to signify
                 ## that this squareclass is fully obstructed
-                if (repn_flag == False):
+                if not repn_flag:
                     tmp_local_repn_vec[j+1] = infinity
 
             ## Test if the conditions at p give exactly Z_p when dim >=3, or
@@ -204,7 +204,7 @@ class QuadraticFormLocalRepresentationConditions():
                         omit_flag = False
 
             ## Add the results for this prime if there is a congruence obstruction
-            if omit_flag == False:
+            if not omit_flag:
                 self.local_repn_array.append(tmp_local_repn_vec)
                 self.exceptional_primes.append(p)
 
@@ -570,19 +570,19 @@ class QuadraticFormLocalRepresentationConditions():
             True
 
         """
-        ## Sanity Check
-        if not m in QQ:
-            raise TypeError("Oops!  m = " + str(m) +  " is not a rational number!")
+        # Sanity Check
+        if m not in QQ:
+            raise TypeError("Oops!  m = " + str(m) + " is not a rational number!")
 
-       ## Representing zero
+        # Representing zero
         if m == 0:
             return True
 
-        ## 0-dim'l forms
-        if self.dim == 0:    ## Here m != 0
+        # 0-dim'l forms
+        if self.dim == 0:   # Here m != 0
             return False
 
-        ## 1-dim'l forms
+        # 1-dim'l forms
         if self.dim == 1:
             m1 = QQ(m) / self.coeff
             if p == infinity:
@@ -642,33 +642,33 @@ class QuadraticFormLocalRepresentationConditions():
             False
 
         """
-        ## Representing zero
+        # Representing zero
         if m == 0:
             return True
 
-        ## 0-dim'l forms
-        if self.dim == 0:    ## Here m != 0
+        # 0-dim'l forms
+        if self.dim == 0:    # Here m != 0
             return False
 
-        ## 1-dim'l forms
+        # 1-dim'l forms
         if self.dim == 1:
             m1 = m / self.coeff
             return (m1 in ZZ) and is_square(m1)
 
-        ## Check the generic primes (when n = 2 or n >= 3)
+        # Check the generic primes (when n = 2 or n >= 3)
         m_primes = prime_divisors(numerator(m) * denominator(m))
         for p in m_primes:
-            if not p in self.exceptional_primes:
-               val = valuation(m, p)
-               if (val < 0):
-                   return False
+            if p not in self.exceptional_primes:
+                val = valuation(m, p)
+                if val < 0:
+                    return False
 
-        ## Check the non-generic primes (when n = 2 or n >= 3)
+        # Check the non-generic primes (when n = 2 or n >= 3)
         for p in self.exceptional_primes:
             if not self.is_locally_represented_at_place(m, p):
                 return False
 
-        ## If we got here, we're locally represented!
+        # If we got here, we're locally represented!
         return True
 
 
@@ -787,7 +787,7 @@ def local_representation_conditions(self, recompute_flag=False, silent_flag=Fals
 
     """
     ## Recompute the local conditions if they don't exist or the recompute_flag is set.
-    if (not hasattr(self, "__local_representability_conditions")) or (recompute_flag == True):
+    if not hasattr(self, "__local_representability_conditions") or recompute_flag:
         self.__local_representability_conditions = QuadraticFormLocalRepresentationConditions(self)
 
     ## Return the local conditions if the silent_flag is not set.

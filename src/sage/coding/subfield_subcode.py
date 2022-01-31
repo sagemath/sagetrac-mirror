@@ -1,11 +1,11 @@
 r"""
 Subfield subcode
 
-Let `C` be a `[n, k]` code over `\GF(q^t)`.
-Let `Cs = \{c \in C | \forall i, c_i \in \GF(q)\}`, `c_i` being the `i`-th
+Let `C` be a `[n, k]` code over `\GF{q^t}`.
+Let `Cs = \{c \in C | \forall i, c_i \in \GF{q}\}`, `c_i` being the `i`-th
 coordinate of `c`.
 
-`Cs` is called the subfield subcode of `C` over `\GF(q)`
+`Cs` is called the subfield subcode of `C` over `\GF{q}`
 """
 
 #*****************************************************************************
@@ -18,19 +18,15 @@ coordinate of `c`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import (AbstractLinearCode,
-                         LinearCodeParityCheckEncoder,
-                         LinearCodeSyndromeDecoder,
-                         LinearCodeNearestNeighborDecoder)
+from .linear_code import AbstractLinearCode
 from sage.misc.cachefunc import cached_method
-from sage.rings.integer import Integer
-from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.categories.homset import Hom
-from relative_finite_field_extension import RelativeFiniteFieldExtension
+from .relative_finite_field_extension import RelativeFiniteFieldExtension
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from decoder import Decoder, DecodingError
+from .decoder import Decoder, DecodingError
 from copy import copy
+
 
 class SubfieldSubcode(AbstractLinearCode):
     r"""
@@ -83,7 +79,6 @@ class SubfieldSubcode(AbstractLinearCode):
             raise ValueError("original_code must be a linear code")
         if not subfield.is_finite():
             raise ValueError("subfield has to be a finite field")
-        p = subfield.characteristic()
         F = original_code.base_field()
         s = subfield.degree()
         sm = F.degree()
@@ -91,7 +86,7 @@ class SubfieldSubcode(AbstractLinearCode):
             raise ValueError("subfield has to be a subfield of the base field of the original code")
         self._original_code = original_code
         H = Hom(subfield, F)
-        if embedding is not None and not embedding in H:
+        if embedding is not None and embedding not in H:
             raise ValueError("embedding has to be an embedding from subfield to original_code's base field")
         elif embedding is not None:
             self._embedding = RelativeFiniteFieldExtension(F, subfield, embedding)
@@ -147,6 +142,12 @@ class SubfieldSubcode(AbstractLinearCode):
         r"""
         Returns the dimension of ``self``.
 
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'aa').list()[:13], 5)
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
+            sage: Cs.dimension()
+            3
         """
         return self.generator_matrix().nrows()
 
@@ -229,7 +230,6 @@ class SubfieldSubcode(AbstractLinearCode):
             [    0     0     0     0     0     0     0     0     0     1     a     0 a + 1]
         """
         C = self.original_code()
-        Fqm = C.base_field()
         Fq = self.base_field()
         H_original = C.parity_check_matrix()
         n = self.length()
@@ -250,7 +250,9 @@ class SubfieldSubcode(AbstractLinearCode):
         for i in range(H.nrows()):
             if H.row(i) == 0:
                 delete.append(i)
-        return H.delete_rows(delete)
+        M = H.delete_rows(delete)
+        M.set_immutable()
+        return M
 
 
 

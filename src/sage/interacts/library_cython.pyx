@@ -15,9 +15,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 
 
 cpdef julia(ff_j, z, int iterations):

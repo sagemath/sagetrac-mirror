@@ -21,26 +21,26 @@ AUTHOR:
    - William Stein, 2010-03
 """
 
-#############################################################################
+# ****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL) v2+.
-#  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-#############################################################################
-from __future__ import print_function
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-include "cysignals/signals.pxi"
+from libc.math cimport log
+from cysignals.signals cimport sig_on, sig_off
 
-cdef extern from "math.h":
-    double log(double)
-
-from sage.finance.time_series cimport TimeSeries
-from sage.matrix.matrix import is_Matrix
-from sage.matrix.all import matrix
+from sage.stats.time_series cimport TimeSeries
+from sage.structure.element import is_Matrix
+from sage.matrix.constructor import matrix
 from sage.misc.randstate cimport current_randstate, randstate
 from cpython.object cimport PyObject_RichCompare
 
-from util cimport HMM_Util
+from .util cimport HMM_Util
 
 cdef HMM_Util util = HMM_Util()
 
@@ -61,7 +61,7 @@ cdef class HiddenMarkovModel:
             sage: pi = m.initial_probabilities(); pi
             [0.2000, 0.8000]
             sage: type(pi)
-            <type 'sage.finance.time_series.TimeSeries'>
+            <... 'sage.stats.time_series.TimeSeries'>
 
         The returned time series is a copy, so changing it does not
         change the model.
@@ -112,7 +112,7 @@ cdef class HiddenMarkovModel:
             [0.4 0.6]
         """
         from sage.matrix.constructor import matrix
-        from sage.rings.all import RDF
+        from sage.rings.real_double import RDF
         return matrix(RDF, self.N, self.A.list())
 
     def graph(self, eps=1e-3):
@@ -383,9 +383,11 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
     def emission_matrix(self):
         """
         Return the matrix whose i-th row specifies the emission
-        probability distribution for the i-th state.  More precisely,
+        probability distribution for the i-th state.
+
+        More precisely,
         the i,j entry of the matrix is the probability of the Markov
-        model outputing the j-th symbol when it is in the i-th state.
+        model outputting the j-th symbol when it is in the i-th state.
 
         OUTPUT:
 
@@ -407,12 +409,12 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             [0.5 0.5]
         """
         from sage.matrix.constructor import matrix
-        from sage.rings.all import RDF
+        from sage.rings.real_double import RDF
         return matrix(RDF, self.N, self.n_out, self.B.list())
 
 
     def __repr__(self):
-        """
+        r"""
         Return string representation of this discrete hidden Markov model.
 
         EXAMPLES::

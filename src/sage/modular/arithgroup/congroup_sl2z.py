@@ -6,7 +6,6 @@ AUTHORS:
 - Niles Johnson (2010-08): :trac:`3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 """
-from __future__ import absolute_import
 
 ################################################################################
 #
@@ -97,7 +96,7 @@ class SL2Z_class(Gamma0_class):
         coerced into a 2x2 integer matrix. If check=True (the default), check
         that x really has determinant 1.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: SL2Z([1,0,0,1]) # indirect doctest
             [1 0]
@@ -105,11 +104,10 @@ class SL2Z_class(Gamma0_class):
             sage: SL2Z([2, 0, 0, 2], check=False) # don't do this!
             [2 0]
             [0 2]
-            sage: SL2Z([1, QQ, False], check=False) # don't do this either!
+            sage: SL2Z([1, QQ, False])
             Traceback (most recent call last):
             ...
-            TypeError: cannot construct an element of Full MatrixSpace of 2 by 2
-            dense matrices over Integer Ring from [1, Rational Field, False]!
+            TypeError: unable to coerce <class 'sage.rings.rational_field.RationalField_with_category'> to an integer
         """
         return ArithmeticSubgroupElement(self, x, check=check)
 
@@ -117,7 +115,7 @@ class SL2Z_class(Gamma0_class):
         r"""
         Test whether [a,b,c,d] is an element of self, where a,b,c,d are integers with `ad-bc=1`. In other words, always return True.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: [8,7,9,8] in SL2Z # indirect doctest
             True
@@ -196,20 +194,26 @@ class SL2Z_class(Gamma0_class):
 
         EXAMPLES::
 
-            sage: SL2Z.random_element()
-            [60 13]
-            [83 18]
-            sage: SL2Z.random_element(5)
-            [-1  3]
-            [ 1 -4]
+            sage: s = SL2Z.random_element()
+            sage: s.parent() is SL2Z
+            True
+            sage: all(a in range(-99, 100) for a in list(s))
+            True
+            sage: S = set()
+            sage: while len(S) < 180:
+            ....:     s = SL2Z.random_element(5)
+            ....:     assert all(a in range(-4, 5) for a in list(s))
+            ....:     assert s.parent() is SL2Z
+            ....:     assert s in SL2Z
+            ....:     S.add(s)
 
         Passes extra positional or keyword arguments through::
 
-            sage: SL2Z.random_element(5, distribution='1/n')
-            [ 1 -4]
-            [ 0  1]
+            sage: SL2Z.random_element(5, distribution='1/n').parent() is SL2Z
+            True
         """
-        if bound <= 1: raise ValueError("bound must be greater than 1")
+        if bound <= 1:
+            raise ValueError("bound must be greater than 1")
         c = ZZ.random_element(1-bound, bound, *args, **kwds)
         d = ZZ.random_element(1-bound, bound, *args, **kwds)
         if gcd(c,d) != 1: # try again

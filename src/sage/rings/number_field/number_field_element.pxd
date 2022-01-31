@@ -3,6 +3,7 @@ from sage.libs.gmp.types cimport mpz_t
 from sage.rings.integer cimport Integer
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement
+from sage.structure.parent cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
 from sage.libs.ntl.types cimport ZZ_c, ZZX_c
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
@@ -20,6 +21,13 @@ cdef class NumberFieldElement(FieldElement):
     cdef object __matrix
 
     cdef _new(self)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
+
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
+
+    cpdef _copy_for_parent(self, Parent parent)
 
     cdef number_field(self)
 

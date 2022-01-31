@@ -1,7 +1,6 @@
 r"""
 Six Vertex Model
 """
-from __future__ import print_function
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -105,12 +104,12 @@ class SixVertexConfiguration(ClonableArray):
 
         The signed matrix corresponding to a six vertex configuration is
         given by `0` if there is a cross flow, a `1` if the outward arrows
-        are vertical and `-1` if the outward arrows are horizonal.
+        are vertical and `-1` if the outward arrows are horizontal.
 
         EXAMPLES::
 
             sage: M = SixVertexModel(3, boundary_conditions='ice')
-            sage: map(lambda x: x.to_signed_matrix(), M)
+            sage: [x.to_signed_matrix() for x in M]
             [
             [1 0 0]  [1 0 0]  [ 0  1  0]  [0 1 0]  [0 1 0]  [0 0 1]  [0 0 1]
             [0 1 0]  [0 0 1]  [ 1 -1  1]  [1 0 0]  [0 0 1]  [1 0 0]  [0 1 0]
@@ -584,7 +583,7 @@ class SixVertexModel(UniqueRepresentation, Parent):
             row = cur[-1]
             l = left[-1]
             i = len(cur) - 1
-            while len(row) > 0:
+            while row:
                 row[-1] += 1
                 # Check to see if we have more vertices
                 if row[-1] > 5:

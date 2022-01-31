@@ -1,15 +1,14 @@
 r"""
 Extended code
 
-Let `C` be a linear code of length `n` over `\mathbb{F}_{q}`. The extended code of `C` is the code
+Let `C` be a linear code of length `n` over `\GF{q}`. The extended code of `C` is the code
 
 .. MATH::
 
-    \hat{C} = \{x_{1}x_{2}\dots x_{n+1} \in \mathbb{F}_{q}^{n+1} \,\vert\,  x_{1}x_{2}\dots x_{n} \in C \text{ with } x_{1} + x_{2} + \dots + x_{n+1} = 0 \}.
+    \hat{C} = \{x_{1}x_{2}\dots x_{n+1} \in \GF{q}^{n+1} \,\vert\,  x_{1}x_{2}\dots x_{n} \in C \text{ with } x_{1} + x_{2} + \dots + x_{n+1} = 0 \}.
 
 See [HP2003]_ (pp 15-16) for details.
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2016 David Lucas <david.lucas@inria.fr>
@@ -21,9 +20,8 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .linear_code import (AbstractLinearCode,\
-        LinearCodeGeneratorMatrixEncoder,\
-        LinearCodeSyndromeDecoder,\
+from .linear_code import (AbstractLinearCode,
+        LinearCodeSyndromeDecoder,
         LinearCodeNearestNeighborDecoder)
 from .encoder import Encoder
 from .decoder import Decoder
@@ -151,7 +149,9 @@ class ExtendedCode(AbstractLinearCode):
         nr, nc = H.nrows(), H.ncols()
         Hlist = H.list()
         v = matrix(F, nr + 1, 1, [one] + [zero] * nr)
-        return matrix(F, nr + 1, nc, [one] * nc + Hlist).augment(v)
+        M = matrix(F, nr + 1, nc, [one] * nc + Hlist).augment(v)
+        M.set_immutable()
+        return M
 
     def random_element(self):
         r"""
@@ -280,7 +280,9 @@ class ExtendedCodeExtendedMatrixEncoder(Encoder):
         k = C.dimension()
         extra_col = [-sum(G.rows()[i]) for i in range(k)]
         extra_col = matrix(F, k, 1, extra_col)
-        return G.augment(extra_col)
+        M = G.augment(extra_col)
+        M.set_immutable()
+        return M
 
 
 

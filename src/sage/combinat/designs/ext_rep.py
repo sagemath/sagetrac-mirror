@@ -39,12 +39,11 @@ import re
 import os.path
 import gzip
 import bz2
-from sage.misc.all import tmp_filename
-import sys
 
-# import compatible with py2 and py3
-from six.moves.urllib.request import urlopen
-from six import string_types
+from urllib.request import urlopen
+
+from sage.misc.all import tmp_filename
+
 
 XML_NAMESPACE   = 'http://designtheory.org/xml-namespace'
 DTRS_PROTOCOL   = '2.0'
@@ -472,7 +471,7 @@ def dump_to_tmpfile(s):
     """
     Utility function to dump a string to a temporary file.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs import ext_rep
         sage: file_loc = ext_rep.dump_to_tmpfile("boo")
@@ -533,7 +532,7 @@ def open_extrep_file(fname):
         elif ext == '.bz2':
             f = bz2.BZ2File(fname)
         else:
-            f = open(fname)
+            f = open(fname, 'rb')
     return f
 
 def open_extrep_url(url):
@@ -560,8 +559,7 @@ def open_extrep_url(url):
 
     root, ext = os.path.splitext(url)
     if ext == '.gz':
-        # f = gzip.GzipFile(f_url)
-        raise NotImplemented
+        raise NotImplementedError
     elif ext == '.bz2':
         return bz2.decompress(f.read())
     else:
@@ -663,7 +661,7 @@ class XTree(object):
         """
 
 
-        if isinstance(node, string_types):
+        if isinstance(node, str):
             node = (node, {}, [])
         name, attributes, children = node
         self.xt_node = node
@@ -871,7 +869,7 @@ class XTreeProcessor(object):
         elif name == 'designs':
             pass # self.outf.write(' <%s>\n' % name)
         if self.in_item:
-            for k, v in attrs.iteritems():
+            for k, v in attrs.items():
                 attrs[k] = _encode_attribute(v)
             new_node = (name, attrs, [])
             self.node_stack.append(new_node)
@@ -963,8 +961,8 @@ class XTreeProcessor(object):
             #@ this stripping may distort char data in the <info> subtree
             # if they are not bracketed in some way.
             data = data.strip()
-            if data != '':
-                # we use the xtree's childrens list here to collect char data
+            if data:
+                # we use the xtree's children list here to collect char data
                 # since only leaves have char data.
                 self.current_node[2].append(data)
 
@@ -991,9 +989,8 @@ class XTreeProcessor(object):
         p.StartElementHandler = self._start_element
         p.EndElementHandler = self._end_element
         p.CharacterDataHandler = self._char_data
-        p.returns_unicode = 0
 
-        if isinstance(xml_source, string_types):
+        if isinstance(xml_source, (str, bytes)):
             p.Parse(xml_source)
         else:
             p.ParseFile(xml_source)

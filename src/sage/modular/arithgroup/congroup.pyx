@@ -6,23 +6,19 @@ to the standard congruence subgroups `\Gamma_0, \Gamma_1, \Gamma_H`.  These
 functions are for internal use by routines elsewhere in the Sage library.
 """
 
-################################################################################
-#
-#       Copyright (C) 2009, The Sage Group -- http://www.sagemath.org/
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-################################################################################
+#*****************************************************************************
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_allocarray, sig_free
 
 import random
-from congroup_gamma1 import Gamma1_constructor as Gamma1
-from congroup_gamma0 import Gamma0_constructor as Gamma0
+from .congroup_gamma1 import Gamma1_constructor as Gamma1
+from .congroup_gamma0 import Gamma0_constructor as Gamma0
 
 cimport sage.rings.fast_arith
 import sage.rings.fast_arith
@@ -31,7 +27,7 @@ arith_int = sage.rings.fast_arith.arith_int()
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.modular.modsym.p1list import lift_to_sl2z
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 Mat2Z = MatrixSpace(ZZ,2)
 
 cdef Matrix_integer_dense genS, genT, genI
@@ -121,9 +117,7 @@ def degeneracy_coset_representatives_gamma0(int N, int M, int t):
     n = Gamma0(N).index() / Gamma0(M).index()
     k = 0   # number found so far
     Ndivt = N / t
-    R = <int*> sig_malloc(sizeof(int) * (4*n))
-    if R == <int*>0:
-        raise MemoryError
+    R = <int*>check_allocarray(4 * n, sizeof(int))
     halfmax = 2*(n+10)
     while k < n:
         # try to find another coset representative.
@@ -225,9 +219,7 @@ def degeneracy_coset_representatives_gamma1(int N, int M, int t):
     n = n / d
     k = 0   # number found so far
     Ndivt = N / t
-    R = <int*> sig_malloc(sizeof(int) * (4*n))
-    if R == <int*>0:
-        raise MemoryError
+    R = <int*>check_allocarray(4 * n, sizeof(int))
     halfmax = 2*(n+10)
     while k < n:
         # try to find another coset representative.
@@ -320,8 +312,8 @@ def generators_helper(coset_reps, level):
         z_index = crs.index(z_index)
         y = reps[y_index]
         z = reps[z_index]
-        y = y._invert_unit()
-        z = z._invert_unit()
+        y = y.inverse_of_unit()
+        z = z.inverse_of_unit()
         ans.append(x*genS*y)
         ans.append(x*genT*z)
     return [x for x in ans if x != genI]

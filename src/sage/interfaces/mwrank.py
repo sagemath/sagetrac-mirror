@@ -2,7 +2,7 @@ r"""
 Interface to mwrank
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -14,16 +14,14 @@ Interface to mwrank
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import os
 import weakref
 from .expect import Expect
 
-instances={}
+instances = {}
 def Mwrank(options="", server=None, server_tmpdir=None):
     """
     Create and return an mwrank interpreter, with given options.
@@ -45,7 +43,7 @@ def Mwrank(options="", server=None, server_tmpdir=None):
        -d       skip_2nd_descent        if set, skips the second descent for curves with 2-torsion (default: not set)
        -S n     sat_bd          upper bound on saturation primes (default=100, -1 for automatic)
 
-    .. warning:
+    .. WARNING::
 
        Do not use the option "-q" which turns off the prompt.
 
@@ -54,8 +52,9 @@ def Mwrank(options="", server=None, server_tmpdir=None):
         sage: M = Mwrank('-v 0 -l')
         sage: print(M('0 0 1 -1 0'))
         Curve [0,0,1,-1,0] :    Rank = 1
-        Generator 1 is [0:-1:1]; height 0.0511114082399688
-        Regulator = 0.0511114082399688
+        Generator 1 is [0:-1:1]; height 0.051...
+        Regulator = 0.051...
+
     """
     global instances
     try:
@@ -124,7 +123,7 @@ def validate_mwrank_input(s):
 
     """
     if isinstance(s,(list,tuple)):
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         if len(s)!=5:
             raise ValueError("%s is not valid input to mwrank (should have 5 entries)" % s)
         try:
@@ -166,12 +165,11 @@ class Mwrank_class(Expect):
            -d       skip_2nd_descent        if set, skips the second descent for curves with 2-torsion (default: not set)
            -S n     sat_bd          upper bound on saturation primes (default=100, -1 for automatic)
 
-    .. warning:
+        .. WARNING::
 
-       Do not use the option "-q" which turns off the prompt.
+            Do not use the option "-q" which turns off the prompt.
 
-
-        .. note::
+        .. NOTE::
 
            Normally instances of this class would be created by
            calling the global function :meth:`Mwrank`.
@@ -189,7 +187,7 @@ class Mwrank_class(Expect):
         Expect.__init__(self,
                         name = 'mwrank',
                         prompt = 'Enter curve: ',
-                        command = "mwrank %s"%options,
+                        command = "mwrank %s" % options,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         restart_on_ctrlc = True,
@@ -292,7 +290,7 @@ class Mwrank_class(Expect):
 
           - a list or tuple of exactly 5 integers.
 
-        .. note::
+        .. NOTE::
 
            If a RuntimeError exception is raised, then the mwrank
            interface is restarted and the command is retried once.
@@ -326,7 +324,7 @@ class Mwrank_class(Expect):
         """
         Start the mwrank console.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: mwrank.console() # not tested: expects console input
             Program mwrank: ...
@@ -355,7 +353,7 @@ def mwrank_console():
     """
     Start the mwrank console.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: mwrank_console() # not tested: expects console input
         Program mwrank: ...

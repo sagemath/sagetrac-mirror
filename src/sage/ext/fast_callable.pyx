@@ -88,10 +88,17 @@ We also have support for ``RR``::
     sage: timeit('fc_wilk_rr(30.0)') # random, long time
     625 loops, best of 3: 13 us per loop
 
+For ``CC``::
+
+    sage: fc_wilk_cc = fast_callable(wilk, vars=[x], domain=CC)
+    sage: timeit('fc_wilk_cc(30.0)') # random, long time
+    625 loops, best of 3: 23 us per loop
+
+
 And support for ``CDF``::
 
-    sage: fc_wilk_rr = fast_callable(wilk, vars=[x], domain=CDF)
-    sage: timeit('fc_wilk_rr(30.0)') # random, long time
+    sage: fc_wilk_cdf = fast_callable(wilk, vars=[x], domain=CDF)
+    sage: timeit('fc_wilk_cdf(30.0)') # random, long time
     625 loops, best of 3: 10.2 us per loop
 
 Currently, :func:`fast_callable` can accept two kinds of objects:
@@ -237,7 +244,7 @@ AUTHOR:
     ``COND ? T : F`` expression or the Python ``T if COND else F``.
     This lets you define piecewise functions using :func:`fast_callable`. ::
 
-        sage: v4 = etb.choice(v3 >= etb.constant(0), v1, v2)
+        sage: v4 = etb.choice(v3 >= etb.constant(0), v1, v2)  # not tested
 
     The arguments are ``(COND, T, F)`` (the same order as in C), so the
     above means that if ``v3`` evaluates to a nonnegative number,
@@ -293,23 +300,19 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-
 import operator
 from copy import copy
-from sage.rings.real_mpfr cimport RealField_class, RealNumber
-from sage.structure.element cimport Element
-from sage.rings.all import RDF, CDF
+import sage.rings.abc
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.structure.element import parent
+from sage.structure.element cimport parent
+from sage.structure.element cimport Expression as Expression_abc
 
 
 def fast_callable(x, domain=None, vars=None,
-                  _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=False,
                   expect_one_var=False):
     r"""
-    Given an expression x, compiles it into a form that can be quickly
+    Given an expression x, compile it into a form that can be quickly
     evaluated, given values for the variables in x.
 
     Currently, x can be an expression object, an element of SR, or a
@@ -360,25 +363,23 @@ def fast_callable(x, domain=None, vars=None,
         sage: f(1, 2, 3)
         sin(2) + 12
         sage: K.<x> = QQ[]
-        sage: p = K.random_element(6); p
-        -x^6 - 12*x^5 + 1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4
+        sage: p = -1/4*x^6 + 1/2*x^5 - x^4 - 12*x^3 + 1/2*x^2 - 1/95*x - 1/2
         sage: fp = fast_callable(p, domain=RDF)
         sage: fp.op_list()
-        [('load_arg', 0), ('load_const', -1.0), 'mul', ('load_const', -12.0), 'add', ('load_arg', 0), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -0.010526315789473684), 'add', ('load_arg', 0), 'mul', ('load_const', -0.5), 'add', ('load_arg', 0), 'mul', ('load_arg', 0), 'mul', ('load_const', -4.0), 'add', 'return']
+        [('load_arg', 0), ('load_const', -0.25), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -1.0), 'add', ('load_arg', 0), 'mul', ('load_const', -12.0), 'add', ('load_arg', 0), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -0.010526315789473684), 'add', ('load_arg', 0), 'mul', ('load_const', -0.5), 'add', 'return']
         sage: fp(3.14159)
-        -4594.161823640176
+        -552.4182988917153
         sage: K.<x,y,z> = QQ[]
-        sage: p = K.random_element(degree=3, terms=5); p
-        -x*y^2 - x*z^2 - 6*x^2 - y^2 - 3*x*z
+        sage: p = x*y^2 + 1/3*y^2 - x*z - y*z
         sage: fp = fast_callable(p, domain=RDF)
         sage: fp.op_list()
-        [('load_const', 0.0), ('load_const', -3.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 1), 'mul', 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'mul', 'add', ('load_const', -6.0), ('load_arg', 0), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 1), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 2), 'mul', 'mul', 'add', 'return']
+        [('load_const', 0.0), ('load_const', 1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'mul', 'add', ('load_const', 0.3333333333333333), ('load_arg', 1), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 1), 'mul', 'mul', 'add', ('load_const', -1.0), ('load_arg', 1), ('ipow', 1), ('load_arg', 2), ('ipow', 1), 'mul', 'mul', 'add', 'return']
         sage: fp(e, pi, sqrt(2))   # abs tol 3e-14
-        -98.00156403362932
+        21.831120464939584
         sage: symbolic_result = p(e, pi, sqrt(2)); symbolic_result
-        -pi^2*e - pi^2 - 3*sqrt(2)*e - 6*e^2 - 2*e
+        pi^2*e + 1/3*pi^2 - sqrt(2)*pi - sqrt(2)*e
         sage: n(symbolic_result)
-        -98.0015640336293
+        21.8311204649396
 
     ::
 
@@ -391,11 +392,11 @@ def fast_callable(x, domain=None, vars=None,
         sage: fc = fast_callable(expr, domain=float)
         sage: fc(5, 7)
         0.5514266812416906
-         
+
     Check that fast_callable also works for symbolic functions with evaluation
     functions::
 
-        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent != None else x*y
+        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent is not None else x*y
         sage: x,y = var('x,y')
         sage: f = function('f', evalf_func=evalf_func)
         sage: fc = fast_callable(f(x, y), vars=[x, y])
@@ -404,7 +405,7 @@ def fast_callable(x, domain=None, vars=None,
 
     And also when there are complex values involved::
 
-        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent != None else I*x*y
+        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent is not None else I*x*y
         sage: g = function('g', evalf_func=evalf_func)
         sage: fc = fast_callable(g(x, y), vars=[x, y])
         sage: fc(3, 4)
@@ -423,65 +424,72 @@ def fast_callable(x, domain=None, vars=None,
         et = x
         vars = et._etb._vars
     else:
-        if vars is None or len(vars) == 0:
-            from sage.symbolic.ring import SR
-            from sage.symbolic.callable import is_CallableSymbolicExpressionRing
-            from sage.symbolic.expression import is_Expression
+        if not vars:
+            # fast_float passes empty list/tuple
+            vars = None
 
-            # XXX This is pretty gross... there should be a "callable_variables"
-            # method that does all this.
-            vars = x.variables()
-            if x.parent() is SR and x.number_of_arguments() > len(vars):
-                vars = list(vars) + ['EXTRA_VAR%d' % n for n in range(len(vars), x.number_of_arguments())]
-
-            # Failing to specify the variables is deprecated for any
-            # symbolic expression, except for PrimitiveFunction and
-            # CallableSymbolicExpression.
-            if is_Expression(x) and not is_CallableSymbolicExpressionRing(x.parent()):
+        if isinstance(x, Expression_abc) and x.is_callable():
+            if vars is None:
+                vars = x.arguments()
+            if expect_one_var and len(vars) != 1:
+                raise ValueError(f"passed expect_one_var=True, but the callable expression takes {len(vars)} arguments")
+        elif isinstance(x, Expression_abc):
+            if vars is None:
+                vars = x.variables()
                 if expect_one_var and len(vars) <= 1:
-                    if len(vars) == 0:
+                    if not vars:
                         vars = ['EXTRA_VAR0']
                 else:
-                    if _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality:
-                        from sage.misc.superseded import deprecation
-                        deprecation(5413, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
-                    else:
-                        raise ValueError("List of variables must be specified for symbolic expressions")
+                    raise ValueError("list of variables must be specified for symbolic expressions")
+            def to_var(var):
+                if isinstance(var, Expression_abc) and var.is_symbol():
+                    return var
+                from sage.symbolic.ring import SR
+                return SR.var(var)
+            vars = [to_var(var) for var in vars]
+            # Convert to a callable symbolic expression
+            x = x.function(*vars)
+
+        if vars is None:
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
             if is_PolynomialRing(x.parent()) or is_MPolynomialRing(x.parent()):
                 vars = x.parent().variable_names()
+            else:
+                # constant
+                vars = ()
 
         etb = ExpressionTreeBuilder(vars=vars, domain=domain)
         et = x._fast_callable_(etb)
 
-    if isinstance(domain, RealField_class):
-        import sage.ext.interpreters.wrapper_rr
-        builder = sage.ext.interpreters.wrapper_rr.Wrapper_rr
-
+    if isinstance(domain, sage.rings.abc.RealField):
+        from sage.ext.interpreters.wrapper_rr import Wrapper_rr as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_rr.metadata,
                                 len(vars),
                                 domain)
-    elif domain == RDF or domain is float:
-        import sage.ext.interpreters.wrapper_rdf
-        builder = sage.ext.interpreters.wrapper_rdf.Wrapper_rdf
+
+    elif isinstance(domain, sage.rings.abc.ComplexField):
+        from sage.ext.interpreters.wrapper_cc import Wrapper_cc as builder
+        str = InstructionStream(sage.ext.interpreters.wrapper_cc.metadata,
+                                len(vars),
+                                domain)
+
+    elif isinstance(domain, sage.rings.abc.RealDoubleField) or domain is float:
+        from sage.ext.interpreters.wrapper_rdf import Wrapper_rdf as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_rdf.metadata,
                                 len(vars),
                                 domain)
-    elif domain == CDF:
-        import sage.ext.interpreters.wrapper_cdf
-        builder = sage.ext.interpreters.wrapper_cdf.Wrapper_cdf
+    elif isinstance(domain, sage.rings.abc.ComplexDoubleField):
+        from sage.ext.interpreters.wrapper_cdf import Wrapper_cdf as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_cdf.metadata,
                                 len(vars),
                                 domain)
     elif domain is None:
-        import sage.ext.interpreters.wrapper_py
-        builder = sage.ext.interpreters.wrapper_py.Wrapper_py
+        from sage.ext.interpreters.wrapper_py import Wrapper_py as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_py.metadata,
                                 len(vars))
     else:
-        import sage.ext.interpreters.wrapper_el
-        builder = sage.ext.interpreters.wrapper_el.Wrapper_el
+        from sage.ext.interpreters.wrapper_el import Wrapper_el as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_el.metadata,
                                 len(vars),
                                 domain)
@@ -491,7 +499,7 @@ def fast_callable(x, domain=None, vars=None,
 
 def function_name(fn):
     r"""
-    Given a function, returns a string giving a name for the function.
+    Given a function, return a string giving a name for the function.
 
     For functions we recognize, we use our standard opcode name for the
     function (so operator.add becomes 'add', and sage.all.sin becomes 'sin').
@@ -575,7 +583,7 @@ cdef class ExpressionTreeBuilder:
         elif not isinstance(vars, list):
             vars = [vars]
 
-        vars = map(self._clean_var, vars)
+        vars = [self._clean_var(v) for v in vars]
 
         self._domain = domain
         self._vars = vars
@@ -592,9 +600,9 @@ cdef class ExpressionTreeBuilder:
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder('x')
             sage: v = etb(3); v, type(v)
-            (3, <type 'sage.ext.fast_callable.ExpressionConstant'>)
+            (3, <class 'sage.ext.fast_callable.ExpressionConstant'>)
             sage: v = etb(polygen(QQ)); v, type(v)
-            (v_0, <type 'sage.ext.fast_callable.ExpressionVariable'>)
+            (v_0, <class 'sage.ext.fast_callable.ExpressionVariable'>)
             sage: v is etb(v)
             True
         """
@@ -653,7 +661,7 @@ cdef class ExpressionTreeBuilder:
 
     def var(self, v):
         r"""
-        Turn the argument into an ExpressionVariable.  Looks it up in
+        Turn the argument into an ExpressionVariable.  Look it up in
         the list of variables.  (Variables are matched by name.)
 
         EXAMPLES::
@@ -672,13 +680,13 @@ cdef class ExpressionTreeBuilder:
             sage: etb.var('y')
             Traceback (most recent call last):
             ...
-            ValueError: Variable 'y' not found
+            ValueError: Variable 'y' not found...
         """
         var_name = self._clean_var(v)
         try:
             ind = self._vars.index(var_name)
         except ValueError:
-            raise ValueError("Variable '%s' not found" % var_name)
+            raise ValueError(f"Variable '{var_name}' not found in {self._vars}")
         return ExpressionVariable(self, ind)
 
     def _var_number(self, n):
@@ -705,6 +713,7 @@ cdef class ExpressionTreeBuilder:
     def call(self, fn, *args):
         r"""
         Construct a call node, given a function and a list of arguments.
+
         The arguments will be converted to Expressions using
         ExpressionTreeBuilder.__call__.
 
@@ -731,7 +740,7 @@ cdef class ExpressionTreeBuilder:
             base, exponent = args
             return self(base)**exponent
         else:
-            return ExpressionCall(self, fn, map(self, args))
+            return ExpressionCall(self, fn, [self(a) for a in args])
 
     def choice(self, cond, iftrue, iffalse):
         r"""
@@ -757,7 +766,12 @@ cdef class ExpressionTreeBuilder:
 cdef op_add = operator.add
 cdef op_sub = operator.sub
 cdef op_mul = operator.mul
-cdef op_div = operator.div
+cdef op_div
+try:
+    op_div = operator.div
+except AttributeError:
+    op_div = object()  # Unique object not equal to anything else
+cdef op_truediv = operator.truediv
 cdef op_floordiv = operator.floordiv
 cdef op_pow = operator.pow
 cdef op_neg = operator.neg
@@ -766,7 +780,7 @@ cdef op_inv = operator.inv
 
 cdef class Expression:
     r"""
-    Represents an expression for fast_callable.
+    Represent an expression for fast_callable.
 
     Supports the standard Python arithmetic operators; if arithmetic
     is attempted between an Expression and a non-Expression, the
@@ -811,7 +825,7 @@ cdef class Expression:
 
     def _get_etb(self):
         r"""
-        Returns the ExpressionTreeBuilder used to build a given expression.
+        Return the ExpressionTreeBuilder used to build a given expression.
 
         EXAMPLES::
 
@@ -910,29 +924,7 @@ cdef class Expression:
             sage: x.__rtruediv__(1)
             div(1, v_0)
         """
-        return _expression_binop_helper(s, o, op_div)
-
-    def __div__(s, o):
-        r"""
-        Compute a quotient of two Expressions.
-
-        EXAMPLES::
-
-            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
-            sage: etb = ExpressionTreeBuilder(vars=(x,))
-            sage: x = etb(x)
-            sage: x/x
-            div(v_0, v_0)
-            sage: x/1
-            div(v_0, 1)
-            sage: 1/x
-            div(1, v_0)
-            sage: x.__div__(1)
-            div(v_0, 1)
-            sage: x.__rdiv__(1)
-            div(1, v_0)
-        """
-        return _expression_binop_helper(s, o, op_div)
+        return _expression_binop_helper(s, o, op_truediv)
 
     def __floordiv__(s, o):
         r"""
@@ -993,8 +985,7 @@ cdef class Expression:
             return ExpressionIPow(es._etb, s, o)
         else:
             # I really don't like this, but I can't think of a better way
-            from sage.symbolic.expression import is_Expression
-            if is_Expression(o) and o in ZZ:
+            if isinstance(o, Expression_abc) and o in ZZ:
                 es = s
                 return ExpressionIPow(es._etb, s, ZZ(o))
             else:
@@ -1073,11 +1064,12 @@ cdef class ExpressionConstant(Expression):
     r"""
     An Expression that represents an arbitrary constant.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: type(etb(3))
-        <type 'sage.ext.fast_callable.ExpressionConstant'>
+        <class 'sage.ext.fast_callable.ExpressionConstant'>
     """
 
     cdef object _value
@@ -1140,11 +1132,12 @@ cdef class ExpressionVariable(Expression):
     r"""
     An Expression that represents a variable.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: type(etb.var(x))
-        <type 'sage.ext.fast_callable.ExpressionVariable'>
+        <class 'sage.ext.fast_callable.ExpressionVariable'>
     """
     cdef int _variable_index
 
@@ -1206,11 +1199,12 @@ cdef class ExpressionCall(Expression):
     r"""
     An Expression that represents a function call.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: type(etb.call(sin, x))
-        <type 'sage.ext.fast_callable.ExpressionCall'>
+        <class 'sage.ext.fast_callable.ExpressionCall'>
     """
     cdef object _function
     cdef object _arguments
@@ -1287,17 +1281,19 @@ cdef class ExpressionCall(Expression):
             'sin(v_0)'
         """
         fn = function_name(self._function)
-        return '%s(%s)' % (fn, ', '.join(map(repr, self._arguments)))
+        return '%s(%s)' % (fn, ', '.join(repr(a) for a in self._arguments))
+
 
 cdef class ExpressionIPow(Expression):
     r"""
     A power Expression with an integer exponent.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: type(etb.var('x')^17)
-        <type 'sage.ext.fast_callable.ExpressionIPow'>
+        <class 'sage.ext.fast_callable.ExpressionIPow'>
     """
     cdef object _base
     cdef object _exponent
@@ -1486,7 +1482,7 @@ cdef class ExpressionChoice(Expression):
 
 cpdef _expression_binop_helper(s, o, op):
    r"""
-   Makes an Expression for (s op o).  Either s or o (or both) must already
+   Make an Expression for (s op o).  Either s or o (or both) must already
    be an expression.
 
    EXAMPLES::
@@ -1552,7 +1548,7 @@ class IntegerPowerFunction(object):
         sage: square(I)
         -1
         sage: square(RIF(-1, 1)).str(style='brackets')
-        '[0.00000000000000000 .. 1.0000000000000000]'
+        '[0.0000000000000000 .. 1.0000000000000000]'
         sage: IntegerPowerFunction(-1)
         (^(-1))
         sage: IntegerPowerFunction(-1)(22/7)
@@ -1566,7 +1562,7 @@ class IntegerPowerFunction(object):
 
     def __init__(self, n):
         r"""
-        Initializes an IntegerPowerFunction.
+        Initialize an IntegerPowerFunction.
 
         EXAMPLES::
 
@@ -1633,8 +1629,8 @@ cpdef dict get_builtin_functions():
 
         sage: from sage.ext.fast_callable import get_builtin_functions
         sage: builtins = get_builtin_functions()
-        sage: sorted(list(builtins.values()))
-        ['abs', 'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
+        sage: sorted(set(builtins.values()))
+        ['abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
         sage: builtins[sin]
         'sin'
         sage: builtins[ln]
@@ -1646,16 +1642,18 @@ cpdef dict get_builtin_functions():
     if builtin_functions is not None:
         return builtin_functions
     builtin_functions = {
-        operator.add: 'add',
-        operator.sub: 'sub',
-        operator.mul: 'mul',
-        operator.div: 'div',
-        operator.floordiv: 'floordiv',
-        operator.abs: 'abs',
-        operator.neg: 'neg',
-        operator.inv: 'inv',
-        operator.pow: 'pow',
-        }
+        op_add: 'add',
+        op_sub: 'sub',
+        op_mul: 'mul',
+        op_div: 'div',
+        op_truediv: 'div',
+        op_floordiv: 'floordiv',
+        op_abs: 'abs',
+        op_neg: 'neg',
+        op_inv: 'inv',
+        op_pow: 'pow',
+    }
+
     # not handled: atan2, log2, log10
     import sage.functions.all as func_all
     for fn in ('sqrt', 'ceil', 'floor',
@@ -1695,7 +1693,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: instr_stream.instr('return')
         sage: v = Wrapper_py(instr_stream.get_current())
         sage: type(v)
-        <type 'sage.ext.interpreters.wrapper_py.Wrapper_py'>
+        <class 'sage.ext.interpreters.wrapper_py.Wrapper_py'>
         sage: v(7)
         8*pi + 56
 
@@ -1945,12 +1943,12 @@ cdef class InstructionStream:
 
         INPUT:
 
-        - metadata - The metadata_by_opname from a wrapper module
+        - metadata -- The metadata_by_opname from a wrapper module
 
-        - n_args - The number of arguments accessible by the generated code
+        - n_args -- The number of arguments accessible by the generated code
           (this is just passed to the wrapper class)
 
-        - domain - The domain of interpretation (this is just passed to the
+        - domain -- The domain of interpretation (this is just passed to the
           wrapper class)
 
         EXAMPLES::
@@ -1967,7 +1965,7 @@ cdef class InstructionStream:
              'stack': 0}
             sage: md = instr_stream.get_metadata()
             sage: type(md)
-            <type 'sage.ext.fast_callable.InterpreterMetadata'>
+            <class 'sage.ext.fast_callable.InterpreterMetadata'>
             sage: md.by_opname['py_call']
             (CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs']), 3)
             sage: md.by_opcode[3]
@@ -2128,7 +2126,7 @@ cdef class InstructionStream:
 
     def get_metadata(self):
         r"""
-        Returns the interpreter metadata being used by the current
+        Return the interpreter metadata being used by the current
         InstructionStream.
 
         The code generator sometimes uses this to decide which code
@@ -2141,13 +2139,13 @@ cdef class InstructionStream:
             sage: instr_stream = InstructionStream(metadata, 1)
             sage: md = instr_stream.get_metadata()
             sage: type(md)
-            <type 'sage.ext.fast_callable.InterpreterMetadata'>
+            <class 'sage.ext.fast_callable.InterpreterMetadata'>
         """
         return self._metadata
 
     def current_op_list(self):
         r"""
-        Returns the list of instructions that have been added to this
+        Return the list of instructions that have been added to this
         InstructionStream so far.
 
         It's OK to call this, then add more instructions.
@@ -2247,9 +2245,10 @@ cdef class InterpreterMetadata(object):
         self.by_opcode = by_opcode
         self.ipow_range = ipow_range
 
+
 class CompilerInstrSpec(object):
     r"""
-    Describes a single instruction to the fast_callable code generator.
+    Describe a single instruction to the fast_callable code generator.
 
     An instruction has a number of stack inputs, a number of stack
     outputs, and a parameter list describing extra arguments that
@@ -2445,4 +2444,3 @@ cdef class Wrapper:
             if isinstance(op, tuple) and op[0] == 'py_call':
                 py_calls.append(op[1])
         return py_calls
-

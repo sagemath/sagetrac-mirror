@@ -1,3 +1,5 @@
+.. _developers-guide:
+
 ======================================
 Welcome to the Sage Developer's Guide!
 ======================================
@@ -22,8 +24,8 @@ Here are brief overviews of each part; for more details, see the extended table
 of contents below.  No matter where you start, good luck and welcome to Sage
 development!
 
-- **Trac server:** all changes go through the `the Sage Trac server
-  <http://trac.sagemath.org>`_ at some point. It contains bug reports, upgrade
+- **Trac server:** all changes go through `the Sage Trac server
+  <https://trac.sagemath.org>`_ at some point. It contains bug reports, upgrade
   requests, changes in progress, and those already part of Sage
   today. :ref:`Click here <chapter-sage-trac>` for more information.
 
@@ -124,6 +126,22 @@ Running Sage's tests
 
    doctesting
 
+Testing on multiple platforms
+-----------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   portability_testing
+
+Additional development and testing tools
+----------------------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   tools
+
 Contributing to Manuals and Tutorials
 -------------------------------------
 
@@ -142,6 +160,14 @@ Sage Coding Details
    coding_in_cython
    coding_in_other
 
+Packaging the Sage Library
+--------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   packaging_sage_library
+
 Packaging Third-Party Code
 --------------------------
 
@@ -149,15 +175,6 @@ Packaging Third-Party Code
    :maxdepth: 3
 
    packaging
-   packaging_old_spkgs
-
-Sage Notebook Developer Guide
-=============================
-
-.. toctree::
-   :maxdepth: 3
-
-   sagenb/index
 
 
 Indices and tables

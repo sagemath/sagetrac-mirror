@@ -16,7 +16,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.combinat.combination import rank
 from sage.arith.all import binomial
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex_class
 
@@ -130,7 +130,7 @@ class KoszulComplex(ChainComplex_class, UniqueRepresentation):
         # Generate the differentials
         self._elements = elements
         n = len(elements)
-        I = range(n)
+        I = list(range(n))
         diff = {}
         zero = R.zero()
         for i in I:

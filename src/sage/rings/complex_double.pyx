@@ -1,3 +1,5 @@
+# distutils: extra_compile_args = -D_XPG6
+# distutils: libraries = m
 r"""
 Double Precision Complex Numbers
 
@@ -21,7 +23,7 @@ EXAMPLES::
     sage: CDF
     Complex Double Field
     sage: type(CDF.0)
-    <type 'sage.rings.complex_double.ComplexDoubleElement'>
+    <class 'sage.rings.complex_double.ComplexDoubleElement'>
     sage: ComplexDoubleElement(sqrt(2),3)
     1.4142135623730951 + 3.0*I
     sage: parent(CDF(-2))
@@ -50,25 +52,26 @@ AUTHORS:
 - Travis Scrimshaw (2012-10-18): Added doctests to get full coverage
 
 - Jeroen Demeyer (2013-02-27): fixed all PARI calls (:trac:`14082`)
+
+- Vincent Klein (2017-11-15) : add __mpc__() to class ComplexDoubleElement.
+  ComplexDoubleElement constructor support and gmpy2.mpc parameter.
+
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2013 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import operator
+from cpython.object cimport Py_NE
 
 from sage.misc.randstate cimport randstate, current_randstate
-
-from sage.libs.cypari2.paridecl cimport *
-include "cysignals/signals.pxi"
 
 from sage.libs.gsl.complex cimport *
 
@@ -76,46 +79,69 @@ cdef extern from "<complex.h>":
     double complex csqrt(double complex)
     double cabs(double complex)
 
+import sage.rings.abc
 cimport sage.rings.ring
 cimport sage.rings.integer
 
 from sage.structure.element cimport RingElement, Element, ModuleElement, FieldElement
 from sage.structure.parent  cimport Parent
 from sage.structure.parent_gens import ParentWithGens
+from sage.structure.richcmp cimport rich_to_bool
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
-from sage.libs.cypari2.gen cimport gen as pari_gen
-from sage.libs.cypari2.convert cimport new_gen_from_double, new_t_COMPLEX_from_double
+try:
+    from cypari2.gen import Gen as pari_gen
+    from sage.libs.pari.convert_sage_complex_double import pari_to_cdf
 
-import complex_number
+except ImportError:
+    pari_gen = ()
 
-import complex_field
-cdef CC = complex_field.ComplexField()
 
-import real_mpfr
-cdef RR = real_mpfr.RealField()
+new_gen_from_complex_double_element = None
+complex_double_element_eta = None
+complex_double_element_agm = None
+complex_double_element_dilog = None
+complex_double_element_gamma = None
+complex_double_element_gamma_inc = None
+complex_double_element_zeta = None
 
-from real_double cimport RealDoubleElement, double_repr, double_str
-from real_double import RDF
+from .complex_conversion cimport CCtoCDF
+
+from .real_double cimport RealDoubleElement, double_repr
+from .real_double import RDF
 from sage.rings.integer_ring import ZZ
+from sage.structure.richcmp cimport rich_to_bool
+
+cimport gmpy2
+gmpy2.import_gmpy2()
 
 
 def is_ComplexDoubleField(x):
     """
     Return ``True`` if ``x`` is the complex double field.
 
-    EXAMPLE::
+    This function is deprecated. Use :func:`isinstance` with
+    :class:`~sage.rings.abc.ComplexDoubleField` instead.
+
+    EXAMPLES::
 
         sage: from sage.rings.complex_double import is_ComplexDoubleField
         sage: is_ComplexDoubleField(CDF)
+        doctest:warning...
+        DeprecationWarning: is_ComplexDoubleField is deprecated;
+        use isinstance(..., sage.rings.abc.ComplexDoubleField) instead
+        See https://trac.sagemath.org/32610 for details.
         True
         sage: is_ComplexDoubleField(ComplexField(53))
         False
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32610, 'is_ComplexDoubleField is deprecated; use isinstance(..., sage.rings.abc.ComplexDoubleField) instead')
     return isinstance(x, ComplexDoubleField_class)
 
-cdef class ComplexDoubleField_class(sage.rings.ring.Field):
+
+cdef class ComplexDoubleField_class(sage.rings.abc.ComplexDoubleField):
     """
     An approximation to the field of complex numbers using double
     precision floating point numbers. Answers derived from calculations
@@ -132,7 +158,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         r"""
         Construct field of complex double precision numbers.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.complex_double import ComplexDoubleField_class
             sage: CDF == ComplexDoubleField_class()
@@ -179,22 +205,29 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: cmp(CDF, CDF)
-            0
+            sage: CDF == CDF
+            True
         """
-        return (<Parent>left)._richcmp(right, op)
+        if left is right:
+            return rich_to_bool(op, 0)
+        if isinstance(right, ComplexDoubleField_class):
+            return rich_to_bool(op, 0)
+        return op == Py_NE
 
     def __hash__(self):
         """
         Return the hash for ``self``.
 
-        TEST::
+        This class is intended for use as a singleton so any instance
+        of it should be equivalent from a hashing perspective.
 
-            sage: hash(CDF) % 2^32 == hash(str(CDF)) % 2^32
+        TESTS::
+
+            sage: from sage.rings.complex_double import ComplexDoubleField_class
+            sage: hash(CDF) == hash(ComplexDoubleField_class())
             True
         """
         return 561162115
-        #return hash(self.str())
 
     def characteristic(self):
         """
@@ -205,8 +238,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF.characteristic()
             0
         """
-        import integer
-        return integer.Integer(0)
+        from .integer import Integer
+        return Integer(0)
 
     def random_element(self, double xmin=-1, double xmax=1, double ymin=-1, double ymax=1):
         """
@@ -215,12 +248,17 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: CDF.random_element()
-            -0.43681052967509904 + 0.7369454235661859*I
-            sage: CDF.random_element(-10,10,-10,10)
-            -7.088740263015161 - 9.54135400334003*I
-            sage: CDF.random_element(-10^20,10^20,-2,2)
-            -7.587654737635711e+19 + 0.925549022838656*I
+            sage: CDF.random_element().parent() is CDF
+            True
+            sage: re, im = CDF.random_element()
+            sage: -1 <= re <= 1, -1 <= im <= 1
+            (True, True)
+            sage: re, im = CDF.random_element(-10,10,-10,10)
+            sage: -10 <= re <= 10, -10 <= im <= 10
+            (True, True)
+            sage: re, im = CDF.random_element(-10^20,10^20,-2,2)
+            sage: -10^20 <= re <= 10^20, -2 <= im <= 2
+            (True, True)
         """
         cdef randstate rstate = current_randstate()
         global _CDF
@@ -259,22 +297,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         return r"\Bold{C}"
 
-    cpdef int _cmp_(self, x) except -2:
-        """
-        Compare ``x`` to ``self``.
-
-        EXAMPLES::
-
-            sage: CDF == 5 # indirect doctest
-            False
-            sage: loads(dumps(CDF)) == CDF # indirect doctest
-            True
-        """
-        if isinstance(x, ComplexDoubleField_class):
-            return 0
-        return cmp(type(self), type(x))
-
-    def __call__(self, x, im=None):
+    def __call__(self, x=None, im=None):
         """
         Create a complex double using ``x`` and optionally an imaginary part
         ``im``.
@@ -301,13 +324,16 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             1.0*I
             sage: CDF(pari("x^2 + x + 1").polroots()[0])
             -0.5 - 0.8660254037844386*I
+            sage: from gmpy2 import mpc
+            sage: CDF(mpc('2.0+1.0j'))
+            2.0 + 1.0*I
 
         A ``TypeError`` is raised if the coercion doesn't make sense::
 
             sage: CDF(QQ['x'].0)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce nonconstant polynomial to float
+            TypeError: cannot convert nonconstant polynomial
 
         One can convert back and forth between double precision complex
         numbers and higher-precision ones, though of course there may be
@@ -323,8 +349,19 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             True
             sage: b == CC(a)
             True
+
+        TESTS:
+
+        Check that :trac:`31836` is fixed::
+
+            sage: a = CDF() ; a
+            0.0
+            sage: a.parent()
+            Complex Double Field
         """
         # We implement __call__ to gracefully accept the second argument.
+        if x is None:
+            return self.zero()
         if im is not None:
             x = x, im
         return Parent.__call__(self, x)
@@ -338,6 +375,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF((1,2)) # indirect doctest
             1.0 + 2.0*I
         """
+        from . import complex_mpfr
         if isinstance(x, ComplexDoubleElement):
             return x
         elif isinstance(x, tuple):
@@ -346,10 +384,12 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             return ComplexDoubleElement(x, 0)
         elif isinstance(x, complex):
             return ComplexDoubleElement(x.real, x.imag)
-        elif isinstance(x, complex_number.ComplexNumber):
+        elif isinstance(x, complex_mpfr.ComplexNumber):
             return ComplexDoubleElement(x.real(), x.imag())
         elif isinstance(x, pari_gen):
             return pari_to_cdf(x)
+        elif type(x) is gmpy2.mpc:
+            return ComplexDoubleElement((<gmpy2.mpc>x).real, (<gmpy2.mpc>x).imag)
         elif isinstance(x, str):
             t = cdf_parser.parse_expression(x)
             if isinstance(t, float):
@@ -391,7 +431,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
             sage: CDF(1) + RR(1)
             2.0
-            sage: CDF.0 - CC(1) - long(1) - RR(1) - QQbar(1)
+            sage: CDF.0 - CC(1) - int(1) - RR(1) - QQbar(1)
             -4.0 + 1.0*I
             sage: CDF.has_coerce_map_from(ComplexField(20))
             False
@@ -400,15 +440,14 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         if S is int or S is float:
             return FloatToCDF(S)
-        from rational_field import QQ
-        from real_lazy import RLF
-        from real_mpfr import RR, RealField_class
-        from complex_field import ComplexField, ComplexField_class
-        CC = ComplexField()
-        from complex_number import CCtoCDF
+        from .rational_field import QQ
+        from .real_lazy import RLF
+        from .real_mpfr import RR
+        from .cc import CC
+
         if S is ZZ or S is QQ or S is RDF or S is RLF:
             return FloatToCDF(S)
-        if isinstance(S, RealField_class):
+        if isinstance(S, sage.rings.abc.RealField):
             if S.prec() >= 53:
                 return FloatToCDF(S)
             else:
@@ -423,7 +462,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
                 return None
         elif RR.has_coerce_map_from(S):
             return FloatToCDF(RR) * RR._internal_coerce_map_from(S)
-        elif isinstance(S, ComplexField_class) and S.prec() >= 53:
+        elif isinstance(S, sage.rings.abc.ComplexField) and S.prec() >= 53:
             return CCtoCDF(S, self)
         elif CC.has_coerce_map_from(S):
             return CCtoCDF(CC, self) * CC._internal_coerce_map_from(S)
@@ -444,6 +483,17 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             Complex Field with 53 bits of precision
         """
         return "ComplexField(%s : Bits := true)" % self.prec()
+
+    def _fricas_init_(self):
+        r"""
+        Return a string representation of ``self`` in the FriCAS language.
+
+        EXAMPLES::
+
+            sage: fricas(CDF)                     # indirect doctest, optional - fricas
+            Complex(DoubleFloat)
+        """
+        return "Complex DoubleFloat"
 
     def prec(self):
         """
@@ -475,7 +525,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         if prec == 53:
             return self
         else:
-            from complex_field import ComplexField
+            from .complex_mpfr import ComplexField
             return ComplexField(prec)
 
 
@@ -529,8 +579,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF.real_double_field()
             Real Double Field
         """
-        import real_double
-        return real_double.RDF
+        return RDF
 
     def pi(self):
         r"""
@@ -595,7 +644,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             ...
             ValueError: n must be a positive integer
         """
-        from integer import Integer
+        from .integer import Integer
         try:
            n = Integer(n)
         except TypeError:
@@ -687,38 +736,6 @@ def is_ComplexDoubleElement(x):
     """
     return isinstance(x, ComplexDoubleElement)
 
-cdef inline ComplexDoubleElement pari_to_cdf(pari_gen g):
-    """
-    Create a CDF element from a PARI ``gen``.
-
-    EXAMPLES::
-
-        sage: CDF(pari("Pi"))
-        3.141592653589793
-        sage: CDF(pari("1 + I/2"))
-        1.0 + 0.5*I
-
-    TESTS:
-
-    Check that we handle PARI errors gracefully, see :trac:`17329`::
-
-        sage: CDF(-151.386325246 + 992.34771962*I).zeta()
-        Traceback (most recent call last):
-        ...
-        PariError: overflow in t_REAL->double conversion
-        sage: CDF(pari(x^2 + 5))
-        Traceback (most recent call last):
-        ...
-        PariError: incorrect type in gtofp (t_POL)
-    """
-    cdef ComplexDoubleElement z = ComplexDoubleElement.__new__(ComplexDoubleElement)
-    sig_on()
-    if typ(g.g) == t_COMPLEX:
-        z._complex = gsl_complex_rect(gtodouble(gel(g.g, 1)), gtodouble(gel(g.g, 2)))
-    else:
-        z._complex = gsl_complex_rect(gtodouble(g.g), 0.0)
-    sig_off()
-    return z
 
 cdef class ComplexDoubleElement(FieldElement):
     """
@@ -765,7 +782,7 @@ cdef class ComplexDoubleElement(FieldElement):
             True
         """
         return (ComplexDoubleElement,
-                (self._complex.dat[0], self._complex.dat[1]))
+                (GSL_REAL(self._complex), GSL_IMAG(self._complex)))
 
     cdef ComplexDoubleElement _new_c(self, gsl_complex x):
         """
@@ -792,7 +809,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return hash(complex(self))
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         We order the complex numbers in dictionary order by real parts then
         imaginary parts.
@@ -802,12 +819,12 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: cmp(CDF(1.2), CDF(i))
-            1
-            sage: cmp(CDF(1), CDF(2))
-            -1
-            sage: cmp(CDF(1 + i), CDF(-1 - i))
-            1
+            sage: CDF(1.2) > CDF(i)
+            True
+            sage: CDF(1) < CDF(2)
+            True
+            sage: CDF(1 + i) > CDF(-1 - i)
+            True
 
         ::
 
@@ -830,15 +847,15 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: 4.3 > CDF(5,1)
             False
         """
-        if left._complex.dat[0] < (<ComplexDoubleElement>right)._complex.dat[0]:
-            return -1
-        if left._complex.dat[0] > (<ComplexDoubleElement>right)._complex.dat[0]:
-            return 1
-        if left._complex.dat[1] < (<ComplexDoubleElement>right)._complex.dat[1]:
-            return -1
-        if left._complex.dat[1] > (<ComplexDoubleElement>right)._complex.dat[1]:
-            return 1
-        return 0
+        if GSL_REAL(left._complex) < GSL_REAL((<ComplexDoubleElement>right)._complex):
+            return rich_to_bool(op, -1)
+        if GSL_REAL(left._complex) > GSL_REAL((<ComplexDoubleElement>right)._complex):
+            return rich_to_bool(op, 1)
+        if GSL_IMAG(left._complex) < GSL_IMAG((<ComplexDoubleElement>right)._complex):
+            return rich_to_bool(op, -1)
+        if GSL_IMAG(left._complex) > GSL_IMAG((<ComplexDoubleElement>right)._complex):
+            return rich_to_bool(op, 1)
+        return rich_to_bool(op, 0)
 
     def __getitem__(self, n):
         """
@@ -862,8 +879,10 @@ cdef class ComplexDoubleElement(FieldElement):
             ...
             IndexError: index n must be 0 or 1
         """
-        if n >= 0 and n <= 1:
-            return self._complex.dat[n]
+        if n == 0:
+            return GSL_REAL(self._complex)
+        if n == 1:
+            return GSL_IMAG(self._complex)
         raise IndexError("index n must be 0 or 1")
 
     def _magma_init_(self, magma):
@@ -908,26 +927,11 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: int(CDF(1,1))
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to int; use int(abs(z))
+            TypeError: can...t convert complex to int; use int(abs(z))
             sage: int(abs(CDF(1,1)))
             1
         """
         raise TypeError("can't convert complex to int; use int(abs(z))")
-
-    def __long__(self):
-        """
-        Convert ``self`` to a ``long``.
-
-        EXAMPLES::
-
-            sage: long(CDF(1,1))
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-            sage: long(abs(CDF(1,1)))
-            1L
-        """
-        raise TypeError("can't convert complex to long; use long(abs(z))")
 
     def __float__(self):
         """
@@ -952,9 +956,9 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: float(abs(CDF(1,1)))
             1.4142135623730951
         """
-        if self._complex.dat[1]==0:
-            return float(self._complex.dat[0])
-        raise TypeError("unable to convert {!r} to float; use abs() or real_part() as desired".format(self))
+        if GSL_IMAG(self._complex):
+            raise TypeError(f"unable to convert {self} to float; use abs() or real_part() as desired")
+        return GSL_REAL(self._complex)
 
     def __complex__(self):
         """
@@ -968,7 +972,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: complex(CDF(a))
             (2303-3939j)
         """
-        return complex(self._complex.dat[0], self._complex.dat[1])
+        return complex(GSL_REAL(self._complex), GSL_IMAG(self._complex))
 
     def _interface_init_(self, I=None):
         """
@@ -986,7 +990,20 @@ cdef class ComplexDoubleElement(FieldElement):
             True
         """
         # Sending to another computer algebra system is slow anyway, right?
-        return CC(self)._interface_init_(I)
+        from .complex_mpfr import ComplexField
+        return ComplexField()(self)._interface_init_(I)
+
+    def _mathematica_init_(self):
+        """
+        TESTS:
+
+        Check that :trac:`28814` is fixed::
+
+            sage: mathematica(CDF(1e-25, 1e25))  # optional - mathematica
+            1.*^-25 + 1.*^25*I
+        """
+        from .complex_mpfr import ComplexField
+        return ComplexField()(self)._mathematica_init_()
 
     def _maxima_init_(self, I=None):
         """
@@ -1000,55 +1017,26 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(.5 + I)._maxima_init_()
             '0.50000000000000000 + 1.0000000000000000*%i'
         """
-        return CC(self)._maxima_init_(I)
+        from .complex_mpfr import ComplexField
+        return ComplexField()(self)._maxima_init_(I)
 
-    def __str__(self):
+    def _sympy_(self):
         """
-        Return the informal string representation of ``self``.
+        Convert this complex number to Sympy.
 
         EXAMPLES::
 
-            sage: print(CDF(0, 2/3))
-            0.666666666667*I
-            sage: a = CDF(2,-3)
-            sage: print(a)  # indirect doctest
-            2.0 - 3.0*I
-            sage: print(a^2)
-            -5.0 - 12.0*I
-            sage: print(1/CDF(0,0))
-            NaN + NaN*I
-            sage: print(CDF(oo,1))
-            +infinity + 1.0*I
-            sage: print(CDF(1,oo))
-            1.0 + +infinity*I
-            sage: print(CDF(1,-oo))
-            1.0 - +infinity*I
-            sage: print(CC(CDF(1,-oo)))
-            1.00000000000000 - +infinity*I
-            sage: print(CDF(oo,oo))
-            +infinity + +infinity*I
-            sage: print(CC(CDF(oo,oo)))
-            +infinity + +infinity*I
-            sage: print(CDF(0))
-            0.0
+            sage: CDF(1, 0)._sympy_()
+            1.00000000000000
+            sage: CDF(1/3, 1)._sympy_()
+            0.333333333333333 + 1.0*I
+            sage: type(_)
+            <class 'sympy.core.add.Add'>
         """
-        cdef double x = self._complex.dat[0]
-        cdef double y = self._complex.dat[1]
-        if x == 0:
-            if y == 0:
-                return "0.0"
-            s = ''
-        else:
-            s = double_str(x)
-            if y == 0:
-                return s
-            elif y < 0:
-                s += " - "
-                y = -y
-            else:
-                s += " + "
-
-        return s + double_str(y) + "*I"
+        x = GSL_REAL(self._complex)
+        y = GSL_IMAG(self._complex)
+        import sympy
+        return sympy.Float(x) + sympy.Float(y) * sympy.I
 
     def _repr_(self):
         """
@@ -1079,8 +1067,8 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(0)
             0.0
         """
-        cdef double x = self._complex.dat[0]
-        cdef double y = self._complex.dat[1]
+        x = GSL_REAL(self._complex)
+        y = GSL_IMAG(self._complex)
         if x == 0:
             if y == 0:
                 # Not sure what to do with the signs of the real and
@@ -1099,6 +1087,43 @@ cdef class ComplexDoubleElement(FieldElement):
 
         return s + double_repr(y) + "*I"
 
+    def __format__(self, format_spec):
+        """
+        Return a formatted string representation of this complex number.
+
+        INPUT:
+
+        - ``format_spec`` -- string; a floating point format specificier as
+          defined by :python:`the format specification mini-language
+          <library/string.html#formatspec>` in Python
+
+        EXAMPLES::
+
+            sage: format(CDF(32/3, 0), ' .4f')
+            ' 10.6667 + 0.0000*I'
+            sage: format(CDF(-2/3, -2/3), '.4e')
+            '-6.6667e-01 - 6.6667e-01*I'
+            sage: format(CDF(3, 0), '.4g')
+            '3 + 0*I'
+            sage: format(CDF(3, 0), '#.4g')
+            '3.000 + 0.000*I'
+
+        If the representation type character is absent, the output matches the
+        string representation of the complex number. This has the effect that
+        real and imaginary part are only shown if they are not zero::
+
+            sage: format(CDF(0, 2/3), '.4')
+            '0.6667*I'
+            sage: format(CDF(2, 0), '.4')
+            '2.0'
+            sage: format(CDF(0, 0), '+#.4')
+            '+0.000'
+        """
+        from .complex_mpfr import _format_complex_number
+        return _format_complex_number(GSL_REAL(self._complex),
+                                                     GSL_IMAG(self._complex),
+                                                     format_spec)
+
     def _latex_(self):
         """
         Return a latex representation of ``self``.
@@ -1109,19 +1134,19 @@ cdef class ComplexDoubleElement(FieldElement):
             '1.0 + 2.0i'
             sage: z = CDF(1,2)^100
             sage: z._latex_()
-            '-6.44316469099 \\times 10^{34} - 6.11324130776 \\times 10^{34}i'
+            '-6.443164690985956 \\times 10^{34} - 6.113241307762409 \\times 10^{34}i'
         """
         import re
         s = str(self).replace('*I', 'i')
         return re.sub(r"e\+?(-?\d+)", r" \\times 10^{\1}", s)
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return PARI version of ``self``, as ``t_COMPLEX`` or ``t_REAL``.
 
         EXAMPLES::
 
-            sage: CDF(1,2)._pari_()
+            sage: CDF(1,2).__pari__()
             1.00000000000000 + 2.00000000000000*I
             sage: pari(CDF(1,2))
             1.00000000000000 + 2.00000000000000*I
@@ -1130,10 +1155,25 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: pari(CDF(I))
             1.00000000000000*I
         """
-        if self._complex.dat[1] == 0:
-            return new_gen_from_double(self._complex.dat[0])
-        else:
-            return new_t_COMPLEX_from_double(self._complex.dat[0], self._complex.dat[1])
+        global new_gen_from_complex_double_element
+        if new_gen_from_complex_double_element is None:
+            from sage.libs.pari.convert_sage_complex_double import new_gen_from_complex_double_element
+        return new_gen_from_complex_double_element(self)
+
+    def __mpc__(self):
+        """
+        Convert Sage ``ComplexDoubleElement`` to gmpy2 ``mpc``.
+
+        EXAMPLES::
+
+            sage: c = CDF(2,1)
+            sage: c.__mpc__()
+            mpc('2.0+1.0j')
+            sage: from gmpy2 import mpc
+            sage: mpc(c)
+            mpc('2.0+1.0j')
+        """
+        return gmpy2.mpc(GSL_REAL(self._complex), GSL_IMAG(self._complex))
 
     #######################################################################
     # Arithmetic
@@ -1371,7 +1411,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
             - :func:`sage.misc.functional.norm`
 
-            - :meth:`sage.rings.complex_number.ComplexNumber.norm`
+            - :meth:`sage.rings.complex_mpfr.ComplexNumber.norm`
 
         EXAMPLES::
 
@@ -1415,7 +1455,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a.real_part()
             3.0
         """
-        return RealDoubleElement(self._complex.dat[0])
+        return RealDoubleElement(GSL_REAL(self._complex))
 
     real_part = real
 
@@ -1431,7 +1471,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a.imag_part()
             -2.0
         """
-        return RealDoubleElement(self._complex.dat[1])
+        return RealDoubleElement(GSL_IMAG(self._complex))
 
     imag_part = imag
 
@@ -1584,39 +1624,37 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return self.real().is_infinity() or self.imag().is_infinity()
 
-    def _pow_(self, ComplexDoubleElement a):
-        """
-        The function returns the complex number `z` raised to the
-        complex power `a`, `z^a`.
-
-        INPUT:
-
-        -  ``a`` - a :class:`ComplexDoubleElement`
-
-        OUTPUT: :class:`ComplexDoubleElement`
-
-        EXAMPLES::
-
-            sage: a = CDF(1,1); b = CDF(2,3)
-            sage: a._pow_(b)   # rel tol 5e-16
-            -0.163450932107355 + 0.09600498360894891*I
-        """
-        return self._new_c(gsl_complex_pow(self._complex, a._complex))
-
-    def __pow__(z, a, dummy):
+    def is_NaN(self):
         r"""
-        The function returns the complex number `z` raised to the
-        complex power `a`, `z^a`.
-
-        This is computed as `\exp(\log(z)*a)` using complex
-        logarithms and complex exponentials.
+        Check if ``self`` is not-a-number.
 
         EXAMPLES::
 
-            sage: a = CDF(1,1); b = CDF(2,3)
-            sage: c = a^b; c  # rel tol 5e-16, indirect doctest
+            sage: CDF(1, 2).is_NaN()
+            False
+            sage: CDF(NaN).is_NaN()
+            True
+            sage: (1/CDF(0, 0)).is_NaN()
+            True
+        """
+        return self.real().is_NaN() or self.imag().is_NaN()
+
+    cpdef _pow_(self, other):
+        """
+        The complex number ``self`` raised to the power ``other``.
+
+        This is computed using complex logarithms and exponentials
+        as `z ^ a = \exp(a \log(z))`, unless ``self`` is real and
+        ``other`` is an exact integer: in that case, only real
+        arithmetic is used.
+
+        EXAMPLES::
+
+            sage: a = CDF(1,1)
+            sage: b = CDF(2,3)
+            sage: c = a ^ b; c  # rel tol 5e-16
             -0.163450932107355 + 0.09600498360894891*I
-            sage: c^(1/b) # rel tol 2e-16
+            sage: c ^ (1/b)     # rel tol 2e-16
             1.0 + 1.0*I
 
         We compute the cube root of `-1` then cube it and observe a
@@ -1629,27 +1667,69 @@ cdef class ComplexDoubleElement(FieldElement):
 
         We raise to symbolic powers::
 
-            sage: x, n = var('x, n')
+            sage: var('x, n')
+            (x, n)
             sage: CDF(1.2)^x
             1.2^x
             sage: CDF(1.2)^(x^n + n^x)
             1.2^(n^x + x^n)
-        """
-        try:
-            return z._pow_(a)
-        except AttributeError:
-            # z is not a complex number
-            return CDF(z)._pow_(a)
-        except TypeError:
-            # a is not a complex number
-            try:
-                return z._pow_(CDF(a))
-            except TypeError:
-                try:
-                    return a.parent()(z)**a
-                except AttributeError:
-                    raise TypeError
 
+        A real number powered to an exact integer always yields a real
+        number::
+
+            sage: CDF(-0.26319743704743886) ^ 1
+            -0.26319743704743886
+            sage: CDF(-0.26319743704743886) ^ 0
+            1.0
+            sage: CDF(-0.26319743704743886) ^ -1
+            -3.7994290948196405
+            sage: CDF(-0.26319743704743886) ^ 2
+            0.06927289086834054
+            sage: CDF(-0.26319743704743886) ^ -2
+            14.435661446561994
+            sage: CDF(-1) ^ (2^100)
+            1.0
+
+        Note the difference with ::
+
+            sage: CDF(-0.26319743704743886) ^ QQ(2)
+            0.06927289086834053 - 1.6966964813919428e-17*I
+            sage: CDF(-0.26319743704743886) ^ RDF(2)
+            0.06927289086834053 - 1.6966964813919428e-17*I
+
+        TESTS::
+
+            sage: (-2) ^ CDF(-0.5)  # abs tol 1e-16
+            4.329780281177467e-17 - 0.7071067811865476*I
+        """
+        z = <ComplexDoubleElement>other
+        return self._new_c(gsl_complex_pow(self._complex, z._complex))
+
+    cdef _pow_long(self, long other):
+        if other == 1:
+            return self
+        elif other == 0:
+            res = gsl_complex_rect(1, 0)
+        elif other == -1:
+            res = gsl_complex_inverse(self._complex)
+        elif not GSL_IMAG(self._complex):
+            # If self is real, the result should be real too
+            real = GSL_REAL(self._complex) ** <double>other
+            res = gsl_complex_rect(real, 0)
+        else:
+            # General case
+            res = gsl_complex_pow_real(self._complex, other)
+        return self._new_c(res)
+
+    cpdef _pow_int(self, other):
+        if not GSL_IMAG(self._complex):
+            # If self is real, the result should be real too
+            real = GSL_REAL(self._complex) ** <double>other
+            res = gsl_complex_rect(real, 0)
+        else:
+            # General case
+            res = gsl_complex_pow_real(self._complex, other)
+        return self._new_c(res)
 
     def exp(self):
         r"""
@@ -2169,19 +2249,21 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: eta(z)
             0.7420487758365647 + 0.1988313702299107*I
         """
-        cdef GEN a, b, c, y, t
-
-        if self._complex.dat[1] <= 0:
+        if GSL_IMAG(self._complex) <= 0:
             raise ValueError("value must be in the upper half plane")
 
-        if self._complex.dat[1] > 100000 and not omit_frac:
+        if GSL_IMAG(self._complex) > 100000 and not omit_frac:
             # To the precision of doubles for such large imaginary
             # part, the answer is automatically 0. If we don't do
             # this, PARI can easily underflow.
             return ComplexDoubleElement(0,0)
 
+        global complex_double_element_eta
+        if complex_double_element_eta is None:
+            from sage.libs.pari.convert_sage_complex_double import complex_double_element_eta
+
         cdef int flag = 0 if omit_frac else 1
-        return pari_to_cdf(self._pari_().eta(flag))
+        return complex_double_element_eta(self, flag)
 
     def agm(self, right, algorithm="optimal"):
         r"""
@@ -2200,7 +2282,7 @@ cdef class ComplexDoubleElement(FieldElement):
         this is a multi-valued function, and the algorithm used
         affects the value returned, as follows:
 
-        - ``'pari'``: Call the agm function from the pari library.
+        - ``'pari'``: Call the :pari:`agm` function from the pari library.
 
         - ``'optimal'``: Use the AGM sequence such that at each stage
           `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
@@ -2212,6 +2294,8 @@ cdef class ComplexDoubleElement(FieldElement):
           `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
           where the sign is chosen so that `\Re(b_1/a_1) \geq 0` (the
           so-called principal branch of the square root).
+
+        See :wikipedia:`Arithmetic-geometric mean`
 
         EXAMPLES::
 
@@ -2244,7 +2328,10 @@ cdef class ComplexDoubleElement(FieldElement):
         cdef double d, e, eps = 2.0**-51
 
         if algorithm == "pari":
-            return pari_to_cdf(self._pari_().agm(right))
+            global complex_double_element_agm
+            if complex_double_element_agm is None:
+                from sage.libs.pari.convert_sage_complex_double import complex_double_element_agm
+            return complex_double_element_agm(self, right)
 
         if not isinstance(right, ComplexDoubleElement):
             right = CDF(right)
@@ -2294,7 +2381,10 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(10000000,10000000).dilog()
             -134.411774490731 + 38.79396299904504*I
         """
-        return pari_to_cdf(self._pari_().dilog())
+        global complex_double_element_dilog
+        if complex_double_element_dilog is None:
+            from sage.libs.pari.convert_sage_complex_double import complex_double_element_dilog
+        return complex_double_element_dilog(self)
 
     def gamma(self):
         r"""
@@ -2312,17 +2402,21 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(-1,0).gamma()
             Infinity
         """
-        if self._complex.dat[1] == 0:
-            if self._complex.dat[0] == 0:
-                import infinity
-                return infinity.unsigned_infinity
+        if not GSL_IMAG(self._complex):
+            if GSL_REAL(self._complex) == 0:
+                from .infinity import unsigned_infinity
+                return unsigned_infinity
             try:
-                from sage.rings.all import Integer, CC
-                if Integer(self._complex.dat[0]) < 0:
+                from .integer import Integer
+                if Integer(GSL_REAL(self._complex)) < 0:
+                    from .cc import CC
                     return CC(self).gamma()
             except TypeError:
                 pass
-        return pari_to_cdf(self._pari_().gamma())
+        global complex_double_element_gamma
+        if complex_double_element_gamma is None:
+            from sage.libs.pari.convert_sage_complex_double import complex_double_element_gamma
+        return complex_double_element_gamma(self)
 
     def gamma_inc(self, t):
         r"""
@@ -2337,7 +2431,10 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(2,0).gamma_inc(CDF(1,1))
             0.7070920963459381 - 0.4203536409598115*I
         """
-        return pari_to_cdf(self._pari_().incgam(t))
+        global complex_double_element_gamma_inc
+        if complex_double_element_gamma_inc is None:
+            from sage.libs.pari.convert_sage_complex_double import complex_double_element_gamma_inc
+        return complex_double_element_gamma_inc(self, t)
 
     def zeta(self):
         """
@@ -2353,10 +2450,14 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: zeta(CDF(1))
             Infinity
         """
-        if self._complex.dat[0] == 1 and self._complex.dat[1] == 0:
-            import infinity
-            return infinity.unsigned_infinity
-        return pari_to_cdf(self._pari_().zeta())
+        if GSL_REAL(self._complex) == 1 and GSL_IMAG(self._complex) == 0:
+            from .infinity import unsigned_infinity
+            return unsigned_infinity
+
+        global complex_double_element_zeta
+        if complex_double_element_zeta is None:
+            from sage.libs.pari.convert_sage_complex_double import complex_double_element_zeta
+        return complex_double_element_zeta(self)
 
     def algdep(self, long n):
         """
@@ -2373,9 +2474,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: z = (1/2)*(1 + RDF(sqrt(3)) *CDF.0); z   # abs tol 1e-16
             0.5 + 0.8660254037844387*I
             sage: p = z.algdep(5); p
-            x^3 + 1
-            sage: p.factor()
-            (x + 1) * (x^2 - x + 1)
+            x^2 - x + 1
             sage: abs(z^2 - z + 1) < 1e-14
             True
 
@@ -2386,11 +2485,8 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1,5).algdep(2)
             x^2 - 2*x + 26
         """
-        from polynomial.polynomial_ring_constructor import PolynomialRing
-        from integer_ring import ZZ
-        R = PolynomialRing(ZZ ,'x')
-        return R(self._pari_().algdep(n))
-
+        from sage.arith.all import algdep
+        return algdep(self, n)
 
 cdef class FloatToCDF(Morphism):
     """
@@ -2412,13 +2508,13 @@ cdef class FloatToCDF(Morphism):
         0.5
         sage: f = CDF.coerce_map_from(int); f
         Native morphism:
-          From: Set of Python objects of type 'int'
+          From: Set of Python objects of class 'int'
           To:   Complex Double Field
         sage: f(3r)
         3.0
         sage: f = CDF.coerce_map_from(float); f
         Native morphism:
-          From: Set of Python objects of type 'float'
+          From: Set of Python objects of class 'float'
           To:   Complex Double Field
         sage: f(3.5)
         3.5
@@ -2437,7 +2533,7 @@ cdef class FloatToCDF(Morphism):
         """
         from sage.categories.homset import Hom
         if isinstance(R, type):
-            from sage.structure.parent import Set_PythonType
+            from sage.sets.pythonclass import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, CDF))
 
@@ -2487,7 +2583,7 @@ cdef class ComplexToCDF(Morphism):
     def __init__(self, R):
         from sage.categories.homset import Hom
         if isinstance(R, type):
-            from sage.structure.parent import Set_PythonType
+            from sage.sets.pythonclass import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, CDF))
 
@@ -2533,7 +2629,7 @@ def ComplexDoubleField():
     """
     Returns the field of double precision complex numbers.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: ComplexDoubleField()
         Complex Double Field
@@ -2550,18 +2646,21 @@ cdef inline double complex extract_double_complex(ComplexDoubleElement x):
     Return the value of ``x`` as a c99 complex double.
     """
     cdef double complex z
-    z.real = x._complex.dat[0]
-    z.imag = x._complex.dat[1]
+    z.real = GSL_REAL(x._complex)
+    z.imag = GSL_IMAG(x._complex)
     return z
 
-cdef ComplexDoubleElement ComplexDoubleElement_from_doubles(double re, double im):
+
+cdef inline ComplexDoubleElement ComplexDoubleElement_from_doubles(double re, double im):
     """
     Create a new :class:`ComplexDoubleElement` with the specified real and
     imaginary parts.
     """
-    cdef ComplexDoubleElement z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
-    z._complex.dat[0] = re
-    z._complex.dat[1] = im
+    z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
+    GSL_SET_COMPLEX(&z._complex, re, im)
     return z
 
-#####
+
+# Support Python's numbers abstract base class
+import numbers
+numbers.Complex.register(ComplexDoubleElement)

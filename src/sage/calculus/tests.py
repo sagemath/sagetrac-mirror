@@ -76,7 +76,7 @@ Restoring variables after they have been turned into functions::
 
     sage: x = function('x')
     sage: type(x)
-    <class 'sage.symbolic.function_factory.NewSymbolicFunction'>
+    <class 'sage.symbolic.function_factory...NewSymbolicFunction'>
     sage: x(2/3)
     x(2/3)
     sage: restore('x')
@@ -104,15 +104,27 @@ from some Mathematica docs::
     -1/2*arctan(x/a)/a^3 - 1/4*log(a + x)/a^3 + 1/4*log(-a + x)/a^3
     sage: expand(integrate(log(1-x^2), x))
     x*log(-x^2 + 1) - 2*x + log(x + 1) - log(x - 1)
+
+This is an apparent regression in Maxima 5.39.0, although
+the antiderivative is correct, assuming we work with
+(poly)logs of complex argument. More convenient form is
+1/2*log(x^2)*log(-x^2 + 1) + 1/2*dilog(-x^2 + 1).
+See also https://sourceforge.net/p/maxima/bugs/3275/::
+
     sage: integrate(log(1-x^2)/x, x)
-    1/2*log(x^2)*log(-x^2 + 1) + 1/2*polylog(2, -x^2 + 1)
+    log(-x)*log(x + 1) + log(x)*log(-x + 1) + dilog(x + 1) + dilog(-x + 1)
+
+No problems here::
+
     sage: integrate(exp(1-x^2),x)
     1/2*sqrt(pi)*erf(x)*e
     sage: integrate(sin(x^2),x)
     1/16*sqrt(pi)*((I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x) + (I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x) - (I - 1)*sqrt(2)*erf(sqrt(-I)*x) + (I + 1)*sqrt(2)*erf((-1)^(1/4)*x))
 
-    sage: integrate((1-x^2)^n,x)
-    integrate((-x^2 + 1)^n, x)
+    sage: result = integrate((1-x^2)^n,x)
+    ...
+    sage: result
+    x*hypergeometric((1/2, -n), (3/2,), x^2*exp_polar(2*I*pi))
     sage: integrate(x^x,x)
     integrate(x^x, x)
     sage: integrate(1/(x^3+1),x)
@@ -129,24 +141,20 @@ from some Mathematica docs::
     sqrt(pi)/sqrt(c)
     sage: forget()
 
-The following are a bunch of examples of integrals that Mathematica
-can do, but Sage currently can't do::
+Other examples that now (:trac:`27958`) work::
 
-    sage: integrate(log(x)*exp(-x^2), x)        # todo -- Mathematica can do this
-    integrate(e^(-x^2)*log(x), x)
-
-Todo - Mathematica can do this and gets `\pi^2/15`.
-
-::
+    sage: integrate(log(x)*exp(-x^2), x)
+    1/2*sqrt(pi)*erf(x)*log(x) - x*hypergeometric((1/2, 1/2), (3/2, 3/2), -x^2)
 
     sage: integrate(log(1+sqrt(1+4*x)/2)/x, x, 0, 1)
     Traceback (most recent call last):
     ...
     ValueError: Integral is divergent.
 
-::
+The following is an example of integral that Mathematica
+can do, but Sage currently cannot do::
 
-    sage: integrate(ceil(x^2 + floor(x)), x, 0, 5)    # todo: Mathematica can do this
+    sage: integrate(ceil(x^2 + floor(x)), x, 0, 5, algorithm='maxima')
     integrate(ceil(x^2) + floor(x), x, 0, 5)
 
 MAPLE: The basic differentiation and integration examples in the
@@ -193,13 +201,13 @@ Maple documentation::
     1/3*sqrt(3)*arctan(1/3*sqrt(3)*(2*x + 1)) - 1/6*log(x^2 + x + 1) + 1/3*log(x - 1)
     sage: integrate(exp(-x^2), x)
     1/2*sqrt(pi)*erf(x)
-    sage: integrate(exp(-x^2)*log(x), x)       # todo: maple can compute this exactly.
-    integrate(e^(-x^2)*log(x), x)
+    sage: integrate(exp(-x^2)*log(x), x)
+    1/2*sqrt(pi)*erf(x)*log(x) - x*hypergeometric((1/2, 1/2), (3/2, 3/2), -x^2)
     sage: f = exp(-x^2)*log(x)
     sage: f.nintegral(x, 0, 999)
     (-0.87005772672831..., 7.5584...e-10, 567, 0)
     sage: integral(1/sqrt(2*t^4 - 3*t^2 - 2), t, 2, 3)     # todo: maple can do this
-    integrate(1/sqrt(2*t^4 - 3*t^2 - 2), t, 2, 3)
+    integrate(1/(sqrt(2*t^2 + 1)*sqrt(t^2 - 2)), t, 2, 3)
     sage: integral(integral(x*y^2, x, 0, y), y, -2, 2)
     32/5
 

@@ -1,16 +1,16 @@
 r"""
 Examples of graded connected Hopf algebras with basis
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2015 Jean-Baptiste Priez <jbp@kerios.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.functions.other import binomial
+from sage.arith.misc import binomial
 from sage.misc.cachefunc import cached_method
 from sage.sets.non_negative_integers import NonNegativeIntegers
 
@@ -136,7 +136,7 @@ class GradedConnectedCombinatorialHopfAlgebraWithPrimitiveGenerator(Combinatoria
         return self.monomial(i+j)
 
     def coproduct_on_basis(self, i):
-        """
+        r"""
         The coproduct of a basis element.
 
         .. MATH::
@@ -156,7 +156,6 @@ class GradedConnectedCombinatorialHopfAlgebraWithPrimitiveGenerator(Combinatoria
             sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
             sage: H.monomial(3).coproduct()
             P0 # P3 + 3*P1 # P2 + 3*P2 # P1 + P3 # P0
-
         """
         return self.sum_of_terms(
             ((i-j, j), binomial(i, j))

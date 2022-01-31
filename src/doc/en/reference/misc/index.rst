@@ -16,14 +16,6 @@ General Infrastructure
 Programming Utilities
 ---------------------
 
-Python 2 and 3 Compatibility
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. toctree::
-   :maxdepth: 1
-
-   sage/misc/six
-
 Special Base Classes, Decorators, etc.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -35,11 +27,11 @@ Special Base Classes, Decorators, etc.
    sage/misc/decorators
    sage/misc/constant_function
    sage/misc/classcall_metaclass
-   sage/misc/cython_metaclass
    sage/misc/inherit_comparison
    sage/misc/method_decorator
    sage/misc/object_multiplexer
    sage/misc/fast_methods
+   sage/misc/call
 
 Lists and Iteration, etc.
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,11 +43,11 @@ Lists and Iteration, etc.
    sage/misc/converting_dict
    sage/misc/flatten
    sage/misc/search
-   sage/misc/sage_itertools
    sage/misc/mrange
    sage/misc/multireplace
    sage/misc/map_threaded
    sage/arith/srange
+   sage/misc/element_with_label
 
 File and OS Access
 ~~~~~~~~~~~~~~~~~~
@@ -105,8 +97,9 @@ Miscellaneous Useful Functions
 
    sage/misc/misc
    sage/misc/misc_c
+   sage/misc/verbose
 
-Lazyness
+Laziness
 ~~~~~~~~
 
 .. toctree::
@@ -148,13 +141,51 @@ Fast Expression Evaluation
 ..   sage/ext/interpreters/wrapper_rdf
 ..   sage/ext/interpreters/wrapper_rr
 
+Features
+~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/features
+   sage/features/join_feature
+   sage/features/all
+   sage/features/sagemath
+   sage/features/pkg_systems
+   sage/features/bliss
+   sage/features/csdp
+   sage/features/databases
+   sage/features/dvipng
+   sage/features/fes
+   sage/features/ffmpeg
+   sage/features/four_ti_2
+   sage/features/gap
+   sage/features/graph_generators
+   sage/features/graphviz
+   sage/features/imagemagick
+   sage/features/interfaces
+   sage/features/internet
+   sage/features/kenzo
+   sage/features/latex
+   sage/features/latte
+   sage/features/lrs
+   sage/features/mcqd
+   sage/features/meataxe
+   sage/features/mip_backends
+   sage/features/normaliz
+   sage/features/pandoc
+   sage/features/pdf2svg
+   sage/features/polymake
+   sage/features/rubiks
+   sage/features/tdlib
+
+
 Code Evaluation
 ---------------
 
 .. toctree::
    :maxdepth: 1
 
-   sage/misc/cython_c
    sage/misc/cython
    sage/misc/inline_fortran
    sage/misc/parser
@@ -176,6 +207,8 @@ Formatted Output
    sage/typeset/character_art_factory
    sage/typeset/ascii_art
    sage/typeset/unicode_art
+   sage/typeset/unicode_characters
+   sage/misc/repr
    sage/misc/sage_input
    sage/misc/table
 
@@ -220,7 +253,6 @@ Interactive Sage Sessions
 .. toctree::
    :maxdepth: 1
 
-   sage/misc/log
    sage/misc/banner
    sage/misc/reset
    sage/misc/viewer
@@ -236,6 +268,7 @@ Distribution
 
    sage/misc/package
    sage/misc/dist
+
 
 Credits
 ~~~~~~~
@@ -277,13 +310,12 @@ Miscellaneous Inspection and Development Tools
 .. toctree::
    :maxdepth: 1
 
+   sage/docs/instancedoc
    sage/misc/sageinspect
    sage/misc/edit_module
-   sage/misc/getusage
    sage/misc/classgraph
    sage/misc/dev_tools
    sage/misc/function_mangling
-   sage/misc/memory_info
    sage/misc/rest_index_of_methods
 
 Low-Level Utilities

@@ -46,7 +46,7 @@ However, you cannot "mix wrong lattices" in your expressions::
     sage: n + m
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+':
+    TypeError: unsupported operand parent(s) for +:
     '3-d lattice N' and '3-d lattice M'
     sage: n * n
     Traceback (most recent call last):
@@ -101,7 +101,7 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.structure.coerce_exceptions import CoercionException
 from sage.structure.element cimport Element, Vector
 from sage.rings.integer cimport Integer
-from sage.structure.sage_object cimport richcmp_not_equal, richcmp
+from sage.structure.richcmp cimport richcmp_not_equal, richcmp
 
 
 def is_ToricLatticeElement(x):
@@ -374,7 +374,8 @@ cdef class ToricLatticeElement(Vector_integer_dense):
             sage: loads(dumps(N(1,2,3)))
             N(1, 2, 3)
         """
-        return (unpickle_v1, (self._parent, self.list(), self._degree, self._is_mutable))
+        return (unpickle_v1, (self._parent, self.list(), self._degree,
+                              not self._is_immutable))
 
     def plot(self, **options):
         r"""
@@ -393,7 +394,7 @@ cdef class ToricLatticeElement(Vector_integer_dense):
 
             sage: N = ToricLattice(3)
             sage: n = N(1,2,3)
-            sage: n.plot()
+            sage: n.plot()  # optional - sage.plot
             Graphics3d Object
         """
         tp = ToricPlotter(options, self.parent().degree())
@@ -413,8 +414,7 @@ def unpickle_v1(parent, entries, degree, is_mutable):
 
     - ``degree`` -- integer. the dimension of the toric lattice.
 
-    - ``is_mutable`` -- boolean. Whether the lattice element is
-      mutable.
+    - ``is_mutable`` -- boolean. Whether the lattice element is mutable.
 
     OUTPUT:
 
@@ -437,5 +437,5 @@ def unpickle_v1(parent, entries, degree, is_mutable):
     for i in range(degree):
         z = Integer(entries[i])
         mpz_set(v._entries[i], z.value)
-    v._is_mutable = is_mutable
+    v._is_immutable = not is_mutable
     return v

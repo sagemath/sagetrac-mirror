@@ -1,1 +1,0 @@
-# Initialization file for polynomials

@@ -6,9 +6,8 @@ AUTHORS:
 - Johan S. R. Nielsen, original implementation (see [Nie]_ for details)
 - David Lucas, ported the original implementation in Sage
 """
-from __future__ import absolute_import
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
 #                     2015 Johan S. R. Nielsen <jsrn@jsrn.dk>
 #
@@ -16,11 +15,11 @@ from __future__ import absolute_import
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 
-from sage.functions.other import ceil, binomial
+from sage.arith.misc import binomial
 from sage.matrix.constructor import matrix
 from sage.misc.misc_c import prod
 
@@ -69,7 +68,7 @@ def _monomial_list(maxdeg, l, wy):
     EXAMPLES::
 
         sage: from sage.coding.guruswami_sudan.interpolation import _monomial_list
-        sage: _monomial_list(8, 1, 3)
+        sage: list(_monomial_list(8, 1, 3))
         [(0, 0),
          (1, 0),
          (2, 0),
@@ -84,11 +83,10 @@ def _monomial_list(maxdeg, l, wy):
          (3, 1),
          (4, 1)]
     """
-    monomials = []
-    for y in range(0, l+1):
-        for x in range(0,  ceil(maxdeg - y*wy)):
-            monomials.append((x, y))
-    return monomials
+    for y in range(l + 1):
+        for x in range(maxdeg - y * wy):
+            yield (x, y)
+
 
 def _interpolation_matrix_given_monomials(points, s, monomials):
     r"""
@@ -123,16 +121,15 @@ def _interpolation_matrix_given_monomials(points, s, monomials):
         [ 0  0  1 10]
         [ 0  1  5  0]
     """
-    n = len(points)
-    def eqs_affine(x0,y0):
+    def eqs_affine(x0, y0):
         r"""
         Make equation for the affine point x0, y0. Return a list of
         equations, each equation being a list of coefficients corresponding to
         the monomials in ``monomials``.
         """
         eqs = []
-        for i in range(0, s):
-            for j in range(0, s-i):
+        for i in range(s):
+            for j in range(s - i):
                 eq = dict()
                 for monomial in monomials:
                     ihat = monomial[0]
@@ -146,6 +143,7 @@ def _interpolation_matrix_given_monomials(points, s, monomials):
                 eqs.append([eq.get(monomial, 0) for monomial in monomials])
         return eqs
     return matrix(list(_flatten_once([eqs_affine(*point) for point in points])))
+
 
 def _interpolation_max_weighted_deg(n, tau, s):
     """Return the maximal weighted degree allowed for an interpolation
@@ -190,7 +188,7 @@ def _interpolation_matrix_problem(points, tau, parameters, wy):
 
         sage: from sage.coding.guruswami_sudan.interpolation import _interpolation_matrix_problem
         sage: F = GF(11)
-        sage: points = [ (F(x),F(y)) for (x,y) in (0, 5), (1, 1), (2, 4), (3, 6), (4, 3), (5, 3)]
+        sage: points = [(F(x), F(y)) for (x,y) in [(0, 5), (1, 1), (2, 4), (3, 6), (4, 3), (5, 3)]]
         sage: tau = 3
         sage: params = (2, 4)
         sage: wy = 1
@@ -217,9 +215,10 @@ def _interpolation_matrix_problem(points, tau, parameters, wy):
         )
     """
     s, l = parameters[0], parameters[1]
-    monomials = _monomial_list(_interpolation_max_weighted_deg(len(points), tau, s), l, wy)
+    monomials = list(_monomial_list(_interpolation_max_weighted_deg(len(points), tau, s), l, wy))
     M = _interpolation_matrix_given_monomials(points, s, monomials)
     return (M, monomials)
+
 
 def gs_interpolation_linalg(points, tau, parameters, wy):
     r"""
@@ -254,7 +253,7 @@ def gs_interpolation_linalg(points, tau, parameters, wy):
 
         sage: from sage.coding.guruswami_sudan.interpolation import gs_interpolation_linalg
         sage: F = GF(11)
-        sage: points = [ (F(x),F(y)) for (x,y) in (0, 5), (1, 1), (2, 4), (3, 6), (4, 3), (5, 3)]
+        sage: points = [(F(x),F(y)) for (x,y) in [(0, 5), (1, 1), (2, 4), (3, 6), (4, 3), (5, 3)]]
         sage: tau = 3
         sage: params = (2, 4)
         sage: wy = 1
@@ -377,21 +376,18 @@ def gs_interpolation_lee_osullivan(points, tau, parameters, wy):
         sage: tau = 1
         sage: params = (1, 1)
         sage: wy = 1
-        sage: gs_interpolation_lee_osullivan(points, tau, params, wy)
+        sage: Q = gs_interpolation_lee_osullivan(points, tau, params, wy)
+        sage: Q / Q.lc() # make monic
         x^3*y + 2*x^3 - x^2*y + 5*x^2 + 5*x*y - 5*x + 2*y - 4
     """
-    from .utils import apply_shifts, remove_shifts, leading_term
+    from .utils import _degree_of_vector
     s, l = parameters[0], parameters[1]
     F = points[0][0].parent()
     M = lee_osullivan_module(points, (s,l), wy)
     shifts = [i * wy for i in range(0,l+1)]
-    apply_shifts(M, shifts)
-    Mnew = M.row_reduced_form(transformation=False, old_call=False)
+    Mnew = M.reduced_form(shifts=shifts)
     # Construct Q as the element of the row with the lowest weighted degree
-    degs = [(i, leading_term(Mnew.row(i)).degree()) for i in range(0,l+1)]
-    best = min(degs, key=lambda i_d: i_d[1])[0]
-    remove_shifts(Mnew, shifts)
-    Qlist = Mnew.row(best)
+    Qlist = min(Mnew.rows(), key=lambda r: _degree_of_vector(r, shifts))
     PFxy = F['x,y']
     xx, yy = PFxy.gens()
     Q = sum(yy**i * PFxy(Qlist[i]) for i in range(0,l+1))

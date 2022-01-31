@@ -1,7 +1,6 @@
 """
 Real intervals with a fixed absolute precision
 """
-from __future__ import print_function
 
 from sage.ext.stdsage cimport PY_NEW
 
@@ -11,12 +10,13 @@ from sage.structure.factory import UniqueFactory
 from sage.structure.element cimport RingElement, ModuleElement, Element, FieldElement
 from sage.rings.ring cimport Field
 from sage.rings.integer cimport Integer
+import sage.rings.abc
 
-from sage.structure.parent import Parent
-from sage.structure.element import parent
+from sage.structure.parent cimport Parent
+from sage.structure.element cimport parent
 
 from sage.rings.real_mpfr import RR_min_prec
-from sage.rings.real_mpfi import RealIntervalField, RealIntervalFieldElement, is_RealIntervalField
+from sage.rings.real_mpfi import RealIntervalField, RealIntervalFieldElement
 from sage.rings.rational_field import QQ
 
 cdef Integer zero = Integer(0)
@@ -131,6 +131,7 @@ cdef class RealIntervalAbsoluteField_class(Field):
         """
         if absprec < 0:
             raise ValueError("Absolute precision must be positive.")
+        Field.__init__(self, self)
         self._absprec = absprec
 
     def __reduce__(self):
@@ -185,7 +186,7 @@ cdef class RealIntervalAbsoluteField_class(Field):
         """
         if isinstance(R, RealIntervalAbsoluteField_class):
             return self._absprec < (<RealIntervalAbsoluteField_class>R)._absprec
-        elif is_RealIntervalField(R):
+        elif isinstance(R, sage.rings.abc.RealIntervalField):
             return True
         else:
             return RR_min_prec.has_coerce_map_from(R)
@@ -266,6 +267,8 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
             6.?
             sage: R100(R((5,6)))
             6.?
+            sage: RIF(CIF(NaN))
+            [.. NaN ..]
         """
         Element.__init__(self, parent)
 

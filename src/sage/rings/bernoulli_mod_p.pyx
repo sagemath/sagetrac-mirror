@@ -1,3 +1,9 @@
+# distutils: libraries = NTL_LIBRARIES gmp
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: language = c++
 r"""
 Bernoulli numbers modulo p
 
@@ -36,7 +42,7 @@ from sage.rings.bernmm import bernmm_bern_modp
 
 def verify_bernoulli_mod_p(data):
     """
-    Computes checksum for bernoulli numbers.
+    Computes checksum for Bernoulli numbers.
 
     It checks the identity
 

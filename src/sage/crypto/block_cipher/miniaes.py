@@ -25,7 +25,6 @@ AUTHORS:
 #
 # http://www.gnu.org/licenses/
 ###########################################################################
-from six.moves import range
 
 from sage.matrix.matrix_dense import Matrix_dense
 from sage.matrix.matrix_space import MatrixSpace
@@ -148,7 +147,7 @@ class MiniAES(SageObject):
             sage: plaintxt == P
             True
         """
-        from sage.crypto.mq import SBox
+        from sage.crypto.sbox import SBox
         self._key_size = 16  # the number of bits in a secret key
         B = BinaryStrings()
         K = FiniteField(self._key_size, "x")
@@ -1656,13 +1655,14 @@ class MiniAES(SageObject):
         elif isinstance(G, list):
             if len(G) == 0:
                 raise ValueError("input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)")
-            S = "".join([str(self._GF_to_bin[g]) for g in G])
+            S = "".join(str(self._GF_to_bin[g]) for g in G)
             return B(S)
         # G is a matrix over GF(16)
         elif isinstance(G, Matrix_dense):
             if not (G.base_ring() is K):
                 raise TypeError("input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)")
-            S = "".join([str(self._GF_to_bin[G[i][j]]) for i in range(G.nrows()) for j in range(G.ncols())])
+            S = "".join(str(self._GF_to_bin[G[i][j]])
+                        for i in range(G.nrows()) for j in range(G.ncols()))
             return B(S)
         # the type of G doesn't match the supported types
         else:
@@ -2058,7 +2058,7 @@ class MiniAES(SageObject):
             bin = BinaryStrings()
             # Here, we assume that each element of the list is an integer n
             # such that 0 <= n <= 15. An error will be raised if otherwise.
-            b = "".join([str(self._int_to_bin[n]) for n in N])
+            b = "".join(str(self._int_to_bin[n]) for n in N)
             return bin(b)
         elif isinstance(N, Integer):
             # Here, we assume that N is an integer such that 0 <= n <= 15.

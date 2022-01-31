@@ -17,16 +17,19 @@ REFERENCE:
 """
 
 #*****************************************************************************
-#      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
+#       Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-include 'data_structures_pyx.pxi' # includes bitsets
-
-from sage.matrix.matrix import is_Matrix
+from sage.data_structures.bitset_base cimport *
+from .data_structures cimport *
+from sage.rings.integer cimport Integer
+from sage.structure.element import is_Matrix
 from .double_coset cimport double_coset
 
 
@@ -36,7 +39,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         cdef int i,j
         self.degree = matrix.ncols()
         self.dimension = matrix.nrows()
-        if self.dimension >= (sizeof(int) << 3):
+        if self.dimension >= <int>(sizeof(int) << 3):
             raise NotImplementedError
             # By the time the dimension gets this big, the computation is infeasible anyway...
         self.nwords = 1<<self.dimension
@@ -110,7 +113,8 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         partition -- an optional list of lists partition of the columns.
             default is the unit partition.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.groups.perm_gps.partn_ref.refinement_binary import LinearBinaryCodeStruct
 
             sage: B = LinearBinaryCodeStruct(matrix(GF(2),[[1,0,1],[0,1,1]]))
@@ -131,96 +135,96 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
             True
 
             sage: M = Matrix(GF(2),[\
-            ... [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],\
-            ... [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],\
-            ... [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],\
-            ... [0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],\
-            ... [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]])
+            ....: [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],\
+            ....: [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],\
+            ....: [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],\
+            ....: [0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],\
+            ....: [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]])
             sage: B = LinearBinaryCodeStruct(M)
             sage: B.automorphism_group()[1]
             322560
 
             sage: M = Matrix(GF(2),[\
-            ... [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],\
-            ... [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0],\
-            ... [0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,1,1],\
-            ... [0,0,0,1,1,0,0,0,0,1,1,0,1,1,0,1,1]])
+            ....: [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],\
+            ....: [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0],\
+            ....: [0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,1,1],\
+            ....: [0,0,0,1,1,0,0,0,0,1,1,0,1,1,0,1,1]])
             sage: B = LinearBinaryCodeStruct(M)
             sage: B.automorphism_group()[1]
             2304
 
             sage: M=Matrix(GF(2),[\
-            ... [1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0,0],\
-            ... [0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0],\
-            ... [0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0],\
-            ... [0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0],\
-            ... [0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0],\
-            ... [0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0],\
-            ... [0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0],\
-            ... [0,0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1]])
+            ....: [1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0,0],\
+            ....: [0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0],\
+            ....: [0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0],\
+            ....: [0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0],\
+            ....: [0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0],\
+            ....: [0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0],\
+            ....: [0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0],\
+            ....: [0,0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1]])
             sage: B = LinearBinaryCodeStruct(M)
             sage: B.automorphism_group()[1]
             136
 
             sage: M = Matrix(GF(2),[\
-            ... [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-            ... [0,0,0,0,1,1,0,0,0,0,0,0,1,1,1,1,1,1],
-            ... [0,0,1,1,0,0,0,0,0,0,1,1,1,1,0,0,1,1],
-            ... [0,0,0,1,0,0,0,1,0,1,0,1,0,1,1,1,0,1],
-            ... [0,1,0,0,0,1,0,0,0,1,1,1,0,1,0,1,1,0]])
+            ....: [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0],
+            ....: [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+            ....: [0,0,0,0,1,1,0,0,0,0,0,0,1,1,1,1,1,1],
+            ....: [0,0,1,1,0,0,0,0,0,0,1,1,1,1,0,0,1,1],
+            ....: [0,0,0,1,0,0,0,1,0,1,0,1,0,1,1,1,0,1],
+            ....: [0,1,0,0,0,1,0,0,0,1,1,1,0,1,0,1,1,0]])
             sage: B = LinearBinaryCodeStruct(M)
             sage: B.automorphism_group()[1]
             2160
 
             sage: M=Matrix(GF(2),[\
-            ... [0,1,0,1,1,1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1],\
-            ... [1,0,1,1,1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1,0],\
-            ... [0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,1,1,1,0,1,0,0],\
-            ... [1,1,1,0,0,0,1,0,0,1,0,0,0,0,1,1,1,0,1,0,0,1],\
-            ... [1,1,0,0,0,1,0,0,1,0,1,0,0,1,1,1,0,1,0,0,1,0],\
-            ... [1,0,0,0,1,0,0,1,0,1,1,0,1,1,1,0,1,0,0,1,0,0],\
-            ... [0,0,0,1,0,0,1,0,1,1,1,1,1,1,0,1,0,0,1,0,0,0],\
-            ... [0,0,1,0,0,1,0,1,1,1,0,1,1,0,1,0,0,1,0,0,0,1],\
-            ... [0,1,0,0,1,0,1,1,1,0,0,1,0,1,0,0,1,0,0,0,1,1],\
-            ... [1,0,0,1,0,1,1,1,0,0,0,0,1,0,0,1,0,0,0,1,1,1],\
-            ... [0,0,1,0,1,1,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0]])
+            ....: [0,1,0,1,1,1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1],\
+            ....: [1,0,1,1,1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1,0],\
+            ....: [0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,1,1,1,0,1,0,0],\
+            ....: [1,1,1,0,0,0,1,0,0,1,0,0,0,0,1,1,1,0,1,0,0,1],\
+            ....: [1,1,0,0,0,1,0,0,1,0,1,0,0,1,1,1,0,1,0,0,1,0],\
+            ....: [1,0,0,0,1,0,0,1,0,1,1,0,1,1,1,0,1,0,0,1,0,0],\
+            ....: [0,0,0,1,0,0,1,0,1,1,1,1,1,1,0,1,0,0,1,0,0,0],\
+            ....: [0,0,1,0,0,1,0,1,1,1,0,1,1,0,1,0,0,1,0,0,0,1],\
+            ....: [0,1,0,0,1,0,1,1,1,0,0,1,0,1,0,0,1,0,0,0,1,1],\
+            ....: [1,0,0,1,0,1,1,1,0,0,0,0,1,0,0,1,0,0,0,1,1,1],\
+            ....: [0,0,1,0,1,1,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0]])
             sage: B = LinearBinaryCodeStruct(M)
             sage: B.automorphism_group()[1]
             887040
 
             sage: M = Matrix(GF(2),[\
-            ... [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            ... [0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
-            ... [0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0],
-            ... [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-            ... [1,0,1,0,1,0,1,0,1,1,0,0,0,0,0,0,1,1,0,0],
-            ... [1,1,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,1,0,0],
-            ... [1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,0,1,0]])
+            ....: [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            ....: [0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            ....: [0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0],
+            ....: [0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0],
+            ....: [0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+            ....: [0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0],
+            ....: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            ....: [1,0,1,0,1,0,1,0,1,1,0,0,0,0,0,0,1,1,0,0],
+            ....: [1,1,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,1,0,0],
+            ....: [1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,0,1,0]])
             sage: B = LinearBinaryCodeStruct(M)
             sage: B.automorphism_group()[1]
             294912
 
             sage: M = Matrix(GF(2), [\
-            ... [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
-            ... [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0],
-            ... [0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0],
-            ... [0,0,0,0,0,0,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0],
-            ... [0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1],
-            ... [0,0,0,0,0,0,1,1,0,0,0,0,0,1,0,1,0,0,1,1,1,0,1],
-            ... [0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,1,1,1,1,0,0,0,1]])
+            ....: [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            ....: [0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            ....: [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+            ....: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0],
+            ....: [0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0],
+            ....: [0,0,0,0,0,0,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0],
+            ....: [0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1],
+            ....: [0,0,0,0,0,0,1,1,0,0,0,0,0,1,0,1,0,0,1,1,1,0,1],
+            ....: [0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,1,1,1,1,0,0,0,1]])
             sage: B = LinearBinaryCodeStruct(M)
             sage: B.automorphism_group()[1]
             442368
 
             sage: M = Matrix(GF(2), [\
-            ... [1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0],\
-            ... [1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,0,1,1,0,0,0,0,1]])
+            ....: [1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0],\
+            ....: [1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,0,1,1,0,0,0,0,1]])
             sage: B = LinearBinaryCodeStruct(M)
             sage: B.automorphism_group()[1]
             17868913969917295853568000000
@@ -247,7 +251,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         order and a base for which the list of generators is a strong generating
         set.
 
-        EXAMPLE: (For more examples, see self.run())
+        EXAMPLES: (For more examples, see self.run())
             sage: from sage.groups.perm_gps.partn_ref.refinement_binary import LinearBinaryCodeStruct
 
             sage: B = LinearBinaryCodeStruct(matrix(GF(2),[[1,1,1,1]]))
@@ -296,7 +300,8 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         """
         Calculate whether self is isomorphic to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.groups.perm_gps.partn_ref.refinement_binary import LinearBinaryCodeStruct
 
             sage: B = LinearBinaryCodeStruct(Matrix(GF(2), [[1,1,1,1,0,0],[0,0,1,1,1,1]]))
@@ -458,7 +463,8 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         partition -- an optional list of lists partition of the columns.
             default is the unit partition.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.groups.perm_gps.partn_ref.refinement_binary import NonlinearBinaryCodeStruct
 
             sage: B = NonlinearBinaryCodeStruct(Matrix(GF(2), [[1,0,0,0],[0,0,1,0]]))
@@ -508,7 +514,7 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         order and a base for which the list of generators is a strong generating
         set.
 
-        EXAMPLE: (For more examples, see self.run())
+        EXAMPLES: (For more examples, see self.run())
             sage: from sage.groups.perm_gps.partn_ref.refinement_binary import NonlinearBinaryCodeStruct
 
             sage: B = NonlinearBinaryCodeStruct(Matrix(GF(2), [[1,1,1,0,0,0],[1,1,0,1,0,0],[1,0,1,1,0,0],[0,1,1,1,0,0],[0,0,0,0,1,0],[0,0,0,0,0,1]]))
@@ -557,7 +563,8 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         """
         Calculate whether self is isomorphic to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.groups.perm_gps.partn_ref.refinement_binary import NonlinearBinaryCodeStruct
 
             sage: B = NonlinearBinaryCodeStruct(Matrix(GF(2), [[1,1,1,1,0,0],[0,0,1,1,1,1]]))
@@ -1079,10 +1086,10 @@ def random_tests(num=50, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, d
             C_n = NonlinearBinaryCodeStruct( matrix(GF(2), B_n.nwords, B_n.degree) )
             for j from 0 <= j < B.dimension:
                 for h from 0 <= h < B.degree:
-                    bitset_set_to(&C.basis[j], perm[h], bitset_check(&B.basis[j], h))
+                    bitset_set_to(&C.basis[j], <mp_bitcnt_t> perm[h], bitset_check(&B.basis[j], h))
             for j from 0 <= j < B_n.nwords:
                 for h from 0 <= h < B_n.degree:
-                    bitset_set_to(&C_n.words[j], perm[h], bitset_check(&B_n.words[j], h))
+                    bitset_set_to(&C_n.words[j], <mp_bitcnt_t> perm[h], bitset_check(&B_n.words[j], h))
             # now C is a random permutation of B, and C_n of B_n
             C.run()
             C_n.run()

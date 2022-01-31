@@ -91,12 +91,7 @@ This module is used for the recognition of Interval Graphs (see
    our sets satisfying our constraints, or to prove that no such ordering
    exists. This is the whole purpose of this module, and is explained with more
    details in many places, for example in the following document from Hajiaghayi
-   [Haj]_.
-
-REFERENCES:
-
-.. [Haj] \M. Hajiaghayi
-   http://www-math.mit.edu/~hajiagha/pp11.ps
+   [Haj2000]_.
 
 Authors:
 
@@ -111,9 +106,8 @@ Methods and functions
 #      Copyright (C) 2012 Nathann Cohen <nathann.cohen@gail.com>               #
 #                                                                              #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL) #
-#                         http://www.gnu.org/licenses/                         #
+#                         https://www.gnu.org/licenses/                        #
 ################################################################################
-from __future__ import print_function
 
 # Constants, to make the code more readable
 
@@ -163,7 +157,7 @@ def reorder_sets(sets):
 
     PQ-Trees
 
-    EXAMPLE:
+    EXAMPLES:
 
     There is only one way (up to reversal) to represent contiguously
     the sequence ofsets `\{i-1, i, i+1\}`::
@@ -209,7 +203,7 @@ class PQ:
         r"""
         Construction of a PQ-Tree
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = Q([[1,2], [2,3], P([[2,4], [2,8], [2,9]])])
@@ -226,14 +220,14 @@ class PQ:
             if isinstance(e, list):
                 e = Set(e)
 
-            if not e in self._children:
+            if e not in self._children:
                 self._children.append(e)
 
     def reverse(self):
         r"""
         Recursively reverses ``self`` and its children
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = Q([[1,2], [2,3], P([[2,4], [2,8], [2,9]])])
@@ -258,7 +252,7 @@ class PQ:
 
         - ``v`` -- an element of the ground set
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = Q([[1,2], [2,3], P([[2,4], [2,8], [2,9]])])
@@ -273,7 +267,7 @@ class PQ:
         r"""
         Iterates over the children of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = Q([[1,2], [2,3], P([[2,4], [2,8], [2,9]])])
@@ -290,7 +284,7 @@ class PQ:
         r"""
         Returns the number of children of ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = Q([[1,2], [2,3], P([[2,4], [2,8], [2,9]])])
@@ -304,7 +298,7 @@ class PQ:
         Returns the current ordering given by listing the leaves from
         left to right.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = Q([[1,2], [2,3], P([[2,4], [2,8], [2,9]])])
@@ -324,7 +318,7 @@ class PQ:
         r"""
         Succintly represents ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = Q([[1,2], [2,3], P([[2,4], [2,8], [2,9]])])
@@ -429,7 +423,7 @@ class PQ:
         method recursively "flattens" trees having only on PQ-tree
         child, and returns it.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = Q([P([[2,4], [2,8], [2,9]])])
@@ -479,7 +473,7 @@ class P(PQ):
         function ends. If there is no possibility of doing so, the function
         raises a ``ValueError`` exception.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Ensuring the sets containing ``0`` are continuous::
 
@@ -515,7 +509,8 @@ class P(PQ):
         # code slightly more readable :-)                             #
         ###############################################################
 
-        seq = [set_contiguous(x, v) for x in self]
+        for x in self:
+            set_contiguous(x, v)
         self.flatten()
         seq = [set_contiguous(x, v) for x in self]
 
@@ -540,8 +535,6 @@ class P(PQ):
         n_EMPTY                 = len(set_EMPTY)
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
-
-        counts = {x:len(y) for x,y in sorting.iteritems()}
 
         # Excludes the situation where there is no solution.
         # read next comment for more explanations
@@ -677,7 +670,7 @@ class P(PQ):
 
             :meth:`orderings` -- iterate over all admissible orderings
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = P([[0,3], [1,2], [2,3], [2,4], [4,0],[2,8], [2,9]])
@@ -760,7 +753,7 @@ class Q(PQ):
         function ends. If there is no possibility of doing so, the function
         raises a ``ValueError`` exception.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Ensuring the sets containing ``0`` are continuous::
 
@@ -802,7 +795,8 @@ class Q(PQ):
         # code slightly more readable :-)                             #
         ###############################################################
 
-        seq = [set_contiguous(x, v) for x in self]
+        for x in self:
+            set_contiguous(x, v)
         self.flatten()
         seq = [set_contiguous(x, v) for x in self]
 
@@ -827,8 +821,6 @@ class Q(PQ):
         n_EMPTY                 = len(set_EMPTY)
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
-
-        counts = {x:len(y) for x,y in sorting.iteritems()}
 
         ###################################################################
         #                                                                 #
@@ -874,7 +866,7 @@ class Q(PQ):
         # From now on, there are at most two pq-trees which are partially filled
         # If there is one which is not aligned to the right, all the others are empty
 
-        # First trivial case, no checking neded
+        # First trivial case, no checking needed
         elif n_FULL == self.number_of_children():
             return FULL, True
 
@@ -1014,7 +1006,7 @@ class Q(PQ):
 
             :meth:`orderings` -- iterate over all admissible orderings
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: q = Q([[0,3], [1,2], [2,3], [2,4], [4,0],[2,8], [2,9]])
@@ -1036,7 +1028,6 @@ class Q(PQ):
 
             :meth:`cardinality` -- return the number of orderings
 
-
         EXAMPLES::
 
             sage: from sage.graphs.pq_trees import P, Q
@@ -1048,11 +1039,11 @@ class Q(PQ):
         """
         if len(self._children) == 1:
             c = self._children[0]
-            for o in (c.orderings() if isinstance(c,PQ) else [o]):
+            for o in (c.orderings() if isinstance(c, PQ) else [c]):
                 yield o
         else:
             from itertools import product
-            for o in product(*[x.orderings() if isinstance(x,PQ) else [x]
+            for o in product(*[x.orderings() if isinstance(x, PQ) else [x]
                                for x in self._children]):
                 yield o
                 yield o[::-1]

@@ -117,13 +117,10 @@ então faça o seguinte:
                     Recompiling factorial.spyx
     ***************************************************
     sage: factorial(50)
-    30414093201713378043612608166064768844377641568960512000000000000L
+    30414093201713378043612608166064768844377641568960512000000000000
     sage: time n = factorial(10000)
     CPU times: user 0.03 s, sys: 0.00 s, total: 0.03 s
     Wall time: 0.03
-
-Aqui o sufixo L indica um "long integer" do Python (veja
-:ref:`section-mathannoy`).
 
 Note que o Sage vai recompilar ``factorial.spyx`` se você encerrar e
 reiniciar o Sage. A biblioteca compilada e compartilhada é armazenada
@@ -212,8 +209,6 @@ de como usá-lo:
 
     bash $ ./factor 2006
     2 * 17 * 59
-    bash $ ./factor "32*x^5-1"
-    (2*x - 1) * (16*x^4 + 8*x^3 + 4*x^2 + 2*x + 1)
 
 Tipo de Dados
 =============
@@ -226,17 +221,17 @@ e floats, como ilustrado:
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # you can use either single or double quotes
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
-    <type 'list'>
+    <... 'list'>
     sage: s = (1,2,3,4); type(s)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: s = int(2006); type(s)
-    <type 'int'>
+    <... 'int'>
     sage: s = float(2006); type(s)
-    <type 'float'>
+    <... 'float'>
 
 Além disso, o Sage acrescenta vários outros tipos. Por exemplo,
 espaços vetoriais:
@@ -317,7 +312,7 @@ computacional), os elementos da lista são indexados a partir do
     sage: v = [2, 3, 5, 'x', SymmetricGroup(3)]; v
     [2, 3, 5, 'x', Symmetric group of order 3! as a permutation group]
     sage: type(v)
-    <type 'list'>
+    <... 'list'>
     sage: v[0]
     2
     sage: v[2]
@@ -332,7 +327,7 @@ possua um método ``__index__``) também ira funcionar.
     sage: v = [1,2,3]
     sage: v[2]
     3
-    sage: n = 2      # SAGE Integer
+    sage: n = 2      # Sage Integer
     sage: v[n]       # Perfectly OK!
     3
     sage: v[int(n)]  # Also OK.
@@ -343,7 +338,7 @@ Sage):
 
 ::
 
-    sage: range(1, 15)
+    sage: list(range(1, 15))
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 
 Isso é útil quando se usa "list comprehensions" para construir listas:
@@ -388,7 +383,7 @@ vez criadas elas não podem ser alteradas.
     sage: v = (1,2,3,4); v
     (1, 2, 3, 4)
     sage: type(v)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: v[1] = 5
     Traceback (most recent call last):
     ...   
@@ -409,7 +404,7 @@ sequência possuem um parente comum, chamado o universo da sequência.
     sage: type(v)
     <class 'sage.structure.sequence.Sequence_generic'>
     sage: type(v[1])
-    <type 'sage.rings.rational.Rational'>
+    <class 'sage.rings.rational.Rational'>
     sage: v.universe()
     Rational Field
     sage: v.is_immutable()
@@ -431,7 +426,7 @@ lugar que listas são usadas.
     sage: list(v)
     [1, 2, 3, 4/5]
     sage: type(list(v))
-    <type 'list'>
+    <... 'list'>
 
 Como um outro exemplo, bases para espaços vetoriais são sequências
 imutáveis, pois é importante que elas não sejam modificadas.
@@ -466,9 +461,9 @@ para detalhes).
 
     sage: d = {1:5, 'sage':17, ZZ:GF(7)}
     sage: type(d)
-    <type 'dict'>
-    sage: d.keys()
-     [1, 'sage', Integer Ring]
+    <... 'dict'>
+    sage: list(d.keys())
+    [1, 'sage', Integer Ring]
     sage: d['sage']
     17
     sage: d[ZZ]
@@ -486,7 +481,7 @@ dados:
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 É comum iterar sobre os pares em um dicionário:
@@ -494,7 +489,7 @@ dados:
 :: 
 
     sage: d = {2:4, 3:9, 4:16}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 Um dicionário não possui ordem, como o exemplo acima mostra.
@@ -549,7 +544,7 @@ sobre o quadrados dos números inteiros até :math:`10000000`.
 
 ::
 
-    sage: v = (n^2 for n in xrange(10000000))
+    sage: v = (n^2 for n in range(10000000))
     sage: next(v)
     0
     sage: next(v)
@@ -673,16 +668,6 @@ converter ambos os números para o mesmo tipo, se possível:
     True
     True
 
-Quase todos pares de objetos podem ser comparados; não se supõe que os
-objetos estejam equipados com uma ordem total.
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # output can be somewhat random
-    True
-
 Use bool para desigualdades simbólicas:
 
 ::
@@ -705,8 +690,6 @@ o int ``1`` do Python é único, mas o Inteiro ``1`` do Sage não é.
 
     sage: 1 is 2/2
     False
-    sage: int(1) is int(2)/int(2)  # optional - python2
-    True
     sage: 1 is 1
     False
     sage: 1 == 2/2

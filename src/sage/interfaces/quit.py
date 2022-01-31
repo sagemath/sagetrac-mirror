@@ -1,7 +1,6 @@
 """
 Quitting interfaces
 """
-from __future__ import print_function
 
 ################################################################################
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
@@ -9,12 +8,13 @@ from __future__ import print_function
 #  Distributed under the terms of (any version of) the GNU
 #  General Public License (GPL). The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ################################################################################
 
 import os
 
 expect_objects = []
+
 
 def expect_quitall(verbose=False):
     """
@@ -29,17 +29,17 @@ def expect_quitall(verbose=False):
         sage: gp('a')
         a
         sage: sage.interfaces.quit.expect_quitall(verbose=True)
-        Exiting PARI/GP interpreter with PID ... running .../bin/gp --fast --emacs --quiet --stacksize 10000000
+        Exiting PARI/GP interpreter with PID ... running .../gp --fast --emacs --quiet --stacksize 10000000
     """
     for P in expect_objects:
         R = P()
-        if not R is None:
+        if R is not None:
             try:
                 R.quit(verbose=verbose)
-                pass
             except RuntimeError:
                 pass
     kill_spawned_jobs()
+
 
 def kill_spawned_jobs(verbose=False):
     """
@@ -67,15 +67,17 @@ def kill_spawned_jobs(verbose=False):
     file = os.path.join(SAGE_TMP, 'spawned_processes')
     if not os.path.exists(file):
         return
-    for L in open(file).readlines():
-        i = L.find(' ')
-        pid = L[:i].strip()
-        try:
-            if verbose:
-                print("Killing spawned job %s" % pid)
-            os.killpg(int(pid), 9)
-        except OSError:
-            pass
+    with open(file) as f:
+        for L in f:
+            i = L.find(' ')
+            pid = L[:i].strip()
+            try:
+                if verbose:
+                    print("Killing spawned job %s" % pid)
+                os.killpg(int(pid), 9)
+            except OSError:
+                pass
+
 
 def is_running(pid):
     """
@@ -101,9 +103,9 @@ def invalidate_all():
         (2, 3)
         sage: sage.interfaces.quit.invalidate_all()
         sage: a
-        <repr(<sage.interfaces.maxima.MaximaElement at 0x...>) failed: ValueError: The maxima session in which this object was defined is no longer running.>
+        (invalid Maxima object -- The maxima session in which this object was defined is no longer running.)
         sage: b
-        <repr(<sage.interfaces.gp.GpElement at 0x...>) failed: ValueError: The pari session in which this object was defined is no longer running.>
+        (invalid PARI/GP interpreter object -- The pari session in which this object was defined is no longer running.)
 
     However the maxima and gp sessions should still work out, though with their state reset:
 

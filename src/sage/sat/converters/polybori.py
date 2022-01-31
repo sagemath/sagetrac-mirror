@@ -28,12 +28,13 @@ Classes and Methods
 ##############################################################################
 
 from random import Random
-from sage.rings.polynomial.pbori import if_then_else as ite
+from sage.rings.polynomial.pbori.pbori import if_then_else as ite
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import ceil
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.combinat.permutation import Permutations
 from sage.sat.converters import ANF2CNFConverter
+
 
 class CNFEncoder(ANF2CNFConverter):
     """
@@ -74,7 +75,7 @@ class CNFEncoder(ANF2CNFConverter):
         - ``random_seed`` - the direct conversion method uses
           randomness, this sets the seed (default: 16)
 
-        EXAMPLE:
+        EXAMPLES:
 
         We compare the sparse and the dense strategies, sparse first::
 
@@ -88,8 +89,8 @@ class CNFEncoder(ANF2CNFConverter):
             sage: _ = solver.write()
             sage: print(open(fn).read())
             p cnf 3 2
-            1 0
             -2 0
+            1 0
             sage: e.phi
             [None, a, b, c]
 
@@ -115,7 +116,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         .. NOTE::
 
-            This constructer generates SAT variables for each Boolean polynomial variable.
+            This constructor generates SAT variables for each Boolean polynomial variable.
         """
         self.random_generator = Random(random_seed)
         self.one_set = ring.one().set()
@@ -150,7 +151,7 @@ class CNFEncoder(ANF2CNFConverter):
         - ``m`` - something the new variables maps to, usually a monomial
         - ``decision`` - is this variable a decision variable?
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.converters.polybori import CNFEncoder
             sage: from sage.sat.solvers.dimacs import DIMACS
@@ -167,7 +168,7 @@ class CNFEncoder(ANF2CNFConverter):
         """
         Map SAT variables to polynomial variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.converters.polybori import CNFEncoder
             sage: from sage.sat.solvers.dimacs import DIMACS
@@ -186,18 +187,18 @@ class CNFEncoder(ANF2CNFConverter):
 
     def zero_blocks(self, f):
         """
-        Divides the zero set of ``f`` into blocks.
+        Divide the zero set of ``f`` into blocks.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: e = CNFEncoder(DIMACS(), B)
-            sage: sorted(e.zero_blocks(a*b*c))
-            [{c: 0}, {b: 0}, {a: 0}]
+            sage: sorted(sorted(d.items()) for d in e.zero_blocks(a*b*c))
+            [[(c, 0)], [(b, 0)], [(a, 0)]]
 
-        .. note::
+        .. NOTE::
 
             This function is randomised.
         """
@@ -256,7 +257,7 @@ class CNFEncoder(ANF2CNFConverter):
         - ``f`` - a :class:`sage.rings.polynomial.pbori.BooleanPolynomial`
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
@@ -268,8 +269,8 @@ class CNFEncoder(ANF2CNFConverter):
             sage: _ = solver.write()
             sage: print(open(fn).read())
             p cnf 3 2
-            1 0
             -2 0
+            1 0
             sage: e.phi
             [None, a, b, c]
         """
@@ -277,17 +278,21 @@ class CNFEncoder(ANF2CNFConverter):
         # the block it is evaluated to 0 by f, iff it is not lying in
         # any zero block of f+1
 
-        blocks = self.zero_blocks(f+1)
-        C = [dict([(variable, 1-value) for (variable, value) in b.iteritems()]) for b in blocks ]
+        blocks = self.zero_blocks(f + 1)
+        C = [{variable: 1 - value for variable, value in b.items()}
+             for b in blocks]
 
         def to_dimacs_index(v):
-            return v.index()+1
+            return v.index() + 1
 
         def clause(c):
-            return [to_dimacs_index(variable) if value == 1 else -to_dimacs_index(variable) for (variable, value) in c.iteritems()]
+            return [to_dimacs_index(variable)
+                    if value == 1 else -to_dimacs_index(variable)
+                    for variable, value in c.items()]
 
-        for c in C:
-            self.solver.add_clause(clause(c))
+        data = (clause(c) for c in C)
+        for d in sorted(data):
+            self.solver.add_clause(d)
 
     ###################################################
     # Indirect conversion, may add new variables
@@ -301,7 +306,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         - ``f`` - a :class:`sage.rings.polynomial.pbori.BooleanPolynomial`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
@@ -327,8 +332,8 @@ class CNFEncoder(ANF2CNFConverter):
         f = [self.monomial(m) for m in f]
 
         if self.use_xor_clauses:
-            self.solver.add_xor_clause(f, equal_zero)
-        elif f > self.cutting_number:
+            self.solver.add_xor_clause(f, rhs=not equal_zero)
+        elif len(f) > self.cutting_number:
             for fpart, this_equal_zero in self.split_xor(f, equal_zero):
                 ll = len(fpart)
                 for p in self.permutations(ll, this_equal_zero):
@@ -349,7 +354,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         OUTPUT: An index for a SAT variable corresponding to ``m``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
@@ -407,11 +412,10 @@ class CNFEncoder(ANF2CNFConverter):
 
         INPUT:
 
-        - ``length`` - the number of variables
-        - ``equal_zero`` - should the sum be equal to zero?
+        - ``length`` -- the number of variables
+        - ``equal_zero`` -- should the sum be equal to zero?
 
-        EXAMPLE::
-
+        EXAMPLES::
 
             sage: from sage.sat.converters.polybori import CNFEncoder
             sage: from sage.sat.solvers.dimacs import DIMACS
@@ -424,13 +428,13 @@ class CNFEncoder(ANF2CNFConverter):
             [[1, -1, -1], [-1, 1, -1], [-1, -1, 1], [1, 1, 1]]
         """
         E = []
-        for num_negated in range(0, length+1) :
-            if (((num_negated % 2) ^ ((length+1) % 2)) == equal_zero) :
+        for num_negated in range(length + 1):
+            if (((num_negated % 2) ^ ((length + 1) % 2)) == equal_zero):
                 continue
             start = []
-            for i in range(num_negated) :
+            for i in range(num_negated):
                 start.append(1)
-            for i in range(length - num_negated) :
+            for i in range(length - num_negated):
                 start.append(-1)
             E.extend(Permutations(start))
         return E
@@ -444,7 +448,7 @@ class CNFEncoder(ANF2CNFConverter):
         - ``monomial_list`` - a list of monomials
         - ``equal_zero`` - is the constant coefficient zero?
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.converters.polybori import CNFEncoder
             sage: from sage.sat.solvers.dimacs import DIMACS
@@ -490,7 +494,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         - ``f`` - a :class:`sage.rings.polynomial.pbori.BooleanPolynomial`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
@@ -502,8 +506,8 @@ class CNFEncoder(ANF2CNFConverter):
             sage: _ = solver.write()
             sage: print(open(fn).read())
             p cnf 3 2
-            1 0
             -2 0
+            1 0
             sage: e.phi
             [None, a, b, c]
 
@@ -544,7 +548,7 @@ class CNFEncoder(ANF2CNFConverter):
         OUTPUT: An inverse map int -> variable
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
@@ -557,8 +561,8 @@ class CNFEncoder(ANF2CNFConverter):
             sage: _ = solver.write()
             sage: print(open(fn).read())
             p cnf 4 9
-            1 0
             -2 0
+            1 0
             1 -4 0
             2 -4 0
             4 -1 -2 0
@@ -570,7 +574,6 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e.phi
             [None, a, b, c, a*b]
         """
-        res = []
         for f in F:
             self.clauses(f)
         return self.phi
@@ -587,7 +590,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         - ``c`` - a clause
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
@@ -599,17 +602,10 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e.to_polynomial( (1,-2,3) )
             a*b*c + a*b + b*c + b
         """
-        def product(l):
-            # order of these multiplications for performance
-            res = l[0]
-            for p in l[1:]:
-                res = res*p
-            return res
-
         phi = self.phi
-        product = self.ring(1)
+        product = self.ring.one()
         for v in c:
             if phi[abs(v)] is None:
-                raise ValueError("Clause containst an XOR glueing variable.")
-            product *= phi[abs(v)] + int(v>0)
+                raise ValueError("clause contains an XOR glueing variable")
+            product *= phi[abs(v)] + int(v > 0)
         return product

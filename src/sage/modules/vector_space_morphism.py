@@ -80,8 +80,8 @@ A homomorphism may also be created via a method on the domain.  ::
     Vector space morphism represented by the matrix:
     [  sqrt3       1]
     [2*sqrt3       2]
-    Domain: Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3
-    Codomain: Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3
+    Domain: Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
+    Codomain: Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
     sage: psi([1, 4])
     (9*sqrt3, 9)
 
@@ -308,7 +308,6 @@ TESTS::
     sage: loads(dumps(f)) == f
     True
 """
-from __future__ import absolute_import
 
 ####################################################################################
 #       Copyright (C) 2011 Rob Beezer <beezer@ups.edu>
@@ -329,7 +328,7 @@ from __future__ import absolute_import
 import sage.modules.matrix_morphism as matrix_morphism
 import sage.modules.free_module_morphism as free_module_morphism
 from . import vector_space_homspace
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 
 def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
     r"""
@@ -346,9 +345,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
     as in the first two call formats below, you may specify
     if the function is given by matrix multiplication with
     the vector on the left, or the vector on the right.
-    The default is 'left'. Internally representations are
-    always carried as the 'left' version, and the default
-    text representation is this version.  However, the matrix
+    The default is 'left'. The matrix
     representation may be obtained as either version, no matter
     how it is created.
 
@@ -478,8 +475,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
     function (via ``def`` or ``lambda``) or a Sage symbolic function.  ::
 
         sage: def g(x):
-        ...     return vector(QQ, [2*x[0]+x[2], 5*x[1]])
-        ...
+        ....:     return vector(QQ, [2*x[0]+x[2], 5*x[1]])
         sage: phi = linear_transformation(QQ^3, QQ^2, g)
         sage: phi
         Vector space morphism represented by the matrix:
@@ -692,11 +688,12 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
     from sage.modules.module import is_VectorSpace
     from sage.modules.free_module import VectorSpace
     from sage.categories.homset import Hom
-    from sage.symbolic.ring import SR
-    from sage.modules.vector_callable_symbolic_dense import Vector_callable_symbolic_dense
-    from inspect import isfunction
+    try:
+        from sage.modules.vector_callable_symbolic_dense import Vector_callable_symbolic_dense
+    except ImportError:
+        Vector_callable_symbolic_dense = ()
 
-    if not side in ['left', 'right']:
+    if side not in ['left', 'right']:
         raise ValueError("side must be 'left' or 'right', not {0}".format(side))
     if not (is_Matrix(arg0) or is_VectorSpace(arg0)):
         raise TypeError('first argument must be a matrix or a vector space, not {0}'.format(arg0))
@@ -738,9 +735,8 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
             arg2 = arg2.transpose()
     elif isinstance(arg2, (list, tuple)):
         pass
-    elif isfunction(arg2):
-        pass
     elif isinstance(arg2, Vector_callable_symbolic_dense):
+        from sage.symbolic.ring import SR
         args = arg2.parent().base_ring()._arguments
         exprs = arg2.change_ring(SR)
         m = len(args)
@@ -762,6 +758,8 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         except (ArithmeticError, TypeError) as e:
             msg = 'some image of the function is not in the codomain, because\n' + e.args[0]
             raise ArithmeticError(msg)
+    elif callable(arg2):
+        pass
     else:
         msg = 'third argument must be a matrix, function, or list of images, not {0}'
         raise TypeError(msg.format(arg2))
@@ -796,7 +794,7 @@ def is_VectorSpaceMorphism(x):
 
 class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
 
-    def __init__(self, homspace, A):
+    def __init__(self, homspace, A, side="left"):
         r"""
         Create a linear transformation, a morphism between vector spaces.
 
@@ -857,14 +855,20 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             msg = 'input must be a matrix representation or another matrix morphism, not {0}'
             raise TypeError(msg.format(A))
         # now have a vector space homspace, and a matrix, check compatibility
+        if side == "left":
+            if homspace.domain().dimension() != A.nrows():
+                raise TypeError('domain dimension is incompatible with matrix size')
+            if homspace.codomain().dimension() != A.ncols():
+                raise TypeError('codomain dimension is incompatible with matrix size')
+        if side == "right":
+            if homspace.codomain().dimension() != A.nrows():
+                raise TypeError('Domain dimension is incompatible with matrix size')
+            if homspace.domain().dimension() != A.ncols():
+                raise TypeError('codomain dimension is incompatible with matrix size')
 
-        if homspace.domain().dimension() != A.nrows():
-            raise TypeError('domain dimension is incompatible with matrix size')
-        if homspace.codomain().dimension() != A.ncols():
-            raise TypeError('codomain dimension is incompatible with matrix size')
 
-        A = homspace._matrix_space()(A)
-        free_module_morphism.FreeModuleMorphism.__init__(self, homspace, A)
+        A = homspace._matrix_space(side)(A)
+        free_module_morphism.FreeModuleMorphism.__init__(self, homspace, A, side)
 
     def is_invertible(self):
         r"""
@@ -901,8 +905,8 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
 
             sage: F.<a> = GF(11^2)
             sage: A = matrix(F, [[6*a + 3,   8*a +  2, 10*a + 3],
-            ...                  [2*a + 7,   4*a +  3,  2*a + 3],
-            ...                  [9*a + 2,  10*a + 10,  3*a + 3]])
+            ....:                [2*a + 7,   4*a +  3,  2*a + 3],
+            ....:                [9*a + 2,  10*a + 10,  3*a + 3]])
             sage: A.nullity()
             1
             sage: E = End(F^3)
@@ -921,7 +925,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
         r"""
         A LaTeX representation of this vector space morphism.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: H = Hom(QQ^3, QQ^2)
             sage: f = H(matrix(3, 2, range(6)))
@@ -932,7 +936,6 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             '}\n\\left(\\begin{array}{rr}\n0', '&', '1',
             '\\\\\n2', '&', '3', '\\\\\n4', '&', '5\n\\end{array}\\right)']
         """
-        from sage.misc.latex import latex
         s = ('\\text{vector space morphism from }\n', self.domain()._latex_(),
              '\\text{ to }\n', self.codomain()._latex_(),
              '\\text{ represented by the matrix }\n', self.matrix()._latex_())
@@ -942,7 +945,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
         r"""
         A text representation of this vector space morphism.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: H = Hom(QQ^3, QQ^2)
             sage: f = H(matrix(3, 2, range(6)))
@@ -954,8 +957,11 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             'dimension', '2', 'over', 'Rational', 'Field']
         """
         m = self.matrix()
-        msg = ("Vector space morphism represented by the matrix:\n",
-               "{0}\n",
-               "Domain: {1}\n",
-               "Codomain: {2}")
-        return ''.join(msg).format(m, self.domain(), self.codomain())
+        act = ""
+        if self.side() == "right":
+            act = "as left-multiplication "
+        msg = ("Vector space morphism represented {}by the matrix:\n",
+               "{!r}\n",
+               "Domain: {}\n",
+               "Codomain: {}")
+        return ''.join(msg).format(act, m, self.domain(), self.codomain())

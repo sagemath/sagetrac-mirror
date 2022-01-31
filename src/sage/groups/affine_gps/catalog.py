@@ -2,7 +2,6 @@ r"""
 Type ``groups.affine.<tab>`` to access examples
 of groups implemented as affine groups.
 """
-from __future__ import absolute_import
 
 # groups imported here will be available
 # via  groups.affine.<tab>

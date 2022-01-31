@@ -26,7 +26,6 @@ AUTHORS:
 #
 # http://www.gnu.org/licenses/
 ###########################################################################
-from six.moves import range
 
 from sage.monoids.string_monoid import BinaryStrings
 from sage.structure.sage_object import SageObject
@@ -93,7 +92,7 @@ class SimplifiedDES(SageObject):
             sage: plaintxt == P
             True
         """
-        from sage.crypto.mq import SBox
+        from sage.crypto.sbox import SBox
         # the number of bits in a secret key
         self._key_size = 10
         # the S-box S_0

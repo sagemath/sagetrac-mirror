@@ -132,7 +132,7 @@ TESTS::
     sage: M = scilab(x)                                     # optional - scilab
     Traceback (most recent call last):
     ...
-    TypeError: _interface_init_() takes exactly one argument (0 given)
+    TypeError: ..._interface_init_() takes exactly one argument (0 given)
     sage: M = scilab(matrix(3,range(9))); M                 # optional - scilab
         0.    1.    2.
         3.    4.    5.
@@ -164,7 +164,7 @@ TESTS::
     sage: M(9) = x                                          # optional - scilab
     Traceback (most recent call last):
     ...
-    SyntaxError: can't assign to function call (..., line 1)
+    SyntaxError: can...t assign to function call (..., line 1)
 
 AUTHORS:
 
@@ -186,12 +186,11 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import print_function
-from __future__ import absolute_import
 
 import os
 
 from .expect import Expect, ExpectElement
+from sage.docs.instancedoc import instancedoc
 
 
 class Scilab(Expect):
@@ -235,7 +234,8 @@ class Scilab(Expect):
 
     def set_seed(self, seed=None):
         """
-        Sets the seed for gp interpeter.
+        Set the seed for gp interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::
@@ -425,6 +425,7 @@ class Scilab(Expect):
         return ScilabElement
 
 
+@instancedoc
 class ScilabElement(ExpectElement):
     def __getitem__(self, n):
         """

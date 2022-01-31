@@ -91,13 +91,13 @@ beliebigen Python-Typs innerhalb eines Sichtbarkeitsbereich aufnehmen.
 
     sage: a = 5   # a ist eine ganze Zahl
     sage: type(a)
-    <type 'sage.rings.integer.Integer'>
+    <class 'sage.rings.integer.Integer'>
     sage: a = 5/3  # jetzt ist a eine rationale Zahl
     sage: type(a)
-    <type 'sage.rings.rational.Rational'>
+    <class 'sage.rings.rational.Rational'>
     sage: a = 'hello'  # jetzt ist a ein String
     sage: type(a)
-    <type 'str'>
+    <... 'str'>
 
 Die Programmiersprache C, welche statisch typisiert ist, unterscheidet
 sich hierzu stark; eine Variable, die dazu deklariert ist eine Ganzzahl (int)

@@ -1,31 +1,31 @@
-###############################################################################
-#
-#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-#
-###############################################################################
-
 """
-Weighted homogeneous elements of free algebras, in letterplace implementation.
+Weighted homogeneous elements of free algebras, in letterplace implementation
 
 AUTHOR:
 
 - Simon King (2011-03-23): Trac ticket :trac:`7797`
 
 """
-from __future__ import print_function
 
+# ****************************************************************************
+#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
+from sage.groups.perm_gps.all import CyclicPermutationGroup
 from sage.libs.singular.function import lib, singular_function
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from cpython.object cimport PyObject_RichCompare
 
 # Define some singular functions
 lib("freegb.lib")
 poly_reduce = singular_function("NF")
-singular_system=singular_function("system")
 
 #####################
 # Free algebra elements
@@ -74,7 +74,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         - ``check`` (optional bool, default ``True``): Do not attempt the
           above coercion (for internal use only).
 
-        TEST::
+        TESTS::
 
             sage: from sage.algebras.letterplace.free_algebra_element_letterplace import FreeAlgebraElement_letterplace
             sage: F.<x,y,z> = FreeAlgebra(GF(3), implementation='letterplace')
@@ -101,7 +101,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         Pickling.
 
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: loads(dumps(x*y*x)) == x*y*x   # indirect doctest
@@ -111,7 +111,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         return self.__class__, (self._parent,self._poly)
     def __copy__(self):
         """
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: copy(x*y*z+z*y*x) == x*y*z+z*y*x   # indirect doctest
@@ -122,7 +122,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         return self.__class__(self._parent,self._poly,check=False)
     def __hash__(self):
         """
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: set([x*y*z, z*y+x*z,x*y*z])  # indirect doctest
@@ -135,19 +135,19 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         Iterates over the pairs "tuple of exponents, coefficient".
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<w,x,y,z> = FreeAlgebra(GF(3), implementation='letterplace')
             sage: p = x*y-z^2
-            sage: list(p)   # indirect doctest
+            sage: sorted(p)   # indirect doctest
             [((0, 0, 0, 1, 0, 0, 0, 1), 2), ((0, 1, 0, 0, 0, 0, 1, 0), 1)]
-
         """
-        return self._poly.dict().iteritems()
+        cdef dict d = self._poly.dict()
+        yield from d.iteritems()
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')
@@ -230,7 +230,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
     def _latex_(self):
         """
-        TEST::
+        TESTS::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace', degrees=[1,2,3])
@@ -243,7 +243,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef list L = []
         cdef FreeAlgebra_letterplace P = self._parent
         cdef int ngens = P.__ngens
-        from sage.all import latex
+        from sage.misc.latex import latex
         if P._base._repr_option('element_is_atomic'):
             for E,c in zip(self._poly.exponents(),self._poly.coefficients()):
                 monstr = P.exponents_to_latex(E)
@@ -314,7 +314,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         Generators may have a positive integral degree weight. All
         elements must be weighted homogeneous.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: ((x+y+z)^3).degree()
@@ -330,7 +330,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         Return the commutative polynomial that is used internally to represent this free algebra element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: ((x+y-z)^2).letterplace_polynomial()
@@ -350,7 +350,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         The leading monomial of this free algebra element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: ((2*x+3*y-4*z)^2*(5*y+6*z)).lm()
@@ -367,7 +367,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         The leading term (monomial times coefficient) of this free algebra
         element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: ((2*x+3*y-4*z)^2*(5*y+6*z)).lt()
@@ -384,7 +384,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         The leading coefficient of this free algebra element, as element
         of the base ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: ((2*x+3*y-4*z)^2*(5*y+6*z)).lc()
@@ -400,7 +400,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
     def __nonzero__(self):
         """
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: bool(x)      # indirect doctest
@@ -421,7 +421,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         A free algebra element `p` divides another one `q` if there are
         free algebra elements `s` and `t` such that `spt = q`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace', degrees=[2,1,3])
             sage: ((2*x*y+z)^2*z).lm()
@@ -445,9 +445,10 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef int i
         if P.monomial_divides(s_poly,p_poly):
             return True
+        realngens = A._commutative_ring.ngens()
+        CG = CyclicPermutationGroup(P.ngens())
         for i from 0 <= i < p_d-s_d:
-            s_poly = singular_system("stest",s_poly,1,
-                                     A._degbound,A.__ngens,ring=P)
+            s_poly = s_poly * CG[realngens]
             if P.monomial_divides(s_poly,p_poly):
                 return True
         return False
@@ -471,7 +472,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
     ## Arithmetic
     cpdef _neg_(self):
         """
-        TEST::
+        TESTS::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')
@@ -488,7 +489,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         Addition, under the side condition that either one summand
         is zero, or both summands have the same degree.
 
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: x+y    # indirect doctest
@@ -521,7 +522,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         Difference, under the side condition that either one summand
         is zero or both have the same weighted degree.
 
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: x*y-y*x     # indirect doctest
@@ -555,11 +556,11 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         right._poly = A._current_ring(right._poly)
         return FreeAlgebraElement_letterplace(self._parent,self._poly-right._poly,check=False)
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Multiplication from the right with an element of the base ring.
 
-        TEST::
+        TESTS::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')
@@ -569,11 +570,11 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         return FreeAlgebraElement_letterplace(self._parent,self._poly._lmul_(right),check=False)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         Multiplication from the left with an element of the base ring.
 
-        TEST::
+        TESTS::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')
@@ -587,7 +588,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         Product of two free algebra elements in letterplace implementation.
 
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace', degrees=[2,1,3])
             sage: (x*y+z)*z   # indirect doctest
@@ -601,12 +602,14 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         # we must put the polynomials into the same ring
         left._poly = A._current_ring(left._poly)
         right._poly = A._current_ring(right._poly)
-        rshift = singular_system("stest",right._poly,left._poly.degree(),A._degbound,A.__ngens, ring=A._current_ring)
+        realngens = A._commutative_ring.ngens()
+        CG = CyclicPermutationGroup(A._current_ring.ngens())
+        rshift = right._poly * CG[left._poly.degree() * realngens]
         return FreeAlgebraElement_letterplace(A,left._poly*rshift, check=False)
 
     def __pow__(FreeAlgebraElement_letterplace self, int n, k):
         """
-        TEST::
+        TESTS::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')
@@ -627,10 +630,11 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         self._poly = A._current_ring(self._poly)
         cdef int d = self._poly.degree()
         q = p = self._poly
+        realngens = A._commutative_ring.ngens()
         cdef int i
+        CG = CyclicPermutationGroup(A._current_ring.ngens())
         for i from 0<i<n:
-            q = singular_system("stest",q,d,A._degbound,A.__ngens,
-                                     ring=A._current_ring)
+            q = q * CG[d * realngens]
             p *= q
         return FreeAlgebraElement_letterplace(A, p, check=False)
 
@@ -651,26 +655,26 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         The twosided reduction of this element by the argument.
 
-        NOTE:
+        .. NOTE::
 
-        This may not be the normal form of this element, unless
-        the argument is a twosided Groebner basis up to the degree
-        of this element.
+            This may not be the normal form of this element, unless
+            the argument is a twosided Groebner basis up to the degree
+            of this element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
             sage: p = y^2*z*y^2+y*z*y*z*y
 
-        We compute the letterplace version of the Groebneer basis
+        We compute the letterplace version of the Groebner basis
         of `I` with degree bound 4::
 
             sage: G = F._reductor_(I.groebner_basis(4).gens(),4)
             sage: G.ring() is F.current_ring()
             True
 
-        Since the element `p` is of degree 5, it is no surrprise
+        Since the element `p` is of degree 5, it is no surprise
         that its reductions with respect to the original generators
         of `I` (of degree 2), or with respect to `G` (Groebner basis
         with degree bound 4), or with respect to the Groebner basis
@@ -729,7 +733,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         The normal form is computed by reduction with respect
         to a Groebnerbasis of `I` with degree bound `deg(x)`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
@@ -757,9 +761,8 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             True
             sage: ((x*y)^3+2*z*I.0*z+y*I.1*z-x*I.2*y).normal_form(I) == ((x*y)^3).normal_form(I)
             True
-
         """
         if self._parent != I.ring():
-            raise ValueError("Can not compute normal form wrt an ideal that does not belong to %s" % self._parent)
+            raise ValueError("Cannot compute normal form wrt an ideal that does not belong to %s" % self._parent)
         sdeg = self._poly.degree()
         return self.reduce(self._parent._reductor_(I.groebner_basis(degbound=sdeg).gens(), sdeg))

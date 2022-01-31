@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Convexity properties of graphs
 
@@ -9,8 +10,9 @@ the following methods:
     :widths: 30, 70
     :delim: |
 
-    :meth:`ConvexityProperties.hull` | Returns the convex hull of a set of vertices
-    :meth:`ConvexityProperties.hull_number` | Computes the hull number of a graph and a corresponding generating set.
+    :meth:`ConvexityProperties.hull` | Return the convex hull of a set of vertices
+    :meth:`ConvexityProperties.hull_number` | Compute the hull number of a graph and a corresponding generating set
+    :meth:`geodetic_closure`| Return the geodetic closure of a set of vertices
 
 These methods can be used through the :class:`ConvexityProperties` object
 returned by :meth:`Graph.convexity_properties`.
@@ -23,17 +25,30 @@ Methods
 -------
 """
 
-##############################################################################
+# ****************************************************************************
 #       Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-##############################################################################
-from __future__ import print_function
+#                     2021 David Coudert <david.coudert@inria.fr>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-include "sage/data_structures/bitset.pxi"
+from sage.data_structures.binary_matrix cimport *
 from sage.numerical.backends.generic_backend cimport GenericBackend
 from sage.numerical.backends.generic_backend import get_solver
+from sage.graphs.distances_all_pairs cimport c_distances_all_pairs
+from cysignals.memory cimport sig_free
+from cysignals.signals cimport sig_on, sig_off
+from memory_allocator cimport MemoryAllocator
+from libc.stdint cimport uint32_t
+from sage.graphs.base.static_sparse_graph cimport (short_digraph,
+                                                   init_short_digraph,
+                                                   free_short_digraph,
+                                                   out_degree,
+                                                   simple_BFS)
 
 cdef class ConvexityProperties:
     r"""
@@ -61,11 +76,11 @@ cdef class ConvexityProperties:
     imply recomputing several times the distances between the vertices.
 
     In order to compute the convex hull of a set `S` it is possible to write the
-    following algorithm.
+    following algorithm:
 
-    *For any pair `u,v` of elements in the set `S`, and for any vertex `w`*
-    *outside of it, add `w` to `S` if `d_{G}(u,w) + d_{G}(w,v) = d_{G}(u,v)`.*
-    *When no vertex can be added anymore, the set `S` is convex*
+        For any pair `u,v` of elements in the set `S`, and for any vertex `w`
+        outside of it, add `w` to `S` if `d_{G}(u,w) + d_{G}(w,v) =
+        d_{G}(u,v)`. When no vertex can be added anymore, the set `S` is convex
 
     The distances are not actually that relevant. The same algorithm can be
     implemented by remembering for each pair `u, v` of vertices the list of
@@ -79,7 +94,7 @@ cdef class ConvexityProperties:
           the same graph, or if you want to compute the hull number itself as it
           involves many calls to :meth:`hull`
 
-        * Using this class on non-conected graphs is a waste of space and
+        * Using this class on non-connected graphs is a waste of space and
           efficiency ! If your graph is disconnected, the best for you is to
           deal independently with each connected component, whatever you are
           doing.
@@ -110,12 +125,12 @@ cdef class ConvexityProperties:
     code. Trying to optimize may well lead to lost in efficiency on many
     instances.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.convexity_properties import ConvexityProperties
         sage: g = graphs.PetersenGraph()
         sage: CP = ConvexityProperties(g)
-        sage: CP.hull([1,3])
+        sage: CP.hull([1, 3])
         [1, 2, 3]
         sage: CP.hull_number()
         3
@@ -125,14 +140,14 @@ cdef class ConvexityProperties:
         sage: ConvexityProperties(digraphs.Circuit(5))
         Traceback (most recent call last):
         ...
-        ValueError: This is currenly implemented for Graphs only.Only minor updates are needed if you want to makeit support DiGraphs too.
+        NotImplementedError: this is currently implemented for Graphs only, but only minor updates are needed if you want to make it support DiGraphs too
     """
 
     def __init__(self, G):
         r"""
         Constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.convexity_properties import ConvexityProperties
             sage: g = graphs.PetersenGraph()
@@ -141,79 +156,71 @@ cdef class ConvexityProperties:
         """
         from sage.graphs.digraph import DiGraph
         if isinstance(G, DiGraph):
-            raise ValueError("This is currenly implemented for Graphs only."+
-                             "Only minor updates are needed if you want to make"+
-                             "it support DiGraphs too.")
+            raise NotImplementedError("this is currently implemented for Graphs only, "
+                                      "but only minor updates are needed if you want "
+                                      "to make it support DiGraphs too")
 
         # Cached number of vertices
         cdef int n = G.order()
         self._n = n
 
         cdef int i = 0
-        cdef int j,k
+        cdef int j, k
 
-        # Temporary variables
-        cdef dict d_i
-        cdef dict d_j
-        cdef int d_ij
-        self._dict_vertices_to_integers = {}
-        self._list_integers_to_vertices = []
-
-        # Remembering integers instead of the labels, and building dictionaries
-        # in both directions.
-        for v in G:
-            self._dict_vertices_to_integers[v] = i
-            self._list_integers_to_vertices.append(v)
-            i = i + 1
-
+        # Build mappings integer <-> vertices.
+        # Must be consistent with the mappings used in c_distances_all_pairs
+        self._list_integers_to_vertices = list(G)
+        self._dict_vertices_to_integers = {v: i for i, v in enumerate(self._list_integers_to_vertices)}
 
         # Computation of distances between all pairs. Costly.
-        cdef dict distances = G.distance_all_pairs()
+        cdef unsigned short* c_distances = c_distances_all_pairs(G, vertex_list=self._list_integers_to_vertices)
+        # Temporary variables
+        cdef unsigned short* d_i
+        cdef unsigned short* d_j
+        cdef int d_ij
 
-        # _cache_hull_pairs[u*n + v] is a bitset whose 1 bits are the vertices located on a shortest path from vertex u to v
+        # We use a binary matrix with one row per pair of vertices,
+        # so n * (n - 1) / 2 rows. Row u * n + v is a bitset whose 1 bits are
+        # the vertices located on a shortest path from vertex u to v
         #
         # Note that  u < v
-        self._cache_hull_pairs = <bitset_t *> sig_malloc(((n*(n-1))>>1)*sizeof(bitset_t))
-        cdef bitset_t * p_bitset = self._cache_hull_pairs
+        binary_matrix_init(self._cache_hull_pairs, n * (n - 1) / 2, n)
+        binary_matrix_fill(self._cache_hull_pairs, 0)
+        cdef bitset_t * p_bitset = self._cache_hull_pairs.rows
 
         # Filling the cache
         #
         # The p_bitset variable iterates over the successive elements of the cache
         #
-        # For any pair i,j of vertices (i<j), we built the bitset of all the
+        # For any pair i, j of vertices (i < j), we built the bitset of all the
         # elements k which are on a shortest path from i to j
 
-        for 0<= i < n-1:
+        for i in range(n):
             # Caching the distances from i to the other vertices
-            d_i = distances[self._list_integers_to_vertices[i]]
+            d_i = c_distances + n * i
 
-            for i < j < n:
+            for j in range(i + 1, n):
                 # Caching the distances from j to the other vertices
-                d_j = distances[self._list_integers_to_vertices[j]]
+                d_j = c_distances + n * j
 
                 # Caching the distance between i and j
-                d_ij = d_i[self._list_integers_to_vertices[j]]
-
-                # Initializing the new bitset
-                bitset_init(p_bitset[0], n)
-                bitset_set_first_n(p_bitset[0], 0)
+                d_ij = d_i[j]
 
                 # Filling it
-                for 0<= k < n:
-                    if ((d_i[self._list_integers_to_vertices[k]]
-                         + d_j[self._list_integers_to_vertices[k]])
-                        == d_ij):
+                for k in range(n):
+                    if d_i[k] + d_j[k] == d_ij:
                         bitset_add(p_bitset[0], k)
 
                 # Next bitset !
                 p_bitset = p_bitset + 1
 
+        sig_free(c_distances)
 
-    def __destruct__(self):
+    def __dealloc__(self):
         r"""
         Destructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.convexity_properties import ConvexityProperties
             sage: g = graphs.PetersenGraph()
@@ -221,37 +228,24 @@ cdef class ConvexityProperties:
             <sage.graphs.convexity_properties.ConvexityProperties object at ...>
 
         """
-        cdef bitset_t * p_bitset = self._cache_hull_pairs
-        cdef int i
-
-        for 0 <= i < ((self._n*(self._n-1))>>1):
-            bitset_free(p_bitset[0])
-            p_bitset = p_bitset + 1
-
-        sig_free(self._cache_hull_pairs)
+        binary_matrix_free(self._cache_hull_pairs)
 
     cdef list _vertices_to_integers(self, vertices):
         r"""
         Converts a list of vertices to a list of integers with the cached data.
         """
-        cdef list answer = []
-        for v in v:
-            answer.append(self._dict_vertices_to_integers[v])
-        return answer
+        return [self._dict_vertices_to_integers[v] for v in vertices]
 
-    cdef list _integers_to_vertices(self, integers):
+    cdef list _integers_to_vertices(self, list integers):
         r"""
-        Converts a list of integers to a list of vertices with the cached data.
+        Convert a list of integers to a list of vertices with the cached data.
         """
-
-        cdef list answer = []
-        for v in integers:
-            answer.append(self._list_integers_to_vertices[v])
-        return answer
+        cdef int i
+        return [self._list_integers_to_vertices[i] for i in integers]
 
     cdef _bitset_convex_hull(self, bitset_t hull):
         r"""
-        Computes the convex hull of a list of vertices given as a bitset.
+        Compute the convex hull of a list of vertices given as a bitset.
 
         (this method returns nothing and modifies the input)
         """
@@ -267,18 +261,18 @@ cdef class ConvexityProperties:
         while True:
 
             # Iterating over all the elements in the cache
-            p_bitset = self._cache_hull_pairs
+            p_bitset = self._cache_hull_pairs.rows
 
             # For any vertex i
-            for 0 <= i < self._n-1:
+            for i in range(self._n - 1):
 
                 # If i is not in the current set, we skip it !
                 if not bitset_in(hull, i):
-                    p_bitset = p_bitset + (self._n-1-i)
+                    p_bitset = p_bitset + (self._n - 1 - i)
                     continue
 
                 # If it is, we iterate over all the elements j
-                for i < j < self._n:
+                for j in range(i + 1, self._n):
 
                     # If both i and j are inside, we add all the (cached)
                     # vertices on a shortest ij-path
@@ -302,18 +296,18 @@ cdef class ConvexityProperties:
 
     cpdef hull(self, list vertices):
         r"""
-        Returns the convex hull of a set of vertices.
+        Return the convex hull of a set of vertices.
 
         INPUT:
 
         * ``vertices`` -- A list of vertices.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.convexity_properties import ConvexityProperties
             sage: g = graphs.PetersenGraph()
             sage: CP = ConvexityProperties(g)
-            sage: CP.hull([1,3])
+            sage: CP.hull([1, 3])
             [1, 2, 3]
         """
         cdef bitset_t bs
@@ -321,11 +315,10 @@ cdef class ConvexityProperties:
         bitset_set_first_n(bs, 0)
 
         for v in vertices:
-            bitset_add(bs, self._dict_vertices_to_integers[v])
+            bitset_add(bs, <mp_bitcnt_t> self._dict_vertices_to_integers[v])
 
         self._bitset_convex_hull(bs)
 
-        #cdef list answer = bitset_list(bs)
         cdef list answer = self._integers_to_vertices(bitset_list(bs))
 
         bitset_free(bs)
@@ -337,15 +330,14 @@ cdef class ConvexityProperties:
         Given a bitset whose hull is not the whole set, greedily add vertices
         and stop before its hull is the whole set.
 
-        NOTE:
+        .. NOTE::
 
-        * Counting the bits at each turn is not the best way...
+            * Counting the bits at each turn is not the best way...
         """
         cdef bitset_t tmp
         bitset_init(tmp, self._n)
 
-
-        for 0<= i < self._n:
+        for i in range(self._n):
             if not bitset_in(bs, i):
                 bitset_copy(tmp, bs)
                 bitset_add(tmp, i)
@@ -353,25 +345,28 @@ cdef class ConvexityProperties:
                 if bitset_len(tmp) < self._n:
                     bitset_add(bs, i)
 
+        bitset_free(tmp)
 
-    cpdef hull_number(self, value_only = True, verbose = False):
+    cpdef hull_number(self, value_only=True, verbose=False):
         r"""
-        Computes the hull number and a corresponding generating set.
+        Compute the hull number and a corresponding generating set.
 
         The hull number `hn(G)` of a graph `G` is the cardinality of a smallest
         set of vertices `S` such that `h(S)=V(G)`.
 
         INPUT:
 
-        * ``value_only`` (boolean) -- whether to return only the hull number
-          (default) or a minimum set whose convex hull is the whole graph.
+        * ``value_only`` -- boolean (default: ``True``); whether to return only
+          the hull number (default) or a minimum set whose convex hull is the
+          whole graph
 
-        * ``verbose`` (boolean) -- whether to display information on the LP.
+        * ``verbose`` -- boolean (default: ``False``); whether to display
+          information on the LP
 
         **COMPLEXITY:**
 
-        This problem is NP-Hard [CHZ02]_, but seems to be of the "nice"
-        kind. Update this comment if you fall on hard instances `:-)`
+        This problem is NP-Hard [HLT1993]_, but seems to be of the "nice" kind.
+        Update this comment if you fall on hard instances `:-)`
 
         **ALGORITHM:**
 
@@ -399,7 +394,7 @@ cdef class ConvexityProperties:
         answer `S` infeasible, and another solution computed.
 
         This being said, simply adding the constraint corresponding to `h(S)` is
-        a bit slow, as these sets can be large (and the corresponding constrait
+        a bit slow, as these sets can be large (and the corresponding constraint
         a bit weak). To improve it a bit, before being added, the set `h(S)` is
         "greedily enriched" to a set `S'` with vertices for as long as
         `h(S')\neq V(G)`. This way, we obtain a set `S'` with `h(S)\subseteq
@@ -409,7 +404,7 @@ cdef class ConvexityProperties:
         This can actually be seen as a hitting set problem on the complement of
         convex sets.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The Hull number of Petersen's graph::
 
@@ -418,18 +413,10 @@ cdef class ConvexityProperties:
             sage: CP = ConvexityProperties(g)
             sage: CP.hull_number()
             3
-            sage: generating_set = CP.hull_number(value_only = False)
+            sage: generating_set = CP.hull_number(value_only=False)
             sage: CP.hull(generating_set)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-        REFERENCE:
-
-        .. [CHZ02] \F. Harary, E. Loukakis, C. Tsouros
-          The geodetic number of a graph
-          Mathematical and computer modelling
-          vol. 17 n11 pp.89--95, 1993
         """
-
         cdef int i
         cdef list constraint # temporary variable to add constraints to the LP
 
@@ -439,7 +426,7 @@ cdef class ConvexityProperties:
             else:
                 return self._list_integers_to_vertices
 
-        cdef GenericBackend p = <GenericBackend> get_solver(constraint_generation = True)
+        cdef GenericBackend p = <GenericBackend> get_solver(constraint_generation=True)
 
         # Minimization
         p.set_sense(False)
@@ -449,14 +436,14 @@ cdef class ConvexityProperties:
         p.add_variables(self._n, 0, None, True, False, False, 1, None)
 
         # We know that at least 2 vertices are required to cover the whole graph
-        p.add_linear_constraint(zip(range(self._n), [1]*self._n), 2, None)
+        p.add_linear_constraint([(i, 1) for i in xrange(self._n)], 2, None)
 
         # The set of vertices generated by the current LP solution
         cdef bitset_t current_hull
         bitset_init(current_hull, self._n)
 
         # Which is at first empty
-        bitset_set_first_n(current_hull,1)
+        bitset_set_first_n(current_hull, 1)
 
         while True:
 
@@ -470,18 +457,18 @@ cdef class ConvexityProperties:
 
             # Building the corresponding constraint
             constraint = []
-            for 0 <= i < self._n:
+            for i in range(self._n):
                 if not bitset_in(current_hull, i):
-                    constraint.append((i,1))
+                    constraint.append((i, 1))
 
             p.add_linear_constraint(constraint, 1, None)
 
             p.solve()
 
             # Computing the current solution's convex hull
-            bitset_set_first_n(current_hull,0)
+            bitset_set_first_n(current_hull, 0)
 
-            for 0 <= i < self._n:
+            for i in range(self._n):
                 if p.get_variable_value(i) > .5:
                     bitset_add(current_hull, i)
 
@@ -497,8 +484,194 @@ cdef class ConvexityProperties:
             return <int> p.get_objective_value()
 
         constraint = []
-        for 0 <= i < self._n:
+        for i in range(self._n):
             if p.get_variable_value(i) > .5:
                 constraint.append(i)
 
         return self._integers_to_vertices(constraint)
+
+
+def geodetic_closure(G, S):
+    r"""
+    Return the geodetic closure of the set of vertices `S` in `G`.
+
+    The geodetic closure `g(S)` of a subset of vertices `S` of a graph `G` is in
+    [HLT1993]_ as the set of all vertices that lie on a shortest `u-v` path for
+    any pair of vertices `u,v \in S`. We assume that `g(\emptyset) = \emptyset`
+    and that `g(\{u\}) = \{u\}` for any `u` in `G`.
+
+    .. WARNING::
+
+        This operation is **not** a closure function. Indeed, a closure function
+        must satisfy the property that `f(f(X))` should be equal to `f(X)`,
+        which is not always the case here.  The term ``closure`` is used here to
+        follow the terminology of the domain. See for instance [HLT1993]_.
+
+    Here, we implement a simple algorithm to determine this set. Roughly, for
+    each vertex `u \in S`, the algorithm first performs a breadth first search
+    from `u` to get distances, and then identifies the vertices of `G` lying on
+    a shortest path from `u` to any `v\in S` using a reversal traversal from
+    vertices in `S`.  This algorithm has time complexity in `O(|S|(n + m))` and
+    space complexity in `O(n + m)`.
+
+    INPUT:
+
+    - ``G`` -- a Sage graph
+
+    - ``S`` -- a subset of vertices of `G`
+
+    EXAMPLES:
+
+    The vertices of the Petersen graph can be obtained by a geodetic closure of
+    four of its vertices::
+
+        sage: from sage.graphs.convexity_properties import geodetic_closure
+        sage: G = graphs.PetersenGraph()
+        sage: geodetic_closure(G, [0, 2, 8, 9])
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    The vertices of a 2D grid can be obtained by a geodetic closure of
+    two vertices::
+
+        sage: G = graphs.Grid2dGraph(4, 4)
+        sage: c = G.geodetic_closure([(0, 0), (3, 3)])
+        sage: len(c) == G.order()
+        True
+
+    If two vertices belong to different connected components of a graph, their
+    geodetic closure is trivial::
+
+        sage: G = Graph([(0, 1), (2, 3)])
+        sage: geodetic_closure(G, [0, 2])
+        [0, 2]
+
+    The geodetic closure does not satisfy the closure function property that
+    `f(f(X))` should be equal to `f(X)`::
+
+        sage: G = graphs.DiamondGraph()
+        sage: G.subdivide_edge((1, 2), 1)
+        sage: geodetic_closure(G, [0, 3])
+        [0, 1, 2, 3]
+        sage: geodetic_closure(G, geodetic_closure(G, [0, 3]))
+        [0, 1, 2, 3, 4]
+
+    TESTS::
+
+        sage: G = graphs.DiamondGraph()
+        sage: geodetic_closure(G, [])
+        []
+        sage: geodetic_closure(G, [1])
+        [1]
+        sage: S = geodetic_closure(G, list(G))
+        sage: all(u in G for u in S) and len(S) == G.order()
+        True
+        sage: S = geodetic_closure(G, G)
+        sage: all(u in G for u in S) and len(S) == G.order()
+        True
+        sage: geodetic_closure(G, [1, 'foo'])
+        Traceback (most recent call last):
+        ...
+        ValueError: S is not a subset of vertices of the graph
+        sage: geodetic_closure(digraphs.Path(3), [0, 1])
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: the geodetic closure of digraphs has not been implemented yet
+    """
+    if G.is_directed():
+        raise NotImplementedError("the geodetic closure of digraphs has not been implemented yet")
+    S = list(S)
+    if not S:
+        return []
+    elif any(v not in G for v in S):
+        raise ValueError("S is not a subset of vertices of the graph")
+    elif len(S) == 1 or len(S) == G.order():
+        return S
+    elif not G.is_connected():
+        L = []
+        for g in G.connected_components_subgraphs():
+            Sg = [u for u in S if u in g]
+            L.extend(geodetic_closure(g, Sg))
+        return L
+
+    cdef int n = G.order()
+    cdef int nS = len(S)
+    cdef list int_to_vertex = list(G)
+    cdef dict vertex_to_int = {u: i for i, u in enumerate(int_to_vertex)}
+    cdef list S_int = [vertex_to_int[u] for u in S]
+
+    # Copy the graph as a short digraph
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
+
+    # Allocate some data structures
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *> mem.malloc(n * sizeof(uint32_t))
+    cdef uint32_t * waiting_list = <uint32_t *> mem.malloc(n * sizeof(uint32_t))
+    if not distances or not waiting_list:
+        free_short_digraph(sd)
+        raise MemoryError()
+    cdef bitset_t seen
+    cdef bitset_t visited
+    cdef bitset_t closure
+    bitset_init(seen, n)
+    bitset_init(visited, n)
+    bitset_init(closure, n)
+
+    cdef int ui, vi, xi, yi, i_begin, i_end, i, j, k
+
+    # Vertices in S are in the closure
+    bitset_clear(closure)
+    for ui in S_int:
+        bitset_add(closure, ui)
+
+    # We now explore geodesics between vertices in S, and we avoid visiting
+    # twice the geodesics between u and v
+    for i in range(nS - 1):
+        ui = S_int[i]
+
+        # Compute distances from ui using BFS
+        _ = simple_BFS(sd, ui, distances, NULL, waiting_list, seen)
+
+        # Perform a reverse BFS from vertices in S, following only vertices
+        # along a shortest path from ui to identify vertices of the geodetic
+        # closure.
+        bitset_clear(visited)
+        i_begin = 0
+        i_end = 0
+        for j in range(i + 1, nS):
+            vi = S_int[j]
+            if not bitset_in(seen, vi) or bitset_in(visited, vi):
+                # vi is not reachable from ui using BFS or has already been
+                # considered for the geodetic closure from ui
+                continue
+
+            # We explore all vertices on a shortest path from ui to vi
+            waiting_list[i_end] = vi
+            i_end += 1
+            bitset_add(visited, vi)
+
+            while i_begin < i_end:
+                xi = waiting_list[i_begin]
+                i_begin += 1
+
+                for k in range(out_degree(sd, xi)):
+                    yi = sd.neighbors[xi][k]
+                    if distances[xi] == distances[yi] + 1:
+                        # yi in on a shortest path to ui
+                        if not bitset_in(visited, yi):
+                            waiting_list[i_end] = yi
+                            i_end += 1
+                            bitset_add(visited, yi)
+
+        # Now, visited contains all vertices on geodesics from ui to any other
+        # vertex in S
+        bitset_union(closure, closure, visited)
+
+    cdef list ret = [int_to_vertex[ui] for ui in range(n) if bitset_in(closure, ui)]
+
+    bitset_free(seen)
+    bitset_free(visited)
+    bitset_free(closure)
+    free_short_digraph(sd)
+
+    return ret

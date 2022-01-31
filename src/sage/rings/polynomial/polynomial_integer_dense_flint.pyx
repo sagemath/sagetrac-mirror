@@ -1,5 +1,11 @@
+# distutils: libraries = NTL_LIBRARIES gmp
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: language = c++
 """
-Dense univariate polynomials over `\ZZ`, implemented using FLINT.
+Dense univariate polynomials over `\ZZ`, implemented using FLINT
 
 AUTHORS:
 
@@ -20,30 +26,29 @@ We check that the buggy gcd is fixed (see :trac:`17816`)::
     1
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008-2010 Burcin Erocal <burcin@erocal.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
-from __future__ import print_function
+#*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "cysignals/signals.pxi"
+from cysignals.memory cimport sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/libs/ntl/decl.pxi"
 
 from cpython.int cimport PyInt_AS_LONG
 from sage.libs.gmp.mpz cimport *
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long, is_small_python_int
 
-from sage.libs.flint.fmpz_poly cimport *
 from sage.rings.polynomial.polynomial_element cimport Polynomial
-from sage.structure.element cimport ModuleElement, RingElement
+from sage.structure.element cimport ModuleElement, Element
 from sage.structure.element import coerce_binop
-
-from sage.rings.polynomial.polynomial_element cimport is_Polynomial
 
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 
@@ -56,21 +61,20 @@ from sage.structure.factorization import Factorization
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.arith.all import lcm
 
+from sage.libs.arb.arb_fmpz_poly cimport arb_fmpz_poly_evaluate_arb, arb_fmpz_poly_evaluate_acb
 from sage.libs.flint.fmpz cimport *
-from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_series
+from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.types cimport ulong, fmpz_poly_t
 from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
 from sage.libs.ntl.ZZX cimport *
-from sage.rings.integer cimport smallInteger
+from sage.rings.complex_arb cimport ComplexBall
+from sage.rings.integer cimport Integer, smallInteger
+from sage.rings.real_arb cimport RealBall
 from sage.rings.real_mpfr cimport RealNumber, RealField_class
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
-from sage.rings.polynomial.evaluation cimport fmpz_poly_evaluation_mpfr, fmpz_poly_evaluation_mpfi
+from sage.rings.polynomial.evaluation_flint cimport fmpz_poly_evaluation_mpfr, fmpz_poly_evaluation_mpfi
 
-cdef extern from "limits.h":
-    long LONG_MAX
-
-cdef extern from "flint/flint.h":
-    int FLINT_BITS
 
 cdef class Polynomial_integer_dense_flint(Polynomial):
     r"""
@@ -123,7 +127,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         The given value has to be in the base ring of P. This assumption is not
         verified.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: x._new_constant_poly(2,R)
@@ -147,11 +151,16 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: x
             x
 
-        Construct from list::
+        Construct from list and tuple::
 
             sage: R([])
             0
             sage: R([1, -2, 3])
+            3*x^2 - 2*x + 1
+
+            sage: R(())
+            0
+            sage: R((1, -2, 3))
             3*x^2 - 2*x + 1
 
         Coercions from other rings are attempted automatically::
@@ -173,11 +182,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f = R([-1, 2, 5]); f
             5*x^2 + 2*x - 1
             sage: type(f)
-            <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
+            <class 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
             sage: type(pari(f))
-            <type 'sage.libs.cypari2.gen.gen'>
+            <class 'cypari2.gen.Gen'>
             sage: type(R(pari(f)))
-            <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
+            <class 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
             sage: R(pari(f))
             5*x^2 + 2*x - 1
 
@@ -196,7 +205,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
             sage: f = (x^3 - 1) / (x - 1)
             sage: type(f)
-            <type 'sage.rings.fraction_field_element.FractionFieldElement'>
+            <class 'sage.rings.fraction_field_element.FractionFieldElement'>
             sage: g = R(f); g
             x^2 + x + 1
 
@@ -244,7 +253,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             # now fill them in
             for ii, a in x:
                 i = ii[0] if type(ii) is tuple else ii
-                if type(a) is int:
+                if is_small_python_int(a):
                     sig_on()
                     fmpz_poly_set_coeff_si(self.__poly, i, a)
                     sig_off()
@@ -274,7 +283,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 sig_off()
                 return
 
-        elif not isinstance(x, list):
+        elif not isinstance(x, (list, tuple)):
             x = [x]   # constant polynomials
 
         sig_on()
@@ -282,7 +291,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         for i from 0 <= i < len(x):
             a = x[i]
-            if type(a) is int:
+            if is_small_python_int(a):
                 sig_on()
                 fmpz_poly_set_coeff_si(self.__poly, i, a)
                 sig_off()
@@ -382,11 +391,17 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         TESTS:
 
-            sage: t(-sys.maxint-1r) == t(-sys.maxint-1)
+            sage: t(-sys.maxsize-1r) == t(-sys.maxsize-1)
             True
+            sage: (t^2+3)(RealBallField(100)(1/3))
+            [3.1111111111111111111111111111...]
+            sage: (t^2+3)(ComplexBallField(10)(i))
+            2.00
         """
         cdef Polynomial_integer_dense_flint f
         cdef Integer a, z
+        cdef RealBall arb_a, arb_z
+        cdef ComplexBall acb_a, acb_z
 
         cdef unsigned long limbs
         cdef fmpz_t a_fmpz
@@ -401,8 +416,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     (<Polynomial_integer_dense_flint> x0).__poly)
                 sig_off()
                 return f
-            if isinstance(x0, int):
-                z = PY_NEW(Integer)
+            if is_small_python_int(x0):
+                z = Integer.__new__(Integer)
                 sig_on()
                 fmpz_init(a_fmpz)
                 fmpz_init(z_fmpz)
@@ -413,7 +428,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 fmpz_clear(z_fmpz)
                 sig_off()
                 return z
-            if isinstance(x0, long):
+            if isinstance(x0, (int, long)):
                 x0 = Integer(x0)
             if isinstance(x0, Integer):
                 a = <Integer> x0
@@ -423,7 +438,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 if mpz_sgn(a.value) == 0:
                     return self[0]
 
-                z = PY_NEW(Integer)
+                z = Integer.__new__(Integer)
 
                 sig_on()
                 fmpz_init(a_fmpz)
@@ -441,6 +456,20 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 return self._eval_mpfr_(<RealNumber> x0)
             if isinstance(x0, RealIntervalFieldElement):
                 return self._eval_mpfi_(<RealIntervalFieldElement> x0)
+            if isinstance(x0, RealBall):
+                arb_a = <RealBall> x0
+                arb_z = arb_a._new()
+                sig_on()
+                arb_fmpz_poly_evaluate_arb(arb_z.value, self.__poly, arb_a.value, arb_a._parent._prec)
+                sig_off()
+                return arb_z
+            if isinstance(x0, ComplexBall):
+                acb_a = <ComplexBall> x0
+                acb_z = acb_a._new()
+                sig_on()
+                arb_fmpz_poly_evaluate_acb(acb_z.value, self.__poly, acb_a.value, acb_a._parent._prec)
+                sig_off()
+                return acb_z
 
         return Polynomial.__call__(self, *x, **kwds)
 
@@ -486,7 +515,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         fmpz_poly_content(c, self.__poly)
 
-        cdef Integer z = PY_NEW(Integer)
+        cdef Integer z = Integer.__new__(Integer)
         fmpz_get_mpz(z.value, c)
         fmpz_clear(c)
         return z if sign == 1 else -z
@@ -531,7 +560,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f[:100]
             5*x^5 + 4*x^4 + 3*x^3 + 2*x^2 + x + 1
         """
-        cdef Integer z = PY_NEW(Integer)
+        cdef Integer z = Integer.__new__(Integer)
         fmpz_poly_get_coeff_mpz(z.value, self.__poly, n)
         return z
 
@@ -552,7 +581,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         if name is None:
             name = self.parent().variable_name()
         cdef long i
-        cdef Integer coef = PY_NEW(Integer)
+        cdef Integer coef = Integer.__new__(Integer)
         cdef list all = []
         for i from fmpz_poly_degree(self.__poly) >= i >= 0:
             fmpz_poly_get_coeff_mpz(coef.value, self.__poly, i)
@@ -733,7 +762,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return qq, rr
 
-    cpdef bint is_zero(self):
+    cpdef bint is_zero(self) except -1:
         """
         Returns True if self is equal to zero.
 
@@ -748,6 +777,22 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             False
         """
         return (fmpz_poly_degree(self.__poly) == -1)
+
+    cpdef bint is_one(self) except -1:
+        """
+        Returns True if self is equal to one.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: R(0).is_one()
+            False
+            sage: R(1).is_one()
+            True
+            sage: x.is_one()
+            False
+        """
+        return fmpz_poly_is_one(self.__poly)
 
     def __nonzero__(self):
         """
@@ -779,6 +824,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f.gcd(g)
             6*x + 47
         """
+        cdef Polynomial_integer_dense_flint _right = <Polynomial_integer_dense_flint> right
+        if self.is_zero() or _right.is_one():
+            return right
+        elif self.is_one() or _right.is_zero():
+            return self
         cdef Polynomial_integer_dense_flint x = self._new()
         sig_on()
         fmpz_poly_gcd(x.__poly, self.__poly,
@@ -801,10 +851,20 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             126*x^6 + 951*x^5 + 486*x^4 + 6034*x^3 + 585*x^2 + 3706*x + 1786
             sage: h == (6*x + 47)*(7*x^2 - 2*x + 38)*(3*x^3 + 2*x + 1)
             True
+
+        TESTS:
+
+        Check that :trac:`32033` has been fixed::
+
+            sage: R.<t> = ZZ[]
+            sage: lcm(R(0), R(0))
+            0
         """
+        if self.is_zero() or right.is_zero():
+            P = self.parent()
+            return P.zero()
         g = self.gcd(right)
         return (self//g)*right
-
 
     @coerce_binop
     def xgcd(self, right):
@@ -884,7 +944,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         fmpz_poly_xgcd(r, ss.__poly, tt.__poly, self.__poly,
                 (<Polynomial_integer_dense_flint>right).__poly)
         sig_off()
-        cdef Integer rr = PY_NEW(Integer)
+        cdef Integer rr = Integer.__new__(Integer)
         fmpz_get_mpz(rr.value, r)
         fmpz_clear(r)
 
@@ -919,7 +979,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         r"""
         Truncated multiplication
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`_mul_` for standard multiplication
 
@@ -946,7 +1006,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return x
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -964,8 +1024,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return x
 
-
-    cpdef _rmul_(self, RingElement right):
+    cpdef _rmul_(self, Element right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -1158,25 +1217,40 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: (x^2 + 13*x + 169) // 13
             x + 13
         """
-        cdef Polynomial_integer_dense_flint res = self._new()
-        cdef Polynomial
-        cdef long t
-        if right == 0:
-            raise ZeroDivisionError("division by zero")
+        cdef Polynomial_integer_dense_flint _right
+        cdef Polynomial_integer_dense_flint res
         if not isinstance(right, Polynomial_integer_dense_flint):
-            if right in ZZ:
+            if isinstance(right, Integer):
+                if (<Integer> right).is_zero():
+                    raise ZeroDivisionError("division by zero")
+                else:
+                    res = self._new()
+                    sig_on()
+                    fmpz_poly_scalar_fdiv_mpz(res.__poly, self.__poly,
+                            (<Integer> right).value)
+                    sig_off()
+                return res
+            elif right in ZZ:
+                res = self._new()
                 sig_on()
                 fmpz_poly_scalar_fdiv_mpz(res.__poly, self.__poly,
                         (<Integer>ZZ(right)).value)
                 sig_off()
                 return res
-        if self._parent is not right.parent():
-            right = self._parent(right)
-        sig_on()
-        fmpz_poly_div(res.__poly, self.__poly,
-                (<Polynomial_integer_dense_flint>right).__poly)
-        sig_off()
-        return res
+            else:
+                right = self._parent(right)
+        _right = <Polynomial_integer_dense_flint> right
+        if _right.is_zero():
+            raise ZeroDivisionError("division by zero")
+        elif _right.is_one():
+            # quite typical when removing gcds...
+            return self
+        else:
+            res = self._new()
+            sig_on()
+            fmpz_poly_div(res.__poly, self.__poly, _right.__poly)
+            sig_off()
+            return res
 
     cpdef Polynomial inverse_series_trunc(self, long prec):
         r"""
@@ -1274,7 +1348,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         Returns isolating intervals for the real roots of this
         polynomial.
 
-        EXAMPLE:
+        EXAMPLES:
         We compute the roots of the characteristic polynomial of some
         Salem numbers::
 
@@ -1315,7 +1389,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         TESTS::
 
             sage: type(x.degree())
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
         """
         return smallInteger(fmpz_poly_degree(self.__poly))
 
@@ -1386,11 +1460,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         """
         cdef ZZX_c ntl_poly
         cdef ZZ_c* temp
-        cdef Integer x
         fmpz_poly_get_ZZX(ntl_poly, self.__poly)
 
         temp = ZZX_discriminant(&ntl_poly, proof)
-        x = PY_NEW(Integer)
+        cdef Integer x = Integer.__new__(Integer)
         ZZ_to_mpz(x.value, temp)
         del temp
 
@@ -1399,7 +1472,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
     # Alias for discriminant
     disc = discriminant
 
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
         EXAMPLES::
 
@@ -1407,7 +1480,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f = t^3 + 3*t - 17
             sage: pari(f)
             t^3 + 3*t - 17
-            sage: f._pari_(variable='y')
+            sage: f.__pari__(variable='y')
             y^3 + 3*y - 17
         """
         if variable is None:
@@ -1598,7 +1671,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f.factor_mod(3)
             Traceback (most recent call last):
             ...
-            ValueError: factorization of 0 not defined
+            ArithmeticError: factorization of 0 is not defined
 
             sage: f = 2*x*(x-2)*(x-9)
             sage: f.factor_mod(7)
@@ -1608,14 +1681,13 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         p = Integer(p)
         if not p.is_prime():
             raise ValueError("p must be prime")
-        if all([c%p==0 for c in self.coefficients()]):
-            raise ValueError("factorization of 0 not defined")
-        f = self._pari_()
+        if not any(c % p for c in self.coefficients()):
+            raise ArithmeticError("factorization of 0 is not defined")
+        f = self.__pari__()
         G = f.factormod(p)
         k = FiniteField(p)
         R = k[self.parent().variable_name()]
         return R(1)._factor_pari_helper(G, unit=R(self).leading_coefficient())
-
 
     def factor_padic(self, p, prec=10):
         """
@@ -1636,13 +1708,13 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = x^2 + 1
             sage: f.factor_padic(5, 4)
-            ((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) * ((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)))
+            ((1 + O(5^4))*x + 2 + 5 + 2*5^2 + 5^3 + O(5^4)) * ((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))
 
         A more difficult example::
 
             sage: f = 100 * (5*x + 1)^2 * (x + 5)^2
             sage: f.factor_padic(5, 10)
-            (4 + O(5^10)) * ((5 + O(5^11)))^2 * ((1 + O(5^10))*x + (5 + O(5^10)))^2 * ((5 + O(5^10))*x + (1 + O(5^10)))^2
+            (4 + O(5^10)) * (5 + O(5^11))^2 * ((1 + O(5^10))*x + 5 + O(5^10))^2 * ((5 + O(5^10))*x + 1 + O(5^10))^2
 
         """
         from sage.rings.padics.factory import Zp
@@ -1660,10 +1732,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         from sage.rings.polynomial.padics.polynomial_padic import _pari_padic_factorization_to_sage
         return _pari_padic_factorization_to_sage(G, R, self.leading_coefficient())
 
-    def list(self):
+    cpdef list list(self, bint copy=True):
         """
         Return a new copy of the list of the underlying
-        elements of self.
+        elements of ``self``.
 
         EXAMPLES::
 
@@ -1675,7 +1747,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f.list()
             []
         """
-        return [self[i] for i in range(self.degree()+1)]
+        return [self.get_unsafe(i) for i in range(self.degree()+1)]
 
 
     @coerce_binop
@@ -1712,7 +1784,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         cdef fmpz_t res
         fmpz_init(res)
-        cdef Integer x = PY_NEW(Integer)
+        cdef Integer x = Integer.__new__(Integer)
 
         sig_on()
         fmpz_poly_resultant(res, self.__poly,
@@ -1727,8 +1799,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         Return a polynomial with the coefficients of this polynomial reversed.
 
         If an optional degree argument is given the coefficient list will be
-        truncated or zero padded as necessary and the reverse polynomial will
-        have the specified degree.
+        truncated or zero padded as necessary before computing the reverse.
 
         EXAMPLES::
 
@@ -1748,10 +1819,17 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             Traceback (most recent call last):
             ...
             ValueError: degree argument must be a non-negative integer, got 1.5
+
+        Check that this implementation is compatible with the generic one::
+
+            sage: p = R([0,1,0,2])
+            sage: all(p.reverse(d) == Polynomial.reverse(p, d)
+            ....:     for d in [None, 0, 1, 2, 3, 4])
+            True
         """
         cdef Polynomial_integer_dense_flint res = self._new()
         cdef unsigned long d
-        if degree:
+        if degree is not None:
             d = degree
             if d != degree:
                 raise ValueError("degree argument must be a non-negative integer, got %s" % degree)

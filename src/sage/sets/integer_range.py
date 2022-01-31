@@ -5,15 +5,15 @@ AUTHORS:
 
  - Nicolas Borie  (2010-03): First release.
  - Florent Hivert (2010-03): Added a class factory + cardinality method.
- - Vincent Delecroix (2012-02): add methods rank/unrank, make it complient with
+ - Vincent Delecroix (2012-02): add methods rank/unrank, make it compliant with
    Python int.
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2010 Nicolas Borie <nicolas.borie@math.u-psud.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.parent import Parent
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -23,6 +23,7 @@ from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.infinity import Infinity, MinusInfinity, PlusInfinity
+
 
 class IntegerRange(UniqueRepresentation, Parent):
     r"""
@@ -76,15 +77,15 @@ class IntegerRange(UniqueRepresentation, Parent):
     step)`` is the set whose list of elements is equivalent to the python
     construction ``range(begin, end, step)``::
 
-        sage: list(IntegerRange(4,105,3)) == range(4,105,3)
+        sage: list(IntegerRange(4,105,3)) == list(range(4,105,3))
         True
-        sage: list(IntegerRange(-54,13,12)) == range(-54,13,12)
+        sage: list(IntegerRange(-54,13,12)) == list(range(-54,13,12))
         True
 
     Except for the type of the numbers::
 
-        sage: type(IntegerRange(-54,13,12)[0]), type(range(-54,13,12)[0])
-        (<type 'sage.rings.integer.Integer'>, <type 'int'>)
+        sage: type(IntegerRange(-54,13,12)[0]), type(list(range(-54,13,12))[0])
+        (<... 'sage.rings.integer.Integer'>, <... 'int'>)
 
     When ``begin`` is finite and ``end`` is +Infinity, ``self`` is the infinite
     arithmetic progression starting from the ``begin`` by step ``step``::
@@ -142,7 +143,7 @@ class IntegerRange(UniqueRepresentation, Parent):
     be supposed to be included and the ``end`` bound supposed to be excluded::
 
         sage: I = IntegerRange(-100,100,10,0)
-        sage: J = range(-100,100,10)
+        sage: J = list(range(-100,100,10))
         sage: 100 in I
         False
         sage: 100 in J
@@ -181,7 +182,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         ....:     step = Integer(randint(-20,20))
         ....:     if step == 0:
         ....:         step = Integer(1)
-        ....:     assert list(IntegerRange(begin, end, step)) == range(begin, end, step)
+        ....:     assert list(IntegerRange(begin, end, step)) == list(range(begin, end, step))
         sage: # 20 random tests: range and IntegerRange with middle point for finite cases
         sage: for i in range(20):
         ....:     begin = Integer(randint(-300,300))
@@ -195,7 +196,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         ....:     else:
         ....:         TestSuite(I).run()
         ....:         L1 = list(IntegerRange(begin, end, step, I.an_element()))
-        ....:         L2 = range(begin, end, step)
+        ....:         L2 = list(range(begin, end, step))
         ....:         L1.sort()
         ....:         L2.sort()
         ....:         assert L1 == L2
@@ -219,11 +220,14 @@ class IntegerRange(UniqueRepresentation, Parent):
             sage: IntegerRange(1.0)
             Traceback (most recent call last):
             ...
-            TypeError: end must be Integer or Infinity, not <type 'sage.rings.real_mpfr.RealLiteral'>
+            TypeError: end must be Integer or Infinity, not <... 'sage.rings.real_mpfr.RealLiteral'>
         """
-        if isinstance(begin, int): begin = Integer(begin)
-        if isinstance(end, int): end = Integer(end)
-        if isinstance(step,int): step = Integer(step)
+        if isinstance(begin, int):
+            begin = Integer(begin)
+        if isinstance(end, int):
+            end = Integer(end)
+        if isinstance(step, int):
+            step = Integer(step)
 
         if end is None:
             end = begin
@@ -692,7 +696,7 @@ class IntegerRangeFromMiddle(IntegerRange):
         self._end = end
         self._step = step
         self._middle_point = middle_point
-        if not middle_point in self:
+        if middle_point not in self:
             raise ValueError("middle_point is not in the interval")
 
         if (begin != Infinity and begin != -Infinity) and \
@@ -760,8 +764,8 @@ class IntegerRangeFromMiddle(IntegerRange):
             ...
             LookupError: 1 not in Integer progression containing 0 with increment 10 and bounded with -Infinity and +Infinity
         """
-        if not elt in self:
-            raise LookupError('%r not in %r' % (elt,self))
+        if elt not in self:
+            raise LookupError('%r not in %r' % (elt, self))
         n = self._middle_point
         if (elt <= n and self._step > 0) or (elt >= n and self._step < 0):
             right = 2*n-elt+self._step

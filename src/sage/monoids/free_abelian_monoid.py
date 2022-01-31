@@ -44,8 +44,6 @@ lists of integer exponents.
     sage: x.list()
     [7, 2, 0, 1, 1]
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
 #
@@ -62,10 +60,10 @@ from sage.structure.parent import Parent
 from sage.categories.monoids import Monoids
 from .free_abelian_monoid_element import FreeAbelianMonoidElement
 from sage.rings.integer import Integer
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 
 from sage.structure.factory import UniqueFactory
-from sage.misc.decorators import rename_keyword
+
 
 class FreeAbelianMonoidFactory(UniqueFactory):
     """
@@ -110,9 +108,9 @@ class FreeAbelianMonoidFactory(UniqueFactory):
 
 FreeAbelianMonoid_factory = FreeAbelianMonoidFactory("sage.monoids.free_abelian_monoid.FreeAbelianMonoid_factory")
 
-@rename_keyword(deprecation=15289, n="index_set")
+
 def FreeAbelianMonoid(index_set=None, names=None, **kwds):
-    """
+    r"""
     Return a free abelian monoid on `n` generators or with the generators
     indexed by a set `I`.
 
@@ -138,13 +136,15 @@ def FreeAbelianMonoid(index_set=None, names=None, **kwds):
         Free abelian monoid on 5 generators (a, b, c, d, e)
         sage: FreeAbelianMonoid(index_set=ZZ)
         Free abelian monoid indexed by Integer Ring
+        sage: FreeAbelianMonoid(names='x,y')
+        Free abelian monoid on 2 generators (x, y)
     """
     if isinstance(index_set, str): # Swap args (this works if names is None as well)
         names, index_set = index_set, names
 
     if index_set is None and names is not None:
         if isinstance(names, str):
-            index_set = names.count(',')
+            index_set = names.count(',') + 1
         else:
             index_set = len(names)
 
@@ -191,7 +191,7 @@ class FreeAbelianMonoid_class(Parent):
             sage: F = FreeAbelianMonoid(6,'b')
             sage: TestSuite(F).run()
         """
-        if not isinstance(n, (int, long, Integer)):
+        if not isinstance(n, (int, Integer)):
             raise TypeError("n (=%s) must be an integer"%n)
         if n < 0:
             raise ValueError("n (=%s) must be nonnegative"%n)
@@ -303,7 +303,7 @@ class FreeAbelianMonoid_class(Parent):
             +Infinity
         """
         if self.__ngens == 0:
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ.one()
         from sage.rings.infinity import infinity
         return infinity

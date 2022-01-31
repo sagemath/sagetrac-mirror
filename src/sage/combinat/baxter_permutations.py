@@ -1,7 +1,7 @@
+# -*- coding: utf-8 -*-
 """
 Baxter permutations
 """
-from six.moves import range
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -22,7 +22,7 @@ class BaxterPermutations(UniqueRepresentation, Parent):
     are adjacent in `\sigma`, the standardized version of `u` is
     neither `2413` nor `3142`.
 
-    See [Gir12]_ for a study of Baxter permutations.
+    See [Gir2012]_ for a study of Baxter permutations.
 
     INPUT:
 
@@ -41,12 +41,6 @@ class BaxterPermutations(UniqueRepresentation, Parent):
         Baxter permutations of size 5
         sage: BaxterPermutations()
         Baxter permutations
-
-    REFERENCES:
-
-    .. [Gir12] Samuele Giraudo,
-       *Algebraic and combinatorial structures on pairs of twin binary trees*,
-       :arxiv:`1204.4776v1`.
     """
     @staticmethod
     def __classcall_private__(classe, n=None):
@@ -87,7 +81,7 @@ class BaxterPermutations_size(BaxterPermutations):
         self.element_class = Permutations(n).element_class
         self._n = ZZ(n)
         from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-        super(BaxterPermutations, self).__init__(category=FiniteEnumeratedSets())
+        super(BaxterPermutations_size, self).__init__(category=FiniteEnumeratedSets())
 
     def _repr_(self):
         """
@@ -123,7 +117,7 @@ class BaxterPermutations_size(BaxterPermutations):
             sage: sorted([p for p in Permutations(6) if p in BaxterPermutations(6)]) == sorted(BaxterPermutations(6).list())
             True
         """
-        if not x in Permutations(self._n):
+        if x not in Permutations(self._n):
             return False
         for i in range(1, len(x) - 1):
             a = x[i]
@@ -134,7 +128,7 @@ class BaxterPermutations_size(BaxterPermutations):
                     if x_j > a and x_j < b and x_j > max_l:
                         max_l = x_j
                 min_r = len(x) + 1
-                for x_j in x[i+2:]:
+                for x_j in x[i + 2:]:
                     if x_j > a and x_j < b and x_j < min_r:
                         min_r = x_j
                 if max_l > min_r:
@@ -145,7 +139,7 @@ class BaxterPermutations_size(BaxterPermutations):
                     if x_j < a and x_j > b and x_j < min_l:
                         min_l = x_j
                 max_r = 0
-                for x_j in x[i+2:]:
+                for x_j in x[i + 2:]:
                     if x_j < a and x_j > b and x_j > max_r:
                         max_r = x_j
                 if min_l < max_r:
@@ -179,17 +173,11 @@ class BaxterPermutations_size(BaxterPermutations):
 
         ALGORITHM:
 
-        The algorithm using generating trees described in [BBF08]_ is used.
+        The algorithm using generating trees described in [BBMF2008]_ is used.
         The idea is that all Baxter permutations of size `n + 1` can be
         obtained by inserting the letter `n + 1` either just before a left
         to right maximum or just after a right to left maximum of a Baxter
         permutation of size `n`.
-
-        REFERENCES:
-
-        .. [BBF08] \N. Bonichon, M. Bousquet-Melou, E. Fusy.
-           Baxter permutations and plane bipolar orientations.
-           Seminaire Lotharingien de combinatoire 61A, article B61Ah, 2008.
         """
         if self._n == 0:
             yield Permutations(0)([])
@@ -198,7 +186,8 @@ class BaxterPermutations_size(BaxterPermutations):
         else:
             for b in BaxterPermutations(self._n - 1):
                 # Left to right maxima.
-                for i in [self._n - 2 - i for i in b.reverse().saliances()]:
+                for j in b.reverse().saliances():
+                    i = self._n - 2 - j
                     yield Permutations(self._n)(b[:i] + [self._n] + b[i:])
                 # Right to left maxima.
                 for i in b.saliances():
@@ -272,7 +261,7 @@ class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):
             Baxter permutations
         """
         self.element_class = Permutations().element_class
-        from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
+        from sage.sets.non_negative_integers import NonNegativeIntegers
         from sage.sets.family import Family
         DisjointUnionEnumeratedSets.__init__(self,
                                              Family(NonNegativeIntegers(),
@@ -305,8 +294,13 @@ class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):
             False
             sage: Permutation([4, 3, 6, 9, 7, 5, 1, 2, 8]) in BaxterPermutations()
             True
+
+        TESTS::
+
+            sage: 42 in BaxterPermutations()
+            False
         """
-        if not x in Permutations():
+        if x not in Permutations():
             return False
         return x in BaxterPermutations(len(x))
 
@@ -323,16 +317,16 @@ class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):
 
         The pair of twin binary trees `(T_L, T_R)` where `T_L`
         (resp. `T_R`) is obtained by inserting the letters of ``p`` from
-        left to right (resp. right to left) following the the binary search
+        left to right (resp. right to left) following the binary search
         tree insertion algorithm. This is called the *Baxter P-symbol*
-        in [Gir12]_ Definition 4.1.
+        in [Gir2012]_ Definition 4.1.
 
         .. NOTE::
 
             This method only works when ``p`` is a permutation. For words
             with repeated letters, it would return two "right binary
-            search trees" (in the terminology of [Gir12]_), which conflicts
-            with the definition in [Gir12]_.
+            search trees" (in the terminology of [Gir2012]_), which conflicts
+            with the definition in [Gir2012]_.
 
         EXAMPLES::
 

@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _prep-symbolics-and-basic-plotting:
+
 Tutorial for Symbolics and Plotting
 ===================================
 
@@ -119,28 +121,6 @@ But with ``FV=100*e^(r*t)``, there is no particular reason :math:`r` or
     sage: FV(r=.05,t=5); FV(t=5,r=.05)
     128.402541668774
     128.402541668774
-
-This is why we receive a deprecation error message when we try to do
-:math:`FV` without explicitly mentioning the variables.
-
-::
-
-    sage: FV(5,.05)
-    doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
-    See http://trac.sagemath.org/5930 for details.
-    128.402541668774
-
-In this case, the outcome is the same, since :math:`rt=tr`!  Of course,
-in most expressions, one would not be so lucky, as the following example
-indicates.
-
-::
-
-    sage: y = var('y')
-    sage: G = x*y^2
-    sage: G(1,2); G(2,1)
-    4
-    2
 
 Also remember that when we don't use function notation, we'll need to
 define our variables.
@@ -350,7 +330,7 @@ Two of the most useful of these options help in labeling graphs.
 ::
 
     sage: P1 = plot(f,(x,-1,1),axes_labels=['$x$','$y$'],legend_label='$f(x)$')
-    sage: P2 = plot(sin,(x,-1,1),axes_labels=['$x$','$y$'],legend_label='$\sin(x)$',color='red')
+    sage: P2 = plot(sin,(x,-1,1),axes_labels=['$x$','$y$'],legend_label=r'$\sin(x)$',color='red')
     sage: P1+P2
     Graphics object consisting of 2 graphics primitives
 
@@ -405,7 +385,7 @@ Basic 3D Plotting
 
 There are several mechanisms for viewing three\-dimensional plots in
 Sage, but we will stick to the default option in the notebook interface,
-which is via Java applets from the program `Jmol
+which is via javascript applets from the program `Jmol/JSmol
 <http://jmol.sourceforge.net/>`_ .
 
 Plotting a 3D plot is similar to plotting a 2D plot, but we need to
@@ -486,6 +466,6 @@ We close this tutorial with a cool plot that we define *implicitly* as a
     Graphics3d Object
 
 The next tutorial will use all that you have learned about Sage basics,
-symbolics, and plotting in a specific mathematical venue \- the calculus
-sequence!
+symbolics, and plotting in a specific mathematical venue \- the
+:ref:`calculus sequence <prep-calculus>`!
 

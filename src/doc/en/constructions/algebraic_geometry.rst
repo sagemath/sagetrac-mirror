@@ -10,7 +10,7 @@ Point counting on curves
 How do you count points on an elliptic curve over a finite field in
 Sage?
 
-Over prime finite fields, includes both the the baby step giant step
+Over prime finite fields, includes both the baby step giant step
 method and the SEA (Schoof-Elkies-Atkin) algorithm (implemented in PARI
 by Christophe Doche and Sylvain Duquesne). An example taken form the
 Reference manual:
@@ -139,16 +139,20 @@ Other methods
 
        sage: singular.lib("brnoeth.lib")
        sage: s = singular.ring(2,'(x,y)','lp')
-       sage: I = singular.ideal('[x^4+x, y^4+y]')
+       sage: I = singular.ideal('x^4+x', 'y^4+y')
        sage: L = singular.closed_points(I)
        sage: # Here you have all the points :
-       sage: print(L)
+       sage: L       # random
        [1]:
-          _[1]=y+1  # 32-bit
-          _[2]=x+1  # 32-bit
-          _[1]=y    # 64-bit
-          _[2]=x    # 64-bit
+          _[1]=y+1
+          _[2]=x+1
        ...
+       sage: l=[L[k].sage() for k in [1..10]]; len(l) # there are 10 points
+       10
+       sage: r=sorted(l[0].ring().gens()); r
+       [y, x]
+       sage: r in [t.gens() for t in l] #  one of them is given by [y,x]
+       True
 
 -  Another way to compute rational points is to use Singular's
    ``NSplaces`` command. Here's the Klein quartic over :math:`GF(8)`
@@ -164,7 +168,7 @@ Other methods
        sage: klein1 = f.Adj_div(); print(klein1)
        [1]:
           [1]:
-             //   characteristic : 2
+             //   coefficients: ZZ/2
        //   number of vars : 2
        //        block   1 : ordering lp
        //                  : names    x y
@@ -187,13 +191,13 @@ Other methods
        sage: print(klein1)
        [1]:
           [1]:
-             //   characteristic : 2
+             //   coefficients: ZZ/2
        //   number of vars : 2
        //        block   1 : ordering lp
        //                  : names    x y
        //        block   2 : ordering C
           [2]:
-             //   characteristic : 2
+             //   coefficients: ZZ/2
        //   number of vars : 3
        //        block   1 : ordering lp
        //                  : names    x y z
@@ -210,7 +214,7 @@ Other methods
        [5]:
           [1]:
              [1]:
-                //   characteristic : 2
+                //   coefficients: ZZ/2
        //   number of vars : 3
        //        block   1 : ordering ls
        //                  : names    x y t

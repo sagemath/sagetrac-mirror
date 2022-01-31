@@ -1,5 +1,5 @@
 r"""
-Bijection classes for type `A_{2n}^{(2)\dagger}`.
+Bijection classes for type `A_{2n}^{(2)\dagger}`
 
 Part of the (internal) classes which runs the bijection between rigged
 configurations and KR tableaux of type `A_{2n}^{(2)\dagger}`.
@@ -39,7 +39,7 @@ from sage.combinat.rigged_configurations.bij_type_C import KRTToRCBijectionTypeC
 from sage.combinat.rigged_configurations.bij_type_C import RCToKRTBijectionTypeC
 from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
 
-from sage.rings.all import QQ
+from sage.rings.rational_field import QQ
 
 class KRTToRCBijectionTypeA2Dual(KRTToRCBijectionTypeC):
     r"""
@@ -214,9 +214,10 @@ class RCToKRTBijectionTypeA2Dual(RCToKRTBijectionTypeC):
             sage: RC = RiggedConfigurations(CartanType(['A', 4, 2]).dual(), [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A2_dual import RCToKRTBijectionTypeA2Dual
             sage: bijection = RCToKRTBijectionTypeA2Dual(RC(partition_list=[[2],[2,2]]))
-            sage: bijection.next_state(1)
+            sage: bijection.next_state(2)
             -1
         """
+        height -= 1 # indexing
         n = self.n
         ell = [None] * (2*n)
         case_S = [False] * n

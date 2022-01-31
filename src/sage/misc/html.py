@@ -4,8 +4,11 @@ HTML Fragments
 This module defines a HTML fragment class, which holds a piece of
 HTML. This is primarily used in browser-based notebooks, though it
 might be useful for creating static pages as well.
+
+This module defines :class:`MathJax`, an object of which performs the task of
+producing an HTML representation of any object. The produced HTML is
+renderable in a browser-based notebook with the help of MathJax.
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -16,111 +19,9 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import warnings
 from sage.misc.latex import latex
 from sage.misc.sage_eval import sage_eval
 from sage.structure.sage_object import SageObject
-from sage.misc.superseded import deprecation
-from sage.misc.decorators import rename_keyword
-
-
-
-# Various hacks for the deprecation period in trac #18292 are
-# conditional on this bool
-_old_and_deprecated_behavior = True
-
-def old_and_deprecated_wrapper(method):
-    """
-    Wrapper to reinstate the old behavior of ``html``
-
-    See :trac:`18292`.
-
-    EXAMPLES::
-
-        sage: from sage.misc.html import HtmlFragment, old_and_deprecated_wrapper
-        sage: @old_and_deprecated_wrapper
-        ....: def foo(): 
-        ....:     return HtmlFragment('foo')
-
-    The old behavior is to print and return nothing::
-    
-        sage: import sage.misc.html
-        sage: sage.misc.html._old_and_deprecated_behavior = True
-        sage: f = foo()
-        foo
-        sage: f
-        <BLANKLINE>
-        sage: type(f)
-        <class 'sage.misc.html.WarnIfNotPrinted'>
-        sage: import sage.misc.html
-
-    The new behavior will be to return a HTML fragment::
-
-        sage: sage.misc.html._old_and_deprecated_behavior = False
-        sage: f = foo()
-        sage: f 
-        foo
-        sage: type(f)
-        <class 'sage.misc.html.HtmlFragment'>
-
-    A deprecation warning is generated if the html output is not printed::
-
-        sage: sage.misc.html._old_and_deprecated_behavior = True
-        sage: def html_without_print():
-        ....:    html('output without pretty_print')     
-        sage: html_without_print()
-        output without pretty_print
-        doctest:...: DeprecationWarning:  html(...) will change soon to return HTML instead of printing it. Instead use pretty_print(html(...)) for strings or just pretty_print(...) for math. 
-        See http://trac.sagemath.org/18292 for details.
-
-        sage: def html_with_print():
-        ....:    pretty_print(html('output with pretty_print'))
-        sage: html_with_print()
-        output with pretty_print
-    """
-    from sage.repl.rich_output.pretty_print import pretty_print
-    def wrapped(*args, **kwds):
-        output = method(*args, **kwds)
-        assert isinstance(output, HtmlFragment)
-        if _old_and_deprecated_behavior:
-            # workaround for the old SageNB interacts
-            pretty_print(output)
-            return WarnIfNotPrinted()
-        else:
-            return output
-    return wrapped
-
-
-class WarnIfNotPrinted(SageObject):
-    """
-    To be removed when the deprecation for :trac:`18292` expires.
-    """
-
-    _printed = False
-    
-    def _repr_(self):
-        self._printed = True
-        return ''
-
-    def __del__(self):
-        if not self._printed:
-            message = """ 
-                html(...) will change soon to return HTML instead of
-                printing it. Instead use pretty_print(html(...)) for
-                strings or just pretty_print(...) for math.
-            """
-            message = ' '.join([l.strip() for l in message.splitlines()])
-            from sage.misc.superseded import deprecation
-            deprecation(18292, message)
-
-    @classmethod
-    def skip_pretty_print(cls, obj):
-        if isinstance(obj, cls):
-            # Consider it printed, but don't actually print
-            obj._printed = True
-            return True
-        else:
-            return False
 
 
 class HtmlFragment(str, SageObject):
@@ -151,7 +52,7 @@ class HtmlFragment(str, SageObject):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: h = sage.misc.html.HtmlFragment('<b>old</b>')
-            sage: h._rich_repr_(dm)    # the doctest backend does not support html
+            sage: h._rich_repr_(dm)  # the doctest backend does not support html
             OutputPlainText container
         """
         OutputHtml = display_manager.types.OutputHtml
@@ -163,10 +64,8 @@ class HtmlFragment(str, SageObject):
 
 def math_parse(s):
     r"""
-    Replace TeX-``$`` with Mathjax equations.
-    
-    Turn the HTML-ish string s that can have \$\$ and \$'s in it into
-    pure HTML.  See below for a precise definition of what this means.
+    Transform the string ``s`` with TeX maths to an HTML string renderable by
+    MathJax.
 
     INPUT:
 
@@ -176,48 +75,25 @@ def math_parse(s):
 
     A :class:`HtmlFragment` instance.
 
-    Do the following:
+    Specifically this method does the following:
 
-    * Replace all ``\$ text \$``\'s by
-      ``<script type="math/tex"> text </script>``
-    * Replace all ``\$\$ text \$\$``\'s by
-      ``<script type="math/tex; mode=display"> text </script>``
-    * Replace all ``\ \$``\'s by ``\$``\'s.  Note that in
-      the above two cases nothing is done if the ``\$``
-      is preceeded by a backslash.
-    * Replace all ``\[ text \]``\'s by
-      ``<script type="math/tex; mode=display"> text </script>``
+    * Replace all ``\$text\$``\'s by ``\(text\)``
+    * Replace all ``\$\$text\$\$``\'s by ``\[text\]``
+    * Replace all ``\\\$``\'s by ``\$``\'s. Note that this has precedence over
+      the above two cases.
 
     EXAMPLES::
 
-        sage: pretty_print(sage.misc.html.math_parse('This is $2+2$.'))
-        This is <script type="math/tex">2+2</script>.
-        sage: pretty_print(sage.misc.html.math_parse('This is $$2+2$$.'))
-        This is <script type="math/tex; mode=display">2+2</script>.
-        sage: pretty_print(sage.misc.html.math_parse('This is \\[2+2\\].'))
-        This is <script type="math/tex; mode=display">2+2</script>.
-        sage: pretty_print(sage.misc.html.math_parse(r'This is \[2+2\].'))
-        This is <script type="math/tex; mode=display">2+2</script>.
+        sage: print(sage.misc.html.math_parse('This is $2+2$.'))
+        This is \(2+2\).
+        sage: print(sage.misc.html.math_parse('This is $$2+2$$.'))
+        This is \[2+2\].
+        sage: print(sage.misc.html.math_parse('This is \\[2+2\\].'))
+        This is \[2+2\].
+        sage: print(sage.misc.html.math_parse(r'\$2+2\$ is rendered to $2+2$.'))
+        <span>$</span>2+2<span>$</span> is rendered to \(2+2\).
 
-    TESTS::
-
-        sage: sage.misc.html.math_parse(r'This \$\$is $2+2$.')
-        This $$is <script type="math/tex">2+2</script>.
     """
-    # first replace \\[ and \\] by <script type="math/tex; mode=display">
-    # and </script>, respectively.
-    while True:
-        i = s.find('\\[')
-        if i == -1:
-            break
-        else:
-            s = s[:i] + '<script type="math/tex; mode=display">' + s[i+2:]
-            j = s.find('\\]')
-            if j == -1:  # missing right-hand delimiter, so add one
-                s = s + '</script>'
-            else:
-                s = s[:j] + '</script>' + s[j+2:]
-
     # Below t always has the "parsed so far" version of s, and s is
     # just the part of the original input s that hasn't been parsed.
     t = ''
@@ -227,22 +103,23 @@ def math_parse(s):
             # No dollar signs -- definitely done.
             return HtmlFragment(t + s)
         elif i > 0 and s[i-1] == '\\':
-            # A dollar sign with a backslash right before it, so
-            # we ignore it by sticking it in the parsed string t
-            # and skip to the next iteration.
-            t += s[:i-1] + '$'
+            # A dollar sign with a backslash right before it, so this is a
+            # normal dollar sign. If processEscapes is enabled in MathJax, "\$"
+            # will do the job. But as we do not assume that, we use the span
+            # tag safely.
+            t += s[:i-1] + '<span>$</span>'
             s = s[i+1:]
             continue
         elif i+1 < len(s) and s[i+1] == '$':
             # Found a math environment. Double dollar sign so display mode.
-            disp = '; mode=display'
+            disp = True
         else:
             # Found math environment. Single dollar sign so default mode.
-            disp = ''
+            disp = False
 
         # Now find the matching $ sign and form the html string.
 
-        if len(disp) > 0:
+        if disp:
             j = s[i+2:].find('$$')
             if j == -1:
                 j = len(s)
@@ -259,12 +136,229 @@ def math_parse(s):
                 j += i + 2
             txt = s[i+1:j]
 
-        t += s[:i] + '<script type="math/tex%s">%s</script>'%(disp,
-                      ' '.join(txt.splitlines()))
+        if disp:
+            t += s[:i] + r'\[{0}\]'.format(' '.join(txt.splitlines()))
+        else:
+            t += s[:i] + r'\({0}\)'.format(' '.join(txt.splitlines()))
         s = s[j+1:]
-        if len(disp) > 0:
+        if disp:
             s = s[1:]
     return HtmlFragment(t)
+
+
+class MathJaxExpr:
+    """
+    An arbitrary MathJax expression that can be nicely concatenated.
+
+    EXAMPLES::
+
+        sage: from sage.misc.html import MathJaxExpr
+        sage: MathJaxExpr("a^{2}") + MathJaxExpr("x^{-1}")
+        a^{2}x^{-1}
+    """
+    def __init__(self, y):
+        """
+        Initialize a MathJax expression.
+
+        INPUT:
+
+        - ``y`` - a string
+
+        Note that no error checking is done on the type of ``y``.
+
+        EXAMPLES::
+
+            sage: from sage.misc.html import MathJaxExpr
+            sage: jax = MathJaxExpr(3); jax  # indirect doctest
+            3
+            sage: TestSuite(jax).run(skip ="_test_pickling")
+        """
+        self.__y = y
+
+    def __repr__(self):
+        """
+        Print representation.
+
+        EXAMPLES::
+
+            sage: from sage.misc.html import MathJaxExpr
+            sage: jax = MathJaxExpr('3')
+            sage: jax.__repr__()
+            '3'
+        """
+        return str(self.__y)
+
+    def __add__(self, y):
+        """
+        'Add' MathJaxExpr ``self`` to ``y``.  This concatenates them
+        (assuming that they're strings).
+
+        EXAMPLES::
+
+            sage: from sage.misc.html import MathJaxExpr
+            sage: j3 = MathJaxExpr('3')
+            sage: jx = MathJaxExpr('x')
+            sage: j3 + jx
+            3x
+        """
+        return MathJaxExpr(self.__y + y)
+
+    def __radd__(self, y):
+        """
+        'Add' MathJaxExpr ``y`` to ``self``.  This concatenates them
+        (assuming that they're strings).
+
+        EXAMPLES::
+
+            sage: from sage.misc.html import MathJaxExpr
+            sage: j3 = MathJaxExpr('3')
+            sage: jx = MathJaxExpr('x')
+            sage: j3.__radd__(jx)
+            x3
+        """
+        return MathJaxExpr(y + self.__y)
+
+
+class MathJax:
+    r"""
+    Render LaTeX input using MathJax.  This returns a :class:`MathJaxExpr`.
+
+    EXAMPLES::
+
+        sage: from sage.misc.html import MathJax
+        sage: MathJax()(3)
+        <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}3\]</html>
+        sage: MathJax()(ZZ)
+        <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}\]</html>
+    """
+
+    def __call__(self, x, combine_all=False):
+        r"""
+        Render LaTeX input using MathJax.  This returns a :class:`MathJaxExpr`.
+
+        INPUT:
+
+        - ``x`` - a Sage object
+
+        - ``combine_all`` - boolean (Default: ``False``): If ``combine_all`` is
+          ``True`` and the input is a tuple, then it does not return a tuple
+          and instead returns a string with all the elements separated by
+          a single space.
+
+        OUTPUT:
+
+        A :class:`MathJaxExpr`
+
+        EXAMPLES::
+
+            sage: from sage.misc.html import MathJax
+            sage: MathJax()(3)
+            <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}3\]</html>
+            sage: str(MathJax().eval(ZZ['x'], mode='display')) == str(MathJax()(ZZ['x']))
+            True
+        """
+        return self.eval(x, combine_all=combine_all)
+
+    def eval(self, x, globals=None, locals=None, mode='display', combine_all=False):
+        r"""
+        Render LaTeX input using MathJax.  This returns a :class:`MathJaxExpr`.
+
+        INPUT:
+
+        - ``x`` - a Sage object
+
+        -  ``globals`` - a globals dictionary
+
+        -  ``locals`` - extra local variables used when
+           evaluating Sage code in ``x``.
+
+        - ``mode`` - string (optional, default ``'display'``):
+           ``'display'`` for displaymath, ``'inline'`` for inline
+           math, or ``'plain'`` for just the LaTeX code without the
+           surrounding html and script tags.
+
+        - ``combine_all`` - boolean (Default: ``False``): If ``combine_all`` is
+          ``True`` and the input is a tuple, then it does not return a tuple
+          and instead returns a string with all the elements separated by
+          a single space.
+
+        OUTPUT:
+
+        A :class:`MathJaxExpr`
+
+        EXAMPLES::
+
+            sage: from sage.misc.html import MathJax
+            sage: MathJax().eval(3, mode='display')
+            <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}3\]</html>
+            sage: MathJax().eval(3, mode='inline')
+            <html>\(\newcommand{\Bold}[1]{\mathbf{#1}}3\)</html>
+            sage: MathJax().eval(type(3), mode='inline')
+            <html>\(\newcommand{\Bold}[1]{\mathbf{#1}}\verb|&lt;class|\verb| |\verb|'sage.rings.integer.Integer'>|\)</html>
+        """
+        # Get a regular LaTeX representation of x
+        x = latex(x, combine_all=combine_all)
+
+        # The "\text{\texttt{...}}" blocks are reformed to be renderable by MathJax.
+        # These blocks are produced by str_function() defined in sage.misc.latex.
+        prefix = r"\text{\texttt{"
+        parts = x.split(prefix)
+        for i, part in enumerate(parts):
+            if i == 0:
+                continue    # Nothing to do with the head part
+            n = 1
+            for closing, c in enumerate(part):
+                if c == "{" and part[closing - 1] != "\\":
+                    n += 1
+                if c == "}" and part[closing - 1] != "\\":
+                    n -= 1
+                if n == -1:
+                    break
+            # part should end in "}}", so omit the last two characters
+            # from y
+            y = part[:closing-1]
+            for delimiter in r"""|"'`#%&,.:;?!@_~^+-/\=<>()[]{}0123456789E""":
+                if delimiter not in y:
+                    break
+            if delimiter == "E":
+                # y is too complicated
+                delimiter = "|"
+                y = "(complicated string)"
+            wrapper = r"\verb" + delimiter + "%s" + delimiter
+            y = y.replace("{ }", " ").replace("{-}", "-")
+            for c in r"#$%&\^_{}~":
+                char_wrapper = r"{\char`\%s}" % c
+                y = y.replace(char_wrapper, c)
+            subparts = []
+            nspaces = 0
+            for subpart in y.split(" "):
+                if subpart == "":
+                    nspaces += 1
+                    continue
+                if nspaces > 0:
+                    subparts.append(wrapper % (" " * nspaces))
+                nspaces = 1
+                subparts.append(wrapper % subpart)
+            subparts.append(part[closing + 1:])
+            parts[i] = "".join(subparts)
+
+        from sage.misc.latex_macros import sage_configurable_latex_macros
+        from sage.misc.latex import _Latex_prefs
+        latex_string = ''.join(
+            sage_configurable_latex_macros +
+            [_Latex_prefs._option['macros']] +
+            parts
+        )
+        mathjax_string = latex_string.replace('<', '&lt;')
+        if mode == 'display':
+            html = r'<html>\[{0}\]</html>'
+        elif mode == 'inline':
+            html = r'<html>\({0}\)</html>'
+        elif mode == 'plain':
+            return mathjax_string
+        else:
+            raise ValueError("mode must be either 'display', 'inline', or 'plain'")
+        return MathJaxExpr(html.format(mathjax_string))
 
 
 class HTMLFragmentFactory(SageObject):
@@ -278,61 +372,67 @@ class HTMLFragmentFactory(SageObject):
         String.
 
         EXAMPLES::
-        
+
             sage: html
             Create HTML output (see html? for details)
         """
         return 'Create HTML output (see html? for details)'
-    
-    @old_and_deprecated_wrapper
-    def __call__(self, obj):
+
+    def __call__(self, obj, concatenate=True, strict=False):
         r"""
         Construct a HTML fragment
-     
+
         INPUT:
-     
-        - ``obj`` -- anything. An object for which you want a HTML
+
+        - ``obj`` -- anything. An object for which you want an HTML
           representation.
-     
+
+        - ``concatenate`` -- if ``True``, combine HTML representations of
+          elements of the container ``obj``
+
+        - ``strict`` -- if ``True``, construct an HTML representation of
+          ``obj`` even if ``obj`` is a string
+
         OUTPUT:
-     
+
         A :class:`HtmlFragment` instance.
-     
+
         EXAMPLES::
-     
+
             sage: h = html('<hr>');  pretty_print(h)
             <hr>
-            sage: type(h)       # should be <class 'sage.misc.html.HtmlFragment'>
-            <class 'sage.misc.html.WarnIfNotPrinted'>
+            sage: type(h)
+            <class 'sage.misc.html.HtmlFragment'>
 
-            sage: pretty_print(html(1/2))
-            <script type="math/tex">\frac{1}{2}</script>
+            sage: html(1/2)
+            <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2}\]</html>
 
-            sage: pretty_print(html('<a href="http://sagemath.org">sagemath</a>'))
+            sage: html('<a href="http://sagemath.org">sagemath</a>')
             <a href="http://sagemath.org">sagemath</a>
+
+            sage: html('<a href="http://sagemath.org">sagemath</a>', strict=True)
+            <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\verb|&lt;a|\verb| |\verb|href="http://sagemath.org">sagemath&lt;/a>|\]</html>
         """
-        # Prefer dedicated _html_() method
+        # string obj is interpreted as an HTML in not strict mode
+        if isinstance(obj, str) and not strict:
+            return HtmlFragment(math_parse(obj))
+
+        # prefer dedicated _html_() method
         try:
             result = obj._html_()
+            return HtmlFragment(result)
         except AttributeError:
             pass
+
+        # otherwise convert latex to html
+        if concatenate:
+            if isinstance(obj, (tuple, list)):
+                obj = tuple(obj)
+            result = MathJax().eval(obj, mode='display', combine_all=True)
         else:
-            if not isinstance(result, HtmlFragment):
-                warnings.warn('_html_() did not return a HtmlFragment')
-                return HtmlFragment(result)
-            else:
-                return result
-        # Otherwise: convert latex to html
-        try:
-            result = obj._latex_()
-        except AttributeError:
-            pass
-        else:
-            return math_parse('${0}$'.format(obj._latex_()))
-        # If all else fails
-        return math_parse(str(obj))
-         
-    @old_and_deprecated_wrapper
+            result = MathJax().eval(obj, mode='display', combine_all=False)
+        return HtmlFragment(result)
+
     def eval(self, s, locals=None):
         r"""
         Evaluate embedded <sage> tags
@@ -345,27 +445,24 @@ class HTMLFragmentFactory(SageObject):
           evaluating ``s``. Default: the current global variables.
 
         OUTPUT:
-     
+
         A :class:`HtmlFragment` instance.
-     
+
         EXAMPLES::
 
             sage: a = 123
             sage: html.eval('<sage>a</sage>')
-            <script type="math/tex">123</script>
+            \(123\)
             sage: html.eval('<sage>a</sage>', locals={'a': 456})
-            <script type="math/tex">456</script>
+            \(456\)
         """
-        if hasattr(s, '_html_'):
-            deprecation(18292, 'html.eval() is for strings, use html() for sage objects')
-            return s._html_()
         if locals is None:
             from sage.repl.user_globals import get_globals
             locals = get_globals()
         s = str(s)
         s = math_parse(s)
         t = ''
-        while len(s) > 0:
+        while s:
             i = s.find('<sage>')
             if i == -1:
                  t += s
@@ -374,97 +471,10 @@ class HTMLFragmentFactory(SageObject):
             if j == -1:
                  t += s
                  break
-            t += s[:i] + '<script type="math/tex">%s</script>'%\
-                     latex(sage_eval(s[6+i:j], locals=locals))
+            t += s[:i] + r'\({}\)'.format(latex(sage_eval(s[6+i:j], locals=locals)))
             s = s[j+7:]
         return HtmlFragment(t)
 
-    @old_and_deprecated_wrapper
-    def table(self, x, header=False):
-        r"""
-        Generate a HTML table.  
-
-        See :class:`~sage.misc.table.table`.
-
-        INPUT:
-
-        - ``x`` -- a list of lists (i.e., a list of table rows)
-
-        - ``header`` -- a row of headers.  If ``True``, then the first
-          row of the table is taken to be the header.
-
-        OUTPUT:
-     
-        A :class:`HtmlFragment` instance.
-
-        EXAMPLES::
-
-            sage: pretty_print(html.table([(i, j, i == j) for i in [0..1] for j in [0..1]]))
-            doctest:...: DeprecationWarning: use table() instead of html.table()
-            See http://trac.sagemath.org/18292 for details.
-            <div class="notruncate">
-            <table class="table_form">
-            <tbody>
-            <tr class ="row-a">
-            <td><script type="math/tex">0</script></td>
-            <td><script type="math/tex">0</script></td>
-            <td><script type="math/tex">\mathrm{True}</script></td>
-            </tr>
-            <tr class ="row-b">
-            <td><script type="math/tex">0</script></td>
-            <td><script type="math/tex">1</script></td>
-            <td><script type="math/tex">\mathrm{False}</script></td>
-            </tr>
-            <tr class ="row-a">
-            <td><script type="math/tex">1</script></td>
-            <td><script type="math/tex">0</script></td>
-            <td><script type="math/tex">\mathrm{False}</script></td>
-            </tr>
-            <tr class ="row-b">
-            <td><script type="math/tex">1</script></td>
-            <td><script type="math/tex">1</script></td>
-            <td><script type="math/tex">\mathrm{True}</script></td>
-            </tr>
-            </tbody>
-            </table>
-            </div>
-
-            sage: pretty_print(html(table(
-            ....:     [(x,n(sin(x), digits=2)) for x in range(4)],
-            ....:     header_row=["$x$", "$\sin(x)$"])))
-            <div class="notruncate">
-            <table class="table_form">
-            <tbody>
-            <tr>
-            <th><script type="math/tex">x</script></th>
-            <th><script type="math/tex">\sin(x)</script></th>
-            </tr>
-            <tr class ="row-a">
-            <td><script type="math/tex">0</script></td>
-            <td><script type="math/tex">0.00</script></td>
-            </tr>
-            <tr class ="row-b">
-            <td><script type="math/tex">1</script></td>
-            <td><script type="math/tex">0.84</script></td>
-            </tr>
-            <tr class ="row-a">
-            <td><script type="math/tex">2</script></td>
-            <td><script type="math/tex">0.91</script></td>
-            </tr>
-            <tr class ="row-b">
-            <td><script type="math/tex">3</script></td>
-            <td><script type="math/tex">0.14</script></td>
-            </tr>
-            </tbody>
-            </table>
-            </div>
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(18292, 'use table() instead of html.table()')
-        from .table import table
-        return table(x, header_row=header)._html_()
-
-    @old_and_deprecated_wrapper
     def iframe(self, url, height=400, width=800):
         r"""
         Generate an iframe HTML fragment
@@ -481,7 +491,7 @@ class HTMLFragmentFactory(SageObject):
           Defaults to 800.
 
         OUTPUT:
-     
+
         A :class:`HtmlFragment` instance.
 
         EXAMPLES::
@@ -499,9 +509,9 @@ class HTMLFragmentFactory(SageObject):
             <iframe height="400" width="800"
             src="file:///home/admin/0/data/filename"></iframe>
             sage: pretty_print(html.iframe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA'
-            ... 'AUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBA'
-            ... 'AO9TXL0Y4OHwAAAABJRU5ErkJggg=="'))
-            <iframe height="400" width="800" 
+            ....: 'AUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBA'
+            ....: 'AO9TXL0Y4OHwAAAABJRU5ErkJggg=="'))
+            <iframe height="400" width="800"
             src="http://data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==""></iframe>
         """
         if url.startswith('/'):
@@ -514,3 +524,32 @@ class HTMLFragmentFactory(SageObject):
 
 html = HTMLFragmentFactory()
 html.__doc__ = HTMLFragmentFactory.__call__.__doc__
+
+
+def pretty_print_default(enable=True):
+    r"""
+    Enable or disable default pretty printing.
+
+    Pretty printing means rendering things in HTML and by MathJax so that a
+    browser-based frontend can render real math.
+
+    This function is pretty useless without the notebook, it should not
+    be in the global namespace.
+
+    INPUT:
+
+    -  ``enable`` -- bool (optional, default ``True``).  If ``True``, turn on
+       pretty printing; if ``False``, turn it off.
+
+    EXAMPLES::
+
+        sage: pretty_print_default(True)
+        sage: 'foo'  # the doctest backend does not support html
+        'foo'
+        sage: pretty_print_default(False)
+        sage: 'foo'
+        'foo'
+    """
+    from sage.repl.rich_output import get_display_manager
+    dm = get_display_manager()
+    dm.preferences.text = 'latex' if enable else None

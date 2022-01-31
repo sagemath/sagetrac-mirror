@@ -19,7 +19,7 @@ Pure python code for abstract base class for objects with generators
 
 
 def multiplicative_iterator(M):
-    from sage.rings.all import infinity
+    from sage.rings.infinity import infinity
     G = M.gens()
     if len(G) == 0:
         yield M(1)
@@ -30,7 +30,6 @@ def multiplicative_iterator(M):
         if stop[i] is infinity:
             raise ArithmeticError("%s is not finite."%M)
         stop[i] = stop[i] - 1
-    n = 0
     z = M(1)
     yield z
     cnt = [0] * len(G)
@@ -42,11 +41,12 @@ def multiplicative_iterator(M):
             cnt[i] = 0
             cnt[i+1] = cnt[i+1] + 1
             z = z * G[i+1]
-            i = i + 1
+            i += 1
         yield z
 
+
 def abelian_iterator(M):
-    from sage.rings.all import infinity
+    from sage.rings.infinity import infinity
     G = M.gens()
     if len(G) == 0:
         yield M(0)
@@ -57,7 +57,6 @@ def abelian_iterator(M):
         if stop[i] is infinity:
             raise ArithmeticError("%s is not finite."%M)
         stop[i] = stop[i] - 1
-    n = 0
     z = M(0)
     yield z
     cnt = [0] * len(G)
@@ -69,7 +68,5 @@ def abelian_iterator(M):
             cnt[i] = 0
             cnt[i+1] = cnt[i+1] + 1
             z = z + G[i+1]
-            i = i + 1
+            i += 1
         yield z
-
-

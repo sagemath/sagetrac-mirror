@@ -28,7 +28,7 @@ over an alphabet `A`::
 ::
 
     sage: def t(n):
-    ...       return add(Integer(n).digits(base=2)) % 2
+    ....:     return add(Integer(n).digits(base=2)) % 2
     sage: Word(t, alphabet = [0, 1])
     word: 0110100110010110100101100110100110010110...
 
@@ -63,7 +63,7 @@ Infinite words in a specific combinatorial class::
     sage: W(f)
     word: babababababababababababababababababababa...
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Sebastien Labbe <slabqc@gmail.com>,
 #                          Franco Saliola <saliola@gmail.com>
 #
@@ -71,13 +71,12 @@ Infinite words in a specific combinatorial class::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from six.moves import range
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.word_options import word_options
 from sage.rings.all import Infinity
+
 
 class InfiniteWord_class(Word_class):
     def _repr_(self):
@@ -95,7 +94,7 @@ class InfiniteWord_class(Word_class):
         """
         global word_options
         if word_options['old_repr']:
-            return "Infinite word over %s"% str(self.parent().alphabet())[17:]
+            return "Infinite word over %s" % str(self.parent().alphabet())[17:]
         return word_options['identifier'] + self.string_rep()
 
     def length(self):

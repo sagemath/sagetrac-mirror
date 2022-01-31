@@ -9,20 +9,20 @@ AUTHORS:
   their tests
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2013 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.misc.abstract_method import abstract_method
-from sage.misc.cachefunc import cached_method
 from sage.structure.element import coerce_binop
 from sage.structure.sequence import Sequence
+
 
 class EuclideanDomains(Category_singleton):
     """
@@ -93,9 +93,9 @@ class EuclideanDomains(Category_singleton):
                 [2, 15, 7]
 
                 sage: Pol.<x> = QQ[]
-                sage: Pol.gcd_free_basis([
+                sage: sorted(Pol.gcd_free_basis([
                 ....:     (x+1)^3*(x+2)^3*(x+3), (x+1)*(x+2)*(x+3),
-                ....:     (x+1)*(x+2)*(x+4)])
+                ....:     (x+1)*(x+2)*(x+4)]))
                 [x + 3, x + 4, x^2 + 3*x + 2]
 
             TESTS::
@@ -132,7 +132,7 @@ class EuclideanDomains(Category_singleton):
 
         def _test_euclidean_degree(self, **options):
             r"""
-            Test that the assumptions on a euclidean degree are met.
+            Test that the assumptions on an Euclidean degree are met.
 
             EXAMPLES::
 
@@ -148,7 +148,7 @@ class EuclideanDomains(Category_singleton):
 
             min_degree = self.one().euclidean_degree()
 
-            from sage.rings.all import NN
+            from sage.rings.semirings.non_negative_integer_semiring import NN
             for a in S:
                 tester.assertIn(a.euclidean_degree(), NN)
                 tester.assertGreaterEqual(a.euclidean_degree(), min_degree)
@@ -197,7 +197,7 @@ class EuclideanDomains(Category_singleton):
         @abstract_method
         def euclidean_degree(self):
             r"""
-            Return the degree of this element as an element of a euclidean
+            Return the degree of this element as an element of an Euclidean
             domain, i.e., for elements `a`, `b` the euclidean degree `f`
             satisfies the usual properties:
 
@@ -273,3 +273,4 @@ class EuclideanDomains(Category_singleton):
                 sage: x.quo_rem(x)
                 (1, 0)
             """
+

@@ -2,11 +2,10 @@ r"""
 Morphisms between finitely generated modules over a PID
 
 AUTHOR:
+
 - William Stein, 2009
 """
-from __future__ import absolute_import
-
-####################################################################################
+# *************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -19,11 +18,12 @@ from __future__ import absolute_import
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-####################################################################################
+# *************************************************************************
 
 from sage.categories.morphism import Morphism, is_Morphism
 from .fgp_module import DEBUG
-
+from sage.structure.richcmp import richcmp, op_NE
+from sage.misc.cachefunc import cached_method
 
 class FGP_Morphism(Morphism):
     """
@@ -131,6 +131,7 @@ class FGP_Morphism(Morphism):
             self.domain().base_ring(), self.domain().invariants(), self.codomain().invariants(),
             list(self.im_gens()))
 
+    @cached_method
     def im_gens(self):
         """
         Return tuple of the images of the generators of the domain
@@ -145,16 +146,17 @@ class FGP_Morphism(Morphism):
             sage: phi.im_gens() is phi.im_gens()
             True
         """
-        try: return self.__im_gens
-        except AttributeError: pass
-        self.__im_gens = tuple([self(x) for x in self.domain().gens()])
-        return self.__im_gens
+        return tuple([self(x) for x in self.domain().gens()])
 
-    def _cmp_(self, right):
+    def _richcmp_(self, right, op):
         """
+        Comparison of ``self`` and ``right``.
+
         EXAMPLES::
 
-            sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2]); Q = V/W
+            sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ)
+            sage: W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
+            sage: Q = V/W
             sage: phi = Q.hom([Q.0,Q.0 + 2*Q.1])
             sage: phi.im_gens()
             ((1, 0), (1, 2))
@@ -166,21 +168,19 @@ class FGP_Morphism(Morphism):
             sage: phi == psi
             False
             sage: psi = Q.hom([Q.0,Q.0 - 2*Q.1])
-            sage: cmp(phi,psi)
-            -1
-            sage: cmp(psi,phi)
-            1
+            sage: phi < psi
+            True
+            sage: psi >= phi
+            True
             sage: psi = Q.hom([Q.0,Q.0 + 2*Q.1])
             sage: phi == psi
             True
         """
         a = (self.domain(), self.codomain())
         b = (right.domain(), right.codomain())
-        c = cmp(a,b)
-        if c: return c
-        return cmp(self.im_gens(), right.im_gens())
-
-    __cmp__ = _cmp_
+        if a != b:
+            return (op == op_NE)
+        return richcmp(self.im_gens(), right.im_gens(), op)
 
     def __add__(self, right):
         """
@@ -226,7 +226,7 @@ class FGP_Morphism(Morphism):
 
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = V/W
-            sage: phi = Q.hom([Q.0+3*Q.1, -Q.1]);
+            sage: phi = Q.hom([Q.0+3*Q.1, -Q.1])
             sage: phi(Q.0) == Q.0 + 3*Q.1
             True
 
@@ -258,20 +258,20 @@ class FGP_Morphism(Morphism):
             sage: O.V()
             Free module of degree 3 and rank 2 over Integer Ring
             User basis matrix:
-            [0 0 1]
-            [0 2 0]
+            [ 0  6  1]
+            [ 0 -2  0]
             sage: phi = Q.hom([Q.0, 4*Q.1])
             sage: x = Q(V.0); x
-            (0, 4)
-            sage: x == 4*Q.1
+            (0, 8)
+            sage: x == 8*Q.1
             True
             sage: x in O.V()
             False
             sage: phi(x)
-            (0, 4)
-            sage: phi(4*Q.1)
-            (0, 4)
-            sage: phi(4*Q.1) == phi(x)
+            (0, 8)
+            sage: phi(8*Q.1)
+            (0, 8)
+            sage: phi(8*Q.1) == phi(x)
             True
         """
         from .fgp_module import is_FGP_Module
@@ -457,6 +457,8 @@ from sage.categories.homset import Homset
 
 import sage.misc.weak_dict
 _fgp_homset = sage.misc.weak_dict.WeakValueDictionary()
+
+
 def FGP_Homset(X, Y):
     """
     EXAMPLES::
@@ -469,9 +471,11 @@ def FGP_Homset(X, Y):
         sage: type(Q.Hom(Q))
         <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
     """
-    key = (X,Y)
-    try: return _fgp_homset[key]
-    except KeyError: pass
+    key = (X, Y)
+    try:
+        return _fgp_homset[key]
+    except KeyError:
+        pass
     H = FGP_Homset_class(X, Y)
     # Caching breaks tests in fgp_module.
     # _fgp_homset[key] = H
@@ -489,9 +493,9 @@ class FGP_Homset_class(Homset):
         Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (4, 12) to Finitely generated module V/W over Integer Ring with invariants (4, 12) in Category of modules over Integer Ring
         sage: type(H)
         <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
-
     """
     Element = FGP_Morphism
+
     def __init__(self, X, Y, category=None):
         """
         EXAMPLES::
@@ -503,14 +507,12 @@ class FGP_Homset_class(Homset):
         if category is None:
             from sage.modules.free_module import is_FreeModule
             if is_FreeModule(X) and is_FreeModule(Y):
-                from sage.all import FreeModules
+                from sage.categories.all import FreeModules
                 category = FreeModules(X.base_ring())
             else:
-                from sage.all import Modules
+                from sage.categories.all import Modules
                 category = Modules(X.base_ring())
         Homset.__init__(self, X, Y, category)
-        self._populate_coercion_lists_(element_constructor = FGP_Morphism,
-                                       coerce_list = [])
 
     def _coerce_map_from_(self, S):
         """
