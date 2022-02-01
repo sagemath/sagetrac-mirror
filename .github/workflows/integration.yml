@@ -89,6 +89,10 @@ jobs:
     env:
       DOCKER_TARGETS: with-targets-optional
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1000
+          path: ./sage
       - name: free disk space
         run: |
           df -h
