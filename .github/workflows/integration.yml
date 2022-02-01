@@ -137,7 +137,6 @@ jobs:
             echo "EXTRA_DOCKER_TAGS=$EXTRA_DOCKER_TAGS" >> $GITHUB_ENV
       - name: Test integration baseline
         run: |
-          git checkout integration-baseline
           EXTRA_DOCKER_BUILD_ARGS="--build-arg BUILDKIT_INLINE_CACHE=1 --build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3 SAGE_DOCTEST_RANDOM_SEED=0\"" tox -e $TOX_ENV -- $TARGETS
 
   integration:
