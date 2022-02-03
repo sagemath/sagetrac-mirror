@@ -65,8 +65,16 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                 An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
                 sage: A.from_base_ring(1)
                 B[word: ]
+
+            TESTS:
+
+            Test for trac:`33285`::
+
+                sage: C = CombinatorialFreeModule(ZZ, [1,2], category=AlgebrasWithBasis(ZZ))
+                sage: C(0)
+                0
             """
-            return self.one()._lmul_(r)
+            return self.zero() if not r else self.one()._lmul_(r)
 
         def __init_extra__(self):
             """
