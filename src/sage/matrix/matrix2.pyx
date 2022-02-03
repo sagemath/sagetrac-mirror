@@ -17866,16 +17866,23 @@ cdef class Matrix(Matrix1):
         """
         from copy import deepcopy
         from sage.matrix.constructor import matrix, identity_matrix
+        from sage.rings.padics.padic_generic import pAdicGeneric        
         
         n = T.nrows()
         H = identity_matrix(T.base_ring(), n)
         E = deepcopy(T)
+        # Defining a function that determines whether an element is zero. 
+        # Implemented differently for relaxed p-adics, to avoid exceptions.
+        relaxed = (False if not isinstance(T.base_ring(), pAdicGeneric) else 
+                   T.base_ring().is_relaxed())
+        def eq_zero(elem): return (elem.is_equal_to(0, secure=False) if 
+                                   relaxed else elem == 0)
         # For each row between n-1 to 0, convert diagonal element into a power of
         # the uniformizer, and truncate elements on the righthand side of the
         # diagonal (nullify expansion starting from the diagonal-element's
         # valuation).
         for t in range(n-1, -1, -1):
-            if E[t,t] != 0:
+            if not eq_zero(E[t,t]):
                 f = E._matrix_func_that_normalizes_and_truncates(t)
                 R = matrix(T.base_ring(), n, lambda i, j: f(i, j), sparse=1)
                 E = E * R
@@ -19159,6 +19166,11 @@ cdef class Matrix(Matrix1):
 
         F = self.base_ring()
         n = self.ncols()
+        # Defining a function that determines whether an element is zero. 
+        # Implemented differently for relaxed p-adics, to avoid exceptions.
+        relaxed = (False if not isinstance(F, pAdicGeneric) else F.is_relaxed())
+        def eq_zero(elem): return (elem.is_equal_to(0, secure=False) if 
+                                   relaxed else elem == 0)
 
         # Creating ``D`` as the diagonal matrix (with ascending powers of the
         # uniformizer on diagonal), that can be multiplied with a matrix that's
@@ -19173,7 +19185,7 @@ cdef class Matrix(Matrix1):
         # invertible, it is a true inverse).
         last_non_zero = +Infinity
         for i in range(n-1, -1, -1):
-            if D[i,i] != 0:
+            if not eq_zero(D[i,i]):
                 last_non_zero = i
                 break
         if last_non_zero == +Infinity:        # ``D`` is a zero-matrix.
@@ -19265,10 +19277,18 @@ cdef class Matrix(Matrix1):
 
         """
         from sage.matrix.constructor import matrix, identity_matrix
+        from sage.rings.padics.padic_generic import pAdicGeneric
         
         n = self.nrows()
         chosen_valuations = [None] * n
         chosen_cols = [None] * n
+
+        # Defining a function that determines whether an element is zero. 
+        # Implemented differently for relaxed p-adics, to avoid exceptions.        
+        relaxed = (False if not isinstance(self.base_ring(), pAdicGeneric) else 
+                   self.base_ring().is_relaxed())
+        def eq_zero(elem): return (elem.is_equal_to(0, secure=False) if relaxed 
+                                   else elem == 0)
 
         # Creating ``K1``, ``E``, such that ``K1``*``self``=``E``, ``K1`` is
         # invertible over the integer-ring and ``E`` can later be decomposed into
@@ -19288,7 +19308,7 @@ cdef class Matrix(Matrix1):
             r, c = E.choose_min_valuation_elem(False, False,
                                             chosen_valuations=chosen_valuations)
             chosen_cols[r] = c
-            if E[r,c] != 0:
+            if not eq_zero(E[r,c]):
                 f = E._matrix_func_that_nullifies_part_of_col(
                         r, c, list(filter(lambda i: chosen_valuations[i] is not
                                         None, range(n))))
@@ -19783,10 +19803,18 @@ cdef class Matrix(Matrix1):
 
         """
         from sage.matrix.constructor import matrix, identity_matrix
+        from sage.rings.padics.padic_generic import pAdicGeneric
         
         n = self.nrows()
         chosen_valuations = [None] * n
         chosen_cols = [None] * n
+
+        # Defining a function that determines whether an element is zero. 
+        # Implemented differently for relaxed p-adics, to avoid exceptions.        
+        relaxed = (False if not isinstance(self.base_ring(), pAdicGeneric) else 
+                   self.base_ring().is_relaxed())
+        def eq_zero(elem): return (elem.is_equal_to(0, secure=False) if relaxed 
+                                   else elem == 0)
 
         # Creating ``B1``, ``E``, such that ``B1``*``self``=``E``, ``B1`` is an
         # iwahori matrix and ``E`` can later be decomposed into ``W``*``B2``
@@ -19806,7 +19834,7 @@ cdef class Matrix(Matrix1):
             r, c = E.choose_min_valuation_elem(True, True, False, True,
                                             chosen_valuations)
             chosen_cols[r] = c
-            if E[r,c] != 0:
+            if not eq_zero(E[r,c]):
                 f = E._matrix_func_that_nullifies_part_of_col(
                         r, c, list(filter(lambda i: chosen_valuations[i] is not
                                         None, range(n))))
@@ -20815,9 +20843,17 @@ cdef class Matrix(Matrix1):
 
         """
         from sage.matrix.constructor import matrix, identity_matrix
+        from sage.rings.padics.padic_generic import pAdicGeneric
         
         n = self.nrows()
         row_order = [None] * n
+
+        # Defining a function that determines whether an element is zero. 
+        # Implemented differently for relaxed p-adics, to avoid exceptions.        
+        relaxed = (False if not isinstance(self.base_ring(), pAdicGeneric) else 
+                   self.base_ring().is_relaxed())
+        def eq_zero(elem): return (elem.is_equal_to(0, secure=False) if relaxed 
+                                   else elem == 0)
 
         # Creating ``T1``,``E``, such that ``T1``*``self``=``E``, ``T1`` is
         # invertible upper-triangular and ``E`` can later be decomposed into
@@ -20831,8 +20867,8 @@ cdef class Matrix(Matrix1):
         # on its rows, and can be then decomposed into ``S``, ``T2``.
         for r in range(n-1, -1, -1):
             for c in range(n):
-                if E[r,c] != 0:        # The (``r``,``c``) element is the first
-                                    # non-zero in its row.
+                if not eq_zero(E[r,c]):      # The (``r``,``c``) element is the first
+                                            # non-zero in its row.
                     row_order[c] = r
                     f = E._matrix_func_that_nullifies_part_of_col(r, c, range(r+1,n))
                     K1 = matrix(self.base_ring(), n, lambda i, j: f(i, j), sparse=1)
