@@ -13,7 +13,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import absolute_import
 
 import os
 import re
@@ -104,7 +103,7 @@ def import_statement_string(module, names, lazy):
             name, alias = names[0]
             if name == alias:
                 if name is None:
-                    raise ValueError("can not lazy import modules")
+                    raise ValueError("cannot lazy import modules")
                 return "lazy_import('%s', '%s')" % (module, name)
             else:
                 return "lazy_import('%s', '%s', '%s')" % (module, name, alias)
@@ -220,7 +219,7 @@ def find_objects_from_name(name, module_name=None):
 
         sage: import sage.misc.dev_tools as dt
         sage: dt.find_objects_from_name('FareySymbol')
-        [<type 'sage.modular.arithgroup.farey_symbol.Farey'>]
+        [<class 'sage.modular.arithgroup.farey_symbol.Farey'>]
 
         sage: import sympy
         sage: dt.find_objects_from_name('RR')
@@ -480,7 +479,7 @@ def import_statements(*objects, **kwds):
         sage: import_statements(sage.combinat.partition_algebra.SetPartitionsAk)
         from sage.combinat.partition_algebra import SetPartitionsAk
         sage: import_statements(CIF)
-        from sage.rings.all import CIF
+        from sage.rings.cif import CIF
         sage: import_statements(NaN)
         from sage.symbolic.constants import NaN
         sage: import_statements(pi)
@@ -494,7 +493,7 @@ def import_statements(*objects, **kwds):
     :trac:`23779`)::
 
         sage: import_statements('log')
-        from sage.functions.log import log
+        from sage.misc.functional import log
 
     .. NOTE::
 

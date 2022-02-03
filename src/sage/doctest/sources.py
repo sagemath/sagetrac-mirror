@@ -18,7 +18,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 import os
 import sys
@@ -158,7 +157,7 @@ class DocTestSource(object):
 
     def __ne__(self, other):
         """
-        Test for unequality.
+        Test for non-equality.
 
         EXAMPLES::
 
@@ -496,6 +495,18 @@ class FileDocTestSource(DocTestSource):
     TESTS::
 
         sage: TestSuite(FDS).run()
+
+    ::
+
+        sage: from sage.doctest.control import DocTestDefaults
+        sage: from sage.doctest.sources import FileDocTestSource
+        sage: filename = tmp_filename(ext=".txtt")
+        sage: FDS = FileDocTestSource(filename,DocTestDefaults())
+        Traceback (most recent call last):
+        ...
+        ValueError: unknown extension for the file to test (=...txtt),
+        valid extensions are: .py, .pyx, .pxd, .pxi, .sage, .spyx, .tex, .rst
+
     """
     def __init__(self, path, options):
         """
@@ -515,7 +526,8 @@ class FileDocTestSource(DocTestSource):
         self.path = path
         DocTestSource.__init__(self, options)
         base, ext = os.path.splitext(path)
-        if ext in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx'):
+        valid_code_ext = ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx')
+        if ext in valid_code_ext:
             self.__class__ = dynamic_class('PythonFileSource',(FileDocTestSource,PythonSource))
             self.encoding = "utf-8"
         elif ext == '.tex':
@@ -525,7 +537,9 @@ class FileDocTestSource(DocTestSource):
             self.__class__ = dynamic_class('RestFileSource',(FileDocTestSource,RestSource))
             self.encoding = "utf-8"
         else:
-            raise ValueError("unknown file extension %r"%ext)
+            valid_ext = ", ".join(valid_code_ext + ('.tex', '.rst'))
+            raise ValueError("unknown extension for the file to test (={}),"
+                    " valid extensions are: {}".format(path, valid_ext))
 
     def __iter__(self):
         r"""
@@ -701,7 +715,7 @@ class FileDocTestSource(DocTestSource):
             sage: doctests[18].name
             'sage.doctest.sources.FileDocTestSource.create_doctests'
             sage: doctests[18].examples[10].source
-            u'doctests[Integer(18)].examples[Integer(10)].source\n'
+            'doctests[Integer(18)].examples[Integer(10)].source\n'
 
         TESTS:
 
@@ -823,7 +837,7 @@ class FileDocTestSource(DocTestSource):
             else:
                 print("There are %s tests in %s that are shifted by %s" % (len(shortfall), self.path, dif))
                 if verbose:
-                    print("    The correct line numbers are %s" % (", ".join([str(n) for n in shortfall])))
+                    print("    The correct line numbers are %s" % (", ".join(str(n) for n in shortfall)))
                 return
         elif len(actual) < len(expected):
             print("There are %s tests in %s that are not being run" % (len(expected) - len(actual), self.path))
@@ -831,9 +845,9 @@ class FileDocTestSource(DocTestSource):
             print("There are %s unexpected tests being run in %s" % (len(actual) - len(expected), self.path))
         if verbose:
             if shortfall:
-                print("    Tests on lines %s are not run" % (", ".join([str(n) for n in shortfall])))
+                print("    Tests on lines %s are not run" % (", ".join(str(n) for n in shortfall)))
             if check_extras and extras:
-                print("    Tests on lines %s seem extraneous" % (", ".join([str(n) for n in extras])))
+                print("    Tests on lines %s seem extraneous" % (", ".join(str(n) for n in extras)))
 
 
 class SourceLanguage:

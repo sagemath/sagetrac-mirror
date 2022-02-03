@@ -19,14 +19,13 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import os
 import pickle
 
 from copy import copy
 
-from sage.misc.all import cached_function
+from sage.misc.cachefunc import cached_function
 from sage.misc.flatten import flatten
 from sage.graphs.all import DiGraph
 from sage.combinat.all import Combinations
@@ -121,7 +120,7 @@ def _triangles(dg):
     for e in E:
         v1, v2 = e
         for v in V:
-            if not v in e:
+            if v not in e:
                 if (v, v1) in E:
                     if (v2, v) in E:
                         flat_trian = sorted([v,v1,v2])
@@ -879,7 +878,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
 
         # If on the other hand, (c1 and c2) is isomorphic to a triangulated square, then
         # delete c1.  This ensures that c2 is an edge of the triangulated square, and we delete
-        # it irregardless of orientation.  Then check if the digraph has exactly two connected
+        # it regardless of orientation.  Then check if the digraph has exactly two connected
         # components, and again this testing method is rerun on both components.
 
         for c1 in Combinations( [ vertex for vertex in vertices if dg.degree(vertex) == 2], 2 ):
@@ -911,9 +910,9 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
                         # Assuming that the two components are recognized, initialize this in a format it can be returned as output
                         type_tmp = []
                         type_tmp.append( [ type_tmp1[0], type_tmp2[0] ] )
-                        type_tmp[0].sort()
+                        type_tmp[0].sort(key=str)
                         type_tmp.append( type_tmp1[1] + type_tmp2[1] )
-                        type_tmp[1].sort()
+                        type_tmp[1].sort(key=str)
 
                         # Need to make sure the two vertices in c2 are both 'connecting vertices'.
                         if not set(c2).issubset(type_tmp[1]):
@@ -953,9 +952,9 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
                         # a format it can be returned as output (just as above)
                         type_tmp = []
                         type_tmp.append( [ type_tmp1[0], type_tmp2[0] ] )
-                        type_tmp[0].sort()
+                        type_tmp[0].sort(key=str)
                         type_tmp.append( type_tmp1[1] + type_tmp2[1] )
-                        type_tmp[1].sort()
+                        type_tmp[1].sort(key=str)
                         if type_tmp2 == 'unknown':
                             return _false_return()
                         if not set(c2).issubset(type_tmp[1]) and len( set(type_tmp[1]).intersection(c2) ) == 1:
@@ -1166,7 +1165,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
                 connecting_vertices.append( v )
             # if a vertex is of valence two and contained in an oriented 3-cycle, it is a connecting vertex
             elif w[0] == 1 and w[1] == 1:
-                if v in o_trian_verts and not v in long_cycle_verts:
+                if v in o_trian_verts and v not in long_cycle_verts:
                     connecting_vertices.append( v )
 
     # post-parsing 1: if we are in the affine type A case, the two parameters for the non-oriented long cycle are computed

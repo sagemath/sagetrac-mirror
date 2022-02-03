@@ -282,7 +282,8 @@ def all_paths(G, start, end, use_multiedges=False, report_edges=False, labels=Fa
     return all_paths
 
 def shortest_simple_paths(self, source, target, weight_function=None,
-                          by_weight=False, algorithm=None, report_edges=False,
+                          by_weight=False, check_weight=True,
+                          algorithm=None, report_edges=False,
                           labels=False, report_weight=False):
     r"""
     Return an iterator over the simple paths between a pair of vertices.
@@ -317,6 +318,9 @@ def shortest_simple_paths(self, source, target, weight_function=None,
 
     - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
       in the graph are weighted, otherwise all edges have weight 1
+
+    - ``check_weight`` -- boolean (default: ``True``); whether to check that the
+      ``weight_function`` outputs a number for each edge.
 
     - ``algorithm`` -- string (default: ``None``); the algorithm to use in
       computing ``k`` shortest paths of ``self``. The following algorithms are
@@ -425,8 +429,8 @@ def shortest_simple_paths(self, source, target, weight_function=None,
          [1, 6, 9, 5],
          [1, 6, 9, 10, 5],
          [1, 2, 3, 4, 5],
-         [1, 6, 9, 11, 10, 5],
-         [1, 6, 9, 3, 4, 5]]
+         [1, 6, 9, 3, 4, 5],
+         [1, 6, 9, 11, 10, 5]]
         sage: G = digraphs.DeBruijn(2, 3)
         sage: for u,v in G.edges(labels=False):
         ....:     G.set_edge_label(u, v, 1)  
@@ -550,20 +554,23 @@ def shortest_simple_paths(self, source, target, weight_function=None,
 
         yield from feng_k_shortest_simple_paths(self, source=source, target=target,
                                                 weight_function=weight_function,
-                                                by_weight=by_weight, report_edges=report_edges,
+                                                by_weight=by_weight, check_weight=check_weight,
+                                                report_edges=report_edges,
                                                 labels=labels, report_weight=report_weight)
 
     elif algorithm == "Yen":
         yield from yen_k_shortest_simple_paths(self, source=source, target=target,
                                                weight_function=weight_function,
-                                               by_weight=by_weight, report_edges=report_edges,
+                                               by_weight=by_weight, check_weight=check_weight,
+                                               report_edges=report_edges,
                                                labels=labels, report_weight=report_weight)
 
     else:
         raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
 def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
-                                by_weight=False, report_edges=False,
+                                by_weight=False, check_weight=True,
+                                report_edges=False,
                                 labels=False, report_weight=False):
     r"""
     Return an iterator over the simple paths between a pair of vertices in
@@ -595,6 +602,9 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
     - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
       in the graph are weighted, otherwise all edges have weight 1
     
+    - ``check_weight`` -- boolean (default: ``True``); whether to check that
+      the ``weight_function`` outputs a number for each edge
+
     - ``report_edges`` -- boolean (default: ``False``); whether to report
       paths as list of vertices (default) or list of edges, if ``False``
       then ``labels`` parameter is ignored
@@ -733,16 +743,12 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
     else:
         G = self
 
-    if weight_function is not None:
-        by_weight = True
-
-    if weight_function is None and by_weight:
-        def weight_function(e):
-            return e[2]
+    by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                           weight_function=weight_function,
+                                                           check_weight=check_weight)
 
     cdef dict edge_wt
     if by_weight:
-        G._check_weight_function(weight_function)
         # dictionary to get weight of the edges
         edge_wt = {(e[0], e[1]): weight_function(e) for e in G.edge_iterator()}
         if not G.is_directed():
@@ -857,7 +863,8 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
             exclude_vertices.add(root[-1])
 
 def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
-                                 by_weight=False, report_edges=False,
+                                 by_weight=False, check_weight=True,
+                                 report_edges=False,
                                  labels=False, report_weight=False):
     r"""
     Return an iterator over the simple paths between a pair of vertices in
@@ -890,6 +897,9 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
       in the graph are weighted, otherwise all edges have weight 1
+
+    - ``check_weight`` -- boolean (default: ``True``); whether to check that
+      the ``weight_function`` outputs a number for each edge
 
     - ``report_edges`` -- boolean (default: ``False``); whether to report
       paths as list of vertices (default) or list of edges, if ``False``
@@ -1012,8 +1022,8 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         [[1, 2, 3, 8, 9, 6],
          [1, 2, 3, 4, 7, 6],
          [1, 2, 3, 4, 5, 6],
-         [1, 2, 3, 8, 9, 11, 6],
-         [1, 2, 3, 8, 9, 10, 6]]
+         [1, 2, 3, 8, 9, 10, 6],
+         [1, 2, 3, 8, 9, 11, 6]]
         sage: from sage.graphs.path_enumeration import feng_k_shortest_simple_paths
         sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1),
         ....:              (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1),
@@ -1024,15 +1034,15 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
          [1, 6, 9, 5],
          [1, 6, 9, 10, 5],
          [1, 2, 3, 4, 5],
-         [1, 6, 9, 11, 10, 5],
-         [1, 6, 9, 3, 4, 5]]
+         [1, 6, 9, 3, 4, 5],
+         [1, 6, 9, 11, 10, 5]]
         sage: list(feng_k_shortest_simple_paths(g, 1, 5, by_weight=True))
         [[1, 7, 8, 5],
          [1, 6, 9, 5],
          [1, 6, 9, 10, 5],
          [1, 2, 3, 4, 5],
-         [1, 6, 9, 11, 10, 5],
-         [1, 6, 9, 3, 4, 5]]
+         [1, 6, 9, 3, 4, 5],
+         [1, 6, 9, 11, 10, 5]]
         sage: from sage.graphs.path_enumeration import feng_k_shortest_simple_paths
         sage: g = DiGraph([(1, 2, 5), (6, 3, 0), (2, 6, 6), (1, 4, 15),
         ....:              (4, 5, 1), (4, 3, 0), (7, 1, 2), (8, 7, 1)])
@@ -1087,14 +1097,13 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         def weight_function(e):
             return e[2]
 
+    by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                           weight_function=weight_function,
+                                                           check_weight=check_weight)
     if by_weight:
-        G._check_weight_function(weight_function)
         def reverse_weight_function(e):
-            e_ = (e[1], e[0], e[2])
-            return weight_function(e_)
+            return weight_function((e[1], e[0], e[2]))
     else:
-        def weight_function(e):
-            return 1
         def reverse_weight_function(e):
             return 1
 

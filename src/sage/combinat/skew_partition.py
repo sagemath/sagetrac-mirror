@@ -141,7 +141,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
@@ -149,7 +148,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.sets.set import Set
 from sage.graphs.digraph import DiGraph
 from sage.matrix.matrix_space import MatrixSpace
@@ -1005,7 +1005,7 @@ class SkewPartition(CombinatorialElement):
             sage: s.to_list()
             [[4, 3, 1], [2]]
             sage: type(s.to_list())
-            <... 'list'>
+            <class 'list'>
         """
         return [list(_) for _ in list(self)]
 
@@ -1504,9 +1504,9 @@ class SkewPartitions(UniqueRepresentation, Parent):
         if not all(i>0 for i in rowL) or not all(i>0 for i in colL):
             raise ValueError("row and column length must be positive")
         if rowL == []:
-            return self.element_class(self, [[],[]])
+            return self.element_class(self, [[], []])
         colL_new = colL[:]
-        resIn  = []
+        resIn = []
         resOut = []
         inPOld = len(colL)
         for row in rowL:
@@ -1517,12 +1517,13 @@ class SkewPartitions(UniqueRepresentation, Parent):
             resIn.append(inP)
             resOut.append(len(colL_new))
             for iCol in range(inP, len(colL_new)):
-                colL_new[iCol] -= 1;
+                colL_new[iCol] -= 1
                 if colL_new[iCol] < 0:
                     raise ValueError("Incompatible row and column length : %s and %s"%(rowL, colL))
-            while colL_new != [] and colL_new[-1] == 0:
+            while colL_new and colL_new[-1] == 0:
                 colL_new.pop()
         return self.element_class(self, [resOut, [x for x in resIn if x]])
+
 
 class SkewPartitions_all(SkewPartitions):
     """
@@ -1713,13 +1714,10 @@ class SkewPartitions_n(SkewPartitions):
             sage: [ sp for sp in s if sp.row_lengths() == [2,1] ]
             [[2, 1] / []]
         """
-        nn = len(co)
         result = 1
-        for i in range(nn-1):
-            comb    = min(co[i], co[i+1])
-            comb   += 1 - overlap
-            result *= comb
-
+        shift = 1 - overlap
+        for i in range(len(co) - 1):
+            result *= min(co[i], co[i + 1]) + shift
         return result
 
     def cardinality(self):

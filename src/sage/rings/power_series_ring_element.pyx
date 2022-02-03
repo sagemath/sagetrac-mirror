@@ -97,6 +97,7 @@ With power series the behavior is the same.
 
 import operator
 
+from cpython.object cimport Py_EQ, Py_NE
 from .infinity import infinity, is_Infinite
 
 from sage.rings.rational_field import QQ
@@ -380,6 +381,10 @@ cdef class PowerSeries(AlgebraElement):
             sage: f == f.truncate()
             True
         """
+        if op == Py_EQ:
+            return not (self-right)
+        if op == Py_NE:
+            return bool(self-right)
         prec = self.common_prec(right)
         x = self.list()
         y = right.list()
@@ -739,7 +744,14 @@ cdef class PowerSeries(AlgebraElement):
             sage: f = -1/2 * t + 2/3*t^2 - 9/7 * t^15 + O(t^20); f
             -1/2*t + 2/3*t^2 - 9/7*t^15 + O(t^20)
             sage: latex(f)
-            -\frac{1}{2}t + \frac{2}{3}t^{2} - \frac{9}{7}t^{15} + O(t^{20})
+            -\frac{1}{2} t + \frac{2}{3} t^{2} - \frac{9}{7} t^{15} + O(t^{20})
+
+        Check that :trac:`26606` is fixed::
+
+            sage: R.<beta> = QQ[]
+            sage: S.<x> = R[[]]
+            sage: latex(beta*x)
+            \beta x
         """
         if self.is_zero():
             if self.prec() is infinity:
@@ -767,7 +779,7 @@ cdef class PowerSeries(AlgebraElement):
                 else:
                     var = ""
                 if n > 0:
-                    s += "%s|%s"%(x,var)
+                    s += "%s| %s"%(x,var)
                 else:
                     s += repr(x)
                 first = False
@@ -786,7 +798,7 @@ cdef class PowerSeries(AlgebraElement):
             if s == " ":
                 return bigoh
             s += " + %s"%bigoh
-        return s[1:]
+        return s.lstrip(" ")
 
 
     def truncate(self, prec=infinity):
@@ -993,7 +1005,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: t.inverse()
             t^-1
             sage: type(_)
-            <type 'sage.rings.laurent_series_ring_element.LaurentSeries'>
+            <class 'sage.rings.laurent_series_ring_element.LaurentSeries'>
             sage: (1-t).inverse()
             1 + t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + ...
         """
@@ -1052,6 +1064,24 @@ cdef class PowerSeries(AlgebraElement):
             t + O(t^21)
             sage: (t^5/(t^2 - 2)) * (t^2 -2 )
             t^5 + O(t^25)
+            
+        TESTS:
+
+        The following tests against bugs that were fixed in :trac:`8972`::
+
+            sage: P.<t> = ZZ[]
+            sage: R.<x> = P[[]]
+            sage: 1/(t*x)
+            1/t*x^-1
+            sage: R.<x> = ZZ[[]]
+            sage: (1/x).parent()
+            Laurent Series Ring in x over Rational Field
+            sage: F = FractionField(R)
+            sage: 1/x in F
+            True
+            sage: (1/(2*x)).parent()
+            Laurent Series Ring in x over Rational Field
+            
         """
         denom = <PowerSeries>denom_r
         if denom.is_zero():
@@ -1061,8 +1091,11 @@ cdef class PowerSeries(AlgebraElement):
 
         v = denom.valuation()
         if v > self.valuation():
-            R = self._parent.laurent_series_ring()
-            return R(self)/R(denom)
+            try:
+                R = self._parent.fraction_field()
+            except (TypeError, NotImplementedError):  # no integral domain
+                R = self._parent.laurent_series_ring()
+            return R(self) / R(denom)
 
         # Algorithm: Cancel common factors of q from top and bottom,
         # then invert the denominator.  We do the cancellation first
@@ -1127,17 +1160,18 @@ cdef class PowerSeries(AlgebraElement):
 
     def shift(self, n):
         r"""
-        Return this power series multiplied by the power `t^n`. If
-        `n` is negative, terms below `t^n` will be
-        discarded. Does not change this power series.
+        Return this power series multiplied by the power `t^n`.
+
+        If `n` is negative, terms below `t^{-n}` are discarded.
+
+        This power series is left unchanged.
 
         .. NOTE::
 
            Despite the fact that higher order terms are printed to the
            right in a power series, right shifting decreases the
-           powers of `t`, while left shifting increases
-           them. This is to be consistent with polynomials, integers,
-           etc.
+           powers of `t`, while left shifting increases them.
+           This is to be consistent with polynomials, integers, etc.
 
         EXAMPLES::
 
@@ -1157,13 +1191,47 @@ cdef class PowerSeries(AlgebraElement):
 
         - Robert Bradshaw (2007-04-18)
         """
-        return self._parent(self.polynomial().shift(n), self._prec + n)
+        if not n:
+            return self
+        prec = max(0, self.prec() + Integer(n))
+        return self._parent(self.polynomial().shift(n), prec)
 
     def __lshift__(self, n):
-        return self.parent()(self.polynomial() << n, self.prec())
+        """
+        Left-shift this power series by `n`, i.e., multiply by `t^n`.
+
+        EXAMPLES::
+
+            sage: R.<x> = PowerSeriesRing(QQ, implementation='pari')
+            sage: f = exp(x) + O(x^7); f
+            1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + 1/720*x^6 + O(x^7)
+            sage: f << 2
+            x^2 + x^3 + 1/2*x^4 + 1/6*x^5 + 1/24*x^6 + 1/120*x^7 + 1/720*x^8 + O(x^9)
+            sage: (f << 99) >> 99
+            1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + 1/720*x^6 + O(x^7)
+        """
+        return self.shift(n)
 
     def __rshift__(self, n):
-        return self.parent()(self.polynomial() >> n, self.prec())
+        """
+        Right-shift this power series by `n`, i.e., divide by `t^n`.
+
+        Terms below `t^n` are discarded.
+
+        EXAMPLES::
+
+            sage: R.<x> = PowerSeriesRing(QQ, implementation='pari')
+            sage: f = exp(x) + O(x^7)
+            sage: f >> 3
+            1/6 + 1/24*x + 1/120*x^2 + 1/720*x^3 + O(x^4)
+            sage: f >> 7
+            O(x^0)
+            sage: f >> 99
+            O(x^0)
+            sage: (f >> 99) << 99
+            O(x^99)
+        """
+        return self.shift(-n)
 
     def is_monomial(self):
         """
@@ -1317,6 +1385,81 @@ cdef class PowerSeries(AlgebraElement):
                 raise ValueError('vanishing term, no further expansion')
             serie = (u - 1 - A * t) / (B * t ** 2)
         return tuple(resu)
+
+    def stieltjes_continued_fraction(self):
+        r"""
+        Return the Stieltjes continued fraction of ``self``.
+
+        The S-fraction or Stieltjes continued fraction of a power series
+        is a continued fraction expansion with steps of size one. We use
+        the following convention
+
+        .. MATH::
+
+            1 / (1 - A_1 t / (1 - A_2 t / (1 - A_3 t / (1 - \cdots))))
+
+        OUTPUT:
+
+        `A_n` for `n \geq 1`
+
+        The expansion is done as long as possible given the precision.
+        Whenever the expansion is not well-defined, because it would
+        require to divide by zero, an exception is raised.
+
+        EXAMPLES::
+
+            sage: t = PowerSeriesRing(QQ, 't').gen()
+            sage: s = sum(catalan_number(k) * t**k for k in range(12)).O(12)
+            sage: s.stieltjes_continued_fraction()
+            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+
+        Another example::
+
+            sage: (exp(t)).stieltjes_continued_fraction()
+            (1,
+             -1/2,
+             1/6,
+             -1/6,
+             1/10,
+             -1/10,
+             1/14,
+             -1/14,
+             1/18,
+             -1/18,
+             1/22,
+             -1/22,
+             1/26,
+             -1/26,
+             1/30,
+             -1/30,
+             1/34,
+             -1/34,
+             1/38)
+
+        TESTS::
+
+             sage: (t).stieltjes_continued_fraction()
+             Traceback (most recent call last):
+             ...
+             ValueError: vanishing constant term, no expansion
+             sage: (1/(1+3*t)).stieltjes_continued_fraction()
+             Traceback (most recent call last):
+             ...
+             ValueError: vanishing term, no further expansion
+        """
+        t = self.parent().gen()
+        if self[0] == 0:
+            raise ValueError('vanishing constant term, no expansion')
+        serie = self / self[0]
+        resu = []
+        while serie.prec() >= 2:
+            u = serie.inverse()
+            A = -u[1]
+            resu.append(A)
+            if A == 0:
+                raise ValueError('vanishing term, no further expansion')
+            serie = (u - 1) / (-A * t)
+        return tuple(resu)
         
     def is_square(self):
         """
@@ -1448,6 +1591,14 @@ cdef class PowerSeries(AlgebraElement):
             ...
             ValueError: unable to take the square root of 1/2
 
+        Check :trac:`30655`::
+
+            sage: t = polygen(QQ, 't')
+            sage: x = t.parent()[['x']].0
+            sage: W = (t*x + 1 - x).O(3)
+            sage: W.sqrt()
+            1 + (1/2*t - 1/2)*x + (-1/8*t^2 + 1/4*t - 1/8)*x^2 + O(x^3)
+
         AUTHORS:
 
         - Robert Bradshaw
@@ -1484,12 +1635,12 @@ cdef class PowerSeries(AlgebraElement):
 
         val = self.valuation()
 
-        if formal_sqrt or val % 2 == 1:
+        if formal_sqrt or val % 2:
             if extend:
                 if name is None:
                     raise ValueError("the square root generates an extension, so you must specify the name of the square root")
                 R = self._parent['x']
-                S = R.quotient(R([-self,0,1]), names=name)
+                S = R.quotient(R([-self, 0, 1]), names=name)
                 a = S.gen()
                 if all:
                     if not self.base_ring().is_integral_domain():
@@ -1501,7 +1652,6 @@ cdef class PowerSeries(AlgebraElement):
                 raise ValueError("unable to take the square root of %s" % u[0])
             else:
                 raise ValueError("power series does not have a square root since it has odd valuation.")
-
 
         pr = self.prec()
         if pr == infinity:
@@ -1517,7 +1667,7 @@ cdef class PowerSeries(AlgebraElement):
         R = s.parent()
         a = self.valuation_zero_part()
         P = self._parent
-        if not R is P.base_ring():
+        if not P.base_ring().has_coerce_map_from(R):
             a = a.change_ring(R)
         half = ~R(2)
 
@@ -1597,7 +1747,7 @@ cdef class PowerSeries(AlgebraElement):
         - ``n`` -- integer
 
         - ``prec`` -- integer (optional) - precision of the result. Though, if
-          this series has finite precision, then the result can not have larger
+          this series has finite precision, then the result cannot have larger
           precision.
 
         EXAMPLES::

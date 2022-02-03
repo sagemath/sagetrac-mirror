@@ -10,14 +10,14 @@ AUTHORS:
 - Gonzalo Tornaria (2010-03-23): theta series of degree 2
 
 """
-from __future__ import print_function
 
 from copy import deepcopy
 
 from sage.rings.real_mpfr import RealField
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.integer_ring import ZZ
-from sage.functions.all import sqrt, floor, ceil
+from sage.functions.all import floor, ceil
+from sage.misc.functional import sqrt
 
 
 

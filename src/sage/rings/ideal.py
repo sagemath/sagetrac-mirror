@@ -25,7 +25,6 @@ a right ideal, and ``R*[a,b,...]*R`` creates a two-sided ideal.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from types import GeneratorType
 
@@ -173,6 +172,7 @@ def Ideal(*args, **kwds):
 
     first = args[0]
 
+    inferred_field = False
     if not isinstance(first, sage.rings.ring.Ring):
         if isinstance(first, Ideal_generic) and len(args) == 1:
             R = first.ring()
@@ -184,6 +184,7 @@ def Ideal(*args, **kwds):
                 gens = args
             gens = Sequence(gens)
             R = gens.universe()
+            inferred_field = isinstance(R, sage.rings.ring.Field)
     else:
         R = first
         gens = args[1:]
@@ -191,7 +192,15 @@ def Ideal(*args, **kwds):
     if not isinstance(R, sage.rings.ring.CommutativeRing):
         raise TypeError("R must be a commutative ring")
 
-    return R.ideal(*gens, **kwds)
+    I = R.ideal(*gens, **kwds)
+
+    if inferred_field and not isinstance(I, Ideal_fractional):  # trac 32320
+        import warnings
+        warnings.warn(f'Constructing an ideal in {R}, which is a field.'
+                      ' Did you intend to take numerators first?'
+                      ' This warning can be muted by passing the base ring to Ideal() explicitly.')
+
+    return I
 
 def is_Ideal(x):
     r"""
@@ -537,13 +546,13 @@ class Ideal_generic(MonoidElement):
             sage: latex(3*ZZ) # indirect doctest
             \left(3\right)\Bold{Z}
         """
-        return '\\left(%s\\right)%s'%(", ".join([latex.latex(g) for g in \
-                                                 self.gens()]),
-                                      latex.latex(self.ring()))
+        return '\\left(%s\\right)%s' % (", ".join(latex.latex(g)
+                                                  for g in self.gens()),
+                                        latex.latex(self.ring()))
 
     def ring(self):
         """
-        Returns the ring containing this ideal.
+        Return the ring containing this ideal.
 
         EXAMPLES::
 
@@ -694,7 +703,7 @@ class Ideal_generic(MonoidElement):
             sage: S.ideal(4).is_maximal()
             False
         """
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         R = self.ring()
         if hasattr(R, 'cover_ring') and R.cover_ring() is ZZ:
             # The following test only works for quotients of Z/nZ: for
@@ -822,7 +831,7 @@ class Ideal_generic(MonoidElement):
 
             For general rings, uses the list of associated primes.
         """
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         R = self.ring()
         if hasattr(R, 'cover_ring') and R.cover_ring() is ZZ and R.is_finite():
             # For quotient rings of ZZ, prime is the same as maximal.
@@ -1710,7 +1719,7 @@ def Cyclic(R, n=None, homog=False, singular=None):
         from sage.interfaces.singular import singular as singular_default
         singular = singular_default
 
-    singular.lib("poly")
+    singular.lib("polylib")
     R2 = R.change_ring(RationalField())
     R2._singular_().set_ring()
 
@@ -1761,7 +1770,7 @@ def Katsura(R, n=None, homog=False, singular=None):
     if singular is None:
         from sage.interfaces.singular import singular as singular_default
         singular = singular_default
-    singular.lib("poly")
+    singular.lib("polylib")
     R2 = R.change_ring(RationalField())
     R2._singular_().set_ring()
 

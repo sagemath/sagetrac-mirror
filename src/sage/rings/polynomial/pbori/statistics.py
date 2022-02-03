@@ -1,4 +1,5 @@
-from .PyPolyBoRi import Monomial, Polynomial, top_index, BooleConstant
+from .pbori import top_index, BooleConstant
+from .PyPolyBoRi import Monomial, Polynomial
 
 
 def used_vars(l, bound=None):

@@ -8,7 +8,7 @@ the intervals down.
 
 AUTHORS:
 
-These authors wrote ``complex_number.pyx``:
+These authors wrote ``complex_mpfr.pyx`` (renamed from ``complex_number.pyx``)::
 
 - William Stein (2006-01-26): complete rewrite
 - Joel B. Mohler (2006-12-16): naive rewrite into pyrex
@@ -66,12 +66,13 @@ from sage.arith.constants cimport LOG_TEN_TWO_PLUS_EPSILON
 
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from sage.structure.parent cimport Parent
-from .complex_number cimport ComplexNumber
-from .complex_field import ComplexField
+from .complex_mpfr cimport ComplexNumber
+from .complex_mpfr import ComplexField
 from sage.rings.integer cimport Integer
 cimport sage.rings.real_mpfi as real_mpfi
 from .real_mpfr cimport RealNumber, RealField
 from .convert.mpfi cimport mpfi_set_sage
+from .infinity import infinity
 
 
 def is_ComplexIntervalFieldElement(x):
@@ -96,7 +97,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
     EXAMPLES::
 
         sage: I = CIF.gen()
-        sage: b = 1.5 + 2.5*I
+        sage: b = 3/2 + 5/2*I
         sage: TestSuite(b).run()
     """
     def __cinit__(self, parent, *args):
@@ -107,12 +108,13 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: ComplexIntervalFieldElement.__new__(ComplexIntervalFieldElement)
             Traceback (most recent call last):
             ...
-            TypeError: __cinit__() takes at least 1 positional argument (0 given)
+            TypeError: ...__cinit__() takes at least 1 positional argument (0 given)
             sage: ComplexIntervalFieldElement.__new__(ComplexIntervalFieldElement, CIF)
             [.. NaN ..] + [.. NaN ..]*I
         """
         self._parent = <Parent?>parent
         self._prec = parent._prec
+        self._multiplicative_order = None
         mpfi_init2(self.__re, self._prec)
         mpfi_init2(self.__im, self._prec)
 
@@ -129,6 +131,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(1.5 + 2.5*I)
             1.5000000000000000? + 2.5000000000000000?*I
         """
+        self._multiplicative_order = None
         if real is None:
             mpfi_set_ui(self.__re, 0)
             mpfi_set_ui(self.__im, 0)
@@ -1650,6 +1653,47 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
     # Transcendental (and other) functions
     ########################################################################
 
+    def multiplicative_order(self):
+        """
+        Return the multiplicative order of this complex number, if known,
+        or raise a ``NotImplementedError``.
+
+        EXAMPLES::
+
+            sage: C = CIF
+            sage: i = C.0
+            sage: i.multiplicative_order()
+            4
+            sage: C(1).multiplicative_order()
+            1
+            sage: C(-1).multiplicative_order()
+            2
+            sage: (i^2).multiplicative_order()
+            2
+            sage: (-i).multiplicative_order()
+            4
+            sage: C(2).multiplicative_order()
+            +Infinity
+            sage: w = (1 + C(-3).sqrt())/2 ; w
+            0.50000000000000000? + 0.866025403784439?*I
+            sage: w.multiplicative_order()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: order of element not known
+        """
+        if self._multiplicative_order is not None:
+            return Integer(self._multiplicative_order)
+        ring = self._parent
+        if self == ring.one():
+            return Integer(1)
+        if self == -ring.one():
+            return Integer(2)
+        if self == ring.gen() or self == -ring.gen():
+            return Integer(4)
+        if 1 not in abs(self):  # clearly not a root of unity
+            return infinity
+        raise NotImplementedError("order of element not known")
+
     def argument(self):
         r"""
         The argument (angle) of the complex number, normalized
@@ -1677,7 +1721,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             1.570796326794897?
             sage: (-i).argument()
             -1.570796326794897?
-            sage: (RR('-0.001') - i).argument()
+            sage: (-1/1000 - i).argument()
             -1.571796326461564?
             sage: CIF(2).argument()
             0

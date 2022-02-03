@@ -100,10 +100,9 @@ AUTHORS:
 
 from sage.modules.free_module import FreeModule_generic_pid
 from sage.rings.all import ZZ, QQ, RealField, ComplexField, QQbar, AA
-from sage.rings.real_mpfr import is_RealField
-from sage.rings.complex_field import is_ComplexField
+import sage.rings.abc
+from sage.rings.complex_mpfr import ComplexNumber
 from sage.rings.real_mpfr import RealNumber as RealNumber
-from sage.rings.complex_number import ComplexNumber as ComplexNumber
 from sage.rings.number_field.number_field import refine_embedding
 from sage.rings.infinity import Infinity
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
@@ -205,12 +204,12 @@ class PeriodLattice_ell(PeriodLattice):
         K = E.base_field()
         if embedding is None:
             embs = K.embeddings(AA)
-            real = len(embs)>0
+            real = len(embs) > 0
             if not real:
                 embs = K.embeddings(QQbar)
             embedding = embs[0]
         else:
-            embedding = refine_embedding(embedding,Infinity)
+            embedding = refine_embedding(embedding, Infinity)
             real = embedding(K.gen()).imag().is_zero()
 
         self.embedding = embedding
@@ -285,7 +284,7 @@ class PeriodLattice_ell(PeriodLattice):
 
     def __repr__(self):
         """
-        Returns the string representation of this period lattice.
+        Return the string representation of this period lattice.
 
         EXAMPLES::
 
@@ -810,7 +809,7 @@ class PeriodLattice_ell(PeriodLattice):
 
     def real_period(self, prec = None, algorithm='sage'):
         """
-        Returns the real period of this period lattice.
+        Return the real period of this period lattice.
 
         INPUT:
 
@@ -847,7 +846,7 @@ class PeriodLattice_ell(PeriodLattice):
         raise RuntimeError("Not defined for non-real lattices.")
 
     def omega(self, prec = None, bsd_normalise = False):
-        r"""Returns the real or complex volume of this period lattice.
+        r"""Return the real or complex volume of this period lattice.
 
         INPUT:
 
@@ -1022,7 +1021,7 @@ class PeriodLattice_ell(PeriodLattice):
 
     def sigma(self, z, prec = None, flag=0):
         r"""
-        Returns the value of the Weierstrass sigma function for this elliptic curve  period lattice.
+        Return the value of the Weierstrass sigma function for this elliptic curve  period lattice.
 
         INPUT:
 
@@ -1124,7 +1123,7 @@ class PeriodLattice_ell(PeriodLattice):
 
     def coordinates(self, z, rounding=None):
         r"""
-        Returns the coordinates of a complex number w.r.t. the lattice basis
+        Return the coordinates of a complex number w.r.t. the lattice basis
 
         INPUT:
 
@@ -1170,11 +1169,11 @@ class PeriodLattice_ell(PeriodLattice):
             (12, 23)
         """
         C = z.parent()
-        if is_RealField(C):
+        if isinstance(C, sage.rings.abc.RealField):
             C = ComplexField(C.precision())
             z = C(z)
         else:
-            if is_ComplexField(C):
+            if isinstance(C, sage.rings.abc.ComplexField):
                 pass
             else:
                 try:
@@ -1184,7 +1183,7 @@ class PeriodLattice_ell(PeriodLattice):
                     raise TypeError("%s is not a complex number"%z)
         prec = C.precision()
         from sage.matrix.all import Matrix
-        from sage.modules.all import vector
+        from sage.modules.free_module_element import vector
         if self.real_flag:
             w1,w2 = self.basis(prec)
             M = Matrix([[w1,0], list(w2)])**(-1)
@@ -1234,10 +1233,10 @@ class PeriodLattice_ell(PeriodLattice):
             0.958696500380444
         """
         C = z.parent()
-        if is_RealField(C):
+        if isinstance(C, sage.rings.abc.RealField):
             C = ComplexField(C.precision())
             z = C(z)
-        elif is_ComplexField(C):
+        elif isinstance(C, sage.rings.abc.ComplexField):
             pass
         else:
             try:
@@ -1626,7 +1625,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: P,Q = T[2]
             sage: embs = K.embeddings(CC)
             sage: Lambda = E.period_lattice(embs[0])
-            sage: Lambda.elliptic_logarithm(P+3*Q, 100)
+            sage: Lambda.elliptic_logarithm(P, 100)
             4.7100131126199672766973600998
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2 + x + 5)
@@ -1790,12 +1789,12 @@ class PeriodLattice_ell(PeriodLattice):
         """
         C = z.parent()
         z_is_real = False
-        if is_RealField(C):
+        if isinstance(C, sage.rings.abc.RealField):
             z_is_real = True
             C = ComplexField(C.precision())
             z = C(z)
         else:
-            if is_ComplexField(C):
+            if isinstance(C, sage.rings.abc.ComplexField):
                 z_is_real = z.is_real()
             else:
                 try:
@@ -1803,7 +1802,7 @@ class PeriodLattice_ell(PeriodLattice):
                     z = C(z)
                     z_is_real = z.is_real()
                 except TypeError:
-                    raise TypeError("%s is not a complex number"%z)
+                    raise TypeError("%s is not a complex number" % z)
         prec = C.precision()
 
         # test for the point at infinity:
@@ -1814,7 +1813,7 @@ class PeriodLattice_ell(PeriodLattice):
             if to_curve:
                 return self.curve().change_ring(K)(0)
             else:
-                return (K('+infinity'), K('+infinity'))
+                return K(Infinity), K(Infinity)
 
         # general number field code (including QQ):
 
@@ -1831,7 +1830,7 @@ class PeriodLattice_ell(PeriodLattice):
         # the same precision as the input.
 
         x, y = pari(self.basis(prec=prec)).ellwp(z, flag=1)
-        x, y = [C(t) for t in (x,y)]
+        x, y = [C(t) for t in (x, y)]
 
         if self.real_flag and z_is_real:
             x = x.real()
@@ -1840,14 +1839,15 @@ class PeriodLattice_ell(PeriodLattice):
         if to_curve:
             K = x.parent()
             v = refine_embedding(self.embedding, Infinity)
-            a1,a2,a3,a4,a6 = [K(v(a)) for a in self.E.ainvs()]
+            a1, a2, a3, a4, a6 = [K(v(a)) for a in self.E.ainvs()]
             b2 = K(v(self.E.b2()))
             x = x - b2 / 12
             y = (y - (a1 * x + a3)) / 2
-            EK = EllipticCurve(K,[a1,a2,a3,a4,a6])
-            return EK.point((x,y,K(1)), check=False)
+            EK = EllipticCurve(K, [a1, a2, a3, a4, a6])
+            return EK.point((x, y, K.one()), check=False)
         else:
-            return (x,y)
+            return (x, y)
+
 
 def reduce_tau(tau):
     r"""

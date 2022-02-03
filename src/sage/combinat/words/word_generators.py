@@ -53,7 +53,6 @@ EXAMPLES::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from itertools import cycle, count
 from random import randint
@@ -575,7 +574,8 @@ class WordGenerator(object):
             return w
 
         elif construction_method == "function":
-            from sage.functions.other import sqrt, floor
+            from sage.functions.other import floor
+            from sage.misc.functional import sqrt
             phi = (1 + sqrt(5))/2 # the golden ratio
             f = lambda n:a if floor((n+2)*phi) - floor((n+1)*phi) == 2 else b
             return W(f)
@@ -1066,7 +1066,7 @@ class WordGenerator(object):
         -  ``a`` - positive integer (default: 1), the first letter occurring
            in the returned Kolakoski word.
         -  ``b`` - positive integer (default: 2), the second and last letter
-           occuring in the returned Kolakoski word.
+           occurring in the returned Kolakoski word.
 
         OUTPUT:
 
@@ -1753,7 +1753,7 @@ class WordGenerator(object):
             sage: words.s_adic(tmword, repeat('a'), [tm,fib])
             word: abbaababbaabbaabbaababbaababbaabbaababba...
 
-        The correspondance of the indices may be given as a dict::
+        The correspondence of the indices may be given as a dict::
 
             sage: words.s_adic(tmword, repeat('a'), {0:tm,1:fib})
             word: abbaababbaabbaabbaababbaababbaabbaababba...
@@ -1899,7 +1899,7 @@ class WordGenerator(object):
         from sage.combinat.words.word import FiniteWord_class
         if isinstance(sequence,(tuple,list,str,FiniteWord_class)) \
         and hasattr(letters, "__len__") and len(letters) == 1:
-            from sage.misc.all import prod
+            from sage.misc.misc_c import prod
             return prod(seq)(letters)
 
         from itertools import tee

@@ -15,7 +15,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.lazy_import import LazyImport, lazy_import
 from sage.misc.lazy_attribute import lazy_attribute
@@ -220,7 +219,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: list(QS3.basis())
                 [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
             """
-            from sage.combinat.family import Family
+            from sage.sets.family import Family
             return Family(self._indices, self.monomial)
 
         def module_morphism(self, on_basis=None, matrix=None, function=None,
@@ -1156,7 +1155,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             if x == self.zero():
                 if not codomain:
-                    from sage.combinat.family import Family
+                    from sage.sets.family import Family
                     B = Family(self.basis())
                     try:
                         z = B.first()

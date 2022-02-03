@@ -134,6 +134,14 @@ Testing on multiple platforms
 
    portability_testing
 
+Additional development and testing tools
+----------------------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   tools
+
 Contributing to Manuals and Tutorials
 -------------------------------------
 
@@ -151,6 +159,14 @@ Sage Coding Details
    coding_in_python
    coding_in_cython
    coding_in_other
+
+Packaging the Sage Library
+--------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   packaging_sage_library
 
 Packaging Third-Party Code
 --------------------------

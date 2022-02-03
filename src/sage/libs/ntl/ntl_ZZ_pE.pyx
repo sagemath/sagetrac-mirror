@@ -1,4 +1,8 @@
-# distutils: libraries = ntl gmp m
+# distutils: libraries = NTL_LIBRARIES gmp m
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 
 #*****************************************************************************
@@ -223,7 +227,7 @@ cdef class ntl_ZZ_pE(object):
         if not isinstance(other, ntl_ZZ_pE):
             other = ntl_ZZ_pE(other,self.c)
         elif self.c is not (<ntl_ZZ_pE>other).c:
-            raise ValueError("You can not perform arithmetic with elements of different moduli.")
+            raise ValueError("You cannot perform arithmetic with elements of different moduli.")
         y = other
         self.c.restore_c()
         ZZ_pE_mul(r.x, self.x, y.x)
@@ -233,7 +237,7 @@ cdef class ntl_ZZ_pE(object):
         if not isinstance(other, ntl_ZZ_pE):
             other = ntl_ZZ_pE(other,self.c)
         elif self.c is not (<ntl_ZZ_pE>other).c:
-            raise ValueError("You can not perform arithmetic with elements of different moduli.")
+            raise ValueError("You cannot perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pE r = self._new()
         self.c.restore_c()
         ZZ_pE_sub(r.x, self.x, (<ntl_ZZ_pE>other).x)
@@ -245,7 +249,7 @@ cdef class ntl_ZZ_pE(object):
         if not isinstance(other, ntl_ZZ_pE):
             other = ntl_ZZ_pE(other,modulus=self.c)
         elif self.c is not (<ntl_ZZ_pE>other).c:
-            raise ValueError("You can not perform arithmetic with elements of different moduli.")
+            raise ValueError("You cannot perform arithmetic with elements of different moduli.")
         y = other
         sig_on()
         self.c.restore_c()
@@ -292,7 +296,7 @@ cdef class ntl_ZZ_pE(object):
         sage: i
         [9 1]
         sage: type(i)
-        <type 'sage.libs.ntl.ntl_ZZ_pX.ntl_ZZ_pX'>
+        <class 'sage.libs.ntl.ntl_ZZ_pX.ntl_ZZ_pX'>
         """
         return self.get_as_ZZ_pX()
 
@@ -346,6 +350,6 @@ def make_ZZ_pE(x, c):
         sage: sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c)
         [4 3]
         sage: type(sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c))
-        <type 'sage.libs.ntl.ntl_ZZ_pE.ntl_ZZ_pE'>
+        <class 'sage.libs.ntl.ntl_ZZ_pE.ntl_ZZ_pE'>
     """
     return ntl_ZZ_pE(x, c)

@@ -413,13 +413,12 @@ Classes and Methods
 # (at your option) any later version.
 # http://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 from sage.rings.ring import Algebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.defaults import series_precision
+import sage.rings.abc
 from sage.rings.all import RIF
 from .misc import WithLocals
 
@@ -572,12 +571,11 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         ::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
-            sage: lst = [ET(x, 1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
+            sage: lst = [ET(x, coefficient=1), ET(x^2, coefficient=2), OT(x^3), ET(x^4, coefficient=4)]
             sage: expr = R(lst, simplify=False); expr  # indirect doctest
             4*x^4 + O(x^3) + 2*x^2 + x
             sage: print(expr.summands.repr_full())
@@ -643,8 +641,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ValueError: Cannot include 1/2 with parent
             Exact Term Monoid x^QQ with coefficients in Rational Field in
             Asymptotic Ring <x^QQ> over Integer Ring
-            > *previous* ValueError: 1/2 is not a coefficient in
-            Exact Term Monoid x^QQ with coefficients in Integer Ring.
+            > *previous* ValueError: Cannot create ExactTerm(1)
+              since given coefficient 1/2 is not valid in
+              Exact Term Monoid x^QQ with coefficients in Integer Ring.
+            >> *previous* TypeError: no conversion of this rational to integer
 
         Check :trac:`19921`::
 
@@ -676,6 +676,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         if convert:
             from .misc import combine_exceptions
             from .term_monoid import ZeroCoefficientError
+
             def convert_terms(element):
                 T = self.parent().term_monoid(element.parent())
                 try:
@@ -694,7 +695,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         if simplify:
             self._simplify_()
-
 
     @property
     def summands(self):
@@ -947,12 +947,11 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
             sage: G = GrowthGroup('x^ZZ')
             sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
-            sage: lst = [ET(x, 1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
+            sage: lst = [ET(x, coefficient=1), ET(x^2, coefficient=2), OT(x^3), ET(x^4, coefficient=4)]
             sage: expr = R(lst, simplify=False); expr  # indirect doctest
             4*x^4 + O(x^3) + 2*x^2 + x
             sage: expr._simplify_(); expr
@@ -1030,15 +1029,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: A.<x> = AsymptoticRing('QQ^x * x^QQ * log(x)^QQ', SR.subring(no_variables=True))
             sage: (pi/2 * 5^x * x^(42/17) - sqrt(euler_gamma) * log(x)^(-7/8)).show()
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2} \, \pi
-            5^{x} x^{\frac{42}{17}} - \sqrt{\gamma_E} \log\left(x\right)^{-\frac{7}{8}}</script></html>
+            1/2*pi*5^x*x^(42/17) - sqrt(euler_gamma)*log(x)^(-7/8)
 
         TESTS::
 
             sage: A.<x> = AsymptoticRing('(e^x)^QQ * x^QQ', SR.subring(no_variables=True))
             sage: (zeta(3) * (e^x)^(-1/2) * x^42).show()
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\zeta(3)
-            \left(e^{x}\right)^{-\frac{1}{2}} x^{42}</script></html>
+            zeta(3)*(e^x)^(-1/2)*x^42
         """
         from sage.repl.rich_output.pretty_print import pretty_print
         pretty_print(self)
@@ -1084,7 +1081,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ValueError: Cannot include n with parent Exact Term Monoid
             n^QQ with coefficients in Rational Field in Asymptotic Ring
             <m^QQ> over Rational Field
-            > *previous* ValueError: n is not in Growth Group m^QQ.
+            > *previous* ValueError: Growth n is not valid in
+              Exact Term Monoid m^QQ with coefficients in Rational Field.
+            >> *previous* ValueError: n is not in Growth Group m^QQ.
 
         Only monomials are allowed::
 
@@ -1211,8 +1210,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         TESTS::
 
             sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: T = OTermMonoid(TermMonoid, R.growth_group, ZZ)
@@ -1691,7 +1689,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         else:
             return self.__pow_number__(exponent, precision=precision)
 
-        from sage.symbolic.expression import Expression
+        from sage.structure.element import Expression
         if isinstance(exponent, Expression) and exponent.is_constant():
             return self.__pow_number__(exponent, precision=precision)
 
@@ -2608,7 +2606,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ...
             TypeError: Cannot substitute u in u since it is neither an
             asymptotic expansion nor a string
-            (but a <type 'sage.symbolic.expression.Expression'>).
+            (but a <class 'sage.symbolic.expression.Expression'>).
 
         ::
 
@@ -2924,7 +2922,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             should be bounded.
 
             This method is mainly meant to have an easily usable
-            plausability check for asymptotic expansion created in
+            plausibility check for asymptotic expansion created in
             some way.
 
         EXAMPLES:
@@ -2971,8 +2969,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         points = self.compare_with_values(variable, function,
                                           values, rescaled=rescaled, ring=ring)
 
-        from sage.rings.real_mpfi import RealIntervalField_class
-        if isinstance(ring, RealIntervalField_class):
+        if isinstance(ring, sage.rings.abc.RealIntervalField):
             if not all(p[1].relative_diameter() <= relative_tolerance for p in points):
                 raise ValueError('Numerical noise is too high, the '
                                  'comparison is inaccurate')
@@ -3075,8 +3072,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: a.map_coefficients(lambda c: 1/c)
             Traceback (most recent call last):
             ...
-            ValueError: ... is not a coefficient in
+            ValueError: Cannot create ExactTerm(n^3) since
+            given coefficient 1/2 is not valid in
             Exact Term Monoid n^ZZ with coefficients in Integer Ring.
+            > *previous* TypeError: no conversion of this rational to integer
         """
         def mapping(term):
             T = term.parent().change_parameter(
@@ -3085,7 +3084,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 c = f(term.coefficient)
                 if c.is_zero():
                     return None
-                return T(term.growth, c)
+                return T(term.growth, coefficient=c)
             else:
                 return T(term.growth)
 
@@ -3362,6 +3361,59 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             return non_o_one_terms[0].coefficient
         else:
             raise ValueError("Cannot determine limit of {}".format(self))
+
+    def B(self, valid_from=0):
+        r"""
+        Convert all terms in this asymptotic expansion to `B`-terms.
+
+        INPUT:
+
+        - ``valid_from`` -- dictionary mapping variable names to lower bounds
+          for the corresponding variable. The bound implied by this term is valid when
+          all variables are at least their corresponding lower bound. If a number
+          is passed to ``valid_from``, then the lower bounds for all variables of
+          the asymptotic expansion are set to this number
+
+        OUTPUT:
+
+        An asymptotic expansion
+
+        EXAMPLES::
+
+            sage: AR.<x, z> = AsymptoticRing(growth_group='x^ZZ * z^ZZ', coefficient_ring=ZZ)
+            sage: AR.B(2*x^2, {x: 10}) # indirect doctest
+            doctest:warning
+            ...
+            FutureWarning: This class/method/function is marked as experimental.
+            It, its functionality or its interface might change without a formal deprecation.
+            See https://trac.sagemath.org/31922 for details.
+            B(2*x^2, x >= 10)
+            sage: expr = 42*x^42 + x^10 + AR.B(x^2, 20); expr # indirect doctest
+            42*x^42 + x^10 + B(x^2, x >= 20, z >= 20)
+            sage: type(AR.B(x, 10)) # indirect doctest
+            <class 'sage.rings.asymptotic.asymptotic_ring.AsymptoticRing_with_category.element_class'>
+            sage: 2*z^3 + AR.B(5*z^2, {z: 20}) # indirect doctest
+            2*z^3 + B(5*z^2, z >= 20)
+            sage: (2*x).B({x: 20})
+            B(2*x, x >= 20)
+            sage: AR.B(4*x^2*z^3, valid_from=10) # indirect doctest
+            B(4*x^2*z^3, x >= 10, z >= 10)
+            sage: AR.B(42*x^2) # indirect doctest
+            B(42*x^2, x >= 0, z >= 0)
+
+        TESTS::
+            sage: AR(0).B(20) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedBZero: got B(0)
+            The error term B(0) means 0 for sufficiently large x, z.
+        """
+        if not self.summands:
+            from .misc import NotImplementedBZero
+            raise NotImplementedBZero(self.parent(), exact_part=self.parent().zero())
+        return sum(self.parent().create_summand('B', growth=element, valid_from=valid_from)
+                   for element in self.summands.elements())
+
 
 class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
     r"""
@@ -3929,7 +3981,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             ...
             ValueError: Polynomial y is not in
             Asymptotic Ring <x^ZZ> over Integer Ring
-            > *previous* ValueError: Growth y is not in
+            > *previous* ValueError: Growth y is not valid in
             Exact Term Monoid x^ZZ with coefficients in Integer Ring.
             >> *previous* ValueError: y is not in Growth Group x^ZZ.
 
@@ -3972,7 +4024,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             ...
             ValueError: Polynomial a + c is not in
             Asymptotic Ring <a^ZZ * b^ZZ> over Rational Field
-            > *previous* ValueError: Growth c is not in
+            > *previous* ValueError: Growth c is not valid in
             Exact Term Monoid a^ZZ * b^ZZ with coefficients in Rational Field.
             >> *previous* ValueError: c is not in Growth Group a^ZZ * b^ZZ.
             >...> *previous* ValueError: c is not in any of the factors
@@ -3990,7 +4042,9 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             ValueError: Cannot include m^3 with parent
             Exact Term Monoid m^ZZ with coefficients in Integer Ring
             in Asymptotic Ring <n^ZZ> over Rational Field
-            > *previous* ValueError: m^3 is not in Growth Group n^ZZ.
+            > *previous* ValueError: Growth m^3 is not valid in
+              Exact Term Monoid n^ZZ with coefficients in Rational Field.
+            >> *previous* ValueError: m^3 is not in Growth Group n^ZZ.
 
         ::
 
@@ -4431,7 +4485,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             NotImplementedOZero: got 1 + O(0)
             The error term O(0) means 0 for sufficiently large n.
 
-        In this case, we can manually intervene by adding an an error term
+        In this case, we can manually intervene by adding an error term
         that suits us::
 
             sage: B.coefficients_of_generating_function(f, (1,), precision=3,
@@ -4546,7 +4600,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             sage: R.create_summand('O', growth=42*x^2, coefficient=1)
             Traceback (most recent call last):
             ...
-            ValueError: Growth 42*x^2 is not in O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
+            ValueError: Growth 42*x^2 is not valid in O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
             > *previous* ValueError: 42*x^2 is not in Growth Group x^ZZ.
 
         ::
@@ -4631,6 +4685,31 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
                                       category=self.category(),
                                       cls=self._underlying_class()),
                 self.coefficient_ring)
+
+    @staticmethod
+    def B(self, valid_from=0):
+        r""""
+        Create a B-term.
+
+        INPUT:
+
+        - ``valid_from`` -- dictionary mapping variable names to lower bounds
+          for the corresponding variable. The bound implied by this term is valid when
+          all variables are at least their corresponding lower bound. If a number
+          is passed to ``valid_from``, then the lower bounds for all variables of
+          the asymptotic expansion are set to this number
+
+        OUTPUT:
+
+        A B-term
+
+        EXAMPLES::
+
+            sage: A.<x> = AsymptoticRing(growth_group='x^ZZ * QQ^y', coefficient_ring=QQ)
+            sage: A.B(2*x^3, {x: 5})
+            B(2*x^3, x >= 5)
+        """
+        return self.B(valid_from)
 
 
 from sage.categories.pushout import ConstructionFunctor
