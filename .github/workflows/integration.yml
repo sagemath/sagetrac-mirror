@@ -93,6 +93,12 @@ jobs:
         with:
           fetch-depth: 1000
           path: ./sage
+      - name: Fetch develop and tags from sagetrac-mirror and trac.sagemath.org
+        run: |
+          git remote add trac https://github.com/sagemath/sagetrac-mirror.git
+          git fetch trac develop --tags
+          git remote add orig_trac git://trac.sagemath.org/sage.git
+          git fetch orig_trac develop --tags
       - name: free disk space
         run: |
           df -h
