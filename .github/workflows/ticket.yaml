@@ -2,6 +2,13 @@
 
 name: Ticket CI
 
+
+# allow only one CI workflow for a given branch
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+
 on:
   push:
     branches:
@@ -17,15 +24,58 @@ jobs:
     # this in the master branch to enable it
 
     name: Ticket CI
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    
     steps:
+
+    - name: Set up environment
+      run: |
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+    
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
+      
+    - name: Bootstrap
+      run: |
+        ./bootstrap
+
+    - name: Configure
+      env:
+        LIBGD_CONFIGURE: --without-avif
+      run: |
+        ./configure --enable-download-from-upstream-url --with-system-python3=no
+
+    - name: Restore cached upstream packages
+      run: |
+        mkdir -p $HOME/upstream upstream
+        cp -r $HOME/upstream .
+
+    - name: Make
+      env:
+        MAKE: 'make -j8'
+        SAGE_SPKG: 'sage-spkg -o'
+      run: |
+        make start
+
+    - name: Make doc (HTML)
+      env:
+        MAKE: 'make -j8'
+      run: |       
+        make doc-html 
+
+    - name: Run testsuite
+      run: |
+        ./sage -t -p --all --long --only-errors --logfile=logs/ptestlong.log --random-seed=123
+
+    - name: Archive build logs
+      uses: actions/upload-artifact@v2
+      if: always()
       with:
-        python-version: 3.8
-    - name: Install pycodestyle
-      run: pip install tox pycodestyle
-    - name: Lint using pycodestyle
-      run: tox -e pycodestyle-minimal
+        name: logs
+        path: |
+          logs
+
+    - name: Cache upstream packages
+      run: |
+        mkdir -p $HOME/upstream
+        cp -r upstream/* $HOME/upstream
