@@ -17,4 +17,3 @@ sdh_cmake \
 sdh_make
 
 sdh_make_install
-
