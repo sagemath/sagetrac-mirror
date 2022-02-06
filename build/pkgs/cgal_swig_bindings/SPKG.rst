@@ -1,5 +1,5 @@
 cgal-swig-bindings
-====
+==================
 
 Description
 -----------
