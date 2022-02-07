@@ -799,6 +799,19 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         return all(d % 2 == 0 for d in self.gram_matrix().diagonal())
 
+    def is_definite(self):
+      p,n = self.signature_pair()
+      return p*n==0
+
+    def root_sublattice(self):
+      assert self.is_definite()
+      sv = self.short_vectors(3)[2]
+      m = matrix(sv)
+      r = m.rank()
+      d = m.denominator()
+      B = (d*m).change_ring(ZZ).hermite_form()[:r,:]/d
+      return self.sublattice(B)
+
     @cached_method
     def dual_lattice(self):
         r"""
@@ -1143,6 +1156,31 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         K = self.span(K.basis())
         K = K.base_extend(QQ)
         return self.sublattice(self.intersection(K).basis())
+
+    def orthogonal_submodule(self, M):
+        r"""
+        Return the orthogonal submodule of ``M`` in this lattice.
+
+        INPUT:
+
+        - ``M`` -- a module in the same ambient space or
+          a list of elements of the ambient space
+
+        EXAMPLES::
+
+        """
+        from sage.modules.free_module import FreeModule_generic
+        if not isinstance(M,FreeModule_generic):
+            M = self.span(M)
+        elif M.ambient_vector_space() != self.ambient_vector_space():
+            raise ValueError("M must have the same "
+                             "ambient vector space as this lattice")
+
+        K = (self.inner_product_matrix() * M.basis_matrix().transpose()).kernel()
+        K = self.span(K.basis())
+        K = K.base_extend(QQ)
+        return self.span(self.intersection(K).basis())
+
 
     def sublattice(self, basis):
         r"""
@@ -1711,11 +1749,19 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         p, n = self.signature_pair()
         if p*n != 0:
-            raise NotImplementedError("")
-        e = 1
-        if n != 0:
-            e = -1
-        U = (e*self.gram_matrix().change_ring(ZZ)).LLL_gram().T
+          from sage.libs.pari import pari
+          from sage.interfaces.gp import gp
+          from sage.env import SAGE_EXTCODE
+          m = pari(self.gram_matrix())
+          gp.read(SAGE_EXTCODE + "/pari/simon/qfsolve.gp")
+          m = gp.eval('qflllgram_indefgoon(%s)'%m)
+          # convert the output string to sage
+          G, U  = pari(m).sage()
+        else:
+          e = 1
+          if n != 0:
+              e = -1
+          U = (e*self.gram_matrix().change_ring(ZZ)).LLL_gram().T
         return self.sublattice(U*self.basis_matrix())
 
     lll = LLL
