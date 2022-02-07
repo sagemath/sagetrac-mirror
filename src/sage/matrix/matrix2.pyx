@@ -17537,11 +17537,11 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``should_be_invertible`` -- list of matrices; The method checks
-          whether these matrices are indeed invertible.
+          whether these matrices are indeed invertible
 
         - ``should_be_invertible_if_self_is`` -- list of matrices (default:
           `None`); In case ``self`` is invertible, the method checks these
-          matrices too.
+          matrices too
 
         OUTPUT:
 
@@ -17579,8 +17579,6 @@ cdef class Matrix(Matrix1):
             (False, True, False)
             sage: M._check_invertibility([M1], [M2])
             True
-
-        ...
 
         """
         for m in should_be_invertible:
@@ -17684,8 +17682,6 @@ cdef class Matrix(Matrix1):
             eisenstein),
             or Laurent-series rings over finite fields.
 
-        ...
-
         """
         from sage.rings.padics.padic_extension_generic import pAdicExtensionGeneric
         from sage.rings.padics.padic_generic import pAdicGeneric
@@ -17743,7 +17739,7 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``t`` -- integer; represents a row in the matrix such that
-          ``self``[``t``,``t``]!=0.
+          ``self``[``t``,``t``]!=0
 
         OUTPUT:
 
@@ -17780,8 +17776,6 @@ cdef class Matrix(Matrix1):
             method.
             It assumes that the base-ring is either a padic field or a
             laurent-series ring, and that ``self``[``t``,``t``]!=0.
-
-        ...
 
         """
         from sage.rings.padics.padic_generic import pAdicGeneric
@@ -17834,10 +17828,10 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``T`` -- matrix; The upper-triangular matrix in the `iwasawa`
-          decomposition.
+          decomposition
 
         - ``K`` -- matrix; The matrix that's invertible over the integer-
-          ring in the `iwasawa` decomposition.
+          ring in the `iwasawa` decomposition
 
         OUTPUT:
 
@@ -17860,8 +17854,6 @@ cdef class Matrix(Matrix1):
             [   s^15 + O(s^20)   4*s^2 + O(s^20)           O(s^19)]
             [          O(s^15)    s^-5 + O(s^15) 12*s^-7 + O(s^13)]
             [          O(s^21)           O(s^21)    s^-1 + O(s^19)]
-
-        ...
 
         """
         from copy import deepcopy
@@ -17916,10 +17908,10 @@ cdef class Matrix(Matrix1):
 
         INPUT:
 
-        - ``t`` -- integer; represents a row in the matrix.
+        - ``t`` -- integer; represents a row in the matrix
 
         - ``c`` -- integer; Represents a column in the matrix,
-          such that ``self``[``t``,``c``]!=0.
+          such that ``self``[``t``,``c``]!=0
 
         OUTPUT:
 
@@ -17951,8 +17943,6 @@ cdef class Matrix(Matrix1):
             This is a helper function for the `iwasawa` decomposition
             method.
             It assumes that ``self``[``t``,``c``]!=0.
-
-        ...
 
         """
         def f(i, j):
@@ -18029,8 +18019,6 @@ cdef class Matrix(Matrix1):
 
             This method makes changes to ``self``.
 
-        ...
-
         """
         from sage.matrix.constructor import matrix, identity_matrix
         from sage.rings.infinity import Infinity
@@ -18086,13 +18074,13 @@ cdef class Matrix(Matrix1):
           In case ``self`` is invertible, this defines a unique iwasawa
           decomposition.
           If set to `False`, the method doesn't normalize the decomposition,
-          and therefore runs more quickly.
+          and therefore runs more quickly
 
         - ``certificate`` -- boolean (default: `False`); If set to `True`,
           the method returns an additional value, which is an indication
           to whether or not the returned matrices that should be
           invertible are indeed so. These matrices can potentially become
-          singular due to numerical inaccuracy.
+          singular due to numerical inaccuracy
 
         OUTPUT: an iwasawa decomposition of the matrix.
 
@@ -18285,8 +18273,6 @@ cdef class Matrix(Matrix1):
             are supposed to be invertible, are not so. The ``certificate``
             keyword can be used to get indication for that.
 
-        ...
-
         .. SEEALSO::
 
             :func:`cartan`, `bruhat-iwahori`, `TSB`, `bruhat`.
@@ -18372,13 +18358,13 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``r`` -- integer; represents a row in the matrix, such that
-          ``self``[``r``,``c``]!=0.
+          ``self``[``r``,``c``]!=0
 
         - ``c`` -- integer; represents a column in the matrix, that should
-          be partly nullified.
+          be partly nullified
 
         - ``rows_to_not_nullify`` -- list of integers; Rows that shouldn't
-          be touched (elements in those rows shouldn't be nullified).
+          be touched (elements in those rows shouldn't be nullified)
 
         OUTPUT:
 
@@ -18412,8 +18398,6 @@ cdef class Matrix(Matrix1):
             decompositions methods.
             It assumes that ``self``[``r``,``c``]!=0.
 
-        ...
-
         """
         def f(i, j):
             if i == j:
@@ -18435,7 +18419,7 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``row`` -- integer; Row in which to look for minimal-valuation
-          elements.
+          elements
 
         OUTPUT:
 
@@ -18488,8 +18472,6 @@ cdef class Matrix(Matrix1):
             the `valuation` method.
             For example, O(3^2).valuation()==2, but in this function it is
             considered to have infinity valuation.
-
-        ...
 
         .. SEEALSO::
 
@@ -18577,22 +18559,22 @@ cdef class Matrix(Matrix1):
 
         INPUT:
 
-        - ``r`` -- integer; row of the element.
+        - ``r`` -- integer; row of the element
 
-        - ``c`` -- integer; column of the element.
+        - ``c`` -- integer; column of the element
 
         - ``only_first_in_col`` -- boolean; whether to return only an
           element which is the first in its column to have that (minimal)
           valuation.
           The meaning of 'first' is determined by the direction of the
-          search (see ``start_up`` argument).
+          search (see ``start_up`` argument)
 
         - ``start_up`` -- boolean; Whether to go over the
           lines from top to bottom or in the opposite direction,
-          while searching for the desired element.
+          while searching for the desired element
 
         - ``chosen_valuations`` -- list.
-          See details in the documentation of `choose_min_valuation_elem`.
+          See details in the documentation of `choose_min_valuation_elem`
 
         OUTPUT:
 
@@ -18631,8 +18613,6 @@ cdef class Matrix(Matrix1):
             the `valuation` method.
             For example, O(3^2).valuation()==2, but in this function it is
             considered to have infinity valuation.
-
-        ...
 
         """
         from sage.rings.infinity import Infinity
@@ -18674,30 +18654,30 @@ cdef class Matrix(Matrix1):
 
         INPUT:
 
-        - ``r`` -- integer; row in which to search for the element.
+        - ``r`` -- integer; row in which to search for the element
 
         - ``only_first_in_col`` -- boolean; whether to return only an
           element which is the first in its column to have that (minimal)
           valuation.
           The meaning of 'first' is determined by the direction of the
-          search (see ``start_up`` argument).
+          search (see ``start_up`` argument)
 
         - ``only_first_in_row`` -- boolean; whether to return only an
           element which is the first in its row to have that (minimal)
           valuation.
           The meaning of 'first' is determined by the direction of the
-          search (see ``start_left`` argument).
+          search (see ``start_left`` argument)
 
         - ``start_up`` -- boolean; Whether to go over the
           lines from top to bottom or in the opposite direction,
-          while searching for the desired element.
+          while searching for the desired element
 
         - ``start_left`` -- boolean; Whether to go over
           the columns from left to right or in the opposite direction,
-          while searching each row for the desired element.
+          while searching each row for the desired element
 
         - ``chosen_valuations`` -- list.
-          See details in the documentation of `choose_min_valuation_elem`.
+          See details in the documentation of `choose_min_valuation_elem`
 
         OUTPUT:
 
@@ -18780,8 +18760,6 @@ cdef class Matrix(Matrix1):
             For example, O(3^2).valuation()==2, but in this function it is
             considered to have infinity valuation.
 
-        ...
-
         """
         min_val, cols_with_min_val =  self.min_valuation_in_row(r)
 
@@ -18831,21 +18809,21 @@ cdef class Matrix(Matrix1):
           element which is the first in its column to have that (minimal)
           valuation.
           The meaning of 'first' is determined by the direction of the
-          search (see ``start_up`` argument).
+          search (see ``start_up`` argument)
 
         - ``only_first_in_row`` -- boolean; whether to return only an
           element which is the first in its row to have that (minimal)
           valuation.
           The meaning of 'first' is determined by the direction of the
-          search (see ``start_left`` argument).
+          search (see ``start_left`` argument)
 
         - ``start_up`` -- boolean (default: `True`); Whether to go over the
           lines from top to bottom or in the opposite direction,
-          while searching for the desired element.
+          while searching for the desired element
 
         - ``start_left`` -- boolean (default: `True`); Whether to go over
           the columns from left to right or in the opposite direction,
-          while searching each row for the desired element.
+          while searching each row for the desired element
 
         - ``chosen_valuations`` -- list (default: `None`). This argument can
           be useful in case the method is called iteratively:
@@ -18863,7 +18841,7 @@ cdef class Matrix(Matrix1):
           elements in rows that have already been chosen. So, the returned
           element is garaunteed to have minimal valuation in comparison with
           its row and the part of its column that is not made up from rows
-          that have previousy been chosen.
+          that have previousy been chosen
 
         OUTPUT:
 
@@ -18969,8 +18947,6 @@ cdef class Matrix(Matrix1):
             For example, O(3^2).valuation()==2, but in this function it is
             considered to have infinity valuation.
 
-        ...
-
         .. SEEALSO::
 
             :func:`min_valuation_in_row`.
@@ -19047,7 +19023,7 @@ cdef class Matrix(Matrix1):
         - ``chosen_valuations`` -- list. This list has an entry for
           each row in the matrix, that contains the minimal valuation
           of elements in that row. This is the parameter by which
-          the rows are to be rearranged.
+          the rows are to be rearranged
 
         OUTPUT:
 
@@ -19074,8 +19050,6 @@ cdef class Matrix(Matrix1):
             [a^-16 + O(a^24)               0               0]
             [              0  a^-1 + O(a^39)               0]
             [              0               0   a^7 + O(a^47)]
-
-        ...
 
         """
         from operator import itemgetter
@@ -19107,12 +19081,12 @@ cdef class Matrix(Matrix1):
 
         - ``chosen_valuations`` -- list of integers. This list has an
           entry for each row in the matrix, that contains the minimal
-          valuation of elements in that row.
+          valuation of elements in that row
 
         - ``chosen_cols`` -- list of integers. This list has an
           entry for each row in the matrix, that contains a column of a
           chosen element in that row (has been chosen by the
-          `choose_min_valuation_elem` method).
+          `choose_min_valuation_elem` method)
 
         OUTPUT:
 
@@ -19156,8 +19130,6 @@ cdef class Matrix(Matrix1):
             0
             sage: K2.determinant().valuation() == 0
             True
-
-        ...
 
         """
         from sage.rings.padics.padic_generic import pAdicGeneric
@@ -19273,8 +19245,6 @@ cdef class Matrix(Matrix1):
 
             This method makes changes to ``self``.
 
-        ...
-
         """
         from sage.matrix.constructor import matrix, identity_matrix
         from sage.rings.padics.padic_generic import pAdicGeneric
@@ -19345,7 +19315,7 @@ cdef class Matrix(Matrix1):
           the method returns an additional value, which is an indication
           to whether or not the returned matrices that should be
           invertible are indeed so. These matrices can potentially become
-          singular due to numerical inaccuracy.
+          singular due to numerical inaccuracy
 
         OUTPUT: a cartan decomposition of the matrix.
 
@@ -19526,8 +19496,6 @@ cdef class Matrix(Matrix1):
             The ``certificate`` keyword can be used to get indication for
             that.
 
-        ...
-
         .. SEEALSO::
 
             :func:`iwasawa`, `bruhat-iwahori`, `TSB`, `bruhat`.
@@ -19610,12 +19578,12 @@ cdef class Matrix(Matrix1):
 
         - ``chosen_valuations`` -- list of integers. This list has an
           entry for each row in the matrix, that contains the minimal
-          valuation of elements in that row.
+          valuation of elements in that row
 
         - ``chosen_cols`` -- list of integers. This list has an
           entry for each row in the matrix, that contains a column of a
           chosen element in this row (has been chosen by the
-          `choose_min_valuation_elem` method).
+          `choose_min_valuation_elem` method)
 
         OUTPUT:
 
@@ -19673,8 +19641,6 @@ cdef class Matrix(Matrix1):
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B2[i,j]!= 0 and B2[i,j].valuation() <= 0 and j<i)]
             []
-
-        ...
 
         """
         from sage.rings.padics.padic_generic import pAdicGeneric
@@ -19799,8 +19765,6 @@ cdef class Matrix(Matrix1):
 
             This method makes changes to ``self``.
 
-        ...
-
         """
         from sage.matrix.constructor import matrix, identity_matrix
         from sage.rings.padics.padic_generic import pAdicGeneric
@@ -19859,7 +19823,7 @@ cdef class Matrix(Matrix1):
           the method returns an additional value, which is an indication
           to whether or not the returned matrices that should be
           invertible are indeed so. These matrices can potentially become
-          singular due to numerical inaccuracy.
+          singular due to numerical inaccuracy
 
         OUTPUT: a bruhat-iwahori decomposition of the matrix.
 
@@ -20070,8 +20034,6 @@ cdef class Matrix(Matrix1):
             The ``certificate`` keyword can be used to get indication for
             that.
 
-        ...
-
         .. SEEALSO::
 
             :func:`iwasawa`, `cartan`, `TSB`, `bruhat`.
@@ -20159,10 +20121,10 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``r`` -- integer; represents a row in the matrix, such that
-          ``self``[``r``,``c``]!=0.
+          ``self``[``r``,``c``]!=0
 
         - ``c`` -- integer; represents a column in the matrix, that should
-          be partly nullified.
+          be partly nullified
 
         OUTPUT:
 
@@ -20195,8 +20157,6 @@ cdef class Matrix(Matrix1):
             decompositions methods.
             It assumes that ``self``[``r``,``c``]!=0.
 
-        ...
-
         """
         def f(i, j):
             if j == r:
@@ -20225,7 +20185,7 @@ cdef class Matrix(Matrix1):
 
         - ``row_order`` -- list of integers. ``self`` can be thought of as
           an iwahori matrix whose rows have been rearranged so that for
-          each x,y with ``row_order``[x]==y, the x-row moved to the y-row.
+          each x,y with ``row_order``[x]==y, the x-row moved to the y-row
 
         OUTPUT:
 
@@ -20277,8 +20237,6 @@ cdef class Matrix(Matrix1):
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B[i,j]!= 0 and B[i,j].valuation() <= 0 and j<i)]
             []
-
-        ...
 
         """
         from sage.matrix.constructor import matrix
@@ -20376,8 +20334,6 @@ cdef class Matrix(Matrix1):
 
             This method makes changes to ``self``.
 
-        ...
-
         """
         from sage.matrix.constructor import matrix, identity_matrix
         from sage.rings.infinity import Infinity
@@ -20424,7 +20380,7 @@ cdef class Matrix(Matrix1):
           the method returns an additional value, which is an indication
           to whether or not the returned matrices that should be
           invertible are indeed so. These matrices can potentially become
-          singular due to numerical inaccuracy.
+          singular due to numerical inaccuracy
 
         OUTPUT: a TSB decomposition of the matrix.
 
@@ -20622,8 +20578,6 @@ cdef class Matrix(Matrix1):
             The ``certificate`` keyword can be used to get indication for
             that.
 
-        ...
-
         .. SEEALSO::
 
             :func:`iwasawa`, `cartan`, `bruhat-iwahori`, `bruhat`.
@@ -20706,7 +20660,7 @@ cdef class Matrix(Matrix1):
 
         - ``row_order`` -- list of integers. ``self`` can be thought of as
           an upper-triangular matrix whose rows have been rearranged so that for
-          each x,y with ``row_order``[x]==y, the x-row moved to the y-row.
+          each x,y with ``row_order``[x]==y, the x-row moved to the y-row
 
         OUTPUT:
 
@@ -20749,8 +20703,6 @@ cdef class Matrix(Matrix1):
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T2[i,j]!= 0 and j<i)]
             []
-
-        ...
 
         """
         from sage.matrix.constructor import matrix
@@ -20839,8 +20791,6 @@ cdef class Matrix(Matrix1):
 
             This method makes changes to ``self``.
 
-        ...
-
         """
         from sage.matrix.constructor import matrix, identity_matrix
         from sage.rings.padics.padic_generic import pAdicGeneric
@@ -20892,7 +20842,7 @@ cdef class Matrix(Matrix1):
           the method returns an additional value, which is an indication
           to whether or not the returned matrices that should be
           invertible are indeed so. These matrices can potentially become
-          singular due to numerical inaccuracy.
+          singular due to numerical inaccuracy
 
         OUTPUT: a bruhat decomposition of the matrix.
 
@@ -21106,8 +21056,6 @@ cdef class Matrix(Matrix1):
             is singular, and then ``S`` should be singular too).
             The ``certificate`` keyword can be used to get indication for
             that.
-
-        ...
 
         .. SEEALSO::
 
