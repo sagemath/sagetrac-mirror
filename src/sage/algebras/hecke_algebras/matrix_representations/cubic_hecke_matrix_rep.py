@@ -215,7 +215,7 @@ class AbsIrreducibeRep(Enum):
 
             sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
             sage: chmr.AbsIrreducibeRep.W3_011.alternative_name()
-            'Tyz'
+            'Tbc'
         """
         return self.value['alt_name']
 
@@ -286,53 +286,53 @@ class AbsIrreducibeRep(Enum):
     # -------------------------------------------------------------------------------------------------
     # absolutely irreducible representations corresponding to braids on 2 strands
     # -------------------------------------------------------------------------------------------------
-    W2_100  = {'alt_name':'Sx',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 0 , 'intern_ind': 0 }
-    W2_001  = {'alt_name':'Sz',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
-    W2_010  = {'alt_name':'Sy',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
+    W2_100  = {'alt_name':'Sa',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 0 , 'intern_ind': 0 }
+    W2_001  = {'alt_name':'Sb',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
+    W2_010  = {'alt_name':'Sc',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
 
     # -------------------------------------------------------------------------------------------------
     # absolutely irreducible representations corresponding to braids on 3 strands
     # -------------------------------------------------------------------------------------------------
-    W3_100  = {'alt_name':'Sx',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 0 , 'intern_ind': 0 }
-    W3_001  = {'alt_name':'Sz',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
-    W3_010  = {'alt_name':'Sy',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
+    W3_100  = {'alt_name':'Sa',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 0 , 'intern_ind': 0 }
+    W3_001  = {'alt_name':'Sb',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
+    W3_010  = {'alt_name':'Sc',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
 
-    W3_011  = {'alt_name':'Tyz',  'dim':2 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 3 , 'intern_ind': 3 }
-    W3_110  = {'alt_name':'Txy',  'dim':2 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 4 , 'intern_ind': 4 }
-    W3_101  = {'alt_name':'Txz',  'dim':2 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 5 , 'intern_ind': 5 }
+    W3_011  = {'alt_name':'Tbc',  'dim':2 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 3 , 'intern_ind': 3 }
+    W3_110  = {'alt_name':'Tab',  'dim':2 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 4 , 'intern_ind': 4 }
+    W3_101  = {'alt_name':'Tac',  'dim':2 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 5 , 'intern_ind': 5 }
 
     W3_111  = {'alt_name':'V',    'dim':3 , 'ngens':2 , 'len_orbit':1 , 'gap_ind': 6 , 'intern_ind': 6 }
 
     # -------------------------------------------------------------------------------------------------
     # absolutely irreducible representations corresponding to braids on 4 strands
     # -------------------------------------------------------------------------------------------------
-    W4_100  = {'alt_name':'Sx',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 0 , 'intern_ind': 0 }
-    W4_001  = {'alt_name':'Sz',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
-    W4_010  = {'alt_name':'Sy',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
+    W4_100  = {'alt_name':'Sa',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 0 , 'intern_ind': 0 }
+    W4_001  = {'alt_name':'Sb',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
+    W4_010  = {'alt_name':'Sc',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
 
-    W4_011  = {'alt_name':'Tyz',  'dim':2 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 3 , 'intern_ind': 3 }
-    W4_110  = {'alt_name':'Txy',  'dim':2 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 4 , 'intern_ind': 4 }
-    W4_101  = {'alt_name':'Txz',  'dim':2 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 5 , 'intern_ind': 5 }
+    W4_011  = {'alt_name':'Tbc',  'dim':2 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 3 , 'intern_ind': 3 }
+    W4_110  = {'alt_name':'Tab',  'dim':2 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 4 , 'intern_ind': 4 }
+    W4_101  = {'alt_name':'Tac',  'dim':2 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 5 , 'intern_ind': 5 }
 
     W4_111  = {'alt_name':'V',    'dim':3 , 'ngens':3 , 'len_orbit':1 , 'gap_ind': 6 , 'intern_ind': 6 }
 
-    W4_120  = {'alt_name':'Uyx',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 7 , 'intern_ind': 7 }
-    W4_201  = {'alt_name':'Uxz',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 8 , 'intern_ind': 8 }
-    W4_012  = {'alt_name':'Uzy',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 9 , 'intern_ind': 9 }
-    W4_102  = {'alt_name':'Uzx',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 10 , 'intern_ind': 10 }
-    W4_210  = {'alt_name':'Uxy',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 11 , 'intern_ind': 11 }
-    W4_021  = {'alt_name':'Vyz',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 12 , 'intern_ind': 12 }
+    W4_120  = {'alt_name':'Uba',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 7 , 'intern_ind': 7 }
+    W4_201  = {'alt_name':'Uac',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 8 , 'intern_ind': 8 }
+    W4_012  = {'alt_name':'Ucb',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 9 , 'intern_ind': 9 }
+    W4_102  = {'alt_name':'Uca',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 10 , 'intern_ind': 10 }
+    W4_210  = {'alt_name':'Uab',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 11 , 'intern_ind': 11 }
+    W4_021  = {'alt_name':'Ubc',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 12 , 'intern_ind': 12 }
 
-    W4_213  = {'alt_name':'Vzxy', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 13 , 'intern_ind': 13 }
-    W4_132  = {'alt_name':'Vyzx', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 14 , 'intern_ind': 14 }
-    W4_321  = {'alt_name':'Vxyz', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 15 , 'intern_ind': 15 }
-    W4_231  = {'alt_name':'Vyxz', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 16 , 'intern_ind': 16 }
-    W4_123  = {'alt_name':'Vzyx', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 17 , 'intern_ind': 17 }
-    W4_312  = {'alt_name':'Vxzy', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 18 , 'intern_ind': 18 }
+    W4_213  = {'alt_name':'Vcab', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 13 , 'intern_ind': 13 }
+    W4_132  = {'alt_name':'Vbca', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 14 , 'intern_ind': 14 }
+    W4_321  = {'alt_name':'Vabc', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 15 , 'intern_ind': 15 }
+    W4_231  = {'alt_name':'Vbac', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 16 , 'intern_ind': 16 }
+    W4_123  = {'alt_name':'Vcba', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 17 , 'intern_ind': 17 }
+    W4_312  = {'alt_name':'Vacb', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 18 , 'intern_ind': 18 }
 
-    W4_422  = {'alt_name':'Wx',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 19 , 'intern_ind': 19 }
-    W4_224  = {'alt_name':'Wz',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 20 , 'intern_ind': 20 }
-    W4_242  = {'alt_name':'Wy',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 21 , 'intern_ind': 21 }
+    W4_422  = {'alt_name':'Wa',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 19 , 'intern_ind': 19 }
+    W4_224  = {'alt_name':'Wb',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 20 , 'intern_ind': 20 }
+    W4_242  = {'alt_name':'Wc',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 21 , 'intern_ind': 21 }
 
     W4_333    = {'alt_name':'X',    'dim':9 , 'ngens':3 , 'len_orbit':2 , 'gap_ind': 22 , 'intern_ind': 22 }
     W4_333bar = {'alt_name':'Xbar', 'dim':9 , 'ngens':3 , 'len_orbit':2 , 'gap_ind': 23 , 'intern_ind': 23 }

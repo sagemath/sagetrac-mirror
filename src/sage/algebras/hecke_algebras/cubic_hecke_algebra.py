@@ -940,7 +940,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # ----------------------------------------------------------------------
         if cubic_equation_roots != None:
             extension_ring = generic_extension_ring.create_specialization(cubic_equation_roots)
-            cubic_equation_roots = [ extension_ring(root) for root in cubic_equation_roots ]
+            cubic_equation_roots = [extension_ring(root) for root in cubic_equation_roots]
             verbose('extension_ring %s set according to cubic_equation_roots %s' %(base_ring, cubic_equation_roots), level=2)
 
         else:
