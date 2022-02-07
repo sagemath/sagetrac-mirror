@@ -17734,7 +17734,7 @@ cdef class Matrix(Matrix1):
            righthand side of the diagonal, starting from the valuation of
            ``self``[``t``,``t``].
 
-        This is a helper function for the `iwasawa` decomposition method.
+        This is a helper function for the :meth:`iwasawa` decomposition method.
 
         INPUT:
 
@@ -17772,7 +17772,7 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-            This is a helper function for the `iwasawa` decomposition
+            This is a helper function for the :meth:`iwasawa` decomposition
             method.
             It assumes that the base-ring is either a padic field or a
             laurent-series ring, and that ``self``[``t``,``t``]!=0.
@@ -17823,15 +17823,15 @@ cdef class Matrix(Matrix1):
         In case the decomposed matrix is invertible, this normalized form
         is unique.
 
-        This is a helper function for the `iwasawa` decomposition method.
+        This is a helper function for the :meth:`iwasawa` decomposition method.
 
         INPUT:
 
-        - ``T`` -- matrix; The upper-triangular matrix in the `iwasawa`
+        - ``T`` -- matrix; The upper-triangular matrix in the iwasawa
           decomposition
 
         - ``K`` -- matrix; The matrix that's invertible over the integer-
-          ring in the `iwasawa` decomposition
+          ring in the iwasawa decomposition
 
         OUTPUT:
 
@@ -17904,7 +17904,7 @@ cdef class Matrix(Matrix1):
         B. After switching, nullifies the first ``t`` cells in the
            ``t``-th row.
 
-        This is a helper function for the `iwasawa` decomposition method.
+        This is a helper function for the :meth:`iwasawa` decomposition method.
 
         INPUT:
 
@@ -17940,7 +17940,7 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-            This is a helper function for the `iwasawa` decomposition
+            This is a helper function for the :meth:`iwasawa` decomposition
             method.
             It assumes that ``self``[``t``,``c``]!=0.
 
@@ -17968,7 +17968,7 @@ cdef class Matrix(Matrix1):
 
     def _iwasawa_helper(self):
         """
-        Helper for the `iwasawa` decomposition method.
+        Helper for the :meth:`iwasawa` decomposition method.
 
         This method returns ``T``,``K`` such that ``T``, ``K``^-1 are an
         iwasawa decomposition of ``self``.
@@ -17978,7 +17978,7 @@ cdef class Matrix(Matrix1):
         Matrices ``T``,``K`` such that ``self``*``K``=``T``,
         ``T`` is upper-triangular and ``K`` is invertible over the
         integer-ring.
-        See `iwasawa` documentation for more details.
+        See :meth:`iwasawa` documentation for more details.
 
         EXAMPLES:
 
@@ -18011,7 +18011,7 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-            As a helper for `iwasawa`, this method assumes that
+            As a helper for :meth:`iwasawa`, this method assumes that
             ``self`` is a square (non-empty) matrix over a
             non-archimedean local field.
 
@@ -18275,7 +18275,7 @@ cdef class Matrix(Matrix1):
 
         .. SEEALSO::
 
-            :func:`cartan`, `bruhat-iwahori`, `TSB`, `bruhat`.
+            :meth:`cartan`, :meth:`bruhat-iwahori`, :meth:`TSB`, :meth:`bruhat`.
 
         TESTS::
 
@@ -18352,7 +18352,7 @@ cdef class Matrix(Matrix1):
         A. Nullifies elements in the ``c`` column that are in one of the
            following rows: {i!=``r`` | i not in ``rows_to_not_nullify``}.
 
-        This is a helper function for the `cartan` and `bruhat-iwahori`
+        This is a helper function for the :meth:`cartan` and :meth:`bruhat-iwahori`
         decompositions methods.
 
         INPUT:
@@ -18394,8 +18394,8 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-            This is a helper function for the `cartan` and `bruhat-iwahori`
-            decompositions methods.
+            This is a helper function for the :meth:`cartan` and 
+            :meth:`bruhat-iwahori` decompositions methods.
             It assumes that ``self``[``r``,``c``]!=0.
 
         """
@@ -18475,7 +18475,7 @@ cdef class Matrix(Matrix1):
 
         .. SEEALSO::
 
-            :func:`choose_min_valuation_elem`.
+            :meth:`choose_min_valuation_elem`.
 
         TESTS::
 
@@ -18555,7 +18555,7 @@ cdef class Matrix(Matrix1):
            the first (top/bottom) in its column to have that (minimal)
            valuation.
 
-        This is a helper function for `choose_min_valuation_elem`.    
+        This is a helper function for :meth:`choose_min_valuation_elem`.    
 
         INPUT:
 
@@ -18574,7 +18574,8 @@ cdef class Matrix(Matrix1):
           while searching for the desired element
 
         - ``chosen_valuations`` -- list.
-          See details in the documentation of `choose_min_valuation_elem`
+          See details in the documentation of 
+          :meth:`choose_min_valuation_elem`
 
         OUTPUT:
 
@@ -18583,7 +18584,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An indirect example, using `_search_in_row` method ::
+        An indirect example, using :meth:`_search_in_row`::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, [[13, O(s^19), 9*s^15 + O(s^20)], [4,
@@ -18600,8 +18601,7 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-            This is a helper method for the `choose_min_valuation_elem`
-            method.
+            This is a helper method for :meth:`choose_min_valuation_elem`.
             It can only be used by matrices over rings that have a
             `valuation` method.
 
@@ -18650,7 +18650,7 @@ cdef class Matrix(Matrix1):
            the first (left/right) in its row, and/or the first
            (top/bottom) in its column to have that (minimal) valuation.
 
-        This is a helper function for `choose_min_valuation_elem`.    
+        This is a helper function for :meth:`choose_min_valuation_elem`.    
 
         INPUT:
 
@@ -18677,7 +18677,7 @@ cdef class Matrix(Matrix1):
           while searching each row for the desired element
 
         - ``chosen_valuations`` -- list.
-          See details in the documentation of `choose_min_valuation_elem`
+          See details in the documentation of :meth:`choose_min_valuation_elem`
 
         OUTPUT:
 
@@ -18746,8 +18746,7 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-            This is a helper method for the `choose_min_valuation_elem`
-            method.
+            This is a helper method for :meth:`choose_min_valuation_elem`.
             It can only be used by matrices over rings that have a
             `valuation` method.
 
@@ -18949,7 +18948,7 @@ cdef class Matrix(Matrix1):
 
         .. SEEALSO::
 
-            :func:`min_valuation_in_row`.
+            :meth:`min_valuation_in_row`.
 
         TESTS::
 
@@ -19016,7 +19015,7 @@ cdef class Matrix(Matrix1):
 
         The method returns a list with the new row order, and a
         function that defines a matrix which switches between the rows.
-        This is a helper function for `cartan` decomposition method.    
+        This is a helper function for :meth:`cartan` decomposition method.    
 
         INPUT:
 
@@ -19069,13 +19068,13 @@ cdef class Matrix(Matrix1):
 
     def _cartan_break_matrix(self, chosen_valuations, chosen_cols):
         """
-        Helper for the `cartan` decomposition method.
+        Helper for :meth:`cartan` decomposition method.
 
         This method decomposes ``self`` into a diagonal matrix with
         ascending powers of the uniformizer on the diagonal, and a
         matrix that's invertible over the integer ring.
         This method can only be applied to specific matrices, in the
-        process of the `cartan` decomposition.
+        process of the cartan decomposition.
 
         INPUT:
 
@@ -19085,8 +19084,8 @@ cdef class Matrix(Matrix1):
 
         - ``chosen_cols`` -- list of integers. This list has an
           entry for each row in the matrix, that contains a column of a
-          chosen element in that row (has been chosen by the
-          `choose_min_valuation_elem` method)
+          chosen element in that row (has been chosen by 
+          :meth:`choose_min_valuation_elem`)
 
         OUTPUT:
 
@@ -19185,7 +19184,7 @@ cdef class Matrix(Matrix1):
 
     def _cartan_helper(self):
         """
-        Helper for the `cartan` decomposition method.
+        Helper for the :meth:`cartan` decomposition method.
 
         This method returns ``K1``,``D``,``K2`` such that
         ``K1``^-1,``D``,``K2`` are a cartan decomposition of ``self``.
@@ -19196,7 +19195,7 @@ cdef class Matrix(Matrix1):
         ``K1``*``self``=``D``*``K2``, both ``K1``,``K2`` are invertible
         over the integer-ring, and ``D`` is diagonal with ascending powers
         of the uniformizer on diagonal (including zeros).
-        See `cartan` documentation for more details.
+        See :meth:`cartan` documentation for more details.
 
         EXAMPLES:
 
@@ -19237,7 +19236,7 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-            As a helper for `cartan`, this method assumes that
+            As a helper for :meth:`cartan`, this method assumes that
             ``self`` is a square (non-empty) matrix over a
             non-archimedean local field.
 
@@ -19498,7 +19497,7 @@ cdef class Matrix(Matrix1):
 
         .. SEEALSO::
 
-            :func:`iwasawa`, `bruhat-iwahori`, `TSB`, `bruhat`.
+            :meth:`iwasawa`, :meth:`bruhat-iwahori`, :meth:`TSB`, :meth:`bruhat`.
 
         TESTS::
 
@@ -19567,12 +19566,12 @@ cdef class Matrix(Matrix1):
     
     def _bruhat_iwahori_break_matrix(self, chosen_valuations, chosen_cols):
         """
-        Helper for the `bruhat_iwahori` decomposition method.
+        Helper for the :meth:`bruhat_iwahori` decomposition method.
 
         This method decomposes ``self`` into an Affine-Weyl matrix, and
         an iwahori matrix.
         This method can only be applied to specific matrices, in the
-        process of the `bruhat_iwahori` decomposition.
+        process of the bruhat_iwahori decomposition.
 
         INPUT:
 
@@ -19582,8 +19581,8 @@ cdef class Matrix(Matrix1):
 
         - ``chosen_cols`` -- list of integers. This list has an
           entry for each row in the matrix, that contains a column of a
-          chosen element in this row (has been chosen by the
-          `choose_min_valuation_elem` method)
+          chosen element in this row (has been chosen by 
+          :meth:`choose_min_valuation_elem`)
 
         OUTPUT:
 
@@ -19689,7 +19688,7 @@ cdef class Matrix(Matrix1):
 
     def _bruhat_iwahori_helper(self):
         """
-        Helper for the `bruhat_iwahori` decomposition method.
+        Helper for the :meth:`bruhat_iwahori` decomposition method.
 
         This method returns ``B1``,``W``,``B2`` such that
         ``B1``^-1,``W``,``B2`` are a bruhat-iwahori decomposition of
@@ -19701,7 +19700,7 @@ cdef class Matrix(Matrix1):
         ``B1``*``self``=``W``*``B2``, both ``B1``,``B2`` are iwahori
         matrices, and ``W`` is Affine-Weyl (note that possibly, some
         of its rows/columns are all zeros).
-        See `bruhat_iwahori` documentation for more details.
+        See :meth:`bruhat_iwahori` documentation for more details.
 
         EXAMPLES:
 
@@ -19757,7 +19756,7 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-            As a helper for `bruhat_iwahori`, this method assumes that
+            As a helper for :meth:`bruhat_iwahori`, this method assumes that
             ``self`` is a square (non-empty) matrix over a
             non-archimedean local field.
 
@@ -20036,7 +20035,7 @@ cdef class Matrix(Matrix1):
 
         .. SEEALSO::
 
-            :func:`iwasawa`, `cartan`, `TSB`, `bruhat`.
+            :meth:`iwasawa`, :meth:`cartan`, :meth:`TSB`, :meth:`bruhat`.
 
         TESTS::
 
@@ -20115,8 +20114,8 @@ cdef class Matrix(Matrix1):
         B. Nullifies elements in the ``c`` column above the ``r``-th row
            (in rows with lower indexes than ``r``).
 
-        This is a helper function for the `TSB` and `bruhat` decompositions
-        methods.
+        This is a helper function for the :meth:`TSB` and :meth:`bruhat` 
+        decompositions methods.
 
         INPUT:
 
@@ -20153,7 +20152,7 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-            This is a helper function for the `TSB` and `bruhat`
+            This is a helper function for the :meth:`TSB` and :meth:`bruhat`
             decompositions methods.
             It assumes that ``self``[``r``,``c``]!=0.
 
@@ -20174,12 +20173,12 @@ cdef class Matrix(Matrix1):
 
     def _TSB_break_matrix(self, row_order):
         """
-        Helper for the `TSB` decomposition method.
+        Helper for the :meth:`TSB` decomposition method.
 
         This method decomposes ``self`` into a permutation matrix and an
         iwahori matrix.
         This method can only be applied to specific matrices, in the
-        process of the `TSB` decomposition.
+        process of the TSB decomposition.
 
         INPUT:
 
@@ -20265,7 +20264,7 @@ cdef class Matrix(Matrix1):
 
     def _TSB_helper(self):
         """
-        Helper for the `TSB` decomposition method.
+        Helper for the :meth:`TSB` decomposition method.
 
         This method returns ``T``,``S``,``B`` such that
         ``T``^-1,``S``,``B`` are a TSB decomposition of ``self``.
@@ -20276,7 +20275,7 @@ cdef class Matrix(Matrix1):
         ``T`` is invertible upper-triangular, ``S`` is a permutation matrix
         (possibly some of its rows/columns are all zeros), and ``B`` is an
         iwahori matrix.
-        See `TSB` documentation for more details.
+        See :meth:`TSB` documentation for more details.
 
         EXAMPLES:
 
@@ -20326,7 +20325,7 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-            As a helper for `TSB`, this method assumes that
+            As a helper for :meth:`TSB`, this method assumes that
             ``self`` is a square (non-empty) matrix over a
             non-archimedean local field.
 
@@ -20580,7 +20579,7 @@ cdef class Matrix(Matrix1):
 
         .. SEEALSO::
 
-            :func:`iwasawa`, `cartan`, `bruhat-iwahori`, `bruhat`.
+            :meth:`iwasawa`, :meth:`cartan`, :meth:`bruhat-iwahori`, :meth:`bruhat`.
 
         TESTS::
 
@@ -20649,12 +20648,12 @@ cdef class Matrix(Matrix1):
     
     def _bruhat_break_matrix(self, row_order):
         """
-        Helper for the `bruhat` decomposition method.
+        Helper for the :meth:`bruhat` decomposition method.
 
         This method decomposes ``self`` into a permutation matrix and
         an upper-triangular invertible matrix.
         This method can only be applied to specific matrices, in the
-        process of the `bruhat` decomposition.
+        process of the bruhat decomposition.
 
         INPUT:
 
@@ -20731,7 +20730,7 @@ cdef class Matrix(Matrix1):
 
     def _bruhat_helper(self):
         """
-        Helper for the `bruhat` decomposition method.
+        Helper for the :meth:`bruhat` decomposition method.
 
         This method returns ``T1``,``S``,``T2`` such that
         ``T1``^-1,``S``,``T2`` are a bruhat decomposition of ``self``.
@@ -20742,7 +20741,7 @@ cdef class Matrix(Matrix1):
         ``T1``*``self``=``S``*``T2``, both ``T1``,``T2`` are invertible
         upper-triangular, and ``S`` is a permutation matrix (possibly
         some of its rows/columns are all zeros).
-        See `bruhat` documentation for more details.
+        See :meth:`bruhat` documentation for more details.
 
         EXAMPLES:
 
@@ -20783,7 +20782,7 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-            As a helper for `bruhat`, this method assumes that
+            As a helper for :meth:`bruhat`, this method assumes that
             ``self`` is a square (non-empty) matrix over a
             field or a ring with a fraction field.
 
@@ -21059,7 +21058,7 @@ cdef class Matrix(Matrix1):
 
         .. SEEALSO::
 
-            :func:`iwasawa`, `cartan`, `bruhat-iwahori`, `TSB`.
+            :meth:`iwasawa`, :meth:`cartan`, :meth:`bruhat-iwahori`, :meth:`TSB`.
 
         TESTS::
 
