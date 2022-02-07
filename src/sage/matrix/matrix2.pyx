@@ -17809,9 +17809,9 @@ cdef class Matrix(Matrix1):
     @staticmethod
     def _iwasawa_normalized_form(T, K):
         """
-        Return the normalized form of a given iwasawa decomposition.
+        Return the normalized form of a given Iwasawa decomposition.
 
-        The normalized form of an iwasawa decomposition is such that the
+        The normalized form of an Iwasawa decomposition is such that the
         upper-triangular matrix has powers of the uniformizer on diagonal,
         and the elements on the righthand side of the diagonal are
         truncated:
@@ -17827,15 +17827,15 @@ cdef class Matrix(Matrix1):
 
         INPUT:
 
-        - ``T`` -- matrix; The upper-triangular matrix in the iwasawa
+        - ``T`` -- matrix; The upper-triangular matrix in the Iwasawa
           decomposition
 
         - ``K`` -- matrix; The matrix that's invertible over the integer-
-          ring in the iwasawa decomposition
+          ring in the Iwasawa decomposition
 
         OUTPUT:
 
-        A pair of matrices that are the normalized form of the given iwasawa
+        A pair of matrices that are the normalized form of the given Iwasawa
         decomposition.
         The first matrix is the upper-triangular one, which is now
         normalized as explained above, and the second is invertible over
@@ -17971,7 +17971,7 @@ cdef class Matrix(Matrix1):
         Helper for the :meth:`iwasawa` decomposition method.
 
         This method returns ``T``,``K`` such that ``T``, ``K``^-1 are an
-        iwasawa decomposition of ``self``.
+        Iwasawa decomposition of ``self``.
 
         OUTPUT:
 
@@ -17982,7 +17982,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for an iwasawa (normalized) decomposition ::
+        An example for an Iwasawa (normalized) decomposition ::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -18055,7 +18055,7 @@ cdef class Matrix(Matrix1):
 
     def iwasawa(self, normalize=True, certificate=False):
         """
-        Return an iwasawa decomposition of the matrix.
+        Return an Iwasawa decomposition of the matrix.
 
         This method works only for a square matrix over a non-archimedean
         local field.
@@ -18063,7 +18063,7 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``normalize`` -- boolean (default: `True`); If set to `True`,
-          the method returns a normalized iwasawa decomposition:
+          the method returns a normalized Iwasawa decomposition:
           The upper-triangular matrix is normalized so that its diagonal-
           elements are powers of the uniformizer (or zeros) and on each
           row, the elements to the right of the diagonal are truncated
@@ -18071,7 +18071,7 @@ cdef class Matrix(Matrix1):
           this row. For example, over Qp(3), if the diagonal [1,1] element
           is 3^2, then the expansions of the other elements in the 1-th
           row can only contain powers of 3 which are smaller than 2.
-          In case ``self`` is invertible, this defines a unique iwasawa
+          In case ``self`` is invertible, this defines a unique Iwasawa
           decomposition.
           If set to `False`, the method doesn't normalize the decomposition,
           and therefore runs more quickly
@@ -18082,7 +18082,7 @@ cdef class Matrix(Matrix1):
           invertible are indeed so. These matrices can potentially become
           singular due to numerical inaccuracy
 
-        OUTPUT: an iwasawa decomposition of the matrix.
+        OUTPUT: an Iwasawa decomposition of the matrix.
 
         If ``certificate`` == `False`, this method returns a pair of
         matrices:
@@ -18096,7 +18096,7 @@ cdef class Matrix(Matrix1):
         diagonal of this row.
         Note that ``T`` is invertible iff ``self`` is invertible.
         In case ``self`` is invertible, the normalization that's described
-        above defines a unique iwasawa-decomposition, which is the one
+        above defines a unique Iwasawa-decomposition, which is the one
         returned by this method.
         If ``certificate`` == `True`, the method returns a third element,
         which is a boolean that indicates whether or not the returned
@@ -18106,20 +18106,20 @@ cdef class Matrix(Matrix1):
 
         ALGORITHM:
 
-        An iwasawa decomposition is achieved by using elementary
+        An Iwasawa decomposition is achieved by using elementary
         invertible-over-the-integer-ring matrices, to induce elementary
         column-operations that turn the original matrix into an
         upper-triangular one.
         The resulting upper-triangular matrix, ``T``, alongside ``K``, the
         inverse of the multiplied elementary matrices that were used,
-        represent an iwasawa decomposition of ``self``.
+        represent an Iwasawa decomposition of ``self``.
         If ``normalize`` ==`True`, ``T`` is then normalized by some other
         elementary invertible-over-the-integer-ring matrices, that are
         'absorbed' into ``K``.
 
         EXAMPLES:
 
-        For an invertible matrix, the `normalized` iwasawa decomposition is
+        For an invertible matrix, the `normalized` Iwasawa decomposition is
         unique. An example with a padic-field ::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
@@ -18145,7 +18145,7 @@ cdef class Matrix(Matrix1):
             sage: K.determinant().valuation() == 0
             True
 
-        An iwasawa decomposition of the same matrix, but not normalized ::
+        An Iwasawa decomposition of the same matrix, but not normalized ::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -18318,7 +18318,7 @@ cdef class Matrix(Matrix1):
 
         # Get ``T``, ``K`` such that ``self``*``K`` =``T``, ``T`` is
         # upper-triangular and ``K`` is invertible over the integer-ring.
-        # ``T``, ``K``.inverse() are an iwasawa decomposition of A.
+        # ``T``, ``K``.inverse() are an Iwasawa decomposition of A.
         T, K = A._iwasawa_helper()
         try:
             K = K.inverse()
@@ -18331,7 +18331,7 @@ cdef class Matrix(Matrix1):
                     an inner matrix that was expected to be invertible.\n This is \
                     probably due to numerical inaccuracy.")
 
-        # Get normalized-form of iwasawa decomposition.
+        # Get normalized-form of Iwasawa decomposition.
         if normalize:
             T, K = Matrix._iwasawa_normalized_form(T, K)
 
@@ -19074,7 +19074,7 @@ cdef class Matrix(Matrix1):
         ascending powers of the uniformizer on the diagonal, and a
         matrix that's invertible over the integer ring.
         This method can only be applied to specific matrices, in the
-        process of the cartan decomposition.
+        process of the Cartan decomposition.
 
         INPUT:
 
@@ -19096,7 +19096,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for a cartan decomposition ::
+        An example for a Cartan decomposition ::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -19187,7 +19187,7 @@ cdef class Matrix(Matrix1):
         Helper for the :meth:`cartan` decomposition method.
 
         This method returns ``K1``,``D``,``K2`` such that
-        ``K1``^-1,``D``,``K2`` are a cartan decomposition of ``self``.
+        ``K1``^-1,``D``,``K2`` are a Cartan decomposition of ``self``.
 
         OUTPUT:
 
@@ -19199,7 +19199,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for a cartan decomposition ::
+        An example for a Cartan decomposition ::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -19303,7 +19303,7 @@ cdef class Matrix(Matrix1):
 
     def cartan(self, certificate=False):
         """
-        Return cartan decomposition of the matrix.
+        Return Cartan decomposition of the matrix.
 
         This method works only for a square matrix over a non-archimedean
         local field.
@@ -19316,7 +19316,7 @@ cdef class Matrix(Matrix1):
           invertible are indeed so. These matrices can potentially become
           singular due to numerical inaccuracy
 
-        OUTPUT: a cartan decomposition of the matrix.
+        OUTPUT: a Cartan decomposition of the matrix.
 
         If ``certificate`` == `False`, this method returns three matrices:
         ``K1``,``D``,``K2``, such that ``self``==``K1``*``D``*``K2`` (up to
@@ -19325,7 +19325,7 @@ cdef class Matrix(Matrix1):
         diagonal-elements are ascending powers of the uniformizer
         (or zeros, which are considered as infinity powers).
         Note that ``D`` is invertible iff ``self`` is invertible.
-        Note also that ``D`` is unique: every cartan decomposition of
+        Note also that ``D`` is unique: every Cartan decomposition of
         ``self``, contains the same ``D`` matrix.
         If ``certificate`` == `True`, the method returns a third element,
         which is a boolean that indicates whether or not the returned
@@ -19335,7 +19335,7 @@ cdef class Matrix(Matrix1):
 
         ALGORITHM:
 
-        A cartan decomposition is achieved by using elementary
+        A Cartan decomposition is achieved by using elementary
         invertible-over-the-integer-ring matrices, to induce some elementary
         row-operations on the original matrix.
         Denote the resulting matrix by ``E`` and the inverse of the
@@ -19344,7 +19344,7 @@ cdef class Matrix(Matrix1):
         ``D``,``K2`` with ``D`` a diagonal matrix with ascending powers of
         the uniformizer on diagonal, and ``K2`` an
         invertible-over-the-integer-ring matrix.
-        ``K1``,``D``,``K2` represent a cartan decomposition of ``self``.
+        ``K1``,``D``,``K2` represent a Cartan decomposition of ``self``.
 
         EXAMPLES:
 
@@ -19545,7 +19545,7 @@ cdef class Matrix(Matrix1):
         # Get ``K1``, ``D``, ``K2``, such that ``K1``*``self`` = ``D``*``K2``,
         # both ``K1``,``K2`` are invertible over the integer-ring, and ``D`` is
         # diagonal with ascending powers of the uniformizer on diagonal.
-        # ``K1``.inverse(), ``D``, ``K2``, are a cartan decomposition of ``self``.
+        # ``K1``.inverse(), ``D``, ``K2``, are a Cartan decomposition of ``self``.
         K1, D, K2 = A._cartan_helper()
 
         try:
@@ -19569,9 +19569,9 @@ cdef class Matrix(Matrix1):
         Helper for the :meth:`bruhat_iwahori` decomposition method.
 
         This method decomposes ``self`` into an Affine-Weyl matrix, and
-        an iwahori matrix.
+        an Iwahori matrix.
         This method can only be applied to specific matrices, in the
-        process of the bruhat_iwahori decomposition.
+        process of the Bruhat-Iwahori decomposition.
 
         INPUT:
 
@@ -19588,11 +19588,11 @@ cdef class Matrix(Matrix1):
 
         Matrices ``W``,``B2`` such that  ``self``=``W``*``B2``,
         ``W`` is an Affine-Weyl matrix (possibly some of its rows/columns
-        are all zeros), and ``B2`` is an iwahori matrix.
+        are all zeros), and ``B2`` is an Iwahori matrix.
 
         EXAMPLES:
 
-        An example for a bruhat-iwahori decomposition ::
+        An example for a Bruhat-Iwahori decomposition ::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -19616,7 +19616,7 @@ cdef class Matrix(Matrix1):
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
-            sage: # Showing that B1 is iwahori:
+            sage: # Showing that B1 is Iwahori:
             sage: # B1 has only integer elements:
             sage: min([x.valuation() for x in B1.list() if x!=0])
             0
@@ -19628,7 +19628,7 @@ cdef class Matrix(Matrix1):
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B1[i,j]!= 0 and B1[i,j].valuation() <= 0 and j<i)]
             []
-            sage: # Showing that B2 is iwahori:
+            sage: # Showing that B2 is Iwahori:
             sage: # B2 has only integer elements:
             sage: min([x.valuation() for x in B2.list() if x!=0])
             0
@@ -19650,7 +19650,7 @@ cdef class Matrix(Matrix1):
         n = self.ncols()
 
         # Creating ``W`` as the Affine-Weyl matrix that can be multiplied with an
-        # iwahori matrix to get ``self``.
+        # Iwahori matrix to get ``self``.
         def pow_of_uniformizer(F, power):
             return (F.uniformizer_pow(power) if isinstance(F, pAdicGeneric)
                     else (F(0) if power == +Infinity else F([1], power)))
@@ -19671,7 +19671,7 @@ cdef class Matrix(Matrix1):
         W_semiinverse = matrix(F, n, lambda i, j: g(i, j), sparse=1)
         B2 = W_semiinverse * self
 
-        # In case ``W`` is singular, ``B2`` is "almost" iwahori, but some rows are
+        # In case ``W`` is singular, ``B2`` is "almost" Iwahori, but some rows are
         # zero-rows. So the only thing left is to put 1's on the diagonal of the
         # zero-rows.
         # To identify these rows, note that they have the indexes of the columns
@@ -19691,20 +19691,20 @@ cdef class Matrix(Matrix1):
         Helper for the :meth:`bruhat_iwahori` decomposition method.
 
         This method returns ``B1``,``W``,``B2`` such that
-        ``B1``^-1,``W``,``B2`` are a bruhat-iwahori decomposition of
+        ``B1``^-1,``W``,``B2`` are a Bruhat-Iwahori decomposition of
         ``self``.
 
         OUTPUT:
 
         Matrices ``B1``,``W``,``B2`` such that
-        ``B1``*``self``=``W``*``B2``, both ``B1``,``B2`` are iwahori
+        ``B1``*``self``=``W``*``B2``, both ``B1``,``B2`` are Iwahori
         matrices, and ``W`` is Affine-Weyl (note that possibly, some
         of its rows/columns are all zeros).
         See :meth:`bruhat_iwahori` documentation for more details.
 
         EXAMPLES:
 
-        An example for a bruhat-iwahori decomposition ::
+        An example for a Bruhat-Iwahori decomposition ::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -19728,7 +19728,7 @@ cdef class Matrix(Matrix1):
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
-            sage: # Showing that B1 is iwahori:
+            sage: # Showing that B1 is Iwahori:
             sage: # B1 has only integer elements:
             sage: min([x.valuation() for x in B1.list() if x!=0])
             0
@@ -19740,7 +19740,7 @@ cdef class Matrix(Matrix1):
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B1[i,j]!= 0 and B1[i,j].valuation() <= 0 and j<i)]
             []
-            sage: # Showing that B2 is iwahori:
+            sage: # Showing that B2 is Iwahori:
             sage: # B2 has only integer elements:
             sage: min([x.valuation() for x in B2.list() if x!=0])
             0
@@ -19780,8 +19780,8 @@ cdef class Matrix(Matrix1):
                                    else elem == 0)
 
         # Creating ``B1``, ``E``, such that ``B1``*``self``=``E``, ``B1`` is an
-        # iwahori matrix and ``E`` can later be decomposed into ``W``*``B2``
-        # (``W`` being an Affine-Weyl matrix, and ``B2`` iwahori).
+        # Iwahori matrix and ``E`` can later be decomposed into ``W``*``B2``
+        # (``W`` being an Affine-Weyl matrix, and ``B2`` Iwahori).
         B1 = identity_matrix(self.base_ring(), n)
         E = self
         # In each loop - choose element with minimal valuation in its row and
@@ -19790,7 +19790,7 @@ cdef class Matrix(Matrix1):
         # column to have that valuation. Then, use this element to nullify the
         # other elements in its column that do not belong to rows that have
         # already been chosen.
-        # In the end of this process, ``E`` is an iwahori matrix up to
+        # In the end of this process, ``E`` is an Iwahori matrix up to
         # multiplication in an affine-weyl matrix, and can be then decomposed into
         # ``W``, ``B2``.
         for i in range(n):
@@ -19811,7 +19811,7 @@ cdef class Matrix(Matrix1):
 
     def bruhat_iwahori(self, certificate=False):
         """
-        Return bruhat-iwahori decomposition of the matrix.
+        Return Bruhat-Iwahori decomposition of the matrix.
 
         This method works only for a square matrix over a non-archimedean
         local field.
@@ -19824,18 +19824,18 @@ cdef class Matrix(Matrix1):
           invertible are indeed so. These matrices can potentially become
           singular due to numerical inaccuracy
 
-        OUTPUT: a bruhat-iwahori decomposition of the matrix.
+        OUTPUT: a Bruhat-Iwahori decomposition of the matrix.
 
         If ``certificate`` == `False`, this method returns three matrices:
         ``B1``,``W``,``B2``, such that ``self``==``B1``*``W``*``B2`` (up to
-        numerical inaccuracies), both ``B1``,``B2`` are iwahori
+        numerical inaccuracies), both ``B1``,``B2`` are Iwahori
         (invertible over the integer-ring, have zero-valuation elements
         on diagonal, and strictly-positive-valuation elements below
         diagonal), and ``W`` is Affine-Weyl: a generalized-diagonal matrix,
         composed of elements which are either powers of the uniformizer
         or zeros.
         Note that ``W`` is invertible iff ``self`` is invertible.
-        Note also that ``W`` is unique: every bruhat-iwahori decomposition
+        Note also that ``W`` is unique: every Bruhat-Iwahori decomposition
         of ``self``, contains the same ``W`` matrix.
         If ``certificate`` == `True`, the method returns a third element,
         which is a boolean that indicates whether or not the returned
@@ -19845,15 +19845,15 @@ cdef class Matrix(Matrix1):
 
         ALGORITHM:
 
-        A bruhat-iwahori decomposition is achieved by using iwahori
+        A Bruhat-Iwahori decomposition is achieved by using Iwahori
         matrices, to induce some elementary row-operations on the
         original matrix.
         Denote the resulting matrix by ``E`` and the inverse of the
         multiplied elementary matrices by ``B1``.
         ``E`` is such that it can now be decomposed into matrices
-        ``W``,``B2`` with ``W`` an Affine-Weyl matrix, and ``B2`` an iwahori
+        ``W``,``B2`` with ``W`` an Affine-Weyl matrix, and ``B2`` an Iwahori
         matrix.
-        ``B1``,``W``,``B2`` represent a bruhat-iwahori decomposition of
+        ``B1``,``W``,``B2`` represent a Bruhat-Iwahori decomposition of
         ``self``.
 
         EXAMPLES:
@@ -19882,7 +19882,7 @@ cdef class Matrix(Matrix1):
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
-            sage: # Showing that B1 is iwahori:
+            sage: # Showing that B1 is Iwahori:
             sage: # B1 has only integer elements:
             sage: min([x.valuation() for x in B1.list() if x!=0])
             0
@@ -19894,7 +19894,7 @@ cdef class Matrix(Matrix1):
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B1[i,j]!= 0 and B1[i,j].valuation() <= 0 and j<i)]
             []
-            sage: # Showing that B2 is iwahori:
+            sage: # Showing that B2 is Iwahori:
             sage: # B2 has only integer elements:
             sage: min([x.valuation() for x in B2.list() if x!=0])
             0
@@ -19933,7 +19933,7 @@ cdef class Matrix(Matrix1):
             [             10 + 16*s^19 + O(s^20)                             O(s^18) 14*s^17 + 7*s^18 + 8*s^19 + O(s^20)]
             [                            O(s^30)               10 + 8*s^18 + O(s^20)          9*s^27 + 16*s^30 + O(s^31)]
             [                             O(s^5)                              O(s^4)          9 + 6*s^2 + 9*s^4 + O(s^5)]
-            sage: # Showing that B1 is iwahori:
+            sage: # Showing that B1 is Iwahori:
             sage: # B1 has only integer elements:
             sage: min([x.valuation() for x in B1.list() if x!=0])
             0
@@ -19945,7 +19945,7 @@ cdef class Matrix(Matrix1):
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B1[i,j]!= 0 and B1[i,j].valuation() <= 0 and j<i)]
             []
-            sage: # Showing that B2 is iwahori:
+            sage: # Showing that B2 is Iwahori:
             sage: # B2 has only integer elements:
             sage: min([x.valuation() for x in B2.list() if x!=0])
             0
@@ -20081,8 +20081,8 @@ cdef class Matrix(Matrix1):
                 followed by eisenstein extension.")
 
         # Get ``B1``, ``W``, ``B2``, such that ``B1``*``self`` = ``W``*``B2``,
-        # both ``B1``,``B2`` are iwahori matrices, and ``W`` is Affine-Weyl.
-        # ``B1``.inverse(), ``W``, ``B2``, are bruhat-iwahori decomposition of
+        # both ``B1``,``B2`` are Iwahori matrices, and ``W`` is Affine-Weyl.
+        # ``B1``.inverse(), ``W``, ``B2``, are Bruhat-Iwahori decomposition of
         # ``self``.
         B1, W, B2 = A._bruhat_iwahori_helper()
 
@@ -20176,21 +20176,21 @@ cdef class Matrix(Matrix1):
         Helper for the :meth:`TSB` decomposition method.
 
         This method decomposes ``self`` into a permutation matrix and an
-        iwahori matrix.
+        Iwahori matrix.
         This method can only be applied to specific matrices, in the
         process of the TSB decomposition.
 
         INPUT:
 
         - ``row_order`` -- list of integers. ``self`` can be thought of as
-          an iwahori matrix whose rows have been rearranged so that for
+          an Iwahori matrix whose rows have been rearranged so that for
           each x,y with ``row_order``[x]==y, the x-row moved to the y-row
 
         OUTPUT:
 
         Matrices ``S``,``B`` such that  ``self``=``S``*``B``,
         ``S`` is a permutation matrix (possibly some of its rows/columns are
-        all zeros), and ``B`` is an iwahori matrix.
+        all zeros), and ``B`` is an Iwahori matrix.
 
         EXAMPLES:
 
@@ -20224,7 +20224,7 @@ cdef class Matrix(Matrix1):
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T[i,j]!= 0 and j<i)]
             []
-            sage: # Showing that B is iwahori:
+            sage: # Showing that B is Iwahori:
             sage: # B has only integer elements:
             sage: min([x.valuation() for x in B.list() if x!=0])
             0
@@ -20241,7 +20241,7 @@ cdef class Matrix(Matrix1):
         from sage.matrix.constructor import matrix
         
         # Creating ``S`` as the permutation matrix that can be multiplied with an
-        # iwahori matrix to get ``self``.
+        # Iwahori matrix to get ``self``.
         def f(i,j):
             if row_order[j] == i:
                 return 1
@@ -20253,7 +20253,7 @@ cdef class Matrix(Matrix1):
         S_semiinverse = S.transpose()
         B = S_semiinverse * self
 
-        # In case ``S`` is singular, ``B`` is "almost" iwahori, but some rows are
+        # In case ``S`` is singular, ``B`` is "almost" Iwahori, but some rows are
         # zero-rows. So the only thing left is to put 1's on the diagonal of the
         # zero-rows.
         for r in range(self.ncols()):
@@ -20274,7 +20274,7 @@ cdef class Matrix(Matrix1):
         Matrices ``T``,``S``,``B`` such that  ``T``*``self``=``S``*``B``,
         ``T`` is invertible upper-triangular, ``S`` is a permutation matrix
         (possibly some of its rows/columns are all zeros), and ``B`` is an
-        iwahori matrix.
+        Iwahori matrix.
         See :meth:`TSB` documentation for more details.
 
         EXAMPLES:
@@ -20309,7 +20309,7 @@ cdef class Matrix(Matrix1):
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T[i,j]!= 0 and j<i)]
             []
-            sage: # Showing that B is iwahori:
+            sage: # Showing that B is Iwahori:
             sage: # B has only integer elements:
             sage: min([x.valuation() for x in B.list() if x!=0])
             0
@@ -20342,14 +20342,14 @@ cdef class Matrix(Matrix1):
 
         # Creating ``T``, ``E``, such that ``T``*``self``=``E``, ``T`` is
         # invertible upper-traingular and ``E`` can later be decomposed into
-        # ``S``*``B`` (``S`` being a permutation matrix and ``B`` an iwahori
+        # ``S``*``B`` (``S`` being a permutation matrix and ``B`` an Iwahori
         # matrix).
         T = identity_matrix(self.base_ring(), n)
         E = self
         # For each row of ``E`` between n-1 and 0, find first element with minimal
         # valuation. Then, normalize it (convert to 1) and use this element to
         # nullify the rest of its column.
-        # In the end of this process, ``E`` is an iwahori matrix up to permutation
+        # In the end of this process, ``E`` is an Iwahori matrix up to permutation
         # on its rows, and can be then decomposed into ``S``, ``B``.
         for r in range(n-1, -1, -1):
             min_val, cols_with_min_val = E.min_valuation_in_row(r)
@@ -20387,7 +20387,7 @@ cdef class Matrix(Matrix1):
         ``T``,``S``,``B``, such that ``self``==``T``*``S``*``B`` (up to
         numerical inaccuracies), ``T`` is invertible upper-triangular, ``S``
         is a permutation matrix (possibly some of its rows/columns are all
-        zeros), and ``B`` is iwahori (invertible over the integer-ring, has
+        zeros), and ``B`` is Iwahori (invertible over the integer-ring, has
         zero-valuation elements on diagonal, and
         strictly-positive-valuation elements below diagonal).
         Note that ``S`` is invertible iff ``self`` is invertible.
@@ -20407,7 +20407,7 @@ cdef class Matrix(Matrix1):
         Denote the resulting matrix by ``E`` and the inverse of the
         multiplied elementary matrices by ``T``.
         ``E`` is such that it can now be decomposed into matrices
-        ``S``,``B`` with ``S`` a permutation matrix, and ``B`` an iwahori
+        ``S``,``B`` with ``S`` a permutation matrix, and ``B`` an Iwahori
         matrix.
         ``T``,``S``,``B`` represent a TSB decomposition of ``self``.
 
@@ -20443,7 +20443,7 @@ cdef class Matrix(Matrix1):
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T[i,j]!= 0 and j<i)]
             []
-            sage: # Showing that B is iwahori:
+            sage: # Showing that B is Iwahori:
             sage: # B has only integer elements:
             sage: min([x.valuation() for x in B.list() if x!=0])
             0
@@ -20488,7 +20488,7 @@ cdef class Matrix(Matrix1):
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T[i,j]!= 0 and j<i)]
             []
-            sage: # Showing that B is iwahori:
+            sage: # Showing that B is Iwahori:
             sage: # B has only integer elements:
             sage: min([x.valuation() for x in B.list() if x!=0])
             0
@@ -20626,7 +20626,7 @@ cdef class Matrix(Matrix1):
 
         # Get ``T``, ``S``, ``B``, such that ``T``*``self`` = ``S``*``B``, ``T``
         # is invertible upper-triangular, ``S`` is a permutation matrix, and ``B``
-        # is an iwahori matrix.
+        # is an Iwahori matrix.
         # ``T``.inverse(), ``S``, ``B``, are a TSB decomposition of ``self``.
         T, S, B = A._TSB_helper()
 
@@ -20653,7 +20653,7 @@ cdef class Matrix(Matrix1):
         This method decomposes ``self`` into a permutation matrix and
         an upper-triangular invertible matrix.
         This method can only be applied to specific matrices, in the
-        process of the bruhat decomposition.
+        process of the Bruhat decomposition.
 
         INPUT:
 
@@ -20669,7 +20669,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for a bruhat decomposition ::
+        An example for a Bruhat decomposition ::
 
             sage: M = matrix(QQ, 3, [[0, 1, -1],[2, 0, 1/2],[1, 0, 1/2]])
             sage: T1, S, T2 = M.bruhat() # indirect doctest
@@ -20733,7 +20733,7 @@ cdef class Matrix(Matrix1):
         Helper for the :meth:`bruhat` decomposition method.
 
         This method returns ``T1``,``S``,``T2`` such that
-        ``T1``^-1,``S``,``T2`` are a bruhat decomposition of ``self``.
+        ``T1``^-1,``S``,``T2`` are a Bruhat decomposition of ``self``.
 
         OUTPUT:
 
@@ -20745,7 +20745,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for a bruhat decomposition ::
+        An example for a Bruhat decomposition ::
 
             sage: M = matrix(QQ, 3, [[0, 1, -1],[2, 0, 1/2],[1, 0, 1/2]])
             sage: T1, S, T2 = M.bruhat() # indirect doctest
@@ -20831,7 +20831,7 @@ cdef class Matrix(Matrix1):
 
     def bruhat(self, certificate=False):
         """
-        Return bruhat decomposition of the matrix.
+        Return Bruhat decomposition of the matrix.
 
         This method works for a square matrix over any field.
 
@@ -20843,7 +20843,7 @@ cdef class Matrix(Matrix1):
           invertible are indeed so. These matrices can potentially become
           singular due to numerical inaccuracy
 
-        OUTPUT: a bruhat decomposition of the matrix.
+        OUTPUT: a Bruhat decomposition of the matrix.
 
         If ``certificate`` == `False`, this method returns three matrices:
         ``T1``,``S``,``T2``, such that ``self``==``T1``*``S``*``T2`` (up to
@@ -20851,7 +20851,7 @@ cdef class Matrix(Matrix1):
         upper-triangular, and ``S`` is a permutation matrix (possibly some
         of the rows/columns are all zeros).
         Note that ``S`` is invertible iff ``self`` is invertible.
-        Note also that ``S`` is unique: every bruhat decomposition of
+        Note also that ``S`` is unique: every Bruhat decomposition of
         ``self``, contains the same ``S`` matrix.
         If ``certificate`` == `True`, the method returns a third element,
         which is a boolean that indicates whether or not the returned
@@ -20861,7 +20861,7 @@ cdef class Matrix(Matrix1):
 
         ALGORITHM:
 
-        A bruhat decomposition is achieved by using
+        A Bruhat decomposition is achieved by using
         invertible upper-traingular matrices, to induce elementary
         row-operations on the original matrix.
         Denote the resulting matrix by ``E`` and the inverse of the
@@ -20869,7 +20869,7 @@ cdef class Matrix(Matrix1):
         ``E`` is such that it can now be decomposed into matrices
         ``S``,``T2`` with ``S`` a permutation matrix, and ``T2`` an
         invertible upper-triangular matrix.
-        ``T1``,``S``,``T2`` represent a bruhat decomposition of ``self``.
+        ``T1``,``S``,``T2`` represent a Bruhat decomposition of ``self``.
 
         EXAMPLES:
 
@@ -21098,7 +21098,7 @@ cdef class Matrix(Matrix1):
         # Get ``T1``, ``S``, ``T2``, such that ``T1``*``self`` = ``S``*``T2``,
         # both ``T1``,``T2`` are invertible upper-triangular, and ``S`` is a
         # permutation matrix.
-        # ``T1``.inverse(), ``S``, ``T2``, are a bruhat decomposition of ``self``.
+        # ``T1``.inverse(), ``S``, ``T2``, are a Bruhat decomposition of ``self``.
         T1, S, T2 = A._bruhat_helper()
 
         try:
