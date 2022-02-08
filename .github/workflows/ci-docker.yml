@@ -138,6 +138,8 @@ jobs:
           jobstatus=$(curl -H "Accept: application/vnd.github.v3+json" -H "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs)
           #| jq ".jobs[] | {job_status: .conclusion, matrix: .name}")
           echo $jobstatus
+          #TODO: Combine this with https://stackoverflow.com/questions/65384420/how-to-make-a-github-action-matrix-element-conditional
+          # to filter out matrix configs if the first step failed.
 
       - uses: actions/checkout@v2
 
