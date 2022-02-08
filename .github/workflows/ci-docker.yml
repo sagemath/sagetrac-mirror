@@ -129,7 +129,7 @@ jobs:
         tox_packages_factor: [minimal, standard, maximal]
 
     container:
-      image: ghcr.io/${{ github.repository }}/sage-docker-{{ matrix.tox_system_factor }}-{{ matrix.tox_packages_factor }}-with-targets:9.5
+      image: ghcr.io/${{ github.repository }}/sage-docker-{{ matrix.tox_system_factor }}-{{ matrix.tox_packages_factor }}-with-targets:${{ github.run_id }}
 
     steps:
       - name: Check prebuild status
