@@ -120,7 +120,7 @@ def num_threads():
 
     OUTPUT:
 
-    a tuple (num_threads, num_threads_parallel, num_cores)
+    a tuple (num_threads, num_cores)
     """
     num_cores = number_of_cores()
 
@@ -171,17 +171,7 @@ def num_threads():
     if num_threads is None:
         num_threads = 1
 
-    # Finally, use SAGE_NUM_THREADS_PARALLEL if set.  A user isn't
-    # likely to set this, but it ensures that sage-env is idempotent
-    # if called more than once.
-    try:
-        sage_num_threads = int(os.environ["SAGE_NUM_THREADS_PARALLEL"])
-        if sage_num_threads > 0:
-            num_threads_parallel = sage_num_threads
-    except (ValueError, KeyError):
-        pass
-
-    return (num_threads, num_threads_parallel, num_cores)
+    return (num_threads, num_cores)
 
 
 print(*num_threads())

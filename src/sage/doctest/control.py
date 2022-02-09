@@ -367,7 +367,7 @@ class DocTestController(SageObject):
             if options.gc:
                 options.timeout *= 2
         if options.nthreads == 0:
-            options.nthreads = int(os.getenv('SAGE_NUM_THREADS_PARALLEL',1))
+            options.nthreads = int(os.getenv('SAGE_NUM_THREADS',1))
         if options.failed and not (args or options.new):
             # If the user doesn't specify any files then we rerun all failed files.
             options.all = True
