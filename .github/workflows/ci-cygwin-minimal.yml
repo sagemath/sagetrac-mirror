@@ -11,7 +11,6 @@ on:
 
 env:
   MAKE: make -j8
-  SAGE_NUM_THREADS: 3
   CYGWIN: winsymlinks:native
   EXTRA_CONFIGURE_ARGS: --enable-fat-binary
   SAGE_LOCAL: /opt/sage-${{ github.sha }}
