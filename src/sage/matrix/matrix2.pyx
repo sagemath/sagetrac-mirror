@@ -18478,7 +18478,7 @@ cdef class Matrix(Matrix1):
 
         .. SEEALSO::
 
-            :meth:`choose_min_valuation_elem`.
+            :meth:`choose_min_valuation_element`.
 
         TESTS:
 
@@ -18561,7 +18561,7 @@ cdef class Matrix(Matrix1):
            the first (top/bottom) in its column to have that (minimal)
            valuation.
 
-        This is a helper function for :meth:`choose_min_valuation_elem`.    
+        This is a helper function for :meth:`choose_min_valuation_element`.    
 
         INPUT:
 
@@ -18581,7 +18581,7 @@ cdef class Matrix(Matrix1):
 
         - ``chosen_valuations`` -- list.
           See details in the documentation of 
-          :meth:`choose_min_valuation_elem`
+          :meth:`choose_min_valuation_element`
 
         OUTPUT:
 
@@ -18607,7 +18607,7 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-            This is a helper method for :meth:`choose_min_valuation_elem`.
+            This is a helper method for :meth:`choose_min_valuation_element`.
             It can only be used by matrices over rings that have a
             `valuation` method.
 
@@ -18656,7 +18656,7 @@ cdef class Matrix(Matrix1):
            the first (left/right) in its row, and/or the first
            (top/bottom) in its column to have that (minimal) valuation.
 
-        This is a helper function for :meth:`choose_min_valuation_elem`.    
+        This is a helper function for :meth:`choose_min_valuation_element`.    
 
         INPUT:
 
@@ -18683,7 +18683,7 @@ cdef class Matrix(Matrix1):
           while searching each row for the desired element
 
         - ``chosen_valuations`` -- list.
-          See details in the documentation of :meth:`choose_min_valuation_elem`
+          See details in the documentation of :meth:`choose_min_valuation_element`
 
         OUTPUT:
 
@@ -18752,7 +18752,7 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-            This is a helper method for :meth:`choose_min_valuation_elem`.
+            This is a helper method for :meth:`choose_min_valuation_element`.
             It can only be used by matrices over rings that have a
             `valuation` method.
 
@@ -18790,7 +18790,7 @@ cdef class Matrix(Matrix1):
         # No appropriate column was found.
         return (None, None)
 
-    def choose_min_valuation_elem(self, only_first_in_col, only_first_in_row,
+    def choose_min_valuation_element(self, only_first_in_col, only_first_in_row,
                                 start_up=True, start_left=True,
                                 chosen_valuations=None):
         """
@@ -18871,7 +18871,7 @@ cdef class Matrix(Matrix1):
             [      a + O(a^41)       a^-9 + O(a)     a^2 + O(a^42)                 0]
             [2 + a^7 + O(a^40)          1 + O(a)     a^5 + O(a^45)     a^7 + O(a^47)]
             [      1 + O(a^40)                 0     4*a + O(a^41)    a^-3 + O(a^37)]
-            sage: r,c = M.choose_min_valuation_elem(only_first_in_col=False,
+            sage: r,c = M.choose_min_valuation_element(only_first_in_col=False,
             ....: only_first_in_row=True, start_left=False)
             sage: r,c
             (1, 1)
@@ -18882,7 +18882,7 @@ cdef class Matrix(Matrix1):
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y, 4, [[3, a^6, O(a^-3), 2],[a, a^-9+O(a),
             ....: a^2,0], [2+a^7, 1+O(a), a^5,a^7],[1, 0, 4*a,a^-3]])
-            sage: r,c = M.choose_min_valuation_elem(only_first_in_col=False,
+            sage: r,c = M.choose_min_valuation_element(only_first_in_col=False,
             ....: only_first_in_row=False, start_left=False)
             sage: r,c
             (0, 0)
@@ -18893,7 +18893,7 @@ cdef class Matrix(Matrix1):
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y, 4, [[3, a^6, O(a^-3), 2],[a, a^-9+O(a),
             ....: a^2,0], [2+a^7, 1+O(a), a^5,a^7],[1, 0, 4*a,a^-3]])
-            sage: r,c = M.choose_min_valuation_elem(only_first_in_col=False,
+            sage: r,c = M.choose_min_valuation_element(only_first_in_col=False,
             ....: only_first_in_row=True, start_left=True)
             sage: r,c
             (0, 0)
@@ -18908,7 +18908,7 @@ cdef class Matrix(Matrix1):
             [                        4                   O(s^-7)                   3 + s^2]
             [                     s^-3            s^-3 + O(s^-2)             s^-8 + O(s^5)]
             sage: chosen_valuations = [None]*M.nrows()
-            sage: M.choose_min_valuation_elem(False, False,
+            sage: M.choose_min_valuation_element(False, False,
             ....: chosen_valuations=chosen_valuations)
             (2, 2)
             sage: # An element from row 2 was chosen, so from now on, we won't
@@ -18918,22 +18918,22 @@ cdef class Matrix(Matrix1):
             ....: elements in row 2 have the smallest valuations...).
             ....: We keep track of the chosen rows through the
             ....: ``chosen_valuations`` variable, which is updated by the
-            ....: `choose_min_valuation_elem` method.
+            ....: `choose_min_valuation_element` method.
             sage: chosen_valuations
             [None, None, -8]
-            sage: M.choose_min_valuation_elem(False, False,
+            sage: M.choose_min_valuation_element(False, False,
             ....: chosen_valuations=chosen_valuations)
             (1, 0)
             sage: chosen_valuations
             [None, 0, -8]
-            sage: M.choose_min_valuation_elem(False, False,
+            sage: M.choose_min_valuation_element(False, False,
             ....: chosen_valuations=chosen_valuations)
             (0, 0)
             sage: chosen_valuations
             [2, 0, -8]
             sage: # We can't choose any more elements, because all the rows have
             ....: already been chosen:
-            sage: M.choose_min_valuation_elem(False, False,
+            sage: M.choose_min_valuation_element(False, False,
             ....: chosen_valuations=chosen_valuations)
             (None, None)
             
@@ -18962,7 +18962,7 @@ cdef class Matrix(Matrix1):
         method::
 
             sage: M = matrix(QQ, 3, [[0, 1, -1], [2, 0, 1/2], [1, 0, 1/2]])
-            sage: M.choose_min_valuation_elem(False, False)
+            sage: M.choose_min_valuation_element(False, False)
             Traceback (most recent call last):
             ...
             TypeError: ``self`` must have a base ring F with an
@@ -18977,7 +18977,7 @@ cdef class Matrix(Matrix1):
             [0 0 0]
             [0 0 0]
             [0 0 0]
-            sage: M.choose_min_valuation_elem(False, False,
+            sage: M.choose_min_valuation_element(False, False,
             ....: start_up=False, start_left=False)
             (2, 2)
         """
@@ -19091,7 +19091,7 @@ cdef class Matrix(Matrix1):
         - ``chosen_cols`` -- list of integers. This list has an
           entry for each row in the matrix, that contains a column of a
           chosen element in that row (has been chosen by 
-          :meth:`choose_min_valuation_elem`)
+          :meth:`choose_min_valuation_element`)
 
         OUTPUT:
 
@@ -19280,7 +19280,7 @@ cdef class Matrix(Matrix1):
         # to multiplication in a diagonal matrix, and can be then decomposed into
         # ``D``, ``K2``.
         for i in range(n):
-            r, c = E.choose_min_valuation_elem(False, False,
+            r, c = E.choose_min_valuation_element(False, False,
                                             chosen_valuations=chosen_valuations)
             chosen_cols[r] = c
             if not eq_zero(E[r,c]):
@@ -19588,7 +19588,7 @@ cdef class Matrix(Matrix1):
         - ``chosen_cols`` -- list of integers. This list has an
           entry for each row in the matrix, that contains a column of a
           chosen element in this row (has been chosen by 
-          :meth:`choose_min_valuation_elem`)
+          :meth:`choose_min_valuation_element`)
 
         OUTPUT:
 
@@ -19800,7 +19800,7 @@ cdef class Matrix(Matrix1):
         # multiplication in an affine-weyl matrix, and can be then decomposed into
         # ``W``, ``B2``.
         for i in range(n):
-            r, c = E.choose_min_valuation_elem(True, True, False, True,
+            r, c = E.choose_min_valuation_element(True, True, False, True,
                                             chosen_valuations)
             chosen_cols[r] = c
             if not eq_zero(E[r,c]):
