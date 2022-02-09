@@ -17550,7 +17550,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example of using only the first list ::
+        An example of using only the first list::
 
             sage: M = matrix(QQ, 3, 3, 0)
             sage: M1 = matrix(QQ, 3, 3, 1)
@@ -17612,7 +17612,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        Examples for square matrices over non-archimedean local fields ::
+        Examples for square matrices over non-archimedean local fields::
 
             sage: F = Qp(3)
             sage: F
@@ -17651,7 +17651,7 @@ cdef class Matrix(Matrix1):
             sage: M._is_square_over_non_archimedean_local_field()
             True
 
-        Examples for matrices that aren't over such fields ::
+        Examples for matrices that aren't over such fields::
 
             sage: M = random_matrix(QQ, 3)
             sage: M._is_square_over_non_archimedean_local_field()
@@ -17661,7 +17661,7 @@ cdef class Matrix(Matrix1):
             sage: M._is_square_over_non_archimedean_local_field()
             False
 
-        Examples for matrices that aren't square and non-empty ::
+        Examples for matrices that aren't square and non-empty::
 
             sage: M = random_matrix(Qp(3), 3, 4)
             sage: M._is_square_over_non_archimedean_local_field()
@@ -17748,7 +17748,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example of using this method to induce changes on ``self`` ::
+        An example of using this method to induce changes on ``self``::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, 3, [[0, 1, -1], [0, s+s^7, s^-1+9*s],
@@ -17920,7 +17920,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example of using this method to induce changes on ``self`` ::
+        An example of using this method to induce changes on ``self``::
 
             sage: M = matrix(QQ, 3, [[0, 1, -1], [2, 0, 1/2], [1, 0, 1/2]])
             sage: M
@@ -17982,7 +17982,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for an Iwasawa (normalized) decomposition ::
+        An example for an Iwasawa (normalized) decomposition::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -18120,7 +18120,7 @@ cdef class Matrix(Matrix1):
         EXAMPLES:
 
         For an invertible matrix, the `normalized` Iwasawa decomposition is
-        unique. An example with a padic-field ::
+        unique. An example with a padic-field::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -18145,7 +18145,7 @@ cdef class Matrix(Matrix1):
             sage: K.determinant().valuation() == 0
             True
 
-        An Iwasawa decomposition of the same matrix, but not normalized ::
+        An Iwasawa decomposition of the same matrix, but not normalized::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -18170,7 +18170,7 @@ cdef class Matrix(Matrix1):
             sage: K.determinant().valuation() == 0
             True
 
-        An example with a matrix over a laurent-series ring ::
+        An example with a matrix over a laurent-series ring::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, [[13*s^2 + s^17 + O(s^20), O(s^19), 9*s^15 +
@@ -18198,7 +18198,7 @@ cdef class Matrix(Matrix1):
             True
 
         Example with a singular matrix (for a singular matrix, T is singular,
-        and the decomposition is not unique, even if normalized) ::
+        and the decomposition is not unique, even if normalized)::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0): 1 + O(a^24), (1,1):1 + O(a^40),
@@ -18220,7 +18220,7 @@ cdef class Matrix(Matrix1):
 
         This example illustrates that sometimes, the returned matrices are
         singular due to numerical inaccuracies,
-        and demonstrates the use of the ``certificate`` keyword ::
+        and demonstrates the use of the ``certificate`` keyword::
 
             sage: Z = Qp(5, 3)
             sage: M = matrix(Z,3,[[ 3*5^-2 + 5^-1 + 1 + O(5), 4*5 + 5^2 +
@@ -18239,7 +18239,7 @@ cdef class Matrix(Matrix1):
             O(5^-3)
 
         This example shows that sometimes ``self``!=``T``*``K``, due to
-        numerical inaccuracies ::
+        numerical inaccuracies::
 
             sage: L.<a> = Qp(5,3).extension(x^2-5)
             sage: M = matrix(L,3,[[2*a^17 + 2*a^20 + a^21 + a^22 + O(a^23),
@@ -18280,7 +18280,7 @@ cdef class Matrix(Matrix1):
         TESTS::
 
         The method raises TypeError in case ``self`` is over a ring for
-        which the method doesn't work ::
+        which the method doesn't work::
 
             sage: M = random_matrix(QQ,3)
             sage: M.iwasawa()
@@ -18292,7 +18292,7 @@ cdef class Matrix(Matrix1):
             unramified or eisenstein extension, or 2-step unramified followed by
             eisenstein extension.
 
-        A zero matrix test ::
+        A zero matrix test::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S,3,3,0)
@@ -18373,7 +18373,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example of using this method to induce changes on ``self`` ::
+        An example of using this method to induce changes on ``self``::
 
             sage: M = matrix(QQ, 3, [[0, 1, -1], [2, 0, 1/2], [1, 0, 1/2]])
             sage: M
@@ -18430,7 +18430,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example with a matrix over a laurent-series ring ::
+        An example with a matrix over a laurent-series ring::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, 3, [[13*s^2, O(s^19), 9*s^15 + 6*s^17 +
@@ -18444,7 +18444,7 @@ cdef class Matrix(Matrix1):
             (-8, [2])
 
         An example that illustrates that elements that are undistinguishable
-        from zero are considered to have infinity valuation ::
+        from zero are considered to have infinity valuation::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, 3, [[13*s^2, O(s^19), 9*s^15 + 6*s^17 +
@@ -18480,7 +18480,7 @@ cdef class Matrix(Matrix1):
         TESTS::
 
         The method raises TypeError in case the base ring has no
-        `valuation` method ::
+        `valuation` method::
 
             sage: M = random_matrix(GF(19),3)
             sage: M.min_valuation_in_row(1)
@@ -18491,7 +18491,7 @@ cdef class Matrix(Matrix1):
             F(0).valuation() must be defined.
 
         The method raises IndexError in case ``row`` isn't an integer
-        that represents a row in the matrix ::
+        that represents a row in the matrix::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S,3,3,0)
@@ -18501,7 +18501,7 @@ cdef class Matrix(Matrix1):
             IndexError: Argument must be an integer in the range:
             [0,number_of_rows).
 
-        A zeros-row test ::
+        A zeros-row test::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S,3,3,0)
@@ -18694,7 +18694,7 @@ cdef class Matrix(Matrix1):
         columns too. But only one of them is the first in its column
         to have that valuation, and this is the one we choose.
         Note that the returned tuple is the (column, valuation) of
-        the chosen element ::
+        the chosen element::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, [[13, O(s^19), 9*s^15 + O(s^20)], [4,
@@ -18713,7 +18713,7 @@ cdef class Matrix(Matrix1):
         As explained in the previous example, the demand for
         ``only_first_in_col`` leaves only one possible element, but
         this is not the first in its row to have the minimal valuation.
-        Therefore in this case we can't find any appropriate element ::
+        Therefore in this case we can't find any appropriate element::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, [[13, O(s^19), 9*s^15 + O(s^20)], [4,
@@ -18729,7 +18729,7 @@ cdef class Matrix(Matrix1):
 
         The same matrix, this time with: ``r``== 2, and using
         ``chosen_valuations`` to indicate that row 1 has already been chosen
-        and therefore should be ignored ::
+        and therefore should be ignored::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, [[13, O(s^19), 9*s^15 + O(s^20)], [4,
@@ -18855,7 +18855,7 @@ cdef class Matrix(Matrix1):
         EXAMPLES:
 
         An example with:
-        ``only_first_in_row``==`True`, ``start_left``==`False` ::
+        ``only_first_in_row``==`True`, ``start_left``==`False`::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y, 4, [[3, a^6, O(a^-3), 2],[a, a^-9+O(a),
@@ -18871,7 +18871,7 @@ cdef class Matrix(Matrix1):
             (1, 1)
 
         The same matrix, with:
-        ``only_first_in_row``==`False`, ``start_left``==`False` ::
+        ``only_first_in_row``==`False`, ``start_left``==`False`::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y, 4, [[3, a^6, O(a^-3), 2],[a, a^-9+O(a),
@@ -18882,7 +18882,7 @@ cdef class Matrix(Matrix1):
             (0, 0)
 
         The same matrix, with:
-        ``only_first_in_row``==`True`, ``start_left``==`True` ::
+        ``only_first_in_row``==`True`, ``start_left``==`True`::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y, 4, [[3, a^6, O(a^-3), 2],[a, a^-9+O(a),
@@ -18892,7 +18892,7 @@ cdef class Matrix(Matrix1):
             sage: r,c
             (0, 0)
 
-        An iterative example, using ``chosen_valuations`` ::
+        An iterative example, using ``chosen_valuations``::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, [[13*s^2, O(s^19), 9*s^15 + 6*s^17 + O(s^20)],
@@ -18953,7 +18953,7 @@ cdef class Matrix(Matrix1):
         TESTS::
 
         The method raises TypeError in case the base ring has no valuation
-        method ::
+        method::
 
             sage: M = matrix(QQ, 3, [[0, 1, -1], [2, 0, 1/2], [1, 0, 1/2]])
             sage: M.choose_min_valuation_elem(False, False)
@@ -18963,7 +18963,7 @@ cdef class Matrix(Matrix1):
             implemented ``valuation`` method. In particular,
             F(0).valuation() must be defined.
 
-        A zero matrix ::
+        A zero matrix::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, 3, 3, 0)
@@ -19038,7 +19038,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for rearranging the rows of a padic matrix ::
+        An example for rearranging the rows of a padic matrix::
             
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -19096,7 +19096,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for a Cartan decomposition ::
+        An example for a Cartan decomposition::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -19199,7 +19199,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for a Cartan decomposition ::
+        An example for a Cartan decomposition::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -19348,7 +19348,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example with an invertible matrix over a padic-field ::
+        An example with an invertible matrix over a padic-field::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -19382,7 +19382,7 @@ cdef class Matrix(Matrix1):
             sage: K2.determinant().valuation() == 0
             True
 
-        An example with an invertible matrix over a laurent-series ring ::
+        An example with an invertible matrix over a laurent-series ring::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, [[13*s^2 + s^17 + O(s^20), O(s^19), 9*s^15 +
@@ -19418,7 +19418,7 @@ cdef class Matrix(Matrix1):
             sage: K2.determinant().valuation() == 0
             True
 
-        An example with a singular matrix over a padic-field ::
+        An example with a singular matrix over a padic-field::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0): 1 + O(a^24), (1,1):1 + O(a^40),
@@ -19444,7 +19444,7 @@ cdef class Matrix(Matrix1):
         This example illustrates that sometimes, the returned matrices are
         wrong (in our case: K2 isn't invertible over the integer-ring)
         due to numerical inaccuracies,
-        and demonstrates the use of the ``certificate`` keyword ::
+        and demonstrates the use of the ``certificate`` keyword::
 
             sage: Z = Qp(5, 3)
             sage: M = matrix(Z,3,[[3*5^2 + 3*5^3 + O(5^5), O(5^-3),
@@ -19460,7 +19460,7 @@ cdef class Matrix(Matrix1):
             False
 
         This example shows that sometimes ``self``!=``K1``*``D``*``K2`, due
-        to numerical inaccuracies ::
+        to numerical inaccuracies::
 
             sage: Z = Qp(5, 3)
             sage: M = matrix(Z,3,[[3*5^-1 + 3 + 5 + O(5^2), 3*5^-2 + 2*5^-1
@@ -19502,7 +19502,7 @@ cdef class Matrix(Matrix1):
         TESTS::
 
         The method raises TypeError in case ``self`` is over a ring for
-        which the method doesn't work ::
+        which the method doesn't work::
 
             sage: M = random_matrix(QQ,3)
             sage: M.cartan()
@@ -19514,7 +19514,7 @@ cdef class Matrix(Matrix1):
             unramified or eisenstein extension, or 2-step unramified followed by
             eisenstein extension.
 
-        A zero matrix test ::
+        A zero matrix test::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S,3,3,0)
@@ -19592,7 +19592,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for a Bruhat-Iwahori decomposition ::
+        An example for a Bruhat-Iwahori decomposition::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -19704,7 +19704,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for a Bruhat-Iwahori decomposition ::
+        An example for a Bruhat-Iwahori decomposition::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -19858,7 +19858,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example with an invertible matrix over a padic-field ::
+        An example with an invertible matrix over a padic-field::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -19907,7 +19907,7 @@ cdef class Matrix(Matrix1):
             ....: (B2[i,j]!= 0 and B2[i,j].valuation() <= 0 and j<i)]
             []
 
-        An example with an invertible matrix over a laurent-series ring ::
+        An example with an invertible matrix over a laurent-series ring::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, [[13*s^2 + s^17 + O(s^20), O(s^19), 9*s^15 +
@@ -19958,7 +19958,7 @@ cdef class Matrix(Matrix1):
             ....: (B2[i,j]!= 0 and B2[i,j].valuation() <= 0 and j<i)]
             []
 
-        An example with a singular matrix over a padic-field ::
+        An example with a singular matrix over a padic-field::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0): 1 + O(a^24), (1,1):1 + O(a^40),
@@ -19984,7 +19984,7 @@ cdef class Matrix(Matrix1):
 
         This example illustrates that sometimes, the returned matrices are
         singular due to numerical inaccuracies,
-        and demonstrates the use of the ``certificate`` keyword ::
+        and demonstrates the use of the ``certificate`` keyword::
 
             sage: Z = Qp(5, 3)
             sage: M = matrix(Z,3,[[O(5^-4), 2*5^2 + 2*5^3 + O(5^4), 5^-4 +
@@ -19998,7 +19998,7 @@ cdef class Matrix(Matrix1):
             False
 
         This example shows that sometimes ``self``!=``B1``*``W``*``B2``,
-        due to numerical inaccuracies ::
+        due to numerical inaccuracies::
 
             sage: Z = Qp(5, 3)
             sage: M = matrix(Z,3,[[O(5^2), 3*5 + 2*5^2 + O(5^3), 4*5^3 +
@@ -20040,7 +20040,7 @@ cdef class Matrix(Matrix1):
         TESTS::
 
         The method raises TypeError in case ``self`` is over a ring for
-        which the method doesn't work ::
+        which the method doesn't work::
 
             sage: M = random_matrix(QQ,3)
             sage: M.bruhat_iwahori()
@@ -20052,7 +20052,7 @@ cdef class Matrix(Matrix1):
             unramified or eisenstein extension, or 2-step unramified followed by
             eisenstein extension.
 
-        A zero matrix test ::
+        A zero matrix test::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S,3,3,0)
@@ -20132,7 +20132,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example of using this method to induce changes on ``self`` ::
+        An example of using this method to induce changes on ``self``::
 
             sage: M = matrix(QQ, 3, [[0, 1, -1], [2, 0, 1/2], [1, 0, 1/2]])
             sage: M
@@ -20194,7 +20194,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for a TSB decomposition ::
+        An example for a TSB decomposition::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -20279,7 +20279,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for a TSB decomposition ::
+        An example for a TSB decomposition::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -20413,7 +20413,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example with an invertible matrix over a padic-field ::
+        An example with an invertible matrix over a padic-field::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -20456,7 +20456,7 @@ cdef class Matrix(Matrix1):
             ....: (B[i,j]!= 0 and B[i,j].valuation() <= 0 and j<i)]
             []
 
-        An example with an invertible matrix over a laurent-series ring ::
+        An example with an invertible matrix over a laurent-series ring::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, [[13*s^2 + s^17 + O(s^20), O(s^19), 9*s^15 +
@@ -20501,7 +20501,7 @@ cdef class Matrix(Matrix1):
             ....: (B[i,j]!= 0 and B[i,j].valuation() <= 0 and j<i)]
             []
 
-        An example with a singular matrix over a padic-field ::
+        An example with a singular matrix over a padic-field::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0): 1 + O(a^24), (1,1):1 + O(a^40),
@@ -20527,7 +20527,7 @@ cdef class Matrix(Matrix1):
 
         This example illustrates that sometimes, the returned matrices are
         singular due to numerical inaccuracies,
-        and demonstrates the use of the ``certificate`` keyword ::
+        and demonstrates the use of the ``certificate`` keyword::
 
             sage: Z = Qp(5, 3)
             sage: M = matrix(Z,3,[[5 + 4*5^2 + 5^3 + O(5^4), O(5^-2), 4 +
@@ -20541,7 +20541,7 @@ cdef class Matrix(Matrix1):
             False
 
         This example shows that sometimes ``self``!=``T``*``S``*``B``, due
-        to numerical inaccuracies ::
+        to numerical inaccuracies::
 
             sage: Z = Qp(5, 3)
             sage: M = matrix(Z,3,[[4*5^3 + O(5^4), 3 + 2*5 + O(5^3), 4*5 +
@@ -20584,7 +20584,7 @@ cdef class Matrix(Matrix1):
         TESTS::
 
         The method raises TypeError in case ``self`` is over a ring for
-        which the method doesn't work ::
+        which the method doesn't work::
 
             sage: M = random_matrix(QQ,3)
             sage: M.TSB()
@@ -20596,7 +20596,7 @@ cdef class Matrix(Matrix1):
             unramified or eisenstein extension, or 2-step unramified followed by
             eisenstein extension.
 
-        A zero matrix test ::
+        A zero matrix test::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S,3,3,0)
@@ -20669,7 +20669,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for a Bruhat decomposition ::
+        An example for a Bruhat decomposition::
 
             sage: M = matrix(QQ, 3, [[0, 1, -1],[2, 0, 1/2],[1, 0, 1/2]])
             sage: T1, S, T2 = M.bruhat() # indirect doctest
@@ -20745,7 +20745,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for a Bruhat decomposition ::
+        An example for a Bruhat decomposition::
 
             sage: M = matrix(QQ, 3, [[0, 1, -1],[2, 0, 1/2],[1, 0, 1/2]])
             sage: T1, S, T2 = M.bruhat() # indirect doctest
@@ -20873,7 +20873,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example with an invertible matrix over QQ ::
+        An example with an invertible matrix over QQ::
 
             sage: M = matrix(QQ, 3, [[0, 1, -1],[2, 0, 1/2],[1, 0, 1/2]])
             sage: T1, S, T2 = M.bruhat()
@@ -20907,7 +20907,7 @@ cdef class Matrix(Matrix1):
             ....: (T2[i,j]!= 0 and j<i)]
             []
 
-        An example with a singular matrix over GF(19) ::
+        An example with a singular matrix over GF(19)::
 
             sage: M = matrix(GF(19), 3, [[3, 4, 5],[6, 8, 10],[3, 14, 12]])
             sage: T1, S, T2 = M.bruhat()
@@ -20929,7 +20929,7 @@ cdef class Matrix(Matrix1):
             [ 0 18  5]
             [ 0  0  1]
 
-        An example with an invertible matrix over a padic-field ::
+        An example with an invertible matrix over a padic-field::
 
             sage: Z = Qp(5, 3)
             sage: M = matrix(Z,3,[[2 + 5 + 4*5^2 + O(5^3), 4 + 2*5
@@ -20968,7 +20968,7 @@ cdef class Matrix(Matrix1):
             ....: (T2[i,j]!= 0 and j<i)]
             []
 
-        An example with an invertible matrix over a laurent-series ring ::
+        An example with an invertible matrix over a laurent-series ring::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, [[13*s^2 + s^17 + O(s^20), O(s^19), 9*s^15 +
@@ -21009,7 +21009,7 @@ cdef class Matrix(Matrix1):
 
         This example illustrates that sometimes, the returned matrices are
         singular due to numerical inaccuracies,
-        and demonstrates the use of the ``certificate`` keyword ::
+        and demonstrates the use of the ``certificate`` keyword::
 
             sage: Z = Qp(5, 3)
             sage: M = matrix(Z,3,[[2*5^2 + 5^3 + O(5^5), 3*5^3 + 5^4 + 4*5^5
@@ -21027,7 +21027,7 @@ cdef class Matrix(Matrix1):
             False
 
         This example shows that sometimes ``self``!=``T1``*``S``*``T2``,
-        due to numerical inaccuracies ::
+        due to numerical inaccuracies::
 
             sage: Z = Qp(5, 3)
             sage: M = matrix(Z,3,[[2*5^2 + 4*5^3 + 3*5^4 + O(5^5), 1 + O(5^2),
@@ -21063,7 +21063,7 @@ cdef class Matrix(Matrix1):
         TESTS::
 
         The method raises TypeError in case ``self`` is a non-square
-        matrix ::
+        matrix::
 
             sage: M = random_matrix(QQ,3,4)
             sage: M.bruhat()
@@ -21071,7 +21071,7 @@ cdef class Matrix(Matrix1):
             ...
             TypeError: ``self`` must be a non-empty square matrix.
 
-        A zero matrix test ::
+        A zero matrix test::
 
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S,3,3,0)
