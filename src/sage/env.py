@@ -576,4 +576,5 @@ def thread_count() -> int:
     cpu_count = min(cpu_count, 10)
     return int(os.environ.get("SAGE_NUM_THREADS", cpu_count))
 
+
 THREAD_COUNT = thread_count()
