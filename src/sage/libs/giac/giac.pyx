@@ -149,6 +149,8 @@ from sys import maxsize as Pymaxint, version_info as Pyversioninfo
 import os
 import math
 
+from sage.env import THREAD_COUNT
+
 # sage includes
 from sage.ext.stdsage cimport PY_NEW
 
@@ -574,12 +576,7 @@ cdef class GiacSetting(Pygen):
     ``threads`` (maximal number of allowed theads in giac)::
 
         sage: from sage.libs.giac.giac import giacsettings
-        sage: import os
-        sage: try:
-        ....:     ncpu = int(os.environ['SAGE_NUM_THREADS'])
-        ....: except KeyError:
-        ....:     ncpu =1
-        sage: giacsettings.threads == ncpu
+        sage: giacsettings.threads == sage.env.THREAD_COUNT
         True
 
     ``digits`` (default digit number used for approximations)::
@@ -2254,7 +2251,7 @@ libgiac=GiacInstance()
 # trac #23976 (bound threads with SAGE_NUM_THREADS)
 import os
 try:
-   ncpus = int(os.environ['SAGE_NUM_THREADS'])
+   ncpus = THREAD_COUNT
 except KeyError:
    ncpus = 1
 

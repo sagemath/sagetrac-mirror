@@ -19,6 +19,7 @@
 import os
 import sys
 import time
+from sage.env import THREAD_COUNT
 
 keep_going = False
 
@@ -110,18 +111,12 @@ def execute_list_of_commands(command_list):
     that many threads.
     """
     t = time.time()
-    # Determine the number of threads from the environment variable
-    # SAGE_NUM_THREADS, which is set automatically by sage-env
-    try:
-        nthreads = int(os.environ['SAGE_NUM_THREADS'])
-    except KeyError:
-        nthreads = 1
 
     # normalize the command_list to handle strings correctly
     command_list = [ [run_command, x] if isinstance(x, str) else x for x in command_list ]
 
     # No need for more threads than there are commands, but at least one
-    nthreads = min(len(command_list), nthreads)
+    nthreads = min(len(command_list), THREAD_COUNT)
     nthreads = max(1, nthreads)
 
     def plural(n,noun):

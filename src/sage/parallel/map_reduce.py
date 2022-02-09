@@ -50,13 +50,7 @@ properties to do its job. Not only mapping and reducing but also
 How can I use all that stuff?
 -----------------------------
 
-First, you need to set the environment variable ``SAGE_NUM_THREADS`` to the
-desired number of parallel threads to be used::
-
-      sage: import os                                 # not tested
-      sage: os.environ["SAGE_NUM_THREADS"] = '8'      # not tested
-
-Second, you need the information necessary to describe a
+First, you need the information necessary to describe a
 :class:`RecursivelyEnumeratedSet_forest` representing your set `S` (see
 :mod:`sage.sets.recursively_enumerated_set`).  Then, you need to provide a
 "map" function as well as a "reduce" function. Here are some examples:

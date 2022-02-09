@@ -20,6 +20,8 @@ from sage_setup.util import stable_uniq
 from sage_setup.find import find_extra_files
 from sage_setup.cython_options import compiler_directives, compile_time_env_variables
 
+from sage.env import THREAD_COUNT
+
 # Do not put all, but only the most common libraries and their headers
 # (that are likely to change on an upgrade) here:
 # [At least at the moment. Make sure the headers aren't copied with "-p",
@@ -128,7 +130,7 @@ class sage_build_cython(Command):
             log.info('Enabling Cython profiling support')
 
         if self.parallel is None:
-            self.parallel = os.environ.get('SAGE_NUM_THREADS', '0')
+            self.parallel = THREAD_COUNT
 
         try:
             self.parallel = int(self.parallel)

@@ -54,7 +54,7 @@ class build_py(setuptools_build_py):
         # but then a user could use "make build-venv" to build compatible wheels for all Python packages.
         # TODO: A target to only build wheels of tricky packages
         # (that use native libraries shared with other packages).
-        SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads | cut -d" " -f 2)"; fi'
+        SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads)"; fi'
         TARGETS = 'build'
         cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 {TARGETS}'
         print(f"Running {cmd}", flush=True)

@@ -2,13 +2,8 @@
 #
 # Determine the number of threads to be used by Sage.
 #
-# Outputs three space-separated numbers:
-# 1) The number of threads to use for Sage, based on MAKE, MAKEFLAGS
-#    and SAGE_NUM_THREADS
-# 2) The number of threads to use when parallel execution is explicitly
-#    asked for (e.g. sage -tp)
-# 3) The number of CPU cores in the system, as determined by
-#    multiprocessing.cpu_count()
+# Outputs the number of threads to use for Sage, based on MAKE, MAKEFLAGS
+# and SAGE_NUM_THREADS.
 #
 # AUTHOR: Jeroen Demeyer (2011-12-08): Trac ticket #12016
 #
@@ -108,7 +103,7 @@ def parse_jobs_from_MAKE(MAKE, unlimited=999999):
     return j
 
 
-def num_threads():
+def num_threads() -> int:
     """
     Determine the number of threads from the environment variables
     (in decreasing priority) :envvar:`SAGE_NUM_THREADS`, :envvar:`MAKE`,
@@ -120,7 +115,7 @@ def num_threads():
 
     OUTPUT:
 
-    a tuple (num_threads, num_cores)
+    The number of threads to use.
     """
     num_cores = number_of_cores()
 
@@ -133,12 +128,12 @@ def num_threads():
 
     try:
         # Prepend hyphen to MAKEFLAGS if it does not start with one
-        MAKEFLAGS = os.environ["MAKEFLAGS"]
-        if MAKEFLAGS[0] != '-':
-            MAKEFLAGS = '-' + MAKEFLAGS
+        make_flags = os.environ["MAKEFLAGS"]
+        if make_flags[0] != '-':
+            make_flags = '-' + make_flags
         # In MAKEFLAGS, "-j" does not mean unlimited.  It probably
         # means an inherited number of jobs, let us use 2 for safety.
-        num_threads = parse_jobs_from_MAKE(MAKEFLAGS, unlimited=2)
+        num_threads = parse_jobs_from_MAKE(make_flags, unlimited=2)
     except (ValueError, KeyError, IndexError):
         pass
 
@@ -146,12 +141,6 @@ def num_threads():
         num_threads = parse_jobs_from_MAKE(os.environ["MAKE"])
     except (ValueError, KeyError):
         pass
-
-    # Number of threads to use when parallel execution is explicitly
-    # asked for
-    num_threads_parallel = num_threads
-    if num_threads_parallel is None:
-        num_threads_parallel = max(min(8, num_cores), 2)
 
     try:
         sage_num_threads = int(os.environ["SAGE_NUM_THREADS"])
@@ -163,7 +152,6 @@ def num_threads():
         elif sage_num_threads > 0:
             # SAGE_NUM_THREADS overrides everything
             num_threads = sage_num_threads
-            num_threads_parallel = sage_num_threads
     except (ValueError, KeyError):
         pass
 
@@ -171,7 +159,7 @@ def num_threads():
     if num_threads is None:
         num_threads = 1
 
-    return (num_threads, num_cores)
+    return num_threads
 
 
-print(*num_threads())
+print(num_threads())

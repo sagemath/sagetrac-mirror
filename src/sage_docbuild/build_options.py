@@ -4,7 +4,7 @@
 
 import os, re
 
-from sage.env import SAGE_DOC_SRC, SAGE_DOC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, THREAD_COUNT
 
 LANGUAGES = [d for d in os.listdir(SAGE_DOC_SRC) if re.match('^[a-z][a-z]$', d)]
 SPHINXOPTS = ""
@@ -21,7 +21,7 @@ ALLSPHINXOPTS = SPHINXOPTS + " " + PAPEROPTS + " "
 WEBSITESPHINXOPTS = ""
 
 # Number of threads to use for parallel-building the documentation.
-NUM_THREADS = int(os.environ.get('SAGE_NUM_THREADS', 1))
+NUM_THREADS = THREAD_COUNT
 
 INCREMENTAL_BUILD = os.path.isdir(SAGE_DOC)
 

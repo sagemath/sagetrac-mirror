@@ -30,7 +30,7 @@ import types
 import sage.misc.flatten
 import sage.misc.randstate as randstate
 from sage.structure.sage_object import SageObject
-from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC, SAGE_VENV, SAGE_EXTCODE
+from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC, SAGE_VENV, SAGE_EXTCODE, THREAD_COUNT
 from sage.misc.temporary_file import tmp_dir
 from cysignals.signals import AlarmInterrupt, init_cysignals
 
@@ -367,7 +367,7 @@ class DocTestController(SageObject):
             if options.gc:
                 options.timeout *= 2
         if options.nthreads == 0:
-            options.nthreads = int(os.getenv('SAGE_NUM_THREADS',1))
+            options.nthreads = THREAD_COUNT
         if options.failed and not (args or options.new):
             # If the user doesn't specify any files then we rerun all failed files.
             options.all = True

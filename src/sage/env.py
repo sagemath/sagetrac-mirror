@@ -37,6 +37,7 @@ import sysconfig
 from . import version
 from pathlib import Path
 import subprocess
+import multiprocessing
 
 
 # All variables set by var() appear in this SAGE_ENV dict
@@ -555,3 +556,24 @@ def cython_aliases(required_modules=None,
     aliases["OPENMP_CXXFLAGS"] = OPENMP_CXXFLAGS.split()
 
     return aliases
+
+
+def thread_count() -> int:
+    """
+    Get number of parallel build jobs or threads.
+
+    First, the environment variable `SAGE_NUM_THREADS` is checked.
+    If that is unset, return the number of processors on the system,
+    with a maximum of 10 (to prevent overloading the system if there a lot of CPUs).
+
+    OUTPUT:
+        number of parallel jobs/threads that should be run
+    """
+    try:
+        cpu_count = len(os.sched_getaffinity(0))
+    except AttributeError:
+        cpu_count = multiprocessing.cpu_count()
+    cpu_count = min(cpu_count, 10)
+    return int(os.environ.get("SAGE_NUM_THREADS", cpu_count))
+
+THREAD_COUNT = thread_count()

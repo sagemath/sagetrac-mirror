@@ -30,8 +30,8 @@ CPU Detection
 ######
 # This is from ParallelPython (the pp.py file).
 
-import os
-import subprocess
+from sage.env import THREAD_COUNT
+
 
 def ncpus():
     """
@@ -42,32 +42,4 @@ def ncpus():
         sage: sage.parallel.ncpus.ncpus()  # random output -- depends on machine.
         2
     """
-    # Support Sage environment variable SAGE_NUM_THREADS
-    # NOTE: while doctesting, this is forced to be 2 by the
-    # sage-runtests script
-    try:
-        n = os.environ["SAGE_NUM_THREADS"]
-    except KeyError:
-        pass
-    else:
-        return int(n)
-
-    #for Linux, Unix and MacOS
-    if hasattr(os, "sysconf"):
-        if "SC_NPROCESSORS_ONLN" in os.sysconf_names:
-            #Linux and Unix
-            ncpus = os.sysconf("SC_NPROCESSORS_ONLN")
-            if isinstance(ncpus, int) and ncpus > 0:
-                return ncpus
-        else:
-            #MacOS X
-            #deprecated: return int(os.popen2("sysctl -n hw.ncpu")[1].read())
-            process = subprocess.Popen("sysctl -n hw.ncpu", shell=True, stdin=subprocess.PIPE, stdout = subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-            return int(process.stdout.read())
-    #for Windows
-    if "NUMBER_OF_PROCESSORS" in os.environ:
-        ncpus = int(os.environ["NUMBER_OF_PROCESSORS"])
-        if ncpus > 0:
-            return ncpus
-    #return the default value
-    return 1
+    return THREAD_COUNT
