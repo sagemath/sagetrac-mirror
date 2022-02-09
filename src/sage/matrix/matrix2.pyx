@@ -18280,7 +18280,7 @@ cdef class Matrix(Matrix1):
 
             :meth:`cartan`, :meth:`bruhat-iwahori`, :meth:`TSB`, :meth:`bruhat`.
 
-        TESTS::
+        TESTS:
 
         The method raises TypeError in case ``self`` is over a ring for
         which the method doesn't work::
@@ -18480,7 +18480,7 @@ cdef class Matrix(Matrix1):
 
             :meth:`choose_min_valuation_elem`.
 
-        TESTS::
+        TESTS:
 
         The method raises TypeError in case the base ring has no
         `valuation` method::
@@ -18956,7 +18956,7 @@ cdef class Matrix(Matrix1):
 
             :meth:`min_valuation_in_row`.
 
-        TESTS::
+        TESTS:
 
         The method raises TypeError in case the base ring has no valuation
         method::
@@ -19505,7 +19505,7 @@ cdef class Matrix(Matrix1):
 
             :meth:`iwasawa`, :meth:`bruhat-iwahori`, :meth:`TSB`, :meth:`bruhat`.
 
-        TESTS::
+        TESTS:
 
         The method raises TypeError in case ``self`` is over a ring for
         which the method doesn't work::
@@ -20043,7 +20043,7 @@ cdef class Matrix(Matrix1):
 
             :meth:`iwasawa`, :meth:`cartan`, :meth:`TSB`, :meth:`bruhat`.
 
-        TESTS::
+        TESTS:
 
         The method raises TypeError in case ``self`` is over a ring for
         which the method doesn't work::
@@ -20587,7 +20587,7 @@ cdef class Matrix(Matrix1):
 
             :meth:`iwasawa`, :meth:`cartan`, :meth:`bruhat-iwahori`, :meth:`bruhat`.
 
-        TESTS::
+        TESTS:
 
         The method raises TypeError in case ``self`` is over a ring for
         which the method doesn't work::
@@ -21066,7 +21066,7 @@ cdef class Matrix(Matrix1):
 
             :meth:`iwasawa`, :meth:`cartan`, :meth:`bruhat-iwahori`, :meth:`TSB`.
 
-        TESTS::
+        TESTS:
 
         The method raises TypeError in case ``self`` is a non-square
         matrix::
