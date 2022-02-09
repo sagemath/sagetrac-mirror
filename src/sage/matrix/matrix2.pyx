@@ -17732,14 +17732,14 @@ cdef class Matrix(Matrix1):
            uniformizer.
         B. Nullifies the extension of all ``t``-th row elements on the
            righthand side of the diagonal, starting from the valuation of
-           ``self``[``t``,``t``].
+           ``self[t,t]``.
 
         This is a helper function for the :meth:`iwasawa` decomposition method.
 
         INPUT:
 
         - ``t`` -- integer; represents a row in the matrix such that
-          ``self``[``t``,``t``]!=0
+          ``self[t,t] != 0``
 
         OUTPUT:
 
@@ -17775,7 +17775,7 @@ cdef class Matrix(Matrix1):
             This is a helper function for the :meth:`iwasawa` decomposition
             method.
             It assumes that the base-ring is either a padic field or a
-            laurent-series ring, and that ``self``[``t``,``t``]!=0.
+            laurent-series ring, and that ``self[t,t] != 0``.
 
         """
         from sage.rings.padics.padic_generic import pAdicGeneric
@@ -17911,7 +17911,7 @@ cdef class Matrix(Matrix1):
         - ``t`` -- integer; represents a row in the matrix
 
         - ``c`` -- integer; Represents a column in the matrix,
-          such that ``self``[``t``,``c``]!=0
+          such that ``self[t,c] != 0``
 
         OUTPUT:
 
@@ -17942,7 +17942,7 @@ cdef class Matrix(Matrix1):
 
             This is a helper function for the :meth:`iwasawa` decomposition
             method.
-            It assumes that ``self``[``t``,``c``]!=0.
+            It assumes that ``self[t,c] != 0``.
 
         """
         def f(i, j):
@@ -18358,7 +18358,7 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``r`` -- integer; represents a row in the matrix, such that
-          ``self``[``r``,``c``]!=0
+          ``self[r,c] != 0``
 
         - ``c`` -- integer; represents a column in the matrix, that should
           be partly nullified
@@ -18396,7 +18396,7 @@ cdef class Matrix(Matrix1):
 
             This is a helper function for the :meth:`cartan` and 
             :meth:`bruhat-iwahori` decompositions methods.
-            It assumes that ``self``[``r``,``c``]!=0.
+            It assumes that ``self[r,c] != 0``.
 
         """
         def f(i, j):
@@ -18541,7 +18541,7 @@ cdef class Matrix(Matrix1):
     def _check_coordinates(self, r, c, only_first_in_col, start_up,
                            chosen_valuations):
         """
-        Check if ``self``[``r``,``c``] has minimal valuation in its column.
+        Check if ``self[r,c]`` has minimal valuation in its column.
 
         The given element is known to have minimal valuation in its row,
         and this method checks whether it also has minimal valuation in
@@ -20120,7 +20120,7 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``r`` -- integer; represents a row in the matrix, such that
-          ``self``[``r``,``c``]!=0
+          ``self[r,c] != 0``
 
         - ``c`` -- integer; represents a column in the matrix, that should
           be partly nullified
@@ -20154,7 +20154,7 @@ cdef class Matrix(Matrix1):
 
             This is a helper function for the :meth:`TSB` and :meth:`bruhat`
             decompositions methods.
-            It assumes that ``self``[``r``,``c``]!=0.
+            It assumes that ``self[r,c] != 0``.
 
         """
         def f(i, j):
