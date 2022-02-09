@@ -17780,6 +17780,8 @@ cdef class Matrix(Matrix1):
         """
         from sage.rings.padics.padic_generic import pAdicGeneric
 
+        # Defining some functions and variables that help with constructing 
+        # the matrix-function later.
         def truncate(elem, v): return (elem.slice(v, None) if isinstance(elem.parent(), pAdicGeneric) else elem.truncate_neg(v))
 
         v = self[t,t].valuation()
@@ -17789,6 +17791,7 @@ cdef class Matrix(Matrix1):
         else:
             unit = lambda x:x.valuation_zero_part()
 
+        # Defining the matrix-function
         def f(i, j):
             if i == t:
                 if j == t:
@@ -18510,6 +18513,7 @@ cdef class Matrix(Matrix1):
         """
         from sage.rings.infinity import Infinity
         
+        # Checking that input is legal
         try:
             self.base_ring()(0).valuation()
         except:
@@ -18517,15 +18521,17 @@ cdef class Matrix(Matrix1):
                 implemented ``valuation`` method. In particular, \
                 F(0).valuation() must be defined.")
 
-        def valuation_infinity_for_zeros(n):
-            return n.valuation() if n!=0 else +Infinity
-
         if not isinstance(row, Integer):
             row = Integer(row)
         if row >= self.nrows() or row < 0:
             raise IndexError("Argument must be an integer in the range: \
                 [0,number_of_rows).")
+        
+        # Defining a valuation function that returns infinity for zeros
+        def valuation_infinity_for_zeros(n):
+            return n.valuation() if n!=0 else +Infinity
 
+        # Finding minimal valuation in the row
         min_val = +Infinity
         cols_with_min_val = list()
         for c in range(self.ncols()):
