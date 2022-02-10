@@ -187,9 +187,9 @@ class GammaA(AbelianGroupGap):
             sage: from sage.groups.fqf_orthogonal_spin import GammaA
             sage: G = GammaA((2,3))
             sage: G.embed(-1, 1, 3)
-            (1, 1)_2 (-1, 1)_3
+            (-1, 1)_3
             sage: G.embed(1, 5, 2)
-            (1, 5)_2 (1, 1)_3
+            (1, 5)_2
         """
         det = ZZ(det)
         spin = QQ(spin)

@@ -177,7 +177,6 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
             sage: q = matrix.diagonal(QQ, [2/3, 2/3, 4/3])
             sage: T = TorsionQuadraticForm(q)
             sage: Oq = T.orthogonal_group()
-            sage: TestSuite(Oq).run()
         """
         # We act on the smith form generators
         # because they are independent
