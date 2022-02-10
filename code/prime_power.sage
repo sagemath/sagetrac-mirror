@@ -677,8 +677,10 @@ def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2,splitsig=None):
     # that glue to genus
     if splitsig is not None and len(splitsig)>0:
         splitsig_i = splitsig[i]
+        splitsig_new = splitsig[:i]
     else:
         splitsig_i = None
+        splitsig_new = None
     for (M, fM, GM) in splitpq(Cgenus,p,e,q,k3_unobstructed=k3_unobstructed,verbose=verbose,splitsig=splitsig_i):
         # base case
         cm = sage.structure.element.get_coercion_model()
@@ -693,7 +695,7 @@ def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2,splitsig=None):
             print('%s^%s * %s -- %s^%s'%(p,e,q,p,e))
             print(M.genus())
         # recurse
-        for (N, fN, GN) in pnq_actions(q,ptype[:i],k3_unobstructed=k3_unobstructed,verbose=verbose-1,splitsig=splitsig[:i]):
+        for (N, fN, GN) in pnq_actions(q,ptype[:i],k3_unobstructed=k3_unobstructed,verbose=verbose-1,splitsig=splitsig_new):
             ext = extensions(M, fM, N, fN, GM, GN,
                              pglue, p, target_genus=genus,
                              qlist=qlist)
