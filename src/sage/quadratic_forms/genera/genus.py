@@ -3335,7 +3335,7 @@ class GenusSymbol_global_ring(object):
         if n == 0:
             return (self.representative(), )
         if backend is None:
-            if n > 6 and prod(self.signature_pair_of_matrix()) == 0:
+            if  n > 4 and prod(self.signature_pair_of_matrix()) == 0:
                 backend = 'magma'
             else:
                 backend = 'sage'

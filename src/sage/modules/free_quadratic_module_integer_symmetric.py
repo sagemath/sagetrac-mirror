@@ -747,30 +747,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         but there are a lot of odd ones::
 
-            sage: L.all_overlattices()
-            [Lattice of degree 2 and rank 2 over Integer Ring
-            Standard basis
-            Inner product matrix:
-            [4 2]
-            [2 4], Lattice of degree 2 and rank 2 over Integer Ring
-            Basis matrix:
-            [  1   0]
-            [  0 1/2]
-            Inner product matrix:
-            [4 2]
-            [2 4], Lattice of degree 2 and rank 2 over Integer Ring
-            Basis matrix:
-            [1/2   0]
-            [  0   1]
-            Inner product matrix:
-            [4 2]
-            [2 4], Lattice of degree 2 and rank 2 over Integer Ring
-            Basis matrix:
-            [1/2 1/2]
-            [  0   1]
-            Inner product matrix:
-            [4 2]
-            [2 4]]
+            sage: G = L.all_overlattices()
+            sage: len(G)
+            4
         """
         overlattices = []
         if only_even and not self.is_even():
@@ -1684,7 +1663,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         r"""
         Return the quadratic form given by ``(x,x)``.
         """
-        return QuadraticForm(2*self.gram_matrix())
+        return QuadraticForm(2 * self.gram_matrix())
 
     @cached_method
     def minimum(self):
@@ -1705,9 +1684,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             return MinusInfinity()
         m = min(self.gram_matrix().diagonal())
         sv = self.short_vectors(m.abs() - 1)
-        mpari = (self.gram_matrix()).__pari__().qfminim(None,0)[1]
+        mpari = (self.gram_matrix()).__pari__().qfminim(None, 0)[1]
 
-        assert min((m,) +tuple(k for k in range(1,len(sv)) if len(sv[k])!=0)) == mpari
+        assert min((m,) + tuple(k for k in range(1, len(sv)) if len(sv[k])!=0)) == mpari
         return mpari
 
     @cached_method
@@ -1727,7 +1706,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         if p != 0:
             from sage.rings.infinity import PlusInfinity
             return PlusInfinity()
-        mpari = (-self.gram_matrix()).__pari__().qfminim(None,0)[1]
+        mpari = (-self.gram_matrix()).__pari__().qfminim(None, 0)[1]
         #m = max(self.lll().gram_matrix().diagonal())
         #sv = self.short_vectors(m.abs())
         #assert max((m,) +tuple(-k for k in range(1,len(sv)) if len(sv[k])!=0)) == -mpari
@@ -1744,7 +1723,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         EXAMPLES::
 
             sage: L = IntegralLattice('A2')
-            sage: L.lll()==L
+            sage: L.lll() == L
             True
         """
         p, n = self.signature_pair()
@@ -1762,7 +1741,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
           if n != 0:
               e = -1
           U = (e*self.gram_matrix().change_ring(ZZ)).LLL_gram().T
-        return self.sublattice(U*self.basis_matrix())
+        return self.sublattice(U * self.basis_matrix())
 
     lll = LLL
 
@@ -1790,11 +1769,11 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         p, m = self.signature_pair()
         if p*m != 0:
-            raise NotImplementedError("The lattice has to be positive definite.")
+            raise NotImplementedError("The lattice has to be positive definite")
         e = 1
         if m != 0:
             e = -1
-        q = QuadraticForm(e*2*self.gram_matrix())
+        q = QuadraticForm(e * 2 * self.gram_matrix())
         short = q.short_vector_list_up_to_length(n, *kwargs)
         return [[self(v*self.basis_matrix()) for v in L] for L in short]
 
