@@ -250,6 +250,8 @@ def get_ptypes(order,fi=None,number=None,rkT=None,orderG0=None):
         if s[:8]=="complete":
             continue
         k3 = aut_from_str(s)
+        if rkT is not None and k3.transcendental_lattice().rank()!=rkT:
+            continue
         H = k3.symplectic_invariant_lattice()
         if rkT is not None and rkT!=k3.transcendental_lattice().rank():
             continue
@@ -388,6 +390,8 @@ def classify_purely_ns_peq(p, q ,file_r, file_aw, log_file,aw="w",verbose=2,rkT=
         if str_pe[:8]=="complete":
             continue
         k3 = aut_from_str(str_pe)
+        if rkT is not None and k3.transcendental_lattice().rank()!=rkT:
+            continue
         L = k3.symplectic_invariant_lattice()
         if rkT is not None and rkT != k3.transcendental_lattice().rank():
             continue

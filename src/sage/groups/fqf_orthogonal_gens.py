@@ -999,9 +999,9 @@ def _compute_gens(T, deg=True):
         if k>0 and r>0:
             h = matrix.identity(n)
             for g in MatrixSpace(GF(p),r,k).basis():
-                h[k:,:k] = g
-                gens.append(h)
-                gens.append(copy(h))
+                s = copy(h)
+                s[k:,:k] = g
+                gens.append(s)
         return [N._to_gens() * g * N._to_smith() for g in gens]
     elif deg and T.is_degenerate():
         return _isom_fqf(T)

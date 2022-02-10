@@ -547,7 +547,7 @@ class BinaryQF(SageObject):
                         q = BinaryQF(c,b,a)
                         a,b,c = c,b,a
                         t = t * Matrix(ZZ,2,[0,1,1,0])
-                    elif b % (2*a) == 0:
+                    if b % (2*a) == 0:
                         n = b//(2*a)
                         t = t * Matrix(ZZ,2,[1, -n, 0, 1])
                         gens.append(t * Matrix(ZZ,2,[1,0,0,-1]) * ~t )
@@ -1777,7 +1777,8 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
             a4 = 4*a
             s = D + a*a4
             w = 1+(s-1).isqrt() if s > 0 else 0
-            if w%2 != D%2: w += 1
+            if w%2 != D%2:
+                w += 1
             for b in xsrange(w, a+1, 2):
                 t = b*b-D
                 if t % a4 == 0:
