@@ -403,7 +403,6 @@ def classify_mixed_nextp(p, file_r, file_aw, aw='w',verbose=2):
         for A, a, Oa in next_prime_power(typ, verbose=verbose):
             order_a = a.change_ring(ZZ).multiplicative_order()
             print('Found an isometry of order: %s' % order_a)
-            assert q.divides(order_a)
             actsg = K3SurfaceAut(A, cofix, a, Oa)
             for aut in actsg:
                 classifi.append(aut)
