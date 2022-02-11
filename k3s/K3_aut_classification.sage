@@ -119,10 +119,11 @@ def K3SurfaceAut(A, B, a, Oa):
 
 
 #######################################
-def get_ptypes(order, file, rkT=None):
+def get_ptypes(order, file, rkT=None, returnk3s=False):
     assert len(order.prime_factors())==1
     p = order.prime_factors()[0]
     ptypes = []
+    k3s = []
     for s in fi:
         if s[:8] == "complete":
             continue
@@ -130,11 +131,15 @@ def get_ptypes(order, file, rkT=None):
         if rkT is not None and k3.transcendental_lattice().rank()!=rkT:
             continue
         H = k3.symplectic_invariant_lattice()
-        g = k3.g
+        g = k3.distinguished_generator()
         t = ptype(H,g,p)
         if not t in ptypes:
             ptypes.append(t)
+            k3s.append(k3)
+    if returnk3s:
+      return k3s
     return ptypes
+
 
 def classify_ord_p_next(cofix, ptypes, file_name, rw, verbose=0):
     classifi = []
@@ -194,34 +199,7 @@ def classify_ord_pe(L, p, e, file_name,rw,verbose=False,rkT=None):
     result.close()
     return classifi, not_realized
 
-def classify_purely_ns_pn(p,e,file_name, log_file, rw="w",verbose=True, rkT=None):
-    classifi = []
-    result = open(file_name,rw)
-    result.close()
-    not_realized = []
-    g = genera((3,19),1,1,even=true)[0]
-    for rkT0 in range(2,22):
-      if rkT is not None and rkT0!=rkT:
-          continue
-      for A, a, Oa in k3_prime_power(g, p, e,verbose=verbose, rkT=rkT0):
-          aut = K3SurfaceAutGrp(A, [], a, p^e)
-          classifi.append(aut)
-          s = aut.str()
-          result = open(file_name,"a")
-          result.write(s+ "\n")
-          result.close()
-      log = open(log_file, 'a')
-      log.write("completed purely non-symplectic order %s^%s, rkT = %s\n"%(p,e,rkT))
-      log.close()
-    log = open(log_file, 'a')
-    log.write("completed purely non-symplectic order %s^%s \n"%(p,e))
-    log.close()
-    result = open(file_name,"a")
-    result.write("complete \n")
-    result.close()
-    return classifi
-
-def classify_purely_ns_peq(p, q ,file_r, file_aw, log_file,aw="w",verbose=2):
+def classify_purely_ns_pn(p, e, file_name, rw="w", verbose=True, rkT=None):
     classifi = []
     peactions = open(file_r,'r')
     result = open(file_aw,aw)
@@ -257,11 +235,96 @@ def classify_purely_ns_peq(p, q ,file_r, file_aw, log_file,aw="w",verbose=2):
     result = open(file_aw,'a')
     result.write("complete \n")
     result.close()
-    log = open(log_file, 'a')
-    log.write("completed purely non-symplectic order %s^%s*%s \n"%(p,e,q))
-    log.close()
     return classifi
 
+
+def classify_purely_ns_nextp(p, file_r, file_aw, aw="w",verbose=2):
+    classifi = []
+    peactions = open(file_r, 'r')
+    result = open(file_aw, aw)
+    result.close()
+    not_realized = []
+    k = 0
+    types = []
+    for str_pe in peactions:
+        k+=1
+        print(k)
+        if str_pe[:8]=="complete":
+            continue
+        k3 = K3SurfaceAutGrp_from_str(str_pe)
+        L = k3.symplectic_invariant_lattice()
+        if k3.NS_coinvariant().maximum() == -2:
+            # the isometry is obstructed
+            continue
+        f = k3.distinguished_generator()
+        assert p == k3.transcendental_value().prime_factors()[0]
+        typ = ptype(L,f,p)
+        if typ in types:
+            continue
+        types.append(typ)
+        g = genera((3,19),1,1,even=true)[0]
+        for A, a, Oa in next_prime_power(typ, verbose=verbose):
+            n = a.change_ring(ZZ).multiplicative_order()
+            aut = K3SurfaceAutGrp(A, [], a, n)
+            classifi.append(aut)
+            s = aut.str()
+            result = open(file_aw,"a")
+            result.write(s+ "\n")
+            result.close()
+    result = open(file_aw,'a')
+    result.write("complete \n")
+    result.close()
+    return classifi
+
+def classify_purely_ns_peq(p, q ,file_r, file_aw, aw="w",verbose=2):
+    classifi = []
+    peactions = open(file_r,'r')
+    result = open(file_aw,aw)
+    result.close()
+    not_realized = []
+    k = 0
+    types = []
+    for str_pe in peactions:
+        k+=1
+        print(k)
+        if str_pe[:8]=="complete":
+            continue
+        k3 = K3SurfaceAutGrp_from_str(str_pe)
+        L = k3.symplectic_invariant_lattice()
+        if k3.NS_coinvariant().maximum() == -2:
+            # the isometry is obstructed
+            continue
+        f = k3.distinguished_generator()
+        assert p == k3.transcendental_value().prime_factors()[0]
+        typ = ptype(L,f,p)
+        if typ in types:
+            continue
+        types.append(typ)
+        g = genera((3,19),1,1,even=true)[0]
+        for A, a, Oa in pnq_actions(q, typ, verbose=verbose):
+            n = a.change_ring(ZZ).multiplicative_order()
+            aut = K3SurfaceAutGrp(A, [], a, n)
+            classifi.append(aut)
+            s = aut.str()
+            result = open(file_aw,"a")
+            result.write(s+ "\n")
+            result.close()
+    result = open(file_aw,'a')
+    result.write("complete \n")
+    result.close()
+    return classifi
+
+def classify(p, q, file_read, file_write, pure, verbose=2):
+    assert is_prime(p)
+    assert is_prime(q)
+    if p == q and not pure:
+      classify_mixed_nextp(p, file_read, file_write)
+    if p == q and pure:
+      classify_purely_ns_nextp(p, file_read, file_write)
+    if p != q and not pure:
+      classify_ord_peq(p, q, file_read, file_write,"w",verbose=verbose)
+    if p != q and pure:
+      classify_purely_ns_peq(p, q, file_read, file_write,verbose=verbose)
 
 def classify_ord_peq(p, q, file_r, file_aw,aw='w',verbose=2):
     r"""
@@ -309,6 +372,51 @@ def classify_ord_peq(p, q, file_r, file_aw,aw='w',verbose=2):
     result.close()
     return classifi, not_realized
 
+def classify_mixed_nextp(p, file_r, file_aw, aw='w',verbose=2):
+    r"""
+    file_r contains the p^e actions
+    """
+    classifi = []
+    peactions = open(file_r,'r')
+    result = open(file_aw,aw)
+    result.close()
+    not_realized = []
+    k = 0
+    types = []
+    for str_pe in peactions:
+        if str_pe[:8]=="complete":
+            continue
+        k+=1
+        print(k)
+        k3 = K3SurfaceAutGrp_from_str(str_pe)
+        L = k3.symplectic_invariant_lattice()
+        if k3.NS_coinvariant().maximum() == -2:
+            # the isometry is obstructed
+            continue
+        f = k3.distinguished_generator()
+        assert p == k3.transcendental_value().prime_factors()[0]
+        typ = ptype(L,f,p)
+        if typ in types:
+            continue
+        types.append(typ)
+        cofix = IntegralLattice( k3.symplectic_co_invariant_lattice().gram_matrix())
+        for A, a, Oa in next_prime_power(typ, verbose=verbose):
+            order_a = a.change_ring(ZZ).multiplicative_order()
+            print('Found an isometry of order: %s' % order_a)
+            actsg = K3SurfaceAut(A, cofix, a, Oa)
+            for aut in actsg:
+                classifi.append(aut)
+                sres = aut.str()
+                result = open(file_aw,'a')
+                result.write(sres+ "\n")
+                result.close()
+            if len(actsg)==0:
+                not_realized.append([A,a])
+    result = open(file_aw,'a')
+    result.write("complete \n")
+    result.close()
+    return classifi, not_realized
+
 #########################
 #Utility
 ############################
@@ -333,3 +441,27 @@ def grp_restriction(M,g):
     #t
     #for g in ge:
         #acts12.append(g)
+
+
+def spread_to_files(path_read, path):
+    os.mkdir(path)
+    fi = open(path_read, 'r')
+    L = []
+    for str_pe in fi:
+        if str_pe[:8]=="complete":
+            continue
+        k3 = K3SurfaceAutGrp_from_str(str_pe)
+        L.append(k3)
+    n = len(L)
+    for k in range(n):
+        s = L[k].str()
+        fi = open(path + "/" + str(k), "w")
+        fi.write(s)
+        fi.close()
+
+
+
+
+
+
+
