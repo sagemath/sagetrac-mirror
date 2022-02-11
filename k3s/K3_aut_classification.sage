@@ -239,8 +239,8 @@ def classify_purely_ns_peq(p, q ,file_r, file_aw, log_file,aw="w",verbose=2):
         if k3.NS_coinvariant().maximum() == -2:
             # the isometry is obstructed
             continue
-        f = k3.g
-        assert p == k3.n.prime_factors()[0]
+        f = k3.distinguished_generator()
+        assert p == k3.transcendental_value().prime_factors()[0]
         typ = ptype(L,f,p)
         if typ in types:
             continue
@@ -284,8 +284,8 @@ def classify_ord_peq(p, q, file_r, file_aw,aw='w',verbose=2):
         if k3.NS_coinvariant().maximum() == -2:
             # the isometry is obstructed
             continue
-        f = k3.g
-        assert p == k3.n.prime_factors()[0]
+        f = k3.distinguished_generator()
+        assert p == k3.transcendental_value().prime_factors()[0]
         typ = ptype(L,f,p)
         if typ in types:
             continue
@@ -327,7 +327,7 @@ def grp_restriction(M,g):
 #acts12 = []
 #for k3 in k3s:
     #L = k3.symplectic_invariant_lattice()
-    #g = grp_restriction(L,k3.g)
+    #g = grp_restriction(L,k3.distinguished_generator())
     #t = ptype(L,g,2)
     #ge =pnq_actions(3,t)
     #t

@@ -175,7 +175,6 @@ def is_admissible(A, B, C, p):
         s1 = A.local_symbols(2).symbol(s3[0]+1)
         s2 = B.local_symbols(2).symbol(s3[0]+1)
         if s1[3] != s2[3]:
-            print('parity')
             return False
 
     pC = C.local_symbols(p).symbol()
