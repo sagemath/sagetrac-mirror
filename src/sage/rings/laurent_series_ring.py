@@ -676,6 +676,27 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
         """
         return self.base_ring().characteristic()
 
+    def integer_ring(self):
+        """
+        Return the integer this of this Laurent series field.
+        This is only implemented when the base ring is a field.
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentSeriesRing(GF(17))
+            sage: R.integer_ring()
+            Power Series Ring in x over Finite Field of size 17
+
+            sage: R.<x> = LaurentSeriesRing(ZZ)
+            sage: R.integer_ring()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the base ring is not a field
+        """
+        if not self.base_ring().is_field():
+            raise NotImplementedError("the base ring is not a field")
+        return self._power_series_ring
+
     def residue_field(self):
         """
         Return the residue field of this Laurent series field

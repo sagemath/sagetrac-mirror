@@ -85,6 +85,7 @@ from sage.structure.element import is_Vector
 from sage.structure.element cimport have_same_parent
 from sage.misc.verbose import verbose, get_verbose
 from sage.categories.all import Fields, IntegralDomains
+from sage.categories.discrete_valuation import DiscreteValuationFields
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
@@ -7564,7 +7565,11 @@ cdef class Matrix(Matrix1):
         self.check_mutability()
 
         if algorithm == 'default':
-            from sage.categories.discrete_valuation import DiscreteValuationFields
+            R = self._base_ring
+            if hasattr(R, '_matrix_echelonize'):
+                pivots, left = R._matrix_echelonize(self, **kwds)
+                self.cache('pivots', pivots)
+                return left
             if self._will_use_strassen_echelon():
                 algorithm = 'strassen'
             # Currently we only use scaled partial pivoting in discrete valuation fields

@@ -125,6 +125,77 @@ class CompleteDiscreteValuationRings(Category_singleton):
             """
             return self
 
+        def _matrix_echelonize(self, M, transformation=True, secure=False):
+            """
+            Row-echelonize this matrix
+
+            INPUT:
+
+            - ``transformation`` -- a boolean (default: True)
+              Indicates whether the transformation matrix is returned
+
+            OUTPUT:
+
+            The position of the pivots and the transformation matrix
+            if asked for.
+
+            EXAMPLES::
+
+                sage: A = Zp(5, prec=10, print_mode="digits")
+                sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
+
+                sage: M.echelon_form()  # indirect doctest
+                [ ...1  ...1]
+                [    0 ...10]
+
+                sage: H,L = M.echelon_form(transformation=True)  # indirect doctest
+                sage: H
+                [ ...1  ...1]
+                [    0 ...10]
+                sage: L
+                [        ...1 ...444444444]
+                [...444444444         ...2]
+                sage: L*M == H
+                True
+
+            This method works for rectangular matrices as well::
+
+                sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
+                sage: M.echelon_form()  # indirect doctest
+                [ ...1  ...1]
+                [    0 ...10]
+                [    0     0]
+
+            An error is raised if the precision on the entries is
+            not enough to determine the echelon form::
+
+                sage: M = matrix(A, 2, 2, [A(0,5), 1, 5^8, 1])
+                sage: M.echelon_form()  # indirect doctest
+                Traceback (most recent call last):
+                ...
+                PrecisionError: Not enough precision to echelonize
+
+            TESTS::
+
+            We check that it works over various rings::
+
+                sage: from sage.rings.padics.precision_error import PrecisionError
+                sage: ring1 = ZpCA(5,15)
+                sage: ring2 = Zq(5^3,names='a')
+                sage: ring3 = Zp(5).extension(x^2-5, names='pi')
+                sage: ring4 = PowerSeriesRing(GF(5), name='t')
+                sage: for A in [ ring1, ring2, ring3, ring4 ]:
+                ....:     for _ in range(10):
+                ....:         M = random_matrix(A,4)
+                ....:         try:
+                ....:             H, L = M.echelon_form(transformation=True)
+                ....:         except PrecisionError:
+                ....:             continue
+                ....:         if L*M != H: raise RuntimeError
+            """
+            from sage.matrix.matrix_cdv_dense import echelonize
+            return echelonize(M, transformation, secure=secure)
+
         @abstract_method
         def lift_to_precision(self, absprec=None):
             """
@@ -190,6 +261,23 @@ class CompleteDiscreteValuationFields(Category_singleton):
             [Category of discrete valuation fields]
         """
         return [DiscreteValuationFields()]
+
+    class ParentMethods:
+        @abstract_method
+        def integer_ring(self):
+            """
+            Return the integer ring of this CDVF
+
+            EXAMPLES::
+
+                sage: K = Qp(5)
+                sage: K.integer_ring()
+                5-adic Ring with capped relative precision 20
+
+                sage: L.<t> = LaurentSeriesRing(GF(5))
+                sage: L.integer_ring()
+                Power Series Ring in t over Finite Field of size 5
+            """
 
     class ElementMethods:
         @abstract_method
