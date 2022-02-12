@@ -93,6 +93,7 @@ class CubicHeckeDataSection(Enum):
     - ``reg_left_reprs``  -- data for the left regular representation
     - ``reg_right_reprs``  -- data for the right regular representation
     - ``irr_reprs`` -- data for the split irreducible representations
+    - ``markov_tr_cfs`` -- data for the coefficients of the formal Markov traces
 
     Examples::
 
@@ -105,6 +106,7 @@ class CubicHeckeDataSection(Enum):
     regular_left  = 'regular_left'
     regular_right = 'regular_right'
     split_irred   = 'split_irred'
+    markov_tr_cfs = 'markov_tr_cfs'
 
 
 #-------------------------------------------------------------------------------
@@ -183,7 +185,7 @@ class CubicHeckeDataBase(SageObject):
     # --------------------------------------------------------------------------
     # read from an sobj-file obtained from Ivan Marin's database
     # --------------------------------------------------------------------------
-    def read(self, section, translation_dict=None, nstrands=4):
+    def read(self, section, variables=None, nstrands=4):
         r"""
         Access various static data library.
 
@@ -220,9 +222,11 @@ class CubicHeckeDataBase(SageObject):
         if self.demo_version():
             if nstrands >= 4:
                 self._feature.require()
-            from sage.databases.cubic_hecke_db import read_basis, read_irr, read_regl, read_regr
+            from sage.databases.cubic_hecke_db import read_basis, read_irr, \
+                    read_regl, read_regr, read_markov
         else:
             from database_cubic_hecke import read_basis, read_irr, read_reg
+            from database_cubic_hecke.markov_trace_coeffs import read_markov
             def read_regl(variables, num_strands):
                 return read_reg(variables, num_strands=num_strands)
             def read_regr(variables, num_strands):
@@ -230,12 +234,14 @@ class CubicHeckeDataBase(SageObject):
 
         if section == CubicHeckeDataSection.basis:
             data_lib[(section, nstrands)] = read_basis(nstrands)
+        elif section == CubicHeckeDataSection.markov_tr_cfs:
+            keys = [k for k in MarkovTraceModuleBasis if k.strands() <= nstrands]
+            res = {k:read_markov(k.name, variables, num_strands=nstrands) for k in keys}
+            data_lib[(section, nstrands)] = res
         elif section == CubicHeckeDataSection.split_irred:
-            variables = tuple(translation_dict.values())
             dim_list, repr_list, repr_list_inv = read_irr(variables, nstrands)
             data_lib[(section, nstrands)] = {GenSign.pos:repr_list, GenSign.neg:repr_list_inv}
         else:
-            variables = tuple(translation_dict.values())
             if section == CubicHeckeDataSection.regular_right:
                 dim_list, repr_list, repr_list_inv = read_regr(variables, nstrands)
             else:
@@ -286,9 +292,10 @@ class CubicHeckeDataBase(SageObject):
         if 'e3' in td.keys():
             td['j'] = td['e3']
             td.pop('e3')
+        v = tuple(td.values())
 
         num_rep = representation_type.number_of_representations(nstrands)
-        rep_list = self.read(representation_type.data_section(), translation_dict=td, nstrands=nstrands)
+        rep_list = self.read(representation_type.data_section(), variables=v, nstrands=nstrands)
         if gen_ind > 0 :
             rep_list = [rep_list[GenSign.pos][i] for i in range(num_rep)]
             matrix_list = [matrix(ring_of_definition, rep[gen_ind-1], sparse=True) for rep in rep_list]
@@ -298,6 +305,223 @@ class CubicHeckeDataBase(SageObject):
             matrix_list = [matrix(ring_of_definition, rep[-gen_ind-1], sparse=True) for rep in rep_list]
         for m in matrix_list: m.set_immutable()
         return matrix_list
+
+
+class MarkovTraceModuleBasis(Enum):
+    r"""
+    Enum for the basis elements for the Markov trace module.
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+        sage: MarkovTraceModuleBasis.K92.description()
+        'knot 9_34'
+    """
+    def __repr__(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.U2    # indirect doctest
+            U2
+        """
+        return self.name
+
+    def __gt__(self, other):
+        r"""
+        Implement comparision of different items in order to have ``sorted`` work.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: sorted(MarkovTraceModuleBasis)
+            [U1, U2, U3, K4, U4, K4U, K6, K7, K91, K92]
+        """
+        if self.__class__ is other.__class__:
+            tups = (self.strands(), len(self.braid_tietze()), self.name)
+            tupo = (other.strands(), len(other.braid_tietze()), other.name)
+            return tups > tupo
+        return NotImplemented
+
+    def strands(self):
+        r"""
+        Return the number of strands of the minimal braid representative of the
+        link corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.K7.strands()
+            4
+        """
+        return self.value[1]
+
+    def braid_tietze(self, strands_embed=None):
+        r"""
+        Return the Tietze representation of the braid corresponding to this basis
+        element.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.U2.braid_tietze()
+            ()
+            sage: MarkovTraceModuleBasis.U2.braid_tietze(strands_embed=4)
+            (2, 3)
+        """
+        if not strands_embed:
+            strands_embed = self.strands()
+
+        if strands_embed > self.strands():
+            last_gen = strands_embed-1
+            return self.braid_tietze(strands_embed=last_gen) + (last_gen,)
+        else:
+            return self.value[2]
+
+    def writhe(self):
+        r"""
+        Return the writhe of the link corresponding to this basis element.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.K4.writhe()
+            0
+            sage: MarkovTraceModuleBasis.K6.writhe()
+            1
+        """
+        from sage.functions.generalized import sign
+        return sum(sign(t) for t in self.braid_tietze())
+
+    def description(self):
+        r"""
+        Return a description of link corresponding to this basis element.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.U3.description()
+            'three unlinks'
+        """
+        return self.value[0]
+
+    def link(self):
+        r"""
+        Return the link which represents this basis element.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.U1.link()
+            Link with 1 component represented by 0 crossings
+            sage: MarkovTraceModuleBasis.K4.link()
+            Link with 1 component represented by 4 crossings
+        """
+        from sage.knots.link import Link
+        pd_code = self.value[3]
+        if pd_code is not None:
+            # since :class:`Link` does not construct disjoint union of unlinks
+            # from the braid representation, we need a pd_code here
+            return Link(pd_code)
+        else:
+            from sage.groups.braid import BraidGroup
+            B = BraidGroup(self.strands())
+            return Link(B(self.braid_tietze()))
+
+    def regular_homfly_polynomial(self):
+        r"""
+        Return the regular variant of the Homfly-PT polynomial of the link which
+        represents this basis element. This is the Homfly-PT polynomial
+        renormalized by the writhe factor such that it is an invariant of
+        regular isotopy.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.U1.regular_homfly_polynomial()
+            1
+            sage: u2 = MarkovTraceModuleBasis.U2.regular_homfly_polynomial(); u2
+            -L*M^-1 - L^-1*M^-1
+            sage: u2**2 == MarkovTraceModuleBasis.U3.regular_homfly_polynomial()
+            True
+            sage: u2**3 == MarkovTraceModuleBasis.U4.regular_homfly_polynomial()
+            True
+        """
+        H = self.link().homfly_polynomial()
+        L, M = H.parent().gens()
+        return H*L**self.writhe()
+
+    def regular_kauffman_polynomial(self):
+        r"""
+        Return the regular variant of the Kauffman polynomial of the link which
+        represents this basis element. This is the Kauffman polynomial
+        renormalized by the writhe factor such that it is an invariant of
+        regular isotopy.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.U1.regular_homfly_polynomial()
+            1
+            sage: u2 = MarkovTraceModuleBasis.U2.regular_kauffman_polynomial(); u2
+            a*z^-1 - 1 + a^-1*z^-1
+            sage: u2**2 == MarkovTraceModuleBasis.U3.regular_kauffman_polynomial()
+            True
+            sage: u2**3 == MarkovTraceModuleBasis.U4.regular_kauffman_polynomial()
+            True
+        """
+        from sage.knots.knotinfo import KnotInfo
+        K = KnotInfo.L2a1_1.kauffman_polynomial().parent()
+        a, z = K.gens()
+        d = self.value[4]
+        if d:
+            return K(d)*a**self.writhe()
+        U2rkp = MarkovTraceModuleBasis.U2.regular_kauffman_polynomial()
+        if self.name == 'K4U':
+            K4rkp = MarkovTraceModuleBasis.K4.regular_kauffman_polynomial()
+            return K4rkp * U2rkp
+        exp = self.strands() -1
+        return U2rkp**exp
+
+    U1  = ['one unlink',    1, (), [], 1]
+    U2  = ['two unlinks',   2, (), [[3, 1, 4, 2], [4, 1, 3, 2]], {(1, -1): 1, (0, 0): -1, (-1, -1): 1}]
+    U3  = ['three unlinks', 3, (), [[3, 7, 4, 8], [4, 7, 5, 8],
+                                    [5, 1, 6, 2], [6, 1, 3, 2]], None]
+    U4  = ['four unlinks',  4, (), [[3, 9, 4, 10], [4, 9, 5, 10], [5, 11, 6, 12],\
+                                    [6, 11, 7, 12], [7, 1, 8, 2], [8, 1, 3, 2]], None]
+    K4U = ['knot 4_1 plus one unlink', 4, (1, -2, 1, -2),
+                                   [[3, 8, 4, 9], [9, 7, 10, 6], [7, 4, 8, 5],\
+                                   [5, 11, 6, 10], [11, 1, 12, 2], [12, 1, 3, 2]], None]
+    K4  = ['knot 4_1',  3, (1, -2, 1, -2),                   None,\
+            {(2, 2): 1, (1, 3): 1, (2, 0): -1, (1, 1): -1, (0, 2): 2, (-1, 3): 1,\
+             (0, 0): -1, (-1, 1): -1, (-2, 2): 1, (-2, 0): -1}]
+    K6  = ['knot 6_1',  4, (1, 1, 2, -1, -3, 2, -3),         None,\
+            {(2, 2): 1, (1, 3): 1, (0, 4): 1, (-1, 5): 1, (2, 0): -1, (-1, 3): -2,\
+             (-2, 4): 2, (-3, 5): 1, (-1, 1): 2, (-2, 2): -4, (-3, 3): -3,\
+             (-4, 4): 1, (-2, 0): 1, (-3, 1): 2, (-4, 2): -3, (-4, 0): 1}]
+    K7  = ['knot 7_4',  4, (1, 1, 2, -1, 2, 2, 3, -2, 3),    None,\
+            {(-2, 2): 1, (-3, 3): 2, (-4, 4): 3, (-5, 5): 2, (-6, 6): 1,\
+             (-4, 2): -4, (-5, 3): -2, (-7, 5): 3, (-8, 6): 1, (-4, 0): 2,\
+             (-6, 2): -3, (-7, 3): -8, (-8, 4): -3, (-9, 5): 1, (-7, 1): 4,\
+             (-8, 2): 2, (-9, 3): -4, (-8, 0): -1, (-9, 1): 4}]
+    K91 = ['knot 9_29', 4, (1, -2, -2, 3, -2, 1, -2, 3, -2), None,\
+            {(7, 3): 1, (6, 4): 3, (5, 5): 6, (4, 6): 8, (3, 7): 6, (2, 8): 2,\
+             (5, 3): -5, (4, 4): -13, (3, 5): -8, (2, 6): 6, (1, 7): 9, (0, 8): 2,\
+             (5, 1): 2, (4, 2): 8, (3, 3): -1, (2, 4): -24, (1, 5): -24,\
+             (0, 6): -1, (-1, 7): 3, (4, 0): -2, (3, 1): 2, (2, 2): 17, (1, 3): 14,\
+             (0, 4): -11, (-1, 5): -10, (-2, 6): 1, (2, 0): -5, (1, 1): -1,\
+             (0, 2): 12, (-1, 3): 9, (-2, 4): -3, (0, 0): -3, (-1, 1): -1,\
+             (-2, 2): 3, (-2, 0): -1}]
+    K92 = ['knot 9_34', 4, (-1, 2, -1, 2, -3, 2, -1, 2, -3), None,\
+            {(5, 5): 1, (4, 6): 4, (3, 7): 6, (2, 8): 3, (5, 3): -1, (4, 4): -7,\
+             (3, 5): -11, (2, 6): 5, (1, 7): 14, (0, 8): 3, (4, 2): 3, (3, 3): 5,\
+             (2, 4): -19, (1, 5): -26, (0, 6): 9, (-1, 7): 8, (2, 2): 10,\
+             (1, 3): 12, (0, 4): -23, (-1, 5): -10, (-2, 6): 8, (2, 0): -1,\
+             (1, 1): -1, (0, 2): 11, (-1, 3): 4, (-2, 4): -10, (-3, 5): 4,\
+             (0, 0): -1, (-1, 1): -1, (-2, 2): 4, (-3, 3): -2, (-4, 4): 1,\
+             (-2, 0): -1}]
 
 
 class CubicHeckeFileCache(SageObject):
@@ -797,133 +1021,6 @@ class CubicHeckeFileCache(SageObject):
         self.write(self.section.basis_extensions)
         return
 
-    # --------------------------------------------------------------------------
-    # Intermediate results of Markov trace coefficient calculation
-    # --------------------------------------------------------------------------
-    def markov_trace(self, step, target=None):
-        r"""
-        Return a wrapper to store intermediate results obtained during the calculation
-        of the Markov trace coefficients.
-
-        INPUT:
-
-        - ``step`` -- integer or string, to indicate the intermediate step in the
-          calculation of the Markov trace coefficients. This makes sence for
-          the ``markov_trace`` section, only
-        """
-
-        class wrapper:
-            r"""
-            Wrapper that stores intermediate results obtained during the calculation
-            of the Markov trace coefficients.
-
-            INPUT (to the constructor):
-
-            - ``filecache`` -- pointer to the outer class
-            - ``step`` -- according to the method
-            """
-            def __init__(self, filecache, step, target=None):
-                r"""
-                """
-                self._fc = filecache
-                self._step = step
-                self._target = target
-                self._target_key = 'targets'
-                self._data_section = None
-                self._data_step = None
-                self._message = 'step %s for Markov trace coefficients on %s strands' %(step, filecache._nstrands)
-                self._time = verbose('Starting calulation of %s' %(self._message))
-
-            def _set_data_step(self, data):
-                r"""
-                """
-                if type(data) is list:
-                    from sage.rings.localization import LocalizationElement
-                    if isinstance(data[0], LocalizationElement):
-                         data = [simplify(item) for item in data]
-                self._data_step = data
-                self._time = verbose('Calculation finished for %s' %(self._message), t=self._time)
-                return data
-
-            def _set_target(self):
-                r"""
-                Store the target of this step in the section space.
-                """
-                if not self._target:
-                    return
-
-                if not self._data_section:
-                    return
-
-                step = self._step
-                target = self._target
-                target_key = self._target_key
-                if target_key in self._data_section:
-                    targets = self._data_section[target_key]
-                else:
-                    targets = {}
-                    self._data_section[target_key] = targets
-
-                if  target in targets.keys():
-                    step_list = targets[target]
-                    if not step in step_list:
-                        step_list.append(step)
-                else:
-                    targets[target] = [step]
-                self._time = verbose('Target %s set for %s' %(target, self._message), t=self._time)
-
-            def remove_temporary_data(self):
-                r"""
-                Remove data of temporary steps if target is complete.
-                """
-                fc   = self._fc
-                step = self._step
-                target_key = self._target_key
-                data_section = self._data_section
-
-                if not data_section:
-                    return
-
-                if target_key not in data_section:
-                    return
-
-                targets = data_section[target_key]
-                if step not in targets.keys():
-                    return
-
-                for sub_step in targets[step]:
-                    self._time = verbose('Remove temporary step %s set for %s' %(sub_step, self._message), t=self._time)
-                    data_section.pop(sub_step)
-
-                fc.write(fc.section.markov_trace)
-
-            def __enter__(self):
-                r"""
-                OUTPUT:
-
-                    A pair (data, method) one of which is ``None``.
-                """
-                fc   = self._fc
-                step = self._step
-                data_section = fc.read(fc.section.markov_trace)
-                self._data_section = data_section
-                if self._target:
-                    self._set_target()
-                if step in data_section.keys():
-                    self._data_step = data_section[step]
-                    self._time = verbose('Found previous result for %s' %(self._message), t=self._time)
-                    return self._data_step, self._set_data_step
-                return None, self._set_data_step
-
-            def __exit__(self, exc_type, exc_val, exc_tb):
-                r"""
-                """
-                fc   = self._fc
-                step = self._step
-                self._data_section[step] = self._data_step
-                fc.write(fc.section.markov_trace)
-
-        return wrapper(self, step, target)
 
 # -----------------------------------------------------------------------------
 # Demo data section
@@ -948,7 +1045,7 @@ template="""def %s(%snum_strands=3):
 doc=r"""{}
     Return precomputed data of Ivan Marin
 
-    This code was generated by ``create_demo_data``, please don't edit.
+    This code was generated by :func:`create_demo_data`, please don't edit.
 
     INPUT:
 %s
@@ -1277,7 +1374,7 @@ def read_markov(bas_ele, variables, num_strands=4):
 
     EXAMPLES::
 
-        sage: from database_cubic_hecke.markov_trace_coeffs import _read_markov
+        sage: from sage.databases.cubic_hecke_db import read_markov
         sage: from sympy import var
         sage: u, v, w, s = var('u, v, w, s')
         sage: variables = (u, v, w, s)

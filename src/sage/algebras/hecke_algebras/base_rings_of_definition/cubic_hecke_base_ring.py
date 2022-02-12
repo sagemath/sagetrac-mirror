@@ -112,140 +112,6 @@ def register_ring_hom(ring_hom):
 
     return
 
-
-def preparse_mvp(string, mvp_indet):
-    r"""
-    Preparse a string produced via GAP3 interface and containing Jean Michel's
-    ``MVP`` (multivariate polynomials) such that it can be evaluated by
-    ``sage_eval``. In particular missing multiplication signs are inserted.
-    Furthermore, exponentiation is replaced by a special function ``xpow``
-    which must be defined before the function's result can be evaluated.
-
-    INPUT:
-
-    - ``string``    -- string produced via ``GAP3`` interface and containing
-      Jean Michel's ``MVP`` (multivariate polynomials)
-    - ``mvp_indet`` -- list of strings containing the names of the
-      ``MVP``-variables.
-
-
-    EXAMPLES::
-
-        sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-        ....:      import cubic_hecke_base_ring as chbr
-        sage: chbr.preparse_mvp('2+a^-2bc+a^-1b^-1c^2', ['a', 'b', 'c'])
-        '2+xpow(a,1)^-2*xpow(b,1)*xpow(c,1)+xpow(a,1)^-1*xpow(b,1)^-1*xpow(c,1)^2'
-    """
-
-    def erase_useless_whitespace(strg):
-        res = strg.strip()
-        if  res.find(' ') < 0:
-            return res
-        # len(res) must be > 1 since it is stripped and contains whitespaces
-        pos = int(len(res)/2)
-
-        if res[pos] != ' ':
-            # find a pos near to that on a whitespace
-            left  = res[:pos]
-            right = res[pos+1:]
-            pos = right.find(' ')
-            if pos >= 0:
-                # first whitespace position in the right part
-                pos += len(left) + 1
-            else:
-                # last whitespace position in the left part
-                left_rev = list(left)
-                left_rev.reverse()
-                pos = len(left) - left_rev.index(' ') - 1
-
-        end_left    = res[pos-1]
-        start_right = res[pos+1]
-        left  = res[:pos]
-        right = res[pos+1:]
-        if  end_left.isdigit() and start_right.isdigit():
-            return erase_useless_whitespace(left) + ' ' + erase_useless_whitespace(right)
-        return erase_useless_whitespace(left) + erase_useless_whitespace(right)
-
-    # --------------------------------------------------------------------------
-    # first erase carriage returns and useless whitespaces
-    # --------------------------------------------------------------------------
-    new_string = string.replace('\n', ' ')
-    new_string = erase_useless_whitespace(new_string)
-
-    # --------------------------------------------------------------------------
-    # Because of exponentiation with fractions we need to obtain the
-    # indeterminates as functions having the exponent as argument
-    # --------------------------------------------------------------------------
-    for indet in mvp_indet:
-        # first the critical cases (protecting them by upper for following change)
-        new_string = new_string.replace('%s^(' %(indet), 'xpow(%s,' %(indet.upper()))
-
-    for indet in mvp_indet:
-        # than remaining trivial cases
-        new_string = new_string.replace('%s' %(indet), 'xpow(%s,1)' %(indet))
-
-    for indet in mvp_indet:
-        # rename protected items of the first change
-        new_string = new_string.replace(indet.upper(), indet)
-
-    # --------------------------------------------------------------------------
-    # Now start to insert missing '*' signs taking a pseudonym '?' for it, first
-    # --------------------------------------------------------------------------
-    # Insert '*' left of 'xpow'
-    # --------------------------------------------------------------------------
-    new_string = new_string.replace('xpow', '?xpow' )
-
-    # --------------------------------------------------------------------------
-    # Insert '*' right of ')'
-    # --------------------------------------------------------------------------
-    new_string = new_string.replace(')', ')?' )
-
-    # --------------------------------------------------------------------------
-    # Insert '*' left of 'E' (starting a roots of unity or a functions ('ER') of
-    # roots of integers)
-    # --------------------------------------------------------------------------
-    new_string = new_string.replace('E', '?E' )
-
-    # --------------------------------------------------------------------------
-    # Insert '*' left and right of 'I' (root of -1)
-    # --------------------------------------------------------------------------
-    new_string = new_string.replace('I', '?I?' )
-
-    # --------------------------------------------------------------------------
-    # remove multiples
-    # --------------------------------------------------------------------------
-    while '??' in new_string:
-        new_string = new_string.replace('??', '?')
-
-    # --------------------------------------------------------------------------
-    # remove impossible neighbouring
-    # --------------------------------------------------------------------------
-    new_string = new_string.replace('^?', '^')
-    new_string = new_string.replace('?^', '^')
-    new_string = new_string.replace('+?', '+')
-    new_string = new_string.replace('?+', '+')
-    new_string = new_string.replace('-?', '-')
-    new_string = new_string.replace('?-', '-')
-    new_string = new_string.replace('/?', '/')
-    new_string = new_string.replace('?/', '/')
-    new_string = new_string.replace('[?', '[')
-    new_string = new_string.replace('?]', ']')
-    new_string = new_string.replace('(?', '(')
-    new_string = new_string.replace('?)', ')')
-    new_string = new_string.replace('?,', ',')
-    new_string = new_string.replace(',?', ',')
-    if new_string.startswith('?'):
-        new_string = new_string[1:]
-    if new_string.endswith('?'):
-        new_string = new_string[:len(new_string)-1]
-
-    # --------------------------------------------------------------------------
-    # replace pseudonym
-    # --------------------------------------------------------------------------
-    new_string = new_string.replace('?', '*')
-    return new_string
-
-
 # ------------------------------------------------------------------------------
 # class for the Galois Group action on the generic extension ring corresponding
 # to the cubic equation
@@ -603,20 +469,18 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
             a^-1*b^2*c^-1 + 2 + a*b^-2*c + a^-2*b*c + a^-1*b^-1*c^2
         """
         E3 = self.cyclotomic_generator()
-
-        def xpow(indet, exp):
-            r"""
-            Realizing power.
-            """
-            return indet**exp
-
         a, b, c, *rem = self.gens()
         na, nb, nc = var_names = self.variable_names()
         lc={na:a, nb:b, nc:c, 'E3':E3}
-        lc['xpow'] = xpow
 
-        sage_expression = preparse_mvp('%s' %(mvp_expression), var_names)
-
+        from sage.repl.preparse import implicit_mul
+        # since implicit_mul does not know about the choice of variable names
+        # we have to insert * between them separately
+        string = str(mvp_expression)
+        for k in var_names:
+            for l in var_names:
+                string = string.replace('%s%s' %(k,l), '%s*%s' %(k,l))
+        sage_expression =  implicit_mul(string)
         from sage.misc.sage_eval import sage_eval
         return  sage_eval(sage_expression, locals=lc)
 
