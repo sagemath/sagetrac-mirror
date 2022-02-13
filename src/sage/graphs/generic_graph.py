@@ -21135,10 +21135,12 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = Graph({0: {1: None, 2: None}, 1: {0: None, 2: None}, 2: {0: None, 1: None, 3: 'foo'}, 3: {2: 'foo'}}, sparse=True)
-            sage: tempfile = os.path.join(SAGE_TMP, 'temp_graphviz')
-            sage: G.graphviz_to_file_named(tempfile, edge_labels=True)
-            sage: with open(tempfile) as f:
-            ....:     print(f.read())
+            sage: import tempfile
+            sage: with tempfile.TemporaryDirectory() as d:
+            ....:     tempfile = os.path.join(d, 'temp_graphviz')
+            ....:     G.graphviz_to_file_named(tempfile, edge_labels=True)
+            ....:     with open(tempfile) as f:
+            ....:         print(f.read())
             graph {
               node_0  [label="0"];
               node_1  [label="1"];

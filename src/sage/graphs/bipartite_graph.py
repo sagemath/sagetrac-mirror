@@ -241,16 +241,17 @@ class BipartiteGraph(Graph):
 
     #. From an alist file::
 
-         sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
-         sage: fi = open(file_name, 'w')
-         sage: _ = fi.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n 3 3 3 4 \n\
-                             1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
-                             2 0 0 \n 3 0 0 \n 4 0 0 \n\
-                             1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
-         sage: fi.close()
-         sage: B = BipartiteGraph(file_name)
+         sage: import os, tempfile
+         sage: f = tempfile.NamedTemporaryFile(mode="w+t", delete=False)
+         sage: _ = f.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n 3 3 3 4 \n\
+                            1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
+                            2 0 0 \n 3 0 0 \n 4 0 0 \n\
+                            1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
+         sage: f.close()
+         sage: B = BipartiteGraph(f.name)
          sage: B.is_isomorphic(H)
          True
+         sage: os.remove(f.name)
 
     #. From a NetworkX bipartite graph::
 
@@ -1196,15 +1197,16 @@ class BipartiteGraph(Graph):
 
         EXAMPLES::
 
-            sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
-            sage: fi = open(file_name, 'w')
-            sage: _ = fi.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n 3 3 3 4 \n\
-                                1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
-                                2 0 0 \n 3 0 0 \n 4 0 0 \n\
-                                1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
-            sage: fi.close()
+            sage: import os, tempfile
+            sage: f = tempfile.NamedTemporaryFile(mode="w+t", delete=False)
+            sage: _ = f.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n 3 3 3 4 \n\
+                               1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
+                               2 0 0 \n 3 0 0 \n 4 0 0 \n\
+                               1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n\
+                               1 2 4 7 \n")
+            sage: f.close()
             sage: B = BipartiteGraph()
-            sage: B.load_afile(file_name)
+            sage: B.load_afile(f.name)
             Bipartite graph on 11 vertices
             sage: B.edges()
             [(0, 7, None),
@@ -1220,9 +1222,10 @@ class BipartiteGraph(Graph):
              (4, 8, None),
              (5, 9, None),
              (6, 10, None)]
-             sage: B2 = BipartiteGraph(file_name)
+             sage: B2 = BipartiteGraph(f.name)
              sage: B2 == B
              True
+             sage: os.remove(f.name)
         """
         # open the file
         try:
@@ -1290,15 +1293,18 @@ class BipartiteGraph(Graph):
             [0 1 0 1 0 1 0]
             [1 1 0 1 0 0 1]
             sage: b = BipartiteGraph(M)
-            sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
-            sage: b.save_afile(file_name)
-            sage: b2 = BipartiteGraph(file_name)
-            sage: b.is_isomorphic(b2)
+            sage: import tempfile
+            sage: with tempfile.TemporaryDirectory() as d:
+            ....:     file_name = os.path.join(d, 'deleteme.alist.txt')
+            ....:     b.save_afile(file_name)
+            ....:     b2 = BipartiteGraph(file_name)
+            ....:     b.is_isomorphic(b2)
             True
 
         TESTS::
 
-            sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
+            sage: import os, tempfile
+            sage: f = tempfile.NamedTemporaryFile(delete=False); f.close()
             sage: for order in range(3, 13, 3):
             ....:     num_chks = int(order / 3)
             ....:     num_vars = order - num_chks
@@ -1307,8 +1313,8 @@ class BipartiteGraph(Graph):
             ....:         g = graphs.RandomGNP(order, 0.5)
             ....:         try:
             ....:             b = BipartiteGraph(g, partition, check=False)
-            ....:             b.save_afile(file_name)
-            ....:             b2 = BipartiteGraph(file_name)
+            ....:             b.save_afile(f.name)
+            ....:             b2 = BipartiteGraph(f.name)
             ....:             if not b.is_isomorphic(b2):
             ....:                 print("Load/save failed for code with edges:")
             ....:                 print(b.edges())
@@ -1318,6 +1324,7 @@ class BipartiteGraph(Graph):
             ....:             print("with edges: ")
             ....:             g.edges()
             ....:             raise
+            sage: os.remove(f.name)
         """
         # open the file
         try:
