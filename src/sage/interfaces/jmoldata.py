@@ -132,21 +132,29 @@ class JmolData(SageObject):
         This example doesn't have correct scaling::
 
             sage: from sage.interfaces.jmoldata import JmolData
+            sage: import tempfile
             sage: JData = JmolData()
             sage: D = dodecahedron()
-            sage: from sage.misc.misc import SAGE_TMP
-            sage: archive_name = os.path.join(SAGE_TMP, "archive.jmol.zip")
-            sage: D.export_jmol(archive_name)  #not scaled properly...need some more steps.
-            sage: archive_native = archive_name
+            sage: from tempfile import NamedTemporaryFile
+            sage: archive = NamedTemporaryFile(suffix=".zip", delete=False)
+            sage: archive.close()  # only need the name
+            sage: D.export_jmol(archive.name)
+            sage: archive_native = archive.name
             sage: import sys
             sage: if sys.platform == 'cygwin':
             ....:     import cygwin
             ....:     archive_native = cygwin.cygpath(archive_native, 'w')
-            sage: script = 'set defaultdirectory "{0}"\n script SCRIPT\n'.format(archive_native)
-            sage: testfile = os.path.join(SAGE_TMP, "testimage.png")
-            sage: JData.export_image(targetfile=testfile, datafile=script, image_type="PNG") # optional -- java
-            sage: print(os.path.exists(testfile)) # optional -- java
+            sage: script  = f'set defaultdirectory "f{archive_native}"\n'
+            sage: script += 'script SCRIPT\n'
+            sage: testfile = NamedTemporaryFile(suffix=".png", delete=False)
+            sage: testfile.close()  # only need the name
+            sage: JData.export_image(targetfile=testfile.name, # optional -- java
+            ....:                    datafile=script,
+            ....:                    image_type="PNG")
+            sage: print(os.path.exists(testfile.name)) # optional -- java
             True
+            sage: os.remove(archive.name)
+            sage: os.remove(testfile.name)
         """
         # Set up paths, file names and scripts
         jmolpath = os.path.join(JMOL_DIR, "JmolData.jar")
