@@ -1692,15 +1692,14 @@ class DocTestDispatcher(SageObject):
         module will be immediately printed and any other ongoing tests
         canceled::
 
-            sage: test1 = os.path.join(SAGE_TMP, 'test1.py')
-            sage: test2 = os.path.join(SAGE_TMP, 'test2.py')
-            sage: with open(test1, 'w') as f:
-            ....:     _ = f.write("'''\nsage: import time; time.sleep(60)\n'''")
-            sage: with open(test2, 'w') as f:
-            ....:     _ = f.write("'''\nsage: True\nFalse\n'''")
+            sage: from tempfile import NamedTemporaryFile as NTF
+            sage: with NTF(suffix=".py", mode="w+t", delete=False) as f1:
+            ....:     _ = f1.write("'''\nsage: import time; time.sleep(60)\n'''")
+            sage: with NTF(suffix=".py", mode="w+t", delete=False) as f2:
+            ....:     _ = f2.write("'''\nsage: True\nFalse\n'''")
             sage: DC = DocTestController(DocTestDefaults(exitfirst=True,
             ....:                                        nthreads=2),
-            ....:                        [test1, test2])
+            ....:                        [f1.name, f2.name])
             sage: DC.expand_files_into_sources()
             sage: DD = DocTestDispatcher(DC)
             sage: DR = DocTestReporter(DC)
@@ -1708,9 +1707,9 @@ class DocTestDispatcher(SageObject):
             sage: DC.dispatcher = DD
             sage: DC.timer = Timer().start()
             sage: DD.parallel_dispatch()
-            sage -t .../test2.py
+            sage -t ...
             **********************************************************************
-            File ".../test2.py", line 2, in test2
+            File "...", line 2, in ...
             Failed example:
                 True
             Expected:
@@ -1719,9 +1718,11 @@ class DocTestDispatcher(SageObject):
                 True
             **********************************************************************
             1 item had failures:
-               1 of   1 in test2
+               1 of   1 in ...
                 [1 test, 1 failure, ... s]
-            Killing test .../test1.py
+            Killing test ...
+            sage: os.remove(f1.name)
+            sage: os.remove(f2.name)
         """
         opt = self.controller.options
 
