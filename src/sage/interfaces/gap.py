@@ -1238,11 +1238,14 @@ class Gap(Gap_generic):
         fixed::
 
             sage: ORIGINAL_WORKSPACE = sage.interfaces.gap.WORKSPACE
-            sage: sage.interfaces.gap.WORKSPACE = os.path.join(SAGE_TMP, "gap" + "0"*(80-len(SAGE_TMP)))
+            sage: import tempfile
+            sage: f = tempfile.NamedTemporaryFile(prefix="0"*80, delete=False)
+            sage: sage.interfaces.gap.WORKSPACE = f.name
             sage: gap = Gap()
             sage: gap('3+2')  # long time (4s on sage.math, 2013)
             5
             sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE
+            sage: os.remove(f.name)
         """
         prepare_workspace_dir()
 
