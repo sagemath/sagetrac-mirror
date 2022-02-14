@@ -423,9 +423,14 @@ cdef class SageObject:
 
         EXAMPLES::
 
-            sage: f = x^3 + 5                                               # optional - sage.symbolic
-            sage: f.save(os.path.join(SAGE_TMP, 'file'))                    # optional - sage.symbolic
-            sage: load(os.path.join(SAGE_TMP, 'file.sobj'))                 # optional - sage.symbolic
+            sage: x = SR.var("x")                  # optional - sage.symbolic
+            sage: f = x^3 + 5                      # optional - sage.symbolic
+            sage: from tempfile import TemporaryDirectory  # optional - sage.symbolic
+            sage: with TemporaryDirectory() as d:  # optional - sage.symbolic
+            ....:     f_basename = os.path.join(d, 'file')
+            ....:     f_name = f_basename + ".sobj"
+            ....:     f.save(f_basename)
+            ....:     load(f_name)
             x^3 + 5
         """
         if filename is None:
