@@ -160,14 +160,17 @@ cdef class GLPKGraphBackend(object):
         sage: gbe.add_vertices([None, None])
         ['0', '1']
         sage: a = gbe.add_edge('0', '1')
-        sage: gbe.write_graph(SAGE_TMP+"/graph.txt")
+        sage: import tempfile
+        sage: f = tempfile.NamedTemporaryFile(delete=False); f.close()
+        sage: gbe.write_graph(f.name)
         Writing graph to ...
         4 lines were written
         0
-        sage: gbe1 = GLPKGraphBackend(SAGE_TMP+"/graph.txt", "plain")
+        sage: gbe1 = GLPKGraphBackend(f.name, "plain")
         Reading graph from ...
         Graph has 2 vertices and 1 edge
         3 lines were read
+        sage: os.remove(f.name)
 
     The following example imports a Sage ``Graph`` and then uses it to solve a
     maxflow problem::
@@ -1048,10 +1051,13 @@ cdef class GLPKGraphBackend(object):
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
             sage: a = gbe.add_edge("0", "1")
-            sage: gbe.write_graph(SAGE_TMP+"/graph.txt")
+            sage: import tempfile
+            sage: f = tempfile.NamedTemporaryFile(delete=False); f.close()
+            sage: gbe.write_graph(f.name)
             Writing graph to ...
             4 lines were written
             0
+            sage: os.remove(f.name)
         """
 
         fname = str_to_bytes(fname, FS_ENCODING, 'surrogateescape')
@@ -1078,10 +1084,13 @@ cdef class GLPKGraphBackend(object):
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
             sage: a = gbe.add_edge("0", "1")
-            sage: gbe.write_ccdata(SAGE_TMP+"/graph.dat")
+            sage: import tempfile
+            sage: f = tempfile.NamedTemporaryFile(delete=False); f.close()
+            sage: gbe.write_ccdata(f.name)
             Writing graph to ...
             6 lines were written
             0
+            sage: os.remove(f.name)
         """
 
         fname = str_to_bytes(fname, FS_ENCODING, 'surrogateescape')
@@ -1104,10 +1113,13 @@ cdef class GLPKGraphBackend(object):
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
             sage: a = gbe.add_edge("0", "1")
-            sage: gbe.write_mincost(SAGE_TMP+"/graph.min")
+            sage: import tempfile
+            sage: f = tempfile.NamedTemporaryFile(delete=False); f.close()
+            sage: gbe.write_mincost(f.name)
             Writing min-cost flow problem data to ...
             4 lines were written
             0
+            sage: os.remove(f.name)
         """
 
         fname = str_to_bytes(fname, FS_ENCODING, 'surrogateescape')
@@ -1200,20 +1212,23 @@ cdef class GLPKGraphBackend(object):
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
+            sage: import tempfile
+            sage: f = tempfile.NamedTemporaryFile(delete=False); f.close()
+            sage: gbe.write_maxflow(f.name)
+            Traceback (most recent call last):
+            ...
+            OSError: Cannot write empty graph
             sage: gbe.add_vertices([None for i in range(2)])
             ['0', '1']
             sage: a = gbe.add_edge('0', '1')
             sage: gbe.maxflow_ffalg('0', '1')
             0.0
-            sage: gbe.write_maxflow(SAGE_TMP+"/graph.max")
+            sage: gbe.write_maxflow(f.name)
             Writing maximum flow problem data to ...
             6 lines were written
             0
-            sage: gbe = GLPKGraphBackend()
-            sage: gbe.write_maxflow(SAGE_TMP+"/graph.max")
-            Traceback (most recent call last):
-            ...
-            OSError: Cannot write empty graph
+            sage: os.remove(f.name)
+
         """
 
         if self.graph.nv <= 0:
