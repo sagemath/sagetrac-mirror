@@ -295,6 +295,11 @@ Check if :trac:`16397` is fixed:
     sage: RealSet((0, pi),[0, 3.5],(pi,4))
     [0, 4)
 
+Test for :trac:`23304`::
+
+    sage: (x + 1/3).power(2, hold=True).mul(2, hold=True)
+    2*(1/9*(3*x + 1)^2)
+
 More sanity tests::
 
     sage: bool(pi < pi)
