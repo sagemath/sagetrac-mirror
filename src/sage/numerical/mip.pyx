@@ -1336,7 +1336,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: x = p.new_variable(nonnegative=True)
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2,name="OneConstraint")
-            sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"))
+            sage: import tempfile
+            sage: with tempfile.TemporaryDirectory() as d:
+            ....:     p.write_mps(os.path.join(d, "lp_problem.mps"))
             Writing problem data to ...
             17 records were written
 
@@ -1362,7 +1364,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: x = p.new_variable(nonnegative=True)
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
-            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
+            sage: import tempfile
+            sage: with tempfile.TemporaryDirectory() as d:
+            ....:     p.write_lp(os.path.join(d, "lp_problem.lp"))
             Writing problem data to ...
             9 lines were written
 
