@@ -173,6 +173,7 @@ AUTHORS:
 
 from collections import defaultdict
 from sage.structure.category_object import normalize_names
+from sage.misc.randstate import randstate
 
 from sage.rings.integer import Integer
 
@@ -495,7 +496,7 @@ class FiniteFieldFactory(UniqueFactory):
 
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,
                                   impl=None, proof=None, check_irreducible=True,
-                                  prefix=None, repr=None, elem_cache=None,
+                                  prefix=None, repr=None, elem_cache=None, seed=0,
                                   **kwds):
         """
         EXAMPLES::
@@ -637,13 +638,15 @@ class FiniteFieldFactory(UniqueFactory):
                 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
                 R = PolynomialRing(FiniteField(p), 'x')
                 if modulus is None:
-                    modulus = R.irreducible_element(n)
+                    with randstate(seed):
+                        modulus = R.irreducible_element(n)
                 if isinstance(modulus, str):
                     # A string specifies an algorithm to find a suitable modulus.
                     if modulus != "random" and modulus in self._modulus_cache[order]:
                         modulus = self._modulus_cache[order][modulus]
                     else:
-                        self._modulus_cache[order][modulus] = modulus = R.irreducible_element(n, algorithm=modulus)
+                        with randstate(seed):
+                            self._modulus_cache[order][modulus] = modulus = R.irreducible_element(n, algorithm=modulus)
                 else:
                     if sage.rings.polynomial.polynomial_element.is_Polynomial(modulus):
                         modulus = modulus.change_variable_name('x')
