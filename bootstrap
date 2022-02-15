@@ -85,8 +85,7 @@ bootstrap () {
     # initialize SAGE_ENABLE... and sage_use_system_ options for standard packages
     for pkgname in $(./sage --package list :standard: | sort); do
         spkg_configures="$spkg_configures
-AS_VAR_SET_IF([SAGE_ENABLE_$pkgname], [], [AS_VAR_SET([SAGE_ENABLE_$pkgname], [yes])])
-AS_VAR_SET_IF([sage_use_system_$pkgname], [], [AS_VAR_COPY([sage_use_system_$pkgname], [SPKG_USE_SYSTEM_STANDARD_PACKAGES])])"
+AS_VAR_SET_IF([SAGE_ENABLE_$pkgname], [], [AS_VAR_SET([SAGE_ENABLE_$pkgname], [yes])])"
     done
     # --enable-SPKG options
     for pkgname in $(./sage --package list :optional: :experimental: | sort); do
@@ -107,6 +106,10 @@ SAGE_SPKG_ENABLE([$pkgname], [$pkgtype], [$(head -n1 build/pkgs/$pkgname/SPKG.rs
                             ;;
                     esac
                 fi
+    done
+    for pkgname in $(./sage --package list :standard: --has-file spkg-configure.m4 | sort); do
+        spkg_configures="$spkg_configures
+AS_VAR_SET_IF([sage_use_system_$pkgname], [], [AS_VAR_COPY([sage_use_system_$pkgname], [SPKG_USE_SYSTEM_STANDARD_PACKAGES])])"
     done
     for pkgname in $(./sage --package list --has-file spkg-configure.m4 | sort); do
         echo "m4_sinclude([build/pkgs/$pkgname/spkg-configure.m4])" >> m4/sage_spkg_configures.m4
