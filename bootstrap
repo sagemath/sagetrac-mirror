@@ -82,10 +82,11 @@ bootstrap () {
     rm -f m4/sage_spkg_configures.m4
     spkg_configures=""
 
-    # initialize SAGE_ENABLE... options for standard packages
+    # initialize SAGE_ENABLE... and sage_use_system_ options for standard packages
     for pkgname in $(./sage --package list :standard: | sort); do
         spkg_configures="$spkg_configures
-AS_VAR_SET_IF([SAGE_ENABLE_$pkgname], [], [AS_VAR_SET([SAGE_ENABLE_$pkgname], [yes])])"
+AS_VAR_SET_IF([SAGE_ENABLE_$pkgname], [], [AS_VAR_SET([SAGE_ENABLE_$pkgname], [yes])])
+AS_VAR_SET_IF([sage_use_system_$pkgname], [], [AS_VAR_COPY([sage_use_system_$pkgname], [SPKG_USE_SYSTEM_STANDARD_PACKAGES])])"
     done
     # --enable-SPKG options
     for pkgname in $(./sage --package list :optional: :experimental: | sort); do

@@ -1,6 +1,7 @@
 AC_DEFUN([SAGE_SPKG_ENABLE], [dnl
   m4_pushdef([SPKG_NAME], [$1])dnl
   m4_pushdef([SPKG_TYPE], [$2])dnl
+  m4_pushdef([SPKG_USE_SYSTEM], [sage_use_system_]SPKG_NAME)
   m4_if(SPKG_TYPE, [standard], [dnl
     dnl standard packages; help message is deliberately very brief,
     dnl as this is for advanced users only
@@ -10,6 +11,9 @@ AC_DEFUN([SAGE_SPKG_ENABLE], [dnl
       AS_VAR_SET([SAGE_ENABLE_]SPKG_NAME, [$enableval])
     )
   ], [dnl
+    dnl Default value for optional/experimental packages
+    dnl (the default for standard packages is set by commands emitted by bootstrap)
+    AS_VAR_SET_IF([SPKG_USE_SYSTEM], [], [AS_VAR_SET([SPKG_USE_SYSTEM], [yes])])
     dnl optional/experimental packages
     AC_ARG_ENABLE(SPKG_NAME,
       AS_HELP_STRING([--enable-]SPKG_NAME={no|if_installed (default)|yes},
@@ -20,6 +24,7 @@ AS_HELP_STRING([--disable-]SPKG_NAME,
       AS_VAR_SET([SAGE_ENABLE_]SPKG_NAME, [$enableval])
     )
   ])dnl
+  m4_popdef([SPKG_USE_SYSTEM])dnl
   m4_popdef([SPKG_TYPE])dnl
   m4_popdef([SPKG_NAME])dnl
 ])

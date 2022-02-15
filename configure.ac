@@ -503,6 +503,12 @@ AC_ARG_ENABLE([sagelib],
     done
   ])
 
+dnl Default for --with-system-SPKG
+AC_ARG_WITH([system-standard-packages],
+            AS_HELP_STRING([--with-system-standard-packages={no|yes (default)|force (exit with an error if no usable version is found)}],
+                           [default setting for all standard package except gcc; it can be overridden for individual packages]),
+            [AS_VAR_SET([SPKG_USE_SYSTEM_STANDARD_PACKAGES], [$withval])],
+            [AS_VAR_SET([SPKG_USE_SYSTEM_STANDARD_PACKAGES], [yes])])
 dnl Packages that require a special override to use the SPKG
 dnl when the system package is not usable.
 AS_VAR_SET([sage_use_system_gcc], [force])
