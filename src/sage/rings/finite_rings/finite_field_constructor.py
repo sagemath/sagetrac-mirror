@@ -254,6 +254,12 @@ class FiniteFieldFactory(UniqueFactory):
     - ``proof`` -- bool (default: ``True``): if ``True``, use provable
       primality test; otherwise only use pseudoprimality test.
 
+    - ``seed`` -- an integer, ``False`` or ``None``.  Passed on to
+      :class:`~saeg.misc.randstate.randstate` before selecting a modulus,
+      except that ``False`` (default) is translated to ``None`` if ``modulus`` is
+      ``"random"`` and ``0`` otherwise.  This has the effect of making the random
+      choices made in finding a modulus consistent unless specified.
+
     ALIAS: You can also use ``GF`` instead of ``FiniteField`` -- they
     are identical.
 
@@ -496,7 +502,7 @@ class FiniteFieldFactory(UniqueFactory):
 
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,
                                   impl=None, proof=None, check_irreducible=True,
-                                  prefix=None, repr=None, elem_cache=None, seed=0,
+                                  prefix=None, repr=None, elem_cache=None, seed=False,
                                   **kwds):
         """
         EXAMPLES::
@@ -635,6 +641,8 @@ class FiniteFieldFactory(UniqueFactory):
             # optimization which we also need to avoid an infinite loop:
             # a modulus of None is a shorthand for x-1.
             if modulus is not None or impl != 'modn':
+                if seed is False:
+                    seed = None if modulus == "random" else 0
                 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
                 R = PolynomialRing(FiniteField(p), 'x')
                 if modulus is None:
