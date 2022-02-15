@@ -15344,7 +15344,7 @@ cdef class Matrix(Matrix1):
         r = min(self.nrows(), self.ncols())
         return [d[i,i] for i in xrange(r)]
 
-    def smith_form(self, transformation=True, integral=None, exact=True):
+    def smith_form(self, transformation=True, integral=None, **kwds):
         r"""
         Return a Smith normal form of this matrix.
 
@@ -15382,9 +15382,6 @@ cdef class Matrix(Matrix1):
           by the denominator must map the entries into the subring; in this
           case the transformation matrices will have entries in this subring.
 
-        - ``exact`` -- a boolean (default: ``True``), only used for local rings/fields.
-          See ``LOCAL RINGS`` for more details.
-
         OUTPUT:
 
         The matrices `S, U, V` or the matrix `S` depending on
@@ -15408,6 +15405,9 @@ cdef class Matrix(Matrix1):
         uniformizer.  In this case, which is specified by the keyword ``exact=True``,
         one of the transformation matrices will be inexact: `U` in the case that
         the number of rows is at least the number of columns, and `V` otherwise.
+
+        On local rings, an additional optional boolean argument ``exact`` (with 
+        default ``True``) is available.
 
         If ``exact=False``, we instead return an inexact Smith form.  Now the
         transformation matrices are exact and we can deal gracefully with
@@ -15523,7 +15523,7 @@ cdef class Matrix(Matrix1):
         """
         R = self.base_ring()
         if hasattr(R, '_matrix_smith_form'):
-            return R._matrix_smith_form(self, transformation=transformation, integral=integral, exact=exact)
+            return R._matrix_smith_form(self, transformation, integral, **kwds)
         if integral is True:
             integral = R.ring_of_integers()
         elif integral is R:
@@ -15704,23 +15704,23 @@ cdef class Matrix(Matrix1):
         if transformation:
             return U
 
-    def hermite_form(self, include_zero_rows=True, transformation=False):
+    def hermite_form(self, include_zero_rows=True, transformation=False, **kwds):
         """
         Return the Hermite form of self, if it is defined.
 
         INPUT:
 
-            - ``include_zero_rows`` -- bool (default: True); if False
-              the zero rows in the output matrix are deleted.
+        - ``include_zero_rows`` -- a boolean (default: ``True``); if ``False``
+          the zero rows in the output matrix are deleted.
 
-            - ``transformation`` -- bool (default: False) a matrix U such that U*self == H.
+        - ``transformation`` -- a boolean (default: ``False``) a matrix U such that U*self == H.
 
         OUTPUT:
 
-            - matrix H
-            - (optional) transformation matrix U such that U*self == H, possibly with zero
-              rows deleted...
+        - matrix H
 
+        - (optional) transformation matrix U such that U*self == H, possibly with zero
+          rows deleted...
 
         EXAMPLES::
 
@@ -15751,6 +15751,9 @@ cdef class Matrix(Matrix1):
             sage: U*A == H
             True
         """
+        R = self.base_ring()
+        if hasattr(R, '_matrix_hermite_form'):
+            return R._matrix_hermite_form(self, include_zero_rows, transformation, **kwds)
         left, H, pivots = self._echelon_form_PID()
         if not include_zero_rows:
             i = H.nrows() - 1
