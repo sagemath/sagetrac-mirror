@@ -6,7 +6,7 @@ set -e
 SYSTEM="${1:-debian}"
 shopt -s extglob
 SAGE_PACKAGE_LIST_ARGS="${2:- --has-file=spkg-configure.m4 :standard:}"
-WITH_SYSTEM_SPKG="${3:-yes}"
+# WITH_SYSTEM_SPKG="${3:-yes}"  # argument 3 is now ignored
 IGNORE_MISSING_SYSTEM_PACKAGES="${4:-no}"
 EXTRA_SAGE_PACKAGES="${5:-_bootstrap}"
 #
@@ -22,9 +22,6 @@ for PKG_BASE in $($SAGE_ROOT/sage -package list --has-file=distros/$SYSTEM.txt $
        PKG_SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE))
        if [ -n "PKG_SYSTEM_PACKAGES" ]; then
            SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
-           if [ -f $PKG_SCRIPTS/spkg-configure.m4 ]; then
-               CONFIGURE_ARGS+="--with-system-$PKG_BASE=${WITH_SYSTEM_SPKG} "
-           fi
        fi
     fi
 done
@@ -207,17 +204,7 @@ FROM bootstrapped as configured
 #:configuring:
 RUN mkdir -p logs/pkgs; ln -s logs/pkgs/config.log config.log
 ARG EXTRA_CONFIGURE_ARGS=""
-EOF
-if [ ${WITH_SYSTEM_SPKG} = "force" ]; then
-    cat <<EOF
-$RUN echo "****** Configuring: ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} *******"; ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} || (echo "********** configuring without forcing ***********"; cat config.log; ./configure --enable-build-as-root; cat config.log; exit 1) $ENDRUN
-EOF
-else
-    cat <<EOF
 $RUN echo "****** Configuring: ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} *******"; ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} || (cat config.log; exit 1) $ENDRUN
-EOF
-fi
-cat <<EOF
 
 FROM configured as with-base-toolchain
 # We first compile base-toolchain because otherwise lots of packages are missing their dependency on 'patch'
