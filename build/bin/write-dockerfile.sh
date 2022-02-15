@@ -100,7 +100,7 @@ FROM \${BASE_IMAGE} as with-system-packages
 RUN nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs
 RUN nix-channel --update
 EOF
-        INSTALL="nix-env --install"
+        INSTALL="nix-env -f '<nixpkgs>' --install --attr"
         RUN="RUN nix-shell --packages \$PACKAGES --run "\'
         ENDRUN=\'
         ;;
