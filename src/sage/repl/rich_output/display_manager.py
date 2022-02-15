@@ -410,7 +410,9 @@ class DisplayManager(SageObject):
             RuntimeError: check failed: current backend is invalid
         """
         if not isinstance(self._backend, backend_class):
-            raise RuntimeError('check failed: current backend is invalid')
+            raise RuntimeError(
+                f"check failed: current backend '{self._backend}' is invalid"
+            )
 
     def _demote_output_class(self, output_class):
         """
@@ -551,10 +553,12 @@ class DisplayManager(SageObject):
             if type(out) is not OutputUnicodeArt:
                 raise OutputTypeException('backend returned wrong output type, require UnicodeArt')
             return out
-        if want == 'latex' and OutputHtml in supported:
+        if want == "latex" and (OutputHtml in supported or OutputLatex in supported):
             out = self._backend.latex_formatter(obj, **kwds)
-            if type(out) is not OutputHtml:
-                raise OutputTypeException('backend returned wrong output type, require Html')
+            if type(out) is not OutputHtml and type(out) is not OutputLatex:
+                raise OutputTypeException(
+                    f"backend returned wrong output type '{out}', require Html or Latex"
+                )
             return out
         if plain_text is not None:
             if type(plain_text) is not OutputPlainText:

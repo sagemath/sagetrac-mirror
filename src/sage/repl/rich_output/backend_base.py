@@ -50,7 +50,13 @@ EXAMPLES::
 
 import builtins
 from io import StringIO
+from __future__ import annotations
+from typing import TYPE_CHECKING, Any
 from sage.structure.sage_object import SageObject
+
+if TYPE_CHECKING:
+    from sage.repl.rich_output.output_browser import OutputHtml
+    from sage.repl.rich_output.output_basic import OutputLatex
 
 
 class BackendBase(SageObject):
@@ -425,7 +431,7 @@ class BackendBase(SageObject):
         from sage.repl.rich_output.output_basic import OutputUnicodeArt
         return OutputUnicodeArt(str(result))
 
-    def latex_formatter(self, obj, **kwds):
+    def latex_formatter(self, obj: Any, **kwds) -> OutputLatex | OutputHtml:
         r"""
         Hook to override how latex is being formatted.
 
@@ -472,7 +478,15 @@ class BackendBase(SageObject):
             sage: backend.latex_formatter([], concatenate=True).html.get_str()
             '<html>\\[\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\]</html>'
         """
-        concatenate = kwds.get('concatenate', False)
+        from sage.repl.rich_output.output_basic import OutputLatex
+
+        concatenate = kwds.get("concatenate", False)
+
+        if OutputLatex in self.supported_output():
+            from sage.misc.latex import latex
+
+            return OutputLatex(latex(obj, combine_all=concatenate))
+
         from sage.misc.html import html
         from sage.repl.rich_output.output_browser import OutputHtml
         return OutputHtml(html(obj, concatenate=concatenate, strict=True))

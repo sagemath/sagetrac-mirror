@@ -537,9 +537,13 @@ class BackendIPythonNotebook(BackendIPython):
         elif isinstance(rich_output, OutputUnicodeArt):
             return ({'text/plain': rich_output.unicode_art.get_str()}, {})
         elif isinstance(rich_output, OutputLatex):
-            return ({'text/latex': rich_output.latex.get_str(),
-                     'text/plain': plain_text.text.get_str(),
-            }, {})
+            return (
+                {
+                    "text/latex": f"$\\displaystyle {rich_output.latex.get_str()}$",
+                    "text/plain": plain_text.text.get_str(),
+                },
+                {},
+            )
         elif isinstance(rich_output, OutputHtml):
             data = {'text/html':  rich_output.html.get_str(),
                     'text/plain': plain_text.text.get_str()}
