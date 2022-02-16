@@ -17592,18 +17592,17 @@ cdef class Matrix(Matrix1):
         return True
 
 
-    def _is_square_over_non_archimedean_local_field(self):
+    def _is_over_non_archimedean_local_field(self):
         """
-        Return if matrix is square over a non-archimedean local field.
+        Return if matrix is defined over a non-archimedean local field.
 
         This is a helper function for several decomposition-methods that
         only work for this type of matrix.
 
         OUTPUT:
 
-        `True` if ``self`` is a non-empty square matrix over one of the
-        non-archimedean local fields that are currently implemented on
-        sage:
+        `True` if ``self`` is defined over one of the non-archimedean
+        local fields that are currently implemented on sage:
         Padic base-fields / one-step eisenstein or unramified
         extensions / 2-step extensions (unramified followed by
         eisenstein),
@@ -17618,21 +17617,21 @@ cdef class Matrix(Matrix1):
             sage: F
             3-adic Field with capped relative precision 20
             sage: M = random_matrix(F, 3)
-            sage: M._is_square_over_non_archimedean_local_field()
+            sage: M._is_over_non_archimedean_local_field()
             True
 
             sage: F.<a> = Qp(3).extension(x^2-2)
             sage: F
             3-adic Unramified Extension Field in a defined by x^2 - 2
             sage: M = random_matrix(F, 3)
-            sage: M._is_square_over_non_archimedean_local_field()
+            sage: M._is_over_non_archimedean_local_field()
             True
 
             sage: F.<a> = Qp(3).extension(x^2-3)
             sage: F
             3-adic Eisenstein Extension Field in a defined by x^2 - 3
             sage: M = random_matrix(F, 3)
-            sage: M._is_square_over_non_archimedean_local_field()
+            sage: M._is_over_non_archimedean_local_field()
             True
 
             sage: R.<x> = ZZ[]
@@ -17641,30 +17640,24 @@ cdef class Matrix(Matrix1):
             sage: F
             5-adic Eisenstein Extension Ring in w defined by x^3 - 5 over its base ring
             sage: M = random_matrix(F, 3)
-            sage: M._is_square_over_non_archimedean_local_field()
+            sage: M._is_over_non_archimedean_local_field()
             True
 
             sage: F = LaurentSeriesRing(GF(9))
             sage: F
             Laurent Series Ring in None over Finite Field in z2 of size 3^2
             sage: M = random_matrix(F, 3)
-            sage: M._is_square_over_non_archimedean_local_field()
+            sage: M._is_over_non_archimedean_local_field()
             True
 
         Examples for matrices that aren't over such fields::
 
             sage: M = random_matrix(QQ, 3)
-            sage: M._is_square_over_non_archimedean_local_field()
+            sage: M._is_over_non_archimedean_local_field()
             False
 
             sage: M = random_matrix(RR, 3)
-            sage: M._is_square_over_non_archimedean_local_field()
-            False
-
-        Examples for matrices that aren't square and non-empty::
-
-            sage: M = random_matrix(Qp(3), 3, 4)
-            sage: M._is_square_over_non_archimedean_local_field()
+            sage: M._is_over_non_archimedean_local_field()
             False
 
 
@@ -17682,13 +17675,16 @@ cdef class Matrix(Matrix1):
             eisenstein),
             or Laurent-series rings over finite fields.
 
+        .. WARNING::
+
+            The method returns `True` only if the matrix is over
+            one of the non-archimedean local field classes which are
+            currrently implemented in sage.
+
         """
         from sage.rings.padics.padic_extension_generic import pAdicExtensionGeneric
         from sage.rings.padics.padic_generic import pAdicGeneric
         from sage.rings.laurent_series_ring import is_LaurentSeriesRing
-
-        if self.ncols() == 0 or (self.ncols() != self.nrows()):
-            return False
 
         F = self.base_ring()
         # Every non-archimedean local field must have a (finite) residue_field.
@@ -18289,10 +18285,10 @@ cdef class Matrix(Matrix1):
             sage: M.iwasawa()
             Traceback (most recent call last):
             ...
-            TypeError: ``self`` must be a non-empty square matrix over one of
-            the following non-archimedean local fields: Laurent-Series-Rings over
-            finite fields, or padic fields of the following types: base, 1-step
-            unramified or eisenstein extension, or 2-step unramified followed by
+            TypeError: ``self`` must be defined over one of the following
+            non-archimedean local fields: Laurent-Series-Rings over finite fields,
+            or padic fields of the following types: base, 1-step unramified or
+            eisenstein extension, or 2-step unramified followed by
             eisenstein extension.
 
         A zero matrix test::
@@ -18312,12 +18308,16 @@ cdef class Matrix(Matrix1):
             [0 0 1]
         """
         A = self.matrix_over_field()
-        if not A._is_square_over_non_archimedean_local_field():
-            raise TypeError("``self`` must be a non-empty square matrix over one \
-                of the following non-archimedean local fields: Laurent-Series-Rings \
-                over finite fields, or padic fields of the following types: base, \
-                1-step unramified or eisenstein extension, or 2-step unramified \
-                followed by eisenstein extension.")
+
+        # Check that the matrix is legal for this decomposition
+        if (A.ncols() == 0) or (not A.is_square()):
+            raise TypeError("``self`` must be a non-empty square matrix.")
+        if not A._is_over_non_archimedean_local_field():
+            raise TypeError("``self`` must be defined over one of the following \
+                non-archimedean local fields: \
+                Laurent-Series-Rings over finite fields, or padic fields of the \
+                following types: base, 1-step unramified or eisenstein extension, \
+                or 2-step unramified followed by eisenstein extension.")
 
         # Get ``T``, ``K`` such that ``self``*``K`` =``T``, ``T`` is
         # upper-triangular and ``K`` is invertible over the integer-ring.
@@ -19514,10 +19514,10 @@ cdef class Matrix(Matrix1):
             sage: M.cartan()
             Traceback (most recent call last):
             ...
-            TypeError: ``self`` must be a non-empty square matrix over one of
-            the following non-archimedean local fields: Laurent-Series-Rings over
-            finite fields, or padic fields of the following types: base, 1-step
-            unramified or eisenstein extension, or 2-step unramified followed by
+            TypeError: ``self`` must be defined over one of the following
+            non-archimedean local fields: Laurent-Series-Rings over finite fields,
+            or padic fields of the following types: base, 1-step unramified or
+            eisenstein extension, or 2-step unramified followed by
             eisenstein extension.
 
         A zero matrix test::
@@ -19541,12 +19541,16 @@ cdef class Matrix(Matrix1):
             [0 0 1]
         """
         A = self.matrix_over_field()
-        if not A._is_square_over_non_archimedean_local_field():
-            raise TypeError("``self`` must be a non-empty square matrix over one \
-                of the following non-archimedean local fields: Laurent-Series-Rings \
-                over finite fields, or padic fields of the following types: base, \
-                1-step unramified or eisenstein extension, or 2-step unramified \
-                followed by eisenstein extension.")
+
+        # Check that the matrix is legal for this decomposition
+        if (A.ncols() == 0) or (not A.is_square()):
+            raise TypeError("``self`` must be a non-empty square matrix.")
+        if not A._is_over_non_archimedean_local_field():
+            raise TypeError("``self`` must be defined over one of the following \
+                non-archimedean local fields: \
+                Laurent-Series-Rings over finite fields, or padic fields of the \
+                following types: base, 1-step unramified or eisenstein extension, \
+                or 2-step unramified followed by eisenstein extension.")
 
         # Get ``K1``, ``D``, ``K2``, such that ``K1``*``self`` = ``D``*``K2``,
         # both ``K1``,``K2`` are invertible over the integer-ring, and ``D`` is
@@ -20052,10 +20056,10 @@ cdef class Matrix(Matrix1):
             sage: M.bruhat_iwahori()
             Traceback (most recent call last):
             ...
-            TypeError: ``self`` must be a non-empty square matrix over one of
-            the following non-archimedean local fields: Laurent-Series-Rings over
-            finite fields, or padic fields of the following types: base, 1-step
-            unramified or eisenstein extension, or 2-step unramified followed by
+            TypeError: ``self`` must be defined over one of the following
+            non-archimedean local fields: Laurent-Series-Rings over finite fields,
+            or padic fields of the following types: base, 1-step unramified or
+            eisenstein extension, or 2-step unramified followed by
             eisenstein extension.
 
         A zero matrix test::
@@ -20079,12 +20083,16 @@ cdef class Matrix(Matrix1):
             [0 0 1]
         """
         A = self.matrix_over_field()
-        if not A._is_square_over_non_archimedean_local_field():
-            raise TypeError("``self`` must be a non-empty square matrix over one \
-                of the following non-archimedean local fields: Laurent-Series-Rings \
-                over finite fields, or padic fields of the following types: base, \
-                1-step unramified or eisenstein extension, or 2-step unramified \
-                followed by eisenstein extension.")
+
+        # Check that the matrix is legal for this decomposition
+        if (A.ncols() == 0) or (not A.is_square()):
+            raise TypeError("``self`` must be a non-empty square matrix.")
+        if not A._is_over_non_archimedean_local_field():
+            raise TypeError("``self`` must be defined over one of the following \
+                non-archimedean local fields: \
+                Laurent-Series-Rings over finite fields, or padic fields of the \
+                following types: base, 1-step unramified or eisenstein extension, \
+                or 2-step unramified followed by eisenstein extension.")
 
         # Get ``B1``, ``W``, ``B2``, such that ``B1``*``self`` = ``W``*``B2``,
         # both ``B1``,``B2`` are Iwahori matrices, and ``W`` is Affine-Weyl.
@@ -20596,10 +20604,10 @@ cdef class Matrix(Matrix1):
             sage: M.TSB()
             Traceback (most recent call last):
             ...
-            TypeError: ``self`` must be a non-empty square matrix over one of
-            the following non-archimedean local fields: Laurent-Series-Rings over
-            finite fields, or padic fields of the following types: base, 1-step
-            unramified or eisenstein extension, or 2-step unramified followed by
+            TypeError: ``self`` must be defined over one of the following
+            non-archimedean local fields: Laurent-Series-Rings over finite fields,
+            or padic fields of the following types: base, 1-step unramified or
+            eisenstein extension, or 2-step unramified followed by
             eisenstein extension.
 
         A zero matrix test::
@@ -20623,12 +20631,16 @@ cdef class Matrix(Matrix1):
             [0 0 1]
         """
         A = self.matrix_over_field()
-        if not A._is_square_over_non_archimedean_local_field():
-            raise TypeError("``self`` must be a non-empty square matrix over one \
-                of the following non-archimedean local fields: Laurent-Series-Rings \
-                over finite fields, or padic fields of the following types: base, \
-                1-step unramified or eisenstein extension, or 2-step unramified \
-                followed by eisenstein extension.")
+
+        # Check that the matrix is legal for this decomposition
+        if (A.ncols() == 0) or (not A.is_square()):
+            raise TypeError("``self`` must be a non-empty square matrix.")
+        if not A._is_over_non_archimedean_local_field():
+            raise TypeError("``self`` must be defined over one of the following \
+                non-archimedean local fields: \
+                Laurent-Series-Rings over finite fields, or padic fields of the \
+                following types: base, 1-step unramified or eisenstein extension, \
+                or 2-step unramified followed by eisenstein extension.")
 
         # Get ``T``, ``S``, ``B``, such that ``T``*``self`` = ``S``*``B``, ``T``
         # is invertible upper-triangular, ``S`` is a permutation matrix, and ``B``
@@ -21098,7 +21110,9 @@ cdef class Matrix(Matrix1):
             [0 0 1]
         """
         A = self.matrix_over_field()
-        if A.ncols() == 0 or (A.ncols() != A.nrows()):
+
+        # Check that the matrix is legal for this decomposition
+        if (A.ncols() == 0) or (not A.is_square()):
             raise TypeError("``self`` must be a non-empty square matrix.")
 
         # Get ``T1``, ``S``, ``T2``, such that ``T1``*``self`` = ``S``*``T2``,
