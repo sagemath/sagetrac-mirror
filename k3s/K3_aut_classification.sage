@@ -462,6 +462,3 @@ def spread_to_files(path_read, path):
 
 
 
-
-
-

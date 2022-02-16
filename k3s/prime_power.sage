@@ -67,6 +67,8 @@ def is_admissible(A, B, C, p):
     EXAMPLES::
 
     """
+    if A.rank()==0 or B.rank()==0:
+      return A==C or B==C
     from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
     primes = [sym.prime() for sym in C.local_symbols() if sym.prime() != p]
 
@@ -130,7 +132,9 @@ def is_admissible(A, B, C, p):
     # for the existence of a glue map
     if ker_max < ker_min:
         return False
-
+    glue_max = min(X.rank()-X.local_symbol(p).symbol(0)[1] for X in [A,B])
+    if g > glue_max:
+      return False
 
     ABp = AB.local_symbols(p).symbol_tuple_list()
     Cp = C.local_symbols(p).symbol_tuple_list()
@@ -497,6 +501,137 @@ def prime_order(p, genus, k3=True,verbose=2,rankCp=None):
                                 for ex in ext:
                                     yield ex
 
+
+
+def admissible_pairs(p, genus, k3=True,verbose=2,rankCp=None):
+    r"""
+    """
+    G = genus
+    pos, neg = G.signature_pair()
+    if not 0 <= pos <= 3:
+        raise ValueError('number of positive squares must be 0, or 2 or 3')
+    rk = genus.rank()
+
+    triples = []
+    A = genus
+    B = Genus(matrix(ZZ,0,0,[]))
+    triples.append([A,B])
+
+    # fix the rank of Cp
+    for k in range(1, rk//(p-1)):
+        rkCp = k * (p-1)
+        if rankCp is not None and rkCp !=rankCp:
+            continue
+        if pos > 1:
+            if k==1:
+                continue
+            sigp = (2,rkCp-2)
+        if pos <= 1:
+            sigp = (0,rkCp)
+        rkC1 = rk - rkCp
+        sigC1 = pos - sigp[0], neg - sigp[1]
+        detCpmin = G.scale()^rkCp
+        m = min(k, rkC1) # a bit crude
+        detCpmax = p^m*G.det()
+        # fix the determinant of Cp
+        for detCp in [d for d in detCpmax.divisors() if detCpmin.divides(d)]:
+            # fix Cp
+            # fix the glue order
+            for glue_order in gcd(p^m, detCp).divisors():
+                detC1 = G.det() * glue_order^2 / detCp
+                if detC1.denominator() != 1:
+                    continue
+                detC1 = ZZ(detC1)
+                # the glue group is too small
+                if not glue_order.divides(detC1):
+                    continue
+                for CpG in all_genera_by_det(sigp, detCp, max_scale = p*G.level(),even=G.is_even()):
+                    for genusC1 in all_genera_by_det(sigC1, detC1, max_scale=p*G.level(),even=G.is_even()):
+                        if not is_admissible(CpG, genusC1, G, p):
+                            continue
+                        triples.append([CpG,genusC1])
+    return triples
+
+@parallel(ncpus=6)
+def glue_orderp_parallel(Cp, C1, G, p):
+  CpG = Genus(Cp)
+  genusC1 = Genus(C1)
+  G = Genus(G)
+  return [r[0:2] for r in glue_orderp(CpG,genusC1,G,p,k3=False,rep=False)]
+
+
+def glue_orderp(CpG, genusC1,G, p, k3=True, verbose=3, rep=True):
+  rkC1 = genusC1.rank()
+  f1 = matrix.identity(rkC1)
+  pos, neg = G.signature_pair()
+  if CpG.rank()==0:
+    for C in genusC1.representatives():
+      yield C,f1,C.image_in_Oq()
+    return
+  k = CpG.rank()//(p-1)
+  if pos > 1 and p != 2:
+    sigp = [k-1] + ((p-1)//2 - 1) *[k]
+  if pos > 1 and p == 2:
+    if k==1:
+      return []
+    sigp = [k-2]
+  if pos <= 1 and p != 2:
+    sigp = ((p-1)//2) *[k]
+  if pos <= 1 and p == 2:
+    sigp = [k]
+  glue_order = (CpG.det()*genusC1.det()/G.det()).sqrt()
+  for CpG in all_lattice_with_isometry(p, k, CpG.det(), p*G.level(), signatures=sigp,
+                                    min_scale=G.scale(),min_norm=G.norm(),return_genera=True):
+    try:
+      Cp_genus = CpG.trace()
+    except AttributeError:
+      Cp_genus = CpG
+    if Cp_genus != CpG:
+      continue
+    posCp, _ = Cp_genus.signature_pair()
+    if verbose > 2:
+      print('computing representatives of lattice with isometry of order %s:'%p)
+      print(Cp_genus)
+      print('')
+    if rep:
+      CpGR = CpG.representatives()
+    else:
+      CpGR = [CpG.representative()]
+    for CpE in CpGR:
+      Cp, fp = trace_lattice(CpE)
+      Cp = IntegralLattice(Cp)
+      # In the coinvariant lattice in NS there are no roots
+      if k3 and posCp==0 and Cp.maximum()==-2:
+        continue
+      Cph = LatticeWithIsometry(Cp,fp,order=p,gramE=CpE,magmaRep=CpG.representative())
+      GCp = Cph.Oq_equiv()
+      if genusC1.rank()==0:
+        if k3:
+          return
+        yield Cp,fp, GCp
+        continue
+      if verbose > 2:
+        print('computing representatives of')
+        print(genusC1)
+        print(' ')
+      for C1 in genusC1.representatives():
+        if verbose > 0:
+          print("glueing")
+          print("C1: %s"%genusC1.local_symbols(p))
+          print("and C%s %s"%(p,CpG))
+          print("along")
+          print(glue_order.factor())
+
+        C1 = IntegralLattice(C1)
+        GC1 = C1.image_in_Oq()
+        ext = extensions(Cp, fp, C1, f1, GCp, GC1,
+                        glue_order, p, target_genus=G)
+        if len(ext) == 0:
+          break
+        if verbose > 0:
+            print("Found %s matching extensions"%len(ext))
+        for ex in ext:
+            yield ex
 
 def isometries(n, genus):
     r"""

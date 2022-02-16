@@ -7,9 +7,9 @@ libgap.eval("SetRecursionTrapInterval(10000000)");
 
 
 def subs(k3):
-    G = k3.G.gap()
+    G = k3.group().gap()
     G.IsFinite()
-    G0 = k3.G.subgroup(k3.G0).gap()
+    G0 = k3.group().subgroup(k3.symplectic_subgroup()).gap()
     subgroups = []
     for S in G.ConjugacyClassesSubgroups():
         S = S.Representative()
@@ -27,8 +27,8 @@ def get_id(G):
     return tuple(idG)
 
 def k3_id(k3):
-    G = k3.G.gap()
-    G0 = k3.G0.gap()
+    G = k3.group().gap()
+    G0 = k3.symplectic_subgroup().gap()
     G.IsFinite()
     G0.IsFinite()
     k3id = (get_id(G0),get_id(G))
@@ -44,7 +44,7 @@ def get_multiplicity(K3s):
 
 def get_max_pairs(K3s):
     K3s = copy(K3s)
-    K3s.sort(key=lambda x: x.G.order())
+    K3s.sort(key=lambda x: x.group().order())
     known = []
     maximal = []
     while len(K3s)>0:
@@ -61,7 +61,7 @@ def get_max_pairs(K3s):
 
 def get_max(K3s):
     K3s = copy(K3s)
-    K3s.sort(key=lambda x: x.G.order())
+    K3s.sort(key=lambda x: x.group().order())
     known = []
     maximal = []
     while len(K3s)>0:
@@ -81,10 +81,10 @@ def get_max(K3s):
 #known, maximal= get_max(K3s)
 
 def abelian_invs(k3):
-    assert k3.G.is_abelian()
-    a = k3.G.gap().AbelianInvariants().sage()
+    assert k3.group().is_abelian()
+    a = k3.group().gap().AbelianInvariants().sage()
     a = AbelianGroup(a).elementary_divisors()
-    a0 = k3.G0.gap().AbelianInvariants().sage()
+    a0 = k3.symplectic_subgroup().gap().AbelianInvariants().sage()
     a0 = AbelianGroup(a0).elementary_divisors()
     return (a0,a)
 
@@ -106,11 +106,11 @@ def is_enriques_invol(H,g):
 
 
 def get_enriques_id(k3,g,return_sub=False):
-    g = k3.G(g)
-    C = k3.G.gap().Centralizer(g.gap())
+    g = k3.group()(g)
+    C = k3.group().gap().Centralizer(g.gap())
     Cg = C.Subgroup([g])
     S = C.FactorGroup(Cg)
-    S0 = C.Intersection(k3.G0)
+    S0 = C.Intersection(k3.symplectic_subgroup())
     S0s = C.Subgroup([g] + [h for h in S0.GeneratorsOfGroup()])
     S0s = S0s.FactorGroup(S0s.Subgroup([g]))
     assert S0.IdGroup()==S0s.IdGroup()
@@ -121,7 +121,7 @@ def get_enriques_id(k3,g,return_sub=False):
 
 def get_enriques_ids(k3,return_sub=False):
     ids = []
-    C = k3.G.conjugacy_classes_representatives()
+    C = k3.group().conjugacy_classes_representatives()
     H = k3.H
     for c in C:
         if c.order()==2 and is_enriques_invol(H,c.matrix()):
