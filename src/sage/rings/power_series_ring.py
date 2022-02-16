@@ -1159,28 +1159,6 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             prec = self.default_prec()
         return self(self.__poly_ring.random_element(prec-1, *args, **kwds), prec)
 
-    def __contains__(self, x):
-        """
-        Return True if x is an element of this power series ring or
-        canonically coerces to this ring.
-
-        EXAMPLES::
-
-            sage: R.<t> = PowerSeriesRing(ZZ)
-            sage: t + t^2 in R
-            True
-            sage: 1/t in R
-            False
-            sage: 5 in R
-            True
-            sage: 1/3 in R
-            False
-            sage: S.<s> = PowerSeriesRing(ZZ)
-            sage: s in R
-            False
-        """
-        return self.has_coerce_map_from(parent(x))
-
     def is_field(self, proof = True):
         """
         Return False since the ring of power series over any ring is never

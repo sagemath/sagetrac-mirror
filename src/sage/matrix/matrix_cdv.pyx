@@ -56,6 +56,16 @@ def echelonize_cdv_nonexact(M, transformation, integral):
 
     In this variant, the transformation matrix is exact (i.e. known at
     the maximal precision) while the echelon form may have inexact entries.
+
+    TESTS::
+
+        sage: R = Zp(3)
+        sage: M = matrix(R, 3, 3, [ R(i,5) for i in range(9) ])
+        sage: M.echelon_form(exact=False)  # indirect doctest
+        [    3 + O(3^5) 1 + 3 + O(3^5) 2 + 3 + O(3^5)]
+        [        O(3^5)     1 + O(3^5)     2 + O(3^5)]
+        [        O(3^5)         O(3^5)         O(3^5)]
+
     """
     n = M.nrows()
     m = M.ncols()
@@ -161,6 +171,15 @@ def echelonize_cdv_exact(M, transformation, integral, secure):
     In this variant, if `r` is the rank of `M`, the first `r` columns of the
     echelon form are exact, i.e. given at the maximal precision allowed by 
     the parent.
+
+    TESTS::
+
+        sage: R = Zp(3)
+        sage: M = matrix(R, 3, 3, [ R(i,5) for i in range(9) ])
+        sage: M.echelon_form()  # indirect doctest
+        [                 3 + O(3^21)                            0 2*3 + 2*3^2 + 2*3^3 + O(3^4)]
+        [                           0                  1 + O(3^20)                   2 + O(3^4)]
+        [                           0                            0                       O(3^4)]
     """
     n = M.nrows()
     m = M.ncols()
@@ -248,8 +267,7 @@ def echelonize_cdv_exact(M, transformation, integral, secure):
 def flatten_precision(M):
     r"""
     Rescale rows and columns of ``M`` so that the minimal
-    absolute precision of each row and column is equal to
-    the cap.
+    absolute precision of each row and column is equal to `0`.
 
     This method is useful for increasing the numerical
     stability. It is called by :func:`smith_cdv` and
@@ -271,31 +289,28 @@ def flatten_precision(M):
         [   ...00001  ...0000010]
         [     ...011 ...00000101]
         sage: flatten_precision(M)
-        ([5, 7], [0, -2])
+        ([-5, -3], [0, -2])
         sage: M
-        [   ...0000100000    ...0000010000]
-        [   ...0110000000 ...0000010100000]
+        [  ...?.00001  ...?.000001]
+        [    ...?.011 ...000.00101]
     """
     parent = M.base_ring()
-    cap = parent.precision_cap()
-    if cap is Infinity:
-        cap = parent.default_prec()
     n = M.nrows()
     m = M.ncols()
     shift_rows = n * [ ZZ(0) ]
     shift_cols = m * [ ZZ(0) ]
     for i in range(n):
         prec = min(M[i,j].precision_absolute() for j in range(m))
-        if prec is Infinity or prec == cap:
+        if prec is Infinity:
             continue
-        shift_rows[i] = s = cap - prec
+        shift_rows[i] = s = -prec
         for j in range(m):
             M[i,j] <<= s
     for j in range(m):
         prec = min(M[i,j].precision_absolute() for i in range(n))
-        if prec is Infinity or prec == cap:
+        if prec is Infinity:
             continue
-        shift_cols[j] = s = cap - prec
+        shift_cols[j] = s = -prec
         for i in range(n):
             M[i,j] <<= s
     return shift_rows, shift_cols
@@ -353,11 +368,17 @@ def smith_cdv(M, transformation, integral, exact):
             return smith_cdv(M.transpose(), False, integral, exact).transpose()
     smith = M.parent()(0)
     S = copy(M)
-    Z = R.integer_ring()
+    if R.is_field():
+        Z = R.integer_ring()
+    else:
+        Z = R
 
     ## the difference between ball_prec and inexact_ring is just for lattice precision.
-    ball_prec = R._prec_type() in ['capped-rel', 'capped-abs', 'relaxed']
-    inexact_ring = R._prec_type() not in ['fixed-mod', 'floating-point']
+    if hasattr(R, '_prec_type'):
+        ball_prec = R._prec_type() in ['capped-rel', 'capped-abs', 'relaxed']
+        inexact_ring = R._prec_type() not in ['fixed-mod', 'floating-point']
+    else:
+        ball_prec = inexact_ring = True
 
     if not integral:
         shift_rows, shift_cols = flatten_precision(S)
@@ -497,7 +518,7 @@ def smith_cdv(M, transformation, integral, exact):
 # Determinant
 #############
 
-def determinant_cdv(self, M):
+def determinant_cdv(M):
     r"""
     Return the determinant of the matrix `M`.
 
@@ -573,9 +594,12 @@ def determinant_cdv(self, M):
         return M[0,0]*M[1,1] - M[0,1]*M[1,0]
 
     R = M.base_ring()
-    track_precision = R._prec_type() in ['capped-rel','capped-abs']
+    if hasattr(R, '_prec_type'):
+        track_precision = R._prec_type() in ['capped-rel', 'capped-abs', 'relaxed']
+    else:
+        track_precision = True
 
-    S = copy(M)
+    S = M.change_ring(R.fraction_field())
     shift_rows, shift_cols = flatten_precision(S)
     shift = sum(shift_rows) + sum(shift_cols)
     det = R(1)
@@ -621,6 +645,7 @@ def determinant_cdv(self, M):
                 scalar = scalar.lift_to_precision()
             S.add_multiple_of_row(i,piv,scalar)
 
+    det = sign * det
     if track_precision:
         relprec = +Infinity
         relprec_neg = 0
@@ -635,9 +660,8 @@ def determinant_cdv(self, M):
                 relprec_neg += prec
         if relprec_neg < 0:
             relprec = relprec_neg
-        det = (sign*det).add_bigoh(valdet+relprec)
-    else:
-        det = sign*det
+        if relprec is not Infinity:
+            det = det.add_bigoh(valdet + relprec)
     return det >> shift
 
 
@@ -667,7 +691,7 @@ cpdef hessenbergize_cdvf(Matrix_generic_dense H):
         [        0  ...00001  ...00002]
         [ ...00003  ...00004 ...000010]
         [ ...00011  ...00012  ...00013]
-        sage: H.hessenbergize()
+        sage: H.hessenbergize()  # indirect doctest
         sage: H
         [        0  ...00010  ...00002]
         [ ...00003  ...00024 ...000010]

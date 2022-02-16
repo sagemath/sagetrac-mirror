@@ -410,6 +410,78 @@ class CompleteDiscreteValuationRings(Category_singleton):
             else:
                 return M
 
+        def _matrix_determinant(self, M):
+            r"""
+            Return the determinant of the matrix `M`.
+
+            This method gets called by
+            :meth:`sage.matrix.matrix2.Matrix.determinant`.
+
+            INPUT:
+
+            - ``M`` -- a matrix over this ring
+
+            ALGORITHM:
+
+            We flatten the absolute precision in order to increase
+            the numerical stability.
+
+            We row-echelonize the matrix by always choosing the
+            pivot of smallest valuation and allowing permutations
+            of columns.
+
+            Then we compute separately the value of the determinant
+            (as the product of the diagonal entries of the row-echelon
+            form) and a bound on the precision on it.
+
+            EXAMPLES::
+
+                sage: R = Qp(5,10)
+                sage: M = matrix(R, 2, 2, [1, 6, 2, 7])
+                sage: M.determinant()  # indirect doctest
+                4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
+
+                sage: (5*M).determinant()  # indirect doctest
+                4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + O(5^12)
+
+            Sometimes, we gain precision on the determinant::
+
+                sage: M = matrix(R, 3, 3,
+                ....:             [R(16820,7), R(73642,7), R( 3281,7),
+                ....:              R(67830,7), R(63768,7), R(76424,7),
+                ....:              R(37790,7), R(38784,7), R(69287,7)])
+                sage: M.determinant()  # indirect doctest
+                4*5^5 + 4*5^6 + 3*5^7 + 2*5^8 + O(5^9)
+
+            TESTS:
+
+            We check the stability of our algorithm::
+
+                sage: for dim in range(3,10):
+                ....:     M = matrix(dim, dim, [ R(1) for _ in range(dim^2) ])
+                ....:     print(M.determinant())
+                O(5^20)
+                O(5^30)
+                O(5^40)
+                O(5^50)
+                O(5^60)
+                O(5^70)
+                O(5^80)
+
+                sage: A = random_matrix(Qp(5),4)
+                sage: B = random_matrix(Qp(5),4)
+                sage: (A*B).det() == A.det()*B.det()
+                True
+                sage: A.change_ring(QQ).det() == A.det()
+                True
+                sage: matrix(Qp(37),[0]).determinant()
+                0
+                sage: matrix(Qp(37),[O(37)]).determinant()
+                O(37)
+            """
+            from sage.matrix.matrix_cdv import determinant_cdv
+            return determinant_cdv(M)
+
 
     class ElementMethods:
         @abstract_method
@@ -594,7 +666,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 [  t + O(t^10) t^2 + O(t^10) t^3 + O(t^10) t^4 + O(t^10)]
                 [t^2 + O(t^10) t^3 + O(t^10) t^4 + O(t^10) t^5 + O(t^10)]
                 [t^3 + O(t^10) t^4 + O(t^10) t^5 + O(t^10) t^6 + O(t^10)]
-                sage: H.hessenbergize()
+                sage: H.hessenbergize()  # indirect doctest
                 sage: H
                 [              1 + O(t^10)   t + t^3 + t^5 + O(t^10)             t^2 + O(t^10)             t^3 + O(t^10)]
                 [              t + O(t^10) t^2 + t^4 + t^6 + O(t^10)             t^3 + O(t^10)             t^4 + O(t^10)]
@@ -866,6 +938,54 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 return M, L
             else:
                 return M
+
+        def _matrix_determinant(self, M):
+            r"""
+            Return the determinant of the matrix `M`.
+
+            This method gets called by
+            :meth:`sage.matrix.matrix2.Matrix.determinant`.
+
+            INPUT:
+
+            - ``M`` -- a matrix over this ring
+
+            ALGORITHM:
+
+            We flatten the absolute precision in order to increase
+            the numerical stability.
+
+            We row-echelonize the matrix by always choosing the
+            pivot of smallest valuation and allowing permutations
+            of columns.
+
+            Then we compute separately the value of the determinant
+            (as the product of the diagonal entries of the row-echelon
+            form) and a bound on the precision on it.
+
+            EXAMPLES::
+
+                sage: R = Zp(5,10)
+                sage: M = matrix(R, 2, 2, [1, 6, 2, 7])
+                sage: M.determinant()  # indirect doctest
+                4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
+
+                sage: (5*M).determinant()  # indirect doctest
+                4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + O(5^12)
+
+            Sometimes, we gain precision on the determinant::
+
+                sage: M = matrix(R, 3, 3,
+                ....:             [R(16820,7), R(73642,7), R( 3281,7),
+                ....:              R(67830,7), R(63768,7), R(76424,7),
+                ....:              R(37790,7), R(38784,7), R(69287,7)])
+                sage: M.determinant()  # indirect doctest
+                4*5^5 + 4*5^6 + 3*5^7 + 2*5^8 + O(5^9)
+
+            """
+            from sage.matrix.matrix_cdv import determinant_cdv
+            return determinant_cdv(M)
+
 
     class ElementMethods:
         @abstract_method
