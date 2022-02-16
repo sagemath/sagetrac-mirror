@@ -1265,19 +1265,10 @@ cdef class RelaxedElement(pAdicGenericElement):
             sage: a.lift_to_precision(20)
             4*5 + 4*5^2 + 5^4 + O(5^20)
 
-        When the precision is omitted, the default precision of the parent
-        is used::
+        When the precision is omitted, the element is made unbounded::
 
             sage: a.lift_to_precision()
-            4*5 + 4*5^2 + 5^4 + O(5^10)
-
-        When the parent is a field, the behaviour is slightly different since
-        the default precision of the parent becomes the relative precision
-        of the lifted element::
-
-            sage: K = R.fraction_field()
-            sage: K(a).lift_to_precision()
-            4*5 + 4*5^2 + 5^4 + O(5^11)
+            4*5 + 4*5^2 + 5^4 + ...
 
         Note that the precision never decreases::
 
@@ -1298,13 +1289,14 @@ cdef class RelaxedElement(pAdicGenericElement):
         cdef long prec
         cdef long default_prec = self._parent.default_prec()
         if absprec is None:
-            if self.prime_pow.in_field:
-                self._jump_relative_c(1, self._precbound)
-                if self._precrel == 0:
-                    return self._parent.zero()
-                prec = self._valuation + default_prec
-            else:
-                prec = default_prec
+            prec = maxordp
+            #if self.prime_pow.in_field:
+            #    self._jump_relative_c(1, self._precbound)
+            #    if self._precrel == 0:
+            #        return self._parent.zero()
+            #    prec = self._valuation + default_prec
+            #else:
+            #    prec = default_prec
         else:
             if absprec > maxordp:
                 raise OverflowError("beyond the maximal precision (which is %s)" % maxordp)

@@ -43,7 +43,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
         return [DiscreteValuationRings()]
 
     class ParentMethods:
-        def _matrix_echelonize(self, M, transformation=False, exact=False):
+        def _matrix_echelonize(self, M, transformation=False, exact=True):
             """
             Row-echelonize this matrix
 
@@ -111,8 +111,12 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 ....:             continue
                 ....:         if L*M != H: raise RuntimeError
             """
-            from sage.matrix.matrix_cdv import echelonize_cdv
-            return echelonize_cdv(M, transformation, True, exact)
+            if exact:
+                from sage.matrix.matrix_cdv import echelonize_cdv_exact
+                return echelonize_cdv_exact(M, transformation, True, False)
+            else:
+                from sage.matrix.matrix_cdv import echelonize_cdv_nonexact
+                return echelonize_cdv_nonexact(M, transformation, True)
 
         def _matrix_charpoly(self, M, var):
             r"""
@@ -157,12 +161,96 @@ class CompleteDiscreteValuationRings(Category_singleton):
             return M._charpoly_hessenberg(var)
 
         def _matrix_smith_form(self, M, transformation, integral=True, exact=True):
-            from sage.matrix.matrix_cdv import smith_cdv
-            return smith_cdv(M, transformation, integral, exact)
+            r"""
+            Return the Smith normal form of `M`.
 
-        def _matrix_hermite_form(self, M, transformation, integral=True, exact=True):
-            from sage.matrix.matrix_cdv import echelonize_cdv
-            return echelonize_cdv(copy(M), transformation, integral, exact)
+            This method gets called by
+            :meth:`sage.matrix.matrix2.Matrix.smith_form` to compute the Smith
+            normal form over local rings and fields.
+
+            The entries of the Smith normal form are normalized such that non-zero
+            entries of the diagonal are powers of the distinguished uniformizer.
+
+            INPUT:
+
+            - ``M`` -- a matrix over this ring
+
+            - ``transformation`` -- a boolean; whether the transformation matrices
+              are returned
+
+            - ``integral`` -- a subring of the base ring or ``True``; the entries
+              of the transformation matrices are in this ring.  If ``True``, the
+              entries are in the ring of integers of the base ring.
+
+            - ``exact`` -- a boolean (default: ``True``);
+              if ``True``, the diagonal smith form will be exact, or raise a
+              ``PrecisionError`` if this is not possible;
+              if ``False``, the diagonal entries will be inexact, but the
+              transformation matrices will be exact.
+
+            EXAMPLES::
+
+                sage: A = Zp(5, prec=10, print_mode="digits")
+                sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
+
+                sage: S, L, R = M.smith_form()  # indirect doctest
+                sage: S
+                [ ...0000000001              0]
+                [             0 ...00000000010]
+                sage: L
+                [...222222223          ...]
+                [...444444444         ...2]
+                sage: R
+                [...0000000001 ...2222222214]
+                [            0 ...0000000001]
+
+            If not needed, it is possible to avoid the computation of
+            the transformations matrices `L` and `R`::
+
+                sage: M.smith_form(transformation=False)  # indirect doctest
+                [ ...1     0]
+                [    0 ...10]
+
+            This method works for rectangular matrices as well::
+
+                sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
+                sage: S, L, R = M.smith_form()  # indirect doctest
+                sage: S
+                [ ...0000000001              0]
+                [             0 ...00000000010]
+                [             0              0]
+                sage: L
+                [...222222223          ...          ...]
+                [...444444444         ...2          ...]
+                [...444444443         ...1         ...1]
+                sage: R
+                [...0000000001 ...2222222214]
+                [            0 ...0000000001]
+
+            If some of the elementary divisors have valuation larger than the
+            minimum precision of any entry in the matrix, then they are
+            reported as an inexact zero::
+
+                sage: A = ZpCA(5, prec=10)
+                sage: M = matrix(A, 2, 2, [5, 5, 5, 5])
+                sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
+                [5 + O(5^10)     O(5^10)]
+                [    O(5^10)     O(5^10)]
+
+            However, an error is raised if the precision on the entries is
+            not enough to determine which column to use as a pivot at some point::
+
+                sage: M = matrix(A, 2, 2, [A(0,5), A(5^6,10), A(0,8), A(5^7,10)]); M
+                [       O(5^5) 5^6 + O(5^10)]
+                [       O(5^8) 5^7 + O(5^10)]
+                sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
+                Traceback (most recent call last):
+                ...
+                PrecisionError: not enough precision to compute Smith normal form
+            """
+            from sage.matrix.matrix_cdv import smith_cdv
+            integral = (integral is True or integral is self)
+            return smith_cdv(M, transformation, integral, exact)
 
         def _test_matrix_smith(self, **options):
             r"""
@@ -204,6 +292,28 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
                     for (d,dd) in zip(S.diagonal(), S.diagonal()[1:]):
                         tester.assertTrue(d.divides(dd))
+
+        def _matrix_hermite_form(self, M, include_zero_rows, transformation, integral=True, exact=True):
+            integral = (integral is True or integral is self)
+            if integral:
+                M = copy(M)
+            else:
+                M = M.change_ring(self.fraction_field())
+            if exact:
+                from sage.matrix.matrix_cdv import echelonize_cdv_exact
+                pivots, L = echelonize_cdv_exact(M, transformation, integral, True)
+            else:
+                from sage.matrix.matrix_cdv import echelonize_cdv_nonexact
+                pivots, L = echelonize_cdv_nonexact(M, transformation, integral)
+            rk = len(pivots)
+            if not include_zero_rows and rk < M.nrows():
+                M = M.submatrix(0, 0, rk)
+                if transformation:
+                    L = L.submatrix(0, 0, rk)
+            if transformation:
+                return M, L
+            else:
+                return M
 
 
     class ElementMethods:
@@ -374,7 +484,6 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 Power Series Ring in t over Finite Field of size 5
             """
 
-
         def _matrix_hessenbergize(self, H):
             r"""
             Replace `H` with an Hessenberg form of it.
@@ -414,17 +523,124 @@ class CompleteDiscreteValuationFields(Category_singleton):
             from sage.matrix.matrix_cdv import hessenbergize_cdvf
             hessenbergize_cdvf(H)
 
-        def _matrix_echelonize(self, M, transformation=False, integral=False, exact=False):
-            from sage.matrix.matrix_cdv import echelonize_cdv
-            return echelonize_cdv(M, transformation, integral, exact)
+        def _matrix_echelonize(self, M, transformation=False, exact=True):
+            if exact:
+                from sage.matrix.matrix_cdv import echelonize_cdv_exact
+                return echelonize_cdv_exact(M, transformation, False, False)
+            else:
+                from sage.matrix.matrix_cdv import echelonize_cdv_nonexact
+                return echelonize_cdv_nonexact(M, transformation, False)
 
         def _matrix_smith_form(self, M, transformation, integral=True, exact=True):
+            r"""
+            Return the Smith normal form of `M`.
+
+            This method gets called by
+            :meth:`sage.matrix.matrix2.Matrix.smith_form` to compute the Smith
+            normal form over local rings and fields.
+
+            The entries of the Smith normal form are normalized such that non-zero
+            entries of the diagonal are powers of the distinguished uniformizer.
+
+            INPUT:
+
+            - ``M`` -- a matrix over this ring
+
+            - ``transformation`` -- a boolean; whether the transformation matrices
+              are returned
+
+            - ``integral`` -- a subring of the base ring or ``True``; the entries
+              of the transformation matrices are in this ring.  If ``True``, the
+              entries are in the ring of integers of the base ring.
+
+            - ``exact`` -- a boolean (default: ``True``);
+              if ``True``, the diagonal smith form will be exact, or raise a
+              ``PrecisionError`` if this is not possible;
+              if ``False``, the diagonal entries will be inexact, but the
+              transformation matrices will be exact.
+
+            EXAMPLES::
+
+                sage: A = Zp(5, prec=10, print_mode="digits")
+                sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
+
+                sage: S, L, R = M.smith_form()  # indirect doctest
+                sage: S
+                [ ...0000000001              0]
+                [             0 ...00000000010]
+                sage: L
+                [...222222223          ...]
+                [...444444444         ...2]
+                sage: R
+                [...0000000001 ...2222222214]
+                [            0 ...0000000001]
+
+            If not needed, it is possible to avoid the computation of
+            the transformations matrices `L` and `R`::
+
+                sage: M.smith_form(transformation=False)  # indirect doctest
+                [ ...1     0]
+                [    0 ...10]
+
+            This method works for rectangular matrices as well::
+
+                sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
+                sage: S, L, R = M.smith_form()  # indirect doctest
+                sage: S
+                [ ...0000000001              0]
+                [             0 ...00000000010]
+                [             0              0]
+                sage: L
+                [...222222223          ...          ...]
+                [...444444444         ...2          ...]
+                [...444444443         ...1         ...1]
+                sage: R
+                [...0000000001 ...2222222214]
+                [            0 ...0000000001]
+
+            If some of the elementary divisors have valuation larger than the
+            minimum precision of any entry in the matrix, then they are
+            reported as an inexact zero::
+
+                sage: A = ZpCA(5, prec=10)
+                sage: M = matrix(A, 2, 2, [5, 5, 5, 5])
+                sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
+                [5 + O(5^10)     O(5^10)]
+                [    O(5^10)     O(5^10)]
+
+            However, an error is raised if the precision on the entries is
+            not enough to determine which column to use as a pivot at some point::
+
+                sage: M = matrix(A, 2, 2, [A(0,5), A(5^6,10), A(0,8), A(5^7,10)]); M
+                [       O(5^5) 5^6 + O(5^10)]
+                [       O(5^8) 5^7 + O(5^10)]
+                sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
+                Traceback (most recent call last):
+                ...
+                PrecisionError: not enough precision to compute Smith normal form
+            """
             from sage.matrix.matrix_cdv import smith_cdv
+            integral = (integral is True or integral is self.ring_of_integers())
             return smith_cdv(M, transformation, integral, exact)
 
-        def _matrix_hermite_form(self, M, transformation, integral=True, exact=True):
-            from sage.matrix.matrix_cdv import echelonize_cdv
-            return echelonize_cdv(copy(M), transformation, integral, exact)
+        def _matrix_hermite_form(self, M, include_zero_rows, transformation, integral=True, exact=True):
+            integral = (integral is True or integral is self)
+            M = copy(M)
+            if exact:
+                from sage.matrix.matrix_cdv import echelonize_cdv_exact
+                pivots, L = echelonize_cdv_exact(M, transformation, integral, True)
+            else:
+                from sage.matrix.matrix_cdv import echelonize_cdv_nonexact
+                pivots, L = echelonize_cdv_nonexact(M, transformation, integral)
+            rk = len(pivots)
+            if not include_zero_rows and rk < M.nrows():
+                M = M.submatrix(0, 0, rk)
+                if transformation:
+                    L = L.submatrix(0, 0, rk)
+            if transformation:
+                return M, L
+            else:
+                return M
 
     class ElementMethods:
         @abstract_method

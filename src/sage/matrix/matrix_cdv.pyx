@@ -14,45 +14,66 @@ Special methods for matrices over discrete valuation rings/fields.
 # ****************************************************************************
 
 
-from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
 from sage.structure.element cimport RingElement
+from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import Infinity
 
-from sage.rings.integer_ring import ZZ
-
-from sage.rings.infinity import infinity
-from sage.rings.padics.precision_error import PrecisionError
-from copy import copy
+from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
+from sage.matrix.special import identity_matrix
 
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
+
+from sage.rings.padics.precision_error import PrecisionError
+from copy import copy
 
 
 # Echelon form (Hermite form)
 #############################
 
-def echelonize_cdv(M, transformation, integral, exact):
-    """
-    Helper method to echelonize matrices over CDVR/CDVF
+def echelonize_cdv_nonexact(M, transformation, integral):
+    r"""
+    Echelonize the matrix `M`.
 
-    TODO:
+    This method gets called by
+    :meth:`sage.matrix.matrix2.Matrix.echelon_form` and
+    :meth:`sage.matrix.matrix2.Matrix.hermite_form`.
 
-    Analyse better precision.
+    INPUT:
+
+    - ``M`` -- a matrix over this ring
+
+    - ``transformation`` -- a boolean; whether the transformation matrices
+      are returned
+
+    - ``integral`` -- a boolean; whether the echelon form should be computed
+      over the ring of integers or its fraction field
+
+    OUTPUT:
+
+    A pair ``(pivots, transformation)`` where ``pivots`` is a list of
+    pivots and ``transformation`` is the transformation matrix or ``None``
+    if not asked.
+
+    In this variant, the transformation matrix is exact (i.e. known at
+    the maximal precision) while the echelon form may have inexact entries.
     """
     n = M.nrows()
     m = M.ncols()
     R = M.base_ring()
-    if R in CompleteDiscreteValuationFields():
-        Rint = R.integer_ring()
-    else:
-        Rint = R
+    if integral:
+        if R.is_field():
+            Rint = R.integer_ring()
+        else:
+            Rint = R
 
     if transformation:
-        from sage.matrix.special import identity_matrix
         left = identity_matrix(R,n)
     else:
         left = None
 
-    tracks_precision = True
+    ## the difference between ball_prec and inexact_ring is just for lattice precision.
+    ball_prec = R._prec_type() in ['capped-rel', 'capped-abs', 'relaxed']
+    inexact_ring = R._prec_type() not in ['fixed-mod', 'floating-point']
 
     i = j = 0
     pivots = [ ]
@@ -61,29 +82,17 @@ def echelonize_cdv(M, transformation, integral, exact):
         pivi = i
         for ii in range(i,n):
             v = M[ii,j].valuation()
-            if v < val:
+            if val is Infinity or v < val:
                 pivi = ii
                 val = v
-
         if val is Infinity:
             j += 1
             continue
 
-        if tracks_precision:
-            not_enough_precision = False
-            for ii in range(n):
-                if M[ii,j].precision_absolute() <= val:
-                    not_enough_precision = True
-            if not_enough_precision:
-                # In this situation, we do not know for sure what
-                # is the pivot. 
-                if exact:
-                    raise PrecisionError("Not enough precision to echelonize")
-                # When exact is False, if all entries on the column
-                # are inexact zeroes, we go ahead
-                for ii in range(i,n):
-                    if M[ii,j] != 0:
-                        raise PrecisionError("Not enough precision to echelonize")
+        if ball_prec and any(M[ii,j].precision_absolute() <= val for ii in range(n)):
+            if any(M[ii,j] != 0 for ii in range(i, n)):
+                raise PrecisionError("Not enough precision to echelonize")
+            else:
                 j += 1
                 continue
 
@@ -93,27 +102,149 @@ def echelonize_cdv(M, transformation, integral, exact):
         if transformation:
             left.swap_rows(pivi,i)
 
-        inv = ~(M[i,j] >> val); inv = R(inv)
-        M.rescale_row(i,inv,j+1)
-        M[i,j] = R(1) << val
+        if integral:
+            inv = (M[i,j] >> val).inverse_of_unit()
+            inv = inv.lift_to_precision()
+            M.rescale_row(i, inv, j)
+            if transformation:
+                left.rescale_row(i, inv)
+            for ii in range(i+1,n):
+                scalar = -(M[ii,j] >> val)
+                scalar = scalar.lift_to_precision()
+                M.add_multiple_of_row(ii, i, scalar, j)
+                if transformation:
+                    left.add_multiple_of_row(ii, i, scalar)
+        else:
+            inv = ~M[i,j]
+            inv = inv.lift_to_precision()
+            M.rescale_row(i, inv, j)
+            if transformation:
+                left.rescale_row(i, inv)
+            for ii in range(n):
+                if ii == i:
+                    continue
+                scalar = -M[ii,j].lift_to_precision()
+                M.add_multiple_of_row(ii, i, scalar, j)
+                M[ii,j] = R(0)
+                if transformation:
+                    left.add_multiple_of_row(ii, i, scalar)
+
+        i += 1; j += 1
+
+    return pivots, left
+
+
+def echelonize_cdv_exact(M, transformation, integral, secure):
+    r"""
+    Echelonize the matrix `M`.
+
+    This method gets called by
+    :meth:`sage.matrix.matrix2.Matrix.echelon_form` and
+    :meth:`sage.matrix.matrix2.Matrix.hermite_form`.
+
+    INPUT:
+
+    - ``M`` -- a matrix over this ring
+
+    - ``transformation`` -- a boolean; whether the transformation matrices
+      are returned
+
+    - ``integral`` -- a boolean; whether the echelon form should be computed
+      over the ring of integers or its fraction field
+
+    - ``secure`` -- a boolean; if ``True``, raise an error if all the 
+      possible pivots on a column are inexact zeroes; if ``False``, ignore
+      this and continue with the next column
+
+    OUTPUT:
+
+    a pair ``(pivots, transformation)`` where ``pivots`` is a list of
+    pivots and ``transformation`` is the transformation matrix or ``None``
+    if not asked.
+
+    In this variant, if `r` is the rank of `M`, the first `r` columns of the
+    echelon form are exact, i.e. given at the maximal precision allowed by 
+    the parent.
+    """
+    n = M.nrows()
+    m = M.ncols()
+    R = M.base_ring()
+    if integral:
+        if R.is_field():
+            Rint = R.integer_ring()
+        else:
+            Rint = R
+
+    if transformation:
+        left = identity_matrix(R,n)
+    else:
+        left = None
+
+    ## the difference between ball_prec and inexact_ring is just for lattice precision.
+    ball_prec = R._prec_type() in ['capped-rel', 'capped-abs', 'relaxed']
+    inexact_ring = R._prec_type() not in ['fixed-mod', 'floating-point']
+
+    i = j = 0
+    pivots = [ ]
+    while i < n and j < m:
+        val = Infinity
+        pivi = i
+        for ii in range(i,n):
+            v = M[ii,j].valuation()
+            if val is Infinity or v < val:
+                pivi = ii
+                val = v
+        if val is Infinity:
+            j += 1
+            continue
+
+        if ball_prec and any(M[ii,j].precision_absolute() <= val for ii in range(n)):
+            if secure or any(M[ii,j] != 0 for ii in range(i, n)):
+                raise PrecisionError("Not enough precision to echelonize (try exact=False)")
+            else:
+                j += 1
+                continue
+
+        pivots.append(j)
+
+        M.swap_rows(pivi,i)
         if transformation:
-            left.rescale_row(i, inv)
+            left.swap_rows(pivi,i)
 
-        for ii in range(i+1,n):
-            scalar = -(M[ii,j] >> val)
-            M.add_multiple_of_row(ii,i,scalar,j+1)
-            M[ii,j] = R(0)
+        if integral:
+            inv = (M[i,j] >> val).inverse_of_unit()
+            M[i,j] = R(1) << val
+            M.rescale_row(i, inv, j+1)
             if transformation:
-                left.add_multiple_of_row(ii,i,scalar)
-
-        for ii in range(i):
-            v = min(0, M[ii,j].valuation())
-            quo = Rint(M[ii,j] >> v) << (v-val)
-            M.add_multiple_of_row(ii,i,-quo,j)
-            if tracks_precision:
-                M[ii,j] = M[ii,j].lift_to_precision()
+                left.rescale_row(i, inv)
+            for ii in range(i+1,n):
+                scalar = -(M[ii,j] >> val)
+                M.add_multiple_of_row(ii, i, scalar, j+1)
+                M[ii,j] = R(0)
+                if transformation:
+                    left.add_multiple_of_row(ii, i, scalar)
+            for ii in range(i):
+                v = min(0, M[ii,j].valuation())
+                scalar = -(Rint(M[ii,j] >> v) << (v-val))
+                M.add_multiple_of_row(ii, i, scalar, j)
+                if ball_prec:
+                    M[ii,j] = M[ii,j].lift_to_precision()
+                if transformation:
+                    left.add_multiple_of_row(ii, i, scalar)
+        else:
+            inv = ~M[i,j]
+            M[i,j] = R(1)
+            M.rescale_row(i, inv, j+1)
             if transformation:
-                left.add_multiple_of_row(ii,i,-quo)
+                left.rescale_row(i, inv)
+            for ii in range(n):
+                if ii == i:
+                    continue
+                scalar = -M[ii,j]
+                M.add_multiple_of_row(ii, i, scalar, j+1)
+                M[ii,j] = R(0)
+                if transformation:
+                    left.add_multiple_of_row(ii, i, scalar)
 
         i += 1; j += 1
 
@@ -130,8 +261,8 @@ def flatten_precision(M):
     the cap.
 
     This method is useful for increasing the numerical
-    stability. It is called by :meth:`_matrix_smith_form`
-    and :meth:`_matrix_determinant`
+    stability. It is called by :func:`smith_cdv` and
+    :func:`determinant_cdv`
 
     Only for internal use.
 
@@ -142,12 +273,13 @@ def flatten_precision(M):
 
     EXAMPLES::
 
+        sage: from sage.matrix.matrix_cdv import flatten_precision
         sage: K = Qp(2, print_mode='digits', prec=10)
         sage: M = matrix(K, 2, 2, [K(1,5),K(2,7),K(3,3),K(5,8)])
         sage: M
         [   ...00001  ...0000010]
         [     ...011 ...00000101]
-        sage: K._matrix_flatten_precision(M)
+        sage: flatten_precision(M)
         ([5, 7], [0, -2])
         sage: M
         [   ...0000100000    ...0000010000]
@@ -155,6 +287,8 @@ def flatten_precision(M):
     """
     parent = M.base_ring()
     cap = parent.precision_cap()
+    if cap is Infinity:
+        cap = parent.default_prec()
     n = M.nrows()
     m = M.ncols()
     shift_rows = n * [ ZZ(0) ]
@@ -184,9 +318,6 @@ def smith_cdv(M, transformation, integral, exact):
     :meth:`sage.matrix.matrix2.Matrix.smith_form` to compute the Smith
     normal form over local rings and fields.
 
-    The entries of the Smith normal form are normalized such that non-zero
-    entries of the diagonal are powers of the distinguished uniformizer.
-
     INPUT:
 
     - ``M`` -- a matrix over this ring
@@ -194,74 +325,13 @@ def smith_cdv(M, transformation, integral, exact):
     - ``transformation`` -- a boolean; whether the transformation matrices
       are returned
 
-    - ``integral`` -- a subring of the base ring or ``True``; the entries
-      of the transformation matrices are in this ring.  If ``True``, the
-      entries are in the ring of integers of the base ring.
+    - ``integral`` -- a boolean; whether the Smith form should be computed
+      over the ring of integers or its fraction field
 
     - ``exact`` -- boolean.  If ``True``, the diagonal smith form will
       be exact, or raise a ``PrecisionError`` if this is not possible.
       If ``False``, the diagonal entries will be inexact, but the
       transformation matrices will be exact.
-
-    EXAMPLES::
-
-        sage: A = Zp(5, prec=10, print_mode="digits")
-        sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
-
-        sage: S, L, R = M.smith_form()  # indirect doctest
-        sage: S
-        [ ...1     0]
-        [    0 ...10]
-        sage: L
-        [...222222223          ...]
-        [...444444444         ...2]
-        sage: R
-        [...0000000001 ...2222222214]
-        [            0 ...0000000001]
-
-    If not needed, it is possible to avoid the computation of
-    the transformations matrices `L` and `R`::
-
-        sage: M.smith_form(transformation=False)  # indirect doctest
-        [ ...1     0]
-        [    0 ...10]
-
-    This method works for rectangular matrices as well::
-
-        sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
-        sage: S, L, R = M.smith_form()  # indirect doctest
-        sage: S
-        [ ...1     0]
-        [    0 ...10]
-        [    0     0]
-        sage: L
-        [...222222223          ...          ...]
-        [...444444444         ...2          ...]
-        [...444444443         ...1         ...1]
-        sage: R
-        [...0000000001 ...2222222214]
-        [            0 ...0000000001]
-
-    If some of the elementary divisors have valuation larger than the
-    minimum precision of any entry in the matrix, then they are
-    reported as an inexact zero::
-
-        sage: A = ZpCA(5, prec=10)
-        sage: M = matrix(A, 2, 2, [5, 5, 5, 5])
-        sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
-        [5 + O(5^10)     O(5^10)]
-        [    O(5^10)     O(5^10)]
-
-    However, an error is raised if the precision on the entries is
-    not enough to determine which column to use as a pivot at some point::
-
-        sage: M = matrix(A, 2, 2, [A(0,5), A(5^6,10), A(0,8), A(5^7,10)]); M
-        [       O(5^5) 5^6 + O(5^10)]
-        [       O(5^8) 5^7 + O(5^10)]
-        sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
-        Traceback (most recent call last):
-        ...
-        PrecisionError: not enough precision to compute Smith normal form
 
     TESTS::
 
@@ -280,7 +350,7 @@ def smith_cdv(M, transformation, integral, exact):
         [O(5^10) O(5^10)]
         [O(5^10) O(5^10)]
     """
-    base = M.base_ring()
+    R = M.base_ring()
     n = M.nrows()
     m = M.ncols()
     if m > n:
@@ -291,42 +361,27 @@ def smith_cdv(M, transformation, integral, exact):
         else:
             return smith_cdv(M.transpose(), False, integral, exact).transpose()
     smith = M.parent()(0)
-    S = M  # TODO: call it M
-    Z = base.integer_ring()
-    if integral is None or integral is base or integral is (not base.is_field()):
-        integral = not base.is_field()
-        R = base
-    elif integral is True or integral is Z:
-        # This is a field, but we want the integral smith form
-        # The diagonal matrix may not be integral, but the transformations should be
-        R = Z
-        integral = True
-    elif integral is False or integral is base.fraction_field():
-        # This is a ring, but we want the field smith form
-        # The diagonal matrix should be over this ring, but the transformations should not
-        R = base.fraction_field()
-        integral = False
-    else:
-        raise NotImplementedError("Smith normal form over this subring")
+    S = copy(M)
+    Z = R.integer_ring()
+
     ## the difference between ball_prec and inexact_ring is just for lattice precision.
-    ball_prec = R._prec_type() in ['capped-rel','capped-abs']
-    inexact_ring = R._prec_type() not in ['fixed-mod','floating-point']
+    ball_prec = R._prec_type() in ['capped-rel', 'capped-abs', 'relaxed']
+    inexact_ring = R._prec_type() not in ['fixed-mod', 'floating-point']
 
     if not integral:
         shift_rows, shift_cols = flatten_precision(S)
 
     precS = min(x.precision_absolute() for x in S.list())
     if transformation:
-        from sage.matrix.special import identity_matrix
         left = identity_matrix(R,n)
         right = identity_matrix(R,m)
 
-    if ball_prec and precS is infinity: # capped-rel and M = 0 exactly
+    if ball_prec and precS is Infinity: # capped-rel and M = 0 exactly
         return (smith, left, right) if transformation else smith
 
-    val = -infinity
+    val = -Infinity
     for piv in range(m): # m <= n
-        curval = infinity
+        curval = Infinity
         pivi = pivj = piv
         # allzero tracks whether every possible pivot is zero.
         # if so, we can stop.  allzero is also used in detecting some
@@ -344,7 +399,7 @@ def smith_cdv(M, transformation, integral, exact):
                 v = Sij.valuation()
                 allzero = allzero and Sij.is_zero()
                 if exact: # we only care in this case
-                    allexact = allexact and Sij.precision_absolute() is infinity
+                    allexact = allexact and Sij.precision_absolute() is Infinity
                 if v < curval:
                     pivi = i
                     pivj = j
@@ -369,7 +424,7 @@ def smith_cdv(M, transformation, integral, exact):
                     # We need to finish checking allexact since we broke out of the loop early
                     for i in range(i,n):
                         for j in range(piv,m):
-                            allexact = allexact and S[i,j].precision_absolute() is infinity
+                            allexact = allexact and S[i,j].precision_absolute() is Infinity
                             if not allexact:
                                 break
                         else:
@@ -388,7 +443,7 @@ def smith_cdv(M, transformation, integral, exact):
 
         # ... and clear out this row and column.  Note that we
         # will deal with precision later, thus the call to lift_to_precision
-        smith[piv,piv] = base(1) << val
+        smith[piv,piv] = R(1) << val
         inv = (S[piv,piv] >> val).inverse_of_unit()
         if ball_prec:
             inv = inv.lift_to_precision()
@@ -417,7 +472,7 @@ def smith_cdv(M, transformation, integral, exact):
     if ball_prec and exact and transformation:
         for j in range(n):
             delta = min(left[i,j].valuation() - smith[i,i].valuation() for i in range(piv))
-            if delta is not infinity:
+            if delta is not Infinity:
                 for i in range(n):
                     left[i,j] = left[i,j].add_bigoh(precS + delta)
     ## Otherwise, we update the precision on smith
@@ -431,7 +486,7 @@ def smith_cdv(M, transformation, integral, exact):
                 for j in range(n):
                     left[i,j] >>= v
             if exact:
-                smith[i,i] = base(1)
+                smith[i,i] = R(1)
             else:
                 for j in range(n):
                     smith[i,j] = smith[i,j] >> v

@@ -1113,7 +1113,7 @@ done from the right side.""")
                 else:
                     return x
             x = x.list()
-        if check and self.coordinate_ring().is_exact():
+        if check: # and self.coordinate_ring().is_exact():
             if isinstance(self, FreeModule_ambient):
                 return self.element_class(self, x, coerce, copy)
             try:
