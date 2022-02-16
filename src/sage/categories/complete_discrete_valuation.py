@@ -49,8 +49,12 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
             INPUT:
 
-            - ``transformation`` -- a boolean (default: True)
-              Indicates whether the transformation matrix is returned
+            - ``transformation`` -- a boolean; indicates whether the
+              transformation matrix is returned
+
+            - ``exact`` -- a boolean (default: ``True``);
+              if ``True``, the echelon form will be as exact as possible;
+              if ``False``, the transformation matrix will be exact.
 
             OUTPUT:
 
@@ -63,16 +67,16 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
 
                 sage: M.echelon_form()  # indirect doctest
-                [ ...1  ...1]
-                [    0 ...10]
+                [ ...0000000001  ...0000000001]
+                [             0 ...00000000010]
 
-                sage: H,L = M.echelon_form(transformation=True)  # indirect doctest
+                sage: H, L = M.echelon_form(transformation=True)  # indirect doctest
                 sage: H
-                [ ...1  ...1]
-                [    0 ...10]
+                [ ...0000000001  ...0000000001]
+                [             0 ...00000000010]
                 sage: L
-                [        ...1 ...444444444]
-                [...444444444         ...2]
+                [...000000001 ...444444444]
+                [...444444444 ...000000002]
                 sage: L*M == H
                 True
 
@@ -80,9 +84,25 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
                 sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
                 sage: M.echelon_form()  # indirect doctest
-                [ ...1  ...1]
-                [    0 ...10]
-                [    0     0]
+                [ ...0000000001  ...0000000001]
+                [             0 ...00000000010]
+                [             0              0]
+
+            We illustrate the role of the keyword ``exact``::
+
+                sage: M = matrix(A, 2, 2, [2 + O(5^5), 7 + O(5^5), 1 + O(5^5), 6 + O(5^5)])
+                sage: M.echelon_form(transformation=True, exact=True)  # indirect doctest
+                (
+                [ ...0000000001  ...0000000001]  [...0001 ...4444]
+                [             0 ...00000000010], [...4444 ...0002]
+                )
+
+                sage: M = matrix(A, 2, 2, [2 + O(5^5), 7 + O(5^5), 1 + O(5^5), 6 + O(5^5)])
+                sage: M.echelon_form(transformation=True, exact=False)  # indirect doctest
+                (
+                [...00001 ...22231]  [...0000022223             0]
+                [...00000 ...00010], [...4444444444 ...0000000002]
+                )
 
             An error is raised if the precision on the entries is
             not enough to determine the echelon form::
@@ -91,7 +111,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 sage: M.echelon_form()  # indirect doctest
                 Traceback (most recent call last):
                 ...
-                PrecisionError: Not enough precision to echelonize
+                PrecisionError: Not enough precision to echelonize (try exact=False)
 
             TESTS::
 
@@ -160,7 +180,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
             """
             return M._charpoly_hessenberg(var)
 
-        def _matrix_smith_form(self, M, transformation, integral=True, exact=True):
+        def _matrix_smith_form(self, M, transformation, integral, exact=True):
             r"""
             Return the Smith normal form of `M`.
 
@@ -178,9 +198,10 @@ class CompleteDiscreteValuationRings(Category_singleton):
             - ``transformation`` -- a boolean; whether the transformation matrices
               are returned
 
-            - ``integral`` -- a subring of the base ring or ``True``; the entries
-              of the transformation matrices are in this ring.  If ``True``, the
-              entries are in the ring of integers of the base ring.
+            - ``integral`` -- a subring of the base ring or ``True`` or ``None``;
+              the entries of the transformation matrices are in this ring.
+              If ``True``, the entries are in the ring of integers of the base
+              ring; if ``None``, they are in the base ring.
 
             - ``exact`` -- a boolean (default: ``True``);
               if ``True``, the diagonal smith form will be exact, or raise a
@@ -198,8 +219,8 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 [ ...0000000001              0]
                 [             0 ...00000000010]
                 sage: L
-                [...222222223          ...]
-                [...444444444         ...2]
+                [...222222223 ...000000000]
+                [...444444444 ...000000002]
                 sage: R
                 [...0000000001 ...2222222214]
                 [            0 ...0000000001]
@@ -208,8 +229,8 @@ class CompleteDiscreteValuationRings(Category_singleton):
             the transformations matrices `L` and `R`::
 
                 sage: M.smith_form(transformation=False)  # indirect doctest
-                [ ...1     0]
-                [    0 ...10]
+                [ ...0000000001              0]
+                [             0 ...00000000010]
 
             This method works for rectangular matrices as well::
 
@@ -220,9 +241,9 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 [             0 ...00000000010]
                 [             0              0]
                 sage: L
-                [...222222223          ...          ...]
-                [...444444444         ...2          ...]
-                [...444444443         ...1         ...1]
+                [ ...222222223  ...000000000             0]
+                [ ...444444444  ...000000002             0]
+                [ ...444444443  ...000000001 ...0000000001]
                 sage: R
                 [...0000000001 ...2222222214]
                 [            0 ...0000000001]
@@ -249,7 +270,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 PrecisionError: not enough precision to compute Smith normal form
             """
             from sage.matrix.matrix_cdv import smith_cdv
-            integral = (integral is True or integral is self)
+            integral = (integral is True or integral is None or integral is self)
             return smith_cdv(M, transformation, integral, exact)
 
         def _test_matrix_smith(self, **options):
@@ -265,7 +286,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
             from itertools import chain
             from sage.all import MatrixSpace
-            from .precision_error import PrecisionError
+            from sage.rings.padics.precision_error import PrecisionError
             matrices = chain(*[MatrixSpace(self, n, m).some_elements() for n in (1,3,7) for m in (1,4,7)])
             for M in tester.some_elements(matrices):
                 bases = [self]
@@ -294,7 +315,81 @@ class CompleteDiscreteValuationRings(Category_singleton):
                         tester.assertTrue(d.divides(dd))
 
         def _matrix_hermite_form(self, M, include_zero_rows, transformation, integral=True, exact=True):
-            integral = (integral is True or integral is self)
+            """
+            Return the Hermite normal form of this matrix.
+
+            INPUT:
+
+            - ``transformation`` -- a boolean; indicates whether the
+              transformation matrix is returned
+
+            - ``include_zero_rows`` -- a boolean
+
+            - ``integral`` -- a subring of the base ring or ``True`` or ``None``;
+              the entries of the transformation matrices are in this ring.
+              If ``True``, the entries are in the ring of integers of the base
+              ring; if ``None``, they are in the base ring.
+
+            - ``exact`` -- a boolean (default: ``True``);
+              if ``True``, the echelon form will be as exact as possible;
+              if ``False``, the transformation matrix will be exact.
+
+            EXAMPLES::
+
+                sage: A = Zp(5, prec=10, print_mode="digits")
+                sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
+
+                sage: M.hermite_form()  # indirect doctest
+                [ ...0000000001  ...0000000001]
+                [             0 ...00000000010]
+
+                sage: H, L = M.hermite_form(transformation=True)  # indirect doctest
+                sage: H
+                [ ...0000000001  ...0000000001]
+                [             0 ...00000000010]
+                sage: L
+                [...000000001 ...444444444]
+                [...444444444 ...000000002]
+                sage: L*M == H
+                True
+
+            With ``integral=False``, we get an echelon form over the fraction field::
+
+                sage: M.hermite_form(integral=False)  # indirect doctest
+                [...0000000001            0]
+                [            0 ...000000001]
+
+            We illustrate the role of the keyword ``exact``::
+
+                sage: M = matrix(A, 2, 2, [2 + O(5^5), 7 + O(5^5), 1 + O(5^5), 6 + O(5^5)])
+                sage: M.hermite_form(transformation=True, exact=True)  # indirect doctest
+                (
+                [ ...0000000001  ...0000000001]  [...0001 ...4444]
+                [             0 ...00000000010], [...4444 ...0002]
+                )
+                sage: M.hermite_form(transformation=True, exact=False)  # indirect doctest
+                (
+                [...00001 ...22231]  [...0000022223             0]
+                [...00000 ...00010], [...4444444444 ...0000000002]
+                )
+
+            .. SEEALSO::
+
+                meth:`_matrix_echelonize`
+
+            TESTS::
+
+                sage: M = matrix(A, 3, 3, range(9))
+                sage: M.hermite_form(exact=False)   # indirect doctest
+                [ ...0000000001  ...3131313133 ...31313131320]
+                [             0  ...0000000001  ...0000000002]
+                [ ...0000000000  ...0000000000  ...0000000000]
+                sage: M.hermite_form(include_zero_rows=False, exact=False)   # indirect doctest
+                [ ...0000000001  ...3131313133 ...31313131320]
+                [             0  ...0000000001  ...0000000002]
+
+            """
+            integral = (integral is True or integral is None or integral is self)
             if integral:
                 M = copy(M)
             else:
@@ -524,6 +619,56 @@ class CompleteDiscreteValuationFields(Category_singleton):
             hessenbergize_cdvf(H)
 
         def _matrix_echelonize(self, M, transformation=False, exact=True):
+            """
+            Row-echelonize this matrix
+
+            INPUT:
+
+            - ``transformation`` -- a boolean; indicates whether the
+              transformation matrix is returned
+
+            - ``exact`` -- a boolean (default: ``True``);
+              if ``True``, the echelon form will be as exact as possible;
+              if ``False``, the transformation matrix will be exact.
+
+            OUTPUT:
+
+            The position of the pivots and the transformation matrix
+            if asked for.
+
+            EXAMPLES::
+
+                sage: A = Qp(5, prec=10, print_mode="digits")
+                sage: M = matrix(A, 2, 3, [2, 7, 1, 6, 3, 8])
+                sage: M.echelon_form()  # indirect doctest
+                [...0000000001             0 ...0441230443]
+                [            0 ...0000000001 ...4330114330]
+
+            We illustrate the role of the keyword ``exact``::
+
+                sage: M = M.apply_map(lambda x: x.add_bigoh(3))
+                sage: M.echelon_form(transformation=True, exact=True)  # indirect doctest
+                (
+                [...0000000001             0        ...443]  [...202 ...322]
+                [            0 ...0000000001        ...330], [...041 ...433]
+                )
+
+                sage: M = M.apply_map(lambda x: x.add_bigoh(3))
+                sage: M.echelon_form(transformation=True, exact=False)  # indirect doctest
+                (
+                [...001      0 ...443]  [...1223201202 ...4444222322]
+                [     0 ...001 ...330], [...4442033041 ...0000000433]
+                )
+
+            An error is raised if the precision on the entries is
+            not enough to determine the echelon form::
+
+                sage: M = matrix(A, 2, 2, [A(0,5), 1, 5^8, 1])
+                sage: M.echelon_form()  # indirect doctest
+                Traceback (most recent call last):
+                ...
+                PrecisionError: Not enough precision to echelonize (try exact=False)
+            """
             if exact:
                 from sage.matrix.matrix_cdv import echelonize_cdv_exact
                 return echelonize_cdv_exact(M, transformation, False, False)
@@ -531,7 +676,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 from sage.matrix.matrix_cdv import echelonize_cdv_nonexact
                 return echelonize_cdv_nonexact(M, transformation, False)
 
-        def _matrix_smith_form(self, M, transformation, integral=True, exact=True):
+        def _matrix_smith_form(self, M, transformation, integral, exact=True):
             r"""
             Return the Smith normal form of `M`.
 
@@ -549,9 +694,10 @@ class CompleteDiscreteValuationFields(Category_singleton):
             - ``transformation`` -- a boolean; whether the transformation matrices
               are returned
 
-            - ``integral`` -- a subring of the base ring or ``True``; the entries
-              of the transformation matrices are in this ring.  If ``True``, the
-              entries are in the ring of integers of the base ring.
+            - ``integral`` -- a subring of the base ring or ``True`` or ``None``;
+              the entries of the transformation matrices are in this ring.
+              If ``True``, the entries are in the ring of integers of the base
+              ring; if ``None``, they are in the base ring.
 
             - ``exact`` -- a boolean (default: ``True``);
               if ``True``, the diagonal smith form will be exact, or raise a
@@ -561,16 +707,31 @@ class CompleteDiscreteValuationFields(Category_singleton):
 
             EXAMPLES::
 
-                sage: A = Zp(5, prec=10, print_mode="digits")
+                sage: A = Qp(5, prec=10, print_mode="digits")
                 sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
 
                 sage: S, L, R = M.smith_form()  # indirect doctest
                 sage: S
-                [ ...0000000001              0]
-                [             0 ...00000000010]
+                [...0000000001             0]
+                [            0 ...0000000001]
                 sage: L
-                [...222222223          ...]
-                [...444444444         ...2]
+                [ ...222222223  ...000000000]
+                [...44444444.4 ...00000000.2]
+                sage: R
+                [...0000000001 ...2222222214]
+                [            0 ...0000000001]
+
+            The above is the Smith form of ``M`` over `\QQ_p`. If we desire
+            a Smith form over `\ZZ_p`, we need to pass in explicitely
+            ``integral=True``::
+
+                sage: S, L, R = M.smith_form(integral=True)  # indirect doctest
+                sage: S
+                [...0000000001             0]
+                [            0 ...0000000010]
+                sage: L
+                [...222222223 ...000000000]
+                [...444444444 ...000000002]
                 sage: R
                 [...0000000001 ...2222222214]
                 [            0 ...0000000001]
@@ -579,21 +740,21 @@ class CompleteDiscreteValuationFields(Category_singleton):
             the transformations matrices `L` and `R`::
 
                 sage: M.smith_form(transformation=False)  # indirect doctest
-                [ ...1     0]
-                [    0 ...10]
+                [...0000000001             0]
+                [            0 ...0000000001]
 
             This method works for rectangular matrices as well::
 
                 sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
-                sage: S, L, R = M.smith_form()  # indirect doctest
+                sage: S, L, R = M.smith_form(integral=True)  # indirect doctest
                 sage: S
                 [ ...0000000001              0]
                 [             0 ...00000000010]
                 [             0              0]
                 sage: L
-                [...222222223          ...          ...]
-                [...444444444         ...2          ...]
-                [...444444443         ...1         ...1]
+                [ ...222222223  ...000000000             0]
+                [ ...444444444  ...000000002             0]
+                [ ...444444443  ...000000001 ...0000000001]
                 sage: R
                 [...0000000001 ...2222222214]
                 [            0 ...0000000001]
@@ -620,11 +781,75 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 PrecisionError: not enough precision to compute Smith normal form
             """
             from sage.matrix.matrix_cdv import smith_cdv
-            integral = (integral is True or integral is self.ring_of_integers())
+            integral = (integral is True or integral is self.integer_ring())
             return smith_cdv(M, transformation, integral, exact)
 
-        def _matrix_hermite_form(self, M, include_zero_rows, transformation, integral=True, exact=True):
-            integral = (integral is True or integral is self)
+        def _matrix_hermite_form(self, M, include_zero_rows, transformation, integral=None, exact=True):
+            """
+            Return the Hermite normal form of this matrix.
+
+            INPUT:
+
+            - ``transformation`` -- a boolean; indicates whether the
+              transformation matrix is returned
+
+            - ``include_zero_rows`` -- a boolean
+
+            - ``integral`` -- a subring of the base ring or ``True`` or ``None``;
+              the entries of the transformation matrices are in this ring.
+              If ``True``, the entries are in the ring of integers of the base
+              ring; if ``None``, they are in the base ring.
+
+            - ``exact`` -- a boolean (default: ``True``);
+              if ``True``, the echelon form will be as exact as possible;
+              if ``False``, the transformation matrix will be exact.
+
+            EXAMPLES::
+
+                sage: A = Qp(5, prec=10, print_mode="digits")
+                sage: M = matrix(A, 2, 3, [1, 2, 3, 6, 7, 8])
+
+                sage: M.hermite_form()  # indirect doctest
+                [...0000000001             0  ...444444444]
+                [            0 ...0000000001  ...000000002]
+
+                The user should be very careful that the above is the
+                Hermite form over `\QQ_p`; in order to get a Hermite normal
+                form over `\ZZ_p`, we must pass in the argument ``integral=True``::
+
+                sage: M.hermite_form(integral=True)  # indirect doctest
+                [ ...0000000001  ...0000000002  ...0000000003]
+                [             0 ...00000000010  ...0000000020]
+
+            We can compute in addition the transformation matrix::
+
+                sage: H, L = M.hermite_form(integral=True, transformation=True)  # indirect doctest
+                sage: H
+                [ ...0000000001  ...0000000002  ...0000000003]
+                [             0 ...00000000010  ...0000000020]
+                sage: L
+                [...000000001 ...000000000]
+                [...000000011 ...444444444]
+                sage: L*M == H
+                True
+
+            .. SEEALSO::
+
+                meth:`_matrix_echelonize`
+
+            TESTS::
+
+                sage: M = matrix(A, 3, 3, range(9))
+                sage: M.hermite_form(exact=False)   # indirect doctest
+                [...0000000001             0 ...4444444444]
+                [            0 ...0000000001 ...0000000002]
+                [            0             0 ...0000000000]
+                sage: M.hermite_form(include_zero_rows=False, exact=False)   # indirect doctest
+                [...0000000001             0 ...4444444444]
+                [            0 ...0000000001 ...0000000002]
+
+            """
+            integral = (integral is True or integral is self.integer_ring())
             M = copy(M)
             if exact:
                 from sage.matrix.matrix_cdv import echelonize_cdv_exact

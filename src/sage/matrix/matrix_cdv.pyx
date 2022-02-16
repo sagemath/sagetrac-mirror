@@ -71,10 +71,6 @@ def echelonize_cdv_nonexact(M, transformation, integral):
     else:
         left = None
 
-    ## the difference between ball_prec and inexact_ring is just for lattice precision.
-    ball_prec = R._prec_type() in ['capped-rel', 'capped-abs', 'relaxed']
-    inexact_ring = R._prec_type() not in ['fixed-mod', 'floating-point']
-
     i = j = 0
     pivots = [ ]
     while i < n and j < m:
@@ -89,7 +85,7 @@ def echelonize_cdv_nonexact(M, transformation, integral):
             j += 1
             continue
 
-        if ball_prec and any(M[ii,j].precision_absolute() <= val for ii in range(n)):
+        if any(M[ii,j].precision_absolute() <= val for ii in range(n)):
             if any(M[ii,j] != 0 for ii in range(i, n)):
                 raise PrecisionError("Not enough precision to echelonize")
             else:
@@ -180,10 +176,6 @@ def echelonize_cdv_exact(M, transformation, integral, secure):
     else:
         left = None
 
-    ## the difference between ball_prec and inexact_ring is just for lattice precision.
-    ball_prec = R._prec_type() in ['capped-rel', 'capped-abs', 'relaxed']
-    inexact_ring = R._prec_type() not in ['fixed-mod', 'floating-point']
-
     i = j = 0
     pivots = [ ]
     while i < n and j < m:
@@ -198,7 +190,7 @@ def echelonize_cdv_exact(M, transformation, integral, secure):
             j += 1
             continue
 
-        if ball_prec and any(M[ii,j].precision_absolute() <= val for ii in range(n)):
+        if any(M[ii,j].precision_absolute() <= val for ii in range(n)):
             if secure or any(M[ii,j] != 0 for ii in range(i, n)):
                 raise PrecisionError("Not enough precision to echelonize (try exact=False)")
             else:
@@ -227,8 +219,7 @@ def echelonize_cdv_exact(M, transformation, integral, secure):
                 v = min(0, M[ii,j].valuation())
                 scalar = -(Rint(M[ii,j] >> v) << (v-val))
                 M.add_multiple_of_row(ii, i, scalar, j)
-                if ball_prec:
-                    M[ii,j] = M[ii,j].lift_to_precision()
+                M[ii,j] = M[ii,j].lift_to_precision()
                 if transformation:
                     left.add_multiple_of_row(ii, i, scalar)
         else:
