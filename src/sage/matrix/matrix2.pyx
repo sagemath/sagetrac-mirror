@@ -17806,7 +17806,7 @@ cdef class Matrix(Matrix1):
         return f
 
     @staticmethod
-    def _iwasawa_normalized_form(T, K):
+    def _normalize_iwasawa_decomposition(T, K):
         """
         Return the normalized form of a given Iwasawa decomposition.
 
@@ -18336,7 +18336,7 @@ cdef class Matrix(Matrix1):
 
         # Get normalized-form of Iwasawa decomposition.
         if normalize:
-            T, K = Matrix._iwasawa_normalized_form(T, K)
+            T, K = Matrix._normalize_iwasawa_decomposition(T, K)
 
         if certificate:
             output_is_as_expected = A._check_invertibility([K], [T])
