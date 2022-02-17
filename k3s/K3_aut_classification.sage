@@ -151,6 +151,17 @@ def invariant_lattice(L,G):
         F = F.kernel_sublattice(g.matrix()-1)
     return F
 
+def write_order_2class_script():
+  fi = open("/home/simon/sage/commands_order2_impure","w")
+  for no in range(0,44):
+    for rkT in range(2,14):
+      s = """./sage -c 'load("k3s/K3_aut_classification.sage"); """
+      s += """classify_ord_pe(L=[%s], p=2, e=1,file_name="k3s/results/order2/order2_no%s_rkT%s",rw= "w", verbose=True,rkT=%s)'"""%(no,no,rkT,rkT)
+      s+= "\n"
+      fi.write(s)
+  fi.close()
+end
+
 def classify_ord_pe(L, p, e, file_name,rw,verbose=False,rkT=None):
     classifi = []
     result = open(file_name,rw)
@@ -425,7 +436,7 @@ def grp_restriction(M,g):
 def spread_types_to_files(path_read, path, transcendental_value_read):
     os.mkdir(path)
     fi = open(path_read, 'r')
-    L = get_ptypes(order, fi, returnk3s=True)
+    L = get_ptypes(transcendental_value_read, path_read, returnk3s=True)
     n = len(L)
     for k in range(n):
         s = L[k].str()
@@ -433,11 +444,12 @@ def spread_types_to_files(path_read, path, transcendental_value_read):
         fi.write(s)
         fi.close()
 
-def get_ptypes(order, file, rkT=None, returnk3s=False):
+def get_ptypes(order, file_path, rkT=None, returnk3s=False):
     assert len(order.prime_factors())==1
     p = order.prime_factors()[0]
     ptypes = []
     k3s = []
+    fi = open(file_path,"r")
     for s in fi:
         if s[:8] == "complete":
             continue
@@ -451,6 +463,7 @@ def get_ptypes(order, file, rkT=None, returnk3s=False):
         if not t in ptypes:
             ptypes.append(t)
             k3s.append(k3)
+    fi.close()
     if returnk3s:
       return k3s
     return ptypes
