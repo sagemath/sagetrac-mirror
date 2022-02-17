@@ -370,7 +370,7 @@ def ptype(L, f, p):
     else:
         raise AssertionError
     e = k
-
+    from sage.modules.torsion_quadratic_module import _normalize
     R.<x> = ZZ[]
     ptype = []
     for e0 in range(e,0, -1):
@@ -389,8 +389,9 @@ def ptype(L, f, p):
         gens = [Cv.linear_combination_of_basis(g[:n]) for g in gens]
         glueC = C.discriminant_group().submodule(gens)
         glueC = glueC.normal_form()
+        glueC = _normalize(glueC)
         q1 = glueC.gram_matrix_quadratic()
-        q2 = glueC.twist(-1).normal_form().gram_matrix_quadratic()
+        q2 = _normalize(glueC.twist(-1).normal_form()).gram_matrix_quadratic()
 
         ptype.append([(p,e0),L.genus(),C.genus(),R.genus(),ZZ(glue),[q1,q2]])
         L = R
@@ -664,6 +665,7 @@ def isometries(n, genus):
 def has_given_invariant_submodule(M, fM, OqfM, qlist, p):
     r"""
     """
+    from sage.modules.torsion_quadratic_module import _normalize
     Of = M.orthogonal_group([fM])
     n = Of.order()
     g = OqfM(Of.gen(0))
@@ -672,7 +674,7 @@ def has_given_invariant_submodule(M, fM, OqfM, qlist, p):
     H = DM.submodule(H.gens())
     glue_order = p^qlist[0].ncols()
     sg = DM.subgroup_representatives(H, OqfM, g=g, order=glue_order)
-    sg = [d.representative().normal_form().gram_matrix_quadratic() for d in sg]
+    sg = [_normalize(d.representative().normal_form()).gram_matrix_quadratic() for d in sg]
     return any(s in qlist for s in sg)
 
 
@@ -708,8 +710,7 @@ def next_prime_power(ptype, verbose=0):
         # recurse
         for R, fR, GR in next_prime_power(ptype[:i],verbose=verbose-1):
             ext = extensions(C, fC, R, fR, GC, GR,
-                             pglue, p, target_genus=genus,
-                             qlist=qlist)
+                             pglue, p, target_genus=genus, qlist=qlist)
             if verbose > 0:
                 print('found %s extensions at level %s'%(len(ext),verbose))
             for ex in ext:
@@ -1074,4 +1075,79 @@ def extensions(M, fM, N , fN, GM, GN, glue_order, p,
         stab = ext_Oq.subgroup([ext_Oq(g) for g in stab.gens()])
         results.append([ext, f, stab])
     return results
+
+
+
+# missing cases
+#
+curve_graph = matrix([(-2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0),
+ (1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 1, -2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 1, -2, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1),
+ (0, 0, 0, 0, 1, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 2, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, -2, 0, 0, 0, 0, 0, 0, 0, 0),
+ (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 2, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, -2, 0, 0, 0, 0, 0, 0),
+ (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 2, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, -2, 0, 0, 0, 0),
+ (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 2, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, -2, 0, 0),
+ (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 2),
+ (0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, -2)])
+
+gram= matrix([(-2, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0),
+ (0, -2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, -2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 1, 1, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0),
+ (1, 0, 0, 0, 1, -2, 0, 0, 0, 0, 0, 0, 0, 0),
+ (1, 0, 0, 0, 0, 0, -2, 1, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 1, -2, 1, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1, 1),
+ (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -2)])
+
+f1 = matrix([(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (2, 2, 2, 2, 4, 3, 1, 0, -1, -2, -3, -4, -2, -3),
+ (0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0),
+ (2, 1, 2, 2, 4, 3, 1, 0, -1, -2, -3, -4, -2, -2)]
+)
+f2 = matrix([(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0),
+ (2, 2, 1, 2, 4, 3, 1, 0, -1, -2, -3, -4, -2, -2),
+ (2, 2, 2, 1, 4, 3, 1, 0, -1, -2, -3, -4, -2, -2),
+ (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1),
+ (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0),
+ (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0),
+ (0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+ (2, 2, 2, 2, 4, 3, 1, 0, -1, -2, -3, -4, -3, -2),
+ (0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)]
+)
+
+assert f1*gram*f1.T==gram
+assert f2*gram*f2.T==gram
+L = IntegralLattice(gram)
 

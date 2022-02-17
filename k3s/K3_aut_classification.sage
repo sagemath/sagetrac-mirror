@@ -119,27 +119,6 @@ def K3SurfaceAut(A, B, a, Oa):
 
 
 #######################################
-def get_ptypes(order, file, rkT=None, returnk3s=False):
-    assert len(order.prime_factors())==1
-    p = order.prime_factors()[0]
-    ptypes = []
-    k3s = []
-    for s in fi:
-        if s[:8] == "complete":
-            continue
-        k3 = K3SurfaceAutGrp_from_str(s)
-        if rkT is not None and k3.transcendental_lattice().rank()!=rkT:
-            continue
-        H = k3.symplectic_invariant_lattice()
-        g = k3.distinguished_generator()
-        t = ptype(H,g,p)
-        if not t in ptypes:
-            ptypes.append(t)
-            k3s.append(k3)
-    if returnk3s:
-      return k3s
-    return ptypes
-
 
 def classify_ord_p_next(cofix, ptypes, file_name, rw, verbose=0):
     classifi = []
@@ -443,15 +422,10 @@ def grp_restriction(M,g):
         #acts12.append(g)
 
 
-def spread_to_files(path_read, path):
+def spread_types_to_files(path_read, path, transcendental_value_read):
     os.mkdir(path)
     fi = open(path_read, 'r')
-    L = []
-    for str_pe in fi:
-        if str_pe[:8]=="complete":
-            continue
-        k3 = K3SurfaceAutGrp_from_str(str_pe)
-        L.append(k3)
+    L = get_ptypes(order, fi, returnk3s=True)
     n = len(L)
     for k in range(n):
         s = L[k].str()
@@ -459,6 +433,26 @@ def spread_to_files(path_read, path):
         fi.write(s)
         fi.close()
 
-
+def get_ptypes(order, file, rkT=None, returnk3s=False):
+    assert len(order.prime_factors())==1
+    p = order.prime_factors()[0]
+    ptypes = []
+    k3s = []
+    for s in fi:
+        if s[:8] == "complete":
+            continue
+        k3 = K3SurfaceAutGrp_from_str(s)
+        assert k3.transcendental_value() == order
+        if rkT is not None and k3.transcendental_lattice().rank()!=rkT:
+            continue
+        H = k3.symplectic_invariant_lattice()
+        g = k3.distinguished_generator()
+        t = ptype(H,g,p)
+        if not t in ptypes:
+            ptypes.append(t)
+            k3s.append(k3)
+    if returnk3s:
+      return k3s
+    return ptypes
 
 
