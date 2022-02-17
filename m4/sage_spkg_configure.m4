@@ -70,6 +70,9 @@ AC_ARG_WITH([system-]SPKG_NAME,
 
 AS_VAR_SET([sage_spkg_name], SPKG_NAME)
 
+dnl Default value for most packages
+AS_VAR_SET_IF([SPKG_USE_SYSTEM], [], [AS_VAR_COPY([SPKG_USE_SYSTEM], [SPKG_USE_SYSTEM_]m4_expand(m4_expand($[]1))[_PACKAGES])])
+ 
 dnl The default is not to install a package, unless a check below finds that we should.
 AS_VAR_SET(SPKG_INSTALL, [no])
 
@@ -117,7 +120,7 @@ AS_VAR_IF(SPKG_INSTALL, [no], [
     That's an error.  Please install the indicated package to continue.
     (To override this error, use ./configure --without-system-]SPKG_NAME[)"])
                     ], [
-                        AC_MSG_NOTICE(m4_normalize([no suitable system package found for SPKG ]SPKG_NAME))
+                        AC_MSG_NOTICE(m4_normalize([no suitable system package found for SPKG ]SPKG_NAME[; this is an error]))
                     ])
                 ])
             ], [

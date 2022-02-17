@@ -82,7 +82,7 @@ bootstrap () {
     rm -f m4/sage_spkg_configures.m4
     spkg_configures=""
 
-    # initialize SAGE_ENABLE... and sage_use_system_ options for standard packages
+    # initialize SAGE_ENABLE... options for standard packages
     for pkgname in $(./sage --package list :standard: | sort); do
         spkg_configures="$spkg_configures
 AS_VAR_SET_IF([SAGE_ENABLE_$pkgname], [], [AS_VAR_SET([SAGE_ENABLE_$pkgname], [yes])])"
@@ -107,14 +107,11 @@ SAGE_SPKG_ENABLE([$pkgname], [$pkgtype], [$(grep -v ^= build/pkgs/$pkgname/SPKG.
                     esac
                 fi
     done
-    for pkgname in $(./sage --package list :standard: --has-file spkg-configure.m4 | sort); do
-        spkg_configures="$spkg_configures
-AS_VAR_SET_IF([sage_use_system_$pkgname], [], [AS_VAR_COPY([sage_use_system_$pkgname], [SPKG_USE_SYSTEM_STANDARD_PACKAGES])])"
-    done
     for pkgname in $(./sage --package list --has-file spkg-configure.m4 | sort); do
+        pkgtype="$(cat build/pkgs/$pkgname/type)"
         echo "m4_sinclude([build/pkgs/$pkgname/spkg-configure.m4])" >> m4/sage_spkg_configures.m4
         spkg_configures="$spkg_configures
-SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
+SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')([$pkgtype])"
     done
     echo "$spkg_configures" >> m4/sage_spkg_configures.m4
 
