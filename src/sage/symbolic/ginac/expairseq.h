@@ -180,25 +180,6 @@ protected:
 #endif // EXPAIRSEQ_USE_HASHTAB
 };
 
-/** Class to handle the renaming of dummy indices. It holds a vector of
- *  indices that are being used in the expression so-far. If the same
- *  index occurs again as a dummy index in a factor, it is to be renamed.
- *  Unless dummy index renaming was swichted of, of course ;-) . */
-class make_flat_inserter
-{
-	public:
-		make_flat_inserter(const epvector &epv, bool b)
-		{}
-		make_flat_inserter(const exvector &v, bool b)
-                {}
-		ex handle_factor(const ex &x, const ex &coeff)
-		{
-			if (is_exactly_a<numeric>(coeff) and coeff.is_zero())
-				return coeff;
-		        return x;
-		}
-};
-
 } // namespace GiNaC
 
 #endif // ndef __GINAC_EXPAIRSEQ_H__
