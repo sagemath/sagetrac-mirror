@@ -287,15 +287,15 @@ class AbsIrreducibeRep(Enum):
     # absolutely irreducible representations corresponding to braids on 2 strands
     # -------------------------------------------------------------------------------------------------
     W2_100  = {'alt_name':'Sa',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 0 , 'intern_ind': 0 }
-    W2_001  = {'alt_name':'Sb',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
-    W2_010  = {'alt_name':'Sc',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
+    W2_001  = {'alt_name':'Sc',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
+    W2_010  = {'alt_name':'Sb',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
 
     # -------------------------------------------------------------------------------------------------
     # absolutely irreducible representations corresponding to braids on 3 strands
     # -------------------------------------------------------------------------------------------------
     W3_100  = {'alt_name':'Sa',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 0 , 'intern_ind': 0 }
-    W3_001  = {'alt_name':'Sb',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
-    W3_010  = {'alt_name':'Sc',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
+    W3_001  = {'alt_name':'Sc',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
+    W3_010  = {'alt_name':'Sb',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
 
     W3_011  = {'alt_name':'Tbc',  'dim':2 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 3 , 'intern_ind': 3 }
     W3_110  = {'alt_name':'Tab',  'dim':2 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 4 , 'intern_ind': 4 }
@@ -307,8 +307,8 @@ class AbsIrreducibeRep(Enum):
     # absolutely irreducible representations corresponding to braids on 4 strands
     # -------------------------------------------------------------------------------------------------
     W4_100  = {'alt_name':'Sa',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 0 , 'intern_ind': 0 }
-    W4_001  = {'alt_name':'Sb',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
-    W4_010  = {'alt_name':'Sc',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
+    W4_001  = {'alt_name':'Sc',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
+    W4_010  = {'alt_name':'Sb',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
 
     W4_011  = {'alt_name':'Tbc',  'dim':2 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 3 , 'intern_ind': 3 }
     W4_110  = {'alt_name':'Tab',  'dim':2 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 4 , 'intern_ind': 4 }
@@ -331,8 +331,8 @@ class AbsIrreducibeRep(Enum):
     W4_312  = {'alt_name':'Vacb', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 18 , 'intern_ind': 18 }
 
     W4_422  = {'alt_name':'Wa',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 19 , 'intern_ind': 19 }
-    W4_224  = {'alt_name':'Wb',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 20 , 'intern_ind': 20 }
-    W4_242  = {'alt_name':'Wc',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 21 , 'intern_ind': 21 }
+    W4_224  = {'alt_name':'Wc',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 20 , 'intern_ind': 20 }
+    W4_242  = {'alt_name':'Wb',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 21 , 'intern_ind': 21 }
 
     W4_333    = {'alt_name':'X',    'dim':9 , 'ngens':3 , 'len_orbit':2 , 'gap_ind': 22 , 'intern_ind': 22 }
     W4_333bar = {'alt_name':'Xbar', 'dim':9 , 'ngens':3 , 'len_orbit':2 , 'gap_ind': 23 , 'intern_ind': 23 }
