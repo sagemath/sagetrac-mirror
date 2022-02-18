@@ -373,7 +373,7 @@ def enum_genus(path_read, path_write, p):
     from sage.quadratic_forms.genera.genus import Genus
     mass = Genus(seeds[0]).mass()
     seeds = [QuadraticForm(s) for s in seeds]
-    seedsnew = neighbor_iteration(seeds=seeds, p=p, algorithm="random",max_neighbors=5, isometry_backend="magma",complete=False, mass=mass)
+    seedsnew = neighbor_iteration(seeds=seeds, p=p, algorithm="random",max_neighbors=100, isometry_backend="magma",complete=False, mass=mass)
     fi = open(path_write,"w")
     for s in seedsnew:
       fi.write(str(s.Hessian_matrix().list()))
