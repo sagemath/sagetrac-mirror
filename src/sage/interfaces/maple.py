@@ -246,7 +246,7 @@ from sage.docs.instancedoc import instancedoc
 from sage.structure.richcmp import rich_to_bool
 
 
-COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj' % DOT_SAGE
+COMMANDS_CACHE = DOT_SAGE / 'maple_commandlist_cache.sobj'
 
 
 class Maple(ExtraTabCompletion, Expect):

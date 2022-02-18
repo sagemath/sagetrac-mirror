@@ -451,7 +451,7 @@ If this all works, you can then make calls like:
             # logfile in .sage/pexpect_logs/
             if self.__logfilename is None and 'SAGE_PEXPECT_LOG' in os.environ:
                 from sage.env import DOT_SAGE
-                logs = os.path.join(DOT_SAGE, 'pexpect_logs')
+                logs = DOT_SAGE / 'pexpect_logs'
                 sage_makedirs(logs)
 
                 filename = '{name}-{pid}-{id}-{session}'.format(

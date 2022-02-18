@@ -1067,7 +1067,7 @@ from sage.env import DOT_SAGE
 import os
 
 # An instance
-gp = Gp(logfile=os.path.join(DOT_SAGE,'gp-expect.log')) # useful for debugging!
+gp = Gp(logfile=DOT_SAGE / 'gp-expect.log')  # useful for debugging!
 
 def reduce_load_GP():
     """

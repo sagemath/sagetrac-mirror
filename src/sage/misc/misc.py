@@ -214,7 +214,7 @@ def SAGE_TMP():
         sage: SAGE_TMP
         l'.../temp/...'
     """
-    d = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
+    d = DOT_SAGE / 'temp' / HOSTNAME / str(os.getpid())
     sage_makedirs(d)
     return d
 
@@ -262,7 +262,7 @@ def SAGE_TMP_INTERFACE():
     return d
 
 
-SAGE_DB = os.path.join(DOT_SAGE, 'db')
+SAGE_DB = DOT_SAGE / 'db'
 sage_makedirs(SAGE_DB)
 
 try:

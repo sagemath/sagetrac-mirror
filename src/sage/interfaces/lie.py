@@ -295,8 +295,8 @@ from sage.docs.instancedoc import instancedoc
 import os
 
 
-COMMANDS_CACHE = '%s/lie_commandlist_cache.sobj' % DOT_SAGE
-HELP_CACHE = '%s/lie_helpdict_cache.sobj' % DOT_SAGE
+COMMANDS_CACHE = DOT_SAGE / 'lie_commandlist_cache.sobj'
+HELP_CACHE = DOT_SAGE / 'lie_helpdict_cache.sobj'
 
 
 class LiE(ExtraTabCompletion, Expect):

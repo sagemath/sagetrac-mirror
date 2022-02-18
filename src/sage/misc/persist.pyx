@@ -1045,7 +1045,7 @@ def picklejar(obj, dir=None):
     """
     if dir is None:
         from sage.env import DOT_SAGE
-        dir = os.path.join(DOT_SAGE, 'pickle_jar')
+        dir = DOT_SAGE / 'pickle_jar'
     try:
         os.makedirs(dir)
     except OSError as err:

@@ -138,7 +138,7 @@ class DocTestDefaults(SageObject):
 
         # We don't want to use the real stats file by default so that
         # we don't overwrite timings for the actual running doctests.
-        self.stats_path = os.path.join(DOT_SAGE, "timings_dt_test.json")
+        self.stats_path = DOT_SAGE / "timings_dt_test.json"
         self.__dict__.update(kwds)
 
     def _repr_(self):
@@ -1110,7 +1110,7 @@ class DocTestController(SageObject):
                 sage_cmd += " --logfile %s"%(opt.logfile)
         else:
             if opt.logfile is None:
-                default_log = os.path.join(DOT_SAGE, "valgrind")
+                default_log = DOT_SAGE / "valgrind"
                 if os.path.exists(default_log):
                     if not os.path.isdir(default_log):
                         self.log("%s must be a directory"%default_log)

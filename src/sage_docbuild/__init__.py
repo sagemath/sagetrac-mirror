@@ -1178,7 +1178,7 @@ class SingleFileBuilder(DocBuilder):
             if os.path.exists(base_dir):
                 logger.warning('Warning: Directory %s exists. It is safer to build in a new directory.' % base_dir)
         else:
-            base_dir = os.path.join(DOT_SAGE, 'docbuild', module_name)
+            base_dir = DOT_SAGE / 'docbuild' / module_name
             try:
                 shutil.rmtree(base_dir)
             except OSError:
