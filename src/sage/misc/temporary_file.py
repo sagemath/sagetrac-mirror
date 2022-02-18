@@ -29,6 +29,13 @@ import tempfile
 
 import atexit
 
+# Until tmp_dir() and tmp_filename() are removed, we use this directory
+# as the parent for all temporary files & directories created by them.
+# This lets us clean up after those two functions when sage exits normally
+# using an atexit hook
+TMP_DIR_FILENAME_BASE=tempfile.TemporaryDirectory()
+atexit.register(lambda: TMP_DIR_FILENAME_BASE.cleanup())
+
 
 #################################################################
 # temporary directory
@@ -66,7 +73,9 @@ def tmp_dir(name="dir_", ext=""):
         0
         sage: f.close()
     """
-    tmp = tempfile.mkdtemp(prefix=name, suffix=ext)
+    tmp = tempfile.mkdtemp(prefix=name,
+                           suffix=ext,
+                           dir=TMP_DIR_FILENAME_BASE.name)
     name = os.path.abspath(tmp)
     return name + os.sep
 
@@ -115,7 +124,9 @@ def tmp_filename(name="tmp_", ext=""):
         0
         sage: f.close()
     """
-    handle, tmp = tempfile.mkstemp(prefix=name, suffix=ext)
+    handle, tmp = tempfile.mkstemp(prefix=name,
+                                   suffix=ext,
+                                   dir=TMP_DIR_FILENAME_BASE.name)
     os.close(handle)
     name = os.path.abspath(tmp)
     return name
