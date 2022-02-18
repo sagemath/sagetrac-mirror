@@ -231,7 +231,7 @@ def find_p_neighbor_from_vec(self, p, y):
 
 
 def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
-                       algorithm=None, max_neighbors=500, verbose=True):
+                       algorithm=None, max_neighbors=500, verbose=True, isometry_backend="sage",complete=True):
     r"""
     Return all classes in the `p`-neighbor graph of ``self``.
 
@@ -332,9 +332,16 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
         # find all p-neighbors of Q
         Q = waiting_list.pop()
         for v in p_divisible_vectors(Q, max_neighbors):
-            Q_neighbor = Q.find_p_neighbor_from_vec(p, v)
-            if not any(Q_neighbor.is_globally_equivalent_to(S) for S in isom_classes):
-                Q_neighbor = Q_neighbor.lll()
+            Q_neighbor = Q.find_p_neighbor_from_vec(p, v).lll()
+            if isometry_backend == "sage":
+                found_new = not any(Q_neighbor.is_globally_equivalent_to(S) for S in isom_classes)
+            elif isometry_backend == "magma":
+                from sage.interfaces.magma import magma
+                Qm = magma.LatticeWithGram(Q_neighbor.Hessian_matrix().change_ring(ZZ))
+                found_new = not any(Qm.IsIsometric(magma.LatticeWithGram(S.Hessian_matrix().change_ring(ZZ))).sage() for S in isom_classes)
+            else:
+                assert False
+            if found_new:
                 isom_classes.append(Q_neighbor)
                 waiting_list.append(Q_neighbor)
                 n_isom_classes += 1
@@ -348,13 +355,31 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
     if len(isom_classes) >= max_classes:
         warn("reached the maximum number of isometry classes=%s. Increase the optional argument max_classes to obtain more." %max_classes)
 
-    assert mass is not None
-    if mass_count < mass:
+    assert not complete or mass is not None
+    if mass_count < mass and complete:
         if verbose:
             print("Remaining mass: %s"%(mass - mass_count))
         return neighbor_iteration(seeds=isom_classes,p=p,mass=mass,max_neighbors=max_neighbors,max_classes=max_classes,algorithm=algorithm,verbose=verbose)
-    assert mass_count == mass, "Warning: not all classes in the genus were found"
+    assert not complete or mass_count == mass, "Warning: not all classes in the genus were found"
     return isom_classes
+
+def enum_genus(path_read, path_write, p):
+    fi_in = open(path_read,"r")
+    seeds = [eval(s) for s in fi_in]
+    fi_in.close()
+    seeds = [matrix(ZZ,ZZ(len(s)).sqrt(),s) for s in seeds]
+    assert all(all(d>0 for d in s.diagonal()) for s in seeds)
+    from sage.quadratic_forms.quadratic_form import QuadraticForm
+    from sage.quadratic_forms.genera.genus import Genus
+    mass = Genus(seeds[0]).mass()
+    seeds = [QuadraticForm(s) for s in seeds]
+    seedsnew = neighbor_iteration(seeds=seeds, p=p, algorithm="random",max_neighbors=5, isometry_backend="magma",complete=False, mass=mass)
+    fi = open(path_write,"w")
+    for s in seedsnew:
+      fi.write(str(s.Hessian_matrix().list()))
+      fi.write("\n")
+    fi.close()
+    return seedsnew
 
 def orbits_lines_mod_p(self, p):
     r"""

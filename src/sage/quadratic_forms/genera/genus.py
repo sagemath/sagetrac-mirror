@@ -3342,7 +3342,7 @@ class GenusSymbol_global_ring(object):
             self._representatives = reps
             assert all(Genus(a)==self for a in reps)
             from sage.quadratic_forms.all import QuadraticForm
-            #assert self.mass()==sum([1/QuadraticForm(-a).number_of_automorphisms() for a in reps])
+            assert self.mass()==sum([1/QuadraticForm(-a).number_of_automorphisms() for a in reps])
             return self._representatives
         n = self.dimension()
         representatives = []
