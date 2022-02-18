@@ -16,12 +16,11 @@ def get_cache_file():
 
     EXAMPLES::
 
+        sage: from sage.env import DOT_SAGE
         sage: from sage.misc.lazy_import_cache import get_cache_file
         sage: str(get_cache_file())
         '...-lazy_import_cache.pickle'
-        sage: get_cache_file().parent == DOT_SAGE
-        True
-        sage: 'cache' in get_cache_file().name
+        sage: get_cache_file().parent == DOT_SAGE / 'cache'
         True
 
     It should not matter whether DOT_SAGE ends with a slash::
@@ -34,4 +33,4 @@ def get_cache_file():
         sage: sage.misc.lazy_import_cache.DOT_SAGE = OLD
     """
     mangled = hashlib.sha256(os.path.realpath(SAGE_LIB).encode('utf-8')).hexdigest()
-    return DOT_SAGE / 'cache' / "%s-lazy_import_cache.pickle" % mangled
+    return DOT_SAGE / 'cache' / ("%s-lazy_import_cache.pickle" % mangled)

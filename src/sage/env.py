@@ -185,8 +185,8 @@ SAGE_PKGS = var("SAGE_PKGS", join(SAGE_ROOT, "build", "pkgs"))
 SAGE_ROOT_GIT = var("SAGE_ROOT_GIT", join(SAGE_ROOT, ".git"))
 
 # ~/.sage
-DOT_SAGE = var("DOT_SAGE", Path(os.environ.get("HOME")) / ".sage")
-SAGE_STARTUP_FILE = var("SAGE_STARTUP_FILE", DOT_SAGE / "init.sage")
+DOT_SAGE = Path(var("DOT_SAGE", Path(os.environ.get("HOME")) / ".sage"))
+SAGE_STARTUP_FILE = Path(var("SAGE_STARTUP_FILE", DOT_SAGE / "init.sage"))
 
 # for sage_setup.setenv
 SAGE_ARCHFLAGS = var("SAGE_ARCHFLAGS", "unset")
