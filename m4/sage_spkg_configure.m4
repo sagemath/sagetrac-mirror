@@ -49,6 +49,9 @@ dnl Whether SageMath needs to install this package
 m4_pushdef([SPKG_INSTALL], [sage_spkg_install_]SPKG_NAME)
 dnl Whether SageMath requires this package to be present somehow
 m4_pushdef([SPKG_REQUIRE], [sage_require_]SPKG_NAME)
+dnl Whether it is installed already
+AC_REQUIRE([SAGE_SPKG_INITIALIZE_]SPKG_NAME)
+m4_pushdef([SPKG_INSTALLED], [SAGE_INSTALLED_]SPKG_NAME)dnl
 dnl Whether we want the system to provide this package:
 dnl * "yes", attempt to use the system package
 dnl * "no", do not attempt to use the system package
@@ -85,7 +88,7 @@ $4
 dnl If a version of this package is already installed in local/ we have no
 dnl choice but to use it and we will actually also update it even if it is not
 dnl required.
-AS_IF([test -n "`ls "${SAGE_LOCAL}/var/lib/sage/installed/${sage_spkg_name}"-* 2>/dev/null`"], [
+AS_VAR_IF([SPKG_INSTALLED], [yes], [dnl
     AC_MSG_NOTICE(m4_normalize(SPKG_NAME[ has already been installed by SageMath]))
     AS_VAR_SET(SPKG_INSTALL, [yes])
     AS_VAR_SET(SPKG_USE_SYSTEM, [installed])
@@ -142,6 +145,7 @@ $5
 
 # END SAGE_SPKG_CONFIGURE_]m4_toupper($1)[
 m4_popdef([SPKG_USE_SYSTEM])
+m4_popdef([SPKG_INSTALLED])
 m4_popdef([SPKG_REQUIRE])
 m4_popdef([SPKG_INSTALL])
 m4_popdef([SPKG_NAME])

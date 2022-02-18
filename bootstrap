@@ -138,9 +138,10 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
                 SPKG_TREE_VAR=SAGE_VENV
             fi
         fi
+        echo "AC_DEFUN([SAGE_SPKG_INITIALIZE]_$pkgname, [SAGE_SPKG_CHECK_INSTALLED([$pkgname], [$pkgtype], [$SPKG_SOURCE], [$SPKG_TREE_VAR])])"
         spkg_configures="$spkg_configures
 SAGE_SPKG_FINALIZE([$pkgname], [$pkgtype], [$SPKG_SOURCE], [$SPKG_TREE_VAR])"
-    done
+    done >> m4/sage_spkg_configures.m4
     echo "$spkg_configures" >> m4/sage_spkg_configures.m4
 
     for pkgname in $(./sage --package list --has-file bootstrap); do

@@ -147,6 +147,48 @@ AC_SUBST([SAGE_OPTIONAL_UNINSTALLED_PACKAGES])
 AC_SUBST([SAGE_SDIST_PACKAGES])
 ])
 
+dnl ==========================================================================
+AC_DEFUN([SAGE_SPKG_CHECK_INSTALLED], [dnl
+    m4_pushdef([SPKG_NAME], [$1])dnl
+    m4_pushdef([SPKG_TYPE], [$2])dnl
+    m4_pushdef([SPKG_SOURCE], [$3])dnl
+    m4_pushdef([SPKG_TREE_VAR], [$4])dnl
+    dnl Determine whether it is installed already
+    m4_pushdef([SPKG_INSTALLED], [SAGE_INSTALLED_]SPKG_NAME)dnl
+    AS_VAR_SET([SPKG_INSTALLED], [no])dnl
+    m4_append_uniq_w([SPKG_TREE_VAR], [SAGE_LOCAL])
+    for treevar in SPKG_TREE_VAR; do
+        AS_VAR_COPY([t], [$treevar])
+        AS_IF([test -n "$t" -a -d "$t/var/lib/sage/installed/" ], [dnl
+            for f in "$t/var/lib/sage/installed/SPKG_NAME"-*; do
+                AS_IF([test -r "$f"], [dnl
+                    m4_case(SPKG_SOURCE, [normal], [dnl
+                        dnl Only run the multiple installation record test for normal packages,
+                        dnl not for script packages. We actually do not clean up after those...
+                        AS_IF([test "$SPKG_INSTALLED" = "yes"], [dnl
+                            AC_MSG_ERROR(m4_normalize([
+                                multiple installation records for SPKG_NAME:
+                                m4_newline($(ls -l "$t/var/lib/sage/installed/SPKG_NAME"-*))
+                                m4_newline([only one should exist, so please delete some or all
+                                of these files and re-run "$srcdir/configure"])
+                            ]))dnl
+                        ])
+                    ])dnl
+                    AS_VAR_SET([SPKG_INSTALLED], [yes])
+                ])
+            done
+            dnl Only check the first existing tree, so that we do not issue "multiple installation" warnings
+            dnl when SAGE_LOCAL = SAGE_VENV
+            break
+        ])
+    done
+    m4_popdef([SPKG_INSTALLED])dnl
+    m4_popdef([SPKG_TREE_VAR])dnl
+    m4_popdef([SPKG_SOURCE])dnl
+    m4_popdef([SPKG_TYPE])dnl
+    m4_popdef([SPKG_NAME])dnl
+])
+
 
 dnl ==========================================================================
 AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
@@ -160,6 +202,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
     dnl depending on the package type and other criteria (such as whether or not it
     dnl needs to be installed)
     dnl
+    AC_REQUIRE([SAGE_SPKG_INITIALIZE_]SPKG_NAME)
     DIR="$SAGE_ROOT"/build/pkgs/SPKG_NAME
     AS_IF([test ! -d "$DIR"], [dnl
         AC_MSG_ERROR([Directory $DIR is missing. Re-run bootstrap.])dnl
@@ -195,40 +238,12 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
     dnl Jupyter notebook, then packages such as jupyter_core would have to be installed into
     dnl two trees.
     SAGE_PACKAGE_TREES="${SAGE_PACKAGE_TREES}$(printf '\ntrees_')SPKG_NAME = SPKG_TREE_VAR"
-
-    dnl Determine whether it is installed already
-    AS_VAR_SET([is_installed], [no])
-    m4_append_uniq_w([SPKG_TREE_VAR], [SAGE_LOCAL])
-    for treevar in SPKG_TREE_VAR; do
-        AS_VAR_COPY([t], [$treevar])
-        AS_IF([test -n "$t" -a -d "$t/var/lib/sage/installed/" ], [dnl
-            for f in "$t/var/lib/sage/installed/SPKG_NAME"-*; do
-                AS_IF([test -r "$f"], [dnl
-                    m4_case(SPKG_SOURCE, [normal], [dnl
-                        dnl Only run the multiple installation record test for normal packages,
-                        dnl not for script packages. We actually do not clean up after those...
-                        AS_IF([test "$is_installed" = "yes"], [dnl
-                            AC_MSG_ERROR(m4_normalize([
-                                multiple installation records for SPKG_NAME:
-                                m4_newline($(ls -l "$t/var/lib/sage/installed/SPKG_NAME"-*))
-                                m4_newline([only one should exist, so please delete some or all
-                                of these files and re-run "$srcdir/configure"])
-                            ]))dnl
-                        ])
-                    ])dnl
-                    AS_VAR_SET([is_installed], [yes])
-                ])
-            done
-            dnl Only check the first existing tree, so that we do not issue "multiple installation" warnings
-            dnl when SAGE_LOCAL = SAGE_VENV
-            break
-        ])
-    done
     dnl
     dnl Determine whether package is enabled
+    m4_pushdef([SPKG_INSTALLED], [SAGE_INSTALLED_]SPKG_NAME)dnl
     m4_pushdef([want_spkg], [SAGE_ENABLE_]SPKG_NAME)dnl
     AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [if_installed],
-          [AS_VAR_SET([want_spkg], $is_installed)])
+          [AS_VAR_SET([want_spkg], $SPKG_INSTALLED)])
     dnl
     uninstall_message=""
     m4_case(SPKG_TYPE,
@@ -315,10 +330,11 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
     ])
     dnl
     spkg_line=" \\$(printf '\n    ')SPKG_NAME"
-    AS_CASE([$is_installed-$want_spkg],
+    AS_CASE([$SPKG_INSTALLED-$want_spkg],
             [*-yes],  [AS_VAR_APPEND(SAGE_OPTIONAL_INSTALLED_PACKAGES, "$spkg_line")],
             [yes-no], [AS_VAR_APPEND(SAGE_OPTIONAL_UNINSTALLED_PACKAGES, "$spkg_line")])
     m4_popdef([want_spkg])dnl
+    m4_popdef([SPKG_INSTALLED])dnl
     dnl
     dnl Determine package dependencies
     dnl
