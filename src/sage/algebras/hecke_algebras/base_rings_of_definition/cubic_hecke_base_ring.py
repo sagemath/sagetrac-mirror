@@ -1512,13 +1512,14 @@ class CubicHeckeRingOfDefinition(Localization):
                     localized at (t1, t0, t0 + t1 - 1, t0*t1 - t0 - t1)
               Defn: u |--> t0 + t1 - 1
                     v |--> t0*t1 - t0 - t1
-                    w |--> -1
+                    w |--> -t0*t1
                     s |--> 1
             sage: K = f.codomain()
             sage: MTB = mt.parent().basis().keys()
             sage: sum(f(mt.coefficient(b)) * K(b.links_gould_polynomial()) for b in MTB)
-            t0^4 + t0^3*t1 + t0^2*t1^2 + t0*t1^3 + t1^4 - 2*t0^3
-            - 2*t1^3 + 2*t0^2 - t0*t1 + 2*t1^2 - 4*t0 - 4*t1 + 5
+            -t0^4*t1 - t0^3*t1^2 - t0^2*t1^3 - t0*t1^4 + t0^4 + 2*t0^3*t1 + 2*t0^2*t1^2
+            + 2*t0*t1^3 + t1^4 - t0^3 - 2*t0^2*t1 - 2*t0*t1^2 - t1^3 + t0^2 + 2*t0*t1
+            + t1^2 - t0 - t1 + 1
         """
         if not self._is_markov_trace_version():
             raise ValueError('Functionality available for Markov trace version, only')
@@ -1527,7 +1528,9 @@ class CubicHeckeRingOfDefinition(Localization):
         t0, t1 = L.gens()
         lu = t0 + t1 -1
         lv = t0*t1 -t0 - t1
+        lw = -t0*t1
         LL = L.localization((lu, lv))
         u = LL(lu)
         v = LL(lv)
-        return self.hom((u, v, -LL.one(), LL.one()))
+        w = LL(lw)
+        return self.hom((u, v, w, LL.one()))
