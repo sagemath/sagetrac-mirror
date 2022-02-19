@@ -289,6 +289,7 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
     p = ZZ(p)
     from sage.quadratic_forms.quadratic_form import QuadraticForm
     from warnings import warn
+    from sage.interfaces.magma import magma
     if not all(isinstance(s, QuadraticForm) for s in seeds):
         raise ValueError("seeds must be a list of quadratic forms")
     if algorithm is None:
@@ -324,7 +325,10 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
         raise ValueError("unknown algorithm")
     waiting_list = list(seeds)
     isom_classes = list(seeds)
-    mass_count = sum([QQ(1)/Q.number_of_automorphisms() for Q in isom_classes])
+    if isometry_backend == "sage":
+      mass_count = sum([QQ(1)/Q.number_of_automorphisms() for Q in isom_classes])
+    else:
+      mass_count = sum(1/magma.LatticeWithGram(Q.Hessian_matrix()).AutomorphismGroup().Order().sage() for Q in isom_classes)
     n_isom_classes = ZZ(0)
     if verbose:
         print("enumerating a genus of mass %s"%mass)
@@ -336,7 +340,6 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
             if isometry_backend == "sage":
                 found_new = not any(Q_neighbor.is_globally_equivalent_to(S) for S in isom_classes)
             elif isometry_backend == "magma":
-                from sage.interfaces.magma import magma
                 Qm = magma.LatticeWithGram(Q_neighbor.Hessian_matrix().change_ring(ZZ))
                 found_new = not any(Qm.IsIsometric(magma.LatticeWithGram(S.Hessian_matrix().change_ring(ZZ))).sage() for S in isom_classes)
             else:
@@ -345,7 +348,10 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
                 isom_classes.append(Q_neighbor)
                 waiting_list.append(Q_neighbor)
                 n_isom_classes += 1
-                mass_count += Q_neighbor.number_of_automorphisms()**(-1)
+                if isometry_backend == "sage":
+                  mass_count += Q_neighbor.number_of_automorphisms()**(-1)
+                else:
+                  mass_count += magma.LatticeWithGram(Q.Hessian_matrix()).AutomorphismGroup().Order().sage()**(-1)
                 if verbose:
                     print("Nodes found %s"%n_isom_classes)
                     print("Remaining mass: %s"%(mass-mass_count))
@@ -363,7 +369,7 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
     assert not complete or mass_count == mass, "Warning: not all classes in the genus were found"
     return isom_classes
 
-def enum_genus(path_read, path_write, p):
+def enum_genus(path_read, path_write, p, max_neighbors=100):
     fi_in = open(path_read,"r")
     seeds = [eval(s) for s in fi_in]
     fi_in.close()
@@ -373,7 +379,7 @@ def enum_genus(path_read, path_write, p):
     from sage.quadratic_forms.genera.genus import Genus
     mass = Genus(seeds[0]).mass()
     seeds = [QuadraticForm(s) for s in seeds]
-    seedsnew = neighbor_iteration(seeds=seeds, p=p, algorithm="random",max_neighbors=500, isometry_backend="magma",complete=False, mass=mass)
+    seedsnew = neighbor_iteration(seeds=seeds, p=p, algorithm="random",max_neighbors=max_neighbors, isometry_backend="magma",complete=False, mass=mass)
     fi = open(path_write,"w")
     for s in seedsnew:
       fi.write(str(s.Hessian_matrix().list()))

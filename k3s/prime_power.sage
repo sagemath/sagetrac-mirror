@@ -409,11 +409,12 @@ def prime_order(p, genus, k3=True,verbose=2,rankCp=None):
         raise ValueError('number of positive squares must be 0, or 2 or 3')
     rk = genus.rank()
     # order 1 action
-    for C1 in G.representatives():
-        C1 = IntegralLattice(C1)
-        f1 = matrix.identity(rk)
-        GC1 = C1.image_in_Oq()
-        yield C1, f1, GC1
+    if rankCp is None or rankCp==0:
+        for C1 in G.representatives():
+            C1 = IntegralLattice(C1)
+            f1 = matrix.identity(rk)
+            GC1 = C1.image_in_Oq()
+            yield C1, f1, GC1
 
     countCp = 0
     countC1 = 0
@@ -678,7 +679,7 @@ def has_given_invariant_submodule(M, fM, OqfM, qlist, p):
     return any(s in qlist for s in sg)
 
 
-def next_prime_power(ptype, verbose=0):
+def next_prime_power(ptype, verbose=0, rankCp=None):
     r"""
     """
     i = max(i for i in range(len(ptype)) if ptype[i][2].rank()!=0)
@@ -692,7 +693,7 @@ def next_prime_power(ptype, verbose=0):
     if e == 0:
         assert genus == Cgenus
         assert Rgenus.rank() == 0
-        for x in prime_order(p, genus, k3=True, verbose=verbose):
+        for x in prime_order(p, genus, k3=True, verbose=verbose, rankCp=rankCp):
             yield x
         return
 
@@ -708,7 +709,7 @@ def next_prime_power(ptype, verbose=0):
         if not has_given_invariant_submodule(C, fC, GC, qlist, p):
             continue
         # recurse
-        for R, fR, GR in next_prime_power(ptype[:i],verbose=verbose-1):
+        for R, fR, GR in next_prime_power(ptype[:i],verbose=verbose-1,rankCp=rankCp):
             ext = extensions(C, fC, R, fR, GC, GR,
                              pglue, p, target_genus=genus, qlist=qlist)
             if verbose > 0:

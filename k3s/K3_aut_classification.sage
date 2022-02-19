@@ -228,7 +228,7 @@ def classify_purely_ns_pn(p, e, file_name, rw="w", verbose=True, rkT=None):
     return classifi
 
 
-def classify_purely_ns_nextp(p, file_r, file_aw, aw="w",verbose=2):
+def classify_purely_ns_nextp(p, file_r, file_aw, aw="w",verbose=5, rankCp=None):
     classifi = []
     peactions = open(file_r, 'r')
     result = open(file_aw, aw)
@@ -253,7 +253,7 @@ def classify_purely_ns_nextp(p, file_r, file_aw, aw="w",verbose=2):
             continue
         types.append(typ)
         g = genera((3,19),1,1,even=true)[0]
-        for A, a, Oa in next_prime_power(typ, verbose=verbose):
+        for A, a, Oa in next_prime_power(typ, verbose=verbose,rankCp=rankCp):
             n = a.change_ring(ZZ).multiplicative_order()
             aut = K3SurfaceAutGrp(A, [], a, n)
             classifi.append(aut)
@@ -304,13 +304,13 @@ def classify_purely_ns_peq(p, q ,file_r, file_aw, aw="w",verbose=2):
     result.close()
     return classifi
 
-def classify(p, q, file_read, file_write, pure, verbose=2):
+def classify(p, q, file_read, file_write, pure, verbose=2, rankCp=None):
     assert is_prime(p)
     assert is_prime(q)
     if p == q and not pure:
       classify_mixed_nextp(p, file_read, file_write)
     if p == q and pure:
-      classify_purely_ns_nextp(p, file_read, file_write)
+      classify_purely_ns_nextp(p, file_read, file_write, rankCp=rankCp)
     if p != q and not pure:
       classify_ord_peq(p, q, file_read, file_write,"w",verbose=verbose)
     if p != q and pure:
