@@ -1107,17 +1107,17 @@ class DocTestController(SageObject):
             cmd = '''exec gdb -x "%s" --args '''%(os.path.join(SAGE_VENV, "bin", "sage-gdb-commands"))
             flags = ""
             if opt.logfile:
-                sage_cmd += " --logfile %s"%(opt.logfile)
+                sage_cmd += " --logfile %s" % opt.logfile
         else:
             if opt.logfile is None:
                 default_log = DOT_SAGE / "valgrind"
-                if os.path.exists(default_log):
-                    if not os.path.isdir(default_log):
-                        self.log("%s must be a directory"%default_log)
+                if default_log.exists():
+                    if not default_log.is_dir():
+                        self.log("%s must be a directory" % default_log)
                         return 2
                 else:
                     os.makedirs(default_log)
-                logfile = os.path.join(default_log, "sage-%s")
+                logfile = str(default_log / "sage-%s")
             else:
                 logfile = opt.logfile
             if opt.valgrind:

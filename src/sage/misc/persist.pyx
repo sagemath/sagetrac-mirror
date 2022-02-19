@@ -33,6 +33,7 @@ import os
 import pickle
 import sys
 
+from pathlib import Path
 from textwrap import dedent
 
 # change to import zlib to use zlib instead; but this
@@ -168,12 +169,14 @@ def load(*filename, compress=True, verbose=True, **kwargs):
         return
 
     filename = filename[0]
+    if isinstance(filename, Path):
+        filename = str(filename)
 
     if sage.repl.load.is_loadable_filename(filename):
         sage.repl.load.load(filename, globals())
         return
 
-    ## Check if filename starts with "http://" or "https://"
+    # Check if filename starts with "http://" or "https://"
     lower = filename.lower()
     if lower.startswith("http://") or lower.startswith("https://"):
         from sage.misc.remote_file import get_remote_file
@@ -183,7 +186,7 @@ def load(*filename, compress=True, verbose=True, **kwargs):
         tmpfile_flag = False
         filename = _normalize_filename(filename)
 
-    ## Load file by absolute filename
+    # Load file by absolute filename
     with open(filename, 'rb') as fobj:
         X = loads(fobj.read(), compress=compress, **kwargs)
     try:
@@ -191,7 +194,7 @@ def load(*filename, compress=True, verbose=True, **kwargs):
     except AttributeError:
         pass
 
-    ## Delete the tempfile, if it exists
+    # Delete the tempfile, if it exists
     if tmpfile_flag:
         os.unlink(filename)
 
@@ -267,6 +270,8 @@ def save(obj, filename, compress=True, **kwargs):
         sage: load(filename)
         (1, 1)
     """
+    if isinstance(filename, Path):
+        filename = str(Path)
 
     if not os.path.splitext(filename)[1] or not hasattr(obj, 'save'):
         filename = _normalize_filename(filename)
