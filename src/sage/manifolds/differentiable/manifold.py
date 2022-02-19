@@ -440,18 +440,27 @@ REFERENCES:
 # ****************************************************************************
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Optional
+
 from sage.categories.homset import Hom
 from sage.categories.manifolds import Manifolds
 from sage.manifolds.differentiable.chart import DiffChart, RealDiffChart
-from sage.manifolds.differentiable.manifold_homset import DifferentiableManifoldHomset
+from sage.manifolds.differentiable.manifold_homset import \
+    DifferentiableManifoldHomset
 from sage.manifolds.differentiable.mixed_form_algebra import MixedFormAlgebra
-from sage.manifolds.differentiable.scalarfield_algebra import DiffScalarFieldAlgebra
+from sage.manifolds.differentiable.scalarfield_algebra import \
+    DiffScalarFieldAlgebra
 from sage.manifolds.manifold import TopologicalManifold
 from sage.misc.cachefunc import cached_method
 from sage.rings.cc import CC
 from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer import Integer
 from sage.rings.real_mpfr import RR
+
+if TYPE_CHECKING:
+    from sage.manifolds.differentiable.diff_map import DiffMap
+    from sage.manifolds.differentiable.vectorfield_module import \
+        VectorFieldModule
 
 ###############################################################################
 
@@ -1150,8 +1159,8 @@ class DifferentiableManifold(TopologicalManifold):
              space 2-dimensional differentiable manifold M
 
         """
-        from sage.manifolds.differentiable.vector_bundle \
-                                               import DifferentiableVectorBundle
+        from sage.manifolds.differentiable.vector_bundle import \
+            DifferentiableVectorBundle
         return DifferentiableVectorBundle(rank, name, self, field=field,
                                           latex_name=latex_name)
 
@@ -1264,13 +1273,15 @@ class DifferentiableManifold(TopologicalManifold):
         if dest_map is None:
             dest_map = self.identity_map()
         if dest_map not in self._tensor_bundles:
-            from sage.manifolds.differentiable.vector_bundle import TensorBundle
+            from sage.manifolds.differentiable.vector_bundle import \
+                TensorBundle
             self._tensor_bundles[dest_map] = {(k, l):
                                               TensorBundle(self, k, l,
                                                            dest_map=dest_map)}
         else:
             if (k, l) not in self._tensor_bundles[dest_map]:
-                from sage.manifolds.differentiable.vector_bundle import TensorBundle
+                from sage.manifolds.differentiable.vector_bundle import \
+                    TensorBundle
                 self._tensor_bundles[dest_map][(k, l)] = TensorBundle(self, k,
                                                            l, dest_map=dest_map)
         return self._tensor_bundles[dest_map][(k, l)]
@@ -1311,7 +1322,7 @@ class DifferentiableManifold(TopologicalManifold):
         """
         return DiffScalarFieldAlgebra(self)
 
-    def vector_field_module(self, dest_map=None, force_free=False):
+    def vector_field_module(self, dest_map: Optional[DiffMap] = None, force_free: bool = False) -> VectorFieldModule:
         r"""
         Return the set of vector fields defined on ``self``, possibly
         with values in another differentiable manifold, as a module over the
@@ -1457,8 +1468,8 @@ class DifferentiableManifold(TopologicalManifold):
             True
 
         """
-        from sage.manifolds.differentiable.vectorfield_module import \
-                                       VectorFieldModule, VectorFieldFreeModule
+        from sage.manifolds.differentiable.vectorfield_module import (
+            VectorFieldFreeModule, VectorFieldModule)
         if dest_map is None:
             dest_map = self.identity_map()
         codomain = dest_map._codomain
@@ -2530,6 +2541,54 @@ class DifferentiableManifold(TopologicalManifold):
             resu[:] = comp
         return resu
 
+    def symplectic_form(
+        self, name: Optional[str] = None, latex_name: Optional[str] = None
+    ):
+        r"""
+        Construct a symplectic form on the current manifold.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.symplectic_form.SymplecticForm`
+
+        EXAMPLES:
+
+        Standard symplectic form on `\RR^2`::
+
+            sage: M.<q, p> = EuclideanSpace(2)
+            sage: omega = M.symplectic_form('omega', r'\omega')
+            sage: omega.set_comp()[1,2] = -1
+            sage: omega.display()
+            omega = -dq∧dp
+
+        """
+        return self.vector_field_module().symplectic_form(name, latex_name)
+
+    def poisson_tensor(
+        self, name: Optional[str] = None, latex_name: Optional[str] = None
+    ):
+        r"""
+        Construct a Poisson tensor on the current manifold.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.poisson_tensor.PoissonTensorField`
+
+        EXAMPLES:
+
+        Standard Poisson tensor on `\RR^2`::
+
+            sage: M.<q, p> = EuclideanSpace(2)
+            sage: poisson = M.poisson_tensor('varpi')
+            sage: poisson.set_comp()[1,2] = -1
+            sage: poisson.display()
+            varpi = -e_q∧e_p
+
+        """
+        return self.vector_field_module().poisson_tensor(name, latex_name)
+
     def automorphism_field(self, *comp, **kwargs):
         r"""
         Define a field of automorphisms (invertible endomorphisms in each
@@ -3050,7 +3109,8 @@ class DifferentiableManifold(TopologicalManifold):
             [0 3]
 
         """
-        from sage.manifolds.differentiable.automorphismfield import AutomorphismFieldParal
+        from sage.manifolds.differentiable.automorphismfield import \
+            AutomorphismFieldParal
         fmodule = frame1._fmodule
         if frame2._fmodule != fmodule:
             raise ValueError("the two frames are not defined on the same " +
@@ -3206,6 +3266,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         from sage.manifolds.differentiable.vectorframe import VectorFrame
+
         # Input processing
         symbol = None
         vector_fields = None
@@ -3468,8 +3529,8 @@ class DifferentiableManifold(TopologicalManifold):
             for more examples.
 
         """
-        from sage.manifolds.point import ManifoldPoint
         from sage.manifolds.differentiable.tangent_space import TangentSpace
+        from sage.manifolds.point import ManifoldPoint
         if not isinstance(point, ManifoldPoint):
             raise TypeError("{} is not a manifold point".format(point))
         if point not in self:
@@ -3673,7 +3734,8 @@ class DifferentiableManifold(TopologicalManifold):
         """
 
         from sage.manifolds.differentiable.examples.real_line import RealLine
-        from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
+        from sage.manifolds.differentiable.manifold_homset import \
+            IntegratedCurveSet
 
         if len(curve_param) != 3:
             raise ValueError("the argument 'curve_param' must be of the form " +
@@ -3808,7 +3870,8 @@ class DifferentiableManifold(TopologicalManifold):
         """
 
         from sage.manifolds.differentiable.examples.real_line import RealLine
-        from sage.manifolds.differentiable.manifold_homset import IntegratedAutoparallelCurveSet
+        from sage.manifolds.differentiable.manifold_homset import \
+            IntegratedAutoparallelCurveSet
 
         if len(curve_param) != 3:
             raise ValueError("the argument 'curve_param' must be " +
@@ -3929,7 +3992,8 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         from sage.manifolds.differentiable.examples.real_line import RealLine
-        from sage.manifolds.differentiable.manifold_homset import IntegratedGeodesicSet
+        from sage.manifolds.differentiable.manifold_homset import \
+            IntegratedGeodesicSet
 
         if len(curve_param) != 3:
             raise ValueError("the argument 'curve_param' must be of " +
@@ -3981,7 +4045,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         from sage.manifolds.differentiable.affine_connection import \
-                                                               AffineConnection
+            AffineConnection
         return AffineConnection(self, name, latex_name)
 
     def metric(self, name, signature=None, latex_name=None, dest_map=None):

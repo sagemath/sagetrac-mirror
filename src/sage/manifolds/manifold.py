@@ -505,6 +505,7 @@ class TopologicalManifold(ManifoldSubset):
         :mod:`sage.manifolds.manifold`
     """
 
+    _dim: int
     _name_modifier: str
     _chart_type: Type[Chart]
 
@@ -541,7 +542,6 @@ class TopologicalManifold(ManifoldSubset):
             sage: TestSuite(U).run()
             sage: U.category() is M.category().Subobjects()
             True
-
         """
         # Initialization of the attributes _dim, _field, _field_type:
         self._dim = n
