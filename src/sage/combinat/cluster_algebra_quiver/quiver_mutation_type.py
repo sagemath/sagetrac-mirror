@@ -16,7 +16,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
 from __future__ import annotations
-import os
 import pickle
 
 from sage.structure.sage_object import SageObject
