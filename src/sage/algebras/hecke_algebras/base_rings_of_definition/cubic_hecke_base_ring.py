@@ -1491,3 +1491,43 @@ class CubicHeckeRingOfDefinition(Localization):
         u = KL(ku/a)
         v = KL(kv/a)
         return self.hom((u, v, KL(~a), KL(a)))
+
+    def specialize_links_gould(self):
+        r"""
+        Returns a map to the two variable Laurent polynomial Ring which is
+        the parent of the Kauffman polynomial.
+
+        EXAMPLES::
+
+            sage: CHA2 = algebras.CubicHecke(2)
+            sage: K5_1 = KnotInfo.K5_1.link()
+            sage: br = CHA2(K5_1.braid())
+            sage: mt = br.formal_markov_trace()
+            sage: MT = mt.base_ring()
+            sage: f = MT.specialize_links_gould(); f
+            Ring morphism:
+              From: Multivariate Polynomial Ring in u, v, w, s over Integer Ring
+                    localized at (s, w, v, u)
+              To:   Multivariate Polynomial Ring in t0, t1 over Integer Ring
+                    localized at (t1, t0, t0 + t1 - 1, t0*t1 - t0 - t1)
+              Defn: u |--> t0 + t1 - 1
+                    v |--> t0*t1 - t0 - t1
+                    w |--> -1
+                    s |--> 1
+            sage: K = f.codomain()
+            sage: MTB = mt.parent().basis().keys()
+            sage: sum(f(mt.coefficient(b)) * K(b.links_gould_polynomial()) for b in MTB)
+            t0^4 + t0^3*t1 + t0^2*t1^2 + t0*t1^3 + t1^4 - 2*t0^3
+            - 2*t1^3 + 2*t0^2 - t0*t1 + 2*t1^2 - 4*t0 - 4*t1 + 5
+        """
+        if not self._is_markov_trace_version():
+            raise ValueError('Functionality available for Markov trace version, only')
+        from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+        L = LaurentPolynomialRing(ZZ, 't0, t1')
+        t0, t1 = L.gens()
+        lu = t0 + t1 -1
+        lv = t0*t1 -t0 - t1
+        LL = L.localization((lu, lv))
+        u = LL(lu)
+        v = LL(lv)
+        return self.hom((u, v, -LL.one(), LL.one()))
