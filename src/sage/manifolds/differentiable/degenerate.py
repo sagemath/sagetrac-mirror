@@ -72,7 +72,7 @@ class DegenerateManifold(DifferentiableManifold):
 
         sage: M = Manifold(3, 'M', structure='degenerate_metric')
         sage: M
-        3-dimensional degenerate_metric manifold M
+        3-dimensional degenerate metric manifold M
         sage: M.parent()
         <class 'sage.manifolds.differentiable.degenerate.DegenerateManifold_with_category'>
 
@@ -80,7 +80,7 @@ class DegenerateManifold(DifferentiableManifold):
 
         sage: g = M.metric()
         sage: g
-        degenerate metric g on the 3-dimensional degenerate_metric manifold M
+        degenerate metric g on the 3-dimensional degenerate metric manifold M
         sage: g.signature()
         (0, 2, 1)
 
@@ -108,12 +108,12 @@ class DegenerateManifold(DifferentiableManifold):
 
             sage: M = Manifold(3, 'M', structure='degenerate_metric')
             sage: M
-            3-dimensional degenerate_metric manifold M
+            3-dimensional degenerate metric manifold M
             sage: type(M)
             <class 'sage.manifolds.differentiable.degenerate.DegenerateManifold_with_category'>
             sage: X.<x,y,z> = M.chart()
             sage: M.metric()
-            degenerate metric g on the 3-dimensional degenerate_metric manifold M
+            degenerate metric g on the 3-dimensional degenerate metric manifold M
             sage: TestSuite(M).run()
 
         """
@@ -189,7 +189,7 @@ class DegenerateManifold(DifferentiableManifold):
             sage: M = Manifold(3, 'M', structure='degenerate_metric', start_index=1)
             sage: X.<x,y,z> = M.chart()
             sage: g = M.metric(); g
-            degenerate metric g on the 3-dimensional degenerate_metric manifold M
+            degenerate metric g on the 3-dimensional degenerate metric manifold M
 
         The metric remains to be initialized, for instance by setting its
         components in the coordinate frame associated to the chart ``X``::
@@ -212,7 +212,7 @@ class DegenerateManifold(DifferentiableManifold):
             sage: b = dx*dx + dy*dy
             sage: b
             Field of symmetric bilinear forms dx⊗dx+dy⊗dy on the 3-dimensional
-            degenerate_metric manifold M
+            degenerate metric manifold M
 
         We then use the metric method
         :meth:`~sage.manifolds.differentiable.metric.DegenerateMetric.set`
@@ -229,7 +229,7 @@ class DegenerateManifold(DifferentiableManifold):
         ``metric_name`` in :func:`~sage.manifolds.manifold.Manifold`)::
 
             sage: h = M.metric('h'); h
-            degenerate metric h on the 3-dimensional degenerate_metric manifold M
+            degenerate metric h on the 3-dimensional degenerate metric manifold M
             sage: h[1,1], h[2,2], h[3,3] = 1+y^2, 1+z^2, 1+x^2
             sage: h.display()
             h = (y^2 + 1) dx⊗dx + (z^2 + 1) dy⊗dy + (x^2 + 1) dz⊗dz
@@ -307,7 +307,7 @@ class DegenerateManifold(DifferentiableManifold):
             sage: M = Manifold(3, 'M', structure='degenerate_metric', start_index=1)
             sage: X.<x,y,z> = M.chart()
             sage: U = M.open_subset('U', coord_def={X: [x>0, y>0]}); U
-            Open subset U of the 3-dimensional degenerate_metric manifold M
+            Open subset U of the 3-dimensional degenerate metric manifold M
             sage: type(U)
             <class 'sage.manifolds.differentiable.degenerate.DegenerateManifold_with_category'>
 
@@ -321,7 +321,7 @@ class DegenerateManifold(DifferentiableManifold):
 
             sage: gU = U.metric(); gU
             degenerate metric g on the Open subset U of the 3-dimensional
-            degenerate_metric manifold M
+            degenerate metric manifold M
             sage: gU.display()
             g = -dx⊗dx + dy⊗dy
             sage: gU is g.restrict(U)
@@ -332,7 +332,7 @@ class DegenerateManifold(DifferentiableManifold):
         Open subset created after the initialization of the metric::
 
             sage: V = M.open_subset('V', coord_def={X: x<0}); V
-            Open subset V of the 3-dimensional degenerate_metric manifold M
+            Open subset V of the 3-dimensional degenerate metric manifold M
             sage: gV = V.metric()
             sage: gV.display()
             g = -dx⊗dx + dy⊗dy
