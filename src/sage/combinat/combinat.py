@@ -1592,6 +1592,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.combinat import CombinatorialClass
             sage: class C(CombinatorialClass):
             ....:     def __iter__(self):
             ....:         return iter([1,2,3])
@@ -1704,6 +1705,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.combinat import CombinatorialClass
             sage: class C(CombinatorialClass):
             ....:     def __iter__(self):
             ....:         return iter([1,2,3])
@@ -1789,6 +1791,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.combinat import CombinatorialClass
             sage: class C(CombinatorialClass):
             ....:     def __iter__(self):
             ....:         return iter([1,2,3])
