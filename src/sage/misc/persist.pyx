@@ -391,6 +391,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
     pickle to play with::
 
         sage: from sage.structure.element import Element
+        sage: from sage.combinat.combinat import CombinatorialObject
         sage: class SourPickle(CombinatorialObject): pass
         sage: class SweetPickle(CombinatorialObject, Element): pass
         sage: import __main__
