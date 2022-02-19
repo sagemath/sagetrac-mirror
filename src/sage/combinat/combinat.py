@@ -1112,6 +1112,9 @@ class CombinatorialObject(SageObject):
         EXAMPLES::
 
             sage: c = CombinatorialObject([1,2,3])
+            doctest:warning...
+            DeprecationWarning: this class is deprecated, do not use
+            See https://trac.sagemath.org/32121 for details.
             sage: c == loads(dumps(c))
             True
             sage: c._list
@@ -1122,7 +1125,6 @@ class CombinatorialObject(SageObject):
         For efficiency, you can specify ``copy=False`` if you know what
         you are doing::
 
-            sage: from sage.combinat.combinat import CombinatorialObject
             sage: x = [3, 2, 1]
             sage: C = CombinatorialObject(x, copy=False)
             sage: C
