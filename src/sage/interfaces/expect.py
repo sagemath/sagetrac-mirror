@@ -169,7 +169,7 @@ class Expect(Interface):
         self.__init_code = init_code
 
         # Handle the log file
-        self.__logfile = Path(logfile) if logfile is not None else None
+        self.__logpath = Path(logfile) if logfile is not None else None
 
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
@@ -440,7 +440,7 @@ If this all works, you can then make calls like:
 
         self._session_number += 1
 
-        if self.__logfile is None:
+        if self.__logpath is None:
             # If the 'SAGE_PEXPECT_LOG' environment variable is set and
             # there is no logfile already defined, then create a
             # logfile in .sage/pexpect_logs/
@@ -452,10 +452,12 @@ If this all works, you can then make calls like:
                 filename = '{name}-{pid}-{id}-{session}'.format(
                     name=self.name(), pid=os.getpid(), id=id(self),
                     session=self._session_number)
-                self.__logfile = logs / filename
+                self.__logpath = logs / filename
 
-        if self.__logfile is not None:
-            self.__logfileopen = self.__logfile.open('wb')
+        if self.__logpath is not None:
+            self.__logfile = self.__logpath.open('wb')
+        else:
+            self.__logfile = None
 
         cmd = self.__command
 
@@ -486,7 +488,7 @@ If this all works, you can then make calls like:
         try:
             try:
                 self._expect = SageSpawn(cmd,
-                        logfile=self.__logfileopen,
+                        logfile=self.__logfile,
                         timeout=None,  # no timeout
                         env=pexpect_env,
                         name=self._repr_(),

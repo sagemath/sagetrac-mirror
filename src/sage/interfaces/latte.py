@@ -1,7 +1,7 @@
 r"""
 Interface to LattE integrale programs
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Vincent Delecroix <vincent.delecroix@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -9,8 +9,8 @@ Interface to LattE integrale programs
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+# ****************************************************************************
+import os
 
 from sage.cpython.string import str_to_bytes, bytes_to_str
 
@@ -199,7 +199,7 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
         if not ans:
             # opening a file is slow (30e-6s), so we read the file
             # numOfLatticePoints only in case of a IndexError above
-            with open(SAGE_TMP+'/numOfLatticePoints', 'r') as f:
+            with open(os.path.join(SAGE_TMP, 'numOfLatticePoints'), 'r') as f:
                 ans = f.read()
 
         if raw_output:

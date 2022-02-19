@@ -93,14 +93,6 @@ def sage_makedirs(dirname, mode=0o777):
             raise
 
 
-# We create the DOT_SAGE directory (if it does not exist yet; note in particular
-# that it may already have been created by the bin/sage script) with
-# restrictive permissions, since otherwise possibly just anybody can easily see
-# every command you type.
-
-sage_makedirs(DOT_SAGE, mode=0o700)
-
-
 def try_read(obj, splitlines=False):
     r"""
     Determine if a given object is a readable file-like object and if so
@@ -201,6 +193,28 @@ def try_read(obj, splitlines=False):
 
 
 #################################################
+# Next we create the .sage directory
+#################################################
+
+
+def dot_sage():
+    """
+    We create the ".sage" directory (if it does not exist yet) with
+    restrictive permissions, since otherwise possibly just anybody can
+    easily see every command you type.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import dot_sage
+        sage: d = dot_sage()
+        sage: d.is_dir()
+        True
+    """
+    d = DOT_SAGE
+    sage_makedirs(d, mode=0o700)
+    return d
+
+#################################################
 # Next we create the Sage temporary directory.
 #################################################
 
@@ -216,7 +230,7 @@ def SAGE_TMP():
     """
     d = DOT_SAGE / 'temp' / HOSTNAME / str(os.getpid())
     sage_makedirs(d)
-    return d
+    return str(d)
 
 
 @lazy_string
