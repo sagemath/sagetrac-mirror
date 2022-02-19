@@ -969,10 +969,10 @@ framework. Here is a comprehensive list:
 - **random:** The line will be executed, but its output will not be checked with
   the output in the documentation string::
 
-      sage: c = CombinatorialObject([1,2,3])
-      sage: hash(c)  # random
-      1335416675971793195
-      sage: hash(c)  # random
+      sage: c = [1, 2, 3]
+      sage: id(c)  # random
+      5962979456
+      sage: id(c)  # random
       This doctest passes too, as the output is not checked
 
   Doctests are expected to pass with any state of the pseudorandom number
