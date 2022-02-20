@@ -70,6 +70,35 @@ Base ring::
     sage: VectorSpace(QQ, 10).base_ring()
     Rational Field
 
+Vector spaces and lattices over `p`-adic fields are also supported:
+
+    sage: K = Qp(3, prec=10, print_mode="digits")
+    sage: V = K^3
+    sage: W = V.submodule([[1,2,3], [4,5,6], [7,8,9]])
+    sage: W
+    Vector space of degree 3 and dimension 2 over 3-adic Field with capped relative precision 10
+    Basis matrix:
+    [...0000000001             0  ...222222222]
+    [            0 ...0000000001  ...000000002]
+    sage: v = V([1,1,1])
+    sage: v in W
+    True
+
+::
+
+    sage: OK = K.integer_ring()
+    sage: OV = OK^3
+    sage: OW = OV.submodule([[1,2,3], [4,5,6], [7,8,9]])
+    sage: OW
+    Free module of degree 3 and rank 2 over 3-adic Ring with capped relative precision 10
+    Echelon basis matrix:
+    [ ...0000000001  ...0000000002  ...0000000010]
+    [             0 ...00000000010  ...0000000020]
+    sage: v in OV
+    True
+    sage: v in OW
+    False
+
 TESTS:
 
 We intersect a zero-dimensional vector space with a
