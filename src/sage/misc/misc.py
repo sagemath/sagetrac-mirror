@@ -43,9 +43,10 @@ import time
 import resource
 import pdb
 import warnings
+from pathlib import Path
 
 from .lazy_string import lazy_string
-from sage.env import DOT_SAGE, HOSTNAME
+from sage.env import HOSTNAME
 from sage.misc.lazy_import import lazy_import
 
 lazy_import("sage.misc.call", ["AttrCallObject", "attrcall", "call_method"],
@@ -199,9 +200,10 @@ def try_read(obj, splitlines=False):
 
 def dot_sage():
     """
-    We create the ".sage" directory (if it does not exist yet) with
-    restrictive permissions, since otherwise possibly just anybody can
-    easily see every command you type.
+    Create and return the ".sage" directory (if it does not exist yet).
+
+    This is done with restrictive permissions, since otherwise
+    possibly just anybody can easily see every command you type.
 
     EXAMPLES::
 
@@ -210,9 +212,20 @@ def dot_sage():
         sage: d.is_dir()
         True
     """
-    d = DOT_SAGE
-    sage_makedirs(d, mode=0o700)
-    return d
+    d = os.environ.get('DOT_SAGE')
+    if d is not None:
+        path = Path(d)
+    else:
+        path = Path(os.environ.get("HOME")) / ".sage"
+        if ' ' in str(path) and 'CYGWIN':
+            # on windows/cygwin it is typical for the home directory
+            # to have a space in it. Fortunately, users also have
+            # write privileges to c:\cygwin\home, so we just put
+            # .sage there.
+            path = Path("/home") / ".sage"
+
+    sage_makedirs(path, mode=0o700)
+    return path
 
 #################################################
 # Next we create the Sage temporary directory.
