@@ -2273,7 +2273,7 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     from sage.env import DOT_SAGE
     from sage.misc.misc import sage_makedirs
     types_path = DOT_SAGE / 'cluster_algebra_quiver'
-    types_file = types_path / 'mutation_classes_%s.dig6' % n
+    types_file = types_path / ('mutation_classes_%s.dig6' % n)
     sage_makedirs(types_path)
     from sage.misc.temporary_file import atomic_write
     with atomic_write(types_file, binary=True) as f:

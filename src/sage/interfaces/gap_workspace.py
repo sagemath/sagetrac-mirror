@@ -81,7 +81,7 @@ def prepare_workspace_dir(dir=None):
 
         sage: from sage.interfaces.gap_workspace import prepare_workspace_dir
         sage: prepare_workspace_dir()
-        '.../gap'
+        PosixPath('.../gap')
 
     TESTS::
 
