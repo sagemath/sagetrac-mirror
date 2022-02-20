@@ -937,7 +937,10 @@ def splitpq(genus, p, e, q, k3_unobstructed=True,verbose=0):
                         continue
                     if verbose>2:
                         print('computing representatives of %s'%MG)
-                    for ME in MG.representatives():
+                    MGrep = MG.representatives()
+                    if verbose>2:
+                        print("done")
+                    for ME in MGrep:
                         M, fM = trace_lattice(ME, order=q*p**e)
                         M = IntegralLattice(M)
                         Mh = LatticeWithIsometry(M,fM,order=q*p**e,gramE=ME,magmaRep=MG.representative())
@@ -948,7 +951,10 @@ def splitpq(genus, p, e, q, k3_unobstructed=True,verbose=0):
                         cm.reset_cache()
                         if verbose>2:
                             print('computing representatives of %s'%RG)
-                        for RE in RG.representatives():
+                        RGrep = RG.representatives()
+                        if verbose>2:
+                            print("done")
+                        for RE in RGrep:
                             R, fR = trace_lattice(RE, order=p**e)
                             R = IntegralLattice(R)
                             Rh = LatticeWithIsometry(R,fR,order=p**e,gramE=RE,magmaRep=RG.representative())

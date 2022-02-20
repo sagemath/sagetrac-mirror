@@ -336,6 +336,12 @@ def Oq_equiv_herm(L,f, G, Lh):
     De = enumerate(D)
     flag = true
 
+    Lhn = magma.HermitianLattice((1/ord)*Lh.GramMatrix())
+    Fm,invariants,toF = Lhn.get_the_group(nvals=3)
+    Fs = AbelianGroupGap(invariants)
+    if Fs.order()==1: # trivially a full kernel
+        return Oqf
+
     m = pari(L.gram_matrix())
     from sage.env import SAGE_EXTCODE
     gp.read(SAGE_EXTCODE + "/pari/simon/qfsolve.gp")
@@ -401,9 +407,6 @@ def Oq_equiv_herm(L,f, G, Lh):
               gens.append(taubar)
               dets.append(determ)
               S = Oqf.subgroup(gens)
-    Lhn = magma.HermitianLattice((1/ord)*Lh.GramMatrix())
-    Fm,invariants,toF = Lhn.get_the_group(nvals=3)
-    Fs = AbelianGroupGap(invariants)
     print("\n")
     imgs = [Fs(toF(g).sage()) for g in dets]
     #return S, imgs, Fs, dets, gens_mat,gens_matE
