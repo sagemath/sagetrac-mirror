@@ -608,7 +608,6 @@ AUTHORS:
 from sage.env import SAGE_LOCAL
 import pexpect
 import re
-import sys
 
 from sage.cpython.string import bytes_to_str
 from sage.misc.flatten import flatten
