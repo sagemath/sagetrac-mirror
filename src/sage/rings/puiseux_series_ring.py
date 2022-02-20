@@ -101,9 +101,19 @@ class PuiseuxSeriesRing(UniqueRepresentation, CommutativeRing):
         # ring will be R(( x ))
         self._laurent_series_ring = laurent_series
 
+        from sage import categories
+        category = categories.algebras.Algebras(base_ring.category())
+        if base_ring in categories.integral_domains.IntegralDomains():
+            category &= categories.integral_domains.IntegralDomains()
+        elif base_ring in categories.rings.Rings().Commutative():
+            category = category.Commutative()
+        if base_ring.is_zero():
+            category = category.Finite()
+        else:
+            category = category.Infinite()
         CommutativeRing.__init__(self, base_ring,
                                  names=laurent_series.variable_names(),
-                                 category=laurent_series.category())
+                                 category=category)
 
     def _repr_(self):
         """

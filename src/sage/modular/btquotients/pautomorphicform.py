@@ -709,7 +709,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BruhatTitsQuotient(3,37)
-            sage: H = X.harmonic_cocycles(4,prec=10)
+            sage: H = X.harmonic_cocycles(4,prec=20)
             sage: TestSuite(H).run()
         """
         self._k = k

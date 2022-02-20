@@ -282,7 +282,6 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 sage: ZpCA(5, 15)._test_matrix_smith()
             """
             tester = self._tester(**options)
-            tester.assertEqual(self.residue_field().characteristic(), self.residue_characteristic())
 
             from itertools import chain
             from sage.all import MatrixSpace
@@ -290,15 +289,15 @@ class CompleteDiscreteValuationRings(Category_singleton):
             matrices = chain(*[MatrixSpace(self, n, m).some_elements() for n in (1,3,7) for m in (1,4,7)])
             for M in tester.some_elements(matrices):
                 bases = [self]
-                if self is not self.integer_ring():
+                if self.is_field():
                     bases.append(self.integer_ring())
                 for base in bases:
                     try:
-                       S,U,V = M.smith_form(integral=base)
+                        S,U,V = M.smith_form(integral=base)
                     except PrecisionError:
                         continue
 
-                    if self.is_exact() or self._prec_type() not in ['fixed-mod','floating-point']:
+                    if self.is_exact() or (hasattr(self, "_prec_type") and self._prec_type() not in ['fixed-mod', 'floating-point']):
                         tester.assertEqual(U*M*V, S)
 
                     tester.assertEqual(U.nrows(), U.ncols())
@@ -312,7 +311,8 @@ class CompleteDiscreteValuationRings(Category_singleton):
                             tester.assertTrue(d.unit_part().is_one())
 
                     for (d,dd) in zip(S.diagonal(), S.diagonal()[1:]):
-                        tester.assertTrue(d.divides(dd))
+                        tester.assertLessEqual(d.valuation(), dd.valuation())
+
 
         def _matrix_hermite_form(self, M, include_zero_rows, transformation, integral=True, exact=True):
             """

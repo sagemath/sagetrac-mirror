@@ -662,7 +662,7 @@ def determinant_cdv(M):
             relprec = relprec_neg
         if relprec is not Infinity:
             det = det.add_bigoh(valdet + relprec)
-    return det >> shift
+    return R(det >> shift)
 
 
 
