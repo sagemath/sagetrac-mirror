@@ -37,7 +37,7 @@ from sage.rings.infinity import infinity
 from sage.categories.algebras import Algebras
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.fields import Fields
-from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 
 from .laurent_series_ring_element import LaurentSeries
 from .ring import CommutativeRing
@@ -241,7 +241,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
         base_ring = power_series.base_ring()
         category = Algebras(base_ring.category())
         if base_ring in Fields():
-            category &= CompleteDiscreteValuationRings()
+            category &= CompleteDiscreteValuationFields()
         elif base_ring in IntegralDomains():
             category &= IntegralDomains()
         elif base_ring in Rings().Commutative():
