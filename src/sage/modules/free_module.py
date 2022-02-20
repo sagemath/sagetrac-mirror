@@ -1113,12 +1113,16 @@ done from the right side.""")
                 else:
                     return x
             x = x.list()
-        if check: # and self.coordinate_ring().is_exact():
+        if check:
             if not isinstance(self, FreeModule_ambient):
-                c = self.coordinates(x)
-                R = self.base_ring()
-                if any(d not in R for d in c):
-                    raise TypeError("element {!r} is not in free module".format(x))
+                try:
+                    c = self.coordinates(x)
+                    R = self.base_ring()
+                    if any(d not in R for d in c):
+                        raise TypeError("element {!r} is not in free module".format(x))
+                except ArithmeticError:
+                    if self.coordinate_ring().is_exact():
+                        raise TypeError("element {!r} is not in free module".format(x))
         return self.element_class(self, x, coerce, copy)
 
     def __richcmp__(self, other, op):
