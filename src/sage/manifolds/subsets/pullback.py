@@ -30,6 +30,7 @@ from sage.manifolds.scalarfield import ScalarField
 from sage.sets.real_set import RealSet
 import sage.geometry.abc
 from sage.geometry.relative_interior import RelativeInterior
+from sage.geometry.convex_set import ConvexSet_base
 
 
 class ManifoldSubsetPullback(ManifoldSubset):
@@ -207,6 +208,13 @@ class ManifoldSubsetPullback(ManifoldSubset):
                 return map.domain().open_subset(name=name, latex_name=latex_name,
                                                 coord_def=coord_def)
 
+        elif cls._is_relatively_open_convex(codomain_subset):
+
+            data = codomain_subset.affine_hull_projection(return_all_data=True)
+
+            # TODO: Use comm. diagram with map, Euclidean canonical chart, affine hull projection/section
+            #       to define embedded submanifold, return image.
+
         self = super().__classcall__(cls, map, codomain_subset, inverse, name, latex_name)
 
         return self
@@ -282,17 +290,8 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
         """
 
-        if isinstance(codomain_subset, ManifoldSubset):
+        if isinstance(codomain_subset, (ManifoldSubset, RealSet, ConvexSet_base)):
             return codomain_subset.is_open()
-
-        if isinstance(codomain_subset, RealSet):
-            return codomain_subset.is_open()
-
-        if isinstance(codomain_subset, sage.geometry.abc.Polyhedron):
-            return codomain_subset.is_empty() or codomain_subset.is_universe()
-
-        if isinstance(codomain_subset, RelativeInterior):
-            return codomain_subset.closure().is_full_dimensional()
 
         if codomain_subset in Sets().Finite():
             return codomain_subset.cardinality() == 0
@@ -312,6 +311,20 @@ class ManifoldSubsetPullback(ManifoldSubset):
                         return False
                     return True
 
+        return False
+
+    @staticmethod
+    def _is_relatively_open_convex(codomain_subset):
+        """
+        Return whether ``codomain_subset`` is (known to be) a relatively open convex set.
+
+        EXAMPLES::
+
+            sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+
+        """
+        if isinstance(codomain_subset, ConvexSet_base):
+            return codomain_subset.is_relatively_open()
         return False
 
     @staticmethod
