@@ -27,7 +27,7 @@ SAGE_TMP_ROOT = DOT_SAGE / 'temp' / HOSTNAME
 logfile = SAGE_TMP_ROOT / 'cleaner.log'
 pidfile = SAGE_TMP_ROOT / 'cleaner.pid'
 # pidfile used by earlier versions of sage-cleaner (before #15457)
-old_pidfile = DOT_SAGE / 'temp' / 'cleaner-%s.pid' % HOSTNAME
+old_pidfile = DOT_SAGE / 'temp' / ('cleaner-%s.pid' % HOSTNAME)
 
 import logging
 logger = logging.getLogger(__name__)
