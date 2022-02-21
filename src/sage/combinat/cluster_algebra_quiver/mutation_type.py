@@ -22,7 +22,7 @@ AUTHORS:
 
 import os
 import pickle
-
+from pathlib import Path
 from copy import copy
 
 from sage.misc.cachefunc import cached_function
@@ -1271,17 +1271,17 @@ def load_data(n, user=True):
            ('BKO', (((1, 0), (3, -1)), ((2, 1), (1, -3)))),
            ('BP_', (((0, 1), (2, -2)), ((1, 2), (1, -3)), ((2, 0), (3, -1))))])]
     """
-    from sage.env import DOT_SAGE, SAGE_SHARE
-
+    from sage.env import SAGE_SHARE
+    from sage.misc.dot_sage import dot_sage
     # we check
     # - if the data is stored by the user, and if this is not the case
     # - if the data is stored by the optional package install
-    paths = [SAGE_SHARE]
+    paths = [Path(SAGE_SHARE)]
     if user:
-        paths.append(DOT_SAGE)
+        paths.append(dot_sage())
     data = {}
     for path in paths:
-        filename = os.path.join(path, 'cluster_algebra_quiver', 'mutation_classes_%s.dig6'%n)
+        filename = path / 'cluster_algebra_quiver' / ('mutation_classes_%s.dig6' % n)
         try:
             with open(filename, 'rb') as fobj:
                 data_new = pickle.load(fobj)

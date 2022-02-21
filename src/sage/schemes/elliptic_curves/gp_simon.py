@@ -32,8 +32,8 @@ def init():
     """
     global gp
     if gp is None:
-        from sage.env import DOT_SAGE
-        logfile = DOT_SAGE / 'gp-simon.log'
+        from sage.misc.dot_sage import dot_sage
+        logfile = dot_sage() / 'gp-simon.log'
         gp = Gp(script_subdirectory='simon', logfile=logfile)
         gp.read("ellQ.gp")
         gp.read("ell.gp")

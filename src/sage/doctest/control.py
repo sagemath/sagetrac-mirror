@@ -30,7 +30,8 @@ import types
 import sage.misc.flatten
 import sage.misc.randstate as randstate
 from sage.structure.sage_object import SageObject
-from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC, SAGE_VENV, SAGE_EXTCODE
+from sage.env import SAGE_LIB, SAGE_SRC, SAGE_VENV, SAGE_EXTCODE
+from sage.misc.dot_sage import dot_sage
 from sage.misc.temporary_file import tmp_dir
 from cysignals.signals import AlarmInterrupt, init_cysignals
 
@@ -138,7 +139,7 @@ class DocTestDefaults(SageObject):
 
         # We don't want to use the real stats file by default so that
         # we don't overwrite timings for the actual running doctests.
-        self.stats_path = DOT_SAGE / "timings_dt_test.json"
+        self.stats_path = dot_sage() / "timings_dt_test.json"
         self.__dict__.update(kwds)
 
     def _repr_(self):
@@ -1110,7 +1111,7 @@ class DocTestController(SageObject):
                 sage_cmd += " --logfile %s" % opt.logfile
         else:
             if opt.logfile is None:
-                default_log = DOT_SAGE / "valgrind"
+                default_log = dot_sage() / "valgrind"
                 if default_log.exists():
                     if not default_log.is_dir():
                         self.log("%s must be a directory" % default_log)
