@@ -18,16 +18,16 @@
 
 
 import os, shutil, sys, time, socket, errno, signal, atexit
-
+from pathlib import Path
 
 HOSTNAME = os.environ.get('HOSTNAME', socket.gethostname())
-DOT_SAGE = os.environ['DOT_SAGE']
+DOT_SAGE = Path(os.environ['DOT_SAGE'])
 
-SAGE_TMP_ROOT = os.path.join(DOT_SAGE, 'temp', HOSTNAME)
-logfile = os.path.join(SAGE_TMP_ROOT, 'cleaner.log')
-pidfile = os.path.join(SAGE_TMP_ROOT, 'cleaner.pid')
+SAGE_TMP_ROOT = DOT_SAGE / 'temp' / HOSTNAME
+logfile = SAGE_TMP_ROOT / 'cleaner.log'
+pidfile = SAGE_TMP_ROOT / 'cleaner.pid'
 # pidfile used by earlier versions of sage-cleaner (before #15457)
-old_pidfile = os.path.join(DOT_SAGE, 'temp', 'cleaner-%s.pid'%HOSTNAME)
+old_pidfile = DOT_SAGE / 'temp' / ('cleaner-%s.pid' % HOSTNAME)
 
 import logging
 logger = logging.getLogger(__name__)
@@ -171,16 +171,16 @@ def fix_old_mistakes():
     """
     # inconsistently escaped hyphens with underscores (http://trac.sagemath.org/14055)
     wrong_hostname = HOSTNAME.replace('-','_').replace('/','_').replace('\\','_')
-    wrong_sage_tmp_root = os.path.join(DOT_SAGE, 'temp', wrong_hostname)
+    wrong_sage_tmp_root = DOT_SAGE / 'temp' / wrong_hostname
     if wrong_sage_tmp_root != SAGE_TMP_ROOT and os.path.exists(wrong_sage_tmp_root):
         logger.warning('Deleting invalid temp dir %s', wrong_sage_tmp_root)
         rm_rf(wrong_sage_tmp_root)
 
     # SAGE_TMP in DOT_SAGE/tmp instead of DOT_SAGE/temp
     import glob
-    old_root =  glob.glob(os.path.join(DOT_SAGE, 'tmp', HOSTNAME+'-*'))
+    old_root = glob.glob(DOT_SAGE / 'tmp' / HOSTNAME + '-*')
     if wrong_hostname != HOSTNAME:
-        old_root += glob.glob(os.path.join(DOT_SAGE, 'tmp', wrong_hostname+'-*'))
+        old_root += glob.glob(DOT_SAGE / 'tmp' / (wrong_hostname + '-*'))
     for old_tmp in old_root:
         logger.warning('Deleting invalid temp dir %s', old_tmp)
         rm_rf(old_tmp)

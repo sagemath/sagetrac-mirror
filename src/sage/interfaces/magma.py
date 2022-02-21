@@ -228,7 +228,7 @@ import sage.misc.sage_eval
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
 
-INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj' % DOT_SAGE
+INTRINSIC_CACHE = DOT_SAGE / 'magma_intrinsic_cache.sobj'
 EXTCODE_DIR = None
 
 

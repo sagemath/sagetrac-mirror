@@ -3,14 +3,15 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 # Note: the DOT_SAGE and SAGE_STARTUP_FILE environment variables have already been set by sage-env
-DOT_SAGE = os.environ.get('DOT_SAGE', os.path.join(os.environ.get('HOME'),
-                                                   '.sage'))
+DOT_SAGE = Path(os.environ.get('DOT_SAGE',
+                               os.path.join(os.environ.get('HOME'), '.sage')))
 SAGE_ROOT = os.environ.get('SAGE_ROOT')
 
 # Override to not pick up user configuration, see Trac #20270
-os.environ['SAGE_STARTUP_FILE'] = os.path.join(DOT_SAGE, 'init-doctests.sage')
+os.environ['SAGE_STARTUP_FILE'] = str(DOT_SAGE / 'init-doctests.sage')
 
 
 def _get_optional_defaults():
@@ -69,19 +70,19 @@ if __name__ == "__main__":
     parser.add_argument("--valgrind", "--memcheck", action="store_true", default=False,
                         help="run doctests using Valgrind's memcheck tool.  The log "
                         "files are named sage-memcheck.PID and can be found in " +
-                        os.path.join(DOT_SAGE, "valgrind"))
+                        str(DOT_SAGE / "valgrind"))
     parser.add_argument("--massif", action="store_true", default=False,
                         help="run doctests using Valgrind's massif tool.  The log "
                         "files are named sage-massif.PID and can be found in " +
-                        os.path.join(DOT_SAGE, "valgrind"))
+                        str(DOT_SAGE / "valgrind"))
     parser.add_argument("--cachegrind", action="store_true", default=False,
                         help="run doctests using Valgrind's cachegrind tool.  The log "
                         "files are named sage-cachegrind.PID and can be found in " +
-                        os.path.join(DOT_SAGE, "valgrind"))
+                        str(DOT_SAGE / "valgrind"))
     parser.add_argument("--omega", action="store_true", default=False,
                         help="run doctests using Valgrind's omega tool.  The log "
                         "files are named sage-omega.PID and can be found in " +
-                        os.path.join(DOT_SAGE, "valgrind"))
+                        str(DOT_SAGE / "valgrind"))
 
     parser.add_argument("-f", "--failed", action="store_true", default=False,
         help="doctest only those files that failed in the previous run")
@@ -90,7 +91,7 @@ if __name__ == "__main__":
     parser.add_argument("--show-skipped", "--show_skipped", action="store_true", default=False,
         help="print a summary at the end of each file of optional tests that were skipped")
 
-    parser.add_argument("--stats_path", "--stats-path", default=os.path.join(DOT_SAGE, "timings2.json"),
+    parser.add_argument("--stats_path", "--stats-path", default=DOT_SAGE / "timings2.json",
                         help="path to a json dictionary for the latest run storing a timing for each file")
 
     class GCAction(argparse.Action):

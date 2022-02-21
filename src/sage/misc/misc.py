@@ -43,9 +43,10 @@ import time
 import resource
 import pdb
 import warnings
+from pathlib import Path
 
 from .lazy_string import lazy_string
-from sage.env import DOT_SAGE, HOSTNAME
+from sage.env import HOSTNAME
 from sage.misc.lazy_import import lazy_import
 
 lazy_import("sage.misc.call", ["AttrCallObject", "attrcall", "call_method"],
@@ -91,14 +92,6 @@ def sage_makedirs(dirname, mode=0o777):
     except OSError:
         if not os.path.isdir(dirname):
             raise
-
-
-# We create the DOT_SAGE directory (if it does not exist yet; note in particular
-# that it may already have been created by the bin/sage script) with
-# restrictive permissions, since otherwise possibly just anybody can easily see
-# every command you type.
-
-sage_makedirs(DOT_SAGE, mode=0o700)
 
 
 def try_read(obj, splitlines=False):
@@ -201,6 +194,40 @@ def try_read(obj, splitlines=False):
 
 
 #################################################
+# Next we create the .sage directory
+#################################################
+
+
+def dot_sage():
+    """
+    Create and return the ".sage" directory (if it does not exist yet).
+
+    This is done with restrictive permissions, since otherwise
+    possibly just anybody can easily see every command you type.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import dot_sage
+        sage: d = dot_sage()
+        sage: d.is_dir()
+        True
+    """
+    d = os.environ.get('DOT_SAGE')
+    if d is not None:
+        path = Path(d)
+    else:
+        path = Path(os.environ.get("HOME")) / ".sage"
+        if ' ' in str(path) and 'CYGWIN':
+            # on windows/cygwin it is typical for the home directory
+            # to have a space in it. Fortunately, users also have
+            # write privileges to c:\cygwin\home, so we just put
+            # .sage there.
+            path = Path("/home") / ".sage"
+
+    sage_makedirs(path, mode=0o700)
+    return path
+
+#################################################
 # Next we create the Sage temporary directory.
 #################################################
 
@@ -214,9 +241,9 @@ def SAGE_TMP():
         sage: SAGE_TMP
         l'.../temp/...'
     """
-    d = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
+    d = DOT_SAGE / 'temp' / HOSTNAME / str(os.getpid())
     sage_makedirs(d)
-    return d
+    return str(d)
 
 
 @lazy_string
@@ -262,7 +289,7 @@ def SAGE_TMP_INTERFACE():
     return d
 
 
-SAGE_DB = os.path.join(DOT_SAGE, 'db')
+SAGE_DB = DOT_SAGE / 'db'
 sage_makedirs(SAGE_DB)
 
 try:

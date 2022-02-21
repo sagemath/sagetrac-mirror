@@ -99,7 +99,7 @@ from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.env import DOT_SAGE
 from sage.docs.instancedoc import instancedoc
 
-COMMANDS_CACHE = '%s/mupad_commandlist_cache.sobj' % DOT_SAGE
+COMMANDS_CACHE = DOT_SAGE / 'mupad_commandlist_cache.sobj'
 PROMPT = ">>"
 seq = 0
 

@@ -44,7 +44,7 @@ def gap_workspace_file(system="gap", name="workspace", dir=None):
 
         sage: from sage.env import DOT_SAGE
         sage: D = gap_workspace_file()
-        sage: D.startswith(os.path.join(DOT_SAGE, "gap", "gap-workspace-"))
+        sage: D.startswith(str(DOT_SAGE / "gap" / "gap-workspace-"))
         True
 
     Check that the name generated is independent of the session::
@@ -57,7 +57,7 @@ def gap_workspace_file(system="gap", name="workspace", dir=None):
         sage: assert name1 == name2
     """
     if dir is None:
-        dir = os.path.join(DOT_SAGE, 'gap')
+        dir = DOT_SAGE / 'gap'
 
     if GAP_SO:
         h = hashlib.sha1(GAP_SO.encode('utf-8')).hexdigest()
@@ -81,7 +81,7 @@ def prepare_workspace_dir(dir=None):
 
         sage: from sage.interfaces.gap_workspace import prepare_workspace_dir
         sage: prepare_workspace_dir()
-        '.../gap'
+        PosixPath('.../gap')
 
     TESTS::
 
@@ -89,7 +89,7 @@ def prepare_workspace_dir(dir=None):
         '.../new'
     """
     if dir is None:
-        dir = os.path.join(DOT_SAGE, 'gap')
+        dir = DOT_SAGE / 'gap'
 
     # Make sure that the workspace directory exists
     try:

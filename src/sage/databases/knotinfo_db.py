@@ -365,7 +365,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         from sage.features.databases import DatabaseKnotInfo
         from sage.env import DOT_SAGE
         self._feature   = DatabaseKnotInfo()
-        self._sobj_path = os.path.join(DOT_SAGE, 'knotinfo')
+        self._sobj_path = DOT_SAGE / 'knotinfo'
 
     def create_filecache(self, force=False):
         r"""

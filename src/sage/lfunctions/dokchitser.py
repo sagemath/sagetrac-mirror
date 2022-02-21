@@ -274,7 +274,7 @@ class Dokchitser(SageObject):
     @classmethod
     def _instantiate_gp(cls):
         from sage.env import DOT_SAGE
-        logfile = os.path.join(DOT_SAGE, 'dokchitser.log')
+        logfile = DOT_SAGE / 'dokchitser.log'
         cls.__gp = sage.interfaces.gp.Gp(script_subdirectory='dokchitser',
                                          logfile=logfile)
         # Read the script template and parse out all indexed global variables

@@ -50,6 +50,7 @@ import gc
 from . import quit
 from . import cleaner
 from random import randrange
+from pathlib import Path
 
 import pexpect
 from pexpect import ExceptionPexpect
@@ -167,13 +168,8 @@ class Expect(Interface):
         self._session_number = 0
         self.__init_code = init_code
 
-        #Handle the log file
-        if isinstance(logfile, str):
-            self.__logfile = None
-            self.__logfilename = logfile
-        else:
-            self.__logfile = logfile
-            self.__logfilename = None
+        # Handle the log file
+        self.__logpath = Path(logfile) if logfile is not None else None
 
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
@@ -432,7 +428,6 @@ If this all works, you can then make calls like:
 
 """
 
-
     def _do_cleaner(self):
         try:
             return self.__do_cleaner
@@ -445,21 +440,24 @@ If this all works, you can then make calls like:
 
         self._session_number += 1
 
-        if self.__logfile is None:
+        if self.__logpath is None:
             # If the 'SAGE_PEXPECT_LOG' environment variable is set and
             # there is no logfile already defined, then create a
             # logfile in .sage/pexpect_logs/
-            if self.__logfilename is None and 'SAGE_PEXPECT_LOG' in os.environ:
+            if 'SAGE_PEXPECT_LOG' in os.environ:
                 from sage.env import DOT_SAGE
-                logs = os.path.join(DOT_SAGE, 'pexpect_logs')
+                logs = DOT_SAGE / 'pexpect_logs'
                 sage_makedirs(logs)
 
                 filename = '{name}-{pid}-{id}-{session}'.format(
-                        name=self.name(), pid=os.getpid(), id=id(self),
-                        session=self._session_number)
-                self.__logfilename = os.path.join(logs, filename)
-            if self.__logfilename is not None:
-                self.__logfile = open(self.__logfilename, 'wb')
+                    name=self.name(), pid=os.getpid(), id=id(self),
+                    session=self._session_number)
+                self.__logpath = logs / filename
+
+        if self.__logpath is not None:
+            self.__logfile = self.__logpath.open('wb')
+        else:
+            self.__logfile = None
 
         cmd = self.__command
 

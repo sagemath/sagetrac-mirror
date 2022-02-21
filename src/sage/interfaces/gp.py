@@ -332,7 +332,7 @@ class Gp(ExtraTabCompletion, Expect):
             sage: gp.get('x').strip()
             '22'
         """
-        return 'read("%s")'%filename
+        return 'read("%s")' % filename
 
     def _tab_completion(self):
         """
@@ -1067,7 +1067,8 @@ from sage.env import DOT_SAGE
 import os
 
 # An instance
-gp = Gp(logfile=os.path.join(DOT_SAGE,'gp-expect.log')) # useful for debugging!
+gp = Gp(logfile=str(DOT_SAGE / 'gp-expect.log'))  # useful for debugging!
+
 
 def reduce_load_GP():
     """
@@ -1080,6 +1081,7 @@ def reduce_load_GP():
         PARI/GP interpreter
     """
     return gp
+
 
 def gp_console():
     """

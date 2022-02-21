@@ -16,22 +16,21 @@ def get_cache_file():
 
     EXAMPLES::
 
+        sage: from sage.env import DOT_SAGE
         sage: from sage.misc.lazy_import_cache import get_cache_file
-        sage: get_cache_file()
+        sage: str(get_cache_file())
         '...-lazy_import_cache.pickle'
-        sage: get_cache_file().startswith(DOT_SAGE)
-        True
-        sage: 'cache' in get_cache_file()
+        sage: get_cache_file().parent == DOT_SAGE / 'cache'
         True
 
     It should not matter whether DOT_SAGE ends with a slash::
 
         sage: OLD = DOT_SAGE
-        sage: sage.misc.lazy_import_cache.DOT_SAGE = '/tmp'
-        sage: get_cache_file().startswith('/tmp/')
+        sage: from pathlib import Path
+        sage: sage.misc.lazy_import_cache.DOT_SAGE = Path('/tmp')
+        sage: str(get_cache_file()).startswith('/tmp/')
         True
         sage: sage.misc.lazy_import_cache.DOT_SAGE = OLD
     """
     mangled = hashlib.sha256(os.path.realpath(SAGE_LIB).encode('utf-8')).hexdigest()
-    return os.path.join(DOT_SAGE, 'cache',
-                        "%s-lazy_import_cache.pickle" % mangled)
+    return DOT_SAGE / 'cache' / ("%s-lazy_import_cache.pickle" % mangled)
