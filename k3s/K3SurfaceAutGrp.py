@@ -626,9 +626,9 @@ def K3SurfaceAutGrp_from_id(K3id):
     raise ValueError("id not found")
 
 def small_local_type(k3):
-    assert k3.symplectic_subgroup().order()==1
+    #assert k3.symplectic_subgroup().order()==1
     n = k3.transcendental_value()
-    L = k3.L()
+    L = k3.symplectic_invariant_lattice()
     g = k3._g
     return _slt(n, L, g)
 

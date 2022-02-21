@@ -82,6 +82,7 @@ def K3SurfaceAut(A, B, a, Oa):
     A2 = OqB.domain()
     gens1 = [A1(g).gap() for g in qA.gens()]
     gens2 = [A2(g).gap() for g in qB.gens()]
+    assert all(qA.linear_combination_of_smith_form_gens(A1(gens1[i]).exponents()).q()+qB.linear_combination_of_smith_form_gens(A2(gens2[i]).exponents()).q() ==0 for i in range(len(gens1)))
 
     # the glue map coming from the normal forms
     phi0 = A1.gap().GroupHomomorphismByImages(A2.gap(), gens1, gens2)
@@ -94,7 +95,7 @@ def K3SurfaceAut(A, B, a, Oa):
     OB_in_OqB = pi.Image(pi.Source())
     Oa_in_OqB = OqB.gap().Subgroup([phi0.InducedAutomorphism(g.gap()) for g in Oa.gens()])
 
-    reps = OqB.gap().DoubleCosetRepsAndSizes(OB_in_OqB, Oa_in_OqB)
+    reps = OqB.gap().DoubleCosetRepsAndSizes(Oa_in_OqB, OB_in_OqB)
     k3s = []
     VA = qA.V().ambient_vector_space()
     VB = qB.V().ambient_vector_space()
