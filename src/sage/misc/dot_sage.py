@@ -12,8 +12,10 @@ Management of the .sage directory
 import os
 import platform
 from pathlib import Path
+from functools import lru_cache
 
 
+@lru_cache
 def dot_sage():
     """
     Return the ".sage" directory (and create it if it does not exist yet).
