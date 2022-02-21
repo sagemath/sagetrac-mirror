@@ -45,7 +45,8 @@ import pdb
 import warnings
 
 from .lazy_string import lazy_string
-from sage.env import DOT_SAGE, HOSTNAME
+from sage.env import HOSTNAME
+from sage.misc.dot_sage import dot_sage
 from sage.misc.lazy_import import lazy_import
 
 lazy_import("sage.misc.call", ["AttrCallObject", "attrcall", "call_method"],
@@ -206,7 +207,7 @@ def SAGE_TMP():
         sage: SAGE_TMP
         l'.../temp/...'
     """
-    d = DOT_SAGE / 'temp' / HOSTNAME / str(os.getpid())
+    d = dot_sage() / 'temp' / HOSTNAME / str(os.getpid())
     sage_makedirs(d)
     return str(d)
 
@@ -254,7 +255,7 @@ def SAGE_TMP_INTERFACE():
     return d
 
 
-SAGE_DB = DOT_SAGE / 'db'
+SAGE_DB = dot_sage() / 'db'
 sage_makedirs(SAGE_DB)
 
 try:

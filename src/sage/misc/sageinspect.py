@@ -262,9 +262,9 @@ def _extract_embedded_position(docstring):
     particular it should be relative to ``SPYX_TMP`` in order for certain
     documentation functions to work properly.  See :trac:`24097`::
 
-        sage: from sage.env import DOT_SAGE
+        sage: from sage.misc.dot_sage import dot_sage
         sage: from sage.misc.sage_ostools import restore_cwd
-        sage: with restore_cwd(DOT_SAGE):
+        sage: with restore_cwd(dot_sage()):
         ....:     cython('''cpdef test_funct(x,y): return''')
         sage: func_doc = inspect.getdoc(test_funct)
         sage: with open(_extract_embedded_position(func_doc)[1]) as f:

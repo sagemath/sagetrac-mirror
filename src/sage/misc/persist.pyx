@@ -1004,7 +1004,7 @@ def picklejar(obj, dir=None):
     environment variable ``SAGE_PICKLE_JAR``, which will make it so
     :func:`dumps` will by default call :func:`picklejar` with the
     default dir.  Once you do that and doctest Sage, you'll find that
-    the ``DOT_SAGE/pickle_jar`` directory contains a bunch of
+    the ``dot_sage()/pickle_jar`` directory contains a bunch of
     pickled objects along with corresponding txt descriptions of them.
     Use the :func:`unpickle_all` to see if they unpickle later.
 
@@ -1013,7 +1013,7 @@ def picklejar(obj, dir=None):
     - ``obj`` -- a pickleable object
 
     - ``dir`` -- a string or None; if None then ``dir`` defaults to
-      ``DOT_SAGE/pickle_jar``
+      ``dot_sage()/pickle_jar``
 
     EXAMPLES::
 
@@ -1049,8 +1049,8 @@ def picklejar(obj, dir=None):
         sage: os.chmod(dir, s.st_mode)
     """
     if dir is None:
-        from sage.env import DOT_SAGE
-        dir = DOT_SAGE / 'pickle_jar'
+        from sage.misc.dot_sage import dot_sage
+        dir = dot_sage() / 'pickle_jar'
     try:
         os.makedirs(dir)
     except OSError as err:

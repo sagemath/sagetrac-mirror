@@ -18,10 +18,11 @@
 
 
 import os, shutil, sys, time, socket, errno, signal, atexit
-from pathlib import Path
+
+from sage.misc.dot_sage import dot_sage
 
 HOSTNAME = os.environ.get('HOSTNAME', socket.gethostname())
-DOT_SAGE = Path(os.environ['DOT_SAGE'])
+DOT_SAGE = dot_sage()
 
 SAGE_TMP_ROOT = DOT_SAGE / 'temp' / HOSTNAME
 logfile = SAGE_TMP_ROOT / 'cleaner.log'
