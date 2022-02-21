@@ -179,7 +179,7 @@ def fix_old_mistakes():
 
     # SAGE_TMP in DOT_SAGE/tmp instead of DOT_SAGE/temp
     import glob
-    old_root = glob.glob(DOT_SAGE / 'tmp' / HOSTNAME + '-*')
+    old_root = glob.glob(DOT_SAGE / 'tmp' / (HOSTNAME + '-*'))
     if wrong_hostname != HOSTNAME:
         old_root += glob.glob(DOT_SAGE / 'tmp' / (wrong_hostname + '-*'))
     for old_tmp in old_root:

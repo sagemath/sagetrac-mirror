@@ -35,12 +35,20 @@ def dot_sage():
         path = Path(d)
     else:
         path = Path(os.environ.get("HOME"))
-        if ' ' in str(path) and platform.system().lower().startswith('cygwin'):
-            # on windows/cygwin it is typical for the home directory
-            # to have a space in it. Fortunately, users also have
-            # write privileges to c:\cygwin\home, so we just put
-            # .sage there.
-            path = Path("/home")
+        if ' ' in str(path):
+            if platform.system().lower().startswith('cygwin'):
+                # on windows/cygwin it is typical for the home directory
+                # to have a space in it. Fortunately, users also have
+                # write privileges to c:\cygwin\home, so we just put
+                # .sage there.
+                path = Path("/home")
+            else:
+                print("Your home directory name has a space in it."
+                      "This will probably break some functionality of Sage."
+                      "A workaround is to set the environment "
+                      "variable DOT_SAGE to a directory with no spaces "
+                      "that you have write permissions to before you "
+                      "start sage."
         path = path / ".sage"
 
     path.mkdir(mode=700, exist_ok=True)
