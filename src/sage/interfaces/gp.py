@@ -1063,11 +1063,11 @@ def is_GpElement(x):
     """
     return isinstance(x, GpElement)
 
-from sage.env import DOT_SAGE
+from sage.misc.dot_sage import dot_sage
 import os
 
 # An instance
-gp = Gp(logfile=str(DOT_SAGE / 'gp-expect.log'))  # useful for debugging!
+gp = Gp(logfile=str(dot_sage() / 'gp-expect.log'))  # useful for debugging!
 
 
 def reduce_load_GP():

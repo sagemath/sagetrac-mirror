@@ -180,7 +180,7 @@ import os
 import re
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
-from sage.env import DOT_SAGE
+from sage.misc.dot_sage import dot_sage
 from pexpect import EOF
 from sage.misc.multireplace import multiple_replace
 from sage.interfaces.tab_completion import ExtraTabCompletion
@@ -212,7 +212,7 @@ class PanAxiom(ExtraTabCompletion, Expect):
         """
         eval_using_file_cutoff = 200
         self.__eval_using_file_cutoff = eval_using_file_cutoff
-        self._COMMANDS_CACHE = '%s/%s_commandlist_cache.sobj' % (DOT_SAGE, name)
+        self._COMMANDS_CACHE = dot_sage() / f'{name}_commandlist_cache.sobj'
         Expect.__init__(self,
                         name = name,
                         prompt = r'\([0-9]+\) -> ',

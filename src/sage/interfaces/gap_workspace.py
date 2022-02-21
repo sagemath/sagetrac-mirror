@@ -16,7 +16,8 @@ Support for (lib)GAP workspace files
 import os
 import time
 import hashlib
-from sage.env import DOT_SAGE, GAP_SO
+from sage.env import GAP_SO
+from sage.misc.dot_sage import dot_sage
 
 
 def gap_workspace_file(system="gap", name="workspace", dir=None):
@@ -32,7 +33,7 @@ def gap_workspace_file(system="gap", name="workspace", dir=None):
       the library interface also uses other files
 
     - ``dir`` -- the directory where the workspaces should be stored.
-      By default, this is ``DOT_SAGE/gap``
+      By default, this is ``dot_sage()/gap``
 
     EXAMPLES::
 
@@ -42,9 +43,9 @@ def gap_workspace_file(system="gap", name="workspace", dir=None):
 
     TESTS::
 
-        sage: from sage.env import DOT_SAGE
+        sage: from sage.misc.dot_sage import dot_sage
         sage: D = gap_workspace_file()
-        sage: D.startswith(str(DOT_SAGE / "gap" / "gap-workspace-"))
+        sage: D.startswith(str(dot_sage() / "gap" / "gap-workspace-"))
         True
 
     Check that the name generated is independent of the session::
@@ -57,7 +58,7 @@ def gap_workspace_file(system="gap", name="workspace", dir=None):
         sage: assert name1 == name2
     """
     if dir is None:
-        dir = DOT_SAGE / 'gap'
+        dir = dot_sage() / 'gap'
 
     if GAP_SO:
         h = hashlib.sha1(GAP_SO.encode('utf-8')).hexdigest()
@@ -73,7 +74,7 @@ def prepare_workspace_dir(dir=None):
     INPUT:
 
     - ``dir`` -- the directory where the workspaces should be stored.
-      By default, this is ``DOT_SAGE/gap``
+      By default, this is ``dot_sage()/gap``
 
     OUTPUT: the actual workspace directory
 
@@ -89,7 +90,7 @@ def prepare_workspace_dir(dir=None):
         '.../new'
     """
     if dir is None:
-        dir = DOT_SAGE / 'gap'
+        dir = dot_sage() / 'gap'
 
     # Make sure that the workspace directory exists
     try:

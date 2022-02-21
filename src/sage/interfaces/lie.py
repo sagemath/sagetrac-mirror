@@ -288,15 +288,16 @@ AUTHORS:
 from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.interfaces.interface import AsciiArtString
 from sage.misc.misc_c import prod
-from sage.env import DOT_SAGE, LIE_INFO_DIR
+from sage.env import LIE_INFO_DIR
+from sage.misc.dot_sage import dot_sage
 from sage.misc.sage_eval import sage_eval
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
 import os
 
 
-COMMANDS_CACHE = DOT_SAGE / 'lie_commandlist_cache.sobj'
-HELP_CACHE = DOT_SAGE / 'lie_helpdict_cache.sobj'
+COMMANDS_CACHE = dot_sage() / 'lie_commandlist_cache.sobj'
+HELP_CACHE = dot_sage() / 'lie_helpdict_cache.sobj'
 
 
 class LiE(ExtraTabCompletion, Expect):

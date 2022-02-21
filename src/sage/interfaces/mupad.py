@@ -96,10 +96,10 @@ from .expect import (Expect, ExpectElement, ExpectFunction,
                     FunctionElement)
 from sage.interfaces.interface import AsciiArtString
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.env import DOT_SAGE
+from sage.misc.dot_sage import dot_sage
 from sage.docs.instancedoc import instancedoc
 
-COMMANDS_CACHE = DOT_SAGE / 'mupad_commandlist_cache.sobj'
+COMMANDS_CACHE = dot_sage() / 'mupad_commandlist_cache.sobj'
 PROMPT = ">>"
 seq = 0
 

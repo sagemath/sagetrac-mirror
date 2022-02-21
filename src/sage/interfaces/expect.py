@@ -445,8 +445,8 @@ If this all works, you can then make calls like:
             # there is no logfile already defined, then create a
             # logfile in .sage/pexpect_logs/
             if 'SAGE_PEXPECT_LOG' in os.environ:
-                from sage.env import DOT_SAGE
-                logs = DOT_SAGE / 'pexpect_logs'
+                from sage.misc.dot_sage import dot_sage
+                logs = dot_sage() / 'pexpect_logs'
                 sage_makedirs(logs)
 
                 filename = '{name}-{pid}-{id}-{session}'.format(

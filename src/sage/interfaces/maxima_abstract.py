@@ -54,8 +54,9 @@ import re
 import sys
 import subprocess
 
-from sage.env import DOT_SAGE, MAXIMA
-COMMANDS_CACHE = DOT_SAGE / 'maxima_commandlist_cache.sobj'
+from sage.env import MAXIMA
+from sage.misc.dot_sage import dot_sage
+COMMANDS_CACHE = dot_sage() / 'maxima_commandlist_cache.sobj'
 
 from sage.cpython.string import bytes_to_str
 
