@@ -857,7 +857,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
             return smith_cdv(M, transformation, integral, exact)
 
         def _matrix_hermite_form(self, M, include_zero_rows, transformation, integral=None, exact=True):
-            """
+            r"""
             Return the Hermite normal form of this matrix.
 
             INPUT:
