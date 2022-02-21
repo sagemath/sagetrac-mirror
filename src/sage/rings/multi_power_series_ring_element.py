@@ -1078,8 +1078,6 @@ class MPowerSeries(PowerSeries):
             sage: f = -a^3*b*c^2 + a^2*b^2*c^4 - 12*a^3*b^3*c^3 + R.O(10)
             sage: g = f % 2; g
             a^3*b*c^2 + a^2*b^2*c^4 + O(a, b, c)^10
-            sage: g in R
-            False
             sage: g in R.base_extend(Zmod(2))
             True
             sage: g.polynomial() == f.polynomial() % 2
