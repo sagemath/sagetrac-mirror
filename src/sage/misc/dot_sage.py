@@ -23,7 +23,7 @@ def dot_sage():
 
     EXAMPLES::
 
-        sage: from sage.misc.misc import dot_sage
+        sage: from sage.misc.dot_sage import dot_sage
         sage: d = dot_sage()
         sage: d.is_dir()
         True
@@ -41,6 +41,5 @@ def dot_sage():
             path = Path("/home")
         path = path / ".sage"
 
-    if not path.is_dir():
-        path.mkdir(mode=700)
+    path.mkdir(mode=700, exist_ok=True)
     return path
