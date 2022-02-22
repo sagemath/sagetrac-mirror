@@ -1837,7 +1837,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             S1n, S1 = S1
             q1 = S1n.gram_matrix_quadratic()
             n = len(S1n.invariants())
-            if qlist is not None and q1 not in qlist:
+            if qlist is not None and q1!=qlist[1]: # not qlist[0] because we twisted by -1
                 continue
             stab1 = S1.stabiliser()
             O1 = S1.representative().orthogonal_group()

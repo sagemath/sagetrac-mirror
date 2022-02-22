@@ -363,7 +363,7 @@ def classify_ord_peq(p, q, file_r, file_aw,aw='w',verbose=2):
     result.close()
     return classifi, not_realized
 
-def classify_mixed_nextp(p, file_r, file_aw, aw='w',verbose=2):
+def classify_mixed_nextp(p, file_r, file_aw, aw='w',verbose=2, rankCp=None):
     r"""
     file_r contains the p^e actions
     """
@@ -391,7 +391,7 @@ def classify_mixed_nextp(p, file_r, file_aw, aw='w',verbose=2):
             continue
         types.append(typ)
         cofix = IntegralLattice( k3.symplectic_co_invariant_lattice().gram_matrix())
-        for A, a, Oa in next_prime_power(typ, verbose=verbose):
+        for A, a, Oa in next_prime_power(typ, verbose=verbose, rankCp=rankCp):
             order_a = a.change_ring(ZZ).multiplicative_order()
             print('Found an isometry of order: %s' % order_a)
             actsg = K3SurfaceAut(A, cofix, a, Oa)
@@ -468,5 +468,30 @@ def get_ptypes(order, file_path, rkT=None, returnk3s=False):
     if returnk3s:
       return k3s
     return ptypes
+
+
+def write_commands(path, p):
+  fi = open(path,"w")
+  for i in range(43):
+    for rkT in range(2,14):
+      s = """./sage -c 'load("k3s/K3_aut_classification.sage"); classify_ord_pe(L=[%s],p=%s,e=1,file_name="k3s/results/order%s/no%s_rkT%s",rw="w",verbose=True,rkT=%s)'"""%(i,p,p,i,rkT,rkT)
+      fi.write(s)
+      fi.write("\n")
+  fi.close()
+
+def write_commands_nextp(path_read, commands_write, p):
+  q = p
+  pure = False
+  fi_write = open(commands_write,"w")
+  dir_read = os.fsencode(path_read)
+  for file in os.listdir(dir_read):
+    filename = os.fsdecode(file)
+    for rkCp in range(14):
+      s = f"""./sage -c 'load("k3s/K3_aut_classification.sage"); classify(p={p},q={q},file_read="{path_read}{filename}",file_write="{path_read}{filename}.rkCp{rkCp}.{q}.result",pure={pure},verbose=2,rankCp={rkCp})' >{path_read}{filename}.rkCp{rkCp}.{q}.log 2>&1"""
+      fi_write.write(s)
+      fi_write.write("\n")
+  fi_write.close()
+
+
 
 

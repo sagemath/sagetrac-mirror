@@ -388,8 +388,7 @@ def ptype(L, f, p):
         Cv = C.vector_space()
         gens = [Cv.linear_combination_of_basis(g[:n]) for g in gens]
         glueC = C.discriminant_group().submodule(gens)
-        glueC = glueC.normal_form()
-        glueC = _normalize(glueC)
+        glueC = _normalize(glueC.normal_form())
         q1 = glueC.gram_matrix_quadratic()
         q2 = _normalize(glueC.twist(-1).normal_form()).gram_matrix_quadratic()
 
@@ -676,19 +675,19 @@ def has_given_invariant_submodule(M, fM, OqfM, qlist, p):
     glue_order = p^qlist[0].ncols()
     sg = DM.subgroup_representatives(H, OqfM, g=g, order=glue_order)
     sg = [_normalize(d.representative().normal_form()).gram_matrix_quadratic() for d in sg]
-    return any(s in qlist for s in sg)
+    return any(s==qlist[0] for s in sg)
 
 
-def next_prime_power(ptype, verbose=0, rankCp=None):
+def next_prime_power(ptype1, verbose=0, rankCp=None):
     r"""
     """
-    i = max(i for i in range(len(ptype)) if ptype[i][2].rank()!=0)
-    p, e = ptype[i][0]
-    genus = ptype[i][1]
-    Cgenus = ptype[i][2]
-    Rgenus = ptype[i][3]
-    pglue =  ptype[i][4]
-    qlist = ptype[i][5]
+    i = max(i for i in range(len(ptype1)) if ptype1[i][2].rank()!=0)
+    p, e = ptype1[i][0]
+    genus = ptype1[i][1]
+    Cgenus = ptype1[i][2]
+    Rgenus = ptype1[i][3]
+    pglue =  ptype1[i][4]
+    qlist = ptype1[i][5]
 
     if e == 0:
         assert genus == Cgenus
@@ -709,16 +708,17 @@ def next_prime_power(ptype, verbose=0, rankCp=None):
         if not has_given_invariant_submodule(C, fC, GC, qlist, p):
             continue
         # recurse
-        for R, fR, GR in next_prime_power(ptype[:i],verbose=verbose-1,rankCp=rankCp):
+        for R, fR, GR in next_prime_power(ptype1[:i],verbose=verbose-1,rankCp=rankCp):
             ext = extensions(C, fC, R, fR, GC, GR,
                              pglue, p, target_genus=genus, qlist=qlist)
             if verbose > 0:
                 print('found %s extensions at level %s'%(len(ext),verbose))
             for ex in ext:
+                assert ptype(ex[0], ex[1]^p, p)==ptype1
                 yield ex
 
 
-def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2):
+def pnq_actions(q, ptype1,k3_unobstructed=True,verbose=2):
     r"""
     Returns all conjugacy classes of isometries of order `p^eq` in `genus`.
 
@@ -732,13 +732,13 @@ def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2):
 
     """
     # skip those i where Cp^iq + Cp^i is of rank 0
-    i = max(i for i in range(len(ptype)) if ptype[i][2].rank()!=0)
-    p, e = ptype[i][0]
-    genus = ptype[i][1]
-    Cgenus = ptype[i][2]
-    Rgenus = ptype[i][3]
-    pglue =  ptype[i][4]
-    qlist = ptype[i][5]
+    i = max(i for i in range(len(ptype1)) if ptype1[i][2].rank()!=0)
+    p, e = ptype1[i][0]
+    genus = ptype1[i][1]
+    Cgenus = ptype1[i][2]
+    Rgenus = ptype1[i][3]
+    pglue =  ptype1[i][4]
+    qlist = ptype1[i][5]
 
     # find all actions p^e q of types p^e
     # that glue to genus
@@ -756,7 +756,7 @@ def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2):
             print('%s^%s * %s -- %s^%s'%(p,e,q,p,e))
             print(M.genus())
         # recurse
-        for (N, fN, GN) in pnq_actions(q,ptype[:i],k3_unobstructed=k3_unobstructed,verbose=verbose-1):
+        for (N, fN, GN) in pnq_actions(q,ptype1[:i],k3_unobstructed=k3_unobstructed,verbose=verbose-1):
             ext = extensions(M, fM, N, fN, GM, GN,
                              pglue, p, target_genus=genus,
                              qlist=qlist)
@@ -770,6 +770,7 @@ def pnq_actions(q, ptype,k3_unobstructed=True,verbose=2):
                     if K.signature_pair()[0]==0 and K.maximum()==-2:
                         print("obstructed")
                         continue
+                assert ptype(ex[0], ex[1]^q, p)==ptype1
                 yield ex
 
 def sig_k3(n, rk, pos):
