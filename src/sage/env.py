@@ -186,6 +186,7 @@ SAGE_ROOT_GIT = var("SAGE_ROOT_GIT", join(SAGE_ROOT, ".git"))
 
 # ~/.sage
 from sage.misc.dot_sage import dot_sage
+DOT_SAGE = var("DOT_SAGE", dot_sage())
 SAGE_STARTUP_FILE = Path(var("SAGE_STARTUP_FILE", dot_sage() / "init.sage"))
 
 # for sage_setup.setenv

@@ -48,7 +48,7 @@ def dot_sage():
                       "A workaround is to set the environment "
                       "variable DOT_SAGE to a directory with no spaces "
                       "that you have write permissions to before you "
-                      "start sage."
+                      "start sage.")
         path = path / ".sage"
 
     path.mkdir(mode=700, exist_ok=True)
