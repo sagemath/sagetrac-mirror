@@ -17,7 +17,7 @@ def get_cache_file():
 
     EXAMPLES::
 
-        sage: from sage.misc.dot_sage
+        sage: from sage.misc.dot_sage import dot_sage
         sage: from sage.misc.lazy_import_cache import get_cache_file
         sage: str(get_cache_file())
         '...-lazy_import_cache.pickle'
