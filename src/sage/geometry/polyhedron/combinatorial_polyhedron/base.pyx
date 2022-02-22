@@ -92,7 +92,7 @@ from sage.graphs.graph              import Graph
 from sage.geometry.polyhedron.base  import Polyhedron_base
 from sage.geometry.lattice_polytope import LatticePolytopeClass
 from sage.geometry.cone             import ConvexRationalPolyhedralCone
-from sage.structure.element         import Matrix
+from sage.matrix.matrix2           cimport Matrix
 from sage.matrix.matrix_dense      cimport Matrix_dense
 from sage.misc.misc                 import is_iterator
 from .conversions \
@@ -1262,9 +1262,16 @@ cdef class CombinatorialPolyhedron(SageObject):
     graph = vertex_graph
 
     @cached_method
-    def vertex_adjacency_matrix(self):
+    def vertex_adjacency_matrix(self, **kwds):
         """
         Return the binary matrix of vertex adjacencies.
+
+        By default, the matrix is a dense immutable matrix over the integers.
+
+        INPUT:
+
+        - ``**kwds`` -- other keywords to pass to
+          :func:`~sage.matrix.constructor.matrix`.
 
         .. SEEALSO::
 
@@ -1284,6 +1291,20 @@ cdef class CombinatorialPolyhedron(SageObject):
             [0 1 0 0 0 1 0 1]
             [0 0 1 0 1 0 1 0]
 
+        As a sparse matrix::
+
+            sage: P = polytopes.permutahedron(6, backend='field')                  # optional - sage.combinat
+            sage: C = P.combinatorial_polyhedron()                                 # optional - sage.combinat
+            sage: C.vertex_adjacency_matrix(sparse=True)                           # optional - sage.combinat
+            720 x 720 sparse matrix over Integer Ring...
+
+        As a numpy matrix::
+
+            sage: C.vertex_adjacency_matrix(sparse=False, implementation='numpy')  # optional - sage.combinat
+            720 x 720 sparse matrix over Integer Ring...
+            sage: type(_)
+            <class 'sage.matrix.matrix_numpy_integer_dense.Matrix_numpy_integer_dense'>
+
         TESTS::
 
             sage: CombinatorialPolyhedron(-1).vertex_adjacency_matrix()
@@ -1293,20 +1314,40 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: polytopes.cube().vertex_adjacency_matrix().is_immutable()
             True
         """
-        from sage.rings.integer_ring import ZZ
         from sage.matrix.constructor import matrix
-        cdef Matrix_dense adjacency_matrix = matrix(
-                ZZ, self.n_Vrepresentation(), self.n_Vrepresentation(), 0)
-        cdef size_t i, a, b
+        base_ring = kwds.pop('base_ring', None)
+        if base_ring is None:
+            from sage.rings.integer_ring import ZZ as base_ring
+        sparse = kwds.pop('sparse', False)
+        immutable = kwds.pop('immutable', True)
 
         self._compute_edges(-1)
-        for i in range(self._n_edges):
-            a = self._get_edge(self._edges, i, 0)
-            b = self._get_edge(self._edges, i, 1)
-            adjacency_matrix.set_unsafe_int(a, b, 1)
-            adjacency_matrix.set_unsafe_int(b, a, 1)
-        adjacency_matrix.set_immutable()
-        return adjacency_matrix
+        cdef size_t n, i, a, b
+        n = self.n_Vrepresentation()
+
+        cdef Matrix adjacency_matrix_sparse
+        cdef Matrix_dense adjacency_matrix
+
+        if sparse:
+            adjacency_matrix_sparse = matrix(base_ring, n, n, 0, sparse=True, **kwds)
+            for i in range(self._n_edges):
+                a = self._get_edge(self._edges, i, 0)
+                b = self._get_edge(self._edges, i, 1)
+                adjacency_matrix_sparse.set_unsafe(a, b, 1)
+                adjacency_matrix_sparse.set_unsafe(b, a, 1)
+            if immutable:
+                adjacency_matrix_sparse.set_immutable()
+            return adjacency_matrix_sparse
+        else:
+            adjacency_matrix = matrix(base_ring, n, n, 0, **kwds)
+            for i in range(self._n_edges):
+                a = self._get_edge(self._edges, i, 0)
+                b = self._get_edge(self._edges, i, 1)
+                adjacency_matrix.set_unsafe_int(a, b, 1)
+                adjacency_matrix.set_unsafe_int(b, a, 1)
+            if immutable:
+                adjacency_matrix.set_immutable()
+            return adjacency_matrix
 
     def ridges(self, add_equations=False, names=True, add_equalities=False):
         r"""
