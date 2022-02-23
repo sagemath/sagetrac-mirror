@@ -19333,7 +19333,7 @@ cdef class Matrix(Matrix1):
         Note that ``D`` is invertible iff ``self`` is invertible.
         Note also that ``D`` is unique: every Cartan decomposition of
         ``self``, contains the same ``D`` matrix.
-        If ``certificate`` == `True`, the method returns a third element,
+        If ``certificate`` == `True`, the method returns a fourth element,
         which is a boolean that indicates whether or not the returned
         matrices that should be invertible (``K1``,``K2``, and in case
         ``self`` is invertible, also ``D``) are indeed so. These matrices
@@ -19847,7 +19847,7 @@ cdef class Matrix(Matrix1):
         Note that ``W`` is invertible iff ``self`` is invertible.
         Note also that ``W`` is unique: every Bruhat-Iwahori decomposition
         of ``self``, contains the same ``W`` matrix.
-        If ``certificate`` == `True`, the method returns a third element,
+        If ``certificate`` == `True`, the method returns a fourth element,
         which is a boolean that indicates whether or not the returned
         matrices that should be invertible (``B1``,``B2``, and in case
         ``self`` is invertible, also ``W``) are indeed so. These matrices
@@ -20407,7 +20407,7 @@ cdef class Matrix(Matrix1):
         Note that ``S`` is invertible iff ``self`` is invertible.
         Note also that ``S`` is unique: every TSB decomposition of ``self``,
         contains the same ``S`` matrix.
-        If ``certificate`` == `True`, the method returns a third element,
+        If ``certificate`` == `True`, the method returns a fourth element,
         which is a boolean that indicates whether or not the returned
         matrices that should be invertible (``T``, ``B``, and in case
         ``self`` is invertible, also ``S``) are indeed so. These matrices
@@ -20871,7 +20871,7 @@ cdef class Matrix(Matrix1):
         Note that ``S`` is invertible iff ``self`` is invertible.
         Note also that ``S`` is unique: every Bruhat decomposition of
         ``self``, contains the same ``S`` matrix.
-        If ``certificate`` == `True`, the method returns a third element,
+        If ``certificate`` == `True`, the method returns a fourth element,
         which is a boolean that indicates whether or not the returned
         matrices that should be invertible (``T1``,``T2``, and in case
         ``self`` is invertible, also ``S``) are indeed so. These matrices
