@@ -1,0 +1,1346 @@
+1
+glueing
+Genus of
+[4 2]
+[2 4]
+Signature:  (2, 0)
+Genus symbol at 2:    2^-2
+Genus symbol at 3:     1^1 3^1
+and
+Genus of
+[-8  4  2  2  0 -2  0  0  0  2]
+[ 4 -8 -4  2  2  0  0  0 -2  0]
+[ 2 -4 -4  2  2  0  0  0 -2  0]
+[ 2  2  2 -4 -2  2  0  0  2 -2]
+[ 0  2  2 -2 -4  2 -2  2  0  0]
+[-2  0  0  2  2 -4  0 -2  0  0]
+[ 0  0  0  0 -2  0 -4  2 -2  0]
+[ 0  0  0  0  2 -2  2 -4  2 -2]
+[ 0 -2 -2  2  0  0 -2  2 -4  2]
+[ 2  0  0 -2  0  0  0 -2  2 -4]
+Signature:  (0, 10)
+Genus symbol at 2:    2^-10
+Genus symbol at 3:     1^-9 3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[ 0  0 -1 -1  0  0  0  0  0  0  0  0]
+[ 0  0 -2  1  0  0  0  0  0  0  0  0]
+[-1 -2 -8  4  2  2  0 -2  0  0  0  2]
+[-1  1  4 -8 -4  2  2  0  0  0 -2  0]
+[ 0  0  2 -4 -4  2  2  0  0  0 -2  0]
+[ 0  0  2  2  2 -4 -2  2  0  0  2 -2]
+[ 0  0  0  2  2 -2 -4  2 -2  2  0  0]
+[ 0  0 -2  0  0  2  2 -4  0 -2  0  0]
+[ 0  0  0  0  0  0 -2  0 -4  2 -2  0]
+[ 0  0  0  0  0  0  2 -2  2 -4  2 -2]
+[ 0  0  0 -2 -2  2  0  0 -2  2 -4  2]
+[ 0  0  2  0  0 -2  0  0  0 -2  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-2 -1 -1 -3 -2  2  2 -2  0 -1 -1  0]
+[-1 -2 -4  1  0  2  0 -2 -1  0 -1  1]
+[-1 -4 -8  4  2  2  0 -2  0  0  0  2]
+[-3  1  4 -8 -4  2  2  0  0  0 -2  0]
+[-2  0  2 -4 -4  2  2  0  0  0 -2  0]
+[ 2  2  2  2  2 -4 -2  2  0  0  2 -2]
+[ 2  0  0  2  2 -2 -4  2 -2  2  0  0]
+[-2 -2 -2  0  0  2  2 -4  0 -2  0  0]
+[ 0 -1  0  0  0  0 -2  0 -4  2 -2  0]
+[-1  0  0  0  0  0  2 -2  2 -4  2 -2]
+[-1 -1  0 -2 -2  2  0  0 -2  2 -4  2]
+[ 0  1  2  0  0 -2  0  0  0 -2  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[ 0  0  1  1  1 -2 -1  1  0  0  1 -1]
+[ 0  0  2 -1 -1 -1  0  1  0  0  0 -1]
+[ 1  2 -8  4  2  2  0 -2  0  0  0  2]
+[ 1 -1  4 -8 -4  2  2  0  0  0 -2  0]
+[ 1 -1  2 -4 -4  2  2  0  0  0 -2  0]
+[-2 -1  2  2  2 -4 -2  2  0  0  2 -2]
+[-1  0  0  2  2 -2 -4  2 -2  2  0  0]
+[ 1  1 -2  0  0  2  2 -4  0 -2  0  0]
+[ 0  0  0  0  0  0 -2  0 -4  2 -2  0]
+[ 0  0  0  0  0  0  2 -2  2 -4  2 -2]
+[ 1  0  0 -2 -2  2  0  0 -2  2 -4  2]
+[-1 -1  2  0  0 -2  0  0  0 -2  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+glueing
+Genus of
+[8 4]
+[4 8]
+Signature:  (2, 0)
+Genus symbol at 2:    4^-2
+Genus symbol at 3:     1^-1 3^-1
+and
+Genus of
+[-56  28  -8  10 -16  20 -18  54 -30  18]
+[ 28 -56  -2  -8  -4 -16 -36 -18  12 -30]
+[ -8  -2  -4   2  -4   2 -10  10  -6   0]
+[ 10  -8   2  -4   2  -4   0 -10   6  -6]
+[-16  -4  -4   2 -10   5 -17  17  -9  -1]
+[ 20 -16   2  -4   5 -10   0 -17  10  -9]
+[-18 -36 -10   0 -17   0 -56  28 -14 -17]
+[ 54 -18  10 -10  17 -17  28 -56  31 -14]
+[-30  12  -6   6  -9  10 -14  31 -18   9]
+[ 18 -30   0  -6  -1  -9 -17 -14   9 -18]
+Signature:  (0, 10)
+Genus symbol at 2:    1^4:2^4:4^-2
+Genus symbol at 3:     1^9 3^1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-20 -19 -14 -20  -6   0 -11   0 -34  20 -10  -9]
+[-19 -18 -16 -16  -6   0 -12   2 -31  20 -10  -8]
+[-14 -16 -56  28  -8  10 -16  20 -18  54 -30  18]
+[-20 -16  28 -56  -2  -8  -4 -16 -36 -18  12 -30]
+[ -6  -6  -8  -2  -4   2  -4   2 -10  10  -6   0]
+[  0   0  10  -8   2  -4   2  -4   0 -10   6  -6]
+[-11 -12 -16  -4  -4   2 -10   5 -17  17  -9  -1]
+[  0   2  20 -16   2  -4   5 -10   0 -17  10  -9]
+[-34 -31 -18 -36 -10   0 -17   0 -56  28 -14 -17]
+[ 20  20  54 -18  10 -10  17 -17  28 -56  31 -14]
+[-10 -10 -30  12  -6   6  -9  10 -14  31 -18   9]
+[ -9  -8  18 -30   0  -6  -1  -9 -17 -14   9 -18]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+Found an isometry of order: 6
+glueing
+Genus of
+[-4 -2  0 -1]
+[-2 -4  1  0]
+[ 0  1  0  0]
+[-1  0  0  0]
+Signature:  (2, 2)
+Genus symbol at 2:    1^4
+and
+Genus of
+[-8  4  2  2  0  0  0  6]
+[ 4 -8 -4  2  0  0 -6  0]
+[ 2 -4 -4  2  0  0 -4  0]
+[ 2  2  2 -4  0  0  4 -4]
+[ 0  0  0  0 -8  4  0  2]
+[ 0  0  0  0  4 -8 -2  0]
+[ 0 -6 -4  4  0 -2 -8  4]
+[ 6  0  0 -4  2  0  4 -8]
+Signature:  (0, 8)
+Genus symbol at 2:    2^8
+Genus symbol at 3:     1^-6 3^-2
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  0 -1  0  0  0  0  0  0  0  0]
+[-2 -4  1  0  0  0  0  0  0  0  0  0]
+[ 0  1  0  0  0  0  0  0  0  0  0  0]
+[-1  0  0  0  0  0  0  0  0  0  0  0]
+[ 0  0  0  0 -8  4  2  2  0  0  0  6]
+[ 0  0  0  0  4 -8 -4  2  0  0 -6  0]
+[ 0  0  0  0  2 -4 -4  2  0  0 -4  0]
+[ 0  0  0  0  2  2  2 -4  0  0  4 -4]
+[ 0  0  0  0  0  0  0  0 -8  4  0  2]
+[ 0  0  0  0  0  0  0  0  4 -8 -2  0]
+[ 0  0  0  0  0 -6 -4  4  0 -2 -8  4]
+[ 0  0  0  0  6  0  0 -4  2  0  4 -8]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+Found an isometry of order: 6
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+glueing
+Genus of
+[-4 -2  1  2]
+[-2 -4 -1  1]
+[ 1 -1  0  0]
+[ 2  1  0  0]
+Signature:  (2, 2)
+Genus symbol at 2:    1^4
+Genus symbol at 3:     1^-2 3^-2
+and
+Genus of
+[-8  4  2  2  0 -2  0  6]
+[ 4 -8 -4  2  2  0 -6  0]
+[ 2 -4 -4  2  0  0 -4  0]
+[ 2  2  2 -4  0  0  4 -4]
+[ 0  2  0  0 -4  2  0  0]
+[-2  0  0  0  2 -4  0  0]
+[ 0 -6 -4  4  0  0 -8  4]
+[ 6  0  0 -4  0  0  4 -8]
+Signature:  (0, 8)
+Genus symbol at 2:    2^8
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  1  2  0  0  0  0  0  0  0  0]
+[-2 -4 -1  1  0  0  0  0  0  0  0  0]
+[ 1 -1  0  0  0  0  0  0  0  0  0  0]
+[ 2  1  0  0  0  0  0  0  0  0  0  0]
+[ 0  0  0  0 -8  4  2  2  0 -2  0  6]
+[ 0  0  0  0  4 -8 -4  2  2  0 -6  0]
+[ 0  0  0  0  2 -4 -4  2  0  0 -4  0]
+[ 0  0  0  0  2  2  2 -4  0  0  4 -4]
+[ 0  0  0  0  0  2  0  0 -4  2  0  0]
+[ 0  0  0  0 -2  0  0  0  2 -4  0  0]
+[ 0  0  0  0  0 -6 -4  4  0  0 -8  4]
+[ 0  0  0  0  6  0  0 -4  0  0  4 -8]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+glueing
+Genus of
+[-4 -2  0  2]
+[-2 -4 -2  0]
+[ 0 -2  0  0]
+[ 2  0  0  0]
+Signature:  (2, 2)
+Genus symbol at 2:    2^4
+and
+Genus of
+[-8  4  2  2  0  0  6  0]
+[ 4 -8 -4  2  0  0 -6  6]
+[ 2 -4 -4  2  0  0 -4  4]
+[ 2  2  2 -4  0  0  0 -4]
+[ 0  0  0  0 -8  4  2  0]
+[ 0  0  0  0  4 -8 -2  2]
+[ 6 -6 -4  0  2 -2 -8  4]
+[ 0  6  4 -4  0  2  4 -8]
+Signature:  (0, 8)
+Genus symbol at 2:    2^8
+Genus symbol at 3:     1^-6 3^-2
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  0  1  0  0  0  0  0  0  0  0]
+[-2 -4 -1  0  0  0  0  0  0  0  0  0]
+[ 0 -1 -2 -1  2 -4 -2  1  0  0 -3  3]
+[ 1  0 -1 -2 -2 -2 -1  2  0  0  0  3]
+[ 0  0  2 -2 -8  4  2  2  0  0  6  0]
+[ 0  0 -4 -2  4 -8 -4  2  0  0 -6  6]
+[ 0  0 -2 -1  2 -4 -4  2  0  0 -4  4]
+[ 0  0  1  2  2  2  2 -4  0  0  0 -4]
+[ 0  0  0  0  0  0  0  0 -8  4  2  0]
+[ 0  0  0  0  0  0  0  0  4 -8 -2  2]
+[ 0  0 -3  0  6 -6 -4  0  2 -2 -8  4]
+[ 0  0  3  3  0  6  4 -4  0  2  4 -8]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+Found an isometry of order: 6
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  0  1  0  0  0  0  0  0  0  0]
+[-2 -4 -1  0  0  0  0  0  0  0  0  0]
+[ 0 -1 -4 -2 -2 -2 -1  2  2 -4 -1  4]
+[ 1  0 -2 -4 -4  2  1  1 -2 -2  3  1]
+[ 0  0 -2 -4 -8  4  2  2  0  0  6  0]
+[ 0  0 -2  2  4 -8 -4  2  0  0 -6  6]
+[ 0  0 -1  1  2 -4 -4  2  0  0 -4  4]
+[ 0  0  2  1  2  2  2 -4  0  0  0 -4]
+[ 0  0  2 -2  0  0  0  0 -8  4  2  0]
+[ 0  0 -4 -2  0  0  0  0  4 -8 -2  2]
+[ 0  0 -1  3  6 -6 -4  0  2 -2 -8  4]
+[ 0  0  4  1  0  6  4 -4  0  2  4 -8]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+Found an isometry of order: 6
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-6 -1  0  1  3 -6 -4  2  0  0 -5  5]
+[-1 -2 -1  0 -1 -1  0  0  0  0  0  1]
+[ 0 -1  0  0  0  0  0  0  0  0  0  0]
+[ 1  0  0  0  0  0  0  0  0  0  0  0]
+[ 3 -1  0  0 -8  4  2  2  0  0  6  0]
+[-6 -1  0  0  4 -8 -4  2  0  0 -6  6]
+[-4  0  0  0  2 -4 -4  2  0  0 -4  4]
+[ 2  0  0  0  2  2  2 -4  0  0  0 -4]
+[ 0  0  0  0  0  0  0  0 -8  4  2  0]
+[ 0  0  0  0  0  0  0  0  4 -8 -2  2]
+[-5  0  0  0  6 -6 -4  0  2 -2 -8  4]
+[ 5  1  0  0  0  6  4 -4  0  2  4 -8]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+Found an isometry of order: 6
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-8  0  0  1  3 -6 -4  2 -4  2 -4  5]
+[ 0 -4 -1  0 -1 -1  0  0  2 -4 -1  2]
+[ 0 -1  0  0  0  0  0  0  0  0  0  0]
+[ 1  0  0  0  0  0  0  0  0  0  0  0]
+[ 3 -1  0  0 -8  4  2  2  0  0  6  0]
+[-6 -1  0  0  4 -8 -4  2  0  0 -6  6]
+[-4  0  0  0  2 -4 -4  2  0  0 -4  4]
+[ 2  0  0  0  2  2  2 -4  0  0  0 -4]
+[-4  2  0  0  0  0  0  0 -8  4  2  0]
+[ 2 -4  0  0  0  0  0  0  4 -8 -2  2]
+[-4 -1  0  0  6 -6 -4  0  2 -2 -8  4]
+[ 5  2  0  0  0  6  4 -4  0  2  4 -8]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+Found an isometry of order: 6
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-10  -5   0   1   6  -6  -4   0   3  -4  -8   4]
+[ -5  -6  -1   0   2  -4  -2   0  -1  -3  -4   4]
+[  0  -1   0   0   0   0   0   0   0   0   0   0]
+[  1   0   0   0   0   0   0   0   0   0   0   0]
+[  6   2   0   0  -8   4   2   2   0   0   6   0]
+[ -6  -4   0   0   4  -8  -4   2   0   0  -6   6]
+[ -4  -2   0   0   2  -4  -4   2   0   0  -4   4]
+[  0   0   0   0   2   2   2  -4   0   0   0  -4]
+[  3  -1   0   0   0   0   0   0  -8   4   2   0]
+[ -4  -3   0   0   0   0   0   0   4  -8  -2   2]
+[ -8  -4   0   0   6  -6  -4   0   2  -2  -8   4]
+[  4   4   0   0   0   6   4  -4   0   2   4  -8]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+Found an isometry of order: 6
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+glueing
+Genus of
+[-4 -2  0  0]
+[-2 -4  0  0]
+[ 0  0  4  2]
+[ 0  0  2  4]
+Signature:  (2, 2)
+Genus symbol at 2:    2^4
+Genus symbol at 3:     1^-2 3^-2
+and
+Genus of
+[-8  4  2  2  2 -2 -6  6]
+[ 4 -8 -4  2  0  2  0 -6]
+[ 2 -4 -4  2  0  0  0 -4]
+[ 2  2  2 -4  0  0  4  0]
+[ 2  0  0  0 -4  2  0  0]
+[-2  2  0  0  2 -4  0  0]
+[-6  0  0  4  0  0 -8  4]
+[ 6 -6 -4  0  0  0  4 -8]
+Signature:  (0, 8)
+Genus symbol at 2:    2^8
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  0  0  0  0  0  0  0  0  0  0]
+[-2 -4  0  0  0  0  0  0  0  0  0  0]
+[ 0  0  0  0 -1 -1  0  0  1  0 -1  0]
+[ 0  0  0  0 -2  1  0  0  1 -1 -1  1]
+[ 0  0 -1 -2 -8  4  2  2  2 -2 -6  6]
+[ 0  0 -1  1  4 -8 -4  2  0  2  0 -6]
+[ 0  0  0  0  2 -4 -4  2  0  0  0 -4]
+[ 0  0  0  0  2  2  2 -4  0  0  4  0]
+[ 0  0  1  1  2  0  0  0 -4  2  0  0]
+[ 0  0  0 -1 -2  2  0  0  2 -4  0  0]
+[ 0  0 -1 -1 -6  0  0  4  0  0 -8  4]
+[ 0  0  0  1  6 -6 -4  0  0  0  4 -8]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-2  0  1  2 -2 -2 -1  2  1  0 -3  0]
+[ 0  0  3  3 -4  2  1  1  1 -1 -3  3]
+[ 1  3  4  2  0  0  0  0  0  0  0  0]
+[ 2  3  2  4  0  0  0  0  0  0  0  0]
+[-2 -4  0  0 -8  4  2  2  2 -2 -6  6]
+[-2  2  0  0  4 -8 -4  2  0  2  0 -6]
+[-1  1  0  0  2 -4 -4  2  0  0  0 -4]
+[ 2  1  0  0  2  2  2 -4  0  0  4  0]
+[ 1  1  0  0  2  0  0  0 -4  2  0  0]
+[ 0 -1  0  0 -2  2  0  0  2 -4  0  0]
+[-3 -3  0  0 -6  0  0  4  0  0 -8  4]
+[ 0  3  0  0  6 -6 -4  0  0  0  4 -8]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+glueing
+Genus of
+[-16  -8   0   4]
+[ -8 -16  -4   0]
+[  0  -4   0   0]
+[  4   0   0   0]
+Signature:  (2, 2)
+Genus symbol at 2:    4^4
+and
+Genus of
+[-14   7  -5   1   7  -5  -6  18]
+[  7 -14   4  -5  -2   7 -12  -6]
+[ -5   4  -4   2   2  -1   0   7]
+[  1  -5   2  -4  -1   2  -7   0]
+[  7  -2   2  -1  -6   3   6 -10]
+[ -5   7  -1   2   3  -6   4   6]
+[ -6 -12   0  -7   6   4 -30  15]
+[ 18  -6   7   0 -10   6  15 -30]
+Signature:  (0, 8)
+Genus symbol at 2:    1^4:4^4
+Genus symbol at 3:     1^-6 3^-2
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-20  -7   0 -13  -2 -11   0  -5   3   5 -21   8]
+[ -7 -12 -11 -10   6  -9   4  -4  -3   5  -5  -9]
+[  0 -11 -18  -9  14 -10   7  -4  -8   6   3 -20]
+[-13 -10  -9 -18   4 -14   3  -7  -2   8 -17  -3]
+[ -2   6  14   4 -14   7  -5   1   7  -5  -6  18]
+[-11  -9 -10 -14   7 -14   4  -5  -2   7 -12  -6]
+[  0   4   7   3  -5   4  -4   2   2  -1   0   7]
+[ -5  -4  -4  -7   1  -5   2  -4  -1   2  -7   0]
+[  3  -3  -8  -2   7  -2   2  -1  -6   3   6 -10]
+[  5   5   6   8  -5   7  -1   2   3  -6   4   6]
+[-21  -5   3 -17  -6 -12   0  -7   6   4 -30  15]
+[  8  -9 -20  -3  18  -6   7   0 -10   6  15 -30]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+Found an isometry of order: 6
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+Computing spinor norms of Oqf. Total:1152 Remaining:192 number of tries: 2Computing spinor norms of Oqf. Total:1152 Remaining:96 number of tries: 3Computing spinor norms of Oqf. Total:1152 Remaining:96 number of tries: 4Computing spinor norms of Oqf. Total:1152 Remaining:48 number of tries: 5Computing spinor norms of Oqf. Total:1152 Remaining:48 number of tries: 6Computing spinor norms of Oqf. Total:1152 Remaining:48 number of tries: 7Computing spinor norms of Oqf. Total:1152 Remaining:48 number of tries: 8Computing spinor norms of Oqf. Total:1152 Remaining:48 number of tries: 9Computing spinor norms of Oqf. Total:1152 Remaining:48 number of tries: 10Computing spinor norms of Oqf. Total:1152 Remaining:48 number of tries: 11Computing spinor norms of Oqf. Total:1152 Remaining:48 number of tries: 12Computing spinor norms of Oqf. Total:1152 Remaining:48 number of tries: 13
+
+glueing
+Genus of
+[-4 -2  1  2  3  3]
+[-2 -4 -1  1  0  3]
+[ 1 -1 -2 -1 -1  0]
+[ 2  1 -1 -2 -1 -1]
+[ 3  0 -1 -1 -2 -1]
+[ 3  3  0 -1 -1 -2]
+Signature:  (2, 4)
+Genus symbol at 2:    1^4:2^-2
+Genus symbol at 3:     1^-5 3^-1
+and
+Genus of
+[-8  4  2  2  0 -6]
+[ 4 -8 -4  2  6  0]
+[ 2 -4 -4  2  4  0]
+[ 2  2  2 -4 -4  4]
+[ 0  6  4 -4 -8  4]
+[-6  0  0  4  4 -8]
+Signature:  (0, 6)
+Genus symbol at 2:    2^-6
+Genus symbol at 3:     1^5 3^1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  1  2  3  3  0  0  0  0  0  0]
+[-2 -4 -1  1  0  3  0  0  0  0  0  0]
+[ 1 -1 -2 -1 -1  0  0  0  0  0  0  0]
+[ 2  1 -1 -2 -1 -1  0  0  0  0  0  0]
+[ 3  0 -1 -1 -2 -1  0  0  0  0  0  0]
+[ 3  3  0 -1 -1 -2  0  0  0  0  0  0]
+[ 0  0  0  0  0  0 -8  4  2  2  0 -6]
+[ 0  0  0  0  0  0  4 -8 -4  2  6  0]
+[ 0  0  0  0  0  0  2 -4 -4  2  4  0]
+[ 0  0  0  0  0  0  2  2  2 -4 -4  4]
+[ 0  0  0  0  0  0  0  6  4 -4 -8  4]
+[ 0  0  0  0  0  0 -6  0  0  4  4 -8]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+Found an isometry of order: 6
+glueing
+Genus of
+[-4 -2  1  2 -1 -1]
+[-2 -4 -1  1  0 -1]
+[ 1 -1 -2 -1  1  0]
+[ 2  1 -1 -2  1  1]
+[-1  0  1  1  2  1]
+[-1 -1  0  1  1  2]
+Signature:  (2, 4)
+Genus symbol at 2:    1^4:4^-2
+Genus symbol at 3:     1^5 3^1
+and
+Genus of
+[-8  4  2  2 -2  0]
+[ 4 -8 -4  2  2 -2]
+[ 2 -4 -4  2  2 -2]
+[ 2  2  2 -4  0  2]
+[-2  2  2  0 -4  2]
+[ 0 -2 -2  2  2 -4]
+Signature:  (0, 6)
+Genus symbol at 2:    2^4:4^-2
+Genus symbol at 3:     1^-5 3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  0  0 -1 -1  0  0  0  0  0  0]
+[-2 -4 -1  0  0 -1  0  0  0  0  0  0]
+[ 0 -1 -2  0  1  1  2 -2 -2  0  2 -2]
+[ 0  0  0  0  2  2  0 -2 -2  2  0 -2]
+[-1  0  1  2  2  1  0  0  0  0  0  0]
+[-1 -1  1  2  1  2  0  0  0  0  0  0]
+[ 0  0  2  0  0  0 -8  4  2  2 -2  0]
+[ 0  0 -2 -2  0  0  4 -8 -4  2  2 -2]
+[ 0  0 -2 -2  0  0  2 -4 -4  2  2 -2]
+[ 0  0  0  2  0  0  2  2  2 -4  0  2]
+[ 0  0  2  0  0  0 -2  2  2  0 -4  2]
+[ 0  0 -2 -2  0  0  0 -2 -2  2  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+glueing
+Genus of
+[-4 -2  0  0  0  0]
+[-2 -4  0  0  0  0]
+[ 0  0 -4 -2  0  2]
+[ 0  0 -2 -4 -2  0]
+[ 0  0  0 -2  0  0]
+[ 0  0  2  0  0  0]
+Signature:  (2, 4)
+Genus symbol at 2:    2^-6
+Genus symbol at 3:     1^-5 3^-1
+and
+Genus of
+[-8  4  2  2  0  6]
+[ 4 -8 -4  2 -6  0]
+[ 2 -4 -4  2 -4  0]
+[ 2  2  2 -4  4 -4]
+[ 0 -6 -4  4 -8  4]
+[ 6  0  0 -4  4 -8]
+Signature:  (0, 6)
+Genus symbol at 2:    2^-6
+Genus symbol at 3:     1^5 3^1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  0  0  0  0  0  0  0  0  0  0]
+[-2 -4  0  0  0  0  0  0  0  0  0  0]
+[ 0  0 -2  0  0  1  1 -2 -2  1 -2  0]
+[ 0  0  0 -2 -1  0  1  1  1 -2  2 -2]
+[ 0  0  0 -1  0  0  0  0  0  0  0  0]
+[ 0  0  1  0  0  0  0  0  0  0  0  0]
+[ 0  0  1  1  0  0 -8  4  2  2  0  6]
+[ 0  0 -2  1  0  0  4 -8 -4  2 -6  0]
+[ 0  0 -2  1  0  0  2 -4 -4  2 -4  0]
+[ 0  0  1 -2  0  0  2  2  2 -4  4 -4]
+[ 0  0 -2  2  0  0  0 -6 -4  4 -8  4]
+[ 0  0  0 -2  0  0  6  0  0 -4  4 -8]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+Found an isometry of order: 6
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  0  0  0  0  0  0  0  0  0  0]
+[-2 -4  0  0  0  0  0  0  0  0  0  0]
+[ 0  0 -4 -2  0  1  0  0  0  0  0  0]
+[ 0  0 -2 -4 -1  0  0  0  0  0  0  0]
+[ 0  0  0 -1 -2  1  0 -3 -2  2 -4  2]
+[ 0  0  1  0  1 -2  3  0  0 -2  2 -4]
+[ 0  0  0  0  0  3 -8  4  2  2  0  6]
+[ 0  0  0  0 -3  0  4 -8 -4  2 -6  0]
+[ 0  0  0  0 -2  0  2 -4 -4  2 -4  0]
+[ 0  0  0  0  2 -2  2  2  2 -4  4 -4]
+[ 0  0  0  0 -4  2  0 -6 -4  4 -8  4]
+[ 0  0  0  0  2 -4  6  0  0 -4  4 -8]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+Found an isometry of order: 6
+glueing
+Genus of
+[-4 -2  0  0  2  0]
+[-2 -4  0  0  2  2]
+[ 0  0 -4 -2  2  0]
+[ 0  0 -2 -4  2  2]
+[ 2  2  2  2  0  0]
+[ 0  2  0  2  0  0]
+Signature:  (2, 4)
+Genus symbol at 2:    2^4:4^-2
+Genus symbol at 3:     1^5 3^1
+and
+Genus of
+[-8  4  2  2 -2  0]
+[ 4 -8 -4  2  2 -2]
+[ 2 -4 -4  2  2 -2]
+[ 2  2  2 -4  0  2]
+[-2  2  2  0 -4  2]
+[ 0 -2 -2  2  2 -4]
+Signature:  (0, 6)
+Genus symbol at 2:    2^4:4^-2
+Genus symbol at 3:     1^-5 3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-2  1  0  0  1  0 -2  0  1  0 -2  1]
+[ 1 -2  0  0  1  1 -2  0 -1  1  1 -2]
+[ 0  0 -2 -1  1  0 -2 -2 -1  2  0 -1]
+[ 0  0 -1 -2  1  1 -4  2  1  1 -1  0]
+[ 1  1  1  1  0  0  0  0  0  0  0  0]
+[ 0  1  0  1  0  0  0  0  0  0  0  0]
+[-2 -2 -2 -4  0  0 -8  4  2  2 -2  0]
+[ 0  0 -2  2  0  0  4 -8 -4  2  2 -2]
+[ 1 -1 -1  1  0  0  2 -4 -4  2  2 -2]
+[ 0  1  2  1  0  0  2  2  2 -4  0  2]
+[-2  1  0 -1  0  0 -2  2  2  0 -4  2]
+[ 1 -2 -1  0  0  0  0 -2 -2  2  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-2 -1  0  0  1  0 -1  0  0  1 -1 -1]
+[-1 -2  0  2  1  1 -1  1  1  0 -2  1]
+[ 0  0 -2  1  1  0  1  0  0 -1 -1  1]
+[ 0  2  1 -2  1  1  1 -3 -3  2  2 -3]
+[ 1  1  1  1  0  0  0  0  0  0  0  0]
+[ 0  1  0  1  0  0  0  0  0  0  0  0]
+[-1 -1  1  1  0  0 -8  4  2  2 -2  0]
+[ 0  1  0 -3  0  0  4 -8 -4  2  2 -2]
+[ 0  1  0 -3  0  0  2 -4 -4  2  2 -2]
+[ 1  0 -1  2  0  0  2  2  2 -4  0  2]
+[-1 -2 -1  2  0  0 -2  2  2  0 -4  2]
+[-1  1  1 -3  0  0  0 -2 -2  2  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2 -2 -3  1  0  1 -4 -2  2  0 -2]
+[-2 -4  0 -1  1  1 -3 -1  0  2 -2  0]
+[-2  0 -4 -1  1  0  3 -4 -2  0  0  0]
+[-3 -1 -1 -6  1  1 -1 -5 -4  4  2 -4]
+[ 1  1  1  1  0  0  0  0  0  0  0  0]
+[ 0  1  0  1  0  0  0  0  0  0  0  0]
+[ 1 -3  3 -1  0  0 -8  4  2  2 -2  0]
+[-4 -1 -4 -5  0  0  4 -8 -4  2  2 -2]
+[-2  0 -2 -4  0  0  2 -4 -4  2  2 -2]
+[ 2  2  0  4  0  0  2  2  2 -4  0  2]
+[ 0 -2  0  2  0  0 -2  2  2  0 -4  2]
+[-2  0  0 -4  0  0  0 -2 -2  2  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+glueing
+Genus of
+[-16  -8  -8  -4  12  12]
+[ -8 -16  -4  -8   0  12]
+[ -8  -4  -8  -4   8   8]
+[ -4  -8  -4  -8   0   8]
+[ 12   0   8   0 -12  -6]
+[ 12  12   8   8  -6 -12]
+Signature:  (2, 4)
+Genus symbol at 2:    2^-2:4^4
+Genus symbol at 3:     1^-5 3^-1
+and
+Genus of
+[-8  4  0  0  0  0]
+[ 4 -8  0  0  0  0]
+[ 0  0 -8  4 -4  0]
+[ 0  0  4 -8  4 -4]
+[ 0  0 -4  4 -4  2]
+[ 0  0  0 -4  2 -4]
+Signature:  (0, 6)
+Genus symbol at 2:    2^-2:4^4
+Genus symbol at 3:     1^5 3^1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-8  0 -4  0  2  3 -4  2 -4  2 -2  0]
+[ 0 -8  0 -4  1  2  2 -4  2 -4  2 -2]
+[-4  0 -4  0  2  2 -4  2  0  0  0  0]
+[ 0 -4  0 -4  0  2  2 -4  0  0  0  0]
+[ 2  1  2  0 -4 -1  0  0 -2  2 -2  1]
+[ 3  2  2  2 -1 -4  0  0  0 -2  1 -2]
+[-4  2 -4  2  0  0 -8  4  0  0  0  0]
+[ 2 -4  2 -4  0  0  4 -8  0  0  0  0]
+[-4  2  0  0 -2  0  0  0 -8  4 -4  0]
+[ 2 -4  0  0  2 -2  0  0  4 -8  4 -4]
+[-2  2  0  0 -2  1  0  0 -4  4 -4  2]
+[ 0 -2  0  0  1 -2  0  0  0 -4  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+Found an isometry of order: 6
+glueing
+Genus of
+[-4 -2  1  2  1  0 -1  0]
+[-2 -4 -1  1  1  1 -1 -1]
+[ 1 -1 -2 -1  0  0  0 -1]
+[ 2  1 -1 -2  0  0  1  0]
+[ 1  1  0  0 -2 -1  0  0]
+[ 0  1  0  0 -1 -2  0  0]
+[-1 -1  0  1  0  0  2  1]
+[ 0 -1 -1  0  0  0  1  2]
+Signature:  (2, 6)
+Genus symbol at 2:    1^4:2^-2:4^-2
+and
+Genus of
+[-8  4  0  0]
+[ 4 -8  0  0]
+[ 0  0 -4  2]
+[ 0  0  2 -4]
+Signature:  (0, 4)
+Genus symbol at 2:    2^-2:4^-2
+Genus symbol at 3:     1^-2 3^-2
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  0  1  1  0 -1  0  0  0  0  0]
+[-2 -4 -1  0  1  1 -1 -1  0  0  0  0]
+[ 0 -1 -2 -1  0  0  1  0  2 -4  0  0]
+[ 1  0 -1 -2  0  0  1  1 -2 -2  0  0]
+[ 1  1  0  0 -2 -1  0  0  0  0  0  0]
+[ 0  1  0  0 -1 -2  0  0  0  0  0  0]
+[-1 -1  1  1  0  0  2  1  0  0  0  0]
+[ 0 -1  0  1  0  0  1  2  0  0  0  0]
+[ 0  0  2 -2  0  0  0  0 -8  4  0  0]
+[ 0  0 -4 -2  0  0  0  0  4 -8  0  0]
+[ 0  0  0  0  0  0  0  0  0  0 -4  2]
+[ 0  0  0  0  0  0  0  0  0  0  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+Found an isometry of order: 6
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+glueing
+Genus of
+[-4 -2  1  2  0  0  3  3]
+[-2 -4 -1  1  0  0  0  3]
+[ 1 -1 -2 -1  0  0 -1  0]
+[ 2  1 -1 -2  0  0 -1 -1]
+[ 0  0  0  0 -4 -2  2  2]
+[ 0  0  0  0 -2 -4  0  2]
+[ 3  0 -1 -1  2  0 -2 -1]
+[ 3  3  0 -1  2  2 -1 -2]
+Signature:  (2, 6)
+Genus symbol at 2:    1^4:2^-2:4^-2
+Genus symbol at 3:     1^-6 3^-2
+and
+Genus of
+[-8  4  4  0]
+[ 4 -8 -4  4]
+[ 4 -4 -4  2]
+[ 0  4  2 -4]
+Signature:  (0, 4)
+Genus symbol at 2:    2^-2:4^-2
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  2  4  0  0  3  3  0  0  0  0]
+[-2 -4  1  2  0  0  0  3  0  0  0  0]
+[ 2  1 -4 -2 -2 -2  0  1 -2 -2  0  2]
+[ 4  2 -2 -4  0  0 -1 -1 -4  2  2  0]
+[ 0  0 -2  0 -4 -2  2  2  0  0  0  0]
+[ 0  0 -2  0 -2 -4  0  2  0  0  0  0]
+[ 3  0  0 -1  2  0 -2 -1  0  0  0  0]
+[ 3  3  1 -1  2  2 -1 -2  0  0  0  0]
+[ 0  0 -2 -4  0  0  0  0 -8  4  4  0]
+[ 0  0 -2  2  0  0  0  0  4 -8 -4  4]
+[ 0  0  0  2  0  0  0  0  4 -4 -4  2]
+[ 0  0  2  0  0  0  0  0  0  4  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+glueing
+Genus of
+[-4 -2  0  0  0  2  0 -2]
+[-2 -4  0  0 -2  0  2  0]
+[ 0  0 -4 -2  0 -2  0 -2]
+[ 0  0 -2 -4  2  0  2  0]
+[ 0 -2  0  2 -4 -2  0  0]
+[ 2  0 -2  0 -2 -4  0  0]
+[ 0  2  0  2  0  0  0  0]
+[-2  0 -2  0  0  0  0  0]
+Signature:  (2, 6)
+Genus symbol at 2:    2^-6:4^-2
+and
+Genus of
+[-8  4  0  0]
+[ 4 -8  0  0]
+[ 0  0 -4  2]
+[ 0  0  2 -4]
+Signature:  (0, 4)
+Genus symbol at 2:    2^-2:4^-2
+Genus symbol at 3:     1^-2 3^-2
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-2  0 -1  1  0  1  0 -1  0  0 -2  1]
+[ 0 -2  0 -1 -1  0  1  0  0  0  1 -2]
+[-1  0 -4 -1  0 -1  0 -1  2 -4 -2  1]
+[ 1 -1 -1 -4  1  0  1  0 -2 -2  1 -2]
+[ 0 -1  0  1 -4 -2  0  0  0  0  0  0]
+[ 1  0 -1  0 -2 -4  0  0  0  0  0  0]
+[ 0  1  0  1  0  0  0  0  0  0  0  0]
+[-1  0 -1  0  0  0  0  0  0  0  0  0]
+[ 0  0  2 -2  0  0  0  0 -8  4  0  0]
+[ 0  0 -4 -2  0  0  0  0  4 -8  0  0]
+[-2  1 -2  1  0  0  0  0  0  0 -4  2]
+[ 1 -2  1 -2  0  0  0  0  0  0  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+Found an isometry of order: 6
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+glueing
+Genus of
+[-4 -2  0  0  0  0  0  0]
+[-2 -4  0  0  0  0  0  0]
+[ 0  0 -4 -2  0  0  2  2]
+[ 0  0 -2 -4  0  0  0  2]
+[ 0  0  0  0 -4 -2  2  2]
+[ 0  0  0  0 -2 -4  0  2]
+[ 0  0  2  0  2  0  0  0]
+[ 0  0  2  2  2  2  0  0]
+Signature:  (2, 6)
+Genus symbol at 2:    2^-6:4^-2
+Genus symbol at 3:     1^-6 3^-2
+and
+Genus of
+[-8  4 -4  4]
+[ 4 -8  0 -4]
+[-4  0 -4  2]
+[ 4 -4  2 -4]
+Signature:  (0, 4)
+Genus symbol at 2:    2^-2:4^-2
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2 -2 -2  0  0  0  0  0 -4 -1 -2]
+[-2 -4  0 -2  0  0  0  0 -4  0 -3  1]
+[-2  0  0  0  0  0  2  2  2 -4  0 -2]
+[-2 -2  0 -4  0 -2  0  2 -2 -2 -2  0]
+[ 0  0  0  0 -4 -2  2  2  0  0  0  0]
+[ 0  0  0 -2 -2 -4  0  2  0  0  0  0]
+[ 0  0  2  0  2  0  0  0  0  0  0  0]
+[ 0  0  2  2  2  2  0  0  0  0  0  0]
+[ 0 -4  2 -2  0  0  0  0 -8  4 -4  4]
+[-4  0 -4 -2  0  0  0  0  4 -8  0 -4]
+[-1 -3  0 -2  0  0  0  0 -4  0 -4  2]
+[-2  1 -2  0  0  0  0  0  4 -4  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+glueing
+Genus of
+[-4 -2  1  2 -1  0  0  0  0  0]
+[-2 -4 -1  1 -1 -1  0  0  0  0]
+[ 1 -1 -2 -1  0 -1  0  0  0  0]
+[ 2  1 -1 -2  1  0  0  0  0  0]
+[-1 -1  0  1 -2 -1  0  0  0  0]
+[ 0 -1 -1  0 -1 -2  0  0  0  0]
+[ 0  0  0  0  0  0 -4 -2  2  0]
+[ 0  0  0  0  0  0 -2 -4  2  2]
+[ 0  0  0  0  0  0  2  2  0  0]
+[ 0  0  0  0  0  0  0  2  0  0]
+Signature:  (2, 8)
+Genus symbol at 2:    1^4:2^-6
+Genus symbol at 3:     1^9 3^1
+and
+Genus of
+[-4  2]
+[ 2 -4]
+Signature:  (0, 2)
+Genus symbol at 2:    2^-2
+Genus symbol at 3:     1^-1 3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  1  2 -1  0  0  0  0  0  0  0]
+[-2 -4 -1  1 -1 -1  0  0  0  0  0  0]
+[ 1 -1 -2 -1  0 -1  0  0  0  0  0  0]
+[ 2  1 -1 -2  1  0  0  0  0  0  0  0]
+[-1 -1  0  1 -2 -1  0  0  0  0  0  0]
+[ 0 -1 -1  0 -1 -2  0  0  0  0  0  0]
+[ 0  0  0  0  0  0 -4 -2  2  0  0  0]
+[ 0  0  0  0  0  0 -2 -4  2  2  0  0]
+[ 0  0  0  0  0  0  2  2  0  0  0  0]
+[ 0  0  0  0  0  0  0  2  0  0  0  0]
+[ 0  0  0  0  0  0  0  0  0  0 -4  2]
+[ 0  0  0  0  0  0  0  0  0  0  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+glueing
+Genus of
+[-4 -2  1  2  0  0 -3 -3 -3 -3]
+[-2 -4 -1  1  0  0  0 -3  0 -3]
+[ 1 -1 -2 -1  0  0  1  0  2  0]
+[ 2  1 -1 -2  0  0  1  1  2  2]
+[ 0  0  0  0 -4 -2  2  2  2  2]
+[ 0  0  0  0 -2 -4  0  2  0  2]
+[-3  0  1  1  2  0 -6 -3 -4 -2]
+[-3 -3  0  1  2  2 -3 -6 -2 -4]
+[-3  0  2  2  2  0 -4 -2 -2 -1]
+[-3 -3  0  2  2  2 -2 -4 -1 -2]
+Signature:  (2, 8)
+Genus symbol at 2:    1^4:2^4:4^-2
+Genus symbol at 3:     1^-9 3^-1
+and
+Genus of
+[-8  4]
+[ 4 -8]
+Signature:  (0, 2)
+Genus symbol at 2:    4^-2
+Genus symbol at 3:     1^1 3^1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -1  1  2  0  0 -3 -3 -1 -1 -2 -2]
+[-1 -4 -1  0  0 -2 -1 -1  1  0 -4  2]
+[ 1 -1 -2 -1  0  0  1  0  2  0  0  0]
+[ 2  0 -1 -2  0  0  1  1  2  2  0  0]
+[ 0  0  0  0 -4 -2  2  2  2  2  0  0]
+[ 0 -2  0  0 -2 -4  0  2  0  2  0  0]
+[-3 -1  1  1  2  0 -6 -3 -4 -2  0  0]
+[-3 -1  0  1  2  2 -3 -6 -2 -4  0  0]
+[-1  1  2  2  2  0 -4 -2 -2 -1  0  0]
+[-1  0  0  2  2  2 -2 -4 -1 -2  0  0]
+[-2 -4  0  0  0  0  0  0  0  0 -8  4]
+[-2  2  0  0  0  0  0  0  0  0  4 -8]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+Found an isometry of order: 6
+glueing
+Genus of
+[-4 -2  0  0  0  2  0  0  0  0]
+[-2 -4  0  0 -2  0  0  0  0  0]
+[ 0  0 -4 -2  0  2  0  0  0  0]
+[ 0  0 -2 -4 -2  0  0  0  0  0]
+[ 0 -2  0 -2 -4 -2  0  0  0  0]
+[ 2  0  2  0 -2 -4  0  0  0  0]
+[ 0  0  0  0  0  0 -4 -2  0  2]
+[ 0  0  0  0  0  0 -2 -4 -2  0]
+[ 0  0  0  0  0  0  0 -2  0  0]
+[ 0  0  0  0  0  0  2  0  0  0]
+Signature:  (2, 8)
+Genus symbol at 2:    2^-10
+Genus symbol at 3:     1^9 3^1
+and
+Genus of
+[-4  2]
+[ 2 -4]
+Signature:  (0, 2)
+Genus symbol at 2:    2^-2
+Genus symbol at 3:     1^-1 3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-2 -1  0  0  0  1  0  0  0  0 -1 -1]
+[-1 -2  0  0 -1  0  0  0  0  0 -2  1]
+[ 0  0 -4 -2  0  2  0  0  0  0  0  0]
+[ 0  0 -2 -4 -2  0  0  0  0  0  0  0]
+[ 0 -1  0 -2 -4 -2  0  0  0  0  0  0]
+[ 1  0  2  0 -2 -4  0  0  0  0  0  0]
+[ 0  0  0  0  0  0 -4 -2  0  2  0  0]
+[ 0  0  0  0  0  0 -2 -4 -2  0  0  0]
+[ 0  0  0  0  0  0  0 -2  0  0  0  0]
+[ 0  0  0  0  0  0  2  0  0  0  0  0]
+[-1 -2  0  0  0  0  0  0  0  0 -4  2]
+[-1  1  0  0  0  0  0  0  0  0  2 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  1  2  0  0  3  0  0  0  0  0]
+[-2 -4 -1  1  0  0  3  3  0  0  0  0]
+[ 1 -1 -2 -1  0  0  0  2  0  0  0  0]
+[ 2  1 -1 -2  0  0 -2  0  0  0  0  0]
+[ 0  0  0  0 -4 -2  2  0  0  0  0  0]
+[ 0  0  0  0 -2 -4  2  2  0  0  0  0]
+[ 3  3  0 -2  2  2 -6 -3  0  0  0  0]
+[ 0  3  2  0  0  2 -3 -6  0  0  0  0]
+[ 0  0  0  0  0  0  0  0 -4 -2  2  0]
+[ 0  0  0  0  0  0  0  0 -2 -4  2  2]
+[ 0  0  0  0  0  0  0  0  2  2  0  0]
+[ 0  0  0  0  0  0  0  0  0  2  0  0]
+Signature:  (2, 10)
+Genus symbol at 2:    1^4:2^8
+Genus symbol at 3:     1^-10 3^-2
+glueing
+Genus of
+[-6]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_5
+Genus symbol at 3:     3^1
+and
+Genus of
+[6]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 3:     3^-1
+above 2

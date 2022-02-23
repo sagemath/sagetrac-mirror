@@ -1,0 +1,30 @@
+1
+7^1 * 2 -- 7^1
+Genus of
+[-2  0  1  0  0 -1  0  1  1 -1  0  1]
+[ 0 -2  0  1  0  0  0  0  1  1 -1  0]
+[ 1  0 -2  0  1  0 -1  0  0  1  1 -1]
+[ 0  1  0 -2  0  1  0 -1  0  0  1  1]
+[ 0  0  1  0 -2  0  1  0 -1  0  0  1]
+[-1  0  0  1  0 -2 -1  1  0 -1  0  0]
+[ 0  0 -1  0  1 -1 -4  0  0 -2  2  0]
+[ 1  0  0 -1  0  1  0 -4  0  0 -2  2]
+[ 1  1  0  0 -1  0  0  0 -4  0  0 -2]
+[-1  1  1  0  0 -1 -2  0  0 -4  0  0]
+[ 0 -1  1  1  0  0  2 -2  0  0 -4  0]
+[ 1  0 -1  1  1  0  0  2 -2  0  0 -4]
+Signature:  (2, 10)
+Genus symbol at 2:    1^6:2^6
+Found an isometry of order: 14
+glueing
+Genus of
+[-4]
+Signature:  (0, 1)
+Genus symbol at 2:    [4^1]_7
+and
+Genus of
+[4]
+Signature:  (1, 0)
+Genus symbol at 2:    [4^1]_1
+above 2
+Found an isometry of order: 14

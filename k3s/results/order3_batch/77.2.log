@@ -1,0 +1,59 @@
+1
+glueing
+Genus of
+[12  6]
+[ 6 12]
+Signature:  (2, 0)
+Genus symbol at 2:    2^-2
+Genus symbol at 3:     3^1 9^1
+and
+Genus of
+[-4  2]
+[ 2 -4]
+Signature:  (0, 2)
+Genus symbol at 2:    2^-2
+Genus symbol at 3:     1^-1 3^-1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[12  6  0  0]
+[ 6 12  0  0]
+[ 0  0 -4  2]
+[ 0  0  2 -4]
+Signature:  (2, 2)
+Genus symbol at 2:    2^4
+Genus symbol at 3:     1^-1 3^-2 9^1
+glueing
+Genus of
+[8 4]
+[4 8]
+Signature:  (2, 0)
+Genus symbol at 2:    4^-2
+Genus symbol at 3:     1^-1 3^-1
+and
+Genus of
+[-24  12]
+[ 12 -24]
+Signature:  (0, 2)
+Genus symbol at 2:    4^-2
+Genus symbol at 3:     3^1 9^1
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[ -4   4 -12   6]
+[  4  -4   6 -12]
+[-12   6 -24  12]
+[  6 -12  12 -24]
+Signature:  (2, 2)
+Genus symbol at 2:    2^4
+Genus symbol at 3:     1^-1 3^-2 9^1
+Found an isometry of order: 6
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  0  0]
+[-2 -4  0  0]
+[ 0  0 12  6]
+[ 0  0  6 12]
+Signature:  (2, 2)
+Genus symbol at 2:    2^4
+Genus symbol at 3:     1^-1 3^-2 9^1

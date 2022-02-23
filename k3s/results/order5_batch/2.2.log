@@ -1,0 +1,24 @@
+1
+5^1 * 2 -- 5^1
+Genus of
+[ 2  3  2 -2]
+[ 3  2  3  2]
+[ 2  3  2  3]
+[-2  2  3  2]
+Signature:  (2, 2)
+Genus symbol at 2:    1^-4
+Genus symbol at 5:     1^-1 5^-3
+Found an isometry of order: 10
+glueing
+Genus of
+[-10]
+Signature:  (0, 1)
+Genus symbol at 2:    [2^-1]_3
+Genus symbol at 5:     5^-1
+and
+Genus of
+[2]
+Signature:  (1, 0)
+Genus symbol at 2:    [2^1]_1
+above 2
+Found an isometry of order: 10

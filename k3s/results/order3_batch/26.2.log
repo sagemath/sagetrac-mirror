@@ -1,0 +1,74 @@
+1
+glueing
+Genus of
+[-4 -2  0  2]
+[-2 -4 -2  0]
+[ 0 -2  0  0]
+[ 2  0  0  0]
+Signature:  (2, 2)
+Genus symbol at 2:    2^4
+and
+Genus of
+[-8  4 -4  0]
+[ 4 -8  4 -4]
+[-4  4 -4  2]
+[ 0 -4  2 -4]
+Signature:  (0, 4)
+Genus symbol at 2:    2^-2:4^-2
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  0  2  0  0  0  0]
+[-2 -4 -2  0  0  0  0  0]
+[ 0 -2  0  0  0  0  0  0]
+[ 2  0  0  0  0  0  0  0]
+[ 0  0  0  0 -8  4 -4  0]
+[ 0  0  0  0  4 -8  4 -4]
+[ 0  0  0  0 -4  4 -4  2]
+[ 0  0  0  0  0 -4  2 -4]
+Signature:  (2, 6)
+Genus symbol at 2:    2^-6:4^-2
+Found an isometry of order: 6
+glueing
+Genus of
+[-16  -8   0  -4]
+[ -8 -16   4   0]
+[  0   4   0   0]
+[ -4   0   0   0]
+Signature:  (2, 2)
+Genus symbol at 2:    4^4
+and
+Genus of
+[-8  4 -4  0]
+[ 4 -8  4 -4]
+[-4  4 -4  2]
+[ 0 -4  2 -4]
+Signature:  (0, 4)
+Genus symbol at 2:    2^-2:4^-2
+above 2
+3^1 * 2 -- 3^1
+Genus of
+[-8 -4  0 -2 -2 -2  0 -2]
+[-4 -4  2  0 -4  2 -2  0]
+[ 0  2  0  0  0  0  0  0]
+[-2  0  0  0  0  0  0  0]
+[-2 -4  0  0 -8  4 -4  0]
+[-2  2  0  0  4 -8  4 -4]
+[ 0 -2  0  0 -4  4 -4  2]
+[-2  0  0  0  0 -4  2 -4]
+Signature:  (2, 6)
+Genus symbol at 2:    2^-6:4^-2
+Found an isometry of order: 6
+3^1 * 2 -- 3^1
+Genus of
+[-4 -2  0  0  0 -2  0  2]
+[-2 -4  0  0  2  0 -2  0]
+[ 0  0 -4 -2  0  2  0  2]
+[ 0  0 -2 -4 -2  0 -2  0]
+[ 0  2  0 -2 -4 -2  0  0]
+[-2  0  2  0 -2 -4  0  0]
+[ 0 -2  0 -2  0  0  0  0]
+[ 2  0  2  0  0  0  0  0]
+Signature:  (2, 6)
+Genus symbol at 2:    2^-6:4^-2
+Found an isometry of order: 6
