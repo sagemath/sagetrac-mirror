@@ -11,7 +11,6 @@ AUTHORS:
 - Gregg Musiker
 - Christian Stump
 """
-
 # ****************************************************************************
 #       Copyright (C) 2011 Gregg Musiker <musiker@math.mit.edu>
 #                          Christian Stump <christian.stump@univie.ac.at>
@@ -19,8 +18,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
-import os
 import pickle
 from pathlib import Path
 from copy import copy
