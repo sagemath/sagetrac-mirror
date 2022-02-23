@@ -17528,6 +17528,3623 @@ cdef class Matrix(Matrix1):
         if U.change_ring(FiniteField(3)).det() != 1:  # p = 3 is enough to decide
             U.rescale_col(n - 1, -1)
         return U
+    
+
+    def _check_invertibility(self, should_be_invertible,
+                            should_be_invertible_if_self_is=None):
+        """
+        Return whether the matrices that should be invertible are indeed so.
+
+        In case ``self`` is invertible, checks whether the matrices in both
+        input lists are invertible. Otherwise, checks only the matrices in
+        the first list.
+
+        This is a helper function for several decomposition-methods, that
+        sometimes encounter numerical instability which causes some of the
+        returned matrices to be singular rather than invertible.
+
+        INPUT:
+
+        - ``should_be_invertible`` -- list of matrices; The method checks
+          whether these matrices are indeed invertible
+
+        - ``should_be_invertible_if_self_is`` -- list of matrices (default:
+          `None`); In case ``self`` is invertible, the method checks these
+          matrices too
+
+        OUTPUT:
+
+        `True` if the matrices that should be invertible are indeed so,
+        `False` otherwise.
+
+        EXAMPLES:
+
+        An example of using only the first list::
+
+            sage: M = matrix(QQ, 3, 3, 0)
+            sage: M1 = matrix(QQ, 3, 3, 1)
+            sage: M2 = diagonal_matrix(QQ, [2,1,0])
+            sage: M.is_invertible(), M1.is_invertible(), M2.is_invertible()
+            (False, True, False)
+            sage: M._check_invertibility([M1, M2])
+            False
+
+        An example of using both lists, with an invertible ``self``:
+
+            sage: M = matrix(QQ, 3, 3, 2)
+            sage: M1 = matrix(QQ, 3, 3, 1)
+            sage: M2 = diagonal_matrix(QQ, [2,1,0])
+            sage: M.is_invertible(), M1.is_invertible(), M2.is_invertible()
+            (True, True, False)
+            sage: M._check_invertibility([M1], [M2])
+            False
+
+        An example of using both lists, with a singular ``self``:
+
+            sage: M = matrix(QQ, 3, 3, 0)
+            sage: M1 = matrix(QQ, 3, 3, 1)
+            sage: M2 = diagonal_matrix(QQ, [2,1,0])
+            sage: M.is_invertible(), M1.is_invertible(), M2.is_invertible()
+            (False, True, False)
+            sage: M._check_invertibility([M1], [M2])
+            True
+
+        """
+        for m in should_be_invertible:
+            if not m.is_invertible():
+                return False
+
+        if self.is_invertible():
+            for m in should_be_invertible_if_self_is:
+                if not m.is_invertible():
+                    return False
+        return True
+
+
+    def _is_over_non_archimedean_local_field(self):
+        """
+        Return if matrix is defined over a non-archimedean local field.
+
+        This is a helper function for several decomposition-methods that
+        only work for this type of matrix.
+
+        OUTPUT:
+
+        `True` if ``self`` is defined over one of the non-archimedean
+        local fields that are currently implemented on sage:
+        Padic base-fields / one-step eisenstein or unramified
+        extensions / 2-step extensions (unramified followed by
+        eisenstein),
+        or Laurent-series rings over finite fields.
+        Otherwise, `False`.
+
+        EXAMPLES:
+
+        Examples for square matrices over non-archimedean local fields::
+
+            sage: F = Qp(3)
+            sage: F
+            3-adic Field with capped relative precision 20
+            sage: M = random_matrix(F, 3)
+            sage: M._is_over_non_archimedean_local_field()
+            True
+
+            sage: F.<a> = Qp(3).extension(x^2-2)
+            sage: F
+            3-adic Unramified Extension Field in a defined by x^2 - 2
+            sage: M = random_matrix(F, 3)
+            sage: M._is_over_non_archimedean_local_field()
+            True
+
+            sage: F.<a> = Qp(3).extension(x^2-3)
+            sage: F
+            3-adic Eisenstein Extension Field in a defined by x^2 - 3
+            sage: M = random_matrix(F, 3)
+            sage: M._is_over_non_archimedean_local_field()
+            True
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = ZqCA(25)
+            sage: F.<w> = K.extension(x^3-5)
+            sage: F
+            5-adic Eisenstein Extension Ring in w defined by x^3 - 5 over its base ring
+            sage: M = random_matrix(F, 3)
+            sage: M._is_over_non_archimedean_local_field()
+            True
+
+            sage: F = LaurentSeriesRing(GF(9))
+            sage: F
+            Laurent Series Ring in None over Finite Field in z2 of size 3^2
+            sage: M = random_matrix(F, 3)
+            sage: M._is_over_non_archimedean_local_field()
+            True
+
+        Examples for matrices that aren't over such fields::
+
+            sage: M = random_matrix(QQ, 3)
+            sage: M._is_over_non_archimedean_local_field()
+            False
+
+            sage: M = random_matrix(RR, 3)
+            sage: M._is_over_non_archimedean_local_field()
+            False
+
+
+        .. NOTE::
+
+            Theoretically, the method should have returned the following
+            expression:
+            (self.base_ring() in CompleteDiscreteValuationFields() and
+            self.base_ring().residue_field().is_finite()).
+            But instead, to make sure that it only approves of classes for
+            which the relevant methods are currently implemented, the
+            method checks that the base-ring is one of the following fields:
+            Padic base-fields / one-step eisenstein or unramified
+            extensions / 2-step extensions (unramified followed by
+            eisenstein),
+            or Laurent-series rings over finite fields.
+
+        .. WARNING::
+
+            The method returns `True` only if the matrix is over
+            one of the non-archimedean local field classes which are
+            currrently implemented in sage.
+
+        """
+        from sage.rings.padics.padic_extension_generic import pAdicExtensionGeneric
+        from sage.rings.padics.padic_generic import pAdicGeneric
+        from sage.rings.laurent_series_ring import is_LaurentSeriesRing
+
+        F = self.base_ring()
+        # Every non-archimedean local field must have a (finite) residue_field.
+        try:
+            G = F.residue_field()
+        except:
+            return False
+        if G.is_finite():
+            if isinstance(F, pAdicGeneric):
+                # Extension p-adic field.
+                if isinstance(F, pAdicExtensionGeneric):
+                    ext_type = F._extension_type()
+                    # Not a 1-step extension. In that case, we want it to be a
+                    # 2-step extension of an unramified extension followed by
+                    # eisenstein extension.
+                    if F.absolute_degree() != F.relative_degree():
+                        base = F.base_ring()
+                        return (ext_type == "Eisenstein"
+                                and base._extension_type() == "Unramified"
+                                and not isinstance(base.base_ring(),
+                                                pAdicExtensionGeneric))
+                    # A 1-step extension. In that case, we want it to be an
+                    # unramified or eisenstein extension.
+                    else:
+                        return (ext_type == "Eisenstein"
+                                or ext_type == "Unramified")
+                # Base p-adic field.
+                return True
+            return is_LaurentSeriesRing(F)
+        return False
+
+    def _matrix_func_that_normalizes_and_truncates(self, t):
+        """
+        Define a matrix that acts from the right on ``self``.
+
+        This method returns a function that can be used as a lambda
+        expression constructing a matrix.
+        Denote the matrix defined by the returned function by ``M``.
+        Then ``M``*``self`` makes the following changes to ``self``:
+        A. Converts the (``t``,``t``) element into a power of the
+           uniformizer.
+        B. Nullifies the extension of all ``t``-th row elements on the
+           righthand side of the diagonal, starting from the valuation of
+           ``self[t,t]``.
+
+        This is a helper function for the :meth:`iwasawa` decomposition method.
+
+        INPUT:
+
+        - ``t`` -- integer; represents a row in the matrix such that
+          ``self[t,t] != 0``
+
+        OUTPUT:
+
+        A function defining a matrix that can be then multiplied by ``self``
+        to induce the relevant changes on ``self``. See EXAMPLES.
+
+        EXAMPLES:
+
+        An example of using this method to induce changes on ``self``::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, 3, [[0, 1, -1], [0, s+s^7, s^-1+9*s],
+            ....: [1, 0, 9]])
+            sage: M
+            [         0          1         16]
+            [         0    s + s^7 s^-1 + 9*s]
+            [         1          0          9]
+            sage: f = M._matrix_func_that_normalizes_and_truncates(1)
+            sage: R = matrix(S, 3, lambda i,j: f(i,j), sparse=1)
+            sage: M = M*R
+            sage: # Indeed, the (1,1) element is now a power of the uniformizer,
+            ....: and the element to its right is truncated (contains only
+            ....: powers of the uniformizer which are smaller than the
+            ....: valuation of the (1,1) element).            
+            sage: M
+            [                                    0 1 + 16*s^6 + s^12 + 16*s^18 + O(s^20) 7 + 9*s^6 + 8*s^12 + 9*s^18 + O(s^20)]
+            [                                    0                           s + O(s^21)                        s^-1 + O(s^21)]
+            [                                    1                                     0                                     9]
+
+
+        .. NOTE::
+
+            This is a helper function for the :meth:`iwasawa` decomposition
+            method.
+            It assumes that the base-ring is either a padic field or a
+            laurent-series ring, and that ``self[t,t] != 0``.
+
+        """
+        from sage.rings.padics.padic_generic import pAdicGeneric
+
+        # Defining some functions and variables that help with constructing 
+        # the matrix-function later.
+        def truncate(elem, v): return (elem.slice(v, None) if isinstance(elem.parent(), pAdicGeneric) else elem.truncate_neg(v))
+
+        v = self[t,t].valuation()
+        parent = self[t,t].parent()
+        if isinstance(parent, pAdicGeneric):
+            unit = lambda x:x.unit_part()
+        else:
+            unit = lambda x:x.valuation_zero_part()
+
+        # Defining the matrix-function
+        def f(i, j):
+            if i == t:
+                if j == t:
+                    return (1 / unit(self[t,t]))
+                elif j > t:
+                    if self[t,j].is_zero():
+                        return 0
+                    b = truncate(self[t,j], v)
+                    return (-b / self[t,t])
+                else:
+                    return 0
+            elif i == j:
+                return 1
+            else:
+                return 0
+        return f
+
+    @staticmethod
+    def _normalize_iwasawa_decomposition(T, K):
+        """
+        Return the normalized form of a given Iwasawa decomposition.
+
+        The normalized form of an Iwasawa decomposition is such that the
+        upper-triangular matrix has powers of the uniformizer on diagonal,
+        and the elements on the righthand side of the diagonal are
+        truncated:
+        for each row, the expansions of the elements are truncated
+        starting from the valuation of the element that's on the diagonal
+        in the same row. For example, over Qp(3), if the diagonal [1,1]
+        element is 3^2, then the expansions of the other elements in the
+        1-th row can only contain powers of 3 which are smaller than 2.
+        In case the decomposed matrix is invertible, this normalized form
+        is unique.
+
+        This is a helper function for the :meth:`iwasawa` decomposition method.
+
+        INPUT:
+
+        - ``T`` -- matrix; The upper-triangular matrix in the Iwasawa
+          decomposition
+
+        - ``K`` -- matrix; The matrix that's invertible over the integer-
+          ring in the Iwasawa decomposition
+
+        OUTPUT:
+
+        A pair of matrices that are the normalized form of the given Iwasawa
+        decomposition.
+        The first matrix is the upper-triangular one, which is now
+        normalized as explained above, and the second is invertible over
+        the integer-ring.
+
+        EXAMPLES:
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, [[13*s^2 + s^17 + O(s^20), O(s^19), 9*s^15 +
+            ....: 6*s^17 + O(s^20)], [O(s^23), 10*s^-7 + 8*s^11 + O(s^13),
+            ....: 9*s^20 + 16*s^23 + O(s^24)], [10*s + 16*s^20 + O(s^21),
+            ....: 15*s^-1 + 15*s^18 + O(s^19),  14*s^18 + 7*s^19 + 8*s^20 +
+            ....: O(s^21)]])
+            sage: T, K = M.iwasawa(normalize=True) # indirect doctest
+            sage: T   # T is normalized
+            [   s^15 + O(s^20)   4*s^2 + O(s^20)           O(s^19)]
+            [          O(s^15)    s^-5 + O(s^15) 12*s^-7 + O(s^13)]
+            [          O(s^21)           O(s^21)    s^-1 + O(s^19)]
+
+        """
+        from copy import deepcopy
+        from sage.matrix.constructor import matrix, identity_matrix
+        from sage.rings.padics.padic_generic import pAdicGeneric        
+        
+        n = T.nrows()
+        H = identity_matrix(T.base_ring(), n)
+        E = deepcopy(T)
+        # Defining a function that determines whether an element is zero. 
+        # Implemented differently for relaxed p-adics, to avoid exceptions.
+        relaxed = (False if not isinstance(T.base_ring(), pAdicGeneric) else 
+                   T.base_ring().is_relaxed())
+        def eq_zero(elem): return (elem.is_equal_to(0, secure=False) if 
+                                   relaxed else elem == 0)
+        # For each row between n-1 to 0, convert diagonal element into a power of
+        # the uniformizer, and truncate elements on the righthand side of the
+        # diagonal (nullify expansion starting from the diagonal-element's
+        # valuation).
+        for t in range(n-1, -1, -1):
+            if not eq_zero(E[t,t]):
+                f = E._matrix_func_that_normalizes_and_truncates(t)
+                R = matrix(T.base_ring(), n, lambda i, j: f(i, j), sparse=1)
+                E = E * R
+                H = H * R
+        try:
+            H = H.inverse()
+        except (ZeroDivisionError, NotImplementedError) as e:
+            if (isinstance(e, NotImplementedError)
+                and "Echelon form not implemented" not in str(e)):
+                raise e
+            else:
+                raise ArithmeticError("Computation failed, due to singularity of \
+    an inner matrix that was expected to be invertible.\n This is probably due to \
+    numerical inaccuracy.")
+
+        return E, H * K
+
+    def _matrix_func_that_switches_cols_and_nullifies(self, t, c):
+        """
+        Define a matrix that acts from the right on ``self``.
+
+        This method returns a function that can be used as a lambda
+        expression constructing a matrix.
+        Denote the matrix defined by the returned function by ``M``.
+        Then ``self``*``M``  makes the following changes to ``self``:
+        A. Switches between the columns ``t``,``c``.
+        B. After switching, nullifies the first ``t`` cells in the
+           ``t``-th row.
+
+        This is a helper function for the :meth:`iwasawa` decomposition method.
+
+        INPUT:
+
+        - ``t`` -- integer; represents a row in the matrix
+
+        - ``c`` -- integer; Represents a column in the matrix,
+          such that ``self[t,c] != 0``
+
+        OUTPUT:
+
+        A function defining a matrix that can be then multiplied by ``self``
+        to induce the relevant changes on ``self``. See EXAMPLES.
+
+        EXAMPLES:
+
+        An example of using this method to induce changes on ``self``::
+
+            sage: M = matrix(QQ, 3, [[0, 1, -1], [2, 0, 1/2], [1, 0, 1/2]])
+            sage: M
+            [  0   1  -1]
+            [  2   0 1/2]
+            [  1   0 1/2]
+            sage: f = M._matrix_func_that_switches_cols_and_nullifies(1,2)
+            sage: R = matrix(QQ, 3, lambda i,j: f(i,j), sparse=1)
+            sage: M = M*R
+            sage: # Indeed, the 1,2 columns are switched, and the first element in
+            ....: row 1 is nullified.
+            sage: M
+            [  4  -1   1]
+            [  0 1/2   0]
+            [ -1 1/2   0]
+
+
+        .. NOTE::
+
+            This is a helper function for the :meth:`iwasawa` decomposition
+            method.
+            It assumes that ``self[t,c] != 0``.
+
+        """
+        def f(i, j):
+            if i == c:
+                if j == t:
+                    return 1
+                if j < t:
+                    if j == c:
+                        return (-(self[t,t] / self[t,c]))
+                    return (-(self[t,j] / self[t,c]))
+                else:
+                    return 0
+            elif i == t:
+                if j == c:
+                    return 1
+                else:
+                    return 0
+            elif i == j:
+                return 1
+            else:
+                return 0
+        return f
+
+    def _iwasawa_helper(self):
+        """
+        Helper for the :meth:`iwasawa` decomposition method.
+
+        This method returns ``T``,``K`` such that ``T``, ``K``^-1 are an
+        Iwasawa decomposition of ``self``.
+
+        OUTPUT:
+
+        Matrices ``T``,``K`` such that ``self``*``K``=``T``,
+        ``T`` is upper-triangular and ``K`` is invertible over the
+        integer-ring.
+        See :meth:`iwasawa` documentation for more details.
+
+        EXAMPLES:
+
+        An example for an Iwasawa (normalized) decomposition::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 +
+            ....: 4*a^17 + O(a^39),(0,2):4*a^-2 + 3*a^-1 + a^26 +
+            ....: O(a^32)})
+            sage: T, K = M.iwasawa() # indirect doctest
+            sage: M - T*K == 0
+            True
+            sage: # T is upper-triangular, normalized, and because M is
+            ....: invertible - T is also invertible:
+            sage: T
+            [a^-16 + O(a^24)               0               0]
+            [              0   a^7 + O(a^40)               0]
+            [              0               0  a^-1 + O(a^39)]
+            sage: K
+            [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
+            [                               0             2 + 4*a^20 + O(a^33)                                0]
+            [                               0                                0             3 + 4*a^18 + O(a^40)]
+            sage: # Showing that K is invertible over the integer-ring:
+            sage: min([x.valuation() for x in K.list() if x!=0])
+            0
+            sage: K.determinant().valuation() == 0
+            True
+            
+
+        .. NOTE::
+
+            As a helper for :meth:`iwasawa`, this method assumes that
+            ``self`` is a square (non-empty) matrix over a
+            non-archimedean local field.
+
+        .. WARNING::
+
+            This method makes changes to ``self``.
+
+        """
+        from sage.matrix.constructor import matrix, identity_matrix
+        from sage.rings.infinity import Infinity
+        
+        def valuation_infinity_for_zeros(n):
+            return n.valuation() if n!=0 else Infinity
+        n = self.nrows()
+
+        # Creating ``T``,``K``, such that ``self``*``K``=``T``, ``T`` is
+        # upper-triangular and ``K`` is invertible over the integer-ring.
+        K = identity_matrix(self.base_ring(), n)
+        T = self
+        # For each row of ``T`` between n-1 to 0, nullify elements that are on the
+        # left of the diagonal.
+        for t in range(n-1, -1, -1):
+            t_row_beginning = [T[t,i] for i in range(t+1)]
+            min_val, col_with_min_val = Infinity, 0
+            for i,d in enumerate(t_row_beginning):
+                val = valuation_infinity_for_zeros(d)
+                if val < min_val:
+                    min_val = val
+                    col_with_min_val = i
+            # ``value`` has minimal valuation amongst the elements in
+            # ``t_row_beginning``.
+            value = t_row_beginning[col_with_min_val]
+            if value != 0:
+                f = T._matrix_func_that_switches_cols_and_nullifies(
+                        t, col_with_min_val)
+                R = matrix(self.base_ring(), n, lambda i, j: f(i, j), sparse=1)
+                T = T * R
+                K = K * R
+
+        return T, K
+
+    def iwasawa(self, normalize=True, certificate=False):
+        """
+        Return an Iwasawa decomposition of the matrix.
+
+        This method works only for a square matrix over a non-archimedean
+        local field.
+
+        INPUT:
+
+        - ``normalize`` -- boolean (default: `True`); If set to `True`,
+          the method returns a normalized Iwasawa decomposition:
+          The upper-triangular matrix is normalized so that its diagonal-
+          elements are powers of the uniformizer (or zeros) and on each
+          row, the elements to the right of the diagonal are truncated
+          starting from the valuation of the element on the diagonal of
+          this row. For example, over Qp(3), if the diagonal [1,1] element
+          is 3^2, then the expansions of the other elements in the 1-th
+          row can only contain powers of 3 which are smaller than 2.
+          In case ``self`` is invertible, this defines a unique Iwasawa
+          decomposition.
+          If set to `False`, the method doesn't normalize the decomposition,
+          and therefore runs more quickly
+
+        - ``certificate`` -- boolean (default: `False`); If set to `True`,
+          the method returns an additional value, which is an indication
+          to whether or not the returned matrices that should be
+          invertible are indeed so. These matrices can potentially become
+          singular due to numerical inaccuracy
+
+        OUTPUT: an Iwasawa decomposition of the matrix.
+
+        If ``certificate`` == `False`, this method returns a pair of
+        matrices:
+        ``T``, ``K``, such that ``self`` == ``T``*``K`` (up to numerical
+        inaccuracies), ``T`` is an upper-triangular matrix, and ``K`` is
+        invertible over the integer-ring of the field.
+        In case ``normalize``== `True`, ``T`` is normalized so that its
+        diagonal-elements are powers of the uniformizer (or zeros) and
+        on each row, the elements to the right of the diagonal are
+        truncated starting from the valuation of the element on the
+        diagonal of this row.
+        Note that ``T`` is invertible iff ``self`` is invertible.
+        In case ``self`` is invertible, the normalization that's described
+        above defines a unique Iwasawa-decomposition, which is the one
+        returned by this method.
+        If ``certificate`` == `True`, the method returns a third element,
+        which is a boolean that indicates whether or not the returned
+        matrices that should be invertible (``K``, and in case ``self``
+        is invertible, also ``T``) are indeed so. These matrices can
+        potentially be singular due to numerical inaccuracy.
+
+        ALGORITHM:
+
+        An Iwasawa decomposition is achieved by using elementary
+        invertible-over-the-integer-ring matrices, to induce elementary
+        column-operations that turn the original matrix into an
+        upper-triangular one.
+        The resulting upper-triangular matrix, ``T``, alongside ``K``, the
+        inverse of the multiplied elementary matrices that were used,
+        represent an Iwasawa decomposition of ``self``.
+        If ``normalize`` ==`True`, ``T`` is then normalized by some other
+        elementary invertible-over-the-integer-ring matrices, that are
+        'absorbed' into ``K``.
+
+        EXAMPLES:
+
+        For an invertible matrix, the `normalized` Iwasawa decomposition is
+        unique. An example with a padic-field::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 + O(a^39),(0,2):4*a^-2
+            ....: + 3*a^-1 + a^26 + O(a^32)})
+            sage: T, K = M.iwasawa()
+            sage: M - T*K == 0
+            True
+            sage: # T is upper-triangular, normalized, and because M is
+            ....: invertible - T is also invertible:
+            sage: T
+            [a^-16 + O(a^24)               0               0]
+            [              0   a^7 + O(a^40)               0]
+            [              0               0  a^-1 + O(a^39)]
+            sage: K
+            [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
+            [                               0             2 + 4*a^20 + O(a^33)                                0]
+            [                               0                                0             3 + 4*a^18 + O(a^40)]
+            sage: # Showing that K is invertible over the integer-ring:
+            sage: min([x.valuation() for x in K.list() if x!=0])
+            0
+            sage: K.determinant().valuation() == 0
+            True
+
+        An Iwasawa decomposition of the same matrix, but not normalized::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 + O(a^39),(0,2):4*a^-2
+            ....: + 3*a^-1 + a^26 + O(a^32)})
+            sage: T, K = M.iwasawa(normalize=False)
+            sage: M - T*K == 0
+            True
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
+            [       3*a^-16 + 2*a^3 + O(a^24)                                0 4*a^-2 + 3*a^-1 + a^26 + O(a^32)]
+            [                               0         2*a^7 + 4*a^27 + O(a^40)                                0]
+            [                               0                                0        3*a^-1 + 4*a^17 + O(a^39)]
+            sage: K # doctest: +SKIP
+            [1 + O(a^40)           0           0]
+            [          0 1 + O(a^40)           0]
+            [          0           0 1 + O(a^40)]
+            sage: # Showing that K is invertible over the integer-ring:
+            sage: min([x.valuation() for x in K.list() if x!=0])
+            0
+            sage: K.determinant().valuation() == 0
+            True
+
+        An example with a matrix over a laurent-series ring::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, [[13*s^2 + s^17 + O(s^20), O(s^19), 9*s^15 +
+            ....: 6*s^17 + O(s^20)], [O(s^23), 10*s^-7 + 8*s^11 + O(s^13),
+            ....: 9*s^20 + 16*s^23 + O(s^24)], [10*s + 16*s^20 + O(s^21),
+            ....: 15*s^-1 + 15*s^18 + O(s^19),  14*s^18 + 7*s^19 + 8*s^20 +
+            ....: O(s^21)]])
+            sage: T, K = M.iwasawa()
+            sage: M - T*K == 0
+            True
+            sage: # T is upper-triangular, normalized, and because M is
+            ....: invertible - T is also invertible:
+            sage: T
+            [   s^15 + O(s^20)   4*s^2 + O(s^20)           O(s^19)]
+            [          O(s^15)    s^-5 + O(s^15) 12*s^-7 + O(s^13)]
+            [          O(s^21)           O(s^21)    s^-1 + O(s^19)]
+            sage: K
+            [                       s^2 + O(s^5)                      2*s^3 + O(s^4)          9 + 6*s^2 + 9*s^4 + O(s^5)]
+            [             16 + 12*s^19 + O(s^20)           8*s^16 + 7*s^17 + O(s^18)    2*s^17 + s^18 + 6*s^19 + O(s^20)]
+            [         10*s^2 + 16*s^21 + O(s^22)              15 + 15*s^19 + O(s^20) 14*s^19 + 7*s^20 + 8*s^21 + O(s^22)]
+            sage: # Showing that K is invertible over the integer-ring:
+            sage: min([x.valuation() for x in K.list() if x!=0])
+            0
+            sage: K.determinant().valuation() == 0
+            True
+
+        Example with a singular matrix (for a singular matrix, T is singular,
+        and the decomposition is not unique, even if normalized)::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0): 1 + O(a^24), (1,1):1 + O(a^40),
+            ....: (2,1): 1 + O(a^40)})
+            sage: T, K = M.iwasawa()
+            sage: M - T*K == 0
+            True
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
+            [1 + O(a^24)           0           0]
+            [          0           0 1 + O(a^40)]
+            [          0           0 1 + O(a^40)]
+            sage: # Note that T isn't invertible (because M isn't).
+            sage: K # doctest: +SKIP
+            [1 + O(a^24)           0           0]
+            [          0           0 1 + O(a^40)]
+            [          0 1 + O(a^40)           0]
+
+        This example illustrates that sometimes, the returned matrices are
+        singular due to numerical inaccuracies,
+        and demonstrates the use of the ``certificate`` keyword::
+
+            sage: Z = Qp(5, 3)
+            sage: M = matrix(Z,3,[[ 3*5^-2 + 5^-1 + 1 + O(5), 4*5 + 5^2 +
+            ....: O(5^4), 3*5 + 2*5^2 + 3*5^3 + O(5^4)], [5^-3 + 2*5^-2 +
+            ....: 4*5^-1 + O(5), 3 + 2*5 + 3*5^2 + O(5^3), 1 + 4*5 + 2*5^2
+            ....: + O(5^3)], [4*5^-3 + 3*5^-2 + O(5^-1), 5^-3 + 5^-2 +
+            ....: 2*5^-1 + O(5), 4*5 + 5^3 + O(5^4)]])
+            sage: T,K,c = M.iwasawa(certificate=True)
+            sage: c
+            False
+            sage: # M is invertible, so T should have been invertible:
+            sage: M.det()
+            2*5^-3 + O(5^-2)
+            sage: # But T isn't invertible, due to numerical reasons:
+            sage: T.det()
+            O(5^-3)
+
+        This example shows that sometimes ``self``!=``T``*``K``, due to
+        numerical inaccuracies::
+
+            sage: L.<a> = Qp(5,3).extension(x^2-5)
+            sage: M = matrix(L,3,[[2*a^17 + 2*a^20 + a^21 + a^22 + O(a^23),
+            ....: a^-11 + a^-9 + O(a^-7), 3 + 3*a^2 + 4*a^5 + O(a^6)],
+            ....: [a^-2 + 2*a^-1 + 4 + 4*a + O(a^2),  4*a^2 + 4*a^3 + 2*a^4
+            ....: + a^5 + O(a^8),  2*a^-2 + 1 + 3*a^2 + O(a^4)],
+            ....: [a^-1 + 3*a + a^3 + O(a^5), a^-70 + 3*a^-68 + O(a^-64),
+            ....: 3*a^3 + 3*a^5 + O(a^7)]])
+            sage: T,K = M.iwasawa()
+            sage: M - T*K
+            [        O(a^4)        O(a^-7)         O(a^4)]
+            [        O(a^2)         O(a^6)         O(a^2)]
+            [        O(a^3)       O(a^-64) 3*a^3 + O(a^5)]
+
+        .. NOTE::
+
+            This method works only for a square (non-empty) matrix over a
+            non-archimedean local field, or a ring with such a fraction
+            field.
+            Currently, the fields for which the method is implemented are:
+            Padic base-fields / one-step eisenstein or unramified
+            extensions / 2-step extensions (unramified followed by
+            eisenstein),
+            and Laurent-series rings over finite fields.
+
+        .. WARNING::
+
+            Due to numerical inaccuracies, it may happen that
+            ``self``!=``T``*``K``,
+            and it may also happen that some of the returned matrices which
+            are supposed to be invertible, are not so. The ``certificate``
+            keyword can be used to get indication for that.
+
+        .. SEEALSO::
+
+            :meth:`cartan`, :meth:`bruhat-iwahori`, :meth:`TSB`, :meth:`bruhat`.
+
+        TESTS:
+
+        The method raises TypeError in case ``self`` is over a ring for
+        which the method doesn't work::
+
+            sage: M = random_matrix(QQ,3)
+            sage: M.iwasawa()
+            Traceback (most recent call last):
+            ...
+            TypeError: ``self`` must be defined over one of the following
+            non-archimedean local fields: Laurent-Series-Rings over finite fields,
+            or padic fields of the following types: base, 1-step unramified or
+            eisenstein extension, or 2-step unramified followed by
+            eisenstein extension.
+
+        A zero matrix test::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S,3,3,0)
+            sage: T,K = M.iwasawa()
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: K # doctest: +SKIP
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        A = self.matrix_over_field()
+
+        # Check that the matrix is legal for this decomposition
+        if (A.ncols() == 0) or (not A.is_square()):
+            raise TypeError("``self`` must be a non-empty square matrix.")
+        if not A._is_over_non_archimedean_local_field():
+            raise TypeError("``self`` must be defined over one of the following \
+                non-archimedean local fields: \
+                Laurent-Series-Rings over finite fields, or padic fields of the \
+                following types: base, 1-step unramified or eisenstein extension, \
+                or 2-step unramified followed by eisenstein extension.")
+
+        # Get ``T``, ``K`` such that ``self``*``K`` =``T``, ``T`` is
+        # upper-triangular and ``K`` is invertible over the integer-ring.
+        # ``T``, ``K``.inverse() are an Iwasawa decomposition of A.
+        T, K = A._iwasawa_helper()
+        try:
+            K = K.inverse()
+        except (ZeroDivisionError, NotImplementedError) as e:
+            if (isinstance(e, NotImplementedError)
+                and "Echelon form not implemented" not in str(e)):
+                raise e
+            else:
+                raise ArithmeticError("Computation failed, due to singularity of \
+                    an inner matrix that was expected to be invertible.\n This is \
+                    probably due to numerical inaccuracy.")
+
+        # Get normalized-form of Iwasawa decomposition.
+        if normalize:
+            T, K = Matrix._normalize_iwasawa_decomposition(T, K)
+
+        if certificate:
+            output_is_as_expected = A._check_invertibility([K], [T])
+            return T, K, output_is_as_expected
+
+        return T, K
+    
+    def _matrix_func_that_nullifies_part_of_col(self, r, c, rows_to_not_nullify):
+        """
+        Define a matrix that acts from the left on ``self``.
+
+        This method returns a function that can be used as a lambda
+        expression constructing a matrix.
+        Denote the matrix defined by the returned function by ``M``.
+        Then ``M``*``self``  makes the following changes to ``self``:
+        A. Nullifies elements in the ``c`` column that are in one of the
+           following rows: {i!=``r`` | i not in ``rows_to_not_nullify``}.
+
+        This is a helper function for the :meth:`cartan` and :meth:`bruhat-iwahori`
+        decompositions methods.
+
+        INPUT:
+
+        - ``r`` -- integer; represents a row in the matrix, such that
+          ``self[r,c] != 0``
+
+        - ``c`` -- integer; represents a column in the matrix, that should
+          be partly nullified
+
+        - ``rows_to_not_nullify`` -- list of integers; Rows that shouldn't
+          be touched (elements in those rows shouldn't be nullified)
+
+        OUTPUT:
+
+        A function defining a matrix that can be then multiplied by ``self``
+        to induce the relevant changes on ``self``. See EXAMPLES.
+
+        EXAMPLES:
+
+        An example of using this method to induce changes on ``self``::
+
+            sage: M = matrix(QQ, 3, [[0, 1, -1], [2, 0, 1/2], [1, 0, 1/2]])
+            sage: M
+            [  0   1  -1]
+            [  2   0 1/2]
+            [  1   0 1/2]
+            sage: f = M._matrix_func_that_nullifies_part_of_col(1, 2, [0])
+            sage: R = matrix(QQ, 3, lambda i,j: f(i,j), sparse=1)
+            sage: M = R*M
+            sage: # Indeed, the (2,2) element is nullified. This is the only
+            ....: element in column 2 that isn't the (1,2) element and isn't
+            ....: in row 0, which is in the ``rows_to_not_nullify``.
+            sage: M
+            [  0   1  -1]
+            [  2   0 1/2]
+            [ -1   0   0]
+
+
+        .. NOTE::
+
+            This is a helper function for the :meth:`cartan` and 
+            :meth:`bruhat-iwahori` decompositions methods.
+            It assumes that ``self[r,c] != 0``.
+
+        """
+        def f(i, j):
+            if i == j:
+                return 1
+            elif j == r and i not in rows_to_not_nullify:
+                return (-(self[i,c] / self[r,c]))
+            else:
+                return 0
+        return f
+
+    def min_valuation_in_row(self, row):
+        """
+        Return minimal valuation, and columns achieving that valuation.
+
+        In this method, elements that are undistinguishable from zero
+        are considered to have infinity valuation (see WARNING).
+        
+
+        INPUT:
+
+        - ``row`` -- integer; Row in which to look for minimal-valuation
+          elements
+
+        OUTPUT:
+
+        A tuple containing 2 elements:
+        the first is the minimal valution that was found in the row,
+        and the second is a list with the columns of the
+        minimal-valuation elements in this row, ordered from left to right.
+
+        EXAMPLES:
+
+        An example with a matrix over a laurent-series ring::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, 3, [[13*s^2, O(s^19), 9*s^15 + 6*s^17 +
+            ....: O(s^20)], [4, O(s^-7), 3 + s^2], [s^-3, O(s^-2), s^-8 +
+            ....: O(s^5)]])
+            sage: M
+            [                   13*s^2                   O(s^19) 9*s^15 + 6*s^17 + O(s^20)]
+            [                        4                   O(s^-7)                   3 + s^2]
+            [                     s^-3                   O(s^-2)             s^-8 + O(s^5)]
+            sage: M.min_valuation_in_row(2)
+            (-8, [2])
+
+        An example that illustrates that elements that are undistinguishable
+        from zero are considered to have infinity valuation::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, 3, [[13*s^2, O(s^19), 9*s^15 + 6*s^17 +
+            ....: O(s^20)], [4, O(s^-7), 3 + s^2], [s^-3, O(s^-2), s^-8 +
+            ....: O(s^5)]])
+            sage: M
+            [                   13*s^2                   O(s^19) 9*s^15 + 6*s^17 + O(s^20)]
+            [                        4                   O(s^-7)                   3 + s^2]
+            [                     s^-3                   O(s^-2)             s^-8 + O(s^5)]
+            sage: # The minimal valuation in row 1 is 0 and not -7, because O(s^-7)
+            ....: is considered to have infinity valuation.
+            sage: M.min_valuation_in_row(1)
+            (0, [0, 2])
+
+        .. NOTE::
+
+            This method can only be used by matrices over rings that have
+            a `valuation` method.
+
+        .. WARNING::
+
+            In this method, elements that are undistinguishable from zero
+            (such as O(3^2) in Qp(3)) are considered to have infinity
+            valuation, regardless of the valuation that's given to them by
+            the `valuation` method.
+            For example, O(3^2).valuation()==2, but in this function it is
+            considered to have infinity valuation.
+
+        .. SEEALSO::
+
+            :meth:`choose_min_valuation_element`.
+
+        TESTS:
+
+        The method raises TypeError in case the base ring has no
+        `valuation` method::
+
+            sage: M = random_matrix(GF(19),3)
+            sage: M.min_valuation_in_row(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: ``self`` must have a base ring F with an
+            implemented ``valuation`` method. In particular,
+            F(0).valuation() must be defined.
+
+        The method raises IndexError in case ``row`` isn't an integer
+        that represents a row in the matrix::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S,3,3,0)
+            sage: M.min_valuation_in_row(5)
+            Traceback (most recent call last):
+            ...
+            IndexError: Argument must be an integer in the range:
+            [0,number_of_rows).
+
+        A zeros-row test::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S,3,3,0)
+            sage: M.min_valuation_in_row(0)
+            (+Infinity, [0, 1, 2])
+        """
+        from sage.rings.infinity import Infinity
+        
+        # Checking that input is legal
+        try:
+            self.base_ring()(0).valuation()
+        except:
+            raise TypeError("``self`` must have a base ring F with an \
+                implemented ``valuation`` method. In particular, \
+                F(0).valuation() must be defined.")
+
+        if not isinstance(row, Integer):
+            row = Integer(row)
+        if row >= self.nrows() or row < 0:
+            raise IndexError("Argument must be an integer in the range: \
+                [0,number_of_rows).")
+        
+        # Defining a valuation function that returns infinity for zeros
+        def valuation_infinity_for_zeros(n):
+            return n.valuation() if n!=0 else +Infinity
+
+        # Finding minimal valuation in the row
+        min_val = +Infinity
+        cols_with_min_val = list()
+        for c in range(self.ncols()):
+            val = valuation_infinity_for_zeros(self[row,c])
+            if val < min_val:
+                min_val = val
+                cols_with_min_val.clear()
+            if val == min_val:
+                cols_with_min_val.append(c)
+
+        return min_val, cols_with_min_val
+
+    def _check_coordinates(self, r, c, only_first_in_col, start_up,
+                           chosen_valuations):
+        """
+        Check if ``self[r,c]`` has minimal valuation in its column.
+
+        The given element is known to have minimal valuation in its row,
+        and this method checks whether it also has minimal valuation in
+        its column.
+        Note that:
+        A. In case the ``chosen_valuations`` argument is
+           used, the element is not checked against elements from rows
+           that have been previously "chosen" according to this
+           argument.
+        B. The method potentially approves only of an element which is
+           the first (top/bottom) in its column to have that (minimal)
+           valuation.
+
+        This is a helper function for :meth:`choose_min_valuation_element`.    
+
+        INPUT:
+
+        - ``r`` -- integer; row of the element
+
+        - ``c`` -- integer; column of the element
+
+        - ``only_first_in_col`` -- boolean; whether to return only an
+          element which is the first in its column to have that (minimal)
+          valuation.
+          The meaning of 'first' is determined by the direction of the
+          search (see ``start_up`` argument)
+
+        - ``start_up`` -- boolean; Whether to go over the
+          lines from top to bottom or in the opposite direction,
+          while searching for the desired element
+
+        - ``chosen_valuations`` -- list.
+          See details in the documentation of 
+          :meth:`choose_min_valuation_element`
+
+        OUTPUT:
+
+        If the (``r``,``c``) element is approved, return `True`.
+        Otherwise return `False`.
+
+        EXAMPLES:
+
+        An indirect example, using :meth:`_search_in_row`::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, [[13, O(s^19), 9*s^15 + O(s^20)], [4,
+            ....: O(s^-7), 3 + s^2], [s^13, s^13+O(s^15), s^8 + O(s^15)]])
+            sage: M
+            [              13          O(s^19) 9*s^15 + O(s^20)]
+            [               4          O(s^-7)          3 + s^2]
+            [            s^13   s^13 + O(s^15)    s^8 + O(s^15)]
+            sage: M._search_in_row(1, only_first_in_col=True,
+            ....: only_first_in_row=False, start_up=True, start_left=True,
+            ....: chosen_valuations=[None]*M.nrows()) # indirect doctest
+            (2, 0)
+            
+
+        .. NOTE::
+
+            This is a helper method for :meth:`choose_min_valuation_element`.
+            It can only be used by matrices over rings that have a
+            `valuation` method.
+
+        .. WARNING::
+
+            In this method, elements that are undistinguishable from zero
+            (such as O(3^2) in Qp(3)) are considered to have infinity
+            valuation, regardless of the valuation that's given to them by
+            the `valuation` method.
+            For example, O(3^2).valuation()==2, but in this function it is
+            considered to have infinity valuation.
+
+        """
+        from sage.rings.infinity import Infinity
+        
+        def valuation_infinity_for_zeros(n):
+            return n.valuation() if n!=0 else +Infinity
+        val = valuation_infinity_for_zeros(self[r,c])
+
+        # In case row ``i`` wasn't yet chosen, we compare the valuation of the
+        # (``i``,``c``) element to that of the (``r``,``c``) element.
+        for i in range(self.nrows()):
+            if chosen_valuations[i] is None:
+                v = valuation_infinity_for_zeros(self[i,c])
+                if v < val:
+                    return False
+                if ((v == val)
+                    and (only_first_in_col
+                        and ((start_up and i < r)
+                            or ((not start_up) and i > r)))):
+                    return False
+
+        return True
+
+    def _search_in_row(self, r, only_first_in_col, only_first_in_row, start_up,
+                    start_left, chosen_valuations):
+        """
+        Search row r for element with minimal valuation in its row and column.
+
+        Note that:
+        A. In case the ``chosen_valuations`` argument is
+           used, the element is not checked against elements from rows
+           that have been previously "chosen" according to this
+           argument.
+        B. The method potentially approves only of an element which is
+           the first (left/right) in its row, and/or the first
+           (top/bottom) in its column to have that (minimal) valuation.
+
+        This is a helper function for :meth:`choose_min_valuation_element`.    
+
+        INPUT:
+
+        - ``r`` -- integer; row in which to search for the element
+
+        - ``only_first_in_col`` -- boolean; whether to return only an
+          element which is the first in its column to have that (minimal)
+          valuation.
+          The meaning of 'first' is determined by the direction of the
+          search (see ``start_up`` argument)
+
+        - ``only_first_in_row`` -- boolean; whether to return only an
+          element which is the first in its row to have that (minimal)
+          valuation.
+          The meaning of 'first' is determined by the direction of the
+          search (see ``start_left`` argument)
+
+        - ``start_up`` -- boolean; Whether to go over the
+          lines from top to bottom or in the opposite direction,
+          while searching for the desired element
+
+        - ``start_left`` -- boolean; Whether to go over
+          the columns from left to right or in the opposite direction,
+          while searching each row for the desired element
+
+        - ``chosen_valuations`` -- list.
+          See details in the documentation of :meth:`choose_min_valuation_element`
+
+        OUTPUT:
+
+        Return (column, valuation) of an element in the ``r``-th row that
+        has been approved as having minimal valuation in its row (``r``) and
+        column.
+        If no such element is found, return (`None`, `None`).
+
+        EXAMPLES:
+
+        An example with: ``r``== 1, ``only_first_in_col``==`True`.
+        In this example, there are 2 elements with minimal valuation
+        in row 1, and both of them have the minimal valuation in their
+        columns too. But only one of them is the first in its column
+        to have that valuation, and this is the one we choose.
+        Note that the returned tuple is the (column, valuation) of
+        the chosen element::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, [[13, O(s^19), 9*s^15 + O(s^20)], [4,
+            ....: O(s^-7), 3 + s^2], [s^13, s^13+O(s^15), s^8 + O(s^15)]])
+            sage: M
+            [              13          O(s^19) 9*s^15 + O(s^20)]
+            [               4          O(s^-7)          3 + s^2]
+            [            s^13   s^13 + O(s^15)    s^8 + O(s^15)]
+            sage: M._search_in_row(1, only_first_in_col=True,
+            ....: only_first_in_row=False, start_up=True, start_left=True,
+            ....: chosen_valuations=[None]*M.nrows())
+            (2, 0)
+
+        The same matrix, this time with: ``r``== 1,
+        ``only_first_in_col``==`True`, and ``only_first_in_row``==`True`.
+        As explained in the previous example, the demand for
+        ``only_first_in_col`` leaves only one possible element, but
+        this is not the first in its row to have the minimal valuation.
+        Therefore in this case we can't find any appropriate element::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, [[13, O(s^19), 9*s^15 + O(s^20)], [4,
+            ....: O(s^-7), 3 + s^2], [s^13, s^13+O(s^15), s^8 + O(s^15)]])
+            sage: M
+            [              13          O(s^19) 9*s^15 + O(s^20)]
+            [               4          O(s^-7)          3 + s^2]
+            [            s^13   s^13 + O(s^15)    s^8 + O(s^15)]
+            sage: M._search_in_row(1, only_first_in_col=True,
+            ....: only_first_in_row=True, start_up=True, start_left=True,
+            ....: chosen_valuations=[None]*M.nrows())
+            (None, None)
+
+        The same matrix, this time with: ``r``== 2, and using
+        ``chosen_valuations`` to indicate that row 1 has already been chosen
+        and therefore should be ignored::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, [[13, O(s^19), 9*s^15 + O(s^20)], [4,
+            ....: O(s^-7), 3 + s^2], [s^13, s^13+O(s^15), s^8 + O(s^15)]])
+            sage: M
+            [              13          O(s^19) 9*s^15 + O(s^20)]
+            [               4          O(s^-7)          3 + s^2]
+            [            s^13   s^13 + O(s^15)    s^8 + O(s^15)]
+            sage: M._search_in_row(2, only_first_in_col=False,
+            ....: only_first_in_row=False, start_up=True, start_left=True,
+            ....: chosen_valuations=[None, 0, None])
+            (2, 8)
+            
+
+        .. NOTE::
+
+            This is a helper method for :meth:`choose_min_valuation_element`.
+            It can only be used by matrices over rings that have a
+            `valuation` method.
+
+        .. WARNING::
+
+            In this method, elements that are undistinguishable from zero
+            (such as O(3^2) in Qp(3)) are considered to have infinity
+            valuation, regardless of the valuation that's given to them by
+            the `valuation` method.
+            For example, O(3^2).valuation()==2, but in this function it is
+            considered to have infinity valuation.
+
+        """
+        min_val, cols_with_min_val =  self.min_valuation_in_row(r)
+
+        # Get values: (start, stop, jump) for iteration with range. The
+        # returned values depend on the size of the list and on whether we want to
+        # iterate on the elements forward or backward.
+        def order_for_range(forward, size_of_list):
+            return (0, size_of_list, 1) if forward else (size_of_list - 1, -1, -1)
+        start, stop, jump = order_for_range(start_left, len(cols_with_min_val))
+
+        # Check the relevant columns in the row.
+        if only_first_in_row:
+            first_col = cols_with_min_val[start]
+            if self._check_coordinates(r, first_col, only_first_in_col, start_up,
+                                    chosen_valuations):
+                return (first_col, min_val)
+        else:        # We should check all possible columns.
+            for j in range(start, stop, jump):
+                c = cols_with_min_val[j]
+                if self._check_coordinates(r, c, only_first_in_col, start_up,
+                                        chosen_valuations):
+                    return (c, min_val)
+        # No appropriate column was found.
+        return (None, None)
+
+    def choose_min_valuation_element(self, only_first_in_col, only_first_in_row,
+                                start_up=True, start_left=True,
+                                chosen_valuations=None):
+        """
+        Choose element with minimal valuation compared to its row and column.
+
+        In this method, elements that are undistinguishable from zero
+        are considered to have infinity valuation (see WARNING).
+
+        Note that:
+        A. In case the ``chosen_valuations`` argument is
+           used, the element is not checked against elements from rows
+           that have been previously "chosen" according to this
+           argument.
+        B. The method potentially chooses only an element which is
+           the first (top/bottom) in its column, or the first (right/left)
+           in its row, to have that (minimal) valuation.
+
+        INPUT:
+
+        - ``only_first_in_col`` -- boolean; whether to return only an
+          element which is the first in its column to have that (minimal)
+          valuation.
+          The meaning of 'first' is determined by the direction of the
+          search (see ``start_up`` argument)
+
+        - ``only_first_in_row`` -- boolean; whether to return only an
+          element which is the first in its row to have that (minimal)
+          valuation.
+          The meaning of 'first' is determined by the direction of the
+          search (see ``start_left`` argument)
+
+        - ``start_up`` -- boolean (default: `True`); Whether to go over the
+          lines from top to bottom or in the opposite direction,
+          while searching for the desired element
+
+        - ``start_left`` -- boolean (default: `True`); Whether to go over
+          the columns from left to right or in the opposite direction,
+          while searching each row for the desired element
+
+        - ``chosen_valuations`` -- list (default: `None`). This argument can
+          be useful in case the method is called iteratively:
+          The number of entries in ``chosen_valuations`` should be the
+          number of rows in the matrix, and each entry contains `None` in
+          case no element has been previously chosen in this row, and the
+          valuation of the chosen element, if one has been chosen. The
+          method updates the ``chosen_valuations`` list before returning a
+          chosen element, so that the entry that corresponds to its row
+          will contain the valuation of the chosen element.
+          Note that the method doesn't choose an element from a row that has
+          already been chosen (the status of the row as unchosen/chosen is
+          reflected by its entry in ``chosen_valuations`` being `None` or
+          not), and the valuation of elements is not compared against
+          elements in rows that have already been chosen. So, the returned
+          element is garaunteed to have minimal valuation in comparison with
+          its row and the part of its column that is not made up from rows
+          that have previousy been chosen
+
+        OUTPUT:
+
+        A tuple containing the (row, column) of an element that was found
+        to have minimal valuation compared to its row and column.
+
+        The only case in which the method doesn't find an element, and so
+        returns (`None`, `None`), is when the ``chosen_valuations`` argument
+        is used, and contains no `None` entries. This reflects that all
+        the rows in the matrix have already been chosen.
+
+        EXAMPLES:
+
+        An example with:
+        ``only_first_in_row``==`True`, ``start_left``==`False`::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y, 4, [[3, a^6, O(a^-3), 2],[a, a^-9+O(a),
+            ....: a^2,0], [2+a^7, 1+O(a), a^5,a^7],[1, 0, 4*a,a^-3]])
+            sage: M
+            [      3 + O(a^40)     a^6 + O(a^46)           O(a^-3)       2 + O(a^40)]
+            [      a + O(a^41)       a^-9 + O(a)     a^2 + O(a^42)                 0]
+            [2 + a^7 + O(a^40)          1 + O(a)     a^5 + O(a^45)     a^7 + O(a^47)]
+            [      1 + O(a^40)                 0     4*a + O(a^41)    a^-3 + O(a^37)]
+            sage: r,c = M.choose_min_valuation_element(only_first_in_col=False,
+            ....: only_first_in_row=True, start_left=False)
+            sage: r,c
+            (1, 1)
+
+        The same matrix, with:
+        ``only_first_in_row``==`False`, ``start_left``==`False`::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y, 4, [[3, a^6, O(a^-3), 2],[a, a^-9+O(a),
+            ....: a^2,0], [2+a^7, 1+O(a), a^5,a^7],[1, 0, 4*a,a^-3]])
+            sage: r,c = M.choose_min_valuation_element(only_first_in_col=False,
+            ....: only_first_in_row=False, start_left=False)
+            sage: r,c
+            (0, 0)
+
+        The same matrix, with:
+        ``only_first_in_row``==`True`, ``start_left``==`True`::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y, 4, [[3, a^6, O(a^-3), 2],[a, a^-9+O(a),
+            ....: a^2,0], [2+a^7, 1+O(a), a^5,a^7],[1, 0, 4*a,a^-3]])
+            sage: r,c = M.choose_min_valuation_element(only_first_in_col=False,
+            ....: only_first_in_row=True, start_left=True)
+            sage: r,c
+            (0, 0)
+
+        An iterative example, using ``chosen_valuations``::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, [[13*s^2, O(s^19), 9*s^15 + 6*s^17 + O(s^20)],
+            ....: [4, O(s^-7), 3 + s^2], [s^-3, s^-3+O(s^-2), s^-8 + O(s^5)]])
+            sage: M
+            [                   13*s^2                   O(s^19) 9*s^15 + 6*s^17 + O(s^20)]
+            [                        4                   O(s^-7)                   3 + s^2]
+            [                     s^-3            s^-3 + O(s^-2)             s^-8 + O(s^5)]
+            sage: chosen_valuations = [None]*M.nrows()
+            sage: M.choose_min_valuation_element(False, False,
+            ....: chosen_valuations=chosen_valuations)
+            (2, 2)
+            sage: # An element from row 2 was chosen, so from now on, we won't
+            ....: choose an element from that row again, and we won't compare the
+            ....: elements to the elements in that row (otherwise we wouldn't be
+            ....: able to choose any more minimal-valuation elements, because the
+            ....: elements in row 2 have the smallest valuations...).
+            ....: We keep track of the chosen rows through the
+            ....: ``chosen_valuations`` variable, which is updated by the
+            ....: `choose_min_valuation_element` method.
+            sage: chosen_valuations
+            [None, None, -8]
+            sage: M.choose_min_valuation_element(False, False,
+            ....: chosen_valuations=chosen_valuations)
+            (1, 0)
+            sage: chosen_valuations
+            [None, 0, -8]
+            sage: M.choose_min_valuation_element(False, False,
+            ....: chosen_valuations=chosen_valuations)
+            (0, 0)
+            sage: chosen_valuations
+            [2, 0, -8]
+            sage: # We can't choose any more elements, because all the rows have
+            ....: already been chosen:
+            sage: M.choose_min_valuation_element(False, False,
+            ....: chosen_valuations=chosen_valuations)
+            (None, None)
+            
+
+        .. NOTE::
+
+            This method can only be used by matrices over rings that have
+            a `valuation` method.
+
+        .. WARNING::
+
+            In this method, elements that are undistinguishable from zero
+            (such as O(3^2) in Qp(3)) are considered to have infinity
+            valuation, regardless of the valuation that's given to them by
+            the `valuation` method.
+            For example, O(3^2).valuation()==2, but in this function it is
+            considered to have infinity valuation.
+
+        .. SEEALSO::
+
+            :meth:`min_valuation_in_row`.
+
+        TESTS:
+
+        The method raises TypeError in case the base ring has no valuation
+        method::
+
+            sage: M = matrix(QQ, 3, [[0, 1, -1], [2, 0, 1/2], [1, 0, 1/2]])
+            sage: M.choose_min_valuation_element(False, False)
+            Traceback (most recent call last):
+            ...
+            TypeError: ``self`` must have a base ring F with an
+            implemented ``valuation`` method. In particular,
+            F(0).valuation() must be defined.
+
+        A zero matrix::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, 3, 3, 0)
+            sage: M
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: M.choose_min_valuation_element(False, False,
+            ....: start_up=False, start_left=False)
+            (2, 2)
+        """
+        try:
+            self.base_ring()(0).valuation()
+        except:
+            raise TypeError("``self`` must have a base ring F with an \
+                implemented ``valuation`` method. In particular, \
+                F(0).valuation() must be defined.")
+
+        # In case ``chosen_valuations`` == ``None``, we treat it as though no
+        # elements were chosen before.
+        if chosen_valuations is None:
+            chosen_valuations = [None] * self.nrows()
+
+        # Get values: (start, stop, jump) for range-iteration. The returned
+        # values depend on the size of the list and on whether we want to iterate
+        # on the elements forward or backward.
+        def order_for_range(forward, size_of_list):
+            return (0, size_of_list, 1) if forward else (size_of_list - 1, -1, -1)
+        start, stop, jump = order_for_range(start_up, self.nrows())
+
+        # In case row ``r`` wasn't yet chosen, we search it for an element with
+        # minimal valuation as described above.
+        for r in range(start, stop, jump):
+            if chosen_valuations[r] is None:
+                c, val = self._search_in_row(r, only_first_in_col, only_first_in_row,
+                                            start_up, start_left, chosen_valuations)
+                if c is not None:
+                    chosen_valuations[r] = val
+                    return (r, c)
+        # Not finding any element only happens when all the rows in the matrix
+        # have already been chosen (i.e, ``chosen_valuations`` has no ``None``
+        # entries).
+        return (None, None)
+
+    @staticmethod
+    def _cartan_rearrange_rows(chosen_valuations):
+        """
+        Sort rows in ascending order by their minimal valuations.
+
+        The method returns a list with the new row order, and a
+        function that defines a matrix which switches between the rows.
+        This is a helper function for :meth:`cartan` decomposition method.    
+
+        INPUT:
+
+        - ``chosen_valuations`` -- list. This list has an entry for
+          each row in the matrix, that contains the minimal valuation
+          of elements in that row. This is the parameter by which
+          the rows are to be rearranged
+
+        OUTPUT:
+
+        The method returns a tuple:
+        - ``new_row_order``, a list of tuples, that reflects the new order
+          of the rows in the following way:
+          if ``new_row_order``[i] = (j,k), it means that the j-th row (with
+          minimal valuation k) should become the i-th row.
+        - A function that can be used to define a permutation matrix
+          that switches between the rows of the original matrix, to
+          achieve the new row order.
+        
+
+        EXAMPLES:
+
+        An example for rearranging the rows of a padic matrix::
+            
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 +
+            ....: O(a^39),(0,2):4*a^-2 + 3*a^-1 + a^26 + O(a^32)})
+            sage: K1, D, K2 = M.cartan() # indirect doctest
+            sage: D  # The rows are ordered ascendingly by their minimal valuations.
+            [a^-16 + O(a^24)               0               0]
+            [              0  a^-1 + O(a^39)               0]
+            [              0               0   a^7 + O(a^47)]
+
+        """
+        from operator import itemgetter
+
+        # Sort rows in ascending order by their minimal valuation.
+        rows_with_valuation = [(j, chosen_valuations[j])
+                            for j in range(len(chosen_valuations))]
+        new_row_order = sorted(rows_with_valuation, key=itemgetter(1))
+
+        def g(i,j):
+            if j == new_row_order[i][0]:        # The ``j``-th row should become
+                                                # the ``i``-th row.
+                return 1
+            return 0
+
+        return new_row_order, g
+
+    def _cartan_break_matrix(self, chosen_valuations, chosen_cols):
+        """
+        Helper for :meth:`cartan` decomposition method.
+
+        This method decomposes ``self`` into a diagonal matrix with
+        ascending powers of the uniformizer on the diagonal, and a
+        matrix that's invertible over the integer ring.
+        This method can only be applied to specific matrices, in the
+        process of the Cartan decomposition.
+
+        INPUT:
+
+        - ``chosen_valuations`` -- list of integers. This list has an
+          entry for each row in the matrix, that contains the minimal
+          valuation of elements in that row
+
+        - ``chosen_cols`` -- list of integers. This list has an
+          entry for each row in the matrix, that contains a column of a
+          chosen element in that row (has been chosen by 
+          :meth:`choose_min_valuation_element`)
+
+        OUTPUT:
+
+        Matrices ``D``,``K2`` such that  ``self``=``D``*``K2``,
+        ``D`` is diagonal with ascending powers of the uniformizer on
+        diagonal (including zeros), and ``K2`` is invertible over the
+        integer-ring.
+
+        EXAMPLES:
+
+        An example for a Cartan decomposition::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 +
+            ....: O(a^39),(0,2):4*a^-2 + 3*a^-1 + a^26 + O(a^32)})
+            sage: K1, D, K2 = M.cartan() # indirect doctest
+            sage: M - K1*D*K2 == 0
+            True
+            sage: D
+            [a^-16 + O(a^24)               0               0]
+            [              0  a^-1 + O(a^39)               0]
+            [              0               0   a^7 + O(a^47)]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: K1 # doctest: +SKIP
+            [1 + O(a^40)           0           0]
+            [          0           0 1 + O(a^40)]
+            [          0 1 + O(a^40)           0]
+            sage: K2 # doctest: +SKIP
+            [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
+            [                               0                                0             3 + 4*a^18 + O(a^40)]
+            [                               0             2 + 4*a^20 + O(a^33)                                0]
+            sage: # Showing that K1 is invertible over the integer-ring:
+            sage: min([x.valuation() for x in K1.list() if x!=0])
+            0
+            sage: K1.determinant().valuation() == 0
+            True
+            sage: # Showing that K2 is invertible over the integer-ring:
+            sage: min([x.valuation() for x in K2.list() if x!=0])
+            0
+            sage: K2.determinant().valuation() == 0
+            True
+
+        """
+        from sage.rings.padics.padic_generic import pAdicGeneric
+        from sage.matrix.constructor import diagonal_matrix, identity_matrix
+        from sage.rings.infinity import Infinity
+
+        F = self.base_ring()
+        n = self.ncols()
+        # Defining a function that determines whether an element is zero. 
+        # Implemented differently for relaxed p-adics, to avoid exceptions.
+        relaxed = (False if not isinstance(F, pAdicGeneric) else F.is_relaxed())
+        def eq_zero(elem): return (elem.is_equal_to(0, secure=False) if 
+                                   relaxed else elem == 0)
+
+        # Creating ``D`` as the diagonal matrix (with ascending powers of the
+        # uniformizer on diagonal), that can be multiplied with a matrix that's
+        # invertible over the integer-ring, to get ``self``.
+        def pow_of_uniformizer(F, power):
+            return (F.uniformizer_pow(power) if isinstance(F, pAdicGeneric)
+                    else (F(0) if power == +Infinity else F([1], power)))
+        D = diagonal_matrix(F, [pow_of_uniformizer(F, chosen_valuations[i])
+                                for i in range(n)], sparse=1)
+
+        # Creating ``K2`` using an "inverse" of ``D`` (in case ``D`` is
+        # invertible, it is a true inverse).
+        last_non_zero = +Infinity
+        for i in range(n-1, -1, -1):
+            if not eq_zero(D[i,i]):
+                last_non_zero = i
+                break
+        if last_non_zero == +Infinity:        # ``D`` is a zero-matrix.
+            return D, identity_matrix(F, n)
+        D_semiinverse = diagonal_matrix(F, [0 if (i > last_non_zero)
+                                            else (1 / D[i,i]) for i in range(n)],
+                                        sparse=1)
+        K2 = D_semiinverse * self
+
+        # In case ``D`` is singular, ``K2`` is "almost" invertible over the
+        # integer-ring, but its lowest rows are zero-rows.
+        # To make ``K2`` invertible over the integer-ring, it is essential to have
+        # a generalized diagonal with elements of zero valuation. So we find
+        # columns that have elements with zero-valuation (in the non-zero rows),
+        # and use the rest of the columns and the zero rows (the lowest in the
+        # matrix) to complete the generalized diagonal with 1's.
+        cols_with_zero_valuation_element = [chosen_cols[i]
+                                            for i in range(0, last_non_zero + 1)]
+        other_cols = [i for i in range(n)
+                    if i not in cols_with_zero_valuation_element]
+        for i in range(len(other_cols)):
+            K2[n-1-i, other_cols[i]] = 1
+
+        return D, K2
+
+    def _cartan_helper(self):
+        """
+        Helper for the :meth:`cartan` decomposition method.
+
+        This method returns ``K1``,``D``,``K2`` such that
+        ``K1``^-1,``D``,``K2`` are a Cartan decomposition of ``self``.
+
+        OUTPUT:
+
+        Matrices ``K1``,``D``,``K2`` such that
+        ``K1``*``self``=``D``*``K2``, both ``K1``,``K2`` are invertible
+        over the integer-ring, and ``D`` is diagonal with ascending powers
+        of the uniformizer on diagonal (including zeros).
+        See :meth:`cartan` documentation for more details.
+
+        EXAMPLES:
+
+        An example for a Cartan decomposition::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 +
+            ....: O(a^39),(0,2):4*a^-2 + 3*a^-1 + a^26 + O(a^32)})
+            sage: K1, D, K2 = M.cartan() # indirect doctest
+            sage: M - K1*D*K2 == 0
+            True
+            sage: D
+            [a^-16 + O(a^24)               0               0]
+            [              0  a^-1 + O(a^39)               0]
+            [              0               0   a^7 + O(a^47)]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: K1 # doctest: +SKIP
+            [1 + O(a^40)           0           0]
+            [          0           0 1 + O(a^40)]
+            [          0 1 + O(a^40)           0]
+            sage: K2 # doctest: +SKIP
+            [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
+            [                               0                                0             3 + 4*a^18 + O(a^40)]
+            [                               0             2 + 4*a^20 + O(a^33)                                0]
+            sage: # Showing that K1 is invertible over the integer-ring:
+            sage: min([x.valuation() for x in K1.list() if x!=0])
+            0
+            sage: K1.determinant().valuation() == 0
+            True
+            sage: # Showing that K2 is invertible over the integer-ring:
+            sage: min([x.valuation() for x in K2.list() if x!=0])
+            0
+            sage: K2.determinant().valuation() == 0
+            True
+            
+
+        .. NOTE::
+
+            As a helper for :meth:`cartan`, this method assumes that
+            ``self`` is a square (non-empty) matrix over a
+            non-archimedean local field.
+
+        .. WARNING::
+
+            This method makes changes to ``self``.
+
+        """
+        from sage.matrix.constructor import matrix, identity_matrix
+        from sage.rings.padics.padic_generic import pAdicGeneric
+        
+        n = self.nrows()
+        chosen_valuations = [None] * n
+        chosen_cols = [None] * n
+
+        # Defining a function that determines whether an element is zero. 
+        # Implemented differently for relaxed p-adics, to avoid exceptions.        
+        relaxed = (False if not isinstance(self.base_ring(), pAdicGeneric) else 
+                   self.base_ring().is_relaxed())
+        def eq_zero(elem): return (elem.is_equal_to(0, secure=False) if relaxed 
+                                   else elem == 0)
+
+        # Creating ``K1``, ``E``, such that ``K1``*``self``=``E``, ``K1`` is
+        # invertible over the integer-ring and ``E`` can later be decomposed into
+        # ``D``*``K2`` (``D`` being diagonal with ascending powers of the
+        # uniformizer on diagonal, and ``K2`` being invertible over the
+        # integer-ring).
+        K1 = identity_matrix(self.base_ring(), n)
+        E = self
+        # In each loop - choose element with minimal valuation in its row and
+        # column (neglecting comparison to elements in rows that have already been
+        # chosen). Then, use this element to nullify the other elements in its
+        # column that do not belong to rows that have already been chosen.
+        # In the end of this process, ``E`` is invertible over the integer-ring up
+        # to multiplication in a diagonal matrix, and can be then decomposed into
+        # ``D``, ``K2``.
+        for i in range(n):
+            r, c = E.choose_min_valuation_element(False, False,
+                                            chosen_valuations=chosen_valuations)
+            chosen_cols[r] = c
+            if not eq_zero(E[r,c]):
+                f = E._matrix_func_that_nullifies_part_of_col(
+                        r, c, list(filter(lambda i: chosen_valuations[i] is not
+                                        None, range(n))))
+                R = matrix(self.base_ring(), n, lambda i, j: f(i, j), sparse=1)
+                E = R * E
+                K1 = R * K1
+
+        # Rearranging rows by minimal valuation (in ascending order), and updating
+        # lists.
+        new_order, g = Matrix._cartan_rearrange_rows(chosen_valuations)
+        R = matrix(self.base_ring(), n, lambda i, j: g(i, j), sparse=1)
+        K1 = R * K1
+        E = R * E
+        new_chosen_valuations = list(map(lambda t: t[1], new_order))
+        new_chosen_cols = list(map(lambda i: chosen_cols[new_order[i][0]],
+                                range(n)))
+
+        # Decomposing ``E`` into ``D``,``K2`` such that ``E``=``D``*``K2``, ``D``
+        # is diagonal and ``K2`` is invertible over the integer ring.
+        D, K2 =  E._cartan_break_matrix(new_chosen_valuations, new_chosen_cols)
+
+        return K1, D, K2
+
+    def cartan(self, certificate=False):
+        """
+        Return Cartan decomposition of the matrix.
+
+        This method works only for a square matrix over a non-archimedean
+        local field.
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: `False`); If set to `True`,
+          the method returns an additional value, which is an indication
+          to whether or not the returned matrices that should be
+          invertible are indeed so. These matrices can potentially become
+          singular due to numerical inaccuracy
+
+        OUTPUT: a Cartan decomposition of the matrix.
+
+        If ``certificate`` == `False`, this method returns three matrices:
+        ``K1``,``D``,``K2``, such that ``self``==``K1``*``D``*``K2`` (up to
+        numerical inaccuracies), both ``K1``,``K2`` are invertible over the
+        integer-ring of the field, and ``D`` is diagonal such that its
+        diagonal-elements are ascending powers of the uniformizer
+        (or zeros, which are considered as infinity powers).
+        Note that ``D`` is invertible iff ``self`` is invertible.
+        Note also that ``D`` is unique: every Cartan decomposition of
+        ``self``, contains the same ``D`` matrix.
+        If ``certificate`` == `True`, the method returns a third element,
+        which is a boolean that indicates whether or not the returned
+        matrices that should be invertible (``K1``,``K2``, and in case
+        ``self`` is invertible, also ``D``) are indeed so. These matrices
+        can potentially be singular due to numerical inaccuracy.
+
+        ALGORITHM:
+
+        A Cartan decomposition is achieved by using elementary
+        invertible-over-the-integer-ring matrices, to induce some elementary
+        row-operations on the original matrix.
+        Denote the resulting matrix by ``E`` and the inverse of the
+        multiplied elementary matrices by ``K1``.
+        ``E`` is such that it can now be decomposed into matrices
+        ``D``,``K2`` with ``D`` a diagonal matrix with ascending powers of
+        the uniformizer on diagonal, and ``K2`` an
+        invertible-over-the-integer-ring matrix.
+        ``K1``,``D``,``K2` represent a Cartan decomposition of ``self``.
+
+        EXAMPLES:
+
+        An example with an invertible matrix over a padic-field::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 +
+            ....: O(a^39),(0,2):4*a^-2 + 3*a^-1 + a^26 + O(a^32)})
+            sage: K1, D, K2 = M.cartan()
+            sage: M - K1*D*K2 == 0
+            True
+            sage: D
+            [a^-16 + O(a^24)               0               0]
+            [              0  a^-1 + O(a^39)               0]
+            [              0               0   a^7 + O(a^47)]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: K1 # doctest: +SKIP
+            [1 + O(a^40)           0           0]
+            [          0           0 1 + O(a^40)]
+            [          0 1 + O(a^40)           0]
+            sage: K2 # doctest: +SKIP
+            [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
+            [                               0                                0             3 + 4*a^18 + O(a^40)]
+            [                               0             2 + 4*a^20 + O(a^33)                                0]
+            sage: # Showing that K1 is invertible over the integer-ring:
+            sage: min([x.valuation() for x in K1.list() if x!=0])
+            0
+            sage: K1.determinant().valuation() == 0
+            True
+            sage: # Showing that K2 is invertible over the integer-ring:
+            sage: min([x.valuation() for x in K2.list() if x!=0])
+            0
+            sage: K2.determinant().valuation() == 0
+            True
+
+        An example with an invertible matrix over a laurent-series ring::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, [[13*s^2 + s^17 + O(s^20), O(s^19), 9*s^15 +
+            ....: 6*s^17 + O(s^20)], [O(s^23), 10*s^-7 + 8*s^11 + O(s^13),
+            ....: 9*s^20 + 16*s^23 + O(s^24)], [10*s + 16*s^20 + O(s^21),
+            ....: 15*s^-1 + 15*s^18 + O(s^19),  14*s^18 + 7*s^19 + 8*s^20 +
+            ....: O(s^21)]])
+            sage: K1, D, K2 = M.cartan()
+            sage: M - K1*D*K2 == 0
+            True
+            sage: D
+            [s^-7    0    0]
+            [   0    s    0]
+            [   0    0 s^15]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: K1 # doctest: +SKIP
+            [                            O(s^25)             3*s + 12*s^16 + O(s^19)                                   1]
+            [                                  1                                   0                                   0]
+            [10*s^6 + 9*s^24 + 10*s^25 + O(s^26)                                   1                                   0]
+            sage: K2 # doctest: +SKIP
+            [                            O(s^30)               10 + 8*s^18 + O(s^20)          9*s^27 + 16*s^30 + O(s^31)]
+            [             10 + 16*s^19 + O(s^20)                             O(s^18) 14*s^17 + 7*s^18 + 8*s^19 + O(s^20)]
+            [                             O(s^5)                              O(s^4)          9 + 6*s^2 + 9*s^4 + O(s^5)]
+            sage: # Showing that K1 is invertible over the integer-ring:
+            sage: min([x.valuation() for x in K1.list() if x!=0])
+            0
+            sage: K1.determinant().valuation() == 0
+            True
+            sage: # Showing that K2 is invertible over the integer-ring:
+            sage: min([x.valuation() for x in K2.list() if x!=0])
+            0
+            sage: K2.determinant().valuation() == 0
+            True
+
+        An example with a singular matrix over a padic-field::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0): 1 + O(a^24), (1,1):1 + O(a^40),
+            ....: (2,1): 1 + O(a^40)})
+            sage: K1, D, K2 = M.cartan()
+            sage: M - K1*D*K2 == 0
+            True
+            sage: D   # D isn't invertible (because M isn't):
+            [1 + O(a^40)           0           0]
+            [          0 1 + O(a^40)           0]
+            [          0           0           0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: K1 # doctest: +SKIP
+            [1 + O(a^40)           0           0]
+            [          0 1 + O(a^40)           0]
+            [          0 1 + O(a^40) 1 + O(a^40)]
+            sage: K2 # doctest: +SKIP
+            [1 + O(a^24)           0           0]
+            [          0 1 + O(a^40)           0]
+            [          0           0 1 + O(a^40)]
+
+        This example illustrates that sometimes, the returned matrices are
+        wrong (in our case: K2 isn't invertible over the integer-ring)
+        due to numerical inaccuracies,
+        and demonstrates the use of the ``certificate`` keyword::
+
+            sage: Z = Qp(5, 3)
+            sage: M = matrix(Z,3,[[3*5^2 + 3*5^3 + O(5^5), O(5^-3),
+            ....: 2*5^-1 + 3*5 + O(5^2)], [5^15 + 5^16 + O(5^18), 2*5 +
+            ....: 2*5^2 + 3*5^3 + O(5^4), 5^2 + 4*5^3 + O(5^5)], [4 + 4*5 +
+            ....: 3*5^2 + O(5^3),  4*5^7 + 5^8 + 4*5^9 + O(5^10), 5^-4 + 5^-3
+            ....: + 4*5^-2 + O(5^-1)]])
+            sage: K1,D,K2,c = M.cartan(certificate=True)
+            sage: c
+            False
+            sage: # K2 is not invertible over the integer-ring:
+            sage: K2.determinant().valuation() == 0
+            False
+
+        This example shows that sometimes ``self``!=``K1``*``D``*``K2`, due
+        to numerical inaccuracies::
+
+            sage: Z = Qp(5, 3)
+            sage: M = matrix(Z,3,[[3*5^-1 + 3 + 5 + O(5^2), 3*5^-2 + 2*5^-1
+            ....: + 4 + O(5), 5^-1 + O(5^2)], [4*5^-1 + 4 + 3*5 + O(5^2),
+            ....: 4*5^-5 + 3*5^-4 + 2*5^-3 + O(5^-2), 3 + 4*5^2 + O(5^3)],
+            ....: [4 + O(5), 3 + 3*5 + 3*5^2 + O(5^3), 2 + O(5^3)]])
+            sage: K1,D,K2 = M.cartan()
+            sage: M - K1*D*K2
+            [          O(5^2)             O(5)           O(5^2)]
+            [          O(5^2)          O(5^-2)           O(5^3)]
+            [            O(5) 3 + 3*5 + O(5^2)             O(5)]
+
+        .. NOTE::
+
+            This method works only for a square (non-empty) matrix over a
+            non-archimedean local field, or a ring with such a fraction
+            field.
+            Currently, the fields for which the method is implemented are:
+            Padic base-fields / one-step eisenstein or unramified
+            extensions / 2-step extensions (unramified followed by
+            eisenstein),
+            and Laurent-series rings over finite fields.
+
+        .. WARNING::
+
+            Due to numerical inaccuracies, it may happen that
+            ``self``!=``K1``*``D``*``K2``, and it may also happen that some
+            of the returned matrices which are supposed to be invertible,
+            are not so, or vice versa (the opposite direction is only
+            relevant in case the original matrix is singular, and then ``D``
+            should be singular too).
+            The ``certificate`` keyword can be used to get indication for
+            that.
+
+        .. SEEALSO::
+
+            :meth:`iwasawa`, :meth:`bruhat-iwahori`, :meth:`TSB`, :meth:`bruhat`.
+
+        TESTS:
+
+        The method raises TypeError in case ``self`` is over a ring for
+        which the method doesn't work::
+
+            sage: M = random_matrix(QQ,3)
+            sage: M.cartan()
+            Traceback (most recent call last):
+            ...
+            TypeError: ``self`` must be defined over one of the following
+            non-archimedean local fields: Laurent-Series-Rings over finite fields,
+            or padic fields of the following types: base, 1-step unramified or
+            eisenstein extension, or 2-step unramified followed by
+            eisenstein extension.
+
+        A zero matrix test::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S,3,3,0)
+            sage: K1,D,K2 = M.cartan()
+            sage: D
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: K1 # doctest: +SKIP
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: K2 # doctest: +SKIP
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        A = self.matrix_over_field()
+
+        # Check that the matrix is legal for this decomposition
+        if (A.ncols() == 0) or (not A.is_square()):
+            raise TypeError("``self`` must be a non-empty square matrix.")
+        if not A._is_over_non_archimedean_local_field():
+            raise TypeError("``self`` must be defined over one of the following \
+                non-archimedean local fields: \
+                Laurent-Series-Rings over finite fields, or padic fields of the \
+                following types: base, 1-step unramified or eisenstein extension, \
+                or 2-step unramified followed by eisenstein extension.")
+
+        # Get ``K1``, ``D``, ``K2``, such that ``K1``*``self`` = ``D``*``K2``,
+        # both ``K1``,``K2`` are invertible over the integer-ring, and ``D`` is
+        # diagonal with ascending powers of the uniformizer on diagonal.
+        # ``K1``.inverse(), ``D``, ``K2``, are a Cartan decomposition of ``self``.
+        K1, D, K2 = A._cartan_helper()
+
+        try:
+            K1 = K1.inverse()
+        except (ZeroDivisionError, NotImplementedError) as e:
+            if (isinstance(e, NotImplementedError)
+                and "Echelon form not implemented" not in str(e)):
+                raise e
+                raise ArithmeticError("Computation failed, due to singularity of \
+                    an inner matrix that was expected to be invertible.\n This is \
+                    probably due to numerical inaccuracy.")
+
+        if certificate:
+            output_is_as_expected = A._check_invertibility([K1, K2], [D])
+            return K1, D, K2, output_is_as_expected
+
+        return K1, D, K2
+    
+    def _bruhat_iwahori_break_matrix(self, chosen_valuations, chosen_cols):
+        """
+        Helper for the :meth:`bruhat_iwahori` decomposition method.
+
+        This method decomposes ``self`` into an Affine-Weyl matrix, and
+        an Iwahori matrix.
+        This method can only be applied to specific matrices, in the
+        process of the Bruhat-Iwahori decomposition.
+
+        INPUT:
+
+        - ``chosen_valuations`` -- list of integers. This list has an
+          entry for each row in the matrix, that contains the minimal
+          valuation of elements in that row
+
+        - ``chosen_cols`` -- list of integers. This list has an
+          entry for each row in the matrix, that contains a column of a
+          chosen element in this row (has been chosen by 
+          :meth:`choose_min_valuation_element`)
+
+        OUTPUT:
+
+        Matrices ``W``,``B2`` such that  ``self``=``W``*``B2``,
+        ``W`` is an Affine-Weyl matrix (possibly some of its rows/columns
+        are all zeros), and ``B2`` is an Iwahori matrix.
+
+        EXAMPLES:
+
+        An example for a Bruhat-Iwahori decomposition::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 +
+            ....: O(a^39),(0,2):4*a^-2 + 3*a^-1 + a^26 + O(a^32)})
+            sage: B1, W, B2 = M.bruhat_iwahori() # indirect doctest
+            sage: M - B1*W*B2 == 0
+            True
+            sage: # Because M is invertible - W is also invertible:
+            sage: W
+            [a^-16 + O(a^24)               0               0]
+            [              0   a^7 + O(a^47)               0]
+            [              0               0  a^-1 + O(a^39)]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: B1 # doctest: +SKIP
+            [1 + O(a^40)           0           0]
+            [          0 1 + O(a^40)           0]
+            [          0           0 1 + O(a^40)]
+            sage: B2 # doctest: +SKIP
+            [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
+            [                               0             2 + 4*a^20 + O(a^33)                                0]
+            [                               0                                0             3 + 4*a^18 + O(a^40)]
+            sage: # Showing that B1 is Iwahori:
+            sage: # B1 has only integer elements:
+            sage: min([x.valuation() for x in B1.list() if x!=0])
+            0
+            sage: # B1 has zero-valuation elements on diagonal:
+            sage: [i for i in range(3) if B1[i,i].valuation()!=0]
+            []
+            sage: # The elements below diagonal in B1 have strictly-positive
+            ....: valuations:
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (B1[i,j]!= 0 and B1[i,j].valuation() <= 0 and j<i)]
+            []
+            sage: # Showing that B2 is Iwahori:
+            sage: # B2 has only integer elements:
+            sage: min([x.valuation() for x in B2.list() if x!=0])
+            0
+            sage: # B2 has zero-valuation elements on diagonal:
+            sage: [i for i in range(3) if B2[i,i].valuation()!=0]
+            []
+            sage: # The elements below diagonal in B2 have strictly-positive
+            ....: valuations:
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (B2[i,j]!= 0 and B2[i,j].valuation() <= 0 and j<i)]
+            []
+
+        """
+        from sage.rings.padics.padic_generic import pAdicGeneric
+        from sage.matrix.constructor import matrix
+        from sage.rings.infinity import Infinity
+
+        F = self.base_ring()
+        n = self.ncols()
+
+        # Creating ``W`` as the Affine-Weyl matrix that can be multiplied with an
+        # Iwahori matrix to get ``self``.
+        def pow_of_uniformizer(F, power):
+            return (F.uniformizer_pow(power) if isinstance(F, pAdicGeneric)
+                    else (F(0) if power == +Infinity else F([1], power)))
+        def f(i,j):
+            if chosen_cols[i] == j:
+                return pow_of_uniformizer(F, chosen_valuations[i])
+            return 0
+        W = matrix(F, n, lambda i, j: f(i, j), sparse=1)
+
+        # Creating ``B2`` using an "inverse" of ``W`` (in case ``W`` is
+        # invertible, it is a true inverse).
+        def g(i,j):
+            if chosen_cols[j] == i:
+                if chosen_valuations[j] == +Infinity:
+                    return 0
+                return pow_of_uniformizer(F, -chosen_valuations[j])
+            return 0
+        W_semiinverse = matrix(F, n, lambda i, j: g(i, j), sparse=1)
+        B2 = W_semiinverse * self
+
+        # In case ``W`` is singular, ``B2`` is "almost" Iwahori, but some rows are
+        # zero-rows. So the only thing left is to put 1's on the diagonal of the
+        # zero-rows.
+        # To identify these rows, note that they have the indexes of the columns
+        # that have not been assigned to rows with finite chosen valuations.
+        rows_with_finite_chosen_valuation = list(
+                filter(lambda i: chosen_valuations[i] != +Infinity, range(n)))
+        cols_chosen_for_rows_with_finite_chosen_valuation = list(
+                map(lambda i: chosen_cols[i], rows_with_finite_chosen_valuation))
+        for c in range(n):
+            if c not in cols_chosen_for_rows_with_finite_chosen_valuation:
+                B2[c, c] = 1
+
+        return W, B2
+
+    def _bruhat_iwahori_helper(self):
+        """
+        Helper for the :meth:`bruhat_iwahori` decomposition method.
+
+        This method returns ``B1``,``W``,``B2`` such that
+        ``B1``^-1,``W``,``B2`` are a Bruhat-Iwahori decomposition of
+        ``self``.
+
+        OUTPUT:
+
+        Matrices ``B1``,``W``,``B2`` such that
+        ``B1``*``self``=``W``*``B2``, both ``B1``,``B2`` are Iwahori
+        matrices, and ``W`` is Affine-Weyl (note that possibly, some
+        of its rows/columns are all zeros).
+        See :meth:`bruhat_iwahori` documentation for more details.
+
+        EXAMPLES:
+
+        An example for a Bruhat-Iwahori decomposition::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 +
+            ....: O(a^39),(0,2):4*a^-2 + 3*a^-1 + a^26 + O(a^32)})
+            sage: B1, W, B2 = M.bruhat_iwahori() # indirect doctest
+            sage: M - B1*W*B2 == 0
+            True
+            sage: # Because M is invertible - W is also invertible:
+            sage: W
+            [a^-16 + O(a^24)               0               0]
+            [              0   a^7 + O(a^47)               0]
+            [              0               0  a^-1 + O(a^39)]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: B1 # doctest: +SKIP
+            [1 + O(a^40)           0           0]
+            [          0 1 + O(a^40)           0]
+            [          0           0 1 + O(a^40)]
+            sage: B2 # doctest: +SKIP
+            [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
+            [                               0             2 + 4*a^20 + O(a^33)                                0]
+            [                               0                                0             3 + 4*a^18 + O(a^40)]
+            sage: # Showing that B1 is Iwahori:
+            sage: # B1 has only integer elements:
+            sage: min([x.valuation() for x in B1.list() if x!=0])
+            0
+            sage: # B1 has zero-valuation elements on diagonal:
+            sage: [i for i in range(3) if B1[i,i].valuation()!=0]
+            []
+            sage: # The elements below diagonal in B1 have strictly-positive
+            ....: valuations:
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (B1[i,j]!= 0 and B1[i,j].valuation() <= 0 and j<i)]
+            []
+            sage: # Showing that B2 is Iwahori:
+            sage: # B2 has only integer elements:
+            sage: min([x.valuation() for x in B2.list() if x!=0])
+            0
+            sage: # B2 has zero-valuation elements on diagonal:
+            sage: [i for i in range(3) if B2[i,i].valuation()!=0]
+            []
+            sage: # The elements below diagonal in B2 have strictly-positive
+            ....: valuations:
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (B2[i,j]!= 0 and B2[i,j].valuation() <= 0 and j<i)]
+            []
+            
+
+        .. NOTE::
+
+            As a helper for :meth:`bruhat_iwahori`, this method assumes that
+            ``self`` is a square (non-empty) matrix over a
+            non-archimedean local field.
+
+        .. WARNING::
+
+            This method makes changes to ``self``.
+
+        """
+        from sage.matrix.constructor import matrix, identity_matrix
+        from sage.rings.padics.padic_generic import pAdicGeneric
+        
+        n = self.nrows()
+        chosen_valuations = [None] * n
+        chosen_cols = [None] * n
+
+        # Defining a function that determines whether an element is zero. 
+        # Implemented differently for relaxed p-adics, to avoid exceptions.        
+        relaxed = (False if not isinstance(self.base_ring(), pAdicGeneric) else 
+                   self.base_ring().is_relaxed())
+        def eq_zero(elem): return (elem.is_equal_to(0, secure=False) if relaxed 
+                                   else elem == 0)
+
+        # Creating ``B1``, ``E``, such that ``B1``*``self``=``E``, ``B1`` is an
+        # Iwahori matrix and ``E`` can later be decomposed into ``W``*``B2``
+        # (``W`` being an Affine-Weyl matrix, and ``B2`` Iwahori).
+        B1 = identity_matrix(self.base_ring(), n)
+        E = self
+        # In each loop - choose element with minimal valuation in its row and
+        # column (neglecting comparison to elements in rows that have already been
+        # chosen), such that it is the first-bottom and first-left in its row and
+        # column to have that valuation. Then, use this element to nullify the
+        # other elements in its column that do not belong to rows that have
+        # already been chosen.
+        # In the end of this process, ``E`` is an Iwahori matrix up to
+        # multiplication in an affine-weyl matrix, and can be then decomposed into
+        # ``W``, ``B2``.
+        for i in range(n):
+            r, c = E.choose_min_valuation_element(True, True, False, True,
+                                            chosen_valuations)
+            chosen_cols[r] = c
+            if not eq_zero(E[r,c]):
+                f = E._matrix_func_that_nullifies_part_of_col(
+                        r, c, list(filter(lambda i: chosen_valuations[i] is not
+                                        None, range(n))))
+                K1 = matrix(self.base_ring(), n, lambda i, j: f(i, j), sparse=1)
+                E = K1 * E
+                B1 = K1 * B1
+
+        W, B2 = E._bruhat_iwahori_break_matrix(chosen_valuations, chosen_cols)
+
+        return B1, W, B2
+
+    def bruhat_iwahori(self, certificate=False):
+        """
+        Return Bruhat-Iwahori decomposition of the matrix.
+
+        This method works only for a square matrix over a non-archimedean
+        local field.
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: `False`); If set to `True`,
+          the method returns an additional value, which is an indication
+          to whether or not the returned matrices that should be
+          invertible are indeed so. These matrices can potentially become
+          singular due to numerical inaccuracy
+
+        OUTPUT: a Bruhat-Iwahori decomposition of the matrix.
+
+        If ``certificate`` == `False`, this method returns three matrices:
+        ``B1``,``W``,``B2``, such that ``self``==``B1``*``W``*``B2`` (up to
+        numerical inaccuracies), both ``B1``,``B2`` are Iwahori
+        (invertible over the integer-ring, have zero-valuation elements
+        on diagonal, and strictly-positive-valuation elements below
+        diagonal), and ``W`` is Affine-Weyl: a generalized-diagonal matrix,
+        composed of elements which are either powers of the uniformizer
+        or zeros.
+        Note that ``W`` is invertible iff ``self`` is invertible.
+        Note also that ``W`` is unique: every Bruhat-Iwahori decomposition
+        of ``self``, contains the same ``W`` matrix.
+        If ``certificate`` == `True`, the method returns a third element,
+        which is a boolean that indicates whether or not the returned
+        matrices that should be invertible (``B1``,``B2``, and in case
+        ``self`` is invertible, also ``W``) are indeed so. These matrices
+        can potentially be singular due to numerical inaccuracy.
+
+        ALGORITHM:
+
+        A Bruhat-Iwahori decomposition is achieved by using Iwahori
+        matrices, to induce some elementary row-operations on the
+        original matrix.
+        Denote the resulting matrix by ``E`` and the inverse of the
+        multiplied elementary matrices by ``B1``.
+        ``E`` is such that it can now be decomposed into matrices
+        ``W``,``B2`` with ``W`` an Affine-Weyl matrix, and ``B2`` an Iwahori
+        matrix.
+        ``B1``,``W``,``B2`` represent a Bruhat-Iwahori decomposition of
+        ``self``.
+
+        EXAMPLES:
+
+        An example with an invertible matrix over a padic-field::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 +
+            ....: O(a^39),(0,2):4*a^-2 + 3*a^-1 + a^26 + O(a^32)})
+            sage: B1, W, B2 = M.bruhat_iwahori()
+            sage: M - B1*W*B2 == 0
+            True
+            sage: # Because M is invertible - W is also invertible:
+            sage: W
+            [a^-16 + O(a^24)               0               0]
+            [              0   a^7 + O(a^47)               0]
+            [              0               0  a^-1 + O(a^39)]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: B1 # doctest: +SKIP
+            [1 + O(a^40)           0           0]
+            [          0 1 + O(a^40)           0]
+            [          0           0 1 + O(a^40)]
+            sage: B2 # doctest: +SKIP
+            [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
+            [                               0             2 + 4*a^20 + O(a^33)                                0]
+            [                               0                                0             3 + 4*a^18 + O(a^40)]
+            sage: # Showing that B1 is Iwahori:
+            sage: # B1 has only integer elements:
+            sage: min([x.valuation() for x in B1.list() if x!=0])
+            0
+            sage: # B1 has zero-valuation elements on diagonal:
+            sage: [i for i in range(3) if B1[i,i].valuation()!=0]
+            []
+            sage: # The elements below diagonal in B1 have strictly-positive
+            ....: valuations:
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (B1[i,j]!= 0 and B1[i,j].valuation() <= 0 and j<i)]
+            []
+            sage: # Showing that B2 is Iwahori:
+            sage: # B2 has only integer elements:
+            sage: min([x.valuation() for x in B2.list() if x!=0])
+            0
+            sage: # B2 has zero-valuation elements on diagonal:
+            sage: [i for i in range(3) if B2[i,i].valuation()!=0]
+            []
+            sage: # The elements below diagonal in B2 have strictly-positive
+            ....: valuations:
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (B2[i,j]!= 0 and B2[i,j].valuation() <= 0 and j<i)]
+            []
+
+        An example with an invertible matrix over a laurent-series ring::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, [[13*s^2 + s^17 + O(s^20), O(s^19), 9*s^15 +
+            ....: 6*s^17 + O(s^20)], [O(s^23), 10*s^-7 + 8*s^11 + O(s^13),
+            ....: 9*s^20 + 16*s^23 + O(s^24)], [10*s + 16*s^20 + O(s^21),
+            ....: 15*s^-1 + 15*s^18 + O(s^19),  14*s^18 + 7*s^19 + 8*s^20 +
+            ....: O(s^21)]])
+            sage: B1, W, B2 = M.bruhat_iwahori()
+            sage: M - B1*W*B2 == 0
+            True
+            sage: # Because M is invertible - W is also invertible:
+            sage: W
+            [   0    0 s^15]
+            [   0 s^-7    0]
+            [   s    0    0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: B1 # doctest: +SKIP
+            [                                  1                             O(s^25)             3*s + 12*s^16 + O(s^19)]
+            [                                  0                                   1                                   0]
+            [                                  0 10*s^6 + 9*s^24 + 10*s^25 + O(s^26)                                   1]
+            sage: B2 # doctest: +SKIP
+            [             10 + 16*s^19 + O(s^20)                             O(s^18) 14*s^17 + 7*s^18 + 8*s^19 + O(s^20)]
+            [                            O(s^30)               10 + 8*s^18 + O(s^20)          9*s^27 + 16*s^30 + O(s^31)]
+            [                             O(s^5)                              O(s^4)          9 + 6*s^2 + 9*s^4 + O(s^5)]
+            sage: # Showing that B1 is Iwahori:
+            sage: # B1 has only integer elements:
+            sage: min([x.valuation() for x in B1.list() if x!=0])
+            0
+            sage: # B1 has zero-valuation elements on diagonal:
+            sage: [i for i in range(3) if B1[i,i].valuation()!=0]
+            []
+            sage: # The elements below diagonal in B1 have strictly-positive
+            ....: valuations:
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (B1[i,j]!= 0 and B1[i,j].valuation() <= 0 and j<i)]
+            []
+            sage: # Showing that B2 is Iwahori:
+            sage: # B2 has only integer elements:
+            sage: min([x.valuation() for x in B2.list() if x!=0])
+            0
+            sage: # B2 has zero-valuation elements on diagonal:
+            sage: [i for i in range(3) if B2[i,i].valuation()!=0]
+            []
+            sage: # The elements below diagonal in B2 have strictly-positive
+            ....: valuations:
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (B2[i,j]!= 0 and B2[i,j].valuation() <= 0 and j<i)]
+            []
+
+        An example with a singular matrix over a padic-field::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0): 1 + O(a^24), (1,1):1 + O(a^40),
+            ....: (2,1): 1 + O(a^40)})
+            sage: B1, W, B2 = M.bruhat_iwahori()
+            sage: M - B1*W*B2 == 0
+            True
+            sage: # Note that W isn't invertible (because M isn't):
+            sage: W
+            [1 + O(a^40)           0           0]
+            [          0           0           0]
+            [          0 1 + O(a^40)           0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: B1 # doctest: +SKIP
+            [1 + O(a^40)           0           0]
+            [          0 1 + O(a^40) 1 + O(a^40)]
+            [          0           0 1 + O(a^40)]
+            sage: B2 # doctest: +SKIP
+            [1 + O(a^24)           0           0]
+            [          0 1 + O(a^40)           0]
+            [          0           0 1 + O(a^40)]
+
+        This example illustrates that sometimes, the returned matrices are
+        singular due to numerical inaccuracies,
+        and demonstrates the use of the ``certificate`` keyword::
+
+            sage: Z = Qp(5, 3)
+            sage: M = matrix(Z,3,[[O(5^-4), 2*5^2 + 2*5^3 + O(5^4), 5^-4 +
+            ....: 5^-3 + 4*5^-2 + O(5^-1)], [3*5^-1 + 5 + O(5^2), 2*5 +
+            ....: 3*5^2 + O(5^3), 4*5^-1 + 2*5 + O(5^2)], [5^3 + 5^4 +
+            ....: O(5^5), 3*5^-1 + 3 + 5 + O(5^2), 3*5^-1 + 4 + O(5)]])
+            sage: B1,W,B2,c = M.bruhat_iwahori(certificate=True)
+            sage: c
+            False
+            sage: B2.is_invertible()
+            False
+
+        This example shows that sometimes ``self``!=``B1``*``W``*``B2``,
+        due to numerical inaccuracies::
+
+            sage: Z = Qp(5, 3)
+            sage: M = matrix(Z,3,[[O(5^2), 3*5 + 2*5^2 + O(5^3), 4*5^3 +
+            ....: O(5^5)], [5^4 + 2*5^5 + O(5^7), 2 + 2*5 + O(5^2), 2 + 3*5
+            ....: + 4*5^2 + O(5^3)], [2*5^-2 + 2*5^-1 + 4 + O(5), 3*5^-3 +
+            ....: O(5), 4*5^-13 + 5^-12 + O(5^-10)]])
+            sage: B1,W,B2 = M.bruhat_iwahori()
+            sage: M - B1*W*B2
+            [        O(5^2)         O(5^3) 4*5^3 + O(5^4)]
+            [        O(5^7)         O(5^2)         O(5^3)]
+            [          O(5)         O(5^0)       O(5^-10)]
+
+        .. NOTE::
+
+            This method works only for a square (non-empty) matrix over a
+            non-archimedean local field, or a ring with such a fraction
+            field.
+            Currently, the fields for which the method is implemented are:
+            Padic base-fields / one-step eisenstein or unramified
+            extensions / 2-step extensions (unramified followed by
+            eisenstein),
+            and Laurent-series rings over finite fields.
+
+        .. WARNING::
+
+            Due to numerical inaccuracies, it may happen that
+            ``self``!=``B1``*``W``*``B2``, and it may also happen that some
+            of the returned matrices which are supposed to be invertible,
+            are not so, or vice versa (the opposite direction is only
+            relevant in case the original matrix is singular, and then
+            ``W`` should be singular too).
+            The ``certificate`` keyword can be used to get indication for
+            that.
+
+        .. SEEALSO::
+
+            :meth:`iwasawa`, :meth:`cartan`, :meth:`TSB`, :meth:`bruhat`.
+
+        TESTS:
+
+        The method raises TypeError in case ``self`` is over a ring for
+        which the method doesn't work::
+
+            sage: M = random_matrix(QQ,3)
+            sage: M.bruhat_iwahori()
+            Traceback (most recent call last):
+            ...
+            TypeError: ``self`` must be defined over one of the following
+            non-archimedean local fields: Laurent-Series-Rings over finite fields,
+            or padic fields of the following types: base, 1-step unramified or
+            eisenstein extension, or 2-step unramified followed by
+            eisenstein extension.
+
+        A zero matrix test::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S,3,3,0)
+            sage: B1,W,B2 = M.bruhat_iwahori()
+            sage: W
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: B1 # doctest: +SKIP
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: B2 # doctest: +SKIP
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        A = self.matrix_over_field()
+
+        # Check that the matrix is legal for this decomposition
+        if (A.ncols() == 0) or (not A.is_square()):
+            raise TypeError("``self`` must be a non-empty square matrix.")
+        if not A._is_over_non_archimedean_local_field():
+            raise TypeError("``self`` must be defined over one of the following \
+                non-archimedean local fields: \
+                Laurent-Series-Rings over finite fields, or padic fields of the \
+                following types: base, 1-step unramified or eisenstein extension, \
+                or 2-step unramified followed by eisenstein extension.")
+
+        # Get ``B1``, ``W``, ``B2``, such that ``B1``*``self`` = ``W``*``B2``,
+        # both ``B1``,``B2`` are Iwahori matrices, and ``W`` is Affine-Weyl.
+        # ``B1``.inverse(), ``W``, ``B2``, are Bruhat-Iwahori decomposition of
+        # ``self``.
+        B1, W, B2 = A._bruhat_iwahori_helper()
+
+        try:
+            B1 = B1.inverse()
+        except (ZeroDivisionError, NotImplementedError) as e:
+            if (isinstance(e, NotImplementedError)
+                and "Echelon form not implemented" not in str(e)):
+                raise e
+                raise ArithmeticError("Computation failed, due to singularity of \
+                    an inner matrix that was expected to be invertible.\n This is \
+                    probably due to numerical inaccuracy.")
+
+        if certificate:
+            output_is_as_expected = A._check_invertibility([B1, B2], [W])
+            return B1, W, B2, output_is_as_expected
+
+        return B1, W, B2
+    
+    def _matrix_func_that_normalizes_and_nullifies_upper_col(self, r, c):
+        """
+        Define a matrix that acts from the left on ``self``.
+
+        This method returns a function that can be used as a lambda
+        expression constructing a matrix.
+        Denote the matrix defined by the returned function by ``M``.
+        Then ``M``*``self``  makes the following changes to ``self``:
+        A. Normalizes the (``r``,``c``) element (converts it to 1).
+        B. Nullifies elements in the ``c`` column above the ``r``-th row
+           (in rows with lower indexes than ``r``).
+
+        This is a helper function for the :meth:`TSB` and :meth:`bruhat` 
+        decompositions methods.
+
+        INPUT:
+
+        - ``r`` -- integer; represents a row in the matrix, such that
+          ``self[r,c] != 0``
+
+        - ``c`` -- integer; represents a column in the matrix, that should
+          be partly nullified
+
+        OUTPUT:
+
+        A function defining a matrix that can be then multiplied by ``self``
+        to induce the relevant changes on ``self``. See EXAMPLES.
+
+        EXAMPLES:
+
+        An example of using this method to induce changes on ``self``::
+
+            sage: M = matrix(QQ, 3, [[0, 1, -1], [2, 0, 1/2], [1, 0, 1/2]])
+            sage: M
+            [  0   1  -1]
+            [  2   0 1/2]
+            [  1   0 1/2]
+            sage: f = M._matrix_func_that_normalizes_and_nullifies_upper_col(1,2)
+            sage: R = matrix(QQ, 3, lambda i,j: f(i,j), sparse=1)
+            sage: M = R*M
+            sage: # Indeed, the (1,2) element is normalized, and the (0,2) element,
+            ....: which is the only element above the (1,2) element, is nullified.
+            sage: M
+            [  4   1   0]
+            [  4   0   1]
+            [  1   0 1/2]
+            
+
+        .. NOTE::
+
+            This is a helper function for the :meth:`TSB` and :meth:`bruhat`
+            decompositions methods.
+            It assumes that ``self[r,c] != 0``.
+
+        """
+        def f(i, j):
+            if j == r:
+                if i < r:
+                    return (-(self[i,c] / self[r,c]))
+                elif i == r:
+                    return (1 / self[r,c])
+                else:
+                    return 0
+            elif i == j:
+                return 1
+            else:
+                return 0
+        return f
+
+    def _TSB_break_matrix(self, row_order):
+        """
+        Helper for the :meth:`TSB` decomposition method.
+
+        This method decomposes ``self`` into a permutation matrix and an
+        Iwahori matrix.
+        This method can only be applied to specific matrices, in the
+        process of the TSB decomposition.
+
+        INPUT:
+
+        - ``row_order`` -- list of integers. ``self`` can be thought of as
+          an Iwahori matrix whose rows have been rearranged so that for
+          each x,y with ``row_order``[x]==y, the x-row moved to the y-row
+
+        OUTPUT:
+
+        Matrices ``S``,``B`` such that  ``self``=``S``*``B``,
+        ``S`` is a permutation matrix (possibly some of its rows/columns are
+        all zeros), and ``B`` is an Iwahori matrix.
+
+        EXAMPLES:
+
+        An example for a TSB decomposition::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 +
+            ....: O(a^39),(0,2):4*a^-2 + 3*a^-1 + a^26 + O(a^32)})
+            sage: T, S, B = M.TSB() # indirect doctest
+            sage: M - T*S*B == 0
+            True
+            sage: # Because M is invertible - S is also invertible:
+            sage: S
+            [1 + O(a^40)           0           0]
+            [          0 1 + O(a^40)           0]
+            [          0           0 1 + O(a^40)]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
+            [       3*a^-16 + 2*a^3 + O(a^24)                                0 4*a^-2 + 3*a^-1 + a^26 + O(a^32)]
+            [                               0         2*a^7 + 4*a^27 + O(a^40)                                0]
+            [                               0                                0        3*a^-1 + 4*a^17 + O(a^39)]
+            sage: B # doctest: +SKIP
+            [1 + O(a^40)           0           0]
+            [          0 1 + O(a^33)           0]
+            [          0           0 1 + O(a^40)]
+            sage: # Showing that T is invertible upper triangular:
+            sage: T.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T[i,j]!= 0 and j<i)]
+            []
+            sage: # Showing that B is Iwahori:
+            sage: # B has only integer elements:
+            sage: min([x.valuation() for x in B.list() if x!=0])
+            0
+            sage: # B has zero-valuation elements on diagonal:
+            sage: [i for i in range(3) if B[i,i].valuation()!=0]
+            []
+            sage: # The elements below diagonal in B have strictly-positive
+            ....: valuations:
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (B[i,j]!= 0 and B[i,j].valuation() <= 0 and j<i)]
+            []
+
+        """
+        from sage.matrix.constructor import matrix
+        
+        # Creating ``S`` as the permutation matrix that can be multiplied with an
+        # Iwahori matrix to get ``self``.
+        def f(i,j):
+            if row_order[j] == i:
+                return 1
+            return 0
+        S = matrix(self.base_ring(), self.ncols(), lambda i, j: f(i, j), sparse=1)
+
+        # Creating ``B`` using an "inverse" of ``S`` (in case ``S`` is invertible,
+        # it is a true inverse).
+        S_semiinverse = S.transpose()
+        B = S_semiinverse * self
+
+        # In case ``S`` is singular, ``B`` is "almost" Iwahori, but some rows are
+        # zero-rows. So the only thing left is to put 1's on the diagonal of the
+        # zero-rows.
+        for r in range(self.ncols()):
+            if row_order[r] is None:
+                B[r, r] = 1
+
+        return S, B
+
+    def _TSB_helper(self):
+        """
+        Helper for the :meth:`TSB` decomposition method.
+
+        This method returns ``T``,``S``,``B`` such that
+        ``T``^-1,``S``,``B`` are a TSB decomposition of ``self``.
+
+        OUTPUT:
+
+        Matrices ``T``,``S``,``B`` such that  ``T``*``self``=``S``*``B``,
+        ``T`` is invertible upper-triangular, ``S`` is a permutation matrix
+        (possibly some of its rows/columns are all zeros), and ``B`` is an
+        Iwahori matrix.
+        See :meth:`TSB` documentation for more details.
+
+        EXAMPLES:
+
+        An example for a TSB decomposition::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 +
+            ....: O(a^39),(0,2):4*a^-2 + 3*a^-1 + a^26 + O(a^32)})
+            sage: T, S, B = M.TSB() # indirect doctest
+            sage: M - T*S*B == 0
+            True
+            sage: # Because M is invertible - S is also invertible:
+            sage: S
+            [1 + O(a^40)           0           0]
+            [          0 1 + O(a^40)           0]
+            [          0           0 1 + O(a^40)]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
+            [       3*a^-16 + 2*a^3 + O(a^24)                                0 4*a^-2 + 3*a^-1 + a^26 + O(a^32)]
+            [                               0         2*a^7 + 4*a^27 + O(a^40)                                0]
+            [                               0                                0        3*a^-1 + 4*a^17 + O(a^39)]
+            sage: B # doctest: +SKIP
+            [1 + O(a^40)           0           0]
+            [          0 1 + O(a^33)           0]
+            [          0           0 1 + O(a^40)]
+            sage: # Showing that T is invertible upper triangular:
+            sage: T.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T[i,j]!= 0 and j<i)]
+            []
+            sage: # Showing that B is Iwahori:
+            sage: # B has only integer elements:
+            sage: min([x.valuation() for x in B.list() if x!=0])
+            0
+            sage: # B has zero-valuation elements on diagonal:
+            sage: [i for i in range(3) if B[i,i].valuation()!=0]
+            []
+            sage: # The elements below diagonal in B have strictly-positive
+            ....: valuations:
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (B[i,j]!= 0 and B[i,j].valuation() <= 0 and j<i)]
+            []
+            
+
+        .. NOTE::
+
+            As a helper for :meth:`TSB`, this method assumes that
+            ``self`` is a square (non-empty) matrix over a
+            non-archimedean local field.
+
+        .. WARNING::
+
+            This method makes changes to ``self``.
+
+        """
+        from sage.matrix.constructor import matrix, identity_matrix
+        from sage.rings.infinity import Infinity
+        
+        n = self.nrows()
+        row_order = [None] * n
+
+        # Creating ``T``, ``E``, such that ``T``*``self``=``E``, ``T`` is
+        # invertible upper-traingular and ``E`` can later be decomposed into
+        # ``S``*``B`` (``S`` being a permutation matrix and ``B`` an Iwahori
+        # matrix).
+        T = identity_matrix(self.base_ring(), n)
+        E = self
+        # For each row of ``E`` between n-1 and 0, find first element with minimal
+        # valuation. Then, normalize it (convert to 1) and use this element to
+        # nullify the rest of its column.
+        # In the end of this process, ``E`` is an Iwahori matrix up to permutation
+        # on its rows, and can be then decomposed into ``S``, ``B``.
+        for r in range(n-1, -1, -1):
+            min_val, cols_with_min_val = E.min_valuation_in_row(r)
+            if min_val != +Infinity:
+                c = cols_with_min_val[0]        # Column of first element with
+                                                # minimal valuation.
+                row_order[c] = r
+                f = E._matrix_func_that_normalizes_and_nullifies_upper_col(r, c)
+                K1 = matrix(self.base_ring(), n, lambda i, j: f(i, j), sparse=1)
+                E = K1 * E
+                T = K1 * T
+
+        S, B = E._TSB_break_matrix(row_order)
+
+        return T, S, B
+
+    def TSB(self, certificate=False):
+        """
+        Return TSB decomposition of the matrix.
+
+        This method works only for a square matrix over a non-archimedean
+        local field.
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: `False`); If set to `True`,
+          the method returns an additional value, which is an indication
+          to whether or not the returned matrices that should be
+          invertible are indeed so. These matrices can potentially become
+          singular due to numerical inaccuracy
+
+        OUTPUT: a TSB decomposition of the matrix.
+
+        If ``certificate`` == `False`, this method returns three matrices:
+        ``T``,``S``,``B``, such that ``self``==``T``*``S``*``B`` (up to
+        numerical inaccuracies), ``T`` is invertible upper-triangular, ``S``
+        is a permutation matrix (possibly some of its rows/columns are all
+        zeros), and ``B`` is Iwahori (invertible over the integer-ring, has
+        zero-valuation elements on diagonal, and
+        strictly-positive-valuation elements below diagonal).
+        Note that ``S`` is invertible iff ``self`` is invertible.
+        Note also that ``S`` is unique: every TSB decomposition of ``self``,
+        contains the same ``S`` matrix.
+        If ``certificate`` == `True`, the method returns a third element,
+        which is a boolean that indicates whether or not the returned
+        matrices that should be invertible (``T``, ``B``, and in case
+        ``self`` is invertible, also ``S``) are indeed so. These matrices
+        can potentially be singular due to numerical inaccuracy.
+
+        ALGORITHM:
+
+        A TSB decomposition is achieved by using
+        invertible upper-triangular matrices, to induce elementary
+        row-operations on the original matrix.
+        Denote the resulting matrix by ``E`` and the inverse of the
+        multiplied elementary matrices by ``T``.
+        ``E`` is such that it can now be decomposed into matrices
+        ``S``,``B`` with ``S`` a permutation matrix, and ``B`` an Iwahori
+        matrix.
+        ``T``,``S``,``B`` represent a TSB decomposition of ``self``.
+
+        EXAMPLES:
+
+        An example with an invertible matrix over a padic-field::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 +
+            ....: O(a^39),(0,2):4*a^-2 + 3*a^-1 + a^26 + O(a^32)})
+            sage: T, S, B = M.TSB()
+            sage: M - T*S*B == 0
+            True
+            sage: # Because M is invertible - S is also invertible:
+            sage: S
+            [1 + O(a^40)           0           0]
+            [          0 1 + O(a^40)           0]
+            [          0           0 1 + O(a^40)]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
+            [       3*a^-16 + 2*a^3 + O(a^24)                                0 4*a^-2 + 3*a^-1 + a^26 + O(a^32)]
+            [                               0         2*a^7 + 4*a^27 + O(a^40)                                0]
+            [                               0                                0        3*a^-1 + 4*a^17 + O(a^39)]
+            sage: B # doctest: +SKIP
+            [1 + O(a^40)           0           0]
+            [          0 1 + O(a^33)           0]
+            [          0           0 1 + O(a^40)]
+            sage: # Showing that T is invertible upper triangular:
+            sage: T.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T[i,j]!= 0 and j<i)]
+            []
+            sage: # Showing that B is Iwahori:
+            sage: # B has only integer elements:
+            sage: min([x.valuation() for x in B.list() if x!=0])
+            0
+            sage: # B has zero-valuation elements on diagonal:
+            sage: [i for i in range(3) if B[i,i].valuation()!=0]
+            []
+            sage: # The elements below diagonal in B have strictly-positive
+            ....: valuations:
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (B[i,j]!= 0 and B[i,j].valuation() <= 0 and j<i)]
+            []
+
+        An example with an invertible matrix over a laurent-series ring::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, [[13*s^2 + s^17 + O(s^20), O(s^19), 9*s^15 +
+            ....: 6*s^17 + O(s^20)], [O(s^23), 10*s^-7 + 8*s^11 + O(s^13),
+            ....: 9*s^20 + 16*s^23 + O(s^24)], [10*s + 16*s^20 + O(s^21),
+            ....: 15*s^-1 + 15*s^18 + O(s^19),  14*s^18 + 7*s^19 + 8*s^20 +
+            ....: O(s^21)]])
+            sage: T, S, B = M.TSB()
+            sage: M - T*S*B == 0
+            True
+            sage: # Because M is invertible - S is also invertible:
+            sage: S
+            [0 0 1]
+            [1 0 0]
+            [0 1 0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
+            [  9*s^15 + 6*s^17 + 9*s^19 + O(s^20)                      13*s^2 + O(s^7)                                    0]
+            [                                   0 16*s^-5 + 6*s^13 + 13*s^14 + O(s^15)           10*s^-7 + 8*s^11 + O(s^13)]
+            [                                   0                                    0          15*s^-1 + 15*s^18 + O(s^19)]
+            sage: B # doctest: +SKIP
+            [                          1 + O(s^20)                               O(s^18) 15*s^17 + 16*s^18 + 11*s^19 + O(s^20)]
+            [           12*s^2 + 14*s^21 + O(s^22)                           1 + O(s^20)  10*s^19 + 5*s^20 + 13*s^21 + O(s^22)]
+            [                               O(s^5)                                O(s^4)                            1 + O(s^5)]
+            sage: # Showing that T is invertible upper triangular:
+            sage: T.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T[i,j]!= 0 and j<i)]
+            []
+            sage: # Showing that B is Iwahori:
+            sage: # B has only integer elements:
+            sage: min([x.valuation() for x in B.list() if x!=0])
+            0
+            sage: # B has zero-valuation elements on diagonal:
+            sage: [i for i in range(3) if B[i,i].valuation()!=0]
+            []
+            sage: # The elements below diagonal in B have strictly-positive
+            ....: valuations:
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (B[i,j]!= 0 and B[i,j].valuation() <= 0 and j<i)]
+            []
+
+        An example with a singular matrix over a padic-field::
+
+            sage: Y.<a> = Qp(5).extension(x^2-5)
+            sage: M = matrix(Y,3,{(0,0): 1 + O(a^24), (1,1):1 + O(a^40),
+            ....: (2,1): 1 + O(a^40)})
+            sage: T, S, B = M.TSB()
+            sage: M - T*S*B == 0
+            True
+            sage: # Note that S isn't invertible (because M isn't):
+            sage: S
+            [1 + O(a^40)           0           0]
+            [          0           0           0]
+            [          0 1 + O(a^40)           0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
+            [1 + O(a^24)           0           0]
+            [          0 1 + O(a^40) 1 + O(a^40)]
+            [          0           0 1 + O(a^40)]
+            sage: B # doctest: +SKIP
+            [1 + O(a^24)           0           0]
+            [          0 1 + O(a^40)           0]
+            [          0           0 1 + O(a^40)]
+
+        This example illustrates that sometimes, the returned matrices are
+        singular due to numerical inaccuracies,
+        and demonstrates the use of the ``certificate`` keyword::
+
+            sage: Z = Qp(5, 3)
+            sage: M = matrix(Z,3,[[5 + 4*5^2 + 5^3 + O(5^4), O(5^-2), 4 +
+            ....: 3*5 + O(5^3)], [4 + O(5^2), 2*5^-2 + 3*5^-1 + O(5), 4 +
+            ....: 2*5^2 + O(5^3)], [2*5^3 + 2*5^4 + 2*5^5 + O(5^6), 4*5 +
+            ....: 2*5^2 + 5^3 + O(5^4), 4*5^-2 + O(5)]])
+            sage: T,S,B,c = M.TSB(certificate=True)
+            sage: c
+            False
+            sage: B.is_invertible()
+            False
+
+        This example shows that sometimes ``self``!=``T``*``S``*``B``, due
+        to numerical inaccuracies::
+
+            sage: Z = Qp(5, 3)
+            sage: M = matrix(Z,3,[[4*5^3 + O(5^4), 3 + 2*5 + O(5^3), 4*5 +
+            ....: 3*5^2 + 2*5^3 + O(5^4)], [2*5^-6 + 5^-5 + 4*5^-4 + O(5^-3),
+            ....: 3*5^-10 + 3*5^-9 + 2*5^-8 + O(5^-7), 2*5^3 + 4*5^4 + 3*5^5
+            ....: + O(5^6)], [4*5^16 + 5^17 + 2*5^18 + O(5^19), 4*5 + 3*5^2
+            ....: + 5^3 + O(5^4), 5^3 + O(5^5)]])
+            sage: T,S,B = M.TSB()
+            sage: M - T*S*B
+            [          O(5^4) 3 + 2*5 + O(5^2)           O(5^2)]
+            [         O(5^-4)          O(5^-8)          O(5^-6)]
+            [         O(5^19)           O(5^4)           O(5^5)]
+
+        .. NOTE::
+
+            This method works only for a square (non-empty) matrix over a
+            non-archimedean local field, or a ring with such a fraction
+            field.
+            Currently, the fields for which the method is implemented are:
+            Padic base-fields / one-step eisenstein or unramified
+            extensions / 2-step extensions (unramified followed by
+            eisenstein),
+            and Laurent-series rings over finite fields.
+
+        .. WARNING::
+
+            Due to numerical inaccuracies, it may happen that
+            ``self``!=``T``*``S``*``B``, and it may also happen that some
+            of the returned matrices which are supposed to be invertible,
+            are not so, or vice versa (the opposite direction is only
+            relevant in case the original matrix is singular, and then
+            ``S`` should be singular too).
+            The ``certificate`` keyword can be used to get indication for
+            that.
+
+        .. SEEALSO::
+
+            :meth:`iwasawa`, :meth:`cartan`, :meth:`bruhat-iwahori`, :meth:`bruhat`.
+
+        TESTS:
+
+        The method raises TypeError in case ``self`` is over a ring for
+        which the method doesn't work::
+
+            sage: M = random_matrix(QQ,3)
+            sage: M.TSB()
+            Traceback (most recent call last):
+            ...
+            TypeError: ``self`` must be defined over one of the following
+            non-archimedean local fields: Laurent-Series-Rings over finite fields,
+            or padic fields of the following types: base, 1-step unramified or
+            eisenstein extension, or 2-step unramified followed by
+            eisenstein extension.
+
+        A zero matrix test::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S,3,3,0)
+            sage: T,S,B = M.TSB()
+            sage: S
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: B # doctest: +SKIP
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        A = self.matrix_over_field()
+
+        # Check that the matrix is legal for this decomposition
+        if (A.ncols() == 0) or (not A.is_square()):
+            raise TypeError("``self`` must be a non-empty square matrix.")
+        if not A._is_over_non_archimedean_local_field():
+            raise TypeError("``self`` must be defined over one of the following \
+                non-archimedean local fields: \
+                Laurent-Series-Rings over finite fields, or padic fields of the \
+                following types: base, 1-step unramified or eisenstein extension, \
+                or 2-step unramified followed by eisenstein extension.")
+
+        # Get ``T``, ``S``, ``B``, such that ``T``*``self`` = ``S``*``B``, ``T``
+        # is invertible upper-triangular, ``S`` is a permutation matrix, and ``B``
+        # is an Iwahori matrix.
+        # ``T``.inverse(), ``S``, ``B``, are a TSB decomposition of ``self``.
+        T, S, B = A._TSB_helper()
+
+        try:
+            T = T.inverse()
+        except (ZeroDivisionError, NotImplementedError) as e:
+            if (isinstance(e, NotImplementedError)
+                and "Echelon form not implemented" not in str(e)):
+                raise e
+                raise ArithmeticError("Computation failed, due to singularity of \
+                    an inner matrix that was expected to be invertible.\n This is \
+                    probably due to numerical inaccuracy.")
+
+        if certificate:
+            output_is_as_expected = A._check_invertibility([T, B], [S])
+            return T, S, B, output_is_as_expected
+
+        return T, S, B
+    
+    def _bruhat_break_matrix(self, row_order):
+        """
+        Helper for the :meth:`bruhat` decomposition method.
+
+        This method decomposes ``self`` into a permutation matrix and
+        an upper-triangular invertible matrix.
+        This method can only be applied to specific matrices, in the
+        process of the Bruhat decomposition.
+
+        INPUT:
+
+        - ``row_order`` -- list of integers. ``self`` can be thought of as
+          an upper-triangular matrix whose rows have been rearranged so that for
+          each x,y with ``row_order``[x]==y, the x-row moved to the y-row
+
+        OUTPUT:
+
+        Matrices ``S``,``T2`` such that  ``self``=``S``*``T2``,
+        ``S`` is a permutation matrix (possibly some of its rows/columns are
+        all zeros), and ``T2`` is invertible upper-triangular.
+
+        EXAMPLES:
+
+        An example for a Bruhat decomposition::
+
+            sage: M = matrix(QQ, 3, [[0, 1, -1],[2, 0, 1/2],[1, 0, 1/2]])
+            sage: T1, S, T2 = M.bruhat() # indirect doctest
+            sage: M - T1*S*T2 == 0
+            True
+            sage: # Because M is invertible - S is also invertible:
+            sage: S
+            [0 1 0]
+            [0 0 1]
+            [1 0 0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
+            [1 2 0]
+            [0 1 2]
+            [0 0 1]
+            sage: T2 # doctest: +SKIP
+            [   1    0  1/2]
+            [   0    1    0]
+            [   0    0 -1/2]
+            sage: # Showing that T1 is invertible upper triangular:
+            sage: T1.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T1[i,j]!= 0 and j<i)]
+            []
+            sage: # Showing that T2 is invertible upper triangular:
+            sage: T2.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T2[i,j]!= 0 and j<i)]
+            []
+
+        """
+        from sage.matrix.constructor import matrix
+        
+        # Creating ``S`` as the permutation matrix that can be multiplied with an
+        # upper-triangular matrix to get ``self``.
+        def f(i,j):
+            if row_order[j] == i:
+                return 1
+            return 0
+        S = matrix(self.base_ring(), self.ncols(), lambda i, j: f(i, j), sparse=1)
+
+        # Creating ``T2`` using the "inverse" of ``S`` (in case ``S`` is
+        # invertible, it is a true inverse).
+        S_semiinverse = S.transpose()
+        T2 = S_semiinverse * self
+
+        # In case ``S`` is singular, we have to make ``T2`` invertible. Because
+        # ``T2`` is upper-triangular, it is enough to put 1's on every
+        # diagonal-entry that is zero.
+        for r in range(self.ncols()):
+            if row_order[r] is None:
+                T2[r, r] = 1
+
+        return S, T2
+
+    def _bruhat_helper(self):
+        """
+        Helper for the :meth:`bruhat` decomposition method.
+
+        This method returns ``T1``,``S``,``T2`` such that
+        ``T1``^-1,``S``,``T2`` are a Bruhat decomposition of ``self``.
+
+        OUTPUT:
+
+        Matrices ``T1``,``S``,``T2`` such that
+        ``T1``*``self``=``S``*``T2``, both ``T1``,``T2`` are invertible
+        upper-triangular, and ``S`` is a permutation matrix (possibly
+        some of its rows/columns are all zeros).
+        See :meth:`bruhat` documentation for more details.
+
+        EXAMPLES:
+
+        An example for a Bruhat decomposition::
+
+            sage: M = matrix(QQ, 3, [[0, 1, -1],[2, 0, 1/2],[1, 0, 1/2]])
+            sage: T1, S, T2 = M.bruhat() # indirect doctest
+            sage: M - T1*S*T2 == 0
+            True
+            sage: # Because M is invertible - S is also invertible:
+            sage: S
+            [0 1 0]
+            [0 0 1]
+            [1 0 0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
+            [1 2 0]
+            [0 1 2]
+            [0 0 1]
+            sage: T2 # doctest: +SKIP
+            [   1    0  1/2]
+            [   0    1    0]
+            [   0    0 -1/2]
+            sage: # Showing that T1 is invertible upper triangular:
+            sage: T1.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T1[i,j]!= 0 and j<i)]
+            []
+            sage: # Showing that T2 is invertible upper triangular:
+            sage: T2.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T2[i,j]!= 0 and j<i)]
+            []
+            
+
+        .. NOTE::
+
+            As a helper for :meth:`bruhat`, this method assumes that
+            ``self`` is a square (non-empty) matrix over a
+            field or a ring with a fraction field.
+
+        .. WARNING::
+
+            This method makes changes to ``self``.
+
+        """
+        from sage.matrix.constructor import matrix, identity_matrix
+        from sage.rings.padics.padic_generic import pAdicGeneric
+        
+        n = self.nrows()
+        row_order = [None] * n
+
+        # Defining a function that determines whether an element is zero. 
+        # Implemented differently for relaxed p-adics, to avoid exceptions.        
+        relaxed = (False if not isinstance(self.base_ring(), pAdicGeneric) else 
+                   self.base_ring().is_relaxed())
+        def eq_zero(elem): return (elem.is_equal_to(0, secure=False) if relaxed 
+                                   else elem == 0)
+
+        # Creating ``T1``,``E``, such that ``T1``*``self``=``E``, ``T1`` is
+        # invertible upper-triangular and ``E`` can later be decomposed into
+        # ``S``*``T2`` (``S`` being a permutation matrix, and ``T2`` an invertible
+        # upper triangular matrix).
+        T1 = identity_matrix(self.base_ring(), n)
+        E = self
+        # For each row of ``E`` between n-1 and 0, find first non-zero element.
+        # Then use it to nullify the rest of its column.
+        # In the end of this process, ``E`` is upper-triangular up to permutation
+        # on its rows, and can be then decomposed into ``S``, ``T2``.
+        for r in range(n-1, -1, -1):
+            for c in range(n):
+                if not eq_zero(E[r,c]):      # The (``r``,``c``) element is the first
+                                            # non-zero in its row.
+                    row_order[c] = r
+                    f = E._matrix_func_that_nullifies_part_of_col(r, c, range(r+1,n))
+                    K1 = matrix(self.base_ring(), n, lambda i, j: f(i, j), sparse=1)
+                    E = K1 * E
+                    T1 = K1 * T1
+                    break
+
+        S, T2 = E._bruhat_break_matrix(row_order)
+
+        return T1, S, T2
+
+    def bruhat(self, certificate=False):
+        """
+        Return Bruhat decomposition of the matrix.
+
+        This method works for a square matrix over any field.
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: `False`); If set to `True`,
+          the method returns an additional value, which is an indication
+          to whether or not the returned matrices that should be
+          invertible are indeed so. These matrices can potentially become
+          singular due to numerical inaccuracy
+
+        OUTPUT: a Bruhat decomposition of the matrix.
+
+        If ``certificate`` == `False`, this method returns three matrices:
+        ``T1``,``S``,``T2``, such that ``self``==``T1``*``S``*``T2`` (up to
+        numerical inaccuracies), both ``T1``,``T2`` are invertible
+        upper-triangular, and ``S`` is a permutation matrix (possibly some
+        of the rows/columns are all zeros).
+        Note that ``S`` is invertible iff ``self`` is invertible.
+        Note also that ``S`` is unique: every Bruhat decomposition of
+        ``self``, contains the same ``S`` matrix.
+        If ``certificate`` == `True`, the method returns a third element,
+        which is a boolean that indicates whether or not the returned
+        matrices that should be invertible (``T1``,``T2``, and in case
+        ``self`` is invertible, also ``S``) are indeed so. These matrices
+        can potentially be singular due to numerical inaccuracy.
+
+        ALGORITHM:
+
+        A Bruhat decomposition is achieved by using
+        invertible upper-traingular matrices, to induce elementary
+        row-operations on the original matrix.
+        Denote the resulting matrix by ``E`` and the inverse of the
+        multiplied elementary matrices by ``T1``.
+        ``E`` is such that it can now be decomposed into matrices
+        ``S``,``T2`` with ``S`` a permutation matrix, and ``T2`` an
+        invertible upper-triangular matrix.
+        ``T1``,``S``,``T2`` represent a Bruhat decomposition of ``self``.
+
+        EXAMPLES:
+
+        An example with an invertible matrix over QQ::
+
+            sage: M = matrix(QQ, 3, [[0, 1, -1],[2, 0, 1/2],[1, 0, 1/2]])
+            sage: T1, S, T2 = M.bruhat()
+            sage: M - T1*S*T2 == 0
+            True
+            sage: # Because M is invertible - S is also invertible:
+            sage: S
+            [0 1 0]
+            [0 0 1]
+            [1 0 0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
+            [1 2 0]
+            [0 1 2]
+            [0 0 1]
+            sage: T2 # doctest: +SKIP
+            [   1    0  1/2]
+            [   0    1    0]
+            [   0    0 -1/2]
+            sage: # Showing that T1 is invertible upper triangular:
+            sage: T1.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T1[i,j]!= 0 and j<i)]
+            []
+            sage: # Showing that T2 is invertible upper triangular:
+            sage: T2.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T2[i,j]!= 0 and j<i)]
+            []
+
+        An example with a singular matrix over GF(19)::
+
+            sage: M = matrix(GF(19), 3, [[3, 4, 5],[6, 8, 10],[3, 14, 12]])
+            sage: T1, S, T2 = M.bruhat()
+            sage: M - T1*S*T2 == 0
+            True
+            sage: # Note that S isn't invertible (because M isn't):
+            sage: S
+            [0 0 0]
+            [0 1 0]
+            [1 0 0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
+            [ 1 10  1]
+            [ 0  1  2]
+            [ 0  0  1]
+            sage: T2 # doctest: +SKIP
+            [ 3 14 12]
+            [ 0 18  5]
+            [ 0  0  1]
+
+        An example with an invertible matrix over a padic-field::
+
+            sage: Z = Qp(5, 3)
+            sage: M = matrix(Z,3,[[2 + 5 + 4*5^2 + O(5^3), 4 + 2*5
+            ....: + O(5^3), 2*5^3 + 5^5 + O(5^6)], [2*5^-1 + 1 + O(5^2),
+            ....: 4*5^4 + 2*5^5 + 2*5^6 + O(5^7), O(5^5)], [2 + 5 +
+            ....: O(5^3), 3*5^2 + 2*5^3 + O(5^5), 3*5^4 + 2*5^5 + 2*5^6
+            ....: + O(5^7)]])
+            sage: T1, S, T2 = M.bruhat()
+            sage: M - T1*S*T2 == 0
+            True
+            sage: # Because M is invertible - S is also invertible:
+            sage: S
+            [         0          0 1 + O(5^3)]
+            [         0 1 + O(5^3)          0]
+            [1 + O(5^3)          0          0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
+            [               1 + O(5^3) 2*5^-1 + 4 + 2*5 + O(5^2)                  1 + O(5)]
+            [                        0                1 + O(5^3)             5^-1 + O(5^2)]
+            [                        0                         0                1 + O(5^3)]
+            sage: T2 # doctest: +SKIP
+            [                2 + 5 + O(5^3)         3*5^2 + 2*5^3 + O(5^5) 3*5^4 + 2*5^5 + 2*5^6 + O(5^7)]
+            [                        O(5^2)   2*5 + 2*5^2 + 4*5^3 + O(5^4)         2*5^3 + 2*5^4 + O(5^5)]
+            [                          O(5)                         O(5^3)           5^2 + 4*5^3 + O(5^4)]
+            sage: # Showing that T1 is invertible upper triangular:
+            sage: T1.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T1[i,j]!= 0 and j<i)]
+            []
+            sage: # Showing that T2 is invertible upper triangular:
+            sage: T2.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T2[i,j]!= 0 and j<i)]
+            []
+
+        An example with an invertible matrix over a laurent-series ring::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S, [[13*s^2 + s^17 + O(s^20), O(s^19), 9*s^15 +
+            ....: 6*s^17 + O(s^20)], [O(s^23), 10*s^-7 + 8*s^11 + O(s^13),
+            ....: 9*s^20 + 16*s^23 + O(s^24)], [10*s + 16*s^20 + O(s^21),
+            ....: 15*s^-1 + 15*s^18 + O(s^19),  14*s^18 + 7*s^19 + 8*s^20 +
+            ....: O(s^21)]])
+            sage: T1, S, T2 = M.bruhat()
+            sage: M - T1*S*T2 == 0
+            True
+            sage: # Because M is invertible - S is also invertible:
+            sage: S
+            [0 0 1]
+            [0 1 0]
+            [1 0 0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
+            [                        1 4*s^7 + 16*s^22 + O(s^25)   3*s + 12*s^16 + O(s^19)]
+            [                        0                         1                         0]
+            [                        0                         0                         1]
+            sage: T2 # doctest: +SKIP
+            [           10*s + 16*s^20 + O(s^21)         15*s^-1 + 15*s^18 + O(s^19) 14*s^18 + 7*s^19 + 8*s^20 + O(s^21)]
+            [                            O(s^23)          10*s^-7 + 8*s^11 + O(s^13)          9*s^20 + 16*s^23 + O(s^24)]
+            [                            O(s^20)                             O(s^18)  9*s^15 + 6*s^17 + 9*s^19 + O(s^20)]
+            sage: # Showing that T1 is invertible upper triangular:
+            sage: T1.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T1[i,j]!= 0 and j<i)]
+            []
+            sage: # Showing that T2 is invertible upper triangular:
+            sage: T2.is_invertible()
+            True
+            sage: [(i,j) for j in range(3) for i in range(3) if
+            ....: (T2[i,j]!= 0 and j<i)]
+            []
+
+        This example illustrates that sometimes, the returned matrices are
+        singular due to numerical inaccuracies,
+        and demonstrates the use of the ``certificate`` keyword::
+
+            sage: Z = Qp(5, 3)
+            sage: M = matrix(Z,3,[[2*5^2 + 5^3 + O(5^5), 3*5^3 + 5^4 + 4*5^5
+            ....: + O(5^6), 4*5 + 3*5^2 + 2*5^3 + O(5^4)], [3 + 4*5 + 3*5^2
+            ....: + O(5^3), 3 + 3*5 + 2*5^2 + O(5^3), 1 + 5 + O(5^2)],
+            ....: [3*5^3 + 2*5^4 + 5^5 + O(5^6), 2*5^-1 + 4 + 3*5 + O(5^2),
+            ....: 2 + 3*5 + O(5^2)]])
+            sage: T1,S,T2,c = M.bruhat(certificate=True)
+            sage: c
+            False
+            sage: # S is not invertible, despite the fact that M is.
+            sage: M.is_invertible()
+            True
+            sage: S.is_invertible()
+            False
+
+        This example shows that sometimes ``self``!=``T1``*``S``*``T2``,
+        due to numerical inaccuracies::
+
+            sage: Z = Qp(5, 3)
+            sage: M = matrix(Z,3,[[2*5^2 + 4*5^3 + 3*5^4 + O(5^5), 1 + O(5^2),
+            ....: 3*5^-1 + 1 + 3*5 + O(5^2)], [4*5^-1 + 2 + 5 + O(5^2),
+            ....: 2*5^-1 + 2 + O(5^2), 4*5^2 + 5^3 + O(5^5)], [3*5^-2 + 4*5^-1
+            ....: + O(5), 2*5 + 2*5^2 + 4*5^3 + O(5^4), 2 + 2*5 + O(5^2)]])
+            sage: T1,S,T2 = M.bruhat()
+            sage: M - T1*S*T2
+            [2*5^2 + O(5^3)         O(5^2)         O(5^2)]
+            [        O(5^2)         O(5^2)         O(5^3)]
+            [          O(5)         O(5^4)         O(5^2)]
+
+        .. NOTE::
+
+            This method can only be used by square (non-empty) matrices over
+            fields, or over rings that have fraction fields.
+
+        .. WARNING::
+
+            When used on matrices over fields with numerical issues (such as
+            padic fields), it may happen that ``self``!=``T1``*``S``*``T2``,
+            and it may also happen that some of the returned matrices which
+            are supposed to be invertible, are not so, or vice versa (the
+            opposite direction is only relevant in case the original matrix
+            is singular, and then ``S`` should be singular too).
+            The ``certificate`` keyword can be used to get indication for
+            that.
+
+        .. SEEALSO::
+
+            :meth:`iwasawa`, :meth:`cartan`, :meth:`bruhat-iwahori`, :meth:`TSB`.
+
+        TESTS:
+
+        The method raises TypeError in case ``self`` is a non-square
+        matrix::
+
+            sage: M = random_matrix(QQ,3,4)
+            sage: M.bruhat()
+            Traceback (most recent call last):
+            ...
+            TypeError: ``self`` must be a non-empty square matrix.
+
+        A zero matrix test::
+
+            sage: S.<s> = LaurentSeriesRing(GF(17))
+            sage: M = matrix(S,3,3,0)
+            sage: T1,S,T2 = M.bruhat()
+            sage: S
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: T2 # doctest: +SKIP
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        A = self.matrix_over_field()
+
+        # Check that the matrix is legal for this decomposition
+        if (A.ncols() == 0) or (not A.is_square()):
+            raise TypeError("``self`` must be a non-empty square matrix.")
+
+        # Get ``T1``, ``S``, ``T2``, such that ``T1``*``self`` = ``S``*``T2``,
+        # both ``T1``,``T2`` are invertible upper-triangular, and ``S`` is a
+        # permutation matrix.
+        # ``T1``.inverse(), ``S``, ``T2``, are a Bruhat decomposition of ``self``.
+        T1, S, T2 = A._bruhat_helper()
+
+        try:
+            T1 = T1.inverse()
+        except (ZeroDivisionError, NotImplementedError) as e:
+            if (isinstance(e, NotImplementedError)
+                and "Echelon form not implemented" not in str(e)):
+                raise e
+                raise ArithmeticError("Computation failed, due to singularity of \
+                    an inner matrix that was expected to be invertible.\n This is \
+                    probably due to numerical inaccuracy.")
+
+        if certificate:
+            output_is_as_expected = A._check_invertibility([T1, T2], [S])
+            return T1, S, T2, output_is_as_expected
+
+        return T1, S, T2
 
     # a limited number of access-only properties are provided for matrices
     @property
