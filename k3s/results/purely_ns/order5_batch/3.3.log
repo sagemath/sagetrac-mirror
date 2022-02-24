@@ -1,0 +1,25 @@
+1
+glueing
+Genus of
+[ 0  1 -1 -1 -2  0  1  2]
+[ 1  0  1 -1 -1 -2  0  1]
+[-1  1  0  1 -1 -1 -2  0]
+[-1 -1  1  0  1 -1 -1 -2]
+[-2 -1 -1  1  0  1 -1 -1]
+[ 0 -2 -1 -1  1  0  1 -1]
+[ 1  0 -2 -1 -1  1  0  1]
+[ 2  1  0 -2 -1 -1  1  0]
+Signature:  (2, 6)
+Genus symbol at 2:    1^8
+Genus symbol at 3:     1^-4 3^-4
+and
+Genus of
+[-12   3   3   3]
+[  3 -12   3   3]
+[  3   3 -12   3]
+[  3   3   3 -12]
+Signature:  (0, 4)
+Genus symbol at 2:    1^-4
+Genus symbol at 3:     3^-4
+Genus symbol at 5:     1^-1 5^-3
+above 3

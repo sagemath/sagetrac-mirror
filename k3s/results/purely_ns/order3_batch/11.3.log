@@ -1,0 +1,32 @@
+1
+found 1 extensions at level 5
+computing representatives of <__main__.GenusHermitian object at 0x7f4d196ea040>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d196eab20>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d190389d0>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d19038190>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d199fee80>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d19050970>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d196c9d30>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d18fe6880>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d18fe6880>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d196be520>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d18fffe50>
+Cp,fp: 1
+Genus of
+[-6  3 -3  0 -3  0]
+[ 3 -6  3 -3  3 -3]
+[-3  3 -4  2 -2  1]
+[ 0 -3  2 -4  1 -2]
+[-3  3 -2  1 -4  2]
+[ 0 -3  1 -2  2 -4]
+Signature:  (0, 6)
+Genus symbol at 2:    1^-6
+Genus symbol at 3:     1^-1 3^-5
+C1: 1 Genus symbol at 3:     1^1 3^-3
+computing representatives
+Found 0 matching extensions
+computing representatives of <__main__.GenusHermitian object at 0x7f4d18f45a30>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d19006af0>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d199f13d0>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d27bb15e0>
+computing representatives of <__main__.GenusHermitian object at 0x7f4d19d042e0>
