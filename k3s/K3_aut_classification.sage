@@ -493,5 +493,24 @@ def write_commands_nextp(path_read, commands_write, p):
   fi_write.close()
 
 
-
+def postprocess(folder_read, file_write, q):
+    directory = os.fsencode(folder_read)
+    k3s = []
+    for file in os.listdir(directory):
+        s = ""
+        filename = os.fsdecode(file)
+        if filename.endswith(f"{q}.result"):
+            print(filename)
+            fi = open(folder_read +"/"+ filename, "r")
+            for s in fi:
+                if s[:8] == "complete":
+                    continue
+                k3 = K3SurfaceAutGrp_from_str(s)
+                k3s.append(k3)
+            assert s[:8] == "complete"
+    fi = open(file_write, "w")
+    for k in k3s:
+        fi.write(k.str());fi.write('\n')
+    fi.close()
+    return k3s
 
