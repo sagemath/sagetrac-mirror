@@ -9,8 +9,7 @@ AUTHORS:
 - Sverre Lunoee--Nielsen (2020-07-01): Refactored the code and added
   new documentation and tests.
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Robert R. Bruner <rrb@math.wayne.edu>
 #             and          Michael J. Catanzaro <mike@math.wayne.edu>
 #
@@ -28,6 +27,7 @@ from sage.categories.morphism import Morphism
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.infinity import infinity
+
 
 def _create_relations_matrix(module, relations, source_degs, target_degs):
     r"""
@@ -107,7 +107,7 @@ def _create_relations_matrix(module, relations, source_degs, target_degs):
 
             values = []
             for b in module.basis_elements(source_degs[j]):
-                w = r_ij*b
+                w = r_ij * b
                 values.append(
                     target_space.zero() if w.is_zero() else w.vector_presentation())
 
@@ -231,7 +231,6 @@ class FPModuleMorphism(Morphism):
                 if parent.codomain()(img):
                     raise ValueError('relation %s is not sent to zero' % relation)
 
-
     @lazy_attribute
     def _free_morphism(self):
         """
@@ -257,7 +256,6 @@ class FPModuleMorphism(Morphism):
             return Homspace(self._values)
         Homspace = Hom(P.domain()._j.codomain(), P.codomain()._j.codomain())
         return Homspace([v.lift_to_free() for v in self._values])
-
 
     def change_ring(self, algebra):
         r"""
@@ -295,7 +293,6 @@ class FPModuleMorphism(Morphism):
             new_values.append(new_codomain([algebra(a)
                                             for a in v.dense_coefficient_list()]))
         return Hom(self.domain().change_ring(algebra), new_codomain)(new_values)
-
 
     def degree(self):
         r"""
@@ -342,7 +339,6 @@ class FPModuleMorphism(Morphism):
             raise ValueError("the zero morphism does not have a well-defined degree")
         return self._free_morphism.degree()
 
-
     def values(self):
         r"""
         The values under ``self`` of the module generators of the domain module.
@@ -378,7 +374,6 @@ class FPModuleMorphism(Morphism):
             (0, 0)
         """
         return self._values
-
 
     def _richcmp_(self, other, op):
         r"""
@@ -421,7 +416,6 @@ class FPModuleMorphism(Morphism):
             return not same
 
         return False
-
 
     def __add__(self, g):
         r"""
@@ -480,7 +474,6 @@ class FPModuleMorphism(Morphism):
 
         return self.parent()(v)
 
-
     def __neg__(self):
         r"""
         The additive inverse of ``self`` with respect to the group
@@ -522,7 +515,6 @@ class FPModuleMorphism(Morphism):
         """
         return self.parent()([-x for x in self._values])
 
-
     def __sub__(self, g):
         r"""
         The difference between ``self`` and ``g`` with
@@ -561,7 +553,6 @@ class FPModuleMorphism(Morphism):
             True
         """
         return self.__add__(g.__neg__())
-
 
     def __mul__(self, g):
         r"""
@@ -620,7 +611,6 @@ class FPModuleMorphism(Morphism):
         homset = Hom(g.parent().domain(), self.parent().codomain())
         return homset([self(g(x)) for x in g.domain().generators()])
 
-
     @cached_method
     def is_zero(self):
         r"""
@@ -658,7 +648,6 @@ class FPModuleMorphism(Morphism):
         return all(x.is_zero() for x in self._values)
 
     __bool__ = is_zero
-
 
     @cached_method
     def is_identity(self):
@@ -702,7 +691,6 @@ class FPModuleMorphism(Morphism):
         return (self.parent().is_endomorphism_set() and
                 self.parent().identity() == self)
 
-
     def __call__(self, x):
         r"""
         Evaluate the homomorphism at the given domain element ``x``.
@@ -737,7 +725,6 @@ class FPModuleMorphism(Morphism):
 
         return self.codomain()(self._free_morphism(x.lift_to_free()))
 
-
     def _repr_type(self):
         """
         TESTS::
@@ -752,7 +739,6 @@ class FPModuleMorphism(Morphism):
             'Module'
         """
         return "Module"
-
 
     def _repr_defn(self):
         """
@@ -776,10 +762,9 @@ class FPModuleMorphism(Morphism):
             b[4] |--> Sq(4)*c[3]
             b[5] |--> Sq(4)*c[4]
         """
-        s = '\n'.join(['%s |--> %s'%(x, y) for (x, y) in
-                       zip(self.domain().generators(), self._values)])
-        return s
-
+        return '\n'.join('%s |--> %s' % (x, y)
+                         for (x, y) in zip(self.domain().generators(),
+                                           self._values))
 
     @cached_method
     def vector_presentation(self, n):
@@ -914,7 +899,6 @@ class FPModuleMorphism(Morphism):
         return Hom(D_n, C_n)([C_n.zero() if e.is_zero() else e.vector_presentation()
                               for e in values])
 
-
     def solve(self, x):
         r"""
         Return an element in the inverse image of ``x``.
@@ -975,12 +959,11 @@ class FPModuleMorphism(Morphism):
         v = x.vector_presentation()
 
         # Return None if ``x`` cannot be lifted.
-        if not v in f_n.image():
+        if v not in f_n.image():
             return None
 
         u = f_n.matrix().solve_left(v)
         return self.domain().element_from_coordinates(u, n)
-
 
     def lift(self, f, verbose=False):
         r"""
@@ -1205,7 +1188,7 @@ class FPModuleMorphism(Morphism):
         for r in L.relations():
             target_degree = r.degree() + lift_deg
 
-            y = iK.solve(sum([c*x for c,x in zip(r.dense_coefficient_list(), xs)]))
+            y = iK.solve(sum([c * x for c, x in zip(r.dense_coefficient_list(), xs)]))
             if y is None:
                 if verbose:
                     print('The homomorphism cannot be lifted in any '
@@ -1215,7 +1198,7 @@ class FPModuleMorphism(Morphism):
 
             if y.is_zero():
                 dim = len(K[target_degree])
-                ys += dim*[0]  # The zero vector of the appropriate dimension.
+                ys += dim * [0]  # The zero vector of the appropriate dimension.
             else:
                 all_zero = False
                 ys += list(y.vector_presentation())
@@ -1247,8 +1230,8 @@ class FPModuleMorphism(Morphism):
 
             source_dimension = block_matrix[0][j].domain().dimension()
 
-            w = K.element_from_coordinates(
-                    solution[n:n + source_dimension], source_degree)
+            w = K.element_from_coordinates(solution[n:n + source_dimension],
+                                           source_degree)
 
             # Subtract the solution w_i from our initial choice of lift
             # for the generator g_i.
@@ -1257,7 +1240,6 @@ class FPModuleMorphism(Morphism):
             n += source_degree
 
         return Hom(L, M)(xs)
-
 
     def split(self, verbose=False):
         r"""
@@ -1306,7 +1288,6 @@ class FPModuleMorphism(Morphism):
         """
         id = End(self.codomain()).identity()
         return id.lift(self, verbose)
-
 
     def homology(self, f, top_dim=None, verbose=False):
         r"""
@@ -1359,7 +1340,6 @@ class FPModuleMorphism(Morphism):
                              'therefore not defined for this pair of maps')
 
         return f_.cokernel_projection()
-
 
     def suspension(self, t):
         r"""
@@ -1415,7 +1395,6 @@ class FPModuleMorphism(Morphism):
         return Hom(D, C)([C(x.lift_to_free().dense_coefficient_list())
                           for x in self._values])
 
-
     def cokernel_projection(self):
         r"""
         Compute the map to the cokernel of ``self``.
@@ -1454,7 +1433,6 @@ class FPModuleMorphism(Morphism):
         projection = Hom(self.codomain(), coker)(coker.generators())
 
         return projection
-
 
     def kernel_inclusion(self, top_dim=None, verbose=False):
         r"""
@@ -1532,7 +1510,6 @@ class FPModuleMorphism(Morphism):
         # its image equals ker(self).
         return Hom(K, j0.codomain())(j0._values)
 
-
     def image(self, top_dim=None, verbose=False):
         r"""
         Compute the image of ``self``.
@@ -1588,7 +1565,6 @@ class FPModuleMorphism(Morphism):
             (Sq(1)*g[0], Sq(2)*g[0], Sq(4)*g[0], Sq(8)*g[0])
             sage: K.domain().is_trivial()
             False
-
         """
         if verbose:
             print('1. Computing the generators of the image presentation:')
@@ -1603,7 +1579,6 @@ class FPModuleMorphism(Morphism):
         # Return an injection of I into the codomain of self such that
         # its image equals im(self)
         return Hom(I, j0.codomain())(j0._values)
-
 
     def is_injective(self, top_dim=None, verbose=False):
         r"""
@@ -1632,11 +1607,9 @@ class FPModuleMorphism(Morphism):
             sage: Z = FPModule(A, [])
             sage: Hom(Z, HZ).zero().is_injective(top_dim=8)
             True
-
         """
         j0 = self._resolve_kernel(top_dim, verbose)
         return j0.domain().is_trivial()
-
 
     def is_surjective(self):
         r"""
@@ -1657,10 +1630,8 @@ class FPModuleMorphism(Morphism):
             sage: Z = FPModule(A, [])
             sage: Hom(F, Z).zero().is_surjective()
             True
-
         """
         return self.cokernel_projection().is_zero()
-
 
     def _resolve_kernel(self, top_dim=None, verbose=False):
         r"""
@@ -1740,7 +1711,7 @@ class FPModuleMorphism(Morphism):
         dim = domain.connectivity()
         if dim == infinity:
             if verbose:
-                print ('The domain of the morphism is trivial, so there is nothing to resolve.')
+                print('The domain of the morphism is trivial, so there is nothing to resolve.')
             return j
 
         if not R.dimension() < infinity:
@@ -1761,7 +1732,7 @@ class FPModuleMorphism(Morphism):
                 print('Resolving the kernel in the range of dimensions [%d, %d]:' % (dim, limit), end='')
 
         # The induction loop.
-        for n in range(dim, limit+1):
+        for n in range(dim, limit + 1):
 
             if verbose:
                 print(' %d' % n, end='')
@@ -1804,7 +1775,6 @@ class FPModuleMorphism(Morphism):
         if verbose:
             print('.')
         return j
-
 
     def _resolve_image(self, top_dim=None, verbose=False):
         r"""
@@ -1873,14 +1843,14 @@ class FPModuleMorphism(Morphism):
         dim = self.codomain().connectivity()
         if dim == infinity:
             if verbose:
-                print ('The codomain of the morphism is trivial, so there is nothing to resolve.')
+                print('The codomain of the morphism is trivial, so there is nothing to resolve.')
             return j
 
         try:
             self_degree = self.degree()
         except ValueError:
             if verbose:
-                print ('The homomorphism is trivial, so there is nothing to resolve.')
+                print('The homomorphism is trivial, so there is nothing to resolve.')
             return j
 
         degree_values = [0] + [v.degree() for v in self._values if v]
@@ -1899,7 +1869,7 @@ class FPModuleMorphism(Morphism):
             else:
                 print('Resolving the image in the range of dimensions [%d, %d]:' % (dim, limit), end='')
 
-        for n in range(dim, limit+1):
+        for n in range(dim, limit + 1):
 
             if verbose:
                 print(' %d' % n, end='')
@@ -1909,7 +1879,6 @@ class FPModuleMorphism(Morphism):
 
             if image_n.dimension() == 0:
                 continue
-
 
             generator_degrees = tuple((x.degree() for x in F_.generators()))
             if j.is_zero():
@@ -1937,7 +1906,7 @@ class FPModuleMorphism(Morphism):
 
             # Create a new homomorphism which is surjective onto the image
             # in all degrees less than, and including `n`.
-            j = Hom(F_, self.codomain()) (j._values + new_values)
+            j = Hom(F_, self.codomain())(j._values + new_values)
 
         if verbose:
             print('.')
@@ -1993,7 +1962,6 @@ class FPModuleMorphism(Morphism):
         return FPModule(self.base_ring(),
                         self.codomain().generator_degrees(),
                         tuple([r.dense_coefficient_list() for r in self._values]))
-
 
     def _lift_to_free_morphism(self):
         """
@@ -2055,4 +2023,3 @@ def _top_dim(algebra):
         # top_class method, e.g., exterior algebras.
         alg_top_dim = max(a.degree() for a in algebra.basis())
     return alg_top_dim
-
