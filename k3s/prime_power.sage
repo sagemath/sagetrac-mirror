@@ -714,7 +714,7 @@ def next_prime_power(ptype1, verbose=0, rankCp=None):
             if verbose > 0:
                 print('found %s extensions at level %s'%(len(ext),verbose))
             for ex in ext:
-                assert ptype(ex[0], ex[1]^p, p)==ptype1
+                assert ptype(ex[0], ex[1]^p, p)==ptype1[:i+1]
                 yield ex
 
 
@@ -770,7 +770,7 @@ def pnq_actions(q, ptype1,k3_unobstructed=True,verbose=2):
                     if K.signature_pair()[0]==0 and K.maximum()==-2:
                         print("obstructed")
                         continue
-                assert ptype(ex[0], ex[1]^q, p)==ptype1
+                assert ptype(ex[0], ex[1]^q, p)==ptype1[:i+1]
                 yield ex
 
 def sig_k3(n, rk, pos):
