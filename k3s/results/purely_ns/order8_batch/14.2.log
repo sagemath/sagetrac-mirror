@@ -1,0 +1,41 @@
+1
+found 0 extensions at level 4
+computing representatives of Genus of
+None
+Signature:  (0, 1)
+Genus symbol at 2:    [2^1]_7
+computing representatives of Genus of
+None
+Signature:  (0, 1)
+Genus symbol at 2:    [4^1]_7
+Cp,fp: 1
+Genus of
+[-4]
+Signature:  (0, 1)
+Genus symbol at 2:    [4^1]_7
+C1: 1 Genus symbol at 2:    [2^2 4^1]_7
+computing representatives
+Found 1 matching extensions
+found 0 extensions at level 4
+computing representatives of Genus of
+None
+Signature:  (0, 1)
+Genus symbol at 2:    [8^1]_7
+Cp,fp: 2
+Genus of
+[-8]
+Signature:  (0, 1)
+Genus symbol at 2:    [8^1]_7
+C1: 2 Genus symbol at 2:    1^-2:[8^-1]_3
+computing representatives
+Found 1 matching extensions
+found 1 extensions at level 4
+Traceback (most recent call last):
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/src/bin/sage-eval", line 10, in <module>
+    eval(compile(s,'<cmdline>','exec'))
+  File "<cmdline>", line 1, in <module>
+  File "<string>", line 315, in classify
+  File "<string>", line 258, in classify_purely_ns_nextp
+  File "<string>", line 711, in next_prime_power
+  File "<string>", line 717, in next_prime_power
+AssertionError
