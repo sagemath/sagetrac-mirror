@@ -1,0 +1,32 @@
+  ***   Warning: not enough memory, new PARI stack 8713719808
+Traceback (most recent call last):
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/src/bin/sage-eval", line 10, in <module>
+    eval(compile(s,'<cmdline>','exec'))
+  File "<cmdline>", line 1, in <module>
+  File "sage/misc/persist.pyx", line 173, in sage.misc.persist.load (build/cythonized/sage/misc/persist.c:2563)
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/local/lib/python3.9/site-packages/sage/repl/load.py", line 272, in load
+    exec(preparse_file(f.read()) + "\n", globals)
+  File "<string>", line 14, in <module>
+  File "sage/misc/persist.pyx", line 173, in sage.misc.persist.load (build/cythonized/sage/misc/persist.c:2563)
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/local/lib/python3.9/site-packages/sage/repl/load.py", line 272, in load
+    exec(preparse_file(f.read()) + "\n", globals)
+  File "<string>", line 7, in <module>
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/local/lib/python3.9/site-packages/sage/interfaces/magma.py", line 1019, in attach_spec
+    s = self.eval('AttachSpec("%s")' % filename)
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/local/lib/python3.9/site-packages/sage/interfaces/magma.py", line 558, in eval
+    ans = Expect.eval(self, x, **kwds).replace('\\\n', '')
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/local/lib/python3.9/site-packages/sage/interfaces/expect.py", line 1381, in eval
+    return '\n'.join([self._eval_line(L, allow_use_file=allow_use_file, **kwds)
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/local/lib/python3.9/site-packages/sage/interfaces/expect.py", line 1381, in <listcomp>
+    return '\n'.join([self._eval_line(L, allow_use_file=allow_use_file, **kwds)
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/local/lib/python3.9/site-packages/sage/interfaces/expect.py", line 947, in _eval_line
+    self._start()
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/local/lib/python3.9/site-packages/sage/interfaces/magma.py", line 598, in _start
+    Expect._start(self)
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/local/lib/python3.9/site-packages/sage/interfaces/expect.py", line 513, in _start
+    cleaner.cleaner(self._expect.pid, cmd)
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/local/lib/python3.9/site-packages/sage/interfaces/cleaner.py", line 37, in cleaner
+    start_cleaner()
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/local/lib/python3.9/site-packages/sage/interfaces/cleaner.py", line 44, in start_cleaner
+    if not os.fork():
+OSError: [Errno 12] Cannot allocate memory
