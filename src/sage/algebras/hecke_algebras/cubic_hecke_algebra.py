@@ -804,8 +804,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         from sage.databases.cubic_hecke_db import CubicHeckeDataBase, CubicHeckeFileCache
         self._database   =   CubicHeckeDataBase()
         self._filecache  =   CubicHeckeFileCache(self._nstrands)
-        self._markov_irr_coeff_step = 'irr_coeff'
-
 
         # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
