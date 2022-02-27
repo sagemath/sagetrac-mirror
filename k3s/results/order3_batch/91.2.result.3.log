@@ -1,0 +1,8 @@
+1
+Traceback (most recent call last):
+  File "/home/lehrstuhl/ag-brandhorst/brandhorst/sage/src/bin/sage-eval", line 10, in <module>
+    eval(compile(s,'<cmdline>','exec'))
+  File "<cmdline>", line 1, in <module>
+  File "<string>", line 313, in classify
+  File "<string>", line 389, in classify_mixed_nextp
+AssertionError
