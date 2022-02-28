@@ -514,3 +514,24 @@ def postprocess(folder_read, file_write, q):
     fi.close()
     return k3s
 
+
+def postprocess2(folder_read, file_write, ends_str):
+    directory = os.fsencode(folder_read)
+    k3s = []
+    for file in os.listdir(directory):
+        s = ""
+        filename = os.fsdecode(file)
+        if filename.endswith(ends_str):
+            print(filename)
+            fi = open(folder_read +"/"+ filename, "r")
+            for s in fi:
+                if s[:8] == "complete":
+                    continue
+                k3 = K3SurfaceAutGrp_from_str(s)
+                k3s.append(k3)
+            assert s[:8] == "complete"
+    fi = open(file_write, "w")
+    for k in k3s:
+        fi.write(k.str());fi.write('\n')
+    fi.close()
+    return k3s
