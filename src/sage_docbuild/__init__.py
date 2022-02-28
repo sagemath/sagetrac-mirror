@@ -53,7 +53,8 @@ import sphinx.ext.intersphinx
 
 import sage.all
 from sage.misc.cachefunc import cached_method
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, DOT_SAGE
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
+from sage.misc.dot_sage import dot_sage
 
 from .build_options import (LANGUAGES, SPHINXOPTS, OMIT,
                             ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
@@ -1160,7 +1161,7 @@ class SingleFileBuilder(DocBuilder):
     This is the class used to build the documentation for a single
     user-specified file. If the file is called 'foo.py', then the
     documentation is built in ``DIR/foo/`` if the user passes the
-    command line option "-o DIR", or in ``DOT_SAGE/docbuild/foo/``
+    command line option "-o DIR", or in ``dot_sage()/docbuild/foo/``
     otherwise.
     """
     def __init__(self, path):
@@ -1176,7 +1177,7 @@ class SingleFileBuilder(DocBuilder):
 
         # Create docbuild and relevant subdirectories, e.g.,
         # the static and templates directories in the output directory.
-        # By default, this is DOT_SAGE/docbuild/MODULE_NAME, but can
+        # By default, this is dot_sage()/docbuild/MODULE_NAME, but can
         # also be specified at the command line.
         module_name = os.path.splitext(os.path.basename(path))[0]
         latex_name = module_name.replace('_', r'\\_')
@@ -1186,7 +1187,7 @@ class SingleFileBuilder(DocBuilder):
             if os.path.exists(base_dir):
                 logger.warning('Warning: Directory %s exists. It is safer to build in a new directory.' % base_dir)
         else:
-            base_dir = os.path.join(DOT_SAGE, 'docbuild', module_name)
+            base_dir = dot_sage() / 'docbuild' / module_name
             try:
                 shutil.rmtree(base_dir)
             except OSError:

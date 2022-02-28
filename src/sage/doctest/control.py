@@ -30,7 +30,8 @@ import types
 import sage.misc.flatten
 import sage.misc.randstate as randstate
 from sage.structure.sage_object import SageObject
-from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC, SAGE_VENV, SAGE_EXTCODE
+from sage.env import SAGE_LIB, SAGE_SRC, SAGE_VENV, SAGE_EXTCODE
+from sage.misc.dot_sage import dot_sage
 from sage.misc.temporary_file import tmp_dir
 from cysignals.signals import AlarmInterrupt, init_cysignals
 
@@ -139,7 +140,7 @@ class DocTestDefaults(SageObject):
 
         # We don't want to use the real stats file by default so that
         # we don't overwrite timings for the actual running doctests.
-        self.stats_path = os.path.join(DOT_SAGE, "timings_dt_test.json")
+        self.stats_path = dot_sage() / "timings_dt_test.json"
         self.__dict__.update(kwds)
 
     def _repr_(self):
@@ -1108,17 +1109,17 @@ class DocTestController(SageObject):
             cmd = '''exec gdb -x "%s" --args '''%(os.path.join(SAGE_VENV, "bin", "sage-gdb-commands"))
             flags = ""
             if opt.logfile:
-                sage_cmd += " --logfile %s"%(opt.logfile)
+                sage_cmd += " --logfile %s" % opt.logfile
         else:
             if opt.logfile is None:
-                default_log = os.path.join(DOT_SAGE, "valgrind")
-                if os.path.exists(default_log):
-                    if not os.path.isdir(default_log):
-                        self.log("%s must be a directory"%default_log)
+                default_log = dot_sage() / "valgrind"
+                if default_log.exists():
+                    if not default_log.is_dir():
+                        self.log("%s must be a directory" % default_log)
                         return 2
                 else:
                     os.makedirs(default_log)
-                logfile = os.path.join(default_log, "sage-%s")
+                logfile = str(default_log / "sage-%s")
             else:
                 logfile = opt.logfile
             if opt.valgrind:

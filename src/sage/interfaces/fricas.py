@@ -201,7 +201,8 @@ import os
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.misc.misc import SAGE_TMP_INTERFACE
-from sage.env import DOT_SAGE, LOCAL_IDENTIFIER
+from sage.env import LOCAL_IDENTIFIER
+from sage.misc.dot_sage import dot_sage
 from sage.docs.instancedoc import instancedoc
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -289,7 +290,7 @@ class FriCAS(ExtraTabCompletion, Expect):
         eval_using_file_cutoff = 4096 - 5  # magic number from Expect._eval_line (there might be a bug)
         assert max(len(c) for c in FRICAS_INIT_CODE) < eval_using_file_cutoff
         self.__eval_using_file_cutoff = eval_using_file_cutoff
-        self._COMMANDS_CACHE = '%s/%s_commandlist_cache.sobj' % (DOT_SAGE, name)
+        self._COMMANDS_CACHE = dot_sage() / f'{name}_commandlist_cache.sobj'
         # we run the init code in _start to avoid spurious output
         Expect.__init__(self,
                         name=name,

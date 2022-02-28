@@ -16,7 +16,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
 from __future__ import annotations
-import os
 import pickle
 
 from sage.structure.sage_object import SageObject
@@ -2230,7 +2229,7 @@ def _construct_exceptional_mutation_classes(n) -> dict[tuple, list | set]:
 
 def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     """
-    Save all exceptional mutation classes as dig6 data into the file ``exc_classes_n.dig6`` in the folder ``DOT_SAGE``.
+    Save all exceptional mutation classes as dig6 data into the file ``exc_classes_n.dig6`` in the folder ``dot_sage()``.
 
     TESTS::
 
@@ -2271,9 +2270,9 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     if types in possible_types[1:]:
         data.update(_construct_exceptional_mutation_classes(n))
 
-    from sage.env import DOT_SAGE
-    types_path = os.path.join(DOT_SAGE, 'cluster_algebra_quiver')
-    types_file = os.path.join(types_path, 'mutation_classes_%s.dig6' % n)
+    from sage.misc.dot_sage import dot_sage
+    types_path = dot_sage() / 'cluster_algebra_quiver'
+    types_file = types_path / ('mutation_classes_%s.dig6' % n)
     os.makedirs(types_path, exist_ok=True)
     from sage.misc.temporary_file import atomic_write
     with atomic_write(types_file, binary=True) as f:
@@ -2288,7 +2287,7 @@ def save_quiver_data(n, up_to=True, types='ClassicalExceptional', verbose=True):
     r"""
     Save mutation classes of certain quivers of ranks up to and equal
     to ``n`` or equal to ``n`` to
-    ``DOT_SAGE/cluster_algebra_quiver/mutation_classes_n.dig6``.
+    ``dot_sage()/cluster_algebra_quiver/mutation_classes_n.dig6``.
 
     This data will then be used to determine quiver mutation types.
 

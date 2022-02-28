@@ -222,13 +222,14 @@ PROMPT = ">>>"
 SAGE_REF = "_sage_ref"
 SAGE_REF_RE = re.compile(r'%s\d+' % SAGE_REF)
 
-from sage.env import SAGE_EXTCODE, DOT_SAGE
+from sage.env import SAGE_EXTCODE
+from sage.misc.dot_sage import dot_sage
 import sage.misc.misc
 import sage.misc.sage_eval
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
 
-INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj' % DOT_SAGE
+INTRINSIC_CACHE = dot_sage() / 'magma_intrinsic_cache.sobj'
 EXTCODE_DIR = None
 
 
