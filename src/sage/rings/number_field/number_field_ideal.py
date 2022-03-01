@@ -995,10 +995,32 @@ class NumberFieldIdeal(Ideal_generic):
             False
             sage: K.ideal(17).is_prime()  # ramified
             False
+
+        TESTS::
+
+        Check that we do not factor the norm of the ideal, this used
+        to take half an hour, see :trac:`33360`
+
+           sage: K.<a,b,c> = NumberField([x^2-2,x^2-3,x^2-5])
+           sage: t = (((-2611940*c + 1925290/7653)*b - 1537130/7653*c
+           ....:       + 10130950)*a + (1343014/7653*c - 8349770)*b
+           ....:       + 6477058*c - 2801449990/4002519)
+           sage: t.is_prime()
+           False
+
         """
         try:
             return self._pari_prime is not None
         except AttributeError:
+            K = self.number_field().pari_nf()
+            I = self.pari_hnf()
+            # This would be better, but it is broken in pari 2.13.3.
+            #   self._pari_prime = K.idealismaximal(I) or None
+            # Instead we factor I, but only if the norm is a prime power
+            n = K.idealnorm(I)
+            if n.denominator() > 1 or not n.isprimepower():
+                self._pari_prime = None
+                return False
             F = self.factor()  # factorization with caching
             if len(F) != 1 or F[0][1] != 1:
                 self._pari_prime = None
