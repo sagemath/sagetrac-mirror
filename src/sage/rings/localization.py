@@ -290,7 +290,6 @@ class LocalizationElement(IntegralDomainElement):
         """
         return "%s" % self._value
 
-
     def _add_(left, right):
         """
         Compute addition with another instance of ``self`` (via `+` operator).
@@ -383,7 +382,6 @@ class LocalizationElement(IntegralDomainElement):
         from sage.structure.factorization import Factorization
         return Factorization(fac, unit=~P(den)*F.unit())
 
-
     def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         EXAMPLES::
@@ -395,8 +393,6 @@ class LocalizationElement(IntegralDomainElement):
             5/26
         """
         return self._value._im_gens_(codomain, im_gens, base_map=base_map)
-
-
 
     def numerator(self):
         """
@@ -530,10 +526,6 @@ class LocalizationElement(IntegralDomainElement):
         return self._value._integer_(Z=Z)
 
 
-
-
-
-
 class Localization(IntegralDomain, UniqueRepresentation):
     r"""
     The localization generalizes the construction of the field of fractions of an integral domain to
@@ -649,7 +641,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
             sage: TestSuite(L).run()
         """
         if type(additional_units) is tuple:
-            additional_units =list(additional_units)
+            additional_units = list(additional_units)
         if not type(additional_units) is list:
             additional_units = [additional_units]
 
@@ -667,7 +659,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
         additional_units = normalize_additional_units(base_ring, additional_units, warning=warning)
 
         if not additional_units:
-            raise ValueError('all given elements are invertible in %s' %(base_ring))
+            raise ValueError('all given elements are invertible in %s' % (base_ring))
 
         if category is None:
             # since by construction the base ring must contain non units self must be infinite
@@ -751,9 +743,9 @@ class Localization(IntegralDomain, UniqueRepresentation):
         B = self.base_ring()
         if base_map is not None:
             if base_map.domain() is not B:
-                raise ValueError('domain of base_map must be %s' %B)
+                raise ValueError('domain of base_map must be %s' % B)
             if base_map.codomain() is not codomain.base_ring():
-                raise ValueError('codomain of base_map must be %s' %codomain.base_ring())
+                raise ValueError('codomain of base_map must be %s' % codomain.base_ring())
             bas_gens = B.gens()
             if im_gens and not all(base_map(g) == im_gens[bas_gens.index(g)] for g in bas_gens):
                 raise ValueError('given base_map is not compatible with im_gens')
@@ -817,7 +809,6 @@ class Localization(IntegralDomain, UniqueRepresentation):
         """
         return tuple(self(g) for g in self.base_ring().gens())
 
-
     def _cut_off_additional_units_from_base_ring_element(self, x):
         """
         Return a factor of x not divided by any additional unit of ``self``.
@@ -856,10 +847,10 @@ class Localization(IntegralDomain, UniqueRepresentation):
         res = x
         for au in add_units:
             if au.divides(x):
-               # recursion must terminate by reducing the number of factors
-               res = self._cut_off_additional_units_from_base_ring_element(x // au)
-               if res.is_unit():
-                   return res
+                # recursion must terminate by reducing the number of factors
+                res = self._cut_off_additional_units_from_base_ring_element(x // au)
+                if res.is_unit():
+                    return res
         return res
 
     def _fraction_to_element(self, x):
@@ -891,7 +882,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
         """
         potential_non_unit_denom = self._cut_off_additional_units_from_base_ring_element(x.denominator())
         if potential_non_unit_denom.is_unit():
-           return self.element_class(self, x)
+            return self.element_class(self, x)
         raise ValueError("factor %s of denominator is not a unit" % potential_non_unit_denom)
 
     def _coerce_map_from_(self, S):
@@ -962,7 +953,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
         Return the Krull dimension of this localization.
 
         Since the current implementation just allows integral domains as base ring
-        and localization at a finite set of elements the spectrum of ``self`` 
+        and localization at a finite set of elements the spectrum of ``self``
         is open in the irreducible spectrum of its base ring.
         Therefore, by density we may take the dimension from there.
 
@@ -974,8 +965,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
         """
         return self.base_ring().krull_dimension()
 
-
-    def is_field(self, proof = True):
+    def is_field(self, proof=True):
         """
         Return ``True`` if this ring is a field.
 
@@ -1004,4 +994,3 @@ class Localization(IntegralDomain, UniqueRepresentation):
             except NotImplementedError:
                 pass
         return super(Localization, self).is_field(proof=proof)
-

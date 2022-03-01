@@ -224,8 +224,8 @@ cdef class Matrix(Matrix1):
 
         - ``check`` -- boolean (default: ``True``); verify the answer
           if the system is non-square or rank-deficient, and if its
-          entries lie in an exact ring. Meaningless over inexact rings,
-          or when the system is square and of full rank.
+          entries lie in an exact ring. Meaningless over most inexact
+          rings, or when the system is square and of full rank.
 
         OUTPUT:
 
@@ -239,12 +239,13 @@ cdef class Matrix(Matrix1):
         If the system is not square or does not have full rank, then a
         solution is attempted via other means. For example, over
         ``RDF`` or ``CDF`` a least-squares solution is returned, as
-        with MATLAB's "backslash" operator. For inexact rings, the
+        with MATLAB's "backslash" operator. For most inexact rings, the
         ``check`` parameter is ignored because an approximate solution
         will be returned in any case. Over exact rings, on the other
         hand, setting the ``check`` parameter results in an additional
         test to determine whether or not the answer actually solves the
-        system exactly.
+        system exactly. If a symbolic system involves only exact elements,
+        its solution can still be checked.
 
         If `B` is a vector, the result is returned as a vector, as well,
         and as a matrix, otherwise.
@@ -395,6 +396,25 @@ cdef class Matrix(Matrix1):
             (0.5 - 1.5*I, 0.5 + 0.5*I)
             sage: b = vector(QQ[I], [1+I, 2])
             sage: x = A.solve_left(b)
+
+        Over the inexact ring ``SR``, we can still verify the solution
+        if all of the elements involved were exact to begin with; if
+        any are inexact, however, the ``check`` is still skipped
+        (:trac:`29729` and :trac:`33159`)::
+
+            sage: A = matrix(SR, [[1, 1]])                  # optional - sage.symbolic
+            sage: b = vector(SR, [2, 3])                    # optional - sage.symbolic
+            sage: A.solve_left(b)                           # optional - sage.symbolic
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+
+        In this case, turning off the ``check`` leads to a wrong result::
+
+            sage: A.solve_left(b, check=False)              # optional - sage.symbolic
+            (2)
+
         """
         if is_Vector(B):
             try:
@@ -433,8 +453,8 @@ cdef class Matrix(Matrix1):
 
         - ``check`` -- boolean (default: ``True``); verify the answer
           if the system is non-square or rank-deficient, and if its
-          entries lie in an exact ring. Meaningless over inexact rings,
-          or when the system is square and of full rank.
+          entries lie in an exact ring. Meaningless over most inexact
+          rings, or when the system is square and of full rank.
 
         OUTPUT:
 
@@ -448,12 +468,13 @@ cdef class Matrix(Matrix1):
         If the system is not square or does not have full rank, then a
         solution is attempted via other means. For example, over
         ``RDF`` or ``CDF`` a least-squares solution is returned, as
-        with MATLAB's "backslash" operator. For inexact rings, the
+        with MATLAB's "backslash" operator. For most inexact rings, the
         ``check`` parameter is ignored because an approximate solution
         will be returned in any case. Over exact rings, on the other
         hand, setting the ``check`` parameter results in an additional
         test to determine whether or not the answer actually solves the
-        system exactly.
+        system exactly. If a symbolic system involves only exact elements,
+        its solution can still be checked.
 
         If `B` is a vector, the result is returned as a vector, as well,
         and as a matrix, otherwise.
@@ -601,21 +622,20 @@ cdef class Matrix(Matrix1):
         Solving a system of linear equations symbolically using symbolic
         matrices::
 
-            sage: var('a,b,c,d,x,y')
+            sage: var('a,b,c,d,x,y')                                        # optional - sage.symbolic
             (a, b, c, d, x, y)
-            sage: A=matrix(SR,2,[a,b,c,d]); A
+            sage: A = matrix(SR, 2, [a,b,c,d]); A                           # optional - sage.symbolic
             [a b]
             [c d]
-            sage: result=vector(SR,[3,5]); result
+            sage: result = vector(SR, [3,5]); result                        # optional - sage.symbolic
             (3, 5)
-            sage: soln=A.solve_right(result)
-            sage: soln
+            sage: soln = A.solve_right(result); soln                        # optional - sage.symbolic
             (-b*(3*c/a - 5)/(a*(b*c/a - d)) + 3/a, (3*c/a - 5)/(b*c/a - d))
-            sage: (a*x+b*y).subs(x=soln[0],y=soln[1]).simplify_full()
+            sage: (a*x+b*y).subs(x=soln[0], y=soln[1]).simplify_full()      # optional - sage.symbolic
             3
-            sage: (c*x+d*y).subs(x=soln[0],y=soln[1]).simplify_full()
+            sage: (c*x+d*y).subs(x=soln[0], y=soln[1]).simplify_full()      # optional - sage.symbolic
             5
-            sage: (A*soln).apply_map(lambda x: x.simplify_full())
+            sage: (A*soln).apply_map(lambda x: x.simplify_full())           # optional - sage.symbolic
             (3, 5)
 
         Over inexact rings, the output of this function may not be an exact
@@ -780,6 +800,40 @@ cdef class Matrix(Matrix1):
             sage: A = matrix(RF, [[0.24, 1, 0], [1, 0, 0]])
             sage: 0 < (A * A.solve_right(B) - B).norm() < 1e-14
             True
+
+        Over the inexact ring ``SR``, we can still verify the solution
+        if all of the elements involved were exact to begin with; if
+        any are inexact, however, the ``check`` is still skipped
+        (:trac:`29729` and :trac:`33159`)::
+
+            sage: m = matrix(SR, [0])                       # optional - sage.symbolic
+            sage: b = vector(SR, [1])                       # optional - sage.symbolic
+            sage: m.solve_right(b, check=True)              # optional - sage.symbolic
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+        In this case, turning off the ``check`` leads to a wrong result::
+
+            sage: m.solve_right(b, check=False)             # optional - sage.symbolic
+            (0)
+
+        In the following, we have an inexact entry in the matrix, so
+        the ``check`` is still skipped leading to a wrong result::
+
+            sage: m = matrix(SR, [0.0])                     # optional - sage.symbolic
+            sage: m.solve_right(b, check=True)              # optional - sage.symbolic
+            (0)
+
+        ::
+
+            sage: SC = SR.subring(no_variables=True)        # optional - sage.symbolic
+            sage: m = matrix(SC, [0])                       # optional - sage.symbolic
+            sage: b = vector(SC, [1])                       # optional - sage.symbolic
+            sage: m.solve_right(b)                          # optional - sage.symbolic
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
         """
         try:
             L = B.base_ring()
@@ -812,8 +866,16 @@ cdef class Matrix(Matrix1):
             K = P
             self = self.change_ring(P)
 
-        # If our field is inexact, checking the answer is doomed anyway.
-        check = (check and K.is_exact())
+        # If our field is inexact, checking the answer is doomed in
+        # most cases. But here we handle the special ones.
+        if isinstance(K, sage.rings.abc.SymbolicRing):
+            # Elements of SR "remember" whether or not they are exact.
+            # If every element in the system is exact, we can probably
+            # still check the solution over the inexact ring SR.
+            check = (check and all( e.is_exact()
+                                    for e in self.list() + B.list() ))
+        else:
+            check = (check and K.is_exact())
 
         if not K.is_integral_domain():
             # The non-integral-domain case is handled almost entirely
@@ -2131,14 +2193,14 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES::
 
-            sage: A = matrix(SR, 2, lambda i, j: f'a{i}{j}'); A
+            sage: A = matrix(SR, 2, lambda i, j: f'a{i}{j}'); A             # optional - sage.symbolic
             [a00 a01]
             [a10 a11]
-            sage: A.quantum_determinant()
+            sage: A.quantum_determinant()                                   # optional - sage.symbolic
             -a01*a10*q + a00*a11
 
-            sage: A = matrix(SR, 3, lambda i, j: f'a{i}{j}')
-            sage: A.quantum_determinant()
+            sage: A = matrix(SR, 3, lambda i, j: f'a{i}{j}')                # optional - sage.symbolic
+            sage: A.quantum_determinant()                                   # optional - sage.symbolic
             -a02*a11*a20*q^3 + (a01*a12*a20 + a02*a10*a21)*q^2
              + (-a00*a12*a21 - a01*a10*a22)*q + a00*a11*a22
 
@@ -6926,16 +6988,36 @@ cdef class Matrix(Matrix1):
         the algebraic multiplicity. The following examples show that these
         cases are detected (:trac:`27842`)::
 
-            sage: A = matrix(SR, [(225/548, 0, -175/274*sqrt(193/1446)), (0, 1/2, 0), (-63/548*sqrt(723/386), 0, 49/548)])
-            sage: A.eigenmatrix_left()
+            sage: A = matrix(SR, [(225/548, 0, -175/274*sqrt(193/1446)),            # optional - sage.symbolic
+            ....:                 (0, 1/2, 0),
+            ....:                 (-63/548*sqrt(723/386), 0, 49/548)])
+            sage: A.eigenmatrix_left()                                              # optional - sage.symbolic
             Traceback (most recent call last):
             ...
             RuntimeError: failed to compute eigenvectors for eigenvalue ..., check eigenvectors_left() for partial results
-            sage: B = matrix(SR, [(1/2, -7/2*sqrt(1/386), 0, 49/2*sqrt(1/279078)), (-7/2*sqrt(1/386), 211/772, 0, -8425/772*sqrt(1/723)), (0, 0, 1/2, 0), (49/2*sqrt(1/279078), -8425/772*sqrt(1/723), 0, 561/772)])
-            sage: B.eigenmatrix_left()  # long time (1.2 seconds)
+            sage: B = matrix(SR, [(1/2, -7/2*sqrt(1/386), 0, 49/2*sqrt(1/279078)),  # optional - sage.symbolic
+            ....:                 (-7/2*sqrt(1/386), 211/772, 0, -8425/772*sqrt(1/723)),
+            ....:                 (0, 0, 1/2, 0),
+            ....:                 (49/2*sqrt(1/279078), -8425/772*sqrt(1/723), 0, 561/772)])
+            sage: B.eigenmatrix_left()  # long time (1.2 seconds)                   # optional - sage.symbolic
             Traceback (most recent call last):
             ...
             RuntimeError: failed to compute eigenvectors for eigenvalue ..., check eigenvectors_left() for partial results
+
+        The following example shows that :trac:`12595` has been resolved::
+
+            sage: m = Matrix(CDF, 8, [[-1, -1, -1, -1, 1, -3, -1, -1],
+            ....:                     [1, 1, 1, 1, -1, -1, 1, -3],
+            ....:                     [-1, 3, -1, -1, 1, 1, -1, -1],
+            ....:                     [-1, -1, -1, 3, 1, 1, -1, -1],
+            ....:                     [1, 1, -3, 1, -1, -1, 1, 1],
+            ....:                     [1, 1, 1, 1, -1, -1, -3, 1],
+            ....:                     [3, -1, -1, -1, 1, 1, -1, -1],
+            ....:                     [1, 1, 1, 1, 3, -1, 1, 1]])
+            sage: d, p = m.eigenmatrix_left()
+            sage: mm = p.inverse() * d * p  # This should be equal to m up to numerical noise
+            sage: norm(mm - m) < 1e-12
+            True
         """
         from sage.misc.flatten import flatten
         from sage.matrix.constructor import diagonal_matrix, matrix
@@ -12466,8 +12548,8 @@ cdef class Matrix(Matrix1):
 
         Even symbolic matrices can sometimes be factored::
 
-            sage: A = matrix(SR, [[pi,0],[0,pi]])
-            sage: A.cholesky()
+            sage: A = matrix(SR, [[pi,0], [0,pi]])      # optional - sage.symbolic
+            sage: A.cholesky()                          # optional - sage.symbolic
             [sqrt(pi)        0]
             [       0 sqrt(pi)]
 
@@ -12556,6 +12638,16 @@ cdef class Matrix(Matrix1):
             sage: A.cholesky()
             [   1.0    0.0]
             [-1.0*I    1.0]
+
+        Try the trivial case (:trac:`33107`)::
+
+            sage: all( matrix(R,[]).cholesky() == matrix(R,[])
+            ....:      for R in (RR,CC,RDF,CDF,ZZ,QQ,AA,QQbar) )
+            True
+            sage: all( matrix(R,[]).cholesky().is_immutable()
+            ....:      for R in (RR,CC,RDF,CDF,ZZ,QQ,AA,QQbar) )
+            True
+
         """
         cdef Matrix C # output matrix
         C = self.fetch('cholesky')
@@ -12566,6 +12658,14 @@ cdef class Matrix(Matrix1):
 
         if not self.is_hermitian():
             raise ValueError("matrix is not Hermitian")
+
+        if n == 0:
+            # The trivial matrix has a trivial cholesky decomposition.
+            # We special-case this after is_hermitian() to ensure that
+            # the matrix is square.
+            C = self.__copy__()
+            C.set_immutable()
+            return C
 
         # Use classical=True to ensure that we don't get a permuted L.
         cdef Matrix L  # block_ldlt() results
@@ -14589,7 +14689,7 @@ cdef class Matrix(Matrix1):
             True
             sage: matrix.identity(CC,4).is_positive_definite()
             True
-            sage: matrix.identity(SR,4).is_positive_definite()
+            sage: matrix.identity(SR,4).is_positive_definite()      # optional - sage.symbolic
             True
         """
         result = self._is_positive_definite_or_semidefinite(False)
@@ -14845,11 +14945,11 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES::
 
-            sage: M = matrix(SR, 2, 2, [[2-I, 3+4*I], [9-6*I, 5*I]])
-            sage: M.base_ring()
+            sage: M = matrix(SR, 2, 2, [[2-I, 3+4*I], [9-6*I, 5*I]])    # optional - sage.symbolic
+            sage: M.base_ring()                                         # optional - sage.symbolic
             Symbolic Ring
-            sage: M.conjugate_transpose()
-             [   I + 2  6*I + 9]
+            sage: M.conjugate_transpose()                               # optional - sage.symbolic
+            [   I + 2  6*I + 9]
             [-4*I + 3     -5*I]
 
             sage: P = matrix(CC, 3, 2, [0.95-0.63*I, 0.84+0.13*I, 0.94+0.23*I, 0.23+0.59*I, 0.52-0.41*I, -0.50+0.90*I])
@@ -15074,7 +15174,7 @@ cdef class Matrix(Matrix1):
 
         ::
 
-            sage: matrix(SR, 2, 2, range(4)).n()
+            sage: matrix(SR, 2, 2, range(4)).n()                    # optional - sage.symbolic
             [0.000000000000000  1.00000000000000]
             [ 2.00000000000000  3.00000000000000]
 

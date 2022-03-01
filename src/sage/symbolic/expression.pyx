@@ -384,6 +384,7 @@ from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 
 from sage.cpython.string cimport str_to_bytes, char_to_str
 
+from sage.structure.element cimport parent
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.structure.element cimport Expression as Expression_abc
 from sage.symbolic.complexity_measures import string_length
@@ -1467,7 +1468,7 @@ cdef class Expression(Expression_abc):
             MATHML version of the string pi + 2
 
         """
-        from sage.misc.all import mathml
+        from sage.misc.mathml import mathml
         try:
             obj = self.pyobject()
         except TypeError:
@@ -1804,6 +1805,9 @@ cdef class Expression(Expression_abc):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert bogus_builtin_function(1) to a ComplexBall
+
+            sage: CBF(acos(float(1/4) * sqrt(int(5))))
+            [0.97759655064526...]
         """
         cdef bint progress = False
         cdef int i
@@ -1841,7 +1845,7 @@ cdef class Expression(Expression_abc):
             # not bother trying to stay in the real field.
             try:
                 for i in range(len(args)):
-                    if args[i].parent() is not C:
+                    if parent(args[i]) is not C:
                         progress = True
                         args[i] = C(args[i])
             except (TypeError, ValueError):
@@ -5224,7 +5228,7 @@ cdef class Expression(Expression_abc):
     expand_rational = rational_expand = expand
 
     def expand_trig(self, full=False, half_angles=False, plus=True, times=True):
-        """
+        r"""
         Expand trigonometric and hyperbolic functions of sums of angles
         and of multiple angles occurring in self. For best results, self
         should already be expanded.
@@ -7952,7 +7956,7 @@ cdef class Expression(Expression_abc):
             return new_Expression_from_GEx(self._parent, x)
 
     def gosper_term(self, n):
-        """
+        r"""
         Return Gosper's hypergeometric term for ``self``.
 
         Suppose ``f``=``self`` is a hypergeometric term such that:
@@ -10958,12 +10962,11 @@ cdef class Expression(Expression_abc):
         # necessary otherwise.
         forget()
         for assumption in original_assumptions:
-            assume(assumption);
+            assume(assumption)
 
         return result
 
-
-    def simplify_trig(self,expand=True):
+    def simplify_trig(self, expand=True):
         r"""
         Optionally expand and then employ identities such as
         `\sin(x)^2 + \cos(x)^2 = 1`, `\cosh(x)^2 - \sinh(x)^2 = 1`,

@@ -1491,9 +1491,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
         # OA(k-1,N)
         for PBD_parallel_class in partition_of_blocks_of_size_t:
             for OA_class in OA_t_classes:
-                 rOA_N_classes.append([[B[x] for x in BB]
-                                            for BB in OA_class
-                                            for B in PBD_parallel_class])
+                rOA_N_classes.append([[B[x] for x in BB]
+                                      for BB in OA_class
+                                      for B in PBD_parallel_class])
 
         # 2) We build a Nx(q+t) matrix such that:
         #
@@ -1764,7 +1764,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
         OA.extend([N-xx-1 for xx in B] for B in orthogonal_array(k,x))
 
     else:
-        raise ValueError("This input is not handled by Brouwer's result.")
+        raise ValueError("this input is not handled by Brouwer's result")
 
     if check:
         assert is_orthogonal_array(OA,k,N,2,1)
