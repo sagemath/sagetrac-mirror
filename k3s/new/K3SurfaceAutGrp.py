@@ -21,7 +21,7 @@ for f in sage.repl.attach.attached_files():
 else:
     print("use attach to load K3SurfaceAutGrp.py")
 
-script_path = "/home/simon/Dropbox/Math/MyPapers/K3_automorphisms_catalogue/code/anc"
+script_path = "k3s/new/"
 def kernel_sublattice(L, f):
     r"""
     Return the the kernel of `f` as a sublattice of `L`.
