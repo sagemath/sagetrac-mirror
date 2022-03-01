@@ -227,3 +227,107 @@ def ptype_big(k):
             s = q.submodule(Ld.proj(Cd).rows()).normal_form().gram_matrix_quadratic()
         glues.append(s)
     return (typ,glues)
+
+
+def make_names(k3s):
+  def sortkey(k):
+    no = get_hashimoto_number(k.symplectic_invariant_lattice())
+    n = k.transcendental_value()
+    T = k.transcendental_lattice()
+    F = k.invariant_lattice()
+    d = k.transcendental_lattice().rank()/euler_phi(n)
+    return (no,n,d,T.det(),T.discriminant_group().invariants(),F.rank(),F.det(),F.discriminant_group().invariants())
+  k3s.sort(key=sortkey)
+  no0 = None
+  n0 = None
+  d0 = None
+  for k3 in k3s:
+    no,n,d = sortkey(k3)[:3]
+    if (no,n,d)!=(no0,n0,d0):
+      no0,n0,d0 = (no,n,d)
+      k = 1
+    s = f"{no}.{n}.{d}.{k}"
+    k = k+1
+    k3._id = s
+
+
+def make_names_save(folder_write):
+  for n in [n for n in range(67,67) if euler_phi(n)<=20 and n!=60]:
+    print(n)
+    k3s = K3SurfaceAutGrp_from_database(n,True)
+    make_names(k3s)
+    if n < 10:
+      ord = "0"+str(n)
+    else:
+      ord = str(n)
+    fi = open(folder_write+f"/purely_ns/order{ord}.txt","w")
+    for k in k3s:
+      fi.write(str_new(k))
+      fi.write("\n")
+    fi.close()
+
+  for n in [n for n in range(14,67) if euler_phi(n)<=12]:
+    k3s = K3SurfaceAutGrp_from_database(n,False)
+    print(n)
+    make_names(k3s)
+    if n < 10:
+      ord = "0"+str(n)
+    else:
+      ord = str(n)
+    fi = open(folder_write+f"/order{ord}.txt","w")
+    for k in k3s:
+      fi.write(str_new(k))
+      fi.write("\n")
+    fi.close()
+
+
+
+
+def str_new(self):
+    s =  "["
+    s += f"['id', '{self.id()}'],"
+    s += f"['transcendental_value', {self.transcendental_value()}],"
+    s += f"['connected_components', {self.connected_components()}],"
+    s += f"['basis', {self.L().basis_matrix().list()}],"
+    s += f"['inner_product_matrix', {self.L().inner_product_matrix().list()}],"
+    s += f"['symplectic', {[g.matrix().list() for g in self.symplectic_subgroup().gens()]}],"
+    s += f"['distinguished_generator', {self._g.list()}],"
+    s += f"['properties',{str([(k,self._prop[k]) for k in []])}]"
+    s += "]"
+    return s
+
+def adapt_name(k):
+  s = k.id().split(".")
+  s[2] = eval(s[2]) - 1
+  st = f"{s[0]}.{s[1]}.{s[2]}.{s[3]}"
+  k._id = st
+
+def adapt_names(folder_write):
+  for n in [n for n in range(2,67) if euler_phi(n)<=20 and n!=60]:
+    print(n)
+    k3s = K3SurfaceAutGrp_from_database(n,True)
+    if n < 10:
+      ord = "0"+str(n)
+    else:
+      ord = str(n)
+    fi = open(folder_write+f"/purely_ns/order{ord}.txt","w")
+    for k in k3s:
+      #fpp = tuple(fixed_points_power(k,i) for i in divisors(n)[:-1])
+      #k.properties()["fixed points powers"] = fpp
+      #k.properties()["fixed points"] = fpp[0]
+      fi.write(k.str())
+      fi.write("\n")
+    fi.close()
+
+  for n in [n for n in range(67,67) if euler_phi(n)<=12]:
+    k3s = K3SurfaceAutGrp_from_database(n,False)
+    print(n)
+    if n < 10:
+      ord = "0"+str(n)
+    else:
+      ord = str(n)
+    fi = open(folder_write+f"/order{ord}.txt","w")
+    for k in k3s:
+      fi.write(k.str())
+      fi.write("\n")
+    fi.close()

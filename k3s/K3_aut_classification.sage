@@ -8,7 +8,8 @@ from sage.env import SAGE_ROOT
 dir = SAGE_ROOT + "/k3s/"
 
 from sage.quadratic_forms.genera.genus import genera
-load(dir+"K3SurfaceAutGrp.py")
+load(dir+"new/K3SurfaceAutGrp.py")
+load(dir+"new/connected_components.sage")
 load(dir+"symplectic.sage")
 load(dir+"hermitian.sage")
 load(dir+"lattice_with_isometry.sage")
@@ -535,3 +536,8 @@ def postprocess2(folder_read, file_write, ends_str):
         fi.write(k.str());fi.write('\n')
     fi.close()
     return k3s
+
+@parallel(ncpus=12)
+def connected_components_par(k3id):
+  k3 = K3SurfaceAutGrp_from_id(k3id)
+  return is_real(k3)

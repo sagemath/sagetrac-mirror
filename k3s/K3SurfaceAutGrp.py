@@ -13,7 +13,7 @@ from sage.modules.all import IntegralLattice
 from sage.matrix.all import matrix
 from sage.arith.misc import euler_phi
 from sage.env import SAGE_ROOT
-script_path = SAGE_ROOT + "/k3s/"
+script_path = SAGE_ROOT + "/k3s/new/"
 
 def kernel_sublattice(L, f):
     r"""
