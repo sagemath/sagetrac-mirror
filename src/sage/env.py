@@ -293,7 +293,7 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
             if sys.platform == 'darwin':
                 ext = 'dylib'
             else:
-                ext = 'so'
+                ext = 'so*'
 
             if SAGE_LOCAL:
                 search_directories.append(Path(SAGE_LOCAL) / 'lib')
