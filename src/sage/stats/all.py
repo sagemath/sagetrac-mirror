@@ -1,6 +1,6 @@
 
 from .r import ttest
-from .basic_stats import (mean, mode, std, variance, median, moving_average)
+from .basic_stats import mode, std, variance, moving_average, mean, median
 from .hmm import all as hmm
 
 # We lazy_import the following modules since they import numpy which

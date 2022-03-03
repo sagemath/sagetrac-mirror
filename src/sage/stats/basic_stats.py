@@ -1,6 +1,11 @@
 """
 Basic Statistics
 
+This module is deprecated and will be removed in later versions of
+sage. The module :mod:`sage.stats.statistics` contains similar
+functions compatible with the Python statistics module that will
+replace this one.
+
 This file contains basic descriptive functions. Included are the mean,
 median, mode, moving average, standard deviation, and the variance.
 When calling a function on data, there are checks for functions already
@@ -43,6 +48,7 @@ from sage.rings.integer_ring import ZZ
 from sage.symbolic.constants import NaN
 from sage.misc.functional import sqrt
 from sage.misc.superseded import deprecation
+from sage.misc.lazy_import import lazy_import
 
 
 def mean(v):
@@ -52,8 +58,11 @@ def mean(v):
     We define the mean of the empty list to be the (symbolic) NaN,
     following the convention of MATLAB, Scipy, and R.
 
-    This function is deprecated.  Use ``numpy.mean`` or ``numpy.nanmean``
-    instead.
+    This function is deprecated.  Use ``sage.stats.statistics.mean`` instead. The
+    differences with this function are
+
+    - the code does not try to call ``v.mean()``
+    - raises an error on empty input
 
     INPUT:
 
@@ -67,8 +76,8 @@ def mean(v):
 
         sage: mean([pi, e])
         doctest:warning...
-        DeprecationWarning: sage.stats.basic_stats.mean is deprecated; use numpy.mean or numpy.nanmean instead
-        See https://trac.sagemath.org/29662 for details.
+        DeprecationWarning: sage.stats.basic_stats.mean is deprecated; use sage.stats.statistics.mean instead
+        See https://trac.sagemath.org/33453 for details.
         1/2*pi + 1/2*e
         sage: mean([])
         NaN
@@ -82,16 +91,13 @@ def mean(v):
         sage: mean(v)
         50.5
     """
-    deprecation(29662, 'sage.stats.basic_stats.mean is deprecated; use numpy.mean or numpy.nanmean instead')
+    deprecation(33453, 'sage.stats.basic_stats.mean is deprecated; use sage.stats.statistics.mean instead')
     if hasattr(v, 'mean'):
         return v.mean()
     if not v:
         return NaN
-    s = sum(v)
-    if isinstance(s, int):
-        # python integers are stupid.
-        return s / ZZ(len(v))
-    return s / len(v)
+    from .statistics import mean
+    return mean(v)
 
 
 def mode(v):
@@ -103,8 +109,10 @@ def mode(v):
     in `v`, then the mode is the list of elements of `v` that
     occur `n` times. The list is sorted if possible.
 
-    This function is deprecated.  Use ``scipy.stats.mode`` or
-    ``statistics.mode`` instead.
+    This function is deprecated. Use ``sage.stats.statistics.multimode`` instead. The
+    differences with this function are
+    - it does not try to call the method ``.mode()``
+    - the output is not sorted but given by first appearance in the input
 
     .. NOTE::
 
@@ -123,8 +131,8 @@ def mode(v):
         sage: v = [1,2,4,1,6,2,6,7,1]
         sage: mode(v)
         doctest:warning...
-        DeprecationWarning: sage.stats.basic_stats.mode is deprecated; use scipy.stats.mode or statistics.mode instead
-        See https://trac.sagemath.org/29662 for details.
+        DeprecationWarning: sage.stats.basic_stats.mode is deprecated and will be replaced by sage.stats.statistics.multimode
+        See https://trac.sagemath.org/33453 for details.
         [1]
         sage: v.count(1)
         3
@@ -147,27 +155,65 @@ def mode(v):
         sage: stats.mode(MyClass())
         [1]
     """
-    deprecation(29662, 'sage.stats.basic_stats.mode is deprecated; use scipy.stats.mode or statistics.mode instead')
+    deprecation(33453, 'sage.stats.basic_stats.mode is deprecated and will be replaced by sage.stats.statistics.multimode')
 
     if hasattr(v, 'mode'):
         return v.mode()
-
-    if not v:
-        return v
-
-    freq = {}
-    for i in v:
-        if i in freq:
-            freq[i] += 1
-        else:
-            freq[i] = 1
-
-    n = max(freq.values())
+    from .statistics import multimode
+    output = multimode(v)
     try:
-        return sorted(u for u, f in freq.items() if f == n)
+        return sorted(output)
     except TypeError:
-        return [u for u, f in freq.items() if f == n]
+        return output
 
+def median(v):
+    """
+    Return the median (middle value) of the elements of `v`
+
+    If `v` is empty, we define the median to be NaN, which is
+    consistent with NumPy (note that R returns NULL).
+    If `v` is comprised of strings, TypeError occurs.
+    For elements other than numbers, the median is a result of ``sorted()``.
+
+    This function is deprecated.  Use ``numpy.median`` or ``numpy.nanmedian``
+    instead.
+
+    INPUT:
+
+    - `v` -- a list
+
+    OUTPUT:
+
+    - median element of `v`
+
+    EXAMPLES::
+
+        sage: median([1,2,3,4,5])
+        doctest:warning...
+        DeprecationWarning: sage.stats.basic_stats.median is deprecated; use sage.stats.statistics.median instead
+        See https://trac.sagemath.org/33453 for details.
+        3
+        sage: median([e, pi])
+        1/2*pi + 1/2*e
+        sage: median(['sage', 'linux', 'python'])
+        'python'
+        sage: median([])
+        NaN
+        sage: class MyClass:
+        ....:    def median(self):
+        ....:       return 1
+        sage: stats.median(MyClass())
+        1
+    """
+    deprecation(33453, 'sage.stats.basic_stats.median is deprecated; use sage.stats.statistics.median instead')
+
+    if hasattr(v, 'median'):
+        return v.median()
+    if not v:
+        return NaN
+    from .statistics import median
+    return median(v)
+ 
 
 def std(v, bias=False):
     """
@@ -196,14 +242,8 @@ def std(v, bias=False):
 
         sage: std([1..6], bias=True)
         doctest:warning...
-        DeprecationWarning: sage.stats.basic_stats.std is deprecated; use numpy.std or numpy.nanstd instead
-        See https://trac.sagemath.org/29662 for details.
-        doctest:warning...
-        DeprecationWarning: sage.stats.basic_stats.variance is deprecated; use numpy.var or numpy.nanvar instead
-        See https://trac.sagemath.org/29662 for details.
-        doctest:warning...
-        DeprecationWarning: sage.stats.basic_stats.mean is deprecated; use numpy.mean or numpy.nanmean instead
-        See https://trac.sagemath.org/29662 for details.
+        DeprecationWarning: sage.stats.basic_stats.std is deprecated; use sage.stats.statstics.stdev or sage.stats.statistics.pstdev instead
+        See https://trac.sagemath.org/33453 for details.
         1/2*sqrt(35/3)
         sage: std([1..6], bias=False)
         sqrt(7/2)
@@ -230,28 +270,28 @@ def std(v, bias=False):
         sage: std(data)  # random
         0.29487771726609185
     """
-    deprecation(29662, 'sage.stats.basic_stats.std is deprecated; use numpy.std or numpy.nanstd instead')
-
-    # NOTE: in R bias = False by default, and in Scipy bias=True by
-    # default, and R is more popular.
+    deprecation(33453, 'sage.stats.basic_stats.std is deprecated; use sage.stats.statstics.stdev or sage.stats.statistics.pstdev instead')
 
     if hasattr(v, 'standard_deviation'):
         return v.standard_deviation(bias=bias)
-
+ 
     import numpy
 
     if isinstance(v, numpy.ndarray):
-        # accounts for numpy arrays
         if bias:
             return v.std()
         else:
             return v.std(ddof=1)
 
     if not v:
-        # standard deviation of empty set defined as NaN
         return NaN
 
-    return sqrt(variance(v, bias=bias))
+    if bias:
+        from sage.stats.statistics import pstdev
+        return pstdev(v)
+    else:
+        from sage.stats.statistics import stdev
+        return stdev(v)
 
 
 def variance(v, bias=False):
@@ -281,8 +321,8 @@ def variance(v, bias=False):
 
         sage: variance([1..6])
         doctest:warning...
-        DeprecationWarning: sage.stats.basic_stats.variance is deprecated; use numpy.var or numpy.nanvar instead
-        See https://trac.sagemath.org/29662 for details.
+        DeprecationWarning: sage.stats.basic_stats.variance is deprecated; use either sage.stats.statistics.variance or sage.stats.statistics.pvariance instead
+        See https://trac.sagemath.org/33453 for details.
         7/2
         sage: variance([1..6], bias=True)
         35/12
@@ -331,92 +371,29 @@ def variance(v, bias=False):
         sage: variance([1] * 2^18)
         0
     """
-    deprecation(29662, 'sage.stats.basic_stats.variance is deprecated; use numpy.var or numpy.nanvar instead')
+    deprecation(33453, 'sage.stats.basic_stats.variance is deprecated; use either sage.stats.statistics.variance or sage.stats.statistics.pvariance instead')
 
     if hasattr(v, 'variance'):
         return v.variance(bias=bias)
+
     import numpy
 
-    x = 0
     if isinstance(v, numpy.ndarray):
         # accounts for numpy arrays
         if bias:
             return v.var()
         else:
             return v.var(ddof=1)
+
     if not v:
-        # variance of empty set defined as NaN
         return NaN
 
-    mu = mean(v)
-    for vi in v:
-        x += (vi - mu)**2
     if bias:
-        # population variance
-        if isinstance(x, int):
-            return x / ZZ(len(v))
-        return x / len(v)
+        from sage.stats.statistics import pvariance
+        return pvariance(v)
     else:
-        # sample variance
-        if isinstance(x, int):
-            return x / ZZ(len(v)-1)
-        return x / (len(v)-1)
-
-
-def median(v):
-    """
-    Return the median (middle value) of the elements of `v`
-
-    If `v` is empty, we define the median to be NaN, which is
-    consistent with NumPy (note that R returns NULL).
-    If `v` is comprised of strings, TypeError occurs.
-    For elements other than numbers, the median is a result of ``sorted()``.
-
-    This function is deprecated.  Use ``numpy.median`` or ``numpy.nanmedian``
-    instead.
-
-    INPUT:
-
-    - `v` -- a list
-
-    OUTPUT:
-
-    - median element of `v`
-
-    EXAMPLES::
-
-        sage: median([1,2,3,4,5])
-        doctest:warning...
-        DeprecationWarning: sage.stats.basic_stats.median is deprecated; use numpy.median or numpy.nanmedian instead
-        See https://trac.sagemath.org/29662 for details.
-        3
-        sage: median([e, pi])
-        1/2*pi + 1/2*e
-        sage: median(['sage', 'linux', 'python'])
-        'python'
-        sage: median([])
-        NaN
-        sage: class MyClass:
-        ....:    def median(self):
-        ....:       return 1
-        sage: stats.median(MyClass())
-        1
-    """
-    deprecation(29662, 'sage.stats.basic_stats.median is deprecated; use numpy.median or numpy.nanmedian instead')
-
-    if hasattr(v, 'median'):
-        return v.median()
-
-    if not v:
-        # Median of empty set defined as NaN
-        return NaN
-    values = sorted(v)
-    if len(values) % 2:
-        return values[((len(values))+1)//2-1]
-    else:
-        lower = values[(len(values)+1)//2-1]
-        upper = values[len(values)//2]
-        return (lower + upper) / ZZ(2)
+        from sage.stats.statistics import variance
+        return variance(v)
 
 
 def moving_average(v, n):
