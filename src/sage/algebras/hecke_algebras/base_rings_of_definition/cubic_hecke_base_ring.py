@@ -1418,26 +1418,36 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
+            sage: from sage.knots.knotinfo import KnotInfo
             sage: CHA2 = algebras.CubicHecke(2)
             sage: K5_1 = KnotInfo.K5_1.link()
             sage: br = CHA2(K5_1.braid())
             sage: mt = br.formal_markov_trace()
             sage: MT = mt.base_ring()
             sage: f = MT.specialize_homfly(); f
-            Ring morphism:
+            Composite map:
               From: Multivariate Polynomial Ring in u, v, w, s over Integer Ring
                     localized at (s, w, v, u)
-              To:   Multivariate Polynomial Ring in L, M over Integer Ring
-                    localized at (M, M - 1, L)
-              Defn: u |--> -M + 1
-                    v |--> -M + 1
-                    w |--> 1
-                    s |--> L
-            sage: H = f.codomain()
-            sage: MTB = mt.parent().basis().keys()
-            sage: h1 = sum(f(mt.coefficient(b)) * H(b.regular_homfly_polynomial()) for b in MTB)
-            sage: L, M = H.gens()
-            sage: h2 = H(K5_1.homfly_polynomial())
+              To:   Multivariate Laurent Polynomial Ring in L, M over Integer Ring
+              Defn:   Ring morphism:
+                      From: Multivariate Polynomial Ring in u, v, w, s
+                            over Integer Ring localized at (s, w, v, u)
+                      To:   Multivariate Polynomial Ring in L, M
+                            over Integer Ring localized at (M, M - 1, L)
+                      Defn: u |--> -M + 1
+                            v |--> -M + 1
+                            w |--> 1
+                            s |--> L
+                    then
+                      Conversion map:
+                      From: Multivariate Polynomial Ring in L, M
+                            over Integer Ring localized at (M, M - 1, L)
+                      To:   Multivariate Laurent Polynomial Ring in L, M
+                            over Integer Ring
+            sage: sup = mt.support()
+            sage: h1 = sum(f(mt.coefficient(b)) * b.regular_homfly_polynomial() for b in sup)
+            sage: L, M = f.codomain().gens()
+            sage: h2 = K5_1.homfly_polynomial()
             sage: h1*L**(-5) == h2  # since the writhe of K5_1 is 5
             True
         """
@@ -1448,7 +1458,9 @@ class CubicHeckeRingOfDefinition(Localization):
         L, M = H.gens()
         HL = H.localization(1-M)
         u = HL(1-M)
-        return self.hom((u, u, HL.one(), HL(L)))
+        phi = self.hom((u, u, HL.one(), HL(L)))
+        inc = H.convert_map_from(HL)
+        return inc*phi
 
     def specialize_kauffman(self):
         r"""
@@ -1457,26 +1469,36 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
+            sage: from sage.knots.knotinfo import KnotInfo
             sage: CHA2 = algebras.CubicHecke(2)
             sage: K5_1 = KnotInfo.K5_1.link()
             sage: br = CHA2(K5_1.braid())
             sage: mt = br.formal_markov_trace()
             sage: MT = mt.base_ring()
             sage: f = MT.specialize_kauffman(); f
-            Ring morphism:
+            Composite map:
               From: Multivariate Polynomial Ring in u, v, w, s over Integer Ring
                     localized at (s, w, v, u)
-              To:   Multivariate Polynomial Ring in a, z over Integer Ring
-                    localized at (z, a, a + z, a*z + 1)
-              Defn: u |--> (a*z + 1)/a
-                    v |--> (a + z)/a
-                    w |--> 1/a
-                    s |--> a
-            sage: K = f.codomain()
-            sage: MTB = mt.parent().basis().keys()
-            sage: k1 = sum(f(mt.coefficient(b)) * K(b.regular_kauffman_polynomial()) for b in MTB)
-            sage: a, z = K.gens()
-            sage: k2 = K(KnotInfo.K5_1.kauffman_polynomial())
+              To:   Multivariate Laurent Polynomial Ring in a, z over Integer Ring
+              Defn:   Ring morphism:
+                      From: Multivariate Polynomial Ring in u, v, w, s
+                            over Integer Ring localized at (s, w, v, u)
+                      To:   Multivariate Polynomial Ring in a, z
+                            over Integer Ring localized at (z, a, a + z, a*z + 1)
+                      Defn: u |--> (a*z + 1)/a
+                            v |--> (a + z)/a
+                            w |--> 1/a
+                            s |--> a
+                    then
+                      Conversion map:
+                      From: Multivariate Polynomial Ring in a, z over Integer Ring
+                            localized at (z, a, a + z, a*z + 1)
+                      To:   Multivariate Laurent Polynomial Ring in a, z
+                            over Integer Ring
+            sage: sup = mt.support()
+            sage: k1 = sum(f(mt.coefficient(b)) * b.regular_kauffman_polynomial() for b in sup)
+            sage: a, z = f.codomain().gens()
+            sage: k2 = KnotInfo.K5_1.kauffman_polynomial()
             sage: k1*a**(-5) == k2  # since the writhe of K5_1 is 5
             True
         """
@@ -1490,7 +1512,9 @@ class CubicHeckeRingOfDefinition(Localization):
         KL = K.localization((ku, kv))
         u = KL(ku/a)
         v = KL(kv/a)
-        return self.hom((u, v, KL(~a), KL(a)))
+        phi = self.hom((u, v, KL(~a), KL(a)))
+        inc = K.convert_map_from(KL)
+        return inc*phi
 
     def specialize_links_gould(self):
         r"""
@@ -1499,24 +1523,33 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
+            sage: from sage.knots.knotinfo import KnotInfo
             sage: CHA2 = algebras.CubicHecke(2)
             sage: K5_1 = KnotInfo.K5_1.link()
             sage: br = CHA2(K5_1.braid())
             sage: mt = br.formal_markov_trace()
             sage: MT = mt.base_ring()
             sage: f = MT.specialize_links_gould(); f
-            Ring morphism:
+            Composite map:
               From: Multivariate Polynomial Ring in u, v, w, s over Integer Ring
                     localized at (s, w, v, u)
-              To:   Multivariate Polynomial Ring in t0, t1 over Integer Ring
-                    localized at (t1, t0, t0 + t1 - 1, t0*t1 - t0 - t1)
-              Defn: u |--> t0 + t1 - 1
-                    v |--> t0*t1 - t0 - t1
-                    w |--> -t0*t1
-                    s |--> 1
-            sage: K = f.codomain()
-            sage: MTB = mt.parent().basis().keys()
-            sage: sum(f(mt.coefficient(b)) * K(b.links_gould_polynomial()) for b in MTB)
+              To:   Multivariate Laurent Polynomial Ring in t0, t1 over Integer Ring
+              Defn:   Ring morphism:
+                      From: Multivariate Polynomial Ring in u, v, w, s
+                            over Integer Ring localized at (s, w, v, u)
+                      To:   Multivariate Polynomial Ring in t0, t1 over Integer Ring
+                            localized at (t1, t0, t0 + t1 - 1, t0*t1 - t0 - t1)
+                      Defn: u |--> t0 + t1 - 1
+                            v |--> t0*t1 - t0 - t1
+                            w |--> -t0*t1
+                            s |--> 1
+                    then
+                      Conversion map:
+                      From: Multivariate Polynomial Ring in t0, t1 over Integer Ring
+                            localized at (t1, t0, t0 + t1 - 1, t0*t1 - t0 - t1)
+                      To:   Multivariate Laurent Polynomial Ring in t0, t1 over Integer Ring
+            sage: sup = mt.support()
+            sage: sum(f(mt.coefficient(b)) * b.links_gould_polynomial() for b in sup)
             -t0^4*t1 - t0^3*t1^2 - t0^2*t1^3 - t0*t1^4 + t0^4 + 2*t0^3*t1 + 2*t0^2*t1^2
             + 2*t0*t1^3 + t1^4 - t0^3 - 2*t0^2*t1 - 2*t0*t1^2 - t1^3 + t0^2 + 2*t0*t1
             + t1^2 - t0 - t1 + 1
@@ -1533,4 +1566,6 @@ class CubicHeckeRingOfDefinition(Localization):
         u = LL(lu)
         v = LL(lv)
         w = LL(lw)
-        return self.hom((u, v, w, LL.one()))
+        phi = self.hom((u, v, w, LL.one()))
+        inc = L.convert_map_from(LL)
+        return inc*phi

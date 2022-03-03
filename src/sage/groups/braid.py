@@ -765,6 +765,7 @@ class Braid(FiniteTypeArtinGroupElement):
         r"""
         Return the representation matrices of ``self`` of the R-matrix
         representation beeing attached the quantum superalgebra `sl_q(2|1)`.
+        See [MW2012]_, section 3 and references given there.
 
         INPUT:
 
@@ -793,6 +794,7 @@ class Braid(FiniteTypeArtinGroupElement):
     def links_gould_polynomial(self, varnames='t0, t1'):
         r"""
         Return the Links-Gould polynomial of the closure of ``self``.
+        See [MW2012]_, section 3 and references given there.
 
         INPUT:
 
@@ -807,6 +809,10 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: hopf = BraidGroup(2)([1,1])
             sage: hopf.links_gould_polynomial()
             -t0*t1 + t0 + t1 - 1
+
+        REFERENCES::
+
+        - [MW2012]_
         """
         rep = self.parent()._links_gould_representation(varnames=varnames)
         l = len(rep)

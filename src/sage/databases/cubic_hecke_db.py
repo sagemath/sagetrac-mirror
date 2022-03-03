@@ -309,7 +309,12 @@ class CubicHeckeDataBase(SageObject):
 
 class MarkovTraceModuleBasis(Enum):
     r"""
-    Enum for the basis elements for the Markov trace module.
+    Enum for the basis elements for the Markov trace module. The choice of
+    the basis elements doesn't have a systematically background apart from
+    generating the submodul of maximal rank in the modul of linear forms
+    on the cubic Hecke algebra for which the Markov trace condition with
+    respect to its cubic Hecke subalgebras hold. The number of crossings in
+    the corresponding links is choosen as minimal as possible.
 
     EXAMPLES::
 
@@ -363,6 +368,15 @@ class MarkovTraceModuleBasis(Enum):
         Return the Tietze representation of the braid corresponding to this basis
         element.
 
+        INPUT:
+
+        - ``strands_embed`` -- (optional) the number of strands of the braid
+          if strands should be added.
+
+        OUTPUT:
+
+        A tuple representing the braid in Tietze form.
+
         EXAMPLES::
 
             sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
@@ -397,7 +411,9 @@ class MarkovTraceModuleBasis(Enum):
 
     def description(self):
         r"""
-        Return a description of link corresponding to this basis element.
+        Return a description of the link corresponding to this basis element.
+        In the case of knots it referes to the naming according to
+        `KnotInfo <https://knotinfo.math.indiana.edu/>`__.
 
         EXAMPLES::
 
@@ -409,7 +425,8 @@ class MarkovTraceModuleBasis(Enum):
 
     def link(self):
         r"""
-        Return the link which represents this basis element.
+        Return the link which represents this basis element as instance of
+        :class:`sage.knots.link.Link`.
 
         EXAMPLES::
 
@@ -437,6 +454,10 @@ class MarkovTraceModuleBasis(Enum):
         renormalized by the writhe factor such that it is an invariant of
         regular isotopy.
 
+        OUTPUT:
+
+        An instance of :class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
+
         EXAMPLES::
 
             sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
@@ -459,6 +480,10 @@ class MarkovTraceModuleBasis(Enum):
         represents this basis element. This is the Kauffman polynomial
         renormalized by the writhe factor such that it is an invariant of
         regular isotopy.
+
+        OUTPUT:
+
+        An instance of :class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
 
         EXAMPLES::
 
@@ -489,6 +514,10 @@ class MarkovTraceModuleBasis(Enum):
         r"""
         Return the Links-Gould polynomial of the link which represents this
         basis element.
+
+        OUTPUT:
+
+        An instance of :class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
 
         EXAMPLES::
 
@@ -661,8 +690,7 @@ class CubicHeckeFileCache(SageObject):
         self._file_cache_path = os.path.join(DOT_SAGE, 'cubic_hecke')
         self._data_library = {}
 
-        from sage.misc.misc import sage_makedirs
-        sage_makedirs(self._file_cache_path)
+        os.makedirs(self._file_cache_path, exist_ok=True)
 
     def reset_library(self, section=None):
         r"""

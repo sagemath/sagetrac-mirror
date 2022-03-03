@@ -652,7 +652,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
         if isinstance(base_ring, Localization):
             # don't allow recursive constructions
-            additional_units = [au for au in additional_units if not ~au in base_ring._additional_units] # :trac:`????2`
+            additional_units = [au for au in additional_units if not ~au in base_ring._additional_units] # :trac:`?????`
             additional_units += base_ring._additional_units
             base_ring = base_ring.base_ring()
 
@@ -842,7 +842,6 @@ class Localization(IntegralDomain, UniqueRepresentation):
         if x.is_zero() or x.numerator().is_unit():
             # treat corner cases
             return x
-
         add_units = self._additional_units
         res = x
         for au in add_units:
