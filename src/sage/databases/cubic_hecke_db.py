@@ -3,14 +3,34 @@ r"""
 Cubic Hecke Database
 
 This module contains the class :class:`CubicHeckeDataBase` which serves as an
-interface to Ivan Marin's data files with respect to the cubic Hecke algebras.
-Furthermore, it contains the class :class:`CubicHeckeFileCache` which enables
-:class:`CubicHeckeAlgebra` to keep intermediate results of calculations in the
-file system.
+interface to `Ivan Marin's data files <http://www.lamfa.u-picardie.fr/marin/representationH4-en.html>`__
+with respect to the cubic Hecke algebras. The data is available via the
+pip installable package `database_cubic_hecke <https://pypi.org/project/database-cubic-hecke/>`__.
+Anyway, all data needed for the cubic Hecke algebras on less than four strands is
+included in this module for demonstration purpose (see for example
+:func:`read_basis`, :func:`read_irr` , ... generated with the help of
+:func:`create_demo_data`).
+
+In addition to Ivan Marin's data the package contains a function :func:`read_markov`
+to obtain the coefficients of Marov traces on the cubic Hecke algebras. This
+data has been precomputed with the help of ``create_markov_trace_data.py`` in the
+`database_cubic_hecke repository <https://github.com/soehms/database_cubic_hecke>`__.
+Again, for less than four strands, this data is includes here for demonstration
+purpose.
+
+Furthermore, this module contains the class :class:`CubicHeckeFileCache` which
+enables :class:`sage.algebras.hecke_algebras.cubic_hecke_algebras.CubicHeckeAlgebra`
+to keep intermediate results of calculations in the file system.
+
+Finally, there is an enum :class:`MarkovTraceModuleBasis` serving
+as basis for the submodule of linear forms on the cubic Hecke algebra on four
+and less strands satisfying the Markov trace condition for its cubic Hecke
+subalgebras.
 
 AUTHORS:
 
-- Sebastian Oehms May 2020: initial version
+- Sebastian Oehms May   2020: initial version
+- Sebastian Oehms March 2022: PyPi version and Markov trace functionality
 """
 
 
@@ -500,7 +520,7 @@ class MarkovTraceModuleBasis(Enum):
         from sage.knots.knotinfo import KnotInfo
         K = KnotInfo.L2a1_1.kauffman_polynomial().parent()
         a, z = K.gens()
-        d = self.value[4]
+        d = kauffman[self.name]
         if d:
             return K(d)*a**self.writhe()
         U2rkp = MarkovTraceModuleBasis.U2.regular_kauffman_polynomial()
@@ -532,53 +552,59 @@ class MarkovTraceModuleBasis(Enum):
         """
         from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
         R = LaurentPolynomialRing(ZZ, 't0, t1')
-        if self.name in links_gould.keys():
-            return R(links_gould[self.name])
-        elif self.strands() == 1:
-            return R.one()
-        else:
-            return R.zero()
+        return R(links_gould[self.name])
 
 
-    U1  = ['one unlink',    1, (), [], 1]
-    U2  = ['two unlinks',   2, (), [[3, 1, 4, 2], [4, 1, 3, 2]], {(1, -1): 1, (0, 0): -1, (-1, -1): 1}]
+    U1  = ['one unlink',    1, (), []]
+    U2  = ['two unlinks',   2, (), [[3, 1, 4, 2], [4, 1, 3, 2]]]
     U3  = ['three unlinks', 3, (), [[3, 7, 4, 8], [4, 7, 5, 8],
-                                    [5, 1, 6, 2], [6, 1, 3, 2]], None]
-    U4  = ['four unlinks',  4, (), [[3, 9, 4, 10], [4, 9, 5, 10], [5, 11, 6, 12],\
-                                    [6, 11, 7, 12], [7, 1, 8, 2], [8, 1, 3, 2]], None]
+                                    [5, 1, 6, 2], [6, 1, 3, 2]]]
+    U4  = ['four unlinks',  4, (), [[3, 9, 4, 10], [4, 9, 5, 10], [5, 11, 6, 12],
+                                    [6, 11, 7, 12], [7, 1, 8, 2], [8, 1, 3, 2]]]
     K4U = ['knot 4_1 plus one unlink', 4, (1, -2, 1, -2),
-                                   [[3, 8, 4, 9], [9, 7, 10, 6], [7, 4, 8, 5],\
-                                   [5, 11, 6, 10], [11, 1, 12, 2], [12, 1, 3, 2]], None]
-    K4  = ['knot 4_1',  3, (1, -2, 1, -2),                   None,\
-            {(2, 2): 1, (1, 3): 1, (2, 0): -1, (1, 1): -1, (0, 2): 2, (-1, 3): 1,\
-             (0, 0): -1, (-1, 1): -1, (-2, 2): 1, (-2, 0): -1}]
-    K6  = ['knot 6_1',  4, (1, 1, 2, -1, -3, 2, -3),         None,\
-            {(2, 2): 1, (1, 3): 1, (0, 4): 1, (-1, 5): 1, (2, 0): -1, (-1, 3): -2,\
-             (-2, 4): 2, (-3, 5): 1, (-1, 1): 2, (-2, 2): -4, (-3, 3): -3,\
-             (-4, 4): 1, (-2, 0): 1, (-3, 1): 2, (-4, 2): -3, (-4, 0): 1}]
-    K7  = ['knot 7_4',  4, (1, 1, 2, -1, 2, 2, 3, -2, 3),    None,\
-            {(-2, 2): 1, (-3, 3): 2, (-4, 4): 3, (-5, 5): 2, (-6, 6): 1,\
-             (-4, 2): -4, (-5, 3): -2, (-7, 5): 3, (-8, 6): 1, (-4, 0): 2,\
-             (-6, 2): -3, (-7, 3): -8, (-8, 4): -3, (-9, 5): 1, (-7, 1): 4,\
-             (-8, 2): 2, (-9, 3): -4, (-8, 0): -1, (-9, 1): 4}]
-    K91 = ['knot 9_29', 4, (1, -2, -2, 3, -2, 1, -2, 3, -2), None,\
-            {(7, 3): 1, (6, 4): 3, (5, 5): 6, (4, 6): 8, (3, 7): 6, (2, 8): 2,\
-             (5, 3): -5, (4, 4): -13, (3, 5): -8, (2, 6): 6, (1, 7): 9, (0, 8): 2,\
-             (5, 1): 2, (4, 2): 8, (3, 3): -1, (2, 4): -24, (1, 5): -24,\
-             (0, 6): -1, (-1, 7): 3, (4, 0): -2, (3, 1): 2, (2, 2): 17, (1, 3): 14,\
-             (0, 4): -11, (-1, 5): -10, (-2, 6): 1, (2, 0): -5, (1, 1): -1,\
-             (0, 2): 12, (-1, 3): 9, (-2, 4): -3, (0, 0): -3, (-1, 1): -1,\
-             (-2, 2): 3, (-2, 0): -1}]
-    K92 = ['knot 9_34', 4, (-1, 2, -1, 2, -3, 2, -1, 2, -3), None,\
-            {(5, 5): 1, (4, 6): 4, (3, 7): 6, (2, 8): 3, (5, 3): -1, (4, 4): -7,\
-             (3, 5): -11, (2, 6): 5, (1, 7): 14, (0, 8): 3, (4, 2): 3, (3, 3): 5,\
-             (2, 4): -19, (1, 5): -26, (0, 6): 9, (-1, 7): 8, (2, 2): 10,\
-             (1, 3): 12, (0, 4): -23, (-1, 5): -10, (-2, 6): 8, (2, 0): -1,\
-             (1, 1): -1, (0, 2): 11, (-1, 3): 4, (-2, 4): -10, (-3, 5): 4,\
-             (0, 0): -1, (-1, 1): -1, (-2, 2): 4, (-3, 3): -2, (-4, 4): 1,\
-             (-2, 0): -1}]
+                                   [[3, 8, 4, 9], [9, 7, 10, 6], [7, 4, 8, 5],
+                                   [5, 11, 6, 10], [11, 1, 12, 2], [12, 1, 3, 2]]]
+    K4  = ['knot 4_1',  3, (1, -2, 1, -2), None]
+    K6  = ['knot 6_1',  4, (1, 1, 2, -1, -3, 2, -3),None]
+    K7  = ['knot 7_4',  4, (1, 1, 2, -1, 2, 2, 3, -2, 3), None]
+    K91 = ['knot 9_29', 4, (1, -2, -2, 3, -2, 1, -2, 3, -2), None]
+    K92 = ['knot 9_34', 4, (-1, 2, -1, 2, -3, 2, -1, 2, -3), None]
+
+kauffman = {
+ 'U1': 1,
+ 'U2': {(1, -1): 1, (0, 0): -1, (-1, -1): 1},
+ 'U3': None,
+ 'U4': None,
+ 'K4U': None,
+ 'K4': {(2, 2): 1, (1, 3): 1, (2, 0): -1, (1, 1): -1, (0, 2): 2, (-1, 3): 1,
+        (0, 0): -1, (-1, 1): -1, (-2, 2): 1, (-2, 0): -1},
+ 'K6': {(2, 2): 1, (1, 3): 1, (0, 4): 1, (-1, 5): 1, (2, 0): -1, (-1, 3): -2,
+        (-2, 4): 2, (-3, 5): 1, (-1, 1): 2, (-2, 2): -4, (-3, 3): -3, (-4, 4): 1,
+        (-2, 0): 1, (-3, 1): 2, (-4, 2): -3, (-4, 0): 1},
+ 'K7': {(-2, 2): 1, (-3, 3): 2, (-4, 4): 3, (-5, 5): 2, (-6, 6): 1, (-4, 2): -4,
+        (-5, 3): -2, (-7, 5): 3, (-8, 6): 1, (-4, 0): 2, (-6, 2): -3, (-7, 3): -8,
+        (-8, 4): -3, (-9, 5): 1, (-7, 1): 4, (-8, 2): 2, (-9, 3): -4, (-8, 0): -1,
+        (-9, 1): 4},
+ 'K91': {(7, 3): 1, (6, 4): 3, (5, 5): 6, (4, 6): 8, (3, 7): 6, (2, 8): 2,
+         (5, 3): -5, (4, 4): -13, (3, 5): -8, (2, 6): 6, (1, 7): 9, (0, 8): 2,
+         (5, 1): 2, (4, 2): 8, (3, 3): -1, (2, 4): -24, (1, 5): -24, (0, 6): -1,
+         (-1, 7): 3, (4, 0): -2, (3, 1): 2, (2, 2): 17, (1, 3): 14, (0, 4): -11,
+         (-1, 5): -10, (-2, 6): 1, (2, 0): -5, (1, 1): -1, (0, 2): 12, (-1, 3): 9,
+         (-2, 4): -3, (0, 0): -3, (-1, 1): -1, (-2, 2): 3, (-2, 0): -1},
+ 'K92': {(5, 5): 1, (4, 6): 4, (3, 7): 6, (2, 8): 3, (5, 3): -1, (4, 4): -7,
+         (3, 5): -11, (2, 6): 5, (1, 7): 14, (0, 8): 3, (4, 2): 3, (3, 3): 5,
+         (2, 4): -19, (1, 5): -26, (0, 6): 9, (-1, 7): 8, (2, 2): 10, (1, 3): 12,
+         (0, 4): -23, (-1, 5): -10, (-2, 6): 8, (2, 0): -1, (1, 1): -1,
+         (0, 2): 11, (-1, 3): 4, (-2, 4): -10, (-3, 5): 4, (0, 0): -1,
+         (-1, 1): -1, (-2, 2): 4, (-3, 3): -2, (-4, 4): 1, (-2, 0): -1}}
+
 
 links_gould = {
+ 'U1': 1,
+ 'U2': 0,
+ 'U3': 0,
+ 'U4': 0,
+ 'K4U': 0,
  'K4': {(1, 1): 2, (1, 0): -3, (0, 1): -3, (1, -1): 1, (0, 0): 7, (-1, 1): 1,
         (0, -1): -3, (-1, 0): -3, (-1, -1): 2},
  'K6': {(2, 2): 2, (2, 1): -3, (1, 2): -3, (2, 0): 1, (1, 1): 10, (0, 2): 1,
