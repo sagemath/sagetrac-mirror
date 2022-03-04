@@ -58,6 +58,8 @@ def glue_map(L1,L2,L, G1=None,G2=None,alg="magma", notfull=True):
     P2 = matrix.diagonal(n*[1]+k*[0])
     P2 = B2.inverse()*P2*B2
 
+    # construct the glue map
+    # D1 >= H1 <--f1--L/(L1+L2)--f2--> H2 <= D2
     imgs1 = [g.lift()*P1 for g in D.gens()]
     imgs1 = [D1(g) for g in imgs1]
     H1g = D1gap.subgroup(imgs1)
@@ -81,7 +83,7 @@ def glue_map(L1,L2,L, G1=None,G2=None,alg="magma", notfull=True):
     f2 = Dgap.hom(imgs2,codomain=H2gap)
     f1inv = H1gap.hom([f1.lift(g) for g in f1.codomain().gens()],codomain=f1.domain())
 
-    # now define the glue map on the subgroups.
+    # now define the glue map phi on the subgroups.
     phi = H1gap.hom([f2(f1inv(g)) for g in H1gap.gens()],codomain=f2.codomain())
     if G1 is None:
         G1 = D1.O()
@@ -251,7 +253,7 @@ def is_real(k3):
     L1 = k3.symplectic_co_invariant_lattice()
     L2 = k3.invariant_lattice()
     L = k3.symplectic_invariant_lattice()
-    _,_,_,stab,stabhom, S0, S1,S2= glue_map(T,L2,L,T.image_in_Oq(),L2.image_in_Oq(),alg="magma")
+    _,_,_,stab,stabhom, S0, S1, S2= glue_map(T,L2,L,T.image_in_Oq(),L2.image_in_Oq(),alg="magma")
 
     H = k3.L()
     _,_,_,_,_, _, S1b,_ = glue_map(L,L1,H,S0,L1.image_in_Oq(),notfull=False)
@@ -265,8 +267,8 @@ def is_real(k3):
         assert index_S_Splus <= 2
         return index_S_Splus == 2
 
-    f = sigma_plus(L)
-    C = f.image(S)
+    g,f = sigma_plus(T)
+    C = g(f(S))
     assert C.order()<=2
     return C.order()==2
 
@@ -280,10 +282,10 @@ def sigma_plus(L):
     gamma = SigmaModSigmaSharp.cover()
     sigma_sharp = SigmaModSigmaSharp.relations()
     gammaSplus = gamma.subgroup(gamma.gammaS(True))
-    sigma = gamma.subgroup(tuple(SigmaModSigmaSharp.lift(f(g)) for g in f.domain())+sigma_sharp.gens())
+    sigma = gamma.subgroup(tuple(SigmaModSigmaSharp.lift(f(g)) for g in f.domain().gens())+sigma_sharp.gens())
     newrels = sigma.intersection(gammaSplus)
     newrels = SigmaModSigmaSharp.subgroup([SigmaModSigmaSharp(g) for g in newrels.gens()])
-    C = cod.quotient(newrels)
+    C = SigmaModSigmaSharp.quotient(newrels)
     g = SigmaModSigmaSharp.hom([C(g) for g in SigmaModSigmaSharp.gens()],codomain=C)
-    return g*f
+    return g,f
 
