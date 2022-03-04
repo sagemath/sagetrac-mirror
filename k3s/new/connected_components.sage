@@ -30,7 +30,7 @@ return aut;
 end;""")
 InducedAut = libgap.function_factory(InducedAut)
 
-def glue_map(L1,L2,L, G1=None,G2=None,alg="magma", notfull=True):
+def glue_map(L1,L2,L, G1=None,G2=None,alg="sage", notfull=True):
     # check for primitive extension
 
     D = L/(L1+L2)
