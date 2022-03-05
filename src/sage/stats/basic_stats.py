@@ -242,7 +242,7 @@ def std(v, bias=False):
 
         sage: std([1..6], bias=True)
         doctest:warning...
-        DeprecationWarning: sage.stats.basic_stats.std is deprecated; use sage.stats.statstics.stdev or sage.stats.statistics.pstdev instead
+        DeprecationWarning: sage.stats.basic_stats.std is deprecated; use sage.stats.statistics.stdev or sage.stats.statistics.pstdev instead
         See https://trac.sagemath.org/33453 for details.
         1/2*sqrt(35/3)
         sage: std([1..6], bias=False)
@@ -270,7 +270,7 @@ def std(v, bias=False):
         sage: std(data)  # random
         0.29487771726609185
     """
-    deprecation(33453, 'sage.stats.basic_stats.std is deprecated; use sage.stats.statstics.stdev or sage.stats.statistics.pstdev instead')
+    deprecation(33453, 'sage.stats.basic_stats.std is deprecated; use sage.stats.statistics.stdev or sage.stats.statistics.pstdev instead')
 
     if hasattr(v, 'standard_deviation'):
         return v.standard_deviation(bias=bias)
