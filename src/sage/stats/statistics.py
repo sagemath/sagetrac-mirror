@@ -15,41 +15,21 @@ from the Python statistics module
 - ``multimode()``
 - ``median()``
 
-TESTS:
+.. SEEALSO::
 
-Some doctests from the former ``basic_stats`` module::
-
-        sage: import sage.stats.statistics as statistics
-
-        sage: data = [1,2,4,1,6,2,6,7,1]
-        sage: statistics.multimode(data)
-        [1]
-        sage: data.count(1)
-        3
-        sage: statistics.multimode([])
-        []
-
-        sage: statistics.multimode([1,2,3,4,5])
-        [1, 2, 3, 4, 5]
-        sage: statistics.multimode([3,1,2,1,2,3])
-        [3, 1, 2]
-        sage: statistics.multimode([0, 2, 7, 7, 13, 20, 2, 13])
-        [2, 7, 13]
-
-        sage: statistics.multimode(['sage', 'four', 'I', 'three', 'sage', 'pi'])
-        ['sage']
-
-        sage: statistics.median([1,2,3,4,5])
-        3
-        sage: statistics.median([e, pi])
-        1/2*pi + 1/2*e
-        sage: statistics.median(['sage', 'linux', 'python'])
-        'python'
-        sage: statistics.median([])
-        Traceback (most recent call last):
-        ...
-        StatisticsError: no median for empty data
+    - `numpy statistics routine <https://numpy.org/doc/stable/reference/routines.statistics.html>`_
+    - `scipy statistical functions <https://docs.scipy.org/doc/scipy/reference/stats.html>`_
+    - `pandas module <https://pandas.pydata.org/docs/index.html>`_
 """
+# ***********************************************************************
+#          Copyright (C) 2009, Andrew Hou <amhou@uw.edu>
+#                        2021, Vincent Delecroix <20100.delecroix@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from statistics import mode, multimode, median, StatisticsError
 from warnings import warn
