@@ -462,18 +462,33 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
     def formal_markov_trace(self, extended=False, field_embedding=False):
         r"""
         Return a formal expression which can be specialized to Markov traces
-        which factor througt the cubic Hecke algebra. This covers Markov traces
+        which factor through the cubic Hecke algebra. This covers Markov traces
         corresponding to the
 
         - HOMFLY-PT polynomial
         - Kauffman polynomial
-        - Links Gould polynomial
+        - Links-Gould polynomial
 
         These expressions are elements of a submodule of the module of linear
         forms on ``self`` the base ring of which is an extension of the
         generic base ring of ``self`` by an additional variable ``s`` representing
         the writhe factor. All variables of this base ring extension are
         invertible.
+
+        A Markov trace is a family of class functions `tr_n` on the family of
+        braid groups `B_n` into some commutative ring `R` depending on a
+        unit `s \in R` such that for all `b in B_n` the following two
+        conditions are satisfied (see [Kau1991]_, section 7):
+
+        ..MATH::
+
+            \begin{array}{lll}
+            tr_{n+1}(b g_n)      &  = &  s tr_n(b)\\
+            tr_{n+1}(b g^{-1}_n) &  = &  s^{-1} tr_n(b)
+            \end{array}
+
+        The unit `s` is often called the writhe factor and corresponds to the
+        additional variable mentioned above.
 
         ..NOTE::
 
