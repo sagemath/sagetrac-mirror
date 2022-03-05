@@ -58,11 +58,8 @@ def mean(v):
     We define the mean of the empty list to be the (symbolic) NaN,
     following the convention of MATLAB, Scipy, and R.
 
-    This function is deprecated.  Use ``sage.stats.statistics.mean`` instead. The
-    differences with this function are
-
-    - the code does not try to call ``v.mean()``
-    - raises an error on empty input
+    This function is deprecated.  Use :func:`~sage.stats.statistics.mean`,
+    ``numpy.mean`` or ``numpy.nanmean`` instead.
 
     INPUT:
 
@@ -109,10 +106,8 @@ def mode(v):
     in `v`, then the mode is the list of elements of `v` that
     occur `n` times. The list is sorted if possible.
 
-    This function is deprecated. Use ``sage.stats.statistics.multimode`` instead. The
-    differences with this function are
-    - it does not try to call the method ``.mode()``
-    - the output is not sorted but given by first appearance in the input
+    This function is deprecated.  Use ``statistics.multimode`` or
+    ``scipy.stats.mode`` instead.
 
     .. NOTE::
 
@@ -175,8 +170,9 @@ def median(v):
     If `v` is comprised of strings, TypeError occurs.
     For elements other than numbers, the median is a result of ``sorted()``.
 
-    This function is deprecated.  Use ``numpy.median`` or ``numpy.nanmedian``
-    instead.
+    This function is deprecated.  Use ``statistics.median``, ``numpy.median``
+    or ``numpy.nanmedian`` instead. See also the :mod:`~sage.stats.statistics`
+    module.
 
     INPUT:
 
@@ -222,7 +218,8 @@ def std(v, bias=False):
     We define the standard deviation of the empty list to be NaN,
     following the convention of MATLAB, Scipy, and R.
 
-    This function is deprecated.  Use ``numpy.std`` or ``numpy.nanstd``
+    This function is deprecated.  Use :func:`~sage.stats.statistics.stdev`,
+    :func:`~sage.stats.statistics.pstdev`, ``numpy.std`` or ``numpy.nanstd``
     instead.
 
     INPUT:
@@ -301,7 +298,8 @@ def variance(v, bias=False):
     We define the variance of the empty list to be NaN,
     following the convention of MATLAB, Scipy, and R.
 
-    This function is deprecated.  Use ``numpy.var`` or ``numpy.nanvar``
+    This function is deprecated.  Use :func:`~sage.stats.statistics.variance`,
+    :func:`~sage.stats.statistics.pvariance`, ``numpy.var`` or ``numpy.nanvar``
     instead.
 
     INPUT:
