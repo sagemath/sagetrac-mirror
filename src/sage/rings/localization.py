@@ -156,6 +156,7 @@ TESTS::
 AUTHORS:
 
 - Sebastian Oehms 2019-12-09: initial version.
+- Sebastian Oehms 2022-03-05: fix some corner cases and add :meth:`factor` (:trac:`33463`)
 """
 
 
@@ -362,8 +363,13 @@ class LocalizationElement(IntegralDomainElement):
         """
         return self.parent()._fraction_to_element(self._value * c)
 
-    def factor(self):
+    def factor(self, proof=None):
         r"""
+
+        INPUT:
+
+        - ``proof`` -- optional (default ``None``). If given it is passed
+          to the corresponding method of the numerator of ``self``.
 
         EXAMPLES::
 
@@ -376,9 +382,12 @@ class LocalizationElement(IntegralDomainElement):
         """
         num = self._value.numerator()
         den = self._value.denominator()
-        F = num.factor()
-        P   = self.parent()
-        fac = [(P(f), e) for (f,e) in F]
+        if proof is not None:
+            F = num.factor(proof=proof)
+        else:
+            F = num.factor()
+        P = self.parent()
+        fac = [(P(f), e) for (f, e) in F]
         from sage.structure.factorization import Factorization
         return Factorization(fac, unit=~P(den)*F.unit())
 
@@ -618,7 +627,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
     TESTS:
 
-    Check that :trac:`?????` is fixed::
+    Check that :trac:`33463` is fixed::
 
         sage: R = ZZ.localization(5)
         sage: R.localization(~5)
@@ -652,7 +661,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
         if isinstance(base_ring, Localization):
             # don't allow recursive constructions
-            additional_units = [au for au in additional_units if not ~au in base_ring._additional_units] # :trac:`?????`
+            additional_units = [au for au in additional_units if ~au not in base_ring._additional_units]  # :trac:`33463`
             additional_units += base_ring._additional_units
             base_ring = base_ring.base_ring()
 
@@ -833,7 +842,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
         TESTS:
 
-        check that :trac:`?????` is fixed:
+        Check that :trac:`33463` is fixed::
 
             sage: L = ZZ.localization(5)
             sage: L(0).is_unit()
