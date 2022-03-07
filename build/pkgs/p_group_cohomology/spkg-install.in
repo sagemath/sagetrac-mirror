@@ -4,7 +4,8 @@ sage -c "import sage.libs.meataxe" || sdh_die "sage.libs.meataxe cannot be impor
 cd src
 
 # build and install modular_resolution
-cd `ls -d modular_resolution*`
+MODULAR_RES=`ls -d modular_resolution*`
+cd $MODULAR_RES
 sdh_configure || sdh_die "Error configuring modular_resolution"
 # sdh_make install got broken by trac ticket #24106
 $MAKE install || sdh_die "Error installing modular_resolution"
@@ -16,4 +17,5 @@ sdh_install singular_helper/dickson.lib "$SAGE_SHARE/singular/LIB/" || sdh_die "
 
 # building pGroupCohomology
 cd `ls -d pGroupCohomology*`
+ln -s ../$MODULAR_RES/src modular_resolution 
 sdh_pip_install .
