@@ -588,7 +588,7 @@ def process_directives(app, what, name, obj, options, docstringlines):
     if len(docstringlines) == 0:
         return
     first_line = docstringlines[0]
-    directives = (d.lower() for d in first_line.split(','))
+    directives = [d.lower() for d in first_line.split(',')]
     if 'nodetex' in directives:
         docstringlines.pop(0)
 
