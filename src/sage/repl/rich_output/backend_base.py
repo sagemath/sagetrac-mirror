@@ -465,6 +465,15 @@ class BackendBase(SageObject):
             sage: out.html.get_str()
             '<html>\\[\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2} x \\frac{3}{4} \\Bold{Z}\\]</html>'
 
+            sage: from sage.matrix.operation_table import OperationTable
+            sage: R = Integers(2)
+            sage: T = OperationTable(R, operation=operator.mul)
+            sage: out = backend.latex_formatter(T)
+            sage: out.html.get_str()
+            '<html>\\[\\begin{array}{r|*{2}{r}}\n\\hfil\\ast\\hfil&a&b\\\\\\hline\n{}a&a&a\\\\\n{}b&a&b\\\\\n\\end{array}\\]</html>'
+            sage: out.latex.get_str()
+            '$$\\begin{array}{r|*{2}{r}}\n\\hfil\\ast\\hfil&a&b\\\\\\hline\n{}a&a&a\\\\\n{}b&a&b\\\\\n\\end{array}$$'
+
         TESTS::
 
             sage: backend.latex_formatter([], concatenate=False).html.get_str()
@@ -475,7 +484,12 @@ class BackendBase(SageObject):
         concatenate = kwds.get('concatenate', False)
         from sage.misc.html import html
         from sage.repl.rich_output.output_browser import OutputHtml
-        return OutputHtml(html(obj, concatenate=concatenate, strict=True))
+        out = OutputHtml(html(obj, concatenate=concatenate, strict=True))
+        if out.latex is None:
+            from sage.misc.latex import latex
+            from sage.repl.rich_output.buffer import OutputBuffer
+            out.latex = OutputBuffer(r'\[' + str(latex(obj, combine_all=True)) + r'\]')
+        return out
 
     def set_underscore_variable(self, obj):
         """
