@@ -66,43 +66,49 @@ from sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring
 # dictionaries in order to save matrices avoiding compatibility problems with
 # older or newer sage versions and to save disc space
 #------------------------------------------------------------------------------
-def simplify(elem):
+def simplify(mat):
     r"""
-    Convert an element to a python dictionary recursively using its
-    :meth:`_reconstruction_data`.
+    Convert a matrix to a dictionary consisting of flat Python objects.
 
     INPUT:
 
-    -- ``elem`` - element to be converted into python dictionary
+    -- ``mat`` - matrix to be converted into python dictionary
 
     OUTPUT:
 
-    A python dictionary from which ``elem`` can be reconstructed via
+    A python dictionary from which ``mat`` can be reconstructed via
     element construction. The values of the dictionary may be
-    dictionaries again.
+    dictionaries of tuples of integers or strings.
 
     EXAMPLES::
 
         sage: from sage.databases.cubic_hecke_db import simplify
-        sage: L.<c>=LaurentPolynomialRing(ZZ, 'c')
-        sage: P.<a,b> = L['a,b']; P
-        Multivariate Polynomial Ring in a, b
-          over Univariate Laurent Polynomial Ring in c over Integer Ring
-        sage: elem = 5*b-3*a*~c; elem
-        (-3*c^-1)*a + 5*b
-        sage: simplify(elem)
-        {(0, 1): {0: 5}, (1, 0): {-1: -3}}
-        sage: mat = matrix(P, [[2*a, -3], [c, 4*b*~c]]); mat
-        [       2*a         -3]
-        [         c (4*c^-1)*b]
+        sage: L.<a, b, c>=LaurentPolynomialRing(ZZ)
+        sage: mat = matrix(L, [[2*a, -3], [c, 4*b*~c]]); mat
+        [     2*a       -3]
+        [       c 4*b*c^-1]
         sage: simplify(mat)
-        {(0, 0): {(1, 0): {0: 2}},
-        (0, 1): {(0, 0): {0: -3}},
-        (1, 0): {(0, 0): {1: 1}},
-        (1, 1): {(0, 1): {-1: 4}}}
+        {(0, 0): {(1, 0, 0): 2},
+         (0, 1): {(0, 0, 0): -3},
+         (1, 0): {(0, 0, 1): 1},
+         (1, 1): {(0, 1, -1): 4}}
+        sage: mat == matrix(L, _)
+        True
+        sage: F = L.fraction_field()
+        sage: matf = mat.change_ring(F)
+        sage: simplify(matf)
+        {(0, 0): '2*a', (0, 1): '-3', (1, 0): 'c', (1, 1): '4*b/c'}
+        sage: matf == matrix(F, _)
+        True
     """
-    return elem._reconstruction_data()
-
+    B = mat.base_ring()
+    d = mat.dict()
+    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_generic
+    if isinstance(B, LaurentPolynomialRing_generic):
+        res = {k: {tuple(l):int(u) for l, u in v.dict().items()} for k, v in d.items()}
+    else:
+        res = {k: str(v) for k, v in d.items()}
+    return res
 
 class CubicHeckeDataSection(Enum):
     r"""
@@ -1090,7 +1096,7 @@ class CubicHeckeFileCache(SageObject):
             # entry already registered
             return
 
-        braid_image_dict = [simplify(cf) for cf in list(braid_image_vect)]
+        braid_image_dict = [str(cf) for cf in list(braid_image_vect)]
         braid_images[braid_tietze] = braid_image_dict
 
         self.write(self.section.braid_images)
