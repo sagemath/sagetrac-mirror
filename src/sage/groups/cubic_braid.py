@@ -273,10 +273,10 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
         overwrite comparison since the inherited one (via Gap) from :class:`FinitelyPresentedGroupElement`
         does not terminate in the case of more than 5 strands (not only infinite cases).
         On less than 5 strands comparison is not assumed to be random free (see the
-        `Gap Reference manual https://www.gap-system.org/Manuals/doc/ref/chap47.html`__
+        `Gap Reference manual <https://www.gap-system.org/Manuals/doc/ref/chap47.html>`__
         section 47.3-2).
 
-        Therefore,  the comparison is done via the Burau representation
+        Therefore, the comparison is done via the Burau representation.
 
         EXAMPLES::
 
