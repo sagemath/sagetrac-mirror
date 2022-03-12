@@ -464,19 +464,21 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
             sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
             ....:      import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
-            sage: gap3_string = '2+a^-2bc+a^-1b^-1c^2+a^-1b^2c^-1+ab^-2c'
+            sage: gap3_string = '2+a^-2bc+a^-1b^-1c^2+a^-1b^2c^-1+ab^-2E3c'
             sage: ER._convert_from_gap3_mvp(gap3_string)
-            a^-1*b^2*c^-1 + 2 + a*b^-2*c + a^-2*b*c + a^-1*b^-1*c^2
+            a^-1*b^2*c^-1 + 2 + e3*a*b^-2*c + a^-2*b*c + a^-1*b^-1*c^2
         """
         E3 = self.cyclotomic_generator()
         a, b, c, *rem = self.gens()
-        na, nb, nc = var_names = self.variable_names()
-        lc={na:a, nb:b, nc:c, 'E3':E3}
+        na, nb, nc = self.variable_names()
+        lc={na:a, nb:b, nc:c, 'e':E3}
+        var_names = list(lc.keys())
 
         from sage.repl.preparse import implicit_mul
         # since implicit_mul does not know about the choice of variable names
         # we have to insert * between them separately
         string = str(mvp_expression)
+        string = string.replace('E3', 'e')
         for k in var_names:
             for l in var_names:
                 string = string.replace('%s%s' %(k,l), '%s*%s' %(k,l))

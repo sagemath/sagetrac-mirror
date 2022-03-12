@@ -55,7 +55,7 @@ from sage.misc.verbose import verbose
 from sage.env import SAGE_SHARE, SAGE_ROOT
 from sage.matrix.constructor import matrix, Matrix  # uppercase version used in Marin's file `MatricesRegH4.maple`
 from sage.rings.integer_ring import ZZ
-from sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring import CubicHeckeRingOfDefinition
+from sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring import CubicHeckeRingOfDefinition, CubicHeckeExtensionRing
 
 
 
@@ -104,8 +104,9 @@ def simplify(mat):
     B = mat.base_ring()
     d = mat.dict()
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_generic
-    if isinstance(B, LaurentPolynomialRing_generic):
-        res = {k: {tuple(l):int(u) for l, u in v.dict().items()} for k, v in d.items()}
+    if isinstance(B,  CubicHeckeExtensionRing):
+        # Laurent polynomial cannot be reconstructed from string
+        res = {k: {tuple(l):u.dict() for l, u in v.dict().items()} for k, v in d.items()}
     else:
         res = {k: str(v) for k, v in d.items()}
     return res

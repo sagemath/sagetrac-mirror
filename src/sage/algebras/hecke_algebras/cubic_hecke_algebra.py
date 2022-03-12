@@ -398,6 +398,28 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
             sage: c0mo_ch[CHA3.irred_repr.W3_011]            #  optional gap3
             [ b  0]
             [-b  c]
+        
+        specialized matrices::
+
+            sage: t = (3,7,11)
+            sage: CHA4 = algebras.CubicHecke(4, cubic_equation_roots=t)  # optional database_cubic_hecke
+            sage: e = CHA4.an_element(); e                     # optional database_cubic_hecke
+            -231*c0*c1^-1 + 131*c0*c2^-1 + 21*c2*c1 - 1440/11
+            sage: em = e.matrix()                              # optional database_cubic_hecke
+            sage: em.base_ring()                               # optional database_cubic_hecke
+            Splitting Algebra of T^2 + T + 1 with roots [E3, -E3 - 1]
+               over Integer Ring localized at (3, 7, 11)
+            sage: em.dimensions()                              # optional database_cubic_hecke
+            (108, 108)
+            sage: em_irr24 = em[23]                            # optional database_cubic_hecke
+            sage: em_irr24.dimensions()                        # optional database_cubic_hecke
+            (9, 9)
+            sage: em_irr24[3,2]                                # optional database_cubic_hecke
+            -131*E3 - 393/7
+            sage: emg = e.matrix(representation_type=chevie)   # optional gap3
+            sage: emg_irr24 = emg[23]                          # optional gap3
+            sage: emg_irr24[3,2]                               # optional gap3
+            -131*E3 - 393/7
         """
         parent = self.parent()
         MS = CubicHeckeMatrixSpace(parent, representation_type=representation_type, subdivide=subdivide, original=original)
@@ -585,10 +607,6 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
 
 
-
-
-
-
 class CubicHeckeAlgebra(CombinatorialFreeModule):
     r"""
     Return the Cubic-Hecke algebra with respect to the Artin braid group on
@@ -703,10 +721,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         s2*s1^-1*s2*s1
         sage: ele3 = CHA3(braid); ele3
         s1*s2*s1^-1*s2 + u*s1^-1*s2*s1 + (-v)*s1*s2^-1 + v*s2^-1*s1 + (-u)*s1*s2*s1^-1
-        sage: ele4 = CHA3((2,-1, 2, 1))
-        sage: ele3 == ele4
+        sage: ele3t = CHA3((2,-1, 2, 1))
+        sage: ele3 == ele3t
         True
-
+        sage: CHA4 = algebras.CubicHecke(4)     # optional database_cubic_hecke
+        sage: ele4 = CHA4(ele3); ele4           # optional database_cubic_hecke
+        c0*c1*c0^-1*c1 + u*c0^-1*c1*c0 + (-v)*c0*c1^-1 + v*c1^-1*c0 + (-u)*c0*c1*c0^-1
 
     3. cubic Hecke algebra over the ring of definition using different variable
        names::
