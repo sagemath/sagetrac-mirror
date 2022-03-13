@@ -511,7 +511,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
     def conjugation(self):
         r"""
-        Return an involution the perfoms *complex conjugation* with respect to
+        Return an involution that performs *complex conjugation* with respect to
         base ring considered as order in the complex field.
 
         EXAMPLES::
@@ -833,6 +833,13 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
     def field_embedding(self, characteristic=0):
         r"""
+        Return a field embedding of ``self``.
+
+        INPUT:
+
+        - ``characteristic`` -- integer (optional, default 0) the characteristic
+          of the field.
+
         EXAMPLES::
 
             sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
@@ -910,6 +917,8 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
     def markov_trace_version(self):
         r"""
+        Return the Markov trace version of ``self``.
+
         EXAMPLES::
 
             sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
@@ -954,7 +963,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
     INPUT:
 
-    -  ``names`` -- string containing the names of the indeterminates seperated
+    -  ``names`` -- string containing the names of the indeterminates separated
        by ',' or a triple of strings each of which is the name of one of the
        three indeterminates. The default is ``u, v, w``.
     -  ``order`` -- string (optional, default='degrevlex') transferred to the

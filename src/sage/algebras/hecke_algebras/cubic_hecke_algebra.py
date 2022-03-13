@@ -258,7 +258,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
     def braid_group_algebra_pre_image(self):
         r"""
         Return a pre image of ``self`` in the group algebra of the braid_group
-        (with respect to the basis given by Iwan Marin).
+        (with respect to the basis given by Ivan Marin).
 
         OUTPUT:
 
@@ -333,9 +333,9 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         The absolutely irreducible representations of the cubic Hecke algebra
         are constructed using the *GAP3*-Interface and the *CHEVIE* package if
         GAP3 and CHEVIE are installed on the system. Furthermore, the
-        representations given on Ivan Marin's homepage are used:
+        representations given on `Ivan Marin's homepage <http://www.lamfa.u-picardie.fr/marin/representationH4-en.html>`__
+        are used:
 
-        http://www.lamfa.u-picardie.fr/marin/softs/H4
 
         INPUT:
 
@@ -517,14 +517,14 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
             Currently it is not known if all linear forms of this submodule
             belong to a Markov trace, i.e. can be extended to the full tower
             of cubic Hecke algebras. Anyway, at least the four basis elements
-            (``U1, U2, U3`` and ``K4``) can be reconstruced form the HOMFLY-PT
+            (``U1, U2, U3`` and ``K4``) can be reconstructed form the HOMFLY-PT
             and Kauffman polynomial.
 
         INPUT:
 
         - ``extended`` -- boolean (optional default ``False``) if set to ``True``
-          the base ring of the Markov trace module is construced as an extension
-          of generic extension ring of ``self``. Per default it is construced
+          the base ring of the Markov trace module is constructed as an extension
+          of generic extension ring of ``self``. Per default it is constructed
           upon the generic base ring.
 
         - ``field_embedding`` -- boolean (optional default ``False``) if set to
@@ -648,7 +648,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     and various types of representation matrices of the generators. These data
     have been calculated by Ivan Marin and have been imported from:
 
-        http://www.lamfa.u-picardie.fr/marin/softs/
+        http://www.lamfa.u-picardie.fr/marin/representationH4-en.html
 
     Furthermore, representation matrices can be obtained from the *CHEVIE* package
     of *GAP3* via the GAP3 interface if GAP3 is installed inside sage. For more
