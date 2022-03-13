@@ -310,7 +310,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
             sage: R(3)
             (3) + (0)*x + (0)*x^2
         """
-        return self._coerce_(value)
+        return self.coerce(value)
 
     def _coerce_impl(self, value):
         """
@@ -322,7 +322,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
             (3) + (0)*x + (0)*x^2
         """
         # coerce to underlying polynomial ring (possibly via base ring):
-        value = self._poly_ring._coerce_(value)
+        value = self._poly_ring.coerce(value)
 
         return SpecialCubicQuotientRingElement(self, value, self._poly_ring(0),
                                                self._poly_ring(0), check=False)
