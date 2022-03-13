@@ -1583,7 +1583,7 @@ def default_mip_solver(solver=None):
             return default_solver
 
         else:
-            for s in ["Cplex", "Gurobi", "Cvxpy/cbc", "Coin", "Glpk"]:
+            for s in ["Cplex", "Gurobi", "Cvxpy/mip/cbc", "Coin", "Glpk"]:
                 try:
                     default_mip_solver(s)
                     return s
@@ -1816,6 +1816,11 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         from functools import partial
         if solver == "Cvxpy":
             return CVXPYBackend()
+        if solver.startswith("Cvxpy/mip/"):
+            import mip
+            from mip_cvxpy import PYTHON_MIP
+            cvxpy_solver_args = dict(solver_name=getattr(mip, solver[len("Cvxpy/mip/"):].upper()))
+            return CVXPYBackend(cvxpy_solver=PYTHON_MIP(), cvxpy_solver_args=cvxpy_solver_args)
         if solver.startswith("Cvxpy/"):
             return CVXPYBackend(cvxpy_solver=solver[len("Cvxpy/"):])
 
