@@ -7,7 +7,8 @@ Features for testing the presence of various databases
 from . import StaticFile, PythonModule
 from sage.env import (
     CONWAY_POLYNOMIALS_DATA_DIR,
-    CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR)
+    CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR,
+    POLYTOPE_DATA_DIR)
 
 
 class DatabaseConwayPolynomials(StaticFile):
@@ -149,9 +150,36 @@ class DatabaseCubicHecke(PythonModule):
         PythonModule.__init__(self, 'database_cubic_hecke', spkg='database_cubic_hecke')
 
 
+class DatabaseReflexivePolytopes(StaticFile):
+    r"""
+    A :class:`~sage.features.Feature` which describes the presence of the PALP database
+    of reflexive lattice polytopes.
+
+    EXAMPLES::
+
+        sage: from sage.features.databases import DatabaseReflexivePolytopes
+        sage: bool(DatabaseReflexivePolytopes().is_present())                              # optional - polytopes_db
+        True
+        sage: bool(DatabaseReflexivePolytopes('polytopes_db_4d', 'Hodge4d').is_present())  # optional - polytopes_db_4d
+        True
+    """
+    def __init__(self, name='polytopes_db', dirname='Full3D'):
+        """
+        TESTS::
+
+            sage: from sage.features.databases import DatabaseReflexivePolytopes
+            sage: isinstance(DatabaseReflexivePolytopes(), DatabaseReflexivePolytopes)
+            True
+        """
+        StaticFile.__init__(self, name, dirname,
+                            search_path=[POLYTOPE_DATA_DIR])
+
+
 def all_features():
     return [DatabaseConwayPolynomials(),
             DatabaseCremona(), DatabaseCremona('cremona_mini'),
             DatabaseJones(),
             DatabaseKnotInfo(),
             DatabaseCubicHecke()]
+            DatabaseReflexivePolytopes(),
+            DatabaseReflexivePolytopes('polytopes_db_4d', 'Hodge4d')]
