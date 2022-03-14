@@ -1819,7 +1819,12 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         if solver.startswith("Cvxpy/mip/"):
             import mip
             from mip_cvxpy import PYTHON_MIP
-            cvxpy_solver_args = dict(solver_name=getattr(mip, solver[len("Cvxpy/mip/"):].upper()))
+            mip_solver_name = solver[len("Cvxpy/mip/"):].upper()
+            cvxpy_solver_args = dict(solver_name=getattr(mip, mip_solver_name))
+            # FIXME: mip_cvxpy should really be extended to pass solver_name
+            # to mip.model.Model.__init__ (https://github.com/coin-or/python-mip/blob/master/mip/model.py#L44)
+            import os
+            os.environ['SOLVER_NAME'] = mip_solver_name  # https://github.com/coin-or/python-mip/blob/master/mip/model.py#L78
             return CVXPYBackend(cvxpy_solver=PYTHON_MIP(), cvxpy_solver_args=cvxpy_solver_args)
         if solver.startswith("Cvxpy/"):
             return CVXPYBackend(cvxpy_solver=solver[len("Cvxpy/"):])
