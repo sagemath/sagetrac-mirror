@@ -1024,24 +1024,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         else:
             return [tuple(e) for e in self._exponents]
 
-    def inverse_of_unit(self):
-        """
-        Return the inverse of a unit in a ring.
-
-        TESTS::
-
-            sage: R.<c> = QQ[]
-            sage: l = R(2)
-            sage: l.inverse_of_unit().parent()
-            Univariate Polynomial Ring in c over Rational Field
-        """
-        if self.is_unit():
-            d = self.element().dict()
-            if len(d) != 1:
-                raise NotImplementedError
-            return list(d.values())[0].inverse_of_unit()
-        raise ArithmeticError("is not a unit")
-
     def is_homogeneous(self):
         """
         Return True if self is a homogeneous polynomial.

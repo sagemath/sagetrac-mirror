@@ -3197,32 +3197,6 @@ cdef class MPolynomial_libsingular(MPolynomial):
                 p = pNext(p)
         return pl
 
-    def inverse_of_unit(self):
-        """
-        Return the inverse of this polynomial if it is a unit.
-
-        EXAMPLES::
-
-            sage: R.<x,y> = QQ[]
-            sage: x.inverse_of_unit()
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: Element is not a unit.
-
-            sage: R(1/2).inverse_of_unit()
-            2
-        """
-        cdef ring *_ring = self._parent_ring
-        if(_ring != currRing): rChangeCurrRing(_ring)
-
-        if not (p_IsUnit(self._poly,_ring)):
-            raise ArithmeticError("Element is not a unit.")
-
-        sig_on()
-        cdef MPolynomial_libsingular r = new_MP(self._parent, p_NSet(n_Invers(p_GetCoeff(self._poly, _ring),_ring.cf),_ring))
-        sig_off()
-        return r
-
     def is_homogeneous(self):
         """
         Return ``True`` if this polynomial is homogeneous.

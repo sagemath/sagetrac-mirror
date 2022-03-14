@@ -1482,39 +1482,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self.parent().one() / self
 
-    def inverse_of_unit(self):
-        """
-        EXAMPLES::
-
-            sage: R.<x> = QQ[]
-            sage: f = x - 90283
-            sage: f.inverse_of_unit()
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: x - 90283 is not a unit in Univariate Polynomial Ring in x over Rational Field
-            sage: f = R(-90283); g = f.inverse_of_unit(); g
-            -1/90283
-            sage: parent(g)
-            Univariate Polynomial Ring in x over Rational Field
-
-        TESTS::
-
-            sage: Integers(1)['x'](0).inverse_of_unit()
-            0
-        """
-        d = self.degree()
-        if d > 0:
-            if not self.is_unit():
-                raise ArithmeticError(f"{self} is not a unit in {self.parent()}")
-            else:
-                raise NotImplementedError("polynomial inversion over non-integral domains not implemented")
-        elif d == -1:
-            cst = self._parent._base.zero()
-        else:
-            cst = self.get_unsafe(0)
-        inv = cst.inverse_of_unit()
-        return self._parent([inv])
-
     def inverse_mod(a, m):
         """
         Inverts the polynomial a with respect to m, or raises a ValueError
@@ -5569,6 +5536,35 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if not c.is_nilpotent():
                 return False
         return True
+
+    def inverse_of_unit(self):
+        r"""
+        Return the inverse of this polynomial.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = x - 90283
+            sage: f.inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: x - 90283 is not a unit in Univariate Polynomial Ring in x over Rational Field
+            sage: f = R(-90283)
+            sage: g = f.inverse_of_unit()
+            sage: g
+            -1/90283
+            sage: parent(g)
+            Univariate Polynomial Ring in x over Rational Field
+
+            sage: R.<x> = Zmod(8)[]
+            sage: u = 3 - 2*x + 4*x^2
+            sage: u.inverse_of_unit()
+            2*x + 3
+            sage: u * u.inverse_of_unit()
+            1
+        """
+        from .misc import inverse_of_unit
+        return inverse_of_unit(self)
 
     def is_gen(self):
         r"""

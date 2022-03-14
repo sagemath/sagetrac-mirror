@@ -2574,6 +2574,30 @@ cdef class MPolynomial(CommutativeRingElement):
         d = self.dict()
         return all(c.is_nilpotent() for c in d.values())
 
+    def inverse_of_unit(self):
+        r"""
+        Return the inverse of this polynomial.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = Zmod(8)[]
+            sage: u = 3 + 2*x + 2*y**2
+            sage: u.inverse_of_unit()
+            4*y^4 + 4*x^2 - 2*y^2 - 2*x + 3
+            sage: u * u.inverse_of_unit()
+            1
+
+            sage: R.<x,y> = QQ[]
+            sage: x.inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: x is not a unit in Multivariate Polynomial Ring in x, y over Rational Field
+            sage: R(1/2).inverse_of_unit()
+            2
+        """
+        from .misc import inverse_of_unit
+        return inverse_of_unit(self)
+
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)
