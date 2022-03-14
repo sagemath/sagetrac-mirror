@@ -1583,7 +1583,7 @@ def default_mip_solver(solver=None):
             return default_solver
 
         else:
-            for s in ["Cplex", "Gurobi", "Cvxpy/mip/cbc", "Coin", "Glpk"]:
+            for s in ["Cplex", "Gurobi", "Cvxpy/cbc", "Coin", "Glpk"]:
                 try:
                     default_mip_solver(s)
                     return s
