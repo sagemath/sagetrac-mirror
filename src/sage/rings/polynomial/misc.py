@@ -16,6 +16,13 @@ def inverse_of_unit(elt):
 
         sage: Integers(1)['x'](0).inverse_of_unit()
         0
+
+    Check for :trac:`33499`::
+
+        sage: R.<x,y> = Zmod(4)[]
+        sage: u = 1 + 2*x + 2*y**2
+        sage: u.inverse_of_unit() == u
+        True
     """
     P = elt.parent()
     if not elt.is_unit():
