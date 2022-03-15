@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -x
 
 set -e
 
@@ -15,17 +15,10 @@ JMOL_VERSION="$(echo jmol-* | sed 's/.*-//g')"
 echo ${JMOL_VERSION}
 JMOL_VERSION_SHORT=${JMOL_VERSION:0:5}
 
-# avoid build-dependency in unzip and remove unused stuff
-pushd jmol-${JMOL_VERSION}
-unzip jsmol.zip
-rm jsmol.zip
-pushd jsmol
-rm -rf data flot images inchi jcse jsme
-popd
-popd
+rm -f jmol-${JMOL_VERSION}/jsmol.zip
 
 # install tarball, fix version and checksums in sage source
-tar cjf ../../../upstream/jmol-${JMOL_VERSION}.tar.bz2 jmol-${JMOL_VERSION}
+tar cvjf ../../../upstream/jmol-${JMOL_VERSION}.tar.bz2 jmol-${JMOL_VERSION}
 echo "${JMOL_VERSION}" > package-version.txt
 ../../../sage --package fix-checksum jmol
 
