@@ -149,7 +149,6 @@ class DatabaseCubicHecke(PythonModule):
         """
         PythonModule.__init__(self, 'database_cubic_hecke', spkg='database_cubic_hecke')
 
-
 class DatabaseReflexivePolytopes(StaticFile):
     r"""
     A :class:`~sage.features.Feature` which describes the presence of the PALP database
@@ -180,6 +179,6 @@ def all_features():
             DatabaseCremona(), DatabaseCremona('cremona_mini'),
             DatabaseJones(),
             DatabaseKnotInfo(),
-            DatabaseCubicHecke()]
+            DatabaseCubicHecke(),
             DatabaseReflexivePolytopes(),
             DatabaseReflexivePolytopes('polytopes_db_4d', 'Hodge4d')]

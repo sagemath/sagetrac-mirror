@@ -52,6 +52,16 @@ from sage.algebras.splitting_algebra import solve_with_extension, SplittingAlgeb
 
 def normalize_names_markov(names, markov_trace_version):
     r"""
+    Return a tuple of strings of variable names of length 3 resp. 4 (if
+    ``markov_trace_version == True``) according to the given input names.
+
+    INPUT:
+
+    - `names` -- passed to :func:`~sage.structure.category_object.noramize_names`
+    - `markov_trace_version` -- boolean if set to ``True`` four names are
+       expected the last of which corresponds to the writhe factor of the
+       Markov trace
+
     EXAMPLES::
 
         sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
@@ -137,6 +147,7 @@ class GaloisGroupAction(Action):
     def _act_(self, perm, pol):
         r"""
         Application of the action
+
         EXAMPLES::
 
             sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
@@ -228,8 +239,6 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
         sage: _.an_element()
         b^2*c^-1 + e3*a
     """
-
-
     def __init__(self, names, order='degrevlex', ring_of_definition=None, third_unity_root_name='e3', markov_trace_version=False):
         r"""
         Python constructor.
@@ -241,7 +250,6 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: TestSuite(ER).run()
         """
-
         # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
         # Setting connection with generic base ring (if given)
@@ -787,7 +795,6 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
             sage: ES(MBR.an_element())
             (u^2*s + v*w)/(w*s)
         """
-
         if self._splitting_algebra  != None:
             verbose("End (short)", level=2)
             return self._splitting_algebra
@@ -1005,7 +1012,6 @@ class CubicHeckeRingOfDefinition(Localization):
         - 5*E(105)^86 - 5*E(105)^89 - 5*E(105)^92 - 5*E(105)^101 - 5*E(105)^104
 
     """
-
     def __init__( self, names=('u', 'v', 'w', 's'), order='degrevlex', markov_trace_version=False):
         r"""
         Python constructor.
@@ -1102,7 +1108,6 @@ class CubicHeckeRingOfDefinition(Localization):
             sage: MBR.an_element()                           # indirect doctest
             (u^2*s + v*w)/(w*s)
         """
-
         u, v, w, *rem = self.gens()
         s = self.one()
         if rem:
@@ -1223,7 +1228,6 @@ class CubicHeckeRingOfDefinition(Localization):
             sage: _(MBR.an_element())
             (v^2 + u*s)/w
         """
-
         if self._mirror == None:
             if self._is_markov_trace_version():
                 u, v, w, s = self.gens()

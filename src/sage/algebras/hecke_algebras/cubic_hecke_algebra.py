@@ -646,9 +646,23 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     as instance of :class:`~sage.databases.cubic_hecke_db.CubicHeckeDataBase`
     and contains the complete basis for the algebras with less than 5 strands
     and various types of representation matrices of the generators. These data
-    have been calculated by Ivan Marin and have been imported from:
+    have been calculated by `Ivan Marin <http://www.lamfa.u-picardie.fr/marin/anglais.html>`__
+    and have been imported from his correspnding
+    `web page <http://www.lamfa.u-picardie.fr/marin/representationH4-en.html>`__.
 
-        http://www.lamfa.u-picardie.fr/marin/representationH4-en.html
+    But note that just the data for the cubic Hecke algebras on less than four
+    strands is available in Sage per default. To deal with four strands and
+    more you need to install the optional package ``database_cubic_hecke``
+    by typing
+
+    - ``sage -i database_cubic_hecke`` (first time installation) or
+    - ``sage -f database_cubic_hecke`` (reinstallation) respective
+    - ``sage -i -c database_cubic_hecke`` (for running all test in concern)
+    - ``sage -f -c database_cubic_hecke``
+
+    This will add a `Python wrapper <https://github.com/soehms/database_cubic_hecke#readme>`__
+    around Ivan Marin's data to the Sage library. For more installation hints
+    see the documentation of this wrapper.
 
     Furthermore, representation matrices can be obtained from the *CHEVIE* package
     of *GAP3* via the GAP3 interface if GAP3 is installed inside sage. For more
@@ -3286,7 +3300,11 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     # --------------------------------------------------------------------------
     def cyclotomic_generator(self, generic=False):
         r"""
-        Return the third root of unity as element of the extension ring.
+        Return the third root of unity as element of the extension ring. The
+        only thing where this is needed is in the nine dimensional irreducible
+        representations of the cubic Hecke algebra on four strands (see the
+        examples of :meth:`CubicHeckeElement.matrix` for instance).
+
         INPUT:
 
         - ``generic`` -- boolean (optional, default ``False``) if set to
@@ -3519,7 +3537,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             RuntimeError: base ring Integer Ring localized at (2, 3, 5)
             does not factor through mirror involution
         """
-
         base_ring  = self.base_ring()
         base_gen   = self.base_ring(generic=True)
 

@@ -65,8 +65,6 @@ class GenSign(Enum):
     pos =  1
     neg = -1
 
-
-
 # -------------------------------------------
 # Enum for typ of matrix representation
 # -------------------------------------------
@@ -205,7 +203,6 @@ class AbsIrreducibeRep(Enum):
 
     [MW2012]_
     """
-
     def alternative_name(self):
         r"""
         Return the name of the split irreducible representation for cubic Hecke algebras for up to four strands
@@ -525,7 +522,6 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
 
         A list of instances of :class:`Matrix_generic_dense` each of which represents a diagonal block of ``self``.
 
-
         EXAMPLES::
 
             sage: CHA2.<c1> = algebras.CubicHecke(2)
@@ -554,7 +550,6 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
 
         An instance of :class:`Matrix_generic_dense` with exactly one non zero block
         according to ``irr``.
-
 
         EXAMPLES::
 
@@ -600,7 +595,6 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
     - ``original`` -- boolean (default False) if set to True the matrix will coefficients in the generic
       base / extension ring.
-
 
     EXAMPLES::
 
@@ -835,7 +829,6 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             [         a          b]
             [         0 -b - a + u]
         """
-
         base_ring          = self.base_ring()
         original_base_ring = self._original_base_ring
         specialize         = self._specialize

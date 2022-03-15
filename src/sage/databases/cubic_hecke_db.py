@@ -83,18 +83,19 @@ def simplify(mat):
     EXAMPLES::
 
         sage: from sage.databases.cubic_hecke_db import simplify
-        sage: L.<a, b, c>=LaurentPolynomialRing(ZZ)
-        sage: mat = matrix(L, [[2*a, -3], [c, 4*b*~c]]); mat
+        sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
+        sage: ER.<a, b, c> = chbr.CubicHeckeExtensionRing()
+        sage: mat = matrix(ER, [[2*a, -3], [c, 4*b*~c]]); mat
         [     2*a       -3]
         [       c 4*b*c^-1]
         sage: simplify(mat)
-        {(0, 0): {(1, 0, 0): 2},
-         (0, 1): {(0, 0, 0): -3},
-         (1, 0): {(0, 0, 1): 1},
-         (1, 1): {(0, 1, -1): 4}}
-        sage: mat == matrix(L, _)
+        {(0, 0): {(1, 0, 0): {0: 2}},
+         (0, 1): {(0, 0, 0): {0: -3}},
+         (1, 0): {(0, 0, 1): {0: 1}},
+         (1, 1): {(0, 1, -1): {0: 4}}}
+        sage: mat == matrix(ER, _)
         True
-        sage: F = L.fraction_field()
+        sage: F = ER.fraction_field()
         sage: matf = mat.change_ring(F)
         sage: simplify(matf)
         {(0, 0): '2*a', (0, 1): '-3', (1, 0): 'c', (1, 1): '4*b/c'}
@@ -103,8 +104,7 @@ def simplify(mat):
     """
     B = mat.base_ring()
     d = mat.dict()
-    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_generic
-    if isinstance(B,  CubicHeckeExtensionRing):
+    if isinstance(B, CubicHeckeExtensionRing):
         # Laurent polynomial cannot be reconstructed from string
         res = {k: {tuple(l):u.dict() for l, u in v.dict().items()} for k, v in d.items()}
     else:
