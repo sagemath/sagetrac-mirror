@@ -223,6 +223,48 @@ class PeriodicPointIterator(object):
             for a in self._image(next(u)):
                 yield a
 
+
+def find_max_value_length(wordmorphism):
+    r"""
+    Return the maximum length of the letters in the codomain of the morphism.
+
+    INPUT:
+
+    -  ``wordmorphism`` -- a WordMorphism
+
+    OUTPUT:
+
+    The maximum length of letters in the codomain as a nonnegative integer.
+
+    EXAMPLES:
+
+    Often morphisms have max codomain letter length 1::
+
+        sage: from sage.combinat.words.morphism import find_max_value_length
+        sage: s = WordMorphism({1:[1,2], 2:[1]})
+        sage: find_max_value_length(s)
+        1
+
+    When a morphism has multicharacter 'letters', this can return a larger
+    value::
+
+        sage: s = WordMorphism({1:[1, 2], 2:[12], 12:[1, 2]})
+        sage: find_max_value_length(s)
+        2
+
+    This is related to :trac:`13707`, as concatenation can be ambiguous when
+    there are codomain entries of different lengths.
+    """
+    values = list(wordmorphism._morph.values())
+    if not values:
+        return 0
+    max_length = 0
+    for value in values:
+        max_cand = max((len(str(letter)) for letter in value), default=0)
+        max_length = max(max_length, max_cand)
+    return max_length
+
+
 class WordMorphism(SageObject):
     r"""
     WordMorphism class
@@ -353,7 +395,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism({0:123, 1:789})
             WordMorphism: 0->123, 1->789
             sage: WordMorphism({2:[4,5,6], 3:123})
-            WordMorphism: 2->456, 3->123
+            WordMorphism: 2->4,5,6, 3->123
 
         3. From a WordMorphism::
 
@@ -366,7 +408,7 @@ class WordMorphism(SageObject):
             WordMorphism: a->ab, b->ba
 
             sage: WordMorphism({(1,2):'ab', 'a': ['c', (1,2), 'a']})
-            WordMorphism: (1, 2)->ab, a->c,(1, 2),a
+            WordMorphism: (1, 2)->a,b, a->c,(1, 2),a
 
             sage: WordMorphism({'a':'a'}, domain=FiniteWords('ab'))
             Traceback (most recent call last):
@@ -618,8 +660,18 @@ class WordMorphism(SageObject):
             sage: s = WordMorphism('a->ab,b->ba')
             sage: str(s)
             'a->ab, b->ba'
+
+        Test that :trac:`13707` is fixed::
+
+            sage: s = WordMorphism({1:[1, 2], 2:[12], 12:[1, 2]})
+            sage: print(s)
+            1->1,2, 12->1,2, 2->12
         """
-        L = [str(lettre) + '->' + image.string_rep()
+        max_value_length = find_max_value_length(self)
+        force_separator = False
+        if max_value_length > 1:
+            force_separator = True
+        L = [str(lettre) + '->' + image.string_rep(force_separator)
              for lettre, image in self._morph.items()]
         return ', '.join(sorted(L))
 

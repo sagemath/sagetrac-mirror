@@ -76,7 +76,7 @@ class Word_class(SageObject):
             return "Word over %s" % (str(self.parent().alphabet())[17:])
         return word_options['identifier'] + self.string_rep()
 
-    def string_rep(self):
+    def string_rep(self, force_separator=False):
         r"""
         Returns the (truncated) raw sequence of letters as a string.
 
@@ -128,7 +128,7 @@ class Word_class(SageObject):
         if word_options['display'] == 'string':
             ls = word_options['letter_separator']
             letters = [str(a) for a in letters]
-            if all(len(a) == 1 for a in letters):
+            if not force_separator and all(len(a) == 1 for a in letters):
                 return ''.join(letters) + suffix
             elif suffix == "...":
                 return ls.join(letters) + ls + suffix
