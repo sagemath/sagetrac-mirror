@@ -206,5 +206,6 @@ def all_features():
             pdflatex(),
             xelatex(),
             lualatex(),
+            LaTeXPackage("tikz"),
             LaTeXPackage("tkz-graph"),
             LaTeXPackage("tkz-berge")]
