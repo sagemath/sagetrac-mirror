@@ -240,15 +240,14 @@ class CubicHeckeDataBase(SageObject):
         if (section, nstrands) in data_lib.keys():
             return data_lib[(section, nstrands)]
 
-        verbose('loading data library %s for %s strands ...' %(section.value, nstrands))
+        verbose('loading data library %s for %s strands ...' % (section.value, nstrands))
 
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import GenSign
 
         if self.demo_version():
             if nstrands >= 4:
                 self._feature.require()
-            from sage.databases.cubic_hecke_db import read_basis, read_irr, \
-            read_regl, read_regr, read_markov
+            from .cubic_hecke_db import read_basis, read_irr, read_regl, read_regr, read_markov
         else:
             from database_cubic_hecke import read_basis, read_irr, read_reg
             from database_cubic_hecke.markov_trace_coeffs import read_markov
@@ -311,7 +310,7 @@ class CubicHeckeDataBase(SageObject):
         """
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType, GenSign
         if not isinstance(representation_type, RepresentationType):
-            raise TypeError('representation_type must be an instance of enum %s' %(RepresentationType))
+            raise TypeError('representation_type must be an instance of enum %s' % RepresentationType)
 
         td = ring_of_definition.gens_dict_recursive()
         if 'e3' in td.keys():
@@ -533,7 +532,7 @@ class MarkovTraceModuleBasis(Enum):
         if self.name == 'K4U':
             K4rkp = MarkovTraceModuleBasis.K4.regular_kauffman_polynomial()
             return K4rkp * U2rkp
-        exp = self.strands() -1
+        exp = self.strands() - 1
         return U2rkp**exp
 
     def links_gould_polynomial(self):
@@ -560,18 +559,18 @@ class MarkovTraceModuleBasis(Enum):
         R = LaurentPolynomialRing(ZZ, 't0, t1')
         return R(links_gould[self.name])
 
-    U1  = ['one unlink',    1, (), []]
-    U2  = ['two unlinks',   2, (), [[3, 1, 4, 2], [4, 1, 3, 2]]]
-    U3  = ['three unlinks', 3, (), [[3, 7, 4, 8], [4, 7, 5, 8],
-                                    [5, 1, 6, 2], [6, 1, 3, 2]]]
-    U4  = ['four unlinks',  4, (), [[3, 9, 4, 10], [4, 9, 5, 10], [5, 11, 6, 12],
-                                    [6, 11, 7, 12], [7, 1, 8, 2], [8, 1, 3, 2]]]
+    U1 = ['one unlink',    1, (), []]
+    U2 = ['two unlinks',   2, (), [[3, 1, 4, 2], [4, 1, 3, 2]]]
+    U3 = ['three unlinks', 3, (), [[3, 7, 4, 8], [4, 7, 5, 8],
+                                   [5, 1, 6, 2], [6, 1, 3, 2]]]
+    U4 = ['four unlinks',  4, (), [[3, 9, 4, 10], [4, 9, 5, 10], [5, 11, 6, 12],
+                                   [6, 11, 7, 12], [7, 1, 8, 2], [8, 1, 3, 2]]]
     K4U = ['knot 4_1 plus one unlink', 4, (1, -2, 1, -2),
-          [[3, 8, 4, 9], [9, 7, 10, 6], [7, 4, 8, 5], [5, 11, 6, 10],
+           [[3, 8, 4, 9], [9, 7, 10, 6], [7, 4, 8, 5], [5, 11, 6, 10],
            [11, 1, 12, 2], [12, 1, 3, 2]]]
-    K4  = ['knot 4_1',  3, (1, -2, 1, -2), None]
-    K6  = ['knot 6_1',  4, (1, 1, 2, -1, -3, 2, -3), None]
-    K7  = ['knot 7_4',  4, (1, 1, 2, -1, 2, 2, 3, -2, 3), None]
+    K4 = ['knot 4_1',  3, (1, -2, 1, -2), None]
+    K6 = ['knot 6_1',  4, (1, 1, 2, -1, -3, 2, -3), None]
+    K7 = ['knot 7_4',  4, (1, 1, 2, -1, 2, 2, 3, -2, 3), None]
     K91 = ['knot 9_29', 4, (1, -2, -2, 3, -2, 1, -2, 3, -2), None]
     K92 = ['knot 9_34', 4, (-1, 2, -1, 2, -3, 2, -1, 2, -3), None]
 
@@ -615,7 +614,7 @@ links_gould = {
         (0, -1): -3, (-1, 0): -3, (-1, -1): 2},
  'K6': {(2, 2): 2, (2, 1): -3, (1, 2): -3, (2, 0): 1, (1, 1): 10, (0, 2): 1,
         (1, 0): -10, (0, 1): -10, (1, -1): 3, (0, 0): 17, (-1, 1): 3, (0, -1): -7,
-       (-1, 0): -7, (-1, -1): 4},
+        (-1, 0): -7, (-1, -1): 4},
  'K7': {(4, 3): -1, (3, 4): -1, (4, 2): 1, (3, 3): 6, (2, 4): 1, (3, 2): -11,
         (2, 3): -11, (3, 1): 6, (2, 2): 28, (1, 3): 6, (2, 1): -27, (1, 2): -27,
         (2, 0): 9, (1, 1): 38, (0, 2): 9, (1, 0): -17, (0, 1): -17, (0, 0): 9},
@@ -690,14 +689,14 @@ class CubicHeckeFileCache(SageObject):
                 'braid_images_2.sobj'
             """
             if nstrands is None:
-                return '%s.sobj' %(self.value)
+                return '%s.sobj' % self.value
             else:
-                return '%s_%s.sobj' %(self.value, nstrands)
+                return '%s_%s.sobj' % (self.value, nstrands)
 
-        matrix_representations  = 'matrix_representations'
-        braid_images            = 'braid_images'
-        basis_extensions        = 'basis_extensions'
-        markov_trace            = 'markov_trace'
+        matrix_representations = 'matrix_representations'
+        braid_images = 'braid_images'
+        basis_extensions = 'basis_extensions'
+        markov_trace = 'markov_trace'
 
     def __init__(self, num_strands):
         r"""
@@ -715,7 +714,7 @@ class CubicHeckeFileCache(SageObject):
             sage: cha_fc._file_cache_path.endswith('cubic_hecke')
             True
         """
-        self._nstrands      = num_strands
+        self._nstrands = num_strands
 
         from sage.env import DOT_SAGE
         self._file_cache_path = os.path.join(DOT_SAGE, 'cubic_hecke')
@@ -751,14 +750,14 @@ class CubicHeckeFileCache(SageObject):
             return
 
         if not isinstance(section, CubicHeckeFileCache.section):
-            raise TypeError('section must be an instance of enum %s' %(CubicHeckeFileCache.section))
+            raise TypeError('section must be an instance of enum %s' % CubicHeckeFileCache.section)
 
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
         data_lib = self._data_library
         empty_dict = {}
         if section == self.section.matrix_representations:
             for rep_type in RepresentationType:
-                new_dict={}
+                new_dict = {}
                 empty_dict.update({rep_type: new_dict})
         elif section == self.section.basis_extensions:
             empty_dict = []
@@ -787,7 +786,7 @@ class CubicHeckeFileCache(SageObject):
             return all(self.is_empty(section=sec) for sec in self.section)
 
         if not isinstance(section, CubicHeckeFileCache.section):
-            raise TypeError('section must be an instance of enum %s' %(CubicHeckeFileCache.section))
+            raise TypeError('section must be an instance of enum %s' % CubicHeckeFileCache.section)
 
         self.read(section)
         data_lib = self._data_library[section]
@@ -801,7 +800,7 @@ class CubicHeckeFileCache(SageObject):
         if section == self.section.basis_extensions and self._nstrands > 4:
             # the new generators and their inverses are not counted
             # since they are added during initialization
-            return len(data_lib) <= 2*(self._nstrands -4)
+            return len(data_lib) <= 2*(self._nstrands - 4)
         return len(data_lib) == 0
 
     # --------------------------------------------------------------------------
@@ -837,12 +836,12 @@ class CubicHeckeFileCache(SageObject):
             return
 
         if not isinstance(section, CubicHeckeFileCache.section):
-            raise TypeError('section must be an instance of enum %s' %(CubicHeckeFileCache.section))
+            raise TypeError('section must be an instance of enum %s' % CubicHeckeFileCache.section)
 
         if section not in data_lib.keys():
-            raise ValueError("No data for file %s in memory" %(section))
+            raise ValueError("No data for file %s in memory" % section)
 
-        verbose('saving file cache %s ...' %(section))
+        verbose('saving file cache %s ...' % section)
         fname = os.path.join(lib_path, section.filename(self._nstrands))
         with atomic_write(fname, binary=True) as f:
             f.write(_base_dumps(data_lib[section]))
@@ -874,7 +873,7 @@ class CubicHeckeFileCache(SageObject):
             {}
         """
         if not isinstance(section, CubicHeckeFileCache.section):
-            raise TypeError('section must be an instance of enum %s' %(CubicHeckeFileCache.section))
+            raise TypeError('section must be an instance of enum %s' % CubicHeckeFileCache.section)
 
         data_lib = self._data_library
         lib_path = self._file_cache_path
@@ -882,7 +881,7 @@ class CubicHeckeFileCache(SageObject):
         if section in data_lib.keys():
             return data_lib[section]
 
-        verbose('loading file cache %s ...' %(section))
+        verbose('loading file cache %s ...' % section)
         fname = os.path.join(lib_path, section.filename(self._nstrands))
         try:
             data_lib[section] = load(fname)
@@ -938,7 +937,7 @@ class CubicHeckeFileCache(SageObject):
         """
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
         if not isinstance(representation_type, RepresentationType):
-            raise TypeError('representation_type must be an instance of enum %s' %(RepresentationType))
+            raise TypeError('representation_type must be an instance of enum %s' % RepresentationType)
 
         matrix_representations = self.read(self.section.matrix_representations)[representation_type]
         if monomial_tietze in matrix_representations.keys():
@@ -989,7 +988,7 @@ class CubicHeckeFileCache(SageObject):
         """
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
         if not isinstance(representation_type, RepresentationType):
-            raise TypeError('representation_type must be an instance of enum %s' %(RepresentationType))
+            raise TypeError('representation_type must be an instance of enum %s' % RepresentationType)
 
         matrix_representations = self.read(self.section.matrix_representations)[representation_type]
 
@@ -1127,11 +1126,11 @@ class CubicHeckeFileCache(SageObject):
 
 func_name = 'read_%s'
 
-var_decl  = "\n    %s = variables"
+var_decl = "\n    %s = variables"
 var_doc_input = "\n    - ``variables`` -- tuple containing the indeterminates of the representation"
-var_doc_decl  = "\n        sage: L.<%s> = LaurentPolynomialRing(ZZ)"
+var_doc_decl = "\n        sage: L.<%s> = LaurentPolynomialRing(ZZ)"
 
-template="""def %s(%snum_strands=3):
+template = """def %s(%snum_strands=3):
     %s%s
     data = {}
     data[2] = %s
@@ -1141,7 +1140,7 @@ template="""def %s(%snum_strands=3):
 """
 
 
-doc=r"""{}
+doc = r"""{}
     Return precomputed data of Ivan Marin
 
     This code was generated by :func:`create_demo_data`, please don't edit.
@@ -1175,17 +1174,17 @@ def create_demo_data(filename='demo_data.py'):
     # preparations
     # ---------------------------------------------------------------
     def create_repr_func(name, variables, data2, data3):
-        fname = func_name %name
+        fname = func_name % name
         if variables:
             v = str(variables)
             vars2 = v + ', '
-            decl = var_decl %v
-            doc_dec = var_doc_decl %v[1: len(v)-1]
-            doc_str  = doc %(var_doc_input, fname,  doc_dec, fname, vars2)
-            res = template %(fname, 'variables, ', doc_str, decl, data2,  data3)
+            decl = var_decl % v
+            doc_dec = var_doc_decl % v[1: len(v)-1]
+            doc_str = doc % (var_doc_input, fname,  doc_dec, fname, vars2)
+            res = template % (fname, 'variables, ', doc_str, decl, data2,  data3)
         else:
-            doc_str  = doc %('', fname, '', fname, '')
-            res = template %(fname, '', doc_str, '', data2,  data3)
+            doc_str = doc % ('', fname, '', fname, '')
+            res = template % (fname, '', doc_str, '', data2,  data3)
         return res
 
     from textwrap import fill
