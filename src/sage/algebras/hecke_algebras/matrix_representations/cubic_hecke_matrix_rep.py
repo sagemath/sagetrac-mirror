@@ -139,11 +139,11 @@ class RepresentationType(Enum):
             sage: chmr.RepresentationType.SplitIrredMarin.number_of_representations(4)
             24
         """
-        if self.value['data'] == None:
-            if nstrands < 1  or nstrands > 5 :
-                raise ValueError( "nstrands must be between 1 and 5" )
+        if self.value['data'] is None:
+            if nstrands < 1  or nstrands > 5:
+                raise ValueError("nstrands must be between 1 and 5")
         elif nstrands < 1  or nstrands > 4 :
-            raise ValueError( "nstrands must be between 1 and 4" )
+            raise ValueError("nstrands must be between 1 and 4")
         return self.value['num_rep'][nstrands-1 ]
 
 
@@ -628,10 +628,10 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         """
         from sage.algebras.hecke_algebras.cubic_hecke_algebra import  CubicHeckeAlgebra
 
-        if isinstance(cubic_hecke_algebra, CubicHeckeAlgebra) == False:
+        if not isinstance(cubic_hecke_algebra, CubicHeckeAlgebra):
             raise TypeError("cubic_hecke_algebra must be an instance of CubicHeckeAlgebra")
 
-        if representation_type == None:
+        if representation_type is None:
             representation_type = RepresentationType.SplitIrredMarin
 
         if representation_type == RepresentationType.SplitIrredChevie:
@@ -662,10 +662,9 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA3, original=True)
             sage: TestSuite(MS).run()     # long time
         """
-
         from sage.algebras.hecke_algebras.cubic_hecke_algebra import  CubicHeckeAlgebra
 
-        if isinstance(cubic_hecke_algebra, CubicHeckeAlgebra) == False:
+        if not isinstance(cubic_hecke_algebra, CubicHeckeAlgebra):
             raise TypeError("cubic_hecke_algebra must be an instance of CubicHeckeAlgebra")
 
         # -------------------------------------------------------------------------------------------------
@@ -968,7 +967,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             else:
                 for gen_ind in ele_Tietze:
                     gen_matrix_list = self._image_on_gen(gen_ind)
-                    if matrix_list == None:
+                    if matrix_list is None:
                         matrix_list  = [m for m in gen_matrix_list]
                     else:
                         for i in range(len(matrix_list)):

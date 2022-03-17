@@ -4,8 +4,9 @@ Cubic Hecke Database
 
 This module contains the class :class:`CubicHeckeDataBase` which serves as an
 interface to `Ivan Marin's data files <http://www.lamfa.u-picardie.fr/marin/representationH4-en.html>`__
-with respect to the cubic Hecke algebras. The data is available via the
+with respect to the cubic Hecke algebras. The data is available via a Python wrapper as a
 pip installable package `database_cubic_hecke <https://pypi.org/project/database-cubic-hecke/>`__.
+For installation hints please see the documentation there.
 Anyway, all data needed for the cubic Hecke algebras on less than four strands is
 included in this module for demonstration purpose (see for example
 :func:`read_basis`, :func:`read_irr` , ... generated with the help of
@@ -49,23 +50,19 @@ import os
 from enum import Enum
 
 from sage.structure.sage_object import SageObject
-from sage.misc.persist import _base_dumps, save, load
+from sage.misc.persist import _base_dumps, load
 from sage.misc.temporary_file import atomic_write
 from sage.misc.verbose import verbose
-from sage.env import SAGE_SHARE, SAGE_ROOT
-from sage.matrix.constructor import matrix, Matrix  # uppercase version used in Marin's file `MatricesRegH4.maple`
+from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
-from sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring import CubicHeckeRingOfDefinition, CubicHeckeExtensionRing
+from sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring import CubicHeckeExtensionRing
 
 
-
-
-
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # functions to convert matrices and ring elements to and from flat python
 # dictionaries in order to save matrices avoiding compatibility problems with
 # older or newer sage versions and to save disc space
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 def simplify(mat):
     r"""
     Convert a matrix to a dictionary consisting of flat Python objects.
@@ -106,10 +103,11 @@ def simplify(mat):
     d = mat.dict()
     if isinstance(B, CubicHeckeExtensionRing):
         # Laurent polynomial cannot be reconstructed from string
-        res = {k: {tuple(l):u.dict() for l, u in v.dict().items()} for k, v in d.items()}
+        res = {k: {tuple(l): u.dict() for l, u in v.dict().items()} for k, v in d.items()}
     else:
         res = {k: str(v) for k, v in d.items()}
     return res
+
 
 class CubicHeckeDataSection(Enum):
     r"""
@@ -129,17 +127,17 @@ class CubicHeckeDataSection(Enum):
         sage: cha_db.section
         <enum 'CubicHeckeDataSection'>
     """
-    basis         = 'basis'
-    regular_left  = 'regular_left'
+    basis = 'basis'
+    regular_left = 'regular_left'
     regular_right = 'regular_right'
-    split_irred   = 'split_irred'
+    split_irred = 'split_irred'
     markov_tr_cfs = 'markov_tr_cfs'
 
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Class to supply data for the basis and matrix representation for the cubic
 # Hecke algebra
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 class CubicHeckeDataBase(SageObject):
     r"""
     Database interface needed for :class:`CubicHeckeAlgebra`.
@@ -171,7 +169,7 @@ class CubicHeckeDataBase(SageObject):
             {}
         """
         from sage.features.databases import DatabaseCubicHecke
-        self._feature   = DatabaseCubicHecke()
+        self._feature = DatabaseCubicHecke()
         self._data_library = {}
         self._demo = None
 
@@ -234,7 +232,7 @@ class CubicHeckeDataBase(SageObject):
             24
         """
         if not isinstance(section, CubicHeckeDataSection):
-            raise TypeError('section must be an instance of enum %s' %(CubicHeckeDataBase.section))
+            raise TypeError('section must be an instance of enum %s' % CubicHeckeDataBase.section)
 
         data_lib = self._data_library
 
@@ -276,7 +274,6 @@ class CubicHeckeDataBase(SageObject):
             data_lib[(section, nstrands)] = {GenSign.pos:repr_list, GenSign.neg:repr_list_inv}
 
         verbose('... finished!')
-
         return data_lib[(section,nstrands)]
 
 
@@ -330,7 +327,8 @@ class CubicHeckeDataBase(SageObject):
             # data of inverse of generators is stored under negative strand-index
             rep_list = [rep_list[GenSign.neg][i] for i in range(num_rep) ]
             matrix_list = [matrix(ring_of_definition, rep[-gen_ind-1], sparse=True) for rep in rep_list]
-        for m in matrix_list: m.set_immutable()
+        for m in matrix_list:
+            m.set_immutable()
         return matrix_list
 
 
@@ -953,7 +951,8 @@ class CubicHeckeFileCache(SageObject):
         if monomial_tietze in matrix_representations.keys():
             matrix_list_dict = matrix_representations[monomial_tietze]
             matrix_list = [matrix(ring_of_definition, mat_dict, sparse=True) for mat_dict in matrix_list_dict]
-            for m in matrix_list: m.set_immutable()
+            for m in matrix_list:
+                m.set_immutable()
             return matrix_list
         return None
 

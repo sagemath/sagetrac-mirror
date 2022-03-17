@@ -126,7 +126,6 @@ AUTHORS:
 
 
 from warnings import warn
-from enum import Enum
 
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.cachefunc import cached_method
@@ -193,7 +192,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         """
         self_Tietze = self.Tietze()
 
-        if self_Tietze == None:
+        if self_Tietze is None:
             raise NotImplementedError( "inversion of non basis elements is not implemented, yet" )
 
         inverse_Tietze = ()
@@ -652,7 +651,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
     But note that just the data for the cubic Hecke algebras on less than four
     strands is available in Sage per default. To deal with four strands and
-    more you need to install the optional package ``database_cubic_hecke``
+    more you need to install the optional package
+    `database_cubic_hecke <https://pypi.org/project/database-cubic-hecke/>`__
     by typing
 
     - ``sage -i database_cubic_hecke`` (first time installation) or
@@ -852,8 +852,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 n = None
         # derive n from counting names
         if n is None:
-            import six
-            if isinstance(names, six.string_types):
+            if type(names) is str:
                 n = len(names.split(','))
             else:
                 names = list(names)
@@ -918,8 +917,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # cubic_equation_parameters
         # ----------------------------------------------------------------------
         ring_of_definition_names = ('u', 'v', 'w')
-        if cubic_equation_parameters != None:
-            if isinstance(cubic_equation_parameters, str) == True:
+        if cubic_equation_parameters is not None:
+            if isinstance(cubic_equation_parameters, str):
                 # --------------------------------------------------------------
                 # Input specifies names for the generic base ring
                 # --------------------------------------------------------------
@@ -931,9 +930,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 # --------------------------------------------------------------
                 # Input specifies a specialized base ring
                 # --------------------------------------------------------------
-                if isinstance(cubic_equation_parameters, list) == True:
+                if isinstance(cubic_equation_parameters, list):
                     cubic_equation_parameters = tuple(cubic_equation_parameters)
-                if isinstance( cubic_equation_parameters, tuple ) == False:
+                if not isinstance( cubic_equation_parameters, tuple ):
                     raise TypeError('cubic_equation_parameters must be a tuple or list')
                 if len( cubic_equation_parameters ) != 3 :
                     raise ValueError('cubic_equation_parameters must consist of exactly 3 elements')
@@ -942,8 +941,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # cubic_equation_roots
         # ----------------------------------------------------------------------
         generic_extension_ring_names = ('a', 'b', 'c')
-        if cubic_equation_roots != None:
-            if isinstance(cubic_equation_roots, str) == True:
+        if cubic_equation_roots is not None:
+            if isinstance(cubic_equation_roots, str):
                 # --------------------------------------------------------------
                 # Input specifies names for the generic extension ring
                 # --------------------------------------------------------------
@@ -955,9 +954,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 # --------------------------------------------------------------
                 # Input specifies a specialized base ring
                 # --------------------------------------------------------------
-                if isinstance( cubic_equation_roots, list ) == True:
+                if isinstance( cubic_equation_roots, list ):
                     cubic_equation_roots = tuple(cubic_equation_roots)
-                if isinstance( cubic_equation_roots, tuple ) == False:
+                if not isinstance( cubic_equation_roots, tuple ):
                     raise TypeError('cubic_equation_roots must be a tuple or list')
                 if len( cubic_equation_roots ) != 3 :
                     raise ValueError('cubic_equation_roots must consist of exactly 3 elements')
@@ -991,12 +990,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # interpreting user given cubic equation parameters to define the
         # corresponding specialized base ring
         # ----------------------------------------------------------------------
-        if cubic_equation_parameters == None and cubic_equation_roots != None:
+        if cubic_equation_parameters is None and cubic_equation_roots is not None:
              pa, pb, pc = cubic_equation_roots
              cubic_equation_parameters = [pa+pb+pc, pa*pb+pb*pc+pa*pc, pa*pb*pc]
              verbose('cubic_equation_parameters %s set according to cubic_equation_roots %s' %(cubic_equation_parameters, cubic_equation_roots), level=2)
 
-        if cubic_equation_parameters != None:
+        if cubic_equation_parameters is not None:
             base_ring = ring_of_definition.create_specialization(cubic_equation_parameters)
             cubic_equation_parameters = [base_ring(para) for para in cubic_equation_parameters]
             verbose('base_ring %s set according to cubic_equation_parameters %s' %(base_ring, cubic_equation_parameters), level=2)
@@ -1024,7 +1023,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
         if base_ring != ring_of_definition:
-            if cubic_equation_roots == None:
+            if cubic_equation_roots is None:
                 # --------------------------------------------------------------
                 # No roots given
                 # --------------------------------------------------------------
@@ -1035,7 +1034,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # interpreting user given cubic equation roots to define the
         # corresponding specialized extension ring
         # ----------------------------------------------------------------------
-        if cubic_equation_roots != None:
+        if cubic_equation_roots is not None:
             extension_ring = generic_extension_ring.create_specialization(cubic_equation_roots)
             cubic_equation_roots = [extension_ring(root) for root in cubic_equation_roots]
             verbose('extension_ring %s set according to cubic_equation_roots %s' %(base_ring, cubic_equation_roots), level=2)
@@ -1098,7 +1097,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                     base_ring_embedding = None
 
 
-        if base_ring_embedding == None:
+        if base_ring_embedding is None:
             warn('Warning: no base_ring_embedding found')
 
         # ----------------------------------------------------------------------
@@ -1776,7 +1775,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         gap3_result    = self.chevie().Representations(number)
         from sage.matrix.constructor import matrix
         matrix_list_gens = [matrix(GER, mat_gap) for mat_gap in gap3_result]
-        for m in matrix_list_gens: m.set_immutable()
+        for m in matrix_list_gens:
+            m.set_immutable()
         return matrix_list_gens
 
 
@@ -1807,21 +1807,24 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # ------------------------------------------------------------------------
         # testing ring constructions
         # ------------------------------------------------------------------------
-
-
-        br=self.base_ring(); er=self.extension_ring()
+        br=self.base_ring()
+        er=self.extension_ring()
         A, B, C = self.cubic_equation_roots()
         a, b, c = self.cubic_equation_roots(generic=True)
         U, V, W = self.cubic_equation_parameters()
         u, v, w = self.cubic_equation_parameters(generic=True)
-        eleB = U*V-W**2 ; eleBgen = u*v-w**2
-        eleE = A*B-C**2 ; eleEgen = a*b-c**2
+        eleB = U*V-W**2
+        eleBgen = u*v-w**2
+        eleE = A*B-C**2
+        eleEgen = a*b-c**2
 
         mbr = self._ring_of_definition_map
         mer = self._generic_extension_ring_map
         bri = self._base_ring_embedding
 
-        eleBgenEmb = 0 ; eleEgenEmb = 0 ; eleBembE = 0
+        eleBgenEmb = 0
+        eleEgenEmb = 0
+        eleBembE = 0
 
         try:
             eleBgenEmb = br(eleBgen)
@@ -1884,11 +1887,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # testing matrix constructions
         # ----------------------------------------------------------------------
 
-        if self.ngens() > 4 :
+        if self.ngens() > 4:
             return
 
         gens = self.gens()
-        b1 = gens[0 ]; b2 = self.an_element()
+        b1 = gens[0]
+        b2 = self.an_element()
         b12 = b1*b2
         verbose("b12 %s" %(b12))
 
@@ -1904,12 +1908,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         if is_chevie_available():
             check_matrix(RepresentationType.SplitIrredChevie)
-            if self.ngens() < 3 :
+            if self.ngens() < 3:
                 check_matrix(RepresentationType.SplitIrredMarin)
-        elif self.ngens() < 4 :
+        elif self.ngens() < 4:
             check_matrix(RepresentationType.SplitIrredMarin)
 
-        if self.ngens() < 3 :
+        if self.ngens() < 3:
             check_matrix(RepresentationType.RegularLeft)
 
         return
@@ -2076,7 +2080,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         - ``braid`` - instance of :class:`~sage.groups.braid.Braid`, whose image
           in ``self`` should be calculated
 
-
         OUTPUT:
 
         An instance of the element class of ``self``.
@@ -2088,8 +2091,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA2._braid_image(br2)
             w*c^-1 + u*c + (-v)
         """
-
-
         # ----------------------------------------------------------------------
         # first use the cubic equation to express the braid as a linear
         # combination of braids having no other exponent as 1 and -1 in their
@@ -2106,8 +2107,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             result += coeffs[i]*braid_image
 
         return result
-
-
 
 
     # --------------------------------------------------------------------------
@@ -2159,7 +2158,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # ----------------------------------------------------------------------
         result, word_decomposition = self._braid_image_from_former_calculations(braid_tietze)
 
-        if word_decomposition == None:
+        if word_decomposition is None:
             return result
 
         # ----------------------------------------------------------------------
@@ -2178,25 +2177,22 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             # ------------------------------------------------------------------
             return self._braid_image_by_basis_extension(braid_tietze)
 
-
         word_left, word_result, word_right = word_decomposition
-
         result_vect = None
 
-        if word_left != None:
+        if word_left is not None:
             # ------------------------------------------------------------------
             # Operating from the left on the precalculated result
             # ------------------------------------------------------------------
-
             vect = result.to_vector()
             braid_preimage = tuple(word_result)
             result_vect = self._mult_by_regular_rep(vect, tuple(word_left), RepresentationType.RegularLeft, braid_preimage)
 
-        if word_right != None:
+        if word_right is not None:
             # ------------------------------------------------------------------
             # Operating from the right on the precalculated result
             # ------------------------------------------------------------------
-            if result_vect != None:
+            if result_vect is not None:
                 vect = result_vect
                 braid_preimage = tuple(word_left + word_result)
             else:
@@ -2205,11 +2201,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             result_vect = self._mult_by_regular_rep(vect, tuple(word_right), RepresentationType.RegularRight, braid_preimage)
 
         result = self.from_vector(result_vect)
-
         return result
-
-
-
 
     # --------------------------------------------------------------------------
     # _braid_image_from_former_calculations
@@ -2279,7 +2271,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         braid_group  = self.braid_group()
         braid        = braid_group(braid_tietze)
         result = self._braid_image_from_filecache(braid)
-        if result != None:
+        if result is not None:
             verbose("End from file cache (%s)" %(list(braid_tietze)), level=2)
             return result, None
 
@@ -2295,10 +2287,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         result_left,  word_decomp_left  = self._braid_image_from_former_calculations(tuple(braid_list_red_left))
         result_right, word_decomp_right = self._braid_image_from_former_calculations(tuple(braid_list_red_right))
-        if word_decomp_left == None:
+        if word_decomp_left is None:
             return result_left, ([braid_tietze[0 ]], braid_list_red_left, [])
 
-        if word_decomp_right == None:
+        if word_decomp_right is None:
             return result_right, ([], braid_list_red_right, [braid_tietze[len_braid-1 ]])
 
         word_decomp_left_left,  word_decomp_left_result,  word_decomp_left_right  = word_decomp_left
@@ -2308,9 +2300,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             return result_left, ([braid_tietze[0 ]] + word_decomp_left_left, word_decomp_left_result, word_decomp_left_right)
         else:
             return result_right, (word_decomp_right_left, word_decomp_right_result, word_decomp_right_right + [braid_tietze[len_braid-1 ]])
-
-
-
 
     # --------------------------------------------------------------------------
     # _braid_image_by_basis_expansion_
@@ -3149,14 +3138,14 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         BaseRing = self.base_ring(generic=generic)
 
-        if generic == True:
+        if generic:
             u, v, w = BaseRing.gens()
         else:
             u, v, w = self._cubic_equation_parameters
 
         cf = [-w, v, -u, 1 ]
 
-        if as_coefficients == True:
+        if as_coefficients:
             return cf
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -3190,7 +3179,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA2.cubic_equation_roots(generic=True)
             [a, b, c]
         """
-        if generic == True:
+        if generic:
             return self._generic_cubic_equation_roots
         else:
             return self._cubic_equation_roots
@@ -3222,7 +3211,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA2.cubic_equation_parameters(generic=True)
             [u, v, w]
         """
-        if generic == True:
+        if generic:
             return self._generic_cubic_equation_parameters
         else:
             return self._cubic_equation_parameters
@@ -3254,7 +3243,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             Multivariate Polynomial Ring in u, v, w
               over Integer Ring localized at (w,)
         """
-        if generic == True:
+        if generic:
             return self._ring_of_definition
         else:
             return self._base_ring
@@ -3290,7 +3279,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             over Splitting Algebra of x^2 + x + 1
               with roots [e3, -e3 - 1] over Integer Ring
         """
-        if generic == True:
+        if generic:
             return self._generic_extension_ring
         else:
             return self._extension_ring
@@ -3326,7 +3315,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             e3
         """
         e3gen = self.extension_ring(generic=True).cyclotomic_generator()
-        if generic == True:
+        if generic:
             return e3gen
         else:
             return self._generic_extension_ring_map(e3gen)
@@ -3426,7 +3415,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 with cubic equation: h^3 - 12*h^2 + 47*h - 60 = 0
         """
 
-        if nstrands == None:
+        if nstrands is None:
             nstrands = self.strands() -1
 
         n = self.strands()
@@ -3438,7 +3427,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         Gens = self.gens()
 
-        if nstrands == self.strands() -1  and self._cubic_hecke_subalgebra != None:
+        if nstrands == self.strands() -1  and self._cubic_hecke_subalgebra is not None:
             return self._cubic_hecke_subalgebra
 
         gen_range = range(nstrands -1 )
@@ -3560,7 +3549,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             self._base_ring_mirror = base_ring_mirror
 
         mirror_image = self._mirror_image
-        if mirror_image == None:
+        if mirror_image is None:
             extension_ring  = self.extension_ring()
             extension_gen   = self.extension_ring(generic=True)
             extension_gen_mirror  = extension_gen.mirror_involution()

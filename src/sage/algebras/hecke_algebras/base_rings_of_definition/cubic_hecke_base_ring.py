@@ -258,7 +258,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
         self._ring_of_definition = None
         self._splitting_algebra = None
 
-        if ring_of_definition != None:
+        if ring_of_definition is not None:
             if not isinstance(ring_of_definition, CubicHeckeRingOfDefinition):
                 raise TypeError( "generic base ring must be an instance of CubicHeckeRingOfDefinition")
             self._ring_of_definition = ring_of_definition
@@ -609,7 +609,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
             sage: _(MER.an_element())
             e3*p^-1*s + q^-2*r
         """
-        if self._mirror == None:
+        if self._mirror is None:
             e3 = self.base_ring().gen()
             if self._is_markov_trace_version():
                 a, b, c, s = self.gens()
@@ -728,7 +728,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
             E3 = cyclotomic_roots[0]
             verbose("thrird root of unity %s found in %s" %(E3, E3.parent()), level=2)
 
-        if E3 == None:
+        if E3 is None:
             raise RuntimeError( "cannot find a ring containing a third root of unity for the this choice of cubic roots!" )
 
         hom_gens = [E3] + im_gens
@@ -795,11 +795,11 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
             sage: ES(MBR.an_element())
             (u^2*s + v*w)/(w*s)
         """
-        if self._splitting_algebra  != None:
+        if self._splitting_algebra is not None:
             verbose("End (short)", level=2)
             return self._splitting_algebra
 
-        if self._ring_of_definition == None:
+        if self._ring_of_definition is None:
             verbose("constructing generic base ring", level=2)
             self._ring_of_definition = CubicHeckeRingOfDefinition()
 
@@ -1166,7 +1166,7 @@ class CubicHeckeRingOfDefinition(Localization):
         """
         u, v, w, *rem = self.gens()
         cf = [-w, v, -u, 1]
-        if as_coefficients == True:
+        if as_coefficients:
             return cf
         P = PolynomialRing(self, var)
 
@@ -1228,7 +1228,7 @@ class CubicHeckeRingOfDefinition(Localization):
             sage: _(MBR.an_element())
             (v^2 + u*s)/w
         """
-        if self._mirror == None:
+        if self._mirror is None:
             if self._is_markov_trace_version():
                 u, v, w, s = self.gens()
                 self._mirror = self.hom([v/w, u/w, ~w, ~s])
@@ -1389,7 +1389,9 @@ class CubicHeckeRingOfDefinition(Localization):
         # constructing a canonical embedding of the generic base ring into the
         # extension ring
         # ----------------------------------------------------------------------
-        iu = a+b+c; iv = a*b+a*c+b*c; iw = a*b*c
+        iu = a+b+c
+        iv = a*b+a*c+b*c
+        iw = a*b*c
         im_gens = [iu, iv, iw]
         if markov:
             im_gens += rem
