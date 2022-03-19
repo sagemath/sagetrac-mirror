@@ -1,4 +1,5 @@
 175,0
+S,MyOrbitsOfSpacesEquivariant,Orbit representatives of the k-dimensional g-invariant subspaces of the natural vector space for G,1,0,1,178,0,84,3,0,0,0,0,0,0,0,180,,0,0,148,,0,0,178,,82,-38,-38,-38,-38,-38
 S,MyOrbitsOfSpaces,Orbit representatives of the k-dimensional subspaces of the natural vector space for G,1,0,1,178,0,84,2,0,0,0,0,0,0,0,148,,0,0,178,,82,-38,-38,-38,-38,-38
 S,ClassGroupPrimeIdealGenerators,Returns prime ideals that generate the ray class group of I and the infinite places in S,0,2,0,0,0,0,0,0,0,82,,0,0,217,,82,-38,-38,-38,-38,-38
 S,ClassGroupPrimeIdealGenerators,Returns prime ideals that generate the ray class group of I and the infinite places in S,0,1,0,0,0,0,0,0,0,217,,82,-38,-38,-38,-38,-38

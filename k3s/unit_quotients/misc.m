@@ -68,6 +68,12 @@ intrinsic Next(PL::ProcPL) -> ModTupFldElt
 end intrinsic;
 */
 
+intrinsic MyOrbitsOfSpacesEquivariant(G::GrpMat[FldFin], k::RngIntElt, g::GrpMatElt) -> []
+{Orbit representatives of the k-dimensional g-invariant subspaces of the natural vector space for G}
+  orb:=OrbitsOfSpaces(G,k);
+  return [o : o in orb | OrbitBounded(G,o[2],1)];
+end intrinsic;
+
 intrinsic MyOrbitsOfSpaces(G::GrpMat[FldFin], k::RngIntElt) -> []
 {Orbit representatives of the k-dimensional subspaces of the natural vector space for G}
   n:= Degree(G);

@@ -2228,11 +2228,13 @@ def OrbitsOfSpaces(gens, k, D, H, action_hom, g=None ):
     field =  gens[0].base_ring()
     GL = m.GeneralLinearGroup(degree, field)
     G = GL.sub(gens)
-    orb = m.OrbitsOfSpaces(G,k)
-    if g is not None:
+    if g is None:
+        orb = m.OrbitsOfSpaces(G,k)
+    else:
         g = GL(g)
-        # filter the invariant subspaces
-        orb = [v for v in orb if v[2] == v[2]*g]
+        # filters the invariant subspaces in magma
+        orb = m.MyOrbitsOfSpacesEquivariant(G, k, g)
+        assert all([v[2] == v[2]*g for v in orb])
     orb = [orbit_magma(rep=v[2], G=G,D=D,H=H,
                        action_hom=action_hom)
            for v in orb]
