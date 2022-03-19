@@ -757,9 +757,15 @@ def pnq_actions(q, ptype1,k3_unobstructed=True,verbose=2):
             print(M.genus())
         # recurse
         for (N, fN, GN) in pnq_actions(q,ptype1[:i],k3_unobstructed=k3_unobstructed,verbose=verbose-1):
+            print("computing extensions of ")
+            print(M.genus())
+            print("and")
+            print(N.genus())
+            print("over %p   %pglue")
             ext = extensions(M, fM, N, fN, GM, GN,
                              pglue, p, target_genus=genus,
                              qlist=qlist)
+            print("done")
             for ex in ext:
                 assert ex[0].genus() == genus
                 if k3_unobstructed:

@@ -8,8 +8,9 @@ from sage.env import SAGE_ROOT
 dir = SAGE_ROOT + "/k3s/"
 
 from sage.quadratic_forms.genera.genus import genera
-load(dir+"new/K3SurfaceAutGrp.py")
-load(dir+"new/connected_components.sage")
+load(dir+"K3SurfaceAutGrp.py")
+#load(dir+"new/K3SurfaceAutGrp.py")
+#load(dir+"new/connected_components.sage")
 load(dir+"symplectic.sage")
 load(dir+"hermitian.sage")
 load(dir+"lattice_with_isometry.sage")
@@ -541,3 +542,50 @@ def postprocess2(folder_read, file_write, ends_str):
 def connected_components_par(k3id):
   k3 = K3SurfaceAutGrp_from_id(k3id)
   return is_real(k3)
+
+def table_from_k3s(k3s, n):
+  s = r"\begin{center}\rowcolors{1}{}{lightgray}\begin{longtable}{"
+  s += len(divisors(n))*"c"
+  s += r"}\toprule"
+  s += "\n"
+  for k in k3s:
+    assert n == k.n()
+  divisors(n)[:-1]
+  s += "K3 id"
+  for d in divisors(n)[:-1]:
+    s+= " & " + str(n/d)
+  s+= r" \\"
+  s+= "\n"
+  s+= r"\hline"
+  s+= "\n"
+  for k3 in k3s:
+    s+=table_line_from_k3_pure(k3)
+    s+="\n"
+  s += r"\bottomrule\end{longtable}\end{center}"
+  s += "\n"
+  return s
+
+def table_line_from_k3_pure(k3):
+  s = k3.properties()["fixed points powers"]
+  def fp_to_str(f):
+    assert len(f)==4
+    if f[0] in ZZ:
+      f = ((f[0],),)+f[1:]
+    return str(f).replace(",",r"")[1:-1]
+  st = k3.id()
+  for i in s:
+    st += " & "
+    st += fp_to_str(i)
+  st += r"\\"
+  return st
+
+def fix_fixed_points(k3):
+  s = k3.properties()["fixed points powers"]
+  def fix(f):
+    assert len(f)==4
+    if f[0] in ZZ:
+      f = ((f[0],),)+f[1:]
+    return f
+  ss = tuple(fix(i) for i in s)
+  k3.properties()["fixed points powers"] = ss
+  k3.properties()["fixed points"] = fix(k3.properties()["fixed points"])
