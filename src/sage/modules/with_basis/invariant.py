@@ -205,7 +205,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         Extend when `M` does not have a basis and `S` is a permutation
         group using:
 
-        - https://arxiv.org/abs/0812.3082
+        - :arxiv:`0812.3082`
         - https://www.dmtcs.org/pdfpapers/dmAA0123.pdf
     """
     def __init__(self, M, S, action=operator.mul, side='left', *args, **kwargs):
@@ -878,7 +878,9 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
 
         # Give the kernel of the map `\pi(x)-x` to determine when `x` lies
         # within the isotypic component of `R`.
-        def proj_difference(g,x): return self._project_ambient(x)-x
+
+        def proj_difference(g, x):
+            return self._project_ambient(x) - x
 
         basis = M.annihilator_basis(M.basis(),
                                     action=proj_difference,

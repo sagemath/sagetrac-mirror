@@ -26,7 +26,7 @@ other types will also coerce to the integers, when it makes sense.
     sage: b = Z(5678); b
     5678
     sage: type(a)
-    <type 'sage.rings.integer.Integer'>
+    <class 'sage.rings.integer.Integer'>
     sage: a + b
     6912
     sage: Z('94803849083985934859834583945394')
@@ -183,7 +183,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         sage: b = Z(5678); b
         5678
         sage: type(a)
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: a + b
         6912
         sage: b + a
@@ -206,18 +206,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         sage: a / b
         617/2839
         sage: type(a/b)
-        <type 'sage.rings.rational.Rational'>
+        <class 'sage.rings.rational.Rational'>
         sage: a/a
         1
         sage: type(a/a)
-        <type 'sage.rings.rational.Rational'>
+        <class 'sage.rings.rational.Rational'>
 
     For floor division, use the ``//`` operator instead::
 
         sage: a // b
         0
         sage: type(a//b)
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
     Next we illustrate arithmetic with automatic coercion. The types
     that coerce are: str, int, long, Integer.
@@ -390,7 +390,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         return "\\Bold{Z}"
 
     def __getitem__(self, x):
-        """
+        r"""
         Return the ring `\ZZ[...]` obtained by adjoining to the integers one
         or several elements.
 
@@ -579,14 +579,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             4
             sage: f(-7r)
             -7
-
-        Note that the input *MUST* be an ``int``::
-
-            sage: a = 10000000000000000000000rL
-            sage: f(a)  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: must be a Python int object
         """
         if S is long:
             return sage.rings.integer.long_to_Z()
@@ -1046,7 +1038,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             (1,)
             1
             sage: type(ZZ.gens()[0])
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
         """
         return (self(1), )
 
@@ -1066,7 +1058,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ.gen()
             1
             sage: type(ZZ.gen())
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
         """
         if n == 0:
             return self(1)
@@ -1190,7 +1182,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         return sage.rings.infinity.infinity
 
     def zeta(self, n=2):
-        """
+        r"""
         Return a primitive ``n``-th root of unity in the integers, or raise an
         error if none exists.
 
@@ -1200,7 +1192,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         OUTPUT:
 
-        - an ``n``-th root of unity in `\ZZ`.
+        an ``n``-th root of unity in `\ZZ`
 
         EXAMPLES::
 

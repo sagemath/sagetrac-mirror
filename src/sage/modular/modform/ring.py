@@ -1,5 +1,5 @@
 """
-Graded Rings of Modular Forms
+Graded rings of modular forms
 
 This module contains functions to find generators for the graded ring of
 modular forms of given level.
@@ -22,7 +22,7 @@ AUTHORS:
 
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.rings.all import Integer, QQ, ZZ
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
@@ -236,7 +236,6 @@ class ModularFormsRing(Parent):
             raise ValueError("Base ring (=%s) should be QQ, ZZ or a finite prime field" % base_ring)
 
         self.__group = group
-        self.__base_ring = base_ring
         self.__cached_maxweight = ZZ(-1)
         self.__cached_gens = []
         self.__cached_cusp_maxweight = ZZ(-1)
@@ -266,19 +265,6 @@ class ModularFormsRing(Parent):
             True
         """
         return self.__group
-
-    def base_ring(self):
-        r"""
-        Return the coefficient ring of this modular forms ring.
-
-        EXAMPLES::
-
-            sage: ModularFormsRing(Gamma1(13)).base_ring()
-            Rational Field
-            sage: ModularFormsRing(Gamma1(13), base_ring = ZZ).base_ring()
-            Integer Ring
-        """
-        return self.__base_ring
 
     def gen(self, i):
         r"""
@@ -363,10 +349,9 @@ class ModularFormsRing(Parent):
         degs = [f.weight() for f in gens]
         return PolynomialRing(self.base_ring(), len(gens), names, order=TermOrder('wdeglex', degs)) # Should we remove the deg lexicographic ordering here?
 
-
     def _generators_variables_dictionnary(self, poly_parent, gens):
         r"""
-        Utility function that returns a dictionnary giving an association between
+        Utility function that returns a dictionary giving an association between
         polynomial ring generators and generators of modular forms ring.
 
         INPUT:
@@ -712,6 +697,7 @@ class ModularFormsRing(Parent):
             3
             sage: [k for k, _ in v]
             [2, 2, 4]
+            sage: from sage.modular.dims import dimension_modular_forms
             sage: dimension_modular_forms(11,2)
             2
             sage: dimension_modular_forms(11,4)

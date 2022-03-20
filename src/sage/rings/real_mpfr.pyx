@@ -454,7 +454,7 @@ cpdef RealField(mpfr_prec_t prec=53, int sci_not=0, rnd=MPFR_RNDN):
         return R
 
 
-cdef class RealField_class(sage.rings.ring.Field):
+cdef class RealField_class(sage.rings.abc.RealField):
     """
     An approximation to the field of real numbers using floating point
     numbers with any specified precision. Answers derived from
@@ -2168,19 +2168,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_free_str(s)
         return t
 
-    def __hex__(self):
-        """
-        TESTS::
-
-            sage: hex(RR(-1/3))  # py2
-            doctest:...:
-            DeprecationWarning: use the method .hex instead
-            See http://trac.sagemath.org/24568 for details.
-            '-0x5.5555555555554p-4'
-        """
-        deprecation(24568, 'use the method .hex instead')
-        return self.hex()
-
     def __copy__(self):
         """
         Return copy of ``self`` - since ``self`` is immutable, we just return
@@ -2189,7 +2176,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES::
 
             sage: a = 3.5
-            sage: copy(a) is  a
+            sage: copy(a) is a
+            True
+        """
+        return self    # since object is immutable.
+
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: a = 3.5
+            sage: deepcopy(a) is a
             True
         """
         return self    # since object is immutable.
@@ -4030,7 +4027,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return mpfr_inf_p(self.value) and mpfr_sgn(self.value) < 0
 
     def is_infinity(self):
-        """
+        r"""
         Return ``True`` if ``self`` is `\infty` and ``False`` otherwise.
 
         EXAMPLES::
@@ -5356,7 +5353,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ::
 
             sage: type(z)
-            <type 'cypari2.gen.Gen'>
+            <class 'cypari2.gen.Gen'>
             sage: R(z)
             1.64493406684823
         """
@@ -5379,7 +5376,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         ALGORITHM:
 
-        Uses the PARI C-library ``algdep`` command.
+        Uses the PARI C-library :pari:`algdep` command.
 
         EXAMPLES::
 
@@ -5743,9 +5740,9 @@ cdef class RealLiteral(RealNumber):
         The result is a non-literal::
 
             sage: type(1.3)
-            <type 'sage.rings.real_mpfr.RealLiteral'>
+            <class 'sage.rings.real_mpfr.RealLiteral'>
             sage: type(n(1.3))
-            <type 'sage.rings.real_mpfr.RealNumber'>
+            <class 'sage.rings.real_mpfr.RealNumber'>
         """
         if prec is None:
             prec = digits_to_bits(digits)
@@ -5890,14 +5887,24 @@ def is_RealField(x):
     """
     Returns ``True`` if ``x`` is technically of a Python real field type.
 
+    This function is deprecated. Use :func:`isinstance` with
+    :class:`~sage.rings.abc.RealField` instead.
+
     EXAMPLES::
 
         sage: sage.rings.real_mpfr.is_RealField(RR)
+        doctest:warning...
+        DeprecationWarning: is_RealField is deprecated;
+        use isinstance(..., sage.rings.abc.RealField) instead
+        See https://trac.sagemath.org/32610 for details.
         True
         sage: sage.rings.real_mpfr.is_RealField(CC)
         False
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32610, 'is_RealField is deprecated; use isinstance(..., sage.rings.abc.RealField) instead')
     return isinstance(x, RealField_class)
+
 
 def is_RealNumber(x):
     """
@@ -6102,3 +6109,8 @@ def create_RealField(*args, **kwds):
     deprecation(24511, "Please import create_RealField from sage.rings.real_field")
     from sage.rings.real_field import create_RealField as cr
     return cr(*args, **kwds)
+
+
+# Support Python's numbers abstract base class
+import numbers
+numbers.Real.register(RealNumber)
