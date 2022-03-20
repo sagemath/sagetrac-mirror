@@ -1241,7 +1241,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             result = self._tietze_to_finite_sub_basis_monomial(x)
             if result is not None:
                 # x represents a monomial
-                verbose('end from tuple %s: %' % (x, result), level=2)
+                verbose('end from tuple %s: %s' % (x, result), level=2)
                 return result
 
             try:
