@@ -113,7 +113,6 @@ AUTHORS:
 - Sebastian Oehms May 2020: initial version
 """
 
-
 ##############################################################################
 #       Copyright (C) 2020 Sebastian Oehms <seb.oehms@gmail.com>
 #
@@ -123,7 +122,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-
 
 from warnings import warn
 
@@ -137,9 +135,6 @@ from sage.modules.free_module_element import vector
 from sage.matrix.matrix_space import MatrixSpace
 from sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring import CubicHeckeRingOfDefinition
 from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import CubicHeckeMatrixSpace, AbsIrreducibeRep, RepresentationType
-
-
-
 
 
 ##############################################################################
@@ -166,13 +161,9 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         sage: c1**3*~c2
         u*w*c1^-1*c2^-1 + (u^2-v)*c1*c2^-1 + (-u*v+w)*c2^-1
     """
-
-    # --------------------------------------------------------------------------
     # --------------------------------------------------------------------------
     # Overloading inherited methods
     # --------------------------------------------------------------------------
-    # --------------------------------------------------------------------------
-
     def __invert__(self):
         r"""
         Return inverse of ``self`` (if possible).
@@ -193,17 +184,14 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         self_Tietze = self.Tietze()
 
         if self_Tietze is None:
-            raise NotImplementedError( "inversion of non basis elements is not implemented, yet" )
+            raise NotImplementedError('inversion of non basis elements is not implemented, yet')
 
         inverse_Tietze = ()
         len_self = len(self_Tietze)
 
-        inverse_Tietze = tuple([-1 *self_Tietze[len_self-i-1 ] for i in range(len_self)])
+        inverse_Tietze = tuple([-1*self_Tietze[len_self - i - 1] for i in range(len_self)])
         P = self.parent()
         return P(inverse_Tietze)
-
-
-
 
     def Tietze(self):
         r"""
@@ -233,8 +221,6 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
             P = self.parent()
             return P.get_order()[ind].Tietze()
 
-
-
     def max_len(self):
         r"""
         Return the maximum of the length of Tietze expressions among the support
@@ -248,11 +234,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
             sage: ele.max_len()
             2
         """
-
         return max(len(bas_ele.Tietze()) for bas_ele in self.support())
-
-
-
 
     def braid_group_algebra_pre_image(self):
         r"""
@@ -278,16 +260,14 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
             sage: b_ele in CHA3.braid_group_algebra()
             True
         """
-
-
         ch_algebra = self.parent()
         braid_group_algebra = ch_algebra.braid_group_algebra()
-        braid_group         = ch_algebra.braid_group()
+        braid_group = ch_algebra.braid_group()
 
-        return ch_algebra._apply_module_morphism(self, lambda bas_ele: braid_group_algebra(braid_group(bas_ele)), codomain=braid_group_algebra)
-
-
-
+        def phi(bas_ele):
+            return braid_group_algebra(braid_group(bas_ele))
+        return ch_algebra._apply_module_morphism(self, phi,
+                                                 codomain=braid_group_algebra)
 
     def cubic_braid_group_algebra_pre_image(self):
         r"""
@@ -313,16 +293,14 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
             sage: cb_ele in CHA3.cubic_braid_group_algebra()
             True
         """
-
         ch_algebra = self.parent()
         cbraid_group_algebra = ch_algebra.cubic_braid_group_algebra()
-        cbraid_group         = ch_algebra.cubic_braid_group()
+        cbraid_group = ch_algebra.cubic_braid_group()
 
-        return ch_algebra._apply_module_morphism(self, lambda bas_ele: cbraid_group_algebra(cbraid_group(bas_ele)), codomain=cbraid_group_algebra)
-
-
-
-
+        def phi(bas_ele):
+            return cbraid_group_algebra(cbraid_group(bas_ele))
+        return ch_algebra._apply_module_morphism(self, phi,
+                                                 codomain=cbraid_group_algebra)
 
     @cached_method
     def matrix(self, subdivide=False, representation_type=None, original=False):
@@ -334,7 +312,6 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         GAP3 and CHEVIE are installed on the system. Furthermore, the
         representations given on `Ivan Marin's homepage <http://www.lamfa.u-picardie.fr/marin/representationH4-en.html>`__
         are used:
-
 
         INPUT:
 
@@ -362,7 +339,6 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         block matrix. Each single irreducible can be obtained as item indexed by
         the members of the enum :class:`AbsIrreducibeRep` available via
         :attr:`CubicHeckeAlgebra.irred_repr`. For details type: ``CubicHeckeAlgebra.irred_repr?``.
-
 
         EXAMPLES::
 
@@ -397,7 +373,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
             sage: c0mo_ch[CHA3.irred_repr.W3_011]            #  optional gap3
             [ b  0]
             [-b  c]
-        
+
         specialized matrices::
 
             sage: t = (3,7,11)
@@ -424,7 +400,6 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         MS = CubicHeckeMatrixSpace(parent, representation_type=representation_type, subdivide=subdivide, original=original)
         return MS(self)
 
-
     def revert_garside(self):
         r"""
         Return the image of ``self`` under the Garside involution.
@@ -443,7 +418,6 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         """
         return self.parent().garside_involution(self)
 
-
     def revert_mirror(self):
         r"""
         Return the image of ``self`` under the mirror isomorphism.
@@ -459,8 +433,6 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
             True
         """
         return self.parent().mirror_isomorphism(self)
-
-
 
     def revert_orientation(self):
         r"""
@@ -478,7 +450,6 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
             True
         """
         return self.parent().orientation_antiinvolution(self)
-
 
     def formal_markov_trace(self, extended=False, field_embedding=False):
         r"""
@@ -600,10 +571,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
                 vs = vs.change_ring(RI)
 
             mtcf = [M.from_vector(cf.to_vector()) for cf in mtcf]
-
         return sum(vs[i]*mtcf[i] for i in range(len(vs)))
-
-
 
 
 class CubicHeckeAlgebra(CombinatorialFreeModule):
@@ -695,7 +663,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
        and the generic base ring is supplied. This keyword can also be used to
        change the variable names of the generic extension ring (see example 3
        below).
-
 
     EXAMPLES:
 
@@ -790,7 +757,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         sage: UCF = UniversalCyclotomicField()
         sage: e3=UCF.gen(3); e5=UCF.gen(5)
-        sage: algebras.CubicHecke('s1, s2', cubic_equation_roots=(1, e5, e3)) 
+        sage: algebras.CubicHecke('s1, s2', cubic_equation_roots=(1, e5, e3))
         Cubic Hecke algebra on 3 strands over Universal Cyclotomic Field
           with cubic equation:
           h^3 + (-E(15) - E(15)^4 - E(15)^7 + E(15)^8)*h^2 + (-E(15)^2 - E(15)^8
@@ -801,9 +768,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         sage: CHA3 = algebras.CubicHecke(3)
         sage: TestSuite(CHA3).run()
     """
-
-    Element    = CubicHeckeElement
-    repr_type  = RepresentationType
+    Element = CubicHeckeElement
+    repr_type = RepresentationType
     irred_repr = AbsIrreducibeRep
 
     ############################################################################
@@ -848,8 +814,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 n = ZZ(n)-1
             except TypeError:
                 names = n
-
                 n = None
+
         # derive n from counting names
         if n is None:
             if type(names) is str:
@@ -857,11 +823,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             else:
                 names = list(names)
                 n = len(names)
+
         from sage.structure.category_object import normalize_names
         names = tuple(normalize_names(n, names))
-        return super(CubicHeckeAlgebra, cls).__classcall__(cls, names, cubic_equation_parameters=cubic_equation_parameters,
-                     cubic_equation_roots=cubic_equation_roots)
-
+        return super(CubicHeckeAlgebra, cls).__classcall__(cls, names,
+                                                           cubic_equation_parameters=cubic_equation_parameters,
+                                                           cubic_equation_roots=cubic_equation_roots)
 
     def __init__(self, names, cubic_equation_parameters=None, cubic_equation_roots=None):
         r"""
@@ -874,45 +841,29 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA2 = algebras.CubicHecke(2, cubic_equation_parameters=(3,5,7))
             sage: TestSuite(CHA2).run()
         """
-
-        # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
         # saving input
         # ----------------------------------------------------------------------
-        # ----------------------------------------------------------------------
         self._names = names
 
-
-        # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
         # Define underlying group
         # ----------------------------------------------------------------------
-        # ----------------------------------------------------------------------
-        self._cubic_braid_group  = CubicBraidGroup(names)
-        self._braid_group        = self._cubic_braid_group.braid_group()
-        n  = len(self._cubic_braid_group.gens())
-        self._nstrands = n+1
-        self._dim_irr_rep =  sum([irr.dimension() for irr in AbsIrreducibeRep if irr.number_gens() == n])
+        self._cubic_braid_group = CubicBraidGroup(names)
+        self._braid_group = self._cubic_braid_group.braid_group()
+        n = len(self._cubic_braid_group.gens())
+        self._nstrands = n + 1
+        self._dim_irr_rep = sum([irr.dimension() for irr in AbsIrreducibeRep if irr.number_gens() == n])
 
-        # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
         # preparing use of data base anf file cache
         # ----------------------------------------------------------------------
-        # ----------------------------------------------------------------------
         from sage.databases.cubic_hecke_db import CubicHeckeDataBase, CubicHeckeFileCache
-        self._database   =   CubicHeckeDataBase()
-        self._filecache  =   CubicHeckeFileCache(self._nstrands)
+        self._database = CubicHeckeDataBase()
+        self._filecache = CubicHeckeFileCache(self._nstrands)
 
         # ----------------------------------------------------------------------
-        # ----------------------------------------------------------------------
-        # interpretation of keywords
-        # ----------------------------------------------------------------------
-        # ----------------------------------------------------------------------
-
-        # ----------------------------------------------------------------------
-        # type verifications
-        # ----------------------------------------------------------------------
-
+        # interpretation of keywords and type verifications
         # ----------------------------------------------------------------------
         # cubic_equation_parameters
         # ----------------------------------------------------------------------
@@ -923,7 +874,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 # Input specifies names for the generic base ring
                 # --------------------------------------------------------------
                 ring_of_definition_names = tuple(cubic_equation_parameters.split(','))
-                if len(ring_of_definition_names) != 3 :
+                if len(ring_of_definition_names) != 3:
                     raise ValueError('cubic_equation_parameters must consist of exactly 3 elements')
                 cubic_equation_parameters = None
             else:
@@ -932,9 +883,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 # --------------------------------------------------------------
                 if isinstance(cubic_equation_parameters, list):
                     cubic_equation_parameters = tuple(cubic_equation_parameters)
-                if not isinstance( cubic_equation_parameters, tuple ):
+                if not isinstance(cubic_equation_parameters, tuple):
                     raise TypeError('cubic_equation_parameters must be a tuple or list')
-                if len( cubic_equation_parameters ) != 3 :
+                if len(cubic_equation_parameters) != 3:
                     raise ValueError('cubic_equation_parameters must consist of exactly 3 elements')
 
         # ----------------------------------------------------------------------
@@ -947,28 +898,27 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 # Input specifies names for the generic extension ring
                 # --------------------------------------------------------------
                 generic_extension_ring_names = tuple(cubic_equation_roots.split(','))
-                if len(generic_extension_ring_names) != 3 :
+                if len(generic_extension_ring_names) != 3:
                     raise ValueError('cubic_equation_roots must consist of exactly 3 elements')
                 cubic_equation_roots = None
             else:
                 # --------------------------------------------------------------
                 # Input specifies a specialized base ring
                 # --------------------------------------------------------------
-                if isinstance( cubic_equation_roots, list ):
+                if isinstance(cubic_equation_roots, list):
                     cubic_equation_roots = tuple(cubic_equation_roots)
-                if not isinstance( cubic_equation_roots, tuple ):
+                if not isinstance(cubic_equation_roots, tuple):
                     raise TypeError('cubic_equation_roots must be a tuple or list')
-                if len( cubic_equation_roots ) != 3 :
+                if len(cubic_equation_roots) != 3:
                     raise ValueError('cubic_equation_roots must consist of exactly 3 elements')
 
         if len(set(ring_of_definition_names + generic_extension_ring_names)) < 6:
-            raise ValueError('there is an overlap of names between cubic equation parameters (%s) and cubic equation roots (%s)' %(ring_of_definition_names, generic_extension_ring_names) )
+            raise ValueError('there is an overlap of names between cubic equation '
+                             'parameters (%s) and cubic equation roots (%s)'
+                             % (ring_of_definition_names, generic_extension_ring_names))
 
-
-        # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
         # setting the generic rings
-        # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
         ring_of_definition = CubicHeckeRingOfDefinition(names=ring_of_definition_names)
         u, v, w = ring_of_definition.gens()
@@ -979,48 +929,45 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # ----------------------------------------------------------------------
         # registering generic items as variables
         # ----------------------------------------------------------------------
-        self._ring_of_definition                    = ring_of_definition
-        self._generic_extension_ring               = generic_extension_ring
-        self._generic_cubic_equation_parameters    = [u, v, w]
-        self._generic_cubic_equation_roots         = [a, b, c]
-
-
+        self._ring_of_definition = ring_of_definition
+        self._generic_extension_ring = generic_extension_ring
+        self._generic_cubic_equation_parameters = [u, v, w]
+        self._generic_cubic_equation_roots = [a, b, c]
 
         # ----------------------------------------------------------------------
         # interpreting user given cubic equation parameters to define the
         # corresponding specialized base ring
         # ----------------------------------------------------------------------
         if cubic_equation_parameters is None and cubic_equation_roots is not None:
-             pa, pb, pc = cubic_equation_roots
-             cubic_equation_parameters = [pa+pb+pc, pa*pb+pb*pc+pa*pc, pa*pb*pc]
-             verbose('cubic_equation_parameters %s set according to cubic_equation_roots %s' %(cubic_equation_parameters, cubic_equation_roots), level=2)
+            pa, pb, pc = cubic_equation_roots
+            cubic_equation_parameters = [pa+pb+pc, pa*pb+pb*pc+pa*pc, pa*pb*pc]
+            verbose('cubic_equation_parameters %s set according to '
+                    'cubic_equation_roots %s' % (cubic_equation_parameters,
+                                                 cubic_equation_roots), level=2)
 
         if cubic_equation_parameters is not None:
             base_ring = ring_of_definition.create_specialization(cubic_equation_parameters)
             cubic_equation_parameters = [base_ring(para) for para in cubic_equation_parameters]
-            verbose('base_ring %s set according to cubic_equation_parameters %s' %(base_ring, cubic_equation_parameters), level=2)
+            verbose('base_ring %s set according to cubic_equation_parameters %s'
+                    % (base_ring, cubic_equation_parameters), level=2)
         else:
-            base_ring                 = self._ring_of_definition
+            base_ring = self._ring_of_definition
             cubic_equation_parameters = self._generic_cubic_equation_parameters
 
-
-        verbose('base_ring %s and cubic_equation_parameters %s defined' %(base_ring, cubic_equation_parameters), level=2)
-
+        verbose('base_ring %s and cubic_equation_parameters %s defined'
+                % (base_ring, cubic_equation_parameters), level=2)
 
         # ----------------------------------------------------------------------
         #  defining the cubic equation
         # ----------------------------------------------------------------------
         pu, pv, pw = cubic_equation_parameters
         pol_bas_ring = base_ring['h']
-        cubic_equation = pol_bas_ring([-pw, pv, -pu, 1 ])
+        cubic_equation = pol_bas_ring([-pw, pv, -pu, 1])
 
+        verbose('cubic_equation %s defined' % cubic_equation, level=2)
 
-        verbose('cubic_equation %s defined' %(cubic_equation), level=2)
-
-        # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
         # defining cubic_equation_roots if not given using the cubic_equation
-        # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
         if base_ring != ring_of_definition:
             if cubic_equation_roots is None:
@@ -1028,7 +975,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 # No roots given
                 # --------------------------------------------------------------
                 ext_ring_names = list(generic_extension_ring_names)
-                cubic_equation_roots = solve_with_extension(cubic_equation, ext_ring_names, var='S', flatten=True)
+                cubic_equation_roots = solve_with_extension(cubic_equation,
+                                                            ext_ring_names,
+                                                            var='S', flatten=True)
 
         # ----------------------------------------------------------------------
         # interpreting user given cubic equation roots to define the
@@ -1037,38 +986,32 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if cubic_equation_roots is not None:
             extension_ring = generic_extension_ring.create_specialization(cubic_equation_roots)
             cubic_equation_roots = [extension_ring(root) for root in cubic_equation_roots]
-            verbose('extension_ring %s set according to cubic_equation_roots %s' %(base_ring, cubic_equation_roots), level=2)
+            verbose('extension_ring %s set according to cubic_equation_roots %s'
+                    % (base_ring, cubic_equation_roots), level=2)
 
         else:
             extension_ring = generic_extension_ring.as_splitting_algebra()
             cubic_equation_roots = [extension_ring(a), extension_ring(b), extension_ring(c)]
 
-        verbose('cubic roots %s and extension ring %s defined' %(cubic_equation_roots, extension_ring), level=2)
+        verbose('cubic roots %s and extension ring %s defined'
+                % (cubic_equation_roots, extension_ring), level=2)
         pa, pb, pc = cubic_equation_roots
 
-
-
-        # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
         # check keywords plausibility
-        # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
         if base_ring == extension_ring:
             val_a = cubic_equation.substitute(h=pa)
             val_b = cubic_equation.substitute(h=pb)
             val_c = cubic_equation.substitute(h=pc)
-            if val_a != 0  or val_b != 0  or val_c != 0 :
-                raise ValueError( 'cubic equation does not vanish on cubic equation roots' )
+            if val_a != 0 or val_b != 0 or val_c != 0:
+                raise ValueError('cubic equation does not vanish on cubic equation roots')
 
-        # ----------------------------------------------------------------------
         # ----------------------------------------------------------------------
         # defining the base ring embedding into the extension ring
         # ----------------------------------------------------------------------
-        # ----------------------------------------------------------------------
-
         im_base_gens = [pa+pb+pc, pa*pb+pa*pc+pb*pc, pa*pb*pc]
-
-        base_ring_embedding = extension_ring.coerce_map_from( base_ring )
+        base_ring_embedding = extension_ring.coerce_map_from(base_ring)
 
         def check_base_ring_embedding(base_ring_embedding):
             if base_ring_embedding is None:
@@ -1086,7 +1029,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if check_base_ring_embedding(base_ring_embedding):
             verbose('base_ring_embedding defined via coercion', level=2)
         else:
-            base_ring_embedding = extension_ring.convert_map_from( base_ring )
+            base_ring_embedding = extension_ring.convert_map_from(base_ring)
             if check_base_ring_embedding(base_ring_embedding):
                 verbose('base_ring_embedding defined via conversion', level=2)
             else:
@@ -1096,30 +1039,26 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 except (TypeError, ValueError):
                     base_ring_embedding = None
 
-
         if base_ring_embedding is None:
             warn('Warning: no base_ring_embedding found')
 
         # ----------------------------------------------------------------------
-        # ----------------------------------------------------------------------
         # registering variables
         # ----------------------------------------------------------------------
-        # ----------------------------------------------------------------------
-        self._base_ring                  = base_ring
-        self._extension_ring             = extension_ring
-        self._base_ring_embedding        = base_ring_embedding
-        self._ring_of_definition_map     = base_ring.convert_map_from(ring_of_definition)
+        self._base_ring = base_ring
+        self._extension_ring = extension_ring
+        self._base_ring_embedding = base_ring_embedding
+        self._ring_of_definition_map = base_ring.convert_map_from(ring_of_definition)
         self._generic_extension_ring_map = extension_ring.convert_map_from(generic_extension_ring)
-        self._cubic_equation_parameters  = cubic_equation_parameters
-        self._cubic_equation_roots       = cubic_equation_roots
-
+        self._cubic_equation_parameters = cubic_equation_parameters
+        self._cubic_equation_roots = cubic_equation_roots
 
         # ----------------------------------------------------------------------
         # defining the associated group algebras
         # ----------------------------------------------------------------------
         from sage.algebras.group_algebra import GroupAlgebra
         self._cubic_braid_group_algebra = GroupAlgebra(self._cubic_braid_group, R=base_ring)
-        self._braid_group_algebra       = GroupAlgebra(self._braid_group, R=base_ring)
+        self._braid_group_algebra = GroupAlgebra(self._braid_group, R=base_ring)
 
         # ----------------------------------------------------------------------
         # Setup of Basis
@@ -1158,11 +1097,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         self._basis_static = db.read(db.section.basis, nstrands=ns)
 
         # ----------------------------------------------------------------------
-        # ----------------------------------------------------------------------
         # defining the algebra itself
         # ----------------------------------------------------------------------
-        # ----------------------------------------------------------------------
-
         if self._cubic_braid_group.is_finite():
             from sage.categories.finite_dimensional_algebras_with_basis import FiniteDimensionalAlgebrasWithBasis
             category = FiniteDimensionalAlgebrasWithBasis(base_ring)
@@ -1170,39 +1106,29 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             from sage.categories.algebras_with_basis import AlgebrasWithBasis
             category = AlgebrasWithBasis(base_ring)
 
-
-        CombinatorialFreeModule.__init__(self, base_ring, self._cubic_braid_group, prefix='', bracket=False, category=category)
+        CombinatorialFreeModule.__init__(self, base_ring, self._cubic_braid_group,
+                                         prefix='', bracket=False, category=category)
 
         # ----------------------------------------------------------------------
         # init the attributes being set on demand
         # ----------------------------------------------------------------------
-        self._cubic_hecke_subalgebra = None   # the cubic Hecke subalgebra with
-                                              # one strand (the highest) less
-        self._mirror_image           = None   # the image of self under the
-                                              # mirror isomorphism
-        self._is_mirror              = False  # to see if this instance is the
-                                              # mirror or the original
-        self._base_ring_mirror       = None   # mirror involution map on base ring
-        self._gens_reg_repres_matrix = {}     # a dictionary recording the
-                                              # generators regular representation
-                                              # matrices
+        self._cubic_hecke_subalgebra = None
+        self._mirror_image = None
+        self._is_mirror = False
+        self._base_ring_mirror = None
+        self._gens_reg_repres_matrix = {}
 
         # ----------------------------------------------------------------------
         # initializing the basis extension (in case of more than 4 strands)
         # ----------------------------------------------------------------------
-        self._init_basis_extension()        # read in the basis extensions from
-                                            # file cache
+        self._init_basis_extension()
         return
-
-
 
     ############################################################################
     # --------------------------------------------------------------------------
     # overloaded inherited methods
     # --------------------------------------------------------------------------
     ############################################################################
-
-
     def _repr_(self):
         r"""
         Return a string representation
@@ -1220,8 +1146,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
               over Integer Ring localized at (w,)
                 with cubic equation: h^3 - u*h^2 + v*h - w = 0
         """
-        return "Cubic Hecke algebra on %s strands over %s with cubic equation: %s = 0"%(self.strands(), self.base_ring(), self.cubic_equation())
-
+        s = 'Cubic Hecke algebra on %s strands over %s with cubic equation: %s = 0'
+        return s % (self.strands(), self.base_ring(), self.cubic_equation())
 
     def _element_constructor_(self, x):
         r"""
@@ -1294,17 +1220,17 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: img_cbraid_back == CB3GA(cbraid)
             True
         """
-        braid_grp      = self.braid_group()
-        braid_grp_alg  = self.braid_group_algebra()
-        braid_img      = self._braid_image
+        braid_grp = self.braid_group()
+        braid_grp_alg = self.braid_group_algebra()
+        braid_img = self._braid_image
 
-        cbraid_grp     = self.cubic_braid_group()
+        cbraid_grp = self.cubic_braid_group()
         cbraid_grp_alg = self.cubic_braid_group_algebra()
-        cbraid_img     = self._cubic_braid_image
+        cbraid_img = self._cubic_braid_image
 
-        base_ring      = self.base_ring()
-        ngens          = self.ngens()
-        params         = self.cubic_equation_parameters()
+        base_ring = self.base_ring()
+        ngens = self.ngens()
+        params = self.cubic_equation_parameters()
 
         # ----------------------------------------------------------------------
         # if x is a tuple we may interpret it as a braid in Tietze form
@@ -1315,11 +1241,11 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             result = self._tietze_to_finite_sub_basis_monomial(x)
             if result is not None:
                 # x represents a monomial
-                verbose("End from tuple %s: %s" %(x, result), level=2)
+                verbose('end from tuple %s: %' % (x, result), level=2)
                 return result
 
             try:
-                xb=braid_grp(x)
+                xb = braid_grp(x)
             except (TypeError, ValueError, NotImplementedError):
                 pass
 
@@ -1330,12 +1256,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if isinstance(xb, CubicHeckeElement):
             other_cha = xb.parent()
             other_base_ring = other_cha.base_ring()
-            other_ngens     = other_cha.ngens()
-            other_params    = other_cha.cubic_equation_parameters()
+            other_ngens = other_cha.ngens()
+            other_params = other_cha.cubic_equation_parameters()
             if other_base_ring != base_ring:
                 if other_ngens == ngens:
                     xbv = xb.to_vector()
-                    img_xbv = vector([self.base_ring()(cf) for cf in xbv ])
+                    img_xbv = vector([self.base_ring()(cf) for cf in xbv])
                     return self.from_vector(img_xbv)
                 elif other_ngens < ngens:
                     sub_alg = self.cubic_hecke_subalgebra(other_ngens+1)
@@ -1346,15 +1272,15 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 cbraid_preimg = xb.cubic_braid_group_algebra_pre_image()
                 other_cbga = other_cha.cubic_braid_group_algebra()
 
-                f = lambda ele: cbraid_img(cbraid_grp(ele))
-                result = other_cbga._apply_module_morphism(cbraid_preimg, f, codomain=self)
-                verbose("End from smaller cubic Hecke algebra %s: %s" %(xb, result), level=2)
+                def fc(ele):
+                    return cbraid_img(cbraid_grp(ele))
+                result = other_cbga._apply_module_morphism(cbraid_preimg, fc, codomain=self)
+                verbose('end from smaller cubic Hecke algebra %s: %s' % (xb, result), level=2)
                 return result
 
             elif other_cha == self._mirror_image:
-
                 result = other_cha.mirror_isomorphism(xb)
-                verbose("End from mirror image %s: %s" %(xb, result), level=2)
+                verbose('end from mirror image %s: %s' % (xb, result), level=2)
                 return result
 
         # ----------------------------------------------------------------------
@@ -1363,16 +1289,17 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # ----------------------------------------------------------------------
         if isinstance(xb, braid_grp_alg.element_class) and xb in braid_grp_alg:
 
-            f = lambda ele: braid_img(ele)
-            result = braid_grp_alg._apply_module_morphism(xb, f, codomain=self)
-            verbose("End from braid_group algebra %s: %s" %(xb, result), level=2)
+            def fb(ele):
+                return braid_img(ele)
+            result = braid_grp_alg._apply_module_morphism(xb, fb, codomain=self)
+            verbose('end from braid_group algebra %s: %s' % (xb, result), level=2)
             return result
 
         from sage.groups.braid import Braid
         if isinstance(xb, Braid) and xb.strands() == self.strands():
 
             result = braid_img(xb)
-            verbose("End from braid_group %s: %s" %(xb, result), level=2)
+            verbose('end from braid_group %s: %s' % (xb, result), level=2)
             return result
 
         # ----------------------------------------------------------------------
@@ -1382,25 +1309,22 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if isinstance(xb, cbraid_grp_alg.element_class) and xb in cbraid_grp_alg:
 
             result = cbraid_grp_alg._apply_module_morphism(xb, cbraid_img, codomain=self)
-            verbose("End from cubic braid_group algebra %s: %s" %(xb, result), level=2)
+            verbose('end from cubic braid_group algebra %s: %s' % (xb, result), level=2)
             return result
 
         from sage.groups.cubic_braid import CubicBraidElement
         if isinstance(xb, CubicBraidElement) and xb.parent().strands() == self.strands():
 
             result = cbraid_img(xb)
-            verbose("End from cubic braid_group %s: %s" %(xb, result), level=2)
+            verbose('end from cubic braid_group %s: %s' % (xb, result), level=2)
             return result
-
 
         # ----------------------------------------------------------------------
         # doing the default construction by inheritance
         # ----------------------------------------------------------------------
         result = CombinatorialFreeModule._element_constructor_(self, x)
-        verbose("End (default) %s: %s" %(xb, result), level=2)
+        verbose('end (default) %s: %s' % (xb, result), level=2)
         return result
-
-
 
     def get_order(self):
         r"""
@@ -1433,8 +1357,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             self._order = sub_order + [cbg(tup) for tup in self._basis_extension]
             return self._order
 
-
-
     def _dense_free_module(self, base_ring=None):
         r"""
         Overwrites the corresponding method of :class:`CombinatorialFreeModule`.
@@ -1455,12 +1377,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
               over the integral domain Multivariate Polynomial Ring in u, v, w
               over Integer Ring localized at (w,)
         """
-
         if base_ring is None:
             base_ring = self.base_ring()
         from sage.modules.free_module import FreeModule
         return FreeModule(base_ring, len(self.get_order()))
-
 
     def ngens(self):
         r"""
@@ -1472,7 +1392,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA2.ngens()
             1
         """
-        return self.strands() -1
+        return self.strands() - 1
 
     def algebra_generators(self):
         r"""
@@ -1487,7 +1407,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         from sage.sets.family import Family
         return Family(self._cubic_braid_group.gens(), self.monomial)
 
-
     def gens(self):
         r"""
         Return the generators of ``self``.
@@ -1500,7 +1419,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         """
         return tuple(self.algebra_generators())
 
-
     def gen(self, i):
         r"""
         The ``i``-th generator of the algebra.
@@ -1512,7 +1430,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             c
         """
         return self.gens()[i]
-
 
     def one_basis(self):
         r"""
@@ -1527,7 +1444,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         """
         return self.cubic_braid_group().one()
 
-
     def _an_element_(self):
         r"""
         Overwrite the original method from :mod:`sage.combinat.free_module`
@@ -1539,26 +1455,22 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA2.an_element()              # indirect doctest
             v*c + ((-v*w+u)/w)
         """
-
-        n = self.ngens()+1
+        n = self.ngens() + 1
         base_ring = self.base_ring()
         u, v, w = [base_ring(para) for para in self._cubic_equation_parameters]
-        const = (u *~w -v)* self.one()
+        const = (u*~w - v)*self.one()
 
         gens = self.gens()
         first_gens = [gen for gen in gens if gens.index(gen) < 3]
-        if n == 2 :
+        if n == 2:
             c1, = first_gens
             return const + v*c1
-        elif n == 3 :
+        elif n == 3:
             c1, c2 = first_gens
-            return const + v*c1 -w*c1*~c2 + u*c2
+            return const + v*c1 - w*c1*~c2 + u*c2
         else:
             c1, c2, c3 = first_gens
-            return const + v*c1*~c3 -w*c1*~c2 + u*c3*c2
-
-
-
+            return const + v*c1*~c3 - w*c1*~c2 + u*c3*c2
 
     @cached_method
     def chevie(self):
@@ -1578,7 +1490,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             raise NotImplementedError('this functionality needs GAP3 with package CHEVIE')
 
         n = self._nstrands
-
         if n == 3:
             st_number = 4
         elif n == 4:
@@ -1601,9 +1512,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         from sage.interfaces.gap3 import gap3
         gap3_function = gap3(gap3_function_str)
-        na, nb, nc = [ '\"%s\"' %(indet) for indet in self.extension_ring(generic=True).variable_names() ]
+        na, nb, nc = ['\"%s\"' % indet for indet in self.extension_ring(generic=True).variable_names()]
         return gap3_function(st_number, na, nb, nc)
-
 
     @cached_method
     def product_on_basis(self, g1, g2):
@@ -1636,37 +1546,26 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         g1 = self.monomial(g1)
         g2 = self.monomial(g2)
 
-        result      = None
+        result = None
 
         g1_Tietze = g1.Tietze()
         g2_Tietze = g2.Tietze()
 
-        verbose("Tietze established (%s, %s)" %(g1_Tietze, g2_Tietze), level=2)
+        verbose('Tietze established (%s, %s)' % (g1_Tietze, g2_Tietze), level=2)
 
         # ----------------------------------------------------------------------
         # The product is calculated from the corresponding product of the braids
         # ----------------------------------------------------------------------
-
         braid_group = self.braid_group()
         braid_product = braid_group(g1_Tietze+g2_Tietze)
-
         result = self._braid_image(braid_product)
-
         return result
-
-
-
-
-
 
     ############################################################################
     # --------------------------------------------------------------------------
     # local methods
     # --------------------------------------------------------------------------
     ############################################################################
-
-
-
     def _basis_tietze(self):
         r"""
         Return the complete finite sub basis as list of Tietze tuples
@@ -1677,13 +1576,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA2._basis_tietze()
             [[], [1], [-1]]
         """
-        if self.strands() > 4 :
-            self_sub  = self.cubic_hecke_subalgebra()
+        if self.strands() > 4:
+            self_sub = self.cubic_hecke_subalgebra()
             result_list = self_sub._basis_tietze() + self._basis_extension
         else:
             result_list = self._basis_static
         return result_list
-
 
     def _tietze_to_finite_sub_basis_monomial(self, tietze_tup):
         r"""
@@ -1737,8 +1635,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         n = self.strands()
         if representation_type.is_split():
             gen_base_ring = self.extension_ring(generic=True)
-            rep_ind = [rep.internal_index() for rep in AbsIrreducibeRep if rep.number_gens() == n-1 ]
-            rep_dim = [rep.dimension() for rep in AbsIrreducibeRep if rep.number_gens() == n-1 ]
+            rep_ind = [rep.internal_index() for rep in AbsIrreducibeRep if rep.number_gens() == n - 1]
+            rep_dim = [rep.dimension() for rep in AbsIrreducibeRep if rep.number_gens() == n - 1]
             dim_sort = [rep_dim[rep_ind.index(i)] for i in range(len(rep_ind))]
             matrix_list = [MatrixSpace(gen_base_ring, dim_sort[i]).one() for i in range(len(rep_ind))]
         else:
@@ -1772,20 +1670,15 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             ]
         """
         GER = self.extension_ring(generic=True)
-        gap3_result    = self.chevie().Representations(number)
+        gap3_result = self.chevie().Representations(number)
         from sage.matrix.constructor import matrix
         matrix_list_gens = [matrix(GER, mat_gap) for mat_gap in gap3_result]
         for m in matrix_list_gens:
             m.set_immutable()
         return matrix_list_gens
 
-
-
-
-    # --------------------------------------------------------------------------
     # --------------------------------------------------------------------------
     # Methods for test_suite
-    # --------------------------------------------------------------------------
     # --------------------------------------------------------------------------
     # _test_ring_constructions
     # --------------------------------------------------------------------------
@@ -1807,16 +1700,16 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # ------------------------------------------------------------------------
         # testing ring constructions
         # ------------------------------------------------------------------------
-        br=self.base_ring()
-        er=self.extension_ring()
+        br = self.base_ring()
+        er = self.extension_ring()
         A, B, C = self.cubic_equation_roots()
         a, b, c = self.cubic_equation_roots(generic=True)
         U, V, W = self.cubic_equation_parameters()
         u, v, w = self.cubic_equation_parameters(generic=True)
-        eleB = U*V-W**2
-        eleBgen = u*v-w**2
-        eleE = A*B-C**2
-        eleEgen = a*b-c**2
+        eleB = U*V - W**2
+        eleBgen = u*v - w**2
+        eleE = A*B - C**2
+        eleEgen = a*b - c**2
 
         mbr = self._ring_of_definition_map
         mer = self._generic_extension_ring_map
@@ -1829,37 +1722,35 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         try:
             eleBgenEmb = br(eleBgen)
         except (TypeError, ValueError, NotImplementedError):
-            verbose("Generic base ring map not registered")
+            verbose('generic base ring map not registered')
             try:
                 eleBgenEmb = mbr(eleBgen)
             except (TypeError, ValueError, NotImplementedError):
-                raise RuntimeError("fatal: generic base ring map %s does not work" %(mbr))
+                raise RuntimeError('fatal: generic base ring map %s does not work' % mbr)
         try:
             eleEgenEmb = er(eleEgen)
         except (TypeError, ValueError, NotImplementedError):
-            verbose("Generic extension ring map not registered")
+            verbose('generic extension ring map not registered')
             try:
                 eleEgenEmb = mer(eleEgen)
             except (TypeError, ValueError, NotImplementedError):
-                raise RuntimeError("fatal: generic extension ring map %s does not work" %(mer))
+                raise RuntimeError('fatal: generic extension ring map %s does not work' % mer)
 
         try:
             eleBembE = er(eleB)
         except (TypeError, ValueError, NotImplementedError):
-            verbose("base ring embedding map not registered")
+            verbose('base ring embedding map not registered')
             try:
                 eleBembE = bri(eleB)
             except (TypeError, ValueError, NotImplementedError):
-                raise RuntimeError( "fatal: base ring embedding %s does not work" %(bri) )
+                raise RuntimeError('fatal: base ring embedding %s does not work' % bri)
 
         test_eleBgenEmb = self._tester(**options)
-        test_eleBgenEmb.assertTrue( eleBgenEmb == eleB )
+        test_eleBgenEmb.assertTrue(eleBgenEmb == eleB)
         test_eleEgenEmb = self._tester(**options)
-        test_eleEgenEmb.assertTrue( eleEgenEmb == eleE )
+        test_eleEgenEmb.assertTrue(eleEgenEmb == eleE)
         test_eleBembE = self._tester(**options)
-        test_eleBembE.assertTrue( eleBembE == eleB )
-
-
+        test_eleBembE.assertTrue(eleBembE == eleB)
 
     # --------------------------------------------------------------------------
     # _test_matrix_constructions
@@ -1886,7 +1777,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # ----------------------------------------------------------------------
         # testing matrix constructions
         # ----------------------------------------------------------------------
-
         if self.ngens() > 4:
             return
 
@@ -1894,13 +1784,13 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         b1 = gens[0]
         b2 = self.an_element()
         b12 = b1*b2
-        verbose("b12 %s" %(b12))
+        verbose('b12 %s' % b12)
 
         def check_matrix(representation_type):
-            m1  = b1.matrix(representation_type=representation_type)
-            m2  = b2.matrix(representation_type=representation_type)
+            m1 = b1.matrix(representation_type=representation_type)
+            m2 = b2.matrix(representation_type=representation_type)
             m12mult = m1*m2
-            m12mat  = b12.matrix(representation_type=representation_type)
+            m12mat = b12.matrix(representation_type=representation_type)
             test_matrix = self._tester(**options)
             test_matrix.assertTrue(m12mult == m12mat)
 
@@ -1915,9 +1805,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         if self.ngens() < 3:
             check_matrix(RepresentationType.RegularLeft)
-
         return
-
 
     # --------------------------------------------------------------------------
     # _init_basis_extension
@@ -1949,9 +1837,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         tietze_list = self._basis_tietze()
         cbg = self._cubic_braid_group
         self._finite_sub_basis_tuples = {}
-        order_list = [cbg(tup)  for tup in tietze_list]
+        order_list = [cbg(tup) for tup in tietze_list]
         self.set_order(order_list)
-        verbose('Finite sub basis length: %s' %(len(order_list)), level=2)
+        verbose('finite sub basis length: %s' % (len(order_list)), level=2)
 
         if self.strands() < 5:
             return
@@ -1981,10 +1869,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             cub_braid = cub_braid_group(bas_Tietze)
             self._cubic_braid_image(cub_braid, check=False)
 
-        verbose('Finite sub basis (extended) length: %s' %(len(self.get_order())), level=2)
+        verbose('finite sub basis (extended) length: %s' % (len(self.get_order())), level=2)
         self._filecache.update_basis_extensions(self._basis_extension)
         return
-
 
     # --------------------------------------------------------------------------
     # _braid_image_from_filecache
@@ -2018,17 +1905,15 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA3.reset_filecache(section)
             sage: CHA3._braid_image_from_filecache(br)
         """
-
         base_ring = self.base_ring()
         gen_base_ring = self.base_ring(generic=True)
         result_vect = self._filecache.read_braid_image(braid.Tietze(), gen_base_ring)
-        if not result_vect is None:
+        if result_vect is not None:
             if gen_base_ring != base_ring:
                 base_map = self._ring_of_definition_map
                 result_vect = vector(base_ring, [base_map(cf) for cf in result_vect])
             return self.from_vector(result_vect)
         return None
-
 
     # --------------------------------------------------------------------------
     # _braid_image_to_filecache
@@ -2063,9 +1948,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         self._filecache.write_braid_image(braid_tietze, braid_image_vect)
         return
-
-
-
 
     # --------------------------------------------------------------------------
     # _braid_image
@@ -2108,7 +1990,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         return result
 
-
     # --------------------------------------------------------------------------
     # _braid_image_from_reduced_powers
     # --------------------------------------------------------------------------
@@ -2137,17 +2018,17 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA3._braid_image_from_reduced_powers((1, -2, 1, 2))
             w*c0^-1*c1*c0^-1 + (-v)*c1*c0^-1 + u*c0*c1*c0^-1
         """
-        n            = self.ngens()
-        braid_list   = list(braid_tietze)
-        len_braid    = len(braid_list)
+        n = self.ngens()
+        braid_list = list(braid_tietze)
+        len_braid = len(braid_list)
 
         # ----------------------------------------------------------------------
         # in the case of two strands we calculate the power of the generator
         # ----------------------------------------------------------------------
-        if n == 1 :
-            if len_braid == 0 :
+        if n == 1:
+            if len_braid == 0:
                 return self.one()
-            k = braid_tietze[0 ]*len_braid
+            k = braid_tietze[0]*len_braid
             result_vect = self._reduce_gen_power(k)
             result = self.from_vector(result_vect)
             return result
@@ -2240,12 +2121,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA3._braid_image_from_former_calculations((1, -2, 1, 2))
             (c0*c1^-1*c0, ([], [1, -2, 1], [2]))
         """
-
-        n            = self.ngens()
-        braid_list   = list(braid_tietze)
-        len_braid    = len(braid_list)
-
-        result       = None
+        braid_list = list(braid_tietze)
+        len_braid = len(braid_list)
+        result = None
+        n = self.ngens()
 
         # ----------------------------------------------------------------------
         # if the braid is in the basis take its image to be the corresponding
@@ -2261,18 +2140,18 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         sub_alg = self.cubic_hecke_subalgebra()
         if n not in braid_list and -n not in braid_list:
             result = self(sub_alg(braid_tietze))
-            verbose("End (%s): %s in smaller algebra" %(braid_list, result), level=2)
+            verbose('end (%s): %s in smaller algebra' % (braid_list, result), level=2)
             return result, None
 
         # ----------------------------------------------------------------------
         # proceed the calculation by splitting self into a product of basis
         # elements and try to simplify.
         # ----------------------------------------------------------------------
-        braid_group  = self.braid_group()
-        braid        = braid_group(braid_tietze)
+        braid_group = self.braid_group()
+        braid = braid_group(braid_tietze)
         result = self._braid_image_from_filecache(braid)
         if result is not None:
-            verbose("End from file cache (%s)" %(list(braid_tietze)), level=2)
+            verbose('end from file cache (%s)' % (list(braid_tietze)), level=2)
             return result, None
 
         # ----------------------------------------------------------------------
@@ -2282,24 +2161,24 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # side contain a subword whose image has already been calculated. We
         # choose the longest such subword as our result.
         # ----------------------------------------------------------------------
-        braid_list_red_left =  [braid_tietze[j] for j in range(1 , len_braid)]
-        braid_list_red_right = [braid_tietze[j] for j in range(len_braid-1 )]
+        braid_list_red_left = [braid_tietze[j] for j in range(1, len_braid)]
+        braid_list_red_right = [braid_tietze[j] for j in range(len_braid - 1)]
 
-        result_left,  word_decomp_left  = self._braid_image_from_former_calculations(tuple(braid_list_red_left))
+        result_left, word_decomp_left = self._braid_image_from_former_calculations(tuple(braid_list_red_left))
         result_right, word_decomp_right = self._braid_image_from_former_calculations(tuple(braid_list_red_right))
         if word_decomp_left is None:
-            return result_left, ([braid_tietze[0 ]], braid_list_red_left, [])
+            return result_left, ([braid_tietze[0]], braid_list_red_left, [])
 
         if word_decomp_right is None:
-            return result_right, ([], braid_list_red_right, [braid_tietze[len_braid-1 ]])
+            return result_right, ([], braid_list_red_right, [braid_tietze[len_braid - 1]])
 
-        word_decomp_left_left,  word_decomp_left_result,  word_decomp_left_right  = word_decomp_left
+        word_decomp_left_left, word_decomp_left_result, word_decomp_left_right = word_decomp_left
         word_decomp_right_left, word_decomp_right_result, word_decomp_right_right = word_decomp_right
 
         if len(word_decomp_left_result) >= len(word_decomp_right_result):
-            return result_left, ([braid_tietze[0 ]] + word_decomp_left_left, word_decomp_left_result, word_decomp_left_right)
+            return result_left, ([braid_tietze[0]] + word_decomp_left_left, word_decomp_left_result, word_decomp_left_right)
         else:
-            return result_right, (word_decomp_right_left, word_decomp_right_result, word_decomp_right_right + [braid_tietze[len_braid-1 ]])
+            return result_right, (word_decomp_right_left, word_decomp_right_result, word_decomp_right_right + [braid_tietze[len_braid - 1]])
 
     # --------------------------------------------------------------------------
     # _braid_image_by_basis_expansion_
@@ -2353,14 +2232,13 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         tup = self._cubic_braid_basis_tuple(cubic_braid)
         if tup is not None:
             bgrp = self.braid_group()
-            if  bgrp(braid_tietze) != bgrp(tup):
-                raise NotImplementedError("no algorithm available to calculate braid image of %s" %(str(braid_tietze)))
+            if bgrp(braid_tietze) != bgrp(tup):
+                raise NotImplementedError('no algorithm available to calculate braid image of %s' % str(braid_tietze))
             B = self.basis()
-            verbose("braid-image %s in Basis" %(str(braid_tietze)), level=2)
+            verbose('braid-image %s in Basis' % str(braid_tietze), level=2)
             return self.monomial(B[cubic_braid])
 
         return self._cubic_braid_append_to_basis(cubic_braid)
-
 
     # --------------------------------------------------------------------------
     # _reduce_all_gen_powers
@@ -2391,36 +2269,34 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             ([u*v/w, (-v)/w, (-v^2)/w, (-u^2)/w, u/w, u*v/w, -u, 1, v],
              [(), (2,), (-2,), (1,), (1, 2), (1, -2), (-1,), (-1, 2), (-1, -2)])
         """
-
-
         braid_list = list(braid_tietze)
         len_braid = len(braid_list)
 
         # ----------------------------------------------------------------------
         # find a higher power position in braid_list
         # ----------------------------------------------------------------------
-        power=0
-        pos  =0
-        for i in range(len_braid-1 ):
-            if braid_list[i] != braid_list[i+1 ]:
+        power = 0
+        pos = 0
+        for i in range(len_braid - 1):
+            if braid_list[i] != braid_list[i + 1]:
                 continue
             pos = i
-            for power in range(1 ,len_braid -pos+1 ):
+            for power in range(1, len_braid - pos + 1):
                 if pos+power == len_braid:
                     break
                 if braid_list[pos] != braid_list[pos+power]:
                     break
             break
 
-        if power == 0 :
-            verbose("End (%s) no powers" %(braid_list), level=2)
+        if power == 0:
+            verbose('end (%s) no powers' % braid_list, level=2)
             return [self.base_ring().one()], [braid_tietze]
 
         # ----------------------------------------------------------------------
         # eliminate this power from braid_tietze.
         # ----------------------------------------------------------------------
         val = braid_list[pos]
-        if val > 0 :
+        if val > 0:
             gen_ind = val
             exp = power
         else:
@@ -2428,14 +2304,14 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             exp = -power
 
         braid_list_start = [braid_list[i] for i in range(pos)]
-        braid_list_end   = [braid_list[i] for i in range(pos+power, len_braid)]
+        braid_list_end = [braid_list[i] for i in range(pos+power, len_braid)]
 
         # ----------------------------------------------------------------------
         # merging the new reduced tuple. Note that all the new tuples are
         # smaller than the given one, which will make the recursion terminate.
         # ----------------------------------------------------------------------
-        tuple_one     = tuple(braid_list_start + braid_list_end)
-        tuple_gen     = tuple(braid_list_start + [gen_ind]  + braid_list_end)
+        tuple_one = tuple(braid_list_start + braid_list_end)
+        tuple_gen = tuple(braid_list_start + [gen_ind] + braid_list_end)
         tuple_gen_inv = tuple(braid_list_start + [-gen_ind] + braid_list_end)
 
         # ----------------------------------------------------------------------
@@ -2444,8 +2320,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # word. Thus the recursion still must terminate.
         # ----------------------------------------------------------------------
         braid_group = self.braid_group()
-        braid_one     = braid_group(tuple_one)
-        braid_gen     = braid_group(tuple_gen)
+        braid_one = braid_group(tuple_one)
+        braid_gen = braid_group(tuple_gen)
         braid_gen_inv = braid_group(tuple_gen_inv)
 
         # ----------------------------------------------------------------------
@@ -2453,20 +2329,17 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # will terminate by the length reduction of the Tietze tuple (but not
         # necessarily by the number of generators whose exponent must be reduced).
         # ----------------------------------------------------------------------
-        one_coeffs,     one_braids     = self._reduce_all_gen_powers(braid_one.Tietze())
-        gen_coeffs,     gen_braids     = self._reduce_all_gen_powers(braid_gen.Tietze())
+        one_coeffs, one_braids = self._reduce_all_gen_powers(braid_one.Tietze())
+        gen_coeffs, gen_braids = self._reduce_all_gen_powers(braid_gen.Tietze())
         gen_inv_coeffs, gen_inv_braids = self._reduce_all_gen_powers(braid_gen_inv.Tietze())
 
         cf_one, cf_gen, cf_gen_inv = self._reduce_gen_power(exp)
 
-        one_coeffs     = [ cf*cf_one     for cf in one_coeffs ]
-        gen_coeffs     = [ cf*cf_gen     for cf in gen_coeffs ]
-        gen_inv_coeffs = [ cf*cf_gen_inv for cf in gen_inv_coeffs ]
+        one_coeffs = [cf*cf_one for cf in one_coeffs]
+        gen_coeffs = [cf*cf_gen for cf in gen_coeffs]
+        gen_inv_coeffs = [cf*cf_gen_inv for cf in gen_inv_coeffs]
 
         return one_coeffs + gen_coeffs + gen_inv_coeffs, one_braids + gen_braids + gen_inv_braids
-
-
-
 
     # --------------------------------------------------------------------------
     # _reduce_gen_power
@@ -2475,7 +2348,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     def _reduce_gen_power(self, k):
         r"""
         Return the k-th power on an arbitrary generator, for example c0^k.
-
 
         INPUT:
 
@@ -2498,7 +2370,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # ----------------------------------------------------------------------
         # take it from smaller subalgebras if possible
         # ----------------------------------------------------------------------
-        if n > 1 :
+        if n > 1:
             sub_alg = self.cubic_hecke_subalgebra()
             return sub_alg._reduce_gen_power(k)
 
@@ -2506,31 +2378,23 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         # calculate it in the subalgebra on 2 strands
         # ----------------------------------------------------------------------
 
-        if k == 0 :
-
+        if k == 0:
             result_ele = self.one()
             result = result_ele.to_vector()
 
-        elif abs(k) == 1 :
-
+        elif abs(k) == 1:
             result_ele = self._tietze_to_finite_sub_basis_monomial(tuple([k]))
             result = result_ele.to_vector()
 
         else:
-
-            if k < 0 :
-                right_vect = self._reduce_gen_power(k+1)
-                genTietze = (-1 ,)
+            if k < 0:
+                right_vect = self._reduce_gen_power(k + 1)
+                genTietze = (-1,)
             else:
-                right_vect = self._reduce_gen_power(k-1)
-                genTietze = (1 ,)
-
+                right_vect = self._reduce_gen_power(k - 1)
+                genTietze = (1,)
             result = self._mult_by_regular_rep(right_vect, genTietze, RepresentationType.RegularLeft)
-
         return result
-
-
-
 
     # --------------------------------------------------------------------------
     # _mult_by_regular_rep
@@ -2556,7 +2420,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
           image is vect (if it exist). This is used to record intermediate
           results to the dynamic library
 
-
         OUTPUT:
 
         The coefficient vector resulting after applying the multiplication of all
@@ -2572,18 +2435,19 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             (u*v/w, (-u^2)/w, -u, (-v)/w, (-v^2)/w, u/w, u*v/w, 1, v,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
-        verbose("Multiply %s (preimage %s) by %s using %s" %(vect, braid_preimage, gen_tuple, representation_type), level=2)
-        l = len(gen_tuple)
+        verbose('multiply %s (preimage %s) by %s using %s'
+                % (vect, braid_preimage, gen_tuple, representation_type), level=2)
+        m = len(gen_tuple)
         braid_list = None
         if braid_preimage:
             braid_list = list(braid_preimage)
 
         result = vect
-        for i in range(l):
-            verbose("Multiply image of %s with position %s" %(braid_list, i), level=2)
+        for i in range(m):
+            verbose('multiply image of %s with position %s' % (braid_list, i), level=2)
 
             if representation_type == RepresentationType.RegularLeft:
-                gen_ind = gen_tuple[l-i-1 ]
+                gen_ind = gen_tuple[m - i - 1]
                 if braid_list:
                     braid_list = [gen_ind] + braid_list
             else:
@@ -2594,12 +2458,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             if (gen_ind, representation_type) in list(self._gens_reg_repres_matrix.keys()):
                 mat = self._gens_reg_repres_matrix[(gen_ind, representation_type)]
             else:
-                if gen_ind > 0 :
-                    gen = self.gen(gen_ind-1 )
+                if gen_ind > 0:
+                    gen = self.gen(gen_ind - 1)
                     mat = gen.matrix(representation_type=representation_type)
                 else:
                     # data of inverse of generators is stored under negative strand-index
-                    gen = self.gen(-gen_ind-1 )**(-1 )
+                    gen = self.gen(-gen_ind - 1)**(-1)
                     mat = gen.matrix(representation_type=representation_type)
 
                 self._gens_reg_repres_matrix[(gen_ind, representation_type)] = mat
@@ -2610,12 +2474,11 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             # save this intermediate result to the dynamic library
             # ------------------------------------------------------------------
             if braid_list:
-                verbose("Save image of %s to file cache" %braid_list, level=2)
+                verbose('save image of %s to file cache' % braid_list, level=2)
                 self._braid_image_to_filecache(tuple(braid_list), result)
 
-        verbose("Multiply %s by %s using %s result %s" %(vect, gen_tuple, representation_type, result), level=2)
+        verbose('multiply %s by %s using %s result %s' % (vect, gen_tuple, representation_type, result), level=2)
         return result
-
 
     # --------------------------------------------------------------------------
     # _cubic_braid_append_to_basis
@@ -2654,16 +2517,15 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         order = self.get_order()
         next_index = len(order)
         self._basis_extension.append(cbTietze)
-        self._rank_basis.update({cubic_braid:next_index}) # supporting :meth:`get_order_key`
+        self._rank_basis.update({cubic_braid: next_index})  # supporting :meth:`get_order_key`
         order.append(cubic_braid)
         monomial = self.monomial(cubic_braid)
-        self._finite_sub_basis_tuples.update({cubic_braid:cbTietze})
+        self._finite_sub_basis_tuples.update({cubic_braid: cbTietze})
 
-        verbose("Registering new basis element: %s (par %s ind %s)" %(cubic_braid, cubic_braid.parent(), next_index), level=2)
+        verbose('registering new basis element: %s (par %s ind %s)'
+                % (cubic_braid, cubic_braid.parent(), next_index), level=2)
         self._filecache.update_basis_extensions(self._basis_extension)
         return monomial
-
-
 
     # --------------------------------------------------------------------------
     # _cubic_braid_basis_tuple
@@ -2687,27 +2549,27 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
             sage: CHA2 = algebras.CubicHecke(2)
             sage: CBG = CHA2.cubic_braid_group()
-            sage: CHA2._cubic_braid_basis_tuple(CBG((1,1)))
+            sage: CHA2._cubic_braid_basis_tuple(CBG((1, 1)))
             (-1,)
         """
         tietze_list = self._basis_tietze()
         cubic_braid_tietze = cubic_braid.Tietze()
         if list(cubic_braid_tietze) in tietze_list:
-            verbose("cubic_braid_tietze: %s in basis" %(str(cubic_braid_tietze)), level=2)
+            verbose('cubic_braid_tietze: %s in basis' % str(cubic_braid_tietze), level=2)
             return cubic_braid_tietze
         else:
             if cubic_braid in self._finite_sub_basis_tuples.keys():
-                verbose("cubic_braid: %s in finite_sub_basis" %(cubic_braid), level=2)
+                verbose('cubic_braid: %s in finite_sub_basis' % cubic_braid, level=2)
                 return self._finite_sub_basis_tuples[cubic_braid]
 
         for tup in tietze_list:
             cb_tup = self.cubic_braid_group()(tup)
             if cubic_braid == cb_tup:
-                self._finite_sub_basis_tuples.update({cb_tup:tup})
-                verbose("cubic_braid: %s added to finite_sub_basis with tuple %s" %(cubic_braid, tup), level=2)
+                self._finite_sub_basis_tuples.update({cb_tup: tup})
+                verbose('cubic_braid: %s added to finite_sub_basis with tuple %s'
+                        % (cubic_braid, tup), level=2)
                 return tuple(tup)
         return None
-
 
     # --------------------------------------------------------------------------
     # _cubic_braid_image
@@ -2742,10 +2604,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             tup = self._cubic_braid_basis_tuple(cubic_braid)
             if tup is not None:
                 return self._tietze_to_finite_sub_basis_monomial(tup)
-
         return self._cubic_braid_append_to_basis(cubic_braid)
-
-
 
     # --------------------------------------------------------------------------
     # _extend_braid_automorphism
@@ -2804,7 +2663,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         OUTPUT:
 
         An instance of :class:`~sage.combinat.free_module.CombinatorialFreeModule`.
-
 
         EXAMPLES::
 
@@ -2868,15 +2726,11 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         d = self.dimension()
         return [sum(cfs[bas_ele][i]*M(bas_ele) for bas_ele in Mbas) for i in range(d)]
 
-
-
-
     ############################################################################
     # --------------------------------------------------------------------------
     # public methods
     # --------------------------------------------------------------------------
     ############################################################################
-
     def select_filecache_section(self):
         r"""
         Return the enum to select a section in the file cache.
@@ -2926,7 +2780,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         - ``commit``  -- boolean (optional, default is ``True``) if set to ``False`` the reset
           is not written to the filesystem
 
-
         EXAMPLES::
 
             sage: CHA5 = algebras.CubicHecke(5)   # optional - database_cubic_hecke
@@ -2941,14 +2794,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if section == fc.section.basis_extensions:
             if self.strands() < 5:
                 raise ValueError('not allowed for less than 5 strand')
-
         fc.reset_library(section=section)
 
         if section == fc.section.basis_extensions:
             self._init_basis_extension()
-
         if commit:
-           fc.write(section=section)
+            fc.write(section=section)
 
     def strands(self):
         r"""
@@ -2994,12 +2845,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: ele == CHA3.garside_involution(ele_gar)
             True
         """
-
         braid_group = self.braid_group()
-        reverse_gens = [ g for g in braid_group.gens()]
+        reverse_gens = [g for g in braid_group.gens()]
         reverse_gens.reverse()
         brgrp_garside_involution = braid_group.hom(reverse_gens, check=False)
-
         return self._extend_braid_automorphism(element, brgrp_garside_involution)
 
     # --------------------------------------------------------------------------
@@ -3034,13 +2883,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: ele == CHA3.orientation_antiinvolution(ele_ori)
             True
         """
-
         braid_group = self.braid_group()
+
         def brgrp_orientation_antiinvolution(braid):
-            braid_list   = list(braid.Tietze())
+            braid_list = list(braid.Tietze())
             braid_list.reverse()
             return braid_group(tuple(braid_list))
-
         return self._extend_braid_automorphism(element, brgrp_orientation_antiinvolution)
 
     # --------------------------------------------------------------------------
@@ -3090,13 +2938,12 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: ele == par_mirr.mirror_isomorphism(ele_mirr)
             True
         """
-
         mirror_image = self.mirror_image()
-        braid_group  = self.braid_group()
+        braid_group = self.braid_group()
         mirror_involution = braid_group.hom([~g for g in braid_group.gens()], check=False)
         # Todo: have mirror_involution be a method of :class:`BraidGroup_class`
         base_ring_mirror = self._base_ring_mirror
-        element_vec  = vector( [base_ring_mirror(cf) for cf in list(element.to_vector())])
+        element_vec = vector([base_ring_mirror(cf) for cf in list(element.to_vector())])
         element_mirr = mirror_image.from_vector(element_vec)
         return mirror_image._extend_braid_automorphism(element_mirr, mirror_involution)
 
@@ -3135,19 +2982,14 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: CHA2.cubic_equation(as_coefficients=True)
             [-1, 0, 0, 1]
         """
-
         BaseRing = self.base_ring(generic=generic)
-
         if generic:
             u, v, w = BaseRing.gens()
         else:
             u, v, w = self._cubic_equation_parameters
-
-        cf = [-w, v, -u, 1 ]
-
+        cf = [-w, v, -u, 1]
         if as_coefficients:
             return cf
-
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         P = PolynomialRing(BaseRing, var)
         return P(cf)
@@ -3248,7 +3090,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         else:
             return self._base_ring
 
-
     # --------------------------------------------------------------------------
     # extension_ring
     # --------------------------------------------------------------------------
@@ -3320,7 +3161,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         else:
             return self._generic_extension_ring_map(e3gen)
 
-
     # --------------------------------------------------------------------------
     # braid_group
     # --------------------------------------------------------------------------
@@ -3335,7 +3175,6 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             Braid group on 2 strands
         """
         return self._braid_group
-
 
     # --------------------------------------------------------------------------
     # cubic_braid_group
@@ -3391,7 +3230,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     # --------------------------------------------------------------------------
     # creating a CubicHeckeAlgebra as subalgebra of self on less strands
     # --------------------------------------------------------------------------
-    def cubic_hecke_subalgebra( self, nstrands = None):
+    def cubic_hecke_subalgebra(self, nstrands=None):
         r"""
         Return an instance of :class:`CubicHeckeAlgebra` which realizes a
         subalgebra of ``self`` on the first ``n_strands`` strands.
@@ -3414,35 +3253,29 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
               over Integer Ring localized at (2, 3, 5)
                 with cubic equation: h^3 - 12*h^2 + 47*h - 60 = 0
         """
-
         if nstrands is None:
-            nstrands = self.strands() -1
-
+            nstrands = self.strands() - 1
         n = self.strands()
-
         nstrands = ZZ(nstrands)
 
-        if nstrands >= n or nstrands <= 0 :
-            raise ValueError( "nstrands must be positive and less than %s" %(self.strands()) )
+        if nstrands >= n or nstrands <= 0:
+            raise ValueError('nstrands must be positive and less than %s' % self.strands())
 
         Gens = self.gens()
-
-        if nstrands == self.strands() -1  and self._cubic_hecke_subalgebra is not None:
+        if nstrands == self.strands() - 1 and self._cubic_hecke_subalgebra is not None:
             return self._cubic_hecke_subalgebra
 
-        gen_range = range(nstrands -1 )
-
+        gen_range = range(nstrands - 1)
         GensRed = tuple([Gens[i] for i in gen_range])
-
         if self.base_ring() == self.base_ring(generic=True):
             SubHeckeAlg = CubicHeckeAlgebra(names=GensRed)
         else:
-            SubHeckeAlg = CubicHeckeAlgebra(names=GensRed, cubic_equation_parameters=tuple(self._cubic_equation_parameters),
-                          cubic_equation_roots=tuple(self._cubic_equation_roots))
+            SubHeckeAlg = CubicHeckeAlgebra(names=GensRed,
+                                            cubic_equation_parameters=tuple(self._cubic_equation_parameters),
+                                            cubic_equation_roots=tuple(self._cubic_equation_roots))
 
-        if nstrands == self.strands() -1 :
+        if nstrands == self.strands() - 1:
             self._cubic_hecke_subalgebra = SubHeckeAlg
-
         return SubHeckeAlg
 
     # --------------------------------------------------------------------------
@@ -3526,48 +3359,47 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             RuntimeError: base ring Integer Ring localized at (2, 3, 5)
             does not factor through mirror involution
         """
-        base_ring  = self.base_ring()
-        base_gen   = self.base_ring(generic=True)
+        base_ring = self.base_ring()
+        base_gen = self.base_ring(generic=True)
 
-        base_gen_mirror  = base_gen.mirror_involution()
+        base_gen_mirror = base_gen.mirror_involution()
         base_ring_mirror = self._base_ring_mirror
         cepg = self.cubic_equation_parameters(generic=True)
         cerg = self.cubic_equation_roots(generic=True)
         if not base_ring_mirror:
             mirr_paras_gen = [base_gen_mirror(par) for par in cepg]
-            mirr_paras     = [base_ring(mirr_para) for mirr_para in mirr_paras_gen]
+            mirr_paras = [base_ring(mirr_para) for mirr_para in mirr_paras_gen]
             try:
                 base_ring_mirror = base_ring.hom(mirr_paras)
             except (TypeError, ValueError, NotImplementedError):
-                raise RuntimeError("base ring %s does not factor through mirror involution" %(base_ring))
+                raise RuntimeError('base ring %s does not factor through mirror involution' % base_ring)
 
             # check for involution
-            mirr_paras_back  = [base_ring_mirror(mirr_para) for mirr_para in mirr_paras]
+            mirr_paras_back = [base_ring_mirror(mirr_para) for mirr_para in mirr_paras]
             if mirr_paras_back != self.cubic_equation_parameters():
-                raise RuntimeError("base ring %s does not factor through mirror involution" %(base_ring))
-
+                raise RuntimeError('base ring %s does not factor through mirror involution' % base_ring)
             self._base_ring_mirror = base_ring_mirror
 
         mirror_image = self._mirror_image
         if mirror_image is None:
-            extension_ring  = self.extension_ring()
-            extension_gen   = self.extension_ring(generic=True)
-            extension_gen_mirror  = extension_gen.mirror_involution()
+            extension_ring = self.extension_ring()
+            extension_gen = self.extension_ring(generic=True)
+            extension_gen_mirror = extension_gen.mirror_involution()
 
             mirr_paras_gen = [base_gen_mirror(par) for par in cepg]
             mirr_roots_gen = [extension_gen_mirror(root) for root in cerg]
 
-            mirr_paras = tuple([base_ring(par)       for par  in mirr_paras_gen])
+            mirr_paras = tuple([base_ring(par) for par in mirr_paras_gen])
             mirr_roots = tuple([extension_ring(root) for root in mirr_roots_gen])
             n = self.strands()
 
-            mirror_image = CubicHeckeAlgebra(n, cubic_equation_parameters=mirr_paras, cubic_equation_roots=mirr_roots )
+            mirror_image = CubicHeckeAlgebra(n, cubic_equation_parameters=mirr_paras, cubic_equation_roots=mirr_roots)
 
             # go back by involution property
-            mirror_image._mirror_image     = self
+            mirror_image._mirror_image = self
             mirror_image._base_ring_mirror = base_ring_mirror
             mirror_image._ring_of_definition._mirror_ = base_gen_mirror
-            mirror_image._is_mirror        = True
+            mirror_image._is_mirror = True
 
             self._mirror_image = mirror_image
 
@@ -3596,7 +3428,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: sch_eles[6]                         # optional gap3
             (u^3*w + v^3 - 6*u*v*w + 8*w^2)/w^2
         """
-        gap3_result    = self.chevie().SchurElements()
+        gap3_result = self.chevie().SchurElements()
         GER = self.extension_ring(generic=True)
         generic_result = [GER(s) for s in gap3_result]
         if generic:
@@ -3631,7 +3463,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             (u^3*w + v^3 - 6*u*v*w + 8*w^2)/w^2
         """
         if not isinstance(item, AbsIrreducibeRep):
-            raise ValueError('item must be an instance of %s' %(AbsIrreducibeRep))
+            raise ValueError('item must be an instance of %s' % AbsIrreducibeRep)
         return self.schur_elements(generic=generic)[item.gap_index()]
 
     # --------------------------------------------------------------------------
@@ -3687,5 +3519,5 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                 return m[irr].trace()
         if irr:
             return char_function
-        irrs = [irr for irr in self.irred_repr if  irr.number_gens()== self.strands() -1]
+        irrs = [irr for irr in self.irred_repr if irr.number_gens() == self.strands() - 1]
         return [self.characters(irrs[i], original=original) for i in range(len(irrs))]
