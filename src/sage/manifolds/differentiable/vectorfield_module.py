@@ -4,9 +4,9 @@ Vector Field Modules
 The set of vector fields along a differentiable manifold `U` with values on
 a differentiable manifold `M` via a differentiable map `\Phi: U \to M`
 (possibly `U = M` and `\Phi=\mathrm{Id}_M`) is a module over the algebra
-`C^k(U)` of differentiable scalar fields on `U`. If `\Phi` is the identity
-map, this module is considered a Lie algebroid under the Lie bracket `[\ ,\ ]`
-(cf. :wikipedia:`Lie_algebroid`). It is a free module if and only if `M` is
+`C^\infty(U)` of differentiable scalar fields on `U`. If `\Phi` is the identity
+map, this module is considered a Lie algebra under the Lie bracket `[\ ,\ ]`
+(cf. :wikipedia:`Lie_algebra`). It is a free module if and only if `M` is
 parallelizable. Accordingly, there are two classes for vector field modules:
 
 - :class:`VectorFieldModule` for vector fields with values on a
@@ -60,27 +60,27 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         \Phi:\  U \longrightarrow M,
 
-    the *vector field module* `\mathfrak{X}(U,\Phi) = \Gamma(\Phi^* TM)` is the set of
-    all vector fields of the type
+    the space `\Gamma(\Phi^* TM)` of vector fields along `\Phi` is denoted by
+    `\mathfrak{X}(U,\Phi)`, where `TM` is the tangent bundle of `M`. Hence, 
+    elements of `\mathfrak{X}(U,\Phi)` are smooth maps
 
     .. MATH::
 
         v:\ U  \longrightarrow TM
 
-    (where `TM` is the tangent bundle of `M`) such that
+     such that
 
     .. MATH::
 
         \forall p \in U,\ v(p) \in T_{\Phi(p)}M,
 
     where `T_{\Phi(p)}M` is the tangent space to `M` at the point `\Phi(p)`.
-    Thus elements of `\mathfrak{X}(U,\Phi)` are vector fields along `\Phi`. 
 
-    The set `\mathfrak{X}(U,\Phi)` is a module over `C^k(U)`, the ring
+    The set `\mathfrak{X}(U,\Phi)` is a module over `C^\infty(U)`, the ring
     (algebra) of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
-    Furthermore, it is a Lie algebroid under the Lie bracket (cf.
-    :wikipedia:`Lie_algebroid`)
+    Furthermore, it is an (infinite-dimensional) Lie algebra under the
+    Lie bracket (cf. :wikipedia:`Lie_algebra`)
 
     .. MATH::
 
