@@ -126,7 +126,7 @@ class TensorField(ModuleElementWithMutability):
     INPUT:
 
     - ``vector_field_module`` -- module `\mathfrak{X}(U,\Phi)` of vector
-      fields along `U` associated with the map `\Phi: U \rightarrow M` (cf.
+      fields along `U` associated with the map `\Phi: U \to M` (cf.
       :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`)
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank
       and `l` the covariant rank
@@ -846,7 +846,7 @@ class TensorField(ModuleElementWithMutability):
 
         OUTPUT:
 
-        - instance of
+        - the underlying vector field module, as an instance of
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
 
         EXAMPLES:
@@ -1857,6 +1857,7 @@ class TensorField(ModuleElementWithMutability):
             except AttributeError:
                 # case of a genuine vector frame
                 pass
+        
         rst = self.restrict(frame._domain, dest_map=frame._dest_map)
         return rst.display(frame, chart)
 

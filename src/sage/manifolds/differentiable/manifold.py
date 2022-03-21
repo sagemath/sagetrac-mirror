@@ -1229,6 +1229,7 @@ class DifferentiableManifold(TopologicalManifold):
         Return the set of vector fields defined on ``self``, possibly
         with values in another differentiable manifold, as a module over the
         algebra of scalar fields defined on the manifold.
+        That is, return `\Gamma^\infty(\Phi^* TN)` where `\Phi:\ M \to N` is a smooth map.
 
         See :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
         for a complete documentation.
@@ -1236,7 +1237,7 @@ class DifferentiableManifold(TopologicalManifold):
         INPUT:
 
         - ``dest_map`` -- (default: ``None``) destination map, i.e. a
-          differentiable map `\Phi:\ M \rightarrow N`, where `M` is the
+          differentiable map `\Phi:\ M \to N`, where `M` is the
           current manifold and `N` a differentiable manifold;
           if ``None``, it is assumed that `N = M` and that `\Phi` is the
           identity map (case of vector fields *on* `M`), otherwise
@@ -1374,7 +1375,7 @@ class DifferentiableManifold(TopologicalManifold):
                                        VectorFieldModule, VectorFieldFreeModule
         if dest_map is None:
             dest_map = self.identity_map()
-        codomain = dest_map._codomain
+        codomain = dest_map.codomain()
         if dest_map not in self._vector_field_modules:
             if codomain.is_manifestly_parallelizable() or force_free:
                 self._vector_field_modules[dest_map] = \

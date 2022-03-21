@@ -2489,6 +2489,22 @@ class TopologicalManifold(ManifoldSubset):
             sage: id(p) == p
             True
 
+        TESTS:
+
+        Identity map of a differentiable manifold::
+
+            sage: M = Manifold(2, 'M', structure='differentiable')
+            sage: id = M.identity_map(); id
+            Identity map Id_M of the 2-dimensional differentiable manifold M
+            sage: isinstance(id, sage.manifolds.differentiable.diff_map.DiffMap)
+            True
+
+        Identity map of a topological manifold is not smooth::
+        
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: isinstance(M.identity_map(), sage.manifolds.differentiable.diff_map.DiffMap)
+            False
+
         .. SEEALSO::
 
             See :class:`~sage.manifolds.continuous_map.ContinuousMap`

@@ -60,7 +60,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         \Phi:\  U \longrightarrow M,
 
-    the *vector field module* `\mathfrak{X}(U,\Phi)` is the set of
+    the *vector field module* `\mathfrak{X}(U,\Phi) = \Gamma(\Phi^* TM)` is the set of
     all vector fields of the type
 
     .. MATH::
@@ -74,6 +74,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         \forall p \in U,\ v(p) \in T_{\Phi(p)}M,
 
     where `T_{\Phi(p)}M` is the tangent space to `M` at the point `\Phi(p)`.
+    Thus elements of `\mathfrak{X}(U,\Phi)` are vector fields along `\Phi`. 
 
     The set `\mathfrak{X}(U,\Phi)` is a module over `C^k(U)`, the ring
     (algebra) of differentiable scalar fields on `U` (see
@@ -105,7 +106,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
     - ``domain`` -- differentiable manifold `U` along which the
       vector fields are defined
     - ``dest_map`` -- (default: ``None``) destination map
-      `\Phi:\ U \rightarrow M`
+      `\Phi:\ U \to M`
       (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`);
       if ``None``, it is assumed that `U = M` and `\Phi` is the identity
       map of `M` (case of vector fields *on* `M`)
@@ -228,7 +229,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             latex_name += "," + dm_latex_name
         self._name = name + ")"
         self._latex_name = latex_name + r"\right)"
-        self._ambient_domain = self._dest_map._codomain
+        self._ambient_domain = self._dest_map.codomain()
         # The member self._ring is created for efficiency (to avoid
         # calls to self.base_ring()):
         self._ring = domain.scalar_field_algebra()
@@ -426,10 +427,9 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - instance of
+        - the manifold in which the vector fields of this
+          module take their values; as an instance of
           :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
-          representing the manifold in which the vector fields of this
-          module take their values
 
         EXAMPLES::
 
@@ -2182,7 +2182,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             t = (x + 1) dx⊗dx - y dx⊗dy + x*y dy⊗dx + (-y^2 + 2) dy⊗dy
 
         """
-        from sage.tensor.modules.comp import (CompWithSym, CompFullyAntiSym)
+        from sage.tensor.modules.comp import CompFullyAntiSym, CompWithSym
 
         # 0/ Compatibility checks:
         if comp._ring is not self._ring:
