@@ -1,18 +1,7 @@
 r"""
 Unique Representation
 
-Abstract classes for cached and unique representation behavior.
-
-.. SEEALSO::
-
-   :class:`sage.structure.factory.UniqueFactory`
-
-AUTHORS:
-
-- Nicolas M. Thiery (2008): Original version.
-- Simon A. King (2013-02): Separate cached and unique representation.
-- Simon A. King (2013-08): Extended documentation.
-
+This modules defines abstract classes for cached and unique representation behavior.
 
 What is a cached representation?
 ================================
@@ -534,6 +523,18 @@ unique representation behaviour, one has to implement hash and equality test
 accordingly, for example by inheriting from
 :class:`~sage.misc.fast_methods.WithEqualityById`.
 
+.. SEEALSO::
+
+   :class:`sage.structure.factory.UniqueFactory`
+
+AUTHORS:
+
+- Nicolas M. Thiery (2008): initial version
+
+- Simon A. King (2013-02): separated cached and unique representation
+
+- Simon A. King (2013-08): extended documentation
+
 """
 # ****************************************************************************
 #  Copyright (C) 2008 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -846,7 +847,7 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
 
         sage: x = MyClass(value = 1)
         sage: x.__reduce__()
-        (<function unreduce at ...>, (<class '__main__.MyClass'>, (), {'value': 1}))
+        (<function unreduce at ...>, (<class '__main__.MyClass'>, (), {'value': 1}), {})
         sage: x is loads(dumps(x))
         True
 
@@ -1005,9 +1006,11 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
             True
         """
         instance = typecall(cls, *args, **options)
-        assert isinstance( instance, cls )
+        assert isinstance(instance, cls)
         if instance.__class__.__reduce__ == CachedRepresentation.__reduce__:
             instance._reduction = (cls, args, options)
+            instance.__class__.__getstate__ = CachedRepresentation.__getstate__
+            instance.__class__.__setstate__ = CachedRepresentation.__setstate__
         return instance
 
     @classmethod
@@ -1112,10 +1115,81 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
         EXAMPLES::
 
             sage: x = UniqueRepresentation()
-            sage: x.__reduce__()          # indirect doctest
-            (<function unreduce at ...>, (<class 'sage.structure.unique_representation.UniqueRepresentation'>, (), {}))
+            sage: x.__reduce__()  # indirect doctest
+            (<function unreduce at ...>, (<class 'sage.structure.unique_representation.UniqueRepresentation'>, (), {}), {})
         """
-        return (unreduce, self._reduction)
+        return unreduce, self._reduction, self.__getstate__()
+
+    def __getstate__(self):
+        """
+        Used for pickling.
+
+        An object of :class:`CachedRepresentation` does not keep its dictionary
+        when pickled, because the object is constructed anew upon unpickling.
+
+        Here we make some exceptions so that cached functions with
+        `do_pickle=True` attached to an object to be kept in the pickle.
+
+        EXAMPLES::
+
+            sage: class X(UniqueRepresentation):
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method(do_pickle=True)
+            ....:     def genus(self):
+            ....:         return len(self._x)
+            ....:
+            sage: import __main__; __main__.X = X  # not needed in an interactive session
+            sage: a = X((1,2,3))
+            sage: a.genus()
+            3
+            sage: a.genus.cache
+            3
+            sage: s = dumps(a)
+            sage: a.genus.clear_cache()
+            sage: a.genus.cache
+            sage: b = loads(s)
+            sage: b.genus.cache
+            3
+        """
+        from sage.misc.cachefunc import CachedFunction
+        d = {}
+        try:
+            for key, value in self.__dict__.items():
+                if isinstance(value, CachedFunction) and value.is_pickled_with_cache():
+                    d[key] = value
+        except AttributeError:
+            pass
+
+        return d
+
+    def __setstate__(self, d):
+        """
+        Used for unpickling.
+
+        EXAMPLES::
+
+            sage: class X(UniqueRepresentation):
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method(do_pickle=True)
+            ....:     def genus(self):
+            ....:         return len(self._x)
+            ....:
+            sage: import __main__; __main__.X = X  # not needed in an interactive session
+            sage: a = X((1,2,3))
+            sage: a.genus()
+            3
+            sage: a.genus.cache
+            3
+            sage: s = dumps(a)
+            sage: a.genus.clear_cache()
+            sage: a.genus.cache
+            sage: b = loads(s)
+            sage: b.genus.cache
+            3
+        """
+        self.__dict__.update(d)
 
     def __copy__(self):
         """
