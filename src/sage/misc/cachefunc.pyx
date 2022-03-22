@@ -1,18 +1,6 @@
 r"""
 Cached Functions and Methods
 
-AUTHORS:
-
-- William Stein: initial version, (inspired by conversation with Justin Walker)
-- Mike Hansen: added doctests and made it work with class methods.
-- Willem Jan Palenstijn: add CachedMethodCaller for binding cached methods to
-  instances.
-- Tom Boothby: added DiskCachedFunction.
-- Simon King: improved performance, more doctests, cython version,
-  CachedMethodCallerNoArgs, weak cached function, cached special methods.
-- Julian Rueth (2014-03-19, 2014-05-09, 2014-05-12): added ``key`` parameter, allow caching
-  for unhashable elements, added ``do_pickle`` parameter
-
 EXAMPLES:
 
 By :trac:`11115`, cached functions and methods are now also
@@ -399,8 +387,25 @@ the parent as its first argument::
     sage: d = a.add_bigoh(1)                                            # optional - sage.rings.padics
     sage: b._cache_key() == d._cache_key() # this would be True if the parents were not included  # optional - sage.rings.padics
     False
-"""
 
+AUTHORS:
+
+- William Stein: initial version, (inspired by conversation with Justin Walker)
+
+- Mike Hansen: added doctests and made it work with class methods.
+
+- Willem Jan Palenstijn: add CachedMethodCaller for binding cached methods to
+  instances.
+
+- Tom Boothby: added DiskCachedFunction.
+
+- Simon King: improved performance, more doctests, cython version,
+  CachedMethodCallerNoArgs, weak cached function, cached special methods.
+
+- Julian Rueth (2014-03-19, 2014-05-09, 2014-05-12): added ``key`` parameter, allow caching
+  for unhashable elements, added ``do_pickle`` parameter
+
+"""
 # ****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #                          Mike Hansen <mhansen@gmail.com>
@@ -827,6 +832,27 @@ cdef class CachedFunction(object):
             True
         """
         return _cached_function_unpickle, (self.__module__, self.__name__, self.cache)
+
+    def is_pickled_with_cache(self):
+        """
+        Return ``True`` if this cached function is pickled with the cache.
+
+        EXAMPLES::
+
+            sage: @cached_function
+            ....: def f(x):
+            ....:     return x
+            ....:
+            sage: f.is_pickled_with_cache()
+            False
+            sage: @cached_function(do_pickle=True)
+            ....: def f(x):
+            ....:     return x
+            ....:
+            sage: f.is_pickled_with_cache()
+            True
+        """
+        return self.do_pickle
 
     #########
     ## Introspection
@@ -1434,6 +1460,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
 
 weak_cached_function = decorator_keywords(WeakCachedFunction)
+
 
 class CachedMethodPickle(object):
     """

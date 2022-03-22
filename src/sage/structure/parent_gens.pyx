@@ -174,7 +174,7 @@ cdef class ParentWithGens(ParentWithBase):
             return parent.Parent.__getstate__(self)
         d = []
         try:
-            d = list(self.__dict__.copy().iteritems()) # so we can add elements
+            d = self.__dict__.copy().items() # so we can add elements
         except AttributeError:
             pass
         d = dict(d)
