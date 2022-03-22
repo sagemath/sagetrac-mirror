@@ -396,10 +396,9 @@ def ellipsis_iter(*args, step=None):
         if len(args) > step_magic+1:
             i = step_magic
             more = xsrange(args[i-2], args[i+1], step, coerce=False, include_endpoint=True)
-            a = None
             for a in more:
+                last_end = a
                 yield a
-            last_end = a
             skip = True
             next_ = None
             step_magic += 1
@@ -428,8 +427,8 @@ def ellipsis_iter(*args, step=None):
                 if last_end != first:
                     yield first
                 for a in more:
+                    last_end = a
                     yield a
-                last_end = a
             except StopIteration:
                 last_end = None
             skip = True
