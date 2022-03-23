@@ -376,7 +376,7 @@ def modular_decomposition(graph):
         ....:       11:[12,1], 12:[11,1], 13:[14,16,17,1], 14:[13,17,1],
         ....:       16:[13,17,1], 17:[13,14,16,18,1], 18:[17], 24:[5,4,3,1]}
         sage: g = Graph(d)
-        sage: test_modular_decomposition(modular_decomposition(g), g)
+        sage: _test_modular_decomposition(modular_decomposition(g), g)
         True
 
     Graph from the :wikipedia:`Modular_decomposition`::
@@ -386,7 +386,7 @@ def modular_decomposition(graph):
         ....:       7:[2,3,4,5,8,9,10,11], 8:[6,7,9,10,11], 9:[6,7,8,10,11],
         ....:       10:[6,7,8,9], 11:[6,7,8,9]}
         sage: g = Graph(d2)
-        sage: test_modular_decomposition(modular_decomposition(g), g)
+        sage: _test_modular_decomposition(modular_decomposition(g), g)
         True
     """
     if graph.is_directed():
@@ -2488,8 +2488,8 @@ def gamma_classes(graph):
 
     Ensure that the returned vertex sets from some random graphs are modules::
 
-        sage: from sage.graphs.graph_decompositions.modular_decomposition import test_gamma_modules
-        sage: test_gamma_modules(2, 10, 0.5)
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import _test_gamma_modules
+        sage: _test_gamma_modules(2, 10, 0.5)
     """
     from itertools import chain
     from sage.sets.disjoint_set import DisjointSet
@@ -2599,7 +2599,7 @@ def habib_maurer_algorithm(graph, g_classes=None):
         ....:       11:[12,1], 12:[11,1], 13:[14,16,17,1], 14:[13,17,1],
         ....:       16:[13,17,1], 17:[13,14,16,18,1], 18:[17], 24:[5,4,3,1]}
         sage: g = Graph(d)
-        sage: test_modular_decomposition(habib_maurer_algorithm(g), g)
+        sage: _test_modular_decomposition(habib_maurer_algorithm(g), g)
         True
 
     Graph from the :wikipedia:`Modular_decomposition`::
@@ -2609,7 +2609,7 @@ def habib_maurer_algorithm(graph, g_classes=None):
         ....:       7:[2,3,4,5,8,9,10,11], 8:[6,7,9,10,11], 9:[6,7,8,10,11],
         ....:       10:[6,7,8,9], 11:[6,7,8,9]}
         sage: g = Graph(d2)
-        sage: test_modular_decomposition(habib_maurer_algorithm(g), g)
+        sage: _test_modular_decomposition(habib_maurer_algorithm(g), g)
         True
 
     Tetrahedral Graph is Series::
@@ -2705,7 +2705,7 @@ def habib_maurer_algorithm(graph, g_classes=None):
 #=============================================================================
 
 # Function implemented for testing
-def test_modular_decomposition(tree_root, graph):
+def _test_modular_decomposition(tree_root, graph):
     """
     Test the input modular decomposition tree using recursion.
 
@@ -2723,28 +2723,28 @@ def test_modular_decomposition(tree_root, graph):
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import *
         sage: g = graphs.HexahedralGraph()
-        sage: test_modular_decomposition(modular_decomposition(g), g)
+        sage: _test_modular_decomposition(modular_decomposition(g), g)
         True
     """
     if tree_root.node_type != NodeType.NORMAL:
         for module in tree_root.children:
-            if not test_module(module, graph):
+            if not _test_module(module, graph):
                 # test whether modules pass the defining
                 # characteristics of modules
                 return False
-            if not test_modular_decomposition(module,
+            if not _test_modular_decomposition(module,
                                               graph.subgraph(get_vertices(module))):
                 # recursively test the modular decomposition subtrees
                 return False
 
-        if not test_maximal_modules(tree_root, graph):
+        if not _test_maximal_modules(tree_root, graph):
             # test whether the mdoules are maximal in nature
             return False
 
     return True
 
 # Function implemented for testing
-def test_maximal_modules(tree_root, graph):
+def _test_maximal_modules(tree_root, graph):
     r"""
     Test the maximal nature of modules in a modular decomposition tree.
 
@@ -2772,7 +2772,7 @@ def test_maximal_modules(tree_root, graph):
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import *
         sage: g = graphs.HexahedralGraph()
-        sage: test_maximal_modules(modular_decomposition(g), g)
+        sage: _test_maximal_modules(modular_decomposition(g), g)
         True
     """
     if tree_root.node_type != NodeType.NORMAL:
@@ -2903,7 +2903,7 @@ def form_module(index, other_index, tree_root, graph):
                     break
 
 # Function implemented for testing
-def test_module(module, graph):
+def _test_module(module, graph):
     """
     Test whether input module is actually a module
 
@@ -2922,9 +2922,9 @@ def test_module(module, graph):
         sage: from sage.graphs.graph_decompositions.modular_decomposition import *
         sage: g = graphs.HexahedralGraph()
         sage: tree_root = modular_decomposition(g)
-        sage: test_module(tree_root, g)
+        sage: _test_module(tree_root, g)
         True
-        sage: test_module(tree_root.children[0], g)
+        sage: _test_module(tree_root.children[0], g)
         True
     """
     # A single vertex is a module
@@ -3212,7 +3212,7 @@ def relabel_tree(root, perm):
 
 from sage.misc.random_testing import random_testing
 @random_testing
-def test_gamma_modules(trials, vertices, prob, verbose=False):
+def _test_gamma_modules(trials, vertices, prob, verbose=False):
     r"""
     Verify that the vertices of each gamma class of a random graph are modules
     of that graph.
@@ -3231,7 +3231,7 @@ def test_gamma_modules(trials, vertices, prob, verbose=False):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import *
-        sage: test_gamma_modules(3, 7, 0.5)
+        sage: _test_gamma_modules(3, 7, 0.5)
     """
     from sage.graphs.generators.random import RandomGNP
     for _ in range(trials):
@@ -3272,8 +3272,8 @@ def permute_decomposition(trials, algorithm, vertices, prob, verbose=False):
             print(random_perm)
         t1 = algorithm(g1)
         t2 = algorithm(g2)
-        assert(test_modular_decomposition(t1, g1))
-        assert(test_modular_decomposition(t2, g2))
+        assert(_test_modular_decomposition(t1, g1))
+        assert(_test_modular_decomposition(t2, g2))
         t1p = relabel_tree(t1, random_perm)
         assert(equivalent_trees(t1p, t2))
         if verbose:

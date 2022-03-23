@@ -6,15 +6,15 @@ homology calculator.
 
 TESTS::
 
-    sage: from sage.homology.tests import test_random_chain_complex
-    sage: test_random_chain_complex(trials=20)  # optional - CHomP
-    sage: test_random_chain_complex(level=2, trials=20)  # optional - CHomP
-    sage: test_random_chain_complex(level=3, trials=20)  # long time # optional - CHomP
+    sage: from sage.homology.tests import _test_random_chain_complex
+    sage: _test_random_chain_complex(trials=20)  # optional - CHomP
+    sage: _test_random_chain_complex(level=2, trials=20)  # optional - CHomP
+    sage: _test_random_chain_complex(level=3, trials=20)  # long time # optional - CHomP
 
-    sage: from sage.homology.tests import test_random_simplicial_complex
-    sage: test_random_simplicial_complex(level=1, trials=20)  # optional - CHomP
-    sage: test_random_simplicial_complex(level=2, trials=20)  # optional - CHomP
-    sage: test_random_simplicial_complex(level=5/2, trials=10)  # long time # optional - CHomP
+    sage: from sage.homology.tests import _test_random_simplicial_complex
+    sage: _test_random_simplicial_complex(level=1, trials=20)  # optional - CHomP
+    sage: _test_random_simplicial_complex(level=2, trials=20)  # optional - CHomP
+    sage: _test_random_simplicial_complex(level=5/2, trials=10)  # long time # optional - CHomP
 """
 
 from sage.misc.random_testing import random_testing
@@ -56,7 +56,7 @@ def random_chain_complex(level=1):
     return ChainComplex({dim: mat}, degree = deg)
 
 @random_testing
-def test_random_chain_complex(level=1, trials=1, verbose=False):
+def _test_random_chain_complex(level=1, trials=1, verbose=False):
     """
     Compute the homology of a random chain complex with and without
     CHomP, and compare the results.  If they are not the same, raise
@@ -72,8 +72,8 @@ def test_random_chain_complex(level=1, trials=1, verbose=False):
 
     EXAMPLES::
 
-        sage: from sage.homology.tests import test_random_chain_complex
-        sage: test_random_chain_complex(trials=2)  # optional - CHomP
+        sage: from sage.homology.tests import _test_random_chain_complex
+        sage: _test_random_chain_complex(trials=2)  # optional - CHomP
     """
     for i in range(trials):
         C = random_chain_complex(level=level)
@@ -111,7 +111,7 @@ def random_simplicial_complex(level=1, p=0.5):
     return RandomComplex(n, dim, p)
 
 @random_testing
-def test_random_simplicial_complex(level=1, trials=1, verbose=False):
+def _test_random_simplicial_complex(level=1, trials=1, verbose=False):
     """
     Compute the homology of a random simplicial complex with and
     without CHomP, and compare the results.  If they are not the same,
@@ -129,8 +129,8 @@ def test_random_simplicial_complex(level=1, trials=1, verbose=False):
 
     EXAMPLES::
 
-        sage: from sage.homology.tests import test_random_simplicial_complex
-        sage: test_random_simplicial_complex(trials=2)  # optional - CHomP
+        sage: from sage.homology.tests import _test_random_simplicial_complex
+        sage: _test_random_simplicial_complex(trials=2)  # optional - CHomP
     """
     for i in range(trials):
         X = random_simplicial_complex(level=level)

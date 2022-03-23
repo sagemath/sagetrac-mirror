@@ -656,9 +656,9 @@ def get_test_shell():
 
     Check that :trac:`14070` has been resolved::
 
-        sage: from sage.tests.cmdline import test_executable
+        sage: from sage.tests.cmdline import _test_executable
         sage: cmd = 'from sage.repl.interpreter import get_test_shell; shell = get_test_shell()'
-        sage: (out, err, ret) = test_executable(["sage", "-c", cmd])
+        sage: (out, err, ret) = _test_executable(["sage", "-c", cmd])
         sage: out + err
         ''
     """

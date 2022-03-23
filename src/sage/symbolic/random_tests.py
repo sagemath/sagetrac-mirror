@@ -413,7 +413,7 @@ def assert_strict_weak_order(a, b, c, cmp_func):
             raise ValueError(msg)
 
 
-def test_symbolic_expression_order(repetitions=100):
+def _test_symbolic_expression_order(repetitions=100):
     r"""
     Tests whether the comparison of random symbolic expressions
     satisfies the strict weak order axioms.
@@ -424,9 +424,9 @@ def test_symbolic_expression_order(repetitions=100):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.random_tests import test_symbolic_expression_order
-        sage: test_symbolic_expression_order(200)
-        sage: test_symbolic_expression_order(10000)  # long time
+        sage: from sage.symbolic.random_tests import _test_symbolic_expression_order
+        sage: _test_symbolic_expression_order(200)
+        sage: _test_symbolic_expression_order(10000)  # long time
     """
     rnd_length = 50
     nvars = 10

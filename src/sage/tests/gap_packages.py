@@ -3,13 +3,13 @@ Test the optional GAP packages
 
 TESTS::
 
-    sage: from sage.tests.gap_packages import all_installed_packages, test_packages
+    sage: from sage.tests.gap_packages import all_installed_packages, _test_packages
     sage: pkgs = all_installed_packages(ignore_dot_gap=True)
-    sage: test_packages(pkgs, only_failures=True)    # optional - gap_packages
+    sage: _test_packages(pkgs, only_failures=True)    # optional - gap_packages
       Status   Package   GAP Output
     +--------+---------+------------+
 
-    sage: test_packages(['atlasrep', 'tomlib'])
+    sage: _test_packages(['atlasrep', 'tomlib'])
       Status   Package    GAP Output
     +--------+----------+------------+
                atlasrep   true
@@ -21,7 +21,7 @@ import os
 from sage.libs.gap.libgap import libgap
 
 
-def test_packages(packages, only_failures=False):
+def _test_packages(packages, only_failures=False):
     """
     Return list of all installed packages.
 
@@ -40,8 +40,8 @@ def test_packages(packages, only_failures=False):
 
     EXAMPLES::
 
-        sage: from sage.tests.gap_packages import all_installed_packages, test_packages
-        sage: test_packages(['GAPDoc'])
+        sage: from sage.tests.gap_packages import all_installed_packages, _test_packages
+        sage: _test_packages(['GAPDoc'])
           Status   Package   GAP Output
         +--------+---------+------------+
                    GAPDoc    true
@@ -49,7 +49,7 @@ def test_packages(packages, only_failures=False):
     All packages, including user-installed ones::
 
         sage: pkgs = all_installed_packages()
-        sage: test_packages(pkgs)    # random output
+        sage: _test_packages(pkgs)    # random output
           Status    Package      GAP Output
         +---------+------------+------------+
                    Alnuth       true

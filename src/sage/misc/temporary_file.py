@@ -38,8 +38,8 @@ def delete_tmpfiles():
     This is automatically run when Sage exits, test this by running a
     separate session of Sage::
 
-        sage: from sage.tests.cmdline import test_executable
-        sage: child_SAGE_TMP, err, ret = test_executable(["sage", "-c", "print(SAGE_TMP)"])
+        sage: from sage.tests.cmdline import _test_executable
+        sage: child_SAGE_TMP, err, ret = _test_executable(["sage", "-c", "print(SAGE_TMP)"])
         sage: err, ret
         ('', 0)
         sage: os.path.exists(child_SAGE_TMP)  # indirect doctest
