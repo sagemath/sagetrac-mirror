@@ -294,7 +294,7 @@ def _test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=Fals
     Testing ``sage --preparse FILE`` and ``sage -t FILE``.  First create
     a file and preparse it::
 
-        sage: s = "# -*- coding: utf-8 -*-\n'''This is a test file.\nAnd I am its doctest'''\ndef my_add(a):\n    '''\n    Add 2 to a.\n\n        EXAMPLES::\n\n            sage: my_add(3)\n            5\n        '''\n    return a + 2\n"
+        sage: s = "# -*- coding: utf-8 -*-\n'''This is a test file.\nAnd I am its doctest'''\ndef my_add(a):\n    '''\n    Add 2 to a.\n\n        EXAMPLES::\n\n            sage: my_add(2)\n            4\n        '''\n    return a + 2\n"
         sage: script = os.path.join(tmp_dir(), 'my_script.sage')
         sage: script_py = script + '.py'
         sage: F = open(script, 'w')
@@ -308,8 +308,7 @@ def _test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=Fals
 
     Now test my_script.sage and the preparsed version my_script.sage.py::
 
-        sage: (out, err, ret) = _test_executable(["sage", "-t", script])
-        sage: out
+        sage: ret
         0
         sage: out.find("All tests passed!") >= 0
         True
@@ -397,12 +396,12 @@ def _test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=Fals
     lengths to doctest the output.::
 
         sage: test='r\"\"\"Add a doc-test for the fixdoctest command line option and, in particular, check that\n:trac:`10589` is fixed.\n\nEXAMPLES::\n\n    sage: 1+1              # incorrect output\n    3\n    sage: m=matrix(ZZ,3)   # output when none is expected\n    [0 0 0]\n    [0 0 0]\n    [1 0 0]\n    sage: (2/3)*m          # no output when it is expected\n    sage: mu=PartitionTuple([[4,4],[3,3,2,1],[1,1]])   # output when none is expected\n    [4, 4, 3, 3, 2, 1, 1]\n    sage: mu.pp()          # uneven indentation\n    ****\n    ****\n    sage: PartitionTuples.options(convention="French")\n    sage: mu.pp()         # fix doctest with uneven indentation\n    sage: PartitionTuples.options._reset()\n\"\"\"\n'
-        sage: _test_file = os.path.join(tmp_dir(), '_test_file.py')
-        sage: F = open(_test_file, 'w')
+        sage: test_file = os.path.join(tmp_dir(), 'test_file.py')
+        sage: F = open(test_file, 'w')
         sage: _ = F.write(test)
         sage: F.close()
-        sage: (out, err, ret) = _test_executable(["sage", "--fixdoctests", _test_file])
-        sage: with open(_test_file, 'r') as f:
+        sage: (out, err, ret) = _test_executable(["sage", "--fixdoctests", test_file])
+        sage: with open(test_file, 'r') as f:
         ....:     fixed_test = f.read()
         sage: import difflib
         sage: list(difflib.unified_diff(test.splitlines(), fixed_test.splitlines()))[2:-1]
