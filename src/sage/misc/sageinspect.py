@@ -2276,8 +2276,8 @@ def sage_getsourcelines(obj):
     The following tests that an instance of ``functools.partial`` is correctly
     dealt with (see :trac:`9976`)::
 
-        sage: from sage.tests.functools_partial_src import test_func
-        sage: sage_getsourcelines(test_func)
+        sage: from sage.tests.functools_partial_src import _test_func
+        sage: sage_getsourcelines(_test_func)
         (['def base(x):\n',
         ...
         '    return x\n'], 7)
