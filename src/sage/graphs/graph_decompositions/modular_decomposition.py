@@ -299,7 +299,7 @@ def modular_decomposition(graph):
 
     The Icosahedral graph is Prime::
 
-        sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import modular_decomposition, print_md_tree, _test_modular_decomposition
         sage: print_md_tree(modular_decomposition(graphs.IcosahedralGraph()))
         PRIME
          5
@@ -2538,7 +2538,8 @@ def habib_maurer_algorithm(graph, g_classes=None):
 
     The Icosahedral graph is Prime::
 
-        sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import (
+        ....:    modular_decomposition, habib_maurer_algorithm, print_md_tree, _test_modular_decomposition)
         sage: print_md_tree(habib_maurer_algorithm(graphs.IcosahedralGraph()))
         PRIME
          1
@@ -2721,7 +2722,8 @@ def _test_modular_decomposition(tree_root, graph):
 
     EXAMPLES::
 
-        sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import (
+        ....:    modular_decomposition, _test_modular_decomposition)
         sage: g = graphs.HexahedralGraph()
         sage: _test_modular_decomposition(modular_decomposition(g), g)
         True
@@ -2732,8 +2734,9 @@ def _test_modular_decomposition(tree_root, graph):
                 # test whether modules pass the defining
                 # characteristics of modules
                 return False
-            if not _test_modular_decomposition(module,
-                                              graph.subgraph(get_vertices(module))):
+            if not _test_modular_decomposition(
+                module, graph.subgraph(get_vertices(module))
+            ):
                 # recursively test the modular decomposition subtrees
                 return False
 
@@ -2770,7 +2773,8 @@ def _test_maximal_modules(tree_root, graph):
 
     EXAMPLES::
 
-        sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import (
+        ....:    modular_decomposition, _test_maximal_modules)
         sage: g = graphs.HexahedralGraph()
         sage: _test_maximal_modules(modular_decomposition(g), g)
         True
@@ -2919,7 +2923,8 @@ def _test_module(module, graph):
 
     EXAMPLES::
 
-        sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import (
+        ....:    modular_decomposition, _test_module)
         sage: g = graphs.HexahedralGraph()
         sage: tree_root = modular_decomposition(g)
         sage: _test_module(tree_root, g)
@@ -3230,7 +3235,7 @@ def _test_gamma_modules(trials, vertices, prob, verbose=False):
 
     EXAMPLES::
 
-        sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import _test_gamma_modules
         sage: _test_gamma_modules(3, 7, 0.5)
     """
     from sage.graphs.generators.random import RandomGNP
@@ -3272,8 +3277,8 @@ def permute_decomposition(trials, algorithm, vertices, prob, verbose=False):
             print(random_perm)
         t1 = algorithm(g1)
         t2 = algorithm(g2)
-        assert(_test_modular_decomposition(t1, g1))
-        assert(_test_modular_decomposition(t2, g2))
+        assert _test_modular_decomposition(t1, g1)
+        assert _test_modular_decomposition(t2, g2)
         t1p = relabel_tree(t1, random_perm)
         assert(equivalent_trees(t1p, t2))
         if verbose:
