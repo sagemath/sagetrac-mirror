@@ -9,7 +9,7 @@ At the moment, Sage is not yet using any tests based on pytest.
 """
 
 from __future__ import annotations
-from typing import Any
+from typing import Any, List
 import pytest
 
 # Ignore a few test files that are (not yet) using pytest
@@ -18,6 +18,27 @@ collect_ignore = [
     "sage/repl/rich_output/backend_test.py",
     "sage/tests/deprecation_test.py"
 ]
+
+
+def pytest_collection_modifyitems(
+    session: pytest.Session, config: pytest.Config, items: List[pytest.Item]
+):
+    skip_as_false_positve = pytest.mark.skip(
+        reason="Skipping this because its not a pytest test but an ordinary method that happens to start with 'test_'"
+    )
+    for item in items:
+        if item.name in [
+            "test_relation_maxima",
+            "test_b2_local",
+            "test_b2_global",
+            "test_a1a3_local",
+            "test_a1a3_global",
+            "test_rst_global",
+            "test_comparison",
+            "test_signed_infinity",
+            "test_pickle",
+        ]:
+            item.add_marker(skip_as_false_positve)
 
 
 @pytest.fixture(autouse=True)
