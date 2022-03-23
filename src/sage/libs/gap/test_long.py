@@ -11,7 +11,7 @@ def _test_loop_1():
     """
     EXAMPLES::
 
-        sage: from sage.libs.gap._test_long import _test_loop_1
+        sage: from sage.libs.gap.test_long import _test_loop_1
         sage: _test_loop_1()  # long time (up to 25s on sage.math, 2013)
     """
     libgap.collect()
@@ -23,7 +23,7 @@ def _test_loop_2():
     """
     EXAMPLES::
 
-        sage: from sage.libs.gap._test_long import _test_loop_2
+        sage: from sage.libs.gap.test_long import _test_loop_2
         sage: _test_loop_2()  # long time (10s on sage.math, 2013)
     """
     G =libgap.FreeGroup(2)
@@ -43,7 +43,7 @@ def _test_loop_3():
     """
     EXAMPLES::
 
-        sage: from sage.libs.gap._test_long import _test_loop_3
+        sage: from sage.libs.gap.test_long import _test_loop_3
         sage: _test_loop_3()  # long time (31s on sage.math, 2013)
     """
     G = libgap.FreeGroup(2)
