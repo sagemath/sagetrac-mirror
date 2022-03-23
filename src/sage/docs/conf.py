@@ -857,7 +857,6 @@ def find_sage_dangling_links(app, env, node, contnode):
     name, obj = matches[0]
     debug_inf(app, "++ match = %s %s"%(name, obj))
 
-    from docutils import nodes
     newnode = nodes.reference('', '', internal=True)
     if name == target_module:
         newnode['refid'] = name
@@ -912,11 +911,12 @@ def skip_TESTS_block(app, what, name, obj, options, docstringlines):
     while len(docstringlines) > len(lines):
         del docstringlines[len(lines)]
 
+
 class SagemathTransform(Transform):
     """
-    Transform for code-blocks.
+    Transform for code blocks.
 
-    This allows Sphinx to treat code-blocks with prompt "sage:" as
+    This allows Sphinx to treat code blocks with prompt "sage:" as
     associated with the pycon lexer, and in particular, to change
     "<BLANKLINE>" to a blank line.
     """
@@ -931,6 +931,44 @@ class SagemathTransform(Transform):
                 node.rawsource = source
                 node[:] = [nodes.Text(source)]
 
+
+from jupyter_sphinx.ast import JupyterCellNode, CellInputNode
+
+class SagecodeTransform(Transform):
+    """
+    Transform code blocks to live code blocks enabled by jupter-sphinx.
+    """
+    # lower than the priority of jupyer_sphinx.execute.ExecuteJupyterCells
+    default_priority = 170
+
+    def apply(self):
+        for node in self.document.traverse(nodes.literal_block):
+            if node.get('language') is None and node.astext().startswith('sage:'):
+                source = node.rawsource
+                lines = []
+                for line in source.splitlines():
+                    newline = line.lstrip()
+                    if newline.startswith('sage: ') or newline.startswith('....: '):
+                        lines.append(newline[6:])
+                cell_node = JupyterCellNode(
+                            execute=True,
+                            hide_code=True,
+                            hide_output=True,
+                            emphasize_lines=[],
+                            raises=False,
+                            stderr=False,
+                            code_below=False,
+                            classes=["jupyter_cell"])
+                cell_input = CellInputNode(classes=['cell_input'])
+                cell_input += nodes.literal_block(
+                    text='\n'.join(lines),
+                    linenos=False,
+                    linenostart=1)
+                cell_node += cell_input
+
+                node.parent.insert(node.parent.index(node) + 1, cell_node)
+
+
 from sage.misc.sageinspect import sage_getargspec
 autodoc_builtin_argspec = sage_getargspec
 
@@ -944,6 +982,7 @@ def setup(app):
         app.connect('autodoc-process-docstring', skip_TESTS_block)
     app.connect('autodoc-skip-member', skip_member)
     app.add_transform(SagemathTransform)
+    app.add_transform(SagecodeTransform)
 
     # When building the standard docs, app.srcdir is set to SAGE_DOC_SRC +
     # 'LANGUAGE/DOCNAME', but when doing introspection, app.srcdir is

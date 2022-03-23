@@ -373,8 +373,16 @@ dl.citation p {
 
 #thebelab-activate-button {
     position: fixed;
+    right: -100px;
+    top: 50%;
+    border-radius: 20px;
+    transition-property: right;
+    transition-duration: 300ms;
+    transition-timing-function: ease-out;
+}
+
+#thebelab-activate-button:hover {
     right: 10px;
-    bottom: 10px;
 }
 
 .jupyter_cell .thebelab-input {
