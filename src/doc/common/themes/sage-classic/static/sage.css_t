@@ -375,14 +375,14 @@ dl.citation p {
     position: fixed;
     right: -100px;
     top: 50%;
-    border-radius: 20px;
+    border-radius: 10px;
     transition-property: right;
     transition-duration: 300ms;
     transition-timing-function: ease-out;
 }
 
 #thebelab-activate-button:hover {
-    right: 10px;
+    right: 5px;
 }
 
 .jupyter_cell .thebelab-input {

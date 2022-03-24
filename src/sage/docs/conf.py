@@ -6,9 +6,9 @@ import sage.version
 from sage.misc.sagedoc import extlinks
 import dateutil.parser
 from docutils import nodes
-from docutils.transforms import Transform
 from sphinx.ext.doctest import blankline_re
 from sphinx import highlighting
+from sphinx.transforms import SphinxTransform
 import sphinx.ext.intersphinx as intersphinx
 from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
@@ -26,19 +26,26 @@ extensions = ['sage_docbuild.ext.inventory_builder',
               'matplotlib.sphinxext.plot_directive',
               'jupyter_sphinx']
 
+# Jupyter Sphinx extension configuration
 jupyter_execute_default_kernel = 'sagemath'
-
 jupyter_sphinx_thebelab_config = {
-    'requestKernel': True,
-    'binderOptions': {
-        'repo': "sagemath/sage-binder-env",
-    },
+    'requestKernel': False,
     'kernelOptions': {
         'name': "sagemath",
         'kernelName': "sagemath",
         'path': ".",
+        'serverSettings': {
+            'baseUrl': "http://localhost:8888",
+            'token': "secret"
+        },
     },
 }
+# comment out if local jupyter server is running
+jupyter_sphinx_thebelab_config.update({
+    'binderOptions': {
+        'repo': "sagemath/sage-binder-env",
+    },
+})
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
@@ -912,7 +919,7 @@ def skip_TESTS_block(app, what, name, obj, options, docstringlines):
         del docstringlines[len(lines)]
 
 
-class SagemathTransform(Transform):
+class SagemathTransform(SphinxTransform):
     """
     Transform for code blocks.
 
@@ -934,39 +941,64 @@ class SagemathTransform(Transform):
 
 from jupyter_sphinx.ast import JupyterCellNode, CellInputNode
 
-class SagecodeTransform(Transform):
+class SagecodeTransform(SphinxTransform):
     """
     Transform code blocks to live code blocks enabled by jupter-sphinx.
+
+    Effectively a code block like::
+
+        EXAMPLE::
+
+            sage: 1 + 1
+
+    is transformed into::
+
+        EXAMPLE::
+
+            sage: 1 + 1
+
+        .. ONLY:: html
+
+            .. JUPYTER-EXECUTE::
+                :hide-code:
+                :hide-output:
+                :raises:
+                :stderr:
+
+                1 + 1
+
+    enabling live execution of the code.
     """
     # lower than the priority of jupyer_sphinx.execute.ExecuteJupyterCells
     default_priority = 170
 
     def apply(self):
-        for node in self.document.traverse(nodes.literal_block):
-            if node.get('language') is None and node.astext().startswith('sage:'):
-                source = node.rawsource
-                lines = []
-                for line in source.splitlines():
-                    newline = line.lstrip()
-                    if newline.startswith('sage: ') or newline.startswith('....: '):
-                        lines.append(newline[6:])
-                cell_node = JupyterCellNode(
-                            execute=True,
-                            hide_code=True,
-                            hide_output=True,
-                            emphasize_lines=[],
-                            raises=False,
-                            stderr=False,
-                            code_below=False,
-                            classes=["jupyter_cell"])
-                cell_input = CellInputNode(classes=['cell_input'])
-                cell_input += nodes.literal_block(
-                    text='\n'.join(lines),
-                    linenos=False,
-                    linenostart=1)
-                cell_node += cell_input
+        if self.app.builder.tags.has('html'):
+            for node in self.document.traverse(nodes.literal_block):
+                if node.get('language') is None and node.astext().startswith('sage:'):
+                    source = node.rawsource
+                    lines = []
+                    for line in source.splitlines():
+                        newline = line.lstrip()
+                        if newline.startswith('sage: ') or newline.startswith('....: '):
+                            lines.append(newline[6:])
+                    cell_node = JupyterCellNode(
+                                execute=True,
+                                hide_code=True,
+                                hide_output=True,
+                                emphasize_lines=[],
+                                raises=True,
+                                stderr=True,
+                                code_below=False,
+                                classes=["jupyter_cell"])
+                    cell_input = CellInputNode(classes=['cell_input'])
+                    cell_input += nodes.literal_block(
+                        text='\n'.join(lines),
+                        linenos=False,
+                        linenostart=1)
+                    cell_node += cell_input
 
-                node.parent.insert(node.parent.index(node) + 1, cell_node)
+                    node.parent.insert(node.parent.index(node) + 1, cell_node)
 
 
 from sage.misc.sageinspect import sage_getargspec
