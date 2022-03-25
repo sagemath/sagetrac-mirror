@@ -89,7 +89,7 @@ def random_odd_arithgroup(index, nu3_max=None):
     return G.one_odd_subgroup(random=True)
 
 
-class Test:
+class _Test:
     r"""
     Testing class for arithmetic subgroup implemented via permutations.
     """
@@ -106,8 +106,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.arithgroup.tests import Test
-            sage: Test()
+            sage: from sage.modular.arithgroup.tests import _Test
+            sage: _Test()
             Arithmetic subgroup testing class
         """
         self.congroups = []
@@ -139,8 +139,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.arithgroup.tests import Test
-            sage: Test().__repr__()
+            sage: from sage.modular.arithgroup.tests import _Test
+            sage: _Test().__repr__()
             'Arithmetic subgroup testing class'
         """
         return "Arithmetic subgroup testing class"
@@ -152,13 +152,13 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.arithgroup.tests import Test
-            sage: Test()._do("random")
+            sage: from sage.modular.arithgroup.tests import _Test
+            sage: _Test()._do("random")
             test_random
             ...
         """
         print("test_%s" % name)
-        Test.__dict__["test_%s" % name](self)
+        _Test.__dict__["test_%s" % name](self)
 
     def random(self, seconds=0):
         """
@@ -167,8 +167,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.arithgroup.tests import Test
-            sage: Test().random(1)
+            sage: from sage.modular.arithgroup.tests import _Test
+            sage: _Test().random(1)
             test_random
             ...
         """
@@ -182,8 +182,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.arithgroup.tests import Test
-            sage: T = Test()
+            sage: from sage.modular.arithgroup.tests import _Test
+            sage: T = _Test()
             sage: T.test('relabel',seconds=1)
             test_relabel
             ...
@@ -215,15 +215,15 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.arithgroup.tests import Test
-            sage: Test().test_random() #random
+            sage: from sage.modular.arithgroup.tests import _Test
+            sage: _Test().test_random() #random
             Doing random test
         """
-        tests = [a for a in Test.__dict__
+        tests = [a for a in _Test.__dict__
                  if a[:5] == "test_" and a != "test_random"]
         name = prandom.choice(tests)
         print("Doing random test %s" % name)
-        Test.__dict__[name](self)
+        _Test.__dict__[name](self)
 
     def test_relabel(self):
         r"""
@@ -231,8 +231,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.arithgroup.tests import Test
-            sage: Test().test_relabel() # random
+            sage: from sage.modular.arithgroup.tests import _Test
+            sage: _Test().test_relabel() # random
         """
         if prandom.uniform(0, 1) < self.odd_probability:
             G = random_odd_arithgroup(self.index)
@@ -285,8 +285,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.arithgroup.tests import Test
-            sage: Test().test_congruence_groups() #random
+            sage: from sage.modular.arithgroup.tests import _Test
+            sage: _Test().test_congruence_groups() #random
         """
         G = prandom.choice(self.congroups)
         GG = G.as_permutation_group()
@@ -325,8 +325,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.arithgroup.tests import Test
-            sage: Test().test_contains() #random
+            sage: from sage.modular.arithgroup.tests import _Test
+            sage: _Test().test_contains() #random
         """
         if prandom.uniform(0, 1) < self.odd_probability:
             G = random_odd_arithgroup(self.index)
@@ -346,8 +346,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.arithgroup.tests import Test
-            sage: Test().test_spanning_trees() #random
+            sage: from sage.modular.arithgroup.tests import _Test
+            sage: _Test().test_spanning_trees() #random
         """
         from sage.all import prod
         from .all import SL2Z
@@ -385,8 +385,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.arithgroup.tests import Test
-            sage: Test().test_todd_coxeter() #random
+            sage: from sage.modular.arithgroup.tests import _Test
+            sage: _Test().test_todd_coxeter() #random
         """
         from .all import SL2Z
         from .arithgroup_perm import S2m, S3m, Lm
