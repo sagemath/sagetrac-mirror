@@ -198,7 +198,6 @@ GRAPHS_DATA_DIR = var("GRAPHS_DATA_DIR", join(SAGE_SHARE, "graphs"))
 ELLCURVE_DATA_DIR = var("ELLCURVE_DATA_DIR", join(SAGE_SHARE, "ellcurves"))
 POLYTOPE_DATA_DIR = var("POLYTOPE_DATA_DIR", join(SAGE_SHARE, "reflexive_polytopes"))
 GAP_ROOT_DIR = var("GAP_ROOT_DIR", join(SAGE_SHARE, "gap"))
-THEBE_DIR = var("THEBE_DIR", join(SAGE_SHARE, "thebe"))
 COMBINATORIAL_DESIGN_DATA_DIR = var("COMBINATORIAL_DESIGN_DATA_DIR", join(SAGE_SHARE, "combinatorial_designs"))
 CREMONA_MINI_DATA_DIR = var("CREMONA_MINI_DATA_DIR", join(SAGE_SHARE, "cremona"))
 CREMONA_LARGE_DATA_DIR = var("CREMONA_LARGE_DATA_DIR", join(SAGE_SHARE, "cremona"))
@@ -243,6 +242,10 @@ os.environ['MPMATH_SAGE'] = '1'
 # misc
 SAGE_BANNER = var("SAGE_BANNER", "")
 SAGE_IMPORTALL = var("SAGE_IMPORTALL", "yes")
+
+# Jupyter server to support Thebe for live documentation
+JUPYTER_SERVER = var("JUPYTER_SERVER", "binder")
+JUPYTER_SERVER_TOKEN = var("JUPYTER_SERVER_TOKEN", "secret")  # for local server
 
 
 def _get_shared_lib_path(*libnames: str) -> Optional[str]:

@@ -1,7 +1,10 @@
 import sys
 import os
 import sphinx
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
+from sage.env import (SAGE_SRC,
+                      SAGE_DOC, SAGE_DOC_SRC,
+                      PPLPY_DOCS, MATHJAX_DIR,
+                      JUPYTER_SERVER)
 import sage.version
 from sage.misc.sagedoc import extlinks
 import dateutil.parser
@@ -28,24 +31,33 @@ extensions = ['sage_docbuild.ext.inventory_builder',
 
 # Jupyter Sphinx extension configuration
 jupyter_execute_default_kernel = 'sagemath'
-jupyter_sphinx_thebelab_config = {
-    'requestKernel': False,
-    'kernelOptions': {
-        'name': "sagemath",
-        'kernelName': "sagemath",
-        'path': ".",
-        'serverSettings': {
-            'baseUrl': "http://localhost:8888",
-            'token': "secret"
+
+if JUPYTER_SERVER == "binder":
+    jupyter_sphinx_thebelab_config = {
+        'requestKernel': False,
+        'binderOptions': {
+            'repo': "sagemath/sage-binder-env",
         },
-    },
-}
-# comment out if local jupyter server is running
-jupyter_sphinx_thebelab_config.update({
-    'binderOptions': {
-        'repo': "sagemath/sage-binder-env",
-    },
-})
+        'kernelOptions': {
+            'name': "sagemath",
+            'kernelName': "sagemath",
+            'path': ".",
+        },
+    }
+else:  # local jupyter server
+    from sage.env import JUPYTER_SERVER_TOKEN
+    jupyter_sphinx_thebelab_config = {
+        'requestKernel': False,
+        'kernelOptions': {
+            'name': "sagemath",
+            'kernelName': "sagemath",
+            'path': ".",
+            'serverSettings': {
+                'baseUrl': JUPYTER_SERVER,
+                'token': JUPYTER_SERVER_TOKEN
+            },
+        },
+    }
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
@@ -264,8 +276,7 @@ html_favicon = 'favicon.ico'
 # conf.py read by Sphinx was the cause of subtle bugs in builders (see #30418 for
 # instance). Hence now html_common_static_path contains the common paths to static
 # files, and is combined to html_static_path in each conf.py file read by Sphinx.
-html_common_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'),
-                           THEBE_DIR, 'static']
+html_common_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'), 'static']
 
 # We use MathJax to build the documentation.
 extensions.append('sphinx.ext.mathjax')
