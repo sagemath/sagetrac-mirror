@@ -16,7 +16,7 @@ import pytest
 def pytest_collection_modifyitems(
     session: pytest.Session, config: pytest.Config, items: List[pytest.Item]
 ):
-    skip_as_false_positve = pytest.mark.skip(
+    skip_as_false_positive = pytest.mark.skip(
         reason="Skipping this because its not a pytest test but an ordinary method that happens to start with 'test_'"
     )
     for item in items:
@@ -31,7 +31,7 @@ def pytest_collection_modifyitems(
             "test_signed_infinity",
             "test_pickle",
         ]:
-            item.add_marker(skip_as_false_positve)
+            item.add_marker(skip_as_false_positive)
 
 
 @pytest.fixture(autouse=True)
