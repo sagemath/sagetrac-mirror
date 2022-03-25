@@ -33,7 +33,7 @@ import sage.modular.arithgroup.all as arithgroup
 from sage.misc.misc import cputime
 
 
-class Test:
+class _Test:
     """
     Modular symbol testing class.
     """
@@ -52,13 +52,13 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test()
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test()
             Modular symbols testing class
-            sage: T = Test(weights=[3,5,7])
+            sage: T = _Test(weights=[3,5,7])
             sage: T.weights
             [3, 5, 7]
-            sage: T = Test(levels=5) ; T.levels
+            sage: T = _Test(levels=5) ; T.levels
             [1, 2, 3, 4, 5]
         """
         if not isinstance(levels, list):
@@ -82,8 +82,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test().__repr__()
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test().__repr__()
             'Modular symbols testing class'
         """
         return "Modular symbols testing class"
@@ -95,8 +95,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: T = Test(levels=[5],weights=[2], onlychar=True)
+            sage: from sage.modular.modsym.tests import _Test
+            sage: T = _Test(levels=[5],weights=[2], onlychar=True)
 
         Note that the sign of the generated space is always arbitrary.
             sage: T._modular_symbols_space()
@@ -132,8 +132,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test()._level_weight_sign() # random
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test()._level_weight_sign() # random
             level = 4, weight = 3, sign = 1
             (4, 3, 1)
         """
@@ -151,8 +151,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test()._modular_symbols_space_gamma0() # random
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test()._modular_symbols_space_gamma0() # random
             level = 1, weight = 3, sign = 0
             Modular Symbols space of dimension 0 for Gamma_0(1) of weight 3 with sign 0 over Rational Field
         """
@@ -169,8 +169,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test()._modular_symbols_space_gamma1() # random
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test()._modular_symbols_space_gamma1() # random
             level = 3, weight = 4, sign = 0
             Modular Symbols space of dimension 2 for Gamma_1(3) of weight 4 with sign 0 over Rational Field
         """
@@ -187,8 +187,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test()._modular_symbols_space_character() # random
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test()._modular_symbols_space_character() # random
             level = 18, weight = 3, sign = 0
             Modular Symbols space of dimension 0 and level 18, weight 3, character [1, zeta6 - 1], sign 0, over Cyclotomic Field of order 6 and degree 2
         """
@@ -206,13 +206,13 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test()._do("random")
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test()._do("random")
             test_random
             ...
         """
         print("test_%s" % name)
-        Test.__dict__["test_%s" % name](self)
+        _Test.__dict__["test_%s" % name](self)
 
     #################################################################
     # The tests
@@ -224,8 +224,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test().random(1)
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test().random(1)
             test_random
             ...
         """
@@ -239,11 +239,11 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test().test('cs_dimension',seconds=1)
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test().test('cs_dimension',seconds=1)
             test_cs_dimension
             ...
-            sage: Test().test('csnew_dimension',seconds=1)
+            sage: _Test().test('csnew_dimension',seconds=1)
             test_csnew_dimension
             ...
         """
@@ -266,8 +266,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test().test_cs_dimension() # random
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test().test_cs_dimension() # random
             gamma0
             level = 16, weight = 3, sign = -1
             Modular Symbols space of dimension 0 for Gamma_0(16) of weight 3 with sign -1 over Rational Field
@@ -281,8 +281,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test().test_csnew_dimension() # random
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test().test_csnew_dimension() # random
             gamma0
             level = 3, weight = 3, sign = 1
             Modular Symbols space of dimension 0 for Gamma_0(3) of weight 3 with sign 1 over Rational Field
@@ -301,8 +301,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test().test_csns_nscs() # random
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test().test_csns_nscs() # random
             gamma0
             level = 5, weight = 4, sign = 1
             Modular Symbols space of dimension 3 for Gamma_0(5) of weight 4 with sign 1 over Rational Field
@@ -325,8 +325,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test().test_decomposition() # random
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test().test_decomposition() # random
             gamma1
             level = 10, weight = 4, sign = 0
             Modular Symbols space of dimension 18 for Gamma_1(10) of weight 4 with sign 0 over Rational Field
@@ -341,8 +341,8 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test().test_dimension() # random
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test().test_dimension() # random
             gamma1
             level = 14, weight = 2, sign = -1
             Modular Symbols space of dimension 1 for Gamma_1(14) of weight 2 with sign -1 over Rational Field
@@ -355,15 +355,15 @@ class Test:
 
         EXAMPLES::
 
-            sage: from sage.modular.modsym.tests import Test
-            sage: Test().test_random() # random
+            sage: from sage.modular.modsym.tests import _Test
+            sage: _Test().test_random() # random
             Doing random test test_csnew_dimension
             character
             level = 18, weight = 4, sign = -1
             Modular Symbols space of dimension 0 and level 18, weight 4, character [1, -1], sign -1, over Rational Field
         """
-        tests = [a for a in Test.__dict__
+        tests = [a for a in _Test.__dict__
                  if a[:5] == "test_" and a != "test_random"]
         name = random.choice(tests)
         print("Doing random test %s" % name)
-        Test.__dict__[name](self)
+        _Test.__dict__[name](self)
