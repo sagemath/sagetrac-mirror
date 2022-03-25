@@ -10,24 +10,24 @@ We switch to the test backend for the remainder of this file::
 
     sage: from sage.repl.rich_output import get_display_manager
     sage: dm = get_display_manager()
-    sage: from sage.repl.rich_output.backend_test import BackendTest, TestObject
+    sage: from sage.repl.rich_output.backend_test import BackendTest, _TestObject
     sage: doctest_backend = dm.switch_backend(BackendTest())
     sage: dm
     The Sage display manager using the test backend
 
     sage: dm._output_promotions
     {<class 'sage.repl.rich_output.output_basic.OutputPlainText'>:
-     <class 'sage.repl.rich_output.backend_test.TestOutputPlainText'>}
+     <class 'sage.repl.rich_output.backend_test._TestOutputPlainText'>}
     sage: dm.displayhook(1/2)
-    1/2 [TestOutputPlainText]
-    TestOutputPlainText container
+    1/2 [_TestOutputPlainText]
+    _TestOutputPlainText container
 
-    sage: test = TestObject()
+    sage: test = _TestObject()
     sage: test
     called the _repr_ method
     sage: dm.displayhook(test)
-    called the _rich_repr_ method [TestOutputPlainText]
-    TestOutputPlainText container
+    called the _rich_repr_ method [_TestOutputPlainText]
+    _TestOutputPlainText container
 """
 
 #*****************************************************************************
@@ -45,7 +45,7 @@ from sage.repl.rich_output.backend_base import BackendBase
 from sage.repl.rich_output.output_catalog import OutputPlainText, OutputImagePng
 
 
-class TestOutputPlainText(OutputPlainText):
+class _TestOutputPlainText(OutputPlainText):
 
     def __init__(self, *args, **kwds):
         """
@@ -60,8 +60,8 @@ class TestOutputPlainText(OutputPlainText):
 
         EXAMPLES::
 
-            sage: from sage.repl.rich_output.backend_test import TestOutputPlainText
-            sage: TestOutputPlainText()
+            sage: from sage.repl.rich_output.backend_test import _TestOutputPlainText
+            sage: _TestOutputPlainText()
             Traceback (most recent call last):
             ...
             AssertionError: cannot override constructor
@@ -79,16 +79,16 @@ class TestOutputPlainText(OutputPlainText):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: test_output = dm.displayhook(123)
-            123 [TestOutputPlainText]
+            123 [_TestOutputPlainText]
             sage: type(test_output)
-            <class 'sage.repl.rich_output.backend_test.TestOutputPlainText'>
+            <class 'sage.repl.rich_output.backend_test._TestOutputPlainText'>
             sage: test_output.print_to_stdout()
-            123 [TestOutputPlainText]
+            123 [_TestOutputPlainText]
         """
         print('{0} [{1}]'.format(self.text.get_str(), self.__class__.__name__))
 
 
-class TestObject(SageObject):
+class _TestObject(SageObject):
     """
     Test object with both :meth:`_repr_` and :meth:`_rich_repr_`
     """
@@ -103,8 +103,8 @@ class TestObject(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.repl.rich_output.backend_test import TestObject
-            sage: obj = TestObject()
+            sage: from sage.repl.rich_output.backend_test import _TestObject
+            sage: obj = _TestObject()
             sage: obj._repr_()
             'called the _repr_ method'
         """
@@ -119,8 +119,8 @@ class TestObject(SageObject):
         EXAMPLES::
 
             sage: display_manager = sage.repl.rich_output.get_display_manager()
-            sage: from sage.repl.rich_output.backend_test import TestObject
-            sage: obj = TestObject()
+            sage: from sage.repl.rich_output.backend_test import _TestObject
+            sage: obj = _TestObject()
             sage: rich_output = obj._rich_repr_(display_manager);  rich_output
             OutputPlainText container
             sage: rich_output.text.get_str()
@@ -157,7 +157,7 @@ class BackendTest(BackendBase):
         OUTPUT:
 
         Iterable of output container classes. Only the
-        :class:`~sage.repl.rich_repr.backend_test.TestOutputPlainText`
+        :class:`~sage.repl.rich_repr.backend_test._TestOutputPlainText`
         output container is supported by the test backend.
 
         EXAMPLES::
@@ -165,7 +165,7 @@ class BackendTest(BackendBase):
             sage: display_manager = sage.repl.rich_output.get_display_manager()
             sage: backend = display_manager._backend
             sage: list(backend.supported_output())
-            [<class 'sage.repl.rich_output.backend_test.TestOutputPlainText'>]
+            [<class 'sage.repl.rich_output.backend_test._TestOutputPlainText'>]
 
         The output of this method is used by the display manager to
         set up the actual supported outputs. Compare::
@@ -173,7 +173,7 @@ class BackendTest(BackendBase):
             sage: list(display_manager.supported_output())
             [<class 'sage.repl.rich_output.output_basic.OutputPlainText'>]
         """
-        return set([TestOutputPlainText])
+        return set([_TestOutputPlainText])
 
     def display_immediately(self, plain_text, rich_output):
         """
