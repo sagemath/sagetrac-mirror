@@ -1809,10 +1809,10 @@ def axiom_of_nested_class(cls, nested_cls):
     the name of the axiom, or is built by appending or prepending the
     name of the axiom to that of the class::
 
-        sage: from sage.categories.category_with_axiom import TestObjects, axiom_of_nested_class
-        sage: axiom_of_nested_class(TestObjects, TestObjects.FiniteDimensional)
+        sage: from sage.categories.category_with_axiom import _TestObjects, axiom_of_nested_class
+        sage: axiom_of_nested_class(_TestObjects, _TestObjects.FiniteDimensional)
         'FiniteDimensional'
-        sage: axiom_of_nested_class(TestObjects.FiniteDimensional, TestObjects.FiniteDimensional.Finite)
+        sage: axiom_of_nested_class(_TestObjects.FiniteDimensional, _TestObjects.FiniteDimensional.Finite)
         'Finite'
         sage: axiom_of_nested_class(Sets, FiniteSets)
         'Finite'
@@ -2163,8 +2163,8 @@ class CategoryWithAxiom(Category):
 
         TESTS::
 
-            sage: from sage.categories.category_with_axiom import TestObjects
-            sage: C = TestObjects().FiniteDimensional().Unital().Commutative().Finite()
+            sage: from sage.categories.category_with_axiom import _TestObjects
+            sage: C = _TestObjects().FiniteDimensional().Unital().Commutative().Finite()
             sage: sorted(C.super_categories(), key=str)
             [Category of finite commutative test objects,
              Category of finite dimensional commutative unital test objects,
@@ -2333,8 +2333,8 @@ class CategoryWithAxiom(Category):
 
         TESTS::
 
-            sage: from sage.categories.category_with_axiom import TestObjects, CategoryWithAxiom
-            sage: C = TestObjects().Commutative().Facade()
+            sage: from sage.categories.category_with_axiom import _TestObjects, CategoryWithAxiom
+            sage: C = _TestObjects().Commutative().Facade()
             sage: assert isinstance(C, CategoryWithAxiom)
             sage: C._without_axioms()
             Category of test objects
@@ -2523,11 +2523,11 @@ The following workaround is needed until any :class:`CategoryWithAxiom` of a
 :class:`Category_over_base_ring` becomes automatically a
 :class:`CategoryWithAxiom_over_base_ring`::
 
-    sage: from sage.categories.category_with_axiom import TestObjectsOverBaseRing, Category_over_base_ring
+    sage: from sage.categories.category_with_axiom import _TestObjectsOverBaseRing, Category_over_base_ring
     sage: from sage.categories.category import JoinCategory
-    sage: isinstance(TestObjectsOverBaseRing(QQ), Category_over_base_ring)
+    sage: isinstance(_TestObjectsOverBaseRing(QQ), Category_over_base_ring)
     True
-    sage: C = TestObjectsOverBaseRing(QQ).Commutative()
+    sage: C = _TestObjectsOverBaseRing(QQ).Commutative()
     sage: isinstance(C, Category_over_base_ring)          # todo: not implemented
     True
     sage: C.FiniteDimensional()
@@ -2537,7 +2537,7 @@ The following workaround is needed until any :class:`CategoryWithAxiom` of a
     sage: C.Unital()
     Category of commutative unital test objects over base ring over Rational Field
 
-    sage: C = TestObjectsOverBaseRing(IntegerModRing(2)).Connected()
+    sage: C = _TestObjectsOverBaseRing(IntegerModRing(2)).Connected()
     sage: isinstance(C, JoinCategory)
     True
     sage: isinstance(C, Category_over_base_ring)          # todo: not implemented
@@ -2591,8 +2591,8 @@ class Blahs(Category_singleton):
     categories, used for testing Sage's category framework:
 
     - :class:`Bars`
-    - :class:`TestObjects`
-    - :class:`TestObjectsOverBaseRing`
+    - :class:`_TestObjects`
+    - :class:`_TestObjectsOverBaseRing`
     """
 
     def super_categories(self):
@@ -2639,7 +2639,7 @@ class Blahs(Category_singleton):
 
             TESTS::
 
-                sage: from sage.categories.category_with_axiom import Blahs, TestObjects, Bars
+                sage: from sage.categories.category_with_axiom import Blahs, _TestObjects, Bars
                 sage: Blahs().Flying().extra_super_categories()
                 [Category of unital blahs]
                 sage: Blahs().Flying()
@@ -2681,7 +2681,7 @@ class Blahs(Category_singleton):
 
         TESTS::
 
-            sage: from sage.categories.category_with_axiom import Blahs, TestObjects, Bars
+            sage: from sage.categories.category_with_axiom import Blahs, _TestObjects, Bars
             sage: Blahs().Blue_extra_super_categories()
             [Category of unital blahs]
             sage: Blahs().Blue()                          # todo: not implemented
@@ -2718,12 +2718,12 @@ class Bars(Category_singleton):
 
         EXAMPLES::
 
-            sage: from sage.categories.category_with_axiom import Bars, TestObjects
+            sage: from sage.categories.category_with_axiom import Bars, _TestObjects
             sage: Bars().Unital_extra_super_categories()
             [Category of test objects]
             sage: Bars().Unital()
             Category of unital test objects
-            sage: TestObjects().Unital().all_super_categories()
+            sage: _TestObjects().Unital().all_super_categories()
             [Category of unital test objects,
              Category of unital blahs,
              Category of test objects,
@@ -2733,10 +2733,10 @@ class Bars(Category_singleton):
              Category of sets with partial maps,
              Category of objects]
         """
-        return [TestObjects()]
+        return [_TestObjects()]
 
 
-class TestObjects(Category_singleton):
+class _TestObjects(Category_singleton):
     r"""
     A toy singleton category, for testing purposes.
 
@@ -2747,10 +2747,10 @@ class TestObjects(Category_singleton):
         """
         TESTS::
 
-            sage: from sage.categories.category_with_axiom import TestObjects
-            sage: TestObjects().super_categories()
+            sage: from sage.categories.category_with_axiom import _TestObjects
+            sage: _TestObjects().super_categories()
             [Category of bars]
-            sage: TestSuite(TestObjects()).run()
+            sage: TestSuite(_TestObjects()).run()
         """
         return [Bars()]
 
@@ -2772,7 +2772,7 @@ class TestObjects(Category_singleton):
     class Unital(CategoryWithAxiom):
         pass
 
-class TestObjectsOverBaseRing(Category_over_base_ring):
+class _TestObjectsOverBaseRing(Category_over_base_ring):
     r"""
     A toy singleton category, for testing purposes.
 
@@ -2783,16 +2783,16 @@ class TestObjectsOverBaseRing(Category_over_base_ring):
         """
         TESTS::
 
-            sage: from sage.categories.category_with_axiom import TestObjectsOverBaseRing
-            sage: TestObjectsOverBaseRing(QQ).super_categories()
+            sage: from sage.categories.category_with_axiom import _TestObjectsOverBaseRing
+            sage: _TestObjectsOverBaseRing(QQ).super_categories()
             [Category of test objects]
-            sage: TestObjectsOverBaseRing.Unital.an_instance()
+            sage: _TestObjectsOverBaseRing.Unital.an_instance()
             Category of unital test objects over base ring over Rational Field
-            sage: TestObjectsOverBaseRing.FiniteDimensional.Unital.an_instance()
+            sage: _TestObjectsOverBaseRing.FiniteDimensional.Unital.an_instance()
             Category of finite dimensional unital test objects over base ring over Rational Field
-            sage: TestSuite(TestObjectsOverBaseRing(QQ).FiniteDimensional().Unital().Commutative()).run()
+            sage: TestSuite(_TestObjectsOverBaseRing(QQ).FiniteDimensional().Unital().Commutative()).run()
         """
-        return [TestObjects()]
+        return [_TestObjects()]
 
     class FiniteDimensional(CategoryWithAxiom_over_base_ring):
         class Finite(CategoryWithAxiom_over_base_ring):
