@@ -344,23 +344,23 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
     TESTS::
 
         sage: Foo1 = sage.structure.dynamic_class.dynamic_class_internal("Foo", (object,))
-        sage: Foo2 = sage.structure.dynamic_class.dynamic_class_internal("Foo", (object,), doccls = sage.structure.dynamic_class.TestClass)
-        sage: Foo3 = sage.structure.dynamic_class.dynamic_class_internal("Foo", (object,), cls    = sage.structure.dynamic_class.TestClass)
+        sage: Foo2 = sage.structure.dynamic_class.dynamic_class_internal("Foo", (object,), doccls = sage.structure.dynamic_class._TestClass)
+        sage: Foo3 = sage.structure.dynamic_class.dynamic_class_internal("Foo", (object,), cls    = sage.structure.dynamic_class._TestClass)
         sage: all(Foo.__name__  == 'Foo'    for Foo in [Foo1, Foo2, Foo3])
         True
         sage: all(Foo.__bases__ == (object,) for Foo in [Foo1, Foo2, Foo3])
         True
         sage: Foo1.__module__ == object.__module__
         True
-        sage: Foo2.__module__ == sage.structure.dynamic_class.TestClass.__module__
+        sage: Foo2.__module__ == sage.structure.dynamic_class._TestClass.__module__
         True
-        sage: Foo3.__module__ == sage.structure.dynamic_class.TestClass.__module__
+        sage: Foo3.__module__ == sage.structure.dynamic_class._TestClass.__module__
         True
         sage: Foo1.__doc__ == object.__doc__
         True
-        sage: Foo2.__doc__ == sage.structure.dynamic_class.TestClass.__doc__
+        sage: Foo2.__doc__ == sage.structure.dynamic_class._TestClass.__doc__
         True
-        sage: Foo3.__doc__ == sage.structure.dynamic_class.TestClass.__doc__
+        sage: Foo3.__doc__ == sage.structure.dynamic_class._TestClass.__doc__
         True
 
     We check that instrospection works reasonably::
@@ -371,13 +371,13 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
         sage: sage_getfile(Foo3)
         '.../sage/structure/dynamic_class.py'
         sage: sage_getsourcelines(Foo2)
-        (['class TestClass:...'], ...)
+        (['class _TestClass:...'], ...)
         sage: sage_getsourcelines(Foo3)
-        (['class TestClass:...'], ...)
+        (['class _TestClass:...'], ...)
         sage: sage_getsourcelines(Foo2())
-        (['class TestClass:...'], ...)
+        (['class _TestClass:...'], ...)
         sage: sage_getsourcelines(Foo3())
-        (['class TestClass:...'], ...)
+        (['class _TestClass:...'], ...)
         sage: sage_getsourcelines(Foo3().bla)
         (['    def bla():...'], ...)
 
@@ -530,7 +530,7 @@ for M in [DynamicMetaclass,
     copyreg.pickle(M, M.__reduce__)
 
 
-class TestClass:
+class _TestClass:
     """
     A class used for checking that introspection works
     """
