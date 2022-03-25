@@ -12,13 +12,6 @@ from __future__ import annotations
 from typing import Any, List
 import pytest
 
-# Ignore a few test files that are (not yet) using pytest
-collect_ignore = [
-    "sage/misc/nested_class_test.py",
-    "sage/repl/rich_output/backend_test.py",
-    "sage/tests/deprecation_test.py"
-]
-
 
 def pytest_collection_modifyitems(
     session: pytest.Session, config: pytest.Config, items: List[pytest.Item]
