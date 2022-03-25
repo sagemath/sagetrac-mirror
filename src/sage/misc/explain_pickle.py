@@ -736,10 +736,10 @@ class PickleExplainer(object):
         the append method of the object (TestAppendList.append raises
         an exception, so we can tell that cPickle doesn't call it either)::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(TestAppendList((True,))) # indirect doctest # py2
+            sage: from sage.misc.explain_pickle import _TestAppendList
+            sage: test_pickle(_TestAppendList((True,))) # indirect doctest # py2
                 0: \x80 PROTO      2
-                2: c    GLOBAL     'sage.misc.explain_pickle TestAppendList'
+                2: c    GLOBAL     'sage.misc.explain_pickle _TestAppendList'
                43: q    BINPUT     1
                45: )    EMPTY_TUPLE
                46: \x81 NEWOBJ
@@ -752,12 +752,12 @@ class PickleExplainer(object):
                55: .    STOP
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True:
-            from sage.misc.explain_pickle import TestAppendList
-            si = unpickle_newobj(TestAppendList, ())
+            from sage.misc.explain_pickle import _TestAppendList
+            si = unpickle_newobj(_TestAppendList, ())
             list.append(si, True)
             si
             explain_pickle in_current_sage=False:
-            pg_TestAppendList = unpickle_global('sage.misc.explain_pickle', 'TestAppendList')
+            pg_TestAppendList = unpickle_global('sage.misc.explain_pickle', '_TestAppendList')
             si = unpickle_newobj(pg_TestAppendList, ())
             unpickle_appends(si, [True])
             unpickle_build(si, {})
@@ -767,11 +767,12 @@ class PickleExplainer(object):
         For values which are not subtypes of list, we use their own append
         method::
 
-            sage: v = TestAppendNonlist()
+            sage: from sage.misc.explain_pickle import _TestAppendNonlist
+            sage: v = _TestAppendNonlist()
             sage: v.list = [False, None]
             sage: test_pickle(v, verbose_eval=True)  # py2
                 0: \x80 PROTO      2
-                2: c    GLOBAL     'sage.misc.explain_pickle TestAppendNonlist'
+                2: c    GLOBAL     'sage.misc.explain_pickle _TestAppendNonlist'
                46: q    BINPUT     1
                48: )    EMPTY_TUPLE
                49: R    REDUCE
@@ -783,13 +784,13 @@ class PickleExplainer(object):
                56: .    STOP
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True:
-            from sage.misc.explain_pickle import TestAppendNonlist
-            si = TestAppendNonlist()
+            from sage.misc.explain_pickle import _TestAppendNonlist
+            si = _TestAppendNonlist()
             si.append(False)
             si.append(None)
             si
             explain_pickle in_current_sage=False:
-            pg_TestAppendNonlist = unpickle_global('sage.misc.explain_pickle', 'TestAppendNonlist')
+            pg_TestAppendNonlist = unpickle_global('sage.misc.explain_pickle', '_TestAppendNonlist')
             pg = unpickle_instantiate(pg_TestAppendNonlist, ())
             unpickle_appends(pg, [False, None])
             pg
@@ -811,8 +812,8 @@ class PickleExplainer(object):
                 0: \x80 PROTO      2
             ...
             explain_pickle in_current_sage=True:
-            from sage.misc.explain_pickle import TestAppendNonlist
-            si1 = TestAppendNonlist()
+            from sage.misc.explain_pickle import _TestAppendNonlist
+            si1 = _TestAppendNonlist()
             si2 = si1.append
             si2(False)
             si2(None)
@@ -991,9 +992,9 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(TestBuild())  # py2
+            sage: test_pickle(_TestBuild())  # py2
                 0: \x80 PROTO      2
-                2: c    GLOBAL     'sage.misc.explain_pickle TestBuild'
+                2: c    GLOBAL     'sage.misc.explain_pickle _TestBuild'
                38: q    BINPUT     1
                40: )    EMPTY_TUPLE
                41: \x81 NEWOBJ
@@ -1013,13 +1014,13 @@ class PickleExplainer(object):
                64: .    STOP
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True:
-            from sage.misc.explain_pickle import TestBuild
-            si = unpickle_newobj(TestBuild, ())
+            from sage.misc.explain_pickle import _TestBuild
+            si = unpickle_newobj(_TestBuild, ())
             si.__dict__['x'] = 3
             si.y = 4
             si
             explain_pickle in_current_sage=False:
-            pg_TestBuild = unpickle_global('sage.misc.explain_pickle', 'TestBuild')
+            pg_TestBuild = unpickle_global('sage.misc.explain_pickle', '_TestBuild')
             si = unpickle_newobj(pg_TestBuild, ())
             unpickle_build(si, ({'x':3}, {'y':4}))
             si
@@ -1027,9 +1028,9 @@ class PickleExplainer(object):
 
         ::
 
-            sage: test_pickle(TestBuildSetstate(), verbose_eval=True)  # py2
+            sage: test_pickle(_TestBuildSetstate(), verbose_eval=True)  # py2
                 0: \x80 PROTO      2
-                2: c    GLOBAL     'sage.misc.explain_pickle TestBuildSetstate'
+                2: c    GLOBAL     'sage.misc.explain_pickle _TestBuildSetstate'
                46: q    BINPUT     1
                48: )    EMPTY_TUPLE
                49: \x81 NEWOBJ
@@ -1049,12 +1050,12 @@ class PickleExplainer(object):
                72: .    STOP
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True:
-            from sage.misc.explain_pickle import TestBuildSetstate
-            si = unpickle_newobj(TestBuildSetstate, ())
+            from sage.misc.explain_pickle import _TestBuildSetstate
+            si = unpickle_newobj(_TestBuildSetstate, ())
             si.__setstate__(({'x':3}, {'y':4}))
             si
             explain_pickle in_current_sage=False:
-            pg_TestBuildSetstate = unpickle_global('sage.misc.explain_pickle', 'TestBuildSetstate')
+            pg_TestBuildSetstate = unpickle_global('sage.misc.explain_pickle', '_TestBuildSetstate')
             si = unpickle_newobj(pg_TestBuildSetstate, ())
             unpickle_build(si, ({'x':3}, {'y':4}))
             si
@@ -1326,13 +1327,13 @@ class PickleExplainer(object):
             sage: from sage.misc.explain_pickle import *
 
         We've used register_unpickle_override so that unpickle_global
-        will map TestGlobalOldName to TestGlobalNewName.
+        will map _TestGlobalOldName to _TestGlobalNewName.
 
         ::
 
-            sage: test_pickle(TestGlobalOldName())  # py2
+            sage: test_pickle(_TestGlobalOldName())  # py2
                 0: \x80 PROTO      2
-                2: c    GLOBAL     'sage.misc.explain_pickle TestGlobalOldName'
+                2: c    GLOBAL     'sage.misc.explain_pickle _TestGlobalOldName'
                46: q    BINPUT     1
                48: )    EMPTY_TUPLE
                49: \x81 NEWOBJ
@@ -1343,10 +1344,10 @@ class PickleExplainer(object):
                56: .    STOP
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True:
-            from sage.misc.explain_pickle import TestGlobalNewName
-            unpickle_newobj(TestGlobalNewName, ())
+            from sage.misc.explain_pickle import _TestGlobalNewName
+            unpickle_newobj(_TestGlobalNewName, ())
             explain_pickle in_current_sage=False:
-            pg_TestGlobalOldName = unpickle_global('sage.misc.explain_pickle', 'TestGlobalOldName')
+            pg_TestGlobalOldName = unpickle_global('sage.misc.explain_pickle', '_TestGlobalOldName')
             si = unpickle_newobj(pg_TestGlobalOldName, ())
             unpickle_build(si, {})
             si
@@ -1356,14 +1357,16 @@ class PickleExplainer(object):
         use the old name, giving code that doesn't actually work as
         desired::
 
-            sage: explain_pickle(dumps(TestGlobalOldName()), default_assumptions=True)
-            from sage.misc.explain_pickle import TestGlobalOldName
-            unpickle_newobj(TestGlobalOldName, ())
+            sage: from sage.misc.explain_pickle import _TestGlobalOldName
+            sage: explain_pickle(dumps(_TestGlobalOldName()), default_assumptions=True)
+            from sage.misc.explain_pickle import _TestGlobalOldName
+            unpickle_newobj(_TestGlobalOldName, ())
 
         A class name need not be a valid identifier::
 
-            sage: sage.misc.explain_pickle.__dict__['funny$name'] = TestGlobalFunnyName # see comment at end of file
-            sage: test_pickle((TestGlobalFunnyName(), TestGlobalFunnyName()))  # py2
+            sage: from sage.misc.explain_pickle import _TestGlobalFunnyName
+            sage: sage.misc.explain_pickle.__dict__['funny$name'] = _TestGlobalFunnyName # see comment at end of file
+            sage: test_pickle((_TestGlobalFunnyName(), _TestGlobalFunnyName()))  # py2
                 0: \x80 PROTO      2
                 2: c    GLOBAL     'sage.misc.explain_pickle funny$name'
                39: q    BINPUT     1
@@ -1894,11 +1897,11 @@ class PickleExplainer(object):
 
         ::
 
-            sage: test_pickle(TestReduceGetinitargs(), verbose_eval=True)  # py2
+            sage: test_pickle(_TestReduceGetinitargs(), verbose_eval=True)  # py2
             Running __init__ for TestReduceGetinitargs
                 0: \x80 PROTO      2
                 2: (    MARK
-                3: c        GLOBAL     'sage.misc.explain_pickle TestReduceGetinitargs'
+                3: c        GLOBAL     'sage.misc.explain_pickle _TestReduceGetinitargs'
                51: q        BINPUT     1
                53: o        OBJ        (MARK at 2)
                54: q    BINPUT     2
@@ -1908,10 +1911,10 @@ class PickleExplainer(object):
                60: .    STOP
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True:
-            from sage.misc.explain_pickle import TestReduceGetinitargs
-            TestReduceGetinitargs()
+            from sage.misc.explain_pickle import _TestReduceGetinitargs
+            _TestReduceGetinitargs()
             explain_pickle in_current_sage=False:
-            pg_TestReduceGetinitargs = unpickle_global('sage.misc.explain_pickle', 'TestReduceGetinitargs')
+            pg_TestReduceGetinitargs = unpickle_global('sage.misc.explain_pickle', '_TestReduceGetinitargs')
             pg = unpickle_instantiate(pg_TestReduceGetinitargs, ())
             unpickle_build(pg, {})
             pg
@@ -1925,11 +1928,11 @@ class PickleExplainer(object):
 
         ::
 
-            sage: test_pickle(TestReduceNoGetinitargs(), verbose_eval=True)  # py2
+            sage: test_pickle(_TestReduceNoGetinitargs(), verbose_eval=True)  # py2
             Running __init__ for TestReduceNoGetinitargs
                 0: \x80 PROTO      2
                 2: (    MARK
-                3: c        GLOBAL     'sage.misc.explain_pickle TestReduceNoGetinitargs'
+                3: c        GLOBAL     'sage.misc.explain_pickle _TestReduceNoGetinitargs'
                53: q        BINPUT     1
                55: o        OBJ        (MARK at 2)
                56: q    BINPUT     2
@@ -1940,10 +1943,10 @@ class PickleExplainer(object):
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True:
             from types import InstanceType
-            from sage.misc.explain_pickle import TestReduceNoGetinitargs
-            InstanceType(TestReduceNoGetinitargs)
+            from sage.misc.explain_pickle import _TestReduceNoGetinitargs
+            InstanceType(_TestReduceNoGetinitargs)
             explain_pickle in_current_sage=False:
-            pg_TestReduceNoGetinitargs = unpickle_global('sage.misc.explain_pickle', 'TestReduceNoGetinitargs')
+            pg_TestReduceNoGetinitargs = unpickle_global('sage.misc.explain_pickle', '_TestReduceNoGetinitargs')
             pg = unpickle_instantiate(pg_TestReduceNoGetinitargs, ())
             unpickle_build(pg, {})
             pg
@@ -2036,8 +2039,9 @@ class PickleExplainer(object):
 
         Then we test recursive keys::
 
+            sage: from sage.misc.explain_pickle import _EmptyNewstyleClass
             sage: key_rec = dict()
-            sage: key = EmptyNewstyleClass()
+            sage: key = _EmptyNewstyleClass()
             sage: key.circular = key_rec
             sage: key_rec[key] = 'circular'
             sage: test_pickle(pickle.dumps(key_rec))  # py2
@@ -2047,7 +2051,7 @@ class PickleExplainer(object):
                 5: c    GLOBAL     'copy_reg _reconstructor'
                30: p    PUT        1
                33: (    MARK
-               34: c        GLOBAL     'sage.misc.explain_pickle EmptyNewstyleClass'
+               34: c        GLOBAL     'sage.misc.explain_pickle _EmptyNewstyleClass'
                79: p        PUT        2
                82: c        GLOBAL     '__builtin__ object'
               102: p        PUT        3
@@ -2118,9 +2122,10 @@ class PickleExplainer(object):
 
         Similar to the tests for SETITEM, we test recursive keys and values::
 
+            sage: from sage.misc.explain_pickle import _EmptyOldstyleClass
             sage: recdict = {}
             sage: recdict['Circular value'] = recdict
-            sage: key = EmptyOldstyleClass()
+            sage: key = _EmptyOldstyleClass()
             sage: key.recdict = recdict
             sage: recdict[key] = 'circular_key'
             sage: test_pickle(pickle.dumps(recdict, protocol=2))  # py2
@@ -2129,7 +2134,7 @@ class PickleExplainer(object):
                 3: q    BINPUT     0
                 5: (    MARK
                 6: (        MARK
-                7: c            GLOBAL     'sage.misc.explain_pickle EmptyOldstyleClass'
+                7: c            GLOBAL     'sage.misc.explain_pickle _EmptyOldstyleClass'
                52: q            BINPUT     1
                54: o            OBJ        (MARK at 6)
                55: q        BINPUT     2
@@ -2444,8 +2449,8 @@ def unpickle_build(obj, state):
 
     EXAMPLES::
 
-        sage: from sage.misc.explain_pickle import *
-        sage: v = EmptyNewstyleClass()
+        sage: from sage.misc.explain_pickle import _EmptyNewstyleClass
+        sage: v = _EmptyNewstyleClass()
         sage: unpickle_build(v, {'hello': 42})
         sage: v.hello
         42
@@ -2516,10 +2521,10 @@ def unpickle_extension(code):
     EXAMPLES::
 
         sage: from copyreg import *
-        sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
+        sage: add_extension('sage.misc.explain_pickle', '_EmptyNewstyleClass', 42)
         sage: unpickle_extension(42)
-        <class 'sage.misc.explain_pickle.EmptyNewstyleClass'>
-        sage: remove_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
+        <class 'sage.misc.explain_pickle._EmptyNewstyleClass'>
+        sage: remove_extension('sage.misc.explain_pickle', '_EmptyNewstyleClass', 42)
     """
     from copyreg import _inverted_registry, _extension_cache
     # copied from .get_extension() in pickle.py
@@ -2659,7 +2664,7 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
         print("result: " + current_repr + " (cPickle raised an exception!)")
 
 
-class EmptyOldstyleClass:
+class _EmptyOldstyleClass:
     r"""
     A featureless old-style class (does not inherit from object); used for
     testing explain_pickle.
@@ -2670,8 +2675,8 @@ class EmptyOldstyleClass:
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = EmptyOldstyleClass()
+            sage: from sage.misc.explain_pickle import _EmptyOldstyleClass
+            sage: v = _EmptyOldstyleClass()
             sage: v
             EmptyOldstyleClass
             sage: repr(v)
@@ -2687,8 +2692,8 @@ class EmptyOldstyleClass:
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = EmptyOldstyleClass()
+            sage: from sage.misc.explain_pickle import _EmptyOldstyleClass
+            sage: v = _EmptyOldstyleClass()
             sage: hash(v)
             0
             sage: v.__hash__()
@@ -2697,7 +2702,7 @@ class EmptyOldstyleClass:
         return 0
 
 
-class EmptyNewstyleClass(object):
+class _EmptyNewstyleClass(object):
     r"""
     A featureless new-style class (inherits from object); used for
     testing explain_pickle.
@@ -2708,8 +2713,8 @@ class EmptyNewstyleClass(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = EmptyNewstyleClass()
+            sage: from sage.misc.explain_pickle import _EmptyNewstyleClass
+            sage: v = _EmptyNewstyleClass()
             sage: v
             EmptyNewstyleClass
             sage: repr(v)
@@ -2720,7 +2725,7 @@ class EmptyNewstyleClass(object):
         return "EmptyNewstyleClass"
 
 
-class TestReduceGetinitargs:
+class _TestReduceGetinitargs:
     r"""
     An old-style class with a __getinitargs__ method.  Used for testing
     explain_pickle.
@@ -2732,8 +2737,8 @@ class TestReduceGetinitargs:
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: TestReduceGetinitargs()
+            sage: from sage.misc.explain_pickle import _TestReduceGetinitargs
+            sage: _TestReduceGetinitargs()
             Running __init__ for TestReduceGetinitargs
             TestReduceGetinitargs
         """
@@ -2745,8 +2750,8 @@ class TestReduceGetinitargs:
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = TestReduceGetinitargs()
+            sage: from sage.misc.explain_pickle import _TestReduceGetinitargs
+            sage: v = _TestReduceGetinitargs()
             Running __init__ for TestReduceGetinitargs
             sage: v.__getinitargs__()
             ()
@@ -2759,8 +2764,8 @@ class TestReduceGetinitargs:
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = TestReduceGetinitargs()
+            sage: from sage.misc.explain_pickle import _TestReduceGetinitargs
+            sage: v = _TestReduceGetinitargs()
             Running __init__ for TestReduceGetinitargs
             sage: v
             TestReduceGetinitargs
@@ -2772,7 +2777,7 @@ class TestReduceGetinitargs:
         return "TestReduceGetinitargs"
 
 
-class TestReduceNoGetinitargs:
+class _TestReduceNoGetinitargs:
     r"""
     An old-style class with no __getinitargs__ method.  Used for testing
     explain_pickle.
@@ -2784,8 +2789,8 @@ class TestReduceNoGetinitargs:
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: TestReduceNoGetinitargs()
+            sage: from sage.misc.explain_pickle import _TestReduceNoGetinitargs
+            sage: _TestReduceNoGetinitargs()
             Running __init__ for TestReduceNoGetinitargs
             TestReduceNoGetinitargs
         """
@@ -2797,8 +2802,8 @@ class TestReduceNoGetinitargs:
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = TestReduceNoGetinitargs()
+            sage: from sage.misc.explain_pickle import _TestReduceNoGetinitargs
+            sage: v = _TestReduceNoGetinitargs()
             Running __init__ for TestReduceNoGetinitargs
             sage: v
             TestReduceNoGetinitargs
@@ -2810,7 +2815,7 @@ class TestReduceNoGetinitargs:
         return "TestReduceNoGetinitargs"
 
 
-class TestAppendList(list):
+class _TestAppendList(list):
     r"""
     A subclass of list, with deliberately-broken append and extend methods.
     Used for testing explain_pickle.
@@ -2821,8 +2826,8 @@ class TestAppendList(list):
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = TestAppendList()
+            sage: from sage.misc.explain_pickle import _TestAppendList
+            sage: v = _TestAppendList()
             sage: v.append(7)
             Traceback (most recent call last):
             ...
@@ -2842,8 +2847,8 @@ class TestAppendList(list):
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = TestAppendList()
+            sage: from sage.misc.explain_pickle import _TestAppendList
+            sage: v = _TestAppendList()
             sage: v.extend([3,1,4,1,5,9])
             Traceback (most recent call last):
             ...
@@ -2858,7 +2863,7 @@ class TestAppendList(list):
         raise NotImplementedError
 
 
-class TestAppendNonlist(object):
+class _TestAppendNonlist(object):
     r"""
     A list-like class, carefully designed to test exact unpickling
     behavior.  Used for testing explain_pickle.
@@ -2869,8 +2874,8 @@ class TestAppendNonlist(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = TestAppendNonlist()
+            sage: from sage.misc.explain_pickle import _TestAppendNonlist
+            sage: v = _TestAppendNonlist()
             sage: v
             []
         """
@@ -2884,8 +2889,8 @@ class TestAppendNonlist(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = TestAppendNonlist()
+            sage: from sage.misc.explain_pickle import _TestAppendNonlist
+            sage: v = _TestAppendNonlist()
             sage: v.append(1)
             Fetching append attribute
             sage: v.append(2)
@@ -2910,18 +2915,18 @@ class TestAppendNonlist(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = TestAppendNonlist()
+            sage: from sage.misc.explain_pickle import _TestAppendNonlist
+            sage: v = _TestAppendNonlist()
             sage: v.list = [1,2,3,4]
             sage: v.__reduce__()
-            (<class 'sage.misc.explain_pickle.TestAppendNonlist'>, (), None, <...iterator object at 0x...>)
+            (<class 'sage.misc.explain_pickle._TestAppendNonlist'>, (), None, <...iterator object at 0x...>)
             sage: list(v.__reduce__()[3])
             [1, 2, 3, 4]
             sage: loads(dumps(v))
             Fetching append attribute
             [1, 2, 3, 4]
         """
-        return (TestAppendNonlist, (), None, iter(self.list))
+        return (_TestAppendNonlist, (), None, iter(self.list))
 
     def __repr__(self):
         r"""
@@ -2929,8 +2934,8 @@ class TestAppendNonlist(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = TestAppendNonlist()
+            sage: from sage.misc.explain_pickle import _TestAppendNonlist
+            sage: v = _TestAppendNonlist()
             sage: v.list = ['hello', 'world']
             sage: v
             ['hello', 'world']
@@ -2942,7 +2947,7 @@ class TestAppendNonlist(object):
         return repr(self.list)
 
 
-class TestBuild(object):
+class _TestBuild(object):
     r"""
     A simple class with a __getstate__ but no __setstate__.  Used for testing
     explain_pickle.
@@ -2953,10 +2958,10 @@ class TestBuild(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: TestBuild().__getstate__()
+            sage: from sage.misc.explain_pickle import _TestBuild
+            sage: _TestBuild().__getstate__()
             ({'x': 3}, {'y': 4})
-            sage: loads(dumps(TestBuild()))
+            sage: loads(dumps(_TestBuild()))
             TestBuild: x=3; y=4
         """
         return ({'x': 3}, {'y': 4})
@@ -2967,8 +2972,8 @@ class TestBuild(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = TestBuild()
+            sage: from sage.misc.explain_pickle import _TestBuild
+            sage: v = _TestBuild()
             sage: v
             TestBuild: x=None; y=None
             sage: repr(v)
@@ -2979,20 +2984,20 @@ class TestBuild(object):
         return "TestBuild: x=%s; y=%s" % (getattr(self, 'x', None), getattr(self, 'y', None))
 
 
-class TestBuildSetstate(TestBuild):
+class _TestBuildSetstate(_TestBuild):
     r"""
     A simple class with a __getstate__ and a __setstate__.  Used for testing
     explain_pickle.
     """
     def __setstate__(self, state):
         r"""
-        Set the state of a TestBuildSetstate.  Both prints a message, and
+        Set the state of a _TestBuildSetstate.  Both prints a message, and
         swaps x and y, to verify that it is being called.
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: loads(dumps(TestBuildSetstate())) # indirect doctest
+            sage: from sage.misc.explain_pickle import _TestBuildSetstate
+            sage: loads(dumps(_TestBuildSetstate())) # indirect doctest
             setting state from ({'x': 3}, {'y': 4})
             TestBuild: x=4; y=3
         """
@@ -3001,22 +3006,22 @@ class TestBuildSetstate(TestBuild):
         self.x = state[1]['y']
         self.y = state[0]['x']
 
-class TestGlobalOldName(object):
+class _TestGlobalOldName(object):
     r"""
     A featureless new-style class.  When you try to unpickle an instance
-    of this class, it is redirected to create a TestGlobalNewName instead.
+    of this class, it is redirected to create a _TestGlobalNewName instead.
     Used for testing explain_pickle.
 
     EXAMPLES::
 
-        sage: from sage.misc.explain_pickle import *
-        sage: loads(dumps(TestGlobalOldName()))
+        sage: from sage.misc.explain_pickle import _TestGlobalOldName
+        sage: loads(dumps(_TestGlobalOldName()))
         TestGlobalNewName
     """
     pass
 
 
-class TestGlobalNewName(object):
+class _TestGlobalNewName(object):
     r"""
     A featureless new-style class.  When you try to unpickle an instance
     of TestGlobalOldName, it is redirected to create an instance of this
@@ -3024,18 +3029,18 @@ class TestGlobalNewName(object):
 
     EXAMPLES::
 
-        sage: from sage.misc.explain_pickle import *
-        sage: loads(dumps(TestGlobalOldName()))
+        sage: from sage.misc.explain_pickle import _TestGlobalOldName
+        sage: loads(dumps(_TestGlobalOldName()))
         TestGlobalNewName
     """
     def __repr__(self):
         r"""
-        Print a TestGlobalNewName.
+        Print a _TestGlobalNewName.
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = TestGlobalNewName()
+            sage: from sage.misc.explain_pickle import _TestGlobalNewName
+            sage: v = _TestGlobalNewName()
             sage: v
             TestGlobalNewName
             sage: repr(v)
@@ -3046,20 +3051,20 @@ class TestGlobalNewName(object):
         return "TestGlobalNewName"
 
 
-register_unpickle_override('sage.misc.explain_pickle', 'TestGlobalOldName', TestGlobalNewName, call_name=('sage.misc.explain_pickle', 'TestGlobalNewName'))
+register_unpickle_override('sage.misc.explain_pickle', '_TestGlobalOldName', _TestGlobalNewName, call_name=('sage.misc.explain_pickle', '_TestGlobalNewName'))
 
-class TestGlobalFunnyName(object):
+class _TestGlobalFunnyName(object):
     r"""
     A featureless new-style class which has a name that's not a legal
     Python identifier.
 
     EXAMPLES::
 
-        sage: from sage.misc.explain_pickle import *
-        sage: globals()['funny$name'] = TestGlobalFunnyName # see comment at end of file
-        sage: TestGlobalFunnyName.__name__
+        sage: from sage.misc.explain_pickle import _TestGlobalFunnyName
+        sage: globals()['funny$name'] = _TestGlobalFunnyName # see comment at end of file
+        sage: _TestGlobalFunnyName.__name__
         'funny$name'
-        sage: globals()['funny$name'] is TestGlobalFunnyName
+        sage: globals()['funny$name'] is _TestGlobalFunnyName
         True
     """
     def __repr__(self):
@@ -3068,8 +3073,8 @@ class TestGlobalFunnyName(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.explain_pickle import *
-            sage: v = TestGlobalFunnyName()
+            sage: from sage.misc.explain_pickle import _TestGlobalFunnyName
+            sage: v = _TestGlobalFunnyName()
             sage: v
             TestGlobalFunnyName
             sage: repr(v)
@@ -3079,6 +3084,6 @@ class TestGlobalFunnyName(object):
         """
         return "TestGlobalFunnyName"
 
-TestGlobalFunnyName.__name__ = "funny$name"
+_TestGlobalFunnyName.__name__ = "funny$name"
 #This crashed Sphinx. Instead, we manually execute this just before the test.
 #globals()['funny$name'] = TestGlobalFunnyName
