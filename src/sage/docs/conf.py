@@ -32,7 +32,7 @@ extensions = ['sage_docbuild.ext.inventory_builder',
 # Jupyter Sphinx extension configuration
 jupyter_execute_default_kernel = 'sagemath'
 
-if JUPYTER_SERVER == "binder":
+if JUPYTER_SERVER == 'binder':
     jupyter_sphinx_thebelab_config = {
         'requestKernel': False,
         'binderOptions': {
@@ -984,7 +984,7 @@ class SagecodeTransform(SphinxTransform):
     default_priority = 170
 
     def apply(self):
-        if self.app.builder.tags.has('html'):
+        if self.app.builder.tags.has('html') or self.app.builder.tags.has('inventory'):
             for node in self.document.traverse(nodes.literal_block):
                 if node.get('language') is None and node.astext().startswith('sage:'):
                     source = node.rawsource
@@ -994,11 +994,11 @@ class SagecodeTransform(SphinxTransform):
                         if newline.startswith('sage: ') or newline.startswith('....: '):
                             lines.append(newline[6:])
                     cell_node = JupyterCellNode(
-                                execute=True,
+                                execute=False,
                                 hide_code=True,
                                 hide_output=True,
                                 emphasize_lines=[],
-                                raises=True,
+                                raises=False,
                                 stderr=True,
                                 code_below=False,
                                 classes=["jupyter_cell"])
