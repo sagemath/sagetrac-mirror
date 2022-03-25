@@ -16,10 +16,18 @@ import pytest
 def pytest_collection_modifyitems(
     session: pytest.Session, config: pytest.Config, items: List[pytest.Item]
 ):
+    """
+    This hook is called after collection has been performed, and can be used to
+    modify the list of items that will be run.
+
+    See `pytest documentation <https://docs.pytest.org/en/latest/reference/reference.html#std-hook-pytest_collection_modifyitems>`_.
+    """
     skip_as_false_positive = pytest.mark.skip(
-        reason="Skipping this because its not a pytest test but an ordinary method that happens to start with 'test_'"
+        reason="Skipping this because its not a pytest test but an ordinary"
+        + "method that happens to start with 'test_'"
     )
     for item in items:
+        # Add a mark to all tests that should be skipped
         if item.name in [
             "test_relation_maxima",
             "test_b2_local",
