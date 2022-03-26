@@ -161,7 +161,7 @@ the context.
 
 Here is an example of the ``_latex_`` and ``_repr_`` functions for the
 ``Pi`` class. It is from the file
-``SAGE_ROOT/src/sage/functions/constants.py``:
+``SAGE_ROOT/src/sage/symbolic/constants.py``:
 
 .. CODE-BLOCK:: python
 
@@ -192,7 +192,7 @@ matrix over a ring `R`. Then the Sage function ``matrix`` will work
 for this object.
 
 The following is from
-``SAGE_ROOT/src/sage/graphs/graph.py``:
+``SAGE_ROOT/src/sage/graphs/generic_graph.py``:
 
 .. CODE-BLOCK:: python
 
