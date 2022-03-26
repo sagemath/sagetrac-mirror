@@ -2754,6 +2754,9 @@ class _TestObjects(Category_singleton):
         """
         return [Bars()]
 
+    def _repr_object_names(self):
+        return "test objects"
+
     class FiniteDimensional(CategoryWithAxiom):
         class Finite(CategoryWithAxiom):
             pass
@@ -2793,6 +2796,9 @@ class _TestObjectsOverBaseRing(Category_over_base_ring):
             sage: TestSuite(_TestObjectsOverBaseRing(QQ).FiniteDimensional().Unital().Commutative()).run()
         """
         return [_TestObjects()]
+
+    def _repr_object_names(self):
+        return f"test objects over base ring over {self.base_ring()}"
 
     class FiniteDimensional(CategoryWithAxiom_over_base_ring):
         class Finite(CategoryWithAxiom_over_base_ring):

@@ -275,9 +275,9 @@ cdef class ElementWrapper(Element):
         Check that elements of equal-but-not-identical parents compare
         properly (see :trac:`19488`)::
 
-            sage: from sage.misc.nested_class_test import TestParent4
-            sage: P = TestParent4()
-            sage: Q = TestParent4()
+            sage: from sage.misc.nested_class_test import _TestParent4
+            sage: P = _TestParent4()
+            sage: Q = _TestParent4()
             sage: P == Q
             True
             sage: P is Q
