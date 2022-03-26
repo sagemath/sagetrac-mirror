@@ -97,7 +97,7 @@ Geometry, Topology, and Homological Algebra
 
 * :doc:`Euclidean Spaces and Vector Calculus <euclidean_spaces/index>`
 * :doc:`Combinatorial and Discrete Geometry <discrete_geometry/index>`
-* :doc:`Cell Complexes, Simplicial Complexes, and 
+* :doc:`Cell Complexes, Simplicial Complexes, and
   Simplicial Sets <topology/index>`
 * :doc:`Manifolds and Differential Geometry <manifolds/index>`
 * :doc:`Hyperbolic Geometry <hyperbolic_geometry/index>`
@@ -147,8 +147,9 @@ Facilities
 
 * :doc:`Data Structures <data_structures/index>`
 * :doc:`Utilities <misc/index>`
-* :doc:`Test Framework <doctest/index>`
 * :doc:`Parallel Computing <parallel/index>`
+* :doc:`Test Framework <doctest/index>`
+* :doc:`Documentation System <docs/index>`
 
 Interfaces
 ----------

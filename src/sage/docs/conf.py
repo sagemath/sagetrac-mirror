@@ -1,19 +1,19 @@
 import sys
 import os
+import dateutil.parser
+from docutils import nodes
 import sphinx
+import sphinx.ext.intersphinx as intersphinx
+from sphinx.ext.doctest import blankline_re
+from sphinx import highlighting
+from sphinx.transforms import SphinxTransform
+from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
+import sage.version
+from sage.misc.sagedoc import extlinks
 from sage.env import (SAGE_SRC,
                       SAGE_DOC, SAGE_DOC_SRC,
                       PPLPY_DOCS, MATHJAX_DIR,
                       JUPYTER_SERVER)
-import sage.version
-from sage.misc.sagedoc import extlinks
-import dateutil.parser
-from docutils import nodes
-from sphinx.ext.doctest import blankline_re
-from sphinx import highlighting
-from sphinx.transforms import SphinxTransform
-import sphinx.ext.intersphinx as intersphinx
-from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
 # General configuration
 # ---------------------
