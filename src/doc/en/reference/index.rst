@@ -149,7 +149,6 @@ Facilities
 * :doc:`Utilities <misc/index>`
 * :doc:`Parallel Computing <parallel/index>`
 * :doc:`Test Framework <doctest/index>`
-* :doc:`Documentation System <docs/index>`
 
 Interfaces
 ----------
