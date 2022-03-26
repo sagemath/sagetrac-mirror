@@ -375,7 +375,7 @@ dl.citation p {
     position: fixed;
     right: -100px;
     top: 50%;
-    border-radius: 10px;
+    border-radius: 30px;
     transition-property: right;
     transition-duration: 300ms;
     transition-timing-function: ease-out;
