@@ -261,7 +261,7 @@ class FriCAS(ExtraTabCompletion, Expect):
     """
     Interface to a FriCAS interpreter.
     """
-    def __init__(self, name='fricas', command='fricas -nosman',
+    def __init__(self, name='fricas', command=None,
                  script_subdirectory=None, logfile=None,
                  server=None, server_tmpdir=None):
         """
@@ -286,6 +286,10 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: fricas(I*x).sage()                                            # optional - fricas
             I*x
         """
+        if command is None:
+            from sage.features.interfaces import FriCASExecutable
+            fricas_exe = FriCASExecutable().absolute_filename()
+            command = f'{fricas_exe} -nosman'
         eval_using_file_cutoff = 4096 - 5  # magic number from Expect._eval_line (there might be a bug)
         assert max(len(c) for c in FRICAS_INIT_CODE) < eval_using_file_cutoff
         self.__eval_using_file_cutoff = eval_using_file_cutoff

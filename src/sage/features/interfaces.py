@@ -3,7 +3,7 @@ Features for testing whether interpreter interfaces are functional
 """
 import importlib
 
-from . import Feature, FeatureTestResult, PythonModule
+from . import Executable, Feature, FeatureTestResult, PythonModule
 
 
 class InterfaceFeature(Feature):
@@ -26,7 +26,7 @@ class InterfaceFeature(Feature):
         "Interface also_broken_interface cannot be imported: module 'sage.interfaces.interface' has no attribute 'also_broken_interface'"
     """
     @staticmethod
-    def __classcall__(cls, name, module, description=None):
+    def __classcall__(cls, name, module, description=None, **kwds):
         """
         TESTS::
 
@@ -38,9 +38,9 @@ class InterfaceFeature(Feature):
         """
         if isinstance(module, str):
             module = PythonModule(module)
-        return Feature.__classcall__(cls, name, module, description)
+        return Feature.__classcall__(cls, name, module, description, **kwds)
 
-    def __init__(self, name, module, description):
+    def __init__(self, name, module, description, **kwds):
         """
         TESTS::
 
@@ -49,7 +49,7 @@ class InterfaceFeature(Feature):
             sage: isinstance(f, InterfaceFeature)
             True
         """
-        super().__init__(name, description=description)
+        super().__init__(name, description=description, **kwds)
         self.module = module
 
     def _is_present(self):
@@ -77,6 +77,38 @@ class InterfaceFeature(Feature):
         except Exception as exception:
             return FeatureTestResult(self, False,
                                      reason=f"Interface {interface} is not functional: {exception}")
+
+
+class FriCASExecutable(Executable):
+    r"""
+    A :class:`~sage.features.Feature` describing whether :class:`sage.interfaces.fricas.FriCAS`
+    is present and functional.
+
+    EXAMPLES::
+
+        sage: from sage.features.interfaces import FriCASExecutable
+        sage: FriCASExecutable().is_present()  # random
+        FeatureTestResult('fricas_exe', False)
+    """
+    @staticmethod
+    def __classcall__(cls):
+        return Executable.__classcall__(cls, 'fricas_exe', 'fricas', spkg='fricas')
+
+
+class FriCAS(InterfaceFeature):
+    r"""
+    A :class:`~sage.features.Feature` describing whether :class:`sage.interfaces.fricas.FriCAS`
+    is present and functional.
+
+    EXAMPLES::
+
+        sage: from sage.features.interfaces import FriCAS
+        sage: FriCAS().is_present()  # random
+        FeatureTestResult('fricas', False)
+    """
+    @staticmethod
+    def __classcall__(cls):
+        return InterfaceFeature.__classcall__(cls, 'fricas', 'sage.interfaces.fricas', spkg='fricas')
 
 
 # The following are provided by external software only (no SPKG)
@@ -208,7 +240,8 @@ def all_features():
 
         sage: from sage.features.interfaces import all_features
         sage: list(all_features())
-        [Feature('magma'),
+        [Feature('fricas'),
+         Feature('magma'),
          Feature('matlab'),
          Feature('mathematica'),
          Feature('maple'),
@@ -216,7 +249,8 @@ def all_features():
          Feature('octave'),
          Feature('scilab')]
     """
-    return [Magma(),
+    return [FriCAS(),
+            Magma(),
             Matlab(),
             Mathematica(),
             Maple(),
