@@ -1,0 +1,32 @@
+From 5067473640eca1b4d43fbacb643d9af47cc767d1 Mon Sep 17 00:00:00 2001
+From: Kwankyu Lee <ekwankyu@gmail.com>
+Date: Sun, 27 Mar 2022 13:33:56 -0700
+Subject: [PATCH] jupyter_sphinx/execute.py: Fix a bug and suppress a warning
+
+---
+ jupyter_sphinx/execute.py | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/jupyter_sphinx/execute.py b/jupyter_sphinx/execute.py
+index e6cc5db..3feab2a 100644
+--- a/jupyter_sphinx/execute.py
++++ b/jupyter_sphinx/execute.py
+@@ -147,6 +147,15 @@ class ExecuteJupyterCells(SphinxTransform):
+                 kernel_name = default_kernel
+                 file_name = next(default_names)
+ 
++            import warnings
++            with warnings.catch_warnings():
++                warnings.simplefilter("ignore")
++                notebook = execute_cells(
++                    kernel_name,
++                    [nbformat.v4.new_code_cell(node.astext() if node["execute"] else "") for node in nodes],
++                    self.config.jupyter_execute_kwargs,
++                )
++
+             notebook = execute_cells(
+                 kernel_name,
+                 [nbformat.v4.new_code_cell(node.astext()) for node in nodes],
+-- 
+2.35.1
+
