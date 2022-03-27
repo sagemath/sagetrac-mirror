@@ -308,7 +308,7 @@ def _test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=Fals
 
     Now test ``my_script.sage`` and the preparsed version ``my_script.sage.py``::
 
-        sage: (out, err, ret) = test_executable(["sage", "-t", script])
+        sage: (out, err, ret) = _test_executable(["sage", "-t", script])
         sage: ret
         0
         sage: out.find("All tests passed!") >= 0
