@@ -1,4 +1,3 @@
-# cython: language_level=3
 """
 Ranges and the ``[1,2,..,n]`` notation
 
@@ -16,7 +15,7 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
 
