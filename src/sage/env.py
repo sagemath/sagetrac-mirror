@@ -1,10 +1,6 @@
 r"""
 Sage Runtime Environment
 
-AUTHORS:
-
-- \R. Andrew Ohana (2012): Initial version.
-
 Verify that importing ``sage.all`` works in Sage's Python without any ``SAGE_``
 environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``
 (see also :trac:`29446`)::
@@ -15,6 +11,11 @@ environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``
     sage: out = check_output([sys.executable, "-c", cmd], env=env).decode().strip()   # long time
     sage: out == repr((SAGE_ROOT, SAGE_LOCAL))                                        # long time
     True
+
+AUTHORS:
+
+- \R. Andrew Ohana (2012): initial version
+
 """
 
 # ****************************************************************************
@@ -243,8 +244,9 @@ os.environ['MPMATH_SAGE'] = '1'
 SAGE_BANNER = var("SAGE_BANNER", "")
 SAGE_IMPORTALL = var("SAGE_IMPORTALL", "yes")
 
-# Jupyter server to support Thebe for live documentation
-JUPYTER_SERVER = var("JUPYTER_SERVER", "binder")
+# live documentation via jupyter-sphinx
+LIVE_DOC = var("LIVE_DOC", "no")
+JUPYTER_SERVER = var("JUPYTER_SERVER", "binder")  # url for local server
 JUPYTER_SERVER_TOKEN = var("JUPYTER_SERVER_TOKEN", "secret")  # for local server
 
 

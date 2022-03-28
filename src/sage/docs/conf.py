@@ -13,7 +13,7 @@ from sage.misc.sagedoc import extlinks
 from sage.env import (SAGE_SRC,
                       SAGE_DOC, SAGE_DOC_SRC,
                       PPLPY_DOCS, MATHJAX_DIR,
-                      JUPYTER_SERVER)
+                      LIVE_DOC)
 
 # General configuration
 # ---------------------
@@ -29,35 +29,37 @@ extensions = ['sage_docbuild.ext.inventory_builder',
               'matplotlib.sphinxext.plot_directive',
               'jupyter_sphinx']
 
-# Jupyter Sphinx extension configuration
-jupyter_execute_default_kernel = 'sagemath'
+if LIVE_DOC == 'yes':
+    from sage.env import JUPYTER_SERVER
+    # Jupyter Sphinx extension configuration
+    jupyter_execute_default_kernel = 'sagemath'
 
-if JUPYTER_SERVER == 'binder':
-    jupyter_sphinx_thebelab_config = {
-        'requestKernel': False,
-        'binderOptions': {
-            'repo': "sagemath/sage-binder-env",
-        },
-        'kernelOptions': {
-            'name': "sagemath",
-            'kernelName': "sagemath",
-            'path': ".",
-        },
-    }
-else:  # local jupyter server
-    from sage.env import JUPYTER_SERVER_TOKEN
-    jupyter_sphinx_thebelab_config = {
-        'requestKernel': False,
-        'kernelOptions': {
-            'name': "sagemath",
-            'kernelName': "sagemath",
-            'path': ".",
-            'serverSettings': {
-                'baseUrl': JUPYTER_SERVER,
-                'token': JUPYTER_SERVER_TOKEN
+    if JUPYTER_SERVER == 'binder':
+        jupyter_sphinx_thebelab_config = {
+            'requestKernel': False,
+            'binderOptions': {
+                'repo': "sagemath/sage-binder-env",
             },
-        },
-    }
+            'kernelOptions': {
+                'name': "sagemath",
+                'kernelName': "sagemath",
+                'path': ".",
+            },
+        }
+    else:  # local jupyter server
+        from sage.env import JUPYTER_SERVER_TOKEN
+        jupyter_sphinx_thebelab_config = {
+            'requestKernel': False,
+            'kernelOptions': {
+                'name': "sagemath",
+                'kernelName': "sagemath",
+                'path': ".",
+                'serverSettings': {
+                    'baseUrl': JUPYTER_SERVER,
+                    'token': JUPYTER_SERVER_TOKEN
+                },
+            },
+        }
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
@@ -1025,7 +1027,8 @@ def setup(app):
         app.connect('autodoc-process-docstring', skip_TESTS_block)
     app.connect('autodoc-skip-member', skip_member)
     app.add_transform(SagemathTransform)
-    app.add_transform(SagecodeTransform)
+    if LIVE_DOC == "yes":
+        app.add_transform(SagecodeTransform)
 
     # When building the standard docs, app.srcdir is set to SAGE_DOC_SRC +
     # 'LANGUAGE/DOCNAME', but when doing introspection, app.srcdir is
