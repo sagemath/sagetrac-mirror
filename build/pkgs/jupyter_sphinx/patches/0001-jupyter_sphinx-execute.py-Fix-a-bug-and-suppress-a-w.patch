@@ -1,20 +1,25 @@
-From 5067473640eca1b4d43fbacb643d9af47cc767d1 Mon Sep 17 00:00:00 2001
+From 894d882520e92a2f997a68bfd28f4e4b7f211fca Mon Sep 17 00:00:00 2001
 From: Kwankyu Lee <ekwankyu@gmail.com>
 Date: Sun, 27 Mar 2022 13:33:56 -0700
 Subject: [PATCH] jupyter_sphinx/execute.py: Fix a bug and suppress a warning
 
 ---
- jupyter_sphinx/execute.py | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ jupyter_sphinx/execute.py | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/jupyter_sphinx/execute.py b/jupyter_sphinx/execute.py
-index e6cc5db..3feab2a 100644
+index e6cc5db..7514cff 100644
 --- a/jupyter_sphinx/execute.py
 +++ b/jupyter_sphinx/execute.py
-@@ -147,6 +147,15 @@ class ExecuteJupyterCells(SphinxTransform):
+@@ -147,11 +147,14 @@ class ExecuteJupyterCells(SphinxTransform):
                  kernel_name = default_kernel
                  file_name = next(default_names)
  
+-            notebook = execute_cells(
+-                kernel_name,
+-                [nbformat.v4.new_code_cell(node.astext()) for node in nodes],
+-                self.config.jupyter_execute_kwargs,
+-            )
 +            import warnings
 +            with warnings.catch_warnings():
 +                warnings.simplefilter("ignore")
@@ -23,10 +28,9 @@ index e6cc5db..3feab2a 100644
 +                    [nbformat.v4.new_code_cell(node.astext() if node["execute"] else "") for node in nodes],
 +                    self.config.jupyter_execute_kwargs,
 +                )
-+
-             notebook = execute_cells(
-                 kernel_name,
-                 [nbformat.v4.new_code_cell(node.astext()) for node in nodes],
+ 
+             # Raise error if cells raised exceptions and were not marked as doing so
+             for node, cell in zip(nodes, notebook.cells):
 -- 
 2.35.1
 
