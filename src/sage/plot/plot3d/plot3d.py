@@ -572,19 +572,19 @@ class SphericalElevation(_Coordinates):
 
         sage: SE = SphericalElevation('elevation', ['radius', 'azimuth'])
         sage: r, theta = var('r,theta')
-        sage: plot3d(3, (r,0,3), (theta, 0, 2*pi), transformation=SE)
+        sage: plot3d(3, (r, 0, 3), (theta, 0, 2*pi), transformation=SE)
         Graphics3d Object
 
     .. PLOT::
 
         SE = SphericalElevation('elevation', ['radius', 'azimuth'])
         r, theta = var('r,theta')
-        sphinx_plot(plot3d(3+r-r, (r,0,3), (theta, 0, 2*pi), transformation=SE))
+        sphinx_plot(plot3d(3 + r - r, (r,0,3), (theta, 0, 2*pi), transformation=SE))
 
     Plot a sin curve wrapped around the equator::
 
-        sage: P1 = plot3d( (pi/12)*sin(8*theta), (r,0.99,1), (theta, 0, 2*pi), transformation=SE, plot_points=(10,200))
-        sage: P2 = sphere(center=(0,0,0), size=1, color='red', opacity=0.3)
+        sage: P1 = plot3d( (pi/12)*sin(8*theta), (r, 0.99, 1), (theta, 0, 2*pi), transformation=SE, plot_points=(10,200))
+        sage: P2 = sphere(center=(0, 0, 0), size=1, color='red', opacity=0.3)
         sage: P1 + P2
         Graphics3d Object
 
@@ -592,8 +592,8 @@ class SphericalElevation(_Coordinates):
 
         r, theta = var('r,theta')
         SE = SphericalElevation('elevation', ['radius', 'azimuth'])
-        P1 = plot3d( (pi/12)*sin(8*theta), (r,0.99,1), (theta, 0, 2*pi), transformation=SE, plot_points=(10,200))
-        P2 = sphere(center=(0,0,0), size=1, color='red', opacity=0.3)
+        P1 = plot3d( (pi/12)*sin(8*theta), (r, 0.99, 1), (theta, 0, 2*pi), transformation=SE, plot_points=(10,200))
+        P2 = sphere(center=(0, 0, 0), size=1, color='red', opacity=0.3)
         sphinx_plot(P1 + P2)
 
     Now we graph several constant elevation functions alongside several constant
@@ -604,11 +604,11 @@ class SphericalElevation(_Coordinates):
         sage: r, phi, theta = var('r phi theta')
         sage: SE = SphericalElevation('elevation', ['radius', 'azimuth'])
         sage: angles = [pi/18, pi/12, pi/6]
-        sage: P1 = [plot3d( a, (r,0,3), (theta, 0, 2*pi), transformation=SE, opacity=0.85, color='blue') for a in angles]
+        sage: P1 = [plot3d( a, (r, 0, 3), (theta, 0, 2*pi), transformation=SE, opacity=0.85, color='blue') for a in angles]
 
         sage: S = Spherical('inclination', ['radius', 'azimuth'])
-        sage: P2 = [plot3d( a, (r,0,3), (theta, 0, 2*pi), transformation=S, opacity=0.85, color='red') for a in angles]
-        sage: show(sum(P1+P2), aspect_ratio=1)
+        sage: P2 = [plot3d( a, (r, 0, 3), (theta, 0, 2*pi), transformation=S, opacity=0.85, color='red') for a in angles]
+        sage: show(sum(P1 + P2), aspect_ratio=1)
 
     .. PLOT::
 
@@ -691,7 +691,7 @@ class Cylindrical(_Coordinates):
 
         S = Cylindrical('radius', ['azimuth', 'height'])
         theta, z = var('theta, z')
-        sphinx_plot(plot3d(3+z-z, (theta, 0, 2*pi), (z, -2, 2), transformation=S))
+        sphinx_plot(plot3d(3 + z - z, (theta, 0, 2*pi), (z, -2, 2), transformation=S))
 
     See also :func:`cylindrical_plot3d` for more examples of plotting in cylindrical
     coordinates.
@@ -1107,30 +1107,28 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
     INPUT:
 
 
-    -  ``f`` -- a symbolic function or a Python function of
-       3 variables.
+    - ``f`` -- a symbolic function or a Python function of 3 variables
 
-    -  ``x_range`` -- x range of values: 2-tuple (xmin,
+    - ``x_range`` -- x range of values: 2-tuple (xmin,
        xmax) or 3-tuple (x,xmin,xmax)
 
-    -  ``y_range`` -- y range of values: 2-tuple (ymin,
-       ymax) or 3-tuple (y,ymin,ymax)
+    - ``y_range`` -- y range of values: 2-tuple (ymin, ymax) or 3-tuple
+       (y,ymin,ymax)
 
-    -  ``grad_f`` -- gradient of f as a Python function
+    - ``grad_f`` -- gradient of f as a Python function
 
-    -  ``color`` -- "automatic" - a rainbow of num_colors
-       colors
+    - ``color`` -- "automatic" - a rainbow of num_colors colors
 
-    -  ``num_colors`` -- (default: 128) number of colors to
-       use with default color
+    - ``num_colors`` -- (default: 128) number of colors to use with default
+       color
 
-    -  ``max_bend`` -- (default: 0.5)
+    - ``max_bend`` -- (default: 0.5)
 
-    -  ``max_depth`` -- (default: 5)
+    - ``max_depth`` -- (default: 5)
 
-    -  ``initial_depth`` -- (default: 4)
+    - ``initial_depth`` -- (default: 4)
 
-    -  ``**kwds`` -- standard graphics parameters
+    - ``**kwds`` -- standard graphics parameters
 
     EXAMPLES:
 
@@ -1383,9 +1381,10 @@ def axes(scale=1, radius=None, **kwds):
 
     INPUT:
 
-    - ``scale`` -- (default: 1) The length of the axes (all three
-      will be the same).
-    - ``radius`` -- (default: .01) The radius of the axes as arrows.
+    - ``scale`` -- (default: 1) the length of the axes (all three will be the
+      same)
+
+    - ``radius`` -- (default: .01) the radius of the axes as arrows
 
     EXAMPLES::
 
