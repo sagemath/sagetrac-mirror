@@ -7,7 +7,7 @@ Welcome to the Sage Reference Manual!
 Here you find documentation for all of `Sage <http://www.sagemath.org/>`_'s
 features, illustrated with lots of examples.  A thematic index follows.
 
-This documentation is licensed under the `Creative Commons Attribution-Share Alike 3.0 License`__.
+This documentation is licensed under the `Creative Commons Attribution-Share Alike 3.0 License`__:math:`.`
 
 __ http://creativecommons.org/licenses/by-sa/3.0/
 
