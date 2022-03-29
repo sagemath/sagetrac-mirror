@@ -15,16 +15,38 @@ from importlib.abc import MetaPathFinder, SourceLoader
 from importlib.machinery import ModuleSpec
 from importlib.util import spec_from_loader
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, List, Sequence
 
 import pytest
 
-# Ignore a few test files that are (not yet) using pytest
-collect_ignore = [
-    "sage/misc/nested_class_test.py",
-    "sage/repl/rich_output/backend_test.py",
-    "sage/tests/deprecation_test.py"
-]
+
+def pytest_collection_modifyitems(
+    session: pytest.Session, config: pytest.Config, items: List[pytest.Item]
+):
+    """
+    This hook is called after collection has been performed, and can be used to
+    modify the list of items that will be run.
+
+    See `pytest documentation <https://docs.pytest.org/en/latest/reference/reference.html#std-hook-pytest_collection_modifyitems>`_.
+    """
+    skip_as_false_positive = pytest.mark.skip(
+        reason="Skipping this because its not a pytest test but an ordinary"
+        + "method that happens to start with 'test_'"
+    )
+    for item in items:
+        # Add a mark to all tests that should be skipped
+        if item.name in [
+            "test_relation_maxima",
+            "test_b2_local",
+            "test_b2_global",
+            "test_a1a3_local",
+            "test_a1a3_global",
+            "test_rst_global",
+            "test_comparison",
+            "test_signed_infinity",
+            "test_pickle",
+        ]:
+            item.add_marker(skip_as_false_positive)
 
 
 def pytest_collect_file(parent: pytest.Collector, file_path: Path):

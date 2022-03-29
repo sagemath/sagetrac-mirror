@@ -2276,8 +2276,8 @@ def sage_getsourcelines(obj):
     The following tests that an instance of ``functools.partial`` is correctly
     dealt with (see :trac:`9976`)::
 
-        sage: from sage.tests.functools_partial_src import test_func
-        sage: sage_getsourcelines(test_func)
+        sage: from sage.tests.functools_partial_src import _test_func
+        sage: sage_getsourcelines(_test_func)
         (['def base(x):\n',
         ...
         '    return x\n'], 7)
@@ -2310,12 +2310,12 @@ def sage_getsourcelines(obj):
     use a dummy parent class that has defined an element class by a
     nested class definition::
 
-        sage: from sage.misc.nested_class_test import TestNestedParent
+        sage: from sage.misc.test_nested_class import TestNestedParent
         sage: from sage.misc.sageinspect import sage_getsource
         sage: P = TestNestedParent()
         sage: E = P.element_class
         sage: E.__bases__
-        (<class 'sage.misc.nested_class_test.TestNestedParent.Element'>,
+        (<class 'sage.misc.test_nested_class.TestNestedParent.Element'>,
          <class 'sage.categories.sets_cat.Sets.element_class'>)
         sage: print(sage_getsource(E))
             class Element(object):

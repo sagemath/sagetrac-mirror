@@ -7,24 +7,24 @@ These stress test the garbage collection inside GAP
 from sage.libs.gap.libgap import libgap
 
 
-def test_loop_1():
+def _test_loop_1():
     """
     EXAMPLES::
 
-        sage: from sage.libs.gap.test_long import test_loop_1
-        sage: test_loop_1()  # long time (up to 25s on sage.math, 2013)
+        sage: from sage.libs.gap.test_long import _test_loop_1
+        sage: _test_loop_1()  # long time (up to 25s on sage.math, 2013)
     """
     libgap.collect()
     for i in range(10000):
         G = libgap.CyclicGroup(2)
 
 
-def test_loop_2():
+def _test_loop_2():
     """
     EXAMPLES::
 
-        sage: from sage.libs.gap.test_long import test_loop_2
-        sage: test_loop_2()  # long time (10s on sage.math, 2013)
+        sage: from sage.libs.gap.test_long import _test_loop_2
+        sage: _test_loop_2()  # long time (10s on sage.math, 2013)
     """
     G =libgap.FreeGroup(2)
     a,b = G.GeneratorsOfGroup()
@@ -39,12 +39,12 @@ def test_loop_2():
         n = libgap.Order(H1)
 
 
-def test_loop_3():
+def _test_loop_3():
     """
     EXAMPLES::
 
-        sage: from sage.libs.gap.test_long import test_loop_3
-        sage: test_loop_3()  # long time (31s on sage.math, 2013)
+        sage: from sage.libs.gap.test_long import _test_loop_3
+        sage: _test_loop_3()  # long time (31s on sage.math, 2013)
     """
     G = libgap.FreeGroup(2)
     (a,b) = G.GeneratorsOfGroup()

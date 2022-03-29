@@ -58,7 +58,7 @@ import sys
 import select
 
 
-def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False, **kwds):
+def _test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False, **kwds):
     r"""
     Run the program defined by ``args`` using the string ``input`` on
     the standard input.
@@ -90,8 +90,8 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
 
     EXAMPLES::
 
-        sage: from sage.tests.cmdline import test_executable
-        sage: (out, err, ret) = test_executable(["cat"], "Hello World!")
+        sage: from sage.tests.cmdline import _test_executable
+        sage: (out, err, ret) = _test_executable(["cat"], "Hello World!")
         sage: out
         'Hello World!'
         sage: err
@@ -101,16 +101,16 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
 
     We test the timeout option::
 
-        sage: (out, err, ret) = test_executable(["sleep", "1"], timeout=0.1)
+        sage: (out, err, ret) = _test_executable(["sleep", "1"], timeout=0.1)
         Traceback (most recent call last):
         ...
-        RuntimeError: timeout in test_executable()
+        RuntimeError: timeout in _test_executable()
 
     TESTS:
 
     Run Sage itself with various options::
 
-        sage: (out, err, ret) = test_executable(["sage"], pydebug_ignore_warnings=True)
+        sage: (out, err, ret) = _test_executable(["sage"], pydebug_ignore_warnings=True)
         sage: out.find(version()) >= 0
         True
         sage: err
@@ -118,7 +118,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage"], "3^33\n", pydebug_ignore_warnings=True)
+        sage: (out, err, ret) = _test_executable(["sage"], "3^33\n", pydebug_ignore_warnings=True)
         sage: out.find(version()) >= 0
         True
         sage: out.find("5559060566555523") >= 0
@@ -128,7 +128,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "-q"], "3^33\n", pydebug_ignore_warnings=True)
+        sage: (out, err, ret) = _test_executable(["sage", "-q"], "3^33\n", pydebug_ignore_warnings=True)
         sage: out.find(version()) >= 0
         False
         sage: out.find("5559060566555523") >= 0
@@ -138,7 +138,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "-c", "print(3^33)"])
+        sage: (out, err, ret) = _test_executable(["sage", "-c", "print(3^33)"])
         sage: print(out)
         5559060566555523
         sage: err
@@ -146,7 +146,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--min", "-c", "print(3^33)"])
+        sage: (out, err, ret) = _test_executable(["sage", "--min", "-c", "print(3^33)"])
         sage: print(out)
         5559060566555523
         sage: err
@@ -154,7 +154,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--startuptime"])
+        sage: (out, err, ret) = _test_executable(["sage", "--startuptime"])
         sage: out.find("Slowest module import") >= 0
         True
         sage: err
@@ -164,7 +164,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
 
     Test help::
 
-        sage: (out, err, ret) = test_executable(["sage", "-h"])
+        sage: (out, err, ret) = _test_executable(["sage", "-h"])
         sage: out.find("Optional arguments:") >= 0
         True
         sage: err
@@ -172,7 +172,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--help"])
+        sage: (out, err, ret) = _test_executable(["sage", "--help"])
         sage: out.find("Optional arguments:") >= 0
         True
         sage: err
@@ -180,7 +180,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--advanced"])
+        sage: (out, err, ret) = _test_executable(["sage", "--advanced"])
         sage: out.find("run the Sage cleaner.") >= 0
         True
         sage: err
@@ -194,7 +194,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
 
     Basic information about the Sage installation::
 
-        sage: (out, err, ret) = test_executable(["sage", "-v"])
+        sage: (out, err, ret) = _test_executable(["sage", "-v"])
         sage: out.find(version()) >= 0
         True
         sage: err
@@ -202,7 +202,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--root"])  # optional - sage_spkg
+        sage: (out, err, ret) = _test_executable(["sage", "--root"])  # optional - sage_spkg
         sage: len(out) >= 2   # at least one character + newline; optional - sage_spkg
         True
         sage: err  # optional - sage_spkg
@@ -212,7 +212,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
 
     Test ``sage --info [packages]``::
 
-        sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])  # optional - sage_spkg
+        sage: out, err, ret = _test_executable(["sage", "--info", "sqlite"])  # optional - sage_spkg
         sage: print(out)  # optional - sage_spkg
         sqlite...
         SQLite is a software library that implements a self-contained,
@@ -230,14 +230,14 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: F = open(fullname, 'w')
         sage: _ = F.write("print(3^33)\n")
         sage: F.close()
-        sage: (out, err, ret) = test_executable(["sage", fullname])
+        sage: (out, err, ret) = _test_executable(["sage", fullname])
         sage: print(out)
         34
         sage: err
         ''
         sage: ret
         0
-        sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
+        sage: (out, err, ret) = _test_executable(["sage", name], cwd=dir)
         sage: print(out)
         34
         sage: err
@@ -253,14 +253,14 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: F = open(fullname, 'w')
         sage: _ = F.write("k.<a> = GF(5^3); print(a^124)\n")
         sage: F.close()
-        sage: (out, err, ret) = test_executable(["sage", fullname])
+        sage: (out, err, ret) = _test_executable(["sage", fullname])
         sage: print(out)
         1
         sage: err
         ''
         sage: ret
         0
-        sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
+        sage: (out, err, ret) = _test_executable(["sage", name], cwd=dir)
         sage: print(out)
         1
         sage: err
@@ -275,7 +275,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: F = open(fullname, 'w')
         sage: _ = F.write("from cysignals.signals cimport *\nfrom sage.rings.integer cimport Integer\ncdef long i, s = 0\nsig_on()\nfor i in range(1000): s += i\nsig_off()\nprint(Integer(s))")
         sage: F.close()
-        sage: (out, err, ret) = test_executable(["sage", fullname], pydebug_ignore_warnings=True)
+        sage: (out, err, ret) = _test_executable(["sage", fullname], pydebug_ignore_warnings=True)
         sage: print(out)
         499500
         sage: import re
@@ -283,7 +283,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         True
         sage: ret
         0
-        sage: (out, err, ret) = test_executable(["sage", name], cwd=dir, pydebug_ignore_warnings=True)
+        sage: (out, err, ret) = _test_executable(["sage", name], cwd=dir, pydebug_ignore_warnings=True)
         sage: print(out)
         499500
         sage: bool(re.match('Compiling.*spyx.*', err))
@@ -300,20 +300,20 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: F = open(script, 'w')
         sage: _ = F.write(s)
         sage: F.close()
-        sage: (out, err, ret) = test_executable(["sage", "--preparse", script])
+        sage: (out, err, ret) = _test_executable(["sage", "--preparse", script])
         sage: ret
         0
         sage: os.path.isfile(script_py)
         True
 
-    Now test my_script.sage and the preparsed version my_script.sage.py::
+    Now test ``my_script.sage`` and the preparsed version ``my_script.sage.py``::
 
-        sage: (out, err, ret) = test_executable(["sage", "-t", script])
+        sage: (out, err, ret) = _test_executable(["sage", "-t", script])
         sage: ret
         0
         sage: out.find("All tests passed!") >= 0
         True
-        sage: (out, err, ret) = test_executable(["sage", "-t", script_py])
+        sage: (out, err, ret) = _test_executable(["sage", "-t", script_py])
         sage: ret
         0
         sage: out.find("All tests passed!") >= 0
@@ -335,7 +335,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: F = open(script, 'w')
         sage: _ = F.write(s)
         sage: F.close()
-        sage: (out, err, ret) = test_executable(["sage", "-t", script])
+        sage: (out, err, ret) = _test_executable(["sage", "-t", script])
         sage: ret
         1
         sage: out.find("1 item had failures:") >= 0
@@ -349,7 +349,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: F = open(script, 'w')
         sage: _ = F.write(s)
         sage: F.close()
-        sage: (out, err, ret) = test_executable([
+        sage: (out, err, ret) = _test_executable([
         ....:     "sage", "-t", "--debug", "-p", "2", "--warn-long", "0", script], "help")
         sage: print(out)
         Debugging requires single-threaded operation, setting number of threads to 1.
@@ -401,7 +401,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: F = open(test_file, 'w')
         sage: _ = F.write(test)
         sage: F.close()
-        sage: (out, err, ret) = test_executable(["sage", "--fixdoctests", test_file])
+        sage: (out, err, ret) = _test_executable(["sage", "--fixdoctests", test_file])
         sage: with open(test_file, 'r') as f:
         ....:     fixed_test = f.read()
         sage: import difflib
@@ -438,19 +438,19 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
 
     Test external programs being called by Sage::
 
-        sage: (out, err, ret) = test_executable(["sage", "--sh"], "echo Hello World\nexit 42\n")
+        sage: (out, err, ret) = _test_executable(["sage", "--sh"], "echo Hello World\nexit 42\n")
         sage: out.find("Hello World\n") >= 0
         True
         sage: ret
         42
 
-        sage: (out, err, ret) = test_executable(["sage", "--sh", "-c", "echo Hello World; exit 42"])
+        sage: (out, err, ret) = _test_executable(["sage", "--sh", "-c", "echo Hello World; exit 42"])
         sage: out.find("Hello World\n") >= 0
         True
         sage: ret
         42
 
-        sage: (out, err, ret) = test_executable(["sage", "--ipython"], "\n3**33\n", pydebug_ignore_warnings=True)
+        sage: (out, err, ret) = _test_executable(["sage", "--ipython"], "\n3**33\n", pydebug_ignore_warnings=True)
         sage: out.find("5559060566555523") >= 0
         True
         sage: err
@@ -458,7 +458,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--python"], "print(3^33)\n")
+        sage: (out, err, ret) = _test_executable(["sage", "--python"], "print(3^33)\n")
         sage: out
         '34\n'
         sage: err
@@ -466,7 +466,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--python3"], "print(3^33)\n")
+        sage: (out, err, ret) = _test_executable(["sage", "--python3"], "print(3^33)\n")
         sage: out
         '34\n'
         sage: err
@@ -474,7 +474,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--cython"])
+        sage: (out, err, ret) = _test_executable(["sage", "--cython"])
         sage: print(err)
         Cython (http://cython.org) is a compiler for code written in the
         Cython language.  Cython is based on Pyrex by Greg Ewing.
@@ -486,7 +486,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         ....:         return True
         ....:     except OSError:
         ....:         return False
-        sage: (out, err, ret) = test_executable(["sage", "--ecl"], "(* 12345 54321)\n")
+        sage: (out, err, ret) = _test_executable(["sage", "--ecl"], "(* 12345 54321)\n")
         sage: out.find("Embeddable Common-Lisp") >= 0
         True
         sage: out.find("670592745") >= 0
@@ -496,7 +496,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--lisp"], "(* 12345 54321)\n")
+        sage: (out, err, ret) = _test_executable(["sage", "--lisp"], "(* 12345 54321)\n")
         sage: out.find("Embeddable Common-Lisp") >= 0
         True
         sage: out.find("670592745") >= 0
@@ -506,7 +506,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--gap", "-q"], "Size(SymmetricGroup(5));\n")
+        sage: (out, err, ret) = _test_executable(["sage", "--gap", "-q"], "Size(SymmetricGroup(5));\n")
         sage: out
         '120\n'
         sage: err.replace('gap: halving pool size.', '').strip()
@@ -514,13 +514,13 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--gdb"], 'quit\n')  # optional - gdb
+        sage: (out, err, ret) = _test_executable(["sage", "--gdb"], 'quit\n')  # optional - gdb
         sage: out.find('(gdb) ') >= 0  # optional - gdb
         True
         sage: ret  # optional - gdb
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--mwrank", "-v0", "-q", "-o"], "0 0 1 -7 6 0 0 0 0 0\n")
+        sage: (out, err, ret) = _test_executable(["sage", "--mwrank", "-v0", "-q", "-o"], "0 0 1 -7 6 0 0 0 0 0\n")
         sage: out
         'Curve [0,0,1,-7,6] :\tRank = 3\n[[3],[[1,-1],[-2,3],[-7/4,25/8]]]\n\n\n'
         sage: err
@@ -528,7 +528,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--singular"], "12345*54321;\n")
+        sage: (out, err, ret) = _test_executable(["sage", "--singular"], "12345*54321;\n")
         sage: out.find("A Computer Algebra System for Polynomial Computations") >= 0
         True
         sage: out.find("670592745") >= 0
@@ -541,7 +541,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
     Test GP using the ``-f`` option which prevents the reading of a ``.gprc``
     configuration file::
 
-        sage: (out, err, ret) = test_executable(["sage", "--gp", "-f"], "3^33\nquit(42)\n")
+        sage: (out, err, ret) = _test_executable(["sage", "--gp", "-f"], "3^33\nquit(42)\n")
         sage: out.find("PARI/GP") >= 0
         True
         sage: out.find("5559060566555523") >= 0
@@ -553,7 +553,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
 
     Some programs of which we check functionality using only ``--version``::
 
-        sage: (out, err, ret) = test_executable(["sage", "--maxima", "--version"])
+        sage: (out, err, ret) = _test_executable(["sage", "--maxima", "--version"])
         sage: out.find("Maxima ") >= 0
         True
         sage: err
@@ -561,7 +561,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--R", "--version"])  # optional - r
+        sage: (out, err, ret) = _test_executable(["sage", "--R", "--version"])  # optional - r
         sage: out.find("R version ") >= 0                                      # optional - r
         True
         sage: err                                                              # optional - r
@@ -569,7 +569,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret                                                              # optional - r
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--sqlite3", "--version"])
+        sage: (out, err, ret) = _test_executable(["sage", "--sqlite3", "--version"])
         sage: out.startswith("3.")
         True
         sage: err
@@ -579,7 +579,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
 
     Check some things requiring an internet connection::
 
-        sage: (out, err, ret) = test_executable(["sage", "--standard"])  # optional - internet
+        sage: (out, err, ret) = _test_executable(["sage", "--standard"])  # optional - internet
         sage: out.find("cython") >= 0  # optional - internet
         True
         sage: err  # optional - internet
@@ -587,7 +587,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret  # optional - internet
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--optional"])  # optional - internet
+        sage: (out, err, ret) = _test_executable(["sage", "--optional"])  # optional - internet
         sage: out.find("database_cremona_ellcurve") >= 0  # optional - internet
         True
         sage: err  # optional - internet
@@ -595,7 +595,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret  # optional - internet
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--experimental"])  # optional - internet
+        sage: (out, err, ret) = _test_executable(["sage", "--experimental"])  # optional - internet
         sage: out.find("valgrind") >= 0  # optional - internet
         True
         sage: err  # optional - internet
@@ -606,7 +606,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
     Check an illegal command line option.  This outputs an error to stdout,
     but we allow stderr in case this changes in the future::
 
-        sage: (out, err, ret) = test_executable(["sage", "--zzfoobar"])
+        sage: (out, err, ret) = _test_executable(["sage", "--zzfoobar"])
         sage: (out+err).find("unknown option: --zzfoobar") >= 0
         True
         sage: ret > 0
@@ -619,7 +619,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
         sage: L = ["sage", "--rst2ipynb", input]
-        sage: (out, err, ret) = test_executable(L)           # optional - rst2ipynb
+        sage: (out, err, ret) = _test_executable(L)           # optional - rst2ipynb
         sage: err                                            # optional - rst2ipynb
         ''
         sage: ret                                            # optional - rst2ipynb
@@ -641,7 +641,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
         sage: L = ["sage", "--rst2ipynb", input, output]
-        sage: test_executable(L)                              # optional - rst2ipynb
+        sage: _test_executable(L)                              # optional - rst2ipynb
         ('', '', 0)
         sage: import json                                     # optional - rst2ipynb
         sage: d = json.load(open(output,'r'))                 # optional - rst2ipynb
@@ -715,7 +715,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
         sage: L = ["sage", "--ipynb2rst", input, output]
-        sage: _ = test_executable(L)                        # optional - pandoc
+        sage: _ = _test_executable(L)                        # optional - pandoc
         sage: print(open(output, 'r').read() == t)          # optional - pandoc  # known bug #32697
         True
     """
@@ -759,7 +759,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         if len(rlist) == 0:
             # Timeout!
             p.terminate()
-            raise RuntimeError("timeout in test_executable()")
+            raise RuntimeError("timeout in _test_executable()")
         if fdout in rlist:
             s = p.stdout.read(1024)
             if not s:

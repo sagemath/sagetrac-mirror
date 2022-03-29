@@ -2405,7 +2405,7 @@ def dict_to_list(entries, nrows, ncols):
     return v
 
 
-def test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkrank=True):
+def _test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkrank=True):
     """
     Tests inversion, determinant and is_invertible for trivial matrices.
 
@@ -2441,7 +2441,7 @@ def test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkr
 
     TESTS::
 
-        sage: from sage.matrix.matrix_space import test_trivial_matrices_inverse as tinv
+        sage: from sage.matrix.matrix_space import _test_trivial_matrices_inverse as tinv
         sage: tinv(ZZ, sparse=True)
         sage: tinv(ZZ, sparse=False, implementation='flint')
         sage: tinv(ZZ, sparse=False, implementation='generic')
