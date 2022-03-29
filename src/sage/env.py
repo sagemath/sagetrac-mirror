@@ -267,20 +267,12 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
 
     EXAMPLES::
 
-        sage: import sys
-        sage: from fnmatch import fnmatch
         sage: from sage.env import _get_shared_lib_path
-        sage: lib_filename = _get_shared_lib_path("Singular", "singular-Singular")
-        sage: if sys.platform == 'cygwin':
-        ....:     pattern = "*/cygSingular-*.dll"
-        ....: elif sys.platform == 'darwin':
-        ....:     pattern = "*/libSingular-*.dylib"
-        ....: else:
-        ....:     pattern = "*/lib*Singular-*.so"
-        sage: fnmatch(str(lib_filename), pattern)
+        sage: "gap" in _get_shared_lib_path("gap")
         True
         sage: _get_shared_lib_path("an_absurd_lib") is None
         True
+
     """
 
     for libname in libnames:
@@ -345,16 +337,6 @@ if DOT_SAGE is not None and ' ' in DOT_SAGE:
         print("permissions to before you start sage.")
 
 
-CYGWIN_VERSION = None
-if UNAME[:6] == 'CYGWIN':
-    import re
-    _uname = os.uname()
-    if len(_uname) >= 2:
-        m = re.match(r'(\d+\.\d+\.\d+)\(.+\)', _uname[2])
-        if m:
-            CYGWIN_VERSION = tuple(map(int, m.group(1).split('.')))
-
-
 def sage_include_directories(use_sources=False):
     """
     Return the list of include directories for compiling Sage extension modules.
@@ -375,8 +357,9 @@ def sage_include_directories(use_sources=False):
 
         sage: import sage.env
         sage: sage.env.sage_include_directories()
-        ['.../include/python...',
-        '.../python.../numpy/core/include']
+        ['.../site-packages',
+         '.../site-packages/numpy/core/include',
+         '.../include/python...']
 
     To check that C/C++ files are correctly found, we verify that we can
     always find the include file ``sage/cpython/cython_metaclass.h``,
@@ -398,7 +381,7 @@ def sage_include_directories(use_sources=False):
             distutils.sysconfig.get_python_inc()]
     try:
         import numpy
-        dirs.append(numpy.get_include())
+        dirs.insert(1, numpy.get_include())
     except ModuleNotFoundError:
         pass
     return dirs

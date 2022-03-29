@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 r"""
-Testing for databases at runtime
+Features for testing the presence of various databases
 """
 
 
 from . import StaticFile, PythonModule
 from sage.env import (
     CONWAY_POLYNOMIALS_DATA_DIR,
-    CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR)
+    CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR,
+    POLYTOPE_DATA_DIR)
 
 
 class DatabaseConwayPolynomials(StaticFile):
     r"""
-    A :class:`Feature` which describes the presence of Frank Luebeck's
+    A :class:`~sage.features.Feature` which describes the presence of Frank Luebeck's
     database of Conway polynomials.
 
     EXAMPLES::
@@ -46,7 +47,7 @@ CREMONA_DATA_DIRS = set([CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR])
 
 class DatabaseCremona(StaticFile):
     r"""
-    A :class:`Feature` which describes the presence of John Cremona's
+    A :class:`~sage.features.Feature` which describes the presence of John Cremona's
     database of elliptic curves.
 
     INPUT:
@@ -59,7 +60,7 @@ class DatabaseCremona(StaticFile):
         sage: from sage.features.databases import DatabaseCremona
         sage: DatabaseCremona('cremona_mini').is_present()
         FeatureTestResult('database_cremona_mini_ellcurve', True)
-        sage: DatabaseCremona().is_present()  # optional: database_cremona_ellcurve
+        sage: DatabaseCremona().is_present()  # optional - database_cremona_ellcurve
         FeatureTestResult('database_cremona_ellcurve', True)
     """
     def __init__(self, name="cremona", spkg="database_cremona_ellcurve"):
@@ -80,12 +81,12 @@ class DatabaseCremona(StaticFile):
 
 class DatabaseJones(StaticFile):
     r"""
-    A :class:`Feature` which describes the presence of John Jones's tables of number fields.
+    A :class:`~sage.features.Feature` which describes the presence of John Jones's tables of number fields.
 
     EXAMPLES::
 
         sage: from sage.features.databases import DatabaseJones
-        sage: bool(DatabaseJones().is_present())  # optional: database_jones_numfield
+        sage: bool(DatabaseJones().is_present())  # optional - database_jones_numfield
         True
     """
     def __init__(self):
@@ -104,7 +105,7 @@ class DatabaseJones(StaticFile):
 
 class DatabaseKnotInfo(PythonModule):
     r"""
-    A :class:`Feature` which describes the presence of the databases at the
+    A :class:`~sage.features.Feature` which describes the presence of the databases at the
     web-pages `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and
     `LinkInfo <https://linkinfo.sitehost.iu.edu>`__.
 
@@ -113,7 +114,7 @@ class DatabaseKnotInfo(PythonModule):
     EXAMPLES::
 
         sage: from sage.features.databases import DatabaseKnotInfo
-        sage: DatabaseKnotInfo().is_present()  # optional: database_knotinfo
+        sage: DatabaseKnotInfo().is_present()  # optional - database_knotinfo
         FeatureTestResult('database_knotinfo', True)
     """
     def __init__(self):
@@ -125,3 +126,37 @@ class DatabaseKnotInfo(PythonModule):
             True
         """
         PythonModule.__init__(self, 'database_knotinfo', spkg='database_knotinfo')
+
+
+class DatabaseReflexivePolytopes(StaticFile):
+    r"""
+    A :class:`~sage.features.Feature` which describes the presence of the PALP database
+    of reflexive lattice polytopes.
+
+    EXAMPLES::
+
+        sage: from sage.features.databases import DatabaseReflexivePolytopes
+        sage: bool(DatabaseReflexivePolytopes().is_present())                              # optional - polytopes_db
+        True
+        sage: bool(DatabaseReflexivePolytopes('polytopes_db_4d', 'Hodge4d').is_present())  # optional - polytopes_db_4d
+        True
+    """
+    def __init__(self, name='polytopes_db', dirname='Full3D'):
+        """
+        TESTS::
+
+            sage: from sage.features.databases import DatabaseReflexivePolytopes
+            sage: isinstance(DatabaseReflexivePolytopes(), DatabaseReflexivePolytopes)
+            True
+        """
+        StaticFile.__init__(self, name, dirname,
+                            search_path=[POLYTOPE_DATA_DIR])
+
+
+def all_features():
+    return [DatabaseConwayPolynomials(),
+            DatabaseCremona(), DatabaseCremona('cremona_mini'),
+            DatabaseJones(),
+            DatabaseKnotInfo(),
+            DatabaseReflexivePolytopes(),
+            DatabaseReflexivePolytopes('polytopes_db_4d', 'Hodge4d')]
