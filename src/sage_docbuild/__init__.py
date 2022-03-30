@@ -1553,8 +1553,8 @@ def setup_parser():
                           action="store_true",
                           help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")
     standard.add_argument("--live-doc", dest="live_doc",
-                          action="store_false",
-                          help="make code blocks live")
+                          action="store_true",
+                          help="make Sage code blocks live for html FORMAT")
     standard.add_argument("--warn-links", dest="warn_links",
                           action="store_true",
                           help="issue a warning whenever a link is not properly resolved; equivalent to '--sphinx-opts -n' (sphinx option: nitpicky)")
