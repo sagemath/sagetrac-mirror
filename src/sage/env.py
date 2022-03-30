@@ -245,11 +245,6 @@ os.environ['MPMATH_SAGE'] = '1'
 SAGE_BANNER = var("SAGE_BANNER", "")
 SAGE_IMPORTALL = var("SAGE_IMPORTALL", "yes")
 
-# live documentation via jupyter-sphinx
-LIVE_DOC = var("LIVE_DOC", "no")
-JUPYTER_SERVER = var("JUPYTER_SERVER", "binder")  # url for local server
-JUPYTER_SERVER_TOKEN = var("JUPYTER_SERVER_TOKEN", "secret")  # for local server
-
 
 def _get_shared_lib_path(*libnames: str) -> Optional[str]:
     """

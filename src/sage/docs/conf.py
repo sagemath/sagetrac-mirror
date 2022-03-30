@@ -10,10 +10,8 @@ from sphinx.transforms import SphinxTransform
 from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 import sage.version
 from sage.misc.sagedoc import extlinks
-from sage.env import (SAGE_SRC,
-                      SAGE_DOC, SAGE_DOC_SRC,
-                      PPLPY_DOCS, MATHJAX_DIR,
-                      LIVE_DOC)
+from sage.env import (SAGE_SRC, SAGE_DOC, SAGE_DOC_SRC,
+                      PPLPY_DOCS, MATHJAX_DIR)
 
 # General configuration
 # ---------------------
@@ -29,12 +27,9 @@ extensions = ['sage_docbuild.ext.inventory_builder',
               'matplotlib.sphinxext.plot_directive',
               'jupyter_sphinx']
 
-if LIVE_DOC == 'yes':
-    from sage.env import JUPYTER_SERVER
-    # Jupyter Sphinx extension configuration
-    jupyter_execute_default_kernel = 'sagemath'
-
-    if JUPYTER_SERVER == 'binder':
+if os.environ.get('SAGE_LIVE_DOC', 'no')  == 'yes':
+    SAGE_JUPYTER_SERVER = os.environ.get('SAGE_JUPYTER_SERVER', 'binder')
+    if SAGE_JUPYTER_SERVER == 'binder':
         jupyter_sphinx_thebelab_config = {
             'requestKernel': False,
             'binderOptions': {
@@ -47,7 +42,7 @@ if LIVE_DOC == 'yes':
             },
         }
     else:  # local jupyter server
-        from sage.env import JUPYTER_SERVER_TOKEN
+        SAGE_JUPYTER_SERVER_TOKEN = os.environ.get('SAGE_JUPYTER_SERVER_TOKEN', 'secret')
         jupyter_sphinx_thebelab_config = {
             'requestKernel': False,
             'kernelOptions': {
@@ -55,11 +50,12 @@ if LIVE_DOC == 'yes':
                 'kernelName': "sagemath",
                 'path': ".",
                 'serverSettings': {
-                    'baseUrl': JUPYTER_SERVER,
-                    'token': JUPYTER_SERVER_TOKEN
+                    'baseUrl': SAGE_JUPYTER_SERVER,
+                    'token': SAGE_JUPYTER_SERVER_TOKEN
                 },
             },
         }
+    jupyter_execute_default_kernel = 'sagemath'
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
@@ -1027,7 +1023,7 @@ def setup(app):
         app.connect('autodoc-process-docstring', skip_TESTS_block)
     app.connect('autodoc-skip-member', skip_member)
     app.add_transform(SagemathTransform)
-    if LIVE_DOC == "yes":
+    if os.environ.get('SAGE_LIVE_DOC', 'no') == 'yes':
         app.add_transform(SagecodeTransform)
 
     # When building the standard docs, app.srcdir is set to SAGE_DOC_SRC +

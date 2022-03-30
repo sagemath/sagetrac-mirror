@@ -147,8 +147,8 @@ Facilities
 
 * :doc:`Data Structures <data_structures/index>`
 * :doc:`Utilities <misc/index>`
-* :doc:`Parallel Computing <parallel/index>`
 * :doc:`Test Framework <doctest/index>`
+* :doc:`Parallel Computing <parallel/index>`
 
 Interfaces
 ----------

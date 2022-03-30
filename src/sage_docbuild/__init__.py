@@ -1552,6 +1552,9 @@ def setup_parser():
     standard.add_argument("--no-pdf-links", dest="no_pdf_links",
                           action="store_true",
                           help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")
+    standard.add_argument("--live-doc", dest="live_doc",
+                          action="store_false",
+                          help="make code blocks live")
     standard.add_argument("--warn-links", dest="warn_links",
                           action="store_true",
                           help="issue a warning whenever a link is not properly resolved; equivalent to '--sphinx-opts -n' (sphinx option: nitpicky)")
@@ -1727,6 +1730,8 @@ def main():
         ALLSPHINXOPTS += "-n "
     if args.no_plot:
         os.environ['SAGE_SKIP_PLOT_DIRECTIVE'] = 'yes'
+    if args.live_doc:
+        os.environ['SAGE_LIVE_DOC'] = 'yes'
     if args.skip_tests:
         os.environ['SAGE_SKIP_TESTS_BLOCKS'] = 'True'
 
