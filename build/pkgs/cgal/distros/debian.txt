@@ -1,1 +1,1 @@
-cgal
+libcgal-dev
