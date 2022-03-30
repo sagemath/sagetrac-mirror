@@ -1,5 +1,5 @@
-cgal
-====
+cgal: Computational Geometry Algorithms Library
+===============================================
 
 Description
 -----------
