@@ -43,7 +43,7 @@ REFERENCES:
 # *****************************************************************************
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, Optional, overload
 
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
@@ -339,8 +339,12 @@ class PseudoRiemannianMetric(TensorField):
     _derived_objects = ('_connection', '_ricci_scalar', '_weyl',
                        '_schouten', '_cotton', '_cotton_york')
 
-    def __init__(self, vector_field_module, name, signature=None,
-                 latex_name=None):
+    # In contrast to a general TensorField, a metric is required to have a name.
+    _name: str
+    _latex_name: str
+
+    def __init__(self, vector_field_module, name: str, signature=None,
+                 latex_name: Optional[str] = None):
         r"""
         Construct a metric.
 
@@ -2626,8 +2630,12 @@ class DegenerateMetric(TensorField):
 
     """
 
-    def __init__(self, vector_field_module, name, signature=None,
-                 latex_name=None):
+    # In contrast to a general TensorField, a metric is required to have a name.
+    _name: str
+    _latex_name: str
+
+    def __init__(self, vector_field_module, name: str, signature=None,
+                 latex_name: Optional[str] = None):
         r"""
         Construct a metric.
 
