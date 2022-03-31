@@ -35,10 +35,10 @@ Construction::
 Obtaining edges and ridges::
 
     sage: C.edges()[:2]
-    ((A vertex at (-1, -1, -1, 1), A vertex at (-1, -1, -1, -1)),
-     (A vertex at (-1, 1, -1, -1), A vertex at (-1, -1, -1, -1)))
+    ((A vertex at (1, -1, -1, -1), A vertex at (-1, -1, -1, -1)),
+     (A vertex at (-1, -1, -1, 1), A vertex at (-1, -1, -1, -1)))
     sage: C.edges(names=False)[:2]
-    ((14, 15), (10, 15))
+    ((6, 15), (14, 15))
 
     sage: C.ridges()[:2]
     ((An inequality (0, 0, 1, 0) x + 1 >= 0,
@@ -1202,12 +1202,12 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.edges()
             (('d', 'e'),
              ('c', 'e'),
-             ('b', 'e'),
-             ('a', 'e'),
              ('c', 'd'),
+             ('b', 'e'),
              ('b', 'd'),
-             ('a', 'd'),
              ('b', 'c'),
+             ('a', 'e'),
+             ('a', 'd'),
              ('a', 'c'),
              ('a', 'b'))
         """
@@ -1349,18 +1349,18 @@ cdef class CombinatorialPolyhedron(SageObject):
               An inequality (-50, 35, -10, 1) x + 24 >= 0),
              (An inequality (-12, 19, -8, 1) x + 0 >= 0,
               An inequality (-50, 35, -10, 1) x + 24 >= 0),
-             (An inequality (8, -14, 7, -1) x + 0 >= 0,
-              An inequality (-50, 35, -10, 1) x + 24 >= 0),
-             (An inequality (-6, 11, -6, 1) x + 0 >= 0,
-              An inequality (-50, 35, -10, 1) x + 24 >= 0),
              (An inequality (-12, 19, -8, 1) x + 0 >= 0,
               An inequality (24, -26, 9, -1) x + 0 >= 0),
              (An inequality (8, -14, 7, -1) x + 0 >= 0,
-              An inequality (24, -26, 9, -1) x + 0 >= 0),
-             (An inequality (-6, 11, -6, 1) x + 0 >= 0,
+              An inequality (-50, 35, -10, 1) x + 24 >= 0),
+             (An inequality (8, -14, 7, -1) x + 0 >= 0,
               An inequality (24, -26, 9, -1) x + 0 >= 0),
              (An inequality (8, -14, 7, -1) x + 0 >= 0,
               An inequality (-12, 19, -8, 1) x + 0 >= 0),
+             (An inequality (-6, 11, -6, 1) x + 0 >= 0,
+              An inequality (-50, 35, -10, 1) x + 24 >= 0),
+             (An inequality (-6, 11, -6, 1) x + 0 >= 0,
+              An inequality (24, -26, 9, -1) x + 0 >= 0),
              (An inequality (-6, 11, -6, 1) x + 0 >= 0,
               An inequality (-12, 19, -8, 1) x + 0 >= 0),
              (An inequality (-6, 11, -6, 1) x + 0 >= 0,
@@ -1368,12 +1368,12 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.ridges(names=False)
             ((3, 4),
              (2, 4),
-             (1, 4),
-             (0, 4),
              (2, 3),
+             (1, 4),
              (1, 3),
-             (0, 3),
              (1, 2),
+             (0, 4),
+             (0, 3),
              (0, 2),
              (0, 1))
 
@@ -1393,7 +1393,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             sage: C = CombinatorialPolyhedron(polytopes.simplex())
             sage: C.ridges(names=False, add_equations=True)
-            ((2, 3), (1, 3), (0, 3), (1, 2), (0, 2), (0, 1))
+            ((2, 3), (1, 3), (1, 2), (0, 3), (0, 2), (0, 1))
 
         The keyword ``add_equalities`` is deprecated::
 
@@ -3456,17 +3456,19 @@ cdef class CombinatorialPolyhedron(SageObject):
             if not self.is_bounded():
                 dual = 0
             elif do_edges:
-                if self.n_Vrepresentation() > self.n_facets()*self.n_facets():
+                if self.n_Vrepresentation() > self.n_facets()*self.n_facets() or self.is_simple():
                     # This is a wild estimate
                     # that in this case it is better not to use the dual.
+                    # Note that the non-dual algorithm is much faster for simple polytopes.
                     dual = 0
                 else:
                     # In most bounded cases, one should use the dual.
                     dual = 1
             else:
-                if self.n_Vrepresentation()*self.n_Vrepresentation() < self.n_facets():
+                if self.n_Vrepresentation()*self.n_Vrepresentation() < self.n_facets() or self.is_simplicial():
                     # This is a wild estimate
                     # that in this case it is better to use the dual.
+                    # Note that the dual algorithm is much faster for simplicial polytopes.
                     dual = 1
                 else:
                     # In most bounded cases, one should not use the dual.
