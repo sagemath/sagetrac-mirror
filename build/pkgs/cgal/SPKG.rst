@@ -7,6 +7,11 @@ Description
 CGAL provides efficient and reliable geometric algorithms in the form
 of a C++ library.
 
+Sage requires version 5.3.1 or newer of CGAL (https://github.com/CGAL/cgal/issues/6168).
+The version constraint is not checked by the configure script.
+
+To use CGAL in Python, use the package ``cgal_swig_bindings``.
+
 License
 -------
 
