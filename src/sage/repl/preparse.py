@@ -1798,6 +1798,17 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     # that optimization can be done later.
     L, literals, quote_state = strip_string_literals(line, quote_state)
 
+    # replace Python's abysmal "if" syntax by something more reasonable
+    L = re.sub(r'if and only if\b', 'iff', L)
+    if re.search(r'if\b', L):
+        from sage.misc.superseded import deprecation
+        deprecation(33621,
+            'Python\'s "if" keyword is discouraged in SageMath for'
+            ' its semantic ambiguity. Be a real mathematician; use'
+            ' "if and only if" (or its short form "iff") instead.'
+        )
+    L = re.sub(r'iff\b', 'if', L)
+
     # Ellipsis Range
     # [1..n]
     try:
