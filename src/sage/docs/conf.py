@@ -959,12 +959,14 @@ class SagecodeTransform(SphinxTransform):
         EXAMPLE::
 
             sage: 1 + 1
+            2
 
     is transformed into::
 
         EXAMPLE::
 
             sage: 1 + 1
+            2
 
         .. ONLY:: html
 
