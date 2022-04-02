@@ -266,7 +266,7 @@ AUTHORS:
 ##########################################################################
 
 from .interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement
-from sage.env import DOT_SAGE
+from sage.misc.dot_sage import dot_sage
 import re
 from sage.structure.element import parent
 from sage.interfaces.tab_completion import ExtraTabCompletion
@@ -282,7 +282,7 @@ lazy_import("rpy2.robjects.conversion", "localconverter")
 lazy_import("rpy2.robjects.help", "Package")
 lazy_import("rpy2", "rinterface")
 
-COMMANDS_CACHE = '%s/r_commandlist.sobj'%DOT_SAGE
+COMMANDS_CACHE = dot_sage() / 'r_commandlist.sobj'
 
 #there is a mirror network, but lets take #1 for now
 RRepositoryURL = "http://cran.r-project.org/"

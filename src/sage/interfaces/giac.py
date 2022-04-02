@@ -241,13 +241,14 @@ from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction, Functi
 import pexpect
 
 from sage.cpython.string import bytes_to_str
-from sage.env import DOT_SAGE
+from sage.misc.dot_sage import dot_sage
 from sage.misc.pager import pager
 from sage.docs.instancedoc import instancedoc
 from sage.structure.richcmp import rich_to_bool
 
 
-COMMANDS_CACHE = '%s/giac_commandlist_cache.sobj'%DOT_SAGE
+COMMANDS_CACHE = dot_sage() / 'giac_commandlist_cache.sobj'
+
 
 class Giac(Expect):
     r"""

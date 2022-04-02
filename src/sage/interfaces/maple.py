@@ -239,14 +239,14 @@ from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_d
 
 import pexpect
 
-from sage.env import DOT_SAGE
+from sage.misc.dot_sage import dot_sage
 from sage.misc.pager import pager
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
 from sage.structure.richcmp import rich_to_bool
 
 
-COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj' % DOT_SAGE
+COMMANDS_CACHE = dot_sage() / 'maple_commandlist_cache.sobj'
 
 
 class Maple(ExtraTabCompletion, Expect):

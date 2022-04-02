@@ -608,7 +608,6 @@ AUTHORS:
 from sage.env import SAGE_LOCAL
 import pexpect
 import re
-import sys
 
 from sage.cpython.string import bytes_to_str
 from sage.misc.flatten import flatten
@@ -763,7 +762,7 @@ class Qepcad_expect(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: from sage.interfaces.qepcad import Qepcad_expect
-            sage: Qepcad_expect(memcells=100000, logfile=sys.stdout)
+            sage: Qepcad_expect(memcells=100000, logfile=None)
             Qepcad
         """
         Expect.__init__(self,
@@ -802,9 +801,6 @@ class Qepcad:
         (alphabetical ordering for the free variables).
 
         A logfile can be specified with ``logfile``.
-        If ``verbose=True`` is given, then the logfile is automatically
-        set to ``sys.stdout``, so all QEPCAD interaction is echoed to
-        the terminal.
 
         You can set the amount of memory that QEPCAD allocates with
         ``memcells``, and you can use ``server`` to run QEPCAD on
@@ -831,9 +827,6 @@ class Qepcad:
             2 x - 1 > 0 /\ z > 0 /\ z - y < 0 /\ 3 z + 3 y + x - 1 < 0
         """
         self._cell_cache = {}
-
-        if verbose:
-            logfile=sys.stdout
 
         varlist = None
         if vars is not None:

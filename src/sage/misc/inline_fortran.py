@@ -120,6 +120,8 @@ class InlineFortran:
 
         TESTS::
 
+            sage: from sage.misc.dot_sage import dot_sage
+            sage: DOT_SAGE = dot_sage()
             sage: os.chdir(DOT_SAGE)
             sage: fortran.eval("SYNTAX ERROR !@#$")
             Traceback (most recent call last):

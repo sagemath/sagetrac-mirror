@@ -45,7 +45,8 @@ import pdb
 import warnings
 
 from .lazy_string import lazy_string
-from sage.env import DOT_SAGE, HOSTNAME
+from sage.env import HOSTNAME
+from sage.misc.dot_sage import dot_sage
 from sage.misc.lazy_import import lazy_import
 
 lazy_import("sage.misc.call", ["AttrCallObject", "attrcall", "call_method"],
@@ -100,14 +101,6 @@ def sage_makedirs(dirname, mode=0o777):
     except OSError:
         if not os.path.isdir(dirname):
             raise
-
-
-# We create the DOT_SAGE directory (if it does not exist yet; note in particular
-# that it may already have been created by the bin/sage script) with
-# restrictive permissions, since otherwise possibly just anybody can easily see
-# every command you type.
-
-os.makedirs(DOT_SAGE, mode=0o700, exist_ok=True)
 
 
 def try_read(obj, splitlines=False):
@@ -223,7 +216,7 @@ def SAGE_TMP():
         sage: SAGE_TMP
         l'.../temp/...'
     """
-    d = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
+    d = dot_sage() / 'temp' / HOSTNAME / str(os.getpid())
     os.makedirs(d, exist_ok=True)
     return d
 
@@ -271,8 +264,9 @@ def SAGE_TMP_INTERFACE():
     return d
 
 
-SAGE_DB = os.path.join(DOT_SAGE, 'db')
+SAGE_DB = dot_sage() / 'db'
 os.makedirs(SAGE_DB, exist_ok=True)
+
 
 try:
     # Create the matplotlib config directory.
