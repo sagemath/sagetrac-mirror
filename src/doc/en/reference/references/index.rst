@@ -4486,6 +4486,16 @@ REFERENCES:
              Proceedings of the National Academy of Sciences 36.1
              (1950): 48-49.
 
+.. [NSz2012] Némethi, András; Szilárd, Ágnes. Milnor fiber boundary of a
+             non-isolated surface singularity, volume 2037 of Lecture
+             Notes in Math. Springer, Heidelberg, 2012.
+
+.. [Neu1981] Walter D. Neumann, *A calculus for plumbing applied to the
+             topology of complex surface singularities and degenerating
+             complex curves*, Transactions of the American
+             Mathematical Society, Vol. 268, No. 2 (Dec., 1981),
+             pp. 4807--4823.
+
 .. [Neu2018] Christian Neurohr, *Efficient Integration on Riemann Surfaces &
              Applications*,
              PhD Thesis, Carl von Ossietzky Universität Oldenburg
