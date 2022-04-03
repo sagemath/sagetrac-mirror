@@ -1,0 +1,94 @@
+#! /bin/sh
+
+set -e
+
+num_cores() {
+    lscpu -p=core | grep -v "^#" | sort -nu | wc -l
+}
+
+rename_python3_exts() {
+    echo "Rename python3 exts at '$1'"
+    find "$1" -type f -executable -iname '*.cpython*.so' |
+        while read -r file; do
+            filename="${file##*/}"
+            modulename="${filename%%.*}"
+            #echo "${pkgver}: renamed '${filename}' to '${modulename}.so'."
+            mv ${file} ${file%/*}/${modulename}.so
+        done
+}
+
+unrename_python3_exts() {
+    echo "Unrename python3 exts at '$1'"
+    find "$1" -type f -executable -iname '*.so' |
+        grep -v ".*\.cpython.*\.so$" |
+        while read -r file; do
+            filename="${file##*/}"
+            modulename="${filename%%.*}"
+            #echo "${pkgver}: renamed '${filename}' to '${modulename}.so'."
+            mv ${file} ${file%/*}/${modulename}.cpython-310-x86_64-linux-gnu.so
+        done
+}
+
+setup() {
+    jobs=$(num_cores)
+    ( cd pkgs/sagemath-standard &&
+        PYTHONPATH=../sage-setup \
+        SAGE_NUM_THREADS=$jobs \
+        python -B setup.py "$@" )
+}
+
+build() {
+    jobs=${1-$(num_cores)}
+    echo "Build sagelib with jobs=$jobs"
+
+    # bootstrap sagelib
+    ( cd build/pkgs/sagelib && \
+        PATH=../../bin:$PATH \
+        ./bootstrap )
+
+    # unrename python3 exts
+    SAGE_LIB=$(cd pkgs/sagemath-standard/build/lib* && pwd || true)
+    [ -n "$SAGE_LIB" ] && unrename_python3_exts "$SAGE_LIB"
+
+    ( cd pkgs/sagemath-standard &&
+        PYTHONPATH=../sage-setup \
+        SAGE_NUM_THREADS=$jobs \
+        python -B setup.py build )
+
+    SAGE_SCRIPTS=$(cd pkgs/sagemath-standard/build/scripts* && pwd)
+    SAGE_LIB=$(cd pkgs/sagemath-standard/build/lib* && pwd)
+
+    # rename python3 exts
+    rename_python3_exts "$SAGE_LIB"
+
+    # remove sage-venv-config since it clobbers PATH
+    rm $SAGE_SCRIPTS/sage-venv-config
+
+    # override pytest as if not installed (pending #31924)
+    echo "raise ModuleNotFoundError" > $SAGE_LIB/pytest.py
+    # override sphinx as if not installed (pending #33585)
+    echo "raise ModuleNotFoundError" > $SAGE_LIB/sphinx.py
+
+    # create sage_conf.py
+    sed '1,/^exit/d' "$0" > $SAGE_LIB/sage_conf.py
+    #echo "SAGE_BIN = '$SAGE_SCRIPTS'" >> $SAGE_LIB/sage_conf.py
+}
+
+case "$1" in
+
+    build) shift ; build "$@" ; exit $? ;;
+    setup) shift ; setup "$@" ; exit $? ;;
+
+esac
+
+export PATH=$(cd pkgs/sagemath-standard/build/scripts* && pwd):$PATH
+export PYTHONPATH=$(cd pkgs/sagemath-standard/build/lib* && pwd)
+#:$(cd pkgs/sage-setup && pwd)
+
+sage "$@"
+
+exit $?
+# configuration for sage on void linux
+SAGE_SHARE = "/usr/share/sagemath"
+GAP_ROOT_DIR = "/usr/share/gap"
+GAP_SO = "libgap.so.0"
