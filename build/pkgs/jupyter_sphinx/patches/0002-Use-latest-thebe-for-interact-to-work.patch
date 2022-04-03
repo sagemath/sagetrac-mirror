@@ -1,0 +1,25 @@
+From e5bedf302361f6208817cd5b656b02888feaaa8d Mon Sep 17 00:00:00 2001
+From: Kwankyu Lee <ekwankyu@gmail.com>
+Date: Sun, 3 Apr 2022 21:24:36 +0900
+Subject: [PATCH 2/2] Use latest thebe for interact to work
+
+---
+ jupyter_sphinx/__init__.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/jupyter_sphinx/__init__.py b/jupyter_sphinx/__init__.py
+index 2cd40b9..c493685 100644
+--- a/jupyter_sphinx/__init__.py
++++ b/jupyter_sphinx/__init__.py
+@@ -29,7 +29,7 @@ from .thebelab import ThebeButton, ThebeButtonNode, ThebeOutputNode, ThebeSource
+ REQUIRE_URL_DEFAULT = (
+     "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"
+ )
+-THEBELAB_URL_DEFAULT = "https://unpkg.com/thebelab@^0.4.0"
++THEBELAB_URL_DEFAULT = "https://unpkg.com/thebe@latest/lib/index.js"
+ 
+ logger = logging.getLogger(__name__)
+ 
+-- 
+2.35.1
+

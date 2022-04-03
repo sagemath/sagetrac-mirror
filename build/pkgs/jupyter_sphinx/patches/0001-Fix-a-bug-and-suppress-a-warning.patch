@@ -1,7 +1,7 @@
-From 894d882520e92a2f997a68bfd28f4e4b7f211fca Mon Sep 17 00:00:00 2001
+From 1f1a767cf51627ac5bf2cf3209f44bdb32f4af46 Mon Sep 17 00:00:00 2001
 From: Kwankyu Lee <ekwankyu@gmail.com>
 Date: Sun, 27 Mar 2022 13:33:56 -0700
-Subject: [PATCH] jupyter_sphinx/execute.py: Fix a bug and suppress a warning
+Subject: [PATCH 1/2] Fix a bug and suppress a warning
 
 ---
  jupyter_sphinx/execute.py | 13 ++++++++-----
