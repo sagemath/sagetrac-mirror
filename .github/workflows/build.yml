@@ -36,7 +36,7 @@ jobs:
           ./sage -python -m pip install coverage
       
       - name: Static code check with pyright
-        run: pyright    
+        run: pyright --verbose
       
       - name: Build
         run: make build
