@@ -1559,7 +1559,7 @@ class PlumbingGraph(SageObject):
         r"""
         Apply `RP^2`-absorption from [Neu1981]_, p. 305, to the graph.
 
-        INPUT
+        INPUT:
         
         - ``j`` -- a vertex
         - ``i`` -- a vertex
