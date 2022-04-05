@@ -1,0 +1,80 @@
+From af16bbccc1e1e1a586fe86371a9437d9342bfa6f Mon Sep 17 00:00:00 2001
+From: Kwankyu Lee <ekwankyu@gmail.com>
+Date: Tue, 5 Apr 2022 13:49:03 +0900
+Subject: [PATCH 3/3] Use SageExecuteJupyterCells for faster processing
+
+---
+ jupyter_sphinx/__init__.py |  8 ++++++--
+ jupyter_sphinx/execute.py  | 33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+), 2 deletions(-)
+
+diff --git a/jupyter_sphinx/__init__.py b/jupyter_sphinx/__init__.py
+index c493685..5c8a32c 100644
+--- a/jupyter_sphinx/__init__.py
++++ b/jupyter_sphinx/__init__.py
+@@ -168,7 +168,7 @@ def setup(app):
+     app.add_config_value("jupyter_sphinx_embed_url", None, "html")
+ 
+     # thebelab config, can be either a filename or a dict
+-    app.add_config_value("jupyter_sphinx_thebelab_config", None, "html")
++    app.add_config_value("jupyter_sphinx_thebelab_config", None, "env")
+     app.add_config_value("jupyter_sphinx_thebelab_url", THEBELAB_URL_DEFAULT, "html")
+ 
+     # linenos config
+@@ -271,7 +271,11 @@ def setup(app):
+     app.add_role("jupyter-download:notebook", JupyterDownloadRole())
+     app.add_role("jupyter-download:nb", JupyterDownloadRole())
+     app.add_role("jupyter-download:script", JupyterDownloadRole())
+-    app.add_transform(ExecuteJupyterCells)
++    if os.environ.get('SAGE_LIVE_DOC', 'no') == 'yes':
++        from .execute import SageExecuteJupyterCells
++        app.add_transform(SageExecuteJupyterCells)
++    else:
++        app.add_transform(ExecuteJupyterCells)
+     app.add_transform(CellOutputsToNodes)
+ 
+     # For syntax highlighting
+diff --git a/jupyter_sphinx/execute.py b/jupyter_sphinx/execute.py
+index 7514cff..1aca4fd 100644
+--- a/jupyter_sphinx/execute.py
++++ b/jupyter_sphinx/execute.py
+@@ -323,3 +323,36 @@ def setup(app):
+     )
+     out = jssetup(app)
+     return out
++
++
++class SageExecuteJupyterCells(SphinxTransform):
++    """A cut-down ExecuteJupyterCells for building Sage documentation.
++
++    All JupyterCellNodes for code blocks in the Sage documentation have
++    `:hide-code:` and `:hide-output:` options. Hence no actual execution of
++    Jupyter notebooks is necessary. So this class mimics ExecuteJupyterCells
++    assuming empty inputs and outputs from Jupyter notebooks.
++    """
++    default_priority = 180
++
++    def apply(self):
++        doctree = self.document
++        thebe_config = self.config.jupyter_sphinx_thebelab_config
++
++        nodes = doctree.traverse(JupyterCellNode)
++
++        if not nodes:
++            return
++
++        if thebe_config:
++            # Add the button at the bottom if it is not present
++            if not doctree.traverse(ThebeButtonNode):
++                doctree.append(ThebeButtonNode())
++            add_thebelab_library(doctree, self.env)
++
++        for node in nodes:
++            source = node.children[0]
++            source.attributes["classes"].append("code_cell")
++            node.attributes["cm_language"] = 'sage'
++            node += CellOutputBundleNode([])
++
+-- 
+2.35.1
+
