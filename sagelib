@@ -34,7 +34,7 @@ setup() {
     ( cd pkgs/sagemath-standard &&
         PYTHONPATH=../sage-setup \
         SAGE_NUM_THREADS=$jobs \
-        python setup.py "$@" )
+        python -B setup.py "$@" )
 }
 
 build() {
@@ -47,13 +47,13 @@ build() {
         ./bootstrap )
 
     # unrename python3 exts
-    SAGE_LIB=$(cd pkgs/sagemath-standard/build/lib* && pwd)
+    SAGE_LIB=$(cd pkgs/sagemath-standard/build/lib* && pwd || true)
     [ -n "$SAGE_LIB" ] && unrename_python3_exts "$SAGE_LIB"
 
     ( cd pkgs/sagemath-standard &&
         PYTHONPATH=../sage-setup \
         SAGE_NUM_THREADS=$jobs \
-        python setup.py build )
+        python -B setup.py build )
 
     SAGE_SCRIPTS=$(cd pkgs/sagemath-standard/build/scripts* && pwd)
     SAGE_LIB=$(cd pkgs/sagemath-standard/build/lib* && pwd)
@@ -62,20 +62,12 @@ build() {
     rename_python3_exts "$SAGE_LIB"
 
     # remove sage-venv-config since it clobbers PATH
-    #rm $SAGE_SCRIPTS/sage-venv-config
+    rm $SAGE_SCRIPTS/sage-venv-config
 
     # override pytest as if not installed (pending #31924)
     echo "raise ModuleNotFoundError" > $SAGE_LIB/pytest.py
     # override sphinx as if not installed (pending #33585)
     echo "raise ModuleNotFoundError" > $SAGE_LIB/sphinx.py
-
-    # get three.min.js
-    THREEJS_DIR=$SAGE_LIB/sage/ext_data/threejs
-    threejs_version=$(cat $THREEJS_DIR/threejs-version.txt)
-    mkdir -p $THREEJS_DIR/$threejs_version
-    [ -f $THREEJS_DIR/$threejs_version/three.min.js ] ||
-    wget -nv -cP $THREEJS_DIR/$threejs_version \
-        https://github.com/sagemath/threejs-sage/raw/$threejs_version/build/three.min.js
 
     # create sage_conf.py
     sed '1,/^exit/d' "$0" > $SAGE_LIB/sage_conf.py
@@ -97,21 +89,6 @@ sage "$@"
 
 exit $?
 # configuration for sage on void linux
-CONWAY_POLYNOMIALS_DATA_DIR = "/usr/share/sagemath/conway_polynomials"
-GRAPHS_DATA_DIR = "/usr/share/sagemath/graphs"
-ELLCURVE_DATA_DIR = "/usr/share/sagemath/ellcurves"
-POLYTOPE_DATA_DIR = "/usr/share/sagemath/reflexive_polytopes"
-COMBINATORIAL_DESIGN_DATA_DIR = "/usr/share/sagemath/combinatorial_designs"
-CREMONA_MINI_DATA_DIR = "/usr/share/sagemath/cremona"
-CREMONA_LARGE_DATA_DIR = "/usr/share/sagemath/cremona"
-#from sage.env import SAGE_EXTCODE
-#THREEJS_DIR = SAGE_EXTCODE + "/threejs"
+SAGE_SHARE = "/usr/share/sagemath"
+GAP_ROOT_DIR = "/usr/share/gap"
 GAP_SO = "libgap.so.0"
-
-#import os, importlib
-#THREEJS_DIR = os.path.join(os.path.dirname(
-#    importlib.util.find_spec('sage').origin),
-#    "ext_data", "threejs")
-
-# SAGE_VENV = "blah"
-#SAGE_VENV = ""
