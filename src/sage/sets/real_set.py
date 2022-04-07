@@ -1169,8 +1169,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                     elif op == ge:
                         op = le
                     intervals.extend(rel_to_interval(op, arg.lhs()))
-                else:
-                    raise ValueError(str(arg) + ' does not determine real interval')
+                else: raise ValueError(str(arg) + ' does not determine real interval')
             else:
                 from sage.manifolds.differentiable.examples.real_line import OpenInterval
                 from sage.manifolds.subsets.closure import ManifoldSubsetClosure
