@@ -49,16 +49,6 @@ def pytest_pycollect_makeitem(collector: PyCollector, name: str, obj: type):
         return None
 
 
-# Ignore a few test files that are (not yet) using pytest
-collect_ignore = [
-    "sage/misc/nested_class_test.py",
-    "sage/repl/rich_output/backend_test.py"
-    "sage/tests/deprecation_test.py",
-    "sage/libs/gap/test_long.py",
-    "sage/structure/test_factory.py",
-]
-
-
 def pytest_generate_tests(metafunc: Metafunc):
     # Add support for the "category_instance" parametrization
     categor_instance_fixure_name = "category_instance"

@@ -963,4 +963,3 @@ class Semigroups(CategoryWithAxiom):
                 """
                 S = self.basis().keys()
                 return S.regular_representation(self.base_ring(), side)
-
