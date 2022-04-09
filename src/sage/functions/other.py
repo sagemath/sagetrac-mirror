@@ -1172,7 +1172,7 @@ class Function_real_part(GinacFunction):
             0
         """
         GinacFunction.__init__(self, "real_part",
-                               conversions=dict(maxima='realpart',
+                               conversions=dict(maxima='%realpart',
                                                 sympy='re',
                                                 giac='re'),
                                alt_name="real")
