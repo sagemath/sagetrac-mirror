@@ -1233,7 +1233,7 @@ class Function_imag_part(GinacFunction):
             \Im \left( f\left(x\right) \right)
         """
         GinacFunction.__init__(self, "imag_part",
-                               conversions=dict(maxima='imagpart',
+                               conversions=dict(maxima='%imagpart',
                                                 sympy='im',
                                                 giac='im'),
                                alt_name="imag")
