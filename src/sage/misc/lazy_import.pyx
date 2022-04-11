@@ -56,10 +56,10 @@ AUTHOR:
 # lazy imports support old and true division.
 
 cimport cython
+from contextlib import contextmanager
+from enum import Enum
 from cpython.object cimport PyObject_RichCompare
 from cpython.number cimport PyNumber_TrueDivide, PyNumber_Power, PyNumber_Index
-import sage.misc.startup_guard as startup_guard
-from sage.misc.startup_guard import StartupState
 
 cdef extern from *:
     int likely(int) nogil  # Defined by Cython
@@ -79,33 +79,79 @@ cdef inline obj(x):
     else:
         return x
 
-cdef list imports_resolved_at_startup = []
 
-def _get_imports_resolved_at_startup():
+class GuardState(Enum):
     """
-    Return all lazy imports that were resolved during startup.
+    Possible states of the lazy import guard.
+    """
+
+    UNLOCKED = 0
+    """
+    The startup process is not yet started or has already finished.
+    """
+
+    LOCKED = 1
+    """
+    The startup is in process.
+    """
+
+
+guard_state = GuardState.UNLOCKED
+
+
+@contextmanager
+def lock():
+    """
+    Simple context manager to indicate whether Sage is currently starting,
+    which usually means importing `sage.all`.
+
+    EXAMPLES::
+
+        sage: import sage.misc.lazy_import as lazy_import
+        sage: print(lazy_import.guard_state)
+        GuardState.UNLOCKED
+        sage: with lazy_import.lock():
+        ....:     print(lazy_import.guard_state)
+        GuardState.LOCKED
+        sage: print(lazy_import.guard_state)
+        GuardState.UNLOCKED
+        sage: with lazy_import.lock():
+        ....:     print(lazy_import.guard_state)
+        GuardState.LOCKED
+    """
+    global startup_state
+    guard_state = GuardState.RUNNING
+    yield
+    guard_state = GuardState.FINISHED
+
+cdef list imports_resolved_during_locked = []
+
+def _get_imports_resolved_during_locked():
+    """
+    Return all lazy imports that were resolved while the layz import guard
+    has been locked.
     Only used for integration tests.
 
     EXAMPLES::
 
-        sage: from sage.misc.lazy_import import LazyImport, _get_imports_resolved_at_startup
-        sage: import sage.misc.startup_guard
-        sage: with sage.misc.startup_guard.startup():
+        sage: from sage.misc.lazy_import import LazyImport, _get_imports_resolved_during_locked, lock
+         sage: with lock():
         ....:     flatten = LazyImport('sage.misc.flatten', 'flatten')
         ....:     result = flatten([[1,1],[1],2])
-        sage: _get_imports_resolved_at_startup()
+        sage: _get_imports_resolved_during_locked()
         ['flatten']
 
     TESTS::
         
-    No imports (except for the above test) should be resolved during import of sage.all (which has been done globally for doctests) 
+    No imports (except for the above test) should have be resolved during
+    the import of ``sage.all`` (which has been done globally for doctests). 
 
-        sage: from sage.misc.lazy_import import _get_imports_resolved_at_startup
-        sage: _get_imports_resolved_at_startup()
+        sage: from sage.misc.lazy_import import _get_imports_resolved_during_locked
+        sage: _get_imports_resolved_during_locked()
         ['flatten']
     """
-    global imports_resolved_at_startup
-    return imports_resolved_at_startup
+    global imports_resolved_during_locked
+    return imports_resolved_during_locked
 
 @cython.final
 cdef class LazyImport(object):
@@ -190,10 +236,10 @@ cdef class LazyImport(object):
         if self._object is not None:
             return self._object
 
-        if startup_guard.startup_state is StartupState.RUNNING and not self._at_startup:
-            global imports_resolved_at_startup
-            imports_resolved_at_startup.append(self._name)
-        elif startup_guard.startup_state is StartupState.FINISHED and self._at_startup:
+        if guard_state is GuardState.LOCKED and not self._at_startup:
+            global imports_resolved_during_locked
+            imports_resolved_during_locked.append(self._name)
+        elif guard_state is GuardState.UNLOCKED and self._at_startup:
             warn(f"Option ``at_startup=True`` for lazy import {self._name} not needed anymore")
         try:
             self._object = getattr(__import__(self._module, {}, {}, [self._name]), self._name)
