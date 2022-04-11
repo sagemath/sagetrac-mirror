@@ -253,7 +253,7 @@ cdef class InteractiveLPBackend:
                                        problem_type, ring, objective_constant_term=d)
         return self.ncols() - 1
 
-    cpdef  set_variable_type(self, int variable, int vtype):
+    cpdef set_variable_type(self, int variable, int vtype):
         """
         Set the type of a variable.
 
