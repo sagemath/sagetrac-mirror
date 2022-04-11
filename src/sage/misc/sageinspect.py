@@ -57,7 +57,7 @@ Python classes::
     sage: sage_getfile(BlockFinder)
     '.../sage/misc/sageinspect.py'
 
-    sage: sage_getdoc(BlockFinder).lstrip()
+    sage: sage_getdoc(BlockFinder).lstrip()[:50]
     'Provide a tokeneater() method to detect the...'
 
     sage: sage_getsource(BlockFinder)
@@ -183,7 +183,8 @@ def loadable_module_extension():
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import loadable_module_extension
-        sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
+        sage: from importlib.machinery import EXTENSION_SUFFIXES
+        sage: loadable_module_extension() in EXTENSION_SUFFIXES
         True
     """
     # Return the full platform-specific extension module suffix
@@ -521,15 +522,14 @@ class SageArgSpecVisitor(ast.NodeVisitor):
 
         EXAMPLES::
 
-            sage: import ast, sage.misc.sageinspect as sms  # py3
-            sage: visitor = sms.SageArgSpecVisitor()  # py3
-            sage: vis = lambda x: visitor.visit_NameConstant(ast.parse(x).body[0].value)  # py3
-            sage: [vis(n) for n in ['True', 'False', 'None']]  # py3
+            sage: import ast, sage.misc.sageinspect as sms
+            sage: visitor = sms.SageArgSpecVisitor()
+            sage: vis = lambda x: visitor.visit_NameConstant(ast.parse(x).body[0].value)
+            sage: [vis(n) for n in ['True', 'False', 'None']]
             [True, False, None]
-            sage: [type(vis(n)) for n in ['True', 'False', 'None']]  # py3
+            sage: [type(vis(n)) for n in ['True', 'False', 'None']]
             [<class 'bool'>, <class 'bool'>, <class 'NoneType'>]
         """
-
         return node.value
 
     def visit_arg(self, node):
@@ -552,11 +552,11 @@ class SageArgSpecVisitor(ast.NodeVisitor):
 
         EXAMPLES::
 
-            sage: import ast, sage.misc.sageinspect as sms  # py3
-            sage: s = "def f(a, b=2, c={'a': [4, 5.5, False]}, d=(None, True)):\n    return"  # py3
-            sage: visitor = sms.SageArgSpecVisitor()  # py3
-            sage: args = ast.parse(s).body[0].args.args  # py3
-            sage: [visitor.visit_arg(n) for n in args]  # py3
+            sage: import ast, sage.misc.sageinspect as sms
+            sage: s = "def f(a, b=2, c={'a': [4, 5.5, False]}, d=(None, True)):\n    return"
+            sage: visitor = sms.SageArgSpecVisitor()
+            sage: args = ast.parse(s).body[0].args.args
+            sage: [visitor.visit_arg(n) for n in args]
             ['a', 'b', 'c', 'd']
         """
         return node.arg
@@ -605,8 +605,8 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: import ast, sage.misc.sageinspect as sms
             sage: visitor = sms.SageArgSpecVisitor()
             sage: vis = lambda x: visitor.visit_Str(ast.parse(x).body[0].value)
-            sage: [vis(s) for s in ['"abstract"', "u'syntax'", r'''r"tr\ee"''']]
-            ['abstract', u'syntax', 'tr\\ee']
+            sage: [vis(s) for s in ['"abstract"', "'syntax'", r'''r"tr\ee"''']]
+            ['abstract', 'syntax', 'tr\\ee']
         """
         return node.s
 
@@ -803,11 +803,11 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         """
         op = node.op.__class__.__name__
         if op == 'Add':
-            return self.visit(node.left)+self.visit(node.right)
+            return self.visit(node.left) + self.visit(node.right)
         if op == 'Mult':
-            return self.visit(node.left)*self.visit(node.right)
+            return self.visit(node.left) * self.visit(node.right)
         if op == 'BitAnd':
-            return self.visit(node.left)&self.visit(node.right)
+            return self.visit(node.left) & self.visit(node.right)
         if op == 'BitOr':
             return self.visit(node.left) | self.visit(node.right)
         if op == 'BitXor':
@@ -929,7 +929,7 @@ def _grep_first_pair_of_parentheses(s):
             if level == 1:
                 return '(' + ''.join(out)
             level -= 1
-        elif c=="\\" and (single_quote or double_quote):
+        elif c == "\\" and (single_quote or double_quote):
             escaped = not escaped
         else:
             escaped = False
@@ -1342,10 +1342,12 @@ def sage_getfile(obj):
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getfile
-        sage: sage_getfile(sage.rings.rational)[-23:]
-        'sage/rings/rational.pyx'
-        sage: sage_getfile(Sq)[-42:]
-        'sage/algebras/steenrod/steenrod_algebra.py'
+        sage: sage_getfile(sage.rings.rational)
+        '...sage/rings/rational.pyx'
+        sage: sage_getfile(Sq)
+        '...sage/algebras/steenrod/steenrod_algebra.py'
+        sage: sage_getfile(x)
+        '...sage/symbolic/expression.pyx'
 
     The following tests against some bugs fixed in :trac:`9976`::
 
@@ -1401,8 +1403,9 @@ def sage_getfile(obj):
         sourcefile = inspect.getabsfile(obj)
     except TypeError: # this happens for Python builtins
         return ''
-    if sourcefile.endswith(loadable_module_extension()):
-        return sourcefile[:-len(loadable_module_extension())]+os.path.extsep+'pyx'
+    for suffix in import_machinery.EXTENSION_SUFFIXES:
+        if sourcefile.endswith(suffix):
+            return sourcefile[:-len(suffix)]+os.path.extsep+'pyx'
     return sourcefile
 
 
@@ -1570,10 +1573,6 @@ def sage_getargspec(obj):
     inspect module does)::
 
         sage: import inspect
-        sage: inspect.getargspec(range)  # py2
-        Traceback (most recent call last):
-        ...
-        TypeError: <built-in function range> is not a Python function
         sage: sage_getargspec(range)
         ArgSpec(args=[], varargs='args', keywords='kwds', defaults=None)
 
@@ -1585,6 +1584,8 @@ def sage_getargspec(obj):
         ....:     'class Foo:\n'
         ....:     '    def __call__(self):\n'
         ....:     '        return None\n'
+        ....:     '    def __module__(self):\n'
+        ....:     '        return "sage.misc.sageinspect"\n'
         ....:     '    def _sage_src_(self):\n'
         ....:     '        return "the source code string"')
         sage: shell.run_cell('f = Foo()')
@@ -1702,20 +1703,20 @@ def formatannotation(annotation, base_module=None):
 
         sage: from sage.misc.sageinspect import formatannotation
         sage: import inspect
-        sage: def foo(a, *, b:int, **kwargs): # py3
+        sage: def foo(a, *, b:int, **kwargs):
         ....:     pass
-        sage: s = inspect.signature(foo) # py3
+        sage: s = inspect.signature(foo)
 
-        sage: a = s.parameters['a'].annotation # py3
-        sage: a # py3
+        sage: a = s.parameters['a'].annotation
+        sage: a
         <class 'inspect._empty'>
-        sage: formatannotation(a) # py3
+        sage: formatannotation(a)
         'inspect._empty'
 
-        sage: b = s.parameters['b'].annotation # py3
-        sage: b # py3
+        sage: b = s.parameters['b'].annotation
+        sage: b
         <class 'int'>
-        sage: formatannotation(b) # py3
+        sage: formatannotation(b)
         'int'
     """
     if getattr(annotation, '__module__', None) == 'typing':
@@ -1723,7 +1724,7 @@ def formatannotation(annotation, base_module=None):
     if isinstance(annotation, type):
         if annotation.__module__ in ('builtins', base_module):
             return annotation.__qualname__
-        return annotation.__module__+'.'+annotation.__qualname__
+        return annotation.__module__ + '.' + annotation.__qualname__
     return repr(annotation)
 
 
@@ -1763,7 +1764,7 @@ def sage_formatargspec(args, varargs=None, varkw=None, defaults=None,
         sage: defaults = [3]
         sage: sage_formatargspec(args, defaults=defaults)
         '(a, b, c=3)'
-        sage: import warnings; warnings.simplefilter('ignore')  # py3: ignore DeprecationWarning
+        sage: import warnings; warnings.simplefilter('ignore')  # ignore DeprecationWarning
         sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults)
         True
     """
@@ -2054,7 +2055,6 @@ def sage_getdoc(obj, obj_name='', embedded=False):
             warn = """WARNING: the enclosing module is marked '{}',
 so doctests may not pass.""".format(skip)
             s = warn + "\n\n" + s
-        pass
 
     # Fix object naming
     if obj_name != '':
@@ -2314,12 +2314,12 @@ def sage_getsourcelines(obj):
     use a dummy parent class that has defined an element class by a
     nested class definition::
 
-        sage: from sage.misc.nested_class_test import TestNestedParent
+        sage: from sage.misc.test_nested_class import TestNestedParent
         sage: from sage.misc.sageinspect import sage_getsource
         sage: P = TestNestedParent()
         sage: E = P.element_class
         sage: E.__bases__
-        (<class 'sage.misc.nested_class_test.TestNestedParent.Element'>,
+        (<class 'sage.misc.test_nested_class.TestNestedParent.Element'>,
          <class 'sage.categories.sets_cat.Sets.element_class'>)
         sage: print(sage_getsource(E))
             class Element(object):

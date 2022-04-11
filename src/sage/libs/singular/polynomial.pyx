@@ -78,7 +78,7 @@ cdef int singular_polynomial_add(poly **ret, poly *p, poly *q, ring *r):
     p = p_Copy(p, r)
     q = p_Copy(q, r)
     ret[0] = p_Add_q(p, q, r)
-    return 0;
+    return 0
 
 
 cdef int singular_polynomial_sub(poly **ret, poly *p, poly *q, ring *r):
@@ -106,7 +106,8 @@ cdef int singular_polynomial_sub(poly **ret, poly *p, poly *q, ring *r):
     p = p_Copy(p, r)
     q = p_Copy(q, r)
     ret[0] = p_Add_q(p, p_Neg(q, r), r)
-    return 0;
+    return 0
+
 
 cdef int singular_polynomial_rmul(poly **ret, poly *p, RingElement n, ring *r):
     """
@@ -132,7 +133,7 @@ cdef int singular_polynomial_rmul(poly **ret, poly *p, RingElement n, ring *r):
         rChangeCurrRing(r)
     cdef number *_n = sa2si(n, r)
     ret[0] = pp_Mult_nn(p, _n, r)
-    n_Delete(&_n, r)
+    n_Delete(&_n, r.cf)
     return 0
 
 cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly *(*get_element)(object)):
@@ -277,7 +278,7 @@ cdef int singular_polynomial_cmp(poly *p, poly *q, ring *r):
             h = r.cf.cfSub(p_GetCoeff(p, r),p_GetCoeff(q, r),r.cf)
             # compare coeffs
             ret = -1+r.cf.cfIsZero(h,r.cf)+2*r.cf.cfGreaterZero(h, r.cf) # -1: <, 0:==, 1: >
-            n_Delete(&h, r)
+            n_Delete(&h, r.cf)
         p = pNext(p)
         q = pNext(q)
 
@@ -316,7 +317,8 @@ cdef int singular_polynomial_mul(poly** ret, poly *p, poly *q, ring *r) except -
     cdef unsigned long esum = le + lr
     overflow_check(esum, r)
     ret[0] = pp_Mult_qq(p, q, r)
-    return 0;
+    return 0
+
 
 cdef int singular_polynomial_div_coeff(poly** ret, poly *p, poly *q, ring *r) except -1:
     """
@@ -348,7 +350,7 @@ cdef int singular_polynomial_div_coeff(poly** ret, poly *p, poly *q, ring *r) ex
     cdef number *n = p_GetCoeff(q, r)
     n = r.cf.cfInvers(n,r.cf)
     ret[0] = pp_Mult_nn(p, n, r)
-    n_Delete(&n, r)
+    n_Delete(&n, r.cf)
     sig_off()
     return 0
 

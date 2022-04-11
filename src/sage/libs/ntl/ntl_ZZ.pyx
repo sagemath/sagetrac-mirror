@@ -99,7 +99,7 @@ cdef class ntl_ZZ(object):
             if not ((v[0].isdigit() or v[0] == '-') and \
                     (v[1:-1].isdigit() or (len(v) <= 2)) and \
                     (v[-1].isdigit() or (v[-1].lower() in ['l','r']))):
-               raise ValueError("invalid integer: %s" % v)
+                raise ValueError("invalid integer: %s" % v)
             ccreadstr(self.x, v)
 
     def __repr__(self):
@@ -257,7 +257,7 @@ cdef class ntl_ZZ(object):
             <... 'int'>
 
             sage: ntl.ZZ(10^30).__int__()
-            1000000000000000000000000000000L
+            1000000000000000000000000000000
             sage: type(ntl.ZZ(10^30).__int__())
             <class 'int'>
         """

@@ -126,11 +126,11 @@ class Interface(WithEqualityById, ParentWithBase):
             sage: from sage.interfaces.interface import Interface
             sage: i = Interface("")
             sage: i.rand_seed() # random
-            318491487L
+            318491487
 
             sage: s = Singular()
             sage: s.rand_seed() # random
-            365260051L
+            365260051
         """
         import sage.doctest
         if sage.doctest.DOCTEST_MODE:
@@ -1337,7 +1337,7 @@ class InterfaceElement(Element):
                             P._false_symbol())
         return P.eval(cmd) != P._true_symbol()
 
-    __nonzero__ = __bool__
+    
 
     def __float__(self):
         """

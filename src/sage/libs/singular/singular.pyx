@@ -1399,7 +1399,7 @@ cdef number *sa2si(Element elem, ring * _ring):
     """
     cdef int i = 0
     if isinstance(elem._parent, FiniteField_prime_modn):
-        return n_Init(int(elem),_ring)
+        return n_Init(int(elem),_ring.cf)
 
     elif isinstance(elem._parent, RationalField):
         return sa2si_QQ(elem, _ring)
@@ -1420,7 +1420,7 @@ cdef number *sa2si(Element elem, ring * _ring):
         return sa2si_NF(elem, _ring)
     elif isinstance(elem._parent, IntegerModRing_generic):
         if _ring.cf.type == n_unknown:
-            return n_Init(int(elem),_ring)
+            return n_Init(int(elem),_ring.cf)
         return sa2si_ZZmod(elem, _ring)
     elif isinstance(elem._parent, FractionField_generic) and isinstance(elem._parent.base(), (MPolynomialRing_libsingular, PolynomialRing_field)):
         if isinstance(elem._parent.base().base_ring(), RationalField):
@@ -1520,19 +1520,28 @@ cdef init_libsingular():
     # This is a workaround for https://github.com/Singular/Singular/issues/1113
     # and can be removed once that fix makes it into release of Singular that
     # is supported by sage.
-    from shutil import which
+    from sage.features import FeatureNotPresentError
+    from sage.features.singular import Singular
     from os.path import dirname
-    os.environ["SINGULAR_BIN_DIR"] = dirname(which("Singular"))
+    try:
+        singular_executable = Singular().absolute_filename()
+    except FeatureNotPresentError:
+        pass
+    else:
+        os.environ["SINGULAR_BIN_DIR"] = dirname(singular_executable)
 
-    handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
-    if not handle:
-        err = dlerror()
-        raise ImportError(f"cannot load Singular library from {LIBSINGULAR_PATH} ({err})")
+    import platform
+    if not platform.system().startswith("CYGWIN"):
+        handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
+        if not handle:
+            err = dlerror()
+            raise ImportError(f"cannot load Singular library from {LIBSINGULAR_PATH} ({err})")
 
     # load SINGULAR
     siInit(lib)
 
-    dlclose(handle)
+    if handle:
+        dlclose(handle)
 
     # we set and save some global Singular options
     singular_options = singular_options | Sy_bit(OPT_REDSB) | Sy_bit(OPT_INTSTRATEGY) | Sy_bit(OPT_REDTAIL) | Sy_bit(OPT_REDTHROUGH)

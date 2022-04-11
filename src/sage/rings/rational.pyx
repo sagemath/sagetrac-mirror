@@ -22,7 +22,7 @@ AUTHORS:
 - David Harvey (2006-09-15): added nth_root
 
 - Pablo De Napoli (2007-04-01): corrected the implementations of
-  multiplicative_order, is_one; optimized __nonzero__ ; documented:
+  multiplicative_order, is_one; optimized __bool__ ; documented:
   lcm,gcd
 
 - John Cremona (2009-05-15): added support for local and global
@@ -65,7 +65,6 @@ from cysignals.signals cimport sig_on, sig_off
 import operator
 import fractions
 
-from sage.misc.mathml import mathml
 from sage.arith.long cimport pyobject_to_long, integer_check_long_py
 from sage.cpython.string cimport char_to_str, str_to_bytes
 
@@ -961,11 +960,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         if self.denom() == 1:
             return str(self.numer())
+        if self < 0:
+            return "-\\frac{%s}{%s}" % (-self.numer(), self.denom())
         else:
-            if self < 0:
-                return "-\\frac{%s}{%s}"%(-self.numer(), self.denom())
-            else:
-               return "\\frac{%s}{%s}"%(self.numer(), self.denom())
+            return "\\frac{%s}{%s}" % (self.numer(), self.denom())
 
     def _symbolic_(self, sring):
         """
@@ -1093,6 +1091,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if self.denom() == 1:
             return '<mn>%s</mn>'%(self.numer())
         else:
+            from sage.misc.mathml import mathml
             t = ''
             if self < 0:
                 t = t + '<mo>-</mo>'
@@ -1720,7 +1719,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         return self.numer().squarefree_part() * self.denom().squarefree_part()
 
     def is_padic_square(self, p, check=True):
-        """
+        r"""
         Determines whether this rational number is a square in `\QQ_p` (or in
         `R` when ``p = infinity``).
 
@@ -2706,7 +2705,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_neg(x.value, self.value)
         return x
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if this rational number is nonzero.
 
@@ -4221,12 +4220,7 @@ cdef class int_to_Q(Morphism):
             sage: f = sage.rings.rational.int_to_Q()
             sage: f(int(4)) # indirect doctest
             4
-            sage: f(4^100)  # py2 - this will crash on Python 3
-            Traceback (most recent call last):
-            ...
-            TypeError: must be a Python int object
         """
-
         cdef Rational rat
 
         if type(a) is not int:

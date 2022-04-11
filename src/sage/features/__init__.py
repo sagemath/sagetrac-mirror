@@ -3,10 +3,11 @@ r"""
 Testing for features of the environment at runtime
 
 A computation can require a certain package to be installed in the runtime
-environment. Abstractly such a package describes a :class`Feature` which can
+environment. Abstractly such a package describes a :class:`Feature` which can
 be tested for at runtime. It can be of various kinds, most prominently an
-:class:`Executable` in the PATH or an additional package for some installed
-system such as a :class:`GapPackage`.
+:class:`Executable` in the ``PATH``, a :class:`PythonModule`, or an additional
+package for some installed
+system such as a :class:`~sage.features.gap.GapPackage`.
 
 AUTHORS:
 
@@ -27,7 +28,7 @@ feature::
 Here we test whether the grape GAP package is available::
 
     sage: from sage.features.gap import GapPackage
-    sage: GapPackage("grape", spkg="gap_packages").is_present()  # optional: gap_packages
+    sage: GapPackage("grape", spkg="gap_packages").is_present()  # optional - gap_packages
     FeatureTestResult('gap_package_grape', True)
 
 Note that a :class:`FeatureTestResult` acts like a bool in most contexts::
@@ -51,15 +52,18 @@ can use the ``require`` method::
 As can be seen above, features try to produce helpful error messages.
 """
 
+from __future__ import annotations
+
 import os
 import shutil
+from pathlib import Path
 
-from sage.env import SAGE_SHARE
-from sage.misc.lazy_string import lazy_string
+from sage.env import SAGE_SHARE, SAGE_LOCAL, SAGE_VENV
+
 
 class TrivialClasscallMetaClass(type):
     """
-    A trivial version of :class:`ClasscallMetaclass` without Cython dependencies.
+    A trivial version of :class:`sage.misc.classcall_metaclass.ClasscallMetaclass` without Cython dependencies.
     """
     def __call__(cls, *args, **kwds):
         r"""
@@ -146,7 +150,7 @@ class Feature(TrivialUniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.features.gap import GapPackage
-            sage: GapPackage("grape", spkg="gap_packages").is_present()  # optional: gap_packages
+            sage: GapPackage("grape", spkg="gap_packages").is_present()  # optional - gap_packages
             FeatureTestResult('gap_package_grape', True)
             sage: GapPackage("NOT_A_PACKAGE", spkg="gap_packages").is_present()
             FeatureTestResult('gap_package_NOT_A_PACKAGE', False)
@@ -228,28 +232,26 @@ class Feature(TrivialUniqueRepresentation):
 
         OUTPUT:
 
-        A string, a lazy string, or ``None``.  The default implementation always
-        returns a lazy string.
+        A string.
 
         EXAMPLES::
 
             sage: from sage.features import Executable
             sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="https://github.com/dimpase/csdp").resolution()  # optional - sage_spkg
-            l'...To install CSDP...you can try to run...sage -i csdp...Further installation instructions might be available at https://github.com/dimpase/csdp.'
+            '...To install CSDP...you can try to run...sage -i csdp...Further installation instructions might be available at https://github.com/dimpase/csdp.'
         """
-        def find_resolution():
-            if self._cache_resolution is not None:
-                return self._cache_resolution
-            lines = []
-            if self.spkg:
-                for ps in package_systems():
-                    lines.append(ps.spkg_installation_hint(self.spkg, feature=self.name))
-            if self.url:
-                lines.append("Further installation instructions might be available at {url}.".format(url=self.url))
-            self._cache_resolution = "\n".join(lines)
+        if self._cache_resolution is not None:
             return self._cache_resolution
+        lines = []
+        if self.spkg:
+            for ps in package_systems():
+                lines.append(ps.spkg_installation_hint(self.spkg, feature=self.name))
+        if self.url:
+            lines.append("Further installation instructions might be available at {url}.".format(url=self.url))
+        self._cache_resolution = "\n".join(lines)
+        return self._cache_resolution
 
-        return lazy_string(find_resolution)
+
 
 class FeatureNotPresentError(RuntimeError):
     r"""
@@ -270,7 +272,13 @@ class FeatureNotPresentError(RuntimeError):
     def __init__(self, feature, reason=None, resolution=None):
         self.feature = feature
         self.reason = reason
-        self.resolution = resolution or feature.resolution()
+        self._resolution = resolution
+
+    @property
+    def resolution(self):
+        if self._resolution:
+            return self._resolution
+        return self.feature.resolution()
 
     def __str__(self):
         r"""
@@ -288,8 +296,9 @@ class FeatureNotPresentError(RuntimeError):
         lines = ["{feature} is not available.".format(feature=self.feature.name)]
         if self.reason:
             lines.append(self.reason)
-        if self.resolution:
-            lines.append(str(self.resolution))
+        resolution = self.resolution
+        if resolution:
+            lines.append(str(resolution))
         return "\n".join(lines)
 
 
@@ -340,7 +349,13 @@ class FeatureTestResult(object):
         self.feature = feature
         self.is_present = is_present
         self.reason = reason
-        self.resolution = resolution or feature.resolution()
+        self._resolution = resolution
+
+    @property
+    def resolution(self):
+        if self._resolution:
+            return self._resolution
+        return self.feature.resolution()
 
     def __bool__(self):
         r"""
@@ -356,7 +371,7 @@ class FeatureTestResult(object):
         """
         return bool(self.is_present)
 
-    __nonzero__ = __bool__
+    
 
     def __repr__(self):
         r"""
@@ -373,7 +388,8 @@ _cache_package_systems = None
 
 def package_systems():
     """
-    Return a list of ``PackageSystem`` objects representing the available package systems.
+    Return a list of :class:`~sage.features.pkg_systems.PackageSystem` objects
+    representing the available package systems.
 
     The list is ordered by decreasing preference.
 
@@ -387,6 +403,7 @@ def package_systems():
     from subprocess import run, CalledProcessError, PIPE
     global _cache_package_systems
     if _cache_package_systems is None:
+        from .pkg_systems import PackageSystem, SagePackageSystem, PipPackageSystem
         _cache_package_systems = []
         # Try to use scripts from SAGE_ROOT (or an installation of sage_bootstrap)
         # to obtain system package advice.
@@ -402,178 +419,108 @@ def package_systems():
 
     return _cache_package_systems
 
-class PackageSystem(Feature):
+
+class FileFeature(Feature):
     r"""
-    A feature describing a system package manager.
+    Base class for features that describe a file or directory in the file system.
 
-    EXAMPLES::
+    A subclass should implement a method :meth:`absolute_filename`.
 
-        sage: from sage.features import PackageSystem
-        sage: PackageSystem('conda')
-        Feature('conda')
+    EXAMPLES:
+
+    Two direct concrete subclasses of :class:`FileFeature` are defined::
+
+        sage: from sage.features import StaticFile, Executable, FileFeature
+        sage: issubclass(StaticFile, FileFeature)
+        True
+        sage: issubclass(Executable, FileFeature)
+        True
+
+    To work with the file described by the feature, use the method :meth:`absolute_filename`.
+    A :class:`FeatureNotPresentError` is raised if the file cannot be found::
+
+        sage: Executable(name="does-not-exist", executable="does-not-exist-xxxxyxyyxyy").absolute_path()
+        Traceback (most recent call last):
+        ...
+        sage.features.FeatureNotPresentError: does-not-exist is not available.
+        Executable 'does-not-exist-xxxxyxyyxyy' not found on PATH.
+
+    A :class:`FileFeature` also provides the :meth:`is_present` method to test for
+    the presence of the file at run time. This is inherited from the base class
+    :class:`Feature`::
+
+        sage: Executable(name="sh", executable="sh").is_present()
+        FeatureTestResult('sh', True)
     """
     def _is_present(self):
         r"""
-        Test whether ``self`` appears in the list of available package systems.
+        Whether the file is present.
 
         EXAMPLES::
 
-            sage: from sage.features import PackageSystem
-            sage: debian = PackageSystem('debian')
-            sage: debian.is_present()  # indirect doctest, random
-            True
+           sage: from sage.features import StaticFile
+           sage: StaticFile(name="no_such_file", filename="KaT1aihu", spkg="some_spkg", url="http://rand.om").is_present()
+           FeatureTestResult('no_such_file', False)
         """
-        return self in package_systems()
-
-    def spkg_installation_hint(self, spkgs, *, prompt="  !", feature=None):
-        r"""
-        Return a string that explains how to install ``feature``.
-
-        EXAMPLES::
-
-            sage: from sage.features import PackageSystem
-            sage: homebrew = PackageSystem('homebrew')
-            sage: homebrew.spkg_installation_hint('openblas')  # optional - SAGE_ROOT
-            'To install openblas using the homebrew package manager, you can try to run:\n!brew install openblas'
-        """
-        if isinstance(spkgs, (tuple, list)):
-            spkgs = ' '.join(spkgs)
-        if feature is None:
-            feature = spkgs
-        return self._spkg_installation_hint(spkgs, prompt, feature)
-
-    def _spkg_installation_hint(self, spkgs, prompt, feature):
-        r"""
-        Return a string that explains how to install ``feature``.
-
-        Override this method in derived classes.
-
-        EXAMPLES::
-
-            sage: from sage.features import PackageSystem
-            sage: fedora = PackageSystem('fedora')
-            sage: fedora.spkg_installation_hint('openblas')  # optional - SAGE_ROOT
-            'To install openblas using the fedora package manager, you can try to run:\n!sudo yum install openblas-devel'
-        """
-        from subprocess import run, CalledProcessError, PIPE
-        lines = []
-        system = self.name
         try:
-            proc = run(f'sage-get-system-packages {system} {spkgs}',
-                       shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True, check=True)
-            system_packages = proc.stdout.strip()
-            print_sys = f'sage-print-system-package-command {system} --verbose --sudo --prompt="{prompt}"'
-            command = f'{print_sys} update && {print_sys} install {system_packages}'
-            proc = run(command, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True, check=True)
-            command = proc.stdout.strip()
-            if command:
-                lines.append(f'To install {feature} using the {system} package manager, you can try to run:')
-                lines.append(command)
-                return '\n'.join(lines)
-        except CalledProcessError:
+            abspath = self.absolute_filename()
+            return FeatureTestResult(self, True, reason="Found at `{abspath}`.".format(abspath=abspath))
+        except FeatureNotPresentError as e:
+            return FeatureTestResult(self, False, reason=e.reason, resolution=e.resolution)
+
+    def absolute_filename(self) -> str:
+        r"""
+        The absolute path of the file as a string.
+
+        Concrete subclasses must override this abstract method.
+
+        TESTS::
+
+            sage: from sage.features import FileFeature
+            sage: FileFeature(name="abstract_file").absolute_filename()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        # We do not use sage.misc.abstract_method here because that is provided by
+        # the distribution sagemath-objects, which is not an install-requires of
+        # the distribution sagemath-environment.
+        raise NotImplementedError
+
+    def absolute_path(self):
+        r"""
+        Deprecated alias for :meth:`absolute_filename`.
+
+        Deprecated to make way for a method of this name returning a ``Path``.
+
+        EXAMPLES::
+
+            sage: from sage.features import Executable
+            sage: Executable(name="sh", executable="sh").absolute_path()
+            doctest:warning...
+            DeprecationWarning: method absolute_path has been replaced by absolute_filename
+            See https://trac.sagemath.org/31292 for details.
+            '/...bin/sh'
+        """
+        try:
+            from sage.misc.superseded import deprecation
+        except ImportError:
+            # The import can fail because sage.misc.superseded is provided by
+            # the distribution sagemath-objects, which is not an
+            # install-requires of the distribution sagemath-environment.
             pass
-        return f'No equivalent system packages for {system} are known to Sage.'
+        else:
+            deprecation(31292, 'method absolute_path has been replaced by absolute_filename')
+        return self.absolute_filename()
 
-class SagePackageSystem(PackageSystem):
+
+class Executable(FileFeature):
     r"""
-    The feature describing the Sage package manager.
+    A feature describing an executable in the ``PATH``.
 
-    EXAMPLES::
-
-        sage: from sage.features import SagePackageSystem
-        sage: SagePackageSystem()
-        Feature('sage_spkg')
-    """
-    @staticmethod
-    def __classcall__(cls):
-        r"""
-        Normalize initargs.
-
-        TESTS::
-
-            sage: from sage.features import SagePackageSystem
-            sage: SagePackageSystem() is SagePackageSystem()  # indirect doctest
-            True
-        """
-        return PackageSystem.__classcall__(cls, "sage_spkg")
-
-    def _is_present(self):
-        r"""
-        Test whether ``sage-spkg`` is available.
-
-        EXAMPLES::
-
-            sage: from sage.features import SagePackageSystem
-            sage: bool(SagePackageSystem().is_present())  # indirect doctest, optional - sage_spkg
-            True
-        """
-        from subprocess import run, DEVNULL, CalledProcessError
-        try:
-            # "sage -p" is a fast way of checking whether sage-spkg is available.
-            run('sage -p', shell=True, stdout=DEVNULL, stderr=DEVNULL, check=True)
-            return True
-        except CalledProcessError:
-            return False
-
-    def _spkg_installation_hint(self, spkgs, prompt, feature):
-        r"""
-        Return a string that explains how to install ``feature``.
-
-        EXAMPLES::
-
-            sage: from sage.features import SagePackageSystem
-            sage: print(SagePackageSystem().spkg_installation_hint(['foo', 'bar'], prompt="### ", feature='foobarability'))  # indirect doctest
-            To install foobarability using the Sage package manager, you can try to run:
-            ### sage -i foo bar
-        """
-        lines = []
-        lines.append(f'To install {feature} using the Sage package manager, you can try to run:')
-        lines.append(f'{prompt}sage -i {spkgs}')
-        return '\n'.join(lines)
-
-class PipPackageSystem(PackageSystem):
-    r"""
-    The feature describing the Pip package manager.
-
-    EXAMPLES::
-
-        sage: from sage.features import PipPackageSystem
-        sage: PipPackageSystem()
-        Feature('pip')
-    """
-    @staticmethod
-    def __classcall__(cls):
-        r"""
-        Normalize initargs.
-
-        TESTS::
-
-            sage: from sage.features import PipPackageSystem
-            sage: PipPackageSystem() is PipPackageSystem()  # indirect doctest
-            True
-        """
-        return PackageSystem.__classcall__(cls, "pip")
-
-    def _is_present(self):
-        r"""
-        Test whether ``pip`` is available.
-
-        EXAMPLES::
-
-            sage: from sage.features import PipPackageSystem
-            sage: bool(PipPackageSystem().is_present())    # indirect doctest
-            True
-        """
-        from subprocess import run, DEVNULL, CalledProcessError
-        try:
-            run('sage -pip --version', shell=True, stdout=DEVNULL, stderr=DEVNULL, check=True)
-            return True
-        except CalledProcessError:
-            return False
-
-class Executable(Feature):
-    r"""
-    A feature describing an executable in the PATH.
+    In an installation of Sage with ``SAGE_LOCAL`` different from ``SAGE_VENV``, the
+    executable is searched first in ``SAGE_VENV/bin``, then in ``SAGE_LOCAL/bin``,
+    then in ``PATH``.
 
     .. NOTE::
 
@@ -615,13 +562,18 @@ class Executable(Feature):
             sage: Executable(name="sh", executable="sh").is_present()
             FeatureTestResult('sh', True)
         """
-        if shutil.which(self.executable) is None:
-            return FeatureTestResult(self, False, "Executable {executable!r} not found on PATH.".format(executable=self.executable))
+        result = FileFeature._is_present(self)
+        if not result:
+            return result
         return self.is_functional()
 
     def is_functional(self):
         r"""
         Return whether an executable in the path is functional.
+
+        This method is used internally and can be overridden in subclasses
+        in order to implement a feature test. It should not be called directly.
+        Use :meth:`Feature.is_present` instead.
 
         EXAMPLES:
 
@@ -633,8 +585,43 @@ class Executable(Feature):
         """
         return FeatureTestResult(self, True)
 
+    def absolute_filename(self) -> str:
+        r"""
+        The absolute path of the executable as a string.
 
-class StaticFile(Feature):
+        EXAMPLES::
+
+            sage: from sage.features import Executable
+            sage: Executable(name="sh", executable="sh").absolute_filename()
+            '/...bin/sh'
+
+        A :class:`FeatureNotPresentError` is raised if the file cannot be found::
+
+            sage: Executable(name="does-not-exist", executable="does-not-exist-xxxxyxyyxyy").absolute_path()
+            Traceback (most recent call last):
+            ...
+            sage.features.FeatureNotPresentError: does-not-exist is not available.
+            Executable 'does-not-exist-xxxxyxyyxyy' not found on PATH.
+        """
+        if SAGE_LOCAL:
+            if Path(SAGE_VENV).resolve() != Path(SAGE_LOCAL).resolve():
+                # As sage.env currently gives SAGE_LOCAL a fallback value from SAGE_VENV,
+                # SAGE_LOCAL is never unset.  So we only use it if it differs from SAGE_VENV.
+                search_path = ':'.join([os.path.join(SAGE_VENV, 'bin'),
+                                        os.path.join(SAGE_LOCAL, 'bin')])
+                path = shutil.which(self.executable, path=search_path)
+                if path is not None:
+                    return path
+        # Now look up in the regular PATH.
+        path = shutil.which(self.executable)
+        if path is not None:
+            return path
+        raise FeatureNotPresentError(self,
+                                     reason="Executable {executable!r} not found on PATH.".format(executable=self.executable),
+                                     resolution=self.resolution())
+
+
+class StaticFile(FileFeature):
     r"""
     A :class:`Feature` which describes the presence of a certain file such as a
     database.
@@ -665,23 +652,9 @@ class StaticFile(Feature):
         else:
             self.search_path = list(search_path)
 
-    def _is_present(self):
+    def absolute_filename(self) -> str:
         r"""
-        Whether the static file is present.
-
-           sage: from sage.features import StaticFile
-           sage: StaticFile(name="no_such_file", filename="KaT1aihu", spkg="some_spkg", url="http://rand.om").is_present()
-           FeatureTestResult('no_such_file', False)
-        """
-        try:
-            abspath = self.absolute_path()
-            return FeatureTestResult(self, True, reason="Found at `{abspath}`.".format(abspath=abspath))
-        except FeatureNotPresentError as e:
-            return FeatureTestResult(self, False, reason=e.reason, resolution=e.resolution)
-
-    def absolute_path(self):
-        r"""
-        The absolute path of the file.
+        The absolute path of the file as a string.
 
         EXAMPLES::
 
@@ -692,13 +665,13 @@ class StaticFile(Feature):
             sage: open(file_path, 'a').close() # make sure the file exists
             sage: search_path = ( '/foo/bar', dir_with_file ) # file is somewhere in the search path
             sage: feature = StaticFile(name="file", filename="file.txt", search_path=search_path)
-            sage: feature.absolute_path() == file_path
+            sage: feature.absolute_filename() == file_path
             True
 
-        A ``FeatureNotPresentError`` is raised if the file cannot be found::
+        A :class:`FeatureNotPresentError` is raised if the file cannot be found::
 
             sage: from sage.features import StaticFile
-            sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=(), spkg="some_spkg", url="http://rand.om").absolute_path()  # optional - sage_spkg
+            sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=(), spkg="some_spkg", url="http://rand.om").absolute_filename()  # optional - sage_spkg
             Traceback (most recent call last):
             ...
             FeatureNotPresentError: no_such_file is not available.
@@ -708,7 +681,7 @@ class StaticFile(Feature):
         """
         for directory in self.search_path:
             path = os.path.join(directory, self.filename)
-            if os.path.isfile(path):
+            if os.path.isfile(path) or os.path.isdir(path):
                 return os.path.abspath(path)
         raise FeatureNotPresentError(self,
             reason="{filename!r} not found in any of {search_path}".format(filename=self.filename, search_path=self.search_path),
@@ -788,7 +761,11 @@ class CythonFeature(Feature):
             FeatureTestResult('empty', True)
         """
         from sage.misc.temporary_file import tmp_filename
-        from distutils.errors import CCompilerError
+        try:
+            # Available since https://setuptools.pypa.io/en/latest/history.html#v59-0-0
+            from setuptools.errors import CCompilerError
+        except ImportError:
+            from distutils.errors import CCompilerError
         with open(tmp_filename(ext=".pyx"), 'w') as pyx:
             pyx.write(self.test_code)
         from sage.misc.cython import cython_import

@@ -145,7 +145,7 @@ def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=Fals
 class ModularFormsRing(Parent):
     r"""
     The ring of modular forms (of weights 0 or at least 2) for a congruence
-    subgroup of `{\rm SL}_2(\ZZ)`, with coefficients in a specified base ring.
+    subgroup of `\SL_2(\ZZ)`, with coefficients in a specified base ring.
 
     EXAMPLES::
 
@@ -196,7 +196,7 @@ class ModularFormsRing(Parent):
         r"""
         INPUT:
 
-        - ``group`` -- a congruence subgroup of `{\rm SL}_2(\ZZ)`, or a
+        - ``group`` -- a congruence subgroup of `\SL_2(\ZZ)`, or a
           positive integer `N` (interpreted as `\Gamma_0(N)`)
 
         - ``base_ring`` (ring, default: `\QQ`) -- a base ring, which should be
@@ -349,10 +349,9 @@ class ModularFormsRing(Parent):
         degs = [f.weight() for f in gens]
         return PolynomialRing(self.base_ring(), len(gens), names, order=TermOrder('wdeglex', degs)) # Should we remove the deg lexicographic ordering here?
 
-
     def _generators_variables_dictionnary(self, poly_parent, gens):
         r"""
-        Utility function that returns a dictionnary giving an association between
+        Utility function that returns a dictionary giving an association between
         polynomial ring generators and generators of modular forms ring.
 
         INPUT:

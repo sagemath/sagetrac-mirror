@@ -362,17 +362,6 @@ cdef class LazyImport(object):
         """
         return str(self.get_object())
 
-    def __unicode__(self):
-        """
-        TESTS::
-
-            sage: from sage.misc.lazy_import import LazyImport
-            sage: lazy_ZZ = LazyImport('sage.rings.all', 'ZZ')
-            sage: str(lazy_ZZ) == str(ZZ)
-            True
-        """
-        return unicode(self.get_object())
-
     def __bool__(self):
         """
         TESTS::
@@ -869,8 +858,17 @@ cdef class LazyImport(object):
             sage: lazy_import('sage.rings.rational_field', 'RationalField')
             sage: isinstance(QQ, RationalField)
             True
+
+        No object is an instance of a class that cannot be imported::
+
+            sage: lazy_import('sage.xxxxx_does_not_exist', 'DoesNotExist')
+            sage: isinstance(QQ, DoesNotExist)
+            False
         """
-        return isinstance(x, self.get_object())
+        try:
+            return isinstance(x, self.get_object())
+        except ImportError:
+            return False
 
     def __subclasscheck__(self, x):
         """
@@ -881,8 +879,17 @@ cdef class LazyImport(object):
             sage: lazy_import('sage.structure.parent', 'Parent')
             sage: issubclass(RationalField, Parent)
             True
+
+        No class is a subclass of a class that cannot be imported::
+
+            sage: lazy_import('sage.xxxxx_does_not_exist', 'DoesNotExist')
+            sage: issubclass(RationalField, DoesNotExist)
+            False
         """
-        return issubclass(x, self.get_object())
+        try:
+            return issubclass(x, self.get_object())
+        except ImportError:
+            return False
 
 
 def lazy_import(module, names, as_=None, *,
@@ -1026,7 +1033,6 @@ def save_cache_file():
         sage: import sage.misc.lazy_import
         sage: sage.misc.lazy_import.save_cache_file()
     """
-    from sage.misc.misc import sage_makedirs
     from sage.misc.temporary_file import atomic_write
 
     global star_imports
@@ -1035,7 +1041,7 @@ def save_cache_file():
     cache_file = get_cache_file()
     cache_dir = os.path.dirname(cache_file)
 
-    sage_makedirs(cache_dir)
+    os.makedirs(cache_dir, exist_ok=True)
     with atomic_write(cache_file, binary=True) as f:
         pickle.dump(star_imports, f)
 

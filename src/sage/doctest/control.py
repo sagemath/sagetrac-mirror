@@ -38,7 +38,7 @@ from .sources import FileDocTestSource, DictAsObject
 from .forker import DocTestDispatcher
 from .reporting import DocTestReporter
 from .util import Timer, count_noun, dict_difference
-from .external import external_software, available_software
+from .external import available_software
 from .parsing import parse_optional_tags
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
@@ -47,7 +47,7 @@ optionalfiledirective_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*sage\.doctes
 
 # Optional tags which are always automatically added
 
-auto_optional_tags = set(['py3'])
+auto_optional_tags = set()
 
 try:
     from sage.libs.arb.arb_version import version as arb_vers
@@ -55,6 +55,7 @@ try:
     auto_optional_tags.add(arb_tag)
 except ImportError:
     pass
+
 
 class DocTestDefaults(SageObject):
     """
@@ -99,7 +100,9 @@ class DocTestDefaults(SageObject):
         self.nthreads = 1
         self.serial = False
         self.timeout = -1
+        self.die_timeout = -1
         self.all = False
+        self.installed = False
         self.logfile = None
         self.long = False
         self.warn_long = -1.0
@@ -124,6 +127,7 @@ class DocTestDefaults(SageObject):
         self.new = False
         self.show_skipped = False
         self.target_walltime = -1
+        self.baseline_stats_path = None
 
         # sage-runtests contains more optional tags. Technically, adding
         # auto_optional_tags here is redundant, since that is added
@@ -249,8 +253,15 @@ def skipfile(filename, tested_optional_tags=False):
         sage: skipfile(filename, True)
         False
     """
-    base, ext = os.path.splitext(filename)
-    if ext not in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst', '.tex'):
+    if filename.endswith('.rst.txt'):
+        ext = '.rst.txt'
+    else:
+        base, ext = os.path.splitext(filename)
+    # .rst.txt appear in the installed documentation in subdirectories named "_sources"
+    if ext not in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst', '.tex', '.rst.txt'):
+        return True
+    # These files are created by the jupyter-sphinx extension for internal use and should not be tested
+    if "jupyter_execute" in filename:
         return True
     with open(filename) as F:
         line_count = 0
@@ -408,12 +419,6 @@ class DocTestController(SageObject):
                     from sage.features import package_systems
                     options.optional.update(system.name
                                             for system in package_systems())
-
-                    logger = sys.stderr if options.verbose else None
-                    from sage.features.sagemath import sage_features
-                    options.optional.update(feature.name
-                                            for feature in sage_features(logger=logger))
-
                 # Check that all tags are valid
                 for o in options.optional:
                     if not optionaltag_regex.search(o):
@@ -462,6 +467,9 @@ class DocTestController(SageObject):
 
         self.stats = {}
         self.load_stats(options.stats_path)
+        self.baseline_stats = {}
+        if options.baseline_stats_path:
+            self.load_baseline_stats(options.baseline_stats_path)
         self._init_warn_long()
 
         if self.options.random_seed is None:
@@ -574,6 +582,45 @@ class DocTestController(SageObject):
         from importlib import import_module
         return import_module(self.options.environment)
 
+    def load_baseline_stats(self, filename):
+        """
+        Load baseline stats.
+
+        This must be a JSON file in the same format that :meth:`load_stats`
+        expects.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: DC = DocTestController(DocTestDefaults(), [])
+            sage: import json
+            sage: filename = tmp_filename()
+            sage: with open(filename, 'w') as stats_file:
+            ....:     json.dump({'sage.doctest.control':{'failed':True}}, stats_file)
+            sage: DC.load_baseline_stats(filename)
+            sage: DC.baseline_stats['sage.doctest.control']
+            {'failed': True}
+
+        If the file doesn't exist, nothing happens. If there is an
+        error, print a message. In any case, leave the stats alone::
+
+            sage: d = tmp_dir()
+            sage: DC.load_baseline_stats(os.path.join(d))  # Cannot read a directory
+            Error loading baseline stats from ...
+            sage: DC.load_baseline_stats(os.path.join(d, "no_such_file"))
+            sage: DC.baseline_stats['sage.doctest.control']
+            {'failed': True}
+        """
+        # Simply ignore non-existing files
+        if not os.path.exists(filename):
+            return
+
+        try:
+            with open(filename) as stats_file:
+                self.baseline_stats.update(json.load(stats_file))
+        except Exception:
+            self.log("Error loading baseline stats from %s"%filename)
+
     def load_stats(self, filename):
         """
         Load stats from the most recent run(s).
@@ -592,7 +639,7 @@ class DocTestController(SageObject):
             ....:     json.dump({'sage.doctest.control':{'walltime':1.0r}}, stats_file)
             sage: DC.load_stats(filename)
             sage: DC.stats['sage.doctest.control']
-            {u'walltime': 1.0}
+            {'walltime': 1.0}
 
         If the file doesn't exist, nothing happens. If there is an
         error, print a message. In any case, leave the stats alone::
@@ -602,7 +649,7 @@ class DocTestController(SageObject):
             Error loading stats from ...
             sage: DC.load_stats(os.path.join(d, "no_such_file"))
             sage: DC.stats['sage.doctest.control']
-            {u'walltime': 1.0}
+            {'walltime': 1.0}
         """
         # Simply ignore non-existing files
         if not os.path.exists(filename):
@@ -631,7 +678,7 @@ class DocTestController(SageObject):
             sage: with open(filename) as f:
             ....:     D = json.load(f)
             sage: D['sage.doctest.control']
-            {u'walltime': 1.0}
+            {'walltime': 1.0}
         """
         from sage.misc.temporary_file import atomic_write
         with atomic_write(filename) as stats_file:
@@ -718,7 +765,7 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(all=True, logfile=log_location)
             sage: DC = DocTestController(DD, [])
             sage: DC.add_files()
-            Doctesting entire Sage library.
+            Doctesting ...
             sage: os.path.join(SAGE_SRC, 'sage') in DC.files
             True
 
@@ -730,7 +777,7 @@ class DocTestController(SageObject):
             Doctesting ...
         """
         opj = os.path.join
-        from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT, SAGE_ROOT_GIT
+        from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT, SAGE_ROOT_GIT, SAGE_DOC
         # SAGE_ROOT_GIT can be None on distributions which typically
         # only have the SAGE_LOCAL install tree but not SAGE_ROOT
         if SAGE_ROOT_GIT is not None:
@@ -738,19 +785,61 @@ class DocTestController(SageObject):
         else:
             have_git = False
 
-        def all_files():
-            self.files.append(opj(SAGE_SRC, 'sage'))
-            # Don't run these tests when not in the git repository; they are
-            # of interest for building sage, but not for runtime behavior and
-            # don't make sense to run outside a build environment
-            if have_git:
-                self.files.append(opj(SAGE_SRC, 'sage_setup'))
-                self.files.append(opj(SAGE_SRC, 'sage_docbuild'))
-            self.files.append(SAGE_DOC_SRC)
+        def all_installed_modules():
+            self.log("Doctesting all installed modules of the Sage library.")
+            import sage
+            self.files.extend(sage.__path__)
+            try:
+                import sage_setup
+                self.files.extend(sage_setup.__path__)
+            except ImportError:
+                pass
+            try:
+                import sage_docbuild
+                self.files.extend(sage_docbuild.__path__)
+            except ImportError:
+                pass
 
-        if self.options.all or (self.options.new and not have_git):
+        def all_installed_doc():
+            if SAGE_DOC and os.path.isdir(SAGE_DOC):
+                self.log("Doctesting all installed documentation sources.")
+                self.files.append(SAGE_DOC)
+
+        def all_files():
+            if not SAGE_SRC:
+                return all_installed_modules()
             self.log("Doctesting entire Sage library.")
+            self.files.append(opj(SAGE_SRC, 'sage'))
+            # Only test sage_setup and sage_docbuild if the relevant
+            # imports work. They may not work if not in a build
+            # environment or if the documentation build has been
+            # disabled.
+            try:
+                import sage_setup
+                self.files.append(opj(SAGE_SRC, 'sage_setup'))
+            except ImportError:
+                pass
+            try:
+                import sage_docbuild
+                self.files.append(opj(SAGE_SRC, 'sage_docbuild'))
+            except ImportError:
+                pass
+
+        def all_doc_sources():
+            if SAGE_DOC_SRC and os.path.isdir(SAGE_DOC_SRC):
+                self.log("Doctesting all documentation sources.")
+                self.files.append(SAGE_DOC_SRC)
+            else:
+                all_installed_doc()
+
+        if self.options.installed:
+            all_installed_modules()
+            all_installed_doc()
+
+        elif self.options.all or (self.options.new and not have_git):
             all_files()
+            all_doc_sources()
+
         elif self.options.new and have_git:
             # Get all files changed in the working repo.
             self.log("Doctesting files changed since last git commit")
@@ -928,7 +1017,7 @@ class DocTestController(SageObject):
             ----------------------------------------------------------------------
             Total time for all tests: ... seconds
                 cpu time: ... seconds
-                cumulative wall time: ... seconds
+                cumulative wall time: ... seconds...
         """
         nfiles = 0
         nother = 0
@@ -1004,6 +1093,7 @@ class DocTestController(SageObject):
             Total time for all tests: ... seconds
                 cpu time: ... seconds
                 cumulative wall time: ... seconds
+            Features detected...
             0
             sage: DC.cleanup()
         """
@@ -1194,6 +1284,7 @@ class DocTestController(SageObject):
             Total time for all tests: ... seconds
                 cpu time: ... seconds
                 cumulative wall time: ... seconds
+            Features detected...
             0
 
         We check that :trac:`25378` is fixed (testing external packages
@@ -1207,7 +1298,7 @@ class DocTestController(SageObject):
             sage: DC.run()
             Running doctests with ID ...
             Using --optional=external,sage
-            External software to be detected: ...
+            Features to be detected: ...
             Doctesting 1 file.
             sage -t ....py
                 [0 tests, ... s]
@@ -1217,7 +1308,7 @@ class DocTestController(SageObject):
             Total time for all tests: ... seconds
                 cpu time: ... seconds
                 cumulative wall time: ... seconds
-            External software detected for doctesting:...
+            Features detected...
             0
 
         """
@@ -1247,18 +1338,16 @@ class DocTestController(SageObject):
                     pass
 
             self.log("Using --optional=" + self._optional_tags_string())
-            if self.options.optional is True or 'external' in self.options.optional:
-                self.log("External software to be detected: " + ','.join(external_software))
-
+            available_software._allow_external = self.options.optional is True or 'external' in self.options.optional
+            self.log("Features to be detected: " + ','.join(available_software.detectable()))
             self.add_files()
             self.expand_files_into_sources()
             self.filter_sources()
             self.sort_sources()
             self.run_doctests()
 
-            if self.options.optional is True or 'external' in self.options.optional:
-                self.log("External software detected for doctesting: "
-                         + ','.join(available_software.seen()))
+            self.log("Features detected for doctesting: "
+                     + ','.join(available_software.seen()))
             self.cleanup()
             return self.reporter.error_status
 
@@ -1286,6 +1375,7 @@ def run_doctests(module, options=None):
         Total time for all tests: ... seconds
             cpu time: ... seconds
             cumulative wall time: ... seconds
+        Features detected...
     """
     import sys
     sys.stdout.flush()

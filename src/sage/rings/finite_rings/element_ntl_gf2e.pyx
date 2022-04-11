@@ -583,7 +583,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
         return " + ".join(reversed(_repr))
 
-    def __nonzero__(FiniteField_ntl_gf2eElement self):
+    def __bool__(FiniteField_ntl_gf2eElement self):
         r"""
         Return ``True`` if ``self != k(0)``.
 
@@ -951,7 +951,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             5
             sage: k.<a> = GF(2^70)
             sage: (a^65 + a^64 + 1).integer_representation()
-            55340232221128654849L
+            55340232221128654849
         """
         cdef unsigned int i = 0
         ret = int(0)

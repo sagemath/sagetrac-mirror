@@ -21,6 +21,7 @@ except for the known bad apples::
     sage: allowed = [
     ....:     'IPython', 'prompt_toolkit', 'jedi',     # sage dependencies
     ....:     'threading', 'multiprocessing',  # doctest dependencies
+    ....:     'pytz', 'importlib.resources',   # doctest dependencies
     ....:     '__main__', 'sage.doctest',      # doctesting
     ....:     'signal', 'enum', 'types'        # may appear in Python 3
     ....: ]
@@ -90,6 +91,14 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
 # Ignore packaging 20.5 deprecation warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning,
     module='(.*[.]_vendor[.])?packaging')
+
+# Ignore numpy warnings triggered by pythran
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+                        module='pythran')
+
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+                        message='The distutils(.sysconfig module| package) is deprecated',
+                        module='Cython|distutils|numpy|sage.env|sage.features')
 
 ################ end setup warnings ###############################
 
@@ -241,41 +250,11 @@ _wall_time_ = walltime()
 
 def quit_sage(verbose=True):
     """
-    If you use Sage in library mode, you should call this function
-    when your application quits.
-
-    It makes sure any child processes are also killed, etc.
+    Does nothing. Code that needs cleanup should register its own
+    handler using the atexit module.
     """
-    if verbose:
-        t1 = cputime(_cpu_time_)
-        t1m = int(t1) // 60
-        t1s = t1 - t1m * 60
-        t2 = walltime(_wall_time_)
-        t2m = int(t2) // 60
-        t2s = t2 - t2m * 60
-        print("Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)." %
-              (t1m, t1s, t2m, t2s))
-
-    import gc
-    gc.collect()
-
-    from sage.interfaces.quit import expect_quitall
-    expect_quitall(verbose=verbose)
-
-    import sage.matrix.matrix_mod2_dense
-    sage.matrix.matrix_mod2_dense.free_m4ri()
-
-    import sage.libs.flint.flint
-    sage.libs.flint.flint.free_flint_stack()
-
-    # Free globally allocated gmp integers.
-    import sage.rings.integer
-    sage.rings.integer.free_integer_pool()
-    import sage.algebras.quatalg.quaternion_algebra_element
-    sage.algebras.quatalg.quaternion_algebra_element._clear_globals()
-
-    from sage.libs.all import symmetrica
-    symmetrica.end()
+    from sage.misc.superseded import deprecation
+    deprecation(8784, 'quit_sage is deprecated and now does nothing; please simply delete it')
 
 
 from sage.misc.persist import register_unpickle_override

@@ -535,6 +535,7 @@ cdef class RealIntervalField_class(sage.rings.abc.RealIntervalField):
         self.__lower_field = RealField(prec, sci_not, "RNDD")
         self.__middle_field = RealField(prec, sci_not, "RNDN")
         self.__upper_field = RealField(prec, sci_not, "RNDU")
+        self._multiplicative_order = None
         from sage.categories.fields import Fields
         Field.__init__(self, self, category=Fields().Infinite())
         self._populate_coercion_lists_(convert_method_name="_real_mpfi_")
@@ -3901,7 +3902,7 @@ cdef class RealIntervalFieldElement(RingElement):
         elif op == Py_GE:  # >=
             return mpfr_lessequal_p(&rt.value.right, &lt.value.left)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if ``self`` is not known to be exactly zero.
 
@@ -4323,7 +4324,6 @@ cdef class RealIntervalFieldElement(RingElement):
     # Special Functions
     ############################
 
-
     def sqrt(self):
         """
             Return a square root of ``self``. Raises an error if ``self`` is
@@ -4413,11 +4413,11 @@ cdef class RealIntervalFieldElement(RingElement):
             return self.square()
         if isinstance(exponent, (int, long, Integer)):
             q, r = divmod (exponent, 2)
-            if r == 0: # x^(2q) = (x^q)^2
-               xq = RingElement.__pow__(self, q)
-               return xq.abs().square()
+            if r == 0:  # x^(2q) = (x^q)^2
+                xq = RingElement.__pow__(self, q)
+                return xq.abs().square()
             else:
-               return RingElement.__pow__(self, exponent)
+                return RingElement.__pow__(self, exponent)
         return (self.log() * exponent).exp()
 
     def log(self, base='e'):
@@ -4543,7 +4543,7 @@ cdef class RealIntervalFieldElement(RingElement):
         return x
 
     def exp2(self):
-        """
+        r"""
         Returns `2^\mathtt{self}`
 
         EXAMPLES::
