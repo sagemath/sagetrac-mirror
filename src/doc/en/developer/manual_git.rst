@@ -2,9 +2,9 @@
 
 .. _chapter-manual-git:
 
-===================================
-Using Git with the Sage Trac Server
-===================================
+=============================================
+Using Git with the Sage Trac Server or GitLab
+=============================================
 
 Now we continue our introduction to git from :ref:`chapter-walkthrough`.
 We discuss how to push your local changes to a remote repository
@@ -87,6 +87,18 @@ The ``ssh-keygen`` tool will let you generate a key with a different
 file name, or protect it with a passphrase. Depending on how much you
 trust your own computer or system administrator, you can leave the
 passphrase empty to be able to login without any human intervention.
+
+
+.. _section-gitlab-ssh-key:
+
+Linking your Public Key to your GitLab Account
+----------------------------------------------
+
+In order to push your code to your fork of the GitLab repository, the
+GitLab server needs to know your public key.
+
+Follow the instructions in
+https://docs.gitlab.com/ee/user/ssh.html#add-an-ssh-key-to-your-gitlab-account.
 
 
 .. _section-trac-ssh-key:
