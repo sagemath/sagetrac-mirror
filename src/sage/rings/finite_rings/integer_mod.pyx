@@ -1,4 +1,3 @@
-# cython: language_level=2
 r"""
 Elements of `\ZZ/n\ZZ`
 
