@@ -1,0 +1,26 @@
+From 43d677000707b136c6cd0079356677e6408627f2 Mon Sep 17 00:00:00 2001
+From: Kwankyu Lee <ekwankyu@gmail.com>
+Date: Tue, 12 Apr 2022 14:42:44 +0900
+Subject: [PATCH 4/4] Prevent unnecessary js injections
+
+---
+ jupyter_sphinx/__init__.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/jupyter_sphinx/__init__.py b/jupyter_sphinx/__init__.py
+index 5c8a32c..d981501 100644
+--- a/jupyter_sphinx/__init__.py
++++ b/jupyter_sphinx/__init__.py
+@@ -282,7 +282,8 @@ def setup(app):
+     app.add_lexer("ipythontb", IPythonTracebackLexer)
+     app.add_lexer("ipython", IPython3Lexer)
+ 
+-    app.connect("builder-inited", builder_inited)
++    if not os.environ.get('SAGE_LIVE_DOC', 'no') == 'yes':
++        app.connect("builder-inited", builder_inited)
+     app.connect("build-finished", build_finished)
+ 
+     # add jupyter-sphinx and thebelab js and css
+-- 
+2.35.1
+

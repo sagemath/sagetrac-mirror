@@ -1,7 +1,7 @@
 From e5bedf302361f6208817cd5b656b02888feaaa8d Mon Sep 17 00:00:00 2001
 From: Kwankyu Lee <ekwankyu@gmail.com>
 Date: Sun, 3 Apr 2022 21:24:36 +0900
-Subject: [PATCH 2/3] Use latest thebe for interact to work
+Subject: [PATCH 2/4] Use latest thebe for interact to work
 
 ---
  jupyter_sphinx/__init__.py | 2 +-

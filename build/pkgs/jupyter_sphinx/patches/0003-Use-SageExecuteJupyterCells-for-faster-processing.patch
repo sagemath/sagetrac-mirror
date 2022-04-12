@@ -1,7 +1,7 @@
 From af16bbccc1e1e1a586fe86371a9437d9342bfa6f Mon Sep 17 00:00:00 2001
 From: Kwankyu Lee <ekwankyu@gmail.com>
 Date: Tue, 5 Apr 2022 13:49:03 +0900
-Subject: [PATCH 3/3] Use SageExecuteJupyterCells for faster processing
+Subject: [PATCH 3/4] Use SageExecuteJupyterCells for faster processing
 
 ---
  jupyter_sphinx/__init__.py |  8 ++++++--
