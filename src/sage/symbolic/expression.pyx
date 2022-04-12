@@ -3368,6 +3368,7 @@ cdef class Expression(Expression_abc):
             sage: assume(x > 0)
             sage: assert(not x == 0)
             sage: assert(x != 0)
+            sage: forget()
 
         We cannot return undecidable or throw an exception
         at the moment so ``False`` is returned for unknown
@@ -3375,6 +3376,9 @@ cdef class Expression(Expression_abc):
 
         ::
 
+            sage: assert(not x == 1)
+            sage: assert(not x != 1)
+            sage: assume(x > 0)
             sage: assert(not x == 1)
             sage: assert(not x != 1)
             sage: forget()
