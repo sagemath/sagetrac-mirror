@@ -330,7 +330,7 @@ See :ref:`section-git-merge` section for an in-depth explanation of
 merge vs. rebase.
 
 So far, we assumed that there are no conflicts. It is unavoidable in
-distributed development that, sometimes, the same location in a source
+distributed development that, sometimes, the same location in a
 source file is changed by more than one person. Reconciling these
 conflicting edits is explained in the :ref:`section-git_trac-conflict`
 section.
@@ -338,28 +338,41 @@ section.
 
 .. _section-git-pull-master:
 
-Updating Master
----------------
+Updating the master or develop branch
+-------------------------------------
 
-The ``master`` branch can be updated just like any other branch. However, your
-local copy of the master branch should stay **identical** to the trac master
-branch.
+In our central repositories,
 
-If you accidentally added commits to your local copy of ``master``, you must
-delete them before updating the branch.
+- the head of the ``master`` branch is always the current released
+  version of Sage, such as 9.6, and
 
-One way to ensure that you are notified of potential problems is to use ``git
-pull --ff-only``, which will raise an error if a non-trivial merge would be
-required::
+- the head of the ``develop`` branch is the current development
+  version, which can be either the released version of Sage, a beta
+  version, such as 9.7.beta4, or a release candidate, such as 9.7.rc2.
 
-    [user@localhost sage]$ git checkout master
-    [user@localhost sage]$ git pull --ff-only trac master
+In your local repository, these two branches can be updated just like
+any other branch. However, to avoid confusion, we strongly recommend
+to keep them identical to the central repositories, and to do any
+development on a separate branch.
 
-If this pull fails, then something is wrong with the local copy of the
-master branch. To switch to the correct Sage master branch, use::
+One way to ensure that you are notified of potential problems is to
+use ``git pull --ff-only``, which will raise an error if a non-trivial
+merge would be required::
 
-    [user@localhost sage]$ git checkout master
-    [user@localhost sage]$ git reset --hard trac/master
+    [user@localhost sage]$ git checkout develop
+    [user@localhost sage]$ git pull --ff-only trac develop
+
+If this pull fails, then your local copy of the ``develop`` branch has
+some new commits. Use ``git log`` to inspect the changes. To keep
+these commits, you can create a new branch for them::
+
+    [user@localhost sage]$ git checkout develop
+    [user@localhost sage]$ git branch oh_my_changes
+
+Then reset the ``develop`` branch to the current development version::
+
+    [user@localhost sage]$ git fetch trac develop
+    [user@localhost sage]$ git reset --hard FETCH_HEAD
 
 
 .. _section-git-merge:
