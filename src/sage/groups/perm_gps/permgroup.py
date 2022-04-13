@@ -1685,8 +1685,8 @@ class PermutationGroup_generic(FiniteGroup):
 
         - ``action`` (string; default ``"OnPoints"``) -- should the group be
           considered to act on points (``action="OnPoints"``) or on sets of
-          points (``action="OnSets"``) ? In the latter case, the first argument
-          must be a subset of :meth:`domain`.
+          points (``action="OnSets"``) or on tuples of points (``action="OnSets"``).
+          In the two latter cases, the first argument must be a subset of :meth:`domain`.
 
         EXAMPLES::
 
@@ -1703,6 +1703,14 @@ class PermutationGroup_generic(FiniteGroup):
             30240
             sage: factorial(3)*factorial(7)
             30240
+
+        The stabilizer of a tuple of points::
+
+            sage: S = SymmetricGroup(3)
+            sage: S.stabilizer([1,1],"OnTuples").list()
+            [(), (2,3)]
+            sage: S.stabilizer([1,2],"OnTuples").list()
+            [()]
 
         ::
 
@@ -1748,11 +1756,12 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.stabilizer(['a'],"OnMonkeys")
             Traceback (most recent call last):
             ...
-            ValueError: 'action' must be equal to 'OnPoints' or to 'OnSets'
+            ValueError: 'action' must be equal to 'OnPoints', 'OnSets' or to 'OnTuples'.
         """
 
-        if action not in ["OnPoints", "OnSets"]:
-            raise ValueError("'action' must be equal to 'OnPoints' or to 'OnSets'")
+        if action not in ["OnPoints", "OnSets", "OnTuples"]:
+            raise ValueError("'action' must be equal to 'OnPoints', 'OnSets' or to 'OnTuples'.")
+
         try:
             if action == "OnPoints":
                 point = self._domain_to_gap[point]
