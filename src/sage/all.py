@@ -102,6 +102,7 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
 
 ################ end setup warnings ###############################
 
+import sage.misc.lazy_import
 lazy_import_lock = sage.misc.lazy_import.lock()
 lazy_import_lock.__enter__()
 
@@ -116,8 +117,6 @@ from cysignals.signals import (AlarmInterrupt, SignalError,
 
 from time                import sleep
 from functools import reduce  # in order to keep reduce in python3
-
-import sage.misc.lazy_import
 
 from sage.misc.all       import *         # takes a while
 from sage.typeset.all    import *

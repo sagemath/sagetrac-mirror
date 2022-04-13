@@ -120,15 +120,15 @@ def lock():
         GuardState.LOCKED
     """
     global startup_state
-    guard_state = GuardState.RUNNING
+    guard_state = GuardState.LOCKED
     yield
-    guard_state = GuardState.FINISHED
+    guard_state = GuardState.UNLOCKED
 
 cdef list imports_resolved_during_locked = []
 
 def _get_imports_resolved_during_locked():
     """
-    Return all lazy imports that were resolved while the layz import guard
+    Return all lazy imports that were resolved while the lazy import guard
     has been locked.
     Only used for integration tests.
 
