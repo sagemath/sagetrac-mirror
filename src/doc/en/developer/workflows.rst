@@ -23,8 +23,8 @@ third person.
 
 
 
-Simple Workflow
-===============
+Workflow using branches u/<user>/<description> on the trac repository
+=====================================================================
 
 .. IMAGE:: static/flowchart.*
     :align: center
@@ -72,24 +72,25 @@ instead, we would have
 
 
 
-Public Repository
-=================
+Workflow using branches public/<ticket_number> on the trac repository
+=====================================================================
 
 In addition to the user branches (``u/<user>/<description>`` on the
 Sage trac server with ``<user>`` replaced by your trac user name) that
 only you can write to, you can also create a public branch that
 everybody with a trac account can write to. These start with
-``public/`` plus some description. To avoid branch name collisions it
-is a good idea to include your trac user name in the branch name, so
-it is recommended that you use ``public/<user>/<description>`` as the
-branch name. Now all ticket authors push to the same remote branch.
+``public/`` plus some description. To avoid branch name collisions, a
+good idea is to include the ticket number in the branch name, either
+``public/<ticket_number>`` or ``public/<ticket_number>/<description>``
+as the branch name. Now all ticket authors push to the same remote
+branch.
 
 1. Alice creates a :ref:`new local branch <section-walkthrough-branch>` and
    :ref:`commits <section-walkthrough-commit>` some changes to the Sage library.
 
 2. Alice :ref:`uploads her branch <section-git_trac-push>` as a public
    branch to the trac server. This fills in the "Branch:" field with
-   her remote branch name ``public/alice/description``.
+   her remote branch name ``public/12345/description``.
 
 3. Bob :ref:`downloads Alice's branch <section-git_trac-checkout>` and
    makes changes to his local copy.
@@ -99,7 +100,7 @@ branch name. Now all ticket authors push to the same remote branch.
 
 5. Bob uploads his changes to the joint remote repository::
 
-       [bob@localhost sage]$ git push trac local_branch:public/alice/description
+       [bob@localhost sage]$ git push trac local_branch:public/12345/description
 
 6. Alice :ref:`retrieves Bob's updates <section-git_trac-pull>`, makes
    more changes, commits, and pushes them to trac.
