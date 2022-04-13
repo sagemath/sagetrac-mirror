@@ -55,6 +55,11 @@ if os.environ.get('SAGE_LIVE_DOC', 'no')  == 'yes':
                 },
             },
         }
+    jupyter_sphinx_thebelab_config.update({
+        'codeMirrorConfig': {
+            'lineNumbers': True,
+        }
+    })
     jupyter_execute_default_kernel = 'sagemath'
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx

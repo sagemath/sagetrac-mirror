@@ -385,6 +385,3 @@ dl.citation p {
     right: 5px;
 }
 
-.jupyter_cell .thebelab-input {
-    display: none;
-}
