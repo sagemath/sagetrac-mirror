@@ -408,6 +408,105 @@ class Polyhedron_ppl(Polyhedron_mutable):
         super(Polyhedron_ppl, self)._init_empty_polyhedron()
         self._ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'empty')
 
+    def _add_generator(self, generator, typ):
+        r"""
+        Add a generator and modify the underlying ppl cone.
+
+        .. WARNING::
+
+            Do not use this method directly. Instead use one of
+            - :meth:`add_vertex`,
+            - :meth:`add_ray`,
+            - :meth:`add_line`.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.representation import VERTEX, RAY, LINE
+            sage: P = polytopes.cube()
+            sage: P._ppl_polyhedron.minimized_generators()
+            Generator_System {point(1/1, -1/1, -1/1), point(1/1, 1/1, -1/1), point(1/1, 1/1, 1/1), point(1/1, -1/1, 1/1), point(-1/1, -1/1, 1/1), point(-1/1, -1/1, -1/1), point(-1/1, 1/1, -1/1), point(-1/1, 1/1, 1/1)}
+            sage: P._add_generator([1, 2/3, 4], VERTEX)
+            sage: P._ppl_polyhedron.minimized_generators()
+            Generator_System {point(-1/1, -1/1, -1/1), point(-1/1, -1/1, 1/1), point(-1/1, 1/1, -1/1), point(-1/1, 1/1, 1/1), point(1/1, -1/1, -1/1), point(1/1, -1/1, 1/1), point(1/1, 1/1, -1/1), point(1/1, 1/1, 1/1), point(3/3, 2/3, 12/3)}
+            sage: P._add_generator([1, 2/3, -4], RAY)
+            sage: P._ppl_polyhedron.minimized_generators()
+            Generator_System {point(-1/1, -1/1, -1/1), point(-1/1, -1/1, 1/1), point(-1/1, 1/1, -1/1), point(-1/1, 1/1, 1/1), point(1/1, -1/1, -1/1), point(1/1, -1/1, 1/1), ray(3, 2, -12), point(3/3, 2/3, 12/3)}
+            sage: P._add_generator([1, -2/3, -4], LINE)
+            sage: P._ppl_polyhedron.minimized_generators()
+            Generator_System {line(3, -2, -12), point(-9/12, -14/12, 0/12), point(-15/12, -10/12, 0/12), point(2/1, 0/1, 0/1), ray(0, 1, 0), point(15/12, -14/12, 0/12)}
+        """
+        ppl_generator = self._convert_generator_to_ppl(generator, typ)
+        self._ppl_polyhedron.add_generator(ppl_generator)
+
+    def _add_generators(self, vertices, rays, lines):
+        r"""
+        Add generators and modify the underlying ppl cone.
+
+        .. WARNING::
+
+            Do not use this method directly. Instead use
+            :meth:`add_Vrepresentatives`.
+
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: P._ppl_polyhedron.minimized_generators()
+            Generator_System {point(1/1, -1/1, -1/1), point(1/1, 1/1, -1/1), point(1/1, 1/1, 1/1), point(1/1, -1/1, 1/1), point(-1/1, -1/1, 1/1), point(-1/1, -1/1, -1/1), point(-1/1, 1/1, -1/1), point(-1/1, 1/1, 1/1)}
+            sage: P._add_generators([[1, 2/3, 4], [-1, 1/4, 3]], None, [[1, 0, 0]])
+            sage: P._ppl_polyhedron.minimized_generators()
+            Generator_System {line(1, 0, 0), point(0/1, -1/1, 1/1), point(0/1, 1/1, -1/1), point(0/1, 1/1, 1/1), point(0/1, -1/1, -1/1), point(0/3, 2/3, 12/3)}
+        """
+        gs = self._convert_generators_to_ppl(vertices, rays, lines)
+        self._ppl_polyhedron.add_generators(gs)
+
+    def _add_constraint(self, constraint, typ):
+        r"""
+        Add a constraint and modify the underlying ppl cone.
+
+        .. WARNING::
+
+            Do not use this method directly. Instead use one of
+            - :meth:`add_inequality`,
+            - :meth:`add_equation`.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.representation import INEQUALITY, EQUATION
+            sage: P = polytopes.cube()
+            sage: P._ppl_polyhedron.minimized_constraints()
+            Constraint_System {-x0+1>=0, -x1+1>=0, -x2+1>=0, x0+1>=0, x2+1>=0, x1+1>=0}
+            sage: P._add_constraint([1, 0, -2, 0], INEQUALITY)
+            sage: P._ppl_polyhedron.minimized_constraints()
+            Constraint_System {-x0+1>=0, -2*x1+1>=0, -x2+1>=0, x2+1>=0, x1+1>=0, x0+1>=0}
+            sage: P._add_constraint([0, -1, -1, -1], EQUATION)
+            sage: P._ppl_polyhedron.minimized_constraints()
+            Constraint_System {x0+x1+x2==0, -2*x1+1>=0, x0+x1+1>=0, -x0-x1+1>=0, x1+1>=0, x0+1>=0, -x0+1>=0}
+
+        """
+        ppl_constraint = self._convert_constraint_to_ppl(constraint, typ)
+        self._ppl_polyhedron.add_constraint(ppl_constraint)
+
+    def _add_constraints(self, ieqs, eqns):
+        r"""
+        Add constraints and modify the underlying ppl cone.
+
+        .. WARNING::
+
+            Do not use this method directly. Instead use
+            :meth:`add_Hrepresentatives`.
+
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: P._ppl_polyhedron.minimized_constraints()
+            Constraint_System {-x0+1>=0, -x1+1>=0, -x2+1>=0, x0+1>=0, x2+1>=0, x1+1>=0}
+            sage: P._add_constraints([[1, 0, -2, 0], [0, -1, -1, -1]], None)
+            sage: P._ppl_polyhedron.minimized_constraints()
+            Constraint_System {-x0+1>=0, -2*x1+1>=0, -x2+1>=0, x2+1>=0, x1+1>=0, x0+1>=0, -x0-x1-x2>=0}
+        """
+        cs = self._convert_constraints_to_ppl(ieqs, eqns)
+        self._ppl_polyhedron.add_constraints(cs)
+
     @staticmethod
     def _convert_generator_to_ppl(v, typ):
         r"""
@@ -537,7 +636,6 @@ class Polyhedron_ppl(Polyhedron_mutable):
         for eqn in eqns:
             cs.insert(Polyhedron_ppl._convert_constraint_to_ppl(eqn, EQUATION))
         return cs
-
 
 
 #########################################################################
