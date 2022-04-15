@@ -2055,6 +2055,20 @@ def dummy_laplace(*args):
         sage: f = function('f')
         sage: dummy_laplace(f(t),t,s)
         laplace(f(t), t, s)
+
+    TESTS:
+
+    Check for :trac:`23445`::
+
+        sage: t = var('t')
+        sage: f = function('f')(t)
+        sage: g = function('g')(t)
+        sage: de1 = diff(f,t) == f*sin(t)
+        sage: de2 = diff(g,t) == 0
+        sage: desolve_system([de1, de2], [f,g])
+        [f(t) == ilt(1/2*(2*f(0) + I*laplace(f(t), t, g... + I)
+         - I*laplace(f(t), t, g... - I))/g..., g..., t),
+         g(t) == g(0)]
     """
     return _laplace(args[0], var(repr(args[1])), args[2])
 
