@@ -40,6 +40,7 @@ cimport cython
 from memory_allocator cimport MemoryAllocator
 from sage.sets.disjoint_set cimport DisjointSet_of_hashables
 from sage.misc.decorators import rename_keyword
+from heapq import *
 
 @rename_keyword(deprecation=32805, wfunction='weight_function')
 def kruskal(G, by_weight=True, weight_function=None, check_weight=False, check=False):
@@ -1421,3 +1422,137 @@ def edge_disjoint_spanning_trees(G, k, by_weight=False, weight_function=None, ch
         for u, v in f.edges(labels=False):
             f.set_edge_label(u, v, G.edge_label(u, v))
     return res
+
+def spanning_trees_by_weight(G, labels=False):
+
+    r"""
+    Return an iterator over all spanning trees of the graph ``G``, sorted in increasing order of weights. 
+    
+    A disconnected graph has no spanning tree. 
+
+    We expect all weights of the graph to be convertible to float.
+    Otherwise, an exception is raised.
+    
+    ALGORITHM:
+
+        Start with the minimum spanning tree of ``G`` and use it to compute all other spanning trees by
+        considering nontree edges in increasing weight order. [KR95]_
+
+    INPUT:
+
+    - ``G`` -- an undirected graph
+
+    - ``labels`` -- boolean (default: ``False``); whether to return edges labels
+      in the spanning trees or not
+    
+    OUTPUT:
+
+        An iterator over all spanning trees of the graph ``G``, sorted in increasing order of weights, if they exists. Otherwise, returns an empty list.
+
+    EXAMPLES:
+
+        sage: G = Graph([(1, 2, 1), (1,3, 2), (2,3, 3), (1,4, 4)])
+        sage: for i in G.spanning_trees_by_weight():
+        ....:     print(i)
+        ....: 
+        [(1, 2, 1), (1, 3, 2), (1, 4, 4)]
+        [(1, 2, 1), (2, 3, 3), (1, 4, 4)]
+        [(2, 3, 3), (1, 3, 2), (1, 4, 4)]
+
+    """
+
+    from sage.graphs.graph import Graph
+
+    if not isinstance(G, Graph):
+        raise ValueError("this method is for undirected graphs only")
+
+    if not G.order() or not G.is_connected():
+        return []
+
+    # Force graph to be weighted
+    edges = list(G.edges())
+    for i in range(len(edges)):
+        if not edges[i][2]:
+            # If no weight, use 1
+            edges[i] = list(edges[i])
+            edges[i][2] = 1
+    G = Graph(edges, weighted=True)
+
+    # Find the min spanning tree, which will be used to generate
+    # other trees by exchanging tree edges with nontree edges
+    MST = G.min_spanning_tree()
+
+    def calc_weight(T):
+        w = 0
+        for edge in T:
+            w += edge[2]
+        return w
+
+    trees = []
+    pq = []
+    weight = calc_weight(MST)
+
+    spanning_tree_edges = MST
+    graph_edges = list(G.edges())
+
+    # E holds edges that are not in the current spanning tree. 
+    # Edges in the current spanning tree are maintained in cf
+    E = list(set(graph_edges).symmetric_difference(spanning_tree_edges))
+
+    heappush(pq, (weight, MST, E))
+
+    while pq:
+        w, T, E = heappop(pq)
+        if T not in trees:
+            trees.append(T)
+
+        # F stores all nontree multiedges in the current graph
+        # Sort nontree edges in increasing order of weights
+        F = sorted(E, key=lambda x: x[2])
+
+        # Each edge of the original graph that is not in the 
+        # spanning tree (each edge in F), when added to the spanning 
+        # tree will produce a fundamental cycle 
+        cy_bas = G.cycle_basis(output='edge') # All fundamental cycles / cycle bases
+
+        if not F:
+            continue
+        
+        # f is an edge not in the current spanning tree
+        for f in F:
+            
+            # The fundamental cycle of f w.r.t T in G. 
+            cf = []
+
+            # Loop through all fundamental cycles to find that containing edge f
+            for cycle in cy_bas:
+                for j in range(len(cycle)):
+                    # Find the cycle basis containing f
+                    if set(cycle[j][:-1]) == set(f[:-1]):
+                        cf_with_nontree_edge_f = cycle
+                        # cf = (e1,...,ek) are only the tree edges. 
+                        # Together with f, they form the actual fundamental cycle
+                        cf = cycle[:j] + cycle[j+1:]
+                        break
+
+            k = len(cf)
+            for i in range(k):
+                ei = cf[i]
+                # Choose each edge in cf for exchange with f. 
+                # Each exchange creates a new spanning tree
+                T_prime = T[::]
+                for j in range(len(T_prime)):
+                    if set(T_prime[j][:-1]) == set(ei[:-1]):
+                        T_prime[j] = f
+                
+                weight = calc_weight(T_prime)
+
+                # Create new graph to avoid references
+                new_graph = F[::]
+                new_graph = Graph(new_graph)
+                new_graph.delete_edge(f)
+
+                heappush(pq, (weight, T_prime, list(new_graph.edges())))
+       
+    for tree in trees:
+        yield tree
