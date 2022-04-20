@@ -15,7 +15,8 @@ from . import jacobian_homset
 from . import jacobian_morphism
 from sage.misc.lazy_import import lazy_import
 from .jacobian_endomorphism_utils import get_is_geom_field, is_geom_trivial_when_field
-lazy_import('sage.interfaces.genus2reduction', ['genus2reduction', 'Genus2reduction'])
+
+lazy_import("sage.interfaces.genus2reduction", ["genus2reduction", "Genus2reduction"])
 
 
 class HyperellipticJacobian_generic(Jacobian_generic):
@@ -125,6 +126,7 @@ class HyperellipticJacobian_generic(Jacobian_generic):
         sage: J1 == J2
         False
     """
+
     def dimension(self):
         """
         Return the dimension of this Jacobian.
@@ -274,13 +276,19 @@ class HyperellipticJacobian_generic(Jacobian_generic):
             return True
         C = self.curve()
         if C.genus() != 2:
-            raise NotImplementedError("Current implementation requires the curve to be of genus 2")
+            raise NotImplementedError(
+                "Current implementation requires the curve to be of genus 2"
+            )
         if C.base_ring() != QQ:
-            raise NotImplementedError("Current implementation requires the curve to be defined over the rationals")
+            raise NotImplementedError(
+                "Current implementation requires the curve to be defined over the rationals"
+            )
         f, h = C.hyperelliptic_polynomials()
         if h != 0:
-            raise NotImplementedError("Current implementation requires the curve to be in the form y^2 = f(x)")
-        red_data = genus2reduction(0,f)
+            raise NotImplementedError(
+                "Current implementation requires the curve to be in the form y^2 = f(x)"
+            )
+        red_data = genus2reduction(0, f)
         cond_C = red_data.conductor  # WARNING: this is only the prime_to_2 conductor.
         bad_primes = cond_C.prime_divisors()
         self._bad_primes = bad_primes
@@ -293,7 +301,9 @@ class HyperellipticJacobian_generic(Jacobian_generic):
             self._have_established_geometrically_field = True
             return True
         if proof:
-            raise NotImplementedError("Rigorous computation of lower bounds of endomorphism algebras has not yet been implemented.")
+            raise NotImplementedError(
+                "Rigorous computation of lower bounds of endomorphism algebras has not yet been implemented."
+            )
         return False
 
     def geometric_endomorphism_ring_is_ZZ(self, B=200, proof=False):
@@ -402,5 +412,56 @@ class HyperellipticJacobian_generic(Jacobian_generic):
         if is_abs_simple and is_geom_trivial_when_field(self.curve(), self._bad_primes):
             return True
         if proof:
-            raise NotImplementedError("Rigorous computation of lower bounds of endomorphism rings has not yet been implemented.")
+            raise NotImplementedError(
+                "Rigorous computation of lower bounds of endomorphism rings has not yet been implemented."
+            )
         return False
+
+    ##########################################################
+    # Galois Representations
+    ##########################################################
+
+    def galois_representation(self):
+        r"""
+        The compatible family of the Galois representation
+        attached to this elliptic curve.
+
+        Given an elliptic curve `E` over `\QQ`
+        and a rational prime number `p`, the `p^n`-torsion
+        `E[p^n]` points of `E` is a representation of the
+        absolute Galois group of `\QQ`. As `n` varies
+        we obtain the Tate module `T_p E` which is a
+        a representation of `G_K` on a free `\ZZ_p`-module
+        of rank `2`. As `p` varies the representations
+        are compatible.
+
+        EXAMPLES::
+
+            sage: rho = EllipticCurve('11a1').galois_representation()
+            sage: rho
+            Compatible family of Galois representations associated to the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: rho.is_irreducible(7)
+            True
+            sage: rho.is_irreducible(5)
+            False
+            sage: rho.is_surjective(11)
+            True
+            sage: rho.non_surjective()
+            [5]
+            sage: rho = EllipticCurve('37a1').galois_representation()
+            sage: rho.non_surjective()
+            []
+            sage: rho = EllipticCurve('27a1').galois_representation()
+            sage: rho.is_irreducible(7)
+            True
+            sage: rho.non_surjective()   # cm-curve
+            [0]
+
+        """
+        try:
+            return self.__rho
+        except AttributeError:
+            from .gal_reps import GaloisRepresentation
+
+            self.__rho = GaloisRepresentation(self)
+        return self.__rho
