@@ -17,6 +17,7 @@ AUTHOR:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.groups.perm_gps.all import CyclicPermutationGroup
 from sage.libs.singular.function import lib, singular_function
 from sage.misc.repr import repr_lincomb
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
@@ -25,7 +26,6 @@ from cpython.object cimport PyObject_RichCompare
 # Define some singular functions
 lib("freegb.lib")
 poly_reduce = singular_function("NF")
-singular_system=singular_function("system")
 
 #####################
 # Free algebra elements
@@ -92,11 +92,12 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef FreeAlgebra_letterplace P = A
         if check:
             if not x.is_homogeneous():
-                raise ValueError("Free algebras based on Letterplace can currently only work with weighted homogeneous elements")
+                raise ValueError("free algebras based on Letterplace can currently only work with weighted homogeneous elements")
             P.set_degbound(x.degree())
             x = P._current_ring(x)
-        AlgebraElement.__init__(self,P)
+        AlgebraElement.__init__(self, P)
         self._poly = x
+
     def __reduce__(self):
         """
         Pickling.
@@ -398,7 +399,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         return self._poly.lc()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         TESTS::
 
@@ -433,7 +434,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         """
         if self._parent is not p._parent:
-            raise TypeError("The two arguments must be elements in the same free algebra.")
+            raise TypeError("the two arguments must be elements in the same free algebra")
         cdef FreeAlgebra_letterplace A = self._parent
         P = A._current_ring
         p_poly = p._poly = P(p._poly)
@@ -445,9 +446,10 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef int i
         if P.monomial_divides(s_poly,p_poly):
             return True
+        realngens = A._commutative_ring.ngens()
+        CG = CyclicPermutationGroup(P.ngens())
         for i from 0 <= i < p_d-s_d:
-            s_poly = singular_system("stest",s_poly,1,
-                                     A._degbound,A.__ngens,ring=P)
+            s_poly = s_poly * CG[realngens]
             if P.monomial_divides(s_poly,p_poly):
                 return True
         return False
@@ -496,7 +498,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             sage: x+1
             Traceback (most recent call last):
             ...
-            ArithmeticError: Can only add elements of the same weighted degree
+            ArithmeticError: can only add elements of the same weighted degree
             sage: x+0
             x
             sage: 0+x
@@ -509,7 +511,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             return other
         cdef FreeAlgebraElement_letterplace right = other
         if right._poly.degree()!=self._poly.degree():
-            raise ArithmeticError("Can only add elements of the same weighted degree")
+            raise ArithmeticError("can only add elements of the same weighted degree")
         # update the polynomials
         cdef FreeAlgebra_letterplace A = self._parent
         self._poly = A._current_ring(self._poly)
@@ -529,7 +531,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             sage: x-1
             Traceback (most recent call last):
             ...
-            ArithmeticError: Can only subtract elements of the same degree
+            ArithmeticError: can only subtract elements of the same degree
             sage: x-0
             x
             sage: 0-x
@@ -548,7 +550,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             return -other
         cdef FreeAlgebraElement_letterplace right = other
         if right._poly.degree()!=self._poly.degree():
-            raise ArithmeticError("Can only subtract elements of the same degree")
+            raise ArithmeticError("can only subtract elements of the same degree")
         # update the polynomials
         cdef FreeAlgebra_letterplace A = self._parent
         self._poly = A._current_ring(self._poly)
@@ -601,7 +603,9 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         # we must put the polynomials into the same ring
         left._poly = A._current_ring(left._poly)
         right._poly = A._current_ring(right._poly)
-        rshift = singular_system("stest",right._poly,left._poly.degree(),A._degbound,A.__ngens, ring=A._current_ring)
+        realngens = A._commutative_ring.ngens()
+        CG = CyclicPermutationGroup(A._current_ring.ngens())
+        rshift = right._poly * CG[left._poly.degree() * realngens]
         return FreeAlgebraElement_letterplace(A,left._poly*rshift, check=False)
 
     def __pow__(FreeAlgebraElement_letterplace self, int n, k):
@@ -616,7 +620,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         cdef FreeAlgebra_letterplace A = self._parent
         if n<0:
-            raise ValueError("Negative exponents are not allowed")
+            raise ValueError("negative exponents are not allowed")
         if n==0:
             return FreeAlgebraElement_letterplace(A, A._current_ring(1),
                                                   check=False)
@@ -627,10 +631,11 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         self._poly = A._current_ring(self._poly)
         cdef int d = self._poly.degree()
         q = p = self._poly
+        realngens = A._commutative_ring.ngens()
         cdef int i
+        CG = CyclicPermutationGroup(A._current_ring.ngens())
         for i from 0<i<n:
-            q = singular_system("stest",q,d,A._degbound,A.__ngens,
-                                     ring=A._current_ring)
+            q = q * CG[d * realngens]
             p *= q
         return FreeAlgebraElement_letterplace(A, p, check=False)
 
@@ -757,9 +762,8 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             True
             sage: ((x*y)^3+2*z*I.0*z+y*I.1*z-x*I.2*y).normal_form(I) == ((x*y)^3).normal_form(I)
             True
-
         """
         if self._parent != I.ring():
-            raise ValueError("Can not compute normal form wrt an ideal that does not belong to %s" % self._parent)
+            raise ValueError("cannot compute normal form wrt an ideal that does not belong to %s" % self._parent)
         sdeg = self._poly.degree()
         return self.reduce(self._parent._reductor_(I.groebner_basis(degbound=sdeg).gens(), sdeg))

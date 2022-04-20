@@ -37,7 +37,7 @@ EXAMPLES::
     sage: T.pthpowers(7,10**30)
     Traceback (most recent call last):
     ...
-    ValueError: The degenerate binary recurrence sequence is geometric or quasigeometric and has many pth powers.
+    ValueError: the degenerate binary recurrence sequence is geometric or quasigeometric and has many pth powers
 
 
 AUTHORS:
@@ -57,7 +57,6 @@ See [SV2013]_, [BMS2006]_, and [SS1983]_.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import division
 
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
@@ -68,7 +67,7 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.integer import Integer
 from sage.arith.all import lcm, next_prime, is_prime, next_prime_power, legendre_symbol
 from sage.functions.log import log
-from sage.functions.other import sqrt
+from sage.misc.functional import sqrt
 
 
 class BinaryRecurrenceSequence(SageObject):
@@ -550,7 +549,7 @@ class BinaryRecurrenceSequence(SageObject):
             sage: T.pthpowers(7,10**30)
             Traceback (most recent call last):
             ...
-            ValueError: The degenerate binary recurrence sequence is geometric or quasigeometric and has many pth powers.
+            ValueError: the degenerate binary recurrence sequence is geometric or quasigeometric and has many pth powers
 
             sage: L = BinaryRecurrenceSequence(4,0,2,2)
             sage: [L(i).factor() for i in range(10)]
@@ -588,7 +587,7 @@ class BinaryRecurrenceSequence(SageObject):
                     return [0]
                 return []
             else:
-                raise ValueError("The degenerate binary recurrence sequence is geometric or quasigeometric and has many pth powers.")
+                raise ValueError("the degenerate binary recurrence sequence is geometric or quasigeometric and has many pth powers")
 
         #If the sequence is degenerate without being geometric or quasigeometric, there
         #may be many ``p`` th powers or no ``p`` th powers.
@@ -615,7 +614,7 @@ class BinaryRecurrenceSequence(SageObject):
                 #This linear equation represents a pth power iff A is a pth power mod B.
 
                 if _is_p_power_mod(A, p, B):
-                    raise ValueError("The degenerate binary recurrence sequence has many pth powers.")
+                    raise ValueError("the degenerate binary recurrence sequence has many pth powers")
             return []
 
         #We find ``p`` th powers using an elementary sieve.  Term `u_n` is a ``p`` th

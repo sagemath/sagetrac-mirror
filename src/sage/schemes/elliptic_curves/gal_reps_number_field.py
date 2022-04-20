@@ -44,7 +44,6 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import division
 
 from sage.structure.sage_object import SageObject
 from sage.rings.number_field.number_field import NumberField
@@ -205,7 +204,6 @@ class GaloisRepresentation(SageObject):
             sage: rho = E.galois_representation()
             sage: rho.non_surjective()
             [2, 3]
-
         """
         if self.E.has_cm():
             return [0]
@@ -271,8 +269,8 @@ class GaloisRepresentation(SageObject):
 
         .. NOTE::
 
-           For the actual list of primes `p` at which the
-           representation is reducible see :meth:`reducible_primes()`.
+            For the actual list of primes `p` at which the
+            representation is reducible see :meth:`reducible_primes()`.
 
         INPUT:
 
@@ -282,7 +280,7 @@ class GaloisRepresentation(SageObject):
 
         OUTPUT:
 
-        - ``list`` - A list of primes which contains (but may not be
+        - ``list`` -- A list of primes which contains (but may not be
           equal to) all `p` for which the image of the mod-`p`
           representation is contained in a Borel subgroup.  At any
           prime not in this list, the image is definitely not
@@ -328,7 +326,6 @@ class GaloisRepresentation(SageObject):
             sage: GR = E.galois_representation()
             sage: GR.isogeny_bound()
             []
-
         """
         if self.E.has_rational_cm():
             return [0]
@@ -360,7 +357,7 @@ class GaloisRepresentation(SageObject):
 
         OUTPUT:
 
-        - ``list`` - A list of those primes `p` for which the mod-`p`
+        - ``list`` -- A list of those primes `p` for which the mod-`p`
           representation is contained in a Borel subgroup, i.e. is
           reducible.  If E has CM *defined over K*, the list [0] is
           returned (in this case the representation is reducible for
@@ -412,14 +409,14 @@ def _non_surjective(E, patience=100):
 
     INPUT:
 
-    - ``E`` - EllipticCurve (over a number field).
+    - ``E`` -- EllipticCurve (over a number field).
 
-    - ``A`` - int (a bound on the number of traces of Frobenius to use
+    - ``A`` -- int (a bound on the number of traces of Frobenius to use
                  while trying to prove surjectivity).
 
     OUTPUT:
 
-    - ``list`` - A list of primes where mod-`p` representation is very likely
+    - ``list`` -- A list of primes where mod-`p` representation is very likely
       not surjective. At any prime not in this list, the representation is
       definitely surjective. If E has CM, a ValueError is raised.
 
@@ -434,7 +431,7 @@ def _non_surjective(E, patience=100):
         Traceback (most recent call last):
         ...
         ValueError: The curve E should not have CM.
-        """
+    """
     if E.has_cm():
         raise ValueError("The curve E should not have CM.")
 
@@ -476,18 +473,18 @@ def Frobenius_filter(E, L, patience=100):
 
     .. NOTE::
 
-       This function will sometimes return primes for which the image
-       is not contained in a Borel subgroup.  This issue cannot always
-       be fixed by increasing patience as it may be a result of a
-       failure of a local-global principle for isogenies.
+        This function will sometimes return primes for which the image
+        is not contained in a Borel subgroup.  This issue cannot always
+        be fixed by increasing patience as it may be a result of a
+        failure of a local-global principle for isogenies.
 
     INPUT:
 
-    - ``E`` -- EllipticCurve - over a number field.
+    - ``E`` -- EllipticCurve over a number field.
 
-    - ``L`` -- list - a list of prime numbers.
+    - ``L`` -- a list of prime numbers.
 
-    - ``patience`` (int), default 100-- a positive integer bounding
+    - ``patience`` (int), default 100 -- a positive integer bounding
       the number of traces of Frobenius to use while trying to prove
       irreducibility.
 
@@ -528,7 +525,6 @@ def Frobenius_filter(E, L, patience=100):
 
         sage: [len(E.isogenies_prime_degree(l)) for l in [2,3]]
         [1, 1]
-
     """
     E = _over_numberfield(E)
     K = E.base_field()
@@ -581,12 +577,12 @@ def _exceptionals(E, L, patience=1000):
 
     INPUT:
 
-    - ``E`` - EllipticCurve - over a number field.
+    - ``E`` -- EllipticCurve over a number field.
 
-    - ``L`` - list - a list of prime numbers.
+    - ``L`` -- a list of prime numbers.
 
-    - ``patience`` - int (a bound on the number of traces of Frobenius to
-      use while trying to prove surjectivity).
+    - ``patience`` (int) -- a bound on the number of traces of Frobenius to
+      use while trying to prove surjectivity.
 
     OUTPUT:
 
@@ -723,13 +719,15 @@ def _exceptionals(E, L, patience=1000):
 
 
 def _over_numberfield(E):
-    r"""Return `E`, defined over a NumberField object. This is necessary
-    since if `E` is defined over `\QQ`, then we cannot use SAGE commands
-    available for number fields.
+    r"""
+    Return `E`, defined over a ``NumberField`` object.
+
+    This is necessary since if `E` is defined over `\QQ`, then we
+    cannot use Sage commands available for number fields.
 
     INPUT:
 
-    - ``E`` - EllipticCurve - over a number field.
+    - ``E`` -- EllipticCurve over a number field.
 
     OUTPUT:
 
@@ -808,7 +806,7 @@ def _semistable_reducible_primes(E, verbose=False):
 
     INPUT:
 
-    - ``E`` - EllipticCurve - over a number field.
+    - ``E`` -- EllipticCurve over a number field.
 
     OUTPUT:
 
@@ -832,7 +830,8 @@ def _semistable_reducible_primes(E, verbose=False):
         sage: _semistable_reducible_primes(E)
         [2, 5, 53, 1117]
     """
-    if verbose: print("In _semistable_reducible_primes with E={}".format(E.ainvs()))
+    if verbose:
+        print("In _semistable_reducible_primes with E={}".format(E.ainvs()))
     K = E.base_field()
     d = K.degree()
 
@@ -870,25 +869,31 @@ def _semistable_reducible_primes(E, verbose=False):
     xpol = x.charpoly() if d>1 else Zx([-x,1])
     ypol = y.charpoly() if d>1 else Zx([-y,1])
 
-    if verbose: print("Finished precomp, x={} (p={}), y={} (p={})".format(x,px,y,py))
+    if verbose:
+        print("Finished precomp, x={} (p={}), y={} (p={})".format(x,px,y,py))
 
     for w in range(1 + d // 2):
-        if verbose: print("w = {}".format(w))
+        if verbose:
+            print("w = {}".format(w))
         gx = xpol.symmetric_power(w).adams_operator(12).resultant(fx12pol)
         gy = ypol.symmetric_power(w).adams_operator(12).resultant(fy12pol)
-        if verbose: print("computed gx and gy")
+        if verbose:
+            print("computed gx and gy")
 
         gxn = Integer(gx.absolute_norm()) if d > 1 else gx
         gyn = Integer(gy.absolute_norm()) if d > 1 else gy
         gxyn = gxn.gcd(gyn)
         if gxyn:
             xprimes = gxyn.prime_factors()
-            if verbose: print("adding prime factors {} of {} to {}".format(xprimes, gxyn, sorted(bad_primes)))
+            if verbose:
+                print("adding prime factors {} of {} to {}".format(xprimes, gxyn, sorted(bad_primes)))
             bad_primes.update(xprimes)
-            if verbose: print("...done, bad_primes now {}".format(sorted(bad_primes)))
+            if verbose:
+                print("...done, bad_primes now {}".format(sorted(bad_primes)))
             continue
         else:
-            if verbose: print("gx and gy both 0!")
+            if verbose:
+                print("gx and gy both 0!")
 
 
         ## It is possible that our curve has CM. ##
@@ -931,19 +936,23 @@ def _semistable_reducible_primes(E, verbose=False):
             while E.has_bad_reduction(P):
                 P = next(deg_one_primes)
 
-            if verbose: print("trying P = {}...".format(P))
+            if verbose:
+                print("trying P = {}...".format(P))
             EmodP = E.reduction(P)
             fpol = EmodP.frobenius_polynomial()
-            if verbose: print("...good reduction, frobenius poly = {}".format(fpol))
+            if verbose:
+                print("...good reduction, frobenius poly = {}".format(fpol))
             x = iso(P.gens_reduced()[0]).relative_norm()
             xpol = x.charpoly().adams_operator(12)
             div2 = Integer(xpol.resultant(fpol.adams_operator(12)) // x.norm()**12)
             if div2:
                 div = div2.isqrt()
                 assert div2==div**2
-                if verbose: print("...div = {}".format(div))
+                if verbose:
+                    print("...div = {}".format(div))
             else:
-                if verbose: print("...div = 0, continuing")
+                if verbose:
+                    print("...div = 0, continuing")
                 patience -= 1
 
         if patience == 0:
@@ -955,9 +964,11 @@ def _semistable_reducible_primes(E, verbose=False):
         # We found our divisibility constraint.
 
         xprimes = div.prime_factors()
-        if verbose: print("...adding prime factors {} of {} to {}...".format(xprimes,div, sorted(bad_primes)))
+        if verbose:
+            print("...adding prime factors {} of {} to {}...".format(xprimes,div, sorted(bad_primes)))
         bad_primes.update(xprimes)
-        if verbose: print("...done, bad_primes now {}".format(sorted(bad_primes)))
+        if verbose:
+            print("...done, bad_primes now {}".format(sorted(bad_primes)))
 
     L = sorted(bad_primes)
     return L
@@ -970,9 +981,9 @@ def _possible_normalizers(E, SA):
 
     INPUT:
 
-    - ``E`` - EllipticCurve - over a number field K.
+    - ``E`` -- EllipticCurve over a number field K.
 
-    - ``SA`` - list - a list of primes of K.
+    - ``SA`` -- a list of primes of K.
 
     OUTPUT:
 
@@ -998,7 +1009,6 @@ def _possible_normalizers(E, SA):
         Traceback (most recent call last):
         ...
         ValueError: The curve E should not have CM.
-
     """
     if E.has_cm():
         raise ValueError("The curve E should not have CM.")
@@ -1007,12 +1017,12 @@ def _possible_normalizers(E, SA):
     K = E.base_field()
     SA = [K.ideal(I.gens()) for I in SA]
 
-    selmer_group = K.selmer_group(SA, 2) # Generators of the selmer group.
+    selmer_gens = K.selmer_generators(SA, 2) # Generators of the selmer group.
 
-    if not selmer_group:
+    if not selmer_gens:
         return []
 
-    V = VectorSpace(GF(2), len(selmer_group))
+    V = VectorSpace(GF(2), len(selmer_gens))
     # We think of this as the character group of the selmer group.
 
     traces_list = []
@@ -1034,7 +1044,7 @@ def _possible_normalizers(E, SA):
         splitting_vector = [] # This will be the values of this
         # character on the generators of the Selmer group.
 
-        for a in selmer_group:
+        for a in selmer_gens:
             abar = k(a)
             if abar == 0:
                 # Ramification.
@@ -1077,9 +1087,9 @@ def _possible_normalizers(E, SA):
 
     # We find the element a of the selmer group corresponding to v:
     a = 1
-    for i in range(len(selmer_group)):
+    for i in range(len(selmer_gens)):
         if v[i] == 1:
-            a *= selmer_group[i]
+            a *= selmer_gens[i]
 
     # Since we've already included the above bad primes, we can assume
     # that the quadratic character corresponding to the exceptional primes
@@ -1138,7 +1148,6 @@ def Billerey_P_l(E, l):
         x^2 + 451358*x + 282429536481,
         x^4 - 664299076*x^3 + 205155493652343750*x^2 - 39595310449600219726562500*x + 3552713678800500929355621337890625,
         x^4 - 207302404*x^3 - 377423798538689366394*x^2 - 39715249826471656586987520004*x + 36703368217294125441230211032033660188801]
-
     """
     K = E.base_field()
     qq = K.primes_above(l)
@@ -1214,7 +1223,6 @@ def Billerey_R_q(E, q, B=0):
         227279663773903886745600,
         51956919562116960000000000000000,
         252485933820556361829926400000000]
-
     """
     K = E.base_field()
     d = K.absolute_degree()
@@ -1257,7 +1265,7 @@ def Billerey_B_bound(E, max_l=200, num_l=8, small_prime_bound=0, debug=False):
 
     - ``debug`` (bool, default ``False``)  -- if ``True`` prints details.
 
-    .. note::
+    .. NOTE::
 
         The purpose of the small_prime_bound is that it is faster to
         deal with these using the local test; by ignoring them here,
@@ -1289,7 +1297,6 @@ def Billerey_B_bound(E, max_l=200, num_l=8, small_prime_bound=0, debug=False):
 
         sage: len(E.isogenies_prime_degree(5))
         1
-
     """
     if debug:
         print("Computing B-bound for {} with max_l={}, num_l={}".format(E.ainvs(),max_l,num_l) + " (ignoring primes under {})".format(small_prime_bound) if small_prime_bound else "")
@@ -1365,7 +1372,7 @@ def Billerey_R_bound(E, max_l=200, num_l=8, small_prime_bound=None, debug=False)
 
     - ``debug`` (bool, default ``False``)  -- if ``True`` prints details.
 
-    .. note::
+    .. NOTE::
 
         The purpose of the small_prime_bound is that it is faster to
         deal with these using the local test; by ignoring them here,
@@ -1397,7 +1404,6 @@ def Billerey_R_bound(E, max_l=200, num_l=8, small_prime_bound=None, debug=False)
         [5]
         sage: len(E.isogenies_prime_degree(5))
         1
-
     """
     if debug:
         print("Computing R-bound for {} with max_l={}, num_l={}".format(E.ainvs(),max_l,num_l) + " (ignoring primes under {})".format(small_prime_bound) if small_prime_bound else "")
@@ -1465,8 +1471,7 @@ def reducible_primes_Billerey(E, num_l=None, max_l=None, verbose=False):
       `\ell` to use for the B-bound and R-bound.  If ``None``, a
       default value will be used.
 
-
-    .. note::
+    .. NOTE::
 
         If ``E`` has CM then [0] is returned.  In this case use the
         function
@@ -1501,7 +1506,6 @@ def reducible_primes_Billerey(E, num_l=None, max_l=None, verbose=False):
         sage: E = EllipticCurve_from_j(K(2268945/128)).global_minimal_model() # c.f. [Sut2012]
         sage: reducible_primes_Billerey(E)
         [7]
-
     """
     #verbose=True
     if verbose:

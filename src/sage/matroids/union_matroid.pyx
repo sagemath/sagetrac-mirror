@@ -6,8 +6,8 @@ cdef class MatroidUnion(Matroid):
     r"""
     Matroid Union.
 
-    The matroid union of a set of matroids `\{(E_1,I_1),\ldots,(E_n,I_n)\}` is 
-    a matroid `(E,I)` where `E= \bigcup_{i=1}^n E_i` and 
+    The matroid union of a set of matroids `\{(E_1,I_1),\ldots,(E_n,I_n)\}` is
+    a matroid `(E,I)` where `E= \bigcup_{i=1}^n E_i` and
 
         `I= \{\bigcup_{i=1}^n J_i | J_i \in I_i \}`.
 
@@ -93,7 +93,7 @@ cdef class MatroidUnion(Matroid):
         sum_matroid = MatroidSum(summands)
         d = {}
         for (i,x) in sum_matroid.groundset():
-            if not x in d:
+            if x not in d:
                 d[x]=set()
             d[x].add(i)
         part_matroid = PartitionMatroid([[(i,x) for i in d[x]] for x in d])
@@ -218,7 +218,7 @@ cdef class MatroidSum(Matroid):
         """
         partition = {}
         for (i,x) in X:
-            if not i in partition:
+            if i not in partition:
                 partition[i] = set()
             partition[i].add(x)
         rk = 0
@@ -231,7 +231,7 @@ cdef class PartitionMatroid(Matroid):
     Partition Matroid.
 
     Given a set of disjoint sets `S=\{S_1,\ldots,S_n\}`, the partition matroid
-    on `S` is `(E,I)` where `E=\bigcup_{i=1}^n S_i` and 
+    on `S` is `(E,I)` where `E=\bigcup_{i=1}^n S_i` and
 
         `I= \{X| |X\cap S_i|\leq 1,X\subset E \}`.
 
@@ -315,7 +315,7 @@ cdef class PartitionMatroid(Matroid):
             sage: M._rank([1,2])
             1
         """
-        return len(set(map(self.p.get,X)))
+        return len(set(map(self.p.get, X)))
 
     def _repr_(self):
         """
@@ -327,5 +327,4 @@ cdef class PartitionMatroid(Matroid):
             sage: PartitionMatroid([[1,2,3],[4,5,6]])
             Partition Matroid of rank 2 on 6 elements
         """
-        S = "Partition "+Matroid._repr_(self)
-        return S
+        return "Partition " + Matroid._repr_(self)

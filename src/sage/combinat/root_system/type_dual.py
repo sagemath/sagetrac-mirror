@@ -8,7 +8,6 @@ Root system data for dual Cartan types
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.misc.call import attrcall
 from sage.misc.cachefunc import cached_method
@@ -176,14 +175,14 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
         if self.is_affine() and self.options.notation == "Kac":
             if self._type.type() == 'B':
                 if compact:
-                    return 'A%s^2'%(self.classical().rank()*2-1)
-                return "['A', %s, 2]"%(self.classical().rank()*2-1)
+                    return 'A%s^2' % (self.classical().rank()*2-1)
+                return "['A', %s, 2]" % (self.classical().rank()*2-1)
             elif self._type.type() == 'BC':
                 dual_str = '+'
             elif self._type.type() == 'C':
                 if compact:
-                    return 'D%s^2'%(self.rank())
-                return "['D', %s, 2]"%(self.rank())
+                    return 'D%s^2' % (self.rank())
+                return "['D', %s, 2]" % (self.rank())
             elif self._type.type() == 'F':
                 if compact:
                     return 'E6^2'
@@ -599,14 +598,14 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         if self.options.notation == "Kac":
             if self._type.type() == 'B':
                 if compact:
-                    return 'A%s^2'%(self.classical().rank()*2-1)
-                return "['A', %s, 2]"%(self.classical().rank()*2-1)
+                    return 'A%s^2' % (self.classical().rank()*2-1)
+                return "['A', %s, 2]" % (self.classical().rank()*2-1)
             elif self._type.type() == 'BC':
                 pass
             elif self._type.type() == 'C':
                 if compact:
-                    return 'D%s^2'%(self.rank())
-                return "['D', %s, 2]"%(self.rank())
+                    return 'D%s^2' % (self.rank())
+                return "['D', %s, 2]" % (self.rank())
             elif self._type.type() == 'F':
                 if compact:
                     return 'E6^2'
@@ -643,11 +642,11 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         """
         if self.options('notation') == "Kac":
             if self._type.type() == 'B':
-                return "A_{%s}^{(2)}"%(self.classical().rank()*2-1)
+                return "A_{%s}^{(2)}" % (self.classical().rank()*2-1)
             elif self._type.type() == 'BC':
-                return "A_{%s}^{(2)\\dagger}"%(2*self.classical().rank())
+                return "A_{%s}^{(2)\\dagger}" % (2*self.classical().rank())
             elif self._type.type() == 'C':
-                return "D_{%s}^{(2)}"%(self.rank)()
+                return "D_{%s}^{(2)}" % (self.rank)()
             elif self._type.type() == 'F':
                 return "E_6^{(2)}"
         result = self._type._latex_()

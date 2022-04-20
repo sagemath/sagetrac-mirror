@@ -24,7 +24,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division, absolute_import, print_function
 
 from sage.libs.gap.element import GapElement
 
@@ -905,4 +904,3 @@ class CohomologyRAAG(CombinatorialFreeModule):
                         del d[t]
 
             return self.__class__(self.parent(), d)
-

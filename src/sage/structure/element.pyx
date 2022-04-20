@@ -47,6 +47,7 @@ abstract base classes.
                                     EuclideanDomainElement
                         FieldElement
                         CommutativeAlgebraElement
+                        Expression
                     AlgebraElement
                         Matrix
                     InfinityElement
@@ -473,7 +474,7 @@ cdef class Element(SageObject):
         category of ``CommutativeRings()``::
 
             sage: 1.is_idempotent
-            <bound method JoinCategory.element_class.is_idempotent of 1>
+            <bound method Magmas.ElementMethods.is_idempotent of 1>
             sage: 1.is_idempotent.__module__
             'sage.categories.magmas'
 
@@ -484,7 +485,7 @@ cdef class Element(SageObject):
             ...
             AttributeError: 'sage.rings.integer.Integer' object has no attribute 'blah_blah'
             sage: Semigroups().example().an_element().is_idempotent
-            <bound method LeftZeroSemigroup_with_category.element_class.is_idempotent of 42>
+            <bound method LeftZeroSemigroup.Element.is_idempotent of 42>
             sage: Semigroups().example().an_element().blah_blah
             Traceback (most recent call last):
             ...
@@ -812,7 +813,7 @@ cdef class Element(SageObject):
             sage: Integer(5).subs(x=4)
             5
         """
-        if not hasattr(self, '__call__'):
+        if not callable(self):
             return self
         parent = self._parent
         try:
@@ -1003,7 +1004,7 @@ cdef class Element(SageObject):
         s = str(self)
         return s.find("+") == -1 and s.find("-") == -1 and s.find(" ") == -1
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return whether this element is equal to ``self.parent()(0)``.
 
@@ -1053,12 +1054,12 @@ cdef class Element(SageObject):
         Return ``True`` if ``self`` equals ``self.parent()(0)``.
 
         The default implementation is to fall back to ``not
-        self.__nonzero__``.
+        self.__bool__``.
 
         .. WARNING::
 
             Do not re-implement this method in your subclass but
-            implement ``__nonzero__`` instead.
+            implement ``__bool__`` instead.
         """
         return not self
 
@@ -1683,7 +1684,8 @@ cdef class Element(SageObject):
             2/3
             sage: operator.truediv(pi, 3)
             1/3*pi
-            sage: K.<i> = NumberField(x^2+1)
+            sage: x = polygen(QQ, 'x')
+            sage: K.<i> = NumberField(x^2 + 1)
             sage: operator.truediv(2, K.ideal(i+1))
             Fractional ideal (-i + 1)
 
@@ -2173,7 +2175,7 @@ cdef class ElementWithCachedMethod(Element):
     slower (for :class:`~sage.structure.parent.Parent`) or the cache would
     even break (for :class:`Element`).
 
-    This class should be used if you write an element class, can not provide
+    This class should be used if you write an element class, cannot provide
     it with attribute assignment, but want that it inherits a cached method
     from the category. Under these conditions, your class should inherit
     from this class rather than :class:`Element`. Then, the cache will work,
@@ -2447,16 +2449,16 @@ cdef class ModuleElementWithMutability(ModuleElement):
     Generic element of a module with mutability.
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, is_immutable=False):
         """
         EXAMPLES::
 
             sage: v = sage.modules.free_module_element.FreeModuleElement(QQ^3)
             sage: type(v)
-            <type 'sage.modules.free_module_element.FreeModuleElement'>
+            <class 'sage.modules.free_module_element.FreeModuleElement'>
         """
         self._parent = parent
-        self._is_mutable = 1
+        self._is_immutable = is_immutable
 
     def set_immutable(self):
         """
@@ -2473,7 +2475,7 @@ cdef class ModuleElementWithMutability(ModuleElement):
             ...
             ValueError: vector is immutable; please change a copy instead (use copy())
         """
-        self._is_mutable = 0
+        self._is_immutable = 1
 
     cpdef bint is_mutable(self):
         """
@@ -2488,7 +2490,7 @@ cdef class ModuleElementWithMutability(ModuleElement):
             sage: v.is_mutable()
             False
         """
-        return self._is_mutable
+        return not self._is_immutable
 
     cpdef bint is_immutable(self):
         """
@@ -2503,7 +2505,7 @@ cdef class ModuleElementWithMutability(ModuleElement):
             sage: v.is_immutable()
             True
         """
-        return not self._is_mutable
+        return self._is_immutable
 
 ########################################################################
 # Monoid
@@ -2548,9 +2550,9 @@ cdef class MonoidElement(Element):
 
         EXAMPLES::
 
-            sage: G = SymmetricGroup(4)
-            sage: g = G([2, 3, 4, 1])
-            sage: g.powers(4)
+            sage: G = SymmetricGroup(4)                                 # optional - sage.groups
+            sage: g = G([2, 3, 4, 1])                                   # optional - sage.groups
+            sage: g.powers(4)                                           # optional - sage.groups
             [(), (1,2,3,4), (1,3)(2,4), (1,4,3,2)]
         """
         if n < 0:
@@ -2564,7 +2566,7 @@ cdef class MonoidElement(Element):
             l.append(x)
         return l
 
-    def __nonzero__(self):
+    def __bool__(self):
         return True
 
 
@@ -3254,6 +3256,16 @@ cdef class CommutativeRingElement(RingElement):
 
     ##############################################
 
+cdef class Expression(CommutativeRingElement):
+
+    r"""
+    Abstract base class for :class:`~sage.symbolic.expression.Expression`.
+    """
+
+    pass
+
+    ##############################################
+
 cdef class Vector(ModuleElementWithMutability):
     cdef bint is_sparse_c(self):
         raise NotImplementedError
@@ -3908,15 +3920,78 @@ def is_PrincipalIdealDomainElement(x):
     return isinstance(x, PrincipalIdealDomainElement)
 
 cdef class PrincipalIdealDomainElement(DedekindDomainElement):
+    def gcd(self, right):
+        r"""
+        Return the greatest common divisor of ``self`` and ``other``.
+
+        TESTS:
+
+        :trac:`30849`::
+
+            sage: 2.gcd(pari(3))
+            1
+            sage: type(2.gcd(pari(3)))
+            <class 'sage.rings.integer.Integer'>
+
+            sage: 2.gcd(pari('1/3'))
+            1/3
+            sage: type(2.gcd(pari('1/3')))
+            <class 'sage.rings.rational.Rational'>
+
+            sage: import gmpy2
+            sage: 2.gcd(gmpy2.mpz(3))
+            1
+            sage: type(2.gcd(gmpy2.mpz(3)))
+            <class 'sage.rings.integer.Integer'>
+
+            sage: 2.gcd(gmpy2.mpq(1,3))
+            1/3
+            sage: type(2.gcd(pari('1/3')))
+            <class 'sage.rings.rational.Rational'>
+        """
+        # NOTE: in order to handle nicely pari or gmpy2 integers we do not rely only on coercion
+        if not isinstance(right, Element):
+            right = py_scalar_to_element(right)
+            if not isinstance(right, Element):
+                right = right.sage()
+        if not ((<Element>right)._parent is self._parent):
+            from sage.arith.all import gcd
+            return coercion_model.bin_op(self, right, gcd)
+        return self._gcd(right)
+
     def lcm(self, right):
         """
         Return the least common multiple of ``self`` and ``right``.
+
+        TESTS:
+
+        :trac:`30849`::
+
+            sage: 2.lcm(pari(3))
+            6
+            sage: type(2.lcm(pari(3)))
+            <class 'sage.rings.integer.Integer'>
+
+            sage: 2.lcm(pari('1/3'))
+            2
+            sage: type(2.lcm(pari('1/3')))
+            <class 'sage.rings.rational.Rational'>
+
+            sage: import gmpy2
+            sage: 2.lcm(gmpy2.mpz(3))
+            6
+            sage: type(2.lcm(gmpy2.mpz(3)))
+            <class 'sage.rings.integer.Integer'>
         """
-        if not isinstance(right, Element) or not ((<Element>right)._parent is self._parent):
+        # NOTE: in order to handle nicely pari or gmpy2 integers we do not rely only on coercion
+        if not isinstance(right, Element):
+            right = py_scalar_to_element(right)
+            if not isinstance(right, Element):
+                right = right.sage()
+        if not ((<Element>right)._parent is self._parent):
             from sage.arith.all import lcm
             return coercion_model.bin_op(self, right, lcm)
         return self._lcm(right)
-
 
 # This is pretty nasty low level stuff. The idea is to speed up construction
 # of EuclideanDomainElements (in particular Integers) by skipping some tp_new
@@ -4160,7 +4235,7 @@ def is_InfinityElement(x):
 
 cdef class InfinityElement(RingElement):
     def __invert__(self):
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         return ZZ(0)
 
 
@@ -4331,7 +4406,7 @@ def coerce_binop(method):
         sage: x.test_add(CC(2))
         Traceback (most recent call last):
         ...
-        AttributeError: 'sage.rings.complex_number.ComplexNumber' object has no attribute 'test_add'
+        AttributeError: 'sage.rings.complex_mpfr.ComplexNumber' object has no attribute 'test_add'
 
     TESTS:
 

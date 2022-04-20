@@ -358,7 +358,7 @@ always evaluates to this method, regardless of whether ``Ds`` has a
 nested class ``Ds.Green`` or not (an implementation detail)::
 
     sage: Cs().Green
-    <bound method Cs_with_category.Green of Category of cs>
+    <bound method Cs.SubcategoryMethods.Green of Category of cs>
 
 Thanks to this feature (implemented in :meth:`CategoryWithAxiom.__classget__`),
 the user is systematically referred to the documentation of this
@@ -870,7 +870,7 @@ categories of ``Fields().Finite()``, to not try to add
 ``DivisionRings().Finite()`` as a super category.
 
 Instead the current idiom is to have a method
-``DivisionRings.Finite_extra_super_categories`` which mimicks the
+``DivisionRings.Finite_extra_super_categories`` which mimics the
 behavior of the would-be
 ``DivisionRings.Finite.extra_super_categories``::
 
@@ -1407,7 +1407,7 @@ covariant: ``C.A()`` is a subcategory of ``D.A()`` whenever ``C`` is a
 subcategory of ``D``.
 
 As usual in such closure computations, the result does not depend on
-the order of execution. Futhermore, given that adding an axiom is an
+the order of execution. Furthermore, given that adding an axiom is an
 idempotent and regressive operation, the process is guaranteed to stop
 in a number of steps which is bounded by the number of super
 categories of `J`. In particular, it is a finite process.
@@ -1653,7 +1653,6 @@ TESTS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import importlib
 import re
@@ -1680,7 +1679,7 @@ all_axioms += ("Flying", "Blue",
                "Facade", "Finite", "Infinite","Enumerated",
                "Complete",
                "Nilpotent",
-               "FiniteDimensional", "Connected",
+               "FiniteDimensional", "FinitelyPresented", "Connected",
                "FinitelyGeneratedAsLambdaBracketAlgebra",
                "WithBasis",
                "Irreducible",
@@ -1928,7 +1927,7 @@ class CategoryWithAxiom(Category):
             axiom, therefore having a special ``__classget__`` method.
             Storing the base category class and the axiom in a single
             tuple attribute -- instead of two separate attributes --
-            has the advantage of not trigerring, for example,
+            has the advantage of not triggering, for example,
             ``Semigroups.__classget__`` upon
             ``Monoids._base_category_class``.
         """
@@ -2071,7 +2070,7 @@ class CategoryWithAxiom(Category):
             setattr(base_category_class, cls._axiom, cls)
 
         if base_category is None:
-             return cls
+            return cls
         # For Rings().Finite, this returns the method
         # Sets.SubcategoryMethods.Finite, with its first argument bound to Rings()
         return getattr(super(base_category.__class__.__base__, base_category), cls._axiom)
@@ -2346,7 +2345,7 @@ class CategoryWithAxiom(Category):
         r"""
         Implement the pickle protocol.
 
-        This overides the implementation in
+        This overrides the implementation in
         :meth:`UniqueRepresentation.__reduce__` in order to not
         exposes the implementation detail that, for example, the
         category of magmas which distribute over an associative

@@ -6,7 +6,6 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -17,7 +16,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 
 from sage.modules.module import Module
 from sage.structure.unique_representation import UniqueRepresentation
@@ -426,4 +425,3 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         """
 
         return self._module.coordinate_vector(self.ambient_coordinate_vector(v))
-

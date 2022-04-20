@@ -25,7 +25,7 @@ from .data_structures cimport *
 from sage.data_structures.bitset_base cimport *
 from sage.rings.integer cimport Integer
 from sage.graphs.base.sparse_graph cimport SparseGraph
-from sage.graphs.base.dense_graph cimport DenseGraph
+from sage.graphs.base.dense_graph cimport DenseGraph, copy_dense_graph
 from .double_coset cimport double_coset
 
 
@@ -70,7 +70,8 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
     cdef list partition, cell
     cdef bint loops = 0
 
-    from sage.graphs.all import Graph, DiGraph
+    from sage.graphs.graph import Graph
+    from sage.graphs.digraph import DiGraph
     from sage.graphs.generic_graph import GenericGraph
     from copy import copy
     which_G = 1
@@ -128,7 +129,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
             if first:
                 partition = partn
         else:
-            raise TypeError("G must be a Sage graph.")
+            raise TypeError("G must be a Sage graph")
         if first: frm1=frm;to1=to
         else: frm2=frm;to2=to
         GS.G = G
@@ -379,7 +380,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
     cdef bint loops
     cdef aut_gp_and_can_lab *output
     cdef PartitionStack *part
-    from sage.graphs.all import Graph, DiGraph
+    from sage.graphs.graph import Graph
+    from sage.graphs.digraph import DiGraph
     from sage.graphs.generic_graph import GenericGraph
     from copy import copy
     if isinstance(G_in, GenericGraph):
@@ -417,7 +419,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
         for a in G.verts(): to[a]=a
         frm = to
     else:
-        raise TypeError("G must be a Sage graph.")
+        raise TypeError("G must be a Sage graph")
 
     cdef GraphStruct GS = GraphStruct()
     GS.G = G
@@ -775,7 +777,7 @@ def all_labeled_graphs(n):
         5 34
 
     """
-    from sage.graphs.all import Graph
+    from sage.graphs.graph import Graph
     TE = []
     for i in range(n):
         for j in range(i):
@@ -1128,17 +1130,6 @@ cdef int gen_children_dg_edge(void *S, aut_gp_and_can_lab *group, iterator *it):
         start_canonical_generator(group.group, NULL, n, edge_iterator)
     return (edge_iterator is NULL)
 
-cdef void copy_dense_graph(DenseGraph dest, DenseGraph src):
-    r"""
-    caution! active_vertices must be same size!
-    """
-    memcpy(dest.edges,       src.edges,       src.active_vertices.size * src.num_longs * sizeof(unsigned long))
-    memcpy(dest.in_degrees,  src.in_degrees,  src.active_vertices.size * sizeof(int))
-    memcpy(dest.out_degrees, src.out_degrees, src.active_vertices.size * sizeof(int))
-    bitset_copy(dest.active_vertices, src.active_vertices)
-    dest.num_verts = src.num_verts
-    dest.num_arcs  = src.num_arcs
-
 cdef void *apply_dg_edge_aug(void *parent, void *aug, void *child, int *degree, bint *mem_err):
     r"""
     Apply the augmentation to ``parent`` storing the result in ``child``. Here
@@ -1302,7 +1293,7 @@ def generate_dense_graphs_edge_addition(int n, bint loops, G = None, depth = Non
         12346
 
     """
-    from sage.graphs.all import Graph
+    from sage.graphs.graph import Graph
     cdef iterator *graph_iterator
     cdef DenseGraph DG, ODG
     cdef GraphStruct GS
@@ -1572,7 +1563,7 @@ def generate_dense_graphs_vert_addition(int n, base_G = None, bint construct = F
         11
 
     """
-    from sage.graphs.all import Graph
+    from sage.graphs.graph import Graph
     cdef iterator *graph_iterator
     cdef DenseGraph DG, ODG
     cdef GraphStruct GS

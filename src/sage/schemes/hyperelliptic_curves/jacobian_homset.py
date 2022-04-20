@@ -45,10 +45,10 @@ EXAMPLES::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
-from sage.rings.all import PolynomialRing, Integer, ZZ
-from sage.rings.integer import is_Integer
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.integer_ring import ZZ
+from sage.rings.integer import is_Integer, Integer
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.schemes.generic.homset import SchemeHomset_points

@@ -61,16 +61,16 @@ class FreeMonoidElement(MonoidElement):
             if x == 1:
                 self._element_list = []
             else:
-                raise TypeError("Argument x (= %s) is of the wrong type."%x)
+                raise TypeError("argument x (= %s) is of the wrong type" % x)
         elif isinstance(x, list):
             if check:
                 x2 = []
                 for v in x:
                     if not (isinstance(v, tuple) and len(v) == 2):
-                        raise TypeError("x (= %s) must be a list of 2-tuples or 1."%x)
+                        raise TypeError("x (= %s) must be a list of 2-tuples or 1" % x)
                     if not (isinstance(v[0], (int, Integer)) and
                             isinstance(v[1], (int, Integer))):
-                        raise TypeError("x (= %s) must be a list of 2-tuples of integers or 1."%x)
+                        raise TypeError("x (= %s) must be a list of 2-tuples of integers or 1" % x)
                     if len(x2) > 0 and v[0] == x2[len(x2)-1][0]:
                         x2[len(x2)-1] = (v[0], v[1]+x2[len(x2)-1][1])
                     else:
@@ -81,7 +81,7 @@ class FreeMonoidElement(MonoidElement):
 
         else:
             # TODO: should have some other checks here...
-            raise TypeError("Argument x (= %s) is of the wrong type."%x)
+            raise TypeError("argument x (= %s) is of the wrong type" % x)
 
     def __hash__(self):
         r"""
@@ -140,7 +140,17 @@ class FreeMonoidElement(MonoidElement):
             'a_{0}^{5}a_{1}^{2}a_{0}^{12}a_{1}^{2}'
             sage: F.<alpha,beta,gamma> = FreeMonoid(3)
             sage: latex(alpha*beta*gamma)
-            \alpha\beta\gamma
+            \alpha \beta \gamma
+
+        Check that :trac:`14509` is fixed::
+
+            sage: K.< alpha,b > = FreeAlgebra(SR)
+            sage: latex(alpha*b)
+            \alpha b
+            sage: latex(b*alpha)
+            b \alpha
+            sage: "%s"%latex(alpha*b)                                                                                                                                                                                       
+            '\\alpha b'
         """
         s = ""
         v = self._element_list
@@ -149,9 +159,10 @@ class FreeMonoidElement(MonoidElement):
             g = x[int(v[i][0])]
             e = v[i][1]
             if e == 1:
-                s += "%s"%(g,)
+                s += "%s "%(g,)
             else:
                 s += "%s^{%s}"%(g,e)
+        s = s.rstrip(" ") # strip the trailing whitespace caused by adding a space after each element name
         if len(s) == 0:
             s = "1"
         return s

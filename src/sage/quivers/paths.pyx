@@ -134,7 +134,7 @@ cdef class QuiverPath(MonoidElement):
         - ``start``, integer, the label of the initial vertex.
         - ``end``, integer, the label of the terminal vertex.
         - ``path``, list of integers, providing the list of arrows
-          occuring in the path, labelled according to the position in
+          occurring in the path, labelled according to the position in
           the list of all arrows (resp. the list of outgoing arrows at
           each vertex).
 
@@ -218,7 +218,8 @@ cdef class QuiverPath(MonoidElement):
         if not self._path.length:
             return 'e_{0}'.format(self._start)
         L = self._parent._labels
-        return '*'.join([L[biseq_getitem(self._path, i)] for i in range(self._path.length)])
+        return '*'.join(L[biseq_getitem(self._path, i)]
+                        for i in range(self._path.length))
 
     def __len__(self):
         """
@@ -241,7 +242,7 @@ cdef class QuiverPath(MonoidElement):
     degree = __len__
     length = __len__
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Implement boolean values for paths.
 
@@ -418,7 +419,7 @@ cdef class QuiverPath(MonoidElement):
                                  &start, &stop, &step,
                                  &slicelength)
             if step!=1 and step!=-1:
-                raise ValueError("Slicing only possible for step +/-1")
+                raise ValueError("slicing only possible for step +/-1")
             if step==-1:
                 return self.reversal()[self._path.length-1-start:self._path.length-1-stop]
             if start==0 and stop==self._path.length:
@@ -655,19 +656,18 @@ cdef class QuiverPath(MonoidElement):
             sage: (c*b*e*a).has_subpath(e_1)
             Traceback (most recent call last):
             ...
-            ValueError: We only consider sub-paths of positive length
+            ValueError: we only consider sub-paths of positive length
             sage: (c*b*e*a).has_subpath(None)
             Traceback (most recent call last):
             ...
-            ValueError: The given sub-path is empty
-
+            ValueError: the given sub-path is empty
         """
         if subpath is None:
-            raise ValueError("The given sub-path is empty")
+            raise ValueError("the given sub-path is empty")
         if subpath._parent is not self._parent:
-            raise ValueError("The two paths belong to different quivers")
+            raise ValueError("the two paths belong to different quivers")
         if subpath._path.length == 0:
-            raise ValueError("We only consider sub-paths of positive length")
+            raise ValueError("we only consider sub-paths of positive length")
         cdef size_t i
         cdef size_t max_i, bitsize
         if self._path.length < subpath._path.length:
@@ -704,7 +704,7 @@ cdef class QuiverPath(MonoidElement):
 
         """
         if subpath._parent is not self._parent:
-            raise ValueError("The two paths belong to different quivers")
+            raise ValueError("the two paths belong to different quivers")
         if self._start != subpath._start:
             return 0
         if subpath._path.length==0:
@@ -817,12 +817,11 @@ def NewQuiverPath(Q, start, end, biseq_data):
          (Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices,
           1,
           3,
-          ((0, 4L, 1, ..., (4L,)), 2L, 2)))
-
+          ((0, 4, 1, ..., (4,)), 2, 2)))
     """
     cdef QuiverPath out = QuiverPath.__new__(Q.element_class)
     out._parent = Q
     out._start = start
-    out._end   = end
+    out._end = end
     biseq_unpickle(out._path, biseq_data[0], biseq_data[1], biseq_data[2])
     return out

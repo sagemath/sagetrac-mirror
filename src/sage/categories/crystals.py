@@ -19,7 +19,6 @@ Catch warnings produced by :func:`check_tkz_graph`::
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -555,7 +554,7 @@ class Crystals(Category_singleton):
             if category is None:
                 category = FiniteCrystals()
             else:
-               category = FiniteCrystals() & category
+                category = FiniteCrystals() & category
 
             if self in FiniteCrystals() and len(subset) == self.cardinality():
                 if index_set == self.index_set():
@@ -890,7 +889,7 @@ class Crystals(Category_singleton):
 
             .. TODO:: Add more tests.
             """
-            from sage.graphs.all import DiGraph
+            from sage.graphs.digraph import DiGraph
             d = {}
 
             # Parse optional arguments
@@ -2199,7 +2198,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
         """
         return any(self._on_gens(mg) is not None for mg in self._gens)
 
-    __nonzero__ = __bool__
+    
 
     # TODO: Does this belong in the element_class of the Crystals() category?
     def to_module_generator(self, x):
@@ -2333,7 +2332,7 @@ class CrystalHomset(Homset):
       `f_i b = b^{\prime}`, then `f_i \Psi(b) = \Psi(b^{\prime})` and
       `\Psi(b) = e_i \Psi(b^{\prime})` for all `i \in I`.
 
-    If the Cartan type is unambiguous, it is surpressed from the notation.
+    If the Cartan type is unambiguous, it is suppressed from the notation.
 
     We can also generalize the definition of a crystal morphism by considering
     a map of `\sigma` of the (now possibly different) Dynkin diagrams
@@ -2611,4 +2610,3 @@ class CrystalHomset(Homset):
         return self.element_class(self, lambda x: None)
 
     Element = CrystalMorphismByGenerators
-

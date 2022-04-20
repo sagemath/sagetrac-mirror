@@ -148,7 +148,7 @@ class HighestWeightCrystals(Category_singleton):
                 sage: C.highest_weight_vector()
                 1
             """
-            hw = self.highest_weight_vectors();
+            hw = self.highest_weight_vectors()
             if len(hw) == 1:
                 return hw[0]
             else:
@@ -497,7 +497,7 @@ class HighestWeightCrystals(Category_singleton):
                 raise NotImplementedError("crystals not known to be finite must"
                                           " specify either the subset or depth")
 
-            from sage.graphs.all import DiGraph
+            from sage.graphs.digraph import DiGraph
             if index_set is None:
                 index_set = self.index_set()
 

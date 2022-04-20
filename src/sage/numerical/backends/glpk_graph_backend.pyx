@@ -1129,7 +1129,7 @@ cdef class GLPKGraphBackend(object):
         .. NOTE::
 
            This method raises ``MIPSolverException`` exceptions when
-           the solution can not be computed for any reason (none
+           the solution cannot be computed for any reason (none
            exists, or the LP solver was not able to find it, etc...)
 
         EXAMPLES::
@@ -1213,7 +1213,7 @@ cdef class GLPKGraphBackend(object):
             sage: gbe.write_maxflow(SAGE_TMP+"/graph.max")
             Traceback (most recent call last):
             ...
-            IOError: Cannot write empty graph
+            OSError: Cannot write empty graph
         """
 
         if self.graph.nv <= 0:
@@ -1250,7 +1250,7 @@ cdef class GLPKGraphBackend(object):
             * If the source and sink are identical, a ``ValueError`` is raised.
 
             * This method raises ``MIPSolverException`` exceptions when the
-              solution can not be computed for any reason (none exists, or the
+              solution cannot be computed for any reason (none exists, or the
               LP solver was not able to find it, etc...)
 
         EXAMPLES::
@@ -1283,7 +1283,7 @@ cdef class GLPKGraphBackend(object):
         if s < 0 or t < 0:
             raise IndexError("Source or sink vertex does not exist")
         if s == t:
-            raise ValueError ("Source and sink are identical")
+            raise ValueError("Source and sink are identical")
 
         self.s = s
         self.t = t

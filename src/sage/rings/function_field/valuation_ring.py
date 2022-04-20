@@ -61,7 +61,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 
@@ -207,6 +206,3 @@ class FunctionFieldValuationRing(UniqueRepresentation, Parent):
         mor_from_k = morphism(Hom(k,self), from_k)
         mor_to_k = morphism(Hom(self,k), to_k)
         return k, mor_from_k, mor_to_k
-
-
-

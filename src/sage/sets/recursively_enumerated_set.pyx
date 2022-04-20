@@ -25,7 +25,7 @@ EXAMPLES:
 No hypothesis on the structure
 ------------------------------
 
-What we mean by "no hypothesis" is that the the set is not known
+What we mean by "no hypothesis" is that the set is not known
 to be a forest, symmetric, or graded. However, it may have other
 structure, like not containing an oriented cycle, that does not
 help with the enumeration.
@@ -1735,16 +1735,13 @@ class RecursivelyEnumeratedSet_forest(Parent):
         ....:     def __init__(self):
         ....:         RecursivelyEnumeratedSet_forest.__init__(self, algorithm = 'breadth',
         ....:                               category=InfiniteEnumeratedSets())
-        ....:
         ....:     def roots(self):
         ....:         return [()]
-        ....:
         ....:     def children(self, x):
         ....:         if sum(x) < 3:
         ....:             return [x+(0,), x+(1,)]
         ....:         else:
         ....:             return []
-        ....:
         ....:     def post_process(self, x):
         ....:         if sum(x) == 0 or x[-1] == 0:
         ....:             return None

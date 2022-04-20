@@ -1,13 +1,5 @@
 cd src
 
-if [ "x$SAGE_DEBUG" = "xyes" ] ; then
-    CFLAGS="-g -O0 $CFLAGS"
-    CXXFLAGS="-g -O0 $CXXFLAGS"
-else
-    CFLAGS="-g -O2 $CFLAGS"
-    CXXFLAGS="-g -O2 $CXXFLAGS"
-fi
-
 if [ "$UNAME" = "CYGWIN" ]; then
     # Some of ECL's sources rely on GNU-isms that are allowed by default on
     # most glibcs, but not in newlib; https://trac.sagemath.org/ticket/25057
@@ -53,7 +45,7 @@ else
     fi
 fi
 
-sdh_configure $SAGE_CONFIGURE_GMP --disable-threads \
+sdh_configure $SAGE_CONFIGURE_GMP \
               --enable-unicode=yes --with-defsystem $ECL_CONFIGURE
 
 # Before running make we touch build/TAGS so its building process is never triggered

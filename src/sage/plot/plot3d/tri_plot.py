@@ -20,7 +20,6 @@ AUTHOR:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function
 
 from sage.plot.colors import hue
 from math import sqrt
@@ -228,7 +227,7 @@ class TrianglePlot:
 
     def str(self):
         """
-        Returns a string listing the objects in the instance of the TrianglePlot class.
+        Return a string listing the objects in the instance of the TrianglePlot class.
 
         TESTS::
 
@@ -238,7 +237,7 @@ class TrianglePlot:
             sage: len(t.str())
             68980
         """
-        return "".join([o.str() for o in self._objects])
+        return "".join(o.str() for o in self._objects)
 
     def __init__(self, triangle_factory, f, min_x__max_x, min_y__max_y, g = None,
                        min_depth=4, max_depth=8, num_colors = None, max_bend=.3):
@@ -252,7 +251,7 @@ class TrianglePlot:
             sage: t._f(1,1)
             2
         """
-        (min_x, max_x) = min_x__max_x 
+        (min_x, max_x) = min_x__max_x
         (min_y, max_y) = min_y__max_y
         self._triangle_factory = triangle_factory
         self._f = f
@@ -262,7 +261,7 @@ class TrianglePlot:
         self._max_bend = max_bend
         self._objects = []
         if min(max_x - min_x, max_y - min_y) == 0:
-            raise ValueError('Plot rectangle is really a line.  Make sure min_x != max_x and min_y != max_y.')
+            raise ValueError('plot rectangle is really a line; make sure min_x != max_x and min_y != max_y')
         self._num_colors = num_colors
         if g is None:
             def fcn(x,y):
@@ -272,7 +271,6 @@ class TrianglePlot:
                 return [self._f(x,y), self._g(x,y)]
 
         self._fcn = fcn
-
 
         # generate the necessary data to kick-start the recursion
         mid_x = (min_x + max_x)/2

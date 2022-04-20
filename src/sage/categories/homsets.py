@@ -1,4 +1,4 @@
-## -*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 r"""
 Homset categories
 """
@@ -8,7 +8,6 @@ Homset categories
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category, JoinCategory
@@ -346,4 +345,3 @@ class Homsets(Category_singleton):
             if sC is None or sD is None:
                 raise RuntimeError("Domain or codomain of this homset have been deallocated")
             return sD is sC
-

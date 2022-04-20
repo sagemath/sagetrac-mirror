@@ -111,9 +111,8 @@ on the Jacobian of this reduction and the order of the Jacobian is
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-from sage.misc.all import latex
+from sage.misc.latex import latex
 
 from sage.structure.element import AdditiveGroupElement
 from sage.structure.richcmp import richcmp, op_NE
@@ -148,15 +147,16 @@ def cantor_reduction_simple(a, b, f, genus):
     """
     a2 = (f - b**2) // a
     a2 = a2.monic()
-    b2 = -b % (a2);
+    b2 = -b % (a2)
     if a2.degree() == a.degree():
         # XXX
-        assert a2.degree() == genus+1
+        assert a2.degree() == genus + 1
         print("Returning ambiguous form of degree genus+1.")
         return (a2, b2)
     elif a2.degree() > genus:
         return cantor_reduction_simple(a2, b2, f, genus)
     return (a2, b2)
+
 
 def cantor_reduction(a, b, f, h, genus):
     r"""
@@ -305,7 +305,6 @@ def cantor_composition(D1,D2,f,h,genus):
         sage: H = HyperellipticCurve(f, 2*x); H
         Hyperelliptic Curve over Finite Field of size 1000000000000000000000000000057 defined by y^2 + 2*x*y = x^7 + x^2 + 1
         sage: J = H.jacobian()(F); J
-        verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
         Set of rational points of Jacobian of Hyperelliptic Curve over
         Finite Field of size 1000000000000000000000000000057 defined
         by y^2 + 2*x*y = x^7 + x^2 + 1
@@ -659,7 +658,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         """
         return self.__polys[0] != 1
 
-    __nonzero__ = __bool__
+    
 
     def __neg__(self):
         r"""

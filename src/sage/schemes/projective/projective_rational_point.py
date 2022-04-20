@@ -59,7 +59,8 @@ AUTHORS:
 from sage.arith.all import gcd, srange, next_prime, previous_prime, crt
 from sage.rings.all import ZZ, RR
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-from sage.misc.all import cartesian_product_iterator, prod
+from sage.misc.mrange import cartesian_product_iterator
+from sage.misc.misc_c import prod
 from sage.misc.mrange import xmrange
 from sage.schemes.generic.scheme import is_Scheme
 from sage.parallel.ncpus import ncpus
@@ -320,7 +321,7 @@ def sieve(X, bound):
 
     Main idea behind the algorithm is to find points modulo primes
     and then reconstruct them using chinese remainder theorem.
-    We find modulo primes parallely and then lift them and apply
+    We find modulo primes parallelly and then lift them and apply
     LLL in parallel.
 
     For the algorithm to work correctly, sufficient primes need
@@ -343,7 +344,7 @@ def sieve(X, bound):
         sage: from sage.schemes.projective.projective_rational_point import sieve
         sage: P.<x,y,z,q>=ProjectiveSpace(QQ,3)
         sage: Y=P.subscheme([x^2-3^2*y^2+z*q,x+z+4*q])
-        sage: sorted(sieve(Y, 12))
+        sage: sorted(sieve(Y, 12))  # long time
         [(-4 : -4/3 : 0 : 1), (-4 : 4/3 : 0 : 1),
          (-1 : -1/3 : 1 : 0), (-1 : 1/3 : 1 : 0)]
 
@@ -351,7 +352,7 @@ def sieve(X, bound):
 
         sage: from sage.schemes.projective.projective_rational_point import sieve
         sage: E = EllipticCurve('37a')
-        sage: sorted(sieve(E, 14))
+        sage: sorted(sieve(E, 14))  # long time
         [(-1 : -1 : 1), (-1 : 0 : 1), (0 : -1 : 1),
          (0 : 0 : 1), (0 : 1 : 0), (1/4 : -5/8 : 1),
          (1/4 : -3/8 : 1), (1 : -1 : 1), (1 : 0 : 1),
@@ -463,7 +464,7 @@ def sieve(X, bound):
     def points_modulo_primes(X, primes):
         r"""
         Return a list of rational points modulo all `p` in primes,
-        computed parallely.
+        computed parallelly.
         """
         normalized_input = []
         for p in primes_list:
@@ -472,11 +473,7 @@ def sieve(X, bound):
 
         points_pair = list(p_iter(parallel_function, normalized_input))
         points_pair.sort()
-        modulo_points = []
-        for pair in points_pair:
-            modulo_points.append(pair[1])
-
-        return modulo_points
+        return [pair[1] for pair in points_pair]
 
     def parallel_function_combination(point_p_max):
         r"""
@@ -519,7 +516,7 @@ def sieve(X, bound):
 
     def lift_all_points():
         r"""
-        Returns list of all rational points lifted parallely.
+        Return list of all rational points lifted parallelly.
         """
         normalized_input = []
         points = modulo_points.pop() # remove the list of points corresponding to largest prime
@@ -538,18 +535,16 @@ def sieve(X, bound):
 
         return list(lifted_points)
 
-
     # start of main algorithm
 
     primes_list = good_primes(B.ceil())
 
     modulo_points = points_modulo_primes(X, primes_list)
-    len_modulo_points = [len(_) for _ in modulo_points]
+    len_modulo_points = [len(pt) for pt in modulo_points]
     len_primes = len(primes_list)
     prod_primes = prod(primes_list)
 
     # stores final result
-    rat_points = set()
 
     for i in range(N + 1):
         w = [0 for _ in range(N + 1)]
@@ -559,4 +554,3 @@ def sieve(X, bound):
     rat_points = lift_all_points()
 
     return sorted(rat_points)
-

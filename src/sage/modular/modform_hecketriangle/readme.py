@@ -19,7 +19,7 @@ Hecke triangle groups and elements:
 
   The group elements correspond to matrices over ZZ[lambda], namely the
   corresponding order in the number field defined by the minimal polynomial
-  of lambda (which embedds into ``AlgebraicReal`` accordingly).
+  of lambda (which embeds into ``AlgebraicReal`` accordingly).
 
   An exact symbolic expression of the corresponding transfinite diameter ``d``
   (which is used as a formal parameter for Fourier expansion of modular forms)
@@ -757,8 +757,8 @@ Modular forms ring and spaces for Hecke triangle groups:
 
   General Eisenstein series in some arithmetic cases::
 
-      sage: ModularFormsRing(n=4).EisensteinSeries(k=8)
-      (-25*f_rho^4 - 9*f_i^2)/(-34)
+      sage: ModularFormsRing(n=4).EisensteinSeries(k=8) * 34
+      25*f_rho^4 + 9*f_i^2
       sage: ModularForms(n=3, k=12).EisensteinSeries()
       1 + 65520/691*q + 134250480/691*q^2 + 11606736960/691*q^3 + 274945048560/691*q^4 + O(q^5)
       sage: ModularForms(n=6, k=12).EisensteinSeries()

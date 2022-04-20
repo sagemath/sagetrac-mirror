@@ -9,8 +9,6 @@ Root system data for type B
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 from . import ambient_space
 
@@ -179,7 +177,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             sage: latex(CartanType(['B',4]))
             B_{4}
         """
-        return "B_{%s}"%self.n
+        return "B_{%s}" % self.n
 
     AmbientSpace = AmbientSpace
 

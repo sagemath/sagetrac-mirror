@@ -145,7 +145,7 @@ cdef class FiniteSetMap_MN(ClonableIntArray):
         return self._getitem(i)
 
     # Needed by generic power which refuses to compute 0^0
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns whether ``self`` is non zero; this is always ``True``.
 
@@ -597,7 +597,8 @@ cdef class FiniteSetMap_Set(FiniteSetMap_MN):
             sage: F._from_list_([0, 2])
             map: a -> 3, b -> 5
         """
-        return "map: "+", ".join([("%s -> %s"%(i, self(i))) for i in self.domain()])
+        return "map: " + ", ".join("%s -> %s" % (i, self(i))
+                                   for i in self.domain())
 
 
 cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):

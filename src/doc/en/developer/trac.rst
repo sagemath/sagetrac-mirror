@@ -17,7 +17,7 @@ of the Sage trac server is to
 
 3. Link these two together.
 
-There is also a `wiki <https://trac.sagemath.org/wiki>`_ for more general
+There is also a :trac:`wiki <wiki>` for more general
 organizational web pages, like Sage development workshops.
 
 Thus if you find a bug in Sage, if you have new code to submit, want
@@ -25,7 +25,7 @@ to review new code already written but not yet included in Sage, or if
 you have corrections for the documentation, you should post on the
 trac server. Items on the server are called *tickets*, and anyone may
 search or browse the tickets. For a list of recent changes, just visit
-the `Sage trac timeline <https://trac.sagemath.org/timeline>`_.
+the :trac:`Sage trac timeline <timeline>`.
 
 .. _section-trac-account:
 
@@ -380,7 +380,7 @@ code, uploading them to the Sage trac server, and finally putting your
 new branch on the trac ticket. The following are some other relevant
 issues:
 
-* The Patch buildbot wil automatically test your ticket. See `the
+* The Patch buildbot will automatically test your ticket. See `the
   patchbot wiki <https://wiki.sagemath.org/buildbot>`_ for more
   information about its features and limitations. Make sure that you
   look at the log, especially if the patch buildbot did not give you

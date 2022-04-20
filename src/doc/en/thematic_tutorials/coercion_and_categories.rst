@@ -108,8 +108,6 @@ This base class provides a lot more methods than a general parent::
      '__ideal_monoid',
      '__iter__',
      '__len__',
-     '__pow__',
-     '__rpow__',
      '__rtruediv__',
      '__rxor__',
      '__truediv__',
@@ -398,7 +396,7 @@ There is a default implementation of element tests. We can already do
 
 .. end of output
 
-since `a` is defined as an element of `P`. However, we can not verify yet that
+since `a` is defined as an element of `P`. However, we cannot verify yet that
 the integers are contained in the fraction field of the ring of integers. It
 does not even give a wrong answer, but results in an error::
 
@@ -535,9 +533,7 @@ methods are place-holders: There is no default implementation, but it is
     sage: from sage.misc.abstract_method import abstract_methods_of_class
     sage: abstract_methods_of_class(QuotientFields().element_class)['optional']
     ['_add_', '_mul_']
-    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py2
-    ['__nonzero__', 'denominator', 'numerator']
-    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py3
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required']
     ['__bool__', 'denominator', 'numerator']
 
 Hence, when implementing elements of a quotient field, it is *required* to
@@ -908,7 +904,7 @@ Implementing a conversion
 -------------------------
 
 We have seen above that some conversions into our fraction fields became
-available after providing the attribute ``Element``.  However, we can not
+available after providing the attribute ``Element``.  However, we cannot
 convert elements of a fraction field into elements of another fraction field,
 yet::
 
@@ -1043,7 +1039,7 @@ Why is that?
 The default element containment test `x \in P` is based on the interplay of
 three building blocks: conversion, coercion, and equality test.
 
-#. Clearly, if the conversion `P(x)` raises an error, then `x` can not be seen as an element of `P`. On the other hand, a conversion `P(x)` can generally do very nasty things. So, the fact that `P(x)` works without error is necessary, but not sufficient for `x \in P`.
+#. Clearly, if the conversion `P(x)` raises an error, then `x` cannot be seen as an element of `P`. On the other hand, a conversion `P(x)` can generally do very nasty things. So, the fact that `P(x)` works without error is necessary, but not sufficient for `x \in P`.
 #. If `P` is the parent of `x`, then the conversion `P(x)` will not change `x` (at least, that's the default). Hence, we will have `x=P(x)`.
 #. Sage uses coercion not only for arithmetic operations, but also for comparison: *If* there is a coercion from the parent of `x` to `P`, then the equality test ``x==P(x)`` reduces to ``P(x)==P(x)``. Otherwise, ``x==P(x)`` will evaluate as false.
 
@@ -1500,16 +1496,14 @@ The elements have to provide more::
 
     sage: abstract_methods_of_class(QuotientFields().element_class)['optional']
     ['_add_', '_mul_']
-    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py2
-    ['__nonzero__', 'denominator', 'numerator']
-    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py3
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required']
     ['__bool__', 'denominator', 'numerator']
 
 .. end of output
 
 Hence, the elements must provide ``denominator()`` and ``numerator()``
 methods, and must be able to tell whether they are zero or not. The base class
-:class:`~sage.structure.element.Element` provides a default ``__nonzero__()``
+:class:`~sage.structure.element.Element` provides a default ``__bool__()``
 method. In addition, the elements may provide Sage's single underscore
 arithmetic methods (actually any ring element *should* provide them).
 
@@ -1744,7 +1738,7 @@ The new test is inherited from the category. Since ``an_element()`` is returning
 complicated element, ``_test_factorisation`` is a serious test::
 
     sage: P.an_element()._test_factorisation
-    <bound method MyFrac_with_category.element_class._test_factorisation of (x^2):(x^3 + 3*x^2 + 3*x + 1)>
+    <bound method QuotientFieldsWithTest.ElementMethods._test_factorisation of (x^2):(x^3 + 3*x^2 + 3*x + 1)>
 
 .. end of output
 

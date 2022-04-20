@@ -1,6 +1,8 @@
-# distutils: libraries = gmp ntl
-# distutils: extra_compile_args = M4RI_CFLAGS
-# distutils: include_dirs = M4RI_INCDIR
+# distutils: libraries = gmp NTL_LIBRARIES
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: extra_compile_args = NTL_CFLAGS M4RI_CFLAGS
+# distutils: include_dirs = NTL_INCDIR M4RI_INCDIR
 # distutils: language = c++
 """
 Univariate Polynomials over GF(2) via NTL's GF2X
@@ -24,7 +26,7 @@ include "sage/libs/ntl/ntl_GF2X_linkage.pxi"
 # and then the interface
 include "polynomial_template.pxi"
 
-from sage.libs.all import pari
+from sage.libs.pari.all import pari
 
 from sage.libs.m4ri cimport mzd_write_bit, mzd_read_bit
 from sage.matrix.matrix_mod2_dense cimport Matrix_mod2_dense
@@ -203,10 +205,10 @@ cdef class Polynomial_GF2X(Polynomial_template):
                 tt = gpow
                 jj = j
                 while 2*jj < k:
-                   GF2X_SqrMod_pre(tt, tt, modulus)
-                   jj = 2*jj
-                   for i from 0 <= i < GF2X_NumBits(tt):
-                       mzd_write_bit(G._entries, jj, i, GF2_conv_to_long(GF2X_coeff(tt, i)))
+                    GF2X_SqrMod_pre(tt, tt, modulus)
+                    jj = 2*jj
+                    for i from 0 <= i < GF2X_NumBits(tt):
+                        mzd_write_bit(G._entries, jj, i, GF2_conv_to_long(GF2X_coeff(tt, i)))
         # we need that gpow = g^k at the end
         if k % 2 == 1: # k is odd, last j is k-2
             GF2X_MulMod_pre(gpow, gpow, g2, modulus)

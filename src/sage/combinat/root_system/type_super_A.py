@@ -10,9 +10,8 @@ Root system data for super type A
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.misc.cachefunc import cached_method
 from . import ambient_space
 from .cartan_type import SuperCartanType_standard
@@ -276,7 +275,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
         if i <= 0:
             return self.sum(self.monomial(j) for j in range(-m-1,i))
         return (self.sum(self.monomial(j) for j in range(-m-1,1))
-                - self.sum(self.monomial(j) for j in range(0,i+1))
+                - self.sum(self.monomial(j) for j in range(i+1))
                 - 2*self.sum(self.monomial(j) for j in range(i+1,n+2)))
 
     def simple_coroot(self, i):
@@ -443,7 +442,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
             """
             alpha = self.parent().simple_roots()
             l = self.parent().cartan_type().symmetrizer()
-            from sage.rings.semirings.non_negative_integer_semiring import NN
+            from sage.rings.semirings.all import NN
             return all(l[i] * self.inner_product(alpha[i]) in NN
                        for i in self.parent().index_set())
 
@@ -491,7 +490,7 @@ class CartanType(SuperCartanType_standard):
             sage: latex(CartanType(['A',[4,3]]))
             A(4|3)
         """
-        return "A(%s|%s)"%(self.m, self.n)
+        return "A(%s|%s)" % (self.m, self.n)
 
     def index_set(self):
         """
@@ -586,7 +585,9 @@ class CartanType(SuperCartanType_standard):
             Finite family {-2: 1, -1: 1, 0: 1, 1: -1, 2: -1, 3: -1}
         """
         from sage.sets.family import Family
-        def ell(i): return ZZ.one() if i <= 0 else -ZZ.one()
+
+        def ell(i):
+            return ZZ.one() if i <= 0 else -ZZ.one()
         return Family(self.index_set(), ell)
 
     def dynkin_diagram(self):
@@ -630,11 +631,11 @@ class CartanType(SuperCartanType_standard):
         """
         from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self, odd_isotropic_roots=[0])
-        for i in range(0, self.m):
+        for i in range(self.m):
             g.add_edge(-i-1, -i)
         for i in range(1, self.n):
             g.add_edge(i, i+1)
-        g.add_vertex(0) # Usually there, but not when m == n == 0
+        g.add_vertex(0)  # Usually there, but not when m == n == 0
         if self.m > 0:
             g.add_edge(-1, 0)
         if self.n > 0:

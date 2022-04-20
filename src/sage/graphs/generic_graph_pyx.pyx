@@ -25,14 +25,14 @@ from cysignals.signals cimport sig_on, sig_off
 
 import cython
 
-include "sage/data_structures/binary_matrix.pxi"
+from sage.data_structures.binary_matrix cimport *
 from libc.math cimport sqrt, fabs
 from libc.string cimport memset
+from memory_allocator cimport MemoryAllocator
 
 from sage.cpython.string cimport char_to_str
 from sage.libs.gmp.mpz cimport *
 from sage.misc.prandom import random
-from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
@@ -170,7 +170,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: sorted(pos.keys()) == sorted(G)
         True
 
-    With ``split=True``, each component of G is layed out separately,
+    With ``split=True``, each component of G is laid out separately,
     placing them adjacent to each other. This is done because on a
     disconnected graph, the spring layout will push components further
     and further from each other without bound, resulting in very tight
@@ -340,70 +340,70 @@ cdef run_spring(int iterations, dimension_t _dim, double* pos, int* edges, int n
     cdef double* disp = <double*>check_allocarray(n, dim * sizeof(double))
 
     if height:
-        update_dim = dim-1
+        update_dim = dim - 1
     else:
         update_dim = dim
 
     sig_on()
 
     for cur_iter in range(iterations):
-      cur_edge = 1 # offset by one for fast checking against 2nd element first
-      # zero out the disp vectors
-      memset(disp, 0, n * dim * sizeof(double))
-      for i in range(n):
-          disp_i = disp + (i*dim)
-          for j in range(i+1, n):
-              disp_j = disp + (j*dim)
+        cur_edge = 1 # offset by one for fast checking against 2nd element first
+        # zero out the disp vectors
+        memset(disp, 0, n * dim * sizeof(double))
+        for i in range(n):
+            disp_i = disp + (i*dim)
+            for j in range(i+1, n):
+                disp_j = disp + (j*dim)
 
-              for x in range(dim):
-                  delta[x] = pos[i*dim+x] - pos[j*dim+x]
+                for x in range(dim):
+                    delta[x] = pos[i*dim+x] - pos[j*dim+x]
 
-              xx = delta[0] * delta[0]
-              yy = delta[1] * delta[1]
-              if dim == 2:
-                  square_dist = xx+yy
-              else:
-                  zz = delta[2] * delta[2]
-                  square_dist = xx+yy+zz
+                xx = delta[0] * delta[0]
+                yy = delta[1] * delta[1]
+                if dim == 2:
+                    square_dist = xx+yy
+                else:
+                    zz = delta[2] * delta[2]
+                    square_dist = xx+yy+zz
 
-              if square_dist < 0.0001:
-                  square_dist = 0.0001
+                if square_dist < 0.0001:
+                    square_dist = 0.0001
 
-              # they repel according to the (capped) inverse square law
-              force = (k*k)/square_dist
+                # they repel according to the (capped) inverse square law
+                force = (k*k)/square_dist
 
-              # and if they are neighbors, attract according Hooke's law
-              if edges[cur_edge] == j and edges[cur_edge-1] == i:
-                  if dim == 2:
-                      dist = sqrt_approx(delta[0],delta[1],xx,yy)
-                  else:
-                      dist = sqrt(square_dist)
-                  force -= dist/k
-                  cur_edge += 2
+                # and if they are neighbors, attract according Hooke's law
+                if edges[cur_edge] == j and edges[cur_edge-1] == i:
+                    if dim == 2:
+                        dist = sqrt_approx(delta[0],delta[1],xx,yy)
+                    else:
+                        dist = sqrt(square_dist)
+                    force -= dist/k
+                    cur_edge += 2
 
-              # add this factor into each of the involved points
-              for x in range(dim):
-                  d_tmp = delta[x] * force
-                  disp_i[x] += d_tmp
-                  disp_j[x] -= d_tmp
+                # add this factor into each of the involved points
+                for x in range(dim):
+                    d_tmp = delta[x] * force
+                    disp_i[x] += d_tmp
+                    disp_j[x] -= d_tmp
 
-      # now update the positions
-      for i in range(n):
-          disp_i = disp + (i*dim)
+        # now update the positions
+        for i in range(n):
+            disp_i = disp + (i*dim)
 
-          square_dist = disp_i[0] * disp_i[0]
-          for x in range(1, dim):
-              square_dist += disp_i[x] * disp_i[x]
+            square_dist = disp_i[0] * disp_i[0]
+            for x in range(1, dim):
+                square_dist += disp_i[x] * disp_i[x]
 
-          if square_dist < 0.0001:
-              scale = 1
-          else:
-              scale = t/sqrt(square_dist)
+            if square_dist < 0.0001:
+                scale = 1
+            else:
+                scale = t/sqrt(square_dist)
 
-          for x in range(update_dim):
-              pos[i*dim+x] += disp_i[x] * scale
+            for x in range(update_dim):
+                pos[i*dim+x] += disp_i[x] * scale
 
-      t -= dt
+        t -= dt
 
     sig_off()
     sig_free(disp)
@@ -421,7 +421,7 @@ cdef inline double sqrt_approx(double x,double y,double xx,double yy):
         ....:    y = abs(y)
         ....:    return max(x,y) + min(x,y)**2/(2*max(x,y))
 
-        sage: polar_plot([1,lambda x:dist(cos(x),sin(x))], (0, 2*pi))
+        sage: polar_plot([1,lambda x:dist(cos(x),sin(x))], (0, 2*math.pi))
         Graphics object consisting of 2 graphics primitives
     """
     if xx<yy:
@@ -665,7 +665,7 @@ cdef class SubgraphSearch:
             raise ValueError("Searched graph should have at least 2 vertices.")
 
         if sum([G.is_directed(), H.is_directed()]) == 1:
-            raise ValueError("One graph can not be directed while the other is not.")
+            raise ValueError("One graph cannot be directed while the other is not.")
 
         G._scream_if_not_simple(allow_loops=True)
         H._scream_if_not_simple(allow_loops=True)

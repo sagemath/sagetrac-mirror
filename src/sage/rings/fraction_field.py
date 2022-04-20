@@ -58,7 +58,7 @@ TESTS::
 """
 # ****************************************************************************
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #                     2017 Julian Rüth <julian.rueth@fsfe.org>
@@ -69,7 +69,6 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from . import ring
 from . import fraction_field_element
@@ -292,6 +291,14 @@ class FractionField_generic(ring.Field):
             sage: 1/(R.gen(0) + R.gen(1))
             1/(x + y)
 
+        Test for :trac:`31320`::
+
+            sage: FQt = Frac(QQ['t'])
+            sage: LCt = LaurentPolynomialRing(CC,'t')
+            sage: coercion_model.common_parent(FQt, LCt)
+            Fraction Field of Univariate Polynomial Ring in t
+            over Complex Field with 53 bits of precision
+
         Coercion from a localization::
 
             sage: R.<x> = ZZ[]
@@ -334,7 +341,9 @@ class FractionField_generic(ring.Field):
                                       parent_as_first_arg=False)
 
         # special treatment for LaurentPolynomialRings
-        if isinstance(S, LaurentPolynomialRing_generic):
+        if (isinstance(S, LaurentPolynomialRing_generic) and
+                self._R.fraction_field().has_coerce_map_from(S.base_ring())):
+
             def converter(x, y=None):
                 if y is None:
                     return self._element_class(self, *x._fraction_pair())
@@ -587,7 +596,7 @@ class FractionField_generic(ring.Field):
             sage: B.<d,e> = PolynomialRing(A,'d,e')
             sage: R.<x> = PolynomialRing(B,'x')
             sage: (a*d*x^2+a+e+1).resultant(-4*c^2*x+1)
-            a*d + 16*c^4*e + 16*a*c^4 + 16*c^4
+            a*d + (16*c^4)*e + (16*a*c^4 + 16*c^4)
 
         Check that :trac:`24539` is fixed::
 
@@ -619,6 +628,8 @@ class FractionField_generic(ring.Field):
             sage: F(x)
             -1/2/(a^2 + a)
         """
+        if isinstance(x, (list, tuple)) and len(x) == 1:
+            x = x[0]
         if y is None:
             if parent(x) is self:
                 return x
@@ -662,8 +673,11 @@ class FractionField_generic(ring.Field):
             # Below, v is the variable with highest priority,
             # and the x[i] are rational functions in the
             # remaining variables.
+            d = x.poldegree()
+            if d.type() == 't_INFINITY':
+                return self.zero()
             v = self._element_class(self, x.variable(), 1)
-            x = sum(self(x[i]) * v**i for i in range(x.poldegree() + 1))
+            x = sum(self(x[i]) * v**i for i in range(d + 1))
 
         def resolve_fractions(x, y):
             xn = x.numerator()
@@ -854,10 +868,12 @@ class FractionField_generic(ring.Field):
         ::
 
             sage: f = F.random_element(degree=5)
-            sage: f.numerator().degree()
-            5
-            sage: f.denominator().degree()
-            5
+            sage: f.numerator().degree() == f.denominator().degree()
+            True
+            sage: f.denominator().degree() <= 5
+            True
+            sage: while f.numerator().degree() != 5:
+            ....:      f = F.random_element(degree=5)
         """
         return self._element_class(self, self._R.random_element(*args, **kwds),
                                    self._R._random_nonzero_element(*args, **kwds),
@@ -888,7 +904,7 @@ class FractionField_generic(ring.Field):
         for a in self._R.some_elements():
             for b in self._R.some_elements():
                 if a != b and self(a) and self(b):
-                    ret.append(self(a)/self(b))
+                    ret.append(self(a) / self(b))
         return ret
 
     def _gcd_univariate_polynomial(self, f, g):
@@ -929,6 +945,7 @@ class FractionField_generic(ring.Field):
         g1 = Num(g.numerator())
         return Pol(f1.gcd(g1)).monic()
 
+
 class FractionField_1poly_field(FractionField_generic):
     """
     The fraction field of a univariate polynomial ring over a field.
@@ -944,7 +961,7 @@ class FractionField_1poly_field(FractionField_generic):
 
             sage: R.<t> = QQ[]; K = R.fraction_field()
             sage: K._element_class
-            <type 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
+            <class 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
         """
         FractionField_generic.__init__(self, R, element_class)
 
@@ -1047,7 +1064,6 @@ class FractionField_1poly_field(FractionField_generic):
             return parent.__make_element_class__(FunctionFieldToFractionField)(parent)
 
         return super(FractionField_1poly_field, self)._coerce_map_from_(R)
-
 
 
 class FractionFieldEmbedding(DefaultConvertMap_unique):
@@ -1230,7 +1246,7 @@ class FractionFieldEmbeddingSection(Section):
             den = codom(x.denominator())
 
         if codom.is_exact() and den.is_one():
-           return num
+            return num
         if check and not den.is_unit():
             # This should probably be a ValueError.
             # However, too much existing code is expecting this to throw a
@@ -1240,7 +1256,7 @@ class FractionFieldEmbeddingSection(Section):
 
     def _call_with_args(self, x, args=(), kwds={}):
         r"""
-        Evaluation this map at ``x``.
+        Evaluate this map at ``x``.
 
         INPUT:
 
@@ -1252,11 +1268,10 @@ class FractionFieldEmbeddingSection(Section):
             sage: K = R.fraction_field()
             sage: R(K.gen(), check=True)
             x
-
         """
-        check = kwds.pop('check', True)
-        if args or kwds:
-            raise NotImplementedError("__call__ can not be called with additional arguments other than check=True/False")
+        check = kwds.get('check', True)
+        if args or any(key != 'check' for key in kwds):
+            raise NotImplementedError("__call__ cannot be called with additional arguments other than check=True/False")
         return self._call_(x, check=check)
 
     def _richcmp_(self, other, op):

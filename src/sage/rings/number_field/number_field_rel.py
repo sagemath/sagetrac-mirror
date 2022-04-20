@@ -9,7 +9,7 @@ AUTHORS:
 - Robert Bradshaw (2008-10): specified embeddings into ambient fields
 - Nick Alexander (2009-01): modernize coercion implementation
 - Robert Harron (2012-08): added is_CM_extension
-- Julian Rueth (2014-04-03): absolute number fields are unique parents
+- Julian Rüth (2014-04): absolute number fields are unique parents
 
 This example follows one in the Magma reference manual::
 
@@ -62,7 +62,7 @@ TESTS::
 """
 # ****************************************************************************
 #       Copyright (C) 2004-2009 William Stein <wstein@gmail.com>
-#                     2014 Julian Rueth <julian.rueth@fsfe.org>
+#                     2014-2022 Julian Rüth <julian.rueth@fsfe.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -70,7 +70,6 @@ TESTS::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
 
 import sage.libs.ntl.all as ntl
 
@@ -102,8 +101,6 @@ from sage.libs.pari.all import pari_gen
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-import sage.rings.complex_interval_field
-CIF = sage.rings.complex_interval_field.ComplexIntervalField()
 
 
 def is_RelativeNumberField(x):
@@ -397,18 +394,18 @@ class NumberField_relative(NumberField_generic):
             sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
             sage: K.subfields(2)
             [
-            (Number Field in c0 with defining polynomial x^2 - 24*x + 72, Ring morphism:
-              From: Number Field in c0 with defining polynomial x^2 - 24*x + 72
+            (Number Field in c0 with defining polynomial x^2 - 24*x + 96, Ring morphism:
+              From: Number Field in c0 with defining polynomial x^2 - 24*x + 96
               To:   Number Field in c with defining polynomial Y^2 + (-2*b - 3)*a - 2*b - 6 over its base field
-              Defn: c0 |--> -6*a + 12, None),
+              Defn: c0 |--> -4*b + 12, None),
             (Number Field in c1 with defining polynomial x^2 - 24*x + 120, Ring morphism:
               From: Number Field in c1 with defining polynomial x^2 - 24*x + 120
               To:   Number Field in c with defining polynomial Y^2 + (-2*b - 3)*a - 2*b - 6 over its base field
               Defn: c1 |--> 2*b*a + 12, None),
-            (Number Field in c2 with defining polynomial x^2 - 24*x + 96, Ring morphism:
-              From: Number Field in c2 with defining polynomial x^2 - 24*x + 96
+            (Number Field in c2 with defining polynomial x^2 - 24*x + 72, Ring morphism:
+              From: Number Field in c2 with defining polynomial x^2 - 24*x + 72
               To:   Number Field in c with defining polynomial Y^2 + (-2*b - 3)*a - 2*b - 6 over its base field
-              Defn: c2 |--> -4*b + 12, None)
+              Defn: c2 |--> -6*a + 12, None)
             ]
             sage: K.subfields(8, 'w')
             [
@@ -616,7 +613,7 @@ class NumberField_relative(NumberField_generic):
             rets = []
             for F in abs_composites:
                 if F.absolute_degree() == m:
-                   F = self
+                    F = self
                 rets.append(F)
             return rets
 
@@ -675,64 +672,22 @@ class NumberField_relative(NumberField_generic):
         """
         raise NotImplementedError("For a relative number field you must use relative_degree or absolute_degree as appropriate")
 
-    def maximal_order(self, v=None):
+    @cached_method
+    def _maximal_order(self, v=(), assume_maximal='non-maximal-non-unique'):
         """
-        Return the maximal order, i.e., the ring of integers of this
-        number field.
-
-        INPUT:
-
-        -  ``v`` - (default: None) None, a prime, or a list of
-           primes.
-
-           - if v is None, return the maximal order.
-
-           - if v is a prime, return an order that is p-maximal.
-
-           - if v is a list, return an order that is maximal at each
-             prime in the list v.
+        Implements :meth:`NumberField_generic.maximal_order` for relative
+        number fields.
 
         EXAMPLES::
 
-            sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
-            sage: OK = K.maximal_order(); OK.basis()
-            [1, 1/2*a - 1/2*b, -1/2*b*a + 1/2, a]
-            sage: charpoly(OK.1)
-            x^2 + b*x + 1
-            sage: charpoly(OK.2)
-            x^2 - x + 1
-            sage: O2 = K.order([3*a, 2*b])
-            sage: O2.index_in(OK)
-            144
+            sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
+            sage: K.maximal_order() is K.maximal_order()  # indirect doctest
+            True
 
-        The following was previously "ridiculously slow"; see :trac:`4738`::
-
-            sage: K.<a,b> = NumberField([x^4 + 1, x^4 - 3])
-            sage: K.maximal_order()
-            Maximal Relative Order in Number Field in a with defining polynomial x^4 + 1 over its base field
-
-        An example with nontrivial ``v``::
-
-            sage: L.<a,b> = NumberField([x^2 - 1000003, x^2 - 5*1000099^2])
-            sage: O3 = L.maximal_order([3])
-            sage: O3.absolute_discriminant()
-            400160824478095086350656915693814563600
-            sage: O3.is_maximal()
-            False
         """
-        v = self._normalize_prime_list(v)
-        try:
-            return self.__maximal_order[v]
-        except AttributeError:
-            self.__maximal_order = {}
-        except KeyError:
-            pass
-        abs_order = self.absolute_field('z').maximal_order(v)
-        if v == ():
-            self.__maximal_order[v] = RelativeOrder(self, abs_order, is_maximal=True, check=False)
-        else:
-            self.__maximal_order[v] = RelativeOrder(self, abs_order, is_maximal=None, check=False)
-        return self.__maximal_order[v]
+        absolute_order = self.absolute_field('z').maximal_order(v=v, assume_maximal=assume_maximal)
+
+        return RelativeOrder(self, absolute_order, is_maximal=assume_maximal, is_maximal_at=v)
 
     def _repr_(self):
         """
@@ -1687,7 +1642,7 @@ class NumberField_relative(NumberField_generic):
             sage: K.pari_absolute_base_polynomial()
             y^2 + 3
             sage: type(K.pari_absolute_base_polynomial())
-            <type 'cypari2.gen.Gen'>
+            <class 'cypari2.gen.Gen'>
             sage: z = ZZ['z'].0
             sage: K.<a, b, c> = NumberField([z^2 + 2, z^2 + 3, z^2 + 5]); K
             Number Field in a with defining polynomial z^2 + 2 over its base field
@@ -1698,7 +1653,7 @@ class NumberField_relative(NumberField_generic):
             sage: len(QQ['y'](K.pari_absolute_base_polynomial()).roots(K.base_field()))
             4
             sage: type(K.pari_absolute_base_polynomial())
-            <type 'cypari2.gen.Gen'>
+            <class 'cypari2.gen.Gen'>
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
         return abs_base.pari_polynomial('y')
@@ -2345,40 +2300,6 @@ class NumberField_relative(NumberField_generic):
             gens = gens[0]
         gens = [self(x) for x in gens]
         return relative_order_from_ring_generators(gens, **kwds)
-
-    def galois_group(self, type='pari', algorithm='pari', names=None):
-        r"""
-        Return the Galois group of the Galois closure of this number
-        field as an abstract group.  Note that even though this is an
-        extension `L/K`, the group will be computed as if it were `L/\QQ`.
-
-        INPUT:
-
-        - ``type`` - ``'pari'`` or ``'gap'``: type of object to return -- a
-          wrapper around a Pari or Gap transitive group object.         -
-
-        - algorithm -- 'pari', 'kash', 'magma' (default: 'pari', except when
-          the degree is >= 12 when 'kash' is tried)
-
-        At present much less functionality is available for Galois groups of
-        relative extensions than absolute ones, so try the galois_group method
-        of the corresponding absolute field.
-
-        EXAMPLES::
-
-            sage: x = polygen(QQ)
-            sage: K.<a> = NumberField(x^2 + 1)
-            sage: R.<t> = PolynomialRing(K)
-            sage: L = K.extension(t^5-t+a, 'b')
-            sage: L.galois_group(type="pari")
-            Galois group PARI group [240, -1, 22, "S(5)[x]2"] of degree 10 of the Number Field in b with defining polynomial t^5 - t + a over its base field
-        """
-
-        if type is None:
-            raise NotImplementedError("Galois groups of relative extensions not implemented (use the corresponding absolute field)")
-        else:
-            # silly bug in cached_method
-            return NumberField_generic.galois_group.f(self, type, algorithm, names)
 
     def is_free(self, proof=None):
         r"""

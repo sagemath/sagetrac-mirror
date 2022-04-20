@@ -131,7 +131,7 @@ using homogeneous polynomials. Consider the blowup `O_{\mathbb{P}^1}(2)
     sage: blowup.as_polynomial_map()
     Traceback (most recent call last):
     ...
-    TypeError: The fan morphism cannot be written in homogeneous polynomials.
+    TypeError: the fan morphism cannot be written in homogeneous polynomials
 
 If we denote the homogeneous coordinates of `O_{\mathbb{P}^1}(2)` by
 `x`, `t`, `y` corresponding to the rays `(1,2)`, `(1,1)`, and `(1,0)`
@@ -359,7 +359,6 @@ fan::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 # For now, the scheme morphism base class cannot derive from Morphism
 # since this would clash with elliptic curves. So we derive only on
@@ -370,9 +369,9 @@ from sage.categories.morphism import Morphism
 from sage.structure.richcmp import richcmp_not_equal, richcmp
 
 from sage.structure.sequence import Sequence
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.arith.all import gcd
-from sage.misc.all import cached_method
+from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.modules.free_module_element import vector
 from sage.geometry.all import Cone, Fan
@@ -440,17 +439,16 @@ class SchemeMorphism_point_toric_field(SchemeMorphism_point, Morphism):
                 coordinates = list(coordinates)
             if not isinstance(coordinates, (list, tuple)):
                 raise TypeError("coordinates must be a scheme point, list, "
-                                "or tuple. Got %s" % coordinates)
+                                "or tuple; got %s" % coordinates)
             d = X.codomain().ambient_space().ngens()
             if len(coordinates) != d:
-                raise ValueError("there must be %d coordinates! Got only %d: "
+                raise ValueError("there must be %d coordinates; got only %d: "
                                  "%s" % (d, len(coordinates), coordinates))
             # Make sure the coordinates all lie in the appropriate ring
             coordinates = Sequence(coordinates, X.value_ring())
             # Verify that the point satisfies the equations of X.
             X.codomain()._check_satisfies_equations(coordinates)
         self._coords = coordinates
-
 
 
 ############################################################################
@@ -521,7 +519,7 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
             # different if the target uses weighted coordinates)
             for p in self.defining_polynomials():
                 if not self.domain().ambient_space().is_homogeneous(p):
-                    raise ValueError("%s is not homogeneous!" % p)
+                    raise ValueError("%s is not homogeneous" % p)
 
     def as_fan_morphism(self):
         """
@@ -541,10 +539,10 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
             Traceback (most recent call last):
             ...
             NotImplementedError: expressing toric morphisms as fan morphisms is
-            not implemented yet!
+            not implemented yet
         """
         raise NotImplementedError("expressing toric morphisms as fan "
-                                  "morphisms is not implemented yet!")
+                                  "morphisms is not implemented yet")
 
 
 ############################################################################
@@ -723,7 +721,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
             sage: P1.embedding_morphism().as_polynomial_map()
             Traceback (most recent call last):
             ...
-            TypeError: The embedding cannot be written with homogeneous polynomials.
+            TypeError: the embedding cannot be written with homogeneous polynomials
         """
         orbit = self.domain()
         codomain_fan = self.codomain().fan()
@@ -736,7 +734,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
             try:
                 ray_index = ray_index_map[ray]
             except KeyError:
-                raise TypeError('The embedding cannot be written with homogeneous polynomials.')
+                raise TypeError('the embedding cannot be written with homogeneous polynomials')
             polys[ray_index] = R.gen(i)
         return SchemeMorphism_polynomial_toric_variety(self.parent(), polys)
 
@@ -767,7 +765,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
         """
         from sage.schemes.toric.divisor import is_ToricDivisor
         if not (is_ToricDivisor(divisor) and divisor.is_QQ_Cartier()):
-            raise ValueError('The divisor must be torus-invariant and QQ-Cartier.')
+            raise ValueError('the divisor must be torus-invariant and QQ-Cartier')
         m = divisor.m(self._defining_cone)
         values = []
         codomain_rays = self.codomain().fan().rays()
@@ -871,9 +869,9 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         """
         SchemeMorphism.__init__(self, parent)
         if check and self.domain().fan()!=fan_morphism.domain_fan():
-            raise ValueError('The fan morphism domain must be the fan of the domain.')
+            raise ValueError('the fan morphism domain must be the fan of the domain')
         if check and self.codomain().fan()!=fan_morphism.codomain_fan():
-            raise ValueError('The fan morphism codomain must be the fan of the codomain.')
+            raise ValueError('the fan morphism codomain must be the fan of the codomain')
         self._fan_morphism = fan_morphism
 
     def _richcmp_(self, right, op):
@@ -1126,8 +1124,8 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
                 try:
                     d = ZZ(d)
                 except TypeError:
-                    raise TypeError('The fan morphism cannot be written in '
-                                    'homogeneous polynomials.')
+                    raise TypeError('the fan morphism cannot be written in '
+                                    'homogeneous polynomials')
                 polys[i] *= x**d
         if phi.domain_fan().virtual_rays():
             raise NotImplementedError("polynomial representations for fans "
@@ -1326,14 +1324,13 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         """
         from sage.schemes.toric.divisor import is_ToricDivisor
         if not (is_ToricDivisor(divisor) and divisor.is_QQ_Cartier()):
-            raise ValueError('The divisor must be torus-invariant and QQ-Cartier.')
+            raise ValueError('the divisor must be torus-invariant and QQ-Cartier')
         fm = self.fan_morphism()
         values = []
         for ray in self.domain().fan().rays():
             value = divisor.function_value(fm(ray))
             values.append(value)
         return self.domain().divisor(values)
-
 
 
 ############################################################################
@@ -1693,7 +1690,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
           From: 2-d toric variety covered by 4 affine patches
           To:   4-d toric variety covered by 23 affine patches
           Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
-                [1 : 1 : 1 : 1 : z3 : 0 : 1 : z2 : 1 : 1 : 1 : z1 : z0 : 1 : 1]
+                [1 : 1 : 1 : 1 : z2 : 0 : 1 : z3 : 1 : 1 : 1 : z1 : z0 : 1 : 1]
         sage: type(fiber_component.embedding_morphism())
         <class 'sage.schemes.toric.morphism.SchemeMorphism_fan_fiber_component_toric_variety'>
     """
@@ -1776,14 +1773,14 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
               From: 2-d toric variety covered by 4 affine patches
               To:   4-d toric variety covered by 23 affine patches
               Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
-                    [1 : 1 : 1 : 1 : z3 : 0 : 1 : z2 : 1 : 1 : 1 : z1 : z0 : 1 : 1]
+                    [1 : 1 : 1 : 1 : z2 : 0 : 1 : z3 : 1 : 1 : 1 : z1 : z0 : 1 : 1]
 
             sage: primitive_cone = Cone([(-1, 2, -1, 0)])
             sage: f = fibration.fiber_component(primitive_cone).embedding_morphism()
             sage: f.as_polynomial_map()
             Traceback (most recent call last):
             ...
-            ValueError: The morphism cannot be written using homogeneous polynomials.
+            ValueError: the morphism cannot be written using homogeneous polynomials
         """
         fc = self.domain()
         toric_variety = self.codomain()
@@ -1795,7 +1792,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             try:
                 ray_index = self._ray_index_map[ray]
             except KeyError:
-                raise ValueError('The morphism cannot be written using homogeneous polynomials.')
+                raise ValueError('the morphism cannot be written using homogeneous polynomials')
             polys[ray_index] = x
         return SchemeMorphism_polynomial_toric_variety(self.parent(), polys)
 
@@ -1950,11 +1947,11 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             sage: f = fc.embedding_morphism()
             sage: for r in fc.fan().rays():
             ....:     print("{} {}".format(r, f._image_ray_multiplicity(r)))
-            N(-1, 2) (11, 1)
+            N(-1, -1) (9, 2)
             N(0, 1) (5, 1)
-            N(1, -3) (9, 2)
+            N(1, 0) (11, 1)
             sage: f._ray_index_map
-            {N(-3, 4): 10, N(-1, 2): 11, N(0, 1): 5, N(1, 0): 4, N(2, -6): 9}
+            {N(-2, -2): 9, N(-1, 2): 4, N(0, 1): 5, N(1, 0): 11, N(3, -2): 10}
         """
         try:
             image_ray_index = self._ray_index_map[fiber_ray]
@@ -1998,14 +1995,14 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             V(z0) + V(z1) + 3*V(z2) + 4*V(z3)
             sage: fc = f.fiber_component(Cone([(1,1,0)]))
             sage: fc.embedding_morphism().pullback_divisor(D)
-            2*V(z0) + 3*V(z1)
+            4*V(z0) + V(z1) + 4*V(z2)
             sage: fc = f.fiber_component(Cone([(1,0,0)]))
             sage: fc.embedding_morphism().pullback_divisor(D)
             -V(z0) - 3*V(z1) - 3*V(z2)
         """
         from sage.schemes.toric.divisor import is_ToricDivisor
         if not (is_ToricDivisor(divisor) and divisor.is_QQ_Cartier()):
-            raise ValueError('The divisor must be torus-invariant and QQ-Cartier.')
+            raise ValueError('the divisor must be torus-invariant and QQ-Cartier')
         m = divisor.m(self.defining_cone())
         values = []
         codomain_rays = self.codomain().fan().rays()
@@ -2016,5 +2013,3 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             value /= multiplicity
             values.append(value)
         return self.domain().divisor(values)
-
-

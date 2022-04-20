@@ -29,7 +29,6 @@ Vincent Delecroix, Ben Hutz (July 2016): initial implementation
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
 
 import itertools
 
@@ -114,7 +113,7 @@ class FlatteningMorphism(Morphism):
             sage: from sage.rings.polynomial.flatten import FlatteningMorphism
             sage: f = FlatteningMorphism(R)
             sage: f(R('v*a*x^2 + b^2 + 1/v*y'))
-            (v)*x^2*a + b^2 + (1/2*v^2)*y
+            v*x^2*a + b^2 + (1/2*v^2)*y
 
         ::
 

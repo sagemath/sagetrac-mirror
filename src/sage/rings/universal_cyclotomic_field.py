@@ -162,7 +162,6 @@ AUTHORS:
 - Sebastian Oehms (2018): deleting the method is_finite since it returned the wrong result (see :trac:`25686`)
 - Sebastian Oehms (2019): add :meth:`_factor_univariate_polynomial` (see :trac:`28631`)
 """
-from __future__ import absolute_import, print_function
 
 from sage.misc.cachefunc import cached_method
 
@@ -257,7 +256,7 @@ class UCFtoQQbar(Morphism):
         -0.500000000000000? + 0.866025403784439?*I
 
         sage: CC(UCF.gen(7,2) + UCF.gen(7,6))
-        0.400968867902419 + 0.193096429713794*I
+        0.400968867902419 + 0.193096429713793*I
 
         sage: complex(E(7)+E(7,2))
         (0.40096886790241915+1.7567593946498534j)
@@ -333,7 +332,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         """
         return bool(self._obj)
 
-    __nonzero__ = __bool__
+    
 
     def __reduce__(self):
         r"""
@@ -532,8 +531,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: SR(1+E(4))
             I + 1
         """
-        from sage.symbolic.constants import pi
-        from sage.symbolic.all import i as I
+        from sage.symbolic.constants import pi, I
         k = ZZ(self._obj.Conductor())
         coeffs = self._obj.CoeffsCyc(k).sage()
         s = R.zero()
@@ -1479,7 +1477,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             Traceback (most recent call last):
             ...
             TypeError: [ [ 0, 1 ], [ 0, 2 ] ]
-            of type <type 'sage.libs.gap.element.GapElement_List'> not valid
+            of type <class 'sage.libs.gap.element.GapElement_List'> not valid
             to initialize an element of the universal cyclotomic field
 
         Some conversions from symbolic functions are possible::
@@ -1536,14 +1534,16 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             return self.element_class(self, obj)
 
         # late import to avoid slowing down the above conversions
-        from sage.rings.number_field.number_field_element import NumberFieldElement
-        from sage.rings.number_field.number_field import NumberField_cyclotomic, CyclotomicField
+        import sage.rings.abc
         P = parent(elt)
-        if isinstance(elt, NumberFieldElement) and isinstance(P, NumberField_cyclotomic):
-            n = P.gen().multiplicative_order()
-            elt = CyclotomicField(n)(elt)
-            return sum(c * self.gen(n, i)
-                       for i, c in enumerate(elt._coefficients()))
+        if isinstance(P, sage.rings.abc.NumberField_cyclotomic):
+            from sage.rings.number_field.number_field_element import NumberFieldElement
+            if isinstance(elt, NumberFieldElement):
+                from sage.rings.number_field.number_field import CyclotomicField
+                n = P.gen().multiplicative_order()
+                elt = CyclotomicField(n)(elt)
+                return sum(c * self.gen(n, i)
+                           for i, c in enumerate(elt._coefficients()))
 
         if hasattr(elt, '_algebraic_'):
             return elt._algebraic_(self)
@@ -1570,8 +1570,8 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         """
         if other is ZZ or other is QQ:
             return True
-        from sage.rings.number_field.number_field import NumberField_cyclotomic
-        if isinstance(other, NumberField_cyclotomic):
+        import sage.rings.abc
+        if isinstance(other, sage.rings.abc.NumberField_cyclotomic):
             return True
 
     def _factor_univariate_polynomial(self, f):

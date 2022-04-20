@@ -8,7 +8,6 @@ Coalgebras
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import absolute_import
 
 from .category_types import Category_over_base_ring
 from sage.categories.all import Modules
@@ -390,4 +389,3 @@ class Coalgebras(Category_over_base_ring):
                 """
                 R = self.realization_of().a_realization()
                 return R(x).counit()
-

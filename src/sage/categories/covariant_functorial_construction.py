@@ -100,9 +100,8 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
        functor, and also (when relevant) of the method on parents and
        elements used for calling the construction.
 
-
     TODO: What syntax do we want for `F_{Cat}`? For example, for the
-    tensor product construction, which one of the followings do we want (see
+    tensor product construction, which one do we want among (see
     chat on IRC, on 07/12/2009):
 
      - ``tensor(Cat)``
@@ -137,7 +136,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
 
             sage: E = CombinatorialFreeModule(QQ, ["a", "b", "c"])
             sage: tensor.category_from_parents((E, E, E))
-            Category of tensor products of vector spaces with basis over Rational Field
+            Category of tensor products of finite dimensional vector spaces with basis over Rational Field
         """
         from sage.structure.parent import Parent
         assert(all(isinstance(parent, Parent) for parent in parents))
@@ -327,7 +326,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
 
         This implements a hack allowing e.g. ``category.Subquotients``
         to recover the default ``Subquotients`` method defined in
-        ``Category``, even if it has been overriden by a
+        ``Category``, even if it has been overridden by a
         ``Subquotients`` class.
 
         EXAMPLES::
@@ -346,11 +345,11 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
         It also forces the resolution of lazy imports (see :trac:`15648`)::
 
             sage: type(Algebras.__dict__["Graded"])
-            <type 'sage.misc.lazy_import.LazyImport'>
+            <class 'sage.misc.lazy_import.LazyImport'>
             sage: Algebras.Graded
             <class 'sage.categories.graded_algebras.GradedAlgebras'>
             sage: type(Algebras.__dict__["Graded"])
-            <type 'sage.misc.classcall_metaclass.ClasscallMetaclass'>
+            <class 'sage.misc.classcall_metaclass.ClasscallMetaclass'>
 
         .. TODO::
 

@@ -62,7 +62,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, print_function
 
 from sage.categories.category import Category, JoinCategory
 from . import morphism
@@ -310,7 +309,7 @@ def Hom(X, Y, category=None, check=True):
         sage: Hom(S, S, C)
         Set of Morphisms from S to S in Permissive category
 
-    With ``check=False``, unitialized parents, as can appear upon
+    With ``check=False``, uninitialized parents, as can appear upon
     unpickling, are supported. Case of a parent::
 
         sage: cls = type(Set())
@@ -328,7 +327,7 @@ def Hom(X, Y, category=None, check=True):
         sage: H = Hom(S, S, SimplicialComplexes(), check=False)
 
     Typical example where unpickling involves calling Hom on an
-    unitialized parent::
+    uninitialized parent::
 
         sage: P.<x,y> = QQ['x,y']
         sage: Q = P.quotient([x^2-1,y^2-1])
@@ -463,7 +462,8 @@ def hom(X, Y, f):
 
     EXAMPLES::
 
-        sage: phi = hom(QQ['x'], QQ, [2])
+        sage: R.<x> = QQ[]
+        sage: phi = hom(R, QQ, [2])
         sage: phi(x^2 + 3)
         7
     """
@@ -663,7 +663,7 @@ class Homset(Set_generic):
         .. NOTE::
 
             It can happen, that ``Hom(X,X)`` is called during
-            unpickling with an unitialized instance ``X`` of a Python
+            unpickling with an uninitialized instance ``X`` of a Python
             class. In some of these cases, testing that ``X in
             category`` can trigger ``X.category()``. This in turn can
             raise a error, or return a too large category (``Sets()``,
@@ -726,8 +726,8 @@ class Homset(Set_generic):
             sage: hash(Hom(QQ, ZZ)) == hash((QQ, ZZ, QQ))
             True
 
-            sage: E = EllipticCurve('37a')
-            sage: H = E(0).parent(); H
+            sage: E = EllipticCurve('37a')                              # optional - sage.symbolic
+            sage: H = E(0).parent(); H                                  # optional - sage.symbolic
             Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: hash(H) == hash((H.domain(), H.codomain(), H.base()))
             True
@@ -743,7 +743,7 @@ class Homset(Set_generic):
         """
         return True
 
-    __nonzero__ = __bool__
+    
 
     def homset_category(self):
         """
@@ -1041,7 +1041,7 @@ class Homset(Set_generic):
 
             sage: H = Hom(ZZ, ZZ)
             sage: H.element_class_set_morphism
-            <type 'sage.categories.morphism.SetMorphism'>
+            <class 'sage.categories.morphism.SetMorphism'>
         """
         return self.__make_element_class__(morphism.SetMorphism)
 
@@ -1285,4 +1285,3 @@ def is_Endset(x):
         True
     """
     return isinstance(x, Homset) and x.is_endomorphism_set()
-

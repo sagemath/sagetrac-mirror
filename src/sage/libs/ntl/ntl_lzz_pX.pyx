@@ -1,4 +1,8 @@
-# distutils: libraries = ntl gmp m
+# distutils: libraries = NTL_LIBRARIES gmp m
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 
 """
@@ -802,8 +806,8 @@ cdef class ntl_zz_pX(object):
         """
         self.c.restore_c()
         if zz_pX_IsZero(self.x):
-             return False
-        return ( zz_p_rep(zz_pX_LeadCoeff(self.x)) == 1 )
+            return False
+        return zz_p_rep(zz_pX_LeadCoeff(self.x)) == 1
 
     def set_x(self):
         """

@@ -178,7 +178,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
 
     def __init__(self, g, kac_moody):
         """
-        Initalize ``self``.
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -494,4 +494,3 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         return self.element_class(self, {m[1]: G[m[0]]}, zero, zero)
 
     Element = UntwistedAffineLieAlgebraElement
-

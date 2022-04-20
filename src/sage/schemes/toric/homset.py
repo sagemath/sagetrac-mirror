@@ -93,21 +93,18 @@ coordinates where the codomain is not implemented as a toric variety::
             [u^2 : v^2 : w^2]
 """
 
-
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.finite_fields import FiniteFields
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 
 from sage.structure.element import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace
@@ -272,7 +269,6 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
 
         raise TypeError("x must be a fan morphism or a list/tuple of polynomials")
 
-
     def _an_element_(self):
         """
         Construct a sample morphism.
@@ -294,6 +290,7 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
         zero = zero_matrix(self.domain().dimension_relative(),
                            self.codomain().dimension_relative())
         return self(zero)
+
 
 class SchemeHomset_points_toric_base(SchemeHomset_points):
     """
@@ -400,7 +397,7 @@ class SchemeHomset_points_toric_base(SchemeHomset_points):
         variety = self.codomain()
         if finite_field is None:
             finite_field = variety.base_ring()
-        if not finite_field in FiniteFields():
+        if finite_field not in FiniteFields():
             raise ValueError('not a finite field')
         return FiniteFieldPointEnumerator(variety.fan(), finite_field)
 
@@ -575,7 +572,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
         q = variety.base_ring().order()
         n = variety.dimension()
         d = map(len, variety.fan().cones())
-        return sum(dk * (q-1)**(n-k) for k, dk in enumerate(d))
+        return sum(dk * (q - 1)**(n - k) for k, dk in enumerate(d))
 
     def __iter__(self):
         """
@@ -641,7 +638,7 @@ class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_base):
             sage: P2.<x,y,z> = toric_varieties.P2(base_ring=GF(5))
             sage: cubic = P2.subscheme([x^3 + y^3 + z^3])
             sage: list(cubic.point_set())
-            [[0 : 1 : 4], [1 : 0 : 4], [1 : 4 : 0], [1 : 2 : 1], [1 : 1 : 2], [1 : 3 : 3]]
+            [[0 : 1 : 4], [1 : 0 : 4], [1 : 4 : 0], [1 : 1 : 2], [1 : 2 : 1], [1 : 3 : 3]]
             sage: cubic.point_set().cardinality()
             6
         """
@@ -661,7 +658,7 @@ class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_base):
             sage: P2.<x,y,z> = toric_varieties.P2(base_ring=GF(5))
             sage: cubic = P2.subscheme([x^3 + y^3 + z^3])
             sage: list(cubic.point_set())
-            [[0 : 1 : 4], [1 : 0 : 4], [1 : 4 : 0], [1 : 2 : 1], [1 : 1 : 2], [1 : 3 : 3]]
+            [[0 : 1 : 4], [1 : 0 : 4], [1 : 4 : 0], [1 : 1 : 2], [1 : 2 : 1], [1 : 3 : 3]]
             sage: cubic.point_set().cardinality()
             6
         """
@@ -669,5 +666,3 @@ class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_base):
             return self._enumerator().cardinality()
         except AttributeError:
             return super(SchemeHomset_points_subscheme_toric_field, self).cardinality()
-
-

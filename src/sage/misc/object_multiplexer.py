@@ -5,8 +5,7 @@ AUTHORS:
 
 - Martin Albrecht (2011): initial version
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Martin Albrecht <martinralbrecht@googlemail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -18,8 +17,9 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 
 class MultiplexFunction(object):
     """
@@ -51,11 +51,11 @@ class MultiplexFunction(object):
         """
         l = []
         for child in self.multiplexer.children:
-            l.append(getattr(child,self.name)(*args, **kwds))
+            l.append(getattr(child, self.name)(*args, **kwds))
         if all(e is None for e in l):
             return None
-        else:
-            return tuple(l)
+        return tuple(l)
+
 
 class Multiplex(object):
     """
@@ -82,11 +82,11 @@ class Multiplex(object):
             sage: m = Multiplex(1,1/2)
             sage: m.str
             <sage.misc.object_multiplexer.MultiplexFunction object at 0x...>
-            sage: m.trait_names
+            sage: m.__bork__
             Traceback (most recent call last):
             ...
-            AttributeError: 'Multiplex' has no attribute 'trait_names'
+            AttributeError: 'Multiplex' has no attribute '__bork__'
         """
-        if name.startswith("__") or name == "trait_names":
-            raise AttributeError("'Multiplex' has no attribute '%s'"%name)
-        return MultiplexFunction(self,name)
+        if name.startswith("__"):
+            raise AttributeError("'Multiplex' has no attribute '%s'" % name)
+        return MultiplexFunction(self, name)

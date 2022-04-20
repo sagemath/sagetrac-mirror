@@ -78,7 +78,8 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
     after installation, there are no stale files::
 
         sage: from sage.env import SAGE_SRC, SAGE_LIB, SAGE_ROOT
-        sage: cythonized_dir = os.path.join(SAGE_ROOT, "build", "pkgs", "sagelib", "src", "build", "cythonized")
+        sage: from sage_setup.find import _cythonized_dir
+        sage: cythonized_dir = _cythonized_dir(SAGE_SRC)
         sage: from sage_setup.find import find_python_sources, find_extra_files
         sage: python_packages, python_modules, cython_modules = find_python_sources(
         ....:     SAGE_SRC, ['sage', 'sage_setup'])
@@ -90,8 +91,8 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
     extension modules::
 
         sage: stale_iter = _find_stale_files(SAGE_LIB, python_packages, python_modules, [], extra_files)
-        sage: from sage.misc.sageinspect import loadable_module_extension
-        sage: skip_extensions = (loadable_module_extension(),)
+        sage: from importlib.machinery import EXTENSION_SUFFIXES
+        sage: skip_extensions = tuple(EXTENSION_SUFFIXES)
         sage: for f in stale_iter:
         ....:     if f.endswith(skip_extensions): continue
         ....:     if '/ext_data/' in f: continue
@@ -102,7 +103,7 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
     CEXTMOD_EXTS = get_extensions('extension')
     INIT_FILES = tuple('__init__' + x for x in PYMOD_EXTS)
 
-    module_files = installed_files_by_module(site_packages, ['sage', 'sage_setup'])
+    module_files = installed_files_by_module(site_packages, ['sage'])
 
     for mod in python_packages:
         try:

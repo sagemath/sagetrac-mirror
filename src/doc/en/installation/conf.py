@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-#
+# nodoctest
 # Sage Installation Guide documentation build configuration file, created by
 # sphinx-quickstart on Fri Aug 22 15:04:04 2008.
 #
@@ -14,22 +13,27 @@
 from sage.docs.conf import release
 from sage.docs.conf import *  # NOQA
 
-# General information about the project.
-project = u"Sage Installation Guide"
-name = 'installation'
+# Add any paths that contain custom static files (such as style sheets),
+# relative to this directory to html_static_path. They are copied after the
+# builtin static files, so a file named "default.css" will overwrite the
+# builtin "default.css". html_common_static_path imported from sage.docs.conf
+# contains common paths.
+html_static_path = [] + html_common_static_path
 
-# The name for this set of Sphinx documents.  If None, it defaults to
-# "<project> v<release> documentation".
-html_title = project + " v"+release
-html_short_title = u"Install Guide v" + release
+# General information about the project.
+project = "Installation Guide"
+
+# The name for this set of Sphinx documents.
+html_title = project
+html_short_title = project
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = name
+htmlhelp_basename = 'installation'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('index', name+'.tex', u'Sage Installation Guide',
-   u'The Sage Development Team', 'manual'),
+  ('index', 'installation.tex', 'Installation Guide',
+   'The Sage Development Team', 'manual'),
 ]
 

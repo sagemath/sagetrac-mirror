@@ -210,7 +210,7 @@ the run of ``enum``.
 **Extending the current partial sequence**
 
 The two cases for which the maximum degree of the partial sequence does not
-change are easy to detect. It is (sligthly) harder to enumerate all the sets
+change are easy to detect. It is (slightly) harder to enumerate all the sets
 `I` corresponding to possible extensions of the partial sequence. As said
 previously, to each set `I` one can associate an integer ``current_box`` such
 that `I` contains all the `i` satisfying `d_i>current\_box`. The variable
@@ -441,24 +441,25 @@ cdef init(int n):
     return sequences
 
 cdef inline add_seq():
-     """
-     This function is called whenever a sequence is found.
+    """
+    This function is called whenever a sequence is found.
 
-     Build the degree sequence corresponding to the current state of the
-     algorithm and adds it to the sequences list.
-     """
-     global sequences
-     global N
-     global seq
+    Build the degree sequence corresponding to the current state of the
+    algorithm and adds it to the sequences list.
+    """
+    global sequences
+    global N
+    global seq
 
-     cdef list s = []
-     cdef int i, j
+    cdef list s = []
+    cdef int i, j
 
-     for N > i >= 0:
-         for 0<= j < seq[i]:
-             s.append(i)
+    for N > i >= 0:
+        for 0 <= j < seq[i]:
+            s.append(i)
 
-     sequences.append(s)
+    sequences.append(s)
+
 
 cdef void enum(int k, int M):
     r"""

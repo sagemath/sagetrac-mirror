@@ -14,7 +14,6 @@ REFERENCES:
 - Chap. 3 of S. Lang : *Algebra* [Lan2002]_
 
 """
-from __future__ import absolute_import
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
@@ -254,7 +253,7 @@ class FreeModuleHomset(Homset):
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
         else:
-           return self._latex_name
+            return self._latex_name
 
     def __call__(self, *args, **kwds):
         r"""
@@ -403,7 +402,7 @@ class FreeModuleHomset(Homset):
 
     def _an_element_(self):
         r"""
-        Construct some (unamed) element.
+        Construct some (unnamed) element.
 
         EXAMPLES::
 

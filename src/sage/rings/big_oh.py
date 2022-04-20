@@ -8,7 +8,6 @@ Big O for various types (power series, p-adics, etc.)
     - `power series <../../../power_series/index.html>`_
     - `polynomials <../../../polynomial_rings/index.html>`_
 """
-from __future__ import absolute_import
 
 import sage.arith.all as arith
 from . import laurent_series_ring_element
@@ -161,7 +160,7 @@ def O(*x, **kwds):
                                      type='capped-rel')(0, absprec=r, **kwds)
 
     elif isinstance(x, padic_generic_element.pAdicGenericElement):
-         return x.parent()(0, absprec=x.valuation(), **kwds)
+        return x.parent()(0, absprec=x.valuation(), **kwds)
     elif hasattr(x, 'O'):
         return x.O(**kwds)
     raise ArithmeticError("O(%s) not defined" % (x,))

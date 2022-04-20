@@ -38,11 +38,11 @@ from sage.schemes.affine.affine_space import is_AffineSpace
 from sage.schemes.projective.projective_space import is_ProjectiveSpace, ProjectiveSpace
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.number_fields import NumberFields
+import sage.rings.abc
 from sage.rings.integer_ring import ZZ
 from sage.rings.padics.factory import Qp
 from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
-from sage.rings.padics.generic_nodes import is_pAdicField
 from sage.categories.topological_spaces import TopologicalSpaces
 
 def is_Berkovich(space):
@@ -290,7 +290,7 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
     with the weakest topology such that the map `| \cdot | \to |f|` is continuous
     for all `f \in \CC_p[x]`.
 
-    We can represent the Berkovich affine line in two seperate ways:
+    We can represent the Berkovich affine line in two separate ways:
     either using a p-adic field to represent elements or using
     a number field to represent elements while storing an ideal
     of the ring of integers of the number field, which specifies
@@ -418,9 +418,9 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
         """
         if base in ZZ:
             if base.is_prime():
-                base = Qp(base) # change to Qpbar
+                base = Qp(base)  # change to Qpbar
             else:
-                raise ValueError("non-prime pased into Berkovich space")
+                raise ValueError("non-prime passed into Berkovich space")
         if is_AffineSpace(base):
             base = base.base_ring()
         if base in NumberFields():
@@ -440,7 +440,7 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
             if not ideal.is_prime():
                 raise ValueError('passed non prime ideal')
             self._base_type = 'number field'
-        elif is_pAdicField(base): # change base to Qpbar
+        elif isinstance(base, sage.rings.abc.pAdicField):  # change base to Qpbar
             prime = base.prime()
             ideal = None
             self._base_type = 'padic field'
@@ -487,7 +487,8 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
             sage: latex(B)
             \text{Affine Berkovich line over } \Bold{C}_{3}
         """
-        return r"\text{Affine Berkovich line over } \Bold{C}_{%s}" %(self.prime())
+        return r"\text{Affine Berkovich line over } \Bold{C}_{%s}" % (self.prime())
+
 
 class Berkovich_Cp_Projective(Berkovich_Cp):
     r"""
@@ -496,7 +497,7 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
     The Berkovich projective line is the one-point compactification
     of the Berkovich affine line.
 
-    We can represent the Berkovich projective line in two seperate ways:
+    We can represent the Berkovich projective line in two separate ways:
     either using a p-adic field to represent elements or using
     a number field to represent elements while storing an ideal
     of the ring of integers of the number field, which specifies
@@ -612,15 +613,15 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             if base.is_prime():
                 base = ProjectiveSpace(Qp(base), 1)
             else:
-                raise ValueError("non-prime pased into Berkovich space")
-        if base in NumberFields() or is_pAdicField(base):
+                raise ValueError("non-prime passed into Berkovich space")
+        if base in NumberFields() or isinstance(base, sage.rings.abc.pAdicField):
             base = ProjectiveSpace(base, 1)
         if not is_ProjectiveSpace(base):
             try:
                 base = ProjectiveSpace(base)
-            except:
+            except (TypeError, ValueError):
                 raise ValueError("base of projective Berkovich space must be projective space")
-        if not (is_pAdicField(base.base_ring())):
+        if not isinstance(base.base_ring(), sage.rings.abc.pAdicField):
             if base.base_ring() not in NumberFields():
                 raise ValueError("base of projective Berkovich space must be " + \
                     "projective space over Qp or a number field")

@@ -18,7 +18,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-from sage.rings.all import QQ
+from sage.rings.rational_field import QQ
 from sage.categories.algebras import Algebras
 from sage.categories.rings import Rings
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -161,7 +161,7 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
         self._assign_names(self.algebra_generators().keys())
 
     def _repr_(self):
-        """ 
+        """
         Return a string representation of ``self``.
 
         EXAMPLES::
@@ -496,4 +496,3 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
             return c * telt * H.prod(H.inverse_g(i) for i in reversed(w.reduced_word()))
 
         __invert__ = inverse
-

@@ -7,7 +7,6 @@ AUTHORS:
 
 - William Stein (2007-08)
 """
-from __future__ import absolute_import
 
 from sage.matrix.all import MatrixSpace
 from sage.modular.dirichlet import DirichletGroup
@@ -129,7 +128,7 @@ def half_integral_weight_modform_basis(chi, k, prec):
     B   = C.basis()
 
     # This computation of S below -- of course --dominates the whole function.
-    #from sage.misc.all import cputime
+    #from sage.misc.misc import cputime
     #tm  = cputime()
     #print "Computing basis..."
     S   = [f.q_expansion(prec) for f in B]
@@ -155,4 +154,3 @@ def half_integral_weight_modform_basis(chi, k, prec):
     R = a_vec[0].parent()
     t3 = R(T3)
     return [R(a) / t3 for a in a_vec]
-

@@ -1,5 +1,5 @@
 """
-p-Adic Extension Leaves
+`p`-adic Extension Leaves
 
 The final classes for extensions of Zp and Qp (ie classes that are not
 just designed to be inherited from).
@@ -8,7 +8,6 @@ AUTHORS:
 
 - David Roe
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed.math@gmail.com>
@@ -40,13 +39,13 @@ from .generic_nodes import pAdicCappedRelativeRingGeneric, \
 
 #from unramified_extension_absolute_element import UnramifiedExtensionAbsoluteElement
 #from unramified_extension_capped_relative_element import UnramifiedExtensionCappedRelativeElement
-#from unramified_extension_lazy_element import UnramifiedExtensionLazyElement
+#from unramified_extension_lazy_element import UnramifiedExtensionRelaxedElement
 #from eisenstein_extension_absolute_element import EisensteinExtensionAbsoluteElement
 #from eisenstein_extension_capped_relative_element import EisensteinExtensionCappedRelativeElement
-#from eisenstein_extension_lazy_element import EisensteinExtensionLazyElement
+#from eisenstein_extension_lazy_element import EisensteinExtensionRelaxedElement
 #from padic_general_extension_absolute_element import pAdicGeneralExtensionAbsoluteElement
 #from padic_general_extension_capped_relative_element import pAdicGeneralExtensionCappedRelativeElement
-#from padic_general_extension_lazy_element import pAdicGeneralExtensionLazyElement
+#from padic_general_extension_lazy_element import pAdicGeneralExtensionRelaxedElement
 
 from .padic_ZZ_pX_FM_element import pAdicZZpXFMElement
 from .padic_ZZ_pX_CR_element import pAdicZZpXCRElement
@@ -221,13 +220,14 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
               To:   3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
         """
         if isinstance(R, UnramifiedExtensionRingCappedRelative) and R.fraction_field() is self:
-           from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field
-           return pAdicCoercion_CR_frac_field(R, self)
+            from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field
+            return pAdicCoercion_CR_frac_field(R, self)
         if isinstance(R, UnramifiedExtensionRingCappedAbsolute) and R.fraction_field() is self:
-           from sage.rings.padics.qadic_flint_CA import pAdicCoercion_CA_frac_field
-           return pAdicCoercion_CA_frac_field(R, self)
+            from sage.rings.padics.qadic_flint_CA import pAdicCoercion_CA_frac_field
+            return pAdicCoercion_CA_frac_field(R, self)
 
         return super(UnramifiedExtensionFieldCappedRelative, self)._coerce_map_from_(R)
+
 
 class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCappedAbsoluteRingGeneric):
     """

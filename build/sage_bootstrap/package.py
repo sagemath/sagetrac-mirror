@@ -10,7 +10,7 @@ Sage Packages
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
 import re
@@ -36,7 +36,7 @@ class Package(object):
         an abstraction to the metadata, you should never need to
         access the package directory directly.
 
-        INPUT: 
+        INPUT:
 
         -- ``package_name`` -- string. Name of the package. The Sage
            convention is that all package names are lower case.
@@ -49,7 +49,7 @@ class Package(object):
 
     def __repr__(self):
         return 'Package {0}'.format(self.name)
-            
+
     @property
     def name(self):
         """
@@ -69,7 +69,7 @@ class Package(object):
     def md5(self):
         """
         Return the MD5 checksum
-        
+
         Do not use, this is ancient! Use :meth:`sha1` instead.
 
         OUTPUT:
@@ -93,7 +93,7 @@ class Package(object):
     def cksum(self):
         """
         Return the Ck sum checksum
-        
+
         Do not use, this is ancient! Use :meth:`sha1` instead.
 
         OUTPUT:
@@ -146,7 +146,11 @@ class Package(object):
 
         String. The full-qualified tarball filename.
         """
-        return self.tarball_pattern.replace('VERSION', self.version)
+        pattern = self.tarball_pattern
+        if pattern:
+            return pattern.replace('VERSION', self.version)
+        else:
+            return None
 
     @property
     def tarball_upstream_url_pattern(self):
@@ -227,7 +231,7 @@ class Package(object):
 
     def __eq__(self, other):
         return self.tarball == other.tarball
-        
+
     @classmethod
     def all(cls):
         """
@@ -236,14 +240,14 @@ class Package(object):
         base = os.path.join(SAGE_ROOT, 'build', 'pkgs')
         for subdir in os.listdir(base):
             path = os.path.join(base, subdir)
-            if not os.path.isfile(os.path.join(path, "checksums.ini")):
-                log.debug('%s has no checksums.ini', subdir)
+            if not os.path.isfile(os.path.join(path, "type")):
+                log.debug('%s has no type', subdir)
                 continue
             try:
                 yield cls(subdir)
             except BaseException:
                 log.error('Failed to open %s', subdir)
-                raise 
+                raise
 
     @property
     def path(self):
@@ -251,7 +255,13 @@ class Package(object):
         Return the package directory
         """
         return os.path.join(SAGE_ROOT, 'build', 'pkgs', self.name)
-            
+
+    def has_file(self, filename):
+        """
+        Return whether the file exists in the package directory
+        """
+        return os.path.exists(os.path.join(self.path, filename))
+
     def _init_checksum(self):
         """
         Load the checksums from the appropriate ``checksums.ini`` file
@@ -259,38 +269,46 @@ class Package(object):
         checksums_ini = os.path.join(self.path, 'checksums.ini')
         assignment = re.compile('(?P<var>[a-zA-Z0-9_]*)=(?P<value>.*)')
         result = dict()
-        with open(checksums_ini, 'rt') as f:
-            for line in f.readlines():
-                match = assignment.match(line)
-                if match is None:
-                    continue
-                var, value = match.groups()
-                result[var] = value
+        try:
+            with open(checksums_ini, 'rt') as f:
+                for line in f.readlines():
+                    match = assignment.match(line)
+                    if match is None:
+                        continue
+                    var, value = match.groups()
+                    result[var] = value
+        except IOError:
+            pass
         self.__md5 = result.get('md5', None)
         self.__sha1 = result.get('sha1', None)
         self.__cksum = result.get('cksum', None)
-        self.__tarball_pattern = result['tarball']
+        self.__tarball_pattern = result.get('tarball', None)
         self.__tarball_upstream_url_pattern = result.get('upstream_url', None)
         # Name of the directory containing the checksums.ini file
         self.__tarball_package_name = os.path.realpath(checksums_ini).split(os.sep)[-2]
-        
+
     VERSION_PATCHLEVEL = re.compile('(?P<version>.*)\.p(?P<patchlevel>[0-9]+)')
-    
+
     def _init_version(self):
-        with open(os.path.join(self.path, 'package-version.txt')) as f:
-            package_version = f.read().strip()
-        match = self.VERSION_PATCHLEVEL.match(package_version)
-        if match is None:
-            self.__version = package_version
-            self.__patchlevel = -1
+        try:
+            with open(os.path.join(self.path, 'package-version.txt')) as f:
+                package_version = f.read().strip()
+        except IOError:
+            self.__version = None
+            self.__patchlevel = None
         else:
-            self.__version = match.group('version')
-            self.__patchlevel = int(match.group('patchlevel'))
-        
+            match = self.VERSION_PATCHLEVEL.match(package_version)
+            if match is None:
+                self.__version = package_version
+                self.__patchlevel = -1
+            else:
+                self.__version = match.group('version')
+                self.__patchlevel = int(match.group('patchlevel'))
+
     def _init_type(self):
         with open(os.path.join(self.path, 'type')) as f:
             package_type = f.read().strip()
         assert package_type in [
-            'base', 'standard', 'optional', 'experimental', 'script', 'pip'
+            'base', 'standard', 'optional', 'experimental'
         ]
         self.__type = package_type

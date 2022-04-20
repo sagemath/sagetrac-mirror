@@ -79,7 +79,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.richcmp import richcmp_method, rich_to_bool
@@ -144,7 +143,7 @@ class UnknownClass(UniqueRepresentation):
         """
         raise UnknownError('Unknown does not evaluate in boolean context')
 
-    __nonzero__ = __bool__
+    
 
     def __and__(self, other):
         """

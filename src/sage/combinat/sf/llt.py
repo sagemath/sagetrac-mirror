@@ -14,7 +14,6 @@ REFERENCES:
    Adv. Stud. Pure Math., vol. 28, Kinokuniya, Tokyo, 2000, pp 155-220
    :arxiv:`math/9809122v3` [math.q-alg]
 """
-from __future__ import absolute_import
 # ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -34,7 +33,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from . import sfa
 import sage.combinat.ribbon_tableau as ribbon_tableau
 import sage.combinat.skew_partition
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.combinat.partition import Partition, Partitions, _Partitions
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
@@ -127,12 +126,12 @@ class LLT_class(UniqueRepresentation):
         """
         self._k = k
         self._sym = Sym
-        self._name = "level %s LLT polynomials"%self._k
+        self._name = "level %s LLT polynomials" % self._k
         self.t = Sym.base_ring()(t)
         self._name_suffix = ""
-        if str(t) !='t':
-            self._name_suffix += " with t=%s"%self.t
-        self._name += self._name_suffix+" over %s"%self._sym.base_ring()
+        if str(t) != 't':
+            self._name_suffix += " with t=%s" % self.t
+        self._name += self._name_suffix + " over %s" % self._sym.base_ring()
         self._m = Sym.monomial()
 
     def __repr__(self):
@@ -169,7 +168,7 @@ class LLT_class(UniqueRepresentation):
 
         - returns the symmetric function ring associated to ``self``.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: L3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3)
             sage: L3.symmetric_function_ring()
@@ -271,39 +270,41 @@ class LLT_class(UniqueRepresentation):
         return sum([ BR(stat(skp,nu,self.level()).subs(t=self.t))*self._m(nu) for nu in mu])
 
     def spin_square(self, skp):
-         r"""
-         Calculates a single instance of a spin squared LLT symmetric function
-         associated with a partition, list of partitions, or a list of skew partitions.
-         This family of symmetric functions is defined in [LT2000]_ equation (43).
+        r"""
+        Calculate a single instance of a spin squared LLT symmetric function
+        associated with a partition, list of partitions, or a list of skew partitions.
 
-         INPUT:
+        This family of symmetric functions is defined in [LT2000]_ equation (43).
 
-         - ``self`` -- a family of LLT symmetric functions bases
-         - ``skp`` -- a partition of a list of partitions or a list of skew
-           partitions
+        INPUT:
 
-         OUTPUT:
+        - ``self`` -- a family of LLT symmetric functions bases
+        - ``skp`` -- a partition of a list of partitions or a list of skew
+          partitions
 
-         - returns the monomial expansion of the LLT symmetric function spin-square
-           functions indexed by ``skp``
+        OUTPUT:
 
-         EXAMPLES::
+        the monomial expansion of the LLT symmetric function spin-square
+        functions indexed by ``skp``
 
-             sage: L3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3)
-             sage: L3.spin_square([2,1])
-             t*m[1]
-             sage: L3.spin_square([3,2,1])
-             (t^3+t)*m[1, 1] + t^3*m[2]
-             sage: L3.spin_square([[1],[1],[1]])
-             (t^6+2*t^4+2*t^2+1)*m[1, 1, 1] + (t^6+t^4+t^2)*m[2, 1] + t^6*m[3]
-             sage: L3.spin_square([[[2,2],[1]],[[2,1],[]]])
-             (2*t^4+3*t^2+1)*m[1, 1, 1, 1] + (t^4+t^2)*m[2, 1, 1] + t^4*m[2, 2]
-         """
-         return self._llt_generic(skp, ribbon_tableau.spin_polynomial_square)
+        EXAMPLES::
+
+            sage: L3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3)
+            sage: L3.spin_square([2,1])
+            t*m[1]
+            sage: L3.spin_square([3,2,1])
+            (t^3+t)*m[1, 1] + t^3*m[2]
+            sage: L3.spin_square([[1],[1],[1]])
+            (t^6+2*t^4+2*t^2+1)*m[1, 1, 1] + (t^6+t^4+t^2)*m[2, 1] + t^6*m[3]
+            sage: L3.spin_square([[[2,2],[1]],[[2,1],[]]])
+            (2*t^4+3*t^2+1)*m[1, 1, 1, 1] + (t^4+t^2)*m[2, 1, 1] + t^4*m[2, 2]
+        """
+        return self._llt_generic(skp, ribbon_tableau.spin_polynomial_square)
 
     def cospin(self, skp):
         r"""
-        Calculates a single instance of the cospin symmetric functions.
+        Calculate a single instance of the cospin symmetric functions.
+
         These are the functions defined in [LLT1997]_ equation (26).
 
         INPUT:
@@ -314,8 +315,8 @@ class LLT_class(UniqueRepresentation):
 
         OUTPUT:
 
-        - returns the monomial expansion of the LLT symmetric function cospin
-          functions indexed by ``skp``
+        the monomial expansion of the LLT symmetric function cospin
+        functions indexed by ``skp``
 
         EXAMPLES::
 
@@ -544,7 +545,7 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
         """
         return self._llt
 
-    def _multiply(self, left, right):
+    def product(self, left, right):
         r"""
         Convert to the monomial basis, do the multiplication there, and
         convert back to the basis ``self``.
@@ -556,18 +557,18 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         OUTPUT:
 
-        - returns the product of ``left`` and ``right`` expanded in the basis ``self``
+        the product of ``left`` and ``right`` expanded in the basis ``self``
 
         EXAMPLES::
 
             sage: HSp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hspin()
-            sage: HSp3._multiply(HSp3([1]), HSp3([2]))
+            sage: HSp3.product(HSp3([1]), HSp3([2]))
             HSp3[2, 1] + (-t+1)*HSp3[3]
             sage: HCosp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hcospin()
-            sage: HCosp3._multiply(HCosp3([1]), HSp3([2]))
+            sage: HCosp3.product(HCosp3([1]), HSp3([2]))
             1/t*HCosp3[2, 1] + ((t-1)/t)*HCosp3[3]
         """
-        return self( self._m(left) * self._m(right) )
+        return self(self._m(left) * self._m(right))
 
     def _m_cache(self, n):
         r"""
@@ -602,6 +603,7 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
 
     class Element(sfa.SymmetricFunctionAlgebra_generic.Element):
         pass
+
 
 # the H-spin basis
 class LLT_spin(LLT_generic):

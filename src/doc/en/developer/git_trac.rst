@@ -108,7 +108,7 @@ a generated token by passing ``--token=<token>`` instead of ``--pass``::
 
 This is required if you authenticate to Trac with your GitHub account, as
 you do not have a Trac password.  Logged in users can find their token
-under `the token tab in preferences on the trac site <https://trac.sagemath.org/prefs/token>`_ .
+under :trac:`the token tab in preferences on the trac site <prefs/token>`.
 
 .. NOTE::
 
@@ -139,9 +139,9 @@ If you followed the above instructions then you will have two remote
 repositories set up::
 
     [user@localhost sage]$ git remote -v
-    origin      git://github.com/sagemath/sage.git (fetch)
-    origin      git://github.com/sagemath/sage.git (push)
-    trac        git://trac.sagemath.org/sage.git (fetch)
+    origin      https://github.com/sagemath/sage.git (fetch)
+    origin      https://github.com/sagemath/sage.git (push)
+    trac        git@trac.sagemath.org:sage.git (fetch)
     trac        git@trac.sagemath.org:sage.git (push)
 
 The ``git@...`` part of the push url means that write access is

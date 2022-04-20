@@ -18,9 +18,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ######################################################################
-from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object import SageObject
 
@@ -476,8 +475,7 @@ class Sudoku(SageObject):
         array.append('\\end{array}')
         return ''.join(array)
 
-
-    def solve(self, algorithm = 'dlx'):
+    def solve(self, algorithm='dlx'):
         r"""
         Return a generator object for the solutions of a Sudoku puzzle.
 
@@ -596,7 +594,7 @@ class Sudoku(SageObject):
             sage: next(too_big.solve(algorithm='backtrack'))
             Traceback (most recent call last):
             ...
-            ValueError: The Sudoku backtrack algorithm is limited to puzzles of size 16 or smaller.
+            ValueError: the Sudoku backtrack algorithm is limited to puzzles of size 16 or smaller
 
         An attempt to use a non-existent algorithm. ::
 
@@ -607,7 +605,7 @@ class Sudoku(SageObject):
         """
         if algorithm == 'backtrack':
             if self.n > 4:
-                raise ValueError('The Sudoku backtrack algorithm is limited to puzzles of size 16 or smaller.')
+                raise ValueError('the Sudoku backtrack algorithm is limited to puzzles of size 16 or smaller')
             else:
                 gen = self.backtrack()
         elif algorithm == 'dlx':
@@ -615,7 +613,7 @@ class Sudoku(SageObject):
         else:
             raise NotImplementedError('%s is not an algorithm for Sudoku puzzles' % algorithm)
         for soln in gen:
-            yield Sudoku(soln, verify_input = 'False')
+            yield Sudoku(soln, verify_input='False')
 
     def backtrack(self):
         r"""

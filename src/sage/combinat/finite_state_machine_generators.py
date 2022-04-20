@@ -97,7 +97,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
 
-class AutomatonGenerators(object):
+class AutomatonGenerators():
     r"""
     A collection of constructors for several common automata.
 
@@ -148,7 +148,6 @@ class AutomatonGenerators(object):
         return Automaton([(z, o, _) for _ in input_alphabet],
                          initial_states=[z],
                          final_states=[o])
-
 
     def AnyWord(self, input_alphabet):
         r"""
@@ -350,7 +349,7 @@ class AutomatonGenerators(object):
             final_states=[word])
 
 
-class TransducerGenerators(object):
+class TransducerGenerators():
     r"""
     A collection of constructors for several common transducers.
 
@@ -1026,7 +1025,7 @@ class TransducerGenerators(object):
             sage: G = transducers.GrayCode()
             sage: G
             Transducer with 3 states
-            sage: for v in srange(0, 10):
+            sage: for v in srange(10):
             ....:     print("{} {}".format(v, G(v.digits(base=2))))
             0 []
             1 [1]
@@ -1138,7 +1137,7 @@ class TransducerGenerators(object):
                 sage: transducers._parse_recursion_equation_(f(1/n) == f(n) + 3,
                 ....:     2, f, n)
                 Traceback (most recent call last):
-                ....:
+                ...
                 ValueError: 1/n is not a polynomial in n.
 
             ::
@@ -1401,7 +1400,7 @@ class TransducerGenerators(object):
 
         - ``base`` -- base of the digit expansion.
 
-        - ``function`` -- symbolic function ``f`` occuring in the
+        - ``function`` -- symbolic function ``f`` occurring in the
           recursions.
 
         - ``var`` -- symbolic variable.

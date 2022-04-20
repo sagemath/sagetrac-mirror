@@ -1,9 +1,9 @@
 r"""
-List of coset representatives for `\Gamma_1(N)` in `{\rm SL}_2(\ZZ)`
+List of coset representatives for `\Gamma_1(N)` in `\SL_2(\ZZ)`
 """
 
 #*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -28,7 +28,7 @@ from sage.misc.persist import register_unpickle_override
 class G1list(SageObject):
     r"""
     A class representing a list of coset representatives for `\Gamma_1(N)` in
-    `{\rm SL}_2(\ZZ)`. What we actually calculate is a list of elements of
+    `\SL_2(\ZZ)`. What we actually calculate is a list of elements of
     `(\ZZ/N\ZZ)^2` of exact order `N`.
 
     TESTS::
@@ -127,7 +127,7 @@ class G1list(SageObject):
             sage: L = sage.modular.modsym.g1list.G1list(4); L.normalize(6, 2) # nonsense!
             (2, 2)
         """
-        return u % self.__N,   v % self.__N
+        return u % self.__N, v % self.__N
 
 
 class _G1list_old_pickle(G1list):
@@ -172,4 +172,3 @@ class _G1list_old_pickle(G1list):
 
 register_unpickle_override('sage.modular.modsym.g1list', 'G1list',
                            _G1list_old_pickle)
-

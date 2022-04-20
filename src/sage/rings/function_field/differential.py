@@ -52,7 +52,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.latex import latex
 
@@ -826,5 +825,3 @@ class DifferentialsSpaceInclusion(Morphism):
         domain = self.domain()
         F = self.codomain().function_field()
         return F(v._f)*F(domain._gen_base_differential).differential()
-
-

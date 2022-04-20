@@ -1,10 +1,9 @@
 """
 A single element of an ambient space of modular symbols
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -272,7 +271,7 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
 
     def manin_symbol_rep(self):
         """
-        Returns a representation of self as a formal sum of Manin symbols.
+        Return a representation of self as a formal sum of Manin symbols.
 
         EXAMPLES::
 
@@ -299,8 +298,7 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
 
     def modular_symbol_rep(self):
         """
-        Returns a representation of self as a formal sum of modular
-        symbols.
+        Return a representation of ``self`` as a formal sum of modular symbols.
 
         EXAMPLES::
 
@@ -322,5 +320,3 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
             w = [c * x.modular_symbol_rep() for c, x in v]
             self.__modular_symbols = sum(w)
             return self.__modular_symbols
-
-

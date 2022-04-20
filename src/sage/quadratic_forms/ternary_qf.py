@@ -11,7 +11,7 @@ The form `a*x^2 + b*y^2 + c*z^2 + r*yz + s*xz + t*xy` is stored as a tuple (a, b
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Gustavo Rama
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -23,12 +23,11 @@ The form `a*x^2 + b*y^2 + c*z^2 + r*yz + s*xz + t*xy` is stored as a tuple (a, b
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.arith.all import gcd, kronecker_symbol
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.matrix.constructor import matrix, identity_matrix
@@ -71,12 +70,11 @@ class TernaryQF(SageObject):
 
     """
 
-
     __slots__ = ['_a', '_b', '_c', '_r', '_s', '_t', '_automorphisms', '_number_of_automorphisms']
 
     possible_automorphisms = None
 
-    def __init__(self,v):
+    def __init__(self, v):
         r"""
         Creates the ternary quadratic form `a*x^2 + b*y^2 + c*z^2 + r*y*z + s*x*z + t*x*y.` from the
         tuple v=[a,b,c,r,s,t] over `\ZZ`.
@@ -101,7 +99,6 @@ class TernaryQF(SageObject):
         self._automorphisms = None
         self._number_of_automorphisms = None
 
-
     def coefficients(self):
         """
         Return the list coefficients of the ternary quadratic form.
@@ -117,10 +114,9 @@ class TernaryQF(SageObject):
             (1, 2, 3, 4, 5, 6)
 
         """
-
         return self._a, self._b, self._c, self._r, self._s, self._t
 
-    def coefficient(self,n):
+    def coefficient(self, n):
         """
         Return the n-th coefficient of the ternary quadratic form, with 0<=n<=5.
 
@@ -135,12 +131,10 @@ class TernaryQF(SageObject):
             3
             sage: Q.coefficient(5)
             6
-
         """
-
         return self.coefficients()[n]
 
-    def polynomial(self,names='x,y,z'):
+    def polynomial(self, names='x,y,z'):
         """
         Return the polynomial associated to the ternary quadratic form.
 
@@ -159,8 +153,7 @@ class TernaryQF(SageObject):
 
         """
         (x,y,z) = polygens(ZZ,names)
-        return self._a * x**2  + self._b* y**2 + self._c * z**2 + self._t * x*y + self._s * x*z + self._r * y*z
-
+        return self._a * x**2 + self._b* y**2 + self._c * z**2 + self._t * x*y + self._s * x*z + self._r * y*z
 
     def _repr_(self):
         """
@@ -177,8 +170,6 @@ class TernaryQF(SageObject):
             Ternary quadratic form with integer coefficients:
             [0 0 0]
             [0 0 0]
-
-
         """
         rep = 'Ternary quadratic form with integer coefficients:\n'
         rep+= '[' + str(self._a) + ' ' + str(self._b) + ' ' + str(self._c) + ']\n'
@@ -190,7 +181,8 @@ class TernaryQF(SageObject):
         Evaluate this ternary quadratic form Q on a vector of 3 elements, or matrix of elements in Z, with 3 rows. If a vector is given then the output will be an integer Q(`v`), but if a matrix is given the output will be a ternary quadratic form if the matrix has 3 columns, or a quadratic form if not. The quadratic form in matrix notation will be:
 
         .. MATH::
-                Q' = v^t * Q * v.
+
+            Q' = v^t * Q * v.
 
         EXAMPLES::
 
@@ -211,28 +203,26 @@ class TernaryQF(SageObject):
             Ternary quadratic form with integer coefficients:
             [5 0 7]
             [12 -13 -16]
-
         """
         if is_Matrix(v):
-            ## Check that v has 3 rows
+            # Check that v has 3 rows
             if v.nrows() != 3:
                 raise TypeError("Oops! The matrix must have 3 rows.")
-            ## Check if v has 3 cols
+            # Check if v has 3 cols
             if v.ncols() == 3:
                 M = v.transpose() * self.matrix() * v
                 return TernaryQF([M[0,0]//2, M[1,1]//2, M[2,2]//2, M[1,2], M[0,2], M[0,1]])
             else:
                 return QuadraticForm(ZZ, v.transpose() * self.matrix() * v)
         elif (is_Vector(v) or isinstance(v, (list, tuple))):
-            ## Check that v has length 3
+            # Check that v has length 3
             if not (len(v) == 3):
                 raise TypeError("Oops! Your vector needs to have length 3")
             v0, v1, v2 = v
             a, b, c, r, s, t = self.coefficients()
             return a*v0**2 + b*v1**2 + c*v2**2 + r*v1*v2 + s*v0*v2 + t*v0*v1
         else:
-            raise TypeError("Oops! Presently we can only evaluate a quadratic form on a list, tuple, vector ot matrix")
-
+            raise TypeError("Oops! Presently we can only evaluate a quadratic form on a list, tuple, vector or matrix")
 
     def quadratic_form(self):
         """
@@ -251,8 +241,6 @@ class TernaryQF(SageObject):
             sage: bool(QF1 == QF2)
             True
         """
-
-
         return QuadraticForm(ZZ, 3, [self._a, self._t, self._s, self._b, self._r, self._c])
 
     def matrix(self):
@@ -283,9 +271,7 @@ class TernaryQF(SageObject):
             28
             sage: (v*M*v.column())[0]//2
             28
-
         """
-
         M = matrix(ZZ, 3, [2*self._a, self._t, self._s, self._t, 2*self._b, self._r, self._s, self._r, 2*self._c])
         return M
 
@@ -300,14 +286,12 @@ class TernaryQF(SageObject):
             -25
             sage: Q.matrix().det()
             -50
-
         """
-
         return 4*self._a*self._b*self._c + self._r*self._s*self._t - self._a*self._r**2 - self._b*self._s**2 - self._c*self._t**2
 
-    def is_definite(self):
+    def is_definite(self) -> bool:
         """
-        Determines if the ternary quadratic form is definite.
+        Determine if the ternary quadratic form is definite.
 
         EXAMPLES::
 
@@ -319,9 +303,7 @@ class TernaryQF(SageObject):
             sage: Q = TernaryQF([1, 1, 2, -3, 0, -1])
             sage: Q.is_definite()
             False
-
         """
-
         d1 = self._a
         if d1 == 0:
             return False
@@ -348,9 +330,9 @@ class TernaryQF(SageObject):
             else:
                 return False
 
-    def is_positive_definite(self):
+    def is_positive_definite(self) -> bool:
         """
-        Determines if the ternary quadratic form is positive definite.
+        Determine if the ternary quadratic form is positive definite.
 
         EXAMPLES::
 
@@ -367,9 +349,7 @@ class TernaryQF(SageObject):
             -3
             sage: Q.is_positive_definite()
             False
-
         """
-
         d1 = self._a
         if d1 == 0:
             return False
@@ -390,7 +370,7 @@ class TernaryQF(SageObject):
         else:
             return False
 
-    def is_negative_definite(self):
+    def is_negative_definite(self) -> bool:
         """
         Determine if the ternary quadratic form is negative definite.
 
@@ -427,7 +407,7 @@ class TernaryQF(SageObject):
 
     def __neg__(self):
         """
-        Returns the ternary quadratic form with coefficients negatives of self.
+        Return the ternary quadratic form with coefficients negatives of self.
 
         EXAMPLES::
 
@@ -443,14 +423,15 @@ class TernaryQF(SageObject):
             sage: Q = TernaryQF([0, 0, 0, 0, 0, 0])
             sage: Q==-Q
             True
-
         """
-
         return TernaryQF([-a for a in self.coefficients()])
 
-    def is_primitive(self):
+    def is_primitive(self) -> bool:
         """
-        Determines if the ternary quadratic form is primitive, i.e. the greatest common divisor of the coefficients of the form is 1.
+        Determine if the ternary quadratic form is primitive.
+
+        This means that the greatest common divisor of the coefficients
+        of the form is 1.
 
         EXAMPLES::
 
@@ -465,12 +446,11 @@ class TernaryQF(SageObject):
             sage: Q.is_primitive()
             False
         """
-
         return self.content() == 1
 
     def primitive(self):
         """
-        Returns the primitive version of the ternary quadratic form.
+        Return the primitive version of the ternary quadratic form.
 
         EXAMPLES::
 
@@ -488,9 +468,7 @@ class TernaryQF(SageObject):
             Ternary quadratic form with integer coefficients:
             [2 2 2]
             [1 1 1]
-
         """
-
         l = self.coefficients()
         g = gcd(l)
         return TernaryQF([a//g for a in l])
@@ -519,15 +497,13 @@ class TernaryQF(SageObject):
             [ 2/3 8/3 -2/3 ]
             [ * 2/3 0 ]
             [ * * 4/3 ]
-
         """
-
         if k*self.content() in ZZ:
 
             return TernaryQF([ZZ(k*self._a), ZZ(k*self._b), ZZ(k*self._c), ZZ(k*self._r), ZZ(k*self._s), ZZ(k*self._t)])
 
         else:
-            #arreglar con un try?
+            # arreglar con un try?
             R = k.parent()
             if is_Ring(R):
 
@@ -539,7 +515,10 @@ class TernaryQF(SageObject):
 
     def reciprocal(self):
         """
-        Gives the reciprocal quadratic form associated to the given form. This is defined as the multiple of the primitive adjoint with the same content as the given form.
+        Return the reciprocal quadratic form associated to the given form.
+
+        This is defined as the multiple of the primitive adjoint with the same
+        content as the given form.
 
         EXAMPLES::
 
@@ -554,15 +533,12 @@ class TernaryQF(SageObject):
             2
             sage: Q.adjoint().content()
             16
-
-
         """
-
-        return  self.adjoint().primitive().scale_by_factor( self.content() )
+        return self.adjoint().primitive().scale_by_factor(self.content())
 
     def reciprocal_reduced(self):
         """
-        Returns the reduced form of the reciprocal form of the given ternary quadratic form.
+        Return the reduced form of the reciprocal form of the given ternary quadratic form.
 
         EXAMPLES::
 
@@ -577,14 +553,12 @@ class TernaryQF(SageObject):
             sage: Qr = Q.reciprocal()
             sage: Qr.reduced_form_eisenstein(matrix = False) == Qrr
             True
-
         """
-
-        return self.reciprocal().reduced_form_eisenstein(matrix = False)
+        return self.reciprocal().reduced_form_eisenstein(matrix=False)
 
     def divisor(self):
         """
-        Returns the content of the adjoint form associated to the given form.
+        Return the content of the adjoint form associated to the given form.
 
         EXAMPLES::
 
@@ -592,7 +566,6 @@ class TernaryQF(SageObject):
             sage: Q.divisor()
             4
         """
-
         A11 = 4*self._b*self._c - self._r**2
         A22 = 4*self._a*self._c - self._s**2
         A33 = 4*self._a*self._b - self._t**2
@@ -602,9 +575,9 @@ class TernaryQF(SageObject):
         m = gcd([A11, A22, A33, 2*A12, 2*A13, 2*A23])
         return m
 
-    def __eq__(self,right):
+    def __eq__(self, right) -> bool:
         """
-        Determines if two ternary quadratic forms are equal.
+        Determine if two ternary quadratic forms are equal.
 
         EXAMPLES::
 
@@ -614,17 +587,17 @@ class TernaryQF(SageObject):
             sage: Q1 = TernaryQF([1, 2, 3, 1, 2, 2])
             sage: Q == Q1
             False
-
         """
-
         if not isinstance(right, TernaryQF):
             return False
         return self.coefficients() == right.coefficients()
 
     def adjoint(self):
         """
-        Returns the adjoint form associated to the given ternary quadratic
-        form. That is, the Hessian matrix of the adjoint form is twice the
+        Return the adjoint form associated to the given ternary quadratic
+        form.
+
+        That is, the Hessian matrix of the adjoint form is twice the
         classical adjoint matrix of the Hessian matrix of the given form.
 
         EXAMPLES::
@@ -636,9 +609,7 @@ class TernaryQF(SageObject):
             [0 0 -68]
             sage: Q.adjoint().matrix() == 2*Q.matrix().adjoint_classical()
             True
-
         """
-
         A11 = 4*self._b*self._c - self._r**2
         A22 = 4*self._a*self._c - self._s**2
         A33 = 4*self._a*self._b - self._t**2
@@ -649,7 +620,7 @@ class TernaryQF(SageObject):
 
     def content(self):
         """
-        Returns the greatest common divisor of the coefficients of the given ternary quadratic form.
+        Return the greatest common divisor of the coefficients of the given ternary quadratic form.
 
         EXAMPLES::
 
@@ -661,13 +632,12 @@ class TernaryQF(SageObject):
             2
             sage: Q.scale_by_factor(100).content()
             200
-
         """
         return gcd(self.coefficients())
 
     def omega(self):
         """
-        Returns the content of the adjoint of the primitive associated
+        Return the content of the adjoint of the primitive associated
         ternary quadratic form.
 
         EXAMPLES::
@@ -677,14 +647,12 @@ class TernaryQF(SageObject):
             176
             sage: Q.primitive().adjoint().content()
             176
-
         """
-
         return self.primitive().adjoint().content()
 
     def delta(self):
         """
-        Returns the omega of the adjoint of the given ternary quadratic form,
+        Return the omega of the adjoint of the given ternary quadratic form,
         which is the same as the omega of the reciprocal form.
 
         EXAMPLES::
@@ -699,14 +667,12 @@ class TernaryQF(SageObject):
             4
             sage: Q.omega()
             4
-
         """
-
         return self.adjoint().omega()
 
     def level(self):
         """
-        Returns the level of the ternary quadratic form, which is 4 times the discriminant divided by the divisor.
+        Return the level of the ternary quadratic form, which is 4 times the discriminant divided by the divisor.
 
         EXAMPLES::
 
@@ -715,14 +681,13 @@ class TernaryQF(SageObject):
             52
             sage: 4*Q.disc()/Q.divisor()
             52
-
         """
+        return 4 * self.disc() // self.divisor()
 
-        return 4*self.disc()//self.divisor()
-
-    def is_eisenstein_reduced(self):
+    def is_eisenstein_reduced(self) -> bool:
         """
-        Determines if the ternary quadratic form is Eisenstein reduced.
+        Determine if the ternary quadratic form is Eisenstein reduced.
+
         That is, if we have a ternary quadratic form:
         ::
 
@@ -750,10 +715,7 @@ class TernaryQF(SageObject):
             sage: Q = TernaryQF([34, 14, 44, 12, 25, -22])
             sage: Q.is_eisenstein_reduced()
             False
-
         """
-
-
         [a,b,c,r,s,t]=[self._a,self._b,self._c,self._r,self._s,self._t]
 
         # cond 2
@@ -800,7 +762,7 @@ class TernaryQF(SageObject):
 
     def reduced_form_eisenstein(self, matrix=True):
         """
-        Returns the eisenstein reduced form equivalent to the given positive ternary quadratic form,
+        Return the Eisenstein reduced form equivalent to the given positive ternary quadratic form,
         which is unique.
 
         EXAMPLES::
@@ -826,9 +788,7 @@ class TernaryQF(SageObject):
             Ternary quadratic form with integer coefficients:
             [3 8 20]
             [3 2 1]
-
         """
-
         if matrix:
             [v,M] = _reduced_ternary_form_eisenstein_with_matrix(self._a,self._b,self._c,self._r,self._s,self._t)
             return TernaryQF(v), M
@@ -836,9 +796,9 @@ class TernaryQF(SageObject):
             v = _reduced_ternary_form_eisenstein_without_matrix(self._a,self._b,self._c,self._r,self._s,self._t)
             return TernaryQF(v)
 
-    def pseudorandom_primitive_zero_mod_p(self,p):
+    def pseudorandom_primitive_zero_mod_p(self, p):
         """
-        Returns a tuple of the form v = (a, b, 1) such that is a zero of the given ternary quadratic
+        Return a tuple of the form v = (a, b, 1) such that is a zero of the given ternary quadratic
         positive definite form modulo an odd prime p, where p doesn't divides the discriminant of the form.
 
         EXAMPLES::
@@ -856,24 +816,22 @@ class TernaryQF(SageObject):
              sage: v[2]
              1
         """
-
         [a,b,c,r,s,t] = self.coefficients()
         while True:
 
             r1=randint(0,p-1)
             r2=randint(0,p-1)
-            alpha=(b*r1**2+t*r1+a)%p
+            alpha=(b*r1**2+t*r1+a) % p
             if alpha != 0:
 
-                beta=(2*b*r1*r2+t*r2+r*r1+s)%p
-                gamma=(b*r2**2+r*r2+c)%p
+                beta=(2*b*r1*r2+t*r2+r*r1+s) % p
+                gamma=(b*r2**2+r*r2+c) % p
                 disc=beta**2-4*alpha*gamma
-                if mod(disc,p).is_square():
+                if mod(disc, p).is_square():
 
                     z=(-beta+mod(disc,p).sqrt().lift())*(2*alpha).inverse_mod(p)
-                    #return vector((z,r1*z+r2,1))%p
-                    return z%p, (r1*z+r2)%p, 1
-
+                    # return vector((z,r1*z+r2,1))%p
+                    return z % p, (r1*z+r2) % p, 1
 
     def find_zeros_mod_p(self, p):
         """
@@ -907,8 +865,7 @@ class TernaryQF(SageObject):
             [a, b, c, r, s, t] = self.coefficients()
             return _find_zeros_mod_p_odd(a, b, c, r, s, t, p, v)
 
-
-    def find_p_neighbor_from_vec(self, p, v, mat = False):
+    def find_p_neighbor_from_vec(self, p, v, mat=False):
         """
         Finds the reduced equivalent of the p-neighbor of this ternary quadratic form associated to a given
         vector v satisfying:
@@ -942,17 +899,15 @@ class TernaryQF(SageObject):
             [     0  -3/11  13/11]
             sage: Q(M) == Q11
             True
-
         """
-
         if mat:
             q, M = _find_p_neighbor_from_vec(self._a, self._b, self._c, self._r, self._s, self._t, p, v, mat)
-            M = matrix(3,M)
+            M = matrix(3, M)
             return TernaryQF(q), M*M.det()
         else:
             return TernaryQF(_find_p_neighbor_from_vec(self._a, self._b, self._c, self._r, self._s, self._t, p, v, mat))
 
-    def find_p_neighbors(self, p, mat = False):
+    def find_p_neighbors(self, p, mat=False):
         """
         Find a list with all the reduced equivalent of the p-neighbors of this ternary quadratic form, given by the zeros mod p of the form.
         See find_p_neighbor_from_vec for more information.
@@ -980,7 +935,6 @@ class TernaryQF(SageObject):
 
         z = self.find_zeros_mod_p(p)
         return [self.find_p_neighbor_from_vec(p, v, mat) for v in z]
-
 
     def basic_lemma(self, p):
         """
@@ -1010,9 +964,7 @@ class TernaryQF(SageObject):
             3
             sage: Q1.xi(3), Q2.xi(3)
             (-1, -1)
-
         """
-
         if p == 4:
             p = -1
         if p == 8:
@@ -1032,11 +984,9 @@ class TernaryQF(SageObject):
 
         return kronecker_symbol(self.basic_lemma(p), p)
 
-
-
     def xi_rec(self, p):
         """
-        Returns Xi(p) for the reciprocal form.
+        Return Xi(p) for the reciprocal form.
 
         EXAMPLES::
 
@@ -1046,16 +996,12 @@ class TernaryQF(SageObject):
             28
             sage: Q1.xi_rec(7), Q2.xi_rec(7)
             (1, 1)
-
-
         """
-
         return self.reciprocal().xi(p)
-
 
     def symmetry(self, v):
         """
-        Returns A the automorphism of the ternary quadratic form such that:
+        Return A the automorphism of the ternary quadratic form such that:
 
             - A*v = -v.
             - A*u = 0, if u is orthogonal to v.
@@ -1090,7 +1036,6 @@ class TernaryQF(SageObject):
         """
 
         return identity_matrix(3) - v.column()*matrix(v)*self.matrix()/self(v)
-
 
     def automorphism_symmetries(self, A):
         """
@@ -1136,7 +1081,7 @@ class TernaryQF(SageObject):
                     break
             return [b1, b2]
 
-    def automorphism_spin_norm(self,A):
+    def automorphism_spin_norm(self, A):
         """
         Return the spin norm of the automorphism A.
 
@@ -1150,21 +1095,16 @@ class TernaryQF(SageObject):
             True
             sage: Q.automorphism_spin_norm(A)
             7
-
         """
-
-        if A == identity_matrix(ZZ,3):
+        if A == identity_matrix(ZZ, 3):
             return 1
         bs = self.automorphism_symmetries(A)
         s = self(bs[0]) * self(bs[1])
         return s.squarefree_part()
 
-
-        return [(1, 0, 0, 0, 1, 0, 0, 0, 1)]
-
-    def _border(self,n):
+    def _border(self, n):
         """
-        Auxiliar function to find the automorphisms of a positive definite ternary quadratic form.
+        Auxiliary function to find the automorphisms of a positive definite ternary quadratic form.
         It return a boolean whether the n-condition is true. If Q = TernaryQF([a,b,c,r,s,t]), the conditions are:
 
         1.  a = t, s = 2r.
@@ -1326,10 +1266,8 @@ class TernaryQF(SageObject):
             sage: Q16 = TernaryQF([4, 4, 4, -2, -3, -3])
             sage: Q16._borders()
             (9, 15, 16)
-
         """
-
-        return tuple(n for n in range(1,17) if self._border(n))
+        return tuple(n for n in range(1, 17) if self._border(n))
 
     def _automorphisms_reduced_fast(self):
         """
@@ -1530,7 +1468,6 @@ class TernaryQF(SageObject):
                 return [(1, 0, 0, 0, 1, 0, 0, 0, 1),
                         (-1, 0, 1, 0, -1, 1, 0, 0, 1)]
 
-
         if self._border(8):
             if self._border(9):
                 if self._border(10) and self._border(11) and self._border(12):
@@ -1715,7 +1652,6 @@ class TernaryQF(SageObject):
 
         return [(1, 0, 0, 0, 1, 0, 0, 0, 1)]
 
-
     def _automorphisms_reduced_slow(self):
         """
         Return the automorphisms of the reduced ternary quadratic form.
@@ -1741,25 +1677,20 @@ class TernaryQF(SageObject):
             [0 1 0]
             [0 0 1]
             ]
-
         """
-
+        from itertools import product
         if TernaryQF.possible_automorphisms is None:
-
-             I = [-1, 0, 1]
-             auts = [matrix(ZZ, 3, [a, b, c, d, e, f, g, h, i]) for a in I for b in I for c in I for d in I for e in I for f in I for g in I for h in I for i in I]
-             auts = [m for m in auts if m.det() == 1]
-             auts = [m for m in auts if m**2 in auts]
-             auts = [m for m in auts if m**2 in auts]
-             auts = [m for m in auts if m**2 in auts]
-             TernaryQF.possible_automorphisms = auts
-
+            auts = (matrix(ZZ, 3, 3, m) for m in product([-1, 0, 1], repeat=9))
+            auts = [m for m in auts if m.det() == 1]
+            auts = [m for m in auts if m**2 in auts]
+            auts = [m for m in auts if m**2 in auts]
+            auts = [m for m in auts if m**2 in auts]
+            TernaryQF.possible_automorphisms = auts
         return [m for m in TernaryQF.possible_automorphisms if self(m) == self]
 
-
-    def automorphisms(self, slow = True):
+    def automorphisms(self, slow=True):
         """
-        Returns a list with the automorphisms of the definite ternary quadratic form.
+        Return a list with the automorphisms of the definite ternary quadratic form.
 
         EXAMPLES::
 
@@ -1801,11 +1732,9 @@ class TernaryQF(SageObject):
             [-1 0 -1]
             sage: Q(A*M_red) == Qr
             True
-
         """
-
         if not self.is_definite():
-           raise ValueError("Oops, only implemented for definite forms.")
+            raise ValueError("Oops, only implemented for definite forms.")
 
         if self._automorphisms is not None:
             return self._automorphisms
@@ -1826,8 +1755,6 @@ class TernaryQF(SageObject):
             self._automorphisms = (-self).automorphisms()
         return self._automorphisms
 
-
-
     def _number_of_automorphisms_reduced(self):
         """
         Return the number of automorphisms of the reduced definite ternary quadratic form.
@@ -1842,9 +1769,7 @@ class TernaryQF(SageObject):
             sage: Q = TernaryQF([3, 4, 5, 3, 3, 2])
             sage: Q._number_of_automorphisms_reduced()
             1
-
         """
-
         if self._border(1):
             if self._border(2):
                 if self._border(14):
@@ -1925,7 +1850,6 @@ class TernaryQF(SageObject):
             else:
                 # borders 7
                 return 2
-
 
         if self._border(8):
             if self._border(9):
@@ -2008,9 +1932,7 @@ class TernaryQF(SageObject):
 
         return 1
 
-
-
-    def number_of_automorphisms(self, slow = True):
+    def number_of_automorphisms(self, slow=True):
         """
         Return the number of automorphisms of the definite ternary quadratic form.
 
@@ -2032,11 +1954,9 @@ class TernaryQF(SageObject):
             True
             sage: Q.number_of_automorphisms(slow = False)
             24
-
         """
-
         if not self.is_definite():
-           raise ValueError("Oops, only implemented for definite forms.")
+            raise ValueError("Oops, only implemented for definite forms.")
 
         if self._number_of_automorphisms is not None:
             return self._number_of_automorphisms
@@ -2055,6 +1975,7 @@ class TernaryQF(SageObject):
 def find_all_ternary_qf_by_level_disc(N, d):
     """
     Find the coefficients of all the reduced ternary quadratic forms given its discriminant d and level N.
+
     If N|4d and d|N^2, then it may be some forms with that discriminant and level.
 
     EXAMPLES::
@@ -2084,11 +2005,9 @@ def find_all_ternary_qf_by_level_disc(N, d):
         Traceback (most recent call last):
         ...
         ValueError: There are no ternary forms of this level and discriminant
-
-
     """
-
     return [TernaryQF(_) for _ in _find_all_ternary_qf_by_level_disc(N, d)]
+
 
 def find_a_ternary_qf_by_level_disc(N, d):
     """
@@ -2118,9 +2037,7 @@ def find_a_ternary_qf_by_level_disc(N, d):
         Traceback (most recent call last):
         ...
         ValueError: There are no ternary forms of this level and discriminant
-
     """
-
     q = _find_a_ternary_qf_by_level_disc(N, d)
     if q is not None:
         return TernaryQF(q)
