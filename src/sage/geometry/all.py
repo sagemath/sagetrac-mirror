@@ -2,6 +2,7 @@ from .polyhedron.all import *
 from .hyperbolic_space.all import *
 from .polyhedral_complex import PolyhedralComplex
 from sage.misc.lazy_import import lazy_import
+from .solid_angle import *
 
 lazy_import('sage.geometry.cone', ['Cone', 'random_cone'])
 lazy_import('sage.geometry', 'cone_catalog', 'cones')
