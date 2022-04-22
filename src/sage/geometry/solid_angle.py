@@ -28,8 +28,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from math import pi
-
+from sage.symbolic.constants import pi
 from sage.matrix.constructor import matrix
 from sage.functions.trig import arccos
 
