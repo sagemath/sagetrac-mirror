@@ -96,10 +96,10 @@ def solid_angle_simplicial_2d(A):
     """
     if not hasattr(A, 'nrows'):
         A = matrix(A)
-    if A.nrows() != 2 or A.ncols() != 2:
-        raise ValueError("input matrix has incorrect dimension.")
     if A.rank() == 1:
         return(0)
+    if A.nrows() != 2 or A.ncols() != 2:
+        raise ValueError("input matrix has incorrect dimension.")
     else:
         u = A.row(0)
         v = A.row(1)
