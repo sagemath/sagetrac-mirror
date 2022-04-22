@@ -7,7 +7,7 @@ the cone takes up in reference to some given set.
 
 EXAMPLES:
 
-Compute the normalized solid angle measure of the first qudrant::
+Compute the normalized solid angle measure of the first quadrant::
 
     sage: RDF(solid_angle_simplicial_2d(matrix([[0,1],[1,0]])))
     0.25
