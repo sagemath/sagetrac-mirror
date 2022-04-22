@@ -55,22 +55,22 @@ def solid_angle_simplicial_2d(A):
     This example shows the normalized measure of the solid angle spanned
     by the rows of the matrix::
 
-        sage: solid_angle_simplicial_2d(matrix([[0,1],[1,0]]))
+        sage: solid_angle_simplicial_2d(matrix([[0, 1], [1, 0]]))
         1/4
 
     The input can be a list of vectors instead of a matrix as well::
 
-        sage: solid_angle_simplicial_2d([[1,0], [-1,sqrt(3)]])
+        sage: solid_angle_simplicial_2d([[1, 0], [-1, sqrt(3)]])
         1/3
 
-        sage: RDF(solid_angle_simplicial_2d([[2,13],[-1,7]]))  # abs tol 1e-15
+        sage: RDF(solid_angle_simplicial_2d([[2, 13], [-1, 7]]))  # abs tol 1e-15
         0.04687851282419763
 
     This example illustrates how the solid angle measure will not be
     greater than 0.5 as the function always outputs the minimal angle
     between the two rays::
 
-        sage: RDF(solid_angle_simplicial_2d([[1,0],[-1,-1]]))  # abs tol 1e-15
+        sage: RDF(solid_angle_simplicial_2d([[1, 0], [-1, -1]]))  # abs tol 1e-15
         0.375
 
     .. NOTE::
@@ -81,13 +81,13 @@ def solid_angle_simplicial_2d(A):
     The following tests check for corner cases where the vectors are
     antiparallel, parallel and perpendicular, respectively::
 
-        sage: solid_angle_simplicial_2d([[1,1],[-1,-1]])
+        sage: solid_angle_simplicial_2d([[1, 1], [-1, -1]])
         0
 
-        sage: solid_angle_simplicial_2d([[1,2],[2,4]])
+        sage: solid_angle_simplicial_2d([[1, 2], [2, 4]])
         0
 
-        sage: solid_angle_simplicial_2d([[2,2],[-1,1]])
+        sage: solid_angle_simplicial_2d([[2, 2], [-1, 1]])
         1/4
 
     The following tests check the corner case where the cone is a simplicial
