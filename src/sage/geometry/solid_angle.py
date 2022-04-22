@@ -28,6 +28,11 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from math import pi
+
+from sage.matrix.constructor import matrix
+from sage.functions.trig import arccos
+
 
 def solid_angle_simplicial_2d(A):
     r"""
