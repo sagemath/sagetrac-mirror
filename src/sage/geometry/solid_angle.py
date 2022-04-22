@@ -90,27 +90,31 @@ def solid_angle_simplicial_2d(A):
         sage: solid_angle_simplicial_2d([[2, 2], [-1, 1]])
         1/4
 
-    The following tests check the corner case where the cone is a simplicial
-    one-dimensional cone in `\RR^2`::
+    The following tests check the assumptions of the input::
 
-        sage: solid_angle_simplicial_2d(matrix([[-3,2]]))
-        0
+        sage: solid_angle_simplicial_2d([[-3, 2]])
+        Traceback (most recent call last):
+        ...
+        ValueError: input matrix has incorrect dimension.
 
-        sage: solid_angle_simplicial_2d(matrix([[1,4]]))
-        0
+        sage: solid_angle_simplicial_2d([[1, 4], [0, 0]])
+        Traceback (most recent call last):
+        ...
+        ValueError: input matrix has a row that is zero.
     """
     if not is_Matrix(A):
         A = matrix(A)
-    if A.rank() == 1:
-        return(0)
     if A.nrows() != 2 or A.ncols() != 2:
         raise ValueError("input matrix has incorrect dimension.")
-    else:
-        u = A.row(0)
-        v = A.row(1)
-        p = u.dot_product(v)
-        a = u.norm()
-        b = v.norm()
-        cs = p/(a*b)
-        final_calc = arccos(cs) / (2*pi)
-        return final_calc
+    if any(r == 0 for r in A.rows()):
+        raise ValueError("input matrix has a row that is zero.")
+    if A.rank() < 2:
+        return 0
+    u = A.row(0)
+    v = A.row(1)
+    p = u.dot_product(v)
+    a = u.norm()
+    b = v.norm()
+    cs = p/(a*b)
+    final_calc = arccos(cs) / (2*pi)
+    return final_calc
