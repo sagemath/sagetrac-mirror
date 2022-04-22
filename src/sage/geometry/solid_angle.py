@@ -30,6 +30,7 @@ AUTHORS:
 
 from sage.symbolic.constants import pi
 from sage.matrix.constructor import matrix
+from sage.structure.element import is_Matrix
 from sage.functions.trig import arccos
 
 
@@ -98,7 +99,7 @@ def solid_angle_simplicial_2d(A):
         sage: solid_angle_simplicial_2d(matrix([[1,4]]))
         0
     """
-    if not hasattr(A, 'nrows'):
+    if not is_Matrix(A):
         A = matrix(A)
     if A.rank() == 1:
         return(0)
