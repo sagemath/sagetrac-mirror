@@ -187,7 +187,7 @@ if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
     if [ -z "$PYTHONPATH" ]; then
         # Something went wrong, assume that the patchbot is not installed
         echo >&2 "Error: cannot find installation path for sage_patchbot"
-        echo >&2 "See https://wiki.sagemath.org/buildbot for instructions"
+        echo >&2 "See https://trac.sagemath.org/wiki/patchbot for instructions"
         exit 1
     fi
 
