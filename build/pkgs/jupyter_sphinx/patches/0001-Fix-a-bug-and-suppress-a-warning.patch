@@ -1,4 +1,4 @@
-From 1f1a767cf51627ac5bf2cf3209f44bdb32f4af46 Mon Sep 17 00:00:00 2001
+From f93e4ea3eaedd549b56bc86f27225aee2f4c847d Mon Sep 17 00:00:00 2001
 From: Kwankyu Lee <ekwankyu@gmail.com>
 Date: Sun, 27 Mar 2022 13:33:56 -0700
 Subject: [PATCH 1/4] Fix a bug and suppress a warning
@@ -8,7 +8,7 @@ Subject: [PATCH 1/4] Fix a bug and suppress a warning
  1 file changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/jupyter_sphinx/execute.py b/jupyter_sphinx/execute.py
-index e6cc5db..7514cff 100644
+index e6cc5db..ef41337 100644
 --- a/jupyter_sphinx/execute.py
 +++ b/jupyter_sphinx/execute.py
 @@ -147,11 +147,14 @@ class ExecuteJupyterCells(SphinxTransform):
@@ -25,7 +25,7 @@ index e6cc5db..7514cff 100644
 +                warnings.simplefilter("ignore")
 +                notebook = execute_cells(
 +                    kernel_name,
-+                    [nbformat.v4.new_code_cell(node.astext() if node["execute"] else "") for node in nodes],
++                    [nbformat.v4.new_code_cell(node.astext() if not "execute" in node or node["execute"] else "") for node in nodes],
 +                    self.config.jupyter_execute_kwargs,
 +                )
  

@@ -1,4 +1,4 @@
-From 43d677000707b136c6cd0079356677e6408627f2 Mon Sep 17 00:00:00 2001
+From 227864ac59a536b91ce8aa6cc40a8fb30c967963 Mon Sep 17 00:00:00 2001
 From: Kwankyu Lee <ekwankyu@gmail.com>
 Date: Tue, 12 Apr 2022 14:42:44 +0900
 Subject: [PATCH 4/4] Prevent unnecessary js injections

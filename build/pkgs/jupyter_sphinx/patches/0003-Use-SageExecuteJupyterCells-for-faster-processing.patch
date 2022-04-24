@@ -1,4 +1,4 @@
-From af16bbccc1e1e1a586fe86371a9437d9342bfa6f Mon Sep 17 00:00:00 2001
+From 1c8bbceae278fb43c985c4daeadcfd52338df7c6 Mon Sep 17 00:00:00 2001
 From: Kwankyu Lee <ekwankyu@gmail.com>
 Date: Tue, 5 Apr 2022 13:49:03 +0900
 Subject: [PATCH 3/4] Use SageExecuteJupyterCells for faster processing
@@ -35,7 +35,7 @@ index c493685..5c8a32c 100644
  
      # For syntax highlighting
 diff --git a/jupyter_sphinx/execute.py b/jupyter_sphinx/execute.py
-index 7514cff..1aca4fd 100644
+index ef41337..d907633 100644
 --- a/jupyter_sphinx/execute.py
 +++ b/jupyter_sphinx/execute.py
 @@ -323,3 +323,36 @@ def setup(app):
