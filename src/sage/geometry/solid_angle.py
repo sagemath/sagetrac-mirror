@@ -9,6 +9,7 @@ EXAMPLES:
 
 Compute the normalized solid angle measure of the first quadrant::
 
+    sage: from sage.geometry.solid_angle import solid_angle_simplicial_2d
     sage: RDF(solid_angle_simplicial_2d(matrix([[0,1],[1,0]])))
     0.25
 
@@ -55,6 +56,7 @@ def solid_angle_simplicial_2d(A):
     This example shows the normalized measure of the solid angle spanned
     by the rows of the matrix::
 
+        sage: from sage.geometry.solid_angle import solid_angle_simplicial_2d
         sage: solid_angle_simplicial_2d(matrix([[0, 1], [1, 0]]))
         1/4
 
