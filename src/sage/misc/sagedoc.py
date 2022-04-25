@@ -496,6 +496,7 @@ pythonversion = sys.version.split(' ')[0]
 extlinks = {
     'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
     'trac': ('https://trac.sagemath.org/%s', 'trac ticket #%s'),
+    'sage_root': ('https://github.com/sagemath/sage/tree/develop/%s', 'SAGE_ROOT/%s'),
     'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article %s'),
     'arxiv': ('https://arxiv.org/abs/%s', 'arXiv %s'),
     'oeis': ('https://oeis.org/%s', 'OEIS sequence %s'),
