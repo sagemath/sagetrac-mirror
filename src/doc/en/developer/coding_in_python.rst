@@ -119,7 +119,7 @@ support the command ``latex``.
 
 #. You can use any macros included in ``amsmath``, ``amssymb``, or
    ``amsfonts``, or the ones defined in
-   ``SAGE_ROOT/doc/commontex/macros.tex``.
+   :sage_root:`doc/commontex/macros.tex`.
 
 An example template for a ``_latex_`` method follows. Note that the
 ``.. skip`` line should not be included in your code; it is here to
@@ -161,7 +161,7 @@ the context.
 
 Here is an example of the ``_latex_`` and ``_repr_`` functions for the
 ``Pi`` class. It is from the file
-``SAGE_ROOT/src/sage/symbolic/constants.py``:
+:sage_root:`src/sage/symbolic/constants.py`:
 
 .. CODE-BLOCK:: python
 
@@ -192,7 +192,7 @@ matrix over a ring `R`. Then the Sage function ``matrix`` will work
 for this object.
 
 The following is from
-``SAGE_ROOT/src/sage/graphs/generic_graph.py``:
+:sage_root:`src/sage/graphs/generic_graph.py`:
 
 .. CODE-BLOCK:: python
 
@@ -211,7 +211,7 @@ The following is from
 Similarly, provide a ``_vector_`` method for an object that can be
 coerced to a vector over a ring `R`. Then the Sage function ``vector``
 will work for this object. The following is from the file
-``SAGE_ROOT/src/sage/modules/free_module_element.pyx``:
+:sage_root:`src/sage/modules/free_module_element.pyx`:
 
 .. CODE-BLOCK:: python
 
@@ -288,11 +288,11 @@ creates the file ``foo.sage.py``.
 
 The following files are relevant to preparsing in Sage:
 
-#. ``SAGE_ROOT/src/bin/sage``
+#. :sage_root:`src/bin/sage`
 
-#. ``SAGE_ROOT/src/bin/sage-preparse``
+#. :sage_root:`src/bin/sage-preparse`
 
-#. ``SAGE_ROOT/src/sage/repl/preparse.py``
+#. :sage_root:`src/sage/repl/preparse.py`
 
 In particular, the file ``preparse.py`` contains the Sage preparser
 code.
@@ -334,7 +334,7 @@ scope variable.
 
 Certain objects, e.g. matrices, may start out mutable and become
 immutable later. See the file
-``SAGE_ROOT/src/sage/structure/mutability.py``.
+:sage_root:`src/sage/structure/mutability.py`.
 
 
 The  __hash__ Special Method
@@ -499,7 +499,7 @@ We mention two issues with importing: circular imports and importing
 large third-party modules.
 
 First, you must avoid circular imports. For example, suppose that the
-file ``SAGE_ROOT/src/sage/algebras/steenrod_algebra.py``
+file :sage_root:`src/sage/algebras/steenrod_algebra.py`
 started with a line:
 
 .. CODE-BLOCK:: python
@@ -507,7 +507,7 @@ started with a line:
     from sage.sage.algebras.steenrod_algebra_bases import *
 
 and that the file
-``SAGE_ROOT/src/sage/algebras/steenrod_algebra_bases.py``
+:sage_root:`src/sage/algebras/steenrod_algebra_bases.py`
 started with a line:
 
 .. CODE-BLOCK:: python

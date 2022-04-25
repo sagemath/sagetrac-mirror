@@ -9,9 +9,9 @@ Packaging Third-Party Code
 One of the mottoes of the Sage project is to not reinvent the wheel: If
 an algorithm is already implemented in a well-tested library then
 consider incorporating that library into Sage. The current list of
-available packages are the subdirectories of ``SAGE_ROOT/build/pkgs/``.
+available packages are the subdirectories of :sage_root:`build/pkgs/`.
 The installation of packages is done through a bash script located in
-``SAGE_ROOT/build/bin/sage-spkg``. This script is typically invoked by
+:sage_root:`build/bin/sage-spkg`. This script is typically invoked by
 giving the command::
 
     [user@localhost]$ sage -i <options> <package name>...
@@ -25,7 +25,7 @@ options can be:
 - -d: only download the package
 
 The section :ref:`section-directory-structure` describes the structure
-of each individual package in ``SAGE_ROOT/build/pkgs``. In section
+of each individual package in :sage_root:`build/pkgs`. In section
 :ref:`section-manual-build` we see how you can install and test a new
 spkg that you or someone else wrote. Finally,
 :ref:`section-inclusion-procedure` explains how to submit a new package
@@ -135,7 +135,7 @@ Third-party packages in Sage consist of two parts:
    modifications to the upstream tarball.
 
 #. The build scripts and associated files are in a subdirectory
-   ``SAGE_ROOT/build/pkgs/<package>``, where you replace ``<package>``
+   :sage_root:`build/pkgs/<package>`, where you replace ``<package>``
    with a lower-case version of the upstream project name. If the
    project name contains characters which are not alphanumeric
    and are not an underscore, those characters should be removed
@@ -144,7 +144,7 @@ Third-party packages in Sage consist of two parts:
 
 As an example, let us consider a hypothetical FoO project. They
 (upstream) distribute a tarball ``FoO-1.3.tar.gz`` (that will be
-automatically placed in ``SAGE_ROOT/upstream`` during the installation
+automatically placed in :sage_root:`upstream` during the installation
 process). To package it in Sage, we create a subdirectory containing as
 a minimum the following files:
 
@@ -303,7 +303,7 @@ Likewise for :envvar:`CXXFLAGS`, :envvar:`FCFLAGS`, and :envvar:`F77FLAGS`.
    In more detail: ``sage-bootstrap-python`` runs a version of Python
    pre-installed on the machine, which is a build prerequisite of Sage.
    Note that ``sage-bootstrap-python`` accepts a wide range of Python
-   versions, Python >= 2.6 and >= 3.4, see ``SAGE_ROOT/build/tox.ini``
+   versions, Python >= 2.6 and >= 3.4, see :sage_root:`build/tox.ini`
    for details.  You should only use ``sage-bootstrap-python`` for
    installation tasks that must be able to run before Sage has made
    ``python3`` available.  It must not be used for running ``pip`` or
@@ -1098,7 +1098,7 @@ Building the package
 At this stage you have a new tarball that is not yet distributed with
 Sage (``FoO-1.3.tar.gz`` in the example of section
 :ref:`section-directory-structure`). Now you need to manually place it
-in the ``SAGE_ROOT/upstream/`` directory and run
+in the :sage_root:`upstream/` directory and run
 ``sage --fix-pkg-checksums`` if you have not done that yet.
 
 Now you can install the package using::
@@ -1120,7 +1120,7 @@ or::
 
 If all went fine, open a ticket, put a link to the original tarball in
 the ticket and upload a branch with the code under
-``SAGE_ROOT/build/pkgs``.
+:sage_root:`build/pkgs`.
 
 
 .. _section-inclusion-procedure:
@@ -1154,7 +1154,7 @@ License Information
 
 If you are patching a standard Sage spkg, then you should make sure that
 the license information for that package is up-to-date, both in its
-``SPKG.rst`` or ``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
+``SPKG.rst`` or ``SPKG.txt`` file and in the file :sage_root:`COPYING.txt`.  For
 example, if you are producing an spkg which upgrades the vanilla source
 to a new version, check whether the license changed between versions.
 
