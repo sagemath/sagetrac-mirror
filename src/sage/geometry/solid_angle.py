@@ -95,19 +95,19 @@ def solid_angle_simplicial_2d(A):
         sage: solid_angle_simplicial_2d([[-3, 2]])
         Traceback (most recent call last):
         ...
-        ValueError: input matrix has incorrect dimension.
+        ValueError: input matrix has incorrect dimension
 
         sage: solid_angle_simplicial_2d([[1, 4], [0, 0]])
         Traceback (most recent call last):
         ...
-        ValueError: input matrix has a row that is zero.
+        ValueError: input matrix has a row that is zero
     """
     if not is_Matrix(A):
         A = matrix(A)
     if A.nrows() != 2 or A.ncols() != 2:
-        raise ValueError("input matrix has incorrect dimension.")
+        raise ValueError("input matrix has incorrect dimension")
     if any(r == 0 for r in A.rows()):
-        raise ValueError("input matrix has a row that is zero.")
+        raise ValueError("input matrix has a row that is zero")
     if A.rank() < 2:
         return 0
     u = A.row(0)
