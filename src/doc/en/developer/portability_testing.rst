@@ -21,14 +21,14 @@ spectrum of platforms.
 Sage patchbots
 ==============
 
-The `Sage patchbots <https://trac.sagemath.org/wiki/patchbot>`_ will
-automatically test your Trac ticket by attempting an incremental build
-of Sage and running doctests.
+The :trac:`Sage patchbots <wiki/patchbot>` will automatically test
+your Trac ticket by attempting an incremental build of Sage and
+running doctests.
 
 Sage buildbots
 ==============
 
-The `Sage Release buildbot <https://trac.sagemath.org/wiki/Infrastructure#build.sagemath.org>`_
+The :trac:`Sage Release buildbot <wiki/Infrastructure#build.sagemath.org>`
 builds entire tarballs (e.g., all the development releases) on a
 variety of machines.
 
