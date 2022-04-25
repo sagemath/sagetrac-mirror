@@ -24,10 +24,11 @@ extensions = ['sage_docbuild.ext.inventory_builder',
               'sphinx.ext.todo',
               'sphinx.ext.extlinks',
               'IPython.sphinxext.ipython_directive',
-              'matplotlib.sphinxext.plot_directive',
-              'jupyter_sphinx']
+              'matplotlib.sphinxext.plot_directive']
 
 if os.environ.get('SAGE_LIVE_DOC', 'no')  == 'yes':
+    extensions.append('jupyter_sphinx')
+
     SAGE_JUPYTER_SERVER = os.environ.get('SAGE_JUPYTER_SERVER', 'binder')
     if SAGE_JUPYTER_SERVER == 'binder':
         jupyter_sphinx_thebelab_config = {
