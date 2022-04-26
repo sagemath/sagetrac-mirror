@@ -120,6 +120,7 @@ Miscellaneous
    sage/geometry/ribbon_graph
    sage/geometry/pseudolines
    sage/geometry/voronoi_diagram
+   sage/geometry/solid_angle
 
 Helper functions
 ----------------
