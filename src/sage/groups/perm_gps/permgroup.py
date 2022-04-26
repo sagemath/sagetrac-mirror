@@ -1682,14 +1682,16 @@ class PermutationGroup_generic(FiniteGroup):
 
         INPUT:
 
-        - ``point`` -- a point of the :meth:`domain`, or a set of points
-          depending on the value of ``action``.
+        - ``point`` -- either a point, a set of points, or a tuple
+          of points, consistently with the value of ``action``. The
+          point or points should be in the domain this group acts on
+          (see :meth:`domain`).
 
-        - ``action`` (string; default ``"OnPoints"``) -- should the
-          group be considered to act on points (``action="OnPoints"``)
-          or on sets of points (``action="OnSets"``) or on tuples of
-          points (``action="OnTuples"``). In the two latter cases, the
-          first argument must be a subset of ``domain``.
+        - ``action`` (string; default: ``"OnPoints"``) -- whether to
+          return the stabilizer of a point (``action="OnPoints"``),
+          of a set of points (``action="OnSets"``), or of a tuple
+          of points (``action="OnTuples"``). This should be consistent
+          with the value of ``point``.
 
         EXAMPLES::
 
