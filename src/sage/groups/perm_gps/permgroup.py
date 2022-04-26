@@ -109,6 +109,8 @@ AUTHORS:
 - Sebastian Oehms (2018): Added :meth:`PermutationGroup_generic._Hom_` to use :class:`sage.groups.libgap_morphism.GroupHomset_libgap` and :meth:`PermutationGroup_generic.gap` and
   :meth:`PermutationGroup_generic._subgroup_constructor` (for compatibility to libgap framework, see :trac:`26750`
 
+- Newell Jensen (2022-04): Added stabilizers for acting on tuples.
+
 REFERENCES:
 
 - Cameron, P., Permutation Groups. New York: Cambridge University
@@ -1683,10 +1685,11 @@ class PermutationGroup_generic(FiniteGroup):
         - ``point`` -- a point of the :meth:`domain`, or a set of points
           depending on the value of ``action``.
 
-        - ``action`` (string; default ``"OnPoints"``) -- should the group be
-          considered to act on points (``action="OnPoints"``) or on sets of
-          points (``action="OnSets"``) or on tuples of points (``action="OnSets"``).
-          In the two latter cases, the first argument must be a subset of :meth:`domain`.
+        - ``action`` (string; default ``"OnPoints"``) -- should the
+          group be considered to act on points (``action="OnPoints"``)
+          or on sets of points (``action="OnSets"``) or on tuples of
+          points (``action="OnTuples"``). In the two latter cases, the
+          first argument must be a subset of ``domain``.
 
         EXAMPLES::
 
@@ -1756,11 +1759,11 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.stabilizer(['a'],"OnMonkeys")
             Traceback (most recent call last):
             ...
-            ValueError: 'action' must be equal to 'OnPoints', 'OnSets' or to 'OnTuples'.
+            ValueError: 'action' must be equal to 'OnPoints', 'OnSets' or 'OnTuples'
         """
 
         if action not in ["OnPoints", "OnSets", "OnTuples"]:
-            raise ValueError("'action' must be equal to 'OnPoints', 'OnSets' or to 'OnTuples'.")
+            raise ValueError("'action' must be equal to 'OnPoints', 'OnSets' or 'OnTuples'")
 
         try:
             if action == "OnPoints":
