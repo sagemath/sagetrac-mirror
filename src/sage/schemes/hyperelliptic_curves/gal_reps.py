@@ -158,7 +158,9 @@ class GaloisRepresentation(SageObject):
 
     def _init_exps(self):
         """
-        Return a dictionary with keys l = 3, 5, and 7; for each l, the associated value is the list of characteristic polynomials of the matrices in the exceptional subgroup of GSp(4,l).
+        Return a dictionary with keys l = 3, 5, and 7; for each l,
+        the associated value is the list of characteristic polynomials
+        of the matrices in the exceptional subgroup of GSp(4,l).
         """
         #char3 is the list of characteristic polynomials of matrices in the one subgroup of GSp(4,3) (up to conjugation) that isn't ruled out by surj_tests
         R = PolynomialRing(Zmod(3),"x")
@@ -286,7 +288,8 @@ class GaloisRepresentation(SageObject):
 
     def _init_wit(self, L):
         """
-        Return a list for witnesses with all entries initially all set to zero, in the following format:
+        Return a list for witnesses with all entries initially all set to zero,
+        in the following format:
             2: [_] <-> [_is_surj_at_2 ]
             3: [_,_,_] <-> [witness for _surj_test_A, witness for _surj_test_B, witness for _surj_test_exp]
             5: [_,_,_] <-> [witness for _surj_test_A, witness for _surj_test_B, witness for _surj_test_exp]
