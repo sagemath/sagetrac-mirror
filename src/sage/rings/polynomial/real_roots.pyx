@@ -411,7 +411,7 @@ cdef class interval_bernstein_polynomial:
         div = 1024
         while self.degree() >= div//4:
             div = div * 2
-        qdiv = div/4
+        qdiv = div//4
         rand = Integer(ctx.random.randrange(qdiv, 3*qdiv)) / div
         (p1, p2, ok) = self.de_casteljau(ctx, rand)
         ctx.dc_log_append(("div" + self._type_code(), self.scale_log2, self.bitsize, rand, ok, logging_note))
