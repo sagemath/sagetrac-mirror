@@ -142,7 +142,7 @@ from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent, Expression
 from sage.misc.lazy_attribute import lazy_attribute
 from .expression import (
-    call_registered_function, find_registered_function, register_or_update_function,
+    find_registered_function, register_or_update_function,
     get_sfunction_from_hash
 )
 from .expression import get_sfunction_from_serial as get_sfunction_from_serial
@@ -544,6 +544,8 @@ cdef class Function(SageObject):
                 if not isinstance(a, Expression):
                     raise TypeError("arguments must be symbolic expressions")
 
+        from .expression import call_registered_function
+        
         return call_registered_function(self._serial, self._nargs, args, hold,
                                     not symbolic_input, SR)
 
