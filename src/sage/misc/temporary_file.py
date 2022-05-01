@@ -27,6 +27,71 @@ import io
 import os
 import tempfile
 import atexit
+import functools
+
+# We do not use sage.misc.cachefunc here so that this module does not depend on
+# Cython modules.
+
+@functools.cache
+def sage_tmp():
+    """
+    EXAMPLES::
+
+        sage: from sage.misc.temporary_file import sage_tmp
+        sage: sage_tmp()
+        '.../temp/...'
+    """
+    # This duplicates code that is run when sage.misc.misc is loaded;
+    # but modularized distributions may not have sage.misc.misc.
+    from sage.env import DOT_SAGE, HOSTNAME
+    os.makedirs(DOT_SAGE, mode=0o700, exist_ok=True)
+
+    d = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
+@functools.cache
+def ecl_tmp():
+    """
+    Temporary directory that should be used by ECL interfaces launched from
+    Sage.
+
+    EXAMPLES::
+
+        sage: from sage.misc.temporary_file import ecl_tmp
+        sage: ecl_tmp()
+        '.../temp/.../ecl'
+    """
+    d = os.path.join(sage_tmp(), 'ecl')
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
+@functools.cache
+def spyx_tmp():
+    """
+    EXAMPLES::
+
+        sage: from sage.misc.temporary_file import spyx_tmp
+        sage: spyx_tmp()
+        '.../temp/.../spyx'
+    """
+    return os.path.join(sage_tmp(), 'spyx')
+
+
+@functools.cache
+def sage_tmp_interface():
+    """
+    EXAMPLES::
+
+        sage: from sage.misc.temporary_file import sage_tmp_interface
+        sage: sage_tmp_interface()
+        '.../temp/.../interface'
+    """
+    d = os.path.join(sage_tmp(), 'interface')
+    os.makedirs(d, exist_ok=True)
+    return d
 
 
 def delete_tmpfiles():
@@ -52,8 +117,7 @@ def delete_tmpfiles():
         True
     """
     import shutil
-    from sage.misc.misc import SAGE_TMP
-    shutil.rmtree(str(SAGE_TMP), ignore_errors=True)
+    shutil.rmtree(sage_tmp(), ignore_errors=True)
 
 
 # Run when Python shuts down
@@ -96,8 +160,7 @@ def tmp_dir(name="dir_", ext=""):
         0
         sage: f.close()
     """
-    from sage.misc.misc import SAGE_TMP
-    tmp = tempfile.mkdtemp(prefix=name, suffix=ext, dir=str(SAGE_TMP))
+    tmp = tempfile.mkdtemp(prefix=name, suffix=ext, dir=sage_tmp())
     name = os.path.abspath(tmp)
     return name + os.sep
 
@@ -146,8 +209,7 @@ def tmp_filename(name="tmp_", ext=""):
         0
         sage: f.close()
     """
-    from sage.misc.misc import SAGE_TMP
-    handle, tmp = tempfile.mkstemp(prefix=name, suffix=ext, dir=str(SAGE_TMP))
+    handle, tmp = tempfile.mkstemp(prefix=name, suffix=ext, dir=sage_tmp())
     os.close(handle)
     name = os.path.abspath(tmp)
     return name

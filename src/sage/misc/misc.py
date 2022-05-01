@@ -47,6 +47,7 @@ import warnings
 from .lazy_string import lazy_string
 from sage.env import DOT_SAGE, HOSTNAME
 from sage.misc.lazy_import import lazy_import
+import sage.misc.temporary_file
 
 lazy_import("sage.misc.call", ["AttrCallObject", "attrcall", "call_method"],
             deprecation=29869)
@@ -214,61 +215,10 @@ def try_read(obj, splitlines=False):
 #################################################
 
 
-@lazy_string
-def SAGE_TMP():
-    """
-    EXAMPLES::
-
-        sage: from sage.misc.misc import SAGE_TMP
-        sage: SAGE_TMP
-        l'.../temp/...'
-    """
-    d = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
-    os.makedirs(d, exist_ok=True)
-    return d
-
-
-@lazy_string
-def ECL_TMP():
-    """
-    Temporary directory that should be used by ECL interfaces launched from
-    Sage.
-
-    EXAMPLES::
-
-        sage: from sage.misc.misc import ECL_TMP
-        sage: ECL_TMP
-        l'.../temp/.../ecl'
-    """
-    d = os.path.join(str(SAGE_TMP), 'ecl')
-    os.makedirs(d, exist_ok=True)
-    return d
-
-
-@lazy_string
-def SPYX_TMP():
-    """
-    EXAMPLES::
-
-        sage: from sage.misc.misc import SPYX_TMP
-        sage: SPYX_TMP
-        l'.../temp/.../spyx'
-    """
-    return os.path.join(str(SAGE_TMP), 'spyx')
-
-
-@lazy_string
-def SAGE_TMP_INTERFACE():
-    """
-    EXAMPLES::
-
-        sage: from sage.misc.misc import SAGE_TMP_INTERFACE
-        sage: SAGE_TMP_INTERFACE
-        l'.../temp/.../interface'
-    """
-    d = os.path.join(str(SAGE_TMP), 'interface')
-    os.makedirs(d, exist_ok=True)
-    return d
+SAGE_TMP = lazy_string(sage.misc.temporary_file.sage_tmp)
+ECL_TMP = lazy_string(sage.misc.temporary_file.ecl_tmp)
+SPYX_TMP = lazy_string(sage.misc.temporary_file.spyx_tmp)
+SAGE_TMP_INTERFACE = lazy_string(sage.misc.temporary_file.sage_tmp_interface)
 
 
 SAGE_DB = os.path.join(DOT_SAGE, 'db')
