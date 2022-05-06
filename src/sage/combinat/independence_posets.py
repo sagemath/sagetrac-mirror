@@ -35,9 +35,6 @@ from sage.combinat.posets.posets import Poset
 from sage.sets.set import Set
 from sage.combinat.subset import Subsets
 
-from sage.graphs.independent_sets import IndependentSets
-from sage.combinat.cyclic_sieving_phenomenon import *
-
 ##############################################################
 # code for maximal orthogonal pairs
 ##############################################################
@@ -120,9 +117,9 @@ def orthogonal_pairs(G):
                     if (i, j) in edges:
                         no = True
                         break
-                if no == True:
+                if no is True:
                     break
-            if no == False:
+            if no is False:
                 sets.append((s, t))
     return sets
 
@@ -246,9 +243,9 @@ def complete_mop(G, S):
                 if (i, j) in edges:
                     no = True
                     break
-            if no == True:
+            if no is True:
                 break
-        if no == False:
+        if no is False:
             sets.append((S, t))
     P = Poset([sets, _inc])
     return P.maximal_elements()
@@ -292,15 +289,16 @@ def is_left_modular(L, H=None, verbose=False):
     '''
     if H == None:
         H = L
+    out = []
     for x in H:
         for z in L:
             for y in L.principal_lower_set(z):
                 if (L.join(y, L.meet(x, z)) != L.meet(L.join(y, x), z)):
-                    if verbose == False:
+                    if verbose is False:
                         return False
                     else:
                         out += [(y, x, z)]
-    if verbose == False:
+    if verbose is False
         return True
     else:
         return out
@@ -459,7 +457,7 @@ def cover_label(L, c, edge):
 ##############################################################
 # trim lattices
 ##############################################################
-def is_trim(L): 
+def is_trim(L):
     '''
     INPUT:
 
@@ -493,7 +491,8 @@ def is_trim(L):
     #print n,len(J),len(M)
     maximal_chains = [c for c in C if len(c) == n]
     #print is_left_modular(mC[0])
-    if len(J) == len(M) and len(J) == n - 1 and is_left_modular(L, maximal_chains[0]):
+    if len(J) == len(M) and len(J) == n - 1 \
+            and is_left_modular(L, maximal_chains[0]):
         return (True, maximal_chains)
     else:
         return (False, False)
@@ -532,7 +531,8 @@ def complete_top(G, u):
     for k in P.linear_extension():
         ngk = Set([i[0] for i in G.incoming_edges(k)])
         nlk = Set([i[1] for i in G.outgoing_edges(k)])
-        if ngk.intersection(m) == Set([]) and nlk.intersection(u) == Set([]) and k not in u:
+        if ngk.intersection(m) == Set([]) \
+                and nlk.intersection(u) == Set([]) and k not in u:
             m = m.union(Set([k]))
     return (m, u)
 
@@ -666,10 +666,16 @@ def flip(G, du, j):
         a2 = Set([k for k in a if not (P.ge(k, j))])
         b2 = Set([k for k in b if not (P.le(k, j))] + [j])
     for k in P.linear_extension():
-        if not (P.le(k, j)) and Set([i[1] for i in G.outgoing_edges(k)]).intersection(b) == Set([]) and Set([i[0] for i in G.incoming_edges(k)]).intersection(a2) == Set([]) and (k not in b2):
+        if not (P.le(k, j)) \
+                and Set([i[1] for i in G.outgoing_edges(k)]).intersection(b) == Set([]) \
+                and Set([i[0] for i in G.incoming_edges(k)]).intersection(a2) == Set([]) \
+                and (k not in b2):
             a2 = a2.union(Set([k]))
     for k in reversed(P.linear_extension()):
-        if not (P.ge(k, j)) and Set([i[0] for i in G.incoming_edges(k)]).intersection(a) == Set([]) and Set([i[1] for i in G.outgoing_edges(k)]).intersection(b2) == Set([]) and (k not in a2):
+        if not (P.ge(k, j)) \
+                and Set([i[0] for i in G.incoming_edges(k)]).intersection(a) == Set([]) \
+                and Set([i[1] for i in G.outgoing_edges(k)]).intersection(b2) == Set([]) \
+                and (k not in a2):
             b2 = b2.union(Set([k]))
     return (a2, b2)
 
@@ -712,11 +718,9 @@ def flip_up(G, du, j):
         sage: flip_up(G, du, 5)
         ({8, 3, 7}, {1, 4})
     '''
-    D = du[0]
-    U = du[1]
-    if j not in U:
+    if j not in du[1]:
         return du
-    elif j in U:
+    elif j in du[1]:
         return flip(G, du, j)
 
 
