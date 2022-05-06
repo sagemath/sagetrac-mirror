@@ -298,7 +298,7 @@ def is_left_modular(L, H=None, verbose=False):
                         return False
                     else:
                         out += [(y, x, z)]
-    if verbose is False
+    if verbose is False:
         return True
     else:
         return out
