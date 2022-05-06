@@ -34,7 +34,7 @@ from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
 from sage.functions.trig import arccos
 from sage.modules.free_module_element import vector
-
+from sage.calculus.var import var
 
 def solid_angle_simplicial_2d(A):
     r"""
@@ -149,7 +149,7 @@ def solid_angle_2d(A):
 
         sage: A = matrix([[1,0],[0,1],[-1,0]])
         sage: solid_angle_2d(A)
-        1/2
+        0.5
 
         sage: A = matrix([[1,1],[1,2],[-1,1],[-3,0]])
         sage: RDF(solid_angle_2d(A))  # abs tol 1e-15
@@ -179,6 +179,8 @@ def solid_angle_2d(A):
         sage: solid_angle_2d(A)
         0
     """
+    import logging
+    logging.getLogger().setLevel(logging.INFO)
     if not is_Matrix(A):
         A = matrix(A)
     if A.rank() < 2:
@@ -200,7 +202,7 @@ def solid_angle_2d(A):
         for k in range(1, d):
             if v[0] * v[k] < 0:
                 for j in range(1, d):
-                    var('a b c')
+                    var('a b')
                     eqn = (-a * v[0][0] - b * v[k][0] - v[j][0] == 0,
                            -a * v[0][1] - b * v[k][1] - v[j][1] == 0,
                            a >= 0,
