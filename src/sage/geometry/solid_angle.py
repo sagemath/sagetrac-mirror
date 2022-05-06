@@ -33,6 +33,7 @@ from sage.symbolic.constants import pi
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
 from sage.functions.trig import arccos
+from sage.modules.free_module_element import vector
 
 
 def solid_angle_simplicial_2d(A):
@@ -120,3 +121,211 @@ def solid_angle_simplicial_2d(A):
     cs = p/(a*b)
     final_calc = arccos(cs) / (2*pi)
     return final_calc
+
+
+def solid_angle_2d(A):
+    r"""
+    Return the normalized solid angle measure of the cone spanned by
+    vectors in `\RR^2`.
+
+    INPUT:
+
+    - ``A`` -- `n\times 2` matrix whose rows vectors span the cone in `\RR^2`
+      of which we look for the solid angle. The input can be in the form of a
+      matrix or as a list of vectors in `\RR^2`.
+
+    OUTPUT: The normalized solid angle measure spanned by the row vectors
+
+    EXAMPLES:
+
+    The following three examples show the solid angle measures of the cones
+    spanned by the given two, three or four vectors in `\RR^2`, respectively::
+
+        sage: logging.disable(logging.WARNING)
+        sage: from sage.geometry.solid_angle import solid_angle_2d
+        sage: A = matrix([[2,3],[-3,-7]])
+        sage: RDF(solid_angle_2d(A))  # abs tol 1e-15
+        0.4708570082990789
+
+        sage: A = matrix([[1,0],[0,1],[-1,0]])
+        sage: solid_angle_2d(A)
+        1/2
+
+        sage: A = matrix([[1,1],[1,2],[-1,1],[-3,0]])
+        sage: RDF(solid_angle_2d(A))  # abs tol 1e-15
+        0.375
+
+
+    The following examples illustrate how the solid angle measure can equal `1`.
+    That is, the span of the rays is all of space::
+
+        sage: A = matrix([[1,1],[0,-1],[-1,-1],[-3,0]])
+        sage: solid_angle_2d(A)
+        1
+
+        sage: A = matrix([[sqrt(3),0],[2,-1/5],[-1,14.7]])
+        sage: solid_angle_2d(A)
+        1
+
+    Check examples where the where cones have affine dimension less than `2`::
+
+        sage: A = matrix([[1,0],[2,0]])
+        sage: solid_angle_2d(A)
+        0
+        sage: A = matrix([[1,2],[-2,-4]])
+        sage: solid_angle_2d(A)
+        0
+        sage: A = matrix([[-2,5],[-4,10],[-1,5/2],[-2/5,1]])
+        sage: solid_angle_2d(A)
+        0
+    """
+    if not is_Matrix(A):
+        A = matrix(A)
+    if A.rank() < 2:
+        return 0
+    if A.nrows() == 2:
+        return solid_angle_simplicial_2d(A)
+    else:
+        d = A.nrows()
+        v = matrix([A[i]/A[i].norm() for i in range(d)])
+        for i in range(d-1):
+            for j in range(i+1, d):
+                if v[i] == -v[j]:
+                    ab = vector([-v[i][1], v[i][0]])
+                    if all(A[k] * ab >= 0 for k in range(d)) or \
+                       all(A[k] * ab <= 0 for k in range(d)):
+                        return 1/2
+                    else:
+                        return 1
+        for k in range(1, d):
+            if v[0] * v[k] < 0:
+                for j in range(1, d):
+                    var('a b c')
+                    eqn = (-a * v[0][0] - b * v[k][0] - v[j][0] == 0,
+                           -a * v[0][1] - b * v[k][1] - v[j][1] == 0,
+                           a >= 0,
+                           b >= 0)
+                    if len(solve(eqn, (a, b, c))) != 0:
+                        return 1
+        A_list = simplicial_subcones_decomposition(A)
+        logging.info('Decompose into simplicial subcones\n' +
+                     ',\n'.join('{}'.format(Ai) for Ai in A_list))
+        results = [solid_angle_simplicial_2d(Ai) for Ai in A_list]
+        logging.info("Solid angles of the subcones are %s" % results)
+        return sum(results)
+
+
+def simplicial_subcones_decomposition(A):
+    r"""
+    Return a list of matrices that give the extreme rays
+    of the simplicial cones formed from the triangulation
+    of ``A``.
+
+    INPUT:
+
+    - ``A`` -- matrix; ``A`` is a matrix whose row vectors are a generating set
+      for a cone (not necessarily simplicial.)
+
+    OUTPUT:
+
+    - a list of matrices that corresponds to the dissection of the cone
+      spanned by the rows of ``A`` into simplicial cones.
+      Each matrix represents a simplicial cone in the dissection.
+
+    EXAMPLES:
+
+    This example shows that the cone spanned by ``[1,0,0], [0,1,0], [0,0,1]``,
+    and ``[-1,0,0]`` can be dissected into two simplicial cones, one with
+    extreme rays ``[1,0,0], [0,1,0], [0,0,1]`` and the other with extreme
+    rays ``[0,1,0], [0,0,1], [-1,0,0]``::
+
+        sage: logging.disable(logging.NOTSET)
+        sage: from sage.geometry.solid_angle import simplicial_subcones_decomposition
+        sage: A = matrix([[1,0,0],[0,1,0],[0,0,1],[-1,0,0]])
+        sage: simplicial_subcones_decomposition(A)
+        [
+        [1 0 0]  [ 0  1  0]
+        [0 1 0]  [ 0  0  1]
+        [0 0 1], [-1  0  0]
+        ]
+
+    This example shows that if the input corresponds to a simplicial cone,
+    the function returns [input matrix itself]::
+
+        sage: A = matrix([[1,0,0],[1,2,3],[-5,4,2]])
+        sage: simplicial_subcones_decomposition(A)
+        [
+        [ 1  0  0]
+        [ 1  2  3]
+        [-5  4  2]
+        ]
+
+    This example shows that the function works in higher dimensions, such as
+    `\RR^4`. Note that the input can also be in the form of a list of vectors::
+
+        sage: A_in = [[1,0,-2,0],[1,2,3,-2],[-1,3,4,4],[-2,-1,0,0],[1,1,1,3]]
+        sage: simplicial_subcones_decomposition(A_in)
+        [
+        [ 1  0 -2  0]  [ 1  0 -2  0]  [ 1  0 -2  0]  [ 1  2  3 -2]
+        [ 1  2  3 -2]  [ 1  2  3 -2]  [-1  3  4  4]  [-1  3  4  4]
+        [-1  3  4  4]  [-1  3  4  4]  [-2 -1  0  0]  [-2 -1  0  0]
+        [-2 -1  0  0], [ 1  1  1  3], [ 1  1  1  3], [ 1  1  1  3]
+        ]
+
+    This example shows when the vectors in ``A`` are in `\RR^n`, but the
+    cone spanned by the vectors lives in a lower dimensional space::
+
+        sage: A = matrix([[1,0,0],[0,1,0],[3,2,0]])
+        sage: simplicial_subcones_decomposition(A)
+        [
+        [1 0 0]  [0 1 0]
+        [3 2 0], [3 2 0]
+        ]
+
+    This example shows that the cone in `\RR^4` spanned by the rows of ``A``
+    (which is input as a list of lists) is actually a halfspace of affine
+    dimension `2`. The triangulation dissects it into three 2-d subcones::
+
+        sage: A_in = [[-3,0,5,0],[0,0,1,0],[-4,0,0,0],[-1,0,0,0],[0,0,-4,0]]
+        sage: simplicial_subcones_decomposition(A_in)
+        [
+        [-3  0  5  0]  [-3  0  5  0]  [-4  0  0  0]
+        [ 0  0  1  0], [-4  0  0  0], [ 0  0 -4  0]
+        ]
+
+    TESTS:
+
+    Below we show that the function does not determine a minimal description
+    of the cone of interest. Note that the cone spanned by vectors [0,1,0],
+    [0,1,1], and [0,0,1] is the cone spanned by vectors [0,1,0], and [0,0,1].::
+
+        sage: A=matrix([[0,1,0],[0,0,1]])
+        sage: simplicial_subcones_decomposition(A)
+        [
+        [0 1 0]
+        [0 0 1]
+        ]
+
+        sage: A = matrix([[0,1,0],[0,1,1],[0,0,1]])
+        sage: simplicial_subcones_decomposition(A)
+        [
+        [0 1 0]  [0 1 1]
+        [0 1 1], [0 0 1]
+        ]
+    """
+    import logging
+    if not is_Matrix(A):
+        A = matrix(A)
+    r = A.rank()
+    if A.rank() == A.nrows():
+        return [A]
+    else:
+        from sage.geometry.triangulation.point_configuration \
+            import PointConfiguration
+        origin = A.nrows()
+        pc = PointConfiguration(A.stack(vector([0]*A.ncols())), star=origin)
+        triangulation = pc.triangulate()
+        matrices = []
+        for simplex in triangulation:
+            matrices.append(matrix(A[i] for i in simplex if i != origin))
+        return matrices
