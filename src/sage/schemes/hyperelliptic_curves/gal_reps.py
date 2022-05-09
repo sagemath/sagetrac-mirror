@@ -165,7 +165,6 @@ class GaloisRepresentation(SageObject):
         matrices in the exceptional subgroup of `\operatorname{GSp}(4,\ell)`.
 
         OUTPUT:
-
         A dictionary whose keys are `\ell = 3,5, 7`; for each `\ell`,
         the associated value is the list of characteristic polynomials of the
         matrices in the exceptional subgroup of `\operatorname{GSp}(4,\ell)`.
@@ -393,7 +392,6 @@ class GaloisRepresentation(SageObject):
         - ``f`` -- rational polynomial
 
         - ``h`` -- rational polynomial
-
         ALGORITHM:
 
         The following algorithm is adapted from
