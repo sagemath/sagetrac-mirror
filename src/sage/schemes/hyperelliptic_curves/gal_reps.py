@@ -137,6 +137,7 @@ class GaloisRepresentation(SageObject):
             True
 
         """
+        # TODO: Describe non_surjective_primes in class docstring
         self.__image_type = {}
         self._A = A
         self.non_surjective_primes = None
@@ -164,12 +165,27 @@ class GaloisRepresentation(SageObject):
         matrices in the exceptional subgroup of `\operatorname{GSp}(4,\ell)`.
 
         OUTPUT:
-        
+
         A dictionary whose keys are `\ell = 3,5, 7`; for each `\ell`,
         the associated value is the list of characteristic polynomials of the
         matrices in the exceptional subgroup of `\operatorname{GSp}(4,\ell)`.
 
         TESTS::
+
+            sage: R.<x>=QQ[]
+            sage: f = x**5 + 17
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: init_exps = rho._init_exps()
+            sage: init_exps.keys()
+            dict_keys([3, 5, 7])
+            sage: assert isinstance(init_exps[3], list)
+            sage: assert isinstance(init_exps[5], list)
+            sage: assert isinstance(init_exps[7], list)
+            sage: assert init_exps[3][0] in PolynomialRing(Zmod(3), "x")
+            sage: assert init_exps[5][0] in PolynomialRing(Zmod(5), "x")
+            sage: assert init_exps[7][0] in PolynomialRing(Zmod(7), "x")
 
         """
         # TODO add tests
@@ -317,7 +333,7 @@ class GaloisRepresentation(SageObject):
             7: [_,_,_] <-> [witness for _surj_test_A, witness for _surj_test_B, witness for _surj_test_exp]
             3: [_,_,_] <-> [witness for _surj_test_A, witness for _surj_test_B]
 
-        Initialize a dictionary of lists for witnesses of surjectivitiy tests. 
+        Initialize a dictionary of lists for witnesses of surjectivitiy tests.
 
         INPUT:
 
@@ -327,7 +343,7 @@ class GaloisRepresentation(SageObject):
 
         A dictionary whose keys are the items `\ell` of ``L``. The
         corresponding values are lists of lengths 1, 2, or 3 whose items are
-        all `0`. These lists are eventually intended to carry the data of
+        all `0`. These lists are intended to eventually carry the data of
         results for surjectivity tests or witnessnes for surjectivity tests
         in the following key-value formats:
 
@@ -335,13 +351,22 @@ class GaloisRepresentation(SageObject):
         - `\ell = 3, 5, 7`: [witness for _surj_test_A,
                              witness for _surj_test_B,
                              witness for _surj_test_exp]
-        - `\ell > 7`: [witness for surj_test_A, witness for _surj_test_B] 
+        - `\ell > 7`: [witness for surj_test_A, witness for _surj_test_B]
 
         TESTS::
 
+            sage: R.<x>=QQ[]
+            sage: f = x**5 + 17
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho._init_wit([2, 3, 5, 7])
+            {2: [0], 3: [0, 0, 0], 5: [0, 0, 0], 7: [0, 0, 0]}
+            sage: rho._init_wit([2, 3, 11])
+            {2: [0], 3: [0, 0, 0], 11: [0, 0]}
+
         """
         # TODO Delete original docstring.
-        # TODO add tests
         witnesses = {}
         for l in L:
             if l == 2:
@@ -360,6 +385,7 @@ class GaloisRepresentation(SageObject):
         Return ``True`` if the mod-`2` Galois image of the Jacobian of the
         hyperelliptic curve specified by polynomials is surjective.
 
+        The hyperelliptic curve is expected to be ``self._A.curve()``.
         The hyperelliptic curve is given by the equation `y^2 + h(x)y = f(x)`.
 
         INPUT:
@@ -367,7 +393,7 @@ class GaloisRepresentation(SageObject):
         - ``f`` -- rational polynomial
 
         - ``h`` -- rational polynomial
-        
+
         ALGORITHM:
 
         The following algorithm is adapted from
@@ -378,14 +404,22 @@ class GaloisRepresentation(SageObject):
 
         EXAMPLES:
 
+            sage: R.<x>=QQ[]
+            sage: f = x**5 + 17
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho._is_surj_at_2(f, 0)
+            False
 
         """
+        # TODO: I (Hyun Jong) think that this function could stand to be
+        # a module level function or a class function. If so, it could also
+        # stand to be a public function.
         # TODO: Add the paper to Sage's master bibliography file, and cite
         # the part that talks about the mod-2 Galois image in the ALGORITHM
         # section.
         # TODO: Add tests/examples
-        # TODO: I (Hyun Jong) think that this function could stand to be
-        # public.
         F = 4*f + h**2
         return F.is_irreducible() and F.galois_group().order() == 720
 
@@ -481,7 +515,10 @@ class GaloisRepresentation(SageObject):
         """
         Return an updated list of witnesses, based on surjectivity tests for
         ``frob`` at p.
+
+        TESTS::
         """
+        # TODO: add tests
         frob_mod = frob.change_ring(Zmod(l))
         for i in range(0, len(wit)):
             if wit[i] == 0:
@@ -501,25 +538,37 @@ class GaloisRepresentation(SageObject):
     def find_surj_from_list(
             self, L=prime_range(1000), bound=1000, verbose=False):
         r"""
-        Return a list of primes in L at which the residual Galois
-        representation of the Jacobian of `H` might not be surjective.
-        Outside of the returned list, all primes in L are surjective.
-        The primes in the returned list are likely non-surjective.
+        Return a list of primes `\ell` in ``L`` for which the mod-`\ell` Galois
+        representation of the Jacobian of the hyperelliptic curve might
+        not be surjective.
 
         INPUT:
 
-        - ``H`` -- hyperelliptic curve with typical Jacobian
+        - ``L`` -- list of primes (default: list of primes less than 1000);
+          the primes `\ell` to consider the surjectivity of the mod-`\ell`
+          Galois representations for.
 
-        - ``L`` -- list of primes (default: list of primes less than 1000)
-
-        - ``bound`` -- integer (default: `1000`)
+        - ``bound`` -- integer (default: `1000`); the exclusive upper bound
+          for the primes `p \neq \ell` whose Frobenii `\operatorname{Frob}_p`
+          are checked. Only the primes of good reduction which are at least `3`
+          are checked.
 
         - ``verbose`` -- boolean (default: `False`)
 
-        OUTPUT: a list of prime numbers
+        OUTPUT:
+
+        A list of prime numbers. The mod-`\ell` Galois representations
+        are provably surjective for all primes `\ell` which are in ``L``
+        but not in the returned list.
 
         EXAMPLES:
 
+        In the following example, the hyperelliptic curve is given by
+        `y^2 + (x^3+1)y = x^2 + x`. The function returns the list ``[2, 7]``,
+        which tells us that `2` and `7` are the only primes `\ell < 1000`
+        whose mod-`\ell` Galois representation for the (Jacobian of the)
+        hyperelliptic curve might not be surjective::
+ 
             sage: R.<x> = PolynomialRing(QQ);
             sage: H = HyperellipticCurve(R([0, 1, 1]), R([1, 0, 0, 1]));
             sage: find_surj_from_list(H)
@@ -532,13 +581,25 @@ class GaloisRepresentation(SageObject):
             [2, 13]
 
         """
+        # TODO: It 
+        # TODO: fix the examples in the docstring.
+        # the examples in the docstring require this function to take
+        # a hyperelliptic curve as input, but this function does not actually
+        # have a hyperelliptic curve parameter.
+        # TODO: add verbose examples in the docstring
         H = self._A.curve()
         f, h = H.hyperelliptic_polynomials()
-        # C = 2 * genus2reduction(h, f).conductor # An integer which agrees up with the conductor of H: y**2 + h y = f, except possibly at two. Bad primes of Jac(H) divide it.
+        # C = 2 * genus2reduction(h, f).conductor
+        # C is an integer which agrees up with the conductor of
+        # H: y**2 + h y = f, # except possibly at 2.
+        # Bad primes of Jac(H) divide it.
         C = 2 * prod(genus2reduction(h, f).local_data.keys())
         witnesses = self._init_wit(L)
         exps = self._init_exps()
-        to_check = L.copy()  # to_check is the list of primes for which we still need to determine surjectivity. Initially, it equals L and we remove primes as their status is determined.
+        # to_check is the list of primes for which we still need to determine
+        # surjectivity. Initially, it equals L and we remove primes as
+        # their status is determined.
+        to_check = L.copy()  
         for p in prime_range(3, bound):
             if C % p != 0:
                 Hp = H.change_ring(GF(p))
@@ -612,7 +673,8 @@ class GaloisRepresentation(SageObject):
             sage: rho = EllipticCurve([0,0,1,2580,549326]).galois_representation()
             sage: rho.is_surjective(7)
 
-        In these cases, one can use image_type to get more information about the image::
+        In these cases, one can use image_type to get more information about
+        the image::
 
             sage: rho.image_type(7)
             'The image is contained in the normalizer of a split Cartan group.'
@@ -629,6 +691,8 @@ class GaloisRepresentation(SageObject):
         # TODO: Add the papers of Dokchitsers and Elklies in the master
         # bibliography file; consider adding the reference to these papers
         # in the module docstring instead.
+        # TODO: change p in this function to ell; it is confusing to use
+        # p here when we use ell everywhere else.
         if self.non_surjective_primes is not None:
             if not p.is_prime():
                 raise ValueError("p must be prime")
@@ -653,6 +717,8 @@ class GaloisRepresentation(SageObject):
 
 
         """
+        # TODO: Consider deleting this function outright; it
+        # does not seem to be used.
         # TODO: Consider making this function private.
         # TODO: Add tests/examples (required)
         if N != 0:
@@ -664,9 +730,9 @@ class GaloisRepresentation(SageObject):
         """
         TESTS::
 
-
         """
         # TODO: Consider making this function private.
+        # TODO: Consider making this function a module level function.
         # TODO: Add tests/examples (required)
         PP = ZZ(N).prime_divisors()
         n = 1
@@ -687,6 +753,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private.
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         if N % 2 == 0:
             return 4 * ZZ(N).radical()
@@ -700,6 +767,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private.
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         c = self.maximal_quadratic_conductor(N)
         D = DirichletGroup(c, base_ring=QQ, zeta_order=2)
@@ -712,6 +780,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private.
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         return [(phi, 0, 0) for phi in self.character_list(N)]
 
@@ -783,6 +852,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         p, t, s, alpha = ptsa
         return (p, t**2 - 2*s, s**2 - 2*p**alpha*t**2 + 2*p**(2*alpha),
@@ -795,6 +865,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         p, t, s, alpha = ptsa
         return (
@@ -811,6 +882,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         p, t, s, alpha = ptsa
         return (
@@ -833,6 +905,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         c, p, t, s, alpha = cptsa
         if 120 % c != 0:
@@ -861,6 +934,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         p, t, s, alpha = ptsa
         return (p, s - 2*p, p*t**2 - 2*p*s + 2*p**2, 2*alpha)
@@ -878,6 +952,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         p, tnew, snew, alphanew = self.power_roots((c, p, t, s, 1))
         x = PolynomialRing(QQ, "x").gen()
@@ -902,6 +977,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         p, tnew, snew, alphanew = self.roots_pairs_not_p((p, t, s, 1))
         p, tnew, snew, alphanew = self.power_roots(
@@ -928,6 +1004,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         D0 = [d for d in ZZ(N).divisors() if d <= sqrt(N)]
         D0.reverse()
@@ -945,6 +1022,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         if max_cond_exp_2 is not None:
             # if we're here, then N is the even poor mans conductor
@@ -965,6 +1043,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         D = self.get_cuspidal_levels(N, max_cond_exp_2)
         return [(CuspForms(d), 0, 0) for d in D]
@@ -978,6 +1057,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         R = PolynomialRing(QQ, "x")
         x = R.gen()
@@ -995,6 +1075,7 @@ class GaloisRepresentation(SageObject):
 
         """
         # TODO: Consider making this function private
+        # TODO: Consider making this function a module level function
         # TODO: Add tests/examples (required)
         if M != 1 and y < 2:
             Tp = self.reconstruct_hecke_poly_from_trace_polynomial(S, p)
@@ -1107,21 +1188,23 @@ class GaloisRepresentation(SageObject):
                 N = 2*N
                 max_cond_exp_2 = red_data.minimal_disc.valuation(2)
 
-        #MCusp is a list of the form <S,M,y>, where S is either a space of cusp forms or
-        #a level, M is an integer such that all primes with a reducible sub isomorphic to the
-        #rep of a cusp form in S divide M, y is a counter for the number of nontrivial Frobenius
-        #conditions go into M
+        # MCusp is a list of the form <S,M,y>, where S is either a space
+        # of cusp forms or a level, M is an integer such that all primes with
+        # a reducible sub isomorphic to the rep of a cusp form in S divide M,
+        # y is a counter for the number of nontrivial Frobenius conditions
+        # go into M
         MCusp = self.set_up_cuspidal_spaces(N, max_cond_exp_2=max_cond_exp_2)
 
-        #MQuad is a list of the form <phi,M,y>, where phi is a quadratic character, M is the integer
-        #all nonsurjective primes governed by phi must divide, and y is counter for the number of nontrivial
-        #Frobenius conditions going into M
+        # MQuad is a list of the form <phi,M,y>, where phi is a
+        # quadratic character, M is the integer all nonsurjective primes
+        # governed by phi must divide, and y is counter for the number of
+        # nontrivial Frobenius conditions going into M
         MQuad = self.set_up_quadratic_chars(N)
 
         d = self.maximal_square_divisor(N)
 
-        #we'll test as many p as we need to get at least 2 nontrivial Frobenius conditions for every
-        #possible cause of non-surjectivity
+        # we'll test as many p as we need to get at least 2 nontrivial
+        # Frobenius conditions for every possible cause of non-surjectivity
         sufficient_p = False
 
         p = 1
