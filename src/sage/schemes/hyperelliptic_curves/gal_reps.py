@@ -13,7 +13,7 @@ under the additional assumption that the Jacobian is "generic", meaning
 that the ring of endomorphisms defined over `\overline{\QQ}` is `\ZZ`.
 
 Currently sage can decide whether or not the image of this representation
-associated to a generic jacobian  is surjective, and moreover can
+associated to a generic jacobian is surjective, and moreover can
 determine exactly the finitely many primes at which the representation
 is not surjective.
 
@@ -33,7 +33,7 @@ EXAMPLES::
     sage: A = C.jacobian()
     sage: rho = A.galois_representation()
     sage: rho.non_surjective()
-    [2,7]
+    [2, 7]
     sage: rho.is_surjective(7)
     False
     sage: rho.is_surjective(2)
@@ -72,6 +72,7 @@ AUTHORS:
 
 """
 
+# TODO Test at line 53 is returning [2, 7] in test, but expects [0]
 ######################################################################
 #                 Copyright (C) 2020 The Authors
 #
@@ -92,15 +93,18 @@ from sage.structure.sage_object import SageObject
 from sage.arith.all import valuation, lcm, gcd
 from sage.rings.fast_arith import prime_range
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.interfaces.genus2reduction', ['genus2reduction', 'Genus2reduction'])
 from sage.modular.all import CuspForms
 from sage.misc.all import prod
-import sage.rings.all as rings
+import sage.rings.all as rings  # TODO: delete this import if unused.
+# TODO: delete RealField import if unused
 from sage.rings.all import RealField, GF, ZZ, QQ, Zmod, PolynomialRing
 from sage.modular.dirichlet import DirichletGroup
 
 from math import sqrt, floor
-from sage.libs.pari.all import pari
+from sage.libs.pari.all import pari  # TODO: delete this import if unused.
+
+lazy_import('sage.interfaces.genus2reduction',
+            ['genus2reduction', 'Genus2reduction'])
 
 
 class GaloisRepresentation(SageObject):
@@ -155,11 +159,22 @@ class GaloisRepresentation(SageObject):
 #####################################################################
 
     def _init_exps(self):
+        r"""
+        Return a dictionary of lists of characteristic polynomials of the
+        matrices in the exceptional subgroup of `\operatorname{GSp}(4,\ell)`.
+
+        OUTPUT:
+        
+        A dictionary whose keys are `\ell = 3,5, 7`; for each `\ell`,
+        the associated value is the list of characteristic polynomials of the
+        matrices in the exceptional subgroup of `\operatorname{GSp}(4,\ell)`.
+
+        TESTS::
+
         """
-        Return a dictionary with keys l = 3, 5, and 7; for each l,
-        the associated value is the list of characteristic polynomials
-        of the matrices in the exceptional subgroup of GSp(4,l).
-        """
+        # TODO add tests
+        # TODO consider keeping the dictionary as a class attribute rather
+        # than having this as a function.
         # char3 is the list of characteristic polynomials of matrices in the
         # one subgroup of GSp(4,3) (up to conjugation) that isn't ruled out by
         # surj_tests
@@ -293,7 +308,7 @@ class GaloisRepresentation(SageObject):
         return {3: char3, 5: char5, 7: char7}
 
     def _init_wit(self, L):
-        """
+        r"""
         Return a list for witnesses with all entries initially all set to zero,
         in the following format:
             2: [_] <-> [_is_surj_at_2 ]
@@ -301,7 +316,32 @@ class GaloisRepresentation(SageObject):
             5: [_,_,_] <-> [witness for _surj_test_A, witness for _surj_test_B, witness for _surj_test_exp]
             7: [_,_,_] <-> [witness for _surj_test_A, witness for _surj_test_B, witness for _surj_test_exp]
             3: [_,_,_] <-> [witness for _surj_test_A, witness for _surj_test_B]
+
+        Initialize a dictionary of lists for witnesses of surjectivitiy tests. 
+
+        INPUT:
+
+        - ``L`` - list of primes;
+
+        OUTPUT:
+
+        A dictionary whose keys are the items `\ell` of ``L``. The
+        corresponding values are lists of lengths 1, 2, or 3 whose items are
+        all `0`. These lists are eventually intended to carry the data of
+        results for surjectivity tests or witnessnes for surjectivity tests
+        in the following key-value formats:
+
+        - `\ell = 2`: [_is_surj_at_2]
+        - `\ell = 3, 5, 7`: [witness for _surj_test_A,
+                             witness for _surj_test_B,
+                             witness for _surj_test_exp]
+        - `\ell > 7`: [witness for surj_test_A, witness for _surj_test_B] 
+
+        TESTS::
+
         """
+        # TODO Delete original docstring.
+        # TODO add tests
         witnesses = {}
         for l in L:
             if l == 2:
@@ -312,26 +352,90 @@ class GaloisRepresentation(SageObject):
                 witnesses[l] = [0, 0]
         return witnesses
 
+    # TODO: consider making `_is_surj_at_2`, `_surj_test_A`, `_surj_test_B`,
+    # `_surj_test_exp` public functions or bundling them up into a single
+    # public function that takes as input the type of test to run.
     def _is_surj_at_2(self, f, h):
         """
-        Return True if and only if the mod 2 Galois image of the Jacobian of
-        `y^2 + h(x) y = f(x)` is surjective, i.e. if and
-        only if the Galois group of the polynomial `4f+h^2` is all of `S_6`.
+        Return ``True`` if the mod-`2` Galois image of the Jacobian of the
+        hyperelliptic curve specified by polynomials is surjective.
+
+        The hyperelliptic curve is given by the equation `y^2 + h(x)y = f(x)`.
+
+        INPUT:
+
+        - ``f`` -- rational polynomial
+
+        - ``h`` -- rational polynomial
+        
+        ALGORITHM:
+
+        The following algorithm is adapted from
+
+        The mod-`2` Galois representation of the Jacobian of the hyperelliptic
+        curve given by `y^2 + h(x)y = f(x)` is surjective if and only if the
+        Galois group of the polynomial `4f + h^2` is `S_6`.
+
+        EXAMPLES:
+
+
         """
+        # TODO: Add the paper to Sage's master bibliography file, and cite
+        # the part that talks about the mod-2 Galois image in the ALGORITHM
+        # section.
+        # TODO: Add tests/examples
+        # TODO: I (Hyun Jong) think that this function could stand to be
+        # public.
         F = 4*f + h**2
         return F.is_irreducible() and F.galois_group().order() == 720
 
     def _surj_test_A(self, frob_mod):
+        r"""
+        Return ``True`` if the specified mod-`\ell` characteristic polynomial
+        of Frobenius is irreducible.
+
+        INPUT:
+
+        - ``frob_mod`` -- polynomial over `\GF{\ell}` for some prime `\ell`;
+          this must be the mod-`\ell` reduction of the characteristic
+          polynomial of the Frobenius element `\operatorname{Frob}_p` of
+          `\operatorname{Gal}(\overline{\mathbb{Q}}/\mathbb{Q})` acting on
+          the `\ell`-adic Tate module `T_\ell A`, where `p \neq \ell` is
+          a prime of good reduction for the abelian surface `A/\mathbb{Q}`.
+
+        OUTPUT:
+        ``True`` if ``frob_mod`` is irreducible over `\GF{\ell}`.
+        ``False`` otherwise.
+
+        EXAMPLES:
         """
-        Return True if ``frob_mod`` is irreducible.
-        """
+        # TODO: Add examples
         return frob_mod.is_irreducible()
 
     def _surj_test_B(self, frob_mod):
+        r"""
+        Return ``True`` if the specified mod-`\ell` characteristic polynomial
+        of Frobenius has nonzero trace and has a linear factor with
+        multiplicity one.
+
+        INPUT:
+
+        - ``frob_mod`` -- polynomial over `\GF{\ell}` for some prime `\ell`;
+          this must be the mod-`\ell` reduction of the characteristic
+          polynomial of the Frobenius element `\operatorname{Frob}_p` of
+          `\operatorname{Gal}(\overline{\mathbb{Q}}/\mathbb{Q})` acting on
+          the `\ell`-adic Tate module `T_\ell A`, where `p \neq \ell` is
+          a prime of good reduction for the abelian surface `A/\mathbb{Q}`.
+
+        OUTPUT:
+        ``True`` if ``frob_mod`` has nonzero trace over `\GF{\ell}` and
+        has a linear factor with multiplicity one over `\GF{\ell}`.
+        ``False`` otherwise.
+
+        EXAMPLES:
+
         """
-        Return True if ``frob_mod`` has nonzero trace and has a linear factor
-        with multiplicity one.
-        """
+        # TODO: add examples
         if -frob_mod[3] != 0:
             for fact in frob_mod.factor():
                 if fact[0].degree() == 1 and fact[1] == 1:
@@ -339,10 +443,38 @@ class GaloisRepresentation(SageObject):
         return False
 
     def _surj_test_exp(self, l, frob_mod, exps):
+        r"""
+        Return ``True`` if the specified mod-`\ell` characteristic polynomial
+        of Frobenius is the characteristic polynomial of a matrix that is
+        not in the exceptional subgroup of
+        `\operatorname{GSp}_4(\mathbb{F}_\ell)`.
+
+        INPUT:
+
+        - ``l`` -- prime integer
+
+        - ``frob_mod`` -- polynomial over `\GF{\ell}`;
+          this must be the mod-`\ell` reduction of the characteristic
+          polynomial of the Frobenius element `\operatorname{Frob}_p` of
+          `\operatorname{Gal}(\overline{\mathbb{Q}}/\mathbb{Q})` acting on
+          the `\ell`-adic Tate module `T_\ell A`, where `p \neq \ell` is
+          a prime of good reduction for the abelian surface `A/\mathbb{Q}`.
+
+        - ``exps`` -- dictionary; the keys are prime integers. The value
+          corresponding to a key `\ell` is the list of characteristic
+          polynomials of the exceptional subgroup of
+          `\operatorname{GSp}_4(\mathbb{F}_\ell)`.
+
+        OUTPUT:
+        ``True`` if ``frob_mod`` is the characteristic polynomial of a matrix
+        that is not in the exceptional subgroup of
+        `\operatorname{GSp}_4(\mathbb{F}_\ell)`.
+        ``False`` otherwise.
+
+        EXAMPLES:
+
         """
-        Return True if frob_mod is the characteristic polynomial of a matrix
-        that is not in the exceptional subgroup mod l
-        """
+        # TODO: check that the inputs are specified correctly in the docstring
         return frob_mod not in exps[l]
 
     def _update_wit(self, l, p, frob, f, h, exps, wit):
@@ -433,7 +565,7 @@ class GaloisRepresentation(SageObject):
     def is_surjective(self, p, bound=1000, verbose=False):
         r"""
         Return whether the mod-`p` representation is surjective onto
-        `\\operatorname{Aut}(A[p]) = \\operatorname{GSp}_4(\\GF{p})`.
+        `\operatorname{Aut}(A[p]) = \operatorname{GSp}_4(\GF{p})`.
 
         The output of this function is cached.
 
@@ -487,7 +619,7 @@ class GaloisRepresentation(SageObject):
 
         .. NOTE::
 
-            1. If `p \\geq 5` then the mod-p representation is
+            1. If `p \geq 5` then the mod-p representation is
             surjective if and only if the p-adic representation is
             surjective. When `p = 2, 3` there are
             counterexamples. See papers of Dokchitsers and Elkies
@@ -584,7 +716,7 @@ class GaloisRepresentation(SageObject):
         return [(phi, 0, 0) for phi in self.character_list(N)]
 
     def rule_out_quadratic_ell_via_Frob_p(self, p, fp, MM):
-        """Provide a summary of what this method is doing.
+        r"""Provide a summary of what this method is doing.
 
         INPUT:
 
@@ -593,10 +725,10 @@ class GaloisRepresentation(SageObject):
         - ``fp`` -- polynomial over the integers; the characteristic polynomial
           Frobenius at ``p`` on a hyperelliptic curve.
 
-        - ``MM`` -- list; the items are tuples of the form ``(\\phi, M, y)``,
-          where ``\\phi`` is a non-trivial quadratic character, all primes
-          ``\\ell`` for which there is a quadratic obstruction associated with
-          ``\\phi`` must divide ``M``, ``y`` is a counter for the number of
+        - ``MM`` -- list; the items are tuples of the form ``(\phi, M, y)``,
+          where ``\phi`` is a non-trivial quadratic character, all primes
+          ``\ell`` for which there is a quadratic obstruction associated with
+          ``\phi`` must divide ``M``, ``y`` is a counter for the number of
           nontrivial Frobenius constraints going into ``M``.
 
         OUTPUT: a list
