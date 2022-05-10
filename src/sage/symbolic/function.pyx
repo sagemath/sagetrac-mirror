@@ -542,7 +542,7 @@ cdef class Function(SageObject):
                     raise TypeError("arguments must be symbolic expressions")
 
         from .expression import call_registered_function
-        
+
         return call_registered_function(self._serial, self._nargs, args, hold,
                                     not symbolic_input, SR)
 
@@ -838,7 +838,6 @@ cdef class GinacFunction(BuiltinFunction):
 
     cdef _is_registered(self):
         from .expression import find_registered_function, get_sfunction_from_serial
-
 
         # Since this is function is defined in C++, it is already in
         # ginac's function registry

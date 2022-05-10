@@ -6100,7 +6100,7 @@ cdef class Expression(Expression_abc):
 
             sage: x = SR.var("x")
             sage: f = function("f")
-            sage: bool(f(exp(I*x)).diff(x).demoivre() == 
+            sage: bool(f(exp(I*x)).diff(x).demoivre() ==
             ....:      f(exp(I*x)).demoivre().diff(x))
             True
         """
@@ -6351,7 +6351,6 @@ cdef class Expression(Expression_abc):
             sage: type(u._unpack_operands()[0])
             <... 'tuple'>
         """
-        from sage.symbolic.expression import unpack_operands
         return unpack_operands(self)
 
     def operands(self):

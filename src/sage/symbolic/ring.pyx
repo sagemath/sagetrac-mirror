@@ -55,7 +55,7 @@ from sage.rings.integer_ring import ZZ
 # is_SymbolicVariable used to be defined here; re-export it here lazily
 cpdef bint is_SymbolicVariable(x):
     from sage.symbolic.expression import _is_SymbolicVariable
-    
+
     return _is_SymbolicVariable(x)
 
 import keyword
