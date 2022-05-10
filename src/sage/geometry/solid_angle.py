@@ -106,12 +106,13 @@ def solid_angle_simplicial_2d(A):
     """
     if not is_Matrix(A):
         A = matrix(A)
+    P = A[0][0].parent()
     if A.nrows() != 2 or A.ncols() != 2:
         raise ValueError("input matrix has incorrect dimension")
     if any(r == 0 for r in A.rows()):
         raise ValueError("input matrix has a row that is zero")
     if A.rank() < 2:
-        return 0
+        return P.zero()
     u = A.row(0)
     v = A.row(1)
     p = u.dot_product(v)
