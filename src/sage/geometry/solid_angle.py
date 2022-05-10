@@ -35,6 +35,10 @@ from sage.structure.element import is_Matrix
 from sage.functions.trig import arccos
 from sage.modules.free_module_element import vector
 from sage.calculus.var import var
+from sage.symbolic.relation import solve
+from sage.symbolic.subring import SymbolicSubring
+import logging
+
 
 def solid_angle_simplicial_2d(A):
     r"""
@@ -141,8 +145,9 @@ def solid_angle_2d(A):
     The following three examples show the solid angle measures of the cones
     spanned by the given two, three or four vectors in `\RR^2`, respectively::
 
-        sage: logging.disable(logging.WARNING)
         sage: from sage.geometry.solid_angle import solid_angle_2d
+        sage: import logging # check if needed
+        sage: logging.disable(logging.INFO)
         sage: A = matrix([[2,3],[-3,-7]])
         sage: RDF(solid_angle_2d(A))  # abs tol 1e-15
         0.4708570082990789
@@ -156,14 +161,18 @@ def solid_angle_2d(A):
         0.375
 
 
-    The following examples illustrate how the solid angle measure can equal `1`.
-    That is, the span of the rays is all of space::
+    The following examples illustrate how the solid angle measure can equal
+    `1`. That is, the span of the rays is all of space.::
 
         sage: A = matrix([[1,1],[0,-1],[-1,-1],[-3,0]])
         sage: solid_angle_2d(A)
         1
 
-        sage: A = matrix([[sqrt(3),0],[2,-1/5],[-1,14.7]])
+        sage: A = matrix([[0.2,0.2],[0,-1],[-1,-1],[-3,0]])
+        sage: solid_angle_2d(A)
+        1.00000000000000
+
+        sage: A = matrix([[sqrt(3),0],[-2,-1/5],[-1,14.7]])
         sage: solid_angle_2d(A)
         1
 
@@ -179,12 +188,11 @@ def solid_angle_2d(A):
         sage: solid_angle_2d(A)
         0
     """
-    import logging
-    logging.getLogger().setLevel(logging.INFO)
     if not is_Matrix(A):
         A = matrix(A)
+    P = A[0][0].parent()
     if A.rank() < 2:
-        return 0
+        return P.zero()
     if A.nrows() == 2:
         return solid_angle_simplicial_2d(A)
     else:
@@ -196,9 +204,16 @@ def solid_angle_2d(A):
                     ab = vector([-v[i][1], v[i][0]])
                     if all(A[k] * ab >= 0 for k in range(d)) or \
                        all(A[k] * ab <= 0 for k in range(d)):
-                        return 1/2
+                        from sage.symbolic.subring import SymbolicSubring
+                        if P.is_exact():
+                            return P.one()/2
+                        if isinstance(P, sage.rings.abc.SymbolicRing):
+                            c = SymbolicSubring(no_variables=True)(1/2)
+                            return c
+                        else:
+                            return P.one()/2
                     else:
-                        return 1
+                        return P.one()
         for k in range(1, d):
             if v[0] * v[k] < 0:
                 for j in range(1, d):
@@ -207,9 +222,10 @@ def solid_angle_2d(A):
                            -a * v[0][1] - b * v[k][1] - v[j][1] == 0,
                            a >= 0,
                            b >= 0)
-                    if len(solve(eqn, (a, b, c))) != 0:
-                        return 1
+                    if len(solve(eqn, (a, b))) != 0:
+                        return P.one()
         A_list = simplicial_subcones_decomposition(A)
+        logging.getLogger().setLevel(logging.INFO)
         logging.info('Decompose into simplicial subcones\n' +
                      ',\n'.join('{}'.format(Ai) for Ai in A_list))
         results = [solid_angle_simplicial_2d(Ai) for Ai in A_list]
@@ -241,7 +257,6 @@ def simplicial_subcones_decomposition(A):
     extreme rays ``[1,0,0], [0,1,0], [0,0,1]`` and the other with extreme
     rays ``[0,1,0], [0,0,1], [-1,0,0]``::
 
-        sage: logging.disable(logging.NOTSET)
         sage: from sage.geometry.solid_angle import simplicial_subcones_decomposition
         sage: A = matrix([[1,0,0],[0,1,0],[0,0,1],[-1,0,0]])
         sage: simplicial_subcones_decomposition(A)
@@ -315,7 +330,6 @@ def simplicial_subcones_decomposition(A):
         [0 1 1], [0 0 1]
         ]
     """
-    import logging
     if not is_Matrix(A):
         A = matrix(A)
     r = A.rank()
