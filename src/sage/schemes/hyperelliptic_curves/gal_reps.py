@@ -32,7 +32,7 @@ EXAMPLES::
     sage: C = HyperellipticCurve(f)
     sage: A = C.jacobian()
     sage: rho = A.galois_representation()
-    sage: rho.non_surjective()
+    sage: rho.non_surjective()  # long time
     [2, 7]
     sage: rho.is_surjective(7)
     False
@@ -50,7 +50,7 @@ If the Jacobian has any non-trivial endomorphisms, we raise a ValueError:
     sage: C = HyperellipticCurve(f)
     sage: A = C.jacobian()
     sage: rho = A.galois_representation()
-    sage: rho.non_surjective()
+    sage: rho.non_surjective()  # long time
     [0]
     sage: rho.reducible_primes()
     [3]
@@ -73,6 +73,9 @@ AUTHORS:
 """
 
 # TODO Test at line 53 is returning [2, 7] in test, but expects [0]
+# TODO Test at line 57 does not make sense because E has not been defined.
+# TODO Test at line 55 does not make sense because rho has no
+# function non_surjective
 ######################################################################
 #                 Copyright (C) 2020 The Authors
 #
@@ -123,7 +126,8 @@ class GaloisRepresentation(SageObject):
         sage: J = C.jacobian()
         sage: rho = J.galois_representation()
         sage: rho
-        Compatible family of Galois representations associated to the Jacobian of Hyperelliptic Curve defined by y**2 + y = x**3 - x**2 - 10*x - 20 over Rational Field
+        Compatible family of Galois representations associated to the Jacobian of Hyperelliptic Curve over Rational Field defined by y^2 = x^5 + 17
+
     """
 
     def __init__(self, A):
@@ -150,7 +154,7 @@ class GaloisRepresentation(SageObject):
 
             sage: rho = EllipticCurve([0,1]).galois_representation()
             sage: rho
-            Compatible family of Galois representations associated to the Elliptic Curve defined by y**2 = x**3 + 1 over Rational Field
+            Compatible family of Galois representations associated to the Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
 
         """
         return "Compatible family of Galois representations associated to the " + repr(self._A)
@@ -565,26 +569,33 @@ class GaloisRepresentation(SageObject):
         `y^2 + (x^3+1)y = x^2 + x`. The function returns the list ``[2, 7]``,
         which tells us that `2` and `7` are the only primes `\ell < 1000`
         whose mod-`\ell` Galois representation for the (Jacobian of the)
-        hyperelliptic curve might not be surjective::
- 
+        hyperelliptic curve might not be surjective. ::
+
             sage: R.<x> = PolynomialRing(QQ);
             sage: H = HyperellipticCurve(R([0, 1, 1]), R([1, 0, 0, 1]));
-            sage: find_surj_from_list(H)
+            sage: J = H.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho.find_surj_from_list()  # long time
             [2, 7]
+
+        The hyperelliptic curve is given by 
+        `y^2 + (x+1)y = x^5 + x^4 - 9x^3 - 5x^2 + 21x` in the following
+        example. ::
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: H = HyperellipticCurve(R([0, 21, -5, -9, 1, 1]), R([1, 1])); H
-            Hyperelliptic Curve over Rational Field defined by y**2 + (x + 1)*y = x**5 + x**4 - 9*x**3 - 5*x**2 + 21*x
-            sage: find_surj_from_list(H)
+            Hyperelliptic Curve over Rational Field defined by y^2 + (x + 1)*y = x^5 + x^4 - 9*x^3 - 5*x^2 + 21*x
+            sage: J = H.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho.find_surj_from_list()  # long time
             [2, 13]
 
         """
-        # TODO: It 
-        # TODO: fix the examples in the docstring.
-        # the examples in the docstring require this function to take
-        # a hyperelliptic curve as input, but this function does not actually
-        # have a hyperelliptic curve parameter.
+        # TODO: Consider making the examples long tests
+        # TODO: Add examples with varying `L` and `bound``
         # TODO: add verbose examples in the docstring
+        # TODO: What is the difference between this function and the
+        # non_surjective function?
         H = self._A.curve()
         f, h = H.hyperelliptic_polynomials()
         # C = 2 * genus2reduction(h, f).conductor
@@ -626,16 +637,21 @@ class GaloisRepresentation(SageObject):
         Return whether the mod-`p` representation is surjective onto
         `\operatorname{Aut}(A[p]) = \operatorname{GSp}_4(\GF{p})`.
 
-        The output of this function is cached.
-
         For the primes `p=2` and `3`, this function will always return either
         ``True`` or ``False``. For larger primes it might return ``None``.
+
+        The output of this function is cached.
 
         INPUT:
 
         -  ``p`` -- prime integer
 
-        -  ``A`` -- integer; a bound on the number of `a_p` to use
+        - ``bound`` -- integer (default: `1000`); the exclusive upper bound
+          for the primes `p \neq \ell` whose Frobenii `\operatorname{Frob}_p`
+          are checked. Only the primes of good reduction which are at least `3`
+          are checked.
+
+        - ``verbose`` -- boolean (default: ``False``)
 
         OUTPUT: ``True`` if the mod-p representation is determined to be
         surjective, ``False`` if the representation is determined to be
@@ -643,6 +659,22 @@ class GaloisRepresentation(SageObject):
         determined to be surjective nor determined to be not surjective
 
         EXAMPLES::
+
+            sage: R.<x>=QQ[]
+            sage: f = x^6 + 2*x^3 + 4*x^2 + 4*x + 1
+            sage: C = HyperellipticCurve(f)
+            sage: A = C.jacobian()
+            sage: rho = A.galois_representation()
+            sage: rho.is_surjective(7)
+            False
+            sage: rho.is_surjective(2)
+            False
+            sage: rho.is_surjective(3)
+            True
+            sage: rho.is_surjective(13)
+            True
+
+        ::
 
             sage: rho = EllipticCurve('37b').galois_representation()
             sage: rho.is_surjective(2)
@@ -672,20 +704,85 @@ class GaloisRepresentation(SageObject):
             sage: rho.is_surjective(7)
 
         In these cases, one can use image_type to get more information about
-        the image::
+        the image. ::
 
             sage: rho.image_type(7)
             'The image is contained in the normalizer of a split Cartan group.'
 
         .. NOTE::
 
-            1. If `p \geq 5` then the mod-p representation is
+            If `p \geq 5` then the mod-p representation is
             surjective if and only if the p-adic representation is
             surjective. When `p = 2, 3` there are
             counterexamples. See papers of Dokchitsers and Elkies
             for more details.
 
+        TESTS::
+
+            sage: R.<x> = PolynomialRing(Rationals())
+            sage: H = HyperellipticCurve(R([0, 21, -5, -9, 1, 1]), R([1, 1])); H
+            Hyperelliptic Curve over Rational Field defined by y^2 + (x + 1)*y = x^5 + x^4 - 9*x^3 - 5*x^2 + 21*x
+            sage: J = H.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho.is_surjective(2)
+            False
+            sage: rho.is_surjective(3)
+            True
+            sage: rho.is_surjective(5)
+            True
+            sage: rho.is_surjective(7)
+            True
+            sage: rho.is_surjective(11)
+            True
+            sage: rho.is_surjective(13)  # long time
+            False
+            sage: rho.is_surjective(17)
+            True
+
+        ::
+
+            sage: R.<x> = PolynomialRing(Rationals())
+            sage: H = HyperellipticCurve(5*x^6-4*x^5+20*x^4-2*x^3+24*x^2+20*x+5)
+            sage: H
+            Hyperelliptic Curve over Rational Field defined by y^2 = 5*x^6 - 4*x^5 + 20*x^4 - 2*x^3 + 24*x^2 + 20*x + 5
+            sage: J = H.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho.is_surjective(2)
+            False
+            sage: rho.is_surjective(3)  # long time
+            False
+            sage: rho.is_surjective(5)  # long time
+            False
+            sage: rho.is_surjective(7)  # long time
+            False
+            sage: rho.is_surjective(11)  # long time
+            False
+            sage: rho.is_surjective(13)  # long time
+            False
+
+        ::
+
+            sage: R.<x> = PolynomialRing(Rationals())  #249.a.249.1
+            sage: H = HyperellipticCurve(R([2, 3, 1, 1, 0, -1]), R([1, 0, 0, 1])); H
+            Hyperelliptic Curve over Rational Field defined by y^2 + (x^3 + 1)*y = -x^5 + x^3 + x^2 + 3*x + 2
+            sage: J = H.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho.is_surjective(2)
+            False
+            sage: rho.is_surjective(3)
+            True
+            sage: rho.is_surjective(5)
+            True
+            sage: rho.is_surjective(7)  # long time
+            False
+
         """
+        # TODO: delete the elliptic curve examples
+        # TODO: the two tests are the first two examples in the
+        # find_surj_from_list.sage file. Maybe the actual outputs
+        # should be checked.
+        # TODO: add hyperelliptic curve examples
+        # TODO: add verbose examples
         # TODO: Add the papers of Dokchitsers and Elklies in the master
         # bibliography file; consider adding the reference to these papers
         # in the module docstring instead.
@@ -709,22 +806,22 @@ class GaloisRepresentation(SageObject):
     #                            #
     #########################################################
 
-    def p_part(p, N):
-        """
-        TESTS::
+    # def p_part(p, N):
+    #     """
+    #     TESTS::
 
 
-        """
-        # TODO: Consider deleting this function outright; it
-        # does not seem to be used.
-        # TODO: Consider making this function private.
-        # TODO: Add tests/examples (required)
-        if N != 0:
-            return p**valuation(N, p)
-        else:
-            return 1
+    #     """
+    #     # TODO: Consider deleting this function outright; it
+    #     # does not seem to be used.
+    #     # TODO: Consider making this function private.
+    #     # TODO: Add tests/examples (required)
+    #     if N != 0:
+    #         return p**valuation(N, p)
+    #     else:
+    #         return 1
 
-    def maximal_square_divisor(self, N):
+    def _maximal_square_divisor(self, N):
         """
         TESTS::
 
@@ -1098,7 +1195,7 @@ class GaloisRepresentation(SageObject):
 
     def non_surjective(self, N=None, bound=1000):
         r"""
-        Returns a list of primes p such that the mod-p representation
+        Return a list of primes p such that the mod-p representation
         *might* not be surjective. If `p` is not in the returned list,
         then the mod-p representation is provably surjective.
 
@@ -1122,6 +1219,15 @@ class GaloisRepresentation(SageObject):
         representation is definitely surjective.
 
         EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ);
+            sage: H = HyperellipticCurve(R([0, 1, 1]), R([1, 0, 0, 1]));
+            sage: J = H.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho.find_surj_from_list()  # long time
+            [2, 7]
+
+        ::
 
             sage: E = EllipticCurve([0, 0, 1, -38, 90])  # 361A
             sage: E.galois_representation().non_surjective()   # CM curve
@@ -1163,9 +1269,13 @@ class GaloisRepresentation(SageObject):
         on the conductor of `E`.
         For the prime below that bound we call ``is_surjective``.
 
+        TESTS::
+
         """
         # TODO Add the results of Mazur, Serre, and Cojocaru in Sage's master
         # bibliography file and cite them here.
+        # TODO Add an explanation of why the primes are likely to not be
+        # surjective.
         if self.non_surjective_primes is not None:
             return self.non_surjective_primes
 
@@ -1199,7 +1309,7 @@ class GaloisRepresentation(SageObject):
         # nontrivial Frobenius conditions going into M
         MQuad = self.set_up_quadratic_chars(N)
 
-        d = self.maximal_square_divisor(N)
+        d = self._maximal_square_divisor(N)
 
         # we'll test as many p as we need to get at least 2 nontrivial
         # Frobenius conditions for every possible cause of non-surjectivity
