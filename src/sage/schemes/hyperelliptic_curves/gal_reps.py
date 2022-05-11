@@ -803,95 +803,6 @@ class GaloisRepresentation(SageObject):
 
     #########################################################
     #                            #
-    #          Governed by a quadratic character        #
-    #                            #
-    #########################################################
-
-    def maximal_quadratic_conductor(self, N):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private.
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        if N % 2 == 0:
-            return 4 * ZZ(N).radical()
-        else:
-            return ZZ(N).radical()
-
-    def character_list(self, N):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private.
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        c = self.maximal_quadratic_conductor(N)
-        D = DirichletGroup(c, base_ring=QQ, zeta_order=2)
-        return [phi for phi in D if phi.conductor() != 1]
-
-    def set_up_quadratic_chars(self, N):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private.
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        return [(phi, 0, 0) for phi in self.character_list(N)]
-
-    def rule_out_quadratic_ell_via_Frob_p(self, p, fp, MM):
-        r"""Provide a summary of what this method is doing.
-
-        INPUT:
-
-        - ``p`` -- prime integer; new prime.
-
-        - ``fp`` -- polynomial over the integers; the characteristic polynomial
-          Frobenius at ``p`` on a hyperelliptic curve.
-
-        - ``MM`` -- list; the items are tuples of the form ``(\phi, M, y)``,
-          where ``\phi`` is a non-trivial quadratic character, all primes
-          ``\ell`` for which there is a quadratic obstruction associated with
-          ``\phi`` must divide ``M``, ``y`` is a counter for the number of
-          nontrivial Frobenius constraints going into ``M``.
-
-        OUTPUT: a list
-
-        Args:
-            p (int): new prime
-            fp (integer poly): charpoly of frobenius at p on a hyperelliptic curve
-            MM (list): list of the form <phi,M,y>, where phi is a non-trivial
-            quadratic character, all primes ell for which there is a quadratic
-            obstruction associated with phi must divide M, y is a counter for the
-        the number of nontrivial Frobenius constraints going into M
-
-        Returns:
-            (list): TODO
-        """
-        # TODO: Consider making this function private
-        # TODO: Add tests/examples (required)
-        # TODO: Complete the description and output description.
-        # TODO: Delete the stuff under Args:
-        ap = -fp.coefficients(sparse=False)[3]
-        if ap == 0:
-            return MM
-        else:
-            MM0 = []
-            for phi, M, y in MM:
-                if (M == 1 or phi(p) != -1 or y > 1):
-                    MM0.append((phi, M, y))
-                else:
-                    MM0.append((phi, gcd(M, p*ap), y+1))
-            return MM0
-
-    #########################################################
-    #                            #
     #             Reducible (easy cases)            #
     #                            #
     #########################################################
@@ -1165,12 +1076,8 @@ class GaloisRepresentation(SageObject):
         *might* not be surjective. If `p` is not in the returned list,
         then the mod-p representation is provably surjective.
 
-        By a theorem of Serre, there are only finitely
-        many primes in this list, except when the curve has
-        complex multiplication.
-
-        If the curve has CM, we simply return the
-        sequence [0] and do no further computation.
+        By a theorem of Serre, there are only finitely many primes in this
+        list, except when the curve has complex multiplication.
 
         INPUT:
 
@@ -1179,8 +1086,8 @@ class GaloisRepresentation(SageObject):
 
         OUTPUT:
 
-        A list; if the curve has CM, returns [0].
-        Otherwise, returns a list of primes where mod-p representation is
+        A list; if the curve has complex multiplication, returns [0].
+        Otherwise, returns a list of primes `p` where mod-`p` representation is
         very likely not surjective. At any prime not in this list, the
         representation is definitely surjective.
 
@@ -1190,7 +1097,7 @@ class GaloisRepresentation(SageObject):
             sage: H = HyperellipticCurve(R([0, 1, 1]), R([1, 0, 0, 1]));
             sage: J = H.jacobian()
             sage: rho = J.galois_representation()
-            sage: rho.find_surj_from_list()  # long time
+            sage: rho.non_surjective()  # long time
             [2, 7]
 
         ::
@@ -1244,6 +1151,7 @@ class GaloisRepresentation(SageObject):
         # surjective.
         # TODO: add the attribute non_surjective_primes to the class level
         # docstring
+        # TODO: add non-CM examples
         if self.non_surjective_primes is not None:
             return self.non_surjective_primes
 
@@ -1275,7 +1183,7 @@ class GaloisRepresentation(SageObject):
         # quadratic character, M is the integer all nonsurjective primes
         # governed by phi must divide, and y is counter for the number of
         # nontrivial Frobenius conditions going into M
-        MQuad = self.set_up_quadratic_chars(N)
+        MQuad = _set_up_quadratic_chars(N)
 
         d = _maximal_square_divisor(N)
 
@@ -1303,7 +1211,7 @@ class GaloisRepresentation(SageObject):
                 M2p2nsd, y2p2nsd = self.rule_out_2_plus_2_nonselfdual_via_Frob_p(c, p, tp, sp, M2p2nsd, y2p2nsd)
                 MCusp = self.rule_out_cuspidal_spaces_using_Frob_p(
                     p, fp_rev, MCusp)
-                MQuad = self.rule_out_quadratic_ell_via_Frob_p(p, fp, MQuad)
+                MQuad = _rule_out_quadratic_ell_via_Frob_p(p, fp, MQuad)
 
             if (M1p3 == 1) or (y1p3 > 1):
                 if (M2p2nsd == 1) or (y2p2nsd > 1):
@@ -1381,3 +1289,119 @@ def _maximal_square_divisor(N):
     for p in PP:
         n = n * p**(floor(valuation(N, p)/2))
     return n
+
+#########################################################
+#                            #
+#          Governed by a quadratic character        #
+#                            #
+#########################################################
+
+
+def _maximal_quadratic_conductor(N):
+    """
+    TESTS::
+
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _maximal_quadratic_conductor
+        sage: _maximal_quadratic_conductor(1)
+        1
+        sage: _maximal_quadratic_conductor(2)
+        8
+        sage: _maximal_quadratic_conductor(3)
+        3
+        sage: _maximal_quadratic_conductor(15)
+        15
+        sage: _maximal_quadratic_conductor(30)
+        120
+        sage: _maximal_quadratic_conductor(72)
+        24
+        sage: _maximal_quadratic_conductor(343)
+        7
+        sage: _maximal_quadratic_conductor(495)
+        165
+    """
+    if N % 2 == 0:
+        return 4 * ZZ(N).radical()
+    else:
+        return ZZ(N).radical()
+
+
+def _character_list(N):
+    """
+    TESTS::
+
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _character_list
+        sage: _character_list(1)
+        []
+        sage: _character_list(2)
+        [Dirichlet character modulo 8 of conductor 4 mapping 7 |--> -1, 5 |--> 1,
+        Dirichlet character modulo 8 of conductor 8 mapping 7 |--> 1, 5 |--> -1,
+        Dirichlet character modulo 8 of conductor 8 mapping 7 |--> -1, 5 |--> -1]
+        sage: _character_list(3)
+        [Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1]
+        sage: _character_list(15)
+        [Dirichlet character modulo 15 of conductor 3 mapping 11 |--> -1, 7 |--> 1,
+        Dirichlet character modulo 15 of conductor 5 mapping 11 |--> 1, 7 |--> -1,
+        Dirichlet character modulo 15 of conductor 15 mapping 11 |--> -1, 7 |--> -1]
+        sage: len(_character_list(30))
+        15
+
+    """
+    c = _maximal_quadratic_conductor(N)
+    D = DirichletGroup(c, base_ring=QQ, zeta_order=2)
+    return [phi for phi in D if phi.conductor() != 1]
+
+
+def _set_up_quadratic_chars(N):
+    """
+    TESTS::
+
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _set_up_quadratic_chars
+        sage: assert len(_set_up_quadratic_chars(1)) == 0
+        sage: assert len(_set_up_quadratic_chars(2)) == 3
+        sage: assert len(_set_up_quadratic_chars(3)) == 1
+        sage: assert len(_set_up_quadratic_chars(15)) == 3
+        sage: assert len(_set_up_quadratic_chars(30)) == 15
+        sage: _set_up_quadratic_chars(3)[0]
+        (Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1, 0, 0)
+
+    """
+    # TODO: Consider making this function private.
+    # TODO: Consider making this function a module level function
+    # TODO: Add tests/examples (required)
+    return [(phi, 0, 0) for phi in _character_list(N)]
+
+
+def _rule_out_quadratic_ell_via_Frob_p(p, fp, MM):
+    r"""Provide a summary of what this method is doing.
+
+    INPUT:
+
+    - ``p`` -- prime integer; new prime.
+
+    - ``fp`` -- polynomial over the integers; the characteristic polynomial
+      of Frobenius at ``p`` on a hyperelliptic curve.
+
+    - ``MM`` -- list; the items are tuples of the form ``(\phi, M, y)``,
+      where ``\phi`` is a non-trivial quadratic character, all primes
+      ``\ell`` for which there is a quadratic obstruction associated with
+      ``\phi`` must divide ``M``, ``y`` is a counter for the number of
+      nontrivial Frobenius constraints going into ``M``.
+
+    OUTPUT: a list
+
+    TESTS::
+
+    """
+    # TODO: Add tests/examples (required)
+    # TODO: Complete the description and output description.
+    ap = -fp.coefficients(sparse=False)[3]
+    if ap == 0:
+        return MM
+    else:
+        MM0 = []
+        for phi, M, y in MM:
+            if (M == 1 or phi(p) != -1 or y > 1):
+                MM0.append((phi, M, y))
+            else:
+                MM0.append((phi, gcd(M, p*ap), y+1))
+        return MM0
