@@ -158,6 +158,10 @@ if [ -f "${SELF}-env-config" ]; then
     # As of Trac #22731, sage-env-config is optional.
     . "${SELF}-env-config" >&2
 fi
+if [ -z "$SAGE_VENV" -a -z "$SAGE_ROOT" ]; then
+    # Invocation from an unconfigured source tree
+    export SAGE_ROOT=$(dirname $(dirname $(dirname "${SELF}")))
+fi
 
 #####################################################################
 # Special options to be processed without sage-env
