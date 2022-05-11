@@ -34,7 +34,7 @@ EXAMPLES::
     sage: rho = A.galois_representation()
     sage: rho.non_surjective()  # long time
     [2, 7]
-    sage: rho.is_surjective(7)
+    sage: rho.is_surjective(7)  # long time
     False
     sage: rho.is_surjective(2)
     False
@@ -157,7 +157,8 @@ class GaloisRepresentation(SageObject):
             Compatible family of Galois representations associated to the Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
 
         """
-        return "Compatible family of Galois representations associated to the " + repr(self._A)
+        return ("Compatible family of Galois representations "
+                f"associated to the {repr(self._A)}")
 
 #####################################################################
 # surjectivity
@@ -665,7 +666,7 @@ class GaloisRepresentation(SageObject):
             sage: C = HyperellipticCurve(f)
             sage: A = C.jacobian()
             sage: rho = A.galois_representation()
-            sage: rho.is_surjective(7)
+            sage: rho.is_surjective(7)  # long time
             False
             sage: rho.is_surjective(2)
             False
@@ -677,7 +678,7 @@ class GaloisRepresentation(SageObject):
         ::
 
             sage: rho = EllipticCurve('37b').galois_representation()
-            sage: rho.is_surjective(2)
+            sage: rho.is_surjective(2)  # long time
             True
             sage: rho.is_surjective(3)
             False
@@ -786,8 +787,8 @@ class GaloisRepresentation(SageObject):
         # TODO: Add the papers of Dokchitsers and Elklies in the master
         # bibliography file; consider adding the reference to these papers
         # in the module docstring instead.
-        # TODO: change p in this function to ell; it is confusing to use
-        # p here when we use ell everywhere else.
+        # TODO: change p in this function to l; it is confusing to use
+        # p here when we use l everywhere else.
         if self.non_surjective_primes is not None:
             if not p.is_prime():
                 raise ValueError("p must be prime")
@@ -799,41 +800,6 @@ class GaloisRepresentation(SageObject):
             return False
         else:
             return True
-
-    #########################################################
-    #                            #
-    #                   Auxiliary functions            #
-    #                            #
-    #########################################################
-
-    # def p_part(p, N):
-    #     """
-    #     TESTS::
-
-
-    #     """
-    #     # TODO: Consider deleting this function outright; it
-    #     # does not seem to be used.
-    #     # TODO: Consider making this function private.
-    #     # TODO: Add tests/examples (required)
-    #     if N != 0:
-    #         return p**valuation(N, p)
-    #     else:
-    #         return 1
-
-    def _maximal_square_divisor(self, N):
-        """
-        TESTS::
-
-        """
-        # TODO: Consider making this function private.
-        # TODO: Consider making this function a module level function.
-        # TODO: Add tests/examples (required)
-        PP = ZZ(N).prime_divisors()
-        n = 1
-        for p in PP:
-            n = n * p**(floor(valuation(N, p)/2))
-        return n
 
     #########################################################
     #                            #
@@ -1146,7 +1112,7 @@ class GaloisRepresentation(SageObject):
     def reconstruct_hecke_poly_from_trace_polynomial(self, cusp_form_space, p):
         """
         Implement Zev and Joe Wetherell's idea
-        
+
         TESTS::
 
 
@@ -1276,6 +1242,8 @@ class GaloisRepresentation(SageObject):
         # bibliography file and cite them here.
         # TODO Add an explanation of why the primes are likely to not be
         # surjective.
+        # TODO: add the attribute non_surjective_primes to the class level
+        # docstring
         if self.non_surjective_primes is not None:
             return self.non_surjective_primes
 
@@ -1309,7 +1277,7 @@ class GaloisRepresentation(SageObject):
         # nontrivial Frobenius conditions going into M
         MQuad = self.set_up_quadratic_chars(N)
 
-        d = self._maximal_square_divisor(N)
+        d = _maximal_square_divisor(N)
 
         # we'll test as many p as we need to get at least 2 nontrivial
         # Frobenius conditions for every possible cause of non-surjectivity
@@ -1330,10 +1298,12 @@ class GaloisRepresentation(SageObject):
                 tp = - fp.coefficients(sparse=False)[3]
                 sp = fp.coefficients(sparse=False)[2]
 
-                M1p3, y1p3 = self.rule_out_1_plus_3_via_Frob_p(c, p, tp, sp, M1p3, y1p3)
+                M1p3, y1p3 = self.rule_out_1_plus_3_via_Frob_p(
+                    c, p, tp, sp, M1p3, y1p3)
                 M2p2nsd, y2p2nsd = self.rule_out_2_plus_2_nonselfdual_via_Frob_p(c, p, tp, sp, M2p2nsd, y2p2nsd)
-                MCusp = self.rule_out_cuspidal_spaces_using_Frob_p(p,fp_rev,MCusp)
-                MQuad = self.rule_out_quadratic_ell_via_Frob_p(p,fp,MQuad)
+                MCusp = self.rule_out_cuspidal_spaces_using_Frob_p(
+                    p, fp_rev, MCusp)
+                MQuad = self.rule_out_quadratic_ell_via_Frob_p(p, fp, MQuad)
 
             if (M1p3 == 1) or (y1p3 > 1):
                 if (M2p2nsd == 1) or (y2p2nsd > 1):
@@ -1341,18 +1311,73 @@ class GaloisRepresentation(SageObject):
                         if all((Mq == 1 or yq > 1) for phi, Mq, yq in MQuad):
                             sufficient_p = True
 
-
         # we will always include 2, 3, 5, 7 and the non-semistable primes.
-        non_maximal_primes = {2,3,5,7}.union(set([p[0] for p in list(N.factor()) if p[1]>1]))
+        non_maximal_primes = {2, 3, 5, 7}.union(
+            set([p[0] for p in list(N.factor()) if p[1] > 1]))
 
         ell_red_easy = [M1p3.prime_factors(), M2p2nsd.prime_factors()]
-        non_maximal_primes = non_maximal_primes.union(set([p for j in ell_red_easy for p in j]))
+        non_maximal_primes = non_maximal_primes.union(
+            set([p for j in ell_red_easy for p in j]))
 
-        ell_red_cusp = [(S.level(), ZZ(M).prime_factors()) for S,M,y in MCusp]
+        ell_red_cusp = [(S.level(), ZZ(M).prime_factors())
+                        for S, M, y in MCusp]
 
-        non_maximal_primes = non_maximal_primes.union(set([p for a,j in ell_red_cusp for p in j]))
+        non_maximal_primes = non_maximal_primes.union(
+            set([p for a,j in ell_red_cusp for p in j]))
 
-        ell_irred = [(phi,ZZ(M).prime_factors() ) for phi,M,t in MQuad]
-        non_maximal_primes = non_maximal_primes.union(set([p for a,j in ell_irred for p in j]))
-        self.non_surjective_primes = self.find_surj_from_list(L=non_maximal_primes, bound=bound)
+        ell_irred = [(phi, ZZ(M).prime_factors()) for phi, M, t in MQuad]
+        non_maximal_primes = non_maximal_primes.union(
+            set([p for a, j in ell_irred for p in j]))
+        self.non_surjective_primes = self.find_surj_from_list(
+            L=non_maximal_primes, bound=bound)
         return self.non_surjective_primes
+
+#########################################################
+#                            #
+#                   Auxiliary functions            #
+#                            #
+#########################################################
+
+# def p_part(p, N):
+#     """
+#     TESTS::
+
+#     """
+#     # TODO: Consider deleting this function outright; it
+#     # does not seem to be used.
+#     # TODO: Consider making this function private.
+#     # TODO: Add tests/examples (required)
+#     if N != 0:
+#         return p**valuation(N, p)
+#     else:
+#         return 1
+
+
+def _maximal_square_divisor(N):
+    """
+    TESTS::
+
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _maximal_square_divisor
+        sage: _maximal_square_divisor(1)
+        1
+        sage: _maximal_square_divisor(2)
+        1
+        sage: _maximal_square_divisor(30)
+        1
+        sage: _maximal_square_divisor(54)
+        3
+        sage: _maximal_square_divisor(2176)
+        8
+        sage: _maximal_square_divisor(252)
+        6
+        sage: _maximal_square_divisor(0)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: factorization of 0 is not defined
+
+    """
+    PP = ZZ(N).prime_divisors()
+    n = 1
+    for p in PP:
+        n = n * p**(floor(valuation(N, p)/2))
+    return n
