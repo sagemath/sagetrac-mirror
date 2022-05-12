@@ -897,8 +897,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         Real number line ℝ
         sage: RealSet(R)
         (-oo, +oo)
-        sage: I02 = manifolds.OpenInterval(0, 2); I
-        I
+        sage: I02 = manifolds.OpenInterval(0, 2); I02
+        Real interval (0, 2)
         sage: RealSet(I02)
         (0, 2)
         sage: I01_of_R = manifolds.OpenInterval(0, 1, ambient_interval=R); I01_of_R
