@@ -33,6 +33,8 @@ from sage.symbolic.constants import pi
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
 from sage.functions.trig import arccos
+from sage.symbolic.subring import SymbolicSubring
+from sage.rings.integer_ring import ZZ
 
 
 def solid_angle_simplicial_2d(A):
@@ -64,6 +66,9 @@ def solid_angle_simplicial_2d(A):
 
         sage: solid_angle_simplicial_2d([[1, 0], [-1, sqrt(3)]])
         1/3
+
+        sage: solid_angle_simplicial_2d(matrix([[0, 1], [4.5, 0]]))
+        0.785398163397448/pi
 
         sage: RDF(solid_angle_simplicial_2d([[2, 13], [-1, 7]]))  # abs tol 1e-15
         0.04687851282419763
@@ -103,6 +108,53 @@ def solid_angle_simplicial_2d(A):
         Traceback (most recent call last):
         ...
         ValueError: input matrix has a row that is zero
+
+    TESTS:
+
+    In the following examples, we check the parent of the output corresponding
+    to an input whose parent is exact.::
+
+        sage: A = matrix([[2/3, 0], [-1/3, 5]])
+        sage: solid_angle_simplicial_2d(A)
+        1/2*arccos(-1/226*sqrt(226))/pi
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Ring
+
+        sage: A = matrix([[2/3, 0], [-1/3, 0]])
+        sage: solid_angle_simplicial_2d(A)
+        0
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Constants Subring
+
+    In the following examples, we check the parent of the output corresponding
+    to an input whose parent is not exact::
+
+        sage: A = matrix([[12, 0], [RBF(1.5), 9]])
+        sage: solid_angle_simplicial_2d(A)
+        ([0.702823824690135 +/- 4.26e-16])/pi
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Ring
+
+        sage: A = matrix([[RBF(12.7), 0], [-1, 0]])
+        sage: solid_angle_simplicial_2d(A)
+        0
+        sage: solid_angle_simplicial_2d(A).parent()
+        Real ball field with 53 bits of precision
+
+    In the following examples, we check the parent of the output corresponding
+    to an input whose parent is symbolic::
+
+        sage: A = matrix([[12, 0], [sqrt(17), 9]])
+        sage: solid_angle_simplicial_2d(A)
+        1/2*arccos(1/14*sqrt(17)*sqrt(2))/pi
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Ring
+
+        sage: A = matrix([[0, sqrt(18)], [0, -sqrt(pi)]])
+        sage: solid_angle_simplicial_2d(A)
+        0
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Constants Subring
     """
     if not is_Matrix(A):
         A = matrix(A)
@@ -112,7 +164,11 @@ def solid_angle_simplicial_2d(A):
     if any(r == 0 for r in A.rows()):
         raise ValueError("input matrix has a row that is zero")
     if A.rank() < 2:
-        return P.zero()
+        import sage.rings.abc
+        if P.is_exact() or isinstance(P, sage.rings.abc.SymbolicRing):
+            return SymbolicSubring(no_variables=True)(ZZ(0))
+        else:
+            return P.zero()
     u = A.row(0)
     v = A.row(1)
     p = u.dot_product(v)
