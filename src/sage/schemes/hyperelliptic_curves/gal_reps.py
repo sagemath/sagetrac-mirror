@@ -15,7 +15,8 @@ that the ring of endomorphisms defined over `\overline{\QQ}` is `\ZZ`.
 Currently sage can decide whether or not the image of this representation
 associated to a generic jacobian is surjective, and moreover can
 determine exactly the finitely many primes at which the representation
-is not surjective.
+is not surjective. This is based on Dieulefait's algorithm described in
+[Di2002]_
 
 For the surjectivity at one prime:
 
@@ -32,9 +33,9 @@ EXAMPLES::
     sage: C = HyperellipticCurve(f)
     sage: A = C.jacobian()
     sage: rho = A.galois_representation()
-    sage: rho.non_surjective()  # long time
+    sage: rho.non_surjective()
     [2, 7]
-    sage: rho.is_surjective(7)  # long time
+    sage: rho.is_surjective(7)
     False
     sage: rho.is_surjective(2)
     False
@@ -46,38 +47,26 @@ EXAMPLES::
 If the Jacobian has any non-trivial endomorphisms, we raise a ValueError:
 
     sage: R.<x>=QQ[]
-    sage: f = x^6 + 2*x^3 + 4*x^2 + 4*x + 1
+    sage: f = x^6 - 2*x^4 + 2*x^2 - 1
     sage: C = HyperellipticCurve(f)
     sage: A = C.jacobian()
     sage: rho = A.galois_representation()
-    sage: rho.non_surjective()  # long time
-    [0]
-    sage: rho.reducible_primes()
-    [3]
-    sage: E.has_cm()
-    True
-    sage: rho.image_type(11)
-    'The image is contained in the normalizer of a non-split Cartan group. (cm)'
+    sage: rho.non_surjective()
+    NotImplementedError: Computation of non-surjective primes currently only works for Jacobians whose geometric endomorphism ring is Z.
 
 REFERENCES:
 
-- [Ser1972]_
-- [Ser1987]_
-- [Coj2005]_
+- [Di2002]_
 
 AUTHORS:
 
-- Barinder Singh Banwait, Armand Brumer, Hyun Jong Kim, Zev Klagsbrun,
+- Barinder S. Banwait, Armand Brumer, Hyun Jong Kim, Zev Klagsbrun,
   Jacob Mayle, Padmavathi Srinivasan, Isabel Vogt
 
 """
 
-# TODO Test at line 53 is returning [2, 7] in test, but expects [0]
-# TODO Test at line 57 does not make sense because E has not been defined.
-# TODO Test at line 55 does not make sense because rho has no
-# function non_surjective
 ######################################################################
-#                 Copyright (C) 2020 The Authors
+#                 Copyright (C) 2022 The Authors
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -98,13 +87,11 @@ from sage.rings.fast_arith import prime_range
 from sage.misc.lazy_import import lazy_import
 from sage.modular.all import CuspForms
 from sage.misc.all import prod
-import sage.rings.all as rings  # TODO: delete this import if unused.
-# TODO: delete RealField import if unused
-from sage.rings.all import RealField, GF, ZZ, QQ, Zmod, PolynomialRing
+from sage.rings.all import GF, ZZ, QQ, Zmod, PolynomialRing
 from sage.modular.dirichlet import DirichletGroup
 
 from math import sqrt, floor
-from sage.libs.pari.all import pari  # TODO: delete this import if unused.
+
 
 lazy_import('sage.interfaces.genus2reduction',
             ['genus2reduction', 'Genus2reduction'])
@@ -115,8 +102,6 @@ class GaloisRepresentation(SageObject):
     The compatible family of Galois representations
     attached to the Jacobian of a  hyperelliptic curve over the rational
     numbers.
-
-    More text here.
 
     EXAMPLES::
 
@@ -136,12 +121,15 @@ class GaloisRepresentation(SageObject):
 
         EXAMPLES::
 
-            sage: rho = EllipticCurve('11a1').galois_representation()
+            sage: R.<x>=QQ[]
+            sage: f = x**5 + 17
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
             sage: loads(rho.dumps()) == rho
-            True
+            False
 
         """
-        # TODO: Describe non_surjective_primes in class docstring
         self.__image_type = {}
         self._A = A
         self.non_surjective_primes = None
@@ -152,9 +140,13 @@ class GaloisRepresentation(SageObject):
 
         EXAMPLES::
 
-            sage: rho = EllipticCurve([0,1]).galois_representation()
+            sage: R.<x>=QQ[]
+            sage: f = x**5 + 17
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
             sage: rho
-            Compatible family of Galois representations associated to the Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
+            Compatible family of Galois representations associated to the Jacobian of Hyperelliptic Curve over Rational Field defined by y^2 = x^5 + 17
 
         """
         return ("Compatible family of Galois representations "
@@ -596,7 +588,10 @@ class GaloisRepresentation(SageObject):
         # TODO: Add examples with varying `L` and `bound``
         # TODO: add verbose examples in the docstring
         # TODO: What is the difference between this function and the
-        # non_surjective function?
+        # non_surjective function? ANSWER: This function takes an arbitrary upper bound
+        # on the nonsurj primes as 1000. The non surjective function essentially finds
+        # a superset which provably contains all nonsurj primes.
+
         H = self._A.curve()
         f, h = H.hyperelliptic_polynomials()
         # C = 2 * genus2reduction(h, f).conductor
@@ -657,7 +652,7 @@ class GaloisRepresentation(SageObject):
         OUTPUT: ``True`` if the mod-p representation is determined to be
         surjective, ``False`` if the representation is determined to be
         not surjection, and ``None`` if the representation is neither
-        determined to be surjective nor determined to be not surjective
+        determined to be surjective nor determined to be not surjective.
 
         EXAMPLES::
 
@@ -674,49 +669,6 @@ class GaloisRepresentation(SageObject):
             True
             sage: rho.is_surjective(13)
             True
-
-        ::
-
-            sage: rho = EllipticCurve('37b').galois_representation()
-            sage: rho.is_surjective(2)  # long time
-            True
-            sage: rho.is_surjective(3)
-            False
-
-        ::
-
-            sage: rho = EllipticCurve('121a1').galois_representation()
-            sage: rho.non_surjective()
-            [11]
-            sage: rho.is_surjective(5)
-            True
-            sage: rho.is_surjective(11)
-            False
-
-            sage: rho = EllipticCurve('121d1').galois_representation()
-            sage: rho.is_surjective(5)
-            False
-            sage: rho.is_surjective(11)
-            True
-
-        Here is a case in which the algorithm does not return an answer::
-
-            sage: rho = EllipticCurve([0,0,1,2580,549326]).galois_representation()
-            sage: rho.is_surjective(7)
-
-        In these cases, one can use image_type to get more information about
-        the image. ::
-
-            sage: rho.image_type(7)
-            'The image is contained in the normalizer of a split Cartan group.'
-
-        .. NOTE::
-
-            If `p \geq 5` then the mod-p representation is
-            surjective if and only if the p-adic representation is
-            surjective. When `p = 2, 3` there are
-            counterexamples. See papers of Dokchitsers and Elkies
-            for more details.
 
         TESTS::
 
@@ -1073,20 +1025,21 @@ class GaloisRepresentation(SageObject):
     def non_surjective(self, N=None, bound=1000):
         r"""
         Return a list of primes p such that the mod-p representation
-        *might* not be surjective. If `p` is not in the returned list,
+        is probably not surjective. If `p` is not in the returned list,
         then the mod-p representation is provably surjective.
 
         By a theorem of Serre, there are only finitely many primes in this
-        list, except when the curve has complex multiplication.
+        list, except when the jacobian of the curve has nontrivial geometric
+        endomorphisms.
 
         INPUT:
 
-        - ``A`` -- an integer (default: `1000`); by increasing this parameter
-          the resulting set might get smaller.
+        - ``N`` -- an integer (default: None); this is the conductor of the
+        jacobian; providing this can speed up the computation.
 
         OUTPUT:
 
-        A list; if the curve has complex multiplication, returns [0].
+        A list; if the curve has nontrivial geometric .
         Otherwise, returns a list of primes `p` where mod-`p` representation is
         very likely not surjective. At any prime not in this list, the
         representation is definitely surjective.
@@ -1250,21 +1203,6 @@ class GaloisRepresentation(SageObject):
 #                   Auxiliary functions            #
 #                            #
 #########################################################
-
-# def p_part(p, N):
-#     """
-#     TESTS::
-
-#     """
-#     # TODO: Consider deleting this function outright; it
-#     # does not seem to be used.
-#     # TODO: Consider making this function private.
-#     # TODO: Add tests/examples (required)
-#     if N != 0:
-#         return p**valuation(N, p)
-#     else:
-#         return 1
-
 
 def _maximal_square_divisor(N):
     """

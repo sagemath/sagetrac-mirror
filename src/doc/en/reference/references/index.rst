@@ -95,7 +95,7 @@ REFERENCES:
              graphs and isoperimetric inequalities*, The Annals of Probability
              32 (2004), no.  3A, 1727-1745.
 
-.. [ASV2020] Federico Ardila, Mariel Supina, and Andrés R. Vindas-Meléndez, 
+.. [ASV2020] Federico Ardila, Mariel Supina, and Andrés R. Vindas-Meléndez,
          *The Equivariant Ehrhart Theory of the Permutahedron*,
          Proc. Amer. Math. Soc. Volume 148, Number 12, 2020, pp. 5091--5107.
 
@@ -1966,6 +1966,12 @@ REFERENCES:
             In: V. Kumar Murty (ed.), Seminar on Fermat's Last Theorem
             (Toronto, 1993-1994), 39-133.  CMS Conference
             Proceedings 17.  American Mathematical Society, 1995.
+
+.. [Di2002] \L. Dieulefait, *Explicit Determination of the Images of
+            the Galois Representations Attached to Abelian Surfaces
+            with End(A) = `\mathbb{Z}`*,
+            Experimental Mathematics 11:4 (2002), 503-512.
+            :doi:`10.1080/10586458.2002.10504702`.
 
 .. [Dil1940] Lattice with Unique Irreducible Decompositions
              \R. P. Dilworth, 1940 (Annals of Mathematics 41, 771-777)
@@ -5359,7 +5365,7 @@ REFERENCES:
 .. [St1986] Richard Stanley. *Two poset polytopes*,
             Discrete Comput. Geom. (1986), :doi:`10.1007/BF02187680`
 
-.. [Stap2011] Alan Stapledon. *Equivariant Ehrhart Theory*. 
+.. [Stap2011] Alan Stapledon. *Equivariant Ehrhart Theory*.
               Advances in Mathematics 226 (2011), no. 4, 3622-3654
 
 .. [Sta1973] \H. M. Stark, Class-Numbers of Complex Quadratic
