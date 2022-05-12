@@ -32,11 +32,12 @@ AUTHORS:
 from sage.symbolic.constants import pi
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
-from sage.functions.trig import arccos
+from sage.functions.trig import arccos, atan2
 from sage.modules.free_module_element import vector
 from sage.calculus.var import var
 from sage.symbolic.relation import solve
 from sage.symbolic.subring import SymbolicSubring
+import logging
 
 
 def solid_angle_simplicial_2d(A):
@@ -339,3 +340,259 @@ def simplicial_subcones_decomposition(A):
         for simplex in triangulation:
             matrices.append(matrix(A[i] for i in simplex if i != origin))
         return matrices
+
+
+def solid_angle_simplicial_arccos_3d(A):
+    r"""
+    Return the normalized solid angle measure of the cone spanned by
+    the three row vectors of ``A``.
+
+    INPUT:
+
+    - ``A`` -- 3x3 matrix or a list of three vectors in `\RR^3` where the row
+      vectors represent the three extreme rays/vectors of the cone in `\RR^3`.
+      Any two vectors should not be scalar multiples of each other.
+
+    OUTPUT:
+
+    - the normalized solid angle measure spanned by the three vectors
+
+    EXAMPLES:
+
+    The examples show the measure of the solid angle spanned by the vectors::
+
+        sage: from sage.geometry.solid_angle import solid_angle_simplicial_arccos_3d
+        sage: A = matrix([[sqrt(5),0,0],[0,1,0],[0,0,1]])
+        sage: solid_angle_simplicial_arccos_3d(A)
+        1/8
+
+        sage: A = matrix([[1,0,0],[0,0,1],[-1,-1,-1]])
+        sage: RDF(solid_angle_simplicial_arccos_3d(A))  # abs tol 1e-15
+        0.2916666666666667
+
+    The input can be a list of vectors instead of a matrix::
+
+        sage: solid_angle_simplicial_arccos_3d(
+        ....:         [[0,0,3],[-1,-1,0],[-2,2,0]])
+        1/8
+
+        sage: RDF(solid_angle_simplicial_arccos_3d(
+        ....:    [[sqrt(7),0,0],[sqrt(2),sqrt(2),0],
+        ....:    [1,1,1]]))  # abs tol 1e-15
+        0.020833333333333353
+
+    This example shows the solid angle of a cone in 3d with affine dimension 2.
+    In contrast to ``solid_angle_3d``, this formula gives a non-zero angle::
+
+        sage: A = matrix([[2,0,0],[0,3,0],[-4,-4,0]])
+        sage: solid_angle_simplicial_arccos_3d(A)
+        1/2
+
+    It is an error to input a matrix ``A``, which has two vectors
+    that are scalar multiples of each other::
+
+        sage: A = matrix([[-1,0,1],[3,0,0],[-1,0,0]])
+        sage: solid_angle_simplicial_arccos_3d(A)
+        Traceback (most recent call last):
+        ...
+        ZeroDivisionError: rational division by zero
+
+    It is an error to input vectors from `\RR^2` into this function::
+
+        sage: solid_angle_simplicial_arccos_3d(A=matrix([[1,0],[3,4],[-1,2]]))
+        Traceback (most recent call last):
+        ...
+        ValueError: input matrix has incorrect dimension.
+
+    .. NOTE::
+
+        This function uses the formula given in Proposition 6 of
+        Beck et. al.'s 2015 paper entitled "Positivity Theorems
+        for Solid-Angle Polynomials."
+    """
+    if not hasattr(A, 'nrows'):
+        A = matrix(A)
+    if A.nrows() != 3 or A.ncols() != 3:
+        raise ValueError("input matrix has incorrect dimension.")
+    v_0 = A.row(0)
+    v_1 = A.row(1)
+    v_2 = A.row(2)
+    c_01 = v_0.cross_product(v_1)
+    c_02 = v_0.cross_product(v_2)
+    c_12 = v_1.cross_product(v_2)
+    n_01 = c_01.norm()
+    n_02 = c_02.norm()
+    n_12 = c_12.norm()
+    d_0 = c_01.dot_product(c_02)
+    d_1 = c_01.dot_product(c_12)
+    d_2 = c_02.dot_product(c_12)
+    a_0 = arccos(d_0/(n_01*n_02))
+    a_1 = arccos(-d_1/(n_01*n_12))
+    a_2 = arccos(d_2/(n_02*n_12))
+    return (a_0+a_1+a_2 - pi)/(4*pi)
+
+
+def solid_angle_simplicial_arctan_3d(A):
+    r"""
+    Return the normalized solid angle measure of the cone spanned by
+    the three row vectors of ``A``.
+
+    INPUT:
+
+    - ``A`` -- 3x3 matrix or a list of three vectors in `\RR^3` where the row
+      vectors represent the three extreme rays/vectors of the cone in `\RR^3`.
+      Any two vectors should not be scalar multiples of each other.
+
+    OUTPUT:
+
+    - the normalized solid angle measure spanned by the three vectors
+
+    EXAMPLES:
+
+    This example shows the measure of the solid angle spanned by the vectors::
+
+        sage: from sage.geometry.solid_angle import solid_angle_simplicial_arctan_3d
+        sage: A = matrix([[1,0,0],[0,1,0],[0,0,1]])
+        sage: solid_angle_simplicial_arctan_3d(A)
+        1/8
+
+    The input can be a list of vectors instead of a matrix::
+
+        sage: solid_angle_simplicial_arctan_3d(
+        ....:         [[0,0,3],[-1,-1,0],[-2,2,0]])
+        1/8
+
+        sage: RDF(solid_angle_simplicial_arctan_3d(
+        ....:    [[pi, 0, 0],[1.6, 1.6, 0],
+        ....:    [1/sqrt(2), 1/sqrt(2), 1/sqrt(2)]])) # abs tol 1e-15
+        0.020833333333333332
+
+    This example shows the solid angle of a cone in 3d with affine dimension 2.
+    In contrast to ``solid_angle_3d``, this formula gives a non-zero angle::
+
+        sage: A = matrix([[2,0,0],[0,3,0],[-4,-4,0]])
+        sage: RDF(solid_angle_simplicial_arctan_3d(A))  # abs tol 1e-15
+        0.5
+
+    It is an error to input a matrix ``A``, which has two vectors
+    that are scalar multiples of each other::
+
+        sage: A = matrix([[-1,0,1],[3,0,0],[-1,0,0]])
+        sage: RDF(solid_angle_simplicial_arctan_3d(A))
+        NaN
+
+    It is an error to input vectors from `\RR^2` into this function::
+
+        sage: solid_angle_simplicial_arctan_3d(matrix([[1,0],[3,4],[-1,2]]))
+        Traceback (most recent call last):
+        ...
+        ValueError: input matrix has incorrect dimension.
+
+    .. NOTE::
+
+        This function uses the formula given in Ribando's
+        2006 paper entitled "Measuring Solid Angles Beyond
+        Dimension Three." Refer to Oosterom and Strackee (1983)
+        and Eriksson (1990) for more information.
+    """
+    if not hasattr(A, 'nrows'):
+        A = matrix(A)
+    if A.nrows() != 3 or A.ncols() != 3:
+        raise ValueError("input matrix has incorrect dimension.")
+    vnorm = [A[i].norm() for i in range(3)]
+    a = A[0]/vnorm[0]
+    b = A[1]/vnorm[1]
+    c = A[2]/vnorm[2]
+    w = matrix([a, b, c])
+    det = abs(w.determinant())  # same as det of matrix [abc]
+    dab = a.dot_product(b)
+    dac = a.dot_product(c)
+    dbc = b.dot_product(c)
+    denom = 1+dab+dac+dbc
+    omega = 2*atan2(det, denom)
+    return omega/(4*pi)
+
+
+def solid_angle_3d(A, method="arctan"):
+    r"""
+    Return the normalized solid angle measure of the cone spanned
+    by three vectors in `\RR^3`.
+
+    INPUT:
+
+    - ``A`` -- `n\times 3` matrix whose rows vectors span the cone in `\RR^3`
+      of which we look for the solid angle. The input can be in the form of a
+      matrix or as a list of vectors in `\RR^3`.
+
+    - ``method`` -- (optional) Either ``arctan`` or ``arccos``.
+
+    OUTPUT: The normalized solid angle measure of the cone spanned by the row
+    vectors, as a decimal
+
+    EXAMPLES:
+
+    The following three examples show the solid angles spanned by the given
+    three, four or five vectors in `\RR^3`, respectively::
+
+        sage: from sage.geometry.solid_angle import solid_angle_3d
+        sage: import logging
+        sage: logging.disable(logging.WARNING)
+        sage: RDF(solid_angle_3d([[1,0,2],[-1,3,1],[1,0,-1]]))      # abs tol 1e-15
+        0.1817687464348209
+
+        sage: A = matrix([[1,0,0],[-1,0,0],[-1,3,1],[1,0,-1]])
+        sage: import logging
+        sage: logging.disable(logging.WARNING)
+        sage: RDF(solid_angle_3d(A))                              # abs tol 1e-15
+        0.30120819117478337
+
+        sage: A = matrix([[1,0,0],[0,1,0],[-1,0,0],[0,0,-1],[1,1,1]])
+        sage: solid_angle_3d(A)                                # abs tol 1e-15
+        3/8
+
+    This example illustrates how using the `arccos` method instead of the
+    default `arctan` method gives the same result::
+
+        sage: A = matrix([[1,0,0],[0,1,0],[-1,0,0],[0,0,-1],[1,1,1]])
+        sage: RDF(solid_angle_3d(A, method="arccos"))               # abs tol 1e-15
+        0.375
+
+    This example illustrates how the solid angle measure can equal 1. That is,
+    the span of the rays is all of space::
+
+        sage: A = matrix([[1,0,0],[0,1,0],[-1,0,0],[0,0,1],[0,0,-1],[0,-1,0]])
+        sage: solid_angle_3d(A)                                # abs tol 1e-15
+        1.0
+
+    Check corner case where the where cones have affine dimension less than 3::
+
+        sage: import logging
+        sage: logging.disable(logging.WARNING)
+        sage: solid_angle_3d([[1,0,0],[2,0,0],[-1,1,0],[-2,2,0]])
+        0
+
+        sage: solid_angle_3d(matrix([[1,0,0],[0,2,3]]))
+        0
+    """
+    import logging
+    logging.getLogger().setLevel(logging.INFO)
+    if not hasattr(A, 'nrows'):
+        A = matrix(A)
+    P = A[0][0].parent()
+    if A.rank() < 3:
+        logging.warning("cone not full-dimensional")
+        return P.zero()
+    if method == "arctan":
+        solid_angle_function = solid_angle_simplicial_arctan_3d
+    elif method == "arccos":
+        solid_angle_function = solid_angle_simplicial_arccos_3d
+    else:
+        raise ValueError("method %s of solid_angle_3d is unknown" % method)
+    if A.nrows() == 3:
+        return solid_angle_function(A)
+    A_list = simplicial_subcones_decomposition(A)
+    logging.info('Decompose into simplicial subcones\n' +
+                 ',\n'.join('{}'.format(Ai) for Ai in A_list))
+    results = [solid_angle_function(Ai) for Ai in A_list]
+    logging.info("Solid angles of the subcones are %s" % results)
+    return sum(results)
