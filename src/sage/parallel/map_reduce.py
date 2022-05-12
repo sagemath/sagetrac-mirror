@@ -541,22 +541,21 @@ Classes and methods
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
+import multiprocessing as mp
 from collections import deque
 from threading import Thread
-from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet  # _generic
-from sage.misc.lazy_attribute import lazy_attribute
 import copy
 import sys
 import random
 import queue
 import ctypes
-
-
 import logging
+
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet  # _generic
+from sage.misc.lazy_attribute import lazy_attribute
+
 logger = logging.getLogger(__name__)
-logger.__doc__ = (
-"""
+logger.__doc__ = ("""
 A logger for :mod:`sage.parallel.map_reduce`
 
 .. SEEALSO::
@@ -578,7 +577,6 @@ logger.addHandler(ch)
 
 # Set up a multiprocessing context to use for this modules (using the
 # 'fork' method which is basically same as on Python 2)
-import multiprocessing as mp
 mp = mp.get_context('fork')
 
 
@@ -1139,7 +1137,7 @@ class RESetMapReduce(object):
 
             sage: from sage.parallel.map_reduce import RESetMapReduce
             sage: def children(x):
-            ....:     sleep(float(0.5))
+            ....:     sleep(1)
             ....:     return []
             sage: S = RESetMapReduce(roots=[1], children=children)
             sage: S.setup_workers(2)
@@ -1147,7 +1145,7 @@ class RESetMapReduce(object):
             sage: all(w.is_alive() for w in S._workers)
             True
 
-            sage: sleep(1)
+            sage: sleep(2)
             sage: all(not w.is_alive() for w in S._workers)
             True
 
