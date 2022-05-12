@@ -579,7 +579,7 @@ class GaloisRepresentation(SageObject):
             sage: rho.find_surj_from_list()  # long time
             [2, 7]
 
-        The hyperelliptic curve is given by 
+        The hyperelliptic curve is given by
         `y^2 + (x+1)y = x^5 + x^4 - 9x^3 - 5x^2 + 21x` in the following
         example. ::
 
@@ -609,7 +609,7 @@ class GaloisRepresentation(SageObject):
         # to_check is the list of primes for which we still need to determine
         # surjectivity. Initially, it equals L and we remove primes as
         # their status is determined.
-        to_check = L.copy()  
+        to_check = L.copy()
         for p in prime_range(3, bound):
             if C % p != 0:
                 Hp = H.change_ring(GF(p))
@@ -1154,6 +1154,11 @@ class GaloisRepresentation(SageObject):
         # TODO: add non-CM examples
         if self.non_surjective_primes is not None:
             return self.non_surjective_primes
+
+        if not self._A.geometric_endomorphism_ring_is_ZZ():
+            raise NotImplementedError(
+                "Computation of non-surjective primes currently only works for Jacobians whose geometric endomorphism ring is Z."
+            )
 
         C = self._A.curve()
 
