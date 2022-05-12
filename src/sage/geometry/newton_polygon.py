@@ -706,7 +706,7 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
 
         The corresponding Newton polygon.
 
-        For more informations, see :class:`ParentNewtonPolygon`.
+        For more information, see :class:`ParentNewtonPolygon`.
 
         TESTS:
 

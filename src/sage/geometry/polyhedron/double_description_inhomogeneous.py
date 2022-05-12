@@ -508,6 +508,7 @@ class Vrep2Hrep(PivotedInequalities):
             sage: V2H._extract_Hrep(DD)
         """
         zero = self.base_ring.zero()
+
         def is_trivial(ray):
             # trivial Hrep output 1 >= 0
             return ray[0] > zero and all(r == zero for r in ray[1:])

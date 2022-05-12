@@ -12,7 +12,7 @@ AUTHORS:
 - Matthias Köppe (2017-03): initial version
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #  Copyright (C) 2017 Matthias Köppe <mkoeppe at math.ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
 import itertools
 
@@ -317,14 +317,14 @@ class Polyhedron_polymake(Polyhedron_base):
         """
         if not minimal:
             return dict(CONE_AMBIENT_DIM=1+self.parent().ambient_dim(),
-                        POINTS=(  [ [1] + list(v) for v in vertices ]
-                                + [ [0] + list(r) for r in rays ]),
-                        INPUT_LINEALITY=[ [0] + list(l) for l in lines ])
+                        POINTS=([[1] + list(v) for v in vertices]
+                                + [[0] + list(r) for r in rays]),
+                        INPUT_LINEALITY=[[0] + list(l) for l in lines])
         else:
             return dict(CONE_AMBIENT_DIM=1+self.parent().ambient_dim(),
-                        VERTICES=(  [ [1] + list(v) for v in vertices ]
-                                  + [ [0] + list(r) for r in rays ]),
-                        LINEALITY_SPACE=[ [0] + list(l) for l in lines ])
+                        VERTICES=([[1] + list(v) for v in vertices]
+                                  + [[0] + list(r) for r in rays]),
+                        LINEALITY_SPACE=[[0] + list(l) for l in lines])
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
         r"""
@@ -386,10 +386,10 @@ class Polyhedron_polymake(Polyhedron_base):
         # using QuadraticExtension, when some all-zero inequalities are input.
         # https://forum.polymake.org/viewtopic.php?f=8&t=547
         # Filter them out.
-        ieqs = [ list(v) for v in ieqs if not all(self._is_zero(x) for x in v) ]
+        ieqs = [list(v) for v in ieqs if not all(self._is_zero(x) for x in v)]
         # We do a similar filtering for equations.
         # Since Polymake 3.2, we can not give all zero vectors in equations
-        eqns = [ list(v) for v in eqns if not all(self._is_zero(x) for x in v) ]
+        eqns = [list(v) for v in eqns if not all(self._is_zero(x) for x in v)]
         if not ieqs:
             # Put in one trivial (all-zero) inequality.  This is so that
             # the ambient dimension is set correctly.
@@ -534,8 +534,7 @@ class Polyhedron_polymake(Polyhedron_base):
             self._Hrepresentation = []
             parent = self.parent()
             for g in p.FACETS.sage():
-                if all(x==0 for x in g[1:]):
-                    # Ignore vertical inequality
+                if all(x == 0 for x in g[1:]):  # Ignore vertical inequality
                     pass
                 else:
                     parent._make_Inequality(self, g)
@@ -689,7 +688,6 @@ class Polyhedron_polymake(Polyhedron_base):
             inequalities = self.inequalities()
             equations = self.equations()
 
-
         p = self._polymake_polytope_from_Vrepresentation_and_Hrepresentation([vertices, rays, lines], [inequalities, equations])
         if p is not None:
             self._polymake_polytope = p
@@ -729,6 +727,8 @@ class Polyhedron_polymake(Polyhedron_base):
         tester.assertEqual(P.AFFINE_HULL,     P1.AFFINE_HULL)
 
 #########################################################################
+
+
 class Polyhedron_QQ_polymake(Polyhedron_polymake, Polyhedron_QQ):
     r"""
     Polyhedra over `\QQ` with polymake.
@@ -766,4 +766,3 @@ class Polyhedron_ZZ_polymake(Polyhedron_polymake, Polyhedron_ZZ):
         sage: TestSuite(p).run()                                           # optional - polymake
     """
     pass
-

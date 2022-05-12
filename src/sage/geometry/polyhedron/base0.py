@@ -36,6 +36,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.element import Element
 import sage.geometry.abc
 
+
 class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
     """
     Initialization and basic access for polyhedra.

@@ -6,7 +6,6 @@ from sage.rings.real_double import RDF
 from .base import Polyhedron_base
 
 
-
 class Polyhedron_RDF(Polyhedron_base):
     """
     Base class for polyhedra over ``RDF``.
@@ -44,7 +43,7 @@ class Polyhedron_RDF(Polyhedron_base):
             sage: p._is_zero(1e-10)
             True
         """
-        return abs(x)<=1e-6
+        return abs(x) <= 1e-6
 
     def _is_nonneg(self, x):
         """
@@ -71,7 +70,7 @@ class Polyhedron_RDF(Polyhedron_base):
             sage: p._is_nonneg(-1e-10)
             True
         """
-        return x>=-1e-6
+        return x >= -1e-6
 
     def _is_positive(self, x):
         """
@@ -98,7 +97,6 @@ class Polyhedron_RDF(Polyhedron_base):
             sage: p._is_positive(-1e-10)
             True
         """
-        return x>=-1e-6
+        return x >= -1e-6
 
     _base_ring = RDF
-

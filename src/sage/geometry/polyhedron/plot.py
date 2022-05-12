@@ -191,7 +191,7 @@ class ProjectionFuncStereographic():
             self.house = identity_matrix(RDF, self.dim)
         else:
             house = identity_matrix(RDF, self.dim) \
-            - 2*polediff*polediff.transpose()/denom   # Householder reflector
+                    - 2 * polediff * polediff.transpose() / denom   # Householder reflector
             # Make it preserve orientation (chirality):
             self.house = diagonal_matrix(RDF, [1] * (self.dim - 1) + [-1]) * house
 
@@ -712,19 +712,19 @@ class Projection(SageObject):
                     continue
                 if i < j and obj[j].is_vertex():
                     l = [obj[i].vector(), obj[j].vector()]
-                    self.lines.append( [ self.coord_index_of(l[0]),
-                                         self.coord_index_of(l[1]) ] )
+                    self.lines.append([self.coord_index_of(l[0]),
+                                       self.coord_index_of(l[1])])
                 if obj[j].is_ray():
                     l = [obj[i].vector(), obj[i].vector() + obj[j].vector()]
-                    self.arrows.append( [ self.coord_index_of(l[0]),
-                                          self.coord_index_of(l[1]) ] )
+                    self.arrows.append([self.coord_index_of(l[0]),
+                                        self.coord_index_of(l[1])])
                 if obj[j].is_line():
                     l1 = [obj[i].vector(), obj[i].vector() + obj[j].vector()]
                     l2 = [obj[i].vector(), obj[i].vector() - obj[j].vector()]
-                    self.arrows.append( [ self.coord_index_of(l1[0]),
-                                          self.coord_index_of(l1[1]) ] )
-                    self.arrows.append( [ self.coord_index_of(l2[0]),
-                                          self.coord_index_of(l2[1]) ] )
+                    self.arrows.append([self.coord_index_of(l1[0]),
+                                        self.coord_index_of(l1[1])])
+                    self.arrows.append([self.coord_index_of(l2[0]),
+                                        self.coord_index_of(l2[1])])
 
     def _init_area_2d(self, polyhedron):
         """
@@ -841,7 +841,7 @@ class Projection(SageObject):
 
         if polyhedron.n_lines() == 0:
             assert faces, "no vertices?"
-            self.polygons.extend( [self.coord_indices_of(f) for f in faces] )
+            self.polygons.extend([self.coord_indices_of(f) for f in faces])
             return
 
         # now some special cases if there are lines (dim < ambient_dim)

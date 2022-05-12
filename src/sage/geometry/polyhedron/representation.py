@@ -153,7 +153,7 @@ class PolyhedronRepresentation(SageObject):
         if not isinstance(other, PolyhedronRepresentation):
             return NotImplemented
         return richcmp((self.type(), self._vector*self._comparison_scalar()),
-                (other.type(), other._vector*other._comparison_scalar()), op)
+                       (other.type(), other._vector*other._comparison_scalar()), op)
 
     def _comparison_scalar(self):
         r"""
@@ -930,14 +930,14 @@ class Inequality(Hrepresentation):
         """
         try:
             if Vobj.is_vector():  # assume we were passed a point
-                return self.polyhedron()._is_nonneg( self.eval(Vobj) )
+                return self.polyhedron()._is_nonneg(self.eval(Vobj))
         except AttributeError:
             pass
 
         if Vobj.is_line():
-            return self.polyhedron()._is_zero( self.eval(Vobj) )
+            return self.polyhedron()._is_zero(self.eval(Vobj))
         else:
-            return self.polyhedron()._is_nonneg( self.eval(Vobj) )
+            return self.polyhedron()._is_nonneg(self.eval(Vobj))
 
     def interior_contains(self, Vobj):
         """
@@ -963,17 +963,17 @@ class Inequality(Hrepresentation):
             [True, True, False, True]
         """
         try:
-            if Vobj.is_vector(): # assume we were passed a point
-                return self.polyhedron()._is_positive( self.eval(Vobj) )
+            if Vobj.is_vector():  # assume we were passed a point
+                return self.polyhedron()._is_positive(self.eval(Vobj))
         except AttributeError:
             pass
 
         if Vobj.is_line():
-            return self.polyhedron()._is_zero( self.eval(Vobj) )
+            return self.polyhedron()._is_zero(self.eval(Vobj))
         elif Vobj.is_vertex():
-            return self.polyhedron()._is_positive( self.eval(Vobj) )
-        else: # Vobj.is_ray()
-            return self.polyhedron()._is_nonneg( self.eval(Vobj) )
+            return self.polyhedron()._is_positive(self.eval(Vobj))
+        else:  # Vobj.is_ray()
+            return self.polyhedron()._is_nonneg(self.eval(Vobj))
 
     def outer_normal(self):
         r"""
@@ -1029,7 +1029,6 @@ class Equation(Hrepresentation):
         """
         return self.EQUATION
 
-
     def is_equation(self):
         """
         Tests if this object is an equation.  By construction, it must be.
@@ -1060,7 +1059,7 @@ class Equation(Hrepresentation):
         have_A = not self.A().is_zero()
         if have_A:
             s += repr(self.A()) + ' x '
-        if self.b()>=0:
+        if self.b() >= 0:
             if have_A:
                 s += '+'
         else:
@@ -1087,7 +1086,7 @@ class Equation(Hrepresentation):
             sage: a.contains(v)
             True
         """
-        return self.polyhedron()._is_zero( self.eval(Vobj) )
+        return self.polyhedron()._is_zero(self.eval(Vobj))
 
     def interior_contains(self, Vobj):
         """

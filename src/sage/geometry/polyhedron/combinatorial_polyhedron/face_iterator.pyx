@@ -1033,7 +1033,7 @@ cdef class FaceIterator_base(SageObject):
         elif not self._bounded and face_issubset(face, self._far_face):
             # The join is not well-defined.
             # We allow for unbounded polyhedra to compute the join, even with rays.
-            # However, the result is not necesarrily well-defined.
+            # However, the result is not necessarily well-defined.
             raise ValueError("the join is not well-defined")
 
         self.find_face(face)

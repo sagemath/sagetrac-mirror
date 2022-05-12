@@ -40,6 +40,7 @@ from sage.rings.qqbar import AA
 from sage.geometry.convex_set import AffineHullProjectionData
 from .base5 import Polyhedron_base5
 
+
 class Polyhedron_base6(Polyhedron_base5):
     r"""
     Methods related to plotting including affine hull projection.
@@ -398,7 +399,7 @@ class Polyhedron_base6(Polyhedron_base5):
             plot_method = projection.plot
         except AttributeError:
             raise NotImplementedError('plotting of {0}-dimensional polyhedra not implemented'
-                                          .format(self.ambient_dim()))
+                                      .format(self.ambient_dim()))
         return plot_method(*opts)
 
     def show(self, **kwds):

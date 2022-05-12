@@ -155,8 +155,8 @@ class PolyhedronFace(ConvexSet_closed):
         self._polyhedron = polyhedron
         self._ambient_Vrepresentation_indices = tuple(V_indices)
         self._ambient_Hrepresentation_indices = tuple(H_indices)
-        self._ambient_Vrepresentation = tuple( polyhedron.Vrepresentation(i) for i in V_indices )
-        self._ambient_Hrepresentation = tuple( polyhedron.Hrepresentation(i) for i in H_indices )
+        self._ambient_Vrepresentation = tuple(polyhedron.Vrepresentation(i) for i in V_indices)
+        self._ambient_Hrepresentation = tuple(polyhedron.Hrepresentation(i) for i in H_indices)
         if polyhedron.is_mutable():
             polyhedron._add_dependent_object(self)
 
@@ -614,9 +614,9 @@ class PolyhedronFace(ConvexSet_closed):
         else:
             origin = self.vertices()[0].vector()
             v_list = [vector(v) - origin for v in
-                     self.ambient_Vrepresentation() if v.is_vertex()]
+                      self.ambient_Vrepresentation() if v.is_vertex()]
             v_list += [vector(v) for v in self.ambient_Vrepresentation()
-                      if v.is_ray() or v.is_line()]
+                       if v.is_ray() or v.is_line()]
             return matrix(v_list).rank()
 
     def _repr_(self):
@@ -905,7 +905,7 @@ class PolyhedronFace(ConvexSet_closed):
         """
         if self.dim() == -1:
             raise ValueError("the empty face does not have a normal cone")
-        elif direction not in ['outer','inner']:
+        elif direction not in ['outer', 'inner']:
             raise ValueError("the direction should be either 'outer' or 'inner'")
         rays = []
         lines = []
@@ -1021,6 +1021,7 @@ class PolyhedronFace(ConvexSet_closed):
         parent = self.polyhedron().parent().change_ring(self.polyhedron().base_ring().fraction_field())
 
         return parent.element_class(parent, None, [locus_ieqs, locus_eqns])
+
 
 def combinatorial_face_to_polyhedral_face(polyhedron, combinatorial_face):
     r"""

@@ -39,6 +39,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from .base2 import Polyhedron_base2
 
+
 class Polyhedron_base3(Polyhedron_base2):
     """
     Methods related to the combinatorics of a polyhedron.
@@ -369,7 +370,7 @@ class Polyhedron_base3(Polyhedron_base2):
         tester.info("\n  Running the test suite of self.combinatorial_polyhedron()")
         TestSuite(self.combinatorial_polyhedron()).run(verbose=tester._verbose,
                                                        prefix=tester._prefix+"  ")
-        tester.info(tester._prefix+" ", newline = False)
+        tester.info(tester._prefix+" ", newline=False)
 
     def face_generator(self, face_dimension=None, dual=None):
         r"""

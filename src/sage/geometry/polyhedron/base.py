@@ -86,6 +86,8 @@ def is_Polyhedron(X):
 
 
 #########################################################################
+
+
 class Polyhedron_base(Polyhedron_base6):
     """
     Base class for Polyhedron objects
@@ -2000,8 +2002,8 @@ class Polyhedron_base(Polyhedron_base6):
         G = self.restricted_automorphism_group(output='permutation')
         if acting_group is not None:
             G = acting_group
-
         group_dict = {}
+
         def permutation_to_matrix(permutation, V, Vplus, W):
             A = sum(V[permutation(i)].column() * Vplus[i].row() for i in range(len(V)))
             return A + W
@@ -2223,6 +2225,6 @@ class Polyhedron_base(Polyhedron_base6):
             return polymake.new_object(polymake_class,
                                        FACETS=self.inequalities_list(),
                                        AFFINE_HULL=self.equations_list(),
-                                       VERTICES=   [ [1] + v for v in self.vertices_list() ] \
-                                                 + [ [0] + r for r in self.rays_list() ],
-                                       LINEALITY_SPACE=[ [0] + l for l in self.lines_list() ])
+                                       VERTICES=[[1] + v for v in self.vertices_list()]
+                                       + [[0] + r for r in self.rays_list()],
+                                       LINEALITY_SPACE=[[0] + l for l in self.lines_list()])

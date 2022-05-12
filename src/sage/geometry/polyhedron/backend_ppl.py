@@ -15,7 +15,7 @@ from sage.misc.lazy_import import lazy_import
 from sage.features import PythonModule
 lazy_import('ppl', ['C_Polyhedron', 'Generator_System', 'Constraint_System',
                     'Linear_Expression', 'line', 'ray', 'point'],
-                    feature=PythonModule("ppl", spkg="pplpy"))
+            feature=PythonModule("ppl", spkg="pplpy"))
 
 
 #########################################################################
@@ -394,7 +394,7 @@ class Polyhedron_ppl(Polyhedron_mutable):
         if d.is_one():
             return ob(Linear_Expression(v, 0))
         else:
-            dv = [ d*v_i for v_i in v ]
+            dv = [d*v_i for v_i in v]
             if typ == 2:
                 return ob(Linear_Expression(dv, 0), d)
             else:
@@ -420,7 +420,7 @@ class Polyhedron_ppl(Polyhedron_mutable):
             x0+6*x1+2==0
         """
         d = LCM_list([denominator(c_i) for c_i in c])
-        dc = [ ZZ(d*c_i) for c_i in c ]
+        dc = [ZZ(d*c_i) for c_i in c]
         b = dc[0]
         A = dc[1:]
         if typ == 0:
@@ -428,10 +428,9 @@ class Polyhedron_ppl(Polyhedron_mutable):
         else:
             return Linear_Expression(A, b) == 0
 
-
-
-
 #########################################################################
+
+
 class Polyhedron_QQ_ppl(Polyhedron_ppl, Polyhedron_QQ):
     r"""
     Polyhedra over `\QQ` with ppl

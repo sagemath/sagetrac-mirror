@@ -37,8 +37,14 @@ The implementation works over any exact field that is embedded in
      (0.07665629029830300?, 0.07665629029830300?, 0.2411809548974793?),
      (0.5822623322995881?, -0.4177376677004119?, 0.4177376677004119?)]
 """
+import itertools
 
-#*****************************************************************************
+from sage.misc.cachefunc import cached_method
+from sage.rings.rational_field import QQ
+from sage.modules.free_module_element import vector
+from sage.matrix.matrix_space import MatrixSpace
+
+# *****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #                     2015 Vincent Delecroix <20100.delecroix@gmail.com>
 #
@@ -47,10 +53,10 @@ The implementation works over any exact field that is embedded in
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
 
-#*****************************************************************************
+# *****************************************************************************
 # TODO
 #
 # The adjacency check should use caching and the "combinatorial
@@ -70,13 +76,6 @@ The implementation works over any exact field that is embedded in
 # construct one by hand.
 
 VERIFY_RESULT = True
-
-import itertools
-
-from sage.misc.cachefunc import cached_method
-from sage.rings.rational_field import QQ
-from sage.modules.free_module_element import vector
-from sage.matrix.matrix_space import MatrixSpace
 
 
 def random_inequalities(d, n):
@@ -147,7 +146,7 @@ class DoubleDescriptionPair:
         self.problem = problem
         self.A = list(A_rows)
         self.R = list(R_cols)
-        self.one  = problem._field.one()
+        self.one = problem._field.one()
         self.zero = problem._field.zero()
 
         # a cache for scalar products (see the method zero_set)
@@ -372,7 +371,7 @@ class DoubleDescriptionPair:
             self.zero_set_cache[ray] = (0, set())
         n, t = self.zero_set_cache[ray]
         if n != len(self.A):
-            t.update(self.A[i] for i in range(n,len(self.A)) if self.A[i].inner_product(ray) == self.zero)
+            t.update(self.A[i] for i in range(n, len(self.A)) if self.A[i].inner_product(ray) == self.zero)
             self.zero_set_cache[ray] = (len(self.A), t)
         return t
 
@@ -720,6 +719,7 @@ class StandardDoubleDescriptionPair(DoubleDescriptionPair):
             R_new.append(r)
         self.R = R_pos + R_nul + R_new
         self.A.append(a)
+
 
 class StandardAlgorithm(Problem):
     """

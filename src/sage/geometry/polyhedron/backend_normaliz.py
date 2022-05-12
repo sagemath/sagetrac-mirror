@@ -27,9 +27,6 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.misc.lazy_import import lazy_import
 import sage.features.normaliz
-lazy_import('PyNormaliz', ['NmzResult', 'NmzCompute', 'NmzCone', 'NmzConeCopy'],
-            feature=sage.features.normaliz.PyNormaliz())
-
 from sage.rings.all import ZZ, QQ, QQbar
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.arith.functions import LCM_list
@@ -39,6 +36,8 @@ from sage.matrix.constructor import vector
 from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ
 from .base_ZZ import Polyhedron_ZZ
+lazy_import('PyNormaliz', ['NmzResult', 'NmzCompute', 'NmzCone', 'NmzConeCopy'],
+            feature=sage.features.normaliz.PyNormaliz())
 
 
 def _number_field_elements_from_algebraics_list_of_lists_of_lists(listss, **kwds):
@@ -62,7 +61,7 @@ def _number_field_elements_from_algebraics_list_of_lists_of_lists(listss, **kwds
             numbers.extend(list)
     K, K_numbers, hom = number_field_elements_from_algebraics(numbers, **kwds)
     g = iter(K_numbers)
-    return K, [ [ [ next(g) for _ in list ] for list in lists ] for lists in listss ], hom
+    return K, [[[next(g) for _ in list] for list in lists] for lists in listss], hom
 
 
 def _format_function_call(fn_name, *v, **k):
@@ -77,7 +76,7 @@ def _format_function_call(fn_name, *v, **k):
         sage: _format_function_call('foo', 17, hellooooo='goodbyeeee')
         "foo(17, hellooooo='goodbyeeee')"
     """
-    args = [ repr(a) for a in v ] + [ "%s=%r" % (arg, val) for arg, val in sorted(k.items()) ]
+    args = [repr(a) for a in v] + ["%s=%r" % (arg, val) for arg, val in sorted(k.items())]
     return "{}({})".format(fn_name, ", ".join(args))
 
 
@@ -342,19 +341,19 @@ class Polyhedron_normaliz(Polyhedron_base):
         """
         def _QQ_pair(x):
             x = QQ(x)
-            return [ int(x.numerator()), int(x.denominator())]
+            return [int(x.numerator()), int(x.denominator())]
         from sage.rings.rational import Rational
         from types import GeneratorType
         if isinstance(x, (list, tuple, GeneratorType)):
-            return [ Polyhedron_normaliz._convert_to_pynormaliz(y) for y in x ]
+            return [Polyhedron_normaliz._convert_to_pynormaliz(y) for y in x]
         try:
             return int(ZZ(x))
         except TypeError:
             if isinstance(x, Rational):
-                return [ _QQ_pair(x) ]    # need extra brackets to distinguish from quadratic numberfield element
+                return [_QQ_pair(x)]    # need extra brackets to distinguish from quadratic numberfield element
             else:
                 # number field
-                return [ _QQ_pair(c) for c in x.list() ]
+                return [_QQ_pair(c) for c in x.list()]
 
     def _init_from_normaliz_data(self, data, normaliz_field=None, verbose=False):
         """
@@ -518,17 +517,17 @@ class Polyhedron_normaliz(Polyhedron_base):
             nmz_vertices = []
             for v in vertices:
                 d = LCM_list([denominator(v_i) for v_i in v])
-                dv = [ d * v_i for v_i in v ]
+                dv = [d * v_i for v_i in v]
                 nmz_vertices.append(dv + [d])
             nmz_rays = []
             for r in rays:
                 d = LCM_list([denominator(r_i) for r_i in r])
-                dr = [ d * r_i for r_i in r ]
+                dr = [d * r_i for r_i in r]
                 nmz_rays.append(dr)
             nmz_lines = []
             for l in lines:
                 d = LCM_list([denominator(l_i) for l_i in l])
-                dl = [ d * l_i for l_i in l ]
+                dl = [d * l_i for l_i in l]
                 nmz_lines.append(dl)
             return nmz_vertices, nmz_rays, nmz_lines
 
@@ -624,14 +623,14 @@ class Polyhedron_normaliz(Polyhedron_base):
             nmz_ieqs = []
             for ieq in ieqs:
                 d = LCM_list([denominator(ieq_i) for ieq_i in ieq])
-                dieq = [ ZZ(d * ieq_i) for ieq_i in ieq ]
+                dieq = [ZZ(d * ieq_i) for ieq_i in ieq]
                 b = dieq[0]
                 A = dieq[1:]
                 nmz_ieqs.append(A + [b])
             nmz_eqns = []
             for eqn in eqns:
                 d = LCM_list([denominator(eqn_i) for eqn_i in eqn])
-                deqn = [ ZZ(d * eqn_i) for eqn_i in eqn ]
+                deqn = [ZZ(d * eqn_i) for eqn_i in eqn]
                 b = deqn[0]
                 A = deqn[1:]
                 nmz_eqns.append(A + [b])
@@ -788,23 +787,23 @@ class Polyhedron_normaliz(Polyhedron_base):
             nmz_vertices = []
             for v in vertices:
                 d = LCM_list([denominator(v_i) for v_i in v])
-                dv = [ d * v_i for v_i in v ]
+                dv = [d * v_i for v_i in v]
                 nmz_vertices.append(dv + [d])
             nmz_rays = []
             for r in rays:
                 d = LCM_list([denominator(r_i) for r_i in r])
-                dr = [ d * r_i for r_i in r ]
+                dr = [d * r_i for r_i in r]
                 nmz_rays.append(dr + [0])
             nmz_lines = []
             for l in lines:
                 d = LCM_list([denominator(l_i) for l_i in l])
-                dl = [ d * l_i for l_i in l ]
+                dl = [d * l_i for l_i in l]
                 nmz_lines.append(dl + [0])
 
             nmz_ieqs = []
             for ieq in ieqs:
                 d = LCM_list([denominator(ieq_i) for ieq_i in ieq])
-                dieq = [ ZZ(d * ieq_i) for ieq_i in ieq ]
+                dieq = [ZZ(d * ieq_i) for ieq_i in ieq]
                 b = dieq[0]
                 A = dieq[1:]
                 nmz_ieqs.append(A + [b])
@@ -825,9 +824,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             return nmz_vertices + nmz_rays, nmz_lines, nmz_lattice, nmz_ieqs
 
         def rays_subspace_lattice_ieqs_NF(vertices, rays, lines, ieqs):
-            nmz_vertices = [ list(v) + [1] for v in vertices ]
-            nmz_rays = [ list(r) + [0] for r in rays ]
-            nmz_lines = [ list(l) + [1] for l in lines ]
+            nmz_vertices = [list(v) + [1] for v in vertices]
+            nmz_rays = [list(r) + [0] for r in rays]
+            nmz_lines = [list(l) + [1] for l in lines]
 
             nmz_ieqs = []
             for ieq in ieqs:
@@ -971,8 +970,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 normaliz_field = K
                 if K is QQ:
                     # Compute it with Normaliz, not QNormaliz
-                    nmz_data_lists = convert_QQ(*[ [ [ QQ(x) for x in v ] for v in l]
-                                                   for l in data_lists ])
+                    nmz_data_lists = convert_QQ(*[[[QQ(x) for x in v] for v in l] for l in data_lists])
         return nmz_data_lists, normaliz_field
 
     def _init_Vrepresentation_from_normaliz(self):

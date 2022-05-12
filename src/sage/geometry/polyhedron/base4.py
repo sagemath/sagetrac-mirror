@@ -36,6 +36,7 @@ Define methods relying on :mod:`sage.graphs`.
 from sage.misc.cachefunc import cached_method
 from .base3 import Polyhedron_base3
 
+
 class Polyhedron_base4(Polyhedron_base3):
     """
     Methods relying on :mod:`sage.graphs`.
@@ -531,7 +532,7 @@ class Polyhedron_base4(Polyhedron_base3):
              (3,): 8,
              4: 1}
 
-        If the arguments are not stricly increasing or out of range, a key error is raised::
+        If the arguments are not strictly increasing or out of range, a key error is raised::
 
             sage: P.flag_f_vector(-1,0,3,6)
             Traceback (most recent call last):

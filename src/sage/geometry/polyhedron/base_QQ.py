@@ -38,7 +38,7 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: p._is_zero(1/100000)
             False
         """
-        return x==0
+        return x == 0
 
     def _is_nonneg(self, x):
         """
@@ -60,7 +60,7 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: p._is_nonneg(-1/100000)
             False
         """
-        return x>=0
+        return x >= 0
 
     def _is_positive(self, x):
         """
@@ -82,7 +82,7 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: p._is_positive(0)
             False
         """
-        return x>0
+        return x > 0
 
     _base_ring = QQ
 
@@ -219,10 +219,10 @@ class Polyhedron_QQ(Polyhedron_base):
 
     @cached_method(do_pickle=True)
     def ehrhart_polynomial(self, engine=None, variable='t', verbose=False,
-            dual=None, irrational_primal=None, irrational_all_primal=None,
-            maxdet=None, no_decomposition=None, compute_vertex_cones=None,
-            smith_form=None, dualization=None, triangulation=None,
-            triangulation_max_height=None, **kwds):
+                           dual=None, irrational_primal=None, irrational_all_primal=None,
+                           maxdet=None, no_decomposition=None, compute_vertex_cones=None,
+                           smith_form=None, dualization=None, triangulation=None,
+                           triangulation_max_height=None, **kwds):
         r"""
         Return the Ehrhart polynomial of this polyhedron.
 
@@ -369,10 +369,10 @@ class Polyhedron_QQ(Polyhedron_base):
             engine = 'latte'
         if engine == 'latte':
             poly = self._ehrhart_polynomial_latte(verbose, dual,
-            irrational_primal, irrational_all_primal, maxdet,
-            no_decomposition, compute_vertex_cones, smith_form,
-            dualization, triangulation, triangulation_max_height,
-            **kwds)
+                                                  irrational_primal, irrational_all_primal, maxdet,
+                                                  no_decomposition, compute_vertex_cones, smith_form,
+                                                  dualization, triangulation, triangulation_max_height,
+                                                  **kwds)
             return poly.change_variable_name(variable)
             # TO DO: replace this change of variable by creating the appropriate
             #        polynomial ring in the latte interface.
@@ -384,10 +384,10 @@ class Polyhedron_QQ(Polyhedron_base):
 
     @cached_method(do_pickle=True)
     def ehrhart_quasipolynomial(self, variable='t', engine=None, verbose=False,
-            dual=None, irrational_primal=None, irrational_all_primal=None,
-            maxdet=None, no_decomposition=None, compute_vertex_cones=None,
-            smith_form=None, dualization=None, triangulation=None,
-            triangulation_max_height=None, **kwds):
+                                dual=None, irrational_primal=None, irrational_all_primal=None,
+                                maxdet=None, no_decomposition=None, compute_vertex_cones=None,
+                                smith_form=None, dualization=None, triangulation=None,
+                                triangulation_max_height=None, **kwds):
         r"""
         Compute the Ehrhart quasipolynomial of this polyhedron with rational
         vertices.
@@ -565,10 +565,10 @@ class Polyhedron_QQ(Polyhedron_base):
             if any(not v.is_integral() for v in self.vertex_generator()):
                 raise TypeError("the polytope has nonintegral vertices, the engine and backend of self should be 'normaliz'")
             poly = self._ehrhart_polynomial_latte(verbose, dual,
-            irrational_primal, irrational_all_primal, maxdet,
-            no_decomposition, compute_vertex_cones, smith_form,
-            dualization, triangulation, triangulation_max_height,
-            **kwds)
+                                                  irrational_primal, irrational_all_primal, maxdet,
+                                                  no_decomposition, compute_vertex_cones, smith_form,
+                                                  dualization, triangulation, triangulation_max_height,
+                                                  **kwds)
             return poly.change_variable_name(variable)
             # TO DO: replace this change of variable by creating the appropriate
             #        polynomial ring in the latte interface.
@@ -630,10 +630,10 @@ class Polyhedron_QQ(Polyhedron_base):
     _ehrhart_polynomial_normaliz = _ehrhart_quasipolynomial_normaliz
 
     def _ehrhart_polynomial_latte(self, verbose=False, dual=None,
-            irrational_primal=None, irrational_all_primal=None, maxdet=None,
-            no_decomposition=None, compute_vertex_cones=None, smith_form=None,
-            dualization=None, triangulation=None, triangulation_max_height=None,
-            **kwds):
+                                  irrational_primal=None, irrational_all_primal=None, maxdet=None,
+                                  no_decomposition=None, compute_vertex_cones=None, smith_form=None,
+                                  dualization=None, triangulation=None, triangulation_max_height=None,
+                                  **kwds):
         r"""
         Return the Ehrhart polynomial of this polyhedron using LattE integrale.
 
@@ -777,15 +777,15 @@ class Polyhedron_QQ(Polyhedron_base):
         # note: the options below are explicitly written in the function
         # declaration in order to keep tab completion (see #18211).
         kwds.update({
-            'dual'                    : dual,
-            'irrational_primal'       : irrational_primal,
-            'irrational_all_primal'   : irrational_all_primal,
-            'maxdet'                  : maxdet,
-            'no_decomposition'        : no_decomposition,
-            'compute_vertex_cones'    : compute_vertex_cones,
-            'smith_form'              : smith_form,
-            'dualization'             : dualization,
-            'triangulation'           : triangulation,
+            'dual': dual,
+            'irrational_primal': irrational_primal,
+            'irrational_all_primal': irrational_all_primal,
+            'maxdet': maxdet,
+            'no_decomposition': no_decomposition,
+            'compute_vertex_cones': compute_vertex_cones,
+            'smith_form': smith_form,
+            'dualization': dualization,
+            'triangulation': triangulation,
             'triangulation_max_height': triangulation_max_height})
 
         from sage.interfaces.latte import count
@@ -903,9 +903,8 @@ class Polyhedron_QQ(Polyhedron_base):
                 s = sum([(self.Vrepresentation()[i]).vector() for i in orbit])
             orbit_barycenter = (1/QQ(size)) * s
             vertices += [orbit_barycenter]
-
-        P = self.parent().change_ring(self.base_ring().fraction_field(),backend='normaliz')
-        return P.element_class(P, [vertices,[],[]], None)
+        P = self.parent().change_ring(self.base_ring().fraction_field(), backend='normaliz')
+        return P.element_class(P, [vertices, [], []], None)
 
     def fixed_subpolytopes(self, conj_class_reps):
         r"""

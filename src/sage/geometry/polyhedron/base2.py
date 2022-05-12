@@ -39,6 +39,7 @@ from sage.rings.integer_ring import ZZ
 from sage.modules.free_module_element import vector
 from .base1 import Polyhedron_base1
 
+
 class Polyhedron_base2(Polyhedron_base1):
     """
     Methods related to lattice points.
@@ -183,14 +184,14 @@ class Polyhedron_base2(Polyhedron_base1):
         except TypeError:
             if not envelope:
                 raise ValueError('Some vertices are not integral. '
-                    'You probably want to add the argument '
-                    '"envelope=True" to compute an enveloping lattice polytope.')
+                                 'You probably want to add the argument '
+                                 '"envelope=True" to compute an enveloping lattice polytope.')
             from sage.arith.misc import integer_ceil as ceil
             from sage.arith.misc import integer_floor as floor
             vertices = []
             for v in self.vertex_generator():
-                vbox = [ set([floor(x), ceil(x)]) for x in v ]
-                vertices.extend( itertools.product(*vbox) )
+                vbox = [set([floor(x), ceil(x)]) for x in v]
+                vertices.extend(itertools.product(*vbox))
 
         # construct the (enveloping) lattice polytope
         from sage.geometry.lattice_polytope import LatticePolytope

@@ -4357,7 +4357,7 @@ class NefPartition(SageObject, Hashable):
         """
         if check and not Delta_polar.is_reflexive():
             raise ValueError("nef-partitions can be constructed for reflexive "
-                             "polytopes ony!")
+                             "polytopes only!")
         self._vertex_to_part = tuple(int(el) for el in data)
         self._nparts = max(self._vertex_to_part) + 1
         self._Delta_polar = Delta_polar

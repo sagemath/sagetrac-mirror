@@ -379,9 +379,9 @@ class Polyhedron_cdd(Polyhedron_base):
                 # we disagree, they are adjacent to everything.
                 if v.is_line():
                     for j in range(len(self._Vrepresentation)):
-                        self._V_adjacency_matrix[i ,j] = 1
+                        self._V_adjacency_matrix[i, j] = 1
                         self._V_adjacency_matrix[j, i] = 1
-                self._V_adjacency_matrix[i,i] = 0
+                self._V_adjacency_matrix[i, i] = 0
             self._V_adjacency_matrix.set_immutable()
             self.vertex_adjacency_matrix.set_cache(self._V_adjacency_matrix)
 

@@ -94,10 +94,10 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         return self.is_compact()
 
     def _ehrhart_polynomial_latte(self, verbose=False, dual=None,
-            irrational_primal=None, irrational_all_primal=None, maxdet=None,
-            no_decomposition=None, compute_vertex_cones=None, smith_form=None,
-            dualization=None, triangulation=None, triangulation_max_height=None,
-            **kwds):
+                                  irrational_primal=None, irrational_all_primal=None, maxdet=None,
+                                  no_decomposition=None, compute_vertex_cones=None, smith_form=None,
+                                  dualization=None, triangulation=None, triangulation_max_height=None,
+                                  **kwds):
         r"""
         Return the Ehrhart polynomial of this polyhedron using LattE integrale.
 
@@ -236,15 +236,15 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         # note: the options below are explicitly written in the function
         # declaration in order to keep tab completion (see #18211).
         kwds.update({
-            'dual'                    : dual,
-            'irrational_primal'       : irrational_primal,
-            'irrational_all_primal'   : irrational_all_primal,
-            'maxdet'                  : maxdet,
-            'no_decomposition'        : no_decomposition,
-            'compute_vertex_cones'    : compute_vertex_cones,
-            'smith_form'              : smith_form,
-            'dualization'             : dualization,
-            'triangulation'           : triangulation,
+            'dual': dual,
+            'irrational_primal': irrational_primal,
+            'irrational_all_primal': irrational_all_primal,
+            'maxdet': maxdet,
+            'no_decomposition': no_decomposition,
+            'compute_vertex_cones': compute_vertex_cones,
+            'smith_form': smith_form,
+            'dualization': dualization,
+            'triangulation': triangulation,
             'triangulation_max_height': triangulation_max_height})
 
         from sage.interfaces.latte import count
@@ -291,10 +291,10 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
     @cached_method(do_pickle=True)
     def ehrhart_polynomial(self, engine=None, variable='t', verbose=False, dual=None,
-            irrational_primal=None, irrational_all_primal=None, maxdet=None,
-            no_decomposition=None, compute_vertex_cones=None, smith_form=None,
-            dualization=None, triangulation=None, triangulation_max_height=None,
-            **kwds):
+                           irrational_primal=None, irrational_all_primal=None, maxdet=None,
+                           no_decomposition=None, compute_vertex_cones=None, smith_form=None,
+                           dualization=None, triangulation=None, triangulation_max_height=None,
+                           **kwds):
         r"""
         Return the Ehrhart polynomial of this polyhedron.
 
@@ -455,19 +455,17 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             from sage.rings.rational_field import QQ
             R = PolynomialRing(QQ, variable)
             return R.zero()
-
         if not self.is_compact():
             raise ValueError("Ehrhart polynomial only defined for compact polyhedra")
-
         if engine is None:
             # setting the default to 'latte'
             engine = 'latte'
         if engine == 'latte':
             poly = self._ehrhart_polynomial_latte(verbose, dual,
-            irrational_primal, irrational_all_primal, maxdet,
-            no_decomposition, compute_vertex_cones, smith_form,
-            dualization, triangulation, triangulation_max_height,
-            **kwds)
+                                                  irrational_primal, irrational_all_primal, maxdet,
+                                                  no_decomposition, compute_vertex_cones, smith_form,
+                                                  dualization, triangulation, triangulation_max_height,
+                                                  **kwds)
             return poly.change_variable_name(variable)
             # TO DO: replace this change of variable by creating the appropriate
             #        polynomial ring in the latte interface.
@@ -512,14 +510,12 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         if not self.has_IP_property():
             raise ValueError('The polytope must have the IP property.')
 
-        vertices = tuple( ieq.A()/ieq.b() for
-                          ieq in self.inequality_generator() )
-
+        vertices = tuple(ieq.A()/ieq.b() for
+                         ieq in self.inequality_generator())
         ieqs = ((1,) + tuple(v[:]) for v in self.vertices())
-
         pref_rep = 'Hrep' if self.n_vertices() <= self.n_inequalities() else 'Vrep'
 
-        if all( all(v_i in ZZ for v_i in v) for v in vertices):
+        if all(all(v_i in ZZ for v_i in v) for v in vertices):
             parent = self.parent()
             vertices = (v.change_ring(ZZ) for v in vertices)
         else:
@@ -641,17 +637,17 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         parent = self.parent()
 
         for points in Combinations(nonzero_points, dim):
-                plane = parent.element_class(parent, [origin,[],points], None)
-                if plane.dim() != dim:
-                    continue
-                fiber = self.intersection(plane)
-                if fiber.base_ring() is not ZZ:
-                    continue
-                fiber_vertices = tuple(sorted(tuple(v) for v in fiber.vertex_generator()))
-                if fiber_vertices not in fibers:
-                    yield fiber
-                    fibers.update([fiber_vertices])
-                plane._delete()
+            plane = parent.element_class(parent, [origin, [], points], None)
+            if plane.dim() != dim:
+                continue
+            fiber = self.intersection(plane)
+            if fiber.base_ring() is not ZZ:
+                continue
+            fiber_vertices = tuple(sorted(tuple(v) for v in fiber.vertex_generator()))
+            if fiber_vertices not in fibers:
+                yield fiber
+                fibers.update([fiber_vertices])
+            plane._delete()
 
     def find_translation(self, translated_polyhedron):
         r"""
@@ -680,9 +676,9 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             ValueError: polyhedron is not a translation of self
         """
         no_translation_exception = ValueError('polyhedron is not a translation of self')
-        if ( set(self.rays()) != set(translated_polyhedron.rays()) or
-             set(self.lines()) != set(translated_polyhedron.lines()) or
-             self.n_vertices() != translated_polyhedron.n_vertices() ):
+        if (set(self.rays()) != set(translated_polyhedron.rays()) or
+            set(self.lines()) != set(translated_polyhedron.lines()) or
+                self.n_vertices() != translated_polyhedron.n_vertices()):
             raise no_translation_exception
         sorted_vertices = sorted(map(vector, self.vertices()))
         sorted_translated_vertices = sorted(map(vector, translated_polyhedron.vertices()))
@@ -733,12 +729,12 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             sage: list( Polyhedron()._subpoly_parallel_facets() )
             [The empty polyhedron in ZZ^0]
         """
-        if self.dim()>2 or not self.is_compact():
+        if self.dim() > 2 or not self.is_compact():
             raise NotImplementedError('only implemented for bounded polygons')
         from sage.geometry.polyhedron.plot import cyclic_sort_vertices_2d
         vertices = cyclic_sort_vertices_2d(self.vertices())
         n = len(vertices)
-        if n==1:  # single point
+        if n == 1:  # single point
             yield self
             return
         edge_vectors = []
@@ -746,7 +742,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             v = vertices[(i+1) % n].vector() - vertices[i].vector()
             d = gcd(list(v))
             v_prim = (v/d).change_ring(ZZ)
-            edge_vectors.append([ v_prim*i for i in range(d+1) ])
+            edge_vectors.append([v_prim*i for i in range(d+1)])
         origin = self.ambient_space().zero()
         parent = self.parent()
         from itertools import product
@@ -756,7 +752,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             for e in edges:
                 point += e
                 v.append(point)
-            if point!=origin:   # does not close up, not a subpolygon
+            if point != origin:   # does not close up, not a subpolygon
                 continue
             yield parent([v, [], []], None)
 
@@ -812,6 +808,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         if self.dim() > 2 or not self.is_compact():
             raise NotImplementedError('only implemented for bounded polygons')
         summands = []
+
         def is_known_summand(poly):
             for summand in summands:
                 try:
