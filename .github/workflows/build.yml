@@ -90,7 +90,7 @@ jobs:
         if: always() && steps.build.outcome == 'success'
         run: |
           ../sage -python -m pip install coverage pytest-xdist
-          ../sage -python -m coverage run pytest -c src/tox.ini -n auto
+          ../sage -python -m coverage run -m pytest -c tox.ini -n auto --doctest-modules
         working-directory: ./src
 
       - name: Prepare coverage results
