@@ -722,9 +722,9 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: gens = [MS([[0,1],[-1,0]]),MS([[1,1],[2,3]])]
             sage: G = MatrixGroup(gens)
             sage: G.invariant_generators()
-            [x1^7*x2 - x1*x2^7,
-             x1^12 - 2*x1^9*x2^3 - x1^6*x2^6 + 2*x1^3*x2^9 + x2^12,
-             x1^18 + 2*x1^15*x2^3 + 3*x1^12*x2^6 + 3*x1^6*x2^12 - 2*x1^3*x2^15 + x2^18]
+            [x0^7*x1 - x0*x1^7,
+             x0^12 - 2*x0^9*x1^3 - x0^6*x1^6 + 2*x0^3*x1^9 + x1^12,
+             x0^18 + 2*x0^15*x1^3 + 3*x0^12*x1^6 + 3*x0^6*x1^12 - 2*x0^3*x1^15 + x1^18]
 
             sage: q = 4; a = 2
             sage: MS = MatrixSpace(QQ, 2, 2)
