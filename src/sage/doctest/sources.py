@@ -418,7 +418,7 @@ class StringDocTestSource(DocTestSource):
         DocTestSource.__init__(self, options)
 
     def __iter__(self):
-        """
+        r"""
         Iterating over this source yields pairs ``(lineno, line)``.
 
         EXAMPLES::

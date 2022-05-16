@@ -279,7 +279,7 @@ def construct_skeleton(database):
 
 p = 0
 def _create_print_table(cur, col_titles, **kwds):
-    """
+    r"""
     Create a nice printable table from the cursor given with the given
     column titles.
 

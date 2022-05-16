@@ -471,7 +471,7 @@ def _post_json(url, data, **kwargs):
     raise ConnectionError(response.text)
 
 def _submit(args, url):
-    """
+    r"""
     Open a post form containing fields for each of the arguments,
     which is sent to the given url.
 

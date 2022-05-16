@@ -375,9 +375,9 @@ class DeprecatedFunctionAlias(object):
             sphinxrole = "func"
         else:
             sphinxrole = "meth"
-        doc = 'Deprecated: '
-        doc += 'Use :' + sphinxrole + ':`' + self.func.__name__ + '` instead.\n'
-        doc += 'See :trac:`' + str(self.trac_number) + '` for details.\n\n'
+        doc = "Deprecated: "
+        doc += f"Use :{sphinxrole}:`{self.func}` instead.\n"
+        doc += f"See :trac:`{self.trac_number}` for details.\n\n"
         self.__doc__ = doc
 
     @lazy_attribute

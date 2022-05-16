@@ -29,14 +29,17 @@ from _pytest.pathlib import import_path, ImportMode
 # - inject it into globals namespace for doctests
 import sage.all
 from sage.doctest.parsing import SageDocTestParser, SageOutputChecker
+from sage.features import FeatureNotPresentError
 
 
 class SageDoctestModule(DoctestModule):
     """
     This is essentially a copy of `DoctestModule` from
-    https://github.com/pytest-dev/pytest/blob/main/src/_pytest/doctest.py.
-    The only change is that we use `SageDocTestParser` to extract the doctests
-    and `SageOutputChecker` to verify the output.
+    https://github.com/pytest-dev/pytest/blob/main/src/_pytest/doctest.py
+    with the following changes:
+        - We use `SageDocTestParser` to extract the doctests
+          and `SageOutputChecker` to verify the output.
+        - We skip files whose import fails due to missing features.
     """
 
     def collect(self) -> Iterable[DoctestItem]:
@@ -110,11 +113,14 @@ class SageDoctestModule(DoctestModule):
             continue_on_failure=_get_continue_on_failure(self.config),
         )
 
-        for test in finder.find(module, module.__name__):
-            if test.examples:  # skip empty doctests
-                yield DoctestItem.from_parent(
-                    self, name=test.name, runner=runner, dtest=test
-                )
+        try:
+            for test in finder.find(module, module.__name__):
+                if test.examples:  # skip empty doctests
+                    yield DoctestItem.from_parent(
+                        self, name=test.name, runner=runner, dtest=test
+                    )
+        except FeatureNotPresentError as exception:
+            pytest.skip(f"unable to import module: {exception}")
 
 
 def pytest_collect_file(
@@ -134,6 +140,26 @@ def pytest_collect_file(
         # hit this here if someone explicitly runs `pytest some_file.pyx`.
         return pytest.skip("Skipping Cython file")
     elif file_path.suffix == ".py":
+        if (
+            (
+                file_path.name == "postprocess.py"
+                and file_path.parent.name == "nbconvert"
+            )
+            or (
+                file_path.name == "__main__.py"
+                and file_path.parent.name == "ipython_kernel"
+            )
+            or (
+                file_path.name == "__main__.py"
+                and file_path.parent.name == "sage_docbuild"
+            )
+            or (
+                file_path.name == "giacpy-mkkeywords.py"
+                and file_path.parent.name == "autogen"
+            )
+        ):
+            return pytest.skip("Skipping executable script")
+
         if parent.config.option.doctestmodules:
             return SageDoctestModule.from_parent(parent, path=file_path)
 

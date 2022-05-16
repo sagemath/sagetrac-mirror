@@ -301,7 +301,7 @@ class Logger(object):
         'hello world\n'
     """
     def __init__(self, *files):
-        """
+        r"""
         Initialize the logger for writing to all files in ``files``.
 
         TESTS::
