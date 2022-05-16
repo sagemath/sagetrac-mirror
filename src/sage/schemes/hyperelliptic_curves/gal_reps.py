@@ -33,9 +33,9 @@ EXAMPLES::
     sage: C = HyperellipticCurve(f)
     sage: A = C.jacobian()
     sage: rho = A.galois_representation()
-    sage: rho.non_surjective()
+    sage: rho.non_surjective()  # long time
     [2, 7]
-    sage: rho.is_surjective(7)
+    sage: rho.is_surjective(7)  # long time
     False
     sage: rho.is_surjective(2)
     False
@@ -44,7 +44,7 @@ EXAMPLES::
     sage: rho.is_surjective(13)
     True
 
-If the Jacobian has any non-trivial endomorphisms, we raise a ValueError:
+If the Jacobian has any non-trivial endomorphisms, we raise an error:
 
     sage: R.<x>=QQ[]
     sage: f = x^6 - 2*x^4 + 2*x^2 - 1
@@ -52,6 +52,8 @@ If the Jacobian has any non-trivial endomorphisms, we raise a ValueError:
     sage: A = C.jacobian()
     sage: rho = A.galois_representation()
     sage: rho.non_surjective()
+    Traceback (most recent call last):
+    ...
     NotImplementedError: Computation of non-surjective primes currently only works for Jacobians whose geometric endomorphism ring is Z.
 
 REFERENCES:
@@ -184,7 +186,6 @@ class GaloisRepresentation(SageObject):
             sage: assert init_exps[7][0] in PolynomialRing(Zmod(7), "x")
 
         """
-        # TODO add tests
         # TODO consider keeping the dictionary as a class attribute rather
         # than having this as a function.
         # char3 is the list of characteristic polynomials of matrices in the
@@ -321,14 +322,6 @@ class GaloisRepresentation(SageObject):
 
     def _init_wit(self, L):
         r"""
-        Return a list for witnesses with all entries initially all set to zero,
-        in the following format:
-            2: [_] <-> [_is_surj_at_2 ]
-            3: [_,_,_] <-> [witness for _surj_test_A, witness for _surj_test_B, witness for _surj_test_exp]
-            5: [_,_,_] <-> [witness for _surj_test_A, witness for _surj_test_B, witness for _surj_test_exp]
-            7: [_,_,_] <-> [witness for _surj_test_A, witness for _surj_test_B, witness for _surj_test_exp]
-            3: [_,_,_] <-> [witness for _surj_test_A, witness for _surj_test_B]
-
         Initialize a dictionary of lists for witnesses of surjectivitiy tests.
 
         INPUT:
@@ -362,7 +355,6 @@ class GaloisRepresentation(SageObject):
             {2: [0], 3: [0, 0, 0], 11: [0, 0]}
 
         """
-        # TODO Delete original docstring.
         witnesses = {}
         for l in L:
             if l == 2:
@@ -389,6 +381,7 @@ class GaloisRepresentation(SageObject):
         - ``f`` -- rational polynomial
 
         - ``h`` -- rational polynomial
+
         ALGORITHM:
 
         The following algorithm is adapted from
@@ -414,7 +407,8 @@ class GaloisRepresentation(SageObject):
         # TODO: Add the paper to Sage's master bibliography file, and cite
         # the part that talks about the mod-2 Galois image in the ALGORITHM
         # section.
-        # TODO: Add tests/examples
+        # TODO: Add an example of a hyperelliptic curve not surjective
+        # at 2.
         F = 4*f + h**2
         return F.is_irreducible() and F.galois_group().order() == 720
 
@@ -584,13 +578,8 @@ class GaloisRepresentation(SageObject):
             [2, 13]
 
         """
-        # TODO: Consider making the examples long tests
         # TODO: Add examples with varying `L` and `bound``
         # TODO: add verbose examples in the docstring
-        # TODO: What is the difference between this function and the
-        # non_surjective function? ANSWER: This function takes an arbitrary upper bound
-        # on the nonsurj primes as 1000. The non surjective function essentially finds
-        # a superset which provably contains all nonsurj primes.
 
         H = self._A.curve()
         f, h = H.hyperelliptic_polynomials()
@@ -628,19 +617,19 @@ class GaloisRepresentation(SageObject):
                 probably_non_surj_primes.append(l)
         return probably_non_surj_primes
 
-    def is_surjective(self, p, bound=1000, verbose=False):
+    def is_surjective(self, l, bound=1000, verbose=False):
         r"""
-        Return whether the mod-`p` representation is surjective onto
-        `\operatorname{Aut}(A[p]) = \operatorname{GSp}_4(\GF{p})`.
+        Return whether the mod-`\ell` representation is surjective onto
+        `\operatorname{Aut}(A[\ell]) = \operatorname{GSp}_4(\GF{\ell})`.
 
-        For the primes `p=2` and `3`, this function will always return either
+        For the primes `\ell=2` and `3`, this function will always return either
         ``True`` or ``False``. For larger primes it might return ``None``.
 
         The output of this function is cached.
 
         INPUT:
 
-        -  ``p`` -- prime integer
+        -  ``\ell`` -- prime integer
 
         - ``bound`` -- integer (default: `1000`); the exclusive upper bound
           for the primes `p \neq \ell` whose Frobenii `\operatorname{Frob}_p`
@@ -649,7 +638,7 @@ class GaloisRepresentation(SageObject):
 
         - ``verbose`` -- boolean (default: ``False``)
 
-        OUTPUT: ``True`` if the mod-p representation is determined to be
+        OUTPUT: ``True`` if the mod-`\ell` representation is determined to be
         surjective, ``False`` if the representation is determined to be
         not surjection, and ``None`` if the representation is neither
         determined to be surjective nor determined to be not surjective.
@@ -742,290 +731,21 @@ class GaloisRepresentation(SageObject):
         # TODO: change p in this function to l; it is confusing to use
         # p here when we use l everywhere else.
         if self.non_surjective_primes is not None:
-            if not p.is_prime():
+            if not l.is_prime():
                 raise ValueError("p must be prime")
-            return (p not in self.non_surjective_primes)
+            return (l not in self.non_surjective_primes)
 
-        ans = self.find_surj_from_list(L=[p], bound=1000, verbose=False)
+        ans = self.find_surj_from_list(L=[l], bound=1000, verbose=False)
 
         if ans:
             return False
         else:
             return True
 
-    #########################################################
-    #                            #
-    #             Reducible (easy cases)            #
-    #                            #
-    #########################################################
-
-    # Isabel's code using the fact that the exponent of the determinant
-    # character divides 120.
-
-    # the following three functions implement the following for n=2,3,5:
-    # f(x) = x**4 - t*x**3 + s*x**2 - p**alpha*t*x + p**(2*alpha) is a
-    # degree 4 polynomial whose roots multiply in pairs to p**alpha
-    # returns the tuple (p, tn, sn, alphan) of the polynomial
-    # f**(n)(x) = x**4 - tn*x**3 + sn*x**2 - p**(alphan)*tn*x + p**(2*alphan)
-    # whose roots are the nth powers of the roots of f
-
-    def power_roots2(self, ptsa):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        p, t, s, alpha = ptsa
-        return (p, t**2 - 2*s, s**2 - 2*p**alpha*t**2 + 2*p**(2*alpha),
-                2*alpha)
-
-    def power_roots3(self, ptsa):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        p, t, s, alpha = ptsa
-        return (
-            p,
-            t**3 - 3*s*t + 3*p**alpha*t,
-            s**3 - 3*p**alpha*s*t**2 + 3*p**(2*alpha)*t**2
-            + 3*p**(2*alpha)*t**2 - 3*p**(2*alpha)*s,
-            3*alpha)
-
-    def power_roots5(self, ptsa):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        p, t, s, alpha = ptsa
-        return (
-            p,
-            t**5 - 5*s*t**3 + 5*s**2*t + 5*p**alpha*t**3 - 5*p**alpha*s*t -
-            5*p**(2*alpha)*t, s**5 - 5*p**alpha*s**3*t**2
-            + 5*p**(2*alpha)*s*t**4 + 5*p**(2*alpha)*s**2*t**2
-            - 5*p**(3*alpha)*t**4 + 5*p**(2*alpha)*s**2*t**2
-            - 5*p**(2*alpha)*s**3 - 5*p**(3*alpha)*t**4
-            - 5*p**(3*alpha)*s*t**2 + 5*p**(4*alpha)*t**2
-            + 5*p**(4*alpha)*t**2 + 5*p**(4*alpha)*s,
-            5*alpha)
-
-    # put these together to do any power dividing 120 that we actually need
-    # c is the power
-    def power_roots(self, cptsa):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        c, p, t, s, alpha = cptsa
-        if 120 % c != 0:
-            raise ValueError("can't raise to this power")
-
-        ptsa = (p, t, s, alpha)
-
-        while c % 2 == 0:
-            c, ptsa = c/2, self.power_roots2(ptsa)
-
-        while c % 3 == 0:
-            c, ptsa = c/3, self.power_roots3(ptsa)
-
-        while c % 5 == 0:
-            c, ptsa = c/5, self.power_roots5(ptsa)
-
-        return ptsa
-
-    # given a quartic f whose roots multiply to p**alpha in pairs,
-    # returns the quartic whose roots are the products of roots
-    # of f that DO NOT multiply to p**alpha
-    def roots_pairs_not_p(self, ptsa):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        p, t, s, alpha = ptsa
-        return (p, s - 2*p, p*t**2 - 2*p*s + 2*p**2, 2*alpha)
-
-    # t and s are the first and second elementary symmetric functions in the
-    # roots of the characteristic polynomial of Frobenius at p for a curve C
-    # M is an integer such that every prime ell for which J_C[ell] could be
-    # 1 + 3 reducible divides M
-    # y is a counter for the number of nontrivial Frobenius conditions going
-    # into M
-    def rule_out_1_plus_3_via_Frob_p(self, c, p, t, s, M=0, y=0):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        p, tnew, snew, alphanew = self.power_roots((c, p, t, s, 1))
-        x = PolynomialRing(QQ, "x").gen()
-        Pnew = (x**4 - tnew*x**3 + snew*x**2 - p**alphanew*tnew*x
-                + p**(2*alphanew))
-        Pval = Pnew(1)
-        if Pval != 0:
-            return ZZ(gcd(M, p*Pval)), y+1
-        else:
-            return M, y
-
-    # t and s are the first and second elementary symmetric functions in the
-    # roots of the characteristic polynomial of Frobenius at p for a curve C
-    # M is an integer such that every prime ell for which J_C[ell] could be
-    # 2+2 non-self-dual type reducible divides M
-    # y is a counter for the number of nontrivial Frobenius conditions going
-    # into M
-    def rule_out_2_plus_2_nonselfdual_via_Frob_p(self, c, p, t, s, M=0, y=0):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        p, tnew, snew, alphanew = self.roots_pairs_not_p((p, t, s, 1))
-        p, tnew, snew, alphanew = self.power_roots(
-            (c, p, tnew, snew, alphanew))
-        x = PolynomialRing(QQ, "x").gen()
-        Pnew = (x**4 - tnew*x**3 + snew*x**2 - p**alphanew*tnew*x
-                + p**(2*alphanew))
-        Pval = Pnew(1)*Pnew(p**c)
-        if Pval != 0:
-            return ZZ(gcd(M, p*Pval)), y+1
-        else:
-            return M, y
-
-    #########################################################
-    #                            #
-    #          Reducible (modular forms case)        #
-    #                            #
-    #########################################################
-
-    def special_divisors(self, N):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        D0 = [d for d in ZZ(N).divisors() if d <= sqrt(N)]
-        D0.reverse()
-        D = []
-        for d0 in D0:
-            if all([d % d0 != 0 for d in D]):
-                D.append(d0)
-        D.reverse()
-        return D
-
-    def get_cuspidal_levels(self, N, max_cond_exp_2=None):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        if max_cond_exp_2 is not None:
-            # if we're here, then N is the even poor mans conductor
-            # recall we put a 2 in the poor mans conductor
-            conductor_away_two = N/2
-            possible_conductors = [conductor_away_two * 2 ** i
-                                   for i in range(max_cond_exp_2 + 1)]
-            # not ordered, hopefully not a problem.
-            return list(set([d for N in possible_conductors
-                            for d in self.special_divisors(N)]))
-        else:
-            return self.special_divisors(N)
-
-    def set_up_cuspidal_spaces(self, N, max_cond_exp_2=None):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        D = self.get_cuspidal_levels(N, max_cond_exp_2)
-        return [(CuspForms(d), 0, 0) for d in D]
-
-    def reconstruct_hecke_poly_from_trace_polynomial(self, cusp_form_space, p):
-        """
-        Implement Zev and Joe Wetherell's idea
-
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        R = PolynomialRing(QQ, "x")
-        x = R.gen()
-        char_T_x = R(cusp_form_space.hecke_polynomial(p))
-        S = PolynomialRing(QQ, 2, "ab")
-        a, b = S.gens()
-        char_T_a_b = S(char_T_x(x=a)).homogenize(var='b')
-        substitute_poly = char_T_a_b(a=1+p*b**2)
-        return R(substitute_poly(a=0, b=x))
-
-    def rule_out_cuspidal_space_using_Frob_p(self, S, p, fp, M, y):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private
-        # TODO: Consider making this function a module level function
-        # TODO: Add tests/examples (required)
-        if M != 1 and y < 2:
-            Tp = self.reconstruct_hecke_poly_from_trace_polynomial(S, p)
-            res = fp.resultant(Tp)
-            if res != 0:
-                return gcd(M, p*res), y+1
-        return M, y
-
-    def rule_out_cuspidal_spaces_using_Frob_p(self, p, fp, MC):
-        """
-        TESTS::
-
-
-        """
-        # TODO: Consider making this function private
-        # TODO: Add tests/examples (required)
-        MC0 = []
-        for S, M, y in MC:
-            Mm, yy = self.rule_out_cuspidal_space_using_Frob_p(S, p, fp, M, y)
-            MC0.append((S, Mm, yy))
-        return MC0
-
     def non_surjective(self, N=None, bound=1000):
         r"""
-        Return a list of primes p such that the mod-p representation
-        is probably not surjective. If `p` is not in the returned list,
+        Return a list of primes `\ell` such that the mod-`\ell` representation
+        is probably not surjective. If `\ell` is not in the returned list,
         then the mod-p representation is provably surjective.
 
         By a theorem of Serre, there are only finitely many primes in this
@@ -1037,12 +757,18 @@ class GaloisRepresentation(SageObject):
         - ``N`` -- an integer (default: None); this is the conductor of the
         jacobian; providing this can speed up the computation.
 
+        - ``bound`` -- integer (default: `1000`); the exclusive upper bound
+          for the primes `p \neq \ell` whose Frobenii `\operatorname{Frob}_p`
+          are checked. Only the primes of good reduction which are at least `3`
+          are checked.
+
         OUTPUT:
 
-        A list; if the curve has nontrivial geometric .
-        Otherwise, returns a list of primes `p` where mod-`p` representation is
-        very likely not surjective. At any prime not in this list, the
-        representation is definitely surjective.
+        A list; if the curve has nontrivial geometric endomorphisms,
+        returns ``[0]``. Otherwise, returns a list of primes `\ell` where
+        mod-`\ell` representation is very likely not surjective.
+        The mod-`\ell` representation is definitely surjective for any prime
+        `\ell` not in this list.
 
         EXAMPLES::
 
@@ -1110,7 +836,8 @@ class GaloisRepresentation(SageObject):
 
         if not self._A.geometric_endomorphism_ring_is_ZZ():
             raise NotImplementedError(
-                "Computation of non-surjective primes currently only works for Jacobians whose geometric endomorphism ring is Z."
+                "Computation of non-surjective primes currently only works "
+                "for Jacobians whose geometric endomorphism ring is Z."
             )
 
         C = self._A.curve()
@@ -1121,12 +848,13 @@ class GaloisRepresentation(SageObject):
         y2p2nsd = 0
 
         if N is None:
-            f,h = C.hyperelliptic_polynomials()
-            red_data = genus2reduction(h,f)
+            f, h = C.hyperelliptic_polynomials()
+            red_data = genus2reduction(h, f)
             N = red_data.conductor  # is this the true conductor if red_data.prime_to_2_conductor_only is False?
             max_cond_exp_2 = None
             if red_data.prime_to_2_conductor_only:
-                # I think this is the case where we don't know exactly the two-part of conductor
+                # I think this is the case where we don't know exactly the
+                # two-part of conductor
                 N = 2*N
                 max_cond_exp_2 = red_data.minimal_disc.valuation(2)
 
@@ -1135,7 +863,7 @@ class GaloisRepresentation(SageObject):
         # a reducible sub isomorphic to the rep of a cusp form in S divide M,
         # y is a counter for the number of nontrivial Frobenius conditions
         # go into M
-        MCusp = self.set_up_cuspidal_spaces(N, max_cond_exp_2=max_cond_exp_2)
+        MCusp = _set_up_cuspidal_spaces(N, max_cond_exp_2=max_cond_exp_2)
 
         # MQuad is a list of the form <phi,M,y>, where phi is a
         # quadratic character, M is the integer all nonsurjective primes
@@ -1164,10 +892,11 @@ class GaloisRepresentation(SageObject):
                 tp = - fp.coefficients(sparse=False)[3]
                 sp = fp.coefficients(sparse=False)[2]
 
-                M1p3, y1p3 = self.rule_out_1_plus_3_via_Frob_p(
+                M1p3, y1p3 = _rule_out_1_plus_3_via_Frob_p(
                     c, p, tp, sp, M1p3, y1p3)
-                M2p2nsd, y2p2nsd = self.rule_out_2_plus_2_nonselfdual_via_Frob_p(c, p, tp, sp, M2p2nsd, y2p2nsd)
-                MCusp = self.rule_out_cuspidal_spaces_using_Frob_p(
+                M2p2nsd, y2p2nsd = _rule_out_2_plus_2_nonselfdual_via_Frob_p(
+                    c, p, tp, sp, M2p2nsd, y2p2nsd)
+                MCusp = _rule_out_cuspidal_spaces_using_Frob_p(
                     p, fp_rev, MCusp)
                 MQuad = _rule_out_quadratic_ell_via_Frob_p(p, fp, MQuad)
 
@@ -1189,7 +918,7 @@ class GaloisRepresentation(SageObject):
                         for S, M, y in MCusp]
 
         non_maximal_primes = non_maximal_primes.union(
-            set([p for a,j in ell_red_cusp for p in j]))
+            set([p for a, j in ell_red_cusp for p in j]))
 
         ell_irred = [(phi, ZZ(M).prime_factors()) for phi, M, t in MQuad]
         non_maximal_primes = non_maximal_primes.union(
@@ -1203,6 +932,7 @@ class GaloisRepresentation(SageObject):
 #                   Auxiliary functions            #
 #                            #
 #########################################################
+
 
 def _maximal_square_divisor(N):
     """
@@ -1348,3 +1078,315 @@ def _rule_out_quadratic_ell_via_Frob_p(p, fp, MM):
             else:
                 MM0.append((phi, gcd(M, p*ap), y+1))
         return MM0
+
+
+#########################################################
+#                            #
+#             Reducible (easy cases)            #
+#                            #
+#########################################################
+
+# Isabel's code using the fact that the exponent of the determinant
+# character divides 120.
+
+# the following three functions implement the following for n=2,3,5:
+# f(x) = x**4 - t*x**3 + s*x**2 - p**alpha*t*x + p**(2*alpha) is a
+# degree 4 polynomial whose roots multiply in pairs to p**alpha
+# returns the tuple (p, tn, sn, alphan) of the polynomial
+# f**(n)(x) = x**4 - tn*x**3 + sn*x**2 - p**(alphan)*tn*x + p**(2*alphan)
+# whose roots are the nth powers of the roots of f
+
+def _power_roots2(ptsa):
+    """
+    TESTS::
+
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _power_roots2
+        sage: _power_roots2((5, 0, 2, 1))
+        (5, -4, 54, 2)
+        sage: _power_roots2((7, -1, -2, 1))
+        (7, 5, 88, 2)
+        sage: _power_roots2((11, 1, 2, 1))
+        (11, -3, 224, 2)
+        sage: _power_roots2((43, -604, 6075814, 4))
+        (43, -11786812, 57797449706566, 8)
+
+    """
+    p, t, s, alpha = ptsa
+    return (p, t**2 - 2*s, s**2 - 2*p**alpha*t**2 + 2*p**(2*alpha),
+            2*alpha)
+
+
+def _power_roots3(ptsa):
+    """
+    TESTS::
+
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _power_roots3
+        sage: _power_roots3((5, 0, 2, 1))
+        (5, 0, -142, 3)
+        sage: _power_roots3((7, -1, -2, 1))
+        (7, -28, 622, 3)
+        sage: _power_roots3((11, 1, 2, 1))
+        (11, 28, -58, 3)
+        sage: _power_roots3((43, -604, 6075814, 4))
+        (43, 4594158692, 14096196939501130726, 12)
+
+    """
+    p, t, s, alpha = ptsa
+    return (
+        p,
+        t**3 - 3*s*t + 3*p**alpha*t,
+        s**3 - 3*p**alpha*s*t**2 + 3*p**(2*alpha)*t**2
+        + 3*p**(2*alpha)*t**2 - 3*p**(2*alpha)*s,
+        3*alpha)
+
+
+def _power_roots5(ptsa):
+    """
+    TESTS::
+
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _power_roots5
+        sage: _power_roots5((5, 0, 2, 1))
+        (5, 0, 5282, 5)
+        sage: _power_roots5((7, -1, -2, 1))
+        (7, 109, 3678, 5)
+        sage: _power_roots5((11, 1, 2, 1))
+        (11, -649, 267002, 5)
+        sage: _power_roots5((43, -604, 6075814, 4))
+        (43, -10608093658315484, -452809576478300004206054711642586, 20)
+
+    """
+    p, t, s, alpha = ptsa
+    return (
+        p,
+        t**5 - 5*s*t**3 + 5*s**2*t + 5*p**alpha*t**3 - 5*p**alpha*s*t -
+        5*p**(2*alpha)*t, s**5 - 5*p**alpha*s**3*t**2
+        + 5*p**(2*alpha)*s*t**4 + 5*p**(2*alpha)*s**2*t**2
+        - 5*p**(3*alpha)*t**4 + 5*p**(2*alpha)*s**2*t**2
+        - 5*p**(2*alpha)*s**3 - 5*p**(3*alpha)*t**4
+        - 5*p**(3*alpha)*s*t**2 + 5*p**(4*alpha)*t**2
+        + 5*p**(4*alpha)*t**2 + 5*p**(4*alpha)*s,
+        5*alpha)
+
+
+# put these together to do any power dividing 120 that we actually need
+# c is the power
+def _power_roots(cptsa):
+    """
+    TESTS::
+
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _power_roots
+        sage: _power_roots((30, 5, 0, -142, 3))
+        (5,
+        -40439319944794656777824091572164,
+        2024421783291998908109426253166728620498898914410821047074441974,
+        90)
+        sage: _power_roots((11, 3, 5, -27, 11))
+        Traceback (most recent call last):
+        ...
+        ValueError: can't raise to this power
+
+    """
+    c, p, t, s, alpha = cptsa
+    if 120 % c != 0:
+        raise ValueError("can't raise to this power")
+
+    ptsa = (p, t, s, alpha)
+
+    while c % 2 == 0:
+        c, ptsa = c/2, _power_roots2(ptsa)
+
+    while c % 3 == 0:
+        c, ptsa = c/3, _power_roots3(ptsa)
+
+    while c % 5 == 0:
+        c, ptsa = c/5, _power_roots5(ptsa)
+
+    return ptsa
+
+
+# given a quartic f whose roots multiply to p**alpha in pairs,
+# returns the quartic whose roots are the products of roots
+# of f that DO NOT multiply to p**alpha
+def _roots_pairs_not_p(ptsa):
+    """
+    TESTS::
+
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _roots_pairs_not_p
+        sage: _roots_pairs_not_p((5, 0, 2, 1))
+        (5, -8, 30, 2)
+        sage: _roots_pairs_not_p((7, -1, -2, 1))
+        (7, -16, 133, 2)
+        sage: _roots_pairs_not_p((11, 1, 2, 1))
+        (11, -20, 209, 2)
+        sage: _roots_pairs_not_p((43, -604, 6075814, 4))
+        (43, 6075728, -506829218, 8)
+
+    """
+    # TODO: Add tests/examples (required)
+    p, t, s, alpha = ptsa
+    return (p, s - 2*p, p*t**2 - 2*p*s + 2*p**2, 2*alpha)
+
+
+# t and s are the first and second elementary symmetric functions in the
+# roots of the characteristic polynomial of Frobenius at p for a curve C
+# M is an integer such that every prime ell for which J_C[ell] could be
+# 1 + 3 reducible divides M
+# y is a counter for the number of nontrivial Frobenius conditions going
+# into M
+def _rule_out_1_plus_3_via_Frob_p(c, p, t, s, M=0, y=0):
+    """
+    TESTS::
+
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _rule_out_1_plus_3_via_Frob_p
+
+    """
+    # TODO: Add tests/examples (required)
+    p, tnew, snew, alphanew = _power_roots((c, p, t, s, 1))
+    x = PolynomialRing(QQ, "x").gen()
+    Pnew = (x**4 - tnew*x**3 + snew*x**2 - p**alphanew*tnew*x
+            + p**(2*alphanew))
+    Pval = Pnew(1)
+    if Pval != 0:
+        return ZZ(gcd(M, p*Pval)), y+1
+    else:
+        return M, y
+
+
+# t and s are the first and second elementary symmetric functions in the
+# roots of the characteristic polynomial of Frobenius at p for a curve C
+# M is an integer such that every prime ell for which J_C[ell] could be
+# 2+2 non-self-dual type reducible divides M
+# y is a counter for the number of nontrivial Frobenius conditions going
+# into M
+def _rule_out_2_plus_2_nonselfdual_via_Frob_p(c, p, t, s, M=0, y=0):
+    """
+    TESTS::
+
+
+    """
+    # TODO: Add tests/examples (required)
+    p, tnew, snew, alphanew = _roots_pairs_not_p((p, t, s, 1))
+    p, tnew, snew, alphanew = _power_roots(
+        (c, p, tnew, snew, alphanew))
+    x = PolynomialRing(QQ, "x").gen()
+    Pnew = (x**4 - tnew*x**3 + snew*x**2 - p**alphanew*tnew*x
+            + p**(2*alphanew))
+    Pval = Pnew(1)*Pnew(p**c)
+    if Pval != 0:
+        return ZZ(gcd(M, p*Pval)), y+1
+    else:
+        return M, y
+
+#########################################################
+#                            #
+#          Reducible (modular forms case)        #
+#                            #
+#########################################################
+
+
+def _special_divisors(N):
+    """
+    TESTS::
+
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _special_divisors
+        sage: _special_divisors(1)
+        [1]
+        sage: _special_divisors(6)
+        [2]
+        sage: _special_divisors(15)
+        [3]
+        sage: _special_divisors(8)
+        [2]
+        sage: _special_divisors(30)
+        [2, 3, 5]
+        sage: _special_divisors(57)
+        [3]
+
+    """
+    D0 = [d for d in ZZ(N).divisors() if d <= sqrt(N)]
+    D0.reverse()
+    D = []
+    for d0 in D0:
+        if all([d % d0 != 0 for d in D]):
+            D.append(d0)
+    D.reverse()
+    return D
+
+
+def _get_cuspidal_levels(N, max_cond_exp_2=None):
+    """
+    TESTS::
+
+
+    """
+    # TODO: Add tests/examples (required)
+    if max_cond_exp_2 is not None:
+        # if we're here, then N is the even poor mans conductor
+        # recall we put a 2 in the poor mans conductor
+        conductor_away_two = N/2
+        possible_conductors = [conductor_away_two * 2 ** i
+                                for i in range(max_cond_exp_2 + 1)]
+        # not ordered, hopefully not a problem.
+        return list(set([d for N in possible_conductors
+                        for d in _special_divisors(N)]))
+    else:
+        return _special_divisors(N)
+
+
+def _set_up_cuspidal_spaces(N, max_cond_exp_2=None):
+    """
+    TESTS::
+
+
+    """
+    # TODO: Add tests/examples (required)
+    D = _get_cuspidal_levels(N, max_cond_exp_2)
+    return [(CuspForms(d), 0, 0) for d in D]
+
+
+def _reconstruct_hecke_poly_from_trace_polynomial(cusp_form_space, p):
+    """
+    Implement Zev and Joe Wetherell's idea
+
+    TESTS::
+
+
+    """
+    # TODO: Add tests/examples (required)
+    R = PolynomialRing(QQ, "x")
+    x = R.gen()
+    char_T_x = R(cusp_form_space.hecke_polynomial(p))
+    S = PolynomialRing(QQ, 2, "ab")
+    a, b = S.gens()
+    char_T_a_b = S(char_T_x(x=a)).homogenize(var='b')
+    substitute_poly = char_T_a_b(a=1+p*b**2)
+    return R(substitute_poly(a=0, b=x))
+
+
+def _rule_out_cuspidal_space_using_Frob_p(S, p, fp, M, y):
+    """
+    TESTS::
+
+
+    """
+    # TODO: Add tests/examples (required)
+    if M != 1 and y < 2:
+        Tp = _reconstruct_hecke_poly_from_trace_polynomial(S, p)
+        res = fp.resultant(Tp)
+        if res != 0:
+            return gcd(M, p*res), y+1
+    return M, y
+
+
+def _rule_out_cuspidal_spaces_using_Frob_p(p, fp, MC):
+    """
+    TESTS::
+
+
+    """
+    # TODO: Add tests/examples (required)
+    MC0 = []
+    for S, M, y in MC:
+        Mm, yy = _rule_out_cuspidal_space_using_Frob_p(S, p, fp, M, y)
+        MC0.append((S, Mm, yy))
+    return MC0
