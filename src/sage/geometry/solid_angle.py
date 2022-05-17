@@ -223,22 +223,22 @@ def solid_angle_2d(A):
         sage: A = matrix([[1,0],[0,1],[-1,1]])
         sage: logging.disable(logging.NOTSET)
         sage: solid_angle_2d(A)
-        INFO:Decompose into simplicial subcones
+        INFO: Decompose into simplicial subcones
         [1 0]
         [0 1],
         [ 0  1]
         [-1  1]
-        INFO:Solid angles of the subcones are [1/4, 1/2*arccos(1/2*sqrt(2))/pi]
+        INFO: Solid angles of the subcones are [1/4, 1/2*arccos(1/2*sqrt(2))/pi]
         1/2*arccos(1/2*sqrt(2))/pi + 1/4
 
         sage: A = matrix([[1,0],[0,1],[1,1]])
         sage: solid_angle_2d(A)
-        INFO:Decompose into simplicial subcones
+        INFO: Decompose into simplicial subcones
         [1 0]
         [1 1],
         [0 1]
         [1 1]
-        INFO:Solid angles of the subcones are [1/2*arccos(1/2*sqrt(2))/pi, 1/2*arccos(1/2*sqrt(2))/pi]
+        INFO: Solid angles of the subcones are [1/2*arccos(1/2*sqrt(2))/pi, 1/2*arccos(1/2*sqrt(2))/pi]
         arccos(1/2*sqrt(2))/pi
 
     The following examples illustrate how the solid angle measure can equal
@@ -269,7 +269,7 @@ def solid_angle_2d(A):
         0
     """
     logging.getLogger().setLevel(logging.INFO)
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
     if not is_Matrix(A):
         A = matrix(A)
     P = A[0][0].parent()
