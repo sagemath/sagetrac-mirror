@@ -754,8 +754,8 @@ class ECM(SageObject):
             <BLANKLINE>
             Expected curves: 4911, Expected time: 32.25m
         """
-        title_curves = 'Expected number of curves to find a factor of n digits:'
-        title_time = 'Expected time to find a factor of n digits:'
+        title_curves = 'Expected number of curves'
+        title_time = 'Expected time'
         n = self._validate(n)
         B1 = self.recommended_B1(factor_digits)
         cmd = self._make_cmd(B1, None, {'v': True})
@@ -767,12 +767,12 @@ class ECM(SageObject):
             return
 
         out_lines = iter(out.splitlines())
-        while next(out_lines) != title_curves:
+        while not next(out_lines).startswith(title_curves):
             pass
         header_curves = next(out_lines)
         curve_count_table = next(out_lines)
 
-        while next(out_lines) != title_time:
+        while not next(out_lines).startswith(title_time):
             pass
         header_time = next(out_lines)
         time_table = next(out_lines)
