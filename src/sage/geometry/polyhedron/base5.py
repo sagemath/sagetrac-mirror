@@ -43,7 +43,6 @@ from sage.modules.free_module_element import vector
 
 from .base4 import Polyhedron_base4
 
-
 class Polyhedron_base5(Polyhedron_base4):
     """
     Methods constructing new polyhedra
@@ -333,7 +332,7 @@ class Polyhedron_base5(Polyhedron_base4):
 
         def check_pyramid_certificate(P, cert):
             others = set(v for v in P.vertices() if not v == cert)
-            if others:
+            if len(others):
                 tester.assertTrue(any(set(f.ambient_Vrepresentation()) == others for f in P.facets()))
 
         if self.is_compact():
@@ -421,9 +420,9 @@ class Polyhedron_base5(Polyhedron_base4):
         from itertools import chain
         new_verts = chain(([0] + list(x) for x in self.vertex_generator()),
                           [[1] + list(c), [-1] + list(c)])
-        new_rays = ([0] + r for r in self.rays())
+        new_rays =  ([0] + r for r in self.rays())
         new_lines = ([0] + l for l in self.lines())
-        new_ieqs = chain(([i.b()] + [c*i.A() + i.b()] + list(i.A()) for i in self.inequalities()),
+        new_ieqs = chain(([i.b()] + [ c*i.A() + i.b()] + list(i.A()) for i in self.inequalities()),
                          ([i.b()] + [-c*i.A() - i.b()] + list(i.A()) for i in self.inequalities()))
         new_eqns = ([e.b()] + [0] + list(e.A()) for e in self.equations())
 
@@ -511,7 +510,7 @@ class Polyhedron_base5(Polyhedron_base4):
         from itertools import chain
         new_verts = chain(([0] + v for v in self.vertices()),
                           ([1] + v for v in self.vertices()))
-        new_rays = ([0] + r for r in self.rays())
+        new_rays =  ([0] + r for r in self.rays())
         new_lines = ([0] + l for l in self.lines())
         new_eqns = ([e.b()] + [0] + list(e[1:]) for e in self.equations())
         new_ieqs = chain(([i.b()] + [0] + list(i[1:]) for i in self.inequalities()),
@@ -827,14 +826,14 @@ class Polyhedron_base5(Polyhedron_base4):
             raise NotImplementedError('only subtracting compact polyhedra is implemented')
         new_eqns = []
         for eq in self.equations():
-            values = [eq.A() * v.vector() for v in other.vertices()]
+            values = [ eq.A() * v.vector() for v in other.vertices() ]
             eq = list(eq)
             eq[0] += min(values)   # shift constant term
             new_eqns.append(eq)
         P = self.parent()
         new_ieqs = []
         for ieq in self.inequalities():
-            values = [ieq.A() * v.vector() for v in other.vertices()]
+            values = [ ieq.A() * v.vector() for v in other.vertices() ]
             ieq = list(ieq)
             ieq[0] += min(values)   # shift constant term
             new_ieqs.append(ieq)
@@ -929,18 +928,22 @@ class Polyhedron_base5(Polyhedron_base4):
             new_ring = self.parent()._coerce_base_ring(other)
         except TypeError:
             raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
-                            + " and " + str(other.parent()))
+                             + " and " + str(other.parent()))
 
         from itertools import chain
 
         new_vertices = (tuple(x) + tuple(y)
                         for x in self.vertex_generator() for y in other.vertex_generator())
-        self_zero = tuple(0 for _ in range(self.ambient_dim()))
+
+        self_zero  = tuple(0 for _ in range( self.ambient_dim()))
         other_zero = tuple(0 for _ in range(other.ambient_dim()))
-        rays = chain((tuple(r) + other_zero for r in self.ray_generator()),
-                     (self_zero + tuple(r) for r in other.ray_generator()))
-        lines = chain((tuple(l) + other_zero for l in self.line_generator()),
-                      (self_zero + tuple(l) for l in other.line_generator()))
+
+        rays = chain((tuple(r) + other_zero for r in  self.ray_generator()),
+                     (self_zero + tuple(r)  for r in other.ray_generator()))
+
+        lines = chain((tuple(l) + other_zero for l in  self.line_generator()),
+                      (self_zero + tuple(l)  for l in other.line_generator()))
+
         if self.n_vertices() == 0 or other.n_vertices() == 0:
             # In this case we obtain the empty polyhedron.
             # There is not vertex to attach the rays or lines to.
@@ -948,14 +951,14 @@ class Polyhedron_base5(Polyhedron_base4):
             rays = ()
             lines = ()
 
-        ieqs = chain((tuple(i) + other_zero for i in self.inequality_generator()),
+        ieqs = chain((tuple(i) + other_zero               for i in  self.inequality_generator()),
                      ((i.b(),) + self_zero + tuple(i.A()) for i in other.inequality_generator()))
 
-        eqns = chain((tuple(e) + other_zero for e in self.equation_generator()),
+        eqns = chain((tuple(e) + other_zero               for e in  self.equation_generator()),
                      ((e.b(),) + self_zero + tuple(e.A()) for e in other.equation_generator()))
 
         pref_rep = 'Vrep' if self.n_vertices() + self.n_rays() + other.n_vertices() + other.n_rays() \
-                   <= self.n_inequalities() + other.n_inequalities() else 'Hrep'
+                             <= self.n_inequalities() + other.n_inequalities() else 'Hrep'
 
         parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
         return parent.element_class(parent, [new_vertices, rays, lines],
@@ -1003,6 +1006,7 @@ class Polyhedron_base5(Polyhedron_base4):
         if self.base_ring() in (ZZ, QQ):
             # Check that the double description is set up correctly.
             self_field = self.base_extend(self.base_ring(), backend='field')
+            P = polytopes.permutahedron(4, backend='field').base_extend(QQ)
             try:
                 P = polytopes.permutahedron(4, backend='field').base_extend(QQ)
             except ImportError:
@@ -1010,8 +1014,9 @@ class Polyhedron_base5(Polyhedron_base4):
             else:
                 (self_field * P)._test_basic_properties(tester)
             from .constructor import Polyhedron
-            Q = Polyhedron(rays=[[1, 0, 0, 0], [0, 1, 1, 0]], lines=[[0, 1, 0, 1]], backend='field') \
-                (self_field * Q)._test_basic_properties(tester)
+            Q = Polyhedron(rays=[[1,0,0,0],[0,1,1,0]], lines=[[0,1,0,1]], backend='field')
+            (self_field * P)._test_basic_properties(tester)
+            (self_field * Q)._test_basic_properties(tester)
 
     def join(self, other):
         """
@@ -1057,98 +1062,31 @@ class Polyhedron_base5(Polyhedron_base4):
             'cdd'
             sage: Q.join(P).backend()
             'ppl'
-
-        Check that the double description is set up correctly::
-
-            sage: P = polytopes.cross_polytope(4)
-            sage: P1 = polytopes.cross_polytope(4, backend='field')
-            sage: P.join(P) == P1.join(P1)
-            True
-
-            sage: P = 4*polytopes.hypercube(4)
-            sage: P1 = 4*polytopes.hypercube(4, backend='field')
-            sage: P.join(P) == P1.join(P1)
-            True
-
-            sage: P = polytopes.permutahedron(4)
-            sage: P1 = polytopes.permutahedron(4, backend='field')
-            sage: P.join(P) == P1.join(P1)
-            True
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
         except TypeError:
             raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
-                            + " and " + str(other.parent()))
-
-        from itertools import chain
+                     + " and " + str(other.parent()))
 
         dim_self = self.ambient_dim()
         dim_other = other.ambient_dim()
-        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim() + 1)
 
-<<<<<<< HEAD
         new_vertices = [list(x)+[0]*dim_other+[0] for x in self.vertex_generator()] + \
                        [[0]*dim_self+list(x)+[1] for x in other.vertex_generator()]
         new_rays = []
-        new_rays.extend([r+[0]*dim_other+[0]
-                         for r in self.ray_generator()])
-        new_rays.extend([[0]*dim_self+r+[1]
-                         for r in other.ray_generator()])
+        new_rays.extend( [ r+[0]*dim_other+[0]
+                           for r in self.ray_generator() ] )
+        new_rays.extend( [ [0]*dim_self+r+[1]
+                           for r in other.ray_generator() ] )
         new_lines = []
-        new_lines.extend([l+[0]*dim_other+[0]
-                          for l in self.line_generator()])
-        new_lines.extend([[0]*dim_self+l+[1]
-                          for l in other.line_generator()])
-=======
-        new_vertices1 = (list(x) + [0]*dim_other + [0] for x in self.vertex_generator())
-        new_vertices2 = ([0]*dim_self + list(x) + [1] for x in other.vertex_generator())
-        new_vertices = chain(new_vertices1, new_vertices2)
->>>>>>> develop
+        new_lines.extend( [ l+[0]*dim_other+[0]
+                            for l in self.line_generator() ] )
+        new_lines.extend( [ [0]*dim_self+l+[1]
+                            for l in other.line_generator() ] )
 
-        new_rays1 = (list(r) + [0]*dim_other + [0] for r in self.ray_generator())
-        new_rays2 = ([0]*dim_self + list(r) + [1] for r in other.ray_generator())
-        new_rays = chain(new_rays1, new_rays2)
-
-        new_lines1 = (list(l) + [0]*dim_other + [0] for l in self.line_generator())
-        new_lines2 = ([0]*dim_self + list(l) + [1] for l in other.line_generator())
-        new_lines = chain(new_lines1, new_lines2)
-
-        if not self.is_compact() or not other.is_compact() or self.n_vertices() <= 1 or other.n_vertices() <= 1:
-            # Cases for which the below double description does not work.
-            return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
-
-        # Facet defining inequalities that contain the corresponding vertices from ``new_vertices1``
-        # and all vertices from ``new_vertices2``.
-        new_inequalities1 = ([i[0]] + list(i[1:]) + [0]*dim_other + [-i[0]] for i in self.inequality_generator())
-
-        # Facet defining inequalities that contain the corresponding vertices from ``new_vertices2``
-        # and all vertices from ``new_vertices1``.
-        new_inequalities2 = ([0] + [0]*dim_self + list(i[1:]) + [i[0]] for i in other.inequality_generator())
-
-        new_inequalities = chain(new_inequalities1, new_inequalities2)
-
-        # Equations that all vertices corresponding to ``new_vertices1`` satisfy.
-        # For any vertex from ``new_vertices2`` the condition is trivial.
-        new_equations1 = ([e[0]] + list(e[1:]) + [0]*dim_other + [-e[0]] for e in self.equation_generator())
-
-        # Equations that all vertices corresponding to ``new_vertices2`` satisfy.
-        # For any vertex from ``new_vertices1`` the condition is trivial.
-        new_equations2 = ([0] + [0]*dim_self + list(e[1:]) + [e[0]] for e in other.equation_generator())
-
-        new_equations = chain(new_equations1, new_equations2)
-
-        new_n_inequalities = self.n_inequalities() + other.n_inequalities()
-        new_n_vertices = self.n_vertices() + other.n_vertices()
-        new_n_rays = self.n_rays() + other.n_rays()
-
-        pref_rep = 'Vrep' if new_n_vertices + new_n_rays <= new_n_inequalities else 'Hrep'
-
-        return parent.element_class(parent,
-                                    [new_vertices, new_rays, new_lines],
-                                    [new_inequalities, new_equations],
-                                    Vrep_minimal=True, Hrep_minimal=True,
-                                    pref_rep=pref_rep)
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim() + 1)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def subdirect_sum(self, other):
         """
@@ -1193,7 +1131,7 @@ class Polyhedron_base5(Polyhedron_base4):
             new_ring = self.parent()._coerce_base_ring(other)
         except TypeError:
             raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
-                            + " and " + str(other.parent()))
+                     + " and " + str(other.parent()))
 
         dim_self = self.ambient_dim()
         dim_other = other.ambient_dim()
@@ -1201,15 +1139,16 @@ class Polyhedron_base5(Polyhedron_base4):
         new_vertices = [list(x)+[0]*dim_other for x in self.vertex_generator()] + \
                        [[0]*dim_self+list(x) for x in other.vertex_generator()]
         new_rays = []
-        new_rays.extend([r+[0]*dim_other
-                        for r in self.ray_generator()])
-        new_rays.extend([[0]*dim_self+r
-                        for r in other.ray_generator()])
+        new_rays.extend( [ r+[0]*dim_other
+                           for r in self.ray_generator() ] )
+        new_rays.extend( [ [0]*dim_self+r
+                           for r in other.ray_generator() ] )
         new_lines = []
-        new_lines.extend([l+[0]*dim_other
-                         for l in self.line_generator()])
-        new_lines.extend([[0]*dim_self+l
-                         for l in other.line_generator()])
+        new_lines.extend( [ l+[0]*dim_other
+                            for l in self.line_generator() ] )
+        new_lines.extend( [ [0]*dim_self+l
+                            for l in other.line_generator() ] )
+
         parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
         return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
@@ -1266,7 +1205,7 @@ class Polyhedron_base5(Polyhedron_base4):
             new_ring = self.parent()._coerce_base_ring(other).fraction_field()
         except TypeError:
             raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
-                            + " and " + str(other.parent()))
+                     + " and " + str(other.parent()))
 
         dim_self = self.ambient_dim()
         dim_other = other.ambient_dim()
@@ -1274,15 +1213,15 @@ class Polyhedron_base5(Polyhedron_base4):
         new_vertices = [list(x) + [0]*dim_other for x in self.vertex_generator()] + \
                        [list(self.center()) + list(x.vector() - other.center()) for x in other.vertex_generator()]
         new_rays = []
-        new_rays.extend([r + [0]*dim_other
-                        for r in self.ray_generator()])
-        new_rays.extend([[0]*dim_self + r
-                        for r in other.ray_generator()])
+        new_rays.extend( [ r + [0]*dim_other
+                           for r in self.ray_generator() ] )
+        new_rays.extend( [ [0]*dim_self + r
+                           for r in other.ray_generator() ] )
         new_lines = []
-        new_lines.extend([l + [0]*dim_other
-                         for l in self.line_generator()])
-        new_lines.extend([[0]*dim_self + l
-                         for l in other.line_generator()])
+        new_lines.extend( [ l + [0]*dim_other
+                            for l in self.line_generator() ] )
+        new_lines.extend( [ [0]*dim_self + l
+                            for l in other.line_generator() ] )
 
         parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
         return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
@@ -1803,26 +1742,29 @@ class Polyhedron_base5(Polyhedron_base4):
             # So we multiply the entire vertex matrix etc.
             # Still we create generators, as possibly the Vrepresentation will be discarded later on.
             if self.n_vertices():
-                new_vertices = (v for v in ((linear_transf*self.vertices_matrix(R)).transpose()))
+                new_vertices = ( v for v in ((linear_transf*self.vertices_matrix(R)).transpose()) )
             else:
                 new_vertices = ()
             if self.n_rays():
-                new_rays = (r for r in matrix(R, self.rays())*linear_transf.transpose())
+                new_rays = ( r for r in matrix(R, self.rays())*linear_transf.transpose() )
             else:
                 new_rays = ()
             if self.n_lines():
-                new_lines = (l for l in matrix(R, self.lines())*linear_transf.transpose())
+                new_lines = ( l for l in matrix(R, self.lines())*linear_transf.transpose() )
             else:
                 new_lines = ()
 
             if self.is_compact() and self.n_vertices() and self.n_inequalities():
-                homogeneous_basis = matrix(R, ([1] + list(v) for v in self.an_affine_basis())).transpose()
+                homogeneous_basis = matrix(R, ( [1] + list(v) for v in self.an_affine_basis() )).transpose()
+
                 # To convert first to a list and then to a matrix seems to be necessary to obtain a meaningful error,
                 # in case the number of columns doesn't match the dimension.
-                new_homogeneous_basis = matrix(list([1] + list(linear_transf*vector(R, v)) for v in self.an_affine_basis())).transpose()
+                new_homogeneous_basis = matrix(list( [1] + list(linear_transf*vector(R, v)) for v in self.an_affine_basis()) ).transpose()
+
                 if self.dim() + 1 == new_homogeneous_basis.rank():
                     # The transformation is injective on the polytope.
                     is_injective = True
+
                     # Let V be the homogeneous vertex matrix (each vertex a column)
                     # and M the linear transformation.
                     # Then M*V is the new homogeneous vertex matrix.
@@ -1834,16 +1776,17 @@ class Polyhedron_base5(Polyhedron_base4):
                     # Note that such N must exist, as our map is injective on the polytope.
                     # It is uniquely defined by considering a basis of the homogeneous vertices.
                     N = new_homogeneous_basis.solve_left(homogeneous_basis)
-                    new_inequalities = (h for h in matrix(R, self.inequalities())*N)
+                    new_inequalities = ( h for h in matrix(R, self.inequalities())*N )
 
                     # The equations are the left kernel matrix of the homogeneous vertices
                     # or equivalently a basis thereof.
                     new_equations = (new_homogeneous_basis.transpose()).right_kernel_matrix()
 
         else:
-            new_vertices = [[] for v in self.vertex_generator()]
+            new_vertices = [[] for v in self.vertex_generator() ]
             new_rays = []
             new_lines = []
+
         new_dim = linear_transf.nrows()
         par = self.parent()
 
@@ -2380,10 +2323,10 @@ class Polyhedron_base5(Polyhedron_base4):
             raise TypeError("the face {} should be a Vertex or PolyhedronFace".format(face))
 
         new_rays = []
-        new_rays.extend([r + [0] for r in self.ray_generator()])
+        new_rays.extend( [ r + [0] for r in self.ray_generator() ] )
 
         new_lines = []
-        new_lines.extend([l + [0] for l in self.line_generator()])
+        new_lines.extend( [ l + [0] for l in self.line_generator() ] )
 
         parent = self.parent().change_ring(self.base_ring().fraction_field(), ambient_dim=self.ambient_dim()+1)
         return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
