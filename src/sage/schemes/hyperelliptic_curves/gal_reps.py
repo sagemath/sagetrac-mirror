@@ -44,6 +44,15 @@ EXAMPLES::
     sage: rho.is_surjective(13)
     True
 
+The curve 587.a.587.1 on the LMFDB has surjective mod-$\ell$ Galois
+representation at all primes `\ell`. ::
+
+    sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, -1, -1]), R([1, 1, 0, 1]));
+    sage: A = C.jacobian()
+    sage: rho = A.galois_representation()
+    sage: rho.non_surjective()
+    []
+
 If the Jacobian has any non-trivial endomorphisms, we raise an error:
 
     sage: R.<x>=QQ[]
@@ -88,9 +97,10 @@ from sage.arith.all import valuation, lcm, gcd
 from sage.rings.fast_arith import prime_range
 from sage.misc.lazy_import import lazy_import
 from sage.modular.all import CuspForms
+from sage.modular.dirichlet import DirichletGroup
 from sage.misc.all import prod
 from sage.rings.all import GF, ZZ, QQ, Zmod, PolynomialRing
-from sage.modular.dirichlet import DirichletGroup
+from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
 
 from math import sqrt, floor
 
@@ -117,6 +127,7 @@ class GaloisRepresentation(SageObject):
 
     """
 
+    # Written by: TODO
     def __init__(self, A):
         r"""
         see ``GaloisRepresentation`` for documentation
@@ -158,6 +169,7 @@ class GaloisRepresentation(SageObject):
 # surjectivity
 #####################################################################
 
+    # Written by: TODO
     def _init_exps(self):
         r"""
         Return a dictionary of lists of characteristic polynomials of the
@@ -320,6 +332,7 @@ class GaloisRepresentation(SageObject):
             x**4 + 5*x**3 + 4*x**2 + 6*x + 2]
         return {3: char3, 5: char5, 7: char7}
 
+    # Written by: TODO
     def _init_wit(self, L):
         r"""
         Initialize a dictionary of lists for witnesses of surjectivitiy tests.
@@ -365,9 +378,7 @@ class GaloisRepresentation(SageObject):
                 witnesses[l] = [0, 0]
         return witnesses
 
-    # TODO: consider making `_is_surj_at_2`, `_surj_test_A`, `_surj_test_B`,
-    # `_surj_test_exp` public functions or bundling them up into a single
-    # public function that takes as input the type of test to run.
+    # Written by: TODO
     def _is_surj_at_2(self, f, h):
         """
         Return ``True`` if the mod-`2` Galois image of the Jacobian of the
@@ -400,18 +411,23 @@ class GaloisRepresentation(SageObject):
             sage: rho._is_surj_at_2(f, 0)
             False
 
+        The following example is for the curve 1253.b.1253.1 on the LMFDB. ::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, 1, 0, 1]), R([1, 1, 0, 1]));
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: f, h = C.hyperelliptic_polynomials()
+            sage: rho._is_surj_at_2(f, h)
+            True
+
         """
-        # TODO: I (Hyun Jong) think that this function could stand to be
-        # a module level function or a class function. If so, it could also
-        # stand to be a public function.
         # TODO: Add the paper to Sage's master bibliography file, and cite
         # the part that talks about the mod-2 Galois image in the ALGORITHM
         # section.
-        # TODO: Add an example of a hyperelliptic curve not surjective
-        # at 2.
         F = 4*f + h**2
         return F.is_irreducible() and F.galois_group().order() == 720
 
+    # Written by: TODO
     def _surj_test_A(self, frob_mod):
         r"""
         Return ``True`` if the specified mod-`\ell` characteristic polynomial
@@ -431,10 +447,24 @@ class GaloisRepresentation(SageObject):
         ``False`` otherwise.
 
         EXAMPLES:
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, 1, 0, 1]), R([1, 1, 0, 1]));
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho._surj_test_A(PolynomialRing(GF(5), 'x')(x^4 + x^3 + 3*x^2 + 3*x + 4))
+            False
+            sage: rho._surj_test_A(PolynomialRing(GF(7), 'x')(x^4 + x^3 + 3*x^2 + 3*x + 2))
+            True
+            sage: rho._surj_test_A(PolynomialRing(GF(3), 'x')(x^4 + x^3 + 2*x + 1))
+            True
+            sage: rho._surj_test_A(PolynomialRing(GF(5), 'x')(x^4 + x^3 + x^2 + x + 1))
+            False
+            sage: rho._surj_test_A(PolynomialRing(GF(5), 'x')(x^4 + x^3 + 2*x^2 + 3*x + 4))
+            True
         """
-        # TODO: Add examples
         return frob_mod.is_irreducible()
 
+    # Written by: TODO
     def _surj_test_B(self, frob_mod):
         r"""
         Return ``True`` if the specified mod-`\ell` characteristic polynomial
@@ -457,14 +487,40 @@ class GaloisRepresentation(SageObject):
 
         EXAMPLES:
 
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, 1, 0, 1]), R([1, 1, 0, 1]));
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho._surj_test_B(PolynomialRing(GF(5), 'x')(x^4 + x^3 + 3*x^2 + 3*x + 4))
+            False
+            sage: rho._surj_test_B(PolynomialRing(GF(7), 'x')(x^4 + x^3 + 3*x^2 + 3*x + 2))
+            False
+            sage: rho._surj_test_B(PolynomialRing(GF(3), 'x')(x^4 + x^3 + 2*x + 1))
+            False
+            sage: rho._surj_test_B(PolynomialRing(GF(7), 'x')(x^4 + 4*x^3 + 2*x^2 + 6*x + 4))
+            False
+            sage: rho._surj_test_B(PolynomialRing(GF(3), 'x')(x^4 + x^3 + 2*x + 1))
+            False
+            sage: rho._surj_test_B(PolynomialRing(GF(5), 'x')(x^4 + x^3 + x^2 + x + 1))
+            False
+
+        The LMFDB curve 1091.a.1091.a has a non-surjective mod-`7` Galois
+        representation as it has a rational torsion point of order
+        `7`. ::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, -1, -2, 0, 1]), R([1, 1, 1]));            
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()            
+            sage: rho._surj_test_B(PolynomialRing(GF(7), 'x')(x^4 + 3*x^3 + 6*x^2 + 2*x + 2))
+            True
+
         """
-        # TODO: add examples
         if -frob_mod[3] != 0:
             for fact in frob_mod.factor():
                 if fact[0].degree() == 1 and fact[1] == 1:
                     return True
         return False
 
+    # Written by: TODO
     def _surj_test_exp(self, l, frob_mod, exps):
         r"""
         Return ``True`` if the specified mod-`\ell` characteristic polynomial
@@ -496,18 +552,48 @@ class GaloisRepresentation(SageObject):
 
         EXAMPLES:
 
+            sage: R.<x> = PolynomialRing(QQ);
+            sage: H = HyperellipticCurve(R([1, 4, 4, 2, 0, 0, 1]))
+            sage: J = H.jacobian()
+            sage: rho = J.galois_representation()
+            sage: exps = rho._init_exps()
+            sage: rho._surj_test_exp(5, PolynomialRing(GF(5), 'x')(x^4 + 3*x^3 + x^2 + 4*x + 4), exps)
+            True
+            sage: rho._surj_test_exp(7, PolynomialRing(GF(7), 'x')(x^4 + 3*x^3 + 6*x^2 + 2*x + 2), exps)
+            False
+            sage: rho._surj_test_exp(3, PolynomialRing(GF(3), 'x')(x^4 + 2*x^2 + 1), exps)
+            False
+            sage: rho._surj_test_exp(7, PolynomialRing(GF(7), 'x')(x^4 + 3*x^3 + 5*x^2 + x + 4), exps)
+            True
+            sage: rho._surj_test_exp(3, PolynomialRing(GF(3), 'x')(x^4 + 1), exps)
+            False
+
         """
         # TODO: check that the inputs are specified correctly in the docstring
         return frob_mod not in exps[l]
 
+    # Written by: TODO
     def _update_wit(self, l, p, frob, f, h, exps, wit):
         """
         Return an updated list of witnesses, based on surjectivity tests for
         ``frob`` at p.
 
         TESTS::
+
+            sage: R.<x> = PolynomialRing(QQ);
+            sage: H = HyperellipticCurve(R([1, 4, 4, 2, 0, 0, 1]))
+            sage: J = H.jacobian()
+            sage: rho = J.galois_representation()
+            sage: f, h = rho._A.curve().hyperelliptic_polynomials()
+            sage: f, h
+            (x^6 + 2*x^3 + 4*x^2 + 4*x + 1, 0)
+            sage: L = prime_range(1000)
+            sage: witnesses = rho._init_wit(L)
+            sage: exps = rho._init_exps()
+            sage: rho._update_wit(2, 5, x^4 + 2*x^2 + 25, f, h, exps, witnesses[2])
+            [-1]
         """
-        # TODO: add tests
+        # print(f"_update_wit({l}, {p}, {frob}, {f}, {h}, {exps}, {wit})")
         frob_mod = frob.change_ring(Zmod(l))
         for i in range(0, len(wit)):
             if wit[i] == 0:
@@ -524,6 +610,7 @@ class GaloisRepresentation(SageObject):
                     wit[i] = p
         return wit
 
+    # Written by: TODO
     def find_surj_from_list(
             self, L=prime_range(1000), bound=1000, verbose=False):
         r"""
@@ -617,13 +704,15 @@ class GaloisRepresentation(SageObject):
                 probably_non_surj_primes.append(l)
         return probably_non_surj_primes
 
+    # Written by: TODO
     def is_surjective(self, l, bound=1000, verbose=False):
         r"""
         Return whether the mod-`\ell` representation is surjective onto
         `\operatorname{Aut}(A[\ell]) = \operatorname{GSp}_4(\GF{\ell})`.
 
-        For the primes `\ell=2` and `3`, this function will always return either
-        ``True`` or ``False``. For larger primes it might return ``None``.
+        For the primes `\ell=2` and `3`, this function will always return
+        either ``True`` or ``False``. For larger primes it might return
+        ``None``.
 
         The output of this function is cached.
 
@@ -719,7 +808,6 @@ class GaloisRepresentation(SageObject):
             False
 
         """
-        # TODO: delete the elliptic curve examples
         # TODO: the two tests are the first two examples in the
         # find_surj_from_list.sage file. Maybe the actual outputs
         # should be checked.
@@ -728,11 +816,9 @@ class GaloisRepresentation(SageObject):
         # TODO: Add the papers of Dokchitsers and Elklies in the master
         # bibliography file; consider adding the reference to these papers
         # in the module docstring instead.
-        # TODO: change p in this function to l; it is confusing to use
-        # p here when we use l everywhere else.
         if self.non_surjective_primes is not None:
             if not l.is_prime():
-                raise ValueError("p must be prime")
+                raise ValueError("l must be prime")
             return (l not in self.non_surjective_primes)
 
         ans = self.find_surj_from_list(L=[l], bound=1000, verbose=False)
@@ -742,6 +828,7 @@ class GaloisRepresentation(SageObject):
         else:
             return True
 
+    # Written by: TODO
     def non_surjective(self, N=None, bound=1000):
         r"""
         Return a list of primes `\ell` such that the mod-`\ell` representation
@@ -779,37 +866,26 @@ class GaloisRepresentation(SageObject):
             sage: rho.non_surjective()  # long time
             [2, 7]
 
-        ::
+        The curve 743.a.743.1 on the LMFDB has non-surjective mod-`\ell` representations
+        for all primes $\ell$. ::
 
-            sage: E = EllipticCurve([0, 0, 1, -38, 90])  # 361A
-            sage: E.galois_representation().non_surjective()   # CM curve
-            [0]
-
-        ::
-
-            sage: E = EllipticCurve([0, -1, 1, 0, 0]) # X_1(11)
-            sage: E.galois_representation().non_surjective()
-            [5]
-
-            sage: E = EllipticCurve([0, 0, 1, -1, 0]) # 37A
-            sage: E.galois_representation().non_surjective()
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, 1, 0, -1]), R([1, 1, 0, 1]));
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho.non_surjective()
             []
 
-            sage: E = EllipticCurve([0,-1,1,-2,-1])   # 141C
-            sage: E.galois_representation().non_surjective()
-            [13]
+        If the Jacobian has any non-trivial endomorphisms, we raise an error. ::
 
-        ::
-
-            sage: E = EllipticCurve([1,-1,1,-9965,385220]) # 9999a1
-            sage: rho = E.galois_representation()
+            sage: R.<x>=QQ[]
+            sage: f = x^6 - 2*x^4 + 2*x^2 - 1
+            sage: C = HyperellipticCurve(f)
+            sage: A = C.jacobian()
+            sage: rho = A.galois_representation()
             sage: rho.non_surjective()
-            [2]
-
-            sage: E = EllipticCurve('324b1')
-            sage: rho = E.galois_representation()
-            sage: rho.non_surjective()
-            [3, 5]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Computation of non-surjective primes currently only works for Jacobians whose geometric endomorphism ring is Z.
 
         ALGORITHM:
 
@@ -821,8 +897,6 @@ class GaloisRepresentation(SageObject):
         on the conductor of `E`.
         For the prime below that bound we call ``is_surjective``.
 
-        TESTS::
-
         """
         # TODO Add the results of Mazur, Serre, and Cojocaru in Sage's master
         # bibliography file and cite them here.
@@ -830,17 +904,18 @@ class GaloisRepresentation(SageObject):
         # surjective.
         # TODO: add the attribute non_surjective_primes to the class level
         # docstring
-        # TODO: add non-CM examples
         if self.non_surjective_primes is not None:
             return self.non_surjective_primes
 
-        if not self._A.geometric_endomorphism_ring_is_ZZ():
+        C = self._A.curve()
+        f, h = C.hyperelliptic_polynomials()
+        simplified_hyperelliptic_model = HyperellipticCurve(4*f + h**2)
+        jacobian = simplified_hyperelliptic_model.jacobian()
+        if not jacobian.geometric_endomorphism_ring_is_ZZ():
             raise NotImplementedError(
                 "Computation of non-surjective primes currently only works "
                 "for Jacobians whose geometric endomorphism ring is Z."
             )
-
-        C = self._A.curve()
 
         M1p3 = 0
         y1p3 = 0
@@ -934,6 +1009,7 @@ class GaloisRepresentation(SageObject):
 #########################################################
 
 
+# Written by: TODO
 def _maximal_square_divisor(N):
     """
     TESTS::
@@ -970,6 +1046,7 @@ def _maximal_square_divisor(N):
 #########################################################
 
 
+# Written by: TODO
 def _maximal_quadratic_conductor(N):
     """
     TESTS::
@@ -998,6 +1075,7 @@ def _maximal_quadratic_conductor(N):
         return ZZ(N).radical()
 
 
+# Written by: TODO
 def _character_list(N):
     """
     TESTS::
@@ -1024,6 +1102,7 @@ def _character_list(N):
     return [phi for phi in D if phi.conductor() != 1]
 
 
+# Written by: TODO
 def _set_up_quadratic_chars(N):
     """
     TESTS::
@@ -1038,12 +1117,10 @@ def _set_up_quadratic_chars(N):
         (Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1, 0, 0)
 
     """
-    # TODO: Consider making this function private.
-    # TODO: Consider making this function a module level function
-    # TODO: Add tests/examples (required)
     return [(phi, 0, 0) for phi in _character_list(N)]
 
 
+# Written by: TODO
 def _rule_out_quadratic_ell_via_Frob_p(p, fp, MM):
     r"""Provide a summary of what this method is doing.
 
@@ -1064,9 +1141,28 @@ def _rule_out_quadratic_ell_via_Frob_p(p, fp, MM):
 
     TESTS::
 
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _rule_out_quadratic_ell_via_Frob_p, _set_up_quadratic_chars
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: MQuad = _set_up_quadratic_chars(498)
+        sage: len(MQuad)
+        15
+        sage: assert isinstance(MQuad[0], tuple)
+        sage: assert len(MQuad[0]) == 3
+        sage: assert MQuad[0][1] == 0
+        sage: assert MQuad[0][2] == 0
+        sage: MQuad[0][0]
+        Dirichlet character modulo 1992 of conductor 4 mapping 1495 |--> -1, 997 |--> 1, 665 |--> 1, 1081 |--> 1
+        sage: MQuad = _rule_out_quadratic_ell_via_Frob_p(5, x^4 + 2*x^2 + 25, MQuad)
+        sage: len(MQuad)
+        15
+        sage: MQuad = _rule_out_quadratic_ell_via_Frob_p(7, x^4 + x^3 - 2*x^2 + 7*x + 49, MQuad)
+        sage: len(MQuad)
+        15
+
+
     """
-    # TODO: Add tests/examples (required)
     # TODO: Complete the description and output description.
+    # print(f"_rule_out_quadratic_ell_via_Frob_p({p}, {fp}, See above for input MM)")
     ap = -fp.coefficients(sparse=False)[3]
     if ap == 0:
         return MM
@@ -1096,6 +1192,7 @@ def _rule_out_quadratic_ell_via_Frob_p(p, fp, MM):
 # f**(n)(x) = x**4 - tn*x**3 + sn*x**2 - p**(alphan)*tn*x + p**(2*alphan)
 # whose roots are the nth powers of the roots of f
 
+# Written by: TODO
 def _power_roots2(ptsa):
     """
     TESTS::
@@ -1116,6 +1213,7 @@ def _power_roots2(ptsa):
             2*alpha)
 
 
+# Written by: TODO
 def _power_roots3(ptsa):
     """
     TESTS::
@@ -1140,6 +1238,7 @@ def _power_roots3(ptsa):
         3*alpha)
 
 
+# Written by: TODO
 def _power_roots5(ptsa):
     """
     TESTS::
@@ -1170,6 +1269,7 @@ def _power_roots5(ptsa):
 
 # put these together to do any power dividing 120 that we actually need
 # c is the power
+# Written by: TODO
 def _power_roots(cptsa):
     """
     TESTS::
@@ -1207,6 +1307,7 @@ def _power_roots(cptsa):
 # given a quartic f whose roots multiply to p**alpha in pairs,
 # returns the quartic whose roots are the products of roots
 # of f that DO NOT multiply to p**alpha
+# Written by: TODO
 def _roots_pairs_not_p(ptsa):
     """
     TESTS::
@@ -1222,7 +1323,6 @@ def _roots_pairs_not_p(ptsa):
         (43, 6075728, -506829218, 8)
 
     """
-    # TODO: Add tests/examples (required)
     p, t, s, alpha = ptsa
     return (p, s - 2*p, p*t**2 - 2*p*s + 2*p**2, 2*alpha)
 
@@ -1233,14 +1333,36 @@ def _roots_pairs_not_p(ptsa):
 # 1 + 3 reducible divides M
 # y is a counter for the number of nontrivial Frobenius conditions going
 # into M
+# Written by: TODO
 def _rule_out_1_plus_3_via_Frob_p(c, p, t, s, M=0, y=0):
     """
     TESTS::
 
         sage: from sage.schemes.hyperelliptic_curves.gal_reps import _rule_out_1_plus_3_via_Frob_p
-
+        sage: _rule_out_1_plus_3_via_Frob_p(8, 5, 0, 2, 0, 0)
+        (759564288000, 1)
+        sage: _rule_out_1_plus_3_via_Frob_p(8, 43, 8, 70, 7168, 11)
+        (7168, 12)
+        sage: _rule_out_1_plus_3_via_Frob_p(8, 41, 4, -2, 7168, 10)
+        (7168, 11)
+        sage: _rule_out_1_plus_3_via_Frob_p(8, 31, 3, 30, 7168, 8)
+        (7168, 9)
+        sage: _rule_out_1_plus_3_via_Frob_p(8, 29, 3, 32, 7168, 7)
+        (7168, 8)
+        sage: _rule_out_1_plus_3_via_Frob_p(8, 23, 0, -26, 7168, 6)
+        (7168, 7)
+        sage: _rule_out_1_plus_3_via_Frob_p(8, 19, -6, 22, 7168, 5)
+        (7168, 6)
+        sage: _rule_out_1_plus_3_via_Frob_p(8, 17, -1, 28, 7168, 4)
+        (7168, 5)
+        sage: _rule_out_1_plus_3_via_Frob_p(8, 13, 0, -2, 179200, 3)
+        (7168, 4)
+        sage: _rule_out_1_plus_3_via_Frob_p(8, 11, 1, 2, 1254400, 2)
+        (179200, 3)
+        sage: _rule_out_1_plus_3_via_Frob_p(8, 7, -1, -2, 759564288000, 1)
+        (1254400, 2)
     """
-    # TODO: Add tests/examples (required)
+    # print(f"_rule_out_1_plus_3_via_Frob_p({c}, {p}, {t}, {s}, {M}, {y})")
     p, tnew, snew, alphanew = _power_roots((c, p, t, s, 1))
     x = PolynomialRing(QQ, "x").gen()
     Pnew = (x**4 - tnew*x**3 + snew*x**2 - p**alphanew*tnew*x
@@ -1258,13 +1380,30 @@ def _rule_out_1_plus_3_via_Frob_p(c, p, t, s, M=0, y=0):
 # 2+2 non-self-dual type reducible divides M
 # y is a counter for the number of nontrivial Frobenius conditions going
 # into M
+# Written by: TODO
 def _rule_out_2_plus_2_nonselfdual_via_Frob_p(c, p, t, s, M=0, y=0):
     """
     TESTS::
 
-
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _rule_out_2_plus_2_nonselfdual_via_Frob_p
+        sage: _rule_out_2_plus_2_nonselfdual_via_Frob_p(8, 5, 0, 2, 0, 0)
+        (0, 0)
+        sage: _rule_out_2_plus_2_nonselfdual_via_Frob_p(8, 43, 8, 70, 1, 8)
+        (1, 9)
+        sage: _rule_out_2_plus_2_nonselfdual_via_Frob_p(8, 37, -5, 8, 1, 6)
+        (1, 7)
+        sage: _rule_out_2_plus_2_nonselfdual_via_Frob_p(8, 29, 3, 32, 1, 4)
+        (1, 5)
+        sage: _rule_out_2_plus_2_nonselfdual_via_Frob_p(8, 19, -6, 22, 1, 3)
+        (1, 4)
+        sage: _rule_out_2_plus_2_nonselfdual_via_Frob_p(8, 17, -1, 28, 7, 2)
+        (1, 3)
+        sage: _rule_out_2_plus_2_nonselfdual_via_Frob_p(8, 13, 0, -2, 7, 2)
+        (7, 2)
+        sage: _rule_out_2_plus_2_nonselfdual_via_Frob_p(8, 11, 1, 2, 54877666934581886389580413794274402125175221246505984375, 1)
+        (7, 2)
     """
-    # TODO: Add tests/examples (required)
+    # print(f"_rule_out_2_plus_2_nonselfdual_via_Frob_p({c}, {p}, {t}, {s}, {M}, {y})")
     p, tnew, snew, alphanew = _roots_pairs_not_p((p, t, s, 1))
     p, tnew, snew, alphanew = _power_roots(
         (c, p, tnew, snew, alphanew))
@@ -1284,6 +1423,7 @@ def _rule_out_2_plus_2_nonselfdual_via_Frob_p(c, p, t, s, M=0, y=0):
 #########################################################
 
 
+# Written by: TODO
 def _special_divisors(N):
     """
     TESTS::
@@ -1313,13 +1453,17 @@ def _special_divisors(N):
     return D
 
 
+# Written by: TODO
 def _get_cuspidal_levels(N, max_cond_exp_2=None):
     """
     TESTS::
 
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _get_cuspidal_levels
+        sage: _get_cuspidal_levels(498, 0)
+        [3]
 
     """
-    # TODO: Add tests/examples (required)
+    # print(f"_get_cuspidal_levels({N}, {max_cond_exp_2}")
     if max_cond_exp_2 is not None:
         # if we're here, then N is the even poor mans conductor
         # recall we put a 2 in the poor mans conductor
@@ -1333,26 +1477,38 @@ def _get_cuspidal_levels(N, max_cond_exp_2=None):
         return _special_divisors(N)
 
 
+# Written by: TODO
 def _set_up_cuspidal_spaces(N, max_cond_exp_2=None):
     """
     TESTS::
 
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _set_up_cuspidal_spaces
+        sage: _set_up_cuspidal_spaces(498, 0)
+        [(Cuspidal subspace of dimension 0 of Modular Forms space of dimension 1 for Congruence Subgroup Gamma0(3) of weight 2 over Rational Field,
+          0,
+          0)]
 
     """
-    # TODO: Add tests/examples (required)
+    # print(f"_set_up_cuspidal_spaces({N}, {max_cond_exp_2})")
     D = _get_cuspidal_levels(N, max_cond_exp_2)
     return [(CuspForms(d), 0, 0) for d in D]
 
 
+# Written by: TODO
 def _reconstruct_hecke_poly_from_trace_polynomial(cusp_form_space, p):
     """
     Implement Zev and Joe Wetherell's idea
 
     TESTS::
 
-
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _reconstruct_hecke_poly_from_trace_polynomial
+        sage: cusp_form_space = CuspForms(Gamma0(3), 2)
+        sage: _reconstruct_hecke_poly_from_trace_polynomial(cusp_form_space, 5)
+        1
+        sage: _reconstruct_hecke_poly_from_trace_polynomial(cusp_form_space, 7)
+        1
     """
-    # TODO: Add tests/examples (required)
+    # print(f"_reconstruct_hecke_poly_from_trace_polynomial(See above for input cusp_form_space, {p})")
     R = PolynomialRing(QQ, "x")
     x = R.gen()
     char_T_x = R(cusp_form_space.hecke_polynomial(p))
@@ -1363,13 +1519,21 @@ def _reconstruct_hecke_poly_from_trace_polynomial(cusp_form_space, p):
     return R(substitute_poly(a=0, b=x))
 
 
+# Written by: TODO
 def _rule_out_cuspidal_space_using_Frob_p(S, p, fp, M, y):
     """
     TESTS::
 
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _rule_out_cuspidal_space_using_Frob_p
+        sage: S = CuspForms(Gamma0(3), 2)
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: _rule_out_cuspidal_space_using_Frob_p(S, 5, 25*x^4 + 2*x^2 + 1, 0, 0)
+        (5, 1)
+        sage: _rule_out_cuspidal_space_using_Frob_p(S, 7, 49*x^4 + 7*x^3 - 2*x^2 + x + 1, 5, 1)
+        (1, 2)
 
     """
-    # TODO: Add tests/examples (required)
+    # print(f"_rule_out_cuspidal_space_using_Frob_p(See above for input S, {p}, {fp}, {M}, {y})")
     if M != 1 and y < 2:
         Tp = _reconstruct_hecke_poly_from_trace_polynomial(S, p)
         res = fp.resultant(Tp)
@@ -1378,13 +1542,31 @@ def _rule_out_cuspidal_space_using_Frob_p(S, p, fp, M, y):
     return M, y
 
 
+# Written by: TODO
 def _rule_out_cuspidal_spaces_using_Frob_p(p, fp, MC):
     """
     TESTS::
 
+        sage: from sage.schemes.hyperelliptic_curves.gal_reps import _set_up_cuspidal_spaces, _rule_out_cuspidal_spaces_using_Frob_p
+        sage: MCusp = _set_up_cuspidal_spaces(498, max_cond_exp_2=0)
+        sage: MCusp
+        [(Cuspidal subspace of dimension 0 of Modular Forms space of dimension 1 for Congruence Subgroup Gamma0(3) of weight 2 over Rational Field,
+          0,
+          0)]
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: MCusp = _rule_out_cuspidal_spaces_using_Frob_p(5, 25*x^4 + 2*x^2 + 1, MCusp)
+        sage: MCusp
+        [(Cuspidal subspace of dimension 0 of Modular Forms space of dimension 1 for Congruence Subgroup Gamma0(3) of weight 2 over Rational Field,
+          5,
+          1)]
+        sage: MCusp = _rule_out_cuspidal_spaces_using_Frob_p(7, 49*x^4 + 7*x^3 - 2*x^2 + x + 1, MCusp)
+        sage: MCusp
+        [(Cuspidal subspace of dimension 0 of Modular Forms space of dimension 1 for Congruence Subgroup Gamma0(3) of weight 2 over Rational Field,
+          1,
+          2)]
 
     """
-    # TODO: Add tests/examples (required)
+    # print(f"_rule_out_cuspidal_spaces_using_Frob_p({p}, {fp}, See above for input MC)")
     MC0 = []
     for S, M, y in MC:
         Mm, yy = _rule_out_cuspidal_space_using_Frob_p(S, p, fp, M, y)
