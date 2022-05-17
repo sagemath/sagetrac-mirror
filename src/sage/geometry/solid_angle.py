@@ -37,6 +37,8 @@ from sage.modules.free_module_element import vector
 from sage.calculus.var import var
 from sage.symbolic.relation import solve
 from sage.symbolic.subring import SymbolicSubring
+from sage.rings.integer_ring import ZZ
+import logging
 
 
 def solid_angle_simplicial_2d(A):
@@ -68,6 +70,9 @@ def solid_angle_simplicial_2d(A):
 
         sage: solid_angle_simplicial_2d([[1, 0], [-1, sqrt(3)]])
         1/3
+
+        sage: solid_angle_simplicial_2d(matrix([[0, 1], [4.5, 0]]))
+        0.785398163397448/pi
 
         sage: RDF(solid_angle_simplicial_2d([[2, 13], [-1, 7]]))  # abs tol 1e-15
         0.04687851282419763
@@ -107,6 +112,53 @@ def solid_angle_simplicial_2d(A):
         Traceback (most recent call last):
         ...
         ValueError: input matrix has a row that is zero
+
+    TESTS:
+
+    In the following examples, we check the parent of the output corresponding
+    to an input whose parent is exact.::
+
+        sage: A = matrix([[2/3, 0], [-1/3, 5]])
+        sage: solid_angle_simplicial_2d(A)
+        1/2*arccos(-1/226*sqrt(226))/pi
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Ring
+
+        sage: A = matrix([[2/3, 0], [-1/3, 0]])
+        sage: solid_angle_simplicial_2d(A)
+        0
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Constants Subring
+
+    In the following examples, we check the parent of the output corresponding
+    to an input whose parent is not exact::
+
+        sage: A = matrix([[12, 0], [RBF(1.5), 9]])
+        sage: solid_angle_simplicial_2d(A)
+        ([0.702823824690135 +/- 4.26e-16])/pi
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Ring
+
+        sage: A = matrix([[RBF(12.7), 0], [-1, 0]])
+        sage: solid_angle_simplicial_2d(A)
+        0
+        sage: solid_angle_simplicial_2d(A).parent()
+        Real ball field with 53 bits of precision
+
+    In the following examples, we check the parent of the output corresponding
+    to an input whose parent is symbolic::
+
+        sage: A = matrix([[12, 0], [sqrt(17), 9]])
+        sage: solid_angle_simplicial_2d(A)
+        1/2*arccos(1/14*sqrt(17)*sqrt(2))/pi
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Ring
+
+        sage: A = matrix([[0, sqrt(18)], [0, -sqrt(pi)]])
+        sage: solid_angle_simplicial_2d(A)
+        0
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Constants Subring
     """
     if not is_Matrix(A):
         A = matrix(A)
@@ -116,7 +168,11 @@ def solid_angle_simplicial_2d(A):
     if any(r == 0 for r in A.rows()):
         raise ValueError("input matrix has a row that is zero")
     if A.rank() < 2:
-        return P.zero()
+        import sage.rings.abc
+        if P.is_exact() or isinstance(P, sage.rings.abc.SymbolicRing):
+            return SymbolicSubring(no_variables=True)(ZZ(0))
+        else:
+            return P.zero()
     u = A.row(0)
     v = A.row(1)
     p = u.dot_product(v)
@@ -146,8 +202,6 @@ def solid_angle_2d(A):
     spanned by the given two, three or four vectors in `\RR^2`, respectively::
 
         sage: from sage.geometry.solid_angle import solid_angle_2d
-        sage: import logging
-        sage: logging.disable(logging.INFO)
         sage: A = matrix([[2,3],[-3,-7]])
         sage: RDF(solid_angle_2d(A))  # abs tol 1e-15
         0.4708570082990789
@@ -157,9 +211,35 @@ def solid_angle_2d(A):
         1/2
 
         sage: A = matrix([[1,1],[1,2],[-1,1],[-3,0]])
+        sage: import logging
+        sage: logging.disable(logging.INFO)
         sage: RDF(solid_angle_2d(A))  # abs tol 1e-15
         0.375
 
+    In the following examples, we show that when a minimum description of the
+    cone of interest is not provided, the cone is first triangulated. The solid
+    angle measure of each of subcone is logged::
+
+        sage: A = matrix([[1,0],[0,1],[-1,1]])
+        sage: logging.disable(logging.NOTSET)
+        sage: solid_angle_2d(A)
+        INFO:Decompose into simplicial subcones
+        [1 0]
+        [0 1],
+        [ 0  1]
+        [-1  1]
+        INFO:Solid angles of the subcones are [1/4, 1/2*arccos(1/2*sqrt(2))/pi]
+        1/2*arccos(1/2*sqrt(2))/pi + 1/4
+
+        sage: A = matrix([[1,0],[0,1],[1,1]])
+        sage: solid_angle_2d(A)
+        INFO:Decompose into simplicial subcones
+        [1 0]
+        [1 1],
+        [0 1]
+        [1 1]
+        INFO:Solid angles of the subcones are [1/2*arccos(1/2*sqrt(2))/pi, 1/2*arccos(1/2*sqrt(2))/pi]
+        arccos(1/2*sqrt(2))/pi
 
     The following examples illustrate how the solid angle measure can equal
     `1`. That is, the span of the rays is all of space.::
@@ -188,13 +268,17 @@ def solid_angle_2d(A):
         sage: solid_angle_2d(A)
         0
     """
-    import logging
     logging.getLogger().setLevel(logging.INFO)
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
     if not is_Matrix(A):
         A = matrix(A)
     P = A[0][0].parent()
     if A.rank() < 2:
-        return P.zero()
+        import sage.rings.abc
+        if P.is_exact() or isinstance(P, sage.rings.abc.SymbolicRing):
+            return SymbolicSubring(no_variables=True)(ZZ(0))
+        else:
+            return P.zero()
     if A.nrows() == 2:
         return solid_angle_simplicial_2d(A)
     else:
@@ -206,7 +290,12 @@ def solid_angle_2d(A):
                     ab = vector([-v[i][1], v[i][0]])
                     if all(A[k] * ab >= 0 for k in range(d)) or \
                        all(A[k] * ab <= 0 for k in range(d)):
-                        return P.one()/2
+                        import sage.rings.abc
+                        from sage.rings.rational_field import QQ
+                        if P.is_exact() or isinstance(P, sage.rings.abc.SymbolicRing):
+                            return SymbolicSubring(no_variables=True)(QQ(1/2))
+                        else:
+                            return P.one()/2.
                     else:
                         return P.one()
         for k in range(1, d):
