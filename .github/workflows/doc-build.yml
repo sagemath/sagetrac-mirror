@@ -53,7 +53,10 @@ jobs:
           # https://github.com/netlify/cli/issues/1984
           # Note that even if this feature is implemented, one would also need to first process the branch name
           # to workaround the bug https://github.com/netlify/cli/issues/969.
-          NETLIFY_ALIAS: ${{ github.sha }}
+          #
+          # When run for a tag, we use its name instead.
+          # https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
+          NETLIFY_ALIAS: ${{ (github.ref_type == 'tag' && github.ref_name) || github.sha }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
