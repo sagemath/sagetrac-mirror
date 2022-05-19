@@ -126,6 +126,12 @@ def solid_angle_simplicial_2d(A):
         sage: solid_angle_simplicial_2d(A).parent()
         Symbolic Constants Subring
 
+        sage: A = matrix([[1, 1], [-4, -4]])
+        sage: solid_angle_simplicial_2d(A)
+        0
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Constants Subring
+
     In the following examples, we check the parent of the output corresponding
     to an input whose parent is not exact::
 
@@ -141,9 +147,6 @@ def solid_angle_simplicial_2d(A):
         sage: solid_angle_simplicial_2d(A).parent()
         Real ball field with 53 bits of precision
 
-    In the following examples, we check the parent of the output corresponding
-    to an input whose parent is symbolic::
-
         sage: A = matrix([[12, 0], [sqrt(17), 9]])
         sage: solid_angle_simplicial_2d(A)
         1/2*arccos(1/14*sqrt(17)*sqrt(2))/pi
@@ -154,18 +157,42 @@ def solid_angle_simplicial_2d(A):
         sage: solid_angle_simplicial_2d(A)
         0
         sage: solid_angle_simplicial_2d(A).parent()
-        Symbolic Constants Subring
+        Symbolic Ring
+
+        sage: A = matrix([[0, 1], [RDF(pi), RDF(pi)]])
+        sage: solid_angle_simplicial_2d(A)
+        0.39269908169872414/pi
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Ring
+
+        sage: A = matrix([[-1, -1], [RDF(pi), RDF(pi)]])
+        sage: solid_angle_simplicial_2d(A)
+        0.0
+        sage: solid_angle_simplicial_2d(A).parent()
+        Real Double Field
+
+        sage: A = matrix([[0, 1], [RR(-pi), RR(0)]])
+        sage: solid_angle_simplicial_2d(A)
+        0.785398163397448/pi
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Ring
+
+        sage: A = matrix([[1, 0], [RR(-pi), RR(0)]])
+        sage: solid_angle_simplicial_2d(A)
+        0.000000000000000
+        sage: solid_angle_simplicial_2d(A).parent()
+        Real Field with 53 bits of precision
     """
     if not is_Matrix(A):
         A = matrix(A)
-    P = A[0][0].parent()
+    P = A.base_ring()
     if A.nrows() != 2 or A.ncols() != 2:
         raise ValueError("input matrix has incorrect dimension")
     if any(r == 0 for r in A.rows()):
         raise ValueError("input matrix has a row that is zero")
     if A.rank() < 2:
         import sage.rings.abc
-        if P.is_exact() or isinstance(P, sage.rings.abc.SymbolicRing):
+        if P.is_exact():
             return SymbolicSubring(no_variables=True)(ZZ(0))
         else:
             return P.zero()
