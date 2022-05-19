@@ -154,7 +154,7 @@ class Polyhedron_base3(Polyhedron_base2):
 
             sage: Polyhedron().slack_matrix()
             []
-            sage: Polyhedron(base_ring=QuadraticField(2)).slack_matrix().base_ring()
+            sage: Polyhedron(base_ring=QuadraticField(2)).slack_matrix().base_ring()                # optional - sage.rings.number_field
             Number Field in a with defining polynomial x^2 - 2 with a = 1.41...
         """
         if not self.n_Vrepresentation() or not self.n_Hrepresentation():
@@ -275,7 +275,7 @@ class Polyhedron_base3(Polyhedron_base2):
 
             sage: P = polytopes.twenty_four_cell()
             sage: M = P.incidence_matrix()
-            sage: sum(sum(x) for x in M) == P.flag_f_vector(0,3)
+            sage: sum(sum(x) for x in M) == P.flag_f_vector(0, 3)           # optional - sage.combinat
             True
 
         TESTS:
@@ -288,10 +288,10 @@ class Polyhedron_base3(Polyhedron_base2):
         Test that this method works for inexact base ring
         (``cdd`` sets the cache already)::
 
-            sage: P = polytopes.dodecahedron(exact=False)
-            sage: M = P.incidence_matrix.cache
-            sage: P.incidence_matrix.clear_cache()
-            sage: M == P.incidence_matrix()
+            sage: P = polytopes.dodecahedron(exact=False)                   # optional - sage.groups
+            sage: M = P.incidence_matrix.cache                              # optional - sage.groups
+            sage: P.incidence_matrix.clear_cache()                          # optional - sage.groups
+            sage: M == P.incidence_matrix()                                 # optional - sage.groups
             True
         """
         if self.base_ring() in (ZZ, QQ):
@@ -371,7 +371,7 @@ class Polyhedron_base3(Polyhedron_base2):
                                                        prefix=tester._prefix+"  ")
         tester.info(tester._prefix+" ", newline = False)
 
-    def face_generator(self, face_dimension=None, dual=None):
+    def face_generator(self, face_dimension=None, algorithm=None, **kwds):
         r"""
         Return an iterator over the faces of given dimension.
 
@@ -381,10 +381,11 @@ class Polyhedron_base3(Polyhedron_base2):
 
         - ``face_dimension`` -- integer (default ``None``),
           yield only faces of this dimension if specified
-        - ``dual`` -- boolean (default ``None``);
-          if ``True``, generate the faces using the vertices;
-          if ``False``, generate the faces using the facets;
-          if ``None``, pick automatically
+        - ``algorithm`` -- string (optional);
+          specify whether to start with facets or vertices:
+          * ``'primal'`` -- start with the facets
+          * ``'dual'`` -- start with the vertices
+          * ``None`` -- choose automatically
 
         OUTPUT:
 
@@ -474,7 +475,7 @@ class Polyhedron_base3(Polyhedron_base2):
         In non-dual mode we can skip subfaces of the current (proper) face::
 
             sage: P = polytopes.cube()
-            sage: it = P.face_generator(dual=False)
+            sage: it = P.face_generator(algorithm='primal')
             sage: _ = next(it), next(it)
             sage: face = next(it)
             sage: face.ambient_H_indices()
@@ -500,7 +501,7 @@ class Polyhedron_base3(Polyhedron_base2):
         In dual mode we can skip supfaces of the current (proper) face::
 
             sage: P = polytopes.cube()
-            sage: it = P.face_generator(dual=True)
+            sage: it = P.face_generator(algorithm='dual')
             sage: _ = next(it), next(it)
             sage: face = next(it)
             sage: face.ambient_V_indices()
@@ -528,7 +529,7 @@ class Polyhedron_base3(Polyhedron_base2):
 
         In non-dual mode, we cannot skip supfaces::
 
-            sage: it = P.face_generator(dual=False)
+            sage: it = P.face_generator(algorithm='primal')
             sage: _ = next(it), next(it)
             sage: next(it)
             A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
@@ -539,7 +540,7 @@ class Polyhedron_base3(Polyhedron_base2):
 
         In dual mode, we cannot skip subfaces::
 
-            sage: it = P.face_generator(dual=True)
+            sage: it = P.face_generator(algorithm='dual')
             sage: _ = next(it), next(it)
             sage: next(it)
             A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
@@ -550,7 +551,7 @@ class Polyhedron_base3(Polyhedron_base2):
 
         We can only skip sub-/supfaces of proper faces::
 
-            sage: it = P.face_generator(dual=False)
+            sage: it = P.face_generator(algorithm='primal')
             sage: next(it)
             A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 8 vertices
             sage: it.ignore_subfaces()
@@ -585,7 +586,49 @@ class Polyhedron_base3(Polyhedron_base2):
             sage: [f] = P.face_generator(2)
             sage: f.ambient_Hrepresentation()
             (An equation (1, 1, 1) x - 6 == 0,)
+
+        The ``dual`` keyword is deprecated::
+
+             sage: P = polytopes.hypercube(4)
+             sage: list(P.face_generator(dual=False))[:4]
+             doctest:...: DeprecationWarning: the keyword dual is deprecated; use algorithm instead
+             See https://trac.sagemath.org/33646 for details.
+             [A 4-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 16 vertices,
+              A -1-dimensional face of a Polyhedron in ZZ^4,
+              A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+              A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices]
+             sage: list(P.face_generator(True))[:4]
+             [A 1-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 2 vertices,
+              A 1-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 2 vertices,
+              A 1-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 2 vertices,
+              A 1-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 2 vertices]
+
+        Check that we catch incorrect algorithms:
+
+             sage: list(P.face_generator(2, algorithm='integrate'))[:4]
+             Traceback (most recent call last):
+             ...
+             ValueError: algorithm must be 'primal', 'dual' or None
         """
+        dual = None
+        if algorithm == 'primal':
+            dual = False
+        elif algorithm == 'dual':
+            dual = True
+        elif algorithm in (False, True):
+            from sage.misc.superseded import deprecation
+            deprecation(33646, "the keyword dual is deprecated; use algorithm instead")
+            dual = algorithm
+        elif algorithm is not None:
+            raise ValueError("algorithm must be 'primal', 'dual' or None")
+
+        if kwds:
+            from sage.misc.superseded import deprecation
+            deprecation(33646, "the keyword dual is deprecated; use algorithm instead")
+            if 'dual' in kwds and dual is None:
+                dual = kwds['dual']
+
+
         from sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator import FaceIterator_geom
         return FaceIterator_geom(self, output_dimension=face_dimension, dual=dual)
 
@@ -1086,11 +1129,11 @@ class Polyhedron_base3(Polyhedron_base2):
 
         EXAMPLES::
 
-            sage: polytopes.hypersimplex(4,2).simplicity()
+            sage: polytopes.hypersimplex(4,2).simplicity()              # optional - sage.combinat
             1
-            sage: polytopes.hypersimplex(5,2).simplicity()
+            sage: polytopes.hypersimplex(5,2).simplicity()              # optional - sage.combinat
             2
-            sage: polytopes.hypersimplex(6,2).simplicity()
+            sage: polytopes.hypersimplex(6,2).simplicity()              # optional - sage.combinat
             3
             sage: polytopes.simplex(3).simplicity()
             3
@@ -1139,7 +1182,7 @@ class Polyhedron_base3(Polyhedron_base2):
 
             sage: polytopes.cyclic_polytope(10,4).simpliciality()
             3
-            sage: polytopes.hypersimplex(5,2).simpliciality()
+            sage: polytopes.hypersimplex(5,2).simpliciality()           # optional - sage.combinat
             2
             sage: polytopes.cross_polytope(4).simpliciality()
             3
@@ -1395,13 +1438,15 @@ class Polyhedron_base3(Polyhedron_base2):
 
         EXAMPLES::
 
-            sage: P = polytopes.hypersimplex(5,2)
-            sage: L = P.lawrence_polytope()
-            sage: L.is_lattice_polytope()
+            sage: P = polytopes.hypersimplex(5,2)                               # optional - sage.combinat
+            sage: L = P.lawrence_polytope()                                     # optional - sage.combinat
+            sage: L.is_lattice_polytope()                                       # optional - sage.combinat
             True
-            sage: egyptian_pyramid = polytopes.regular_polygon(4).pyramid()
-            sage: egyptian_pyramid.is_lawrence_polytope()
+
+            sage: egyptian_pyramid = polytopes.regular_polygon(4).pyramid()     # optional - sage.number_field
+            sage: egyptian_pyramid.is_lawrence_polytope()                       # optional - sage.number_field
             True
+
             sage: polytopes.octahedron().is_lawrence_polytope()
             False
 
@@ -1502,7 +1547,7 @@ class Polyhedron_base3(Polyhedron_base2):
         is neighborly::
 
             sage: testpolys = [polytopes.cube(), polytopes.cyclic_polytope(6, 9), polytopes.simplex(6)]
-            sage: [(P.neighborliness()>=floor(P.dim()/2)) == P.is_neighborly() for P in  testpolys]
+            sage: [(P.neighborliness() >= P.dim() // 2) == P.is_neighborly() for P in testpolys]
             [True, True, True]
 
         """
@@ -1779,7 +1824,8 @@ class Polyhedron_base3(Polyhedron_base2):
         C1 = self.combinatorial_polyhedron()
         it1 = C1.face_iter()
         C2 = C1.dual()
-        it2 = C2.face_iter(dual=not it1.dual)
+        algorithm = 'primal' if it1.dual else 'dual'
+        it2 = C2.face_iter(algorithm=algorithm)
 
         for f in it:
             f1 = next(it1)

@@ -1590,7 +1590,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         for i in range(self._degree):
             ord = self[i].additive_order()
             if isinstance(ord, AnInfinity):
-               return ord
+                return ord
             v.append(ord)
         from sage.arith.all import lcm
         return lcm(v)
@@ -2015,7 +2015,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             return copy(self)
 
     def lift_centered(self):
-        """
+        r"""
         Lift to a congruent, centered vector.
 
         INPUT:
@@ -2387,7 +2387,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def plot_step(self, xmin=0, xmax=1, eps=None, res=None,
              connect=True, **kwds):
-        """
+        r"""
         INPUT:
 
         -  ``xmin`` - (default: 0) start x position to start
@@ -2569,10 +2569,19 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v = vector(ZZ, [])
             sage: v.dot_product(v)
             0
+
+        TESTS:
+
+        Check for :trac:`33814`::
+
+            sage: for R in [ZZ, QQ, RDF, RR, GF(2), GF(3), GF(4), ZZ['x']]:
+            ....:     _ = (R**0)().dot_product((R**0)())
         """
         cdef FreeModuleElement r = <FreeModuleElement?>right
         if self._parent is r._parent:
             # If the parents are equal, the degree is also equal
+            if self._degree == 0:
+                return self._parent.coordinate_ring().zero()
             return self._dot_product_(r)
         if self._degree != r._degree:
             raise ArithmeticError("degrees (%s and %s) must be the same"%(self.degree(), right.degree()))
