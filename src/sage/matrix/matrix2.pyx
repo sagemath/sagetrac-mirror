@@ -7585,7 +7585,13 @@ cdef class Matrix(Matrix1):
         if algorithm == 'default':
             R = self._base_ring
             if hasattr(R, '_matrix_echelonize'):
-                pivots, left = R._matrix_echelonize(self, **kwds)
+                pivots = R._matrix_echelonize(self, **kwds)
+
+                if isinstance(echelonize, tuple):
+                    pivots, left = pivots
+                else:
+                    left = None
+
                 self.cache('pivots', pivots)
                 return left
             if self._will_use_strassen_echelon():
