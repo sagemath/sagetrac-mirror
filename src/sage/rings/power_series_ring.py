@@ -155,7 +155,7 @@ from sage.misc.sage_eval import sage_eval
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.category_object import normalize_names
-from sage.structure.element import parent, Expression
+from sage.structure.element import Expression
 import sage.categories.commutative_rings as commutative_rings
 _CommutativeRings = commutative_rings.CommutativeRings()
 import sage.categories.integral_domains as integral_domains
