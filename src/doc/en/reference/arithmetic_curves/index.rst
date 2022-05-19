@@ -120,5 +120,7 @@ Hyperelliptic curves
    sage/schemes/hyperelliptic_curves/kummer_surface
 
    sage/interfaces/genus2reduction
+   
+   sage/schemes/hyperelliptic_curves/gal_reps
 
 .. include:: ../footer.txt

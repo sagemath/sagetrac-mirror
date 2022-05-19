@@ -4,23 +4,24 @@ Galois representations attached to Jacoians of hyperelliptic curves of
 genus 2 over the rationals.
 
 The Jacobian variety of a genus 2 hyperelliptic curve over `\QQ` defines
-an abelian surface whose `p`-torsion Galois module defines a
-`4`-dimensional Galois representation of the absolute Galois group
-`G_{\QQ}` of `\QQ`. The image of this representation is a subgroup of
-`\text{GSp}_4(\GF{p})`, and it is known by an analogue of Serre's Open Image
-Theorem that this representation is surjective for almost all primes `p`
-under the additional assumption that the Jacobian is "generic", meaning
-that the ring of endomorphisms defined over `\overline{\QQ}` is `\ZZ`.
+an abelian surface `A` whose `\ell`-torsion Galois module defines a
+`4`-dimensional Galois representation `\rho_{A, \ell}` of the absolute
+Galois group `G_{\QQ}` of `\QQ`. The image of this representation is a
+subgroup of `\text{GSp}_4(\GF{\ell})`, and it is known by an analogue of
+Serre's Open Image Theorem that this representation is surjective
+for almost all primes `\ell` under the additional assumption that the
+Jacobian is "typical", meaning that the ring of endomorphisms
+defined over `\overline{\QQ}` is `\ZZ`.
 
 Currently sage can decide whether or not the image of this representation
-associated to a generic jacobian is surjective, and moreover can
+associated to a typical jacobian is surjective, and moreover can
 determine exactly the finitely many primes at which the representation
 is not surjective. This is based on Dieulefait's algorithm described in
 [Di2002]_
 
 For the surjectivity at one prime:
 
-- ``is_surjective(p)``
+- ``is_surjective(l)``
 
 For the list of non-surjective primes:
 
@@ -44,7 +45,7 @@ EXAMPLES::
     sage: rho.is_surjective(13)
     True
 
-The curve 587.a.587.1 on the LMFDB has surjective mod-$\ell$ Galois
+The curve 587.a.587.1 on the LMFDB has surjective mod-`\ell` Galois
 representation at all primes `\ell`. ::
 
     sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, -1, -1]), R([1, 1, 0, 1]));
@@ -112,7 +113,7 @@ lazy_import('sage.interfaces.genus2reduction',
 class GaloisRepresentation(SageObject):
     r"""
     The compatible family of Galois representations
-    attached to the Jacobian of a  hyperelliptic curve over the rational
+    attached to the Jacobian of a hyperelliptic curve over the rational
     numbers.
 
     EXAMPLES::
@@ -127,10 +128,14 @@ class GaloisRepresentation(SageObject):
 
     """
 
-    # Written by: TODO
+    # Written by: Barinder
     def __init__(self, A):
         r"""
         see ``GaloisRepresentation`` for documentation
+
+        INPUT:
+
+        - ``A`` - the Jacobian of a hyperelliptic curve of genus 2 over `\QQ`
 
         EXAMPLES::
 
@@ -145,7 +150,7 @@ class GaloisRepresentation(SageObject):
         """
         self.__image_type = {}
         self._A = A
-        self.non_surjective_primes = None
+        self._non_surjective_primes = None
 
     def __repr__(self):
         r"""
@@ -332,7 +337,7 @@ class GaloisRepresentation(SageObject):
             x**4 + 5*x**3 + 4*x**2 + 6*x + 2]
         return {3: char3, 5: char5, 7: char7}
 
-    # Written by: TODO
+    # Written by: Jacob, Padma
     def _init_wit(self, L):
         r"""
         Initialize a dictionary of lists for witnesses of surjectivitiy tests.
@@ -378,11 +383,12 @@ class GaloisRepresentation(SageObject):
                 witnesses[l] = [0, 0]
         return witnesses
 
-    # Written by: TODO
+    # Written by: Jacob, Padma
     def _is_surj_at_2(self, f, h):
-        """
-        Return ``True`` if the mod-`2` Galois image of the Jacobian of the
-        hyperelliptic curve specified by polynomials is surjective.
+        r"""
+        Return ``True`` if the mod-`2` Galois representation `\rho_{A,2}`
+        of the Jacobian of the hyperelliptic curve specified by
+        polynomials is surjective.
 
         The hyperelliptic curve is expected to be ``self._A.curve()``.
         The hyperelliptic curve is given by the equation `y^2 + h(x)y = f(x)`.
@@ -427,7 +433,7 @@ class GaloisRepresentation(SageObject):
         F = 4*f + h**2
         return F.is_irreducible() and F.galois_group().order() == 720
 
-    # Written by: TODO
+    # Written by: Jacob, Padma
     def _surj_test_A(self, frob_mod):
         r"""
         Return ``True`` if the specified mod-`\ell` characteristic polynomial
@@ -464,7 +470,7 @@ class GaloisRepresentation(SageObject):
         """
         return frob_mod.is_irreducible()
 
-    # Written by: TODO
+    # Written by: Jacob, Padma
     def _surj_test_B(self, frob_mod):
         r"""
         Return ``True`` if the specified mod-`\ell` characteristic polynomial
@@ -504,12 +510,12 @@ class GaloisRepresentation(SageObject):
             False
 
         The LMFDB curve 1091.a.1091.a has a non-surjective mod-`7` Galois
-        representation as it has a rational torsion point of order
+        representation `\rho_{A, 7}` as it has a rational torsion point of order
         `7`. ::
 
-            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, -1, -2, 0, 1]), R([1, 1, 1]));            
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, -1, -2, 0, 1]), R([1, 1, 1]));
             sage: J = C.jacobian()
-            sage: rho = J.galois_representation()            
+            sage: rho = J.galois_representation()
             sage: rho._surj_test_B(PolynomialRing(GF(7), 'x')(x^4 + 3*x^3 + 6*x^2 + 2*x + 2))
             True
 
@@ -520,7 +526,7 @@ class GaloisRepresentation(SageObject):
                     return True
         return False
 
-    # Written by: TODO
+    # Written by: Jacob, Padma, came from Armand
     def _surj_test_exp(self, l, frob_mod, exps):
         r"""
         Return ``True`` if the specified mod-`\ell` characteristic polynomial
@@ -569,14 +575,13 @@ class GaloisRepresentation(SageObject):
             False
 
         """
-        # TODO: check that the inputs are specified correctly in the docstring
         return frob_mod not in exps[l]
 
-    # Written by: TODO
+    # Written by: Jacob, Padma
     def _update_wit(self, l, p, frob, f, h, exps, wit):
         """
         Return an updated list of witnesses, based on surjectivity tests for
-        ``frob`` at p.
+        ``frob`` at `p`.
 
         TESTS::
 
@@ -592,13 +597,38 @@ class GaloisRepresentation(SageObject):
             sage: exps = rho._init_exps()
             sage: rho._update_wit(2, 5, x^4 + 2*x^2 + 25, f, h, exps, witnesses[2])
             [-1]
+            sage: rho._update_wit(3, 5, x^4 + 2*x^2 + 25, x^6 + 2*x^3 + 4*x^2 + 4*x + 1, 0, exps, [0, 0, 0])
+            [0, 0, 0]
+            sage: rho._update_wit(7, 5, x^4 + 2*x^2 + 25, x^6 + 2*x^3 + 4*x^2 + 4*x + 1, 0, exps, [0, 0, 0])
+            [0, 0, 5]
+
+        ::
+
+            sage: R.<x>=QQ[]
+            sage: H = HyperellipticCurve(R([0, 21, -5, -9, 1, 1]), R([1, 1]));
+            sage: J = H.jacobian()
+            sage: rho = J.galois_representation()
+            sage: f, h = rho._A.curve().hyperelliptic_polynomials()
+            sage: L = prime_range(1000)
+            sage: witnesses = rho._init_wit(L)
+            sage: exps = rho._init_exps()
+            sage: rho._update_wit(11, 3, x^4 + 3*x^3 + 6*x^2 + 9*x + 9, x^5 + x^4 - 9*x^3 - 5*x^2 + 21*x, x + 1, exps, [0, 0])
+            [0, 0]
+            sage: rho._update_wit(13, 3, x^4 + 3*x^3 + 6*x^2 + 9*x + 9, x^5 + x^4 - 9*x^3 - 5*x^2 + 21*x, x + 1, exps, [0, 0])
+            [0, 3]
+            sage: rho._update_wit(11, 7, x^4 + x^3 + 3*x^2 + 7*x + 49, x^5 + x^4 - 9*x^3 - 5*x^2 + 21*x, x + 1, exps, [0, 0])
+            [0, 7]
+            sage: rho._update_wit(13, 7, x^4 + x^3 + 3*x^2 + 7*x + 49, x^5 + x^4 - 9*x^3 - 5*x^2 + 21*x, x + 1, exps, [0, 3])
+            [0, 3]
+
+
         """
         # print(f"_update_wit({l}, {p}, {frob}, {f}, {h}, {exps}, {wit})")
         frob_mod = frob.change_ring(Zmod(l))
         for i in range(0, len(wit)):
             if wit[i] == 0:
                 if l == 2:
-                    if self._is_surj_at_2(f,h):
+                    if self._is_surj_at_2(f, h):
                         wit[i] = 1
                     else:
                         wit[i] = -1
@@ -610,30 +640,47 @@ class GaloisRepresentation(SageObject):
                     wit[i] = p
         return wit
 
-    # Written by: TODO
+    # Written by: Jacob, Padma, credit to Zev's idea for speedup
     def find_surj_from_list(
             self, L=prime_range(1000), bound=1000, verbose=False):
         r"""
         Return a list of primes `\ell` in ``L`` for which the mod-`\ell` Galois
-        representation of the Jacobian of the hyperelliptic curve might
-        not be surjective.
+        representation `\rho_{A, \ell}` of the Jacobian `A` of the
+        hyperelliptic curve that are likely to be non-surjective onto
+        `\operatorname{GSp}_4(\GF(\ell))`.
 
         INPUT:
 
-        - ``L`` -- list of primes (default: list of primes less than 1000);
-          the primes `\ell` to consider the surjectivity of the mod-`\ell`
-          Galois representations for.
+        - ``L`` -- list of primes (default: list of primes less than `1000`);
+          the primes `\ell` for which to consider the surjectivity of
+          `\rho_{A,\ell}`.
 
         - ``bound`` -- integer (default: `1000`); the exclusive upper bound
           for the primes `p \neq \ell` whose Frobenii `\operatorname{Frob}_p`
           are checked. Only the primes of good reduction which are at least `3`
           are checked.
 
-        - ``verbose`` -- boolean (default: `False`)
+        - ``verbose`` -- boolean (default: `False`); if `True`, prints a
+          dictionary whose keys are the primes `\ell` in ``L``. The value
+          corresponding to `\ell` is a list containing `-1`, `1`, `0`, or
+          primes `p`.
+
+            - A `-1` only appears when `\ell = 2`, and means that
+              `\rho_{A, 2}` is non-surjective.
+
+            - A `1` only appears when `\ell = 2`, and means that `\rho_{A, 2}`
+            is surjective.
+
+            - A `0` indicates that the invocation of the function does not
+            determine `\rho_{A, \ell}` to be surjective or non-surjective.
+
+            - When the list does not contain `0` or `-1`, the characteristic
+              polynomials of Frobenius of the primes `p` in the list witness the
+              surjectivity of `\rho_{A, \ell}`.
 
         OUTPUT:
 
-        A list of prime numbers. The mod-`\ell` Galois representations
+        A list of prime numbers. The representations `\rho_{A, \ell}`
         are provably surjective for all primes `\ell` which are in ``L``
         but not in the returned list.
 
@@ -642,8 +689,7 @@ class GaloisRepresentation(SageObject):
         In the following example, the hyperelliptic curve is given by
         `y^2 + (x^3+1)y = x^2 + x`. The function returns the list ``[2, 7]``,
         which tells us that `2` and `7` are the only primes `\ell < 1000`
-        whose mod-`\ell` Galois representation for the (Jacobian of the)
-        hyperelliptic curve might not be surjective. ::
+        such that `\rho_{A, \ell}` might not be surjective. ::
 
             sage: R.<x> = PolynomialRing(QQ);
             sage: H = HyperellipticCurve(R([0, 1, 1]), R([1, 0, 0, 1]));
@@ -664,10 +710,63 @@ class GaloisRepresentation(SageObject):
             sage: rho.find_surj_from_list()  # long time
             [2, 13]
 
-        """
-        # TODO: Add examples with varying `L` and `bound``
-        # TODO: add verbose examples in the docstring
+        The following example takes the curve 976.a.999424.1 of the LMFDB
+        and specifies `L` to be a small set of primes. The primes `\ell`
+        in the output list can only be primes from `L`. ::
 
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, -1, 2, 0, -2, 1]), R([1, 1]));
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho.find_surj_from_list(L=prime_range(10))  # long time
+            [2]
+
+        A larger list may be returned if ``L`` is taken to be a larger set of primes. ::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, -1, 2, 0, -2, 1]), R([1, 1]));
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho.find_surj_from_list(L=prime_range(100))  # long time
+            [2, 29]
+
+        The following example specifies various arguments for the parameter
+        ``bound``; only Frobenii `\operatorname{Frob}_p` for primes
+        `p < \text{bound}` are used in the invocation of the function.
+        If ``\text{bound}`` is small, then the outputted list may
+        contain many primes-`\ell` for which `\rho_{A, \ell}`
+        is surjective. ::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, -1, 2, 0, -2, 1]), R([1, 1]));
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: len(rho.find_surj_from_list(bound=3))
+            168
+            sage: len(rho.find_surj_from_list(bound=7))
+            129
+            sage: len(rho.find_surj_from_list(bound=17))
+            77
+            sage: rho.find_surj_from_list(bound=100)
+            [2, 3, 29, 941]
+            sage: rho.find_surj_from_list(bound=1000)  # long time
+            [2, 29]
+
+        Specifying ``verbose=True`` roughly prints, for each prime `\ell`,
+        the primes `p` for which the characteristic polynomial of
+        `\operatorname{Frob}_p` witness the surjectivity of `\rho_{A, \ell}`.
+        In the below example, `\rho_{A, 2}` is non-surjective, `\rho_{A, 3}`
+        and `\rho_{A, 29}` are neither determined to be surjective nor
+        determined to be non-surjective, and `\rho_{A, \ell}` is provably
+        surjective for all other `\ell`. For example, the characteristic
+        polynomials of `\operatorname{Frob}_7`, `\operatorname{Frob}_{13}`, and
+        `\operatorname{Frob}_3` witness to the surjectivity of `\rho_{A, 5}`.
+
+        .. link::
+
+            sage: rho.find_surj_from_list(L=prime_range(100), bound=100, verbose=True)  # long time
+            {2: [-1], 3: [5, 0, 5], 5: [7, 13, 3], 7: [3, 13, 3], 11: [13, 3], 13: [47, 29], 17: [3, 5], 19: [5, 3], 23: [3, 53], 29: [0, 3], 31: [5, 3], 37: [3, 5], 41: [5, 7], 43: [3, 5], 47: [31, 5], 53: [3, 13], 59: [13, 3], 61: [5, 13], 67: [3, 17], 71: [13, 3], 73: [5, 7], 79: [5, 3], 83: [7, 29], 89: [29, 3], 97: [7, 5]}
+            [2, 3, 29]
+
+        """
+        # TODO: check with Jacob+Padma the Verbose example looks
         H = self._A.curve()
         f, h = H.hyperelliptic_polynomials()
         # C = 2 * genus2reduction(h, f).conductor
@@ -697,42 +796,47 @@ class GaloisRepresentation(SageObject):
                 if len(to_check) == 0:
                     break
         if verbose:
-            return witnesses
+            print(witnesses)
         probably_non_surj_primes = []
         for l in L:
             if -1 in witnesses[l] or 0 in witnesses[l]:
                 probably_non_surj_primes.append(l)
         return probably_non_surj_primes
 
-    # Written by: TODO
+    # Written by: Jacob, Padma
     def is_surjective(self, l, bound=1000, verbose=False):
         r"""
-        Return whether the mod-`\ell` representation is surjective onto
-        `\operatorname{Aut}(A[\ell]) = \operatorname{GSp}_4(\GF{\ell})`.
+        Return whether the mod-`\ell` representation `\rho_{A,\ell}` is
+        surjective onto `\operatorname{GSp}_4(\GF{\ell})`.
 
-        For the primes `\ell=2` and `3`, this function will always return
-        either ``True`` or ``False``. For larger primes it might return
-        ``None``.
-
-        The output of this function is cached.
+        ``l`` is expected to be prime.
 
         INPUT:
 
         -  ``\ell`` -- prime integer
 
         - ``bound`` -- integer (default: `1000`); the exclusive upper bound
-          for the primes `p \neq \ell` whose Frobenii `\operatorname{Frob}_p`
-          are checked. Only the primes of good reduction which are at least `3`
-          are checked.
+          for the primes `p \neq \ell` for which the characteristic
+          polynomials of `\operatorname{Frob}_p` are used to check
+          the surjectivity of `\rho_{A,\ell}`. Only the primes of good
+          reduction which are at least `3` are checked.
 
-        - ``verbose`` -- boolean (default: ``False``)
+        - ``verbose`` -- boolean (default: ``False``); see
+          :meth:`find_surj_from_list`.
 
-        OUTPUT: ``True`` if the mod-`\ell` representation is determined to be
-        surjective, ``False`` if the representation is determined to be
-        not surjection, and ``None`` if the representation is neither
-        determined to be surjective nor determined to be not surjective.
+        OUTPUT:
+        ``True`` if `\rho_{A, \ell}` is determined to be
+        surjective. ``False`` if
+
+        - `\ell = 2` and `\rho_{A,2}` is not surjective.
+
+        - `\ell \neq 2` and `\rho_{A,\ell}` is likely not surjective by
+            testing characteristic polynomials of Frobenius for primes `p`
+            up to ``bound``.
 
         EXAMPLES::
+
+        The following demonstrate basic examples. ::
 
             sage: R.<x>=QQ[]
             sage: f = x^6 + 2*x^3 + 4*x^2 + 4*x + 1
@@ -743,10 +847,68 @@ class GaloisRepresentation(SageObject):
             False
             sage: rho.is_surjective(2)
             False
-            sage: rho.is_surjective(3)
+            sage: rho.is_surjective(3)  # long time
             True
             sage: rho.is_surjective(13)
             True
+
+        When ``bound`` is too small and `\ell \neq 2`, this function may return
+        ``False`` even when `\rho_{A, \ell}` is surjective. The above example
+        provably shows that `\rho_{A, 13}` is surjective when `A` is the
+        Jacobian of the hyperelliptic curve given by
+        `f = x^6 + 2x^3 + 4x^2 + 4x + 1` whereas the invocation of the function
+        in the below example fails to determine that `\rho_{A, 13}` is
+        surjective by only testing `\operatorname{Frob}_p` for primes `p < 7`.
+
+        ..link::
+
+            sage: rho.is_surjective(13, bound=7)
+            False
+
+        Specifying ``verbose`` as ``True`` roughly prints information about
+        witnesses `\operatorname{Frob}_p` to the surjectivity of
+        `\rho_{A, \ell}`, just as in :meth:`find_surj_from_list`. In the
+        below exmaple, `\rho_{A, 3}` is determined to be surjective with
+        witnesses `\operatorname{Frob}_7, \operatorname{Frob}_{17}`, and
+        `\operatorname{Frob}_{131}`.
+
+        ..link::
+
+            sage: rho.is_surjective(3, verbose=True)
+            {3: [7, 17, 131]}
+            True
+
+        This function raises a ``ValueError`` when ``l`` is not a prime.
+
+        ..link::
+
+            sage: rho.is_surjective(14)
+            Traceback (most recent call last):
+            ...
+            ValueError: l must be prime
+
+        The curve 976.a.999424.1 on the LMFDB has a rational torsion point `P`
+        of order `29`. Equivalently, all elements of
+        `\operatorname{Gal}(\overline{\mathbb{Q}}/\mathbb{Q})` act trivially
+        on `P` as an element of the mod-`29` torsion subgroup `J[29]`,
+        where `J` is the Jacobian of the curve. Therefore, `\rho_{A, 29}`
+        is reducible and hence non-surjective. ::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, -1, 2, 0, -2, 1]), R([1, 1]));
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho.is_surjective(29)  # long time
+            False
+
+        In constrast, the Jacobian of the curve 8450.a.8450.1 on the LMFDB
+        has trivial rational torsion subgroup, and yet `\rho_{A, 13}`
+        is non-surjective. ::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 21, -5, -9, 1, 1]), R([1, 1]));
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho.is_surjective(13)  # long time
+            False
 
         TESTS::
 
@@ -808,32 +970,33 @@ class GaloisRepresentation(SageObject):
             False
 
         """
-        # TODO: the two tests are the first two examples in the
-        # find_surj_from_list.sage file. Maybe the actual outputs
-        # should be checked.
-        # TODO: add hyperelliptic curve examples
-        # TODO: add verbose examples
-        # TODO: Add the papers of Dokchitsers and Elklies in the master
-        # bibliography file; consider adding the reference to these papers
-        # in the module docstring instead.
-        if self.non_surjective_primes is not None:
-            if not l.is_prime():
-                raise ValueError("l must be prime")
-            return (l not in self.non_surjective_primes)
+        # TODO: cite the paper for the order 29 torsion point example.
+        if not l.is_prime():
+            raise ValueError("l must be prime")
+        if self._non_surjective_primes is not None:
+            return (l not in self._non_surjective_primes)
 
-        ans = self.find_surj_from_list(L=[l], bound=1000, verbose=False)
+        ans = self.find_surj_from_list(L=[l], bound=bound, verbose=verbose)
 
         if ans:
             return False
         else:
             return True
 
-    # Written by: TODO
+    # Written by: Barinder, Isabel, Zev wrote earlier versions
     def non_surjective(self, N=None, bound=1000):
         r"""
         Return a list of primes `\ell` such that the mod-`\ell` representation
-        is probably not surjective. If `\ell` is not in the returned list,
-        then the mod-p representation is provably surjective.
+        `\rho_{A, \ell}` is likely not surjective.
+
+        The hyperelliptic curve ``self._A.curve()`` of the Galois
+        representation is expected to be "typical", i.e. the Jacobian of
+        the curve must have endomorphism ring `\ZZ` over `\QQ`.
+
+        If `\ell` is not in the returned list,
+        then `\rho_{A, \ell}` is provably surjective.
+
+        The output to this function is cached.
 
         By a theorem of Serre, there are only finitely many primes in this
         list, except when the jacobian of the curve has nontrivial geometric
@@ -841,21 +1004,20 @@ class GaloisRepresentation(SageObject):
 
         INPUT:
 
-        - ``N`` -- an integer (default: None); this is the conductor of the
+        - ``N`` -- an integer (default: ``None``); this is the conductor of the
         jacobian; providing this can speed up the computation.
 
         - ``bound`` -- integer (default: `1000`); the exclusive upper bound
-          for the primes `p \neq \ell` whose Frobenii `\operatorname{Frob}_p`
+          for the primes `p \neq \ell` whose Frobenius operators
+          `\operatorname{Frob}_p`
           are checked. Only the primes of good reduction which are at least `3`
           are checked.
 
         OUTPUT:
 
-        A list; if the curve has nontrivial geometric endomorphisms,
-        returns ``[0]``. Otherwise, returns a list of primes `\ell` where
-        mod-`\ell` representation is very likely not surjective.
-        The mod-`\ell` representation is definitely surjective for any prime
-        `\ell` not in this list.
+        A list of primes `\ell` where `\rho_{A, \ell}` is very likely
+        not surjective. `\rho_{A, \ell}` is definitely surjective for
+        any prime `\ell` not in this list.
 
         EXAMPLES::
 
@@ -866,8 +1028,8 @@ class GaloisRepresentation(SageObject):
             sage: rho.non_surjective()  # long time
             [2, 7]
 
-        The curve 743.a.743.1 on the LMFDB has non-surjective mod-`\ell` representations
-        for all primes $\ell$. ::
+        The curve 743.a.743.1 on the LMFDB has non-surjective mod-`\ell`
+        representations for all primes `\ell`. ::
 
             sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, 1, 0, -1]), R([1, 1, 0, 1]));
             sage: J = C.jacobian()
@@ -875,7 +1037,36 @@ class GaloisRepresentation(SageObject):
             sage: rho.non_surjective()
             []
 
-        If the Jacobian has any non-trivial endomorphisms, we raise an error. ::
+        The curve 976.a.999424.1 on the LMFDB has a rational torsion point `P`
+        of order `29`. It has non-surjective mod-`2` and mod-`29`
+        representations. ::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, -1, 2, 0, -2, 1]), R([1, 1]));
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho.non_surjective()  # long time
+            [2, 29]
+            sage: rho.is_surjective(2)
+            False
+            sage: rho.is_surjective(29)  # long time
+            False
+
+        In constrast, the curve 8450.a.8450.1 on the LMFDB has Mordell-Weil
+        group isomorphic to `\Z`. It has non-surjective mod-`2` and mod-`13`
+        representations. ::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 21, -5, -9, 1, 1]), R([1, 1]));
+            sage: J = C.jacobian()
+            sage: rho = J.galois_representation()
+            sage: rho.non_surjective()  # long time
+            [2, 13]
+            sage: rho.is_surjective(2)
+            False
+            sage: rho.is_surjective(13)  # long time
+            False
+
+        If the Jacobian has any non-trivial endomorphisms, we raise an
+        error. ::
 
             sage: R.<x>=QQ[]
             sage: f = x^6 - 2*x^4 + 2*x^2 - 1
@@ -887,25 +1078,11 @@ class GaloisRepresentation(SageObject):
             ...
             NotImplementedError: Computation of non-surjective primes currently only works for Jacobians whose geometric endomorphism ring is Z.
 
-        ALGORITHM:
-
-        We first find an upper bound `B` on the possible primes. If `E`
-        is semi-stable, we can take `B=11` by a result of Mazur. There is
-        a bound by Serre in the case that the `j`-invariant is not integral
-        in terms of the smallest prime of good reduction. Finally
-        there is an unconditional bound by Cojocaru, but which depends
-        on the conductor of `E`.
-        For the prime below that bound we call ``is_surjective``.
-
         """
-        # TODO Add the results of Mazur, Serre, and Cojocaru in Sage's master
-        # bibliography file and cite them here.
         # TODO Add an explanation of why the primes are likely to not be
         # surjective.
-        # TODO: add the attribute non_surjective_primes to the class level
-        # docstring
-        if self.non_surjective_primes is not None:
-            return self.non_surjective_primes
+        if self._non_surjective_primes is not None:
+            return self._non_surjective_primes
 
         C = self._A.curve()
         f, h = C.hyperelliptic_polynomials()
@@ -977,13 +1154,13 @@ class GaloisRepresentation(SageObject):
 
             if (M1p3 == 1) or (y1p3 > 1):
                 if (M2p2nsd == 1) or (y2p2nsd > 1):
-                    if all((Mc == 1 or yc>1) for S, Mc, yc in MCusp):
+                    if all((Mc == 1 or yc > 1) for S, Mc, yc in MCusp):
                         if all((Mq == 1 or yq > 1) for phi, Mq, yq in MQuad):
                             sufficient_p = True
 
-        # we will always include 2, 3, 5, 7 and the non-semistable primes.
+        # we will always include 2, 3, 5, 7 and the primes of bad reduction
         non_maximal_primes = {2, 3, 5, 7}.union(
-            set([p[0] for p in list(N.factor()) if p[1] > 1]))
+            set([p[0] for p in list(N.factor())]))
 
         ell_red_easy = [M1p3.prime_factors(), M2p2nsd.prime_factors()]
         non_maximal_primes = non_maximal_primes.union(
@@ -998,9 +1175,9 @@ class GaloisRepresentation(SageObject):
         ell_irred = [(phi, ZZ(M).prime_factors()) for phi, M, t in MQuad]
         non_maximal_primes = non_maximal_primes.union(
             set([p for a, j in ell_irred for p in j]))
-        self.non_surjective_primes = self.find_surj_from_list(
+        self._non_surjective_primes = self.find_surj_from_list(
             L=non_maximal_primes, bound=bound)
-        return self.non_surjective_primes
+        return self._non_surjective_primes
 
 #########################################################
 #                            #
@@ -1009,7 +1186,7 @@ class GaloisRepresentation(SageObject):
 #########################################################
 
 
-# Written by: TODO
+# Written by: Hyun Jong?
 def _maximal_square_divisor(N):
     """
     TESTS::
@@ -1046,9 +1223,13 @@ def _maximal_square_divisor(N):
 #########################################################
 
 
-# Written by: TODO
+# Written by: Maybe Zev? Maybe Hyun Jong?
 def _maximal_quadratic_conductor(N):
     """
+    Return the product of the prime divisors of ``N`` if ``N`` is odd
+    or the 4 times the product of the prime divisors of ``N`` if ``N``
+    is even.
+
     TESTS::
 
         sage: from sage.schemes.hyperelliptic_curves.gal_reps import _maximal_quadratic_conductor
@@ -1075,9 +1256,12 @@ def _maximal_quadratic_conductor(N):
         return ZZ(N).radical()
 
 
-# Written by: TODO
+# Written by: Zev
 def _character_list(N):
     """
+    Return the list of nontrivial Dirichlet characters whose conductor divides
+    `4N`.
+
     TESTS::
 
         sage: from sage.schemes.hyperelliptic_curves.gal_reps import _character_list
@@ -1097,14 +1281,17 @@ def _character_list(N):
         15
 
     """
+    # TODO: Cite section 3.2 of our paper later.
     c = _maximal_quadratic_conductor(N)
     D = DirichletGroup(c, base_ring=QQ, zeta_order=2)
     return [phi for phi in D if phi.conductor() != 1]
 
 
-# Written by: TODO
+# Written by: Zev
 def _set_up_quadratic_chars(N):
     """
+    Massage the return value of ``_character_list``.
+
     TESTS::
 
         sage: from sage.schemes.hyperelliptic_curves.gal_reps import _set_up_quadratic_chars
@@ -1115,14 +1302,21 @@ def _set_up_quadratic_chars(N):
         sage: assert len(_set_up_quadratic_chars(30)) == 15
         sage: _set_up_quadratic_chars(3)[0]
         (Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1, 0, 0)
+        sage: for tuppy in _set_up_quadratic_chars(30):
+        ....:     assert len(tuppy) == 3
+        ....:     assert tuppy[1] == 0
+        ....:     assert tuppy[2] == 0
+        ....:     assert isinstance(_set_up_quadratic_chars(30)[0][0], sage.modular.dirichlet.DirichletCharacter)
+        ....:
 
     """
     return [(phi, 0, 0) for phi in _character_list(N)]
 
 
-# Written by: TODO
+# Written by: Zev
 def _rule_out_quadratic_ell_via_Frob_p(p, fp, MM):
-    r"""Provide a summary of what this method is doing.
+    r"""
+    Implement Section 3.4 of Dieulefait
 
     INPUT:
 
@@ -1159,9 +1353,8 @@ def _rule_out_quadratic_ell_via_Frob_p(p, fp, MM):
         sage: len(MQuad)
         15
 
-
     """
-    # TODO: Complete the description and output description.
+    # TODO: We are here!
     # print(f"_rule_out_quadratic_ell_via_Frob_p({p}, {fp}, See above for input MM)")
     ap = -fp.coefficients(sparse=False)[3]
     if ap == 0:
@@ -1182,9 +1375,6 @@ def _rule_out_quadratic_ell_via_Frob_p(p, fp, MM):
 #                            #
 #########################################################
 
-# Isabel's code using the fact that the exponent of the determinant
-# character divides 120.
-
 # the following three functions implement the following for n=2,3,5:
 # f(x) = x**4 - t*x**3 + s*x**2 - p**alpha*t*x + p**(2*alpha) is a
 # degree 4 polynomial whose roots multiply in pairs to p**alpha
@@ -1192,7 +1382,7 @@ def _rule_out_quadratic_ell_via_Frob_p(p, fp, MM):
 # f**(n)(x) = x**4 - tn*x**3 + sn*x**2 - p**(alphan)*tn*x + p**(2*alphan)
 # whose roots are the nth powers of the roots of f
 
-# Written by: TODO
+# Written by: Isabel
 def _power_roots2(ptsa):
     """
     TESTS::
@@ -1213,7 +1403,7 @@ def _power_roots2(ptsa):
             2*alpha)
 
 
-# Written by: TODO
+# Written by: Isabel
 def _power_roots3(ptsa):
     """
     TESTS::
@@ -1238,7 +1428,7 @@ def _power_roots3(ptsa):
         3*alpha)
 
 
-# Written by: TODO
+# Written by: Isabel
 def _power_roots5(ptsa):
     """
     TESTS::
@@ -1269,7 +1459,7 @@ def _power_roots5(ptsa):
 
 # put these together to do any power dividing 120 that we actually need
 # c is the power
-# Written by: TODO
+# Written by: Isabel
 def _power_roots(cptsa):
     """
     TESTS::
@@ -1307,7 +1497,7 @@ def _power_roots(cptsa):
 # given a quartic f whose roots multiply to p**alpha in pairs,
 # returns the quartic whose roots are the products of roots
 # of f that DO NOT multiply to p**alpha
-# Written by: TODO
+# Written by: Isabel
 def _roots_pairs_not_p(ptsa):
     """
     TESTS::
@@ -1333,7 +1523,7 @@ def _roots_pairs_not_p(ptsa):
 # 1 + 3 reducible divides M
 # y is a counter for the number of nontrivial Frobenius conditions going
 # into M
-# Written by: TODO
+# Written by: Isabel
 def _rule_out_1_plus_3_via_Frob_p(c, p, t, s, M=0, y=0):
     """
     TESTS::
@@ -1380,7 +1570,7 @@ def _rule_out_1_plus_3_via_Frob_p(c, p, t, s, M=0, y=0):
 # 2+2 non-self-dual type reducible divides M
 # y is a counter for the number of nontrivial Frobenius conditions going
 # into M
-# Written by: TODO
+# Written by: Isabel
 def _rule_out_2_plus_2_nonselfdual_via_Frob_p(c, p, t, s, M=0, y=0):
     """
     TESTS::
@@ -1423,7 +1613,7 @@ def _rule_out_2_plus_2_nonselfdual_via_Frob_p(c, p, t, s, M=0, y=0):
 #########################################################
 
 
-# Written by: TODO
+# Written by: Zev?
 def _special_divisors(N):
     """
     TESTS::
@@ -1453,7 +1643,7 @@ def _special_divisors(N):
     return D
 
 
-# Written by: TODO
+# Written by: Zev?
 def _get_cuspidal_levels(N, max_cond_exp_2=None):
     """
     TESTS::
@@ -1469,7 +1659,7 @@ def _get_cuspidal_levels(N, max_cond_exp_2=None):
         # recall we put a 2 in the poor mans conductor
         conductor_away_two = N/2
         possible_conductors = [conductor_away_two * 2 ** i
-                                for i in range(max_cond_exp_2 + 1)]
+                               for i in range(max_cond_exp_2 + 1)]
         # not ordered, hopefully not a problem.
         return list(set([d for N in possible_conductors
                         for d in _special_divisors(N)]))
@@ -1477,7 +1667,7 @@ def _get_cuspidal_levels(N, max_cond_exp_2=None):
         return _special_divisors(N)
 
 
-# Written by: TODO
+# Written by: Zev
 def _set_up_cuspidal_spaces(N, max_cond_exp_2=None):
     """
     TESTS::
@@ -1494,7 +1684,7 @@ def _set_up_cuspidal_spaces(N, max_cond_exp_2=None):
     return [(CuspForms(d), 0, 0) for d in D]
 
 
-# Written by: TODO
+# Written by: Zev
 def _reconstruct_hecke_poly_from_trace_polynomial(cusp_form_space, p):
     """
     Implement Zev and Joe Wetherell's idea
@@ -1519,7 +1709,7 @@ def _reconstruct_hecke_poly_from_trace_polynomial(cusp_form_space, p):
     return R(substitute_poly(a=0, b=x))
 
 
-# Written by: TODO
+# Written by: Zev
 def _rule_out_cuspidal_space_using_Frob_p(S, p, fp, M, y):
     """
     TESTS::
@@ -1542,7 +1732,7 @@ def _rule_out_cuspidal_space_using_Frob_p(S, p, fp, M, y):
     return M, y
 
 
-# Written by: TODO
+# Written by: Zev
 def _rule_out_cuspidal_spaces_using_Frob_p(p, fp, MC):
     """
     TESTS::
