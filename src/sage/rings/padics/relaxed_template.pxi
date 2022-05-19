@@ -1265,7 +1265,7 @@ cdef class RelaxedElement(pAdicGenericElement):
             sage: a.lift_to_precision(20)
             4*5 + 4*5^2 + 5^4 + O(5^20)
 
-        When the precision is omitted, the element is made unbounded::
+        When the precision is omitted, the element is unbounded::
 
             sage: a.lift_to_precision()
             4*5 + 4*5^2 + 5^4 + ...

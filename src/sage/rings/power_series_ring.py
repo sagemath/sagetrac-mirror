@@ -534,6 +534,26 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             ...
             ValueError: default_prec (= -5) must be non-negative
 
+        TESTS:
+
+        Check that containement is determined correctly::
+
+            sage: R.<t> = PowerSeriesRing(ZZ)
+            sage: t + t^2 in R
+            True
+            sage: 1/t in R
+            False
+            sage: 5 in R
+            True
+            sage: 1/3 in R
+            False
+
+        ::
+
+            sage: S.<s> = PowerSeriesRing(ZZ)
+            sage: s in R
+            False
+
         """
         from sage.rings.finite_rings.finite_field_pari_ffelt import FiniteField_pari_ffelt
 
