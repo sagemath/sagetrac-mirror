@@ -15741,8 +15741,8 @@ cdef class Matrix(Matrix1):
 
         - matrix H
 
-        - (optional) transformation matrix U such that U*self == H, possibly with zero
-          rows deleted...
+        - (optional) transformation matrix U such that ``U * self == H``,
+          possibly with zero rows deleted.
 
         EXAMPLES::
 
@@ -15775,7 +15775,7 @@ cdef class Matrix(Matrix1):
         """
         R = self.base_ring()
         if hasattr(R, '_matrix_hermite_form'):
-            return R._matrix_hermite_form(self, include_zero_rows, transformation, **kwds)
+            return R._matrix_hermite_form(self, include_zero_rows=include_zero_rows, transformation=transformation, **kwds)
         left, H, pivots = self._echelon_form_PID()
         if not include_zero_rows:
             i = H.nrows() - 1
