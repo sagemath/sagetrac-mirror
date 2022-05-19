@@ -299,10 +299,10 @@ def solid_angle_2d(A):
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
     if not is_Matrix(A):
         A = matrix(A)
-    P = A[0][0].parent()
+    P = A.base_ring()
     if A.rank() < 2:
         import sage.rings.abc
-        if P.is_exact() or isinstance(P, sage.rings.abc.SymbolicRing):
+        if P.is_exact():
             return SymbolicSubring(no_variables=True)(ZZ(0))
         else:
             return P.zero()
