@@ -449,7 +449,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
                         tester.assertLessEqual(d.valuation(), dd.valuation())
 
         def _matrix_hermite_form(self, M, include_zero_rows, transformation, integral=True, exact=True):
-            """
+            r"""
             Return the Hermite normal form of ``M``.
 
             INPUT:
@@ -457,7 +457,8 @@ class CompleteDiscreteValuationRings(Category_singleton):
             - ``transformation`` -- a boolean; whether the transformation
               matrix is returned
 
-            - ``include_zero_rows`` -- a boolean
+            - ``include_zero_rows`` -- a boolean; if ``False``, zero rows in
+              the normal form are omitted.
 
             - ``integral`` -- a subring of the base ring or ``True`` or ``None``;
               the entries of the transformation matrices are in this ring.
