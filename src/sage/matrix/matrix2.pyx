@@ -7596,16 +7596,6 @@ cdef class Matrix(Matrix1):
                 return left
             if self._will_use_strassen_echelon():
                 algorithm = 'strassen'
-            # Currently we only use scaled partial pivoting in discrete valuation fields
-            # In general, we would like to do so in any rank one valuation ring,
-            # but this should be done by introducing a category of general valuation rings and fields,
-            # which we don't have at the moment
-            elif self.base_ring() in DiscreteValuationFields():
-                try:
-                    self.base_ring().one().abs()
-                    algorithm = 'scaled_partial_pivoting'
-                except (AttributeError, TypeError):
-                    algorithm = 'scaled_partial_pivoting_valuation'
             else:
                 algorithm = 'classical'
         try:
