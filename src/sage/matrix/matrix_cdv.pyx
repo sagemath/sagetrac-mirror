@@ -665,18 +665,13 @@ def determinant_cdv(M):
     return R(det >> shift)
 
 
-
-# Hesserberg form
-#################
-
-# We assume that H is square
 cpdef hessenbergize_cdvf(Matrix_generic_dense H):
     r"""
     Replace `H` with an Hessenberg form of it.
 
     .. NOTE::
 
-        This function assumes that H is a matrix over
+        This function assumes that H is a square matrix over
         a complete discrete valuation field.
 
         The pivot on each column is always chosen
