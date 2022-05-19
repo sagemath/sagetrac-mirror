@@ -2,10 +2,14 @@ r"""
 Complete Discrete Valuation Rings (CDVR) and Fields (CDVF)
 """
 #**************************************************************************
-#  Copyright (C) 2013 Xavier Caruso <xavier.caruso@normalesup.org>
+#  Copyright (C) 2013-2022 Xavier Caruso <xavier.caruso@normalesup.org>
+#                     2022 Julian Rüth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
 #**************************************************************************
 
 
@@ -13,7 +17,6 @@ from sage.misc.abstract_method import abstract_method
 
 from sage.categories.category_singleton import Category_singleton
 from .discrete_valuation import DiscreteValuationRings, DiscreteValuationFields
-#from sage.misc.cachefunc import cached_method
 from copy import copy
 
 
@@ -32,6 +35,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
         sage: Qp(7) in CompleteDiscreteValuationRings()
         False
         sage: TestSuite(CompleteDiscreteValuationRings()).run()
+
     """
     def super_categories(self):
         """
@@ -39,18 +43,19 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
             sage: CompleteDiscreteValuationRings().super_categories()
             [Category of discrete valuation rings]
+
         """
         return [DiscreteValuationRings()]
 
     class ParentMethods:
         def _matrix_echelonize(self, M, transformation=False, exact=True):
             """
-            Row-echelonize this matrix
+            Row-echelonize ``M`` in-place.
 
             INPUT:
 
-            - ``transformation`` -- a boolean; indicates whether the
-              transformation matrix is returned
+            - ``transformation`` -- a boolean (default: ``True``); whether the
+              transformation matrix is returned (or only the pivots)
 
             - ``exact`` -- a boolean (default: ``True``);
               if ``True``, the echelon form will be as exact as possible;
@@ -58,8 +63,8 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
             OUTPUT:
 
-            The position of the pivots and the transformation matrix
-            if asked for.
+            The position of the pivots, as a list of integers, and (optionally)
+            the transformation matrix.
 
             EXAMPLES::
 
@@ -107,7 +112,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
             An error is raised if the precision on the entries is
             not enough to determine the echelon form::
 
-                sage: M = matrix(A, 2, 2, [A(0,5), 1, 5^8, 1])
+                sage: M = matrix(A, 2, 2, [A(0, 5), 1, 5^8, 1])
                 sage: M.echelon_form()  # indirect doctest
                 Traceback (most recent call last):
                 ...
@@ -118,25 +123,23 @@ class CompleteDiscreteValuationRings(Category_singleton):
             We check that it works over various rings::
 
                 sage: from sage.rings.padics.precision_error import PrecisionError
-                sage: ring1 = ZpCA(5,15)
-                sage: ring2 = Zq(5^3,names='a')
-                sage: ring3 = Zp(5).extension(x^2-5, names='pi')
-                sage: ring4 = PowerSeriesRing(GF(5), name='t')
-                sage: for A in [ ring1, ring2, ring3, ring4 ]:
+                sage: rings = [ ZpCA(5, 15), Zq(5^3, names='a'), Zp(5).extension(x^2-5, names='pi'), PowerSeriesRing(GF(5), name='t')]
+                sage: for ring in rings:
                 ....:     for _ in range(10):
-                ....:         M = random_matrix(A,4)
+                ....:         M = random_matrix(ring, 4)
                 ....:         try:
                 ....:             H, L = M.echelon_form(transformation=True)
                 ....:         except PrecisionError:
                 ....:             continue
-                ....:         if L*M != H: raise RuntimeError
+                ....:         assert L*M == H, (L, M, H)
+
             """
             if exact:
                 from sage.matrix.matrix_cdv import echelonize_cdv_exact
-                return echelonize_cdv_exact(M, transformation, True, False)
+                return echelonize_cdv_exact(M, transformation=transformation, integral=True, secure=False)
             else:
                 from sage.matrix.matrix_cdv import echelonize_cdv_nonexact
-                return echelonize_cdv_nonexact(M, transformation, True)
+                return echelonize_cdv_nonexact(M, transformation=transformation, integral=True)
 
         def _matrix_charpoly(self, M, var):
             r"""
@@ -177,6 +180,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 [ ...00011  ...00012  ...00013]
                 sage: M.charpoly()
                 ...00001*x^3 + ...44423*x^2 + ...44412*x + ...00000
+
             """
             return M._charpoly_hessenberg(var)
 
@@ -261,17 +265,18 @@ class CompleteDiscreteValuationRings(Category_singleton):
             However, an error is raised if the precision on the entries is
             not enough to determine which column to use as a pivot at some point::
 
-                sage: M = matrix(A, 2, 2, [A(0,5), A(5^6,10), A(0,8), A(5^7,10)]); M
+                sage: M = matrix(A, 2, 2, [A(0, 5), A(5^6, 10), A(0, 8), A(5^7, 10)]); M
                 [       O(5^5) 5^6 + O(5^10)]
                 [       O(5^8) 5^7 + O(5^10)]
                 sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
                 Traceback (most recent call last):
                 ...
                 PrecisionError: not enough precision to compute Smith normal form
+
             """
             from sage.matrix.matrix_cdv import smith_cdv
             integral = (integral is True or integral is None or integral is self)
-            return smith_cdv(M, transformation, integral, exact)
+            return smith_cdv(M, transformation=transformation, integral=integral, exact=exact)
 
         def _test_matrix_smith(self, **options):
             r"""
@@ -280,20 +285,21 @@ class CompleteDiscreteValuationRings(Category_singleton):
             EXAMPLES::
 
                 sage: ZpCA(5, 15)._test_matrix_smith()
+
             """
             tester = self._tester(**options)
 
             from itertools import chain
             from sage.all import MatrixSpace
             from sage.rings.padics.precision_error import PrecisionError
-            matrices = chain(*[MatrixSpace(self, n, m).some_elements() for n in (1,3,7) for m in (1,4,7)])
+            matrices = chain(*[MatrixSpace(self, n, m).some_elements() for n in (1, 3, 7) for m in (1, 4, 7)])
             for M in tester.some_elements(matrices):
                 bases = [self]
                 if self.is_field():
                     bases.append(self.integer_ring())
                 for base in bases:
                     try:
-                        S,U,V = M.smith_form(integral=base)
+                        S, U, V = M.smith_form(integral=base)
                     except PrecisionError:
                         continue
 
@@ -310,18 +316,17 @@ class CompleteDiscreteValuationRings(Category_singleton):
                         if not d.is_zero():
                             tester.assertTrue(d.unit_part().is_one())
 
-                    for (d,dd) in zip(S.diagonal(), S.diagonal()[1:]):
+                    for (d, dd) in zip(S.diagonal(), S.diagonal()[1:]):
                         tester.assertLessEqual(d.valuation(), dd.valuation())
-
 
         def _matrix_hermite_form(self, M, include_zero_rows, transformation, integral=True, exact=True):
             """
-            Return the Hermite normal form of this matrix.
+            Return the Hermite normal form of ``M``.
 
             INPUT:
 
-            - ``transformation`` -- a boolean; indicates whether the
-              transformation matrix is returned
+            - ``transformation`` -- a boolean; whether the transformation
+              matrix is returned
 
             - ``include_zero_rows`` -- a boolean
 
@@ -331,7 +336,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
               ring; if ``None``, they are in the base ring.
 
             - ``exact`` -- a boolean (default: ``True``);
-              if ``True``, the echelon form will be as exact as possible;
+              if ``True``, the Hermite normal form will be as exact as possible;
               if ``False``, the transformation matrix will be exact.
 
             EXAMPLES::
@@ -396,10 +401,10 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 M = M.change_ring(self.fraction_field())
             if exact:
                 from sage.matrix.matrix_cdv import echelonize_cdv_exact
-                pivots, L = echelonize_cdv_exact(M, transformation, integral, True)
+                pivots, L = echelonize_cdv_exact(M, transformation=transformation, integral=integral, secure=True)
             else:
                 from sage.matrix.matrix_cdv import echelonize_cdv_nonexact
-                pivots, L = echelonize_cdv_nonexact(M, transformation, integral)
+                pivots, L = echelonize_cdv_nonexact(M, transformation=transformation, integral=integral)
             rk = len(pivots)
             if not include_zero_rows and rk < M.nrows():
                 M = M.submatrix(0, 0, rk)
@@ -417,10 +422,6 @@ class CompleteDiscreteValuationRings(Category_singleton):
             This method gets called by
             :meth:`sage.matrix.matrix2.Matrix.determinant`.
 
-            INPUT:
-
-            - ``M`` -- a matrix over this ring
-
             ALGORITHM:
 
             We flatten the absolute precision in order to increase
@@ -436,7 +437,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
             EXAMPLES::
 
-                sage: R = Qp(5,10)
+                sage: R = Qp(5, 10)
                 sage: M = matrix(R, 2, 2, [1, 6, 2, 7])
                 sage: M.determinant()  # indirect doctest
                 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
@@ -447,9 +448,9 @@ class CompleteDiscreteValuationRings(Category_singleton):
             Sometimes, we gain precision on the determinant::
 
                 sage: M = matrix(R, 3, 3,
-                ....:             [R(16820,7), R(73642,7), R( 3281,7),
-                ....:              R(67830,7), R(63768,7), R(76424,7),
-                ....:              R(37790,7), R(38784,7), R(69287,7)])
+                ....:             [R(16820, 7), R(73642, 7), R( 3281, 7),
+                ....:              R(67830, 7), R(63768, 7), R(76424, 7),
+                ....:              R(37790, 7), R(38784, 7), R(69287, 7)])
                 sage: M.determinant()  # indirect doctest
                 4*5^5 + 4*5^6 + 3*5^7 + 2*5^8 + O(5^9)
 
@@ -457,7 +458,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
             We check the stability of our algorithm::
 
-                sage: for dim in range(3,10):
+                sage: for dim in range(3, 10):
                 ....:     M = matrix(dim, dim, [ R(1) for _ in range(dim^2) ])
                 ....:     print(M.determinant())
                 O(5^20)
@@ -468,15 +469,15 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 O(5^70)
                 O(5^80)
 
-                sage: A = random_matrix(Qp(5),4)
-                sage: B = random_matrix(Qp(5),4)
+                sage: A = random_matrix(Qp(5), 4)
+                sage: B = random_matrix(Qp(5), 4)
                 sage: (A*B).det() == A.det()*B.det()
                 True
                 sage: A.change_ring(QQ).det() == A.det()
                 True
-                sage: matrix(Qp(37),[0]).determinant()
+                sage: matrix(Qp(37), [0]).determinant()
                 0
-                sage: matrix(Qp(37),[O(37)]).determinant()
+                sage: matrix(Qp(37), [O(37)]).determinant()
                 O(37)
             """
             from sage.matrix.matrix_cdv import determinant_cdv
@@ -523,12 +524,12 @@ class CompleteDiscreteValuationRings(Category_singleton):
             precision on the input is `O(p^n)`, the return value is `1`
             if `n` is nonnegative and `p^(-n)` otherwise::
 
-                sage: x = K(0,5); x
+                sage: x = K(0, 5); x
                 O(7^5)
                 sage: x.denominator()
                 1 + O(7^20)
 
-                sage: x = K(0,-5); x
+                sage: x = K(0, -5); x
                 O(7^-5)
                 sage: x.denominator()
                 7^5 + O(7^25)
@@ -558,7 +559,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
             TESTS::
 
-                sage: x = K(0,-5); x
+                sage: x = K(0, -5); x
                 O(7^-5)
                 sage: x.numerator()
                 O(7^0)
@@ -589,18 +590,18 @@ class CompleteDiscreteValuationRings(Category_singleton):
             EXAMPLES::
 
                 sage: R = ZpCA(17)
-                sage: R(-1,2).lift_to_precision(10)
+                sage: R(-1, 2).lift_to_precision(10)
                 16 + 16*17 + O(17^10)
-                sage: R(1,15).lift_to_precision(10)
+                sage: R(1, 15).lift_to_precision(10)
                 1 + O(17^15)
-                sage: R(1,15).lift_to_precision(30)
+                sage: R(1, 15).lift_to_precision(30)
                 Traceback (most recent call last):
                 ...
                 PrecisionError: precision higher than allowed by the precision cap
-                sage: R(-1,2).lift_to_precision().precision_absolute() == R.precision_cap()
+                sage: R(-1, 2).lift_to_precision().precision_absolute() == R.precision_cap()
                 True
 
-                sage: R = Zp(5); c = R(17,3); c.lift_to_precision(8)
+                sage: R = Zp(5); c = R(17, 3); c.lift_to_precision(8)
                 2 + 3*5 + O(5^8)
                 sage: c.lift_to_precision().precision_relative() == R.precision_cap()
                 True
@@ -618,7 +619,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
         False
         sage: QQ in CompleteDiscreteValuationFields()
         False
-        sage: LaurentSeriesRing(QQ,'u') in CompleteDiscreteValuationFields()
+        sage: LaurentSeriesRing(QQ, 'u') in CompleteDiscreteValuationFields()
         True
         sage: Qp(7) in CompleteDiscreteValuationFields()
         True
@@ -735,7 +736,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
             An error is raised if the precision on the entries is
             not enough to determine the echelon form::
 
-                sage: M = matrix(A, 2, 2, [A(0,5), 1, 5^8, 1])
+                sage: M = matrix(A, 2, 2, [A(0, 5), 1, 5^8, 1])
                 sage: M.echelon_form()  # indirect doctest
                 Traceback (most recent call last):
                 ...
@@ -844,7 +845,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
             However, an error is raised if the precision on the entries is
             not enough to determine which column to use as a pivot at some point::
 
-                sage: M = matrix(A, 2, 2, [A(0,5), A(5^6,10), A(0,8), A(5^7,10)]); M
+                sage: M = matrix(A, 2, 2, [A(0, 5), A(5^6, 10), A(0, 8), A(5^7, 10)]); M
                 [       O(5^5) 5^6 + O(5^10)]
                 [       O(5^8) 5^7 + O(5^10)]
                 sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
@@ -965,7 +966,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
 
             EXAMPLES::
 
-                sage: R = Zp(5,10)
+                sage: R = Zp(5, 10)
                 sage: M = matrix(R, 2, 2, [1, 6, 2, 7])
                 sage: M.determinant()  # indirect doctest
                 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
@@ -976,9 +977,9 @@ class CompleteDiscreteValuationFields(Category_singleton):
             Sometimes, we gain precision on the determinant::
 
                 sage: M = matrix(R, 3, 3,
-                ....:             [R(16820,7), R(73642,7), R( 3281,7),
-                ....:              R(67830,7), R(63768,7), R(76424,7),
-                ....:              R(37790,7), R(38784,7), R(69287,7)])
+                ....:             [R(16820, 7), R(73642, 7), R( 3281, 7),
+                ....:              R(67830, 7), R(63768, 7), R(76424, 7),
+                ....:              R(37790, 7), R(38784, 7), R(69287, 7)])
                 sage: M.determinant()  # indirect doctest
                 4*5^5 + 4*5^6 + 3*5^7 + 2*5^8 + O(5^9)
 
