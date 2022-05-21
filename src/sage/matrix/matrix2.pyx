@@ -7586,12 +7586,10 @@ cdef class Matrix(Matrix1):
             R = self._base_ring
             if hasattr(R, '_matrix_echelonize'):
                 pivots = R._matrix_echelonize(self, **kwds)
-
-                if isinstance(echelonize, tuple):
+                if isinstance(pivots, tuple):
                     pivots, left = pivots
                 else:
                     left = None
-
                 self.cache('pivots', pivots)
                 return left
             if self._will_use_strassen_echelon():
