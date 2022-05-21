@@ -519,7 +519,7 @@ AC_CONFIG_FILES([pkgs/sage-conf/_sage_conf/_conf.py])
 dnl Create basic directories needed for Sage
 AC_CONFIG_COMMANDS(mkdirs,
     [
-        for d in "$SAGE_LOGS" "$SAGE_LOCAL" \
+        for d in "$SAGE_LOCAL" \
             "$SAGE_LOCAL/bin" "$SAGE_LOCAL/etc" \
             "$SAGE_LOCAL/include" "$SAGE_LOCAL/lib" \
             "$SAGE_LOCAL/lib/pkgconfig" \
@@ -539,7 +539,6 @@ AC_CONFIG_COMMANDS(mkdirs,
         fi
     ],
     [
-        SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
         SAGE_LOCAL="$SAGE_LOCAL"
         SAGE_SHARE="$SAGE_LOCAL/share"
     ])

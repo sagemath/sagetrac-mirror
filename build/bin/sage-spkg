@@ -122,7 +122,7 @@ Please email sage-devel (http://groups.google.com/group/sage-devel)
 explaining the problem and including the log files
   $SAGE_LOGS/$PKG_NAME.log
 and
-  $SAGE_ROOT/config.log
+  $SAGE_LOGS/config.log
 Describe your computer, operating system, etc.
 MESSAGE
 

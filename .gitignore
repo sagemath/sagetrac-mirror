@@ -3,7 +3,7 @@
 
 /dist
 /local
-/logs
+/logs*
 /upstream
 
 # Autotools generated files
