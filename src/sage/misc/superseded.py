@@ -357,9 +357,15 @@ class DeprecatedFunctionAlias(object):
 
             sage: from sage.misc.superseded import deprecated_function_alias
             sage: g = deprecated_function_alias(13109, number_of_partitions)
-            sage: from sage.misc.superseded import deprecated_function_alias
             sage: g.__doc__
             'Deprecated: Use :func:`number_of_partitions` instead.\nSee :trac:`13109` for details.\n\n'
+
+        ::
+
+            sage: from sage.misc.superseded import __experimental_self_test
+            sage: deprecated_class = deprecated_function_alias(13109, __experimental_self_test)
+            sage: deprecated_class.__doc__
+            'Deprecated: Use :class:`__experimental_self_test` instead.\nSee :trac:`13109` for details.\n\n'
         """
         _check_trac_number(trac_number)
         try:
@@ -371,12 +377,17 @@ class DeprecatedFunctionAlias(object):
         self.instance = instance # for use with methods
         self.unbound = unbound
         self.__module__ = module
-        if isinstance(func, type(deprecation)):
+        if isinstance(self.func, type(deprecation)):
             sphinxrole = "func"
+            name = self.func.__name__
+        elif inspect.isclass(self.func):
+            sphinxrole = "class"
+            name = self.func.__name__
         else:
             sphinxrole = "meth"
+            name = self.func.__name__
         doc = "Deprecated: "
-        doc += f"Use :{sphinxrole}:`{self.func.__name__ or type(self.func).__name__}` instead.\n"
+        doc += f"Use :{sphinxrole}:`{name}` instead.\n"
         doc += f"See :trac:`{self.trac_number}` for details.\n\n"
         self.__doc__ = doc
 
