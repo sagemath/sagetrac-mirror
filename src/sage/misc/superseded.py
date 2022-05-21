@@ -376,7 +376,7 @@ class DeprecatedFunctionAlias(object):
         else:
             sphinxrole = "meth"
         doc = "Deprecated: "
-        doc += f"Use :{sphinxrole}:`{self.func}` instead.\n"
+        doc += f"Use :{sphinxrole}:`{self.func.__name__ or type(self.func).__name__}` instead.\n"
         doc += f"See :trac:`{self.trac_number}` for details.\n\n"
         self.__doc__ = doc
 
