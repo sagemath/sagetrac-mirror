@@ -113,6 +113,12 @@ prime conductor::
     sage: C                                            # optional - database_stein_watkins_mini
     Stein-Watkins isogeny class of conductor 19
 
+Next we access data that only come with the huge package::
+
+    sage: d = SteinWatkinsAllData(2)
+    sage: C = next(d); C                               # optional - database_stein_watkins
+    Stein-Watkins isogeny class of conductor 200002
+
 REFERENCE:
 
 - [SW2002]_
