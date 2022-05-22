@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Optional
 
 import pytest
 from _pytest.doctest import (
@@ -140,28 +140,31 @@ def pytest_collect_file(
         # hit this here if someone explicitly runs `pytest some_file.pyx`.
         return pytest.skip("Skipping Cython file")
     elif file_path.suffix == ".py":
-        if (
-            (
-                file_path.name == "postprocess.py"
-                and file_path.parent.name == "nbconvert"
-            )
-            or (
-                file_path.name == "__main__.py"
-                and file_path.parent.name == "ipython_kernel"
-            )
-            or (
-                file_path.name == "__main__.py"
-                and file_path.parent.name == "sage_docbuild"
-            )
-            or (
-                file_path.name == "giacpy-mkkeywords.py"
-                and file_path.parent.name == "autogen"
-            )
-        ):
-            return pytest.skip("Skipping executable script")
-
         if parent.config.option.doctestmodules:
             return SageDoctestModule.from_parent(parent, path=file_path)
+
+
+def pytest_ignore_collect(collection_path: Path) -> Optional[bool]:
+    if (
+        (
+            collection_path.name == "postprocess.py"
+            and collection_path.parent.name == "nbconvert"
+        )
+        or (
+            collection_path.name == "__main__.py"
+            and collection_path.parent.name == "ipython_kernel"
+        )
+        or (
+            collection_path.name == "__main__.py"
+            and collection_path.parent.name == "sage_docbuild"
+        )
+        or (
+            collection_path.name == "giacpy-mkkeywords.py"
+            and collection_path.parent.name == "autogen"
+        )
+    ):
+        # Ignore executable scripts
+        return True
 
 
 @pytest.fixture(autouse=True)
