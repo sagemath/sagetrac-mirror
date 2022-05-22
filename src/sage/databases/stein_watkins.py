@@ -135,9 +135,10 @@ REFERENCE:
 # ****************************************************************************
 
 import bz2
-import os
+# We need the backport package importlib_resources >= 3.2.0 for
+# resources in namespace packages.
+from importlib_resources import files, as_file
 
-from sage.env import SAGE_SHARE
 
 
 class SteinWatkinsIsogenyClass:
@@ -182,9 +183,12 @@ class SteinWatkinsAllData:
         self.num = num
         if num < 0:
             raise RuntimeError("num (=%s) must be a nonnegative integer" % num)
-        name = str(num)
-        name = '0' * (3 - len(name)) + name
-        self._file = os.path.join(SAGE_SHARE, 'stein_watkins', 'a.%s.bz2' % name)
+        try:
+            import database_stein_watkins
+        except ImportError:
+            self._file = None
+        else:
+            self._file = files(database_stein_watkins).joinpath(f'a.{num:03}.bz2')
         self._iter = iter(self)
 
     def __repr__(self):
@@ -212,30 +216,30 @@ class SteinWatkinsAllData:
             Stein-Watkins isogeny class of conductor 19
             Stein-Watkins isogeny class of conductor 20
         """
-        try:
-            file = bz2.open(self._file, 'rt', encoding="utf-8")
-        except IOError:
+        if self._file is None:
             raise IOError("The Stein-Watkins data file %s must be installed." % self._file)
-        C = None
-        for L in file:
-            if len(L) == 0:
-                continue
-            if L[0] != '[':  # new curve
-                if C is not None:
-                    yield C
-                x = L.split()
-                N = int(x[0])
-                C = SteinWatkinsIsogenyClass(N)
-                C.rank = int(x[2])
-                C.leading_coefficient = x[3]
-                C.isogeny_number = x[4]
-                C.modular_degree = x[5]
-                C.curves = []
-                C.data = x
-            else:
-                w = L.split()
-                C.curves.append([eval(w[0]), w[1], w[2], w[3]])
-        yield C
+        with as_file(self._file) as path:
+            file = bz2.open(path, 'rt', encoding="utf-8")
+            C = None
+            for L in file:
+                if len(L) == 0:
+                    continue
+                if L[0] != '[': # new curve
+                    if C is not None:
+                        yield C
+                    x = L.split()
+                    N = int(x[0])
+                    C = SteinWatkinsIsogenyClass(N)
+                    C.rank = int(x[2])
+                    C.leading_coefficient = x[3]
+                    C.isogeny_number = x[4]
+                    C.modular_degree = x[5]
+                    C.curves = []
+                    C.data = x
+                else:
+                    w = L.split()
+                    C.curves.append([eval(w[0]), w[1], w[2], w[3]])
+            yield C
 
     def __next__(self):
         return next(self._iter)
@@ -316,9 +320,12 @@ class SteinWatkinsPrimeData(SteinWatkinsAllData):
         self.num = num
         if num < 0:
             raise RuntimeError("num (=%s) must be a nonnegative integer" % num)
-        name = str(num)
-        name = '0' * (2 - len(name)) + name
-        self._file = os.path.join(SAGE_SHARE, 'stein_watkins', 'p.%s.bz2' % name)
+        try:
+            import database_stein_watkins
+        except ImportError:
+            self._file = None
+        else:
+            self._file = files(database_stein_watkins).joinpath(f'p.{num:02}.bz2')
         self._iter = iter(self)
 
     def __repr__(self):
