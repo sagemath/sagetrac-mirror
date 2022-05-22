@@ -44,12 +44,12 @@ EXAMPLES: We obtain the first table of elliptic curves.
 We type ``next(d)`` to get each isogeny class of
 curves from ``d``::
 
-    sage: C = next(d)                                   # optional - database_stein_watkins
-    sage: C                                             # optional - database_stein_watkins
+    sage: C = next(d)                                   # optional - database_stein_watkins_mini
+    sage: C                                             # optional - database_stein_watkins_mini
     Stein-Watkins isogeny class of conductor 11
-    sage: next(d)                                       # optional - database_stein_watkins
+    sage: next(d)                                       # optional - database_stein_watkins_mini
     Stein-Watkins isogeny class of conductor 14
-    sage: next(d)                                       # optional - database_stein_watkins
+    sage: next(d)                                       # optional - database_stein_watkins_mini
     Stein-Watkins isogeny class of conductor 15
 
 An isogeny class has a number of attributes that give data about
@@ -58,21 +58,21 @@ conductor, leading coefficient of `L`-function, etc.
 
 ::
 
-    sage: C.data                                         # optional - database_stein_watkins
+    sage: C.data                                         # optional - database_stein_watkins_mini
     ['11', '[11]', '0', '0.253842', '25', '+*1']
-    sage: C.curves                                       # optional - database_stein_watkins
+    sage: C.curves                                       # optional - database_stein_watkins_mini
     [[[0, -1, 1, 0, 0], '(1)', '1', '5'],
      [[0, -1, 1, -10, -20], '(5)', '1', '5'],
      [[0, -1, 1, -7820, -263580], '(1)', '1', '1']]
-    sage: C.conductor                                    # optional - database_stein_watkins
+    sage: C.conductor                                    # optional - database_stein_watkins_mini
     11
-    sage: C.leading_coefficient                          # optional - database_stein_watkins
+    sage: C.leading_coefficient                          # optional - database_stein_watkins_mini
     '0.253842'
-    sage: C.modular_degree                               # optional - database_stein_watkins
+    sage: C.modular_degree                               # optional - database_stein_watkins_mini
     '+*1'
-    sage: C.rank                                         # optional - database_stein_watkins
+    sage: C.rank                                         # optional - database_stein_watkins_mini
     0
-    sage: C.isogeny_number                               # optional - database_stein_watkins
+    sage: C.isogeny_number                               # optional - database_stein_watkins_mini
     '25'
 
 If we were to continue typing ``next(d)`` we would
@@ -84,33 +84,33 @@ To access the data file starting at `10^5` do the
 following::
 
     sage: d = SteinWatkinsAllData(1)
-    sage: C = next(d)                                  # optional - database_stein_watkins
-    sage: C                                            # optional - database_stein_watkins
+    sage: C = next(d)                                  # optional - database_stein_watkins_mini
+    sage: C                                            # optional - database_stein_watkins_mini
     Stein-Watkins isogeny class of conductor 100002
-    sage: C.curves                                     # optional - database_stein_watkins
+    sage: C.curves                                     # optional - database_stein_watkins_mini
     [[[1, 1, 0, 112, 0], '(8,1,2,1)', 'X', '2'],
      [[1, 1, 0, -448, -560], '[4,2,1,2]', 'X', '2']]
 
 Next we access the prime-conductor data::
 
     sage: d = SteinWatkinsPrimeData(0)
-    sage: C = next(d)                                  # optional - database_stein_watkins
-    sage: C                                            # optional - database_stein_watkins
+    sage: C = next(d)                                  # optional - database_stein_watkins_mini
+    sage: C                                            # optional - database_stein_watkins_mini
     Stein-Watkins isogeny class of conductor 11
 
 Each call ``next(d)`` gives another elliptic curve of
 prime conductor::
 
-    sage: C = next(d)                                  # optional - database_stein_watkins
-    sage: C                                            # optional - database_stein_watkins
+    sage: C = next(d)                                  # optional - database_stein_watkins_mini
+    sage: C                                            # optional - database_stein_watkins_mini
     Stein-Watkins isogeny class of conductor 17
-    sage: C.curves                                     # optional - database_stein_watkins
+    sage: C.curves                                     # optional - database_stein_watkins_mini
     [[[1, -1, 1, -1, 0], '[1]', '1', '4'],
      [[1, -1, 1, -6, -4], '[2]', '1', '2x'],
      [[1, -1, 1, -1, -14], '(4)', '1', '4'],
      [[1, -1, 1, -91, -310], '[1]', '1', '2']]
-    sage: C = next(d)                                  # optional - database_stein_watkins
-    sage: C                                            # optional - database_stein_watkins
+    sage: C = next(d)                                  # optional - database_stein_watkins_mini
+    sage: C                                            # optional - database_stein_watkins_mini
     Stein-Watkins isogeny class of conductor 19
 
 REFERENCE:
@@ -202,8 +202,8 @@ class SteinWatkinsAllData:
         EXAMPLES::
 
             sage: d = SteinWatkinsAllData(0)
-            sage: d = d[10:20]                         # optional - database_stein_watkins; long time
-            sage: for C in d:                          # optional - database_stein_watkins; long time
+            sage: d = d[10:20]                         # optional - database_stein_watkins_mini; long time
+            sage: for C in d:                          # optional - database_stein_watkins_mini; long time
             ....:     print(C)
             Stein-Watkins isogeny class of conductor 11
             Stein-Watkins isogeny class of conductor 14
@@ -251,7 +251,7 @@ class SteinWatkinsAllData:
         EXAMPLES::
 
             sage: d = SteinWatkinsAllData(0)
-            sage: d[15:18]                             # optional - database_stein_watkins; long time
+            sage: d[15:18]                             # optional - database_stein_watkins_mini; long time
             [Stein-Watkins isogeny class of conductor 15, Stein-Watkins isogeny
              class of conductor 17]
         """
@@ -282,12 +282,12 @@ class SteinWatkinsAllData:
 
             sage: d = SteinWatkinsAllData(1)
             sage: E = d.iter_levels()
-            sage: next(E)                             # optional - database_stein_watkins
+            sage: next(E)                             # optional - database_stein_watkins_mini
             [Stein-Watkins isogeny class of conductor 100002]
-            sage: next(E)                             # optional - database_stein_watkins
+            sage: next(E)                             # optional - database_stein_watkins_mini
             [Stein-Watkins isogeny class of conductor 100005,
             Stein-Watkins isogeny class of conductor 100005]
-            sage: next(E)                             # optional - database_stein_watkins
+            sage: next(E)                             # optional - database_stein_watkins_mini
             [Stein-Watkins isogeny class of conductor 100007]
         """
         it = iter(self)
@@ -339,7 +339,7 @@ def ecdb_num_curves(max_level=200000):
 
     EXAMPLES::
 
-        sage: sage.databases.stein_watkins.ecdb_num_curves(100) # optional - database_stein_watkins
+        sage: sage.databases.stein_watkins.ecdb_num_curves(100) # optional - database_stein_watkins_mini
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 6, 8, 0, 4, 0, 3, 4, 6, 0, 0,
          6, 0, 5, 4, 0, 0, 8, 0, 4, 4, 4, 3, 4, 4, 5, 4, 4, 0, 6, 1, 2, 8, 2, 0,
          6, 4, 8, 2, 2, 1, 6, 4, 6, 7, 3, 0, 0, 1, 4, 6, 4, 2, 12, 1, 0, 2, 4, 0,
