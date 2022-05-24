@@ -776,6 +776,8 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         from sage.modules.free_module_element import vector
         if not ring:
             F = self.base_ring()
+            if not F.is_field():
+                F = F.fraction_field()
             n = self.matrix_space().nrows()
             R = PolynomialRing(F, n, ['x{}'.format(i) for i in range(n)])
         else:
