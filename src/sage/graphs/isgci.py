@@ -400,8 +400,7 @@ from sage.env import GRAPHS_DATA_DIR
 import os
 import zipfile
 from urllib.request import urlopen
-from ssl import SSLContext
-
+from ssl import create_default_context as default_context
 
 #*****************************************************************************
 #      Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
@@ -829,7 +828,7 @@ class GraphClasses(UniqueRepresentation):
         """
         import tempfile
         u = urlopen('https://www.graphclasses.org/data.zip',
-                    context=SSLContext())
+                    context=default_context())
         with tempfile.NamedTemporaryFile(suffix=".zip") as f:
             f.write(u.read())
             z = zipfile.ZipFile(f.name)
