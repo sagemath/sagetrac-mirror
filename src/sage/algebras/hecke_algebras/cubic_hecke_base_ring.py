@@ -52,8 +52,7 @@ def normalize_names_markov(names, markov_trace_version):
 
     EXAMPLES::
 
-        sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-        ....:      import cubic_hecke_base_ring as chbr
+        sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
         sage: chbr.normalize_names_markov('a, b, c', False)
         ('a', 'b', 'c')
         sage: chbr.normalize_names_markov(('u', 'v', 'w', 's'), False)
@@ -78,8 +77,7 @@ def register_ring_hom(ring_hom):
 
     EXAMPLES::
 
-        sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-        ....:      import cubic_hecke_base_ring as chbr
+        sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
         sage: BR = chbr.CubicHeckeRingOfDefinition()
         sage: BR.create_specialization([E(5), E(7), E(3)])  # indirect doctest
         Universal Cyclotomic Field
@@ -122,8 +120,7 @@ class GaloisGroupAction(Action):
 
     EXAMPLES::
 
-        sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-        ....:      import cubic_hecke_base_ring as chbr
+        sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
         sage: from operator import mul
         sage: R.<x, y, z> = ZZ[]
         sage: G = SymmetricGroup(3)
@@ -140,8 +137,7 @@ class GaloisGroupAction(Action):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: from operator import mul
             sage: R.<x, y> = QQ[]
             sage: G = SymmetricGroup(2)
@@ -176,7 +172,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
     This class implements the generic splitting algebra for the irreducible
     representations of the cubic Hecke algebra.
 
-    This ring must contain three invertible indeterminats (representing the
+    This ring must contain three invertible indeterminates (representing the
     roots of the cubic equation) together with a third root of unity (needed
     for the 18-dimensional irreducibles of the cubic Hecke algebra on 4 strands).
 
@@ -189,27 +185,25 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
     INPUT:
 
-    -  ``names`` -- string containing the names of the indeterminates separated
-       by ',' or a triple of strings each of which is the name of one of the
-       three indeterminates. The default is ``u, v, w``
-    -  ``order`` -- string (optional, default='degrevlex') transferred to the
-       corresponding input of LaurentPolynomialRing_mpair
-    -  ``ring_of_definition`` -- instance of CubicHeckeRingOfDefinition
-       (optional, default=None) to specify the generic cubic Hecke base ring
-       over which self may be realized as splitting ring via the
-       ``as_splitting_algebra`` method
-    -  ``third_unity_root_name`` -- optional string (default is ``e3``) for
-       setting the name of the third root if unity of ``self``.
-    -  ``markov_trace_version`` -- optional boolean (default is ``False``).
-       If this is set to ``True`` then ``self`` contains one invertible
-       indeterminate in addition which is meant to represent the writhe factor
-       of a Markov trace on the cubic Hecke algebra and which default name
-       is ``s``
+    - ``names`` -- string containing the names of the indeterminates separated
+      by ',' or a triple of strings each of which is the name of one of the
+      three indeterminates. The default is ``u, v, w``
+    - ``order`` -- string (default='degrevlex') transferred to the
+      corresponding input of LaurentPolynomialRing_mpair
+    - ``ring_of_definition`` -- instance of CubicHeckeRingOfDefinition
+      (default=None) to specify the generic cubic Hecke base ring over which
+      self may be realized as splitting ring via the ``as_splitting_algebra``
+      method
+    - ``third_unity_root_name`` -- string (default is ``e3``) for setting the
+      name of the third root if unity of ``self``
+    - ``markov_trace_version`` -- boolean (default is ``False``). If this is
+      set to ``True`` then ``self`` contains one invertible indeterminate in
+      addition which is meant to represent the writhe factor of a Markov trace
+      on the cubic Hecke algebra and which default name is ``s``
 
     EXAMPLES::
 
-        sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-        ....:      import cubic_hecke_base_ring as chbr
+        sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
         sage: chbr.CubicHeckeExtensionRing('a, b, c')
         Multivariate Laurent Polynomial Ring in a, b, c
           over Splitting Algebra of x^2 + x + 1
@@ -224,8 +218,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         TESTS::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: TestSuite(ER).run()
         """
@@ -281,8 +274,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: ER._test_category()   # indirect doctest
         """
@@ -294,8 +286,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         TESTS::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: loads(dumps(ER)) == ER
             True
@@ -305,7 +296,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
     def _element_constructor_(self, x, mon=None):
         r"""
         Inherited element constructor overloaded to allow construction from
-        GAP3 Mvp exressions.
+        *GAP3* *Mvp* expressions.
 
         EXAMPLES::
 
@@ -325,6 +316,44 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
             return self._convert_from_gap3_mvp(x)
         return super(CubicHeckeExtensionRing, self)._element_constructor_(x, mon=mon)
 
+    def _coerce_map_from_(self, R):
+        r"""
+        The rings that canonically coerce to ``self`` ar the ones from
+        inheritence and the base ring of definition of the cubic Hecke algebra.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
+            sage: BR = chbr.CubicHeckeRingOfDefinition()
+            sage: ER = BR.extension_ring()
+            sage: ER(BR.an_element())
+            a*b + a*c + b*c + a*b^-1*c^-1 + 2*c^-1 + a^-1*b*c^-1 + 2*b^-1
+            + 2*a^-1 + a^-1*b^-1*c
+            sage: MBR = chbr.CubicHeckeRingOfDefinition(markov_trace_version=True)
+            sage: MER = MBR.extension_ring()
+            sage: MER(MBR.an_element())
+            a*b*s^-1 + a*c*s^-1 + b*c*s^-1 + a*b^-1*c^-1 + 2*c^-1
+            + a^-1*b*c^-1 + 2*b^-1 + 2*a^-1 + a^-1*b^-1*c
+        """
+        if isinstance(R, CubicHeckeRingOfDefinition):
+            markov = R.markov_trace_version()
+            a, b, c, *rem = self.gens()
+            iu = a + b + c
+            iv = a*b + a*c + b*c
+            iw = a*b*c
+            im_gens = [iu, iv, iw]
+            if markov:
+                if self.markov_trace_version():
+                    im_gens += rem
+                    # check of embedding fails in this case as long as the images of
+                    # ``iu`` and ``iv`` need to be invertible (see comment in
+                    # :meth:`__init__`).  # :class:`CubicHeckeRingOfDefinition`).
+                    embedding_into_extension_ring = R.hom(im_gens, check=False)
+            else:
+                embedding_into_extension_ring = R.hom(im_gens)
+            return embedding_into_extension_ring
+        return super(CubicHeckeExtensionRing, self)._coerce_map_from_(R)
+
     def hom(self, im_gens, codomain=None, check=True, base_map=None):
         r"""
         Custom version overloading the corresponding method of class
@@ -338,8 +367,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: UCF = UniversalCyclotomicField()
             sage: map = ER.hom((UCF.gen(3),) + (UCF(3),UCF(4),UCF(5)))
@@ -373,8 +401,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('x, y, z')
             sage: ER.an_element()                             # indirect doctest
             y^2*z^-1 + e3*x
@@ -399,8 +426,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: ER._is_markov_trace_version()
             False
@@ -415,13 +441,13 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
     # --------------------------------------------------------------------------
     def _convert_from_gap3_mvp(self, mvp_expression):
         r"""
-        Convert a string produced via GAP3 interface and containing Jean
-        Michel's ``MVP`` (multivariate polynomials) to an element of ``self``.
+        Convert a string produced via *GAP3* interface and containing Jean
+        Michel's *MVP* (multivariate polynomials) to an element of ``self``.
 
         INPUT:
 
         - ``string``  -- string produced via GAP3 interface and containing
-          Jean Michel's ``MVP`` (multivariate polynomials)
+          Jean Michel's *MVP* (multivariate polynomials)
 
         OUTPUT:
 
@@ -429,8 +455,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: gap3_string = '2+a^-2bc+a^-1b^-1c^2+a^-1b^2c^-1+ab^-2E3c'
             sage: ER._convert_from_gap3_mvp(gap3_string)
@@ -463,8 +488,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER  = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: ER.cyclotomic_generator()
             e3
@@ -480,8 +504,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('x, y, z')
             sage: conj = ER.conjugation()
             sage: conj(ER.an_element())
@@ -501,8 +524,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: G = ER.cubic_equation_galois_group()
             sage: t = ER.an_element()
@@ -536,8 +558,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('p, q, r')
             sage: ER.mirror_involution()
             Ring endomorphism of Multivariate Laurent Polynomial Ring in p, q, r
@@ -583,9 +604,9 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         INPUT:
 
-        -  ``im_cubic_equation_roots`` -- list or tuple of three ring elements
-           such that there exists a ring homomorphism from the corresponding
-           elements of ``self`` to them
+        - ``im_cubic_equation_roots`` -- list or tuple of three ring elements
+          such that there exists a ring homomorphism from the corresponding
+          elements of ``self`` to them
 
         OUTPUT:
 
@@ -594,8 +615,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: t = ER.an_element(); t
             b^2*c^-1 + e3*a
@@ -720,8 +740,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: GBR = chbr.CubicHeckeRingOfDefinition()
             sage: GER = GBR.extension_ring()
             sage: ER = GER.as_splitting_algebra(); ER
@@ -795,13 +814,12 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         INPUT:
 
-        - ``characteristic`` -- integer (optional, default 0) the characteristic
-          of the field.
+        - ``characteristic`` -- integer (default 0) the characteristic of the
+          field.
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: ER = BR.extension_ring()
             sage: ER.field_embedding()
@@ -879,8 +897,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: ER.markov_trace_version()
             Multivariate Laurent Polynomial Ring in a, b, c, s
@@ -896,7 +913,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 ################################################################################
 # Ring of Definition
 # ------------------------------------------------------------------------------
-# Definition of the ring of definition for the cubic hecke algebra as polynomial
+# Definition of the ring of definition for the cubic Hecke algebra as polynomial
 # ring in 2 indeterminates over univariate Laurent polynomial ring over the
 # integers. This is the most general ring over which the cubic Hecke algebra may
 # be defined.
@@ -908,25 +925,33 @@ class CubicHeckeRingOfDefinition(Localization):
     It contains one invertible indeterminate (representing the product of the
     roots of the cubic equation) and two non invertible indeterminates.
 
+    With the name *ring of definition* we follow a suggestion by Ivan Marin.
+    We avoid alternative names like *generic* or *universal* base ring
+    as these have some issues. The first option could be misleading
+    in view of the term *generic point* used in algebraic geometry which would
+    mean the function field in ``u, v, w``, here.
+
+    The second option is problematic since the base ring itself is not a
+    universal object. Rather, the universal object is the cubic Hecke algebra
+    considered as a `ZZ` algebra including ``u, v, w`` as pairwise commuting
+    indeterminates. From this point of view the base ring appears to be a
+    subalgebra of this universal object generated by ``u, v, w``.
 
     INPUT:
 
-    -  ``names`` -- string containing the names of the indeterminates separated
-       by ',' or a triple of strings each of which is the name of one of the
-       three indeterminates. The default is ``u, v, w``.
-    -  ``order`` -- string (optional, default='degrevlex') transferred to the
-       corresponding input of LaurentPolynomialRing_mpair
-    -  ``markov_trace_version`` -- optional boolean (default is ``False``).
-       If this is set to ``True`` then ``self`` contains one invertible
-       indeterminate in addition which is meant to represent the writhe factor
-       of a Markov trace on the cubic Hecke algebra and which default name
-       is ``s``
-
+    - ``names`` -- string containing the names of the indeterminates separated
+      by ',' or a triple of strings each of which is the name of one of the
+      three indeterminates. The default is ``u, v, w``.
+    - ``order`` -- string (default='degrevlex') transferred to the corresponding
+      input of LaurentPolynomialRing_mpair
+    - ``markov_trace_version`` -- boolean (default is ``False``). If this is
+      set to ``True`` then ``self`` contains one invertible indeterminate in
+      addition which is meant to represent the writhe factor of a Markov trace
+      on the cubic Hecke algebra and which default name is ``s``
 
     EXAMPLES::
 
-        sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-        ....:      import cubic_hecke_base_ring as chbr
+        sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
         sage: BR = chbr.CubicHeckeRingOfDefinition()
         sage: u, v, w = BR.gens()
         sage: ele = 3*u*v-5*w**(-2)
@@ -951,7 +976,6 @@ class CubicHeckeRingOfDefinition(Localization):
         - 5*E(105)^41 - 5*E(105)^44 - 5*E(105)^47 - 5*E(105)^53 - 5*E(105)^59
         - 5*E(105)^62 - 5*E(105)^68 - 8*E(105)^71 - 5*E(105)^74 - 5*E(105)^83
         - 5*E(105)^86 - 5*E(105)^89 - 5*E(105)^92 - 5*E(105)^101 - 5*E(105)^104
-
     """
     def __init__(self, names=('u', 'v', 'w', 's'), order='degrevlex', markov_trace_version=False):
         r"""
@@ -959,8 +983,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         TESTS::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: TestSuite(BR).run()
         """
@@ -1010,8 +1033,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR._defining_names()
             (u, v, w)
@@ -1025,8 +1047,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR.an_element()                            # indirect doctest
             (u^2 + v*w)/w
@@ -1050,8 +1071,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR._is_markov_trace_version()
             False
@@ -1070,8 +1090,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR.cubic_equation()
             h^3 - u*h^2 + v*h - w
@@ -1092,16 +1111,16 @@ class CubicHeckeRingOfDefinition(Localization):
         r"""
         Return the involution of ``self`` corresponding to the involution of the
         cubic Hecke algebra (with the same name). This means that it maps the
-        the last generator of ``self`` to its inverse and both others to their
+        last generator of ``self`` to its inverse and both others to their
         product with the image of the former.
 
-        From the cubic equation for a braid generator $\beta_i$:
+        From the cubic equation for a braid generator `\beta_i`:
 
         .. MATH::
 
             \beta_i^3 - u \beta_i^2 + v\beta_i -w = 0
 
-        one deduces the following cubic equation for $\beta_i^{-1}$:
+        One deduces the following cubic equation for `\beta_i^{-1}`:
 
         .. MATH::
 
@@ -1111,7 +1130,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
            The mirror involution of the braid group does not factor through the
            cubic Hecke algebra over its base ring, but it does if it is
-           considered as $\ZZ$-algebra. The base ring elements are transformed by
+           considered as `\ZZ`-algebra. The base ring elements are transformed by
            this automorphism.
 
         OUTPUT:
@@ -1120,8 +1139,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR.mirror_involution()
             Ring endomorphism of Multivariate Polynomial Ring in u, v, w
@@ -1161,9 +1179,9 @@ class CubicHeckeRingOfDefinition(Localization):
 
         INPUT:
 
-        -  ``im_cubic_equation_parameters`` -- list or tuple of three ring
-           elements such that there exists a ring homomorphism from the
-           corresponding elements of ``self`` to them
+        - ``im_cubic_equation_parameters`` -- list or tuple of three ring
+          elements such that there exists a ring homomorphism from the
+          corresponding elements of ``self`` to them
 
         OUTPUT:
 
@@ -1173,8 +1191,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: t = BR.an_element(); t
             (u^2 + v*w)/w
@@ -1280,8 +1297,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR.extension_ring()
             Multivariate Laurent Polynomial Ring in a, b, c
@@ -1290,42 +1306,17 @@ class CubicHeckeRingOfDefinition(Localization):
               over Integer Ring
         """
         markov = self._is_markov_trace_version()
-        ExtensionRing = CubicHeckeExtensionRing(names, ring_of_definition=self, markov_trace_version=markov)
-        a, b, c, *rem = ExtensionRing.gens()
-
-        # ----------------------------------------------------------------------
-        # constructing a canonical embedding of the generic base ring into the
-        # extension ring
-        # ----------------------------------------------------------------------
-        iu = a+b+c
-        iv = a*b+a*c+b*c
-        iw = a*b*c
-        im_gens = [iu, iv, iw]
-        if markov:
-            im_gens += rem
-            # check of embedding fails in this case as long as the images of
-            # ``iu`` and ``iv`` need to be invertible (see comment in
-            # :meth:`__init__`).  # :class:`CubicHeckeRingOfDefinition`).
-            embedding_into_extension_ring = self.hom(im_gens, check=False)
-        else:
-            embedding_into_extension_ring = self.hom(im_gens)
-        if not ExtensionRing.has_coerce_map_from(self):
-            ExtensionRing._unset_coercions_used()
-            ExtensionRing.register_coercion(embedding_into_extension_ring)
-        ExtensionRing.register_conversion(embedding_into_extension_ring)
-
-        return ExtensionRing
+        return CubicHeckeExtensionRing(names, ring_of_definition=self, markov_trace_version=markov)
 
     def markov_trace_version(self):
         r"""
-        Return the extension of the ring of definition needed to handel the
+        Return the extension of the ring of definition needed to treat the
         formal Markov traces. This appends an additional variable ``s`` to
         measure the writhe of knots and makes ``u`` and ``v`` invertible.
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: GBR = chbr.CubicHeckeRingOfDefinition()
             sage: GBR.markov_trace_version()
             Multivariate Polynomial Ring in u, v, w, s
@@ -1338,8 +1329,8 @@ class CubicHeckeRingOfDefinition(Localization):
 
     def specialize_homfly(self):
         r"""
-        Returns a map to the two variable Laurent polynomial Ring which is
-        the parent of the Homfly-PT polynomial.
+        Return a map to the two variable Laurent polynomial Ring which is
+        the parent of the HOMFLY-PT polynomial.
 
         EXAMPLES::
 
@@ -1389,7 +1380,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
     def specialize_kauffman(self):
         r"""
-        Returns a map to the two variable Laurent polynomial Ring which is
+        Return a map to the two variable Laurent polynomial Ring which is
         the parent of the Kauffman polynomial.
 
         EXAMPLES::
@@ -1443,8 +1434,8 @@ class CubicHeckeRingOfDefinition(Localization):
 
     def specialize_links_gould(self):
         r"""
-        Returns a map to the two variable Laurent polynomial Ring which is
-        the parent of the Kauffman polynomial.
+        Return a map to the two variable Laurent polynomial Ring which is
+        the parent of the Links-Gould polynomial.
 
         EXAMPLES::
 

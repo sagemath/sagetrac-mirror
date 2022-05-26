@@ -611,6 +611,13 @@ class KnotInfoBase(Enum):
             '{3, {-2, -2, -1, 2, -1}}'
             sage: L[L.items.braid_notation_old]
             '{4, {1, -2, 3, -2, -1, -2, -3, -2}}'
+
+        TESTS:
+
+        Check that :trac:`?????` is fixed::
+
+            sage: KnotInfo.K0_1.braid_notation()
+            (1,)
         """
         braid_notation = self[self.items.braid_notation]
         if original:
@@ -618,7 +625,7 @@ class KnotInfoBase(Enum):
 
         if not braid_notation:
             # don't forget the unknot
-            return (1, -1)
+            return (1, )
 
         braid_notation = eval_knotinfo(braid_notation)
         if type(braid_notation) is list:
@@ -1613,6 +1620,152 @@ class KnotInfoBase(Enum):
         exp = ap.exponents()
         return t ** ((-max(exp) - min(exp)) // 2) * ap
 
+    @cached_method
+    def conway_polynomial(self, var='t', original=False):
+        r"""
+        Return the Conway polynomial according to the value of column
+        ``conway_polynomial`` for this knot or link as an instance of
+        :class:`~sage.rings.polynomial.polynomial_element.Polynomial`.
+
+        It is obtained from the Seifert matrix `V` of ``self`` by the following
+        formula (see the KnotInfo description web-page; to launch it see the
+        example below):
+
+        .. MATH::
+
+            \Nabla(L) = \det(t^{\frac{1}{2}} V -t^{\frac{-1}{2}} V^t)
+
+        Here `V^t` stands for the transpose of `V`.
+
+
+        INPUT:
+
+        - ``var`` -- (default: ``'t'``) the variable
+        - ``original`` -- boolean (optional, default ``False``) if set to
+          ``True`` the original table entry is returned as a string
+
+        OUTPUT:
+
+        A polynomial over the integers, more precisely an instance of
+        :class:`~sage.rings.polynomial.polynomial_element.Polynomial`.
+        If ``original`` is set to ``True`` then a string is returned.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: K = KnotInfo.K4_1
+            sage: Kc = K.conway_polynomial(); Kc
+            -t^2 + 1
+            sage: L = KnotInfo.L5a1_0
+            sage: Lc = L.conway_polynomial(); Lc
+            t^3
+
+        Comparision to Sage's results::
+
+            sage: Kc == K.link().conway_polynomial()
+            True
+            sage: Lc == L.link().conway_polynomial()
+            True
+
+        Launch the KnotInfo description web-page::
+
+            sage: K.items.conway_polynomial.description_webpage() # not tested
+            True
+        """
+        conway_polynomial = self[self.items.conway_polynomial]
+
+        if original:
+            return conway_polynomial
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(ZZ, var)
+
+        if not conway_polynomial and self.crossing_number() == 0:
+            return R.one()
+
+        t, = R.gens()
+        lc = {'z':  t}
+        return R(eval_knotinfo(conway_polynomial, locals=lc))
+
+    @cached_method
+    def khovanov_polynomial(self, var1='q', var2='t', base_ring=ZZ, original=False):
+        r"""
+        Return the Khovanov polynomial according to the value of column
+        ``khovnov_polynomial`` for this knot or link as an instance of
+        :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
+
+        INPUT:
+
+        - ``var1`` -- (default: ``'q'``) the first variable
+        - ``var2`` -- (default: ``'t'``) the second variable
+        - ``base_ring`` -- (default: ``ZZ``) the ring of the polynomial's
+          coefficients
+        - ``original`` -- boolean (optional, default ``False``) if set to
+          ``True`` the original table entry is returned as a string
+
+        OUTPUT:
+
+        A Laurent polynomial over the integers, more precisely an instance of
+        :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
+        If ``original`` is set to ``True`` then a string is returned.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: K = KnotInfo.K6_3
+            sage: Kk = K.khovanov_polynomial(); Kk
+            q^7*t^3 + q^5*t^2 + q^3*t^2 + q^3*t + q*t + 2*q + 2*q^-1 + q^-1*t^-1
+            + q^-3*t^-1 + q^-3*t^-2 + q^-5*t^-2 + q^-7*t^-3
+            sage: Kk2 = K.khovanov_polynomial(var1='p', base_ring=GF(2)); Kk2
+            p^7*t^3 + p^5*t^3 + p^5*t^2 + p^3*t + p^-1 + p^-1*t^-1 + p^-3*t^-2 + p^-7*t^-3
+
+            sage: L = KnotInfo.L5a1_0
+            sage: Lk = L.khovanov_polynomial(); Lk
+            q^4*t^2 + t + 2 + 2*q^-2 + q^-2*t^-1 + q^-4*t^-2 + q^-6*t^-2 + q^-8*t^-3
+
+        Comparision to Sage's results::
+
+            sage: Kk == K.link().khovanov_polynomial()
+            True
+            sage: Kk2 == K.link().khovanov_polynomial(var1='p', base_ring=GF(2))
+            True
+            sage: Lk == L.link().khovanov_polynomial()
+            True
+        """
+        khovanov_polynomial = self[self.items.khovanov_polynomial]
+
+        if original:
+            return khovanov_polynomial
+
+        from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+        var_names = [var1, var2]
+        R = LaurentPolynomialRing(base_ring, var_names)
+        ch = base_ring.characteristic()
+        if ch == 2:
+            khovanov_torsion_polynomial = self[self.items.khovanov_torsion_polynomial]
+            khovanov_torsion_polynomial = khovanov_torsion_polynomial.replace('Q', 'q')
+            khovanov_polynomial = '%s + %s' % (khovanov_polynomial, khovanov_torsion_polynomial)
+
+        if not khovanov_polynomial and self.crossing_number() == 0:
+            return R({(1, 0): 1, (-1, 0): 1})
+
+        if not khovanov_polynomial:
+            # given just for links with less than 12 crossings
+            raise NotImplementedError('Khovanov polynomial not available for this link')
+
+        from sage.repl.preparse import implicit_mul
+        # since implicit_mul does not know about the choice of variable names
+        # we have to insert * between them separately
+        for i in ['q', 't',')']:
+            for j in ['q', 't', '(']:
+                khovanov_polynomial = khovanov_polynomial.replace('%s%s' % (i, j), '%s*%s' % (i, j))
+        khovanov_polynomial = implicit_mul(khovanov_polynomial)
+        gens = R.gens_dict()
+        lc = {}
+        lc['q'] = gens[var1]
+        lc['t'] = gens[var2]
+
+        return R(eval_knotinfo(khovanov_polynomial, locals=lc))
 
     @cached_method
     def link(self, use_item=db.columns().pd_notation, snappy=False):
