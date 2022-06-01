@@ -418,9 +418,9 @@ class SageInputBuilder:
             sage: sage_input('Icky chars: \0\n\t\b\'\"\200\300\234', verify=True)
             # Verified
             'Icky chars: \x00\n\t\x08\'"\x80\xc0\x9c'
-            sage: sage_input(u'unicode with spectral: \u1234\U00012345', verify=True)
+            sage: sage_input('unicode with spectral: \u1234\U00012345', verify=True)
             # Verified
-            u'unicode with spectral: \u1234\U00012345'
+            'unicode with spectral: \u1234\U00012345'
             sage: sage_input((2, 3.5, 'Hi'), verify=True)
             # Verified
             (2, 3.5, 'Hi')
@@ -481,18 +481,20 @@ class SageInputBuilder:
             # floats could often have prettier output,
             # but I think they're rare enough in Sage that it's not
             # worth the effort.
-            from sage.all import RR, ZZ, infinity
-            if x == float(infinity):
+            from math import inf
+            if x == inf:
                 return self.name('float')(self.name('infinity'))
             if x != x:
                 return self.name('float')(self.name('NaN'))
-            if x == -float(infinity):
+            if x == -inf:
                 return -self.name('float')(self.name('infinity'))
             if self._preparse is False and float(str(x)) == x:
                 if x < 0:
                     return -SIE_literal_stringrep(self, str(-x))
                 else:
                     return SIE_literal_stringrep(self, str(x))
+            from sage.rings.real_mpfr import RR
+            from sage.rings.integer_ring import ZZ
             rrx = RR(x)
             if rrx in ZZ and abs(rrx) < (1 << 53):
                 return self.name('float')(self.int(ZZ(rrx)))
@@ -1011,9 +1013,9 @@ class SageInputBuilder:
             R.<y> = ZZ[]
             y
         """
-        if not parent in self._parent_gens:
+        if parent not in self._parent_gens:
             self(parent)
-            if not parent in self._parent_gens:
+            if parent not in self._parent_gens:
                 raise ValueError("{} did not register generators for sage_input".format(parent))
 
         gens = self._parent_gens[parent]

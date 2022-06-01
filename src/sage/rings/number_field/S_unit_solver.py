@@ -68,7 +68,7 @@ from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.finite_rings.integer_mod import mod
 from sage.rings.padics.factory import Qp
 from sage.combinat.combination import Combinations
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.arith.all import factorial
 from sage.matrix.constructor import matrix, identity_matrix, vector, block_matrix, zero_matrix
 from sage.modules.free_module_element import zero_vector
@@ -609,7 +609,7 @@ def Yu_C1_star(n, v, prec=106):
     C1 *= (n**n * (n+1)**(n+1))/factorial(n)
     C1 *= p**fp/(q**u)
     C1 *= ( dK / (fp * R(p).log()) )**(n+2)
-    C1 *= R (max( dK, exp(1) )).log()
+    C1 *= R(max( dK, exp(1) )).log()
     C1 *= max( R(exp(4)*(n+1)*dK).log(), ep, fp * R(p).log() )
 
     C1_star = R((n+1) * C1)

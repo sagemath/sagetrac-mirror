@@ -16,7 +16,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 
 from sage.modules.module import Module
 from sage.structure.unique_representation import UniqueRepresentation
@@ -84,7 +84,7 @@ def ModularFormsSubSpace(*args, **kwargs):
 
     generators = []
     for arg in args:
-        if isinstance(arg, list) or isinstance(arg, tuple):
+        if isinstance(arg, (list, tuple)):
             generators += arg
         else:
             generators.append(arg)
@@ -425,4 +425,3 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         """
 
         return self._module.coordinate_vector(self.ambient_coordinate_vector(v))
-

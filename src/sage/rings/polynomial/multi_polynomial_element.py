@@ -54,7 +54,7 @@ We verify Lagrange's four squares identity::
 #*****************************************************************************
 
 from sage.structure.element import CommutativeRingElement, coerce_binop
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 import sage.rings.integer
 from sage.rings.qqbar_decorators import handle_AA_and_QQbar
 from . import polydict
@@ -213,7 +213,7 @@ class MPolynomial_element(MPolynomial):
         """
         n = self.parent().ngens()
         if n == 0:
-            return codomain._coerce_(self)
+            return codomain.coerce(self)
         y = codomain(0)
         if base_map is None:
             # Just use conversion
@@ -1002,7 +1002,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         By default the list of exponents is a list of ETuples::
 
             sage: type(f.exponents()[0])
-            <type 'sage.rings.polynomial.polydict.ETuple'>
+            <class 'sage.rings.polynomial.polydict.ETuple'>
             sage: type(f.exponents(as_ETuples=False)[0])
             <... 'tuple'>
 
@@ -1580,7 +1580,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         return self._MPolynomial_element__element.dict()!={}
 
-    __nonzero__ = __bool__
+    
 
     def _floordiv_(self, right):
         r"""

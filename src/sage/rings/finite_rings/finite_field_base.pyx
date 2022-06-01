@@ -40,6 +40,7 @@ from sage.misc.persist import register_unpickle_override
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
 from sage.rings.integer cimport Integer
+import sage.rings.abc
 from sage.misc.superseded import deprecation_cython as deprecation
 
 # Copied from sage.misc.fast_methods, used in __hash__() below.
@@ -81,7 +82,7 @@ cdef class FiniteField(Field):
 
     def __hash__(self):
         """
-        The hash provided by this class coincides with that of ``<type 'object'>``.
+        The hash provided by this class coincides with that of ``<class 'object'>``.
 
         TESTS::
 
@@ -565,7 +566,6 @@ cdef class FiniteField(Field):
             ....:             for j in range(len(F)):
             ....:                 if i == j: continue
             ....:                 assert gcd(F[i][0], F[j][0]) == 1
-            ....:
         """
         from sage.structure.factorization import Factorization
         if f.degree() == 0:
@@ -1014,7 +1014,7 @@ cdef class FiniteField(Field):
         except AttributeError:
             pass
 
-        from sage.rings.all import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from .finite_field_constructor import GF
         R = PolynomialRing(GF(self.characteristic()), 'x')
         self._modulus = R((-1,1))  # Polynomial x - 1
@@ -1256,8 +1256,8 @@ cdef class FiniteField(Field):
         if inclusion_map is None:
             inclusion_map = self.coerce_map_from(base)
 
-        from sage.modules.all import vector
-        from sage.matrix.all import matrix
+        from sage.modules.free_module_element import vector
+        from sage.matrix.constructor import matrix
         from .maps_finite_field import (
             MorphismVectorSpaceToFiniteField, MorphismFiniteFieldToVectorSpace)
 
@@ -1311,26 +1311,26 @@ cdef class FiniteField(Field):
             a + 1
 
             sage: k = GF(4, 'a')
-            sage: k._coerce_(GF(2)(1))
+            sage: k.coerce(GF(2)(1))
             1
-            sage: k._coerce_(k.0)
+            sage: k.coerce(k.0)
             a
-            sage: k._coerce_(3)
+            sage: k.coerce(3)
             1
-            sage: k._coerce_(2/3)
+            sage: k.coerce(2/3)
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Rational Field to Finite Field in a of size 2^2
 
-            sage: FiniteField(16)._coerce_(FiniteField(4).0)
+            sage: FiniteField(16).coerce(FiniteField(4).0)
             z4^2 + z4
 
-            sage: FiniteField(8, 'a')._coerce_(FiniteField(4, 'a').0)
+            sage: FiniteField(8, 'a').coerce(FiniteField(4, 'a').0)
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Finite Field in a of size 2^2 to Finite Field in a of size 2^3
 
-            sage: FiniteField(8, 'a')._coerce_(FiniteField(7, 'a')(2))
+            sage: FiniteField(8, 'a').coerce(FiniteField(7, 'a')(2))
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Finite Field of size 7 to Finite Field in a of size 2^3
@@ -1342,10 +1342,9 @@ cdef class FiniteField(Field):
             False
         """
         from sage.rings.integer_ring import ZZ
-        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         if R is int or R is long or R is ZZ:
             return True
-        if is_IntegerModRing(R) and self.characteristic().divides(R.characteristic()):
+        if isinstance(R, sage.rings.abc.IntegerModRing) and self.characteristic().divides(R.characteristic()):
             return R.hom((self.one(),), check=False)
         if is_FiniteField(R):
             if R is self:
@@ -1697,13 +1696,13 @@ cdef class FiniteField(Field):
             inc = self.coerce_map_from(self)
         elif hasattr(self, '_prefix'):
             modulus = self.prime_subfield().algebraic_closure(self._prefix)._get_polynomial(degree)
-            K = GF(p**degree, name=name, prefix=self._prefix, modulus=modulus, check_irreducible=False)
+            K = GF((p, degree), name=name, prefix=self._prefix, modulus=modulus, check_irreducible=False)
             a = self.gen()**((p**n-1)//(p**degree - 1))
             inc = K.hom([a], codomain=self, check=False)
         else:
             fam = self._compatible_family()
             a, modulus = fam[degree]
-            K = GF(p**degree, modulus=modulus, name=name)
+            K = GF((p, degree), modulus=modulus, name=name)
             inc = K.hom([a], codomain=self, check=False)
             if fam[n][0] == self.gen():
                 try: # to register a coercion map, embedding of K to self

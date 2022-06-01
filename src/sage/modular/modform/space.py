@@ -282,7 +282,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             Congruence Subgroup Gamma1(113)
 
         Note that `\Gamma_1(1)` and `\Gamma_0(1)` are replaced by
-        `\mathrm{SL}_2(\ZZ)`.
+        `\SL_2(\ZZ)`.
 
         ::
 
@@ -394,7 +394,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         ::
 
             sage: type(N._ModularFormsSpace__normalize_prec(int(3)))
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
         """
         if prec is None:
             prec = self.prec()

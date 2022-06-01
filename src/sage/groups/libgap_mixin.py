@@ -18,7 +18,7 @@ from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction_libgap
 from sage.groups.libgap_wrapper import ElementLibGAP
 
-class GroupMixinLibGAP(object):
+class GroupMixinLibGAP():
     def __contains__(self, elt):
         r"""
         TESTS::
@@ -558,7 +558,7 @@ class GroupMixinLibGAP(object):
         #how gap handles these groups.
         G    = self._gap_()
         cl   = self.conjugacy_classes()
-        from sage.rings.all import Integer
+        from sage.rings.integer import Integer
         n    = Integer(len(cl))
         irrG = G.Irr()
         ct   = [[irrG[i][j] for j in range(n)] for i in range(n)]

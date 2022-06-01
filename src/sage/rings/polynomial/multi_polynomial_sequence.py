@@ -495,7 +495,7 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: F,s = sr.polynomial_system()
             sage: P = F.ring()
             sage: I = F.ideal()
-            sage: J = I.elimination_ideal(prod(P.gens()[4:-4]))
+            sage: J = I.elimination_ideal(P.gens()[4:-4])
             sage: J <= I
             True
             sage: set(J.gens().variables()).issubset(P.gens()[:4] + P.gens()[-4:])
@@ -1164,7 +1164,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         - ```use_polybori`` - if ``True`` then ``polybori.ll.eliminate`` is
           called. While this is typically faster what is implemented here, it
-          is less flexible (``skip` is not supported) and may increase the
+          is less flexible (``skip`` is not supported) and may increase the
           degree (default: ``False``)
 
         OUTPUT:
@@ -1268,18 +1268,18 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         F = self
         reductors = []
 
-        if use_polybori and skip is None and maxlength==Infinity:
+        if use_polybori and skip is None and maxlength == Infinity:
             # faster solution based on polybori.ll.eliminate
             while True:
                 (this_step_reductors, _, higher) = eliminate(F)
                 if this_step_reductors == []:
-                   break
-                reductors.extend( this_step_reductors )
+                    break
+                reductors.extend(this_step_reductors)
                 F = higher
         else:
             # slower, more flexible solution
             if skip is None:
-                skip = lambda lm,tail: False
+                skip = lambda lm, tail: False
 
             while True:
                 linear = []
@@ -1422,8 +1422,8 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         And we may use SAT-solvers if they are available::
 
-            sage: sol = S.solve(algorithm='sat') # optional - cryptominisat
-            sage: print(reproducible_repr(sol))  # optional - cryptominisat
+            sage: sol = S.solve(algorithm='sat') # optional - pycryptosat
+            sage: print(reproducible_repr(sol))  # optional - pycryptosat
             [{x: 0, y: 1, z: 0}]
             sage: S.subs( sol[0] )
             [0, 0, 0]

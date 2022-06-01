@@ -21,6 +21,8 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 from copy import copy
 from math import sin, cos, pi
 from sage.graphs.graph import Graph
+from itertools import combinations
+import subprocess
 
 
 def JohnsonGraph(n, k):
@@ -199,7 +201,7 @@ def FurerGadget(k, prefix=None):
          (('Prefix', (1, 2)), ('Prefix', (1, 'a')), None),
          (('Prefix', (1, 2)), ('Prefix', (2, 'a')), None)]
     """
-    from itertools import repeat as rep, chain, combinations
+    from itertools import repeat as rep, chain
     if k <= 0:
         raise ValueError("The order of the Furer gadget must be greater than zero")
     G = Graph()
@@ -1170,7 +1172,7 @@ def CubeGraph(n, embedding=1):
         vertices in each column represents rows in Pascal's triangle. See for
         instance the :wikipedia:`10-cube` for more details.
 
-      - ``None`` or ``O``: no embedding is provided 
+      - ``None`` or ``O``: no embedding is provided
 
     EXAMPLES:
 
@@ -1267,7 +1269,7 @@ def CubeGraph(n, embedding=1):
             for u, d in G.breadth_first_search(s, report_distance=True):
                 L[d].append(u)
 
-            p = G._circle_embedding(list(range(2*n)), radius=(n + 1)//2, angle=pi, return_dict=True)        
+            p = G._circle_embedding(list(range(2*n)), radius=(n + 1)//2, angle=pi, return_dict=True)
             for i in range(n + 1):
                 y = p[i][1] / 1.5
                 G._line_embedding(L[i], first=(i, y), last=(i, -y), return_dict=False)
@@ -1461,11 +1463,11 @@ def FriendshipGraph(n):
         sage: G.is_isomorphic(graphs.ButterflyGraph())
         True
 
-    If `n \geq 1`, then the friendship graph `F_n` has `2n + 1` vertices
+    If `n \geq 2`, then the friendship graph `F_n` has `2n + 1` vertices
     and `3n` edges. It has radius 1, diameter 2, girth 3, and
     chromatic number 3. Furthermore, `F_n` is planar and Eulerian. ::
 
-        sage: n = randint(1, 10^3)
+        sage: n = randint(2, 10^3)
         sage: G = graphs.FriendshipGraph(n)
         sage: G.order() == 2*n + 1
         True
@@ -2091,62 +2093,77 @@ def HararyGraph( k, n ):
     G.name('Harary graph {0}, {1}'.format(k,n))
     return G
 
-def HyperStarGraph(n,k):
+def HyperStarGraph(n, k):
     r"""
-    Returns the hyper-star graph HS(n,k).
+    Return the hyper-star graph `HS(n, k)`.
 
-    The vertices of the hyper-star graph are the set of binary strings
-    of length n which contain k 1s. Two vertices, u and v, are adjacent
-    only if u can be obtained from v by swapping the first bit with a
-    different symbol in another position.
+    The vertices of the hyper-star graph are the set of binary strings of length
+    `n` which contain `k` 1s. Two vertices, `u` and `v`, are adjacent only if
+    `u` can be obtained from `v` by swapping the first bit with a different
+    symbol in another position. For instance, vertex ``'011100'`` of `HS(6, 3)`
+    is adjacent to vertices ``'101100'``, ``'110100'`` and ``'111000'``.
+    See [LKOL2002]_ for more details.
 
     INPUT:
 
-    -  ``n``
+    - ``n`` -- non-negative integer; length of the binary strings
 
-    -  ``k``
+    - ``k`` -- non-negative integer; number of 1s per binary string
 
     EXAMPLES::
 
         sage: g = graphs.HyperStarGraph(6,3)
-        sage: g.plot() # long time
+        sage: sorted(g.neighbors('011100'))
+        ['101100', '110100', '111000']
+        sage: g.plot()  # long time
         Graphics object consisting of 51 graphics primitives
 
-    REFERENCES:
+    TESTS::
 
-    - Lee, Hyeong-Ok, Jong-Seok Kim, Eunseuk Oh, and Hyeong-Seok Lim.
-      "Hyper-Star Graph: A New Interconnection Network Improving the
-      Network Cost of the Hypercube." In Proceedings of the First EurAsian
-      Conference on Information and Communication Technology, 858-865.
-      Springer-Verlag, 2002.
+        sage: graphs.HyperStarGraph(-1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameters n and k must be non-negative integers satisfying n >= k >= 0
+        sage: graphs.HyperStarGraph(1, -1)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameters n and k must be non-negative integers satisfying n >= k >= 0
+        sage: graphs.HyperStarGraph(1, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameters n and k must be non-negative integers satisfying n >= k >= 0
 
     AUTHORS:
 
     - Michael Yurko (2009-09-01)
     """
-    from sage.combinat.combination import Combinations
-    # dictionary associating the positions of the 1s to the corresponding
-    # string: e.g. if n=6 and k=3, comb_to_str([0,1,4])=='110010'
-    comb_to_str={}
-    for c in Combinations(n,k):
-        L = ['0']*n
-        for i in c:
-            L[i]='1'
-        comb_to_str[tuple(c)] = ''.join(L)
+    if n < 0 or k < 0 or k > n:
+        raise ValueError("parameters n and k must be non-negative integers "
+                         "satisfying n >= k >= 0")
+    if not n:
+        adj = {}
+    elif not k:
+        adj = {'0'*n: []}
+    elif k == n:
+        adj = {'1'*n: []}
+    else:
+        from sage.data_structures.bitset import Bitset
+        adj = dict()
+        # We consider the strings of n bits with k 1s and starting with a 0
+        for c in combinations(range(1, n), k):
+            u = str(Bitset(c, capacity=n))
+            L = []
+            c = list(c)
+            # The neighbors of u are all the strings obtained by swapping a 1
+            # with the first bit (0)
+            for i in range(k):
+                one = c[i]
+                c[i] = 0
+                L.append(str(Bitset(c, capacity=n)))
+                c[i] = one
+            adj[u] = L
 
-    g = Graph(name="HS(%d,%d)"%(n,k))
-    g.add_vertices(comb_to_str.values())
-
-    for c in Combinations(list(range(1, n)), k):  # 0 is not in c
-        L = []
-        u = comb_to_str[tuple(c)]
-        # switch 0 with the 1s
-        for i in range(len(c)):
-            v = tuple([0]+c[:i]+c[i+1:])
-            g.add_edge( u , comb_to_str[v] )
-
-    return g
-
+    return Graph(adj, format='dict_of_lists', name="HS(%d,%d)"%(n,k))
 
 def LCFGraph(n, shift_list, repeats):
     r"""
@@ -2774,8 +2791,8 @@ def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
 
     ::
 
-        sage: H = graphs.HanoiTowerGraph(3,4,labels=False,positions=False)
-        sage: H.automorphism_group().is_isomorphic(SymmetricGroup(3))
+        sage: H = graphs.HanoiTowerGraph(3, 4, labels=False, positions=False)
+        sage: H.automorphism_group().is_isomorphic(SymmetricGroup(3))           # optional - sage.groups
         True
         sage: H.chromatic_number()
         3
@@ -2805,7 +2822,7 @@ def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
     """
 
     # sanitize input
-    from sage.rings.all import Integer
+    from sage.rings.integer import Integer
     pegs = Integer(pegs)
     if pegs < 2:
         raise ValueError("Pegs for Tower of Hanoi graph should be two or greater (not %d)" % pegs)
@@ -2869,14 +2886,13 @@ def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
     # clockwise/counterclockwise placements, which
     # works well for three pegs (planar layout)
     #
-    from sage.functions.trig import sin, cos, csc
     if labels or positions:
         mapping = {}
         pos = {}
         a = Integer(-1)
         one = Integer(1)
         if positions:
-            radius_multiplier = 1 + csc(pi/pegs)
+            radius_multiplier = 1 + 1/sin(pi/pegs)
             sine = []
             cosine = []
             for i in range(pegs):
@@ -2935,7 +2951,7 @@ def line_graph_forbidden_subgraphs():
         Graph on 5 vertices]
 
     """
-    from sage.graphs.all import Graph
+    from sage.graphs.graph import Graph
     from sage.graphs.generators.basic import ClawGraph
     graphs = [ClawGraph()]
 
@@ -3399,6 +3415,129 @@ def trees(vertices):
     from sage.graphs.trees import TreeIterator
     return iter(TreeIterator(vertices))
 
+def nauty_gentreeg(options="", debug=False):
+    r"""
+    Return a generator which creates non-isomorphic trees from nauty's gentreeg
+    program.
+
+    INPUT:
+
+    - ``options`` -- string (default: ``""``); a string passed to ``gentreeg``
+      as if it was run at a system command line. At a minimum, you *must* pass
+      the number of vertices you desire. Sage expects the graphs to be in
+      nauty's "sparse6" format, do not set an option to change this default or
+      results will be unpredictable.
+
+    - ``debug`` -- boolean (default: ``False``); if ``True`` the first line of
+      ``gentreeg``'s output to standard error is captured and the first call to
+      the generator's ``next()`` function will return this line as a string. A
+      line leading with ">A" indicates a successful initiation of the program
+      with some information on the arguments, while a line beginning with ">E"
+      indicates an error with the input.
+
+    The possible options, obtained as output of ``gentreeg -help``::
+
+           n            : the number of vertices. Must be in range 1..128
+        res/mod         : only generate subset res out of subsets 0..mod-1
+          -D<int>       : an upper bound for the maximum degree
+          -Z<int>:<int> : bounds on the diameter
+          -q            : suppress auxiliary output
+
+    Options which cause ``gentreeg`` to use an output format different than the
+    sparse6 format are not listed above (-p, -l, -u) as they will confuse the
+    creation of a Sage graph. The res/mod option can be useful when using the
+    output in a routine run several times in parallel.
+
+    OUTPUT:
+
+    A generator which will produce the graphs as Sage graphs. These will be
+    simple graphs: no loops, no multiple edges, no directed edges.
+
+    .. SEEALSO::
+
+        :meth:`trees` -- another generator of trees
+
+    EXAMPLES:
+
+    The generator can be used to construct trees for testing, one at a time
+    (usually inside a loop). Or it can be used to create an entire list all at
+    once if there is sufficient memory to contain it::
+
+        sage: gen = graphs.nauty_gentreeg("4")
+        sage: next(gen)
+        Graph on 4 vertices
+        sage: next(gen)
+        Graph on 4 vertices
+        sage: next(gen)
+        Traceback (most recent call last):
+        ...
+        StopIteration
+
+    The number of trees on the first few vertex counts. This agrees with
+    :oeis:`A000055`::
+
+        sage: [len(list(graphs.nauty_gentreeg(str(i)))) for i in range(1, 15)]
+        [1, 1, 1, 2, 3, 6, 11, 23, 47, 106, 235, 551, 1301, 3159]
+
+    The ``debug`` switch can be used to examine ``gentreeg``'s reaction to the
+    input in the ``options`` string.  We illustrate success. (A failure will be
+    a string beginning with ">E".)  Passing the "-q" switch to ``gentreeg`` will
+    suppress the indicator of a successful initiation, and so the first returned
+    value might be an empty string if ``debug`` is ``True``::
+
+        sage: gen = graphs.nauty_gentreeg("4", debug=True)
+        sage: print(next(gen))
+        >A ...gentreeg Z=2:3 D=3 n=4
+        sage: gen = graphs.nauty_gentreeg("4 -q", debug=True)
+        sage: next(gen)
+        ''
+
+    TESTS:
+
+    The number `n` of vertices must be in range 1..128::
+
+        sage: list(graphs.nauty_gentreeg("0", debug=False))
+        Traceback (most recent call last):
+        ...
+        ValueError: wrong format of parameter options
+        sage: list(graphs.nauty_gentreeg("0", debug=True))
+        ['>E gentreeg: n must be in the range 1..128\n']
+        sage: list(graphs.nauty_gentreeg("200", debug=True))
+        ['>E gentreeg: n must be in the range 1..128\n']
+
+    Wrong input::
+
+        sage: list(graphs.nauty_gentreeg("3 -x", debug=False))
+        Traceback (most recent call last):
+        ...
+        ValueError: wrong format of parameter options
+        sage: list(graphs.nauty_gentreeg("3 -x", debug=True))
+        ['>E Usage: ...gentreeg [-D#] [-Z#:#] [-ulps] [-q] n [res/mod] ...
+        sage: list(graphs.nauty_gentreeg("3", debug=True))
+        ['>A ...gentreeg Z=2:2 D=2 n=3\n', Graph on 3 vertices]
+    """
+    import shlex
+    from sage.features.nauty import NautyExecutable
+    gen_path = NautyExecutable("gentreeg").absolute_filename()
+    sp = subprocess.Popen(shlex.quote(gen_path) + " {0}".format(options), shell=True,
+                          stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE, close_fds=True,
+                          encoding='latin-1')
+    msg = sp.stderr.readline()
+    if debug:
+        yield msg
+    elif msg.startswith('>E'):
+        raise ValueError('wrong format of parameter options')
+    gen = sp.stdout
+    while True:
+        try:
+            s = next(gen)
+        except StopIteration:
+            # Exhausted list of graphs from nauty geng
+            return
+        G = Graph(s[:-1], format='sparse6', loops=False, multiedges=False)
+        yield G
+
 def RingedTree(k, vertex_labels = True):
     r"""
     Return the ringed tree on k-levels.
@@ -3712,7 +3851,7 @@ def TuranGraph(n,r):
         sage: n = 13
         sage: r = 4
         sage: g = graphs.TuranGraph(n,r)
-        sage: g.size() == floor((r-1)*(n**2)/(2*r))
+        sage: g.size() == (r-1) * (n**2) // (2*r)
         True
 
     TESTS::
@@ -3839,7 +3978,6 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     from sage.rings.rational_field import QQ
     from sage.rings.integer_ring import ZZ
     from time import time
-    import itertools
 
     assert d > 1,              'd must be at least 2'
     assert is_even(n * (d-1)), 'n must be even or d must be odd'
@@ -3887,7 +4025,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     for C in ParClasses:
         EC = matrix(QQ, v)
         for line in C:
-            for i,j in itertools.combinations(line, 2):
+            for i,j in combinations(line, 2):
                 EC[i,j] = EC[j,i] = 1/k
         EC -= ones_v
         E[tuple(C[0])] = EC
@@ -4001,7 +4139,7 @@ def CubeConnectedCycle(d):
     For each vertex, `(x,y)`, add an edge between it and `(x, (y-1) \mod d))`,
     `(x,(y+1) \mod d)`, and `(x \oplus 2^y, y)`, where `\oplus` is the bitwise
     xor operator.
-    
+
     For `d=1` and `2`, the cube-connected cycle graph contains self-loops or
     multiple edges between a pair of vertices, but for all other `d`, it is
     simple.

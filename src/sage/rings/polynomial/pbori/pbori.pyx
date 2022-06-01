@@ -218,7 +218,7 @@ from sage.categories.action cimport Action
 from sage.monoids.monoid import Monoid_class
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.interfaces.all import singular as singular_default
+from sage.interfaces.singular import singular as singular_default
 from sage.interfaces.singular import SingularElement
 
 order_dict = {"lp": pblp,
@@ -1378,9 +1378,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         EXAMPLES::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: [P._random_monomial_dfirst(3, (0,1,2)) for _ in range(10)]  # py2
-            [x*y*z, x*y*z, x*y*z, y*z, x*z, z, z, y*z, x*y*z, 1]
-            sage: [P._random_monomial_dfirst(3, (0,1,2)) for _ in range(10)]  # py3 random
+            sage: [P._random_monomial_dfirst(3, (0,1,2)) for _ in range(10)]  # random
             [x*y*z, x*y*z, x*y*z, x*y, x*z, x, x, y*z, x*y*z, 1]
         """
         from sage.rings.integer_ring import ZZ
@@ -1901,7 +1899,7 @@ class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
         sage: M.gens()
         (x, y)
         sage: type(M.gen(0))
-        <type 'sage.rings.polynomial.pbori.pbori.BooleanMonomial'>
+        <class 'sage.rings.polynomial.pbori.pbori.BooleanMonomial'>
 
     Since :trac:`9138`, boolean monomial monoids are
     unique parents and are fit into the category framework::
@@ -2733,7 +2731,7 @@ cdef class BooleanMonomial(MonoidElement):
             raise TypeError("BooleanMonomial.__add__ called with not supported types %s and %s" % (type(right), type(left)))
 
         res = new_BP_from_PBMonom(monom._ring, monom._pbmonom)
-        res += monom._ring._coerce_c(other)
+        res += monom._ring.coerce(other)
         return res
 
     def __floordiv__(BooleanMonomial left, right):
@@ -3524,7 +3522,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return self._pbpoly.isZero()
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Check if ``self`` is not zero.
 
@@ -3860,7 +3858,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         cdef BooleanPolynomialRing B = <BooleanPolynomialRing>self._parent
         k = B._base
-        mon = B._coerce_c(mon)
+        mon = B.coerce(mon)
         if mon in set(self.set()):
             return k._one_element
         else:
@@ -6249,7 +6247,7 @@ cdef class ReductionStrategy:
             sage: B.<x,y,z> = BooleanPolynomialRing()
             sage: red = ReductionStrategy(B)
             sage: red.add_generator(x)
-            sage: list([f.p for f in red])
+            sage: [f.p for f in red]
             [x]
 
         TESTS:
@@ -8163,11 +8161,11 @@ cdef class PolynomialFactory:
             elif isinstance(arg, BooleSet):
                 return (<BooleSet>arg)._ring._element_constructor_(arg)
             elif isinstance(arg, BooleanMonomial):
-                return (<BooleanMonomial>arg)._ring._coerce_(arg)
+                return (<BooleanMonomial>arg)._ring.coerce(arg)
             elif isinstance(ring, BooleanPolynomialRing):
-                return (<BooleanPolynomialRing>ring)._coerce_(arg)
+                return (<BooleanPolynomialRing>ring).coerce(arg)
         else:
-            if isinstance(arg, int) or isinstance(arg, Integer):
+            if isinstance(arg, (int, Integer)):
                 return new_BP_from_PBPoly(self._ring,
                                           self._factory(<long>arg))
 

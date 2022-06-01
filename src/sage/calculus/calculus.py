@@ -40,7 +40,7 @@ Thus the following works::
     sage: x^2
     x^2
     sage: type(x)
-    <type 'sage.symbolic.expression.Expression'>
+    <class 'sage.symbolic.expression.Expression'>
 
 More complicated expressions in Sage can be built up using ordinary
 arithmetic. The following are valid, and follow the rules of Python
@@ -381,6 +381,12 @@ Ensure that :trac:`8624` is fixed::
     sage: integrate(sqrt(cos(x)^2 + sin(x)^2), x, 0, 2*pi)
     2*pi
 
+Ensure that :trac:`25626` is fixed::
+
+    sage: t = SR.var('t')
+    sage: integrate(exp(t)/(t + 1)^2, t, algorithm="giac")
+    (t*Ei(t + 1) + Ei(t + 1) - e^(t + 1))/(t*e + e)
+
 Check if maxima has redundant variables defined after initialization,
 see :trac:`9538`::
 
@@ -408,20 +414,22 @@ To check that :trac:`27092` is fixed::
 """
 
 import re
-from sage.arith.all import algdep
-from sage.rings.all import RR, Integer, CC, QQ, RealDoubleElement
-from sage.rings.real_mpfr import create_RealNumber
+from sage.arith.misc import algdep
+from sage.rings.integer import Integer
+from sage.rings.rational_field import QQ
+from sage.rings.real_double import RealDoubleElement
+from sage.rings.real_mpfr import RR, create_RealNumber
+from sage.rings.cc import CC
 
 from sage.misc.latex import latex
 from sage.misc.parser import Parser, LookupNameMaker
 
 from sage.symbolic.ring import var, SR, is_SymbolicVariable
-from sage.symbolic.expression import Expression
+from sage.symbolic.expression import Expression, symbol_table
 from sage.symbolic.function import Function
 from sage.symbolic.function_factory import function_factory
 from sage.symbolic.integration.integral import (indefinite_integral,
         definite_integral)
-from sage.libs.pynac.pynac import symbol_table
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.interfaces.maxima_lib', 'maxima')
@@ -972,7 +980,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
     parameters are ignored.
 
     Numerical: Computes a numerical approximation of
-    ``self`` and use PARI's algdep to get a candidate
+    ``self`` and use PARI's :pari:`algdep` to get a candidate
     minpoly `f`. If `f(\mathtt{self})`,
     evaluated to a higher precision, is close enough to 0 then evaluate
     `f(\mathtt{self})` symbolically, attempting to prove
@@ -1463,10 +1471,17 @@ def mma_free_limit(expression, v, a, dir=None):
     """
     Limit using Mathematica's online interface.
 
+    INPUT:
+
+    - ``expression`` -- symbolic expression
+    - ``v`` -- variable
+    - ``a`` -- value where the variable goes to
+    - ``dir`` -- ``'+'``, ``'-'`` or ``None`` (optional, default:``None``)
+
     EXAMPLES::
 
         sage: from sage.calculus.calculus import mma_free_limit
-        sage: mma_free_limit(sin(x)/x, x=0) # optional - internet
+        sage: mma_free_limit(sin(x)/x, x, a=0) # optional - internet
         1
 
     Another simple limit::
@@ -1605,7 +1620,9 @@ def laplace(ex, t, s, algorithm='maxima'):
         91/8*e^(4*t) + 629/8*e^(-4*t)
         sage: p1 = plot(xt,0,1/2,rgbcolor=(1,0,0))
         sage: p2 = plot(yt,0,1/2,rgbcolor=(0,1,0))
-        sage: (p1+p2).save(os.path.join(SAGE_TMP, "de_plot.png"))
+        sage: import tempfile
+        sage: with tempfile.NamedTemporaryFile(suffix=".png") as f:
+        ....:     (p1+p2).save(f.name)
 
     Another example::
 
@@ -1629,8 +1646,11 @@ def laplace(ex, t, s, algorithm='maxima'):
 
         sage: laplace(dirac_delta(t), t, s)
         1
-        sage: laplace(dirac_delta(t), t, s, algorithm='sympy')
-        (-heaviside(0) + 1, -oo, True)
+        sage: F, a, cond = laplace(dirac_delta(t), t, s, algorithm='sympy')
+        sage: a, cond  # random - sympy <1.10 gives (-oo, True)
+        (0, True)
+        sage: F        # random - sympy <1.9 includes undefined heaviside(0) in answer
+        1
         sage: laplace(dirac_delta(t), t, s, algorithm='giac')
         1
 
@@ -1979,9 +1999,8 @@ def at(ex, *args, **kwds):
     if len(args) == 1 and isinstance(args[0], list):
         for c in args[0]:
             kwds[str(c.lhs())] = c.rhs()
-    else:
-        if len(args):
-            raise TypeError("at can take at most one argument, which must be a list")
+    elif args:
+        raise TypeError("at can take at most one argument, which must be a list")
 
     return ex.subs(**kwds)
 
@@ -2063,6 +2082,21 @@ def dummy_inverse_laplace(*args):
     """
     return _inverse_laplace(args[0], var(repr(args[1])), var(repr(args[2])))
 
+
+def dummy_pochhammer(*args):
+    """
+    This function is called to create formal wrappers of Pochhammer symbols
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import dummy_pochhammer
+        sage: s,t = var('s,t')
+        sage: dummy_pochhammer(s,t)
+        gamma(s + t)/gamma(s)
+    """
+    x, y = args
+    from sage.functions.gamma import gamma
+    return gamma(x + y) / gamma(x)
 
 #######################################################
 #
@@ -2151,11 +2185,11 @@ def _is_function(v):
 
     Check that :trac:`31756` is fixed::
 
-        sage: from sage.libs.pynac.pynac import symbol_table
+        sage: from sage.symbolic.expression import symbol_table
         sage: _is_function(symbol_table['mathematica']['Gamma'])
         True
 
-        sage: from sage.libs.pynac.pynac import register_symbol
+        sage: from sage.symbolic.expression import register_symbol
         sage: foo = lambda x: x^2 + 1
         sage: register_symbol(foo, dict(mathematica='Foo'))  # optional - mathematica
         sage: mathematica('Foo[x]').sage()                   # optional - mathematica
@@ -2189,7 +2223,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: sefms('?%at(f(x),x=2)#1')
         f(2) != 1
         sage: a = sage.calculus.calculus.maxima("x#0"); a
-        x#0
+        x # 0
         sage: a.sage()
         x != 0
 
@@ -2256,7 +2290,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     function_syms = {k: v for k, v in symbol_table.get('maxima', {}).items()
                      if _is_function(v)}
 
-    if not len(x):
+    if not x:
         raise RuntimeError("invalid symbolic expression -- ''")
     maxima.set('_tmp_', x)
 
@@ -2340,6 +2374,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     function_syms['laplace'] = dummy_laplace
     function_syms['ilt'] = dummy_inverse_laplace
     function_syms['at'] = at
+    function_syms['pochhammer'] = dummy_pochhammer
 
     global is_simplified
     try:

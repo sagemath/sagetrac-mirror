@@ -1,7 +1,11 @@
+from sage.misc.superseded import deprecation
+deprecation(33763, "This module is deprecated. Use sage_docbuild.conf instead.")
+
 import sys
 import os
 import sphinx
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
+from sage.misc.latex_macros import sage_mathjax_macros
 import sage.version
 from sage.misc.sagedoc import extlinks
 import dateutil.parser
@@ -12,18 +16,37 @@ from sphinx import highlighting
 import sphinx.ext.intersphinx as intersphinx
 from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
+
 # General configuration
 # ---------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sage_docbuild.ext.inventory_builder',
-              'sage_docbuild.ext.multidocs',
-              'sage_docbuild.ext.sage_autodoc',
-              'sphinx.ext.todo',
-              'sphinx.ext.extlinks',
-              'IPython.sphinxext.ipython_directive',
-              'matplotlib.sphinxext.plot_directive']
+extensions = [
+    'sage_docbuild.ext.inventory_builder',
+    'sage_docbuild.ext.multidocs',
+    'sage_docbuild.ext.sage_autodoc',
+    'sphinx.ext.todo',
+    'sphinx.ext.extlinks',
+    'sphinx.ext.mathjax',
+    'IPython.sphinxext.ipython_directive',
+    'matplotlib.sphinxext.plot_directive',
+    'jupyter_sphinx',
+]
+
+jupyter_execute_default_kernel = 'sagemath'
+
+jupyter_sphinx_thebelab_config = {
+    'requestKernel': True,
+    'binderOptions': {
+        'repo': "sagemath/sage-binder-env",
+    },
+    'kernelOptions': {
+        'name': "sagemath",
+        'kernelName': "sagemath",
+        'path': ".",
+    },
+}
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
@@ -93,7 +116,6 @@ plot_formats = ['svg', 'pdf', 'png']
 # in find_sage_dangling_links.
 #, 'sphinx.ext.intersphinx']
 
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = [os.path.join(SAGE_DOC_SRC, 'common', 'templates'), 'templates']
 
@@ -161,7 +183,6 @@ highlight_language = 'ipycon'
 # include the todos
 todo_include_todos = True
 
-
 # Cross-links to other project's online documentation.
 python_version = sys.version_info.major
 
@@ -190,6 +211,10 @@ def set_intersphinx_mappings(app, config):
     # We intentionally do not name these such that these get higher
     # priority in case of conflicts
     for directory in os.listdir(os.path.join(invpath)):
+        if directory == 'jupyter_execute':
+            # This directory is created by jupyter-sphinx extension for
+            # internal use and should be ignored here. See trac #33507.
+            continue
         if os.path.isdir(os.path.join(invpath, directory)):
             src = os.path.join(refpath, directory)
             dst = os.path.join(invpath, directory, 'objects.inv')
@@ -203,11 +228,10 @@ multidocs_is_master = True
 # Options for HTML output
 # -----------------------
 
-# HTML theme (e.g., 'default', 'sphinxdoc').  We use a custom Sage
-# theme to set a Pygments style, stylesheet, and insert MathJax macros. See
-# the directory doc/common/themes/sage/ for files comprising the custom Sage
-# theme.
-html_theme = 'sage'
+# Sage default HTML theme. We use a custom theme to set a Pygments style,
+# stylesheet, and insert MathJax macros. See the directory
+# doc/common/themes/sage-classic/ for files comprising the custom theme.
+html_theme = 'sage-classic'
 
 # Theme options are theme-specific and customize the look and feel of
 # a theme further.  For a list of options available for each theme,
@@ -244,30 +268,36 @@ html_favicon = 'favicon.ico'
 html_common_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'),
                            THEBE_DIR, 'static']
 
-# We use MathJax to build the documentation unless the environment
-# variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if
-# the user does not set this variable, then the script sage-env sets
-# it to "True".)
+# Configure MathJax
+# https://docs.mathjax.org/en/latest/options/input/tex.html
+mathjax3_config = {
+    "tex": {
+        # Add custom sage macros
+        # http://docs.mathjax.org/en/latest/input/tex/macros.html
+        "macros": sage_mathjax_macros(),
+        # Add $...$ as possible inline math
+        # https://docs.mathjax.org/en/latest/input/tex/delimiters.html#tex-and-latex-math-delimiters
+        "inlineMath": [["$", "$"], ["\\(", "\\)"]],
+        # Increase the limit the size of the string to be processed
+        # https://docs.mathjax.org/en/latest/options/input/tex.html#option-descriptions
+        "maxBuffer": 50 * 1024,
+        # Use colorv2 extension instead of built-in color extension
+        # https://docs.mathjax.org/en/latest/input/tex/extensions/autoload.html#tex-autoload-options
+        # https://docs.mathjax.org/en/latest/input/tex/extensions/colorv2.html#tex-colorv2
+        "autoload": {"color": [], "colorv2": ["color"]},
+    },
+}
 
-if (os.environ.get('SAGE_DOC_MATHJAX', 'no') not in ['no', 'False']):
-    extensions.append('sphinx.ext.mathjax')
-    mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
-
-    from sage.misc.latex_macros import sage_mathjax_macros
-    html_theme_options['mathjax_macros'] = sage_mathjax_macros()
-
-    mathjax_relative = os.path.basename(MATHJAX_DIR)
-
-    # It would be really nice if sphinx would copy the entire mathjax
-    # directory, (so we could have a _static/mathjax directory), rather than
-    # the contents of the directory
-
-    html_common_static_path.append(MATHJAX_DIR)
-    exclude_patterns += ['**/'+os.path.join(mathjax_relative, i)
-                         for i in ('docs', 'README*', 'test', 'unpacked', 'LICENSE')]
+if os.environ.get('SAGE_USE_CDNS', 'no') == 'yes':
+    mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
 else:
-     extensions.append('sphinx.ext.imgmath')
+    mathjax_path = 'mathjax/tex-chtml.js'
+    html_common_static_path += [MATHJAX_DIR]
 
+# A list of glob-style patterns that should be excluded when looking for source
+# files. They are matched against the source file names relative to the
+# source directory, using slashes as directory separators on all platforms.
+exclude_patterns = []
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -311,7 +341,6 @@ html_split_index = True
 
 # Output file base name for HTML help builder.
 #htmlhelp_basename = ''
-
 
 # Options for LaTeX output
 # ------------------------
@@ -415,6 +444,7 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{22C1}{\ensuremath{\bigvee}}
     \DeclareUnicodeCharacter{22C2}{\ensuremath{\bigcap}}
     \DeclareUnicodeCharacter{22C3}{\ensuremath{\bigcup}}
+    \DeclareUnicodeCharacter{2323}{\ensuremath{\smile}}  % cup product
     \DeclareUnicodeCharacter{00B1}{\ensuremath{\pm}}
     \DeclareUnicodeCharacter{2A02}{\ensuremath{\bigotimes}}
     \DeclareUnicodeCharacter{2297}{\ensuremath{\otimes}}
@@ -552,6 +582,32 @@ for macro in sage_latex_macros():
     pngmath_latex_preamble += macro + '\n'
 
 #####################################################
+# add custom context variables for templates
+
+def add_page_context(app, pagename, templatename, context, doctree):
+    # # The template function
+    # def template_function(arg):
+    #     return "Your string is " + arg
+    # # Add it to the page's context
+    # context['template_function'] = template_function
+    path1 = os.path.dirname(app.builder.get_outfilename(pagename))
+    path2 = os.path.join(SAGE_DOC, 'html', 'en')
+    relpath = os.path.relpath(path2, path1)
+    context['release'] = release
+    context['documentation_title'] = 'Sage {}'.format(release) + ' Documentation'
+    context['documentation_root'] = os.path.join(relpath, 'index.html')
+    if 'website' in path1:
+        context['title'] = 'Documentation'
+        context['website'] = True
+
+    if 'reference' in path1 and not path1.endswith('reference'):
+        path2 = os.path.join(SAGE_DOC, 'html', 'en', 'reference')
+        relpath = os.path.relpath(path2, path1)
+        context['reference_title'] = 'Reference Manual'
+        context['reference_root'] = os.path.join(relpath, 'index.html')
+        context['refsub'] = True
+
+#####################################################
 
 def process_docstring_aliases(app, what, name, obj, options, docstringlines):
     """
@@ -609,7 +665,7 @@ def process_docstring_module_title(app, what, name, obj, options, docstringlines
             break
 
 skip_picklability_check_modules = [
-    #'sage.misc.nested_class_test', # for test only
+    #'sage.misc.test_nested_class', # for test only
     'sage.misc.latex',
     'sage.misc.explain_pickle',
     '__builtin__',
@@ -635,6 +691,7 @@ def check_nested_class_picklability(app, what, name, obj, skip, options):
                          'sage.misc.nested_class.NestedClassMetaclass.' % (
                         v.__module__ + '.' + name + '.' + nm))
 
+
 def skip_member(app, what, name, obj, skip, options):
     """
     To suppress Sphinx warnings / errors, we
@@ -645,9 +702,6 @@ def skip_member(app, what, name, obj, skip, options):
       inserted into its module by
       :class:`sage.misc.NestedClassMetaclass` only for pickling.  The
       class will be properly documented inside its surrounding class.
-
-    - Don't include
-      sagenb.notebook.twist.userchild_download_worksheets.zip.
 
     - Optionally, check whether pickling is broken for nested classes.
 
@@ -671,14 +725,12 @@ def skip_member(app, what, name, obj, skip, options):
             if objname.split('.')[-1] == name.split('.')[-1]:
                 return True
 
-    if name.find("userchild_download_worksheets.zip") != -1:
-        return True
-
     if 'SAGE_DOC_UNDERSCORE' in os.environ:
         if name.split('.')[-1].startswith('_'):
             return False
 
     return skip
+
 
 def process_dollars(app, what, name, obj, options, docstringlines):
     r"""
@@ -731,12 +783,12 @@ def call_intersphinx(app, env, node, contnode):
     Check that the link from the thematic tutorials to the reference
     manual is relative, see :trac:`20118`::
 
-        sage: from sage.env import SAGE_DOC  # optional - dochtml
-        sage: thematic_index = os.path.join(SAGE_DOC, "html", "en", "thematic_tutorials", "index.html")  # optional - dochtml
-        sage: for line in open(thematic_index).readlines():  # optional - dochtml
+        sage: from sage.env import SAGE_DOC
+        sage: thematic_index = os.path.join(SAGE_DOC, "html", "en", "thematic_tutorials", "index.html")
+        sage: for line in open(thematic_index).readlines():  # optional - sagemath_doc_html
         ....:     if "padics" in line:
         ....:         _ = sys.stdout.write(line)
-        <li><p><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage... Reference Manual: p-Adics v...)"><span>Introduction to the p-adics</span></a></p></li>
+        <li><p><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in $p$-adics v...)"><span>Introduction to the p-adics</span></a></p></li>
     """
     debug_inf(app, "???? Trying intersphinx for %s" % node['reftarget'])
     builder = app.builder
@@ -782,7 +834,7 @@ def find_sage_dangling_links(app, env, node, contnode):
         return res
 
     if node.get('refdomain') != 'py': # not a python file
-       return None
+        return None
 
     try:
         module = node['py:module']
@@ -848,8 +900,8 @@ base_class_as_func = [
 
 # Nit picky option configuration: Put here broken links we want to ignore. For
 # link to the Python documentation several links where broken because there
-# where class listed as functions. Expand the list 'base_class_as_func'
-# above instead of marking the link as broken.
+# where class listed as functions. Expand the list 'base_class_as_func' above
+# instead of marking the link as broken.
 nitpick_ignore = [
     ('py:class', 'twisted.web2.resource.Resource'),
     ('py:class', 'twisted.web2.resource.PostableResource')]
@@ -923,6 +975,7 @@ def setup(app):
     if app.srcdir.startswith(SAGE_DOC_SRC):
         app.add_config_value('intersphinx_mapping', {}, False)
         app.add_config_value('intersphinx_cache_limit', 5, False)
+        app.add_config_value('intersphinx_disabled_reftypes', [], False)
         app.connect('config-inited', set_intersphinx_mappings)
         app.connect('builder-inited', intersphinx.load_mappings)
         # We do *not* fully initialize intersphinx since we call it by hand
@@ -930,3 +983,4 @@ def setup(app):
         #   app.connect('missing-reference', missing_reference)
         app.connect('missing-reference', find_sage_dangling_links)
         app.connect('builder-inited', nitpick_patch_config)
+        app.connect('html-page-context', add_page_context)

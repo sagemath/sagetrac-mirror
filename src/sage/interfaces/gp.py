@@ -144,7 +144,7 @@ from sage.misc.verbose import verbose
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.libs.pari.all import pari
 import sage.rings.complex_mpfr
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 
 class Gp(ExtraTabCompletion, Expect):
@@ -913,7 +913,7 @@ class GpElement(ExpectElement):
            sage: s.sage()
            'foo'
            sage: type(s.sage())
-           <type 'str'>
+           <class 'str'>
         """
         if self.is_string():
             return str(self)
@@ -957,7 +957,7 @@ class GpElement(ExpectElement):
         P = self._check_valid()
         return P.eval('%s != 0'%(self.name())) == '1'
 
-    __nonzero__ = __bool__
+    
 
     def _complex_mpfr_field_(self, CC):
         """
