@@ -170,7 +170,6 @@ class CompleteDiscreteValuationRings(Category_singleton):
             """
             from sage.categories.all import Fields
             integral = self not in Fields()
-
             if exact:
                 from sage.matrix.matrix_cdv import echelonize_cdv_exact
                 return echelonize_cdv_exact(M, transformation=transformation, integral=integral, secure=False)
@@ -398,7 +397,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
             """
             from sage.matrix.matrix_cdv import smith_cdv
-            integral = (integral is True or integral is None or integral is self.integer_ring())
+            integral = (integral is True or integral is self.integer_ring() or (integral is None and self is self.integer_ring()))
             return smith_cdv(M, transformation=transformation, integral=integral, exact=exact)
 
         def _test_matrix_smith(self, **options):
@@ -430,11 +429,10 @@ class CompleteDiscreteValuationRings(Category_singleton):
                     if self.is_exact() or (hasattr(self, "_prec_type") and self._prec_type() not in ['fixed-mod', 'floating-point']):
                         tester.assertEqual(U*M*V, S)
 
+                    tester.assertEqual(U.base_ring(), self)
                     tester.assertEqual(U.nrows(), U.ncols())
-                    tester.assertEqual(U.base_ring(), base)
-
+                    tester.assertEqual(V.base_ring(), self)
                     tester.assertEqual(V.nrows(), V.ncols())
-                    tester.assertEqual(V.base_ring(), base)
 
                     for d in S.diagonal():
                         if not d.is_zero():
@@ -443,7 +441,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
                     for (d, dd) in zip(S.diagonal(), S.diagonal()[1:]):
                         tester.assertLessEqual(d.valuation(), dd.valuation())
 
-        def _matrix_hermite_form(self, M, include_zero_rows, transformation, integral=True, exact=True):
+        def _matrix_hermite_form(self, M, include_zero_rows, transformation, integral=None, exact=True):
             r"""
             Return the Hermite normal form of ``M``.
 
@@ -561,8 +559,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 [            0 ...0000000001 ...0000000002]
 
             """
-            integral = (integral is True or integral is None or integral is self.integer_ring())
-
+            integral = (integral is True or integral is self.integer_ring() or (integral is None and self is self.integer_ring()))
             if integral:
                 M = copy(M)
             else:
