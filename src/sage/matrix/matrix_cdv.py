@@ -691,10 +691,10 @@ def hessenbergize_cdvf(H):
     n = H.nrows()
     for j in range(n-1):
         k = j + 1
-        maxi = H.get_unsafe(k, j).precision_relative()
+        maxi = H[k,j].precision_relative()
         i = j + 2
         while maxi is not Infinity and i < n:
-            entry = H.get_unsafe(i, j)
+            entry = H[i,j]
             if entry:
                 m = entry.precision_relative()
                 if m > maxi:
@@ -705,10 +705,10 @@ def hessenbergize_cdvf(H):
         if k != j + 1:
             H.swap_rows(j+1, k)
             H.swap_columns(j+1, k)
-        pivot = H.get_unsafe(j+1, j)
+        pivot = H[j+1, j]
         if pivot:
             inv = ~pivot
             for i in range(j+2, n):
-                scalar = inv * H.get_unsafe(i, j)
+                scalar = inv * H[i,j]
                 H.add_multiple_of_row(i, j+1, -scalar, j)
                 H.add_multiple_of_column(j+1, i, scalar, 0)
