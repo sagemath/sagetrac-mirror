@@ -47,12 +47,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
         """
         return [DiscreteValuationRings()]
 
-    class SharedParentMethods:
-        r"""
-        Defines methods that exist on both :class:`CompteleDiscreteValuationRings` and
-        :class:`CompleteDiscreteValuetFields`.
-        """
-
+    class ParentMethods:
         def _matrix_echelonize(self, M, transformation=False, exact=True):
             """
             Row-echelonize ``M`` in-place.
@@ -677,7 +672,6 @@ class CompleteDiscreteValuationRings(Category_singleton):
             from sage.matrix.matrix_cdv import determinant_cdv
             return determinant_cdv(M)
 
-    class ParentMethods(SharedParentMethods):
         def integer_ring(self):
             r"""
             Return the integer ring of this discrete valuation ring.
@@ -842,7 +836,14 @@ class CompleteDiscreteValuationFields(Category_singleton):
         """
         return [DiscreteValuationFields()]
 
-    class ParentMethods(CompleteDiscreteValuationRings.SharedParentMethods):
+    class ParentMethods
+        _matrix_echelonize = CompleteDiscreteValuationRings.ParentMethods._matrix_echelonize
+        _matrix_charpoly = CompleteDiscreteValuationRings.ParentMethods._matrix_charpoly
+        _matrix_smith_form = CompleteDiscreteValuationRings.ParentMethods._matrix_smith_form
+        _test_matrix_smith = CompleteDiscreteValuationRings.ParentMethods._test_matrix_smith
+        _matrix_hermite_form = CompleteDiscreteValuationRings.ParentMethods._matrix_hermite_form
+        _matrix_determinant = CompleteDiscreteValuationRings.ParentMethods._matrix_determinant
+
         @abstract_method
         def integer_ring(self):
             """
