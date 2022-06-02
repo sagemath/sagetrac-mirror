@@ -836,7 +836,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
         """
         return [DiscreteValuationFields()]
 
-    class ParentMethods
+    class ParentMethods:
         _matrix_echelonize = CompleteDiscreteValuationRings.ParentMethods._matrix_echelonize
         _matrix_charpoly = CompleteDiscreteValuationRings.ParentMethods._matrix_charpoly
         _matrix_smith_form = CompleteDiscreteValuationRings.ParentMethods._matrix_smith_form
