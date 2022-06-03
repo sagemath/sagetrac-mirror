@@ -2168,7 +2168,7 @@ class FindStatStatistic(Element,
         return richcmp(self.id(), other.id(), op)
 
     def _fetch_data(self):
-        """
+        r"""
         Return a dictionary containing the data of the statistic, except
         for the values, fetched from FindStat.
 
