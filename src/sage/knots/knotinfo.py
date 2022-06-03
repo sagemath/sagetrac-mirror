@@ -1709,6 +1709,12 @@ class KnotInfoBase(Enum):
         :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
         If ``original`` is set to ``True`` then a string is returned.
 
+        .. NOTE ::
+
+            The Khovanov polynomial given in KnotInfo corresponds to the mirror
+            image of the given knot for a `list of 140 exceptions
+            <https://raw.githubusercontent.com/soehms/database_knotinfo/main/hints/list_of_mirrored_khovanov_polynonmial.txt>`__.
+
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
@@ -1740,14 +1746,17 @@ class KnotInfoBase(Enum):
         from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
         var_names = [var1, var2]
         R = LaurentPolynomialRing(base_ring, var_names)
-        ch = base_ring.characteristic()
-        if ch == 2:
-            khovanov_torsion_polynomial = self[self.items.khovanov_torsion_polynomial]
-            khovanov_torsion_polynomial = khovanov_torsion_polynomial.replace('Q', 'q')
-            khovanov_polynomial = '%s + %s' % (khovanov_polynomial, khovanov_torsion_polynomial)
 
         if not khovanov_polynomial and self.crossing_number() == 0:
             return R({(1, 0): 1, (-1, 0): 1})
+
+        ch = base_ring.characteristic()
+        if ch == 2:
+            if not self.is_knot():
+                raise NotImplementedError('Khovanov polynomial available only for knots in characteristic 2')
+            khovanov_torsion_polynomial = self[self.items.khovanov_torsion_polynomial]
+            khovanov_torsion_polynomial = khovanov_torsion_polynomial.replace('Q', 'q')
+            khovanov_polynomial = '%s + %s' % (khovanov_polynomial, khovanov_torsion_polynomial)
 
         if not khovanov_polynomial:
             # given just for links with less than 12 crossings
