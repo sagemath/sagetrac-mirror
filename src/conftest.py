@@ -79,11 +79,15 @@ class SageDoctestModule(DoctestModule):
                 if _is_mocked(obj):
                     return
                 with _patch_unwrap_mock_aware():
-
-                    # Type ignored because this is a private function.
-                    super()._find(  # type:ignore[misc]
-                        tests, obj, name, module, source_lines, globs, seen
-                    )
+                    try:
+                        # Type ignored because this is a private function.
+                        super()._find(  # type:ignore[misc]
+                            tests, obj, name, module, source_lines, globs, seen
+                        )
+                    except FeatureNotPresentError:
+                        # Feature required for loading this module are not present
+                        # so ignore it
+                        return
 
         if self.path.name == "conftest.py":
             module = self.config.pluginmanager._importconftest(
@@ -112,15 +116,11 @@ class SageDoctestModule(DoctestModule):
             checker=SageOutputChecker(),
             continue_on_failure=_get_continue_on_failure(self.config),
         )
-
-        try:
-            for test in finder.find(module, module.__name__):
-                if test.examples:  # skip empty doctests
-                    yield DoctestItem.from_parent(
-                        self, name=test.name, runner=runner, dtest=test
-                    )
-        except FeatureNotPresentError as exception:
-            pytest.skip(f"unable to import module: {exception}")
+        for test in finder.find(module, module.__name__):
+            if test.examples:  # skip empty doctests
+                yield DoctestItem.from_parent(
+                    self, name=test.name, runner=runner, dtest=test
+                )
 
 
 def pytest_collect_file(
@@ -140,32 +140,18 @@ def pytest_collect_file(
         # hit this here if someone explicitly runs `pytest some_file.pyx`.
         return pytest.skip("Skipping Cython file")
     elif file_path.suffix == ".py":
-        if parent.config.option.doctestmodules:
-            return SageDoctestModule.from_parent(parent, path=file_path)
+        return SageDoctestModule.from_parent(parent, path=file_path)
 
-
-def pytest_ignore_collect(collection_path: Path) -> Optional[bool]:
-    if (
-        (
-            collection_path.name == "postprocess.py"
-            and collection_path.parent.name == "nbconvert"
-        )
-        or (
-            collection_path.name == "__main__.py"
-            and collection_path.parent.name == "ipython_kernel"
-        )
-        or (
-            collection_path.name == "__main__.py"
-            and collection_path.parent.name == "sage_docbuild"
-        )
-        or (
-            collection_path.name == "giacpy-mkkeywords.py"
-            and collection_path.parent.name == "autogen"
-        )
-    ):
-        # Ignore executable scripts
-        return True
-
+collect_ignore = [
+     # Ignore executable scripts
+    "src/setup.py",
+    "src/sage/ext_data/nbconvert/postprocess.py",
+    "src/sage/repl/ipython_kernel/__main__.py",
+    "pkgs/sage-docbuild/sage_docbuild/__main__.py",
+    "src/sage_setup/autogen/giacpy-mkkeywords.py",
+    # sage/all.py doesn't contain tests and cannot be imported via importlib (yet)
+    "src/sage/all.py"
+]
 
 @pytest.fixture(autouse=True)
 def add_imports(doctest_namespace: dict[str, Any]):
