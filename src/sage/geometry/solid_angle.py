@@ -191,7 +191,6 @@ def solid_angle_simplicial_2d(A):
     if any(r == 0 for r in A.rows()):
         raise ValueError("input matrix has a row that is zero")
     if A.rank() < 2:
-        import sage.rings.abc
         if P.is_exact():
             return SymbolicSubring(no_variables=True)(ZZ(0))
         else:
