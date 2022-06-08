@@ -38,7 +38,8 @@ class sage_build_ext(build_ext):
             # errors, the problem is most likely with some external
             # library and not with Sage.
             import re
-            forbidden = re.compile(r"-march=|-mpcu=|-msse3|-msse4|-mpopcnt|-mavx")
+            forbidden = re.compile(r"-march=|-mpcu=|-msse3|-msse4|-mpopcnt"
+                    r"|-mavx|-mavx2|-mbmi2")  # see :trac:`32434`
 
         if forbidden is not None:
             errors = 0
