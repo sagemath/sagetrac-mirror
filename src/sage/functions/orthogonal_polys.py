@@ -1297,6 +1297,13 @@ class Func_legendre_P(GinacFunction):
         sage: [legendre_P(n, 0) for n in range(-10, 10)]
         [0, 35/128, 0, -5/16, 0, 3/8, 0, -1/2, 0, 1,
         1, 0, -1/2, 0, 3/8, 0, -5/16, 0, 35/128, 0]
+
+        # verify that :trac:`33963` is fixed
+        sage: n = var("n")
+        sage: assume(n, "integer")
+        sage: assume(n, "even")
+        sage: legendre_P(n, 0)
+        2^(-n + 2)*(-1)^(1/2*n)*gamma(n)/(n*gamma(1/2*n)^2)
     """
     def __init__(self):
         r"""
