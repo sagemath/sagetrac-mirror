@@ -13,6 +13,8 @@ from sphinx import highlighting
 import sphinx.ext.intersphinx as intersphinx
 from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
+# Load configuration shared with sage.misc.sphinxify
+from sage.misc.sagedoc_conf import *
 
 # General configuration
 # ---------------------
