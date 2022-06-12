@@ -9,6 +9,12 @@ import setuptools
 from distutils import log
 from setuptools import setup
 
+# Work around a Cython problem in Python 3.8.x on macOS
+# https://github.com/cython/cython/issues/3262
+if os.uname().sysname == 'Darwin':
+    import multiprocessing
+    multiprocessing.set_start_method('fork', force=True)
+
 #########################################################
 ### Set source directory
 #########################################################
