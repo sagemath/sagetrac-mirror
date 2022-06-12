@@ -54,8 +54,8 @@ else
     (cd "$SITEPACKAGESDIR" && rm -f sagemath-standard.egg-link)
     time python3 -u setup.py --no-user-cfg install || exit 1
     # Run the installation cleaner (no longer part of the sagemath-standard install procedure.)
-    # FIXME: It needs to clean the right build directory!
-    (cd ../install-cleaner && python3 -u setup.py --no-user-cfg install)
+    BUILD_BASE=$(cd src && pwd)/build
+    (cd ../install-cleaner && python3 -u setup.py --no-user-cfg build --build-base=$BUILD_BASE install)
 fi
 
 # Trac #33103: The temp.* directories are large after a full build.
