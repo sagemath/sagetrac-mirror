@@ -35,13 +35,11 @@ else:
     from sage_setup.setenv import setenv
     setenv()
 
-    from sage_setup.command.sage_build import sage_build
     from sage_setup.command.sage_build_cython import sage_build_cython
     from sage_setup.command.sage_build_ext import sage_build_ext
     from sage_setup.command.sage_install import sage_clean
 
-    cmdclass = dict(build=sage_build,
-                    build_cython=sage_build_cython,
+    cmdclass = dict(build_cython=sage_build_cython,
                     build_ext=sage_build_ext,
                     install=sage_clean)
 
