@@ -31,7 +31,7 @@ from sage.matrix.constructor import Matrix
 from sage.matrix.args import MatrixArgs
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.subset import SubsetsSorted
+from sage.combinat.subset import SubsetsSorted_bits
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.algebras.weyl_algebra import repr_from_monomials
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -551,7 +551,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         self._quadratic_form = Q
         R = Q.base_ring()
         category = AlgebrasWithBasis(R.category()).Super().Filtered().FiniteDimensional().or_subcategory(category)
-        indices = SubsetsSorted(range(Q.dim()))
+        indices = SubsetsSorted_bits(range(Q.dim()))
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
         self._assign_names(names)
 
