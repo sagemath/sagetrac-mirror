@@ -1488,6 +1488,13 @@ class SubsetsSorted_bits(Subsets_s):
         sage: S({1,3})
         5
 
+    Note that the order in which you pass the original set matters::
+
+        sage: S = SubsetsSorted_bits([1,3,2])
+        sage: S({1,3})
+        3
+
+
     """
 
     def __contains__(self, value):
