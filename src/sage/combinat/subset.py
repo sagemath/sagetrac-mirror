@@ -1474,7 +1474,9 @@ class SubsetsSorted_bits(Subsets_s):
 
         sage: from sage.combinat.subset import SubsetsSorted_bits
         sage: S = SubsetsSorted_bits([1,2,3])
-        sage: for s in S: print(s)
+        sage: S.cardinality() == 8
+        True
+        sage: for s in S: print('0b'+format(s, '03b'))
         0b000
         0b001
         0b010
@@ -1484,7 +1486,7 @@ class SubsetsSorted_bits(Subsets_s):
         0b110
         0b111
         sage: S({1,3})
-        0b101
+        5
 
     """
 
@@ -1503,19 +1505,45 @@ class SubsetsSorted_bits(Subsets_s):
 
             sage: from sage.combinat.subset import SubsetsSorted_bits
             sage: S = SubsetsSorted_bits(range(3))
-            sage: for i in range(2 << (len(S) - 1)): print(i in S)
+            sage: N = bin(S.underlying_set()).count("1")
+            sage: for i in range(2 << (N - 1)): print(i in S)
             True
             ...
             True
-            sage: ((2 << (len(S) - 1)) + 1) in S
+            sage: ((2 << (N - 1)) + 1) in S
             False
-            sage: (2 << (len(S))) in S
+            sage: (2 << N) in S
             False
         """
         if not isinstance(value, int):
             return False
 
         return value < (2 << (len(self._s) - 1))
+
+    def __iter__(self):
+        """
+        Iterate through the subsets of ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted_bits
+            sage: S = SubsetsSorted_bits(range(3))
+            sage: N = bin(S.underlying_set()).count("1")
+            sage: for s in S: print('0b'+format(s, f'0{N}b'))
+            0b000
+            0b001
+            0b010
+            0b100
+            0b011
+            0b101
+            0b110
+            0b111
+        """
+        k = ZZ_0
+        while k <= self._s.cardinality():
+            for ss in Subsets_sk(self._s, k)._fast_iterator():
+                yield self.element_class(self._element_constructor_(ss))
+            k += 1
 
     def _element_constructor_(self, X):
         r"""
@@ -1527,13 +1555,13 @@ class SubsetsSorted_bits(Subsets_s):
             sage: from sage.combinat.subset import SubsetsSorted_bits
             sage: S = SubsetsSorted_bits('abc')
             sage: S(Set({'a','b'})) # indirect doctest
-            0b011
+            3
             sage: S(Set({'a','c'}))
-            0b101
+            5
             sage: S(Set({'a','d'}))
             Traceback (most recent call last):
             ...
-            IndexError: index out of range
+            ValueError: d is not in the underlying set.
 
             sage: isinstance(S(Set({'a','c'})), int)
             True
@@ -1543,17 +1571,27 @@ class SubsetsSorted_bits(Subsets_s):
             sage: S(ZZ) # check that we don't have infinite loop
             Traceback (most recent call last):
             ...
-            IndexError: index out of range
+            ValueError: 0 is not in the underlying set.
 
         """
-        if X in Sets:
-            out = self.Element(0)
+        if X in Sets or hasattr(X, '__iter__'):
+            out = self.element_class(0)
             for e in X:
                 # if the subset doesn't make sense, throw an index error
-                out += self.Element(2 << self._s.index(e) - 1)
+                try:
+                    idx = self._s.index(e)
+                except ValueError:
+                    raise ValueError(f"{e} is not in the underlying set.")
+
+                if idx == 0:
+                    out += self.element_class(1)
+                else:
+                    out += self.element_class(2 << self._s.index(e) - 1)
             return out
         elif isinstance(X, int) and X in self:
             return X
+        else:
+            raise ValueError(f"{X} must be iterable")
 
     def _an_element_(self):
         r"""
@@ -1562,30 +1600,9 @@ class SubsetsSorted_bits(Subsets_s):
             sage: from sage.combinat.subset import SubsetsSorted_bits
             sage: S = SubsetsSorted_bits('abc')
             sage: S.an_element() # indirect doctest
-            0b001
+            3
         """
 
-        return self.Element(self.cardinality() // 2)
+        return self.element_class(self.cardinality() // 2)
 
-
-    class Element(int): # defined because we want a bitstring repr
-
-        def _repr_(self):
-            r"""
-
-            TESTS::
-
-                sage: from sage.combinat.subset import SubsetsSorted_bits
-                sage: S = SubsetsSorted_bits('abc')
-                sage: S(Set({'a','b'})) # indirect doctest
-                0b011
-                sage: S(Set({'a','c'}))
-                0b101
-                sage: isinstance(_, int)
-                True
-            """
-            N = self.parent()._s.cardinality()
-
-            return '0b'+format(self, str(N)+"b")
-
-    element_class = self.Element
+    element_class = _element_constructor_
