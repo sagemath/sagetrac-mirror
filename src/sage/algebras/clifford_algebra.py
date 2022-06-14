@@ -111,27 +111,38 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         zero = self.parent().base_ring().zero()
         d = {}
 
+        # todo this should probably be somewhere else
+        def bits(n):
+            from operator import xor
+            while n:
+                b = n & (~n+1)
+                yield b
+                n = xor(n, b) # This is probably going to be wrong.
+
         for ml,cl in self:
             # Distribute the current term ``cl`` * ``ml`` over ``other``.
             cur = copy(other._monomial_coefficients) # The current distribution of the term
-            for i in reversed(ml):
-                # Distribute the current factor ``e[i]`` (the ``i``-th
+
+            while ml >= 0: # we will iterate over the bits in decreasing order by subtracting them
+
+                i = int(log(ml, 2)) # the index of the highest set bit (faster way todo this?)
+
+                # Distribute the current factor ``e[2^i]`` (the ``i``-th
                 # element of the standard basis).
                 next = {}
                 # At the end of the following for-loop, ``next`` will be
                 # the dictionary describing the element
                 # ``e[i]`` * (the element described by the dictionary ``cur``)
                 # (where ``e[i]`` is the ``i``-th standard basis vector).
-                for mr,cr in cur.items():
+
+                for mr, cr in cur.items():
                     # Commute the factor as necessary until we are in order
                     pos = 0
-                    for j in mr:
+
+                    for j in bits(mr): 
                         if i <= j:
                             break
-                        # Add the additional term from the commutation
-                        t = list(mr)
-                        t.pop(pos)
-                        t = tuple(t)
+                        t = mr & ~(1 << pos) # unset the bit in position `pos`
                         next[t] = next.get(t, zero) + cr * Q[i,j]
                         # Note: ``Q[i,j] == Q(e[i]+e[j]) - Q(e[i]) - Q(e[j])`` for
                         # ``i != j``, where ``e[k]`` is the ``k``-th standard
@@ -142,20 +153,20 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                         pos += 1
 
                     # Check to see if we have a squared term or not
-                    t = list(mr)
-                    if i in t:
-                        t.remove(i)
-                        cr *= Q[i,i]
+                    t = copy(mr)
+                    if i & t != 0: # if we have a squared term
+                        cr *= Q[i, i]
                         # Note: ``Q[i,i] == Q(e[i])`` where ``e[i]`` is the
                         # ``i``-th standard basis vector.
-                    else:
-                        t.insert(pos, i)
-                        # Note that ``t`` is now sorted.
-                    t = tuple(t)
+                    else: # no squared term
+                        # add i to the set, implicitly respecting the order
+                        t += i
                     next[t] = next.get(t, zero) + cr
                     if next[t] == zero:
                         del next[t]
                 cur = next
+                ml -= i # move on to the next biggest element
+
 
             # Add the distributed terms to the total
             for index,coeff in cur.items():
@@ -233,7 +244,8 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: all(x.reflection().reflection() == x for x in Cl.basis())
             True
         """
-        return self.__class__(self.parent(), {m: (-1)**len(m) * c for m,c in self})
+        nbits = lambda n: bin(n).count("1")
+        return self.__class__(self.parent(), {m: (-1)**nbits(m) * c for m,c in self})
 
     degree_negation = reflection
 
@@ -551,6 +563,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
         self._quadratic_form = Q
         R = Q.base_ring()
         category = AlgebrasWithBasis(R.category()).Super().Filtered().FiniteDimensional().or_subcategory(category)
+        # indices are integers whose bitsets represent subsets
+        # e.g. {1,3} as a subset of {1,2,3} would correspond to 0b101 == 5
         indices = SubsetsSorted_bits(range(Q.dim()))
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
         self._assign_names(names)
