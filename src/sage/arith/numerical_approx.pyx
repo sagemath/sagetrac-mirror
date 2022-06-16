@@ -52,7 +52,7 @@ def numerical_approx_generic(x, prec):
 
     # Figure out input precision to check for case (1)
     try:
-        inprec = x.prec()
+        inprec = x.precision()
     except AttributeError:
         if prec > 53 and CDF.has_coerce_map_from(P):
             # If we can coerce to CDF, assume input precision was 53 bits
