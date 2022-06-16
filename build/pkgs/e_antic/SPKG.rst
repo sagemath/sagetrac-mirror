@@ -12,10 +12,10 @@ Website: https://github.com/videlec/e-antic
 License
 -------
 
-e-antic is licensed GPL v3.
+LGPL 3.0 or later
 
 
 Upstream Contact
 ----------------
 
--  https://github.com/videlec/e-antic
+-  https://github.com/flatsurf/e-antic
