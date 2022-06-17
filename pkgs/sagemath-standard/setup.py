@@ -44,16 +44,15 @@ else:
     from sage_setup.setenv import setenv
     setenv()
 
-    from sage_setup.command.sage_build import sage_build
     from sage_setup.command.sage_build_cython import sage_build_cython
     from sage_setup.command.sage_build_ext import sage_build_ext
-    from sage_setup.command.sage_install import sage_install_and_clean
+    from sage_setup.command.sage_install import sage_develop, sage_install_and_clean
     from sage_setup.command.sage_egg_info import sage_egg_info
 
-    cmdclass = dict(build=sage_build,
-                    build_cython=sage_build_cython,
+    cmdclass = dict(build_cython=sage_build_cython,
                     build_ext=sage_build_ext,
                     egg_info=sage_egg_info,
+                    develop=sage_develop,
                     install=sage_install_and_clean)
 
 #########################################################
@@ -77,6 +76,10 @@ if sdist:
     python_modules = []
     cython_modules = []
 else:
+    log.info("Generating auto-generated sources")
+    from sage_setup.autogen import autogen_all
+    autogen_all()
+
     # TODO: This should be quiet by default
     print("Discovering Python/Cython source code....")
     t = time.time()
