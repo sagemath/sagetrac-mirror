@@ -168,6 +168,12 @@ class Polynomial_generic_sparse(Polynomial):
             return [self.__coeffs[i] if i in self.__coeffs else zero
                     for i in range(self.degree() + 1)]
 
+    def height(self):
+        coeffs = self.__coeffs
+        P = ProjectiveSpace(QQ, self.number_of_terms()-1)
+        proj_point = P.point(coeffs)
+        return proj_point.global_height()
+
     def exponents(self):
         """
         Return the exponents of the monomials appearing in ``self``.
