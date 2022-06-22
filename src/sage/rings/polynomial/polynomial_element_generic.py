@@ -169,9 +169,20 @@ class Polynomial_generic_sparse(Polynomial):
                     for i in range(self.degree() + 1)]
 
     def height(self):
-        coeffs = self.__coeffs
+        """
+        Return the height of the polynomial appearing in ``self``.
+
+        EXAMPLES::
+
+        sage: R.<x> = PolynomialRing(QQbar, sparse=True)
+        sage: f = 3 * x^3 + 2 * x^2 + x
+        sage: exp(f.height())
+        3
+        """
+        from sage.schemes.projective.projective_space import ProjectiveSpace
+        from sage.rings.rational_field import QQ
         P = ProjectiveSpace(QQ, self.number_of_terms()-1)
-        proj_point = P.point(coeffs)
+        proj_point = P.point(self.coefficients())
         return proj_point.global_height()
 
     def exponents(self):

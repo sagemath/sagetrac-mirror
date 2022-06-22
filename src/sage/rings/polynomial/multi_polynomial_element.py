@@ -964,6 +964,23 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             raise ValueError("You must pass a dictionary list or monomial.")
         return self.parent()(self.element().polynomial_coefficient(looking_for))
 
+    def height(self):
+        """
+        Return the height of the polynomial appearing in ``self``.
+
+        EXAMPLES::
+
+        sage: R.<x,y,z,w> = PolynomialRing(QQbar)
+        sage: f = 3 * x^5 - 2 * x * y^4 + z^5 - 100 * w^5
+        sage: exp(f.height())
+        100
+        """
+        from sage.schemes.projective.projective_space import ProjectiveSpace
+        from sage.rings.rational_field import QQ
+        P = ProjectiveSpace(QQ, self.number_of_terms()-1)
+        proj_point = P.point(self.coefficients())
+        return proj_point.global_height()
+
     @lazy_attribute
     def _exponents(self):
         """
