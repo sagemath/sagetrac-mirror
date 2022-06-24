@@ -65,6 +65,10 @@ from .multi_polynomial import MPolynomial
 from sage.categories.morphism import Morphism
 from sage.misc.lazy_attribute import lazy_attribute
 
+from sage.schemes.projective.projective_space import ProjectiveSpace
+from sage.rings.number_field.order import is_NumberFieldOrder
+from sage.categories.number_fields import NumberFields
+_NumberFields = NumberFields()
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -964,21 +968,39 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             raise ValueError("You must pass a dictionary list or monomial.")
         return self.parent()(self.element().polynomial_coefficient(looking_for))
 
-    def height(self):
+    def global_height(self, prec=None):
         """
-        Return the height of the polynomial appearing in ``self``.
+        Return the absolute logarithmic height of the polynomial.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
 
         EXAMPLES::
 
-        sage: R.<x,y,z,w> = PolynomialRing(QQbar)
-        sage: f = 3 * x^5 - 2 * x * y^4 + z^5 - 100 * w^5
+        sage: R.<x> = PolynomialRing(QQbar, sparse=True)
+        sage: f = 3 * x^3 + 2 * x^2 + x
         sage: exp(f.height())
-        100
+        3
         """
-        from sage.schemes.projective.projective_space import ProjectiveSpace
-        from sage.rings.rational_field import QQ
-        P = ProjectiveSpace(QQ, self.number_of_terms()-1)
-        proj_point = P.point(self.coefficients())
+        if prec is None:
+            prec = 53
+
+        K = self.base_ring()
+        if K in _NumberFields or is_NumberFieldOrder(K):
+            f = self
+        elif K is QQbar:
+            f = self._number_field_from_algebraics()
+        else:
+            raise TypeError("Must be over a Numberfield or a Numberfield Order or QQbar.")
+
+        P = ProjectiveSpace(K, f.number_of_terms()-1)
+        proj_point = P.point(f.coefficients())
         return proj_point.global_height()
 
     @lazy_attribute

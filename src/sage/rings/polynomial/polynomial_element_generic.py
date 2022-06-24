@@ -34,6 +34,11 @@ from sage.structure.element import IntegralDomainElement, EuclideanDomainElement
 
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
 
+from sage.schemes.projective.projective_space import ProjectiveSpace
+from sage.rings.number_field.order import is_NumberFieldOrder
+from sage.categories.number_fields import NumberFields
+_NumberFields = NumberFields()
+
 from sage.libs.pari.all import pari_gen
 from sage.structure.richcmp import richcmp, richcmp_item, rich_to_bool, rich_to_bool_sgn
 from sage.structure.element import coerce_binop
@@ -168,9 +173,18 @@ class Polynomial_generic_sparse(Polynomial):
             return [self.__coeffs[i] if i in self.__coeffs else zero
                     for i in range(self.degree() + 1)]
 
-    def height(self):
+    def global_height(self, prec=None):
         """
-        Return the height of the polynomial appearing in ``self``.
+        Return the absolute logarithmic height of the polynomial.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
 
         EXAMPLES::
 
@@ -179,10 +193,19 @@ class Polynomial_generic_sparse(Polynomial):
         sage: exp(f.height())
         3
         """
-        from sage.schemes.projective.projective_space import ProjectiveSpace
-        from sage.rings.rational_field import QQ
-        P = ProjectiveSpace(QQ, self.number_of_terms()-1)
-        proj_point = P.point(self.coefficients())
+        if prec is None:
+            prec = 53
+
+        K = self.base_ring()
+        if K in _NumberFields or is_NumberFieldOrder(K):
+            f = self
+        elif K is QQbar:
+            f = self._number_field_from_algebraics()
+        else:
+            raise TypeError("Must be over a Numberfield or a Numberfield Order or QQbar.")
+
+        P = ProjectiveSpace(K, f.number_of_terms()-1)
+        proj_point = P.point(f.coefficients())
         return proj_point.global_height()
 
     def exponents(self):
