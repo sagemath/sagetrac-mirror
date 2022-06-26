@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+cd src
+# setuptools is already installed
+if [ "$SAGE_CHECK" != no ]; then
+    # Use tox to provision all test dependencies
+    tox -v -v -v --discover "$SAGE_VENV"/bin/python3 -e py3 --installpkg "$SAGE_SPKG_WHEELS"/setuptools*.whl
+fi
