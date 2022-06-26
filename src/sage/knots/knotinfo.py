@@ -614,7 +614,7 @@ class KnotInfoBase(Enum):
 
         TESTS:
 
-        Check that :trac:`?????` is fixed::
+        Check that :trac:`33966` is fixed::
 
             sage: KnotInfo.K0_1.braid_notation()
             (1,)

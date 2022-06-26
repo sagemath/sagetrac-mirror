@@ -1985,7 +1985,7 @@ class Link(SageObject):
     def khovanov_polynomial(self, var1='q', var2='t', base_ring=ZZ):
         r"""
         Return the Khovanov polynomial of ``self``. This is the Poincaré
-        polynomial of the Khovanov homology (in characteristic zero).
+        polynomial of the Khovanov homology.
 
         INPUT:
 
@@ -4023,6 +4023,7 @@ class Link(SageObject):
         # over :class:`KnotInfo` should be returned
 
         non_unique_hint = '\nuse keyword argument `unique` to obtain more details'
+
         def answer(L):
             r"""
             Return a single item of the KnotInfo database according to the keyword
