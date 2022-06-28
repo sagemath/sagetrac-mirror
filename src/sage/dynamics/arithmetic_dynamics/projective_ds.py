@@ -52,6 +52,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from fractions import Fraction
 from numbers import Real
 from sage.arith.misc import is_prime
 from sage.calculus.functions import jacobian
@@ -4009,6 +4010,30 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.preperiodic_points(0, 1)
             [(-0.618033988749895? : 1), (1 : 0), (1.618033988749895? : 1)]
 
+        For precision fields such as `\mathbb{C}` or `\mathbb{R}`, it is often
+        necessary to set ``minimal`` to ``False``::
+
+            sage: P.<x,y> = ProjectiveSpace(RR, 1)
+            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
+            sage: f.preperiodic_points(1, 1, minimal=False)
+            [(-1.61803398874989 : 1.00000000000000),
+            (-0.618033988749895 : 1.00000000000000),
+            (0.618033988749895 : 1.00000000000000),
+            (1.00000000000000 : 0.000000000000000),
+            (1.61803398874989 : 1.00000000000000)]
+
+        The most resilient call is to set ``minimal`` to ``False`` and
+        ``return_scheme`` to ``True``::
+
+            sage: T.<t> = CC[]
+            sage: P.<x,y> = ProjectiveSpace(FractionField(T), 1)
+            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
+            sage: f.preperiodic_points(1, 1, minimal=False, return_scheme=True)
+            Closed subscheme of Projective Space of dimension 1 over Fraction Field
+             of Univariate Polynomial Ring in t over Complex Field with 53 bits
+             of precision defined by:
+              x^4*y^2 + (-3.00000000000000)*x^2*y^4 + y^6
+
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
@@ -4067,6 +4092,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 - 3/4*y^2, y^2])
             sage: f.preperiodic_points(0, 2, formal=True)
             [(-1/2 : 1)]
+
+        ::
+
+            sage: T.<t> = QQ[]
+            sage: P.<x,y> = ProjectiveSpace(FractionField(T), 1)
+            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
+            sage: f.preperiodic_points(2, 1, formal=True)
+            [(1 : 0)]
 
         ::
 
