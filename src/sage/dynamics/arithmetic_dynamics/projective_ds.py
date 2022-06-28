@@ -52,6 +52,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from numbers import Real
 from sage.arith.misc import is_prime
 from sage.calculus.functions import jacobian
 from sage.categories.fields import Fields
@@ -3995,6 +3996,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         A list of preperiodic points of this map or the subscheme defining
         the preperiodic points.
 
+        .. WARNING::
+
+            For numerically inexact fields such as ComplexField or RealField the
+            list of points returned is very likely to be incomplete. It may also
+            contain repeated points due to tolerances.
+
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
@@ -4185,9 +4192,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             f_sub = self.change_ring(R)
             R = f_sub.base_ring() #in the case when R is an embedding
-        if isinstance(R, FractionField_1poly_field) or is_FunctionField(R):
-            raise NotImplementedError('Periodic points not implemented for function fields; '
-                'clear denominators and use the polynomial ring instead')
         CR = f_sub.coordinate_ring()
         dom = f_sub.domain()
         PS = f_sub.codomain().ambient_space()
@@ -4268,19 +4272,16 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if return_scheme:  # this includes the indeterminacy locus points!
             return X
         if X.dimension() <= 0:
-            if R in NumberFields() or R is QQbar or R in FiniteFields():
-                Z = f.base_indeterminacy_locus()
-                points = [dom(Q) for Q in X.rational_points()]
-                good_points = []
-                for Q in points:
-                    try:
-                        Z(list(Q))
-                    except TypeError:
-                        good_points.append(Q)
-                good_points.sort()
-                return good_points
-            else:
-                raise NotImplementedError("ring must a number field or finite field")
+            Z = f.base_indeterminacy_locus()
+            points = [dom(Q) for Q in X.rational_points()]
+            good_points = []
+            for Q in points:
+                try:
+                    Z(list(Q))
+                except TypeError:
+                    good_points.append(Q)
+            good_points.sort()
+            return good_points
         else: #a higher dimensional scheme
             raise TypeError("use return_scheme=True")
 
@@ -4313,10 +4314,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``formal`` -- (default: ``False``) boolean; ``True`` specifies to
           find the formal periodic points only. The formal periodic points
-          are the points in the support of the dynatomic cycle.
+          are the points in the support of the dynatomic cycle
 
         - ``R`` -- (optional) a commutative ring. Defaults to the base ring of
-          this map.
+          this map
 
         - ``algorithm`` -- (default: ``'variety'``) must be one of
           the following:
@@ -4332,6 +4333,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         A list of periodic points of this map or the subscheme defining
         the periodic points.
 
+        .. WARNING::
+
+            For numerically inexact fields such as ComplexField or RealField the
+            list of points returned is very likely to be incomplete. It may also
+            contain repeated points due to tolerances.
+
         EXAMPLES::
 
             sage: set_verbose(None)
@@ -4342,9 +4349,33 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
              (-0.50000000000000000? + 0.866025403784439?*I : 1),
              (1 : 1)]
 
+        Over precision fields such as `\mathbb{C}` or `\mathbb{R}`, setting ``minimal``
+        to ``False`` is often necessary::
+
+            sage: P.<x,y> = ProjectiveSpace(RR, 1)
+            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
+            sage: f.periodic_points(3, minimal=False)
+            [(-0.618033988749895 : 1.00000000000000),
+            (1.00000000000000 : 0.000000000000000),
+            (1.61803398874989 : 1.00000000000000)]
+
+        The most resilient call is to set ``minimal`` to
+        ``False`` and ``return_scheme`` to ``True``. The following fails if either
+        ``minimal`` is ``True`` or ``return_scheme`` is ``False``::
+
+            sage: T.<t> = CC[]
+            sage: F = FractionField(T)
+            sage: P.<x,y> = ProjectiveSpace(F, 1)
+            sage: f = DynamicalSystem_projective([x^2 - t*y^2, y^2])
+            sage: f.periodic_points(1, minimal=False, return_scheme=True)
+            Closed subscheme of Projective Space of dimension 1 over Fraction Field of
+             Univariate Polynomial Ring in t over Complex Field with
+             53 bits of precision defined by:
+              x^2*y - x*y^2 + (-t)*y^3
+
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QuadraticField(5,'t'), 2)
+            sage: P.<x,y,z> = ProjectiveSpace(QuadraticField(5, 't'), 2)
             sage: f = DynamicalSystem_projective([x^2 - 21/16*z^2, y^2 - z^2, z^2])
             sage: f.periodic_points(2)
             [(-5/4 : -1 : 1), (-5/4 : -1/2*t + 1/2 : 1), (-5/4 : 0 : 1),
@@ -4358,6 +4389,21 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 - 3/4*y^2, y^2 , z^2])
             sage: f.periodic_points(2, formal=True)
             [(-1/2 : 1 : 0), (-1/2 : 1 : 1)]
+
+        ::
+
+            sage: T.<t> = QQ[]
+            sage: P.<x,y> = ProjectiveSpace(FractionField(T), 1)
+            sage: f = DynamicalSystem_projective([t*x^2 - 1/t*y^2, y^2])
+            sage: f.periodic_points(2)
+            [(-1/t : 1), (0 : 1)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
+            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
+            sage: f.periodic_points(3, minimal=False)
+            [(1 + O(3^20) : 0)]
 
         ::
 
@@ -4475,9 +4521,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y>=ProjectiveSpace(GF(3), 1)
+            sage: P.<x,y> = ProjectiveSpace(GF(3), 1)
             sage: f = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
-            sage: f.periodic_points(2, R=GF(3^2,'t'))
+            sage: f.periodic_points(2, R=GF(3^2, 't'))
             [(t + 2 : 1), (2*t : 1)]
 
         ::
@@ -4516,13 +4562,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             f_sub = self.change_ring(R)
             R = f_sub.base_ring() #in the case when R is an embedding
-        if isinstance(R, FractionField_1poly_field) or is_FunctionField(R):
-            raise NotImplementedError('periodic points not implemented for fraction function fields; '
-                'clear denominators and use the polynomial ring instead')
-        if is_FractionField(R):
-            if is_MPolynomialRing(R.ring()):
-                raise NotImplementedError('periodic points not implemented for fraction function fields; '
-                    'clear denominators and use the polynomial ring instead')
         CR = f_sub.coordinate_ring()
         dom = f_sub.domain()
         PS = f_sub.codomain().ambient_space()
@@ -4613,19 +4652,16 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             if return_scheme:  # this includes the indeterminacy locus points!
                 return X
             if X.change_ring(FF).dimension() <= 0:
-                if R in NumberFields() or R is QQbar or R in FiniteFields():
-                    Z = f.base_indeterminacy_locus()
-                    points = [dom(Q) for Q in X.rational_points()]
-                    good_points = []
-                    for Q in points:
-                        try:
-                            Z(list(Q))
-                        except TypeError:
-                            good_points.append(Q)
-                    good_points.sort()
-                    return good_points
-                else:
-                    raise NotImplementedError("ring must be a number field or finite field")
+                Z = f.base_indeterminacy_locus()
+                points = [dom(Q) for Q in X.rational_points()]
+                good_points = []
+                for Q in points:
+                    try:
+                        Z(list(Q))
+                    except TypeError:
+                        good_points.append(Q)
+                good_points.sort()
+                return good_points
             else: #a higher dimensional scheme
                 raise TypeError("use return_scheme=True")
         else:
