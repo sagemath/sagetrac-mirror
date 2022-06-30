@@ -5499,10 +5499,19 @@ cdef class MPolynomial_libsingular(MPolynomial):
         - a real number.
 
         EXAMPLES::
-        sage: R.<x,y> = PolynomialRing(QQbar)
+
+        sage: R.<x,y> = PolynomialRing(QQ)
         sage: f = 3 * x^3 + 2 * x * y^2
         sage: exp(f.global_height())
         3
+
+        ::
+
+        sage: K.<k> = CyclotomicField(3)
+        sage: R.<x> = PolynomialRing(K, sparse=True)
+        sage: f = k * x^2 + 1
+        sage: exp(f.global_height())
+        1
         """
         from sage.schemes.projective.projective_space import ProjectiveSpace
         #from sage.schemes.projective.projective_morphism import _number_field_from_algebraics
