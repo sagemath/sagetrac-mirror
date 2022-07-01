@@ -2146,6 +2146,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             y13*y15
             sage: f = y13*y15 + y9 - y12; f.reduce(J)
             y13*y15 - 2*y12
+        
+        TESTS:
 
         Make sure the remainder returns the correct type, fixing :trac:`13903`::
 
@@ -2153,8 +2155,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: G=[y1^2 + y2^2, y1*y2 + y2^2, y2^3]
             sage: type((y2^3).reduce(G))
             <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
-        
-        TESTS:
         
         Verify that :trac:`34105` is fixed::
         
@@ -2180,19 +2180,16 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         except (NotImplementedError, TypeError):
             pass
 
-        lI = len(I)
-        I = list(I)
         r = P.zero()
         p = self
 
         while p != 0:
-            for i in range(lI):
-                gi = I[i]
+            for gi in list(I):
                 plm = p.lm()
                 gilm = gi.lm()
                 if gilm and P.monomial_divides(gilm, plm):
                     quot = p.lc()/gi.lc() * P.monomial_quotient(plm, gilm)
-                    p -= quot*I[i]
+                    p -= quot*gi
                     break
             else:
                 plt = p.lt()
