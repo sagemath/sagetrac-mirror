@@ -131,7 +131,6 @@ from sage.misc.cachefunc import cached_method
 
 from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.categories.number_fields import NumberFields
-from sage.rings.qqbar import QQbar
 
 cpdef is_Polynomial(f):
     """
@@ -5761,7 +5760,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-        sage: R.<x> = PolynomialRing(QQbar, sparse=True)
+        sage: R.<x> = PolynomialRing(QQ)
         sage: f = 3 * x^3 + 2 * x^2 + x
         sage: exp(f.global_height)
         3

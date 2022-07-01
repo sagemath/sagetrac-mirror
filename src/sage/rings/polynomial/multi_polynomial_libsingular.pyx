@@ -233,7 +233,6 @@ from sage.rings.number_field.number_field_base cimport NumberField
 
 from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.categories.number_fields import NumberFields
-from sage.rings.qqbar import QQbar
 
 from sage.structure.element import coerce_binop
 
@@ -5524,7 +5523,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         if K in NumberFields() or is_NumberFieldOrder(K):
             f = self
         else:
-            raise TypeError("Must be over a Numberfield or a Numberfield Order or QQbar.")
+            raise TypeError("Must be over a Numberfield or a Numberfield Order.")
 
         from sage.schemes.projective.projective_space import ProjectiveSpace
         P = ProjectiveSpace(K, f.number_of_terms()-1)
