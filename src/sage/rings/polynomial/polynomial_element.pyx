@@ -129,6 +129,9 @@ from sage.categories.morphism cimport Morphism
 from sage.misc.superseded import deprecation_cython as deprecation
 from sage.misc.cachefunc import cached_method
 
+from sage.rings.number_field.order import is_NumberFieldOrder
+from sage.categories.number_fields import NumberFields
+from sage.rings.qqbar import QQbar
 
 cpdef is_Polynomial(f):
     """
@@ -5745,7 +5748,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def global_height(self, prec=None):
         """
-        Return the absolute logarithmic height of the polynomial.
+        Return the projective height of the polynomial.
 
         INPUT:
 
@@ -5763,25 +5766,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
         sage: exp(f.global_height)
         3
         """
-        from sage.schemes.projective.projective_space import ProjectiveSpace
-        #from sage.schemes.projective.projective_morphism import _number_field_from_algebraics
-        from sage.rings.number_field.order import is_NumberFieldOrder
-        from sage.categories.number_fields import NumberFields
-        from sage.rings.qqbar import QQbar
         if prec is None:
             prec = 53
 
         K = self.base_ring()
         if K in NumberFields() or is_NumberFieldOrder(K):
             f = self
-        #elif K is QQbar:
-        #    f = self._number_field_from_algebraics()
         else:
-            raise TypeError("Must be over a Numberfield or a Numberfield Order or QQbar.")
+            raise TypeError("Must be over a Numberfield or a Numberfield Order.")
 
+        from sage.schemes.projective.projective_space import ProjectiveSpace
         P = ProjectiveSpace(K, f.number_of_terms()-1)
-        proj_point = P.point(f.coefficients())
-        return proj_point.global_height()
+        return P.point(f.coefficients()).global_height()
 
     def exponents(self):
         """
