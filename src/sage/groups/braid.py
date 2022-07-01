@@ -765,8 +765,8 @@ class Braid(FiniteTypeArtinGroupElement):
     @cached_method
     def links_gould_matrix(self, symbolics=False):
         r"""
-        Return the representation matrices of ``self`` of the R-matrix
-        representation beeing attached the quantum superalgebra `sl_q(2|1)`.
+        Return the representation matrix of ``self`` according to the R-matrix
+        representation being attached to the quantum superalgebra `sl_q(2|1)`.
         See [MW2012]_, section 3 and references given there.
 
         INPUT:
@@ -778,7 +778,7 @@ class Braid(FiniteTypeArtinGroupElement):
 
         OUTPUT:
 
-        A representation matrix of ``self`` over the ring according to the choice
+        The representation matrix of ``self`` over the ring according to the choice
         of the keyword ``symbolics`` (see the corresponding explanation).
 
         EXAMPLES::
@@ -787,6 +787,12 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: HopfLG = Hopf.links_gould_matrix()
             sage: HopfLG.dimensions()
             (16, 16)
+            sage: HopfLG.base_ring()
+            Quotient of Multivariate Laurent Polynomial Ring in s0r, s1r, Yr
+              over Integer Ring by the ideal (s0r^2*s1r^2 - s0r^2 - s1r^2 + Yr^2 + 1)
+            sage: HopfLGs = Hopf.links_gould_matrix(symbolics=True)
+            sage: HopfLGs.base_ring()
+            Symbolic Ring
         """
         rep = self.parent()._links_gould_representation(symbolics=symbolics)
         M = rep[0][0].parent().one()
@@ -2538,7 +2544,7 @@ class BraidGroup_class(FiniteTypeArtinGroup):
     def _links_gould_representation(self, symbolics=False):
         """
         Compute the representation matrices of the generators of the R-matrix
-        representation beeing attached the quantum superalgebra `sl_q(2|1)`.
+        representation being attached the quantum superalgebra `sl_q(2|1)`.
 
         INPUT:
 
@@ -2549,8 +2555,10 @@ class BraidGroup_class(FiniteTypeArtinGroup):
 
         OUTPUT:
 
-        A tuple of representation matrices over the symbolic ring, one item for
-        each generator of ``self``.
+        A tuple of length equal to the number `n` of strands. The first `n-1`
+        items are pairs of the representation matrices of the generators and
+        their inverses. The last item is the quantum trace operator of the
+        `n`-fold tensorproduct of the natural module.
 
         TESTS::
 
@@ -2594,13 +2602,11 @@ class BraidGroup_class(FiniteTypeArtinGroup):
             # R-Matrix taken from I. Marin
             R = matrix(BR, {(0, 0): t0, (1, 4): s0, (2, 8): s0, (3, 12): 1,
                 (4, 1): s0, (4, 4): t0 - 1, (5, 5): -1, (6, 6): t0*t1 - 1,
-                (6, 9): -s0*s1, (6, 12): -Y*s0*s1,
-                (7, 13): s1, (8, 2): s0, (8, 8): t0 - 1, (9, 6): -s0*s1,
-                (9, 12): Y, (10, 10): -1, (11, 14): s1,
-                (12, 3): 1, (12, 6): -Y*s0*s1,
-                (12, 9): Y, (12, 12): -(t0 - 1)*(t1 - 1),
-                (13, 7): s1, (13, 13): t1 - 1, (14, 11): s1, (14, 14): t1 - 1,
-                (15, 15): t1}, sparse=sparse)
+                (6, 9): -s0*s1, (6, 12): -Y*s0*s1, (7, 13): s1, (8, 2): s0,
+                (8, 8): t0 - 1, (9, 6): -s0*s1, (9, 12): Y, (10, 10): -1,
+                (11, 14): s1, (12, 3): 1, (12, 6): -Y*s0*s1, (12, 9): Y,
+                (12, 12): -(t0 - 1)*(t1 - 1), (13, 7): s1, (13, 13): t1 - 1,
+                (14, 11): s1, (14, 14): t1 - 1, (15, 15): t1}, sparse=sparse)
             RI = R.inverse()
 
             # quantum trace operator on two fold tensor space
@@ -2631,7 +2637,7 @@ class BraidGroup_class(FiniteTypeArtinGroup):
 
         # quantum trace operator on n fold tensor space
         mun = musub.tensor_product(mu)
-        return tuple(lg + [[gn, gni], mun])
+        return tuple(lg + [(gn, gni), mun])
 
     @cached_method
     def _LKB_matrix_(self, braid, variab):
