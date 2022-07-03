@@ -2182,11 +2182,14 @@ class Exponentialize(ExpressionTreeWalker):
     # Implementation note: this code is executed once at first
     # reference in the code using it, therefore avoiding rebuilding
     # the same canned results dictionary at each call.
-    from sage.functions.hyperbolic import sinh, cosh, sech, csch, tanh, coth
+    from sage.functions.hyperbolic import sinh, cosh, sech, csch, tanh, coth,\
+        arcsinh, arccosh, arcsech, arccsch, arctanh, arccoth
     from sage.functions.log import exp
-    from sage.functions.trig import sin, cos, sec, csc, tan, cot
+    from sage.misc.functional import log, sqrt
+    from sage.functions.trig import sin, cos, sec, csc, tan, cot,\
+        arcsin, arccos, arcsec, arccsc, arctan, arccot
     from sage.rings.imaginary_unit import I
-    from sage.symbolic.constants import e
+    from sage.symbolic.constants import e, pi
     from sage.rings.integer import Integer
     from sage.symbolic.ring import SR
     from sage.calculus.var import function
@@ -2205,7 +2208,19 @@ class Exponentialize(ExpressionTreeWalker):
         sech: (two/(exp(-x) + exp(x))).function(x),
         csch: (-two/(exp(-x) - exp(x))).function(x),
         tanh: (-(exp(-x) - exp(x))/(exp(x) + exp(-x))).function(x),
-        coth: (-(exp(-x) + exp(x))/(exp(-x) - exp(x))).function(x)
+        coth: (-(exp(-x) + exp(x))/(exp(-x) - exp(x))).function(x),
+        arcsin: (-I*log(I*x + sqrt(-x**2 + 1))).function(x),
+        arccos: (half*pi + I*log(I*x + sqrt(-x**2 + 1))).function(x),
+        arctan: (-half*I*log(I*x + 1) + half*I*log(-I*x + 1)).function(x),
+        arccsc: (-I*log(sqrt(-1/x**2 + 1) + I/x)).function(x),
+        arcsec: (half*pi + I*log(sqrt(-1/x**2 + 1) + I/x)).function(x),
+        arccot: (-half*I*log(I/x + 1) + half*I*log(-I/x + 1)).function(x),
+        arcsinh: (log(x + sqrt(x**2 + 1))).function(x),
+        arccosh: (log(sqrt(x + 1)*sqrt(x - 1) + x)).function(x),
+        arctanh: (half*log(x + 1) - half*log(-x + 1)).function(x),
+        arccsch: (log(sqrt(1/x**2 + 1) + 1/x)).function(x),
+        arcsech: (log(sqrt(1/x + 1)*sqrt(1/x - 1) + 1/x)).function(x),
+        arccoth: (half*log(1/x + 1) - half*log(-1/x + 1)).function(x)
     }
     Circs = list(CircDict.keys())
 
