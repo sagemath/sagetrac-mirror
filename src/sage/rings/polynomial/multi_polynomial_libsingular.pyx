@@ -5506,7 +5506,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         EXAMPLES::
 
         sage: R.<x,y> = PolynomialRing(QQ)
-        sage: f = 3 * x^3 + 2 * x * y^2
+        sage: f = 3*x^3 + 2*x*y^2
         sage: exp(f.global_height())
         3
 
@@ -5514,7 +5514,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
         sage: K.<k> = CyclotomicField(3)
         sage: R.<x> = PolynomialRing(K, sparse=True)
-        sage: f = k * x^2 + 1
+        sage: f = k*x^2 + 1
         sage: exp(f.global_height())
         1
         """
@@ -5550,7 +5550,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         EXAMPLES::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: f = 1/1331 * x^2 + 1/4000 * y^2
+            sage: f = 1/1331*x^2 + 1/4000*y^2
             sage: f.local_height(1331)
             7.19368581839511
         """
@@ -5579,7 +5579,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         EXAMPLES::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: f = 210 * x * y
+            sage: f = 210*x*y
             sage: f.local_height_arch(0)
             5.34710753071747
         """
