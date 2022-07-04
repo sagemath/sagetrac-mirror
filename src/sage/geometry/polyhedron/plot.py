@@ -1322,28 +1322,28 @@ class Projection(SageObject):
             sage: with open('polytope-tikz3.tex', 'w') as f:  # not tested
             ....:     _ = f.write(Image3)
 
-            sage: P = Polyhedron(vertices=[[1,1,0,0],[1,2,0,0],[2,1,0,0],[0,0,1,0],[0,0,0,1]])
-            sage: P
+        It is possible to draw the Schlegel diagram of a 4-polytope:
+
+            sage: P=Polyhedron(vertices=[[1,1,0,0],[1,2,0,0],[2,1,0,0],[0,0,1,0],[0,0,0,1]]); P
             A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 5 vertices
-            sage: P.projection().tikz()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: The polytope has to live in 2 or 3 dimensions.
+            sage: tikz = P.schlegel_projection().tikz()
+            sage: print("\n".join(tikz.splitlines()[-10:-3]))
+            \draw[facet] (1) -- (2);
+            \node[vertex] at (2) {};
+            \draw[facet] (1) -- (3);
+            \node[vertex] at (3) {};
+            \draw[facet] (1) -- (4);
+            \node[vertex] at (1) {};
+            \node[vertex] at (4) {};
 
         .. TODO::
 
-            Make it possible to draw Schlegel diagram for 4-polytopes. ::
-
-                sage: P=Polyhedron(vertices=[[1,1,0,0],[1,2,0,0],[2,1,0,0],[0,0,1,0],[0,0,0,1]])
-                sage: P
-                A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 5 vertices
-                sage: P.projection().tikz()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError: The polytope has to live in 2 or 3 dimensions.
-
             Make it possible to draw 3-polytopes living in higher dimension.
         """
+        if self.polyhedron_dim == 4:
+            return self._tikz_4d_schlegel(view, angle, scale, edge_color,
+                                          facet_color, opacity, vertex_color,
+                                          axis)
         if self.polyhedron_ambient_dim > 3 or self.polyhedron_ambient_dim < 2:
             raise NotImplementedError("The polytope has to live in 2 or 3 dimensions.")
         elif self.polyhedron_dim < 2 or self.polyhedron_dim > 3:
