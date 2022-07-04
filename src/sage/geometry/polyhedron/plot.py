@@ -21,6 +21,7 @@ from sage.matrix.special import diagonal_matrix
 from sage.misc.functional import norm
 from sage.misc.latex import LatexExpr
 from sage.structure.sequence import Sequence
+from sage.misc.flatten import flatten
 
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.all", ["Graphics", "point2d", "line2d", "arrow", "polygon2d", "rainbow"])
@@ -532,6 +533,7 @@ class Projection(SageObject):
             raise ValueError("The face should be a facet of the polyhedron")
         if position is not None and position <= 0:
             raise ValueError("'position' should be a positive number")
+        self.facet = facet
 
         barycenter = ZZ.one() * sum([v.vector() for v in facet.vertices()]) / len(facet.vertices())
         locus_polyhedron = facet.stacking_locus()
@@ -1835,5 +1837,141 @@ class Projection(SageObject):
             if v in front_vertices:
                 if v in dict_drawing:
                     tikz_pic += dict_drawing[v][0]
+        tikz_pic += '%%\n%%\n\\end{tikzpicture}'
+        return LatexExpr(tikz_pic)
+
+    def _tikz_4d_schlegel(self, view, angle, scale, edge_color,
+                       facet_color, opacity, vertex_color, axis):
+        r"""
+        Return a string ``tikz_pic`` consisting of a tikz picture of ``self``,
+        which is assumed to be a 4-polytope.
+
+        INPUT:
+
+        - ``view`` -- list; representing the rotation axis.
+        - ``angle`` -- integer; from 0 to 360 representing the angle of
+          rotation in degree.
+        - ``scale`` -- integer; specifying the scaling of the tikz picture.
+        - ``edge_color`` -- string; representing color which tikz recognizes.
+        - ``facet_color`` -- string; representing color which tikz
+          recognizes.
+        - ``vertex_color`` -- string; representing color which tikz
+          recognizes.
+        - ``axis`` -- boolean; whether to draw the axes at the origin or not.
+        - ``opacity`` this parameter is ignored.
+
+        OUTPUT:
+
+        - LatexExpr -- containing the TikZ picture.
+
+        EXAMPLES::
+
+            sage: C = polytopes.hypercube(4); C
+            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 16 vertices
+            sage: Image = C.schlegel_projection().tikz([-0.0444,-0.6012,-0.7979], 173.25, 2, edge_color="blue", facet_color="black", vertex_color="green")
+            sage: type(Image)
+            <class 'sage.misc.latex.LatexExpr'>
+            sage: print('\n'.join(Image.splitlines()[40:50]))
+            %%
+            %% Drawing edges and vertices
+            %%
+            \draw[facet] (6) -- (15);
+            \draw[facet] (8) -- (15);
+            \draw[facet] (6) -- (7);
+            \draw[facet] (7) -- (8);
+            \draw[edge] (10) -- (15);
+            \draw[edge] (1) -- (6);
+            \draw[edge] (1) -- (10);
+
+        One can choose another window for the Schlegel projection:
+
+            sage: P = polytopes.cube().pyramid(); P
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 9 vertices
+            sage: Image1 = P.schlegel_projection(P.facets()[0]).tikz([0.0648,-0.5978,-0.799], 189.91, 2, facet_color="black")
+            sage: print('\n'.join(Image1.splitlines()[36:40]))
+            \draw[facet] (1) -- (4);
+            \draw[facet] (1) -- (8);
+            \draw[facet] (3) -- (4);
+            \draw[facet] (3) -- (8);
+            sage: Image2 = P.schlegel_projection(P.facets()[1]).tikz([0.0648,-0.5978,-0.799], 189.91, 2, facet_color="black")
+            sage: print('\n'.join(Image2.splitlines()[36:40]))
+            \draw[facet] (2) -- (3);
+            \draw[facet] (0) -- (2);
+            \draw[facet] (0) -- (3);
+            \draw[edge] (0) -- (7);
+        """
+        def parse_vector(v):
+            return "(" + ", ".join([f"{c.n():.5f}" for c in v]) + ")"
+
+        tcoords = [vector(v) for v in self.transformed_coords]
+
+        # Compute projection vector
+        view_vector = vector(RDF, view)
+        rot = rotate_arbitrary(view_vector, -(angle/360)*2*pi)
+        rotation_matrix = rot[:2].transpose()
+        proj_vector = (rot**(-1))*vector(RDF, [0, 0, 1])
+
+        # Start to write the output
+        tikz_pic = ''
+        tikz_pic += '\\begin{tikzpicture}%\n'
+        tikz_pic += '\t[x={(%fcm, %fcm)},\n' % (RDF(rotation_matrix[0][0]),
+                                                RDF(rotation_matrix[0][1]))
+        tikz_pic += '\ty={(%fcm, %fcm)},\n' % (RDF(rotation_matrix[1][0]),
+                                               RDF(rotation_matrix[1][1]))
+        tikz_pic += '\tz={(%fcm, %fcm)},\n' % (RDF(rotation_matrix[2][0]),
+                                               RDF(rotation_matrix[2][1]))
+        tikz_pic += '\tscale=%f,\n' % scale
+        tikz_pic += '\tback/.style={loosely dotted, thin},\n'
+        tikz_pic += '\tedge/.style={color=%s, semithick},\n' % edge_color
+        tikz_pic += '\tfacet/.style={color=%s, thick},\n' % facet_color
+        tikz_pic += '\tvertex/.style={inner sep=1pt,circle,draw=%s!25!black,' % vertex_color
+        tikz_pic += 'fill=%s!75!black,thick}]\n%%\n%%\n' % vertex_color
+
+        # Gives the reproduction information
+        from sage.env import SAGE_VERSION
+        tikz_pic += "%% This TikZ-picture was produced with Sagemath version {}\n".format(SAGE_VERSION)
+        tikz_pic += "%% with the command: ._tikz_4d_schlegel and parameters:\n"
+        tikz_pic += "%% view = {}\n".format(view)
+        tikz_pic += "%% angle = {}\n".format(angle)
+        tikz_pic += "%% scale = {}\n".format(scale)
+        tikz_pic += "%% edge_color = {}\n".format(edge_color)
+        tikz_pic += "%% facet_color = {}\n".format(facet_color)
+        tikz_pic += "%% vertex_color = {}\n".format(vertex_color)
+        tikz_pic += "%% axis = {}\n\n".format(axis)
+
+        # Draws the axes if True
+        if axis:
+            tikz_pic += '%% Drawing the axes\n'
+            tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (1,0,0) node[anchor=north east]{$x$};\n'
+            tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$y$};\n'
+            tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (0,0,1) node[anchor=south]{$z$};\n'
+
+        # Create the coordinate of the vertices
+        tikz_pic += '%% Coordinate of the vertices:\n%%\n'
+        for ind in self.points:
+            tikz_pic += f"\\coordinate ({ind}) at {parse_vector(tcoords[ind])};\n"
+
+        # Sort the edges
+        edges = sorted(self.lines, key=lambda line: max(tcoords[line[0]]*proj_vector, tcoords[line[1]]*proj_vector))
+
+        # Figure out window vertices
+        facet_vertices = [v for v in self.points if self.parent_polyhedron.vertices()[v] in self.facet]
+
+        # Draw edges and vertices
+        drawn_vertices = []
+        edges_vertices = flatten(edges)
+        tikz_pic += '%%\n%%\n%% Drawing edges and vertices\n%%\n'
+        for i in range(len(edges)):
+            edge = edges[i]
+            if edge[0] in facet_vertices and edge[1] in facet_vertices:
+                tikz_pic += f"\\draw[facet] ({edge[0]}) -- ({edge[1]});\n"
+            else:
+                tikz_pic += f"\\draw[edge] ({edge[0]}) -- ({edge[1]});\n"
+            for vertex in edge:
+                if vertex in drawn_vertices: continue
+                if vertex not in edges_vertices[2*i+2:]:
+                    tikz_pic += f"\\node[vertex] at ({vertex}) {{}};\n"
+                    drawn_vertices.append(vertex)
+
         tikz_pic += '%%\n%%\n\\end{tikzpicture}'
         return LatexExpr(tikz_pic)
