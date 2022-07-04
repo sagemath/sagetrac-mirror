@@ -563,10 +563,49 @@ class Polyhedron_base6(Polyhedron_base5):
             %%
             \coordinate (-1.00000, -1.00000, 0.00000) at (-1.00000, -1.00000, 0.00000);
             \coordinate (-1.00000, 0.00000, -1.00000) at (-1.00000, 0.00000, -1.00000);
+
+        It is possible to draw the Schlegel diagram of a 4-polytope:
+
+            sage: C = polytopes.hypercube(4); C
+            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 16 vertices
+            sage: Image = C.tikz([-0.0444,-0.6012,-0.7979], 173.25, 2, edge_color="blue", facet_color="black", vertex_color="green")
+            sage: type(Image)
+            <class 'sage.misc.latex.LatexExpr'>
+            sage: print('\n'.join(Image.splitlines()[40:50]))
+            %%
+            %% Drawing edges and vertices
+            %%
+            \draw[facet] (6) -- (15);
+            \draw[facet] (8) -- (15);
+            \draw[facet] (6) -- (7);
+            \draw[facet] (7) -- (8);
+            \draw[edge] (10) -- (15);
+            \draw[edge] (1) -- (6);
+            \draw[edge] (1) -- (10);
+
+        One can choose another window for the Schlegel projection:
+
+            sage: P = polytopes.cube().pyramid(); P
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 9 vertices
+            sage: Image1 = P.schlegel_projection(P.facets()[0]).tikz([0.0648,-0.5978,-0.799], 189.91, 2, facet_color="black")
+            sage: print('\n'.join(Image1.splitlines()[36:40]))
+            \draw[facet] (1) -- (4);
+            \draw[facet] (1) -- (8);
+            \draw[facet] (3) -- (4);
+            \draw[facet] (3) -- (8);
+            sage: Image2 = P.schlegel_projection(P.facets()[1]).tikz([0.0648,-0.5978,-0.799], 189.91, 2, facet_color="black")
+            sage: print('\n'.join(Image2.splitlines()[36:40]))
+            \draw[facet] (2) -- (3);
+            \draw[facet] (0) -- (2);
+            \draw[facet] (0) -- (3);
+            \draw[edge] (0) -- (7);
         """
-        return self.projection().tikz(view, angle, scale,
-                                      edge_color, facet_color,
-                                      opacity, vertex_color, axis)
+        if self.dimension() == 4:
+            proj = self.schlegel_projection()
+        else:
+            proj = self.projection()
+        return proj.tikz(view, angle, scale, edge_color, facet_color,
+                         opacity, vertex_color, axis)
 
     def _rich_repr_(self, display_manager, **kwds):
         r"""
