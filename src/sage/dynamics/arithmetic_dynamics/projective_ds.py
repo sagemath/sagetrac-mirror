@@ -2084,7 +2084,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def height_difference_bound(self, prec=None):
         r"""
-        Return an upper bound on the different between the canonical
+        Return an upper bound on the difference between the canonical
         height of a point with respect to this dynamical system and the
         absolute height of the point.
 
@@ -2104,15 +2104,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2+y^2, x*y])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 + y^2, x*y])
             sage: f.height_difference_bound()
             1.38629436111989
 
         This function does not automatically normalize. ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
-            sage: f = DynamicalSystem_projective([4*x^2+100*y^2, 210*x*y, 10000*z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: f = DynamicalSystem_projective([4*x^2 + 100*y^2, 210*x*y, 10000*z^2])
             sage: f.height_difference_bound()
             12.1007121298723
             sage: f.normalize_coordinates()
@@ -2123,8 +2123,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: R.<x> = QQ[]
             sage: K.<c> = NumberField(x^3 - 2)
-            sage: P.<x,y,z> = ProjectiveSpace(K,2)
-            sage: f = DynamicalSystem_projective([1/(c+1)*x^2+c*y^2, 210*x*y, 10000*z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: f = DynamicalSystem_projective([1/(c + 1)*x^2 + c*y^2, 210*x*y, 10000*z^2])
             sage: f.height_difference_bound()
             12.1007121298723
 
@@ -2162,14 +2162,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         #compute upper bound
         U = f.global_height(prec) + R(binomial(N + d, d)).log()
         #compute lower bound - from explicit polynomials of Nullstellensatz
-        CR = f.domain().coordinate_ring()
-        I = CR.ideal(f.defining_polynomials())
-        maxh = 0
-        for k in range(N + 1):
-            CoeffPolys = (CR.gen(k) ** D).lift(I)
-            h = max([c.global_height(prec) for g in CoeffPolys for c in (g).coefficients()])
-            maxh = max(maxh, h)
-        L = R((N + 1) * binomial(N + D - d, D - d)).log() + maxh
+        L = R((N + 1) * binomial(N + D - d, D - d)).log() + f.global_height(prec)
         C = max(U, L) #height difference dh(P) - L <= h(f(P)) <= dh(P) +U
         return C / (d - 1)
 
