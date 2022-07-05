@@ -2103,15 +2103,20 @@ class ExteriorAlgebra(CliffordAlgebra):
                         it = iter(mr)
                         j = next(it)
 
-                        num_cross = 0 # keep track of the number of signs
+                        # keep track of the number of signs
+                        # initially len(m) choose 2 because we "reverse" ml
+                        num_cross = int((len(m)*(len(m)-1))/2)
+                        num_cross_old = 0
                         for i in ml:
+                            num_cross_new = 0
                             while i > j:
-                                num_cross += 1
+                                num_cross_new += 1
                                 try:
                                     j = next(it)
                                 except StopIteration:
                                     break
-
+                            num_cross_old = num_cross_new + 1
+                            num_cross += num_cross_new + num_cross_old
                         if num_cross % 2:
                             cr = -cr
 
