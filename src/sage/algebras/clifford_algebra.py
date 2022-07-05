@@ -2105,7 +2105,8 @@ class ExteriorAlgebra(CliffordAlgebra):
 
                         # keep track of the number of signs
                         # initially len(m) choose 2 because we "reverse" ml
-                        num_cross = int((len(m)*(len(m)-1))/2)
+                        num_cross = int((len(ml)*(len(ml)-1))/2)
+
                         num_cross_old = 0
                         for i in ml:
                             num_cross_new = 0
@@ -2115,8 +2116,8 @@ class ExteriorAlgebra(CliffordAlgebra):
                                     j = next(it)
                                 except StopIteration:
                                     break
-                            num_cross_old = num_cross_new + 1
                             num_cross += num_cross_new + num_cross_old
+                            num_cross_old += num_cross_new + 1
                         if num_cross % 2:
                             cr = -cr
 
