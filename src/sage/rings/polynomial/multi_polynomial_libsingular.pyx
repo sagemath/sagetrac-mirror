@@ -5496,6 +5496,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         Return the projective height of the polynomial.
 
         INPUT:
+
         - ``prec`` -- desired floating point precision (default:
           default RealField precision).
 
@@ -5505,18 +5506,30 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
         EXAMPLES::
 
-        sage: R.<x,y> = PolynomialRing(QQ)
-        sage: f = 3*x^3 + 2*x*y^2
-        sage: exp(f.global_height())
-        3
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = 3*x^3 + 2*x*y^2
+            sage: exp(f.global_height())
+            3.00000000000000
 
         ::
 
-        sage: K.<k> = CyclotomicField(3)
-        sage: R.<x> = PolynomialRing(K, sparse=True)
-        sage: f = k*x^2 + 1
-        sage: exp(f.global_height())
-        1
+            sage: K.<k> = CyclotomicField(3)
+            sage: R.<x> = PolynomialRing(K, sparse=True)
+            sage: f = k*x^2 + 1
+            sage: exp(f.global_height())
+            1.00000000000000
+
+        ::
+
+        Scaling should not change the result:
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = 1/25*x^2 + 25/3*x*y + y^2
+            sage: f.global_height()
+            6.43775164973640
+            sage: g = 100 * f
+            sage: g.global_height()
+            6.43775164973640
         """
         if prec is None:
             prec = 53
@@ -5589,8 +5602,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
         if K == QQ:
             return max([K(c).local_height_arch(prec) for c in self.coefficients()])
-        else:
-            return max([K(c).local_height_arch(i, prec) for c in self.coefficients()])
+        return max([K(c).local_height_arch(i, prec) for c in self.coefficients()])
 
     def gradient(self):
         """

@@ -5760,10 +5760,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-        sage: R.<x> = PolynomialRing(QQ)
-        sage: f = 3*x^3 + 2*x^2 + x
-        sage: exp(f.global_height)
-        3
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = 3*x^3 + 2*x^2 + x
+            sage: exp(f.global_height())
+            3.00000000000000
+
+        ::
+
+        Scaling should not change the result::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = 1/25*x^2 + 25/3*x + 1
+            sage: f.global_height()
+            6.43775164973640
+            sage: g = 100 * f
+            sage: g.global_height()
+            6.43775164973640
         """
         if prec is None:
             prec = 53
@@ -5836,8 +5848,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         if K == QQ:
             return max([K(c).local_height_arch(prec) for c in self.coefficients()])
-        else:
-            return max([K(c).local_height_arch(i, prec) for c in self.coefficients()])
+        return max([K(c).local_height_arch(i, prec) for c in self.coefficients()])
 
     def exponents(self):
         """
