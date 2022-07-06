@@ -6074,13 +6074,14 @@ cdef class Expression(Expression_abc):
         Check that, for all ``f`` in hyperbolic and trigonometric functions,
         ``f(arcf(x).exponentialize()).exponentialize()`` is identity::
 
-        sage: LF = [sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, csch, sech, coth]
-        sage: LRF = [arcsin, arccos, arctan, arccsc, arcsec, arccot, arcsinh,
-        ....:        arccosh, arctanh, arccsch, arcsech, arccoth]
-        sage: DF = dict(zip(LF, LRF))
-        sage: all([bool(x==u(DF[u](x).exponentialize()).exponentialize())
-        ....:      for u in LF])
-        True
+            sage: LF = [sin, cos, tan, csc, sec, cot,
+            ....:       sinh, cosh, tanh, csch, sech, coth]
+            sage: LRF = [arcsin, arccos, arctan, arccsc, arcsec, arccot,
+            ....:        arcsinh, arccosh, arctanh, arccsch, arcsech, arccoth]
+            sage: DF = dict(zip(LF, LRF))
+            sage: all([bool(x==u(DF[u](x).exponentialize()).exponentialize())
+            ....:      for u in LF])
+            True
         """
         from sage.symbolic.expression_conversions import Exponentialize
         return Exponentialize(self)()
