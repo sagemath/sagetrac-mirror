@@ -132,6 +132,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.categories.number_fields import NumberFields
 
+
 cpdef is_Polynomial(f):
     """
     Return True if f is of type univariate polynomial.
@@ -5776,13 +5777,28 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g = 100 * f
             sage: g.global_height()
             6.43775164973640
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQbar)
+            sage:  f = QQbar(i)*x^2 + 3*x
+            sage: f.global_height()
+            1.09861228866811
         """
         if prec is None:
             prec = 53
 
+        from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
+
         K = self.base_ring()
         if K in NumberFields() or is_NumberFieldOrder(K):
             f = self
+        elif K is QQbar:
+            K_pre, P, phi = number_field_elements_from_algebraics(list(self))
+
+            from sage.rings.number_field.number_field import NumberField
+            K = NumberField(K_pre.polynomial(), embedding=phi(K_pre.gen()), name='a')
+            f = self.change_ring(K)
         else:
             raise TypeError("Must be over a Numberfield or a Numberfield Order.")
 
