@@ -1643,7 +1643,7 @@ class Permutation(CombinatorialElement):
                         break
             stack.append(j)
         sorted_p.extend(reversed(stack))
-        return Permutation(sorted_p)  # type: ignore
+        return Permutation(sorted_p)  # type:ignore
 
     def to_digraph(self) -> DiGraph:
         r"""
@@ -4106,7 +4106,7 @@ class Permutation(CombinatorialElement):
         if side == "left":
             return self.inverse().permutohedron_join(other.inverse()).inverse()
         n = self.size()
-        xs = []
+        xs: list[int] = []
         for i in range(1, n + 1):
             u = self.index(i)
             must_be_right = [f for f in self[u + 1:] if f < i]
@@ -4753,9 +4753,17 @@ class Permutation(CombinatorialElement):
         return RSK(self)[1].shape()
 
     def remove_extra_fixed_points(self):
-        """
+        r"""
         Return the permutation obtained by removing any fixed points at
         the end of ``self``.
+
+        However, return ``[1]`` rather than ``[]`` if ``self`` is the
+        identity permutation.
+
+        This is mostly a helper method for
+        :mod:`sage.combinat.schubert_polynomial`, where it is
+        used to normalize finitary permutations of
+        `\{1,2,3,\ldots\}`.
 
         EXAMPLES::
 
@@ -4763,11 +4771,17 @@ class Permutation(CombinatorialElement):
             [2, 1]
             sage: Permutation([1,2,3,4]).remove_extra_fixed_points()
             [1]
+            sage: Permutation([2,1]).remove_extra_fixed_points()
+            [2, 1]
+            sage: Permutation([]).remove_extra_fixed_points()
+            [1]
 
         .. SEEALSO::
 
             :meth:`retract_plain`
         """
+        if not self:
+            return Permutations()([1])
         #Strip off all extra fixed points at the end of
         #the permutation.
         i = len(self)-1

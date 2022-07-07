@@ -473,9 +473,11 @@ class Fork():
         P = Parallel(p_iter='fork', ncpus=1, timeout=self.timeout,
                      verbose=self.verbose)
         g = P(f)
+
         def h(*args, **kwds):
             return list(g([(args, kwds)]))[0][1]
         return h
+
 
 def fork(f=None, timeout=0, verbose=False):
     """
@@ -555,10 +557,10 @@ def fork(f=None, timeout=0, verbose=False):
 
     We illustrate that segfaulting subprocesses are no trouble at all::
 
-        sage: cython('def f(): print(<char*>0)')
+        sage: cython('def f(): print(<char*>0)')                            # optional - sage.misc.cython
         sage: @fork
         ....: def g(): f()
-        sage: print("this works"); g()
+        sage: print("this works"); g()                                      # optional - sage.misc.cython
         this works...
         <BLANKLINE>
         ------------------------------------------------------------------------
