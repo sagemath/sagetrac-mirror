@@ -68,7 +68,7 @@ def solid_angle_simplicial_2d(A):
         1/3
 
         sage: solid_angle_simplicial_2d(matrix([[0, 1], [4.5, 0]]))
-        0.785398163397448/pi
+        0.250000000000000
 
         sage: RDF(solid_angle_simplicial_2d([[2, 13], [-1, 7]]))  # abs tol 1e-15
         0.04687851282419763
@@ -109,79 +109,156 @@ def solid_angle_simplicial_2d(A):
         ...
         ValueError: input matrix has a row that is zero
 
-    TESTS:
-
     In the following examples, we check the parent of the output corresponding
-    to an input whose parent is exact.::
+    to an input whose parent is exact. The output should be in the Symbolic Ring
+    as the formula for two-dimensional solid angles has a factor of `1 / (2*pi)`,
+    whose parent is the Symbolic Ring ::
+
+        sage: parent(1/(2*pi))
+        Symbolic Ring
+
+        sage: A = matrix([[2/3, 0], [-1/3, 0]])
+        sage: A.base_ring()
+        Rational Field
+        sage: A.base_ring().is_exact()
+        True
+        sage: solid_angle_simplicial_2d(A)
+        0
+        sage: solid_angle_simplicial_2d(A).parent()
+        Symbolic Constants Subring
 
         sage: A = matrix([[2/3, 0], [-1/3, 5]])
+        sage: A.base_ring()
+        Rational Field
+        sage: A.base_ring().is_exact()
+        True
         sage: solid_angle_simplicial_2d(A)
         1/2*arccos(-1/226*sqrt(226))/pi
         sage: solid_angle_simplicial_2d(A).parent()
         Symbolic Ring
 
-        sage: A = matrix([[2/3, 0], [-1/3, 0]])
+        sage: A = matrix([[1, 1], [-4, -4]])
+        sage: A.base_ring()
+        Integer Ring
+        sage: A.base_ring().is_exact()
+        True
         sage: solid_angle_simplicial_2d(A)
         0
         sage: solid_angle_simplicial_2d(A).parent()
         Symbolic Constants Subring
 
-        sage: A = matrix([[1, 1], [-4, -4]])
+        sage: A = matrix([[1, 1], [-4, -3]])
+        sage: A.base_ring()
+        Integer Ring
+        sage: A.base_ring().is_exact()
+        True
         sage: solid_angle_simplicial_2d(A)
-        0
+        1/2*arccos(-7/10*sqrt(2))/pi
         sage: solid_angle_simplicial_2d(A).parent()
-        Symbolic Constants Subring
+        Symbolic Ring
 
     In the following examples, we check the parent of the output corresponding
     to an input whose parent is not exact::
 
-        sage: A = matrix([[12, 0], [RBF(1.5), 9]])
-        sage: solid_angle_simplicial_2d(A)
-        ([0.702823824690135 +/- 4.26e-16])/pi
-        sage: solid_angle_simplicial_2d(A).parent()
-        Symbolic Ring
-
         sage: A = matrix([[RBF(12.7), 0], [-1, 0]])
+        sage: A.base_ring()
+        Real ball field with 53 bits of precision
+        sage: A.base_ring().is_exact()
+        False
         sage: solid_angle_simplicial_2d(A)
         0
         sage: solid_angle_simplicial_2d(A).parent()
         Real ball field with 53 bits of precision
 
-        sage: A = matrix([[12, 0], [sqrt(17), 9]])
+        sage: A = matrix([[RBF(12.7), 0], [-1, 1]])
+        sage: A.base_ring()
+        Real ball field with 53 bits of precision
+        sage: A.base_ring().is_exact()
+        False
         sage: solid_angle_simplicial_2d(A)
-        1/2*arccos(1/14*sqrt(17)*sqrt(2))/pi
+        [0.375000000000000 +/- 6.11e-16]
         sage: solid_angle_simplicial_2d(A).parent()
-        Symbolic Ring
+        Real ball field with 53 bits of precision
 
         sage: A = matrix([[0, sqrt(18)], [0, -sqrt(pi)]])
+        sage: A.base_ring()
+        Symbolic Ring
+        sage: A.base_ring().is_exact()
+        False
         sage: solid_angle_simplicial_2d(A)
         0
         sage: solid_angle_simplicial_2d(A).parent()
         Symbolic Ring
 
-        sage: A = matrix([[0, 1], [RDF(pi), RDF(pi)]])
+        sage: A = matrix([[0, sqrt(18)], [0.4, -sqrt(pi)]])
+        sage: A.base_ring()
+        Symbolic Ring
+        sage: A.base_ring().is_exact()
+        False
         sage: solid_angle_simplicial_2d(A)
-        0.39269908169872414/pi
+        1/2*arccos(-sqrt(pi)/sqrt(pi + 0.160000000000000))/pi
         sage: solid_angle_simplicial_2d(A).parent()
         Symbolic Ring
 
         sage: A = matrix([[-1, -1], [RDF(pi), RDF(pi)]])
+        sage: A.base_ring()
+        Real Double Field
+        sage: A.base_ring().is_exact()
+        False
         sage: solid_angle_simplicial_2d(A)
         0.0
         sage: solid_angle_simplicial_2d(A).parent()
         Real Double Field
 
-        sage: A = matrix([[0, 1], [RR(-pi), RR(0)]])
+        sage: A = matrix([[-1, -1], [RDF(7), RDF(pi)]])
+        sage: A.base_ring()
+        Real Double Field
+        sage: A.base_ring().is_exact()
+        False
         sage: solid_angle_simplicial_2d(A)
-        0.785398163397448/pi
+        0.4421402581608187
         sage: solid_angle_simplicial_2d(A).parent()
-        Symbolic Ring
+        Real Double Field
 
         sage: A = matrix([[1, 0], [RR(-pi), RR(0)]])
+        sage: A.base_ring()
+        Real Field with 53 bits of precision
+        sage: A.base_ring().is_exact()
+        False
         sage: solid_angle_simplicial_2d(A)
         0.000000000000000
         sage: solid_angle_simplicial_2d(A).parent()
         Real Field with 53 bits of precision
+
+        sage: A = matrix([[1, 0], [RR(-pi), RR(0.2)]])
+        sage: A.base_ring()
+        Real Field with 53 bits of precision
+        sage: A.base_ring().is_exact()
+        False
+        sage: solid_angle_simplicial_2d(A)
+        0.489881536422993
+        sage: solid_angle_simplicial_2d(A).parent()
+        Real Field with 53 bits of precision
+
+        sage: A = matrix([[1, 1], [-4, CC(-4)]])
+        sage: A.base_ring()
+        Complex Field with 53 bits of precision
+        sage: A.base_ring().is_exact()
+        False
+        sage: solid_angle_simplicial_2d(A)
+        0.000000000000000
+        sage: solid_angle_simplicial_2d(A).parent()
+        Complex Field with 53 bits of precision
+
+        sage: A = matrix([[1, 1], [-4, CC(-3)]])
+        sage: A.base_ring()
+        Complex Field with 53 bits of precision
+        sage: A.base_ring().is_exact()
+        False
+        sage: solid_angle_simplicial_2d(A)
+        0.477416382349567
+        sage: solid_angle_simplicial_2d(A).parent()
+        Complex Field with 53 bits of precision
     """
     if not is_Matrix(A):
         A = matrix(A)
@@ -202,4 +279,7 @@ def solid_angle_simplicial_2d(A):
     b = v.norm()
     cs = p/(a*b)
     final_calc = arccos(cs) / (2*pi)
-    return final_calc
+    if P.is_exact():
+        return final_calc
+    else:
+        return P(final_calc)
