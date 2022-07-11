@@ -84,14 +84,17 @@ class build_py(setuptools_build_py):
         #
         # The file exclusions here duplicate what is done in MANIFEST.in
 
-        spkg_with_src = ['sagelib', 'sage_conf', 'sage_docbuild', 'sage_setup', 'sage_sws2rst']
+        spkg_with_src = ['sagelib', 'sage_conf', 'sage_docbuild', 'sage_setup', 'sage_sws2rst',
+                         'sagemath_objects', 'sagemath_categories', 'sagemath_environment', 'sagemath_repl']
 
         def ignore(path, names):
             # exclude all embedded src trees
             if any(fnmatch.fnmatch(path, f'*/build/pkgs/{spkg}')
                    for spkg in spkg_with_src):
                 return ['src']
-            return []
+            ### ignore more stuff --- .tox etc.
+            return [name for name in names
+                    if name in ('.tox',)]
         try:
             shutil.copytree(os.path.join(HERE, 'sage_root_source'), SAGE_ROOT,
                             ignore=ignore)  # will fail if already exists
