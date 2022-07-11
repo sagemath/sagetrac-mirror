@@ -118,8 +118,11 @@ ex symbol::unarchive(const archive_node &n, lst &sym_lst)
 
 	// If symbol is in sym_lst, return the existing symbol
 	for (const auto & elem : sym_lst) {
-		if (is_exactly_a<symbol>(elem) && (ex_to<symbol>(elem).name == ex_to<symbol>(s).name))
-			return elem;
+		if (is_exactly_a<symbol>(elem) && (ex_to<symbol>(elem).name == ex_to<symbol>(s).name)) {
+		    symbol ret = ex_to<symbol>(elem);
+		    ret.set_texname(ex_to<symbol>(s).TeX_name);
+			return ret;
+		}
 	}
 
 	// Otherwise add new symbol to list and return it
