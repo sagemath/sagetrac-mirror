@@ -9,18 +9,18 @@
 # Autotools generated files
 /aclocal.m4
 /autom4te.cache/
-/config/install-sh
-/config/compile
-/config/config.guess
-/config/config.sub
-/config/install-sh
-/config/missing
+/config/*
 /config.log
 /config.status
 /configure
 /conftest*
 
 /m4/sage_spkg_configures.m4
+
+# installed by gnulib-tool
+
+/m4/.gitignore
+/m4/gnulib-cache.m4
 
 # no longer generated, but may still be in user worktrees
 /src/lib/pkgconfig
