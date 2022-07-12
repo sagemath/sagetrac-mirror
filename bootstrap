@@ -33,6 +33,21 @@ PKG=build/pkgs/configure
 MAKE="${MAKE:-make}"
 CONFVERSION=$(cat $PKG/package-version.txt)
 
+install_iconv() {
+    # config.rpath and iconv and related m4 macros come from gnulib
+    # We must have gnulib-tool in PATH
+    gnulibtool="$(command -v gnulib-tool)"
+    if [ -z "$gnulibtool" ]; then
+        echo >&2 "gnulib-tool must be installed and be in"
+        echo >&2 "your PATH. If your system does not provide gnulib package,"
+        echo >&2 "install from source by 'git clone https://github.com/coreutils/gnulib.git'"
+	echo >&2 "and add gnulib/ to your PATH."
+        return 179
+    fi
+    $gnulibtool --import iconv
+    rm -rf lib/
+}
+
 
 bootstrap () {
     if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
@@ -115,6 +130,7 @@ SAGE_SPKG_FINALIZE([$pkgname], [$pkgtype], [$SPKG_SOURCE], [$SPKG_TREE_VAR])"
     # stdout alone. Basically we swap the two descriptors using a
     # third, filter, and then swap them back.
     ./bootstrap-conda && \
+    install_iconv && \
     src/doc/bootstrap && \
     aclocal -I m4 && \
     automake --add-missing --copy build/make/Makefile-auto 3>&1 1>&2 2>&3 \

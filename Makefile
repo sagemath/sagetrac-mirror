@@ -160,7 +160,8 @@ distclean: build-clean
 # Delete all auto-generated files which are distributed as part of the
 # source tarball
 bootstrap-clean:
-	rm -rf config/install-sh config/compile config/config.guess config/config.sub config/missing configure build/make/Makefile-auto.in
+	rm -rf config/install-sh config/compile config/config.* config/missing configure build/make/Makefile-auto.in
+	rm -f m4/*gnulib*.m4 m4/lib-*.m4 m4/.gitignore m4/host-cpu-c-abi.m4 m4/iconv.m4
 	rm -f src/doc/en/installation/*.txt
 	rm -rf src/doc/en/reference/spkg/*.rst
 	rm -f environment.yml
