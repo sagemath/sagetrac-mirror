@@ -1392,7 +1392,7 @@ class Category(UniqueRepresentation, SageObject):
             method resolution order of the parent and element
             classes. This method checks this.
 
-        .. todo:: currently, this won't work for hom categories.
+        .. TODO:: currently, this will not work for hom categories.
 
         EXAMPLES::
 
@@ -1402,7 +1402,6 @@ class Category(UniqueRepresentation, SageObject):
             sage: C.element_class.mro() == [X.element_class for X in C._all_super_categories] + [object]
             True
             sage: TestSuite(C).run()    # indirect doctest
-
         """
         tester = self._tester(**options)
         tester.assertEqual(self.parent_class.mro(), [C.parent_class for C in self._all_super_categories] + [object])

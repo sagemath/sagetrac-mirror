@@ -181,13 +181,15 @@ class FacadeSets(CategoryWithAxiom):
 
         def __contains__(self, element):
             """
-            Membership testing
+            Membership testing.
 
-            Returns whether ``element`` is in one of the parents
+            This returns whether ``element`` is in one of the parents
             ``self`` is a facade for.
 
-            .. warning:: this default implementation is currently
-            overridden by :meth:`Parent.__contains__`.
+            .. WARNING::
+
+                This default implementation is currently
+                overridden by :meth:`Parent.__contains__` .
 
             EXAMPLES::
 

@@ -104,12 +104,12 @@ class HeckeModules(Category_module):
 
         def _Hom_(self, Y, category):
             r"""
-            Returns the homset from ``self`` to ``Y`` in the category ``category``
+            Return the homset from ``self`` to ``Y`` in the category ``category``.
 
             INPUT:
 
             - ``Y`` -- an Hecke module
-            - ``category`` -- a subcategory of :class:`HeckeModules`() or None
+            - ``category`` -- a subcategory of :class:`HeckeModules` or ``None``
 
             The sole purpose of this method is to construct the homset
             as a :class:`~sage.modular.hecke.homspace.HeckeModuleHomspace`. If

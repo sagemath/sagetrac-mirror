@@ -381,12 +381,12 @@ class Rings(CategoryWithAxiom):
 
         def _Hom_(self, Y, category):
             r"""
-            Returns the homset from ``self`` to ``Y`` in the category ``category``
+            Return the homset from ``self`` to ``Y`` in the category ``category``.
 
             INPUT:
 
             - ``Y`` -- a ring
-            - ``category`` -- a subcategory of :class:`Rings`() or None
+            - ``category`` -- a subcategory of :class:`Rings` or ``None``
 
             The sole purpose of this method is to construct the homset
             as a :class:`~sage.rings.homset.RingHomset`. If

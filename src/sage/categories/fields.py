@@ -74,9 +74,8 @@ class Fields(CategoryWithAxiom):
             sage: InfinityRing in Fields()
             False
 
-        This implementation will not be needed anymore once every
-        field in Sage will be properly declared in the category
-        :class:`Fields`().
+        This implementation will not be needed anymore once every field
+        in Sage will be properly declared in the category :class:`Fields`.
 
         Caveat: this should eventually be fixed::
 
