@@ -1478,6 +1478,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return 'Integer'
 
+    def _lean_init_(self):
+        return 'int'
+
     def _magma_init_(self, magma):
         """
         Return a magma representation of ``self``.
