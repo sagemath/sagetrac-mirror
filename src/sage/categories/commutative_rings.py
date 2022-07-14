@@ -46,6 +46,20 @@ class CommutativeRings(CategoryWithAxiom):
         True
 
     """
+    def _lean_init_(self):
+        r"""
+        Return the category as Lean mathlib input for a typeclass.
+
+        EXAMPLES::
+
+            sage: C = CommutativeRings(); C
+            Category of commutative rings
+            sage: C._lean_init_()
+            'comm_ring'
+        """
+        # defined in algebra.ring.basic
+        return 'comm_ring'
+
     class ParentMethods:
         def _test_divides(self, **options):
             r"""
