@@ -1010,6 +1010,13 @@ cdef class MPolynomial(CommutativeRingElement):
         variables = R.IndeterminatesOfPolynomialRing()
         return self(*variables)
 
+    def _lean_init_(self):
+        r"""
+        Return polynomial as Lean mathlib input.
+        """
+        # as in https://github.com/leanprover-community/mathlib/blob/master/scripts/polyrith_sage_helper.py
+        raise NotImplementedError
+
     def _libgap_(self):
         r"""
         TESTS::

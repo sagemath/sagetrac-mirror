@@ -6339,6 +6339,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
     #####################################################################
     # Conversions to other systems
     #####################################################################
+    def _lean_init_(self):
+        r"""
+        Return polynomial as Lean mathlib input.
+        """
+        # as in https://github.com/leanprover-community/mathlib/blob/master/scripts/polyrith_sage_helper.py
+        raise NotImplementedError
+
     def __pari__(self):
         r"""
         Return polynomial as a PARI object.
