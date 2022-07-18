@@ -65,7 +65,7 @@ import sage.plot.all as plot
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.plot", "generate_plot_points")
 
-from sage.arith.all import lcm
+from sage.arith.functions import lcm
 import sage.rings.all as rings
 from sage.misc.cachefunc import cached_method
 from sage.misc.fast_methods import WithEqualityById

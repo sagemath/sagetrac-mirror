@@ -4083,7 +4083,7 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
             if not isinstance(right, Element):
                 right = right.sage()
         if not ((<Element>right)._parent is self._parent):
-            from sage.arith.all import lcm
+            from sage.arith.functions import lcm
             return coercion_model.bin_op(self, right, lcm)
         return self._lcm(right)
 

@@ -7054,7 +7054,7 @@ def elliptic_curve_congruence_graph(curves):
         Graph on 12 vertices
     """
     from sage.graphs.graph import Graph
-    from sage.arith.all import lcm
+    from sage.arith.functions import lcm
     from sage.rings.fast_arith import prime_range
     from sage.misc.misc_c import prod
     G = Graph()
