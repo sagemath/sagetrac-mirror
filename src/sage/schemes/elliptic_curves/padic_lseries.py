@@ -65,10 +65,14 @@ from sage.rings.integer_ring import   ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.padics.factory import Qp
 from sage.rings.infinity import infinity
-from sage.rings.all import LaurentSeriesRing, PowerSeriesRing, PolynomialRing, Integers
+from sage.rings.finite_rings.integer_mod_ring import Integers
+from sage.rings.laurent_series_ring import LaurentSeriesRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.power_series_ring import PowerSeriesRing
 
 from sage.rings.integer import Integer
-from sage.arith.all import valuation, binomial, kronecker_symbol, gcd, prime_divisors, LCM
+from sage.arith.misc import valuation, binomial, kronecker_symbol, gcd, prime_divisors
+from sage.arith.functions import LCM
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp

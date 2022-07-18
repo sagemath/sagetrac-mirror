@@ -53,7 +53,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.arith.functions import LCM
+from sage.arith.functions import lcm as LCM
 from sage.groups.abelian_gps.element_base import AbelianGroupElementBase
 
 

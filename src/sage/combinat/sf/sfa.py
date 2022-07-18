@@ -4499,7 +4499,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         parent = self.parent()
         if parent.has_coerce_map_from(QQ):
             from sage.combinat.partition import Partition
-            from sage.arith.all import gcd, lcm
+            from sage.arith.misc import gcd
+            from sage.arith.functions import lcm
             from itertools import product, repeat, chain
             p = parent.realization_of().power()
 
