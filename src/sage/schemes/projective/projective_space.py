@@ -83,6 +83,7 @@ from sage.arith.all import gcd, binomial, srange
 from sage.rings.all import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 
 from sage.rings.ring import CommutativeRing
 from sage.rings.rational_field import is_RationalField
@@ -119,6 +120,7 @@ from sage.schemes.projective.projective_morphism import (SchemeMorphism_polynomi
                                                          SchemeMorphism_polynomial_projective_space_field,
                                                          SchemeMorphism_polynomial_projective_space_finite_field)
 
+import itertools
 
 # for better efficiency
 _Fields = Fields()
@@ -1848,6 +1850,258 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     (x : y : z)
         """
         return SchemeMorphism_polynomial_projective_space_field(*args, **kwds)
+
+    def QQ_points_of_bounded_height(self, N, B):
+        """
+        Return a list of the points in ``self`` of absolute height of at most
+        the given bound.
+        INPUT:
+        - ``N`` - the dimension of the projective space
+        - ``B`` - the bound, a real number
+        OUTPUT:
+        - a list of points in this space
+        EXAMPLES::
+        sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+        sage: len(P.QQ_points_of_bounded_height(1, 5))
+        40
+        """
+        if B < 1:
+            return []
+
+        PN = ProjectiveSpace(QQ, N)
+        unit_tuples = list(itertools.product([-1, 1], repeat=N))
+        increasing_tuples = itertools.combinations_with_replacement(range(B + 1), N + 1)
+        points_of_bounded_height = set([])
+
+        for t in increasing_tuples:
+            if gcd(t) == 1:
+                for p in itertools.permutations(t):
+                    for u in unit_tuples:
+                        new_point = [a*b for a, b in zip(u, p)] + [p[N]]
+                        points_of_bounded_height.add(PN(new_point))
+
+        return list(points_of_bounded_height)
+
+    def new_points_of_bounded_height(self, **kwds): # K, N, B, precision=53
+        """
+        Return an iterator of the points in self of absolute height of
+        at most the given bound.
+
+        Use the Krumm algorithm 6 for computing algebraic numbers up to
+        a given height [Krumm2016]_.
+
+        The algorithm requires floating point arithmetic, so the user is
+        allowed to specify the precision for such calculations.
+        Additionally, due to floating point issues, points slightly larger
+        than the bound may be returned. This can be controlled by lowering
+        the tolerance.
+
+        INPUT:
+
+        kwds:
+
+        - ``bound`` - a real number
+
+        - ``precision`` - the precision to use for computing the elements of bounded height of number fields.
+
+        OUTPUT:
+
+        - an iterator of points in this space
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: sorted(list(P.points_of_bounded_height(bound=5)))
+            [(0 : 1), (1 : -5), (1 : -4), (1 : -3), (1 : -2), (1 : -1), (1 : 0),
+             (1 : 1), (1 : 2), (1 : 3), (1 : 4), (1 : 5), (2 : -5), (2 : -3),
+             (2 : -1), (2 : 1), (2 : 3), (2 : 5), (3 : -5), (3 : -4), (3 : -2),
+             (3 : -1), (3 : 1), (3 : 2), (3 : 4), (3 : 5), (4 : -5), (4 : -3),
+             (4 : -1), (4 : 1), (4 : 3), (4 : 5), (5 : -4), (5 : -3), (5 : -2),
+             (5 : -1), (5 : 1), (5 : 2), (5 : 3), (5 : 4)]
+
+        ::
+
+            sage: u = QQ['u'].0
+            sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2, 'v'), 2)
+            sage: len(list(P.points_of_bounded_height(bound=1.5, tolerance=0.1)))
+            57
+        """
+        if is_RationalField(self.base_ring()):
+            ftype = False  # stores whether the field is a number field or the rational field
+        elif self.base_ring() in NumberFields():  # true for rational field as well, so check is_RationalField first
+            ftype = True
+        else:
+            raise NotImplementedError("self must be projective space over a number field")
+
+        bound = kwds.pop('bound')
+        precision = kwds.pop('precision')
+
+        K = self.base_ring()
+        N = self.dimension_relative()
+        B = bound**(K.absolute_degree()) # convert to relative height
+
+        if not ftype: # rational field
+            return self.QQ_points_of_bounded_height()
+        else:
+            if B < 1:
+                return []
+            r1, r2 = K.signature()
+            r = r1 + r2 - 1
+            K_degree = K.degree() 
+            K_embeddings = K.places(prec=precision) 
+            PN = ProjectiveSpace(K, N)
+            roots_of_unity = K.roots_of_unity()
+            unit_tuples = list(itertools.product(roots_of_unity, repeat=N)) 
+            Reals = RealField(precision)
+            logB = Reals(B).log()
+            
+            def log_map(x):
+                if x == 0:
+                    return vector([-1 for i in xrange(r + 1)])
+                x_logs = []
+                for i in xrange(r1):
+                    sigma = K_embeddings[i]
+                    x_logs.append(Reals(abs(sigma(x))).log())
+                for i in xrange(r1, r + 1):
+                    tau = K_embeddings[i]
+                    x_logs.append(2*Reals(abs(tau(x))).log())
+                return vector(x_logs)
+            
+            points_of_bdd_height = []
+            class_group_ideals = [c.ideal() for c in K.class_group()]
+            class_number = len(class_group_ideals)
+            class_group_ideal_norms = [a.norm() for a in class_group_ideals]
+            norm_bound = B*max(class_group_ideal_norms)
+            fundamental_units = UnitGroup(K).fundamental_units()
+            fund_unit_logs = map(log_map, fundamental_units)
+            test_matrix = column_matrix(fund_unit_logs)
+            try:
+                test_matrix.change_ring(QQ)
+            except ValueError:
+                raise ValueError('Precision too low.')
+            cut_fund_unit_logs = column_matrix(fund_unit_logs).delete_rows([r])
+            lll_fund_units = []
+            for c in pari(cut_fund_unit_logs).qflll().python().columns():
+                new_unit = 1
+                for i in xrange(r):
+                    new_unit *= fundamental_units[i]**c[i]
+                lll_fund_units.append(new_unit)
+            fundamental_units = lll_fund_units
+            fund_unit_logs = map(log_map, fundamental_units)
+
+            possible_norm_set = set([])
+            for i in xrange(class_number):
+                for k in xrange(1, B + 1):
+                    possible_norm_set.add(k*class_group_ideal_norms[i])
+            
+            principal_ideal_gens = dict()
+            negative_norm_units = K.elements_of_norm(-1)
+            if len(negative_norm_units) == 0:
+                for m in possible_norm_set:
+                    principal_ideal_gens[m] = K.elements_of_norm(m) + K.elements_of_norm(-m)
+            else:
+                for m in possible_norm_set:
+                    principal_ideal_gens[m] = K.elements_of_norm(m)
+            
+            pr_ideal_gen_logs = dict()
+            for key in principal_ideal_gens:
+                for y in principal_ideal_gens[key]:
+                    pr_ideal_gen_logs[y] = log_map(y)
+            
+            fund_parallelotope_vertices = []
+            for coefficient_tuple in itertools.product([-1/2, 1/2], repeat=r):
+                vertex = sum([coefficient_tuple[i]*fund_unit_logs[i] for i in xrange(r)])
+                fund_parallelotope_vertices.append(vertex)
+            
+            D_numbers = []
+            for v in xrange(r + 1):
+                D_numbers.append(max([vertex[v] for vertex in fund_parallelotope_vertices]))
+            
+            A_numbers = []
+            for v in xrange(r + 1):
+                A_numbers.append(min([pr_ideal_gen_logs[y][v] for y in pr_ideal_gen_logs]))
+            
+            aux_constant = (1/K_degree)*Reals(norm_bound).log()
+            
+            L_numbers = []
+            for v in xrange(r1):
+                L_numbers.append(aux_constant + D_numbers[v] - A_numbers[v])
+            for v in xrange(r1, r + 1):
+                L_numbers.append(2*aux_constant + D_numbers[v] - A_numbers[v])
+            L_numbers = vector(L_numbers).change_ring(QQ)
+
+            T = column_matrix(fund_unit_logs).delete_rows([r]).change_ring(QQ)
+
+            M = ((-1)*matrix.identity(r)).insert_row(r, [1 for i in xrange(r)])
+            M = M.transpose().insert_row(0, [0 for i in xrange(r + 1)]).transpose()
+            M = M.change_ring(QQ)
+            M.set_column(0, L_numbers)
+            vertices = map(vector, Polyhedron(ieqs=list(M)).vertices())
+            
+            T_it = T.inverse().transpose()
+            unit_polytope = Polyhedron([v*T_it for v in vertices])
+            
+            coordinate_space = dict()
+            coordinate_space[0] = [[K(0), log_map(0)]]
+            int_points = unit_polytope.integral_points()
+            
+            units_with_logs = dict()
+            for n in int_points:
+                new_unit = 1
+                for j in xrange(r):
+                    new_unit *= fundamental_units[j]**n[j]
+                new_unit_log = sum([n[j]*fund_unit_logs[j] for j in xrange(r)])
+                units_with_logs[n] = [new_unit, new_unit_log]
+            
+            for norm in principal_ideal_gens:
+                coordinate_list = []
+                for y in principal_ideal_gens[norm]:
+                    for n in int_points:
+                        unit, unit_log = units_with_logs[n]
+                        y_log = pr_ideal_gen_logs[y]
+                        g_log = unit_log + y_log
+                        bool1 = all(g_log[i] <= aux_constant + D_numbers[i] for i in xrange(r1))
+                        bool2 = all(g_log[j] <= 2*aux_constant + D_numbers[j] for j in xrange(r1, r + 1))
+                        if bool1 and bool2:
+                            g = unit*y
+                            coordinate_list.append([g, g_log])
+                if len(coordinate_list) > 0:
+                    coordinate_space[norm] = coordinate_list
+            
+            for m in xrange(class_number):
+                a = class_group_ideals[m]
+                a_norm = class_group_ideal_norms[m]
+                log_a_norm = Reals(a_norm).log()
+                a_const = (logB + log_a_norm)/K_degree
+                a_coordinates = []
+                
+                for k in xrange(B + 1):
+                    norm = k*a_norm
+                    if coordinate_space.has_key(norm):
+                        for pair in coordinate_space[norm]:
+                            g, g_log = pair
+                            if g in a:
+                                bool1 = all(g_log[i] <= a_const + D_numbers[i] for i in xrange(r1))
+                                bool2 = all(g_log[j] <= 2*a_const + D_numbers[j] for j in xrange(r1, r + 1))
+                                if bool1 and bool2:
+                                    a_coordinates.append(pair)    
+                            
+                t = len(a_coordinates) - 1
+                points_in_class_a = set([])
+                increasing_tuples = itertools.combinations_with_replacement(range(t + 1), N + 1)
+                log_arch_height_bound = logB + log_a_norm
+                for index_tuple in increasing_tuples:
+                    point_coordinates = [a_coordinates[i][0] for i in index_tuple]
+                    point_coordinate_logs = [a_coordinates[i][1] for i in index_tuple]
+                    log_arch_height = sum([max([x[i] for x in point_coordinate_logs]) for i in xrange(r + 1)])
+                    if log_arch_height <= log_arch_height_bound and a == K.ideal(point_coordinates):
+                        for p in itertools.permutations(point_coordinates):
+                            for u in unit_tuples:
+                                new_point = [i*j for i, j in zip(u, p)] + [p[N]]
+                                points_in_class_a.add(PN(new_point))
+                points_of_bdd_height += list(points_in_class_a)
+
+            return points_of_bdd_height
 
     def points_of_bounded_height(self, **kwds):
         r"""

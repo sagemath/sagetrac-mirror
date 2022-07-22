@@ -1993,6 +1993,10 @@ REFERENCES:
 .. [DK2013] John R. Doyle and David Krumm, *Computing algebraic
             numbers of bounded height*, :arxiv:`1111.4963v4` (2013).
 
+.. [Krumm2016] David Krumm, *Computing points of bounded height in projective
+               space over a number field*,
+               Math. Comp. 85 (2016), 423-447. https://doi.org/10.1090/mcom/2984
+
 .. [DLHK2007] \J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart
               polynomials of matroid polytopes and
               polymatroids. Discrete & Computational Geometry, Volume
