@@ -227,7 +227,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
             # Instead, we return the key that was used to create prime
             # so the caller gets back a correctly cached version of prime
             if not hasattr(prime, "_factory_data"):
-               raise NotImplementedError("Valuations on function fields must be unique and come out of the FunctionFieldValuation factory but %r has been created by other means" % (prime,))
+                raise NotImplementedError("Valuations on function fields must be unique and come out of the FunctionFieldValuation factory but %r has been created by other means" % (prime,))
             return prime._factory_data[2], {}
 
         if prime in domain:
@@ -923,7 +923,7 @@ class InducedRationalFunctionFieldValuation_base(FunctionFieldValuation_base):
             # if the caller was sure that we should simplify, then we should try to do the best simplification possible
             error = self(f) if force else self.upper_bound(f)
 
-        from sage.all import infinity
+        from sage.rings.infinity import infinity
         if error is infinity:
             return f
 

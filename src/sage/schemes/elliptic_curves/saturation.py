@@ -50,7 +50,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.finite_rings.all import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.integer_ring import ZZ
 from sage.arith.all import kronecker_symbol as kro
 from sage.structure.sage_object import SageObject
@@ -177,7 +177,6 @@ class EllipticCurveSaturator(SageObject):
             sage: saturator = EllipticCurveSaturator(E)
             sage: for q in primes(20):
             ....:     saturator.add_reductions(q)
-            ....:
             sage: saturator._reductions
             {2: {},
             3: {},
@@ -706,4 +705,3 @@ def p_projections(Eq, Plist, p, debug=False):
 
     return [vector(Fp, [dlog(pt.weil_pairing(g1,p2), zeta, ord = p1, operation = '*') for pt in pts]),
         vector(Fp, [dlog(pt.weil_pairing(g2,p2), zeta, ord = p1, operation = '*') for pt in pts])]
-

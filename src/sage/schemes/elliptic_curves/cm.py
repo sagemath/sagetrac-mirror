@@ -33,7 +33,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.interfaces.all import magma
+from sage.interfaces.magma import magma
 from sage.rings.all import (Integer,
                             QQ,
                             ZZ,
@@ -41,7 +41,7 @@ from sage.rings.all import (Integer,
                             is_fundamental_discriminant,
                             PolynomialRing)
 
-from sage.misc.all import cached_function
+from sage.misc.cachefunc import cached_function
 
 @cached_function
 def hilbert_class_polynomial(D, algorithm=None):

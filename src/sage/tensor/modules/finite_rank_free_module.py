@@ -865,7 +865,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         r"""
-        Construct some (unamed) element of ``self``.
+        Construct some (unnamed) element of ``self``.
 
         EXAMPLES::
 
@@ -1535,22 +1535,22 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
 
         """
         from .comp import CompWithSym, CompFullyAntiSym
-        #
+
         # 0/ Compatibility checks:
         if comp._ring is not self._ring:
-             raise TypeError("the components are not defined on the same" +
+            raise TypeError("the components are not defined on the same"
                             " ring as the module")
         if comp._frame not in self._known_bases:
-            raise TypeError("the components are not defined on a basis of" +
+            raise TypeError("the components are not defined on a basis of"
                             " the module")
         if comp._nid != tensor_type[0] + tensor_type[1]:
-            raise TypeError("number of component indices not compatible with "+
+            raise TypeError("number of component indices not compatible with "
                             " the tensor type")
-        #
+
         # 1/ Construction of the tensor:
-        if tensor_type == (1,0):
+        if tensor_type == (1, 0):
             resu = self.element_class(self, name=name, latex_name=latex_name)
-        elif tensor_type == (0,1):
+        elif tensor_type == (0, 1):
             resu = self.linear_form(name=name, latex_name=latex_name)
         elif tensor_type[0] == 0 and tensor_type[1] > 1 and \
                                         isinstance(comp, CompFullyAntiSym):
@@ -1961,7 +1961,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
         else:
-           return self._latex_name
+            return self._latex_name
 
     def rank(self):
         r"""
@@ -2388,7 +2388,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             if basis2 not in self._known_bases:
                 raise TypeError("{} is not a basis of the {}".format(basis2,
                                                                      self))
-            # Is the inverse already registred ?
+            # Is the inverse already registered ?
             if (basis2, basis1) in bc:
                 inv = bc[(basis2, basis1)].inverse()
                 bc[(basis1, basis2)] = inv

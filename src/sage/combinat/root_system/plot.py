@@ -816,7 +816,7 @@ lazy_import("sage.combinat.root_system.root_lattice_realizations",
             "RootLatticeRealizations")
 
 
-class PlotOptions(object):
+class PlotOptions():
     r"""
     A class for plotting options for root lattice realizations.
 
@@ -846,7 +846,7 @@ class PlotOptions(object):
             2
             sage: options._projections
             [Weight space over the Rational Field of the Root system of type ['B', 2],
-             <bound method WeightSpace_with_category._plot_projection of Weight space over the Rational Field of the Root system of type ['B', 2]>]
+             <bound method RootLatticeRealizations.ParentMethods._plot_projection of Weight space over the Rational Field of the Root system of type ['B', 2]>]
 
             sage: L = RootSystem(['B',2,1]).ambient_space()
             sage: options = L.plot_parse_options()
@@ -854,24 +854,24 @@ class PlotOptions(object):
             2
             sage: options._projections
             [Ambient space of the Root system of type ['B', 2],
-             <bound method AmbientSpace_with_category._plot_projection of Ambient space of the Root system of type ['B', 2]>]
+             <bound method RootLatticeRealizations.ParentMethods._plot_projection of Ambient space of the Root system of type ['B', 2]>]
 
             sage: options = L.plot_parse_options(affine=True)
             sage: options.dimension
             2
             sage: options._projections
             [Ambient space of the Root system of type ['B', 2],
-             <bound method AmbientSpace_with_category._plot_projection of Ambient space of the Root system of type ['B', 2]>]
+             <bound method RootLatticeRealizations.ParentMethods._plot_projection of Ambient space of the Root system of type ['B', 2]>]
 
             sage: options = L.plot_parse_options(affine=False)
             sage: options._projections
-            [<bound method AmbientSpace_with_category._plot_projection of Ambient space of the Root system of type ['B', 2, 1]>]
+            [<bound method AmbientSpace._plot_projection of Ambient space of the Root system of type ['B', 2, 1]>]
             sage: options.dimension
             3
 
             sage: options = L.plot_parse_options(affine=False, projection='barycentric')
             sage: options._projections
-            [<bound method AmbientSpace_with_category._plot_projection_barycentric of Ambient space of the Root system of type ['B', 2, 1]>]
+            [<bound method RootLatticeRealizations.ParentMethods._plot_projection_barycentric of Ambient space of the Root system of type ['B', 2, 1]>]
             sage: options.dimension
             3
         """
@@ -1485,9 +1485,9 @@ class PlotOptions(object):
         vectors = matrix([b.scalar(coroot) for b in L.basis()]).right_kernel().basis()
         basis = [L.from_vector(v) for v in vectors]
         if self.dimension == 3: # LaTeX labels not yet supported in 3D
-            text_label = "H_%s$"%(str(label))
+            text_label = "H_%s$" % (str(label))
         else:
-            text_label = "$H_{%s}$"%(latex(label))
+            text_label = "$H_{%s}$" % (latex(label))
         return self.cone(lines = basis, color = self.color(label), label=text_label,
                          as_polyhedron=as_polyhedron)
 

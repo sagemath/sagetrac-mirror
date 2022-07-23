@@ -1288,7 +1288,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             cim = MPC_INEX_IM(c)
             return rich_to_bool(op, cim)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if ``self`` is not zero.
 
@@ -2575,3 +2575,8 @@ cdef class CCtoMPC(Map):
         y = (<MPComplexField_class>self.codomain())._new()
         mpc_set_fr_fr(y.value, (<ComplexNumber>z).__re, (<ComplexNumber>z).__im, rnd)
         return y
+
+
+# Support Python's numbers abstract base class
+import numbers
+from sage.rings.complex_mpc import MPComplexNumber

@@ -127,8 +127,8 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
 from sage.arith.misc import binomial
-from sage.interfaces.all import singular
-from sage.misc.all import add
+from sage.interfaces.singular import singular
+from builtins import sum as add
 
 from sage.categories.fields import Fields
 from sage.categories.finite_fields import FiniteFields
@@ -2440,7 +2440,7 @@ class IntegralAffineCurve(AffineCurve_field):
              Point (x + (a + 1), y + (-a + 1)),
              Point (x - 1, y + (a + 1)),
              Point (x - 1, y + (-a - 1)),
-             Point (x + (-a - 1), y + (a)),
+             Point (x + (-a - 1), y + a),
              Point (x + (-a - 1), y + (-a)),
              Point (x + 1, y + 1),
              Point (x + 1, y - 1)]
@@ -2639,4 +2639,3 @@ class IntegralAffinePlaneCurve_finite_field(AffinePlaneCurve_finite_field, Integ
         Function field in y defined by y^5 + x*y + x^5 + 1
     """
     _point = IntegralAffinePlaneCurvePoint_finite_field
-

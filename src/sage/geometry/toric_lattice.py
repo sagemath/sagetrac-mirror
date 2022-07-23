@@ -901,6 +901,29 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
         self._latex_name = latex_name
         self._latex_dual_name = latex_dual_name
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Return Sage command to reconstruct ``self``.
+
+        See :mod:`sage.misc.sage_input` for details.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3, "N", "M", "N", "M")
+            sage: sage_input(N, verify=True)
+            # Verified
+            ToricLattice(3, 'N', 'M')
+
+            sage: N = ToricLattice(3, "N")
+            sage: sage_input(N, verify=True)
+            # Verified
+            ToricLattice(3, 'N', 'N*', 'N', 'N^*')
+        """
+        args = [self.rank(), self._name, self._dual_name]
+        if self._latex_name != self._name or self._latex_dual_name != self._dual_name:
+            args.extend([self._latex_name, self._latex_dual_name])
+        return sib.name('ToricLattice')(*args)
+
     def __richcmp__(self, right, op):
         r"""
         Compare ``self`` and ``right``.
@@ -1048,7 +1071,7 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
         EXAMPLES::
 
             sage: N = ToricLattice(3)
-            sage: N.plot()
+            sage: N.plot()  # optional - sage.plot
             Graphics3d Object
         """
         if "show_lattice" not in options:
@@ -1170,7 +1193,7 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
             2-d lattice, quotient of 3-d lattice M by Sublattice <M(1, -1, -1)>
         """
         if "_dual" not in self.__dict__:
-            if not self is self.saturation():
+            if self is not self.saturation():
                 raise ValueError("only dual lattices of saturated sublattices "
                                  "can be constructed! Got %s." % self)
             self._dual = (self.ambient_module().dual() /
@@ -1195,12 +1218,12 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
 
             sage: N = ToricLattice(3)
             sage: sublattice = N.submodule_with_basis([(1,1,0), (3,2,1)])
-            sage: sublattice.plot()
+            sage: sublattice.plot()  # optional - sage.plot
             Graphics3d Object
 
         Now we plot both the ambient lattice and its sublattice::
 
-            sage: N.plot() + sublattice.plot(point_color="red")
+            sage: N.plot() + sublattice.plot(point_color="red")  # optional - sage.plot
             Graphics3d Object
         """
         if "show_lattice" not in options:

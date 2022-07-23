@@ -43,7 +43,8 @@ from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.functions.other import floor, ceil
+from sage.arith.misc import integer_floor as floor
+from sage.arith.misc import integer_ceil as ceil
 
 import itertools
 
@@ -2072,7 +2073,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
             """
             return self.support()
 
-class UnitDiagramMixin(object):
+class UnitDiagramMixin():
     """
     Mixin class for diagram algebras that have the unit indexed by
     the :func:`identity_set_partition`.

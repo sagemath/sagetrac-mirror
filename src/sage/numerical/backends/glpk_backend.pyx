@@ -1646,11 +1646,7 @@ cdef class GLPKBackend(GenericBackend):
 
             sage: p.add_variable()
             0
-            sage: p.variable_upper_bound(0, 'hey!')  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: a float is required
-            sage: p.variable_upper_bound(0, 'hey!')  # py3
+            sage: p.variable_upper_bound(0, 'hey!')
             Traceback (most recent call last):
             ...
             TypeError: must be real number, not str
@@ -1750,11 +1746,7 @@ cdef class GLPKBackend(GenericBackend):
 
             sage: p.add_variable()
             0
-            sage: p.variable_lower_bound(0, 'hey!')  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: a float is required
-            sage: p.variable_lower_bound(0, 'hey!')  # py3
+            sage: p.variable_lower_bound(0, 'hey!')
             Traceback (most recent call last):
             ...
             TypeError: must be real number, not str
@@ -2158,8 +2150,9 @@ cdef class GLPKBackend(GenericBackend):
             else: self.smcp.tm_lim = value
 
         elif name == simplex_or_intopt:
-            if value is None: return self.simplex_or_intopt
-            if not value in (simplex_only,intopt_only,simplex_then_intopt,exact_simplex_only):
+            if value is None:
+                return self.simplex_or_intopt
+            if value not in (simplex_only, intopt_only, simplex_then_intopt, exact_simplex_only):
                 raise MIPSolverException("GLPK: invalid value for simplex_or_intopt; see documentation")
             self.simplex_or_intopt = value
 
@@ -2505,7 +2498,7 @@ cdef class GLPKBackend(GenericBackend):
             End of report
         """
 
-        from sage.misc.all import SAGE_TMP
+        from sage.misc.misc import SAGE_TMP
 
         if filename is None:
             fname = SAGE_TMP + "/ranges.tmp"

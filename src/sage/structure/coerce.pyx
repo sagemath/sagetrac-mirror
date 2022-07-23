@@ -484,7 +484,7 @@ cdef class CoercionModel:
     EXAMPLES::
 
         sage: f = ZZ['t','x'].0 + QQ['x'].0 + CyclotomicField(13).gen(); f
-        t + x + (zeta13)
+        t + x + zeta13
         sage: f.parent()
         Multivariate Polynomial Ring in t, x over Cyclotomic Field of order 13 and degree 12
         sage: ZZ['x','y'].0 + ~Frac(QQ['y']).0
@@ -1049,7 +1049,7 @@ cdef class CoercionModel:
         base = None
         for x in args:
             if not isinstance(x, Parent) and not isinstance(x, type):
-               x = parent(x)
+                x = parent(x)
             if base is None:
                 base = x
             if isinstance(base, Parent) and (<Parent>base).has_coerce_map_from(x):
@@ -1085,8 +1085,8 @@ cdef class CoercionModel:
             sage: Zmod100 = Integers(100)
             sage: cm.division_parent(Zmod100)
             Ring of integers modulo 100
-            sage: S5 = SymmetricGroup(5)
-            sage: cm.division_parent(S5)
+            sage: S5 = SymmetricGroup(5)                                                # optional - sage.groups
+            sage: cm.division_parent(S5)                                                # optional - sage.groups
             Symmetric group of order 5! as a permutation group
         """
         try:

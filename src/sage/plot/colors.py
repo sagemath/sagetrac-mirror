@@ -21,11 +21,11 @@ comprises the "official" W3C CSS3_ / SVG_ colors.
 For a list of color maps in Sage, evaluate::
 
     sage: sorted(colormaps)
-    [u'Accent', u'Blues', u'BrBG', ...]
+    ['Accent', ...]
 
-These are imported from matplotlib's cm_ module.
+These are imported from matplotlib's colormaps_ collection.
 
-.. _cm: http://matplotlib.sourceforge.net/api/cm_api.html
+.. _colormaps: https://matplotlib.org/stable/gallery/color/colormap_reference.html
 """
 
 # ****************************************************************************
@@ -39,10 +39,6 @@ These are imported from matplotlib's cm_ module.
 import math
 from collections.abc import MutableMapping
 from colorsys import hsv_to_rgb, hls_to_rgb, rgb_to_hsv, rgb_to_hls
-
-
-# matplotlib color maps, loaded on-demand
-cm = None
 
 
 colors_dict = {
@@ -254,7 +250,7 @@ def html_to_float(c):
         ...
         ValueError: invalid literal for int() with base 16: '3x'
     """
-    if not len(c) or c[0] != '#':
+    if not c or c[0] != '#':
         raise ValueError("'%s' must be a valid HTML hex color (e.g., '#f07' or '#d6e7da')" % c)
     h = c[1:]
     if len(h) == 3:
@@ -290,15 +286,9 @@ def rgbcolor(c, space='rgb'):
         (0.25, 0.4, 0.9)
         sage: rgbcolor('purple')
         (0.5019607843137255, 0.0, 0.5019607843137255)
-        sage: rgbcolor(u'purple')
-        (0.5019607843137255, 0.0, 0.5019607843137255)
         sage: rgbcolor('#fa0')
         (1.0, 0.6666666666666666, 0.0)
-        sage: rgbcolor(u'#fa0')
-        (1.0, 0.6666666666666666, 0.0)
         sage: rgbcolor('#ffffff')
-        (1.0, 1.0, 1.0)
-        sage: rgbcolor(u'#ffffff')
         (1.0, 1.0, 1.0)
         sage: rgbcolor((1,1/2,1/3))
         (1.0, 0.5, 0.3333333333333333)
@@ -510,8 +500,7 @@ class Color(object):
         """
         if isinstance(right, Color):
             return self._rgb == right._rgb
-        else:
-            return False
+        return False
 
     def __ne__(self, right):
         """
@@ -824,7 +813,7 @@ class Color(object):
         OUTPUT:
 
         - the integer `256^2 r_int + 256 g_int + b_int`, where `r_int`, `g_int`, and `b_int`
-          are obtained from `r`, `g`, and `b` by converting from the real interval [0.0, 1.0] 
+          are obtained from `r`, `g`, and `b` by converting from the real interval [0.0, 1.0]
           to the integer range 0, 1, ..., 255.
 
         EXAMPLES::
@@ -925,12 +914,12 @@ class Color(object):
 
             sage: Color(0.3, 0.5, 0.7, space='hls').hls()
             (0.30000000000000004, 0.5, 0.7)
-            sage: Color(0.3, 0.5, 0.7, space='hsl').hls()
+            sage: Color(0.3, 0.5, 0.7, space='hsl').hls() # abs tol 1e-15
             (0.30000000000000004, 0.7, 0.5000000000000001)
-            sage: Color('#aabbcc').hls()
+            sage: Color('#aabbcc').hls() # abs tol 1e-15
             (0.5833333333333334, 0.7333333333333334, 0.25000000000000017)
             sage: from sage.plot.colors import orchid
-            sage: orchid.hls()
+            sage: orchid.hls() # abs tol 1e-15
             (0.8396226415094339, 0.6470588235294117, 0.5888888888888889)
         """
         return tuple(map(float, rgb_to_hls(*self._rgb)))
@@ -949,9 +938,9 @@ class Color(object):
             sage: Color(1,0,0).hsl()
             (0.0, 1.0, 0.5)
             sage: from sage.plot.colors import orchid
-            sage: orchid.hsl()
+            sage: orchid.hsl() # abs tol 1e-15
             (0.8396226415094339, 0.5888888888888889, 0.6470588235294117)
-            sage: Color('#aabbcc').hsl()
+            sage: Color('#aabbcc').hsl() # abs tol 1e-15
             (0.5833333333333334, 0.25000000000000017, 0.7333333333333334)
         """
         h, l, s = tuple(map(float, rgb_to_hls(*self._rgb)))
@@ -1115,7 +1104,7 @@ class ColorsDict(dict):
         try:
             return self[name]
         except KeyError:
-            raise AttributeError("'%s' has no attribute or colormap %s"%(type(self).__name__,name))
+            raise AttributeError("'%s' has no attribute or colormap %s" % (type(self).__name__, name))
 
     def __dir__(self):
         """
@@ -1136,7 +1125,9 @@ class ColorsDict(dict):
         methods = ['__dir__', '__getattr__']
         return dir(super(ColorsDict, self)) + methods + sorted(self)
 
+
 colors = ColorsDict()
+
 
 # Add convenient module-scope colors.  These are Color instances.
 for c in colors:
@@ -1254,7 +1245,7 @@ def float_to_integer(r, g, b):
     OUTPUT:
 
     - the integer `256^2 r_int + 256 g_int + b_int`, where `r_int`, `g_int`, and `b_int`
-      are obtained from `r`, `g`, and `b` by converting from the real interval [0.0, 1.0] 
+      are obtained from `r`, `g`, and `b` by converting from the real interval [0.0, 1.0]
       to the integer range 0, 1, ..., 255.
 
     EXAMPLES::
@@ -1337,7 +1328,7 @@ def get_cmap(cmap):
     and color names.  For a list of map names, evaluate::
 
         sage: sorted(colormaps)
-        [u'Accent', u'Blues', ...]
+        ['Accent', ...]
 
     See :func:`rgbcolor` for valid list/tuple element formats.
 
@@ -1356,8 +1347,6 @@ def get_cmap(cmap):
         sage: from sage.plot.colors import get_cmap
         sage: get_cmap('jet')
         <matplotlib.colors.LinearSegmentedColormap object at 0x...>
-        sage: get_cmap(u'jet')
-        <matplotlib.colors.LinearSegmentedColormap object at 0x...>
         sage: get_cmap([(0,0,0), (0.5,0.5,0.5), (1,1,1)])
         <matplotlib.colors.ListedColormap object at 0x...>
         sage: get_cmap(['green', 'lightblue', 'blue'])
@@ -1367,25 +1356,31 @@ def get_cmap(cmap):
         sage: get_cmap('jolies')
         Traceback (most recent call last):
         ...
-        RuntimeError: Color map jolies not known (type import matplotlib.cm; matplotlib.cm.datad.keys() for valid names)
+        RuntimeError: Color map jolies not known (type "import matplotlib; list(matplotlib.colormaps.keys())" for valid names)
         sage: get_cmap('mpl')
         Traceback (most recent call last):
         ...
-        RuntimeError: Color map mpl not known (type import matplotlib.cm; matplotlib.cm.datad.keys() for valid names)
+        RuntimeError: Color map mpl not known (type "import matplotlib; list(matplotlib.colormaps.keys())" for valid names)
+
+    TESTS:
+
+    Check that :trac:`33491` is fixed::
+
+        sage: get_cmap('turbo')
+        <matplotlib.colors.ListedColormap object at 0x...>
     """
     # matplotlib color maps
-    global cm
-    if not cm:
-        from matplotlib import cm
     from matplotlib.colors import ListedColormap, Colormap
 
     if isinstance(cmap, Colormap):
         return cmap
 
     elif isinstance(cmap, str):
-        if not cmap in cm.datad:
-            raise RuntimeError("Color map %s not known (type import matplotlib.cm; matplotlib.cm.datad.keys() for valid names)" % cmap)
-        return cm.__dict__[cmap]
+        from matplotlib import colormaps
+        try:
+            return colormaps[cmap]
+        except KeyError:
+            raise RuntimeError('Color map %s not known (type "import matplotlib; list(matplotlib.colormaps.keys())" for valid names)' % cmap)
 
     elif isinstance(cmap, (list, tuple)):
         cmap = [rgbcolor(_) for _ in cmap]
@@ -1431,7 +1426,7 @@ class Colormaps(MutableMapping):
     For a list of map names, evaluate::
 
         sage: sorted(colormaps)
-        [u'Accent', u'Blues', ...]
+        ['Accent', ...]
     """
     def __init__(self):
         """
@@ -1460,13 +1455,12 @@ class Colormaps(MutableMapping):
             sage: maps.load_maps()
             sage: len(maps.maps)>60
             True
+            sage: 'viridis' in maps
+            True
         """
-        global cm
-        if not cm:
-            from matplotlib import cm
         if not self.maps:
-            for cmap in cm.datad:
-                self.maps[cmap] = cm.__getattribute__(cmap)
+            from matplotlib import colormaps
+            self.maps.update(colormaps)
 
     def __dir__(self):
         """
@@ -1616,7 +1610,7 @@ class Colormaps(MutableMapping):
         try:
             return self[name]
         except KeyError:
-            raise AttributeError("'%s' has no attribute or colormap %s"%(type(self).__name__,name))
+            raise AttributeError("'%s' has no attribute or colormap %s" % (type(self).__name__, name))
 
     def __repr__(self):
         """
@@ -1678,7 +1672,7 @@ class Colormaps(MutableMapping):
             sage: maps = Colormaps()
             sage: count = len(maps)
             sage: maps.popitem()  # random
-            (u'Spectral', <matplotlib.colors.LinearSegmentedColormap object at ...>)
+            ('Spectral', <matplotlib.colors.LinearSegmentedColormap object at ...>)
             sage: count - 1 == len(maps)
             True
         """

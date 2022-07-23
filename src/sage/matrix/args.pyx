@@ -21,8 +21,6 @@ from cysignals.signals cimport sig_check
 MatrixSpace = None
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.real_double import RDF
-from sage.rings.complex_double import CDF
 from sage.structure.coerce cimport (coercion_model,
         is_numpy_type, py_scalar_parent)
 from sage.structure.element cimport Element, RingElement, Vector
@@ -1029,7 +1027,7 @@ cdef class MatrixArgs:
         if self.base is None:
             self.set_base_from_entries(values)
 
-        if self.sparse == False:
+        if self.sparse is False:
             # If we actually want a dense result, convert to MA_ENTRIES_SEQ_FLAT
             self.entries = [self.base.zero()] * (self.nrows * self.ncols)
             self.typ = MA_ENTRIES_SEQ_FLAT
@@ -1070,6 +1068,9 @@ cdef class MatrixArgs:
             raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
 
         from .constructor import matrix
+        from sage.rings.real_double import RDF
+        from sage.rings.complex_double import CDF
+
         if 'float32' in str_dtype:
             m = matrix(RDF, inrows, incols, 0)
             m._replace_self_with_numpy32(e)

@@ -11,20 +11,19 @@ AUTHORS:
 
 - Alexander Galarraga (7-2021): Added helper functions for conjugating set
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from copy import copy, deepcopy
+from itertools import permutations, combinations, product
+
 from sage.combinat.subset import Subsets
 from sage.misc.functional import sqrt
-from itertools import permutations, combinations, product
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
 from sage.misc.misc_c import prod
@@ -39,7 +38,7 @@ from sage.sets.primes import Primes
 from sage.sets.set import Set
 from sage.combinat.permutation import Arrangements
 from sage.parallel.use_fork import p_iter_fork
-from sage.functions.other import floor
+
 
 def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False, iso_type=False):
     r"""
@@ -203,7 +202,8 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
     psi = phi(phi(z))
     f2 = psi.numerator()
     g2 = psi.denominator()
-    period2_points = [x for x in (f2 - z*g2).roots(multiplicities=False) if not x in rational_roots]
+    period2_points = [x for x in (f2 - z*g2).roots(multiplicities=False)
+                      if x not in rational_roots]
     for S in Subsets(period2_points, 2):
         zeta = -1
         alpha = S[0]
@@ -759,9 +759,11 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
                         return(elements, which_group(elements))
                     return elements
             else:
-                N = gcd(orderaut + [12]) #all orders of elements divide N
-                for order in [O for O in divisors(N) \
-                                if not O in badorders]: #range over all orders
+                N = gcd(orderaut + [12])  # all orders of elements divide N
+                for order in divisors(N):
+                    if order in badorders:
+                        continue
+                    # range over all orders
                     # that are possible over QQ such that we haven't already
                     # found all elements of that order
 
@@ -772,7 +774,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
                     numelts = min(numeltsoffixedorder)
                     # Have some elts of fixed order mod p for each p
                     if numelts != 0:
-                        #CRT order d elements together and check if
+                        # CRT order d elements together and check if
                         # they are an automorphism
                         autos, M = CRT_automorphisms(automorphisms,
                                 orderelts, order, primepowers)
@@ -808,13 +810,12 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
                                 badorders.append(m)
                                 #no elements of that order or any order that
                                 # is a multiple of it
-                if len([order for order in divisors(N) \
-                        if not order in badorders]) == 0:
+                if all(order in badorders for order in divisors(N)):
                     #found all elements of every possible order
                         if iso_type:
-                            return(elements, which_group(elements))
+                            return (elements, which_group(elements))
                         return elements
-            congruence = congruence*p
+            congruence = congruence * p
 
         p = primes.next(p)
 
@@ -1241,13 +1242,13 @@ def automorphism_group_FF_alg2(rational_function):
             else:
                 preimage2 = R(phi(phi(z)).numerator() - y*phi(phi(z)).denominator())
                 T_poly = R(prod(x[0] for x in preimage2.factor() ) )
-                infinity_check = infinity_check = bool(preimage2.degree() < D**2)
+                infinity_check = bool(preimage2.degree() < D**2)
 
     # Define a field of definition for the absolute automorphism group
     r = lcm([x[0].degree() for x in T_poly.factor()])*F.degree()
     E = GF(p**r,'b')
     sigma = F.Hom(E)[0]
-    S = PolynomialRing(E,'w')
+    S = PolynomialRing(E, 'w')
     E_poly = rational_function_coerce(T_poly, sigma, S)
 
     T = [ [alpha, E(1)] for alpha in E_poly.roots(ring=E, multiplicities=False)]
@@ -1257,6 +1258,7 @@ def automorphism_group_FF_alg2(rational_function):
     # Coerce phi into the larger ring and call Algorithm 1
     Phi = rational_function_coerce(phi, sigma, S)
     return [S, three_stable_points(Phi, T)]
+
 
 def order_p_automorphisms(rational_function, pre_image):
     r"""
@@ -1900,7 +1902,6 @@ def conjugating_set_initializer(f, g):
             repeated_mult_L[repeated] = [mult_to_point_L[mult_L]]
         else:
             repeated_mult_L[repeated] += [mult_to_point_L[mult_L]]
-    r = f.domain().base_ring()
     more = True
 
     # the n+2 points to be used to specificy PGL conjugations
@@ -1918,7 +1919,7 @@ def conjugating_set_initializer(f, g):
     # does find a subset, then the subset will most likely minimize the combinatorics
     # of checking conjugations
     tup = greedy_independence_check(P, repeated_mult_L, point_to_mult_L)
-    if not tup is None:
+    if tup is not None:
         more = False
         source, corresponding = tup
 
@@ -1952,7 +1953,7 @@ def conjugating_set_initializer(f, g):
                             Tk.append(preimage)
                 if len(Tl) != len(Tk):
                     return []
-                if len(Tl) != 0:
+                if Tl:
                     found_no_more = False
                     new_tup_L = (mult_L, level)
                     new_tup_K = (mult_L, level)
@@ -1974,7 +1975,7 @@ def conjugating_set_initializer(f, g):
                     # we again do a greedy check for a subset of n+2 points, of which no n+1
                     # are linearly dependent
                     tup = greedy_independence_check(P, repeated_mult_L, point_to_mult_L)
-                    if not tup is None:
+                    if tup is not None:
                         more = False
                         source, corresponding = tup
                 if not more:
@@ -2029,6 +2030,7 @@ def conjugating_set_initializer(f, g):
     for tup in corresponding:
         possible_targets.append([mult_to_point_K[tup[0]], tup[1]])
     return source, possible_targets
+
 
 def greedy_independence_check(P, repeated_mult, point_to_mult):
     r"""
@@ -2214,8 +2216,8 @@ def conjugating_set_helper(f, g, num_cpus, source, possible_targets):
         # and check linear independence in parallel
         if len(all_subsets) > num_cpus:
             for i in range(num_cpus):
-                start = floor(len(all_subsets)*i/num_cpus)
-                end = floor(len(all_subsets)*(i+1)/num_cpus)
+                start = (len(all_subsets) * i) // num_cpus
+                end = (len(all_subsets) * (i+1)) // num_cpus
                 tuples = all_subsets[start:end]
                 parallel_data.append(([tuples], {}))
 
@@ -2243,8 +2245,8 @@ def conjugating_set_helper(f, g, num_cpus, source, possible_targets):
                 all_arrangements += list(product(*subset_arrangements))
             parallel_data = []
             for i in range(num_cpus):
-                start = floor(len(all_arrangements)*i/num_cpus)
-                end = floor(len(all_arrangements)*(i+1)/num_cpus)
+                start = (len(all_arrangements) * i) // num_cpus
+                end = (len(all_arrangements) * (i+1)) // num_cpus
                 tuples = all_arrangements[start:end]
                 parallel_data.append(([tuples], {}))
             X = p_iter_fork(num_cpus)
@@ -2351,8 +2353,8 @@ def is_conjugate_helper(f, g, num_cpus, source, possible_targets):
         # and check linear independence in parallel
         if len(all_subsets) > num_cpus:
             for i in range(num_cpus):
-                start = floor(len(all_subsets)*i/num_cpus)
-                end = floor(len(all_subsets)*(i+1)/num_cpus)
+                start = (len(all_subsets) * i) // num_cpus
+                end = (len(all_subsets) * (i+1)) // num_cpus
                 tuples = all_subsets[start:end]
                 parallel_data.append(([tuples], {}))
 
@@ -2381,8 +2383,8 @@ def is_conjugate_helper(f, g, num_cpus, source, possible_targets):
                 all_arrangements += list(product(*subset_arrangements))
             parallel_data = []
             for i in range(num_cpus):
-                start = floor(len(all_arrangements)*i/num_cpus)
-                end = floor(len(all_arrangements)*(i+1)/num_cpus)
+                start = (len(all_arrangements) * i) // num_cpus
+                end = (len(all_arrangements) * (i+1)) // num_cpus
                 tuples = all_arrangements[start:end]
                 parallel_data.append(([tuples], {}))
             X = p_iter_fork(num_cpus)

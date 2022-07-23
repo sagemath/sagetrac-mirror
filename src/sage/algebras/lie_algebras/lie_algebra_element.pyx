@@ -260,7 +260,7 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
          ├┼┘
          └┘
     """
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return if ``self`` is non-zero.
 
@@ -717,7 +717,7 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
             sage: L.<x,y> = LieAlgebra(QQ, {('x','y'): {'x':1}})
             sage: elt = x - 3/2 * y
             sage: latex(elt)
-            x - \frac{3}{2}y
+            x - \frac{3}{2} y
         """
         return repr_lincomb(self._sorted_items_for_printing(),
                             scalar_mult=self._parent._print_options['scalar_mult'],
@@ -1029,7 +1029,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
 
             sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
             sage: latex(e1 + 2*f1 - h1 + e0 + 3*c - 2*d)
-            \left(E_{\alpha_{1}} - E_{\alpha^\vee_{1}} + 2E_{-\alpha_{1}}\right) \otimes t^{0}
+            \left(E_{\alpha_{1}} - E_{\alpha^\vee_{1}} + 2 E_{-\alpha_{1}}\right) \otimes t^{0}
              + \left(E_{-\alpha_{1}}\right) \otimes t^{1} + 3 c + -2 d
         """
         from sage.misc.latex import latex
@@ -1151,7 +1151,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
                                self._c_coeff, self._d_coeff))
         return self._hash
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``self`` as a boolean.
 

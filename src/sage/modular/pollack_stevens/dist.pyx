@@ -39,7 +39,6 @@ from sage.matrix.matrix cimport Matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.misc.prandom import random
-from sage.functions.other import floor
 from sage.structure.element cimport RingElement, Element
 import operator
 from sage.rings.padics.padic_generic import pAdicGeneric
@@ -1321,7 +1320,7 @@ cdef class WeightKAction(Action):
             (5, 17, 64, 253)
         """
         g = g.matrix()
-        if not g in self._maxprecs:
+        if g not in self._maxprecs:
             A = self._compute_acting_matrix(g, M)
             self._actmat[g] = {M: A}
             self._maxprecs[g] = M

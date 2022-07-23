@@ -380,7 +380,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             try:
                 z = integer_ring.Z(value)
             except (TypeError, ValueError):
-                from sage.symbolic.expression import Expression
+                from sage.structure.element import Expression
                 if isinstance(value, Expression):
                     value = value.pyobject()
                 else:
@@ -735,6 +735,12 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             Traceback (most recent call last):
             ...
             ValueError: no logarithm of 230 found to base 173 modulo 323 (incompatible local solutions)
+
+        We test that :trac:`12419` is fixed::
+
+            sage: R.<x,y> = GF(2)[]
+            sage: R(1).factor()
+            1
 
         AUTHORS:
 
@@ -1892,7 +1898,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             r += 1
             power *= p
             if not power.divides(self.__modulus.sageInteger):
-                from sage.rings.all import infinity
+                from sage.rings.infinity import infinity
                 return infinity
         return r
 
@@ -2083,7 +2089,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         """
         return mpz_cmp_si(self.value, 1) == 0
 
-    def __nonzero__(IntegerMod_gmp self):
+    def __bool__(IntegerMod_gmp self):
         """
         Returns ``True`` if this is not `0`, otherwise
         ``False``.
@@ -2470,7 +2476,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         return self.ivalue == 1 or self.__modulus.int32 == 1
 
-    def __nonzero__(IntegerMod_int self):
+    def __bool__(IntegerMod_int self):
         """
         Returns ``True`` if this is not `0`, otherwise
         ``False``.
@@ -3296,7 +3302,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         """
         return self.ivalue == 1
 
-    def __nonzero__(IntegerMod_int64 self):
+    def __bool__(IntegerMod_int64 self):
         """
         Returns ``True`` if this is not `0`, otherwise
         ``False``.

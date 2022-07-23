@@ -34,7 +34,6 @@ from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from sage.structure.parent cimport Parent
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
-from sage.functions.other import ceil
 from sage.combinat.tableau import Tableau
 from sage.rings.integer_ring import ZZ
 
@@ -771,7 +770,9 @@ cdef class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
                 the_list += col
         else:
             the_list = [i for i in args]
-        TensorProductOfRegularCrystalsElement.__init__(self, parent, [parent.letters(_) for _ in the_list])
+        TensorProductOfRegularCrystalsElement.__init__(self, parent,
+                                                       [parent.letters(i)
+                                                        for i in the_list])
 
     def _repr_(self):
         """
@@ -1529,24 +1530,24 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
                 b = b.s(a)
             b = b.e(-1)
             if b is None:
-               return None
+                return None
             for a in range(2, j+1):
                 b = b.s(a)
             for a in range(1, j):
                 b = b.s(a)
             return b
         if i < -n:
-           j = -(i+n)
-           w = <tuple> (self._parent._long_element())
-           b = self
-           for a in w:
-               b = b.s(a)
-           b = b.f(-(n+1-j))
-           if b is None:
-               return None
-           for a in w:
-               b = b.s(a)
-           return b
+            j = -(i+n)
+            w = <tuple> (self._parent._long_element())
+            b = self
+            for a in w:
+                b = b.s(a)
+            b = b.f(-(n+1-j))
+            if b is None:
+                return None
+            for a in w:
+                b = b.s(a)
+            return b
         return None
 
     def f(self, i):
@@ -1589,24 +1590,24 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
                 b = b.s(a)
             b = b.f(-1)
             if b is None:
-               return None
+                return None
             for a in range(2, j+1):
                 b = b.s(a)
             for a in range(1, j):
                 b = b.s(a)
             return b
         if i < -n:
-           j = -(i+n)
-           w = <tuple> (self._parent._long_element())
-           b = self
-           for a in w:
-               b = b.s(a)
-           b = b.e(-(n+1-j))
-           if b is None:
-               return None
-           for a in w:
-               b = b.s(a)
-           return b
+            j = -(i+n)
+            w = <tuple> (self._parent._long_element())
+            b = self
+            for a in w:
+                b = b.s(a)
+            b = b.e(-(n+1-j))
+            if b is None:
+                return None
+            for a in w:
+                b = b.s(a)
+            return b
         return None
 
     # Override epsilon/phi (for now)

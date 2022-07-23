@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-`p`-adic valuations on number fields and their subrings and completions
+`p`-adic Valuations on Number Fields and Their Subrings and Completions
 
 EXAMPLES::
 
@@ -48,7 +48,7 @@ from sage.rings.valuation.mapped_valuation import FiniteExtensionFromLimitValuat
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 
-from sage.rings.all import infinity
+from sage.rings.infinity import infinity
 
 class PadicValuationFactory(UniqueFactory):
     r"""
@@ -255,7 +255,7 @@ class PadicValuationFactory(UniqueFactory):
             v = v._base_valuation._initial_approximation.change_domain(G.parent())
         else:
             raise NotImplementedError("cannot rewrite %r which is defined on %r as a pseudo-valuation on %r"%(v, v.domain(), G.parent()))
-            
+
 
         assert(v.domain() is G.parent())
 
@@ -326,7 +326,7 @@ class PadicValuationFactory(UniqueFactory):
         # Unfortunately, the generators of I, even though defined over K have
         # their polynomial() defined over the rationals so we need to turn them
         # into polynomials over K[x] explicitly.
-        from sage.rings.all import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         gens = I.gens()
         gens = [PolynomialRing(K, 'x')(list(g.vector())) for g in gens]
 
@@ -1068,7 +1068,7 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         if error is None:
             error = self(x)
-        from sage.rings.all import infinity
+        from sage.rings.infinity import infinity
         if error is infinity:
             return x
         # we need to scale by the ramification index because p-adics use a
@@ -1149,7 +1149,7 @@ class pAdicValuation_int(pAdicValuation_base):
             Finite Field of size 3
 
         """
-        from sage.rings.all import GF
+        from sage.rings.finite_rings.finite_field_constructor import GF
         return GF(self.p())
 
     def _ge_(self, other):
@@ -1183,7 +1183,7 @@ class pAdicValuation_int(pAdicValuation_base):
         coefficients is going to lead to a significant shrinking of the
         coefficients of ``x``.
 
-        EXAMPLES:: 
+        EXAMPLES::
 
             sage: v = ZZ.valuation(2)
             sage: v._relative_size(2)
@@ -1245,7 +1245,7 @@ class pAdicValuation_int(pAdicValuation_base):
         v = self(x)
         if error is None:
             error = v
-        from sage.rings.all import infinity
+        from sage.rings.infinity import infinity
         if error is infinity:
             return x
         if error < v:
@@ -1326,10 +1326,10 @@ class pAdicValuation_int(pAdicValuation_base):
         if precision <= 0:
             return self.domain().one()
 
-        from sage.rings.all import infinity
+        from sage.rings.infinity import infinity
         if self(x) > 0 or precision is infinity:
             raise ValueError("element has no approximate inverse in this ring")
-        
+
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
         return self.domain()(ZZ(x).inverse_mod(self.p() ** QQ(precision).ceil()))
