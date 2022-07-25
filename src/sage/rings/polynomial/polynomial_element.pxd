@@ -53,7 +53,7 @@ cdef class Polynomial_generic_dense(Polynomial):
     cpdef list list(self, bint copy=*)
 
 cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
-    pass
+    cdef int __normalize(self) except -1
 
 cpdef is_Polynomial(f)
 cpdef Polynomial generic_power_trunc(Polynomial p, Integer n, long prec)
