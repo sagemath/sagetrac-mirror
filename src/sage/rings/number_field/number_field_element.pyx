@@ -86,6 +86,7 @@ ZZ = sage.rings.integer_ring.ZZ
 Integer_sage = sage.rings.integer.Integer
 
 from sage.rings.real_mpfi import RealInterval
+from sage.rings.real_mpfr import RealField
 
 from sage.rings.complex_mpfr import ComplexField
 from sage.rings.cc import CC
@@ -4116,6 +4117,66 @@ cdef class NumberFieldElement(FieldElement):
 
         """
         return (self.global_height_non_arch(prec)+self.global_height_arch(prec))/self.number_field().absolute_degree()
+
+    def _logarithmic_embedding_helper(self, prec=53):
+        """
+        Return the image of ``self`` under the logarithmic embedding.
+
+        The logarithmic embedding is defined as a map from the number field ``self`` to `\RR^n`.
+
+        It is defined under Definition 4.9.6 in [Cohen1993]_.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision.
+
+        OUTPUT:
+
+        - a function.
+
+        EXAMPLES::
+
+            sage: CF.<a> = CyclotomicField(97)
+            sage: log_map = CF(0)._logarithmic_embedding_helper()
+            sage: log_map(0)
+            (-1)
+            sage: log_map(7)
+            (1.94591014905531)
+
+        ::
+
+            sage: F.<a> = NumberField(x^3 + 5)
+            sage: K.<b> = F.extension(x^2 + 2)
+            sage: log_map = K(0)._logarithmic_embedding_helper()
+            sage: log_map(0)
+            (-1, -1)
+            sage: log_map(7)
+            (1.94591014905531, 3.89182029811063)
+        """
+        def closure_map(x):
+            """
+            The function closure of the logarithmic embedding.
+            """
+            K = self.base_ring()
+            K_embeddings = K.places(prec)
+            r1, r2 = K.signature()
+            r = r1 + r2 - 1
+
+            Reals = RealField(prec)
+
+            if x == 0:
+                return vector([-1 for _ in range(r + 1)])
+
+            x_logs = []
+            for i in range(r1):
+                sigma = K_embeddings[i]
+                x_logs.append(Reals(abs(sigma(x))).log())
+            for i in range(r1, r + 1):
+                tau = K_embeddings[i]
+                x_logs.append(2 * Reals(abs(tau(x))).log())
+
+            return vector(x_logs)
+        return closure_map
 
     def numerator_ideal(self):
         """

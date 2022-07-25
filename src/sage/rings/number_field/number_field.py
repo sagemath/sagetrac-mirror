@@ -156,7 +156,9 @@ from builtins import zip
 
 _NumberFields = NumberFields()
 
-
+from sage.categories.homset import Hom
+from sage.categories.sets_cat import Sets
+from sage.modules.free_module import VectorSpace
 from sage.rings.number_field.morphism import RelativeNumberFieldHomomorphism_from_abs
 
 
@@ -9291,6 +9293,45 @@ class NumberField_absolute(NumberField_generic):
                 d[(r+2*i+1,col)] = z.imag()*sqrt2
 
         return sage.matrix.all.matrix(d)
+
+    def logarithmic_embedding(self, prec=53):
+        """
+        Return the morphism of ``self`` under the logarithmic embedding
+        in the category Set.
+
+        The logarithmic embedding is defined as a map from the number field ``self`` to `\RR^n`.
+
+        It is defined under Definition 4.9.6 in [Cohen1993]_.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision.
+
+        OUTPUT:
+
+        - a tuple of real numbers.
+
+        EXAMPLES::
+
+            sage: CF.<a> = CyclotomicField(97)
+            sage: f = CF.logarithmic_embedding()
+            sage: f(0)
+            (-1)
+            sage: f(7)
+            (1.94591014905531)
+
+        ::
+
+            sage: K.<a> = NumberField(x^3 + 5)
+            sage: f = K.logarithmic_embedding()
+            sage: f(0)
+            (-1)
+            sage: f(7)
+            (1.94591014905531)
+        """
+        log_map = self(0)._logarithmic_embedding_helper(prec)
+        log_hom = Hom(self, VectorSpace(QQ, len(log_map(0))), Sets())
+        return log_hom(log_map)
 
     def places(self, all_complex=False, prec=None):
         r"""
