@@ -115,14 +115,41 @@ cdef class Lfunction:
 
     cdef str _repr
 
+
 cdef class Lfunction_I(Lfunction):
-    pass
+    cdef void __init_fun(self, char *NAME, int what_type, dirichlet_coeff, long long Period, double q,  c_Complex w, int A, double *g, c_Complex *l, int n_poles, c_Complex *p, c_Complex *r)
+    cdef inline c_Complex __value(self,c_Complex s,int derivative)
+    cdef inline c_Complex __hardy_z_function(self,c_Complex s)
+    cdef int __compute_rank(self)
+    cdef void __find_zeros_v(self, double T1, double T2, double stepsize, doublevec *result)
+    cdef double __typedN(self, double T)
+    cdef int __find_zeros(self, long count, long start, double max_refine, int rank, const char* message_stamp, doublevec *result)
+
 
 cdef class Lfunction_D(Lfunction):
-    pass
+    cdef void __init_fun(self, char *NAME, int what_type, dirichlet_coeff, long long Period, double q,  c_Complex w, int A, double *g, c_Complex *l, int n_poles, c_Complex *p, c_Complex *r)
+    cdef inline c_Complex __value(self,c_Complex s,int derivative)
+    cdef inline c_Complex __hardy_z_function(self,c_Complex s)
+    cdef inline int __compute_rank(self)
+    cdef void __find_zeros_v(self, double T1, double T2, double stepsize, doublevec *result)
+    cdef double __typedN(self, double T)
+    cdef int __find_zeros(self, long count, long start,double max_refine, int rank, const char* message_stamp, doublevec *result)
+
 
 cdef class Lfunction_C(Lfunction):
-    pass
+    cdef void __init_fun(self, char *NAME, int what_type, dirichlet_coeff, long long Period, double q,  c_Complex w, int A, double *g, c_Complex *l, int n_poles, c_Complex *p, c_Complex *r)
+    cdef inline c_Complex __value(self,c_Complex s,int derivative)
+    cdef inline c_Complex __hardy_z_function(self,c_Complex s)
+    cdef inline int __compute_rank(self)
+    cdef void __find_zeros_v(self, double T1, double T2, double stepsize, doublevec *result)
+    cdef double __typedN(self, double T)
+    cdef int __find_zeros(self, long count, long start, double max_refine, int rank, const char* message_stamp, doublevec *result)
+
 
 cdef class Lfunction_Zeta(Lfunction):
-    pass
+    cdef inline c_Complex __value(self,c_Complex s,int derivative)
+    cdef inline c_Complex __hardy_z_function(self,c_Complex s)
+    cdef inline int __compute_rank(self)
+    cdef void __find_zeros_v(self, double T1, double T2, double stepsize, doublevec *result)
+    cdef double __typedN(self, double T)
+    cdef int __find_zeros(self, long count, long start, double max_refine, int rank, const char* message_stamp, doublevec *result)
