@@ -113,7 +113,7 @@ jobs:
       if: inputs.previous_stages
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && SAGE_LOCAL="${{ env.SAGE_LOCAL }}" .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
       if: inputs.previous_stages
     - name: tox
       run: |
