@@ -31,7 +31,7 @@ jobs:
       - name: Prepare
         id: prepare
         run: |
-          # Install test tools.
+          # Install test tools
           if apt-get update && apt-get install -y git python3-venv; then
              # Debian-specific temporary code:
              # Installation of python3-venv can be removed as soon as a
@@ -42,10 +42,10 @@ jobs:
              eval $(sage-print-system-package-command auto update)
              eval $(sage-print-system-package-command auto --spkg --yes --no-install-recommends install git)
           fi
-          # Reuse built SAGE_LOCAL contained in the Docker image 
+          # Reuse built SAGE_LOCAL contained in the Docker image
           ./bootstrap
           ./configure --enable-build-as-root --prefix=/sage/local --with-sage-venv --enable-editable --enable-download-from-upstream-url
-      
+
       - name: Build and test modularized distributions
         if: always() && steps.prepare.outcome == 'success'
         run: make V=0 tox && make pypi-wheels
@@ -66,8 +66,8 @@ jobs:
 
       - name: Static code check with pyright
         if: always() && steps.prepare.outcome == 'success'
-        run: pyright    
-      
+        run: pyright
+
       - name: Build
         id: build
         if: always() && steps.prepare.outcome == 'success'
@@ -99,7 +99,7 @@ jobs:
           ./venv/bin/python3 -m coverage combine src/.coverage/
           ./venv/bin/python3 -m coverage xml
           find . -name *coverage*
-      
+
       - name: Upload coverage to codecov
         if: always() && steps.build.outcome == 'success'
         uses: codecov/codecov-action@v2
