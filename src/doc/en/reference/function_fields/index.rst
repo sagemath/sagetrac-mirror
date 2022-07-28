@@ -24,6 +24,18 @@ algebraic closure of `\QQ`.
 
 A basic reference for the theory of algebraic function fields is [Stich2009]_.
 
+Algebraic Jacobians
+-------------------
+
+Arithmetic in Jacobians of function fields are available in two flavors.
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/rings/function_field/jacobian_base
+   sage/rings/function_field/jacobian_hess
+   sage/rings/function_field/jacobian_khuri_makdisi
+
 A Support Module
 ----------------
 

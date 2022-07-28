@@ -90,6 +90,7 @@ import itertools
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.lazy_import import lazy_import
 from sage.misc.latex import latex
 from sage.misc.misc import powerset
 
@@ -110,10 +111,9 @@ from sage.rings.ideal import Ideal_generic
 
 from sage.matrix.constructor import matrix
 
-from .divisor import divisor
-
 from .hermite_form_polynomial import reversed_hermite_form
 
+lazy_import('sage.rings.function_field.divisor', 'divisor')
 
 class FunctionFieldIdeal(Element):
     """
