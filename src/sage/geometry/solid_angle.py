@@ -109,7 +109,7 @@ def solid_angle_simplicial_2d(A):
         ValueError: input matrix has a row that is zero
 
     In the following examples, we check the parent of the output only depends
-    on the parent of the input, but not the value of the input.
+    on the parent of the input, but not the value of the input::
 
         sage: A = matrix([[1, 0], [-1, -1]])
         sage: solid_angle_simplicial_2d(A).simplify()
