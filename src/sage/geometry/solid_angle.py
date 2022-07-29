@@ -112,42 +112,25 @@ def solid_angle_simplicial_2d(A):
     on the parent of the input, but not the value of the input.
 
         sage: A = matrix([[1, 0], [-1, -1]])
-        sage: a = solid_angle_simplicial_2d(A)
-        sage: a.simplify()
+        sage: solid_angle_simplicial_2d(A).simplify()
         3/8
-        sage: a.parent()
-        Symbolic Constants Subring
-        sage: solid_angle_simplicial_2d(matrix(QQ, A)).parent()
-        Symbolic Constants Subring
-        sage: solid_angle_simplicial_2d(matrix(AA, A)).parent()
-        Symbolic Constants Subring
-        sage: solid_angle_simplicial_2d(matrix(SR, A)).parent()
-        Symbolic Ring
-        sage: solid_angle_simplicial_2d(matrix(RR, A)).parent()
-        Real Field with 53 bits of precision
-        sage: solid_angle_simplicial_2d(matrix(RDF, A)).parent()
-        Real Double Field
-        sage: solid_angle_simplicial_2d(matrix(RBF, A)).parent()
-        Real ball field with 53 bits of precision
-
         sage: B = matrix([[1, 0], [-1, 0]])
-        sage: b = solid_angle_simplicial_2d(B)
-        sage: b
+        sage: solid_angle_simplicial_2d(B)
         0
-        sage: b.parent()
-        Symbolic Constants Subring
-        sage: solid_angle_simplicial_2d(matrix(QQ, B)).parent()
-        Symbolic Constants Subring
-        sage: solid_angle_simplicial_2d(matrix(AA, B)).parent()
-        Symbolic Constants Subring
-        sage: solid_angle_simplicial_2d(matrix(SR, B)).parent()
-        Symbolic Ring
-        sage: solid_angle_simplicial_2d(matrix(RR, B)).parent()
-        Real Field with 53 bits of precision
-        sage: solid_angle_simplicial_2d(matrix(RDF, B)).parent()
-        Real Double Field
-        sage: solid_angle_simplicial_2d(matrix(RBF, B)).parent()
-        Real ball field with 53 bits of precision
+        sage: [solid_angle_simplicial_2d(matrix(ZZ, M)).parent() for M in [A, B]]
+        [Symbolic Constants Subring, Symbolic Constants Subring]
+        sage: [solid_angle_simplicial_2d(matrix(QQ, M)).parent() for M in [A, B]]
+        [Symbolic Constants Subring, Symbolic Constants Subring]
+        sage: [solid_angle_simplicial_2d(matrix(AA, M)).parent() for M in [A, B]]
+        [Symbolic Constants Subring, Symbolic Constants Subring]
+        sage: [solid_angle_simplicial_2d(matrix(SR, M)).parent() for M in [A, B]]
+        [Symbolic Ring, Symbolic Ring]
+        sage: [solid_angle_simplicial_2d(matrix(RR, M)).parent() for M in [A, B]]
+        [Real Field with 53 bits of precision, Real Field with 53 bits of precision]
+        sage: [solid_angle_simplicial_2d(matrix(RDF, M)).parent() for M in [A, B]]
+        [Real Double Field, Real Double Field]
+        sage: [solid_angle_simplicial_2d(matrix(RBF, M)).parent() for M in [A, B]]
+        [Real ball field with 53 bits of precision, Real ball field with 53 bits of precision]
     """
     if not is_Matrix(A):
         A = matrix(A)
