@@ -353,6 +353,29 @@ class Rings(CategoryWithAxiom):
             """
             return self.one() == self.zero()
 
+        def is_exact(self) -> bool:
+            """
+            Return ``True`` if elements of this ring are represented exactly, i.e.,
+            there is no precision loss when doing arithmetic.
+
+            .. NOTE::
+
+                This defaults to ``True``, so even if it does return ``True`` you
+                have no guarantee (unless the ring has properly overloaded this).
+
+            EXAMPLES::
+
+                sage: QQ.is_exact()    # indirect doctest
+                True
+                sage: ZZ.is_exact()
+                True
+                sage: Qp(7).is_exact()
+                False
+                sage: Zp(7, type='capped-abs').is_exact()
+                False
+            """
+            return True
+
         def bracket(self, x, y):
             """
             Returns the Lie bracket `[x, y] = x y - y x` of `x` and `y`.

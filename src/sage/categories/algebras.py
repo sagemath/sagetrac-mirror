@@ -144,6 +144,37 @@ class Algebras(CategoryWithAxiom_over_base_ring):
     Semisimple = LazyImport('sage.categories.semisimple_algebras',
                             'SemisimpleAlgebras')
 
+    class ParentMethods:
+
+        def is_exact(self) -> bool:
+            """
+            Return ``True`` if elements of this quaternion algebra are represented
+            exactly, i.e. there is no precision loss when doing arithmetic.
+
+            Any algebra with an inexact base ring is inexact.
+
+            EXAMPLES:
+
+            A quaternion algebra is exact if and only if the base ring is exact::
+
+                sage: Q.<i,j,k> = QuaternionAlgebra(QQ, -3, -7)
+                sage: Q.is_exact()
+                True
+                sage: Q.<i,j,k> = QuaternionAlgebra(Qp(7), -3, -7)
+                sage: Q.is_exact()
+                False
+
+            A matrix algebra is exact if and only if the base ring is exact::
+
+                sage: M = MatrixSpace(QQ, 2, 2)
+                sage: M.is_exact()
+                sage: M = MatrixSpace(RDF, 2, 2)
+                sage: M.is_exact()
+            """
+            if not self.base_ring().is_exact():
+                return False
+            return super().is_exact()
+
     class ElementMethods:
         # TODO: move the content of AlgebraElement here or higher in the category hierarchy
         def _div_(self, y):

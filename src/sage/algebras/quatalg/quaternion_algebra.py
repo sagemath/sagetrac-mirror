@@ -435,24 +435,6 @@ class QuaternionAlgebra_abstract(Algebra):
             raise NotImplementedError("base field must be rational numbers")
         return self.discriminant() == 1
 
-    def is_exact(self) -> bool:
-        """
-        Return ``True`` if elements of this quaternion algebra are represented
-        exactly, i.e. there is no precision loss when doing arithmetic. A
-        quaternion algebra is exact if and only if its base field is
-        exact.
-
-        EXAMPLES::
-
-            sage: Q.<i,j,k> = QuaternionAlgebra(QQ, -3, -7)
-            sage: Q.is_exact()
-            True
-            sage: Q.<i,j,k> = QuaternionAlgebra(Qp(7), -3, -7)
-            sage: Q.is_exact()
-            False
-        """
-        return self.base_ring().is_exact()
-
     def is_field(self, proof=True) -> bool:
         """
         Return ``False`` always, since all quaternion algebras are

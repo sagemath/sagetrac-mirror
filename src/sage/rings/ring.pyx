@@ -834,29 +834,6 @@ cdef class Ring(ParentWithGens):
         else:
             return False
 
-    cpdef bint is_exact(self) except -2:
-        """
-        Return ``True`` if elements of this ring are represented exactly, i.e.,
-        there is no precision loss when doing arithmetic.
-
-        .. NOTE::
-
-            This defaults to ``True``, so even if it does return ``True`` you
-            have no guarantee (unless the ring has properly overloaded this).
-
-        EXAMPLES::
-
-            sage: QQ.is_exact()    # indirect doctest
-            True
-            sage: ZZ.is_exact()
-            True
-            sage: Qp(7).is_exact()
-            False
-            sage: Zp(7, type='capped-abs').is_exact()
-            False
-        """
-        return True
-
     def is_subring(self, other):
         """
         Return ``True`` if the canonical map from ``self`` to ``other`` is
