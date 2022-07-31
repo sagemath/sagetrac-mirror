@@ -10,6 +10,9 @@ cdef class LinearMatroid(BasisExchangeMatroid):
     cdef long *_prow
     cdef object _zero, _one
 
+    cdef bint __is_exchange_pair(self, long x, long y) except -1
+    cdef int __exchange(self, long x, long y) except -1
+
     cpdef _forget(self)
     cpdef base_ring(self)
     cpdef characteristic(self)
@@ -68,6 +71,9 @@ cdef class BinaryMatroid(LinearMatroid):
     cdef tuple _b_invariant, _b_partition
     cdef BinaryMatrix _b_projection, _eq_part
 
+    cdef bint __is_exchange_pair(self, long x, long y) except -1
+    cdef int __exchange(self, long x, long y) except -1
+
     cpdef base_ring(self)
     cpdef characteristic(self)
 
@@ -76,6 +82,8 @@ cdef class BinaryMatroid(LinearMatroid):
     cpdef LeanMatrix _reduced_representation(self, B=*)
 
     cdef  __fundamental_cocircuit(self, bitset_t, long x)
+    cdef __coclosure(self, bitset_t R, bitset_t F)
+    cdef  __exchange_value(self, long x, long y)
 
     cpdef _is_isomorphic(self, other, certificate=*)
 
@@ -99,6 +107,9 @@ cdef class TernaryMatroid(LinearMatroid):
     cdef tuple _t_invariant, _t_partition
     cdef TernaryMatrix _t_projection
 
+    cdef bint __is_exchange_pair(self, long x, long y) except -1
+    cdef int __exchange(self, long x, long y) except -1
+
     cpdef base_ring(self)
     cpdef characteristic(self)
 
@@ -107,6 +118,8 @@ cdef class TernaryMatroid(LinearMatroid):
     cpdef LeanMatrix _reduced_representation(self, B=*)
 
     cdef  __fundamental_cocircuit(self, bitset_t, long x)
+    cdef __coclosure(self, bitset_t R, bitset_t F)
+    cdef  __exchange_value(self, long x, long y)
 
     cpdef _is_isomorphic(self, other, certificate=*)
 
@@ -127,6 +140,9 @@ cdef class QuaternaryMatroid(LinearMatroid):
     cdef tuple _q_invariant, _q_partition
     cdef QuaternaryMatrix _q_projection
 
+    cdef bint __is_exchange_pair(self, long x, long y) except -1
+    cdef int __exchange(self, long x, long y) except -1
+
     cpdef base_ring(self)
     cpdef characteristic(self)
 
@@ -135,6 +151,8 @@ cdef class QuaternaryMatroid(LinearMatroid):
     cpdef LeanMatrix _reduced_representation(self, B=*)
 
     cdef  __fundamental_cocircuit(self, bitset_t, long x)
+    cdef __coclosure(self, bitset_t R, bitset_t F)
+    cdef  __exchange_value(self, long x, long y)
 
     cpdef _is_isomorphic(self, other, certificate=*)
 
@@ -152,6 +170,10 @@ cdef class RegularMatroid(LinearMatroid):
     cdef _bases_count, _r_invariant
     cdef _r_projection, _r_hypergraph
     cdef _hypergraph_vertex_partition, _hypergraph_tuples
+
+    cdef bint __is_exchange_pair(self, long x, long y) except -1
+    cdef int __exchange(self, long x, long y) except -1
+    cdef  __exchange_value(self, long x, long y)
 
     cpdef base_ring(self)
     cpdef characteristic(self)
