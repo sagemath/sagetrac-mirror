@@ -15,7 +15,25 @@ TESTS::
     sage: import sage.tests.benchmark
 """
 
-from sage.all import * # QQ, alarm, ModularSymbols, gp, pari, cputime, EllipticCurve
+from cysignals.alarm import alarm, cancel_alarm, AlarmInterrupt
+from sage.combinat.combinat import fibonacci
+from sage.functions.other import factorial
+from sage.interfaces.gap import gap
+from sage.interfaces.gp import gp
+from sage.interfaces.maxima import maxima
+from sage.interfaces.singular import singular
+from sage.libs.pari import pari
+from sage.matrix.matrix_space import MatrixSpace
+from sage.misc.functional import log
+from sage.misc.misc import cputime, walltime
+from sage.modular.modsym.modsym import ModularSymbols
+from sage.rings.complex_mpfr import ComplexField
+from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.rings.rational_field import QQ
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.schemes.elliptic_curves.constructor import EllipticCurve
 
 def avg(X):
     """
@@ -48,6 +66,7 @@ class Benchmark:
         sage: from sage.tests.benchmark import Benchmark
         sage: B = Benchmark()
         sage: def python():
+        ....:     from sage.misc.misc import cputime
         ....:     t = cputime()
         ....:     n = 2+2
         ....:     return cputime(t)
