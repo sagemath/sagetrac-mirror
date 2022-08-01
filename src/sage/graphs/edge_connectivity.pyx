@@ -1010,17 +1010,77 @@ cdef class GabowEdgeConnectivity:
     # Packing arborescences
     #
 
+
+    cdef remove_unused_edges_from_G(self):
+        return
+
+    cdef release_used_edges(self):
+        return
+
+    cdef G_minus_A(self):
+        return
+
+    cdef find_tree(self):
+        # this is where choose edge and period steps are
+        return
+
+    cdef packing_arboresences(self):
+        cdef int ntrees
+        cdef int temp
+        self.pa_checked = False
+
+        ntrees = self.construct_trees(False, 0) # find the value of K - intersection # not sure if this should be True or False
+        K = ntrees - 1
+        if ntrees == 0:
+            self.num_arborescences = 0
+            self.pa_checked = True
+            return
+        
+        self.remove_unused_edges_from_G()	# remove unused edges from the graph ( Include only E(T) )
+        self.release_used_edges()
+
+        while 1:
+            # get dfs from r
+            dfs = self.G.DFS(self.root_vertex)
+
+            # remove edges in tree from G (aka G - A)
+            self.G_minus_A()
+
+            temp = self.construct_trees(False, 1)
+
+            if temp < ntrees - 1:
+                print("Bad Case: Temp is {}".format(temp))
+
+                # pseudocode
+                for edge in edges:
+                    # turn back edges
+                    e = self.UNUSED
+
+                self.G_minus_A()
+                temp = construct_trees(False, 1)
+                self.find_tree()
+                self.G_minus_A()
+            else:
+                print("Good Case.")
+                for edge in edges:
+                    # reset dfs edges
+                    e = self.UNUSED
+
+            if K == 0:
+                print("packing done")
+                break
+            else:
+                K -= 1
+                ntrees -= 1
+
+
+        return
+
+
     def edge_disjoint_spanning_trees(self):
-        r"""
-        Iterator over the edge disjoint spanning trees.
+        self.packing_arboresences()
+        return
 
-        EXAMPLES::
 
-            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
-            sage: D = digraphs.Complete(5)
-            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this method has not been implemented yet
-        """
-        raise NotImplementedError('this method has not been implemented yet')
+
+
