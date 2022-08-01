@@ -130,20 +130,20 @@ Working with quotient algebras::
 Installation
 ------------
 
-At least on Linux, we first download the tarball::
+At least on Linux, we first download the latest tarball at time of writing::
 
-    $ wget https://github.com/gap-packages/gbnp/archive/refs/tags/v1.0.4.tar.gz
+    $ wget https://github.com/gap-packages/gbnp/archive/refs/tags/v1.0.5.tar.gz
 
 and verify integrity::
 
-    $ sha256sum v1.0.4.tar.gz
-    453897eb66de3a2537ef913d43d499cd80e5591ca79ab59dbca6dfeb17d26254  v1.0.4.tar.gz
+    $ sha256sum v1.0.5.tar.gz
+    c9914ad622213bb3fffbdafdd4292b2f4abb7d66f8bad64496a56921b04b1c14  v1.0.5.tar.gz
 
 Unpack the tarball into the ``pkg`` directory::
 
     $ sage -sh
     (sage-sh) $ cd $SAGE_ROOT/local/share/gap/pkg/
-    (sage-sh) $ tar -xvf /the/path/to/gbnp/v1.0.4.tar.gz
+    (sage-sh) $ tar -xvf /the/path/to/gbnp/v1.0.5.tar.gz
     (sage-sh) $ exit
 
 To check that the package installed correctly, try loading it::
