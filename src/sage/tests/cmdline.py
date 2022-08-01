@@ -502,7 +502,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: out.find("670592745") >= 0
         True
         sage: err
-        ''
+        "WARNING: this usage is deprecated. Use 'sage --ecl ...' instead\n"
         sage: ret
         0
 
@@ -573,7 +573,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: out.startswith("3.")
         True
         sage: err
-        ''
+        'WARNING: this usage is deprecated. Use \'sage --sh -c "sqlite3 ..."\' instead\n'
         sage: ret
         0
 
