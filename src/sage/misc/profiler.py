@@ -28,6 +28,7 @@ class Profiler:
 
     EXAMPLES::
 
+        sage: from sage.misc.profiler import Profiler
         sage: def f():                        # not tested
         ....:     p = Profiler()              # not tested
 

@@ -696,6 +696,7 @@ cdef class CachedFunction():
             {((5, 'default'), ()): 7}
             sage: def f(t=1): print(t)
             sage: h = CachedFunction(f)
+            sage: from sage.misc.misc import walltime
             sage: w = walltime()
             sage: h(); h(1); h(t=1)
             1
@@ -3647,6 +3648,7 @@ class DiskCachedFunction(CachedFunction):
         EXAMPLES::
 
             sage: from sage.misc.cachefunc import DiskCachedFunction
+            sage: from sage.misc.misc import walltime
             sage: def foo(x): sleep(x)
             sage: dir = tmp_dir()
             sage: bar = DiskCachedFunction(foo, dir, memory_cache = False)

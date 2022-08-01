@@ -367,6 +367,7 @@ def CompleteGraph(n):
     Compare the constructors (results will vary)::
 
         sage: import networkx
+        sage: from sage.misc.misc import cputime
         sage: t = cputime()
         sage: n = networkx.complete_graph(389); spring389 = Graph(n)
         sage: cputime(t)  # random

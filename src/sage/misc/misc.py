@@ -328,6 +328,7 @@ def cputime(t=0, subprocesses=False):
 
     EXAMPLES::
 
+        sage: from sage.misc.misc import cputime, walltime
         sage: t = cputime()
         sage: F = gp.factor(2^199-1)
         sage: cputime(t)          # somewhat random
@@ -402,6 +403,7 @@ class GlobalCputime:
     Objects of this type are returned if ``subprocesses=True`` is
     passed to :func:`cputime`::
 
+        sage: from sage.misc.misc import cputime
         sage: cputime(subprocesses=True) # indirect doctest, output random
         0.2347431
 
@@ -445,6 +447,7 @@ class GlobalCputime:
         """
         EXAMPLES::
 
+            sage: from sage.misc.misc import cputime
             sage: cputime(subprocesses=True) # indirect doctest, output random
             0.2347431
         """
@@ -454,6 +457,7 @@ class GlobalCputime:
         """
         EXAMPLES::
 
+            sage: from sage.misc.misc import cputime
             sage: t = cputime(subprocesses=True)
             sage: P = PolynomialRing(QQ,7,'x')
             sage: I = sage.rings.ideal.Katsura(P)
@@ -470,6 +474,7 @@ class GlobalCputime:
         """
         EXAMPLES::
 
+            sage: from sage.misc.misc import cputime
             sage: t = cputime(subprocesses=True)
             sage: P = PolynomialRing(QQ,7,'x')
             sage: I = sage.rings.ideal.Katsura(P)
@@ -486,6 +491,7 @@ class GlobalCputime:
         """
         EXAMPLES::
 
+            sage: from sage.misc.misc import cputime
             sage: t = cputime(subprocesses=True)
             sage: float(t) #output somewhat random
             2.1088339999999999
@@ -511,6 +517,7 @@ def walltime(t=0):
 
     EXAMPLES::
 
+        sage: from sage.misc.misc import walltime
         sage: w = walltime()
         sage: F = factor(2^199-1)
         sage: walltime(w)   # somewhat random

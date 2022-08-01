@@ -228,6 +228,7 @@ def terminate(sp, interval=1, signals=[signal.SIGTERM, signal.SIGKILL]):
 
     If the process dies by itself, we don't need to wait too long::
 
+        sage: from sage.misc.misc import walltime
         sage: cmd = [sys.executable, '-c', 'from time import sleep; sleep(0.5)']
         sage: t0 = walltime()
         sage: sp = Popen(cmd)

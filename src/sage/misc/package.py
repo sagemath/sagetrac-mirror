@@ -387,6 +387,7 @@ def installed_packages(exclude_pip=True):
 
     EXAMPLES::
 
+        sage: from sage.misc.package import installed_packages
         sage: sorted(installed_packages().keys())  # optional - sage_spkg
         [...'gmpy2', ...'sage_conf', ...]
         sage: installed_packages()['gmpy2']  # optional - sage_spkg, random
@@ -425,6 +426,7 @@ def is_package_installed(package, exclude_pip=True):
 
     EXAMPLES::
 
+        sage: from sage.misc.package import is_package_installed
         sage: is_package_installed('gap')  # optional - sage_spkg
         True
 
@@ -495,6 +497,7 @@ def package_versions(package_type, local=False):
 
     EXAMPLES::
 
+        sage: from sage.misc.package import package_versions
         sage: std = package_versions('standard', local=True)  # optional - sage_spkg
         sage: 'gap' in std  # optional - sage_spkg
         True

@@ -1748,7 +1748,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         'a  * BackslashOperator() * b \\'
 
         sage: preparse("time R.<x> = ZZ[]", do_time=True)
-        '__time__ = cputime(); __wall__ = walltime(); R = ZZ[\'x\']; print("Time: CPU {:.2f} s, Wall: {:.2f} s".format(cputime(__time__), walltime(__wall__))); (x,) = R._first_ngens(1)'
+        'from sage.misc.misc import cputime, walltime;__time__ = cputime(); __wall__ = walltime(); R = ZZ[\'x\']; print("Time: CPU {:.2f} s, Wall: {:.2f} s".format(cputime(__time__), walltime(__wall__))); (x,) = R._first_ngens(1)'
 
     TESTS:
 
@@ -1862,6 +1862,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     if do_time:
         # Time keyword
         L = re.sub(r';time;(\s*)(\S[^;\n]*)',
+                   r';from sage.misc.misc import cputime, walltime' +
                    r';\1__time__ = cputime(); __wall__ = walltime(); \2; print(' +
                    r'"Time: CPU {:.2f} s, Wall: {:.2f} s".format(cputime(__time__), walltime(__wall__)))',
                    L, flags=re.MULTILINE)
@@ -1919,7 +1920,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
         sage: file_contents = '''
         ....: @parallel(8)
         ....: def f(p):
-        ....:     t = cputime()
+        ....:     t = sage.misc.misc.cputime()
         ....:     M = ModularSymbols(p^2,sign=1)
         ....:     w = M.atkin_lehner_operator(p)
         ....:     K = (w-1).kernel()
@@ -1928,7 +1929,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
         sage: t = tmp_filename(ext=".sage")
         sage: with open(t, 'w') as f:
         ....:     f.write(file_contents)
-        185
+        200
         sage: load(t)
         sage: sorted(list(f([11,17])))
         [(((11,), {}), None), (((17,), {}), None)]

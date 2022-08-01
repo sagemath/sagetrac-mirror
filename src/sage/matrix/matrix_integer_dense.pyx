@@ -4364,6 +4364,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
             sage: A = random_matrix(ZZ, 2000, 2000)
             sage: B = random_matrix(ZZ, 2000, 2000)
+            sage: from sage.misc.misc import walltime
             sage: t0 = walltime()
             sage: alarm(2); A._solve_iml(B)  # long time
             Traceback (most recent call last):
@@ -4530,6 +4531,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
             sage: A = random_matrix(ZZ, 2000, 2000)
             sage: B = random_matrix(ZZ, 2000, 2000)
+            sage: from sage.misc.misc import walltime
             sage: t0 = walltime()
             sage: alarm(2); A._solve_flint(B)  # long time
             Traceback (most recent call last):

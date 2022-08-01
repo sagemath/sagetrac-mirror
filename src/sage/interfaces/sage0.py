@@ -212,7 +212,7 @@ class Sage(ExtraTabCompletion, Expect):
             sage: sage0.cputime()     # random output
             1.6462939999999999
         """
-        s = self.eval('cputime(%s)' % t)
+        s = self.eval('sage.misc.misc.cputime(%s)' % t)
         i = s.rfind('m')
         if i != -1:
             s = s[i + 1:-1]

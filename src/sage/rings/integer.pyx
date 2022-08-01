@@ -5006,6 +5006,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: b = lcm(range(1,10000))
             sage: b.exact_log(2)
             14446
+            sage: from sage.misc.misc import cputime
             sage: t=cputime()
             sage: for a in range(2, 1000): k = b.is_perfect_power()
             sage: cputime(t)      # random

@@ -407,6 +407,7 @@ cdef class ntl_mat_ZZ():
             sage: for i in range(a.nrows()):
             ....:     for j in range(a.ncols()):
             ....:         A[i,j] = a[i,j]
+            sage: from sage.misc.misc import cputime
             sage: t = cputime(); d = A.determinant()
             sage: cputime(t)          # random
             0.33201999999999998

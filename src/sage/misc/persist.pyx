@@ -472,7 +472,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
         A(10)
         sage: loads(dumps(A(10)))
         A(10)
-        sage: sage.misc.explain_pickle.explain_pickle(dumps(A(10)))
+        sage: explain_pickle(dumps(A(10)))
         pg_A = unpickle_global('__main__', 'A')
         si = unpickle_newobj(pg_A, ())
         pg_make_integer = unpickle_global('sage.rings.integer', 'make_integer')

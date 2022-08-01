@@ -301,6 +301,7 @@ the ``cputime`` command, as illustrated below:
 
 ::
 
+    sage: from sage.misc.misc import cputime
     sage: t = cputime()
     sage: a = int(1938)^int(99484)
     sage: b = 1938^99484

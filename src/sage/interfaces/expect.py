@@ -1191,6 +1191,7 @@ If this all works, you can then make calls like:
 
         ::
 
+            sage: from sage.misc.misc import walltime
             sage: t = walltime()
             sage: try:
             ....:    singular._expect_expr('25', timeout=float(0.4))

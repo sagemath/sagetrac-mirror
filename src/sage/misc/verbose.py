@@ -140,7 +140,7 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
     EXAMPLES::
 
         sage: set_verbose(1)
-        sage: t = cputime()
+        sage: t = sage.misc.misc.cputime()
         sage: t = verbose("This is Sage.", t, level=1, caller_name="william")       # not tested
         VERBOSE1 (william): This is Sage. (time = 0.0)
         sage: set_verbose(0)
