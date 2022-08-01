@@ -36,25 +36,34 @@ CONFVERSION=$(cat $PKG/package-version.txt)
 install_iconv() {
     # config.rpath and iconv and related m4 macros come from gnulib
     # We must have gnulib-tool in PATH
+    if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
+       quietquiet=""
+    else
+       quietquiet=" &> /dev/null"
+    fi
     gnulibtool="$(command -v gnulib-tool)"
     if [ -z "$gnulibtool" ]; then
-        echo >&2 "gnulib-tool needs to be installed and in your PATH. We install a copy in upstream/ "
+        if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
+            echo >&2 "gnulib-tool needs to be installed and in your PATH. We install a copy in upstream/ "
+	fi
         mkdir -p upstream
         cd upstream # use github mirror - faster, only needed stuff
 	mkdir -p gnulib
 	cd gnulib
-	git init
-	git remote add origin https://github.com/coreutils/gnulib.git
-	git fetch origin f9b39c4e337f1dc0dd07c4f3985c476fb875d799 --depth 1
-	git checkout FETCH_HEAD
+	eval git init ${quietquiet}
+	eval git remote add origin https://github.com/coreutils/gnulib.git ${quietquiet}
+	eval git fetch origin f9b39c4e337f1dc0dd07c4f3985c476fb875d799 --depth 1 ${quietquiet}
+	eval git checkout FETCH_HEAD ${quietquiet}
 	cd ../..
         gnulibtool="$(command -v gnulib-tool)"
         if [ -z "$gnulibtool" ]; then
-            echo >&2 "Failure installing/updating gnulib in upstream/. "
+            if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
+                echo >&2 "Failure installing/updating gnulib in upstream/. "
+            fi
             return 179
 	fi
     fi
-    $gnulibtool --import iconv
+    eval $gnulibtool --import iconv ${quietquiet}
     rm -rf lib/
 }
 
