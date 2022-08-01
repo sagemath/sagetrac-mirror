@@ -27,7 +27,7 @@ SAGE_ROOT="$(cd "$(dirname "$0")" && pwd -P)"
 export SAGE_ROOT
 cd "$SAGE_ROOT"
 
-export PATH="$SAGE_ROOT/build/bin:$PATH"
+export PATH="$SAGE_ROOT/build/bin:$SAGE_ROOT/upstream/gnulib:$PATH"
 
 PKG=build/pkgs/configure
 MAKE="${MAKE:-make}"
@@ -38,11 +38,21 @@ install_iconv() {
     # We must have gnulib-tool in PATH
     gnulibtool="$(command -v gnulib-tool)"
     if [ -z "$gnulibtool" ]; then
-        echo >&2 "gnulib-tool must be installed and be in"
-        echo >&2 "your PATH. If your system does not provide gnulib package,"
-        echo >&2 "install from source by 'git clone https://github.com/coreutils/gnulib.git'"
-	echo >&2 "and add gnulib/ to your PATH."
-        return 179
+        echo >&2 "gnulib-tool needs to be installed and in your PATH. We install a copy in upstream/ "
+        mkdir -p upstream
+        cd upstream # use github mirror - faster, only needed stuff
+	mkdir -p gnulib
+	cd gnulib
+	git init
+	git remote add origin https://github.com/coreutils/gnulib.git
+	git fetch origin f9b39c4e337f1dc0dd07c4f3985c476fb875d799 --depth 1
+	git checkout FETCH_HEAD
+	cd ../..
+        gnulibtool="$(command -v gnulib-tool)"
+        if [ -z "$gnulibtool" ]; then
+            echo >&2 "Failure installing/updating gnulib in upstream/. "
+            return 179
+	fi
     fi
     $gnulibtool --import iconv
     rm -rf lib/
@@ -141,12 +151,14 @@ SAGE_SPKG_FINALIZE([$pkgname], [$pkgtype], [$SPKG_SOURCE], [$SPKG_TREE_VAR])"
     case $st in
         0) true;; # Success
 
-        179|16|63|127)  # no m4 for pkg-config|autotools not installed|or version too old
+        179|16|63|127)  # no gnutlib-tool|no m4 for pkg-config|autotools not installed|or version too old
             if [ $DOWNLOAD = yes ]; then
                 echo >&2 "Bootstrap failed, downloading required files instead."
                 bootstrap_download || exit $?
             else
-                if [ $st -eq 127 ]; then
+                if [ $st -eq 179 ]; then
+                    verb="install gnulib"
+                elif [ $st -eq 127 ]; then
                     verb="install"
                 elif [ $st -eq 16 ]; then
                     verb="install pkg-config m4 macros for"
