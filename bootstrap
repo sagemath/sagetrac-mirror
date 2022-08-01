@@ -52,6 +52,7 @@ install_iconv() {
 	cd gnulib
 	eval git init ${quietquiet}
 	eval git remote add origin https://github.com/coreutils/gnulib.git ${quietquiet}
+	# the commit hash below is the lastest as of 2022-07-31
 	eval git fetch origin f9b39c4e337f1dc0dd07c4f3985c476fb875d799 --depth 1 ${quietquiet}
 	eval git checkout FETCH_HEAD ${quietquiet}
 	cd ../..
