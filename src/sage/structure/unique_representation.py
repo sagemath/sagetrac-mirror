@@ -168,7 +168,7 @@ preprocessing::
     sage: class WrongUsage(CachedRepresentation):
     ....:     @staticmethod
     ....:     def __classcall__(cls, n):
-    ....:         return super(WrongUsage,cls).__classcall__(cls, n^2)
+    ....:         return super().__classcall__(cls, n^2)
     ....:     def __init__(self, n):
     ....:         self.n = n
     ....:     def __repr__(self):
@@ -194,7 +194,7 @@ where it won't mess with the cache::
     sage: class BetterUsage(CachedRepresentation):
     ....:     @staticmethod
     ....:     def __classcall__(cls, n):
-    ....:         return super(BetterUsage, cls).__classcall__(cls, abs(n))
+    ....:         return super().__classcall__(cls, abs(n))
     ....:     def __init__(self, n):
     ....:         self.n = n^2
     ....:     def __repr__(self):
@@ -238,8 +238,8 @@ sub-class (in contrast to a ``__classcall_private__`` method!).  ::
     ....:     @staticmethod
     ....:     def __classcall__(cls, n, implementation=0):
     ....:         if implementation:
-    ....:             return super(C2, cls).__classcall__(cls, (n,)*implementation)
-    ....:         return super(C2, cls).__classcall__(cls, n)
+    ....:             return super().__classcall__(cls, (n,)*implementation)
+    ....:         return super().__classcall__(cls, n)
     ....:     def __init__(self, t):
     ....:         self.t = t
     ....:     def __repr__(self):
@@ -315,7 +315,7 @@ For creating a cached representation using a factory, one has to
 
 An example::
 
-    sage: class C(object):
+    sage: class C():
     ....:     def __init__(self, t):
     ....:         self.t = t
     ....:     def __repr__(self):
@@ -641,7 +641,7 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
         ....:     @staticmethod
         ....:     def __classcall__(cls, iterable):
         ....:         t = tuple(iterable)
-        ....:         return super(MyClass2, cls).__classcall__(cls, t)
+        ....:         return super().__classcall__(cls, t)
         ....:
         ....:     def __init__(self, value):
         ....:         self.value = value
@@ -668,7 +668,7 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
         sage: class MyClass3(UniqueRepresentation):
         ....:     @staticmethod
         ....:     def __classcall__(cls, value = 3):
-        ....:         return super(MyClass3, cls).__classcall__(cls, value)
+        ....:         return super().__classcall__(cls, value)
         ....:
         ....:     def __init__(self, value):
         ....:         self.value = value
@@ -717,7 +717,7 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
         sage: class WrongUsage(CachedRepresentation):
         ....:     @staticmethod
         ....:     def __classcall__(cls, n):
-        ....:         return super(WrongUsage,cls).__classcall__(cls, n^2)
+        ....:         return super().__classcall__(cls, n^2)
         ....:     def __init__(self, n):
         ....:         self.n = n
         ....:     def __repr__(self):
@@ -743,7 +743,7 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
         sage: class BetterUsage(CachedRepresentation):
         ....:     @staticmethod
         ....:     def __classcall__(cls, n):
-        ....:         return super(BetterUsage, cls).__classcall__(cls, abs(n))
+        ....:         return super().__classcall__(cls, abs(n))
         ....:     def __init__(self, n):
         ....:         self.n = n^2
         ....:     def __repr__(self):
@@ -884,7 +884,7 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
     older pickles can still be reasonably unpickled. Let us create a
     (new style) class, and pickle one of its instances::
 
-        sage: class MyClass4(object):
+        sage: class MyClass4():
         ....:     def __init__(self, value):
         ....:         self.value = value
         sage: import __main__; __main__.MyClass4 = MyClass4  # Fake MyClass4 being defined in a python module
@@ -1031,7 +1031,7 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
             sage: class B(A):
             ....:     @staticmethod
             ....:     def __classcall__(cls, *args, **kwds):
-            ....:          return super(B,cls).__classcall__(cls,*args,**kwds)
+            ....:          return super().__classcall__(cls,*args,**kwds)
             sage: class C(B): pass
             sage: a = A(1)
             sage: b = B(2)
@@ -1064,7 +1064,7 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
             ....:     @staticmethod
             ....:     def __classcall_private__(cls, *args, **kwds):
             ....:         print("Private B")
-            ....:         return super(B,cls).__classcall__(cls,*args,**kwds)
+            ....:         return super().__classcall__(cls,*args,**kwds)
             sage: class C(B): pass
             sage: a = A(1)
             sage: b = B(2)
