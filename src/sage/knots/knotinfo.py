@@ -101,7 +101,6 @@ too::
 
     sage: L6 = KnotInfo.L6a1_0
     sage: l6s = L6.link(snappy=True); l6s      # optional - snappy
-    Plink failed to import tkinter.
     <Link: 2 comp; 6 cross>
 
     sage: type(l6s)                            # optional - snappy
@@ -216,6 +215,7 @@ REFERENCES:
 AUTHORS:
 
 - Sebastian Oehms August 2020: initial version
+- Sebastian Oehms June   2022: add :meth:`conway_polynomial` and :meth:`khovanov_polynomial` (:trac:`33969`)
 
 Thanks to Chuck Livingston and Allison Moore for their support. For further acknowledgments see the correspondig hompages.
 """
@@ -1633,7 +1633,7 @@ class KnotInfoBase(Enum):
 
         .. MATH::
 
-            \Nabla(L) = \det(t^{\frac{1}{2}} V -t^{\frac{-1}{2}} V^t)
+            \nabla(L) = \det(t^{\frac{1}{2}} V -t^{\frac{-1}{2}} V^t)
 
         Here `V^t` stands for the transpose of `V`.
 
@@ -1907,10 +1907,9 @@ class KnotInfoBase(Enum):
             raise TypeError('%s must be an instance of %s' %(use_item, KnotInfoColumns))
 
         if snappy:
-            try:
-                from snappy import Link
-            except ImportError:
-                raise ImportError('This option demands snappy to be installed')
+            from sage.features.snappy import SnapPy
+            SnapPy().require()
+            from snappy import Link
         elif self.is_knot():
             from sage.knots.knot import Knot as Link
         else:

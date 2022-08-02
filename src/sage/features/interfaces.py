@@ -72,11 +72,13 @@ class InterfaceFeature(Feature):
             return FeatureTestResult(self, False,
                                      reason=f"Interface {self.name} cannot be imported: {exception}")
         try:
-            interface('2+3')
+            cls = interface._object_class()
+            cls(interface, '2+3', name=interface.name)
             return FeatureTestResult(self, True)
         except Exception as exception:
             return FeatureTestResult(self, False,
-                                     reason=f"Interface {interface} is not functional: {exception}")
+                                     reason=f"Interface {interface} is not functional: {exception}",
+                                     resolution=interface._install_hints())
 
 
 # The following are provided by external software only (no SPKG)

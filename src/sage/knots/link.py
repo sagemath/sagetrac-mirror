@@ -69,7 +69,6 @@ from copy import deepcopy, copy
 from itertools import combinations
 from sage.structure.sage_object import SageObject
 
-
 class Link(SageObject):
     r"""
     A link.
@@ -386,6 +385,20 @@ class Link(SageObject):
 
         self._mirror  = None  # set on invocation of :meth:`mirror_image`
         self._reverse = None  # set on invocation of :meth:`reverse`
+
+        from sage.features.snappy import SnapPy
+        self._snappy = SnapPy()
+
+    @cached_method
+    def snappy_link(self, use_braid=False):
+        r"""
+        """
+        self._snappy.require()
+        from snappy import Link as SnapPyLink
+        if use_braid:
+            return SnapPyLink(self.braid())
+        else:
+            return SnapPyLink(self.pd_code())
 
     def arcs(self, presentation='pd'):
         r"""
@@ -3976,7 +3989,6 @@ class Link(SageObject):
         <https://snappy.math.uic.edu/index.html>`__::
 
             sage: import snappy                    # optional - snappy
-            Plink failed to import tkinter.
 
             sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: KnotInfoSeries(10, True, True)   # optional - database_knotinfo
