@@ -27,7 +27,7 @@ SAGE_ROOT="$(cd "$(dirname "$0")" && pwd -P)"
 export SAGE_ROOT
 cd "$SAGE_ROOT"
 
-export PATH="$SAGE_ROOT/build/bin:$SAGE_ROOT/upstream/gnulib:$PATH"
+export PATH="$SAGE_ROOT/build/bin:$PATH"
 
 PKG=build/pkgs/configure
 MAKE="${MAKE:-make}"
@@ -41,8 +41,8 @@ install_iconv() {
     else
        quietquiet=" &> /dev/null"
     fi
-    gnulibtool="$(command -v gnulib-tool)"
-    if [ -z "$gnulibtool" ]; then
+    gnulibtool="$SAGE_ROOT/upstream/gnulib/gnulib-tool"
+    if [ ! -x "$gnulibtool" ]; then
         if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
             echo >&2 "gnulib-tool needs to be installed and in your PATH. We install a copy in upstream/ "
 	fi
@@ -56,8 +56,7 @@ install_iconv() {
 	eval git fetch origin f9b39c4e337f1dc0dd07c4f3985c476fb875d799 --depth 1 ${quietquiet}
 	eval git checkout FETCH_HEAD ${quietquiet}
 	cd ../..
-        gnulibtool="$(command -v gnulib-tool)"
-        if [ -z "$gnulibtool" ]; then
+        if [ ! -x "$gnulibtool" ]; then
             if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
                 echo >&2 "Failure installing/updating gnulib in upstream/. "
             fi
