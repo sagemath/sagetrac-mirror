@@ -65,10 +65,15 @@ def var(key: str, *fallbacks: Optional[str], force: bool = False) -> Optional[st
     """
     Set ``SAGE_ENV[key]`` and return the value.
 
-    If ``key`` is an environment variable, this is the value.
-    Otherwise, if it is defined in ``sage_conf``, take it from there.
+    First try to get the value from ``sage_conf``.
+
+    Next, unless ``force=True``, if an environment variable is defined,
+    get the value from there.
+
     Otherwise, the ``fallbacks`` are tried until one is found which
-    is not ``None``. If the environment variable is not set and all
+    is not ``None``.
+
+    If the environment variable is not set and all
     fallbacks are ``None``, then the final value is ``None``.
 
     INPUT:
@@ -136,16 +141,13 @@ def var(key: str, *fallbacks: Optional[str], force: bool = False) -> Optional[st
         sage: sage.env.SAGE_FOO
         'foo'
     """
-    if force:
+    try:
+        import sage_conf
+        value = getattr(sage_conf, key, None)
+    except ImportError:
         value = None
-    else:
+    if value is None and not force:
         value = os.environ.get(key)
-    if value is None:
-        try:
-            import sage_conf
-            value = getattr(sage_conf, key, None)
-        except ImportError:
-            pass
     # Try all fallbacks in order as long as we don't have a value
     for f in fallbacks:
         if value is not None:
