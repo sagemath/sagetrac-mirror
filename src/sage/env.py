@@ -66,6 +66,7 @@ def var(key: str, *fallbacks: Optional[str], force: bool = False) -> Optional[st
     Set ``SAGE_ENV[key]`` and return the value.
 
     If ``key`` is an environment variable, this is the value.
+    Otherwise, if it is defined in ``sage_conf``, take it from there.
     Otherwise, the ``fallbacks`` are tried until one is found which
     is not ``None``. If the environment variable is not set and all
     fallbacks are ``None``, then the final value is ``None``.
@@ -77,8 +78,8 @@ def var(key: str, *fallbacks: Optional[str], force: bool = False) -> Optional[st
     - ``fallbacks`` -- tuple containing ``str`` or ``None`` values.
 
     - ``force`` -- boolean (optional, default is ``False``). If
-      ``True``, skip the environment variable and only use the
-      fallbacks.
+      ``True``, take the value from ``sage_conf`` or the fallbacks,
+      but not from the environment variable.
 
     OUTPUT:
 
