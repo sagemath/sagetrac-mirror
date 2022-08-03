@@ -462,7 +462,7 @@ fi
 # code is being built as part of Sage.
 export __sage__=""
 
-# Setup env varariables if ccache is installed
+# Setup env variables if ccache is installed
 if [ -n "$SAGE_LOCAL" -a -d "$SAGE_LOCAL/libexec/ccache" ]; then
     PATH="$SAGE_LOCAL/libexec/ccache:$PATH"
 fi
