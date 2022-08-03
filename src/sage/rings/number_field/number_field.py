@@ -128,7 +128,7 @@ from sage.misc.fast_methods import WithEqualityById
 from sage.misc.functional import is_odd, lift
 
 from sage.misc.misc_c import prod
-from sage.rings.infinity import Infinity
+from sage.rings.all import Infinity
 from sage.categories.number_fields import NumberFields
 
 import sage.rings.ring
@@ -156,7 +156,9 @@ from builtins import zip
 
 _NumberFields = NumberFields()
 
-
+from sage.categories.homset import Hom
+from sage.categories.sets_cat import Sets
+from sage.modules.free_module import VectorSpace
 from sage.rings.number_field.morphism import RelativeNumberFieldHomomorphism_from_abs
 
 
@@ -1635,7 +1637,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         """
         from sage.categories.pushout import AlgebraicExtensionFunctor
-        from sage.rings.rational_field import QQ
+        from sage.all import QQ
         names = self.variable_names()
         polys = []
         embeddings = []
@@ -1765,12 +1767,6 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             2*I + 1
             sage: QQi(vector((RR(1), RR(2))))
             2*I + 1
-
-        Check that :trac:`34059` is fixed::
-
-            sage: K.<a> = NumberField(x)
-            sage: K([1]).parent()
-            Number Field in a with defining polynomial x
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             K = x.parent()
@@ -1826,7 +1822,10 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             if len(x) != self.relative_degree():
                 raise ValueError("Length must be equal to the degree of this number field")
             base = self.base_ring()
-            return sum(base(c) * g for c, g in zip(x, self.gen(0).powers(len(x))))
+            result = base(x[0])
+            for i in range(1, self.relative_degree()):
+                result += base(x[i])*self.gen(0)**i
+            return result
         return self._convert_non_number_field_element(x)
 
     def _convert_non_number_field_element(self, x):
@@ -3293,8 +3292,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.algebraic_closure()
             Algebraic Field
         """
-        from sage.rings.qqbar import QQbar
-        return QQbar
+        return sage.rings.all.QQbar
 
     @cached_method
     def conductor(self, check_abelian=True):
@@ -4211,7 +4209,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         - ``beta`` is the image of `x \bmod g` under the inverse
           isomorphism `\phi^{-1}\colon K[x]/(g) \to K[x]/(f)`
 
-        EXAMPLES:
+        EXAMPLES::
 
         If `f` is monic and integral, the result satisfies ``g = f``
         and ``alpha = beta = x``::
@@ -6811,7 +6809,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         try:
             return self.__regulator
         except AttributeError:
-            from sage.rings.real_mpfr import RealField
+            from sage.rings.all import RealField
             k = self.pari_bnf(proof)
             self.__regulator = RealField(53)(k.bnf_get_reg())
             return self.__regulator
@@ -8120,8 +8118,7 @@ class NumberField_absolute(NumberField_generic):
 
         # Do not use CDF or RDF because of constraints on the
         # exponent of floating-point numbers
-        from sage.rings.complex_mpfr import ComplexField
-        from sage.rings.real_mpfr import RealField
+        from sage.rings.all import RealField, ComplexField
         CC = ComplexField(53)
         RR = RealField(53)
 
@@ -8923,7 +8920,7 @@ class NumberField_absolute(NumberField_generic):
         if base is None:
             base = QQ
         elif base is self:
-            return super().free_module(base=base, basis=basis, map=map)
+            return super(NumberField_absolute, self).free_module(base=base, basis=basis, map=map)
         if basis is not None or base is not QQ:
             raise NotImplementedError
         V = QQ**self.degree()
@@ -9297,6 +9294,45 @@ class NumberField_absolute(NumberField_generic):
 
         return sage.matrix.all.matrix(d)
 
+    def logarithmic_embedding(self, prec=53):
+        """
+        Return the morphism of ``self`` under the logarithmic embedding
+        in the category Set.
+
+        The logarithmic embedding is defined as a map from the number field ``self`` to `\RR^n`.
+
+        It is defined under Definition 4.9.6 in [Cohen1993]_.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision.
+
+        OUTPUT:
+
+        - a tuple of real numbers.
+
+        EXAMPLES::
+
+            sage: CF.<a> = CyclotomicField(97)
+            sage: f = CF.logarithmic_embedding()
+            sage: f(0)
+            (-1)
+            sage: f(7)
+            (1.94591014905531)
+
+        ::
+
+            sage: K.<a> = NumberField(x^3 + 5)
+            sage: f = K.logarithmic_embedding()
+            sage: f(0)
+            (-1)
+            sage: f(7)
+            (1.94591014905531)
+        """
+        log_map = self(0)._logarithmic_embedding_helper(prec)
+        log_hom = Hom(self, VectorSpace(QQ, len(log_map(0))), Sets())
+        return log_hom(log_map)
+
     def places(self, all_complex=False, prec=None):
         r"""
         Return the collection of all infinite places of self.
@@ -9374,9 +9410,8 @@ class NumberField_absolute(NumberField_generic):
             C = sage.rings.complex_double.CDF
 
         elif prec == Infinity:
-            from sage.rings.qqbar import AA, QQbar
-            R = AA
-            C = QQbar
+            R = sage.rings.all.AA
+            C = sage.rings.all.QQbar
 
         else:
             R = sage.rings.real_mpfr.RealField(prec)
@@ -9673,8 +9708,7 @@ class NumberField_absolute(NumberField_generic):
         # step 1: construct the abstract field generated by alpha.w
         # step 2: make a relative extension of it.
         # step 3: construct isomorphisms
-        from sage.matrix.constructor import matrix
-        from sage.modules.free_module_element import vector
+        from sage.all import vector, matrix
 
         from sage.categories.map import is_Map
         if is_Map(alpha):
@@ -9684,7 +9718,7 @@ class NumberField_absolute(NumberField_generic):
             L = alpha.domain()
             alpha = alpha(L.gen()) # relativize over phi's domain
             if L is QQ:
-                from sage.rings.polynomial.polynomial_ring import polygen
+                from sage.rings.all import polygen
                 f = polygen(QQ)
             else:
                 f = L.defining_polynomial() # = alpha.minpoly()
@@ -10040,13 +10074,13 @@ class NumberField_absolute(NumberField_generic):
             return pari(self).nfhilbert(a, b)
 
         from sage.categories.map import Map
-        from sage.categories.rings import Rings
+        from sage.categories.all import Rings
         if isinstance(P, Map) and P.category_for().is_subcategory(Rings()):
             # P is a morphism of Rings
             if P.domain() is not self:
                 raise ValueError("Domain of P (=%s) should be self (=%s) in self.hilbert_symbol" % (P, self))
             codom = P.codomain()
-            from sage.rings.qqbar import AA, QQbar
+            from sage.rings.all import (AA, QQbar)
             if isinstance(codom, (sage.rings.abc.ComplexField, sage.rings.abc.ComplexDoubleField, sage.rings.abc.ComplexIntervalField)) or \
                                          codom is QQbar:
                 if P(self.gen()).imag() == 0:
@@ -11420,7 +11454,7 @@ class NumberField_cyclotomic(NumberField_absolute, sage.rings.abc.NumberField_cy
                 v = []
             except AttributeError:
                 # zeta not defined
-                return super().embeddings(K)
+                return super(NumberField_cyclotomic, self).embeddings(K)
             else:
                 X = [m for m in range(n) if arith.gcd(m,n) == 1]
                 v = [self.hom([z**i], check=False) for i in X]
