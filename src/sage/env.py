@@ -169,13 +169,13 @@ SAGE_VERSION_BANNER = var("SAGE_VERSION_BANNER", version.banner, force=True)
 # virtual environment where sagelib is installed
 SAGE_VENV = var("SAGE_VENV", os.path.abspath(sys.prefix), force=True)
 SAGE_LIB = var("SAGE_LIB", os.path.dirname(os.path.dirname(__file__)), force=True)
-SAGE_EXTCODE = var("SAGE_EXTCODE", join(SAGE_LIB, "sage", "ext_data"))
+SAGE_EXTCODE = var("SAGE_EXTCODE", join(SAGE_LIB, "sage", "ext_data"), force=True)
 SAGE_VENV_SPKG_INST = var("SAGE_VENV_SPKG_INST", join(SAGE_VENV, "var", "lib", "sage", "installed"))
 
 # prefix hierarchy where non-Python packages are installed
-SAGE_LOCAL = var("SAGE_LOCAL", SAGE_VENV)
-SAGE_SHARE = var("SAGE_SHARE", join(SAGE_LOCAL, "share"))
-SAGE_DOC = var("SAGE_DOC", join(SAGE_SHARE, "doc", "sage"))
+SAGE_LOCAL = var("SAGE_LOCAL", SAGE_VENV, force=True)
+SAGE_SHARE = var("SAGE_SHARE", join(SAGE_LOCAL, "share"), force=True)
+SAGE_DOC = var("SAGE_DOC", join(SAGE_SHARE, "doc", "sage"), force=True)
 SAGE_SPKG_INST = var("SAGE_SPKG_INST", join(SAGE_LOCAL, "var", "lib", "sage", "installed"))
 
 # source tree of the Sage distribution
@@ -190,7 +190,7 @@ DOT_SAGE = var("DOT_SAGE", join(os.environ.get("HOME"), ".sage"))
 SAGE_STARTUP_FILE = var("SAGE_STARTUP_FILE", join(DOT_SAGE, "init.sage"))
 
 # for sage_setup.setenv
-SAGE_ARCHFLAGS = var("SAGE_ARCHFLAGS", "unset")
+SAGE_ARCHFLAGS = var("SAGE_ARCHFLAGS", "unset", force=True)
 SAGE_PKG_CONFIG_PATH = var("SAGE_PKG_CONFIG_PATH")
 
 # installation directories for various packages
