@@ -948,7 +948,7 @@ class Jacobian(UniqueRepresentation, Jacobian_base):
         """
         super().__init__(function_field, base_div)
 
-        if not model in ['large', 'medium', 'small']:
+        if model not in ['large', 'medium', 'small']:
             raise ValueError('unknown model')
 
         self._model = model
