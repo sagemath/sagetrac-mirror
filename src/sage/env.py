@@ -156,18 +156,18 @@ def var(key: str, *fallbacks: Optional[str], force: bool = False) -> Optional[st
 
 
 # system info
-UNAME = var("UNAME", os.uname()[0])
+UNAME = var("UNAME", os.uname()[0], force=True)
 HOSTNAME = var("HOSTNAME", socket.gethostname())
 LOCAL_IDENTIFIER = var("LOCAL_IDENTIFIER", "{}.{}".format(HOSTNAME, os.getpid()))
 
 # version info
-SAGE_VERSION = var("SAGE_VERSION", version.version)
-SAGE_DATE = var("SAGE_DATE", version.date)
-SAGE_VERSION_BANNER = var("SAGE_VERSION_BANNER", version.banner)
+SAGE_VERSION = var("SAGE_VERSION", version.version, force=True)
+SAGE_DATE = var("SAGE_DATE", version.date, force=True)
+SAGE_VERSION_BANNER = var("SAGE_VERSION_BANNER", version.banner, force=True)
 
 # virtual environment where sagelib is installed
-SAGE_VENV = var("SAGE_VENV", os.path.abspath(sys.prefix))
-SAGE_LIB = var("SAGE_LIB", os.path.dirname(os.path.dirname(__file__)))
+SAGE_VENV = var("SAGE_VENV", os.path.abspath(sys.prefix), force=True)
+SAGE_LIB = var("SAGE_LIB", os.path.dirname(os.path.dirname(__file__)), force=True)
 SAGE_EXTCODE = var("SAGE_EXTCODE", join(SAGE_LIB, "sage", "ext_data"))
 SAGE_VENV_SPKG_INST = var("SAGE_VENV_SPKG_INST", join(SAGE_VENV, "var", "lib", "sage", "installed"))
 
