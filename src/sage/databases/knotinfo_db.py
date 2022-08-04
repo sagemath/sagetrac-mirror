@@ -824,6 +824,7 @@ column_demo_sample = {
     'homflypt_polynomial':  ['HOMFLYPT Polynomial',  KnotInfoColumnTypes.OnlyLinks],
     'kauffman_polynomial':  ['Kauffman',             KnotInfoColumnTypes.KnotsAndLinks],
     'khovanov_polynomial':  ['Khovanov',             KnotInfoColumnTypes.KnotsAndLinks],
+    'khovanov_torsion_polynomial': ['Khovanov Torsion', KnotInfoColumnTypes.OnlyKnots],
     'determinant':          ['Determinant',          KnotInfoColumnTypes.KnotsAndLinks],
     'positive':             ['Positive',             KnotInfoColumnTypes.OnlyKnots],
     'fibered':              ['Fibered',              KnotInfoColumnTypes.OnlyKnots],
@@ -1135,5 +1136,16 @@ data_demo_sample = {
         'q^2 + q^4 + q^4*t + 2*q^6*t^2 + q^8*t^2 + 2*q^10*t^3 + 2*q^10*t^4 + q^12*t^4 + q^12*t^5 + q^14*t^5 + q^16*t^6',
         'q^(-4) + q^(-2) + 1/(q^16*t^6) + 1/(q^14*t^6) + 1/(q^14*t^5) + 1/(q^12*t^4) + 1/(q^10*t^4) + 1/(q^10*t^3) + 1/(q^8*t^3) + 1/(q^8*t^2) + 1/(q^6*t^2) + 1/(q^4*t)',
         'q^2 + q^4 + q^4*t + q^6*t^2 + q^8*t^2 + q^8*t^3 + q^10*t^3 + q^10*t^4 + q^12*t^4 + q^14*t^5 + q^14*t^6 + q^16*t^6',
-        'q^(-6) + q^(-4) + 1/(q^18*t^6) + 1/(q^16*t^6) + 1/(q^16*t^5) + 1/(q^12*t^4) + 1/(q^12*t^3) + 1/(q^8*t^2)']
+        'q^(-6) + q^(-4) + 1/(q^18*t^6) + 1/(q^16*t^6) + 1/(q^16*t^5) + 1/(q^12*t^4) + 1/(q^12*t^3) + 1/(q^8*t^2)'],
+    dc.khovanov_torsion_polynomial: [
+        '',
+        'Q^(-7)t^(-2)',
+        'Q^(-3)t^(-1)+Q^3t^2',
+        'Q^(-13)t^(-4)+Q^(-9)t^(-2)',
+        'Q^(-11)t^(-4)+Q^(-7)t^(-2)+Q^(-5)t^(-1)',
+        'Q^(-7)t^(-3)+Q^(-3)t^(-1)+Q^(-1)+Q^3t^2',
+        'Q^(-9)t^(-3)+Q^(-7)t^(-2)+Q^(-5)t^(-1)+Q^(-3)+Qt^2',
+        'Q^(-5)t^(-2)+Q^(-3)t^(-1)+Q^(-1)+Qt+Q^3t^2+Q^5t^3',
+        'Q^(-19)t^(-6)+Q^(-15)t^(-4)+Q^(-11)t^(-2)',
+        'Q^(-15)t^(-6)+Q^(-11)t^(-4)+Q^(-9)t^(-3)+Q^(-7)t^(-2)+Q^(-5)t^(-1)']
 }
