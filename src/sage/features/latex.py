@@ -13,6 +13,7 @@ Features for testing the presence of ``latex`` and equivalent programs
 # ****************************************************************************
 
 from . import StaticFile, Executable, FeatureTestResult, FeatureNotPresentError
+from sage.features.join_feature import JoinFeature
 
 class latex(Executable):
     r"""
@@ -116,6 +117,7 @@ class xelatex(Executable):
         Executable.__init__(self, "xelatex", executable="xelatex",
                             url="https://www.latex-project.org/")
 
+
 class lualatex(Executable):
     r"""
     A :class:`~sage.features.Feature` describing the presence of ``lualatex``
@@ -138,7 +140,7 @@ class lualatex(Executable):
                             url="https://www.latex-project.org/")
 
 
-class TeXFile(StaticFile):
+class TeXFile(StaticFile, JoinFeature):
     r"""
     A :class:`sage.features.Feature` describing the presence of a TeX file
 
@@ -151,6 +153,7 @@ class TeXFile(StaticFile):
         FeatureTestResult('nonexisting', False)
     """
     def __init__(self, name, filename, **kwds):
+        JoinFeature.__init__(self, name, [pdflatex()], url="https://www.latex-project.org/")
         StaticFile.__init__(self, name, filename, search_path=[], **kwds)
 
     def absolute_filename(self) -> str:
@@ -174,6 +177,22 @@ class TeXFile(StaticFile):
             raise FeatureNotPresentError(self,
                                          reason="{filename!r} not found by kpsewhich".format(filename=self.filename))
 
+    def _is_present(self):
+        r"""
+        Test for the presence of the join feature.
+
+        EXAMPLES::
+
+            sage: from sage.features.latex import LaTeXPackage, pdflatex
+            sage: f = LaTeXPackage("tkz-graph")
+            sage: g = pdflatex()
+            sage: bool(f.is_present()) == bool(g.is_present())
+            True
+        """
+        test = JoinFeature._is_present(self)
+        if not test:
+            return test
+        return super(TeXFile, self)._is_present()
 
 class LaTeXPackage(TeXFile):
     r"""
