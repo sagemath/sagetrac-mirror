@@ -176,7 +176,6 @@ Links and references:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.all
 from sage.libs.gap.libgap import libgap
 from sage.misc.misc_c import prod
 from sage.algebras.free_algebra import FreeAlgebra_generic
@@ -380,7 +379,7 @@ class GapIdeal(Ideal_nc):
 
     def is_groebner_basis(self, strong=True):
         """
-        Returns ``True`` if the generators of the given ideal form a Groebner
+        Return ``True`` if the generators of the given ideal form a Groebner
         basis, else ``False``.
 
         INPUT:
@@ -508,7 +507,7 @@ class GapQuotientRing(QuotientRing_nc):
 
     def get_basis(self, maxno=0):
         r"""
-        Returns a basis for the quotient algebra.
+        Return a basis for the quotient algebra.
 
         INPUT:
 
@@ -547,7 +546,7 @@ class GapQuotientRing(QuotientRing_nc):
 
     def dim(self):
         """
-        Returns the dimension of the quotient algebra.
+        Return the dimension of the quotient algebra.
 
         EXAMPLES:
 
@@ -629,7 +628,7 @@ class GapQuotientRing(QuotientRing_nc):
 
     def get_matrices(self, basis):
         """
-        Returns the matrices corresponding to multiplication by each generator
+        Return the matrices corresponding to multiplication by each generator
         of the algebra.
 
         INPUT:
@@ -732,7 +731,7 @@ class GapQuotientRing(QuotientRing_nc):
 
     def get_leading_monomials(self, gap_obj=False):
         """
-        Returns the leading monomials of the generators of the defining ideal.
+        Return the leading monomials of the generators of the defining ideal.
 
         INPUT:
 
@@ -834,7 +833,7 @@ class GapQuotientRing(QuotientRing_nc):
 
     def is_finite_dimensional(self):
         """
-        Returns ``True`` if the quotient algebra is finite dimensional, otherwise
+        Return ``True`` if the quotient algebra is finite dimensional, otherwise
         returns ``False``.
 
         EXAMPLES:
@@ -862,7 +861,7 @@ class GapQuotientRing(QuotientRing_nc):
 
     def hilbert_series(self, deg):
         r"""
-        Returns the first ``deg`` coefficients of the Hilbert series for the given
+        Return the first ``deg`` coefficients of the Hilbert series for the given
         quotient algebra.
 
         INPUT:
