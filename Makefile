@@ -176,7 +176,6 @@ bootstrap-clean:
 
 # Remove absolutely everything which isn't part of the git repo
 maintainer-clean: distclean bootstrap-clean
-	rm -rf upstream/gnulib
 	rm -rf upstream
 
 # Remove everything that is not necessary to run Sage and pass all its
