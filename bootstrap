@@ -35,13 +35,26 @@ CONFVERSION=$(cat $PKG/package-version.txt)
 
 install_iconv() {
     # config.rpath and iconv and related m4 macros come from gnulib
-    # We must have gnulib-tool in PATH
+    # We install gnulib in upstream/gnulib
     if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
        quietquiet=""
     else
        quietquiet=" &> /dev/null"
     fi
     gnulibtool="$SAGE_ROOT/upstream/gnulib/gnulib-tool"
+
+    # the commit hash below is the lastest as of 2022-07-31
+    # For updating gnulib, change this hash and re-run ./bootstrap
+    gnulibcommit="f9b39c4e337f1dc0dd07c4f3985c476fb875d799"
+
+    if [ -x "$gnulibtool" ]; then
+        cd upstream/gnulib
+        gnulibinstalled=`git rev-parse HEAD`
+        cd ../..
+        if [ ! x${gnulibcommit} = x${gnulibinstalled} ]; then
+	    rm -rf upstream/gnulib
+        fi
+    fi
     if [ ! -x "$gnulibtool" ]; then
         if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
             echo >&2 "gnulib-tool needs to be installed and in your PATH. We install a copy in upstream/ "
@@ -52,8 +65,7 @@ install_iconv() {
 	cd gnulib
 	eval git init ${quietquiet}
 	eval git remote add origin https://github.com/coreutils/gnulib.git ${quietquiet}
-	# the commit hash below is the lastest as of 2022-07-31
-	eval git fetch origin f9b39c4e337f1dc0dd07c4f3985c476fb875d799 --depth 1 ${quietquiet}
+	eval git fetch origin ${gnulibcommit} --depth 1 ${quietquiet}
 	eval git checkout FETCH_HEAD ${quietquiet}
 	cd ../..
         if [ ! -x "$gnulibtool" ]; then
