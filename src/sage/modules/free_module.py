@@ -2547,9 +2547,9 @@ class FreeModule_generic(Module_free_ambient):
     def direct_sum(self, other):
         """
         Return the direct sum of ``self`` and ``other`` as a free module.
-
+        
         EXAMPLES::
-
+        
             sage: V = (ZZ^3).span([[1/2,3,5], [0,1,-3]]); V
             Free module of degree 3 and rank 2 over Integer Ring
             Echelon basis matrix:
@@ -2565,12 +2565,26 @@ class FreeModule_generic(Module_free_ambient):
             [1/2   0  14   0   0   0]
             [  0   1  -3   0   0   0]
             [  0   0   0 1/2   4   2]
+            sage: V = (QQ^3).span_of_basis([[1,2,0], [0,1,0]])
+            sage: V.direct_sum(QQ^2)
+            Vector space of degree 5 and dimension 4 over Rational Field
+            User basis matrix:
+            [1 2 0 0 0]
+            [0 1 0 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
         """
+
         if not is_FreeModule(other):
             raise TypeError("other must be a free module")
         if other.base_ring() != self.base_ring():
             raise TypeError("base rings of self and other must be the same")
-        return self.basis_matrix().block_sum(other.basis_matrix()).row_module(self.base_ring())
+        M = FreeModule(self.base_ring(), self.degree() + other.degree())
+        A = self.basis_matrix().block_sum(other.basis_matrix())
+        if self.has_user_basis() or other.has_user_basis():
+            return M.span_of_basis(A)
+        else:
+            return M.span(A)
 
     def coordinates(self, v, check=True):
         """
