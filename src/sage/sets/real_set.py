@@ -99,6 +99,7 @@ AUTHORS:
 from sage.structure.richcmp import richcmp, richcmp_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.categories.topological_spaces import TopologicalSpaces
 from sage.categories.sets_cat import EmptySetError
 from sage.sets.set import Set_base, Set_boolean_operators, Set_add_sub_operators
@@ -920,8 +921,9 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
 
 @richcmp_method
-class RealSet(UniqueRepresentation, Parent, Set_base,
-              Set_boolean_operators, Set_add_sub_operators):
+class RealSet_base(Parent, Set_base,
+                   Set_boolean_operators, Set_add_sub_operators,
+                   metaclass=ClasscallMetaclass):
     r"""
     A subset of the real line, a finite union of intervals
 
@@ -2846,3 +2848,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         else:
             return Union(*[interval._sympy_()
                            for interval in self._intervals])
+
+
+class RealSet(UniqueRepresentation, RealSet_base):
+    pass
