@@ -2119,10 +2119,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             try:
                 a.n()
                 b.n()
-                sets.append(RealSet(a, b))
+                sets.append(self.__class__(a, b))
             except (AttributeError, ValueError, TypeError):
-                sets.append(RealSet(a))
-                sets.append(RealSet(b))
+                sets.append(self.__class__(a))
+                sets.append(self.__class__(b))
         else:
             sets.extend([self.__class__(_) for _ in real_set_collection])
         # Same as return RealSet(*real_set_collection). The following is a bit
@@ -2200,12 +2200,12 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             try:
                 a.n()
                 b.n()
-                sets.append(RealSet(a, b))
+                sets.append(self.__class__(a, b))
             except (AttributeError, ValueError, TypeError):
-                sets.append(RealSet(a))
-                sets.append(RealSet(b))
+                sets.append(self.__class__(a))
+                sets.append(self.__class__(b))
         else:
-            sets.extend([RealSet(_) for _ in real_set_collection])
+            sets.extend([self.__class__(_) for _ in real_set_collection])
         n = len(sets)
         scan = merge(*[real_set._scan() for real_set in sets])
         intervals = tuple(self._scan_to_intervals(scan, lambda i: i == n))
@@ -2323,13 +2323,13 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: s1.difference(1,11)
             (0, 1] ∪ [11, +oo)
         """
-        remove = [(pt, -delta) for (pt, delta) in RealSet(*other)._scan()]
+        remove = [(pt, -delta) for (pt, delta) in self.__class__(*other)._scan()]
         # Note: flip delta for boundary point in the removed set.
         # turn-on lower open becomes turn-off upper closed.
         scan = merge(self._scan(), remove)
         # Because the negative delta, indicator in def _scan_to_intervals can be negative.
         intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: i > 0))
-        return RealSet(*intervals, normalized=True)
+        return self.__class__(*intervals, normalized=True)
 
     def symmetric_difference(self, *other):
         r"""
@@ -2353,9 +2353,9 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: s1.symmetric_difference(s2)
             (0, 1] ∪ [2, +oo)
         """
-        scan = merge(self._scan(), RealSet(*other)._scan())
+        scan = merge(self._scan(), self.__class__(*other)._scan())
         intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: i == 1))
-        return RealSet(*intervals, normalized=True)
+        return self.__class__(*intervals, normalized=True)
 
     def contains(self, x):
         """
@@ -2417,7 +2417,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: J.is_subset(K)
             False
         """
-        return RealSet(*other).intersection(self) == self
+        return self.__class__(*other).intersection(self) == self
 
     is_included_in = deprecated_function_alias(31927, is_subset)
 
@@ -2600,8 +2600,9 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         """
         lower_scan = ((infinity, 0), 1)
         upper_scan = ((minus_infinity, 1), -1)
+        cls = RealSet().__class__     # RealSet_with_category
         for real_set in real_set_collection:
-            s = RealSet(real_set)
+            s = cls(real_set)
             if s.n_components() > 0:
                 lower_s = s[0]._scan_lower()
                 if lower_s < lower_scan:
@@ -2612,9 +2613,9 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         if lower_scan < upper_scan:
             lower, lower_closed = lower_scan[0][0], lower_scan[0][1] == 0
             upper, upper_closed = upper_scan[0][0], upper_scan[0][1] > 0
-            return RealSet(InternalRealInterval(lower, lower_closed, upper, upper_closed))
+            return cls(InternalRealInterval(lower, lower_closed, upper, upper_closed))
         else:
-            return RealSet()
+            return cls()
 
     def is_connected(self):
         """
@@ -2674,7 +2675,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: s.is_disjoint(RealSet().real_line())
             False
         """
-        other = RealSet(*other)
+        other = self.__class__(*other)
         return self.are_pairwise_disjoint(self, other)
 
     is_disjoint_from = deprecated_function_alias(31927, is_disjoint)
@@ -2707,7 +2708,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet.are_pairwise_disjoint(s1, s2, s3, [-1, 1/2])
             False
         """
-        scan = merge(*[RealSet(real_set)._scan() for real_set in real_set_collection])
+        cls = RealSet().__class__     # RealSet_with_category
+        scan = merge(*[cls(real_set)._scan() for real_set in real_set_collection])
         overlap_generator = RealSet._scan_to_intervals(scan, lambda i: i > 1)
         return next(overlap_generator, None) is None
 
@@ -2780,10 +2782,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: (-2) * A
             (-oo, -4) ∪ [-1, 0]
         """
-        if not isinstance(right, self.__class__):
+        if isinstance(self, RealSet) and not isinstance(right, RealSet):
             return self.__class__(*[e * right for e in self])
-        elif not isinstance(self, self.__class__):
-            return self.__class__(*[self * e for e in right])
+        elif isinstance(right, RealSet) and not isinstance(self, RealSet):
+            return right.__class__(*[self * e for e in right])
         else:
             return NotImplemented
 
