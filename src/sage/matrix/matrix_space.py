@@ -36,6 +36,8 @@ TESTS::
 import sys
 import operator
 
+# Sage matrix imports see :trac:`34283`
+
 # Sage imports
 import sage.structure.coerce
 from sage.structure.parent import Parent
