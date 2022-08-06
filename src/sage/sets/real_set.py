@@ -1515,7 +1515,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: s.ambient()
             (-oo, +oo)
         """
-        return self.__class__.real_line()
+        return self.__class__.__base__.real_line()
 
     def lift(self, x):
         r"""
@@ -2119,17 +2119,17 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             try:
                 a.n()
                 b.n()
-                sets.append(self.__class__(a, b))
+                sets.append(self.__class__.__base__(a, b))
             except (AttributeError, ValueError, TypeError):
-                sets.append(self.__class__(a))
-                sets.append(self.__class__(b))
+                sets.append(self.__class__.__base__(a))
+                sets.append(self.__class__.__base__(b))
         else:
-            sets.extend([self.__class__(_) for _ in real_set_collection])
+            sets.extend([self.__class__.__base__(_) for _ in real_set_collection])
         # Same as return RealSet(*real_set_collection). The following is a bit
         # better when the input consists of RealSets, since they are normalized
         scan = merge(*[real_set._scan() for real_set in sets])
         intervals = tuple(self._scan_to_intervals(scan, lambda i: i > 0))
-        return self.__class__(*intervals, normalized=True)
+        return self.__class__.__base__(*intervals, normalized=True)
 
     def intersection(self, *real_set_collection):
         """
@@ -2200,16 +2200,16 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             try:
                 a.n()
                 b.n()
-                sets.append(self.__class__(a, b))
+                sets.append(self.__class__.__base__(a, b))
             except (AttributeError, ValueError, TypeError):
-                sets.append(self.__class__(a))
-                sets.append(self.__class__(b))
+                sets.append(self.__class__.__base__(a))
+                sets.append(self.__class__.__base__(b))
         else:
-            sets.extend([self.__class__(_) for _ in real_set_collection])
+            sets.extend([self.__class__.__base__(_) for _ in real_set_collection])
         n = len(sets)
         scan = merge(*[real_set._scan() for real_set in sets])
         intervals = tuple(self._scan_to_intervals(scan, lambda i: i == n))
-        return self.__class__(*intervals, normalized=True)
+        return self.__class__.__base__(*intervals, normalized=True)
 
     def inf(self):
         """
@@ -2323,13 +2323,13 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: s1.difference(1,11)
             (0, 1] ∪ [11, +oo)
         """
-        remove = [(pt, -delta) for (pt, delta) in self.__class__(*other)._scan()]
+        remove = [(pt, -delta) for (pt, delta) in self.__class__.__base__(*other)._scan()]
         # Note: flip delta for boundary point in the removed set.
         # turn-on lower open becomes turn-off upper closed.
         scan = merge(self._scan(), remove)
         # Because the negative delta, indicator in def _scan_to_intervals can be negative.
         intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: i > 0))
-        return self.__class__(*intervals, normalized=True)
+        return self.__class__.__base__(*intervals, normalized=True)
 
     def symmetric_difference(self, *other):
         r"""
@@ -2353,9 +2353,9 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: s1.symmetric_difference(s2)
             (0, 1] ∪ [2, +oo)
         """
-        scan = merge(self._scan(), self.__class__(*other)._scan())
+        scan = merge(self._scan(), self.__class__.__base__(*other)._scan())
         intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: i == 1))
-        return self.__class__(*intervals, normalized=True)
+        return self.__class__.__base__(*intervals, normalized=True)
 
     def contains(self, x):
         """
@@ -2417,7 +2417,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: J.is_subset(K)
             False
         """
-        return self.__class__(*other).intersection(self) == self
+        return self.__class__.__base__(*other).intersection(self) == self
 
     is_included_in = deprecated_function_alias(31927, is_subset)
 
@@ -2520,7 +2520,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet().closure()
             {}
         """
-        return self.__class__(*[i.closure() for i in self._intervals])
+        return self.__class__.__base__(*[i.closure() for i in self._intervals])
 
     def interior(self):
         """
@@ -2537,7 +2537,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet([1, 2], (3, 4)).interior()
             (1, 2) ∪ (3, 4)
         """
-        return self.__class__(*[i.interior() for i in self._intervals])
+        return self.__class__.__base__(*[i.interior() for i in self._intervals])
 
     def boundary(self):
         """
@@ -2557,7 +2557,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             {1} ∪ {2} ∪ {3}
 
         """
-        return self.__class__(*[RealSet.point(x) for i in self._intervals for x in i.boundary_points()])
+        return self.__class__.__base__(*[RealSet.point(x) for i in self._intervals for x in i.boundary_points()])
 
     @staticmethod
     def convex_hull(*real_set_collection):
@@ -2600,9 +2600,16 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         """
         lower_scan = ((infinity, 0), 1)
         upper_scan = ((minus_infinity, 1), -1)
-        cls = RealSet().__class__     # RealSet_with_category
+        cls = None
         for real_set in real_set_collection:
-            s = cls(real_set)
+            if isinstance(real_set, RealSet):
+                cls = real_set.__class__.__base__
+                break
+        if cls is None:
+            cls = RealSet     # 'sage.sets.real_set.RealSet' without category
+        for s in real_set_collection:
+            if not isinstance(s, RealSet):
+                s = cls(s)
             if s.n_components() > 0:
                 lower_s = s[0]._scan_lower()
                 if lower_s < lower_scan:
@@ -2675,7 +2682,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: s.is_disjoint(RealSet().real_line())
             False
         """
-        other = self.__class__(*other)
+        other = self.__class__.__base__(*other)
         return self.are_pairwise_disjoint(self, other)
 
     is_disjoint_from = deprecated_function_alias(31927, is_disjoint)
@@ -2708,7 +2715,13 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet.are_pairwise_disjoint(s1, s2, s3, [-1, 1/2])
             False
         """
-        cls = RealSet().__class__     # RealSet_with_category
+        cls = None
+        for real_set in real_set_collection:
+            if isinstance(real_set, RealSet):
+                cls = real_set.__class__.__base__
+                break
+        if cls is None:
+            cls = RealSet     # 'sage.sets.real_set.RealSet' without category
         scan = merge(*[cls(real_set)._scan() for real_set in real_set_collection])
         overlap_generator = RealSet._scan_to_intervals(scan, lambda i: i > 1)
         return next(overlap_generator, None) is None
@@ -2783,9 +2796,9 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (-oo, -4) ∪ [-1, 0]
         """
         if isinstance(self, RealSet) and not isinstance(right, RealSet):
-            return self.__class__(*[e * right for e in self])
+            return self.__class__.__base__(*[e * right for e in self])
         elif isinstance(right, RealSet) and not isinstance(self, RealSet):
-            return right.__class__(*[self * e for e in right])
+            return right.__class__.__base__(*[self * e for e in right])
         else:
             return NotImplemented
 
