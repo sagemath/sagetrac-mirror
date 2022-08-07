@@ -2852,5 +2852,5 @@ class RealSet_base(Parent, Set_base,
                            for interval in self._intervals])
 
 
-class RealSet(UniqueRepresentation, RealSet_base):
+class RealSet(RealSet_base, UniqueRepresentation):
     pass
