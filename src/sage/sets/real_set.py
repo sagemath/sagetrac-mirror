@@ -1174,7 +1174,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             # Fast path: The input is already normalized: Args is a list of
             # sorted and disjoint intervals of type InternalRealInterval.
             # No other kwds should be provided.
-            return UniqueRepresentation.__classcall__(cls, *args, normalized=True)
+            return super().__classcall__(cls, *args, normalized=True)
         manifold_keywords = ('structure', 'ambient', 'names', 'coordinate')
         if any(kwds.get(kwd, None)
                for kwd in manifold_keywords):
@@ -1225,15 +1225,15 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                 lower, upper = args
                 lower.n()
                 upper.n()
-                args = (RealSet._prep(lower, upper),)
+                args = (cls._prep(lower, upper),)
             except (AttributeError, ValueError, TypeError):
                 pass
         for arg in args:
             if isinstance(arg, tuple):
-                lower, upper = RealSet._prep(*arg)
+                lower, upper = cls._prep(*arg)
                 intervals.append(InternalRealInterval(lower, False, upper, False))
             elif isinstance(arg, list):
-                lower, upper = RealSet._prep(*arg)
+                lower, upper = cls._prep(*arg)
                 intervals.append(InternalRealInterval(lower, True, upper, True))
             elif isinstance(arg, InternalRealInterval):
                 intervals.append(arg)
@@ -1292,16 +1292,16 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                 from sage.manifolds.differentiable.examples.real_line import OpenInterval
                 from sage.manifolds.subsets.closure import ManifoldSubsetClosure
                 if isinstance(arg, OpenInterval):
-                    lower, upper = RealSet._prep(arg.lower_bound(), arg.upper_bound())
+                    lower, upper = cls._prep(arg.lower_bound(), arg.upper_bound())
                     intervals.append(InternalRealInterval(lower, False, upper, False))
                 elif (isinstance(arg, ManifoldSubsetClosure)
                       and isinstance(arg._subset, OpenInterval)):
                     interval = arg._subset
-                    lower, upper = RealSet._prep(interval.lower_bound(),
-                                                 interval.upper_bound())
+                    lower, upper = cls._prep(interval.lower_bound(),
+                                             interval.upper_bound())
                     ambient = interval.manifold()
-                    ambient_lower, ambient_upper = RealSet._prep(ambient.lower_bound(),
-                                                                 ambient.upper_bound())
+                    ambient_lower, ambient_upper = cls._prep(ambient.lower_bound(),
+                                                             ambient.upper_bound())
                     lower_closed = ambient_lower < lower
                     upper_closed = upper < ambient_upper
                     intervals.append(InternalRealInterval(lower, lower_closed,
@@ -1309,8 +1309,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                 else:
                     raise ValueError(str(arg) + ' does not determine real interval')
 
-        union_intervals = RealSet.normalize(intervals)
-        return UniqueRepresentation.__classcall__(cls, *union_intervals, normalized=True)
+        union_intervals = cls.normalize(intervals)
+        return super().__classcall__(cls, *union_intervals, normalized=True)
 
     def __init__(self, *intervals, normalized=True):
         r"""
@@ -1750,7 +1750,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         """
         if lower_closed is None or upper_closed is None:
             raise ValueError('lower_closed and upper_closed must be explicitly given')
-        lower, upper = RealSet._prep(lower, upper)
+        lower, upper = cls._prep(lower, upper)
         return cls(InternalRealInterval(lower, lower_closed, upper, upper_closed), **kwds)
 
     @classmethod
@@ -1774,7 +1774,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet.open(1, 0)
             (0, 1)
         """
-        lower, upper = RealSet._prep(lower, upper)
+        lower, upper = cls._prep(lower, upper)
         return cls(InternalRealInterval(lower, False, upper, False), **kwds)
 
     @classmethod
@@ -1798,7 +1798,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet.closed(1, 0)
             [0, 1]
         """
-        lower, upper = RealSet._prep(lower, upper)
+        lower, upper = cls._prep(lower, upper)
         return cls(InternalRealInterval(lower, True, upper, True), **kwds)
 
     @classmethod
@@ -1821,7 +1821,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet.open(1, 0)
             (0, 1)
         """
-        p = RealSet._prep(p)
+        p = cls._prep(p)
         return cls(InternalRealInterval(p, True, p, True), **kwds)
 
     @classmethod
@@ -1846,7 +1846,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet.open_closed(1, 0)
             (0, 1]
         """
-        lower, upper = RealSet._prep(lower, upper)
+        lower, upper = cls._prep(lower, upper)
         return cls(InternalRealInterval(lower, False, upper, True), **kwds)
 
     @classmethod
@@ -1871,7 +1871,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet.closed_open(1, 0)
             [0, 1)
         """
-        lower, upper = RealSet._prep(lower, upper)
+        lower, upper = cls._prep(lower, upper)
         return cls(InternalRealInterval(lower, True, upper, False), **kwds)
 
     @classmethod
@@ -1894,7 +1894,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet.unbounded_below_closed(1)
             (-oo, 1]
         """
-        bound = RealSet._prep(bound)
+        bound = cls._prep(bound)
         return cls(InternalRealInterval(minus_infinity, False, bound, True), **kwds)
 
     @classmethod
@@ -1917,7 +1917,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet.unbounded_below_open(1)
             (-oo, 1)
         """
-        bound = RealSet._prep(bound)
+        bound = cls._prep(bound)
         return cls(InternalRealInterval(minus_infinity, False, RLF(bound), False), **kwds)
 
     @classmethod
@@ -1941,7 +1941,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet.unbounded_above_closed(1)
             [1, +oo)
         """
-        bound = RealSet._prep(bound)
+        bound = cls._prep(bound)
         return cls(InternalRealInterval(RLF(bound), True, infinity, False), **kwds)
 
     @classmethod
@@ -1965,7 +1965,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet.unbounded_above_open(1)
             (1, +oo)
         """
-        bound = RealSet._prep(bound)
+        bound = cls._prep(bound)
         return cls(InternalRealInterval(RLF(bound), False, infinity, False), **kwds)
 
     @classmethod
@@ -2328,7 +2328,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         # turn-on lower open becomes turn-off upper closed.
         scan = merge(self._scan(), remove)
         # Because the negative delta, indicator in def _scan_to_intervals can be negative.
-        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: i > 0))
+        intervals = tuple(self._scan_to_intervals(scan, lambda i: i > 0))
         return self.__class__.__base__(*intervals, normalized=True)
 
     def symmetric_difference(self, *other):
@@ -2354,7 +2354,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (0, 1] ∪ [2, +oo)
         """
         scan = merge(self._scan(), self.__class__.__base__(*other)._scan())
-        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: i == 1))
+        intervals = tuple(self._scan_to_intervals(scan, lambda i: i == 1))
         return self.__class__.__base__(*intervals, normalized=True)
 
     def contains(self, x):
@@ -2723,7 +2723,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         if cls is None:
             cls = RealSet     # 'sage.sets.real_set.RealSet' without category
         scan = merge(*[cls(real_set)._scan() for real_set in real_set_collection])
-        overlap_generator = RealSet._scan_to_intervals(scan, lambda i: i > 1)
+        overlap_generator = self._scan_to_intervals(scan, lambda i: i > 1)
         return next(overlap_generator, None) is None
 
     def _sage_input_(self, sib, coerced):
