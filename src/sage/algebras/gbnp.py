@@ -897,7 +897,7 @@ class GapFreeAlgebra(FreeAlgebra_generic):
 
         - ``R`` -- the base ring of the algebra. Should be a field
 
-        - ``n`` (default: ``None``) -- the number of generators of the algebra
+        - ``n`` (default: ``None``) -- the number of generators of the algebra.
           If None, ``names`` must be given.
 
         - ``names`` (default: ``None``) -- the names for the generators of the
