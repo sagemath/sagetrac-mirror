@@ -2725,7 +2725,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         if cls is None:
             cls = RealSet     # 'sage.sets.real_set.RealSet' without category
         scan = merge(*[cls(real_set)._scan() for real_set in real_set_collection])
-        overlap_generator = self._scan_to_intervals(scan, lambda i: i > 1)
+        overlap_generator = cls._scan_to_intervals(scan, lambda i: i > 1)
         return next(overlap_generator, None) is None
 
     def _sage_input_(self, sib, coerced):
