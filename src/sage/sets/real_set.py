@@ -1312,7 +1312,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         union_intervals = cls.normalize(intervals)
         return super().__classcall__(cls, *union_intervals, normalized=True)
 
-    def __init__(self, *intervals, normalized=True):
+    def __init__(self, *intervals, normalized=False):
         r"""
         TESTS::
 
@@ -1326,6 +1326,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (0, 1] ∪ [2, 3)
             sage: TestSuite(R).run()
         """
+        assert normalized
         category = TopologicalSpaces()
         if len(intervals) <= 1:
             category = category.Connected()
