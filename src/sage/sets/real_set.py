@@ -1216,7 +1216,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             raise TypeError(f'RealSet constructors cannot take the keyword arguments {kwds}')
 
         from sage.structure.element import Expression
-        if len(args) == 1 and isinstance(args[0], RealSet):
+        if len(args) == 1 and isinstance(args[0], cls):
             return args[0]  # common optimization
         intervals = []
         if len(args) == 2:
@@ -1553,7 +1553,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             raise ValueError(f'{x} is not an element of {self}')
         return x
 
-    def normalize(intervals):
+    @classmethod
+    def normalize(cls, intervals):
         r"""
         Bring a collection of intervals into canonical form
 
@@ -1580,7 +1581,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             ((0, 3),)
         """
         scan = merge(*[[i._scan_lower(), i._scan_upper()] for i in intervals])
-        union_intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: i > 0))
+        union_intervals = tuple(cls._scan_to_intervals(scan, lambda i: i > 0))
         return union_intervals
 
     def _repr_(self):
