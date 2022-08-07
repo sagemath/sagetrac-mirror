@@ -99,7 +99,7 @@ AUTHORS:
 from sage.structure.richcmp import richcmp, richcmp_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.categories.topological_spaces import TopologicalSpaces
 from sage.categories.sets_cat import EmptySetError
 from sage.sets.set import Set_base, Set_boolean_operators, Set_add_sub_operators
@@ -952,6 +952,8 @@ class RealSet_base(Parent, Set_base,
       keywords implies ``structure='differentiable'``.
     - ``name``, ``latex_name``, ``start_index`` -- see
       :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`.
+    - ``cache`` -- (default: ``True``) if ``True``, use a subclass of
+      :class:`sage.structure.unique_representation.UniqueRepresentation`.
     - ``normalized`` -- (default: ``None``) if ``True``, the input is already normalized,
       i.e., ``*args`` are the connected components (type :class:`InternalRealInterval`)
       of the real set in ascending order; no other keyword is provided.
@@ -989,6 +991,19 @@ class RealSet_base(Parent, Set_base,
         (1, 2) ∪ [3, 4]
         sage: RealSet((-oo, 0), x > 6, i1, RealSet.point(5), RealSet.closed_open(4, 3))
         (-oo, 0) ∪ (1, 2) ∪ [3, 4) ∪ {5} ∪ (6, +oo)
+
+    By default (``cache=True``), a ``RealSet`` has indefinite lifetime, and
+    there is a unique instance representing the same mathematical set::
+
+        sage: RealSet(i2, i1) is RealSet(i2, i1)
+        True
+
+    This can be changed by using the parameter ``cache=False``::
+
+        sage: RealSet((1, 2), (3, 4), cache=False) is RealSet((1, 2), (3, 4), cache=False)
+        sage: RealSet((1, 2), (3, 4), cache=False) == RealSet((1, 2), (3, 4), cache=False)
+        sage: RealSet((1, 2), (3, 4), cache=False) == RealSet((1, 2), (3, 4))
+        sage: hash(RealSet((1, 2), (3, 4), cache=False)) == hash(RealSet((1, 2), (3, 4)))
 
     Initialization from manifold objects::
 
@@ -1107,212 +1122,7 @@ class RealSet_base(Parent, Set_base,
 
     @staticmethod
     def __classcall__(cls, *args, **kwds):
-        """
-        Normalize the input.
-
-        INPUT:
-
-        See :class:`RealSet`.
-
-        OUTPUT:
-
-        A :class:`RealSet`.
-
-        EXAMPLES::
-
-            sage: R = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3)); R
-            (0, 1] ∪ [2, 3)
-
-        TESTS::
-
-            sage: RealSet(x != 0)
-            (-oo, 0) ∪ (0, +oo)
-            sage: RealSet(x == pi)
-            {pi}
-            sage: RealSet(x < 1/2)
-            (-oo, 1/2)
-            sage: RealSet(1/2 < x)
-            (1/2, +oo)
-            sage: RealSet(1.5 <= x)
-            [1.50000000000000, +oo)
-            sage: RealSet(x >= -1)
-            [-1, +oo)
-            sage: RealSet(x > oo)
-            {}
-            sage: RealSet(x >= oo)
-            {}
-            sage: RealSet(x <= -oo)
-            {}
-            sage: RealSet(x < oo)
-            (-oo, +oo)
-            sage: RealSet(x > -oo)
-            (-oo, +oo)
-            sage: RealSet(x != oo)
-            (-oo, +oo)
-            sage: RealSet(x <= oo)
-            Traceback (most recent call last):
-            ...
-            ValueError: interval cannot be closed at +oo
-            sage: RealSet(x == oo)
-            Traceback (most recent call last):
-            ...
-            ValueError: interval cannot be closed at +oo
-            sage: RealSet(x >= -oo)
-            Traceback (most recent call last):
-            ...
-            ValueError: interval cannot be closed at -oo
-            sage: r = RealSet(2,10)
-            sage: RealSet((2, 6), (4, 10)) is r
-            True
-            sage: RealSet(x > 2).intersection(RealSet(x < 10)) is RealSet(r[0], normalized=True)
-            True
-            sage: RealSet(x > 0, normalized=True)
-            Traceback (most recent call last):
-            ...
-            AttributeError: ...
-        """
-        normalized = kwds.pop('normalized', False)
-        if normalized:
-            # Fast path: The input is already normalized: Args is a list of
-            # sorted and disjoint intervals of type InternalRealInterval.
-            # No other kwds should be provided.
-            return super().__classcall__(cls, *args, normalized=True)
-        manifold_keywords = ('structure', 'ambient', 'names', 'coordinate')
-        if any(kwds.get(kwd, None)
-               for kwd in manifold_keywords):
-            # Got manifold keywords
-            real_set = cls.__classcall__(cls, *args)
-            ambient = kwds.pop('ambient', None)
-            structure = kwds.pop('structure', 'differentiable')
-            if structure != 'differentiable':
-                # TODO
-                raise NotImplementedError
-
-            from sage.manifolds.differentiable.examples.real_line import RealLine
-            if real_set.is_universe():
-                if ambient is None:
-                    ambient = RealLine(**kwds)
-                else:
-                    # TODO: Check that ambient makes sense
-                    pass
-                return ambient
-
-            name = kwds.pop('name', None)
-            latex_name = kwds.pop('latex_name', None)
-
-            if ambient is None:
-                ambient = RealLine(**kwds)
-            else:
-                # TODO: Check that ambient makes sense
-                pass
-
-            if name is None:
-                name = str(real_set)
-            if latex_name is None:
-                from sage.misc.latex import latex
-                latex_name = latex(real_set)
-
-            return ambient.manifold().canonical_chart().pullback(real_set, name=name, latex_name=latex_name)
-
-        if kwds:
-            raise TypeError(f'RealSet constructors cannot take the keyword arguments {kwds}')
-
-        from sage.structure.element import Expression
-        if len(args) == 1 and isinstance(args[0], cls):
-            return args[0]  # common optimization
-        intervals = []
-        if len(args) == 2:
-            # allow RealSet(0,1) interval constructor
-            try:
-                lower, upper = args
-                lower.n()
-                upper.n()
-                args = (cls._prep(lower, upper),)
-            except (AttributeError, ValueError, TypeError):
-                pass
-        for arg in args:
-            if isinstance(arg, tuple):
-                lower, upper = cls._prep(*arg)
-                intervals.append(InternalRealInterval(lower, False, upper, False))
-            elif isinstance(arg, list):
-                lower, upper = cls._prep(*arg)
-                intervals.append(InternalRealInterval(lower, True, upper, True))
-            elif isinstance(arg, InternalRealInterval):
-                intervals.append(arg)
-            elif isinstance(arg, RealSet):
-                intervals.extend(arg._intervals)
-            elif isinstance(arg, Expression) and arg.is_relational():
-                from operator import eq, ne, lt, gt, le, ge
-
-                def rel_to_interval(op, val):
-                    """
-                    Internal helper function.
-                    """
-                    oo = infinity
-                    try:
-                        val = val.pyobject()
-                    except AttributeError:
-                        pass
-                    val = RLF(val)
-                    if op == eq:
-                        s = [InternalRealInterval(val, True, val, True)]
-                    elif op == gt:
-                        s = [InternalRealInterval(val, False, oo, False)]
-                    elif op == ge:
-                        s = [InternalRealInterval(val, True, oo, False)]
-                    elif op == lt:
-                        s = [InternalRealInterval(-oo, False, val, False)]
-                    elif op == le:
-                        s = [InternalRealInterval(-oo, False, val, True)]
-                    elif op == ne:
-                        s = [InternalRealInterval(-oo, False, val, False),
-                             InternalRealInterval(val, False, oo, False)]
-                    else:
-                        raise ValueError(str(arg) + ' does not determine real interval')
-                    return [i for i in s if not i.is_empty()]
-
-                if (arg.lhs().is_symbol()
-                        and (arg.rhs().is_numeric() or arg.rhs().is_constant())
-                        and arg.rhs().is_real()):
-                    intervals.extend(rel_to_interval(arg.operator(), arg.rhs()))
-                elif (arg.rhs().is_symbol()
-                      and (arg.lhs().is_numeric() or arg.lhs().is_constant())
-                      and arg.lhs().is_real()):
-                    op = arg.operator()
-                    if op == lt:
-                        op = gt
-                    elif op == gt:
-                        op = lt
-                    elif op == le:
-                        op = ge
-                    elif op == ge:
-                        op = le
-                    intervals.extend(rel_to_interval(op, arg.lhs()))
-                else:
-                    raise ValueError(str(arg) + ' does not determine real interval')
-            else:
-                from sage.manifolds.differentiable.examples.real_line import OpenInterval
-                from sage.manifolds.subsets.closure import ManifoldSubsetClosure
-                if isinstance(arg, OpenInterval):
-                    lower, upper = cls._prep(arg.lower_bound(), arg.upper_bound())
-                    intervals.append(InternalRealInterval(lower, False, upper, False))
-                elif (isinstance(arg, ManifoldSubsetClosure)
-                      and isinstance(arg._subset, OpenInterval)):
-                    interval = arg._subset
-                    lower, upper = cls._prep(interval.lower_bound(),
-                                             interval.upper_bound())
-                    ambient = interval.manifold()
-                    ambient_lower, ambient_upper = cls._prep(ambient.lower_bound(),
-                                                             ambient.upper_bound())
-                    lower_closed = ambient_lower < lower
-                    upper_closed = upper < ambient_upper
-                    intervals.append(InternalRealInterval(lower, lower_closed,
-                                                          upper, upper_closed))
-                else:
-                    raise ValueError(str(arg) + ' does not determine real interval')
-
-        union_intervals = cls.normalize(intervals)
-        return super().__classcall__(cls, *union_intervals, normalized=True)
+        return typecall(cls, *args, **kwds)
 
     def __init__(self, *intervals, normalized=False):
         r"""
@@ -2852,5 +2662,220 @@ class RealSet_base(Parent, Set_base,
                            for interval in self._intervals])
 
 
-class RealSet(RealSet_base, UniqueRepresentation):
+class RealSet_no_cache(RealSet_base):
     pass
+
+class RealSet(RealSet_base, UniqueRepresentation):
+
+    @staticmethod
+    def __classcall__(cls, *args, **kwds):
+        """
+        Normalize the input.
+
+        INPUT:
+
+        See :class:`RealSet`.
+
+        OUTPUT:
+
+        A :class:`RealSet`.
+
+        EXAMPLES::
+
+            sage: R = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3)); R
+            (0, 1] ∪ [2, 3)
+
+        TESTS::
+
+            sage: RealSet(x != 0)
+            (-oo, 0) ∪ (0, +oo)
+            sage: RealSet(x == pi)
+            {pi}
+            sage: RealSet(x < 1/2)
+            (-oo, 1/2)
+            sage: RealSet(1/2 < x)
+            (1/2, +oo)
+            sage: RealSet(1.5 <= x)
+            [1.50000000000000, +oo)
+            sage: RealSet(x >= -1)
+            [-1, +oo)
+            sage: RealSet(x > oo)
+            {}
+            sage: RealSet(x >= oo)
+            {}
+            sage: RealSet(x <= -oo)
+            {}
+            sage: RealSet(x < oo)
+            (-oo, +oo)
+            sage: RealSet(x > -oo)
+            (-oo, +oo)
+            sage: RealSet(x != oo)
+            (-oo, +oo)
+            sage: RealSet(x <= oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: interval cannot be closed at +oo
+            sage: RealSet(x == oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: interval cannot be closed at +oo
+            sage: RealSet(x >= -oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: interval cannot be closed at -oo
+            sage: r = RealSet(2,10)
+            sage: RealSet((2, 6), (4, 10)) is r
+            True
+            sage: RealSet(x > 2).intersection(RealSet(x < 10)) is RealSet(r[0], normalized=True)
+            True
+            sage: RealSet(x > 0, normalized=True)
+            Traceback (most recent call last):
+            ...
+            AttributeError: ...
+        """
+        normalized = kwds.pop('normalized', False)
+        if normalized:
+            # Fast path: The input is already normalized: Args is a list of
+            # sorted and disjoint intervals of type InternalRealInterval.
+            # No other kwds should be provided.
+            return super().__classcall__(cls, *args, normalized=True)
+        manifold_keywords = ('structure', 'ambient', 'names', 'coordinate')
+        if any(kwds.get(kwd, None)
+               for kwd in manifold_keywords):
+            # Got manifold keywords
+            real_set = cls.__classcall__(cls, *args)
+            ambient = kwds.pop('ambient', None)
+            structure = kwds.pop('structure', 'differentiable')
+            if structure != 'differentiable':
+                # TODO
+                raise NotImplementedError
+
+            from sage.manifolds.differentiable.examples.real_line import RealLine
+            if real_set.is_universe():
+                if ambient is None:
+                    ambient = RealLine(**kwds)
+                else:
+                    # TODO: Check that ambient makes sense
+                    pass
+                return ambient
+
+            name = kwds.pop('name', None)
+            latex_name = kwds.pop('latex_name', None)
+
+            if ambient is None:
+                ambient = RealLine(**kwds)
+            else:
+                # TODO: Check that ambient makes sense
+                pass
+
+            if name is None:
+                name = str(real_set)
+            if latex_name is None:
+                from sage.misc.latex import latex
+                latex_name = latex(real_set)
+
+            return ambient.manifold().canonical_chart().pullback(real_set, name=name, latex_name=latex_name)
+
+        cache = kwds.pop('cache', True)
+        if not cache:
+            cls = RealSet_no_cache
+
+        if kwds:
+            raise TypeError(f'RealSet constructors cannot take the keyword arguments {kwds}')
+
+        from sage.structure.element import Expression
+        if len(args) == 1 and isinstance(args[0], cls):
+            return args[0]  # common optimization
+        intervals = []
+        if len(args) == 2:
+            # allow RealSet(0,1) interval constructor
+            try:
+                lower, upper = args
+                lower.n()
+                upper.n()
+                args = (cls._prep(lower, upper),)
+            except (AttributeError, ValueError, TypeError):
+                pass
+        for arg in args:
+            if isinstance(arg, tuple):
+                lower, upper = cls._prep(*arg)
+                intervals.append(InternalRealInterval(lower, False, upper, False))
+            elif isinstance(arg, list):
+                lower, upper = cls._prep(*arg)
+                intervals.append(InternalRealInterval(lower, True, upper, True))
+            elif isinstance(arg, InternalRealInterval):
+                intervals.append(arg)
+            elif isinstance(arg, RealSet):
+                intervals.extend(arg._intervals)
+            elif isinstance(arg, Expression) and arg.is_relational():
+                from operator import eq, ne, lt, gt, le, ge
+
+                def rel_to_interval(op, val):
+                    """
+                    Internal helper function.
+                    """
+                    oo = infinity
+                    try:
+                        val = val.pyobject()
+                    except AttributeError:
+                        pass
+                    val = RLF(val)
+                    if op == eq:
+                        s = [InternalRealInterval(val, True, val, True)]
+                    elif op == gt:
+                        s = [InternalRealInterval(val, False, oo, False)]
+                    elif op == ge:
+                        s = [InternalRealInterval(val, True, oo, False)]
+                    elif op == lt:
+                        s = [InternalRealInterval(-oo, False, val, False)]
+                    elif op == le:
+                        s = [InternalRealInterval(-oo, False, val, True)]
+                    elif op == ne:
+                        s = [InternalRealInterval(-oo, False, val, False),
+                             InternalRealInterval(val, False, oo, False)]
+                    else:
+                        raise ValueError(str(arg) + ' does not determine real interval')
+                    return [i for i in s if not i.is_empty()]
+
+                if (arg.lhs().is_symbol()
+                        and (arg.rhs().is_numeric() or arg.rhs().is_constant())
+                        and arg.rhs().is_real()):
+                    intervals.extend(rel_to_interval(arg.operator(), arg.rhs()))
+                elif (arg.rhs().is_symbol()
+                      and (arg.lhs().is_numeric() or arg.lhs().is_constant())
+                      and arg.lhs().is_real()):
+                    op = arg.operator()
+                    if op == lt:
+                        op = gt
+                    elif op == gt:
+                        op = lt
+                    elif op == le:
+                        op = ge
+                    elif op == ge:
+                        op = le
+                    intervals.extend(rel_to_interval(op, arg.lhs()))
+                else:
+                    raise ValueError(str(arg) + ' does not determine real interval')
+            else:
+                from sage.manifolds.differentiable.examples.real_line import OpenInterval
+                from sage.manifolds.subsets.closure import ManifoldSubsetClosure
+                if isinstance(arg, OpenInterval):
+                    lower, upper = cls._prep(arg.lower_bound(), arg.upper_bound())
+                    intervals.append(InternalRealInterval(lower, False, upper, False))
+                elif (isinstance(arg, ManifoldSubsetClosure)
+                      and isinstance(arg._subset, OpenInterval)):
+                    interval = arg._subset
+                    lower, upper = cls._prep(interval.lower_bound(),
+                                             interval.upper_bound())
+                    ambient = interval.manifold()
+                    ambient_lower, ambient_upper = cls._prep(ambient.lower_bound(),
+                                                             ambient.upper_bound())
+                    lower_closed = ambient_lower < lower
+                    upper_closed = upper < ambient_upper
+                    intervals.append(InternalRealInterval(lower, lower_closed,
+                                                          upper, upper_closed))
+                else:
+                    raise ValueError(str(arg) + ' does not determine real interval')
+
+        union_intervals = cls.normalize(intervals)
+        return super().__classcall__(cls, *union_intervals, normalized=True)
