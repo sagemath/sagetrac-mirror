@@ -1695,7 +1695,7 @@ class AbelianGroup_subgroup(AbelianGroup_class):
 
         H = libgap(ambient).Subgroup(H_gens)
 
-        invs = H.TorsionSubGroup().AbelianInvariants().sage()
+        invs = H.TorsionSubgroup().AbelianInvariants().sage()
         rank = len([1 for g in H.GeneratorsOfGroup()
                     if g.Order().sage() is infinity])
         invs.append([0] * rank)
