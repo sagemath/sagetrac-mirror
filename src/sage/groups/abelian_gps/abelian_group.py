@@ -1170,7 +1170,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         result = self.one()
         for g in self.gens():
             order = g.order()
-            if order not in ZZ:
+            if order is infinity:
                 order = 42  # infinite order; randomly chosen maximum
             result *= g**(randint(0,order))
         return result
@@ -1695,10 +1695,17 @@ class AbelianGroup_subgroup(AbelianGroup_class):
 
         H = libgap(ambient).Subgroup(H_gens)
 
-        gap_orders = (g.order().sage() for g in H.GeneratorsOfGroup())
-        invs = [x if x in ZZ else 0 for x in gap_orders]
-        self._abinvs = invs
+        finite_invs = H.TorsionSubGroup().AbelianInvariants().sage()
+        self._abinvs = finite_invs
+
+        rank = len([1 for g in H.GeneratorsOfGroup()
+                    if g.Order().sage() is infinity]
+        self._rank = rank
+
+        invs = finite_invs
+        invs.append([0] * rank)
         invs = tuple(ZZ(i) for i in invs)
+
         if category is None:
             category = Groups().Commutative().Subobjects()
         AbelianGroup_class.__init__(self, invs, names, category=category)
