@@ -1698,7 +1698,7 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         invs = H.TorsionSubgroup().AbelianInvariants().sage()
         rank = len([1 for g in H.GeneratorsOfGroup()
                     if g.Order().sage() is infinity])
-        invs.append([0] * rank)
+        invs += [0] * rank
 
         self._abinvs = invs
         invs = tuple(ZZ(i) for i in invs)
