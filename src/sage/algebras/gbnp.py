@@ -12,112 +12,112 @@ It currently only implements a wrapper for a subset of GBNP. Minimal usage
 example::
 
     sage: from sage.algebras.gbnp import GapFreeAlgebra
-    sage: A.<a,b,c> = GapFreeAlgebra(QQ)    # optional - gbnp
-    sage: rels = [a^2-a, b^2-b, c^2-c, a+b+c-1]    # optional - gbnp
-    sage: I = A.ideal(rels)    # optional - gbnp
-    sage: I.is_groebner_basis()    # optional - gbnp
+    sage: A.<a,b,c> = GapFreeAlgebra(QQ)    # optional - gap_packages
+    sage: rels = [a^2-a, b^2-b, c^2-c, a+b+c-1]    # optional - gap_packages
+    sage: I = A.ideal(rels)    # optional - gap_packages
+    sage: I.is_groebner_basis()    # optional - gap_packages
     False
-    sage: I1 = I.groebner_basis()    # optional - gbnp
-    sage: I1    # optional - gbnp
+    sage: I1 = I.groebner_basis()    # optional - gap_packages
+    sage: I1    # optional - gap_packages
     Twosided Ideal (-1 + a + b + c, -a + a^2, a*b, b*a, -b + b^2) of Free Algebra on 3 generators (a, b, c) over Rational Field
-    sage: I1.is_groebner_basis()    # optional - gbnp
+    sage: I1.is_groebner_basis()    # optional - gap_packages
     True
-    sage: I1.reduce(a*b)    # optional - gbnp
+    sage: I1.reduce(a*b)    # optional - gap_packages
     0
-    sage: I1.reduce(c^5)    # optional - gbnp
+    sage: I1.reduce(c^5)    # optional - gap_packages
     1 - a - b
 
 There are examples where the algorithm to find Groebner basis does not converge::
 
-    sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-    sage: rels = [x * y - y * x - y^2]    # optional - gbnp
-    sage: I = A.ideal(rels)    # optional - gbnp
-    sage: I.is_groebner_basis()    # optional - gbnp
+    sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+    sage: rels = [x * y - y * x - y^2]    # optional - gap_packages
+    sage: I = A.ideal(rels)    # optional - gap_packages
+    sage: I.is_groebner_basis()    # optional - gap_packages
     False
-    sage: I1 = I.groebner_basis(10)    # optional - gbnp
-    sage: I1.is_groebner_basis()    # optional - gbnp
+    sage: I1 = I.groebner_basis(10)    # optional - gap_packages
+    sage: I1.is_groebner_basis()    # optional - gap_packages
     False
-    sage: I2 = I1.groebner_basis(10)    # optional - gbnp
-    sage: I1.is_groebner_basis()    # optional - gbnp
+    sage: I2 = I1.groebner_basis(10)    # optional - gap_packages
+    sage: I1.is_groebner_basis()    # optional - gap_packages
     False
 
 However, changing the order of the variables makes the algorithm in this
 particular example converge::
 
-    sage: A.<y, x> = GapFreeAlgebra(QQ)    # optional - gbnp
-    sage: rels = [x * y - y * x - y^2]    # optional - gbnp
-    sage: I = A.ideal(rels)    # optional - gbnp
-    sage: I.is_groebner_basis()    # optional - gbnp
+    sage: A.<y, x> = GapFreeAlgebra(QQ)    # optional - gap_packages
+    sage: rels = [x * y - y * x - y^2]    # optional - gap_packages
+    sage: I = A.ideal(rels)    # optional - gap_packages
+    sage: I.is_groebner_basis()    # optional - gap_packages
     True
 
 The same example does converge over finite fields::
 
-    sage: A3.<x, y> = GapFreeAlgebra(GF(3))    # optional - gbnp
-    sage: rels = [x * y - y * x - y^2]    # optional - gbnp
-    sage: I = A3.ideal(rels)    # optional - gbnp
-    sage: I.is_groebner_basis()    # optional - gbnp
+    sage: A3.<x, y> = GapFreeAlgebra(GF(3))    # optional - gap_packages
+    sage: rels = [x * y - y * x - y^2]    # optional - gap_packages
+    sage: I = A3.ideal(rels)    # optional - gap_packages
+    sage: I.is_groebner_basis()    # optional - gap_packages
     False
-    sage: I10 = I.groebner_basis(10)    # optional - gbnp
-    sage: I10.is_groebner_basis()    # optional - gbnp
+    sage: I10 = I.groebner_basis(10)    # optional - gap_packages
+    sage: I10.is_groebner_basis()    # optional - gap_packages
     True
-    sage: A9.<x, y> = GapFreeAlgebra(GF(9))    # optional - gbnp
-    sage: rels = [x * y - y * x - y^2]    # optional - gbnp
-    sage: I = A9.ideal(rels)    # optional - gbnp
-    sage: I.is_groebner_basis()    # optional - gbnp
+    sage: A9.<x, y> = GapFreeAlgebra(GF(9))    # optional - gap_packages
+    sage: rels = [x * y - y * x - y^2]    # optional - gap_packages
+    sage: I = A9.ideal(rels)    # optional - gap_packages
+    sage: I.is_groebner_basis()    # optional - gap_packages
     False
-    sage: I10 = I.groebner_basis(10)    # optional - gbnp
-    sage: I10.is_groebner_basis()    # optional - gbnp
+    sage: I10 = I.groebner_basis(10)    # optional - gap_packages
+    sage: I10.is_groebner_basis()    # optional - gap_packages
     True
 
 The Cola gene puzzle from
 https://gap-packages.github.io/gbnp/doc/chapA.html#X7912E411867E5F8B::
 
-    sage: A1.<A, C, G, T> = GapFreeAlgebra(QQ)    # optional - gbnp
-    sage: rels = [T*C*A*T-T, G*A*G-A*G, C*T*C-T*C, A*G*T*A-A, T*A*T-C*T]    # optional - gbnp
-    sage: I = A1.ideal(rels)    # optional - gbnp
-    sage: I1 = I.groebner_basis(10)    # optional - gbnp
-    sage: I1.is_groebner_basis()    # optional - gbnp
+    sage: A1.<A, C, G, T> = GapFreeAlgebra(QQ)    # optional - gap_packages
+    sage: rels = [T*C*A*T-T, G*A*G-A*G, C*T*C-T*C, A*G*T*A-A, T*A*T-C*T]    # optional - gap_packages
+    sage: I = A1.ideal(rels)    # optional - gap_packages
+    sage: I1 = I.groebner_basis(10)    # optional - gap_packages
+    sage: I1.is_groebner_basis()    # optional - gap_packages
     True
-    sage: milk = T*A*G*C*T*A*G*C*T*A*G*C*T    # optional - gbnp
-    sage: I1.reduce(milk)    # optional - gbnp
+    sage: milk = T*A*G*C*T*A*G*C*T*A*G*C*T    # optional - gap_packages
+    sage: I1.reduce(milk)    # optional - gap_packages
     T
-    sage: cola = C*T*G*A*C*T*G*A*C*T    # optional - gbnp
-    sage: I1.reduce(cola)    # optional - gbnp
+    sage: cola = C*T*G*A*C*T*G*A*C*T    # optional - gap_packages
+    sage: I1.reduce(cola)    # optional - gap_packages
     T
 
 Working with quotient algebras::
 
-    sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-    sage: rels = [x^2, y^2]    # optional - gbnp
-    sage: QA = A.quo(rels)    # optional - gbnp
-    sage: QA.is_finite_dimensional()    # optional - gbnp
+    sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+    sage: rels = [x^2, y^2]    # optional - gap_packages
+    sage: QA = A.quo(rels)    # optional - gap_packages
+    sage: QA.is_finite_dimensional()    # optional - gap_packages
     False
-    sage: QA.growth()    # optional - gbnp
+    sage: QA.growth()    # optional - gap_packages
     1
-    sage: QA.hilbert_series(10)    # optional - gbnp
+    sage: QA.hilbert_series(10)    # optional - gap_packages
     [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
-    sage: rels1 = [x^2]    # optional - gbnp
-    sage: QA1 = A.quo(rels1)    # optional - gbnp
-    sage: QA1.is_finite_dimensional()    # optional - gbnp
+    sage: rels1 = [x^2]    # optional - gap_packages
+    sage: QA1 = A.quo(rels1)    # optional - gap_packages
+    sage: QA1.is_finite_dimensional()    # optional - gap_packages
     False
-    sage: QA1.growth()    # optional - gbnp
+    sage: QA1.growth()    # optional - gap_packages
     'exponential growth'
-    sage: QA1.hilbert_series(10)    # optional - gbnp
+    sage: QA1.hilbert_series(10)    # optional - gap_packages
     [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144]
 
-    sage: rels2 = [x^2, y^2, x*y*x*y]    # optional - gbnp
-    sage: QA2 = A.quo(rels2)    # optional - gbnp
-    sage: QA2.is_finite_dimensional()    # optional - gbnp
+    sage: rels2 = [x^2, y^2, x*y*x*y]    # optional - gap_packages
+    sage: QA2 = A.quo(rels2)    # optional - gap_packages
+    sage: QA2.is_finite_dimensional()    # optional - gap_packages
     True
-    sage: QA2.dim()    # optional - gbnp
+    sage: QA2.dim()    # optional - gap_packages
     8
-    sage: QA2.hilbert_series(10)    # optional - gbnp
+    sage: QA2.hilbert_series(10)    # optional - gap_packages
     [1, 2, 2, 2, 1]
-    sage: basis2 = QA2.get_basis()    # optional - gbnp
-    sage: basis2    # optional - gbnp
+    sage: basis2 = QA2.get_basis()    # optional - gap_packages
+    sage: basis2    # optional - gap_packages
     [1, x, y, x*y, y*x, x*y*x, y*x*y, y*x*y*x]
-    sage: QA2.get_matrix(0, basis2)    # optional - gbnp
+    sage: QA2.get_matrix(0, basis2)    # optional - gap_packages
     [0 1 0 0 0 0 0 0]
     [0 0 0 0 0 0 0 0]
     [0 0 0 0 1 0 0 0]
@@ -130,7 +130,11 @@ Working with quotient algebras::
 Installation
 ------------
 
-At least on Linux, we first download the latest tarball at time of writing::
+GBNP is one of the GAP packages included in the optional Sage package :ref:`gap_packages <spkg_gap_packages>`. To install it, run the following in the shell::
+
+    $ sage -i gap_packages
+
+It is also possible to manually install GBNP, following the `GAP documentation <https://www.gap-system.org/Manuals/doc/ref/chap76.html>`_. At least on Linux, first download the latest tarball at the time of writing::
 
     $ wget https://github.com/gap-packages/gbnp/archive/refs/tags/v1.0.5.tar.gz
 
@@ -139,7 +143,7 @@ and verify integrity::
     $ sha256sum v1.0.5.tar.gz
     c9914ad622213bb3fffbdafdd4292b2f4abb7d66f8bad64496a56921b04b1c14  v1.0.5.tar.gz
 
-Unpack the tarball into the ``pkg`` directory::
+Unpack the tarball into the ``pkg`` directory of GAP::
 
     $ sage -sh
     (sage-sh) $ cd $SAGE_ROOT/local/share/gap/pkg/
@@ -149,16 +153,16 @@ Unpack the tarball into the ``pkg`` directory::
 To check that the package installed correctly, try loading it::
 
    $ sage
-   sage: libgap.load_package("gbnp")    # optional - gbnp
+   sage: libgap.load_package("gbnp")    # optional - gap_packages
    true
 
 Links and references:
 
-- https://gap-packages.github.io/gbnp and `documentation
-  <https://gap-packages.github.io/gbnp/doc/chap0.html>`_. The old package page
-  is `here <https://www.gap-system.org/Packages/gbnp.html>`_
+- https://gap-packages.github.io/gbnp and the `documentation
+  <https://gap-packages.github.io/gbnp/doc/chap0.html>`_ page. The old package page
+  is `here <https://www.gap-system.org/Packages/gbnp.html>`_.
 
-- https://github.com/gap-packages/gbnp
+- `GBNP package repository at GitHub <https://github.com/gap-packages/gbnp>`_
 
 - Arjeh M. Cohen and Dié .A.H. Gijsbers. Noncommutative groebner basis
   computations. Report, 2003, http://www.win.tue.nl/~amc/pub/grobner/gbnp.pdf
@@ -217,7 +221,7 @@ def _sage2gap(elem, gap_alg, s2g):
         sage: ga, gb = GapA.GeneratorsOfAlgebraWithOne()
         sage: gap_elem = _sage2gap(elem, GapA, {msa: ga, msb: gb}); gap_elem
         (3)*a^2+(2/5)*b*a*b
-        sage: _gap2sage(libgap.GP2NP(gap_elem), A) == elem    # optional - gbnp
+        sage: _gap2sage(libgap.GP2NP(gap_elem), A) == elem    # optional - gap_packages
         True
     """
     gap_elem = gap_alg.ZeroImmutable()
@@ -266,8 +270,8 @@ def _gap2sage(gap_l, sage_alg):
         sage: ga, gb = GapA.GeneratorsOfAlgebraWithOne()
         sage: ma, mb = A.monoid().gens()
         sage: f1 = _sage2gap(elem, GapA, {ma: ga, mb: gb})
-        sage: f2 = libgap.NP2GP(gap_elem, GapA)   # optional - gbnp
-        sage: _gap2sage(libgap.GP2NP(f1 - f2), A)   # optional - gbnp
+        sage: f2 = libgap.NP2GP(gap_elem, GapA)   # optional - gap_packages
+        sage: _gap2sage(libgap.GP2NP(f1 - f2), A)   # optional - gap_packages
         0
     """
     sage_gens = sage_alg.gens()
@@ -291,24 +295,24 @@ class GapIdeal(Ideal_nc):
         EXAMPLES::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra, GapIdeal
-            sage: A.<x, y> = FreeAlgebra(QQ)    # optional - gbnp
-            sage: I = GapIdeal(A, [x*y - y*x])    # optional - gbnp
-            sage: I    # optional - gbnp
+            sage: A.<x, y> = FreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = GapIdeal(A, [x*y - y*x])    # optional - gap_packages
+            sage: I    # optional - gap_packages
             Twosided Ideal (x*y - y*x) of Free Algebra on 2 generators (x, y) over Rational Field
 
-            sage: A4.<x, y> = FreeAlgebra(GF(4))    # optional - gbnp
-            sage: I = GapIdeal(A4, [x^2, y^3])    # optional - gbnp
-            sage: I    # optional - gbnp
+            sage: A4.<x, y> = FreeAlgebra(GF(4))    # optional - gap_packages
+            sage: I = GapIdeal(A4, [x^2, y^3])    # optional - gap_packages
+            sage: I    # optional - gap_packages
             Twosided Ideal (x^2, y^3) of Free Algebra on 2 generators (x, y) over Finite Field in z2 of size 2^2
 
         One can also construct GapIdeals using GapFreeAlgebra::
 
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x])    # optional - gbnp
-            sage: I    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x])    # optional - gap_packages
+            sage: I    # optional - gap_packages
             Twosided Ideal (x*y - y*x) of Free Algebra on 2 generators (x, y) over Rational Field
         """
-        GapPackage("GBNP").require()
+        GapPackage("GBNP", spkg="gap_packages").require()
         libgap.load_package("GBNP")
         libgap.SetInfoLevel(libgap.InfoGBNP, 0)
         libgap.SetInfoLevel(libgap.InfoGBNPTime, 0)
@@ -343,26 +347,26 @@ class GapIdeal(Ideal_nc):
         EXAMPLES::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x])    # optional - gbnp
-            sage: GI = I.groebner_basis()    # optional - gbnp
-            sage: GI    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x])    # optional - gap_packages
+            sage: GI = I.groebner_basis()    # optional - gap_packages
+            sage: GI    # optional - gap_packages
             Twosided Ideal (-x*y + y*x) of Free Algebra on 2 generators (x, y) over Rational Field
 
         Another example, in which the new ideal contains more generators::
 
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y-1, x*y^2-x^2*y])    # optional - gbnp
-            sage: GI = I.groebner_basis()    # optional - gbnp
-            sage: GI    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y-1, x*y^2-x^2*y])    # optional - gap_packages
+            sage: GI = I.groebner_basis()    # optional - gap_packages
+            sage: GI    # optional - gap_packages
             Twosided Ideal (-x + y, -1 + x^2) of Free Algebra on 2 generators (x, y) over Rational Field
 
         Note that for some examples, the function may not converge unless you add the optional parameter ``max_iters``::
 
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x - y^2])    # optional - gbnp
-            sage: GI = I.groebner_basis(10)    # optional - gbnp
-            sage: GI.is_groebner_basis()    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x - y^2])    # optional - gap_packages
+            sage: GI = I.groebner_basis(10)    # optional - gap_packages
+            sage: GI.is_groebner_basis()    # optional - gap_packages
             False
         """
         if strong:
@@ -394,17 +398,17 @@ class GapIdeal(Ideal_nc):
         EXAMPLES::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x])    # optional - gbnp
-            sage: I.is_groebner_basis()    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x])    # optional - gap_packages
+            sage: I.is_groebner_basis()    # optional - gap_packages
             True
 
-            sage: A3.<x, y> = GapFreeAlgebra(GF(3))    # optional - gbnp
-            sage: I = A3.ideal([x*y - y*x - y^2])    # optional - gbnp
-            sage: I.is_groebner_basis()    # optional - gbnp
+            sage: A3.<x, y> = GapFreeAlgebra(GF(3))    # optional - gap_packages
+            sage: I = A3.ideal([x*y - y*x - y^2])    # optional - gap_packages
+            sage: I.is_groebner_basis()    # optional - gap_packages
             False
-            sage: GI = I.groebner_basis()    # optional - gbnp
-            sage: GI.is_groebner_basis()    # optional - gbnp
+            sage: GI = I.groebner_basis()    # optional - gap_packages
+            sage: GI.is_groebner_basis()    # optional - gap_packages
             True
         """
         if strong:
@@ -434,20 +438,20 @@ class GapIdeal(Ideal_nc):
         means adding the powers of each element::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x])    # optional - gbnp
-            sage: I.reduce(y^3*x*y^2*x^2)    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x])    # optional - gap_packages
+            sage: I.reduce(y^3*x*y^2*x^2)    # optional - gap_packages
             x^3*y^5
 
         Another example, in which the original basis is not a Groebner basis::
 
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x^2*y - x*y, x*y^2 + x^3])    # optional - gbnp
-            sage: I.is_groebner_basis()    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x^2*y - x*y, x*y^2 + x^3])    # optional - gap_packages
+            sage: I.is_groebner_basis()    # optional - gap_packages
             False
-            sage: I.reduce(x^4 - x^3, check=False)    # optional - gbnp
+            sage: I.reduce(x^4 - x^3, check=False)    # optional - gap_packages
             -x^3 + x^4
-            sage: I.reduce(x^4 - x^3, check=True)    # optional - gbnp
+            sage: I.reduce(x^4 - x^3, check=True)    # optional - gap_packages
             0
         """
         GB = self
@@ -476,18 +480,18 @@ class GapQuotientRing(QuotientRing_nc):
         The commutative polynomial ring is a quotient of the free algebra::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra, GapQuotientRing
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x])    # optional - gbnp
-            sage: QA = GapQuotientRing(A, I)    # optional - gbnp
-            sage: QA    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x])    # optional - gap_packages
+            sage: QA = GapQuotientRing(A, I)    # optional - gap_packages
+            sage: QA    # optional - gap_packages
             Quotient of Free Algebra on 2 generators (x, y) over Rational Field by the ideal (x*y - y*x)
 
         It can also be defined using the functions of a GapFreeAlgebra::
 
-            sage: A.quo(I)    # optional - gbnp
+            sage: A.quo(I)    # optional - gap_packages
             Quotient of Free Algebra on 2 generators (x, y) over Rational Field by the ideal (x*y - y*x)
         """
-        GapPackage("GBNP").require()
+        GapPackage("GBNP", spkg="gap_packages").require()
         libgap.load_package("GBNP")
         libgap.SetInfoLevel(libgap.InfoGBNP, 0)
         libgap.SetInfoLevel(libgap.InfoGBNPTime, 0)
@@ -525,20 +529,20 @@ class GapQuotientRing(QuotientRing_nc):
         `x^3 = y^3 = 0` is finite dimensional, with basis `\{x^i y^j | 0 \le i, j < 3\}`::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x, x^3, y^3])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.get_basis()    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x, x^3, y^3])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.get_basis()    # optional - gap_packages
             [1, x, y, x^2, x*y, y^2, x^2*y, x*y^2, x^2*y^2]
 
         However, the commutative polynomial algebra with two generators `x, y`
         such that `x^3 = 0` is infinite dimensional. We can compute a partial
         basis::
 
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x, x^3])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.get_basis(10)    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x, x^3])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.get_basis(10)    # optional - gap_packages
             [1, x, y, x^2, x*y, y^2, x^2*y, x*y^2, y^3, x^2*y^2, x*y^3, y^4]
         """
         res = libgap.BaseQA(self._gap_rels, self.cover_ring().ngens(), maxno)
@@ -554,18 +558,18 @@ class GapQuotientRing(QuotientRing_nc):
         has dimension 9, and indeed::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x, x^3, y^3])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.dim()    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x, x^3, y^3])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.dim()    # optional - gap_packages
             9
 
         However, the commutative polynomial algebra with two generators is infinite dimensional::
 
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.dim()    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.dim()    # optional - gap_packages
             +Infinity
         """
         if self.is_finite_dimensional():
@@ -608,11 +612,11 @@ class GapQuotientRing(QuotientRing_nc):
         Indeed::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x, x^3, y^3])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: B = QA.get_basis()    # optional - gbnp
-            sage: QA.get_matrix(0, B)    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x, x^3, y^3])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: B = QA.get_basis()    # optional - gap_packages
+            sage: QA.get_matrix(0, B)    # optional - gap_packages
             [0 1 0 0 0 0 0 0 0]
             [0 0 0 1 0 0 0 0 0]
             [0 0 0 0 1 0 0 0 0]
@@ -666,11 +670,11 @@ class GapQuotientRing(QuotientRing_nc):
         Indeed::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x, x^3, y^3])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: B = QA.get_basis()    # optional - gbnp
-            sage: QA.get_matrices(B)    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x, x^3, y^3])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: B = QA.get_basis()    # optional - gap_packages
+            sage: QA.get_matrices(B)    # optional - gap_packages
             [
             [0 1 0 0 0 0 0 0 0]  [0 0 1 0 0 0 0 0 0]
             [0 0 0 1 0 0 0 0 0]  [0 0 0 0 1 0 0 0 0]
@@ -711,20 +715,20 @@ class GapQuotientRing(QuotientRing_nc):
         means adding the powers of each element::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.reduce(y^3*x*y^2*x^2)    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.reduce(y^3*x*y^2*x^2)    # optional - gap_packages
             x^3*y^5
 
         Another example, in which the original basis is not a Groebner basis::
 
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x^2*y - x*y, x*y^2 + x^3])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.reduce(x^4 - x^3, check=False)    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x^2*y - x*y, x*y^2 + x^3])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.reduce(x^4 - x^3, check=False)    # optional - gap_packages
             -x^3 + x^4
-            sage: QA.reduce(x^4 - x^3, check=True)    # optional - gbnp
+            sage: QA.reduce(x^4 - x^3, check=True)    # optional - gap_packages
             0
         """
         return self._gap_ideal.reduce(elem, check=check)
@@ -745,10 +749,10 @@ class GapQuotientRing(QuotientRing_nc):
         EXAMPLES::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x, 2*x^2*y - y^2])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.get_leading_monomials()    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x, 2*x^2*y - y^2])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.get_leading_monomials()    # optional - gap_packages
             [y*x, x^2*y]
         """
         if len(self._gap_rels) == 0:
@@ -780,48 +784,48 @@ class GapQuotientRing(QuotientRing_nc):
         Any commutative algebra has polynomial growth. For example, the commutative polynomial algebra with two generators has quadratic growth::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.growth()    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.growth()    # optional - gap_packages
             2
 
         Also the Weyl algebra has quadratic growth::
 
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x - 1])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.growth()    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x - 1])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.growth()    # optional - gap_packages
             2
 
         However, taking the free algebra modulo the relation x^2==0 has exponential growth::
 
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x^2])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.growth()    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x^2])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.growth()    # optional - gap_packages
             'exponential growth'
 
         With parameter ``exact`` set to ``False``, the result may be a list::
 
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y^2, y*x^2])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.growth(False)    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y^2, y*x^2])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.growth(False)    # optional - gap_packages
             [2, 3]
-            sage: QA.growth(True)    # optional - gbnp
+            sage: QA.growth(True)    # optional - gap_packages
             2
 
         If the generators of the ideal do not form a Groebner basis, the result may be wrong, as the following example shows::
 
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x - y^2])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.growth()    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x - y^2])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.growth()    # optional - gap_packages
             'exponential growth'
-            sage: I2 = A.ideal([x*y - y*x - x^2])    # optional - gbnp
-            sage: QA2 = A.quo(I2)    # optional - gbnp
-            sage: QA2.growth()    # optional - gbnp
+            sage: I2 = A.ideal([x*y - y*x - x^2])    # optional - gap_packages
+            sage: QA2 = A.quo(I2)    # optional - gap_packages
+            sage: QA2.growth()    # optional - gap_packages
             2
         """
         res = libgap.DetermineGrowthQA(self.get_leading_monomials(gap_obj=True), self.ngens(), exact)
@@ -842,19 +846,19 @@ class GapQuotientRing(QuotientRing_nc):
         `x^3 = y^3 = 0` is finite dimensional::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x, x^3, y^3])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.is_finite_dimensional()    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x, x^3, y^3])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.is_finite_dimensional()    # optional - gap_packages
             True
 
         However, the noncommutative algebra with two generators `x, y` such
         that `x^3 = y^3 = 0` is not finite dimensional::
 
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x^3, y^3])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.is_finite_dimensional()    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x^3, y^3])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.is_finite_dimensional()    # optional - gap_packages
             False
         """
         return bool(libgap.FinCheckQA(self.get_leading_monomials(gap_obj=True), self.ngens()))
@@ -879,10 +883,10 @@ class GapQuotientRing(QuotientRing_nc):
         series `1+2t+3t^2+4t^3+\cdots`::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA.hilbert_series(10)    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA.hilbert_series(10)    # optional - gap_packages
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         """
         return [Integer(c) for c in libgap.HilbertSeriesQA(self.get_leading_monomials(gap_obj=True), self.ngens(), deg)]
@@ -908,17 +912,17 @@ class GapFreeAlgebra(FreeAlgebra_generic):
         One can initialize the free algebra in any of the following ways::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x0, x1> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: A    # optional - gbnp
+            sage: A.<x0, x1> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: A    # optional - gap_packages
             Free Algebra on 2 generators (x0, x1) over Rational Field
-            sage: A = GapFreeAlgebra(QQ, 2)    # optional - gbnp
-            sage: A    # optional - gbnp
+            sage: A = GapFreeAlgebra(QQ, 2)    # optional - gap_packages
+            sage: A    # optional - gap_packages
             Free Algebra on 2 generators (x0, x1) over Rational Field
-            sage: A = GapFreeAlgebra(QQ, 2, 'x')    # optional - gbnp
-            sage: A    # optional - gbnp
+            sage: A = GapFreeAlgebra(QQ, 2, 'x')    # optional - gap_packages
+            sage: A    # optional - gap_packages
             Free Algebra on 2 generators (x0, x1) over Rational Field
         """
-        GapPackage("GBNP").require()
+        GapPackage("GBNP", spkg="gap_packages").require()
         libgap.load_package("GBNP")
         libgap.SetInfoLevel(libgap.InfoGBNP, 0)
         libgap.SetInfoLevel(libgap.InfoGBNPTime, 0)
@@ -947,9 +951,9 @@ class GapFreeAlgebra(FreeAlgebra_generic):
         EXAMPLES::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x, x^2])    # optional - gbnp
-            sage: I    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x, x^2])    # optional - gap_packages
+            sage: I    # optional - gap_packages
             Twosided Ideal (x*y - y*x, x^2) of Free Algebra on 2 generators (x, y) over Rational Field
         """
         I = super(FreeAlgebra_generic, self).ideal(*gens, **kwds)
@@ -970,10 +974,10 @@ class GapFreeAlgebra(FreeAlgebra_generic):
         EXAMPLES::
 
             sage: from sage.algebras.gbnp import GapFreeAlgebra
-            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gbnp
-            sage: I = A.ideal([x*y - y*x, x^2])    # optional - gbnp
-            sage: QA = A.quo(I)    # optional - gbnp
-            sage: QA    # optional - gbnp
+            sage: A.<x, y> = GapFreeAlgebra(QQ)    # optional - gap_packages
+            sage: I = A.ideal([x*y - y*x, x^2])    # optional - gap_packages
+            sage: QA = A.quo(I)    # optional - gap_packages
+            sage: QA    # optional - gap_packages
             Quotient of Free Algebra on 2 generators (x, y) over Rational Field by the ideal (x*y - y*x, x^2)
         """
         if type(rels) == GapIdeal:
