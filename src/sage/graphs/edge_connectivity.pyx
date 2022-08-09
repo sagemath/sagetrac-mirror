@@ -1012,6 +1012,9 @@ cdef class GabowEdgeConnectivity:
 
 
     cdef remove_unused_edges_from_G(self):
+
+        # just set all edges to nodes unused probably
+
         return
 
     cdef release_used_edges(self):
