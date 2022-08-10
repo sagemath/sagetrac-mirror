@@ -1184,7 +1184,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        A new :class:`~sage.geometry.polyhedron.representation.Ray` object.
+        A new :class:`~sage.geometry.polyhedron.representation.StrictRay` object.
 
         EXAMPLES::
 
