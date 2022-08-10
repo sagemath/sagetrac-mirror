@@ -30,7 +30,7 @@ from sage.categories.rings import Rings
 from sage.categories.modules import Modules
 
 from sage.geometry.polyhedron.base import is_Polyhedron
-from .representation import Inequality, Equation, Vertex, Ray, Line
+from .representation import StrictInequality, Inequality, Equation, Vertex, Ray, Line, StrictRay
 
 
 def Polyhedra(ambient_space_or_base_ring=None, ambient_dim=None, backend=None, *,

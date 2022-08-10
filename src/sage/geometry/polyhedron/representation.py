@@ -1849,10 +1849,13 @@ class StrictRay(Vrepresentation):
 
         EXAMPLES::
 
-            sage: p = Polyhedron(ieqs = [[0,0,1],[0,1,0],[1,-1,0]])
-            sage: repr_obj = next(p.ray_generator())
+            sage: p = Polyhedron(ieqs=[[0,0,1],[0,1,0],[1,-1,0]])
+            sage: p._Vrepresentation = []  # make it mutable
+            sage: p.parent()._make_StrictRay(p, [1, 2])
+            A strict ray in the direction (1, 2)
+            sage: repr_obj = next(p.Vrep_generator())
             sage: repr_obj.type()
-            4
+            5
             sage: repr_obj.type() == repr_obj.STRICT_INEQUALITY
             False
             sage: repr_obj.type() == repr_obj.INEQUALITY
@@ -1877,22 +1880,28 @@ class StrictRay(Vrepresentation):
         EXAMPLES::
 
             sage: p = Polyhedron(ieqs = [[0,0,1],[0,1,0],[1,-1,0]])
-            sage: a = next(p.ray_generator())
+            sage: p._Vrepresentation = []  # make it mutable
+            sage: p.parent()._make_StrictRay(p, [1, 2])
+            A strict ray in the direction (1, 2)
+            sage: a = next(p.Vrep_generator())
             sage: a.is_strict_ray()
-            False
+            True
         """
         return True
 
     def _repr_(self):
         """
-        A string representation of the ray.
+        A string representation of the strict ray.
 
         TESTS::
 
             sage: p = Polyhedron(ieqs = [[0,0,1],[0,1,0],[1,-1,0]])
-            sage: a = next(p.ray_generator())
+            sage: p._Vrepresentation = []  # make it mutable
+            sage: p.parent()._make_StrictRay(p, [1, 2])
+            A strict ray in the direction (1, 2)
+            sage: a = next(p.Vrep_generator())
             sage: a._repr_()
-            'A strict ray in the direction (0, 1)'
+            'A strict ray in the direction (1, 2)'
         """
         return 'A strict ray in the direction ' + repr(self.vector())
 
@@ -1909,11 +1918,15 @@ class StrictRay(Vrepresentation):
 
         EXAMPLES::
 
-            sage: P = Polyhedron(vertices=[(2,0)], rays=[(1,0)], lines=[(3,2)])
-            sage: P.rays()[0].homogeneous_vector()
-            (1, 0, 0)
-            sage: P.rays()[0].homogeneous_vector(RDF)
-            (1.0, 0.0, 0.0)
+            sage: p = Polyhedron(vertices=[(2,0)], rays=[(1,0)], lines=[(3,2)])
+            sage: p._Vrepresentation = []  # make it mutable
+            sage: p.parent()._make_StrictRay(p, [1, 2])
+            A strict ray in the direction (1, 2)
+            sage: a = next(p.Vrep_generator())
+            sage: a.homogeneous_vector()
+            (1, 2, 0)
+            sage: a.homogeneous_vector(RDF)
+            (1.0, 2.0, 0.0)
         """
         v = list(self._vector) + [0]
         return vector(base_ring or self._base_ring, v)
@@ -1925,10 +1938,13 @@ class StrictRay(Vrepresentation):
         EXAMPLES::
 
             sage: p = Polyhedron(ieqs = [[0,0,1],[0,1,0],[1,-1,0]])
-            sage: a = next(p.ray_generator())
+            sage: p._Vrepresentation = []  # make it mutable
+            sage: p.parent()._make_StrictRay(p, [1, 2])
+            A strict ray in the direction (1, 2)
+            sage: a = next(p.Vrep_generator())
             sage: h = next(p.inequality_generator())
             sage: a.evaluated_on(h)
-            0
+            -1
         """
         return Hobj.A() * self.vector()
 
