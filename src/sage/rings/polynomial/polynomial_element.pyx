@@ -57,6 +57,7 @@ cdef ZZ, QQ, RR, CC, RDF, CDF
 cimport cython
 from cpython.number cimport PyNumber_TrueDivide, PyNumber_Check
 
+import itertools
 import operator
 import copy
 import re
