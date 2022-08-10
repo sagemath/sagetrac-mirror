@@ -105,6 +105,9 @@ Check that :trac:`23459` is fixed::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import annotations
+
+import itertools
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import (deprecation,
                                   deprecated_function_alias)
@@ -149,7 +152,7 @@ from sage.structure.proof.proof import get_flag
 from . import maps
 from . import structure
 from . import number_field_morphisms
-from itertools import count
+
 from collections import Counter
 from builtins import zip
 
@@ -5104,8 +5107,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         KSgens, ords = self.selmer_generators(S=S, m=m, proof=proof, orders=True)
         one = self.one()
-        from sage.misc.mrange import cartesian_product_iterator
-        for ev in cartesian_product_iterator([range(o) for o in ords]):
+        for ev in itertools.product(*[range(o) for o in ords]):
             yield prod([p ** e for p, e in zip(KSgens, ev)], one)
 
     def selmer_space(self, S, p, proof=None):
@@ -12429,7 +12431,7 @@ def refine_embedding(e, prec=None):
     # relies on the fact that coercing a high-precision root into a
     # field with lower precision will equal the lower-precision root!
     diffs = [(RC(ee(K.gen()))-old_root).abs() for ee in elist]
-    return elist[min(zip(diffs, count()))[1]]
+    return elist[min(zip(diffs, itertools.count()))[1]]
 
 
 def is_real_place(v):

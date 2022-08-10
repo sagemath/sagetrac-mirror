@@ -79,6 +79,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
+import itertools
+
 from sage.arith.all import gcd, binomial, srange
 from sage.rings.all import PolynomialRing
 from sage.rings.integer import Integer
@@ -96,7 +98,6 @@ from sage.categories.homset import Hom
 from sage.categories.map import Map
 from sage.misc.latex import latex
 from sage.misc.misc_c import prod
-from sage.misc.mrange import cartesian_product_iterator
 from sage.misc.persist import register_unpickle_override
 
 from sage.structure.category_object import normalize_names
@@ -1934,8 +1935,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                 i -= 1
         else:  # base ring QQ
             zero = (0,) * (n + 1)
-            for c in cartesian_product_iterator([srange(-B, B + 1)
-                                                 for _ in range(n + 1)]):
+            for c in itertools.product(srange(-B, B + 1), repeat=n + 1):
                 if gcd(c) == 1 and c > zero:
                     yield self.point(c, check=False)
 
@@ -2184,7 +2184,7 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
         C = PHom.codomain()
 
         for k in range(n + 1): # position of last 1 before the 0's
-            for v in cartesian_product_iterator([R for _ in range(n - k)]):
+            for v in itertools.product(R, repeat=n - k):
                 yield C._point(PHom, v + one + zero * k, check=False)
 
     def rational_points(self, F=None):

@@ -115,7 +115,8 @@ class ProjectiveConic_finite_field(ProjectiveConic_field, ProjectivePlaneCurve_f
 
         TESTS::
 
-            sage: l = Sequence(cartesian_product_iterator([[0, 1] for i in range(6)]))
+            sage: import itertools
+            sage: l = Sequence(itertools.product([0, 1], repeat=6))
             sage: bigF = GF(next_prime(2^100))
             sage: bigF2 = GF(next_prime(2^50)^2, 'b')
             sage: m = [[F(b) for b in a] for a in l for F in [GF(2), GF(4, 'a'), GF(5), GF(9, 'a'), bigF, bigF2]]

@@ -78,6 +78,7 @@ from libc.math cimport log2, ceil
 
 from sage.libs.gmp.all cimport *
 
+import itertools
 import operator
 
 cdef bint use_32bit_type(int_fast64_t modulus):
@@ -1048,8 +1049,9 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: Mod(1/25, 2^40).is_square()
             True
 
-            sage: for p,q,r in cartesian_product_iterator([[3,5],[11,13],[17,19]]): # long time
-            ....:     for ep,eq,er in cartesian_product_iterator([[0,1,2,3],[0,1,2,3],[0,1,2,3]]):
+            sage: import itertools
+            sage: for p, q, r in itertools.product([3,5], [11,13], [17,19]):  # long time
+            ....:     for ep, eq, er in itertools.product([0,1,2,3], [0,1,2,3], [0,1,2,3]):
             ....:         for e2 in [0, 1, 2, 3, 4]:
             ....:             n = p^ep * q^eq * r^er * 2^e2
             ....:             for _ in range(2):
@@ -1301,9 +1303,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 # Now combine in all possible ways using the CRT
                 from sage.arith.all import CRT_basis
                 basis = CRT_basis(moduli)
-                from sage.misc.mrange import cartesian_product_iterator
                 v = []
-                for x in cartesian_product_iterator(vmod):
+                for x in itertools.product(*vmod):
                     # x is a specific choice of roots modulo each prime power divisor
                     a = sum([basis[i]*x[i] for i in range(len(x))])
                     v.append(a)

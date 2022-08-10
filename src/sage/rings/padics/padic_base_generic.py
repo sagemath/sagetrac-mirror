@@ -19,6 +19,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import itertools
+
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
@@ -440,7 +442,6 @@ class pAdicBaseGeneric(pAdicGeneric):
         """
         if 'pointsize' not in args:
             args['pointsize'] = 1
-        from sage.misc.mrange import cartesian_product_iterator
         from sage.rings.real_double import RDF
         from sage.plot.all import points
         p = self.prime()
@@ -455,7 +456,7 @@ class pAdicBaseGeneric(pAdicGeneric):
             extras = int(max_points/p)
             if p/extras > 5:
                 pts = [vs]*depth + [vs[::extras]]
-        for digits in cartesian_product_iterator(pts):
+        for digits in itertools.product(*pts):
             p = sum([v * scale**n for n, v in enumerate(digits)])
             all.append(tuple(p))
         g = points(all, **args)

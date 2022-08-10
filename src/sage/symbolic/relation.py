@@ -358,6 +358,7 @@ AUTHORS:
 
 """
 
+import itertools
 import operator
 
 
@@ -1572,7 +1573,6 @@ def solve_mod(eqns, modulus, solution_dict=False):
     """
     from sage.rings.all import Integer, Integers, crt_basis
     from sage.structure.element import Expression
-    from sage.misc.mrange import cartesian_product_iterator
     from sage.modules.free_module_element import vector
     from sage.matrix.constructor import matrix
 
@@ -1604,7 +1604,7 @@ def solve_mod(eqns, modulus, solution_dict=False):
 
     ans = []
     if has_solution:
-        for solution in cartesian_product_iterator(solutions):
+        for solution in itertools.product(*solutions):
             solution_mat = matrix(Integers(modulus), solution)
             ans.append(tuple(c.dot_product(crt_basis) for c in solution_mat.columns()))
 
@@ -1688,7 +1688,6 @@ def _solve_mod_prime_power(eqns, p, m, vars):
     """
     from sage.rings.all import Integers, PolynomialRing
     from sage.modules.free_module_element import vector
-    from sage.misc.mrange import cartesian_product_iterator
 
     mrunning = 1
     ans = []
@@ -1698,10 +1697,10 @@ def _solve_mod_prime_power(eqns, p, m, vars):
         S = PolynomialRing(R, len(vars), vars)
         eqns_mod = [S(eq) for eq in eqns]
         if mi == 0:
-            possibles = cartesian_product_iterator([range(len(R)) for _ in range(len(vars))])
+            possibles = itertools.product(range(len(R)), repeat=len(vars))
         else:
-            shifts = cartesian_product_iterator([range(p) for _ in range(len(vars))])
-            pairs = cartesian_product_iterator([shifts, ans])
+            shifts = itertools.product(range(p), repeat=len(vars))
+            pairs = itertools.product(shifts, ans)
             possibles = (tuple(vector(t) + vector(shift) * (mrunning // p))
                          for shift, t in pairs)
         ans = list(t for t in possibles if all(e(*t) == 0 for e in eqns_mod))

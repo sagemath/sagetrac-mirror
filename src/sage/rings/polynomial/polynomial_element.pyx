@@ -76,7 +76,6 @@ from sage.misc.latex import latex
 from sage.arith.power cimport generic_power
 from sage.arith.misc import crt
 from sage.arith.long cimport pyobject_to_long
-from sage.misc.mrange import cartesian_product_iterator
 from sage.structure.factorization import Factorization
 from sage.structure.richcmp cimport (richcmp, richcmp_item,
         rich_to_bool, rich_to_bool_sgn)
@@ -7815,8 +7814,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: rflds = (RR, RDF, RealField(100))
             sage: cflds = (CC, CDF, ComplexField(100))
+            sage: import itertools
             sage: def cross(a, b):
-            ....:     return list(cartesian_product_iterator([a, b]))
+            ....:     return list(itertools.product(a, b))
             sage: flds = cross(rflds, rflds) + cross(rflds, cflds) + cross(cflds, cflds)
             sage: for (fld_in, fld_out) in flds:
             ....:     x = polygen(fld_in)
@@ -8350,7 +8350,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         residue_roots.append([a.lift() for a in local_roots])
                     result = []
                     P = ZZ.prod(primes)
-                    for res in cartesian_product_iterator(residue_roots):
+                    for res in itertools.product(*residue_roots):
                         lifted = crt(list(res), primes)
                         candidate = lifted
                         for k in range(N // P):

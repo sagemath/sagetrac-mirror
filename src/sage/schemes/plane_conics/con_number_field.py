@@ -173,7 +173,8 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: P.<X> = QQ[]
             sage: Q = P.fraction_field()
             sage: c = [1, X/2, 1/X]
-            sage: l = Sequence(cartesian_product_iterator([c for i in range(3)]))
+            sage: import itertools
+            sage: l = Sequence(itertools.product(c, repeat=3))
             sage: l = l + [[X, 1, 1, 1, 1, 1]] + [[X, 1/5, 1, 1, 2, 1]]
             sage: K.<a> = QuadraticField(-23)
             sage: L.<b> = QuadraticField(19)
@@ -194,7 +195,7 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
         already over `\QQ` and check if points are found by
         ``has_rational_point``. ::
 
-            sage: l = Sequence(cartesian_product_iterator([[-1, 0, 1] for i in range(3)]))
+            sage: l = Sequence(itertools.product([-1, 0, 1], repeat=3))
             sage: K.<a> = QuadraticField(-23)
             sage: L.<b> = QuadraticField(19)
             sage: M.<c> = NumberField(x^5+3*x+1)

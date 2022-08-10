@@ -50,6 +50,8 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ##############################################################################
 
+import itertools
+
 from . import constructor
 from . import BSD
 from   .ell_generic import is_EllipticCurve
@@ -6545,7 +6547,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 # denom_maxpa is a list of pairs (d,q) where d runs
                 # through possible denominators, and q=p^a is the
                 # maximum prime power divisor of d:
-                denom_maxpa = [(misc.prod(tmp),max(tmp)) for tmp in cartesian_product_iterator(p_pow_alpha)]
+                denom_maxpa = [(misc.prod(tmp), max(tmp)) for tmp in itertools.product(*p_pow_alpha)]
 #               The maximum denominator is this (not used):
 #                denom = [misc.prod([pp[-1] for pp in p_pow_alpha],1)]
                 for de,maxpa in denom_maxpa:
@@ -6571,7 +6573,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 return set(xs)
     #<-------------------------------------------------------------------------
         #End internal functions ###############################################
-        from sage.misc.mrange import cartesian_product_iterator
 
         E = self
         tors_points = E.torsion_points()

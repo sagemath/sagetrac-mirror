@@ -55,11 +55,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import itertools
 
 from sage.arith.all import gcd, srange, next_prime, previous_prime, crt
 from sage.rings.all import ZZ, RR
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-from sage.misc.mrange import cartesian_product_iterator
 from sage.misc.misc_c import prod
 from sage.misc.mrange import xmrange
 from sage.schemes.generic.scheme import is_Scheme
@@ -138,7 +138,7 @@ def enum_projective_rational_field(X, B):
     n = X.codomain().ambient_space().ngens()
     zero = (0,) * n
     pts = []
-    for c in cartesian_product_iterator([srange(-B,B+1) for _ in range(n)]):
+    for c in itertools.product(srange(-B, B+1), repeat=n):
         if gcd(c) == 1 and c > zero:
             try:
                 pts.append(X(c))
@@ -297,7 +297,7 @@ def enum_projective_finite_field(X):
     F = X.value_ring()
     pts = []
     for k in range(n+1):
-        for c in cartesian_product_iterator([F for _ in range(k)]):
+        for c in itertools.product(F, repeat=k):
             try:
                 pts.append(X(list(c)+[1]+[0]*(n-k)))
             except TypeError:

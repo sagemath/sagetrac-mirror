@@ -202,6 +202,8 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+import itertools
+
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.category_object import normalize_names
@@ -211,7 +213,7 @@ from sage.arith.all import divisors, gcd, lcm
 from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
-from sage.misc.mrange import mrange, cartesian_product_iterator
+from sage.misc.mrange import mrange
 from sage.groups.group import AbelianGroup as AbelianGroupBase
 from sage.categories.groups import Groups
 from sage.matrix.constructor import matrix
@@ -1367,14 +1369,13 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
                 # Finite order subgroups are all contained in the torsion subgroup
                 return self.torsion_subgroup().number_of_subgroups(order=order)
 
-        from itertools import chain
         from collections import defaultdict
         from sage.arith.misc import factor
         from sage.combinat.q_analogues import q_subgroups_of_abelian_group
         from sage.combinat.integer_lists import IntegerListsLex
 
         # The group order is prod(p^e for (p,e) in primary_factors)
-        primary_factors = list(chain.from_iterable(
+        primary_factors = list(itertools.chain.from_iterable(
                         factor(ed) for ed in self.elementary_divisors()))
         sylow_types = defaultdict(list)
         for p, e in primary_factors:
@@ -1491,7 +1492,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
                 # H = the subgroup of *index* H.
                 its = [range(0, H, H // gcd(H, G.gen(i).order()))
                        for i in range(ngens)]
-                for f in cartesian_product_iterator(its):
+                for f in itertools.product(*its):
                     verbose("using hom from G to C_%s sending gens to %s" % (H, f))
                     new_sub = []
                     for a in range(ngens):

@@ -140,7 +140,8 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
         Create a bunch of conics over `\QQ`, check if ``has_rational_point`` runs without errors
         and returns consistent answers for all algorithms. Check if all points returned are valid. ::
 
-            sage: l = Sequence(cartesian_product_iterator([[-1, 0, 1] for i in range(6)]))
+            sage: import itertools
+            sage: l = Sequence(itertools.product([-1, 0, 1], repeat=6))
             sage: c = [Conic(QQ, a) for a in l if a != [0,0,0] and a != (0,0,0,0,0,0)]
             sage: d = []
             sage: d = [[C]+[C.has_rational_point(algorithm = algorithm, read_cache = False, obstruction = (algorithm != 'rnfisnorm'), point = (algorithm != 'local')) for algorithm in ['local', 'qfsolve', 'rnfisnorm']] for C in c[::10]] # long time: 7 seconds

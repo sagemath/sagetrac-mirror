@@ -59,6 +59,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+import itertools
 
 import sage.misc.prandom as random
 
@@ -997,9 +998,8 @@ In the latter case, please inform the developers.""".format(self.order()))
                 moduli.append(k)
             # Now combine in all possible ways using the CRT
             basis = CRT_basis(moduli)
-            from sage.misc.mrange import cartesian_product_iterator
             v = []
-            for x in cartesian_product_iterator(vmod):
+            for x in itertools.product(*vmod):
                 # x is a specific choice of roots modulo each prime power divisor
                 a = sum([basis[i] * x[i] for i in range(len(x))])
                 v.append(a)

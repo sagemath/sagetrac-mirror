@@ -131,8 +131,9 @@ easily::
     sage: monomials = [a*b for a in F.variables() for b in F.variables() if a<b]
     sage: len(monomials)
     190
-    sage: F2 = Sequence(map(mul, cartesian_product_iterator((monomials, F))))
-    sage: A,v = F2.coefficient_matrix(sparse=False)
+    sage: import itertools
+    sage: F2 = Sequence(map(mul, itertools.product(monomials, F)))
+    sage: A, v = F2.coefficient_matrix(sparse=False)
     sage: A.echelonize()
     sage: A
     6840 x 4474 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)

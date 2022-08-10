@@ -210,6 +210,8 @@ AUTHOR:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+import itertools
+
 from sage.modules.module import Module
 from sage.modules.free_module import is_FreeModule
 from sage.structure.all import parent
@@ -1794,8 +1796,7 @@ class FGP_Module_class(Module):
             raise NotImplementedError("currently self must be finite to iterate over")
         B = self.optimized()[0].V().basis_matrix()
         V = self.base_ring()**B.nrows()
-        from sage.misc.mrange import cartesian_product_iterator
-        for a in cartesian_product_iterator([range(k) for k in v]):
+        for a in itertools.product(*[range(k) for k in v]):
             b = V(a) * B
             yield self(b)
 
