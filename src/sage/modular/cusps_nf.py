@@ -71,6 +71,8 @@ List representatives for Gamma_0(N) - equivalence classes of cusps::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+import itertools
+
 from sage.structure.parent import Parent
 from sage.structure.element import Element, is_InfinityElement
 from sage.structure.richcmp import richcmp, rich_to_bool
@@ -1240,6 +1242,4 @@ def units_mod_ideal(I):
     ulist = Uk.gens_values()
     elist = [Istar(I.ideallog(u)).order() for u in ulist]
 
-    from sage.misc.mrange import xmrange
-
-    return [k.prod(u**e for u, e in zip(ulist, ei)) for ei in xmrange(elist)]
+    return [k.prod(u**e for u, e in zip(ulist, ei)) for ei in itertools.product(*elist)]

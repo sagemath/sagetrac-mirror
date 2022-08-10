@@ -19,6 +19,8 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+import itertools
+
 from sage.misc.lazy_import import lazy_import
 from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_method
@@ -84,7 +86,6 @@ def genera(sig_pair, determinant, max_scale=None, even=False):
         Genus symbol at 2:    1^-4
         Genus symbol at 5:     1^3 125^1]
     """
-    from sage.misc.mrange import mrange_iter
     # input checks
     ZZ = IntegerRing()
     determinant = ZZ(determinant)
@@ -115,7 +116,7 @@ def genera(sig_pair, determinant, max_scale=None, even=False):
     # TODO:
     # we are overcounting. Find a more
     # clever way to directly match the symbols for different primes.
-    for g in mrange_iter(local_symbols):
+    for g in itertools.product(*local_symbols):
         # create a Genus from a list of local symbols
         G = GenusSymbol_global_ring(sig_pair, g, representative=None, check=True)
         # discard the empty genera

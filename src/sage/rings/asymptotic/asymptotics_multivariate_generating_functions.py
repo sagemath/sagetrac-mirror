@@ -197,7 +197,7 @@ Classes and Methods
 #*****************************************************************************
 
 from functools import total_ordering
-from itertools import combinations_with_replacement
+from itertools import combinations_with_replacement, product
 from sage.structure.element import RingElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.ring import Ring
@@ -2134,7 +2134,6 @@ class FractionWithFactoredDenominator(RingElement):
             sage: F.asymptotics_multiple(p, alpha, 2, var('r')) # long time
             (3*(1/((1/3)^a*(1/3)^b))^r*e^(2/3), 1/((1/3)^a*(1/3)^b), 3*e^(2/3))
         """
-        from itertools import product
         from sage.calculus.functions import jacobian
         from sage.calculus.var import function
         from sage.combinat.combinat import stirling_number1
@@ -2142,7 +2141,6 @@ class FractionWithFactoredDenominator(RingElement):
         from sage.functions.other import factorial
         from sage.misc.functional import sqrt
         from sage.matrix.constructor import matrix
-        from sage.misc.mrange import xmrange
         from sage.modules.free_module_element import vector
         from sage.rings.cc import CC
         from sage.arith.misc import binomial
@@ -2232,7 +2230,7 @@ class FractionWithFactoredDenominator(RingElement):
 
         # Compute the derivatives of h up to order 2 * N and evaluate at P.
         hderivs1 = {}   # First derivatives of h.
-        for (i, j) in xmrange([d - 1, n], tuple):
+        for i, j in product(range(d - 1), range(n)):
             s = solve(diff(H[j].subs({X[d - 1]: ZZ.one() / h[j]}), X[i]),
                       diff(h[j], X[i]))[0].rhs().simplify()
             hderivs1.update({diff(h[j], X[i]): s})
@@ -4035,15 +4033,12 @@ def diff_op(A, B, AB_derivs, V, M, r, N):
         sage: DD[(0, 1, 2)].number_of_operands()
         246
     """
-    from itertools import product
-    from sage.misc.mrange import xmrange
-
     if not isinstance(A, list):
         A = [A]
 
     # First, compute the necessary product derivatives of A and B.
     product_derivs = {}
-    for j, k in xmrange([r, N], tuple):
+    for j, k in product(range(r), range(N)):
         if j + k < N:
             for l in range(2 * k + 1):
                 for s in combinations_with_replacement(V, 2 * (k + l)):
@@ -4053,7 +4048,7 @@ def diff_op(A, B, AB_derivs, V, M, r, N):
     # Second, compute DD^(k+l)(A[j]*B^l)(p) and store values in dictionary.
     DD = {}
     rows = M.nrows()
-    for j, k in xmrange([r, N], tuple):
+    for j, k in product(range(r), range(N)):
         if j + k < N:
             for l in range(2 * k + 1):
                 # Take advantage of the symmetry of M by ignoring
@@ -4062,7 +4057,7 @@ def diff_op(A, B, AB_derivs, V, M, r, N):
                 if k + l == 0:
                     DD[(j, k, l)] = product_derivs[(j, k, l)]
                     continue
-                S = [(a, b) for a, b in xmrange([rows, rows], tuple) if b <= a]
+                S = [(a, b) for a, b in product(range(rows), range(rows)) if b <= a]
                 P = product(S, repeat=k + l)
                 diffo = ZZ.zero()
                 for t in P:

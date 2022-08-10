@@ -63,12 +63,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
+import itertools
+
 from sage.rings.infinity import infinity
 from sage.structure.category_object import normalize_names
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.groups.abelian_gps.dual_abelian_group_element import (
     DualAbelianGroupElement, is_DualAbelianGroupElement )
-from sage.misc.mrange import mrange
 from sage.misc.cachefunc import cached_method
 from sage.groups.group import AbelianGroup as AbelianGroupBase
 
@@ -383,7 +384,7 @@ class DualAbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         if not(self.is_finite()):
             raise NotImplementedError("Group must be finite")
         invs = self.gens_orders()
-        return tuple(self(t) for t in mrange(invs))
+        return tuple(self(t) for t in itertools.product(*[range(inv) for inv in invs]))
 
     def __iter__(self):
         """

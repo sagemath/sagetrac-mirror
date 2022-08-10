@@ -60,21 +60,22 @@ def siegel_product(self, u):
 
         sage: Q.local_density(2,1)
         1
-        sage: M = 4; len([v  for v in mrange([M,M,M,M])  if Q(v) % M == 1]) / M^3
+        sage: import itertools
+        sage: M = 4; len([v for v in itertools.product(range(M), repeat=4) if Q(v) % M == 1]) / M^3
         1
-        sage: M = 16; len([v  for v in mrange([M,M,M,M])  if Q(v) % M == 1]) / M^3  # long time (2s on sage.math, 2014)
+        sage: M = 16; len([v for v in itertools.product(range(M), repeat=4) if Q(v) % M == 1]) / M^3  # long time (2s on sage.math, 2014)
         1
 
         sage: Q.local_density(2,2)
         3/2
-        sage: M = 4; len([v  for v in mrange([M,M,M,M])  if Q(v) % M == 2]) / M^3
+        sage: M = 4; len([v for v in itertools.product(range(M), repeat=4) if Q(v) % M == 2]) / M^3
         3/2
-        sage: M = 16; len([v  for v in mrange([M,M,M,M])  if Q(v) % M == 2]) / M^3  # long time (2s on sage.math, 2014)
+        sage: M = 16; len([v for v in itertools.product(range(M), repeat=4) if Q(v) % M == 2]) / M^3  # long time (2s on sage.math, 2014)
         3/2
 
     TESTS::
 
-        sage: [1] + [Q.siegel_product(ZZ(a))  for a in range(1,11)] == Q.theta_series(11).list()  # long time (2s on sage.math, 2014)
+        sage: [1] + [Q.siegel_product(ZZ(a)) for a in range(1,11)] == Q.theta_series(11).list()  # long time (2s on sage.math, 2014)
         True
     """
     # Protect u (since it fails often if it's an just an int!)

@@ -11,9 +11,9 @@ Local Masses and Siegel Densities
 ########################################################################
 
 import copy
+import itertools
 
 from sage.misc.misc_c import prod
-from sage.misc.mrange import mrange
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.rational_field import QQ
@@ -236,9 +236,8 @@ def Watson_mass_at_2(self):
         if j_form.dim() == 0:
             eps_dict[j] = 1
         else:
-            iter_vec = [4] * j_form.dim()
-            alpha = sum([True  for x in mrange(iter_vec)  if j_form(x) == 0])
-            beta = sum([True  for x in mrange(iter_vec)  if j_form(x) == 2])
+            alpha = sum([True for x in itertools.product(range(4), repeat=j_form.dim()) if j_form(x) == 0])
+            beta = sum([True for x in itertools.product(range(4), repeat=j_form.dim()) if j_form(x) == 2])
             if alpha > beta:
                 eps_dict[j] = 1
             elif alpha == beta:
@@ -377,6 +376,6 @@ def mass_at_two_by_counting_mod_power(self, k):
     n = self.dim()
     MS = MatrixSpace(R, n)
 
-    ct = sum([1 for x in mrange([2**k] * (n**2)) if Q1(MS(x)) == Q1])   # Count the solutions mod 2^k
+    ct = sum([1 for x in itertools.product(range(2**k), repeat=n**2) if Q1(MS(x)) == Q1])   # Count the solutions mod 2^k
     two_mass = ZZ(1)/2 * (ZZ(ct) / ZZ(2)**(k*n*(n-1)/2))
     return two_mass

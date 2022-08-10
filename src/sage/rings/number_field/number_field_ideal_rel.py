@@ -32,6 +32,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import itertools
 
 from .number_field_ideal import NumberFieldFractionalIdeal
 from sage.structure.factorization import Factorization
@@ -758,9 +759,9 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         """
         abs_ideal = self.absolute_ideal()
         from_abs = abs_ideal.number_field().structure()[0]
-        from sage.misc.mrange import xmrange_iter
         abs_residues = abs_ideal.residues()
-        return xmrange_iter(abs_residues.iter_list, lambda c: from_abs(abs_residues.typ(c)))
+        for c in itertools.product(*abs_residues.iter_list):
+            yield from_abs(abs_residues.typ(c))
 
     def element_1_mod(self, other):
         r"""

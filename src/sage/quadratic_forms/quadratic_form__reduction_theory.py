@@ -1,10 +1,11 @@
 """
 Reduction Theory
 """
+import itertools
+
 from copy import deepcopy
 from sage.matrix.constructor import matrix
 from sage.functions.all import floor
-from sage.misc.mrange import mrange
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
 
@@ -231,7 +232,7 @@ def minkowski_reduction(self):
         # Loop through possible shorted vectors until
         done_flag = True
         for j in range(n-1, -1, -1):
-            for a_first in mrange([3  for i in range(j)]):
+            for a_first in itertools.product(range(3), repeat=j):
                 y = [x-1 for x in a_first] + [1] + [0 for k in range(n-1-j)]
                 e_j = [0  for k in range(n)]
                 e_j[j] = 1
@@ -319,7 +320,7 @@ def minkowski_reduction_for_4vars__SP(self):
         # Loop through possible shorter vectors
         done_flag = True
         for j in range(n-1, -1, -1):
-            for a_first in mrange([2  for i in range(j)]):
+            for a_first in itertools.product(range(2), repeat=j):
                 y = [x-1 for x in a_first] + [1] + [0 for k in range(n-1-j)]
                 e_j = [0  for k in range(n)]
                 e_j[j] = 1

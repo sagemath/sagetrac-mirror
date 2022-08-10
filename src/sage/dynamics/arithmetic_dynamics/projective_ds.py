@@ -65,7 +65,6 @@ from sage.libs.pari.all import PariError
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import typecall
-from sage.misc.mrange import xmrange
 from sage.modules.free_module_element import vector
 from sage.rings.integer import Integer
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
@@ -6064,7 +6063,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     RQ = Zmod(p**(k+1))
                     fp = self.change_ring(RQ, check=False)
                     if shifts is None:
-                        shifts = xmrange([p for i in range(N)])
+                        shifts = itertools.product(p, repeat=N)
                     for shift in shifts:
                         newT = [RQ(t) for t in T]  #T.change_ring(RQ, check = False)
                         shiftindex = 0

@@ -25,12 +25,13 @@ REFERENCES: [FH2015]_, [CS1996]_, [Weh1998]_, [Hutz2007]
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+import itertools
+
 from sage.calculus.functions import jacobian
 from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
 from sage.misc.functional import sqrt
 from sage.misc.cachefunc import cached_method
-from sage.misc.mrange import xmrange
 from sage.rings.all import CommutativeRing
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
@@ -105,8 +106,8 @@ def random_WehlerK3Surface(PP):
     CR = PP.coordinate_ring()
     BR = PP.base_ring()
     Q = 0
-    for a in xmrange([3,3]):
-        for b in xmrange([3,3]):
+    for a in itertools.product(range(3), range(3)):
+        for b in itertools.product(range(3), range(3)):
             Q += BR.random_element() * CR.gen(a[0]) * CR.gen(a[1]) * CR.gen(3+b[0]) * CR.gen(3+b[1])
     #We can always change coordinates to make L diagonal
     L = CR.gen(0) * CR.gen(3) + CR.gen(1) * CR.gen(4) + CR.gen(2) * CR.gen(5)
@@ -1014,7 +1015,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         I = R.ideal(M.minors(2) + [self.L,self.Q])
         T = PolynomialRing(self.ambient_space().base_ring().fraction_field(), 4, 'h')
         #check the 9 affine charts for a singular point
-        for l in xmrange([3, 3]):
+        for l in itertools.product(range(3), range(3)):
             vars = list(T.gens())
             vars.insert(l[0], 1)
             vars.insert(3 + l[1], 1)

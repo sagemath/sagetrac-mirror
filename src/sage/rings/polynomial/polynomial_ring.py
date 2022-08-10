@@ -139,7 +139,7 @@ Check that :trac:`5562` has been fixed::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
+import itertools
 import sys
 
 from sage.structure.element import Element
@@ -1427,11 +1427,8 @@ class PolynomialRing_general(ring.Algebra):
         Refer to monics() for full documentation.
         """
         base = self.base_ring()
-        for coeffs in sage.misc.mrange.xmrange_iter([[base.one()]]+[base]*of_degree):
-            # Each iteration returns a *new* list!
-            # safe to mutate the return
-            coeffs.reverse()
-            yield self(coeffs)
+        for coeffs in itertools.product([base.one()], *([base] * of_degree)):
+            yield self(reversed(coeffs))
 
     def _monics_max( self, max_degree ):
         """
@@ -1449,10 +1446,9 @@ class PolynomialRing_general(ring.Algebra):
         base0 = base.zero()
         for leading_coeff in base:
             if leading_coeff != base0:
-                for lt1 in sage.misc.mrange.xmrange_iter([base]*(of_degree)):
-                    # Each iteration returns a *new* list!
-                    # safe to mutate the return
-                    coeffs = [leading_coeff] + lt1
+                for lt1 in itertools.product(base, repeat=of_degree):
+                    coeffs = [leading_coeff]
+                    coeffs.extend(lt1)
                     coeffs.reverse()
                     yield self(coeffs)
 
@@ -1461,11 +1457,8 @@ class PolynomialRing_general(ring.Algebra):
         Refer to polynomials() for full documentation.
         """
         base = self.base_ring()
-        for coeffs in sage.misc.mrange.xmrange_iter([base]*(max_degree+1)):
-            # Each iteration returns a *new* list!
-            # safe to mutate the return
-            coeffs.reverse()
-            yield self(coeffs)
+        for coeffs in itertools.product(base, repeat=max_degree + 1):
+            yield self(reversed(coeffs))
 
     @lazy_attribute
     def _Karatsuba_threshold(self):

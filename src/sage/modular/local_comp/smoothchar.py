@@ -40,7 +40,10 @@ Characters are themselves group elements, and basic arithmetic on them works::
     sage: chi.multiplicative_order()
     +Infinity
 """
+
+import itertools
 import operator
+
 from sage.structure.element import MultiplicativeGroupElement, parent
 from sage.structure.parent import Parent
 from sage.structure.sequence import Sequence
@@ -52,7 +55,6 @@ from sage.misc.misc_c import prod
 from sage.arith.misc import crt
 from sage.categories.groups import Groups
 from sage.categories.rings import Rings
-from sage.misc.mrange import xmrange
 from sage.misc.verbose import verbose
 from sage.modular.dirichlet import DirichletGroup
 
@@ -823,7 +825,7 @@ class SmoothCharacterGroupGeneric(Parent):
             # if c > 1, n will be a prime here, so that logs below gets calculated correctly
 
             logs = []
-            for idx in xmrange(len(sgs)*[n]):
+            for idx in itertools.product(range(n), repeat=len(sgs)):
                 y = prod( map(operator.pow, sgs, idx) )
                 L = tuple(self.discrete_log(c, y))
                 if L not in logs:

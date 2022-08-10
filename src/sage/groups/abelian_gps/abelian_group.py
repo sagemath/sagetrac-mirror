@@ -213,7 +213,6 @@ from sage.arith.all import divisors, gcd, lcm
 from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
-from sage.misc.mrange import mrange
 from sage.groups.group import AbelianGroup as AbelianGroupBase
 from sage.categories.groups import Groups
 from sage.matrix.constructor import matrix
@@ -1301,7 +1300,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             [1]
         """
         invs = self.gens_orders()
-        for t in mrange(invs):
+        for t in itertools.product(*[range(inv) for inv in invs]):
             yield self(t)
 
     def number_of_subgroups(self, order=None):
