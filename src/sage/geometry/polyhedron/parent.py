@@ -252,11 +252,13 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             category = category.Infinite()
 
         Parent.__init__(self, base=base_ring, category=category)
+        self._StrictInequality_pool = []
         self._Inequality_pool = []
         self._Equation_pool = []
         self._Vertex_pool = []
         self._Ray_pool = []
         self._Line_pool = []
+        self._StrictRay_pool = []
 
     def list(self):
         """
@@ -311,11 +313,13 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         """
         if self is not polyhedron.parent():
             raise TypeError('The polyhedron has the wrong parent class.')
+        self._StrictInequality_pool.extend(polyhedron.strict_inequalities())
         self._Inequality_pool.extend(polyhedron.inequalities())
         self._Equation_pool.extend(polyhedron.equations())
         self._Vertex_pool.extend(polyhedron.vertices())
         self._Ray_pool.extend(polyhedron.rays())
         self._Line_pool.extend(polyhedron.lines())
+        self._StrictRay_pool.extend(polyhedron.strict_rays())
         for Hrep in polyhedron.Hrep_generator():
             Hrep._polyhedron = None
         for Vrep in polyhedron.Vrep_generator():
@@ -1006,6 +1010,33 @@ class Polyhedra_base(UniqueRepresentation, Parent):
                                            extended._internal_coerce_map_from(self).__copy__())
             return action
 
+    def _make_StrictInequality(self, polyhedron, data):
+        """
+        Create a new inequality object.
+
+        INPUT:
+
+        - ``polyhedron`` -- the new polyhedron.
+
+        - ``data`` -- the H-representation data.
+
+        OUTPUT:
+
+        A new :class:`~sage.geometry.polyhedron.representation.StrictInequality` object.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron([(1,2,3),(2/3,3/4,4/5)])   # indirect doctest
+            sage: next(p.inequality_generator())
+            An inequality (0, 0, -1) x + 3 >= 0
+        """
+        try:
+            obj = self._StrictInequality_pool.pop()
+        except IndexError:
+            obj = StrictInequality(self)
+        obj._set_data(polyhedron, data)
+        return obj
+
     def _make_Inequality(self, polyhedron, data):
         """
         Create a new inequality object.
@@ -1141,6 +1172,32 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         obj._set_data(polyhedron, data)
         return obj
 
+    def _make_StrictRay(self, polyhedron, data):
+        """
+        Create a new strict ray object.
+
+        INPUT:
+
+        - ``polyhedron`` -- the new polyhedron.
+
+        - ``data`` -- the V-representation data.
+
+        OUTPUT:
+
+        A new :class:`~sage.geometry.polyhedron.representation.Ray` object.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron([(1,2,3),(2/3,3/4,4/5)], rays=[(5/6,6/7,7/8)])   # indirect doctest
+            sage: next(p.ray_generator())
+            A ray in the direction (140, 144, 147)
+        """
+        try:
+            obj = self._StrictRay_pool.pop()
+        except IndexError:
+            obj = StrictRay(self)
+        obj._set_data(polyhedron, data)
+        return obj
 
 
 from sage.geometry.polyhedron.backend_cdd import Polyhedron_QQ_cdd
