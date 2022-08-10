@@ -33,13 +33,14 @@ STRICT_RAY = 5
 
 
 #########################################################################
-#                      PolyhedronRepresentation
-#                       /                     \
-#                      /                       \
-#              Hrepresentation            Vrepresentation
-#                   /     \                 /     |   \
-#                  /       \               /      |    \
-#           Inequality  Equation        Vertex   Ray   Line
+#                            PolyhedronRepresentation
+#                             /                     \
+#                            /                       \
+#                 Hrepresentation                 Vrepresentation
+#                 /      |      \                 /    |    |    \
+#                /       |       \               /     |    |     \
+#  StrictInequality  Inequality  Equation     Vertex  Ray  Line  StrictRay
+
 
 
 @richcmp_method
@@ -754,6 +755,18 @@ class StrictInequality(Hrepresentation):
             sage: repr_obj._set_data(p, [-5, 2, 3, 4])
             sage: repr_obj.type() == repr_obj.STRICT_INEQUALITY
             True
+            sage: repr_obj.type() == repr_obj.INEQUALITY
+            False
+            sage: repr_obj.type() == repr_obj.EQUATION
+            False
+            sage: repr_obj.type() == repr_obj.VERTEX
+            False
+            sage: repr_obj.type() == repr_obj.RAY
+            False
+            sage: repr_obj.type() == repr_obj.LINE
+            False
+            sage: repr_obj.type() == repr_obj.STRICT_RAY
+            False
         """
         return self.STRICT_INEQUALITY
 
@@ -856,6 +869,8 @@ class Inequality(Hrepresentation):
             sage: repr_obj = next(p.inequality_generator())
             sage: repr_obj.type()
             0
+            sage: repr_obj.type() == repr_obj.STRICT_INEQUALITY
+            False
             sage: repr_obj.type() == repr_obj.INEQUALITY
             True
             sage: repr_obj.type() == repr_obj.EQUATION
@@ -865,6 +880,8 @@ class Inequality(Hrepresentation):
             sage: repr_obj.type() == repr_obj.RAY
             False
             sage: repr_obj.type() == repr_obj.LINE
+            False
+            sage: repr_obj.type() == repr_obj.STRICT_RAY
             False
         """
         return self.INEQUALITY
@@ -1133,6 +1150,8 @@ class Equation(Hrepresentation):
             sage: repr_obj = next(p.equation_generator())
             sage: repr_obj.type()
             1
+            sage: repr_obj.type() == repr_obj.STRICT_INEQUALITY
+            False
             sage: repr_obj.type() == repr_obj.INEQUALITY
             False
             sage: repr_obj.type() == repr_obj.EQUATION
@@ -1142,6 +1161,8 @@ class Equation(Hrepresentation):
             sage: repr_obj.type() == repr_obj.RAY
             False
             sage: repr_obj.type() == repr_obj.LINE
+            False
+            sage: repr_obj.type() == repr_obj.STRICT_RAY
             False
         """
         return self.EQUATION
@@ -1291,7 +1312,7 @@ class Vrepresentation(PolyhedronRepresentation):
     def is_V(self):
         """
         Return True if the object is part of a V-representation
-        (a vertex, ray, or line).
+        (a vertex, ray, line, or strict ray).
 
         EXAMPLES::
 
@@ -1305,8 +1326,9 @@ class Vrepresentation(PolyhedronRepresentation):
     def is_vertex(self):
         """
         Return True if the object is a vertex of the V-representation.
+
         This method is over-ridden by the corresponding method in the
-        derived class Vertex.
+        derived class :class:`Vertex`.
 
         EXAMPLES::
 
@@ -1324,8 +1346,9 @@ class Vrepresentation(PolyhedronRepresentation):
     def is_ray(self):
         """
         Return True if the object is a ray of the V-representation.
+
         This method is over-ridden by the corresponding method in the
-        derived class Ray.
+        derived class :class:`Ray`.
 
         EXAMPLES::
 
@@ -1345,7 +1368,7 @@ class Vrepresentation(PolyhedronRepresentation):
         """
         Return True if the object is a line of the V-representation.
         This method is over-ridden by the corresponding method in the
-        derived class Line.
+        derived class :class:`Line`.
 
         EXAMPLES::
 
@@ -1355,6 +1378,27 @@ class Vrepresentation(PolyhedronRepresentation):
             True
             sage: v1 = next(p.vertex_generator())
             sage: v1.is_line()
+            False
+        """
+        return False
+
+    def is_strict_ray(self):
+        """
+        Return True if the object is a strict ray of the V-representation.
+
+        This method is over-ridden by the corresponding method in the
+        derived class :class:`StrictRay`.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(ieqs = [[1, 0, 0, 0, 1], [1, 1, 0, 0, 0], [1, 0, 1, 0, 0]])
+            sage: r1 = next(p.ray_generator())
+            sage: r1.is_ray()
+            True
+            sage: v1 = next(p.vertex_generator())
+            sage: v1
+            A vertex at (-1, -1, 0, -1)
+            sage: v1.is_ray()
             False
         """
         return False
@@ -1471,6 +1515,8 @@ class Vertex(Vrepresentation):
             sage: repr_obj = next(p.vertex_generator())
             sage: repr_obj.type()
             2
+            sage: repr_obj.type() == repr_obj.STRICT_INEQUALITY
+            False
             sage: repr_obj.type() == repr_obj.INEQUALITY
             False
             sage: repr_obj.type() == repr_obj.EQUATION
@@ -1480,6 +1526,8 @@ class Vertex(Vrepresentation):
             sage: repr_obj.type() == repr_obj.RAY
             False
             sage: repr_obj.type() == repr_obj.LINE
+            False
+            sage: repr_obj.type() == repr_obj.STRICT_RAY
             False
         """
         return self.VERTEX
@@ -1592,6 +1640,8 @@ class Ray(Vrepresentation):
             sage: repr_obj = next(p.ray_generator())
             sage: repr_obj.type()
             3
+            sage: repr_obj.type() == repr_obj.STRICT_INEQUALITY
+            False
             sage: repr_obj.type() == repr_obj.INEQUALITY
             False
             sage: repr_obj.type() == repr_obj.EQUATION
@@ -1601,6 +1651,8 @@ class Ray(Vrepresentation):
             sage: repr_obj.type() == repr_obj.RAY
             True
             sage: repr_obj.type() == repr_obj.LINE
+            False
+            sage: repr_obj.type() == repr_obj.STRICT_RAY
             False
         """
         return self.RAY
@@ -1690,6 +1742,8 @@ class Line(Vrepresentation):
             sage: repr_obj = next(p.line_generator())
             sage: repr_obj.type()
             4
+            sage: repr_obj.type() == repr_obj.STRICT_INEQUALITY
+            False
             sage: repr_obj.type() == repr_obj.INEQUALITY
             False
             sage: repr_obj.type() == repr_obj.EQUATION
@@ -1700,6 +1754,8 @@ class Line(Vrepresentation):
             False
             sage: repr_obj.type() == repr_obj.LINE
             True
+            sage: repr_obj.type() == repr_obj.STRICT_RAY
+            False
         """
         return self.LINE
 
@@ -1759,6 +1815,107 @@ class Line(Vrepresentation):
 
             sage: p = Polyhedron(ieqs = [[1, 0, 0, 1],[1,1,0,0]])
             sage: a = next(p.line_generator())
+            sage: h = next(p.inequality_generator())
+            sage: a.evaluated_on(h)
+            0
+        """
+        return Hobj.A() * self.vector()
+
+
+class StrictRay(Vrepresentation):
+    """
+    A strict ray of the polyhedron. Inherits from ``Vrepresentation``.
+    """
+
+    def type(self):
+        r"""
+        Return the type (equation/inequality/vertex/ray/line) as an
+        integer.
+
+        OUTPUT:
+
+        Integer. One of ``PolyhedronRepresentation.INEQUALITY``,
+        ``.EQUATION``, ``.VERTEX``, ``.RAY``, or ``.LINE``.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(ieqs = [[0,0,1],[0,1,0],[1,-1,0]])
+            sage: repr_obj = next(p.ray_generator())
+            sage: repr_obj.type()
+            4
+            sage: repr_obj.type() == repr_obj.STRICT_INEQUALITY
+            False
+            sage: repr_obj.type() == repr_obj.INEQUALITY
+            False
+            sage: repr_obj.type() == repr_obj.EQUATION
+            False
+            sage: repr_obj.type() == repr_obj.VERTEX
+            False
+            sage: repr_obj.type() == repr_obj.RAY
+            False
+            sage: repr_obj.type() == repr_obj.LINE
+            False
+            sage: repr_obj.type() == repr_obj.STRICT_RAY
+            True
+        """
+        return self.STRICT_RAY
+
+    def is_strict_ray(self):
+        """
+        Tests if this object is a strict ray.  Always True by construction.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(ieqs = [[0,0,1],[0,1,0],[1,-1,0]])
+            sage: a = next(p.ray_generator())
+            sage: a.is_strict_ray()
+            False
+        """
+        return True
+
+    def _repr_(self):
+        """
+        A string representation of the ray.
+
+        TESTS::
+
+            sage: p = Polyhedron(ieqs = [[0,0,1],[0,1,0],[1,-1,0]])
+            sage: a = next(p.ray_generator())
+            sage: a._repr_()
+            'A strict ray in the direction (0, 1)'
+        """
+        return 'A strict ray in the direction ' + repr(self.vector())
+
+    def homogeneous_vector(self, base_ring=None):
+        """
+        Return homogeneous coordinates for this ray.
+
+        Since a ray is given by a direction, this is the vector with a
+        0 appended.
+
+        INPUT:
+
+        - ``base_ring`` -- the base ring of the vector.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(2,0)], rays=[(1,0)], lines=[(3,2)])
+            sage: P.rays()[0].homogeneous_vector()
+            (1, 0, 0)
+            sage: P.rays()[0].homogeneous_vector(RDF)
+            (1.0, 0.0, 0.0)
+        """
+        v = list(self._vector) + [0]
+        return vector(base_ring or self._base_ring, v)
+
+    def evaluated_on(self, Hobj):
+        r"""
+        Return `A\vec{r}`
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(ieqs = [[0,0,1],[0,1,0],[1,-1,0]])
+            sage: a = next(p.ray_generator())
             sage: h = next(p.inequality_generator())
             sage: a.evaluated_on(h)
             0
