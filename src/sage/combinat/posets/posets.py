@@ -284,6 +284,9 @@ Classes and functions
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import annotations
+
+import itertools
+
 from collections import defaultdict
 from copy import copy, deepcopy
 
