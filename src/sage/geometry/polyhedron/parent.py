@@ -3,7 +3,12 @@ Parents for Polyhedra
 """
 
 #*****************************************************************************
-#       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2011-2014 Volker Braun <vbraun.name@gmail.com>
+#                     2015-2017 Vincent Delecroix
+#                     2016-2022 Matthias Koeppe
+#                     2017      Moritz Firsching
+#                     2019      Laith Rastanawi
+#                     2019-2021 Jonathan Kliem
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/

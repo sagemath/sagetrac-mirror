@@ -3,8 +3,18 @@ H(yperplane) and V(ertex) representation objects for polyhedra
 """
 
 # ****************************************************************************
-#       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
-#       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2008      Marshall Hampton <hamptonio@gmail.com>
+#                     2011-2012 Volker Braun <vbraun.name@gmail.com>
+#                     2014      André Apitzsch
+#                     2015      Vincent Delecroix
+#                     2016      Daniel Krenn
+#                     2016      Jeroen Demeyer
+#                     2017-2021 Frédéric Chapoton
+#                     2018-2019 Jean-Philippe Labbé
+#                     2019      Julian Ritter
+#                     2019-2022 Jonathan Kliem
+#                     2021      Yuan Zhou
+#                     2021-2022 Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
