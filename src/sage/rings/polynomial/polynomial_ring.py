@@ -1428,7 +1428,9 @@ class PolynomialRing_general(ring.Algebra):
         """
         base = self.base_ring()
         for coeffs in itertools.product([base.one()], *([base] * of_degree)):
-            yield self(reversed(coeffs))
+            coeffs = list(coeffs)
+            coeffs.reverse()
+            yield self(coeffs)
 
     def _monics_max( self, max_degree ):
         """
@@ -1458,7 +1460,9 @@ class PolynomialRing_general(ring.Algebra):
         """
         base = self.base_ring()
         for coeffs in itertools.product(base, repeat=max_degree + 1):
-            yield self(reversed(coeffs))
+            coeffs = list(coeffs)
+            coeffs.reverse()
+            yield self(coeffs)
 
     @lazy_attribute
     def _Karatsuba_threshold(self):
