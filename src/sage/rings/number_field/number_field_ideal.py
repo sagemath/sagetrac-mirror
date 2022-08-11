@@ -2114,7 +2114,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal, I
 
             sage: K.<i>=NumberField(x^2+1)
             sage: res =  K.ideal(2).residues(); res
-            xmrange_iter([[0, 1], [0, 1]], <function ...<lambda> at 0x...>)
+            <generator object NumberFieldFractionalIdeal.residues at ...>
             sage: list(res)
             [0, i, 1, i + 1]
             sage: list(K.ideal(2+i).residues())
@@ -2177,7 +2177,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal, I
 
             sage: K.<i>=NumberField(x^2+1)
             sage: ires =  K.ideal(2).invertible_residues(); ires
-            xmrange_iter([[0, 1]], <function ...<lambda> at 0x...>)
+            <generator object NumberFieldFractionalIdeal.invertible_residues_mod at ...>
             sage: list(ires)
             [1, -i]
             sage: list(K.ideal(2+i).invertible_residues())
