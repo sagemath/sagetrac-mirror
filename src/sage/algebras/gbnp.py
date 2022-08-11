@@ -8,8 +8,11 @@ computing Groebner bases of noncommutative polynomials with coefficients from a
 field implemented in GAP and with respect to the "total degree first then
 lexicographical" ordering.
 
-It currently only implements a wrapper for a subset of GBNP. Minimal usage
-example::
+GBNP is included in the optional Sage package :ref:`gap_packages
+<spkg_gap_packages>`. To install it, run the shell command ``sage -i gap_packages``.
+
+This interface currently implements a wrapper only for a subset of GBNP.
+Here is a minimal usage example::
 
     sage: from sage.algebras.gbnp import GapFreeAlgebra
     sage: A.<a,b,c> = GapFreeAlgebra(QQ)    # optional - gap_packages
@@ -126,35 +129,6 @@ Working with quotient algebras::
     [0 0 0 0 0 0 0 0]
     [0 0 0 0 0 0 0 1]
     [0 0 0 0 0 0 0 0]
-
-Installation
-------------
-
-GBNP is one of the GAP packages included in the optional Sage package :ref:`gap_packages <spkg_gap_packages>`. To install it, run the following in the shell::
-
-    $ sage -i gap_packages
-
-It is also possible to manually install GBNP, following the `GAP documentation <https://www.gap-system.org/Manuals/doc/ref/chap76.html>`_. At least on Linux, first download the latest tarball at the time of writing::
-
-    $ wget https://github.com/gap-packages/gbnp/archive/refs/tags/v1.0.5.tar.gz
-
-and verify integrity::
-
-    $ sha256sum v1.0.5.tar.gz
-    c9914ad622213bb3fffbdafdd4292b2f4abb7d66f8bad64496a56921b04b1c14  v1.0.5.tar.gz
-
-Unpack the tarball into the ``pkg`` directory of GAP::
-
-    $ sage -sh
-    (sage-sh) $ cd $SAGE_ROOT/local/share/gap/pkg/
-    (sage-sh) $ tar -xvf /the/path/to/gbnp/v1.0.5.tar.gz
-    (sage-sh) $ exit
-
-To check that the package installed correctly, try loading it::
-
-   $ sage
-   sage: libgap.load_package("gbnp")    # optional - gap_packages
-   true
 
 Links and references:
 
