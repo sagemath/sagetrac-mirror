@@ -77,7 +77,7 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
         sage: phi(i*X)
         -i*A
         sage: import itertools
-        sage: all(phi(x.bracket(y)) == phi(x).bracket(phi(y)) for x, y in itertools.product([X,Y,Z,W], [X,Y,Z,W])
+        sage: all(phi(x.bracket(y)) == phi(x).bracket(phi(y)) for x, y in itertools.product([X,Y,Z,W], [X,Y,Z,W]))
         True
 
     Note that the Lie bracket should still be preserved, even though the map is no longer linear
