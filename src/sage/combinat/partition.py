@@ -816,6 +816,14 @@ class Partition(CombinatorialElement):
         return 1
 
     def foo(self):
+        """
+        Return the foo 5.
+
+        EXAMPLES::
+
+            sage: Partition([5,2,1,1]).foo()
+            5
+        """
         return 5
 
     def components(self):
