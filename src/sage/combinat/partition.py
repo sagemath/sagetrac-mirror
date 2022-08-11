@@ -815,6 +815,9 @@ class Partition(CombinatorialElement):
         """
         return 1
 
+    def foo(self):
+        return 5
+
     def components(self):
         """
         Return a list containing the shape of ``self``.
