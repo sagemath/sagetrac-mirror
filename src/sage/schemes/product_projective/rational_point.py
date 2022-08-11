@@ -55,9 +55,10 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+import itertools
+
 from sage.schemes.generic.scheme import is_Scheme
 from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
-from sage.misc.mrange import xmrange
 from sage.misc.misc_c import prod
 from sage.arith.all import next_prime, previous_prime, crt
 from sage.rings.all import ZZ, RR
@@ -464,7 +465,7 @@ def sieve(X, bound):
         points lifted.
         """
         rat_points = set()
-        for tupl in xmrange(len_modulo_points):
+        for tupl in itertools.product(*[range(l) for l in len_modulo_points]):
             point = []
             for k in range(N):
                 # lift all coordinates of given point using chinese remainder theorem

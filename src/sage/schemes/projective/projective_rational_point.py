@@ -61,7 +61,6 @@ from sage.arith.all import gcd, srange, next_prime, previous_prime, crt
 from sage.rings.all import ZZ, RR
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.misc.misc_c import prod
-from sage.misc.mrange import xmrange
 from sage.schemes.generic.scheme import is_Scheme
 from sage.parallel.ncpus import ncpus
 from sage.parallel.use_fork import p_iter_fork
@@ -481,7 +480,7 @@ def sieve(X, bound):
         points lifted.
         """
         rat_points = set()
-        for tupl in xmrange(len_modulo_points):
+        for tupl in itertools.product(*[range(l) for l in len_modulo_points]):
             point = []
             for k in range(N + 1):
                 # lift all coordinates of given point using chinese remainder theorem

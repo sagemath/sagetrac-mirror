@@ -89,7 +89,8 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.misc.mrange import xmrange
+import itertools
+
 from sage.rings.rational_field import QQ
 from .constructor import EllipticCurve, EllipticCurve_from_j
 
@@ -183,7 +184,7 @@ def egros_from_j_1728(S=[]):
     """
     Elist = []
     no2 = 2 not in S
-    for ei in xmrange([2] + [4] * len(S)):
+    for ei in itertools.product(*([range(2)] + [range(4)] * len(S))):
         u = QQ.prod(p**e for p, e in zip([-1] + S, ei))
         if no2:
             u *= 4  # make sure 12|val(D,2)
@@ -231,7 +232,7 @@ def egros_from_j_0(S=[]):
     if 3 not in S:
         return Elist
     no2 = 2 not in S
-    for ei in xmrange([2] + [6] * len(S)):
+    for ei in itertools.product(*([range(2)] + [range(6)] * len(S))):
         u = QQ.prod(p**e for p, e in zip([-1] + S, ei))
         if no2:
             u *= 16  # make sure 12|val(D,2)
@@ -287,7 +288,7 @@ def egros_from_j(j, S=[]):
     E = EllipticCurve_from_j(j)
     Elist = []
 
-    for ei in xmrange([2] * (1 + len(S))):
+    for ei in itertools.product(*([range(2)] * (1 + len(S)))):
         u = QQ.prod(p**e for p, e in zip(reversed([-1] + S), ei))
         Eu = E.quadratic_twist(u).minimal_model()
         if Eu.has_good_reduction_outside_S(S):
@@ -407,7 +408,7 @@ def egros_get_j(S=[], proof=None, verbose=False):
         print("Using ", nw, " twists of base curve")
         sys.stdout.flush()
 
-    for ei in xmrange([6] * len(S) + [2]):
+    for ei in itertools.product(*([range(6)] * len(S) + [range(2)])):
         w = QQ.prod(p**e for p, e in zip(reversed(SS), ei))
         wcount += 1
         if verbose:
