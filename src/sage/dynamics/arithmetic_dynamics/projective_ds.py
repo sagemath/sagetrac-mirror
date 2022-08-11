@@ -6063,7 +6063,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     RQ = Zmod(p**(k+1))
                     fp = self.change_ring(RQ, check=False)
                     if shifts is None:
-                        shifts = itertools.product(p, repeat=N)
+                        shifts = product(p, repeat=N)
                     for shift in shifts:
                         newT = [RQ(t) for t in T]  #T.change_ring(RQ, check = False)
                         shiftindex = 0
