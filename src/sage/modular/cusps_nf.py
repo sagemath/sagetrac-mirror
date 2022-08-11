@@ -1242,4 +1242,5 @@ def units_mod_ideal(I):
     ulist = Uk.gens_values()
     elist = [Istar(I.ideallog(u)).order() for u in ulist]
 
-    return [k.prod(u**e for u, e in zip(ulist, ei)) for ei in itertools.product(*elist)]
+    return [k.prod(u**e for u, e in zip(ulist, ei))
+            for ei in itertools.product(*[range(o) for o in elist])]
