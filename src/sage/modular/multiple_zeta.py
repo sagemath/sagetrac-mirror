@@ -739,7 +739,7 @@ class Multizetas(CombinatorialFreeModule):
         TESTS::
 
             sage: M = Multizetas(QQ)
-            sage: TestSuite(M).run()  # not tested
+            sage: TestSuite(M).run()  # long time
             sage: M.category()
             Category of commutative no zero divisors graded algebras
             with basis over Rational Field
@@ -813,6 +813,18 @@ class Multizetas(CombinatorialFreeModule):
             (ζ(), ζ(2), ζ(3), ζ(4), ζ(1,2))
         """
         return self([]), self([2]), self([3]), self([4]), self((1, 2))
+
+    def an_element(self):
+        r"""
+        Return an element of the algebra.
+
+        EXAMPLES::
+
+            sage: M = Multizetas(QQ)
+            sage: M.an_element()
+            ζ() - ζ(1,3) + 3*ζ(2)
+        """
+        return self([]) + 3 * self([2]) - self((1, 3))
 
     def product_on_basis(self, w1, w2):
         r"""
