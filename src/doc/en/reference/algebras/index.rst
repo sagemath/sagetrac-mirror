@@ -93,7 +93,7 @@ Various associative algebras
 ----------------------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    sage/algebras/associated_graded
    sage/algebras/cellular_basis
