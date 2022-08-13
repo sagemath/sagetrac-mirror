@@ -1035,6 +1035,22 @@ class EnumeratedSets(CategoryWithAxiom):
 
     class CartesianProducts(CartesianProductsCategory):
 
+        def extra_super_categories(self):
+            """
+            Implement the fact that a Cartesian product of enumerated sets is enumerated.
+
+            EXAMPLES::
+
+                sage: C = EnumeratedSets().CartesianProducts()
+                sage: C.extra_super_categories()
+                [Category of enumerated sets]
+                sage: C.super_categories()
+                [Category of enumerated sets, Category of Cartesian products of sets]
+                sage: C.axioms()
+                frozenset({'Enumerated'})
+            """
+            return [EnumeratedSets()]
+
         class ParentMethods:
 
             def first(self):
