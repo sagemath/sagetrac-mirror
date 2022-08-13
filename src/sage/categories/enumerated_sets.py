@@ -235,7 +235,7 @@ class EnumeratedSets(CategoryWithAxiom):
             elif self.list != self._list_default:
                 return self._iterator_from_list()
             else:
-                raise NotImplementedError("iterator called but not implemented")
+                return super().__iter__()
 
         def is_empty(self):
             r"""
