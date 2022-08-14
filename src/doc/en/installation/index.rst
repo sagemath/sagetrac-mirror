@@ -54,27 +54,73 @@ macOS
 Windows
 =======
 
-- **Do you want to do SageMath development?**
+- **Recommended: Use Visual Studio Code with SageMath devcontainers**
 
-  - **Yes, development:**
+  - Install `VS Code <https://code.visualstudio.com/>`_
 
-    Enable Windows Subsystem for Linux (WSL) by following the
-    `official WSL setup guide
-    <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_. Be
-    sure to do the steps to install WSL2 and set it as default.
-    Then go to the Microsoft Store and install Ubuntu (or another
-    Linux distribution). Start Ubuntu from the start menu.
+  - In VS Code, if the `Visual Studio Code Remote - Containers
+    <https://code.visualstudio.com/docs/remote/containers>`_ extension
+    is not already installed, click the "Extension" icon on the left
+    (or press :kbd:`Ctrl` + :kbd:`Shift` + :kbd:`X`) to open a list of
+    extensions. Search for "Remote - Containers" and install it.
 
-    Then follow the instructions for development on Linux below.
+    The extension will walk you through the installation of Docker
+    Desktop and activating Windows Subsystem for Linux (WSL 2).
 
-  - **No development:**
+  - In VS Code, `clone
+    <https://code.visualstudio.com/docs/editor/versioncontrol#_cloning-a-repository>`_
+    the `SageMath git repository
+    <https://github.com/sagemath/sage>`_. For example, use the VS Code
+    Command Palette (:kbd:`Ctrl` + :kbd:`Shift` + :kbd:`P`), enter the
+    command "Git: Clone", hit :kbd:`Enter`, paste the URL https://github.com/sagemath/sage
+    and hit :kbd:`Enter` again.
 
-    - Enable Windows Subsystem for Linux (WSL) by following the
-      `official WSL setup guide
-      <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_. Be
-      sure to do the steps to install WSL2 and set it as default.
-      Then go to the Microsoft Store and install Ubuntu (or another
-      Linux distribution). Start Ubuntu from the start menu.
+  - In VS Code, find the folder ``.devcontainer``.
+
+  - **Do you want to do SageMath development?**
+
+    - **Yes, development:**
+
+      Copy the file ``devcontainer.json`` from the subfolder ``portability-ubuntu-jammy-standard``
+      to the folder ``.devcontainer``.
+
+    - **No development:**
+
+      Copy the file ``devcontainer.json`` from the subfolder ``downstream-archlinux-latest``
+      to the folder ``.devcontainer``.
+
+  - In VS Code, use the command palette (:kbd:`Ctrl` + :kbd:`Shift` + :kbd:`P`),
+    enter the command "Remote-Containers: Reopen Folder in Container" , and hit :kbd:`Enter`.
+
+    By clicking on "show log", you can see what it does; it will take a while.
+
+  - To use Sage in a terminal, `open a new terminal in VS Code
+    <https://code.visualstudio.com/docs/terminal/basics>`_ and type ``./sage`` (development)
+    or ``sage`` (no development).
+
+  - To use Sage in a Jupyter notebook, click the "Extension" icon on the left (or press
+    :kbd:`Ctrl` + :kbd:`Shift` + :kbd:`X`) to open a list of
+    extensions. Install the "Jupyter" extension. In the command
+    palette, enter "Create: New Jupyter Notebook", and hit
+    :kbd:`Enter`. Click "Select Kernel" on the right (or press :kbd:`Ctrl` +
+    :kbd:`Alt` + :kbd:`Enter`), select SageMath, and hit :kbd:`Enter`.
+
+- **Alternative: Manual installation using Windows Subsystem for Linux**
+
+  Enable Windows Subsystem for Linux (WSL) by following the
+  `official WSL setup guide
+  <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_. Be
+  sure to do the steps to install WSL2 and set it as default.
+  Then go to the Microsoft Store and install Ubuntu (or another
+  Linux distribution). Start Ubuntu from the start menu.
+
+  - **Do you want to do SageMath development?**
+
+    - **Yes, development:**
+
+      Then follow the instructions for development on Linux below.
+
+    - **No development:**
 
       On the Linux running on WSL, you always have root access, so you
       can use any of the installation methods described below for
@@ -133,7 +179,8 @@ In the cloud
   elementary SageMath computations.
 
 
-More information:
+More information
+================
 
 .. toctree::
    :maxdepth: 2

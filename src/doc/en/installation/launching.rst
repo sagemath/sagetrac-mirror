@@ -7,12 +7,6 @@ Now we assume that you installed SageMath properly on your system. This
 section quickly explains how to start the Sage console and the Jupyter
 Notebook from the command line.
 
-If you did install the Windows version or the macOS application you
-should have icons available on your desktops or launching menus. Otherwise
-you are strongly advised to create shortcuts for Sage as indicated at the end
-of the "Linux" Section in :ref:`sec-installation-from-binaries`. Assuming
-that you have this shortcut, running
-
 .. CODE-BLOCK:: bash
 
     sage

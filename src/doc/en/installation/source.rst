@@ -682,7 +682,7 @@ General procedure
 
    You should see the Sage prompt, which will look something like this::
 
-       $ sage
+       $ ./sage
        ┌────────────────────────────────────────────────────────────────────┐
        │ SageMath version 8.8, Release Date: 2019-06-26                     │
        │ Using Python 3.10.4. Type "help()" for help.                       │

@@ -59,13 +59,14 @@ and follow the instructions on
 [Windows] Preparing the Platform
 --------------------------------
 
-The preferred way to run Sage on Windows is using the [Windows Subsystem for
+The recommended way to run Sage on Windows is [using Visual Studio Code with
+SageMath devcontainers](https://doc.sagemath.org/html/en/installation/index.html#windows)
+(Docker with WSL 2 backend).
+
+Alternatively, you can install Sage manually using the [Windows Subsystem for
 Linux](https://docs.microsoft.com/en-us/windows/wsl/faq), which allows
 you to install a standard Linux distribution such as Ubuntu within
 your Windows.  Then all instructions for installation in Linux apply.
-
-As an alternative, you can also run Linux on Windows using Docker (see
-above) or other virtualization solutions.
 
 [macOS] Preparing the Platform
 ------------------------------
