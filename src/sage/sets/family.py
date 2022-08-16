@@ -63,7 +63,7 @@ lazy_import('sage.combinat.combinat', 'CombinatorialClass')
 
 
 def Family(indices, function=None, hidden_keys=[], hidden_function=None,
-           lazy=False, name=None, *, category=None):
+           lazy=False, name=None, *, category=None, is_injective=None, inverse=None):
     r"""
     A :func:`Family` is a :class:`Parent` that models a family `(f_i)_{i \in I}` of elements.
 
@@ -111,6 +111,9 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None,
     - ``name`` -- (optional) the name of the function; only used when the
       family is lazily created via a function
     - ``category`` -- (optional) the category
+    - ``is_injective`` -- (optional) whether the map from keys to values is
+      injective
+    - ``inverse`` -- (optional) a map from values to keys
 
     EXAMPLES:
 
@@ -467,7 +470,8 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None,
             return FiniteFamily({i: function(i) for i in indices},
                                 keys=indices, category=category)
 
-        return LazyFamily(indices, function, name, category=category)
+        return LazyFamily(indices, function, name, category=category,
+                          is_injective=is_injective, inverse=inverse)
     if lazy:
         raise ValueError("keyword 'lazy' is incompatible with keyword 'hidden_keys'")
     if hidden_function is None:
@@ -519,6 +523,7 @@ class AbstractFamily(Parent):
             ['aa', 'bb', 'cc']
         """
 
+    @cached_method
     def as_set(self):
         """
         Return the elements (values) of this family as a set.
@@ -549,6 +554,28 @@ class AbstractFamily(Parent):
         """
         return zip(self.keys(), self.values())
 
+    def _element_constructor_(self, x):
+        r"""
+        Check whether ``x`` can be converted to an element of ``self`` and return the result.
+
+        EXAMPLES::
+
+            sage: whole_tens = Family(ZZ, lambda x: 10 * x, inverse=lambda x: x/10, lazy=True)
+            sage: x = 60/2
+            sage: x.parent()
+            Rational Field
+            sage: whole_tens(x)
+            30
+            sage: _.parent()
+            Integer Ring
+            sage: x = 50
+            sage: whole_tens(45)
+            Traceback (most recent call last):
+            ...
+            ValueError: 45 is not in Image of Integer Ring by ...
+        """
+        return self.as_set()(x)
+
     def zip(self, f, other, name=None):
         r"""
         Given two families with same index set `I` (and same hidden
@@ -569,7 +596,7 @@ class AbstractFamily(Parent):
         assert(self.hidden_keys() == other.hidden_keys())
         return Family(self.keys(), lambda i: f(self[i],other[i]), hidden_keys=self.hidden_keys(), name=name)
 
-    def map(self, f, name=None):
+    def map(self, f, name=None, *, is_injective=True):
         r"""
         Return the family `( f(\mathtt{self}[i]) )_{i \in I}`, where
         `I` is the index set of ``self``.
@@ -583,7 +610,8 @@ class AbstractFamily(Parent):
             sage: list(g)
             ['a1', 'b1', 'd1']
         """
-        return Family(self.keys(), lambda i: f(self[i]), hidden_keys=self.hidden_keys(), name=name)
+        return Family(self.keys(), lambda i: f(self[i]), hidden_keys=self.hidden_keys(),
+                      name=name, is_injective=is_injective)
 
     # temporary; tested by TestSuite.
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
@@ -1065,9 +1093,7 @@ class LazyFamily(AbstractFamily):
         self.function = function
         self.function_name = name
         self._is_injective = is_injective
-
-    def _element_constructor_(self, x):
-        return self.as_set()(x)
+        self._inverse = inverse
 
     def __bool__(self):
         r"""
@@ -1236,7 +1262,7 @@ class LazyFamily(AbstractFamily):
         Return the set of values of ``self`` as an :class:`~sage.sets.image_set.ImageSet`.
         """
         return ImageSubobject(self.function, self.set, category=self.category(),
-                              is_injective=self._is_injective)
+                              is_injective=self._is_injective, inverse=self._inverse)
 
     def cardinality(self):
         """
