@@ -1198,6 +1198,15 @@ class LazyFamily(AbstractFamily):
 
         If the function is not injective, values may appear multiple times,
         in contrast to iterating over ``self``.
+
+        EXAMPLES:
+
+        In a ``LazyFamily`` with a non-injective map::
+
+            sage: from sage.sets.family import LazyFamily
+            sage: f = LazyFamily([-2, -1, 0, 1, 2], abs, is_injective=False)
+            sage: list(f.values())
+            [2, 1, 0, 1, 2]
         """
         for key in self.keys():
             yield self.function(key)
@@ -1208,6 +1217,15 @@ class LazyFamily(AbstractFamily):
 
         A key can only appear once, but if the function is not injective, values may
         appear multiple times.
+
+        EXAMPLES:
+
+        In a ``LazyFamily`` with a non-injective map::
+
+            sage: from sage.sets.family import LazyFamily
+            sage: f = LazyFamily([-2, -1, 0, 1, 2], abs, is_injective=False)
+            sage: list(f.items())
+            [(-2, 2), (-1, 1), (0, 0), (1, 1), (2, 2)]
         """
         for key in self.keys():
             yield key, self.function(key)
@@ -1234,7 +1252,7 @@ class LazyFamily(AbstractFamily):
             sage: l.cardinality()
             +Infinity
 
-        In a ``LazyFamily`` with non-injective maps::
+        In a ``LazyFamily`` with a non-injective map::
 
             sage: f = LazyFamily([-2, -1, 0, 1, 2], abs, is_injective=False)
             sage: f.cardinality()
@@ -1261,6 +1279,12 @@ class LazyFamily(AbstractFamily):
             sage: f = LazyFamily([3,4,7], lambda i: 2*i)
             sage: [i for i in f]
             [6, 8, 14]
+
+        In a ``LazyFamily`` with a non-injective map::
+
+            sage: f = LazyFamily([-2, -1, 0, 1, 2], abs, is_injective=False)
+            sage: list(f)
+            [0, 1, 2]
         """
         yield from self.as_set()
 
