@@ -33,6 +33,8 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+import warnings
+
 from . import category
 
 
@@ -532,6 +534,31 @@ class ForgetfulFunctor_generic(Functor):
             True
         """
         return not self ==  other
+
+    def _apply_functor(self, x):
+        """
+        Apply the functor to an object of ``self``'s domain.
+
+        TESTS::
+
+            sage: from sage.categories.functor import ForgetfulFunctor
+            sage: F = ForgetfulFunctor(Rings().Infinite(), Rings())
+            sage: F._apply_functor(ZZ)
+            Integer Ring
+            sage: F = ForgetfulFunctor(Rings(), CommutativeAdditiveGroups())
+            sage: F._apply_functor(ZZ)
+            doctest:warning...
+            UserWarning: The forgetful functor to Category of commutative additive groups
+             from Category of rings (a non-full subcategory)
+             is not properly implemented; see https://trac.sagemath.org/ticket/31247
+            Integer Ring
+        """
+        if not self.domain().is_full_subcategory(self.codomain()):
+            warnings.warn(f'The forgetful functor to {self.codomain()} '
+                          f'from {self.domain()} (a non-full subcategory) '
+                          'is not properly implemented; '
+                          'see https://trac.sagemath.org/ticket/31247')
+        return super()._apply_functor(x)
 
 
 class IdentityFunctor_generic(ForgetfulFunctor_generic):
