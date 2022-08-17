@@ -1887,7 +1887,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent, WithLocals):
 
         """
         self._var_ = var
-        super().__init__(category=category, base=base)
+        Parent.__init__(self, category=category, base=base)
 
     def _repr_short_(self):
         r"""
