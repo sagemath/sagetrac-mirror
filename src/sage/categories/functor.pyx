@@ -545,11 +545,11 @@ class ForgetfulFunctor_generic(Functor):
             sage: F = ForgetfulFunctor(Rings().Infinite(), Rings())
             sage: F._apply_functor(ZZ)
             Integer Ring
-            sage: F = ForgetfulFunctor(Rings(), CommutativeAdditiveGroups())
+            sage: F = ForgetfulFunctor(CommutativeRings(), CommutativeAdditiveGroups())
             sage: F._apply_functor(ZZ)
             doctest:warning...
             UserWarning: The forgetful functor to Category of commutative additive groups
-             from Category of rings (a non-full subcategory)
+             from Category of commutative rings (a non-full subcategory)
              is not properly implemented; see https://trac.sagemath.org/ticket/31247
             Integer Ring
         """
@@ -559,6 +559,26 @@ class ForgetfulFunctor_generic(Functor):
                           'is not properly implemented; '
                           'see https://trac.sagemath.org/ticket/31247')
         return super()._apply_functor(x)
+
+
+class ForgetfulFunctor_Sets(ForgetfulFunctor_generic):
+    r"""
+    The forgetful functor embedding a category into the category :class:`Sets`
+    """
+
+    def _apply_functor(self, x):
+        """
+        Apply the functor to an object of ``self``'s domain.
+
+        TESTS::
+
+            sage: from sage.categories.functor import ForgetfulFunctor
+            sage: F = ForgetfulFunctor(Rings(), Sets())
+            sage: F._apply_functor(ZZ)
+            Set of elements of Integer Ring
+        """
+        from sage.sets.set import Set
+        return Set(x, category=self.codomain())
 
 
 class IdentityFunctor_generic(ForgetfulFunctor_generic):
@@ -673,7 +693,7 @@ def IdentityFunctor(C):
 
 def ForgetfulFunctor(domain, codomain):
     """
-    Construct the forgetful function from one category to another.
+    Construct the forgetful functor from one category to another.
 
     INPUT:
 
@@ -695,6 +715,12 @@ def ForgetfulFunctor(domain, codomain):
         sage: F = ForgetfulFunctor(rings, abgrps)
         sage: F
         The forgetful functor from Category of rings to Category of commutative additive groups
+        sage: F(ZZ)
+        doctest:warning...
+        UserWarning: The forgetful functor to Category of commutative additive groups
+         from Category of rings (a non-full subcategory)
+         is not properly implemented; see https://trac.sagemath.org/ticket/31247
+        Integer Ring
 
     It would be a mistake to call it in opposite order::
 
@@ -709,10 +735,23 @@ def ForgetfulFunctor(domain, codomain):
         sage: ForgetfulFunctor(abgrps, abgrps) == IdentityFunctor(abgrps)
         True
 
+    Non-trivial forgetful functors are only properly implemented when the codomain is
+    :class:`~sage.categories.sets_cat.Sets` (or one of its full subcategories).
+
+        sage: F = ForgetfulFunctor(Rings(), Sets())
+        sage: F(ZZ)
+        Set of elements of Integer Ring
+
+        sage: F = ForgetfulFunctor(Rings().Infinite(), Sets().Infinite())
+        sage: F(ZZ)
+        Set of elements of Integer Ring
     """
     if domain == codomain:
         return IdentityFunctor(domain)
     if not domain.is_subcategory(codomain):
         raise ValueError("Forgetful functor not supported for domain %s" % domain)
+    from sage.categories.sets_cat import Sets
+    if codomain.is_full_subcategory(Sets()):
+        return ForgetfulFunctor_Sets(domain, codomain)
     return ForgetfulFunctor_generic(domain, codomain)
 
