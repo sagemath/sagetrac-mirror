@@ -521,6 +521,10 @@ class WeylGroups(Category_singleton):
 
             EXAMPLES::
 
+                sage: W = WeylGroup(['A', 3])
+                sage: W.from_reduced_word([3,2,3,1]).stanley_symmetric_function()
+                3*m[1, 1, 1, 1] + 2*m[2, 1, 1] + m[2, 2] + m[3, 1]
+
                 sage: W = WeylGroup(['A', 3, 1])
                 sage: W.from_reduced_word([3,1,2,0,3,1,0]).stanley_symmetric_function()
                 8*m[1, 1, 1, 1, 1, 1, 1] + 4*m[2, 1, 1, 1, 1, 1] + 2*m[2, 2, 1, 1, 1] + m[2, 2, 2, 1]
@@ -571,22 +575,19 @@ class WeylGroups(Category_singleton):
                 In type-A, utilize the peelable tableaux algorithm of [RS1995]_.
                 In other types, use induction on left Pieri factors.
             """
+            cartan_type = self.parent().cartan_type()
+            is_affine = cartan_type.is_affine()
+            if cartan_type == 'A' and not is_affine:
+                from sage.combinat.permutation import Permutation
+                try:  # handle WeylGroupElements
+                    return Permutation(list(self.to_permutation())).stanley_symmetric_function()
+                except AttributeError:  # handle SymmetricGroupElements
+                    return Permutation(self.domain).stanley_symmetric_function()
+
+            # handle other types
             import sage.combinat.sf
             from sage.rings.rational_field import QQ
             m = sage.combinat.sf.sf.SymmetricFunctions(QQ).monomial()
-            cartan_type = self.parent().cartan_type()
-
-            # the setting for [RS1995]_
-            if cartan_type[0] == 'A' and not cartan_type.is_affine():
-                from sage.combinat.permutation import Permutation
-                from sage.combinat.diagram import RotheDiagram
-                s = sage.combinat.sf.sf.SymmetricFunctions(QQ).schur()
-                try:
-                    p = Permutation(self.to_permutation())
-                except AttributeError:  # to handle SymmetricGroupElements
-                    p = Permutation(self.domain())
-                return m.sum(s[T.shape()] for T in RotheDiagram(p).peelable_tableaux())
-
             return m.from_polynomial_exp(self.stanley_symmetric_function_as_polynomial())
 
         @cached_in_parent_method
