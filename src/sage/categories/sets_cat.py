@@ -256,8 +256,7 @@ class Sets(Category_singleton):
            Using ``Sets()(A)`` used to implement some sort of forgetful functor
            into the ``Sets()`` category. This feature has been removed, because
            it was not consistent with the semantic of :meth:`Category.__call__`.
-           Proper forgetful functors will eventually be implemented, with
-           another syntax.
+           Instead use :class:`~sage.categories.functors.ForgetfulFunctor`.
         """
         if enumerated_set and type(X) in (tuple, list, range):
             from sage.categories.enumerated_sets import EnumeratedSets
