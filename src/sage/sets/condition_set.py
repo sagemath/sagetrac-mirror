@@ -20,11 +20,10 @@ from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import _stable_uniq
 from sage.structure.element import Expression
-from .set import Set, Set_base, Set_boolean_operators, Set_add_sub_operators
+from .set import Set, Set_parent
 
 
-class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_operators,
-                   UniqueRepresentation):
+class ConditionSet(Set_parent, UniqueRepresentation):
     r"""
     Set of elements of a universe that satisfy given predicates
 

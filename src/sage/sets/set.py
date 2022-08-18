@@ -98,6 +98,10 @@ def Set(X=None, category=None):
     If you need the functionality of mutable sets, use Python's
     builtin set type.
 
+    OUTPUT:
+
+    - a :class:`~sage.sets.set.Set_parent`
+
     EXAMPLES::
 
         sage: X = Set(GF(9,'a'))
@@ -185,18 +189,16 @@ def Set(X=None, category=None):
         sage: Set()
         {}
     """
+    if isinstance(X, Set_parent) and category is None:
+        return X
+
     if X is None:
         X = []
     elif isinstance(X, CategoryObject):
-        if isinstance(X, Set_generic) and category is None:
-            return X
-        elif X in Sets().Finite():
+        if X in Sets().Finite():
             return Set_object_enumerated(X, category=category)
         else:
             return Set_object(X, category=category)
-
-    if isinstance(X, Element) and not isinstance(X, Set_base):
-        raise TypeError("Element has no defined underlying set")
 
     try:
         X = frozenset(X)
@@ -434,8 +436,14 @@ class Set_add_sub_operators:
         return self.difference(X)
 
 
+class Set_parent(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_operators):
+    r"""
+    Base class for sets that are parents and offer the full Set API
+    """
+
+
 @richcmp_method
-class Set_object(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_operators):
+class Set_object(Set_parent):
     r"""
     A set attached to an almost arbitrary object.
 
