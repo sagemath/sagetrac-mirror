@@ -736,7 +736,7 @@ def ForgetfulFunctor(domain, codomain):
         True
 
     Non-trivial forgetful functors are only properly implemented when the codomain is
-    :class:`~sage.categories.sets_cat.Sets` (or one of its full subcategories).
+    :class:`~sage.categories.sets_cat.Sets` (or one of its full subcategories)::
 
         sage: F = ForgetfulFunctor(Rings(), Sets())
         sage: F(ZZ)
