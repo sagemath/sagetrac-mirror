@@ -54,7 +54,7 @@ macOS
 Windows
 =======
 
-- **Recommended: Use Visual Studio Code with SageMath devcontainers**
+- **Recommended approach 1: Use Visual Studio Code with SageMath devcontainers**
 
   - Install `VS Code <https://code.visualstudio.com/>`_
 
@@ -110,7 +110,7 @@ Windows
   cannot run WSL 2 (because of hardware constraints or policy set by system
   administrators) but can run Docker.
 
-- **Alternative: Manual installation using Windows Subsystem for Linux**
+- **Recommended approach 2: Manual installation using Windows Subsystem for Linux**
 
   Enable Windows Subsystem for Linux (WSL) by following the
   `official WSL setup guide
