@@ -19,6 +19,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 
+from sage.structure.parent import Set_generic
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
@@ -34,7 +35,7 @@ from sage.algebras.associated_graded import AssociatedGradedAlgebra
 import itertools
 
 
-class GeneratorIndexingSet(UniqueRepresentation):
+class GeneratorIndexingSet(UniqueRepresentation, Set_generic):
     """
     Helper class for the indexing set of the generators.
     """
@@ -49,6 +50,7 @@ class GeneratorIndexingSet(UniqueRepresentation):
         """
         self._index_set = index_set
         self._level = level
+        super().__init__()
 
     def __repr__(self):
         """
