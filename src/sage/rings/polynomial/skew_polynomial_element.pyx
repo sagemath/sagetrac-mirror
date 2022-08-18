@@ -6,27 +6,6 @@ This module provides the
 In the class hierarchy in Sage, the locution *Skew Polynomial* is used
 for a Ore polynomial without twisting derivation.
 
-.. WARNING::
-
-    The current semantics of
-    :meth:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomial.__call__`
-    are experimental, so a warning is thrown when a skew polynomial is evaluated
-    for the first time in a session. See the method documentation for details.
-
-    TESTS::
-
-        sage: R.<t> = QQ[]
-        sage: sigma = R.hom([t+1])
-        sage: S.<x> = R['x',sigma]
-        sage: a = 2*(t + x) + 1
-        sage: a(t^2)
-        doctest:...: FutureWarning: This class/method/function is marked as experimental.
-        It, its functionality or its interface might change without a formal deprecation.
-        See http://trac.sagemath.org/13215 for details.
-        2*t^3 + 3*t^2 + 4*t + 2
-        sage: a(t)
-        2*t^2 + 3*t + 2
-
 AUTHORS:
 
 - Xavier Caruso (2012-06-29): initial version
@@ -65,7 +44,6 @@ from sage.categories.map cimport Map
 from sage.rings.morphism cimport Morphism, RingHomomorphism
 from sage.rings.polynomial.polynomial_element cimport _dict_to_list
 from sage.structure.element import coerce_binop
-from sage.misc.superseded import experimental
 
 from sage.rings.polynomial.ore_polynomial_element cimport OrePolynomial
 from sage.rings.polynomial.ore_polynomial_element cimport OrePolynomial_generic_dense
@@ -304,10 +282,6 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
             representation of `a` in `F_{q}` and`\beta_{i}` is the `i`-th
             element of the corresponding basis of `F_{q^m}` over `F_{q}`.
 
-            The current calling convention might change in the future to
-            accommodate these. Therefore, the current method has been
-            marked as experimental.
-
         EXAMPLES::
 
             sage: R.<t> = QQ[]
@@ -319,23 +293,6 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
             sage: b = x^2 + t*x^3 + t^2*x + 1
             sage: b(2*t + 3)
             2*t^3 + 7*t^2 + 13*t + 10
-        """
-        return self._call(eval_pt)
-
-    @experimental(trac_number=13215)
-    def _call(self, eval_pt):
-        r"""
-        Helper function for the :meth:`__call__` method to accommodate
-        the ``@experimental`` decorator.
-
-        EXAMPLES::
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: T.<x> = k['x',Frob]
-            sage: a = 3*t^2*x^2 + (t + 1)*x + 2
-            sage: a(t) #indirect test
-            2*t^2 + 2*t + 3
         """
         return self.operator_eval(eval_pt)
 
@@ -690,4 +647,3 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
             q.append(c)
         q.reverse()
         return (self._new_c(q, parent), self._new_c(a[:db], parent, 1))
-
