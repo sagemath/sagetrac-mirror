@@ -18,7 +18,8 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Brauer <sage.combinat.diagram_algebras.BrauerAlgebra>`
 - :class:`algebras.Clifford <sage.algebras.clifford_algebra.CliffordAlgebra>`
 - :class:`algebras.ClusterAlgebra <sage.algebras.cluster_algebra.ClusterAlgebra>`
-- :class:`algebras.CubicHecke <sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra>`
+- :class:`algebras.CubicHecke
+  <sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra>`
 - :class:`algebras.Descent <sage.combinat.descent_algebra.DescentAlgebra>`
 - :class:`algebras.DifferentialWeyl
   <sage.algebras.weyl_algebra.DifferentialWeylAlgebra>`
