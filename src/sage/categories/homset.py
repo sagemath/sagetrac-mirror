@@ -825,11 +825,12 @@ class Homset(Set_generic):
             sage: f(1), f(2), f(3)
             (2, 3, 4)
 
-            sage: H = Hom(Set([1,2,3]), Set([1,2,3]))
-            sage: f = H( lambda x: 4-x )
+            sage: H = Hom(Set([1, 2, 3]), Set([1, 2, 3]))
+            sage: f = H(lambda x: 4 - x)
             sage: f.parent()
-            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of finite enumerated sets
-            sage: f(1), f(2), f(3) # todo: not implemented
+            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of facade finite enumerated sets
+            sage: f(1), f(2), f(3)
+            (3, 2, 1)
 
             sage: H = Hom(ZZ, QQ, Sets())
             sage: f = H( ConstantFunction(2/3) )
