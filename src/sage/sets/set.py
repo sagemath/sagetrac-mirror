@@ -42,6 +42,7 @@ from sage.misc.cachefunc import cached_method
 
 from sage.structure.category_object import CategoryObject
 from sage.structure.element import Element
+from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent, Set_generic
 from sage.structure.richcmp import richcmp_method, richcmp, rich_to_bool
 from sage.misc.classcall_metaclass import ClasscallMetaclass
@@ -86,7 +87,7 @@ def has_finite_length(obj):
         return True
 
 
-def Set(X=None, category=None, facade=True):
+def Set(X=None, category=None, facade=None):
     r"""
     Create the underlying set of ``X``.
 
@@ -197,9 +198,6 @@ def Set(X=None, category=None, facade=True):
         sage: Set()
         {}
     """
-    if facade is not True:
-        raise NotImplementedError
-
     if isinstance(X, Set_parent) and category is None:
         return X
 
@@ -207,16 +205,16 @@ def Set(X=None, category=None, facade=True):
         X = []
     elif isinstance(X, CategoryObject):
         if X in Sets().Finite():
-            return Set_object_enumerated(X, category=category)
+            return Set_object_enumerated(X, category=category, facade=facade)
         else:
-            return Set_object(X, category=category)
+            return Set_object(X, category=category, facade=facade)
 
     try:
         X = frozenset(X)
     except TypeError:
-        return Set_object(X, category=category)
+        return Set_object(X, category=category, facade=facade)
     else:
-        return Set_object_enumerated(X, category=category)
+        return Set_object_enumerated(X, category=category, facade=facade)
 
 
 class Set_base():
@@ -482,11 +480,11 @@ class Set_object(Set_parent):
         (False, False)
     """
 
-    def __init__(self, X, category=None):
+    def __init__(self, X, category=None, facade=None):
         """
         Create a Set_object
 
-        This function is called by the Set function; users
+        This function is called by the :func:`Set` function; users
         shouldn't call this directly.
 
         EXAMPLES::
@@ -510,6 +508,9 @@ class Set_object(Set_parent):
             # The coercion model will try to call Set_object(0)
             raise ValueError('underlying object cannot be an integer')
 
+        if facade is None:
+            facade = True
+
         if category is None:
             category = Sets()
 
@@ -521,11 +522,16 @@ class Set_object(Set_parent):
             if X in Sets().Enumerated():
                 category = category.Enumerated()
 
-        Parent.__init__(self, category=category, facade=True)
+        if not facade:
+            self.Element = ElementWrapper
+
+        Parent.__init__(self, category=category, facade=facade)
         # Workaround as in DisjointUnionEnumeratedSets.__init__:
         # This allows the test suite to pass its tests by essentially
         # stating that this is a facade for any parent.
-        self._facade_for = True
+        if facade is True:
+            self._facade_for = True
+
         self.__object = X
 
     def __hash__(self):
@@ -866,7 +872,7 @@ class Set_object_enumerated(Set_object):
     """
     A finite enumerated set.
     """
-    def __init__(self, X, category=None):
+    def __init__(self, X, category=None, facade=None):
         r"""
         Initialize ``self``.
 
@@ -1303,7 +1309,7 @@ class Set_object_binary(Set_object, metaclass=ClasscallMetaclass):
             Y = Set(Y)
         return type.__call__(cls, X, Y, *args, **kwds)
 
-    def __init__(self, X, Y, op, latex_op, category=None):
+    def __init__(self, X, Y, op, latex_op, category=None, facade=None):
         r"""
         Initialization.
 
@@ -1320,7 +1326,7 @@ class Set_object_binary(Set_object, metaclass=ClasscallMetaclass):
         self._Y = Y
         self._op = op
         self._latex_op = latex_op
-        Set_object.__init__(self, self, category=category)
+        Set_object.__init__(self, self, category=category, facade=facade)
 
     def _repr_(self):
         r"""
@@ -1374,7 +1380,7 @@ class Set_object_union(Set_object_binary):
     """
     A formal union of two sets.
     """
-    def __init__(self, X, Y, category=None):
+    def __init__(self, X, Y, category=None, facade=None):
         r"""
         Initialize ``self``.
 
@@ -1400,7 +1406,7 @@ class Set_object_union(Set_object_binary):
             category = category.Infinite()
         elif all(S in Sets().Finite() for S in (X, Y)):
             category = category.Finite()
-        Set_object_binary.__init__(self, X, Y, "union", "\\cup", category=category)
+        Set_object_binary.__init__(self, X, Y, "union", "\\cup", category=category, facade=facade)
 
     def is_finite(self):
         r"""
@@ -1527,7 +1533,7 @@ class Set_object_intersection(Set_object_binary):
     """
     Formal intersection of two sets.
     """
-    def __init__(self, X, Y, category=None):
+    def __init__(self, X, Y, category=None, facade=None):
         r"""
         Initialize ``self``.
 
@@ -1555,7 +1561,7 @@ class Set_object_intersection(Set_object_binary):
             category = category.Finite()
         if any(S in Sets().Enumerated() for S in (X, Y)):
             category = category.Enumerated()
-        Set_object_binary.__init__(self, X, Y, "intersection", "\\cap", category=category)
+        Set_object_binary.__init__(self, X, Y, "intersection", "\\cap", category=category, facade=facade)
 
     def cardinality(self):
         r"""
@@ -1720,7 +1726,7 @@ class Set_object_difference(Set_object_binary):
     """
     Formal difference of two sets.
     """
-    def __init__(self, X, Y, category=None):
+    def __init__(self, X, Y, category=None, facade=None):
         r"""
         Initialize ``self``.
 
@@ -1745,7 +1751,7 @@ class Set_object_difference(Set_object_binary):
             category = category.Finite()
         elif X in Sets().Infinite() and Y in Sets().Finite():
             category = category.Infinite()
-        Set_object_binary.__init__(self, X, Y, "difference", "-", category=category)
+        Set_object_binary.__init__(self, X, Y, "difference", "-", category=category, facade=facade)
 
     def is_finite(self):
         r"""
@@ -1898,7 +1904,7 @@ class Set_object_symmetric_difference(Set_object_binary):
     """
     Formal symmetric difference of two sets.
     """
-    def __init__(self, X, Y, category=None):
+    def __init__(self, X, Y, category=None, facade=None):
         r"""
         Initialize ``self``.
 
@@ -1921,7 +1927,8 @@ class Set_object_symmetric_difference(Set_object_binary):
             category = category.Finite()
         if all(S in Sets().Enumerated() for S in (X, Y)):
             category = category.Enumerated()
-        Set_object_binary.__init__(self, X, Y, "symmetric difference", "\\bigtriangleup", category=category)
+        Set_object_binary.__init__(self, X, Y, "symmetric difference", "\\bigtriangleup",
+                                   category=category, facade=facade)
 
     def is_finite(self):
         r"""
