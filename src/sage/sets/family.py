@@ -733,7 +733,12 @@ class FiniteFamily(AbstractFamily):
             Finite family {1: 'a', 3: 'b', 4: 'c'}
             """
         # TODO: use keys to specify the order of the elements
-        super().__init__(category=EnumeratedFamilies() & FiniteEnumeratedSets().or_subcategory(category))
+        category = EnumeratedFamilies() & FiniteEnumeratedSets().or_subcategory(category)
+        super().__init__(category=category, facade=True)
+        # Workaround as in DisjointUnionEnumeratedSets.__init__:
+        # This allows the test suite to pass its tests by essentially
+        # stating that this is a facade for any parent.
+        self._facade_for = True
         self._dictionary = dict(dictionary)
         self._keys = keys
 
@@ -1122,13 +1127,27 @@ class LazyFamily(AbstractFamily):
             # but we use the different default is_injective=True here
             if is_Map(function):
                 try:
-                    is_injective = map.is_injective()
+                    is_injective = function.is_injective()
                 except NotImplementedError:
                     is_injective = True
             else:
                 is_injective = True
 
-        super().__init__(category=category)
+        try:
+            facade = function.codomain()
+        except AttributeError:
+            facade = None
+
+        if facade is None:
+            facade = True
+
+        super().__init__(category=category, facade=facade)
+
+        # Workaround as in DisjointUnionEnumeratedSets.__init__:
+        # This allows the test suite to pass its tests by essentially
+        # stating that this is a facade for any parent.
+        if facade is True:
+            self._facade_for = True
 
         self.set = set
         self.function = function
@@ -1464,7 +1483,11 @@ class TrivialFamily(AbstractFamily):
             sage: TestSuite(f).run()
         """
         category = EnumeratedFamilies() & FiniteEnumeratedSets().or_subcategory(category)
-        super().__init__(category=category)
+        super().__init__(category=category, facade=True)
+        # Workaround as in DisjointUnionEnumeratedSets.__init__:
+        # This allows the test suite to pass its tests by essentially
+        # stating that this is a facade for any parent.
+        self._facade_for = True
         self._enumeration = tuple(enumeration)
 
     def __bool__(self):
