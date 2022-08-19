@@ -86,7 +86,7 @@ def has_finite_length(obj):
         return True
 
 
-def Set(X=None, category=None):
+def Set(X=None, category=None, facade=True):
     r"""
     Create the underlying set of ``X``.
 
@@ -96,7 +96,15 @@ def Set(X=None, category=None):
     more formal wrapper.
 
     If you need the functionality of mutable sets, use Python's
-    builtin set type.
+    builtin :class:`set` type.
+
+    INPUT:
+
+    - ``category`` (optional) --  A subcategory of
+      :class:`~sage.categories.sets_cat.Sets`.
+
+    - ``facade`` (optional, default ``True``) -- whether to construct a
+      facade parent.
 
     OUTPUT:
 
@@ -189,6 +197,9 @@ def Set(X=None, category=None):
         sage: Set()
         {}
     """
+    if facade is not True:
+        raise NotImplementedError
+
     if isinstance(X, Set_parent) and category is None:
         return X
 
@@ -483,7 +494,7 @@ class Set_object(Set_parent):
             sage: type(Set(QQ))
             <class 'sage.sets.set.Set_object_with_category'>
             sage: Set(QQ).category()
-            Category of infinite sets
+            Category of facade infinite sets
 
         TESTS::
 
@@ -510,7 +521,11 @@ class Set_object(Set_parent):
             if X in Sets().Enumerated():
                 category = category.Enumerated()
 
-        Parent.__init__(self, category=category)
+        Parent.__init__(self, category=category, facade=True)
+        # Workaround as in DisjointUnionEnumeratedSets.__init__:
+        # This allows the test suite to pass its tests by essentially
+        # stating that this is a facade for any parent.
+        self._facade_for = True
         self.__object = X
 
     def __hash__(self):
@@ -561,7 +576,10 @@ class Set_object(Set_parent):
             sage: X
             { integers }
         """
-        return "Set of elements of " + repr(self.__object)
+        object_repr = repr(self.__object)
+        if object_repr.startswith('Set '):
+            return object_repr
+        return "Set of elements of " + object_repr
 
     def __iter__(self):
         """
@@ -857,7 +875,7 @@ class Set_object_enumerated(Set_object):
             sage: S = Set(GF(19)); S
             {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}
             sage: S.category()
-            Category of finite enumerated sets
+            Category of facade finite enumerated sets
             sage: print(latex(S))
             \left\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\right\}
             sage: TestSuite(S).run()
@@ -1367,7 +1385,7 @@ class Set_object_union(Set_object_binary):
             sage: X = S.union(T); X
             Set-theoretic union of Set of elements of Vector space of dimension 2 over Rational Field and Set of elements of Integer Ring
             sage: X.category()
-            Category of infinite sets
+            Category of facade infinite sets
 
             sage: latex(X)
             \Bold{Q}^{2} \cup \Bold{Z}
@@ -1520,7 +1538,7 @@ class Set_object_intersection(Set_object_binary):
             sage: X = S.intersection(T); X
             Set-theoretic intersection of Set of elements of Vector space of dimension 2 over Rational Field and Set of elements of Integer Ring
             sage: X.category()
-            Category of enumerated sets
+            Category of facade enumerated sets
             sage: latex(X)
             \Bold{Q}^{2} \cap \Bold{Z}
 
@@ -1528,7 +1546,7 @@ class Set_object_intersection(Set_object_binary):
             sage: X.is_finite()
             True
             sage: X.category()
-            Category of finite enumerated sets
+            Category of facade finite enumerated sets
             sage: TestSuite(X).run()
         """
         if category is None:
@@ -1713,7 +1731,7 @@ class Set_object_difference(Set_object_binary):
             sage: X = S.difference(T); X
             Set-theoretic difference of Set of elements of Rational Field and Set of elements of Integer Ring
             sage: X.category()
-            Category of sets
+            Category of facade sets
             sage: latex(X)
             \Bold{Q} - \Bold{Z}
 
@@ -1857,7 +1875,7 @@ class Set_object_difference(Set_object_binary):
              Set of elements of Rational Field and
              Set of elements of Integer Ring
             sage: X.category()
-            Category of sets
+            Category of facade sets
             sage: X._sympy_()
             Complement(Rationals, Integers)
 
@@ -1866,7 +1884,7 @@ class Set_object_difference(Set_object_binary):
              Set of elements of Integer Ring and
              Set of elements of Rational Field
             sage: X.category()
-            Category of enumerated sets
+            Category of facade enumerated sets
             sage: X._sympy_()
             EmptySet
         """
@@ -1891,7 +1909,7 @@ class Set_object_symmetric_difference(Set_object_binary):
             sage: X = S.symmetric_difference(T); X
             Set-theoretic symmetric difference of Set of elements of Rational Field and Set of elements of Integer Ring
             sage: X.category()
-            Category of sets
+            Category of facade sets
             sage: latex(X)
             \Bold{Q} \bigtriangleup \Bold{Z}
 
