@@ -9,11 +9,12 @@ such that the images `s_i` of the braid generators satisfy a cubic equation:
 
     s_i^3 = u s_i^2 - v s_i + w.
 
-Here `u, v, w` are elements in an arbitrary integral domain and `i` is a positive
-integer less than `n`, the number of the braid group's strands. By the analogue
-to the *Iwahori Hecke algebras* (see :class:`~sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra`),
-in which the braid generators satisfy a quadratic relation these algebras have been
-called *cubic Hecke algebras*. The relations inherited from the braid group are:
+Here `u, v, w` are elements in an arbitrary integral domain and `i` is a
+positive integer less than `n`, the number of the braid group's strands.
+By the analogue to the *Iwahori Hecke algebras* (see
+:class:`~sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra`), in which the
+braid generators satisfy a quadratic relation these algebras have been called
+*cubic Hecke algebras*. The relations inherited from the braid group are:
 
 .. MATH::
 
@@ -51,23 +52,23 @@ of these cases see [Mar2012]_) there exists a finite free basis of the cubic
 Hecke algebra which is in bijection to the cubic braid group and compatible
 with the specialization to the cubic braid group algebra as explained above.
 
-For the algebras corresponding to braid groups of less than five strands such a
-basis has been calculated by Ivan Marin. This one is used here. In the case of 5
-strands such a basis is not available, right now. Instead the elements of the cubic
-braid group class themselves are used as basis elements. This is also the case when
-the cubic braid group is infinite, even though it is not known if these elements
-span all of the cubic Hecke algebra.
+For the algebras corresponding to braid groups of less than five strands such
+a basis has been calculated by Ivan Marin. This one is used here. In the case
+of 5 strands such a basis is not available, right now. Instead the elements
+of the cubic braid group class themselves are used as basis elements. This
+is also the case when the cubic braid group is infinite, even though it is
+not known if these elements span all of the cubic Hecke algebra.
 
-Accordingly, be aware that the module embedding of the group algebra of the cubic
-braid groups is known to be an isomorphism of free modules only in the cases of less
-than five strands.
+Accordingly, be aware that the module embedding of the group algebra of the
+cubicbraid groups is known to be an isomorphism of free modules only in the
+cases of less than five strands.
 
 EXAMPLES:
 
-1. Consider the obstruction ``b`` of the *triple quadratic algebra* from Section
-   2.6 of [Mar2018]_. We verify that the third power of it is a scalar multiple
-   of itself (explicitly ``2*w^2`` times the *Schur element* of the three
-   dimensional irreducible representation)::
+Consider the obstruction ``b`` of the *triple quadratic algebra* from Section 2.6
+of [Mar2018]_. We verify that the third power of it is a scalar multiple
+of itself (explicitly ``2*w^2`` times the *Schur element* of the three
+dimensional irreducible representation)::
 
     sage: CHA3 = algebras.CubicHecke(3)
     sage: c1, c2 = CHA3.gens()
@@ -81,25 +82,25 @@ EXAMPLES:
     sage: f =  BR(b3.coefficients()[0]/w)
     sage: try:
     ....:     sh = CHA3.schur_element(CHA3.irred_repr.W3_111)
-    ....: except NotImplementedError:  # for the case GAP3 / CHEVIE not available
+    ....: except NotImplementedError:    # for the case GAP3 / CHEVIE not available
     ....:     sh = ER(f/(2*w^2))
     sage: ER(f/(2*w^2)) == sh
     True
     sage: b3 == f*b
     True
 
-2. Defining the cubic Hecke algebra on 6 strands will need some seconds for
-   initializing. But than you can do calculations inside the infinite algebra
-   as well::
+Defining the cubic Hecke algebra on 6 strands will need some seconds for
+initializing. However, you can do calculations inside the infinite
+algebra as well::
 
-    sage: CHA6 = algebras.CubicHecke(6) # optional - database_cubic_hecke
-    sage: CHA6.inject_variables()       # optional - database_cubic_hecke
+    sage: CHA6 = algebras.CubicHecke(6)  # optional - database_cubic_hecke
+    sage: CHA6.inject_variables()        # optional - database_cubic_hecke
     Defining c0, c1, c2, c3, c4
-    sage: s = c0*c1*c2*c3*c4; s         # optional - database_cubic_hecke
+    sage: s = c0*c1*c2*c3*c4; s          # optional - database_cubic_hecke
     c0*c1*c2*c3*c4
-    sage: s^2                           # optional - database_cubic_hecke
+    sage: s^2                            # optional - database_cubic_hecke
     (c0*c1*c2*c3*c4)^2
-    sage: t = CHA6.an_element()*c4; t   # optional - database_cubic_hecke
+    sage: t = CHA6.an_element() * c4; t  # optional - database_cubic_hecke
     (-w)*c0*c1^-1*c4 + v*c0*c2^-1*c4 + u*c2*c1*c4 + ((-v*w+u)/w)*c4
 
 REFERENCES:
@@ -576,7 +577,8 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
                 vs = vs.change_ring(RI)
             mtcf = [M.from_vector(cf.to_vector()) for cf in mtcf]
 
-        return sum(vs[i] * mtcf[i] for i in range(len(vs)))
+        R = M.base_ring()
+        return M.linear_combination((mtcf[i], R(val)) for i, val in vs.iteritems())
 
 
 class CubicHeckeAlgebra(CombinatorialFreeModule):
@@ -833,7 +835,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
     def __init__(self, names, cubic_equation_parameters=None, cubic_equation_roots=None):
         r"""
-        Python constructor.
+        Initialize ``self``.
 
         TESTS::
 
@@ -1329,17 +1331,44 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if self._nstrands < 5:
             return self._order
 
-        # detect change of order of sub algebra
-        cbg = self.cubic_braid_group()
+        # detect change of _order of sub algebra
         sub_alg = self.cubic_hecke_subalgebra()
         former_len_sub = len(sub_alg._order)
-        sub_order = [cbg(cb) for cb in sub_alg.get_order()]
+        sub_order = sub_alg.get_order()
         if former_len_sub == len(sub_order):
             if len(self._order) == former_len_sub + len(self._basis_extension):
                 return self._order
-        # order has changed! re-calculation necessary:
+        # _order has changed! re-calculation necessary:
+        cbg = self.cubic_braid_group()
+        sub_order = [cbg(cb) for cb in sub_order]
         self._order = sub_order + [cbg(tup) for tup in self._basis_extension]
         return self._order
+
+    def _order_key(self, x):
+        """
+        Return a key for `x` compatible with the term order.
+
+        INPUT:
+
+        - ``x`` -- indices of the basis of ``self``
+
+        EXAMPLES::
+
+            sage: A = CombinatorialFreeModule(QQ, ['x','y','a','b'])
+            sage: A.set_order(['x', 'y', 'a', 'b'])
+            sage: A._order_key('x')
+            0
+            sage: A._order_key('y')
+            1
+            sage: A._order_key('a')
+            2
+        """
+        try:
+            return self._rank_basis(x)
+        except AttributeError:
+            from sage.combinat.ranker import rank_from_list
+            self._rank_basis = rank_from_list(self._order)
+            return self._rank_basis(x)
 
     def _dense_free_module(self, base_ring=None):
         r"""
@@ -1823,12 +1852,16 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         tietze_list = self._basis_tietze()
         cbg = self._cubic_braid_group
         self._finite_sub_basis_tuples = {}
+
         order_list = [cbg(tup) for tup in tietze_list]
-        self.set_order(order_list)
+        # We avoid the call to set_order for speed.
+        # This avoids hashing the keys, which can become expensive.
+        self._order = order_list
         verbose('finite sub basis length: %s' % (len(order_list)), level=2)
 
         if self._nstrands < 5:
             return
+
         # ----------------------------------------------------------------------
         # loading the extension of the basis from data file
         # ----------------------------------------------------------------------
@@ -2471,6 +2504,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     # --------------------------------------------------------------------------
     # _cubic_braid_append_to_basis
     # --------------------------------------------------------------------------
+
     def _cubic_braid_append_to_basis(self, cubic_braid):
         r"""
         Append the given cubic braid to the finite sub basis which is used for
@@ -2507,7 +2541,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         order = self.get_order()
         next_index = len(order)
         self._basis_extension.append(cbTietze)
-        self._rank_basis.update({cubic_braid: next_index})  # supporting :meth:`get_order_key`
+        try:
+            self._rank_basis.update({cubic_braid: next_index})  # supporting :meth:`get_order_key`
+        except AttributeError:
+            pass
         order.append(cubic_braid)
         monomial = self.monomial(cubic_braid)
         self._finite_sub_basis_tuples.update({cubic_braid: cbTietze})
@@ -2581,7 +2618,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
           whose image in ``self`` should be returned
         - ``check`` -- boolean (default: ``True``); check if the given cubic
           braid is already registered in the finite sub basis; if set to
-          ``False`` duplicate entries can occur.
+          ``False`` duplicate entries can occur
 
         EXAMPLES::
 
@@ -3231,16 +3268,15 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if nstrands >= n or nstrands <= 0:
             raise ValueError('nstrands must be positive and less than %s' % self._nstrands)
 
-        Gens = self.gens()
+        names = self.variable_names()
         if nstrands == self._nstrands - 1 and self._cubic_hecke_subalgebra is not None:
             return self._cubic_hecke_subalgebra
 
-        gen_range = range(nstrands - 1)
-        GensRed = tuple([Gens[i] for i in gen_range])
+        names_red = names[:nstrands-1]
         if self.base_ring() == self.base_ring(generic=True):
-            SubHeckeAlg = CubicHeckeAlgebra(names=GensRed)
+            SubHeckeAlg = CubicHeckeAlgebra(names=names_red)
         else:
-            SubHeckeAlg = CubicHeckeAlgebra(names=GensRed,
+            SubHeckeAlg = CubicHeckeAlgebra(names=names_red,
                                             cubic_equation_parameters=tuple(self._cubic_equation_parameters),
                                             cubic_equation_roots=tuple(self._cubic_equation_roots))
 
