@@ -392,6 +392,20 @@ class Set_boolean_operators:
         return self.symmetric_difference(X)
 
 
+class Set_relational_operators:
+    r"""
+    Mix-in class providing the comparison operators for set inclusion.
+
+    The operators delegate to the methods ``is_subset`` etc.
+    """
+
+    def __le__(self, other):
+        return self.is_subset(other)
+
+    def __ge__(self, other):
+        return self.is_superset(other)
+
+
 class Set_add_sub_operators:
     r"""
     Mix-in class providing the operators ``__add__`` and ``__sub__``.
