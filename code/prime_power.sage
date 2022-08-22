@@ -1,9 +1,22 @@
+from sage.quadratic_forms.genera.genus import all_genera_by_det
 from sage.modules.free_quadratic_module_integer_symmetric import FreeQuadraticModule_integer_symmetric
 from sage.interfaces.gap import get_gap_memory_pool_size
 memory_gap = get_gap_memory_pool_size()
 set_gap_memory_pool_size(9048*memory_gap)
 libgap.eval("SetRecursionTrapInterval(10000000)");
-attach("hermitian.sage")
+attach("code/hermitian.sage")
+
+
+def for_stevell(genus, prime, rankC1, max_classes_c1,max_classes_cp):
+  assert genus.signature_pair()[0]==0  # I assume neg. definite
+  rankE_Cp = ZZ((genus.rank()-rankC1)/(prime-1))
+  signatures = [[rankC1],((prime-1)/2)*[rankE_Cp]]
+  result = [g[0] for g in prime_power_actions(G,prime,[rankC1,genus.rank()-rankC1],
+              signatures,k3_unobstructed=False,verbose=True,max_classes_c1=max_classes_c1,
+              max_classes_cp=max_classes_cp)]
+  return result
+end
+
 
 def k3_prime_power(genus, prime, e, verbose=False,rkT=None):
     r"""
@@ -282,7 +295,7 @@ def is_admissible(A, B, C, p):
     return True
 
 
-def prime_power_actions(genus, p, ranks, signatures, k3_unobstructed=True,verbose=False):
+def prime_power_actions(genus, p, ranks, signatures, k3_unobstructed=True,verbose=False, max_classes_cp=50, max_classes_c1=50):
     r"""
     Returns all conjugacy classes of isometries of order `p^e` in `genus`.
 
@@ -297,7 +310,6 @@ def prime_power_actions(genus, p, ranks, signatures, k3_unobstructed=True,verbos
     """
     assert p.is_prime()
     G = genus
-
     i = min(i for i in range(len(ranks)+1) if all(g==0 for g in ranks[i:]))
     if len(ranks)>0 and ranks[-1]==0:
         # the higher orders have rank 0
@@ -309,7 +321,9 @@ def prime_power_actions(genus, p, ranks, signatures, k3_unobstructed=True,verbos
         return
     if len(ranks) == 1:
         # there is nothing to glue
-        for M in genus.representatives():
+        reps = genus.representatives(backend="sage", max_classes=max_classes_c1)
+        print("done")
+        for M in reps:
             fM = M ^ 0
             M = LatticeWithIsometry(IntegralLattice(M),fM,order=1)
             GM = M.Oq_equiv()
@@ -348,7 +362,7 @@ def prime_power_actions(genus, p, ranks, signatures, k3_unobstructed=True,verbos
     for M_det in [d for d in M_max_det.divisors() if M_min_det.divides(d)]:
         for Mh in all_lattice_with_isometry(p^e, M_rk_E, M_det, max_level,
                                            signatures=M_signature,
-                                           min_scale=min_scale,min_norm=min_norm):
+                                           min_scale=min_scale,min_norm=min_norm, max_classes=max_classes_cp):
             cm = sage.structure.element.get_coercion_model()
             cm.reset_cache()
             M = Mh.L
@@ -389,7 +403,7 @@ def prime_power_actions(genus, p, ranks, signatures, k3_unobstructed=True,verbos
                     # recurse
                     for N, fN, GN in prime_power_actions(R, p, ranks[:-1], R_signatures,
                                                  k3_unobstructed=k3_unobstructed,
-                                                 verbose=verbose):
+                                                 verbose=verbose,max_classes_cp=max_classes_cp, max_classes_c1=max_classes_c1):
                         ext = extensions(M, fM, N, fN, GM, GN,
                                          glue_order, p,
                                          target_genus=genus)
@@ -532,7 +546,7 @@ def prime_order(p, genus, k3=True,verbose=2,rankCp=None):
                         f1 = matrix.identity(rkC1)
                         if verbose > 2:
                             print('computing representatives of %s'%CpG)
-                        for CpE in CpG.representatives():
+                        for CpE in CpG.representatives(max_classes=10):
                             Cp, fp = trace_lattice(CpE)
                             Cp = IntegralLattice(Cp)
                             # In the coinvariant lattice in NS there are no roots

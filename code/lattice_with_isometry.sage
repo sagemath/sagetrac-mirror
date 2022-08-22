@@ -49,7 +49,13 @@ class LatticeWithIsometry(FreeQuadraticModule_integer_symmetric):
         if self.order==1 or self.order==2:
             return self.L.image_in_Oq()
         elif prod(self.L.signature_pair()) == 0:
-            #
+            # E = self._gramE.base_ring()
+            # gensG = self._magmaRep.AutomorphismGroup().Generators()
+            # gensG = [g.ChangeRing(E).sage() for g in gensG]
+            # a = E.gen().matrix()
+            # gensG = [block_matrix(g.nrows(),g.ncols(),[i.polynomial().subs(x=a) for i in g.list() ]) for g in gensG]
+            # G = self.L.orthogonal_group(gens=gensG)
+            # Oq_equiv = Oq.subgroup([Oq(g) for g in G.gens()])
             G = self.L.orthogonal_group()
             f = G(self.iso)
             G = [G(g) for g in G.gap().Centralizer(f.gap()).GeneratorsOfGroup()]

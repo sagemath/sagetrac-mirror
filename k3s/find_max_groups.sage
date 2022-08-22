@@ -29,8 +29,6 @@ def get_id(G):
 def k3_id(k3):
     G = k3.group().gap()
     G0 = k3.symplectic_subgroup().gap()
-    G.IsFinite()
-    G0.IsFinite()
     k3id = (get_id(G0),get_id(G))
     k3._k3id = k3id
     return k3id
@@ -122,9 +120,9 @@ def get_enriques_id(k3,g,return_sub=False):
 def get_enriques_ids(k3,return_sub=False):
     ids = []
     C = k3.group().conjugacy_classes_representatives()
-    H = k3.H
+    L = k3.L()
     for c in C:
-        if c.order()==2 and is_enriques_invol(H,c.matrix()):
+        if c.order()==2 and is_enriques_invol(L,c.matrix()):
             ids.append(get_enriques_id(k3,c,return_sub))
     return ids
 
@@ -153,16 +151,20 @@ hashimoto_notation =dict([
  [(4, 2),"C_2^2"],
  [(6, 1),"D_6"],
  [(8, 3),"D_8"],
+ [(8,4),"Q_8"],
  [(8, 5),"C_2^3"],
  [(10, 1),r"D_{10}"],
  [(12, 3),"A_4"],
  [(12, 4),r"D_{12}"],
  [(16, 11),r"C_2 \times D_8"],
  [(16, 14),"C_2^4"],
+ [(16,8),r"SD_{16}"],
  [(18, 4),"A_{3,3}"],
  [(20, 3),"Hol(C_5)"],
  [(21, 1),"C_7:C_3"],
+ [(24,12),"S_4"],
  [(32, 49),"Q_8 * Q_8"],
+ [(32,27),"2^4C_2"],
  [(36, 9), "3^2C_4"],
  [(36, 10),"S_{3,3}"],
  [(48, 29),r"T_{48}"],
@@ -193,8 +195,8 @@ def has_same_global_type(k1,k2):
     R.<x> = QQ[]
     for d in [d for d in divisors(k1.n) if d!=1 and d!=k1.n]:
         c = cyclotomic_polynomial(d,x)
-        L1 = - k1.H.kernel_sublattice(c(k1.g)).gram_matrix()
-        L2 = - k2.H.kernel_sublattice(c(k2.g)).gram_matrix()
+        L1 = - k1.L().kernel_sublattice(c(k1.g)).gram_matrix()
+        L2 = - k2.L().kernel_sublattice(c(k2.g)).gram_matrix()
         q = QuadraticForm
         if not q(L1).is_globally_equivalent_to(q(L2)):
             return false
@@ -203,7 +205,7 @@ def has_same_global_type(k1,k2):
 def ptype_small(k):
     n = k.n
     g = k.g
-    L = k.H
+    L = k.L()
     typ = []
     for d in divisors(n):
         typ.append(L.kernel_sublattice(g^d-1).genus())
@@ -213,7 +215,7 @@ def ptype_small(k):
 def ptype_big(k):
     n = k.n
     g = k.g
-    L = k.H
+    L = k.L()
     typ = []
     glues = []
     for d in divisors(n):
@@ -331,3 +333,8 @@ def adapt_names(folder_write):
       fi.write(k.str())
       fi.write("\n")
     fi.close()
+
+@parallel(ncpus=8)
+def get_ids_par(k3id):
+  k3 = K3SurfaceAutGrp_from_id(k3id)
+  return k3_id(k3)

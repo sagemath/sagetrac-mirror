@@ -4,11 +4,11 @@
 #my_magma.set_server_and_command(command="magma")
 #my_magma.set_server_and_command(command="magma.avx64.exe")
 #dire = "/home/simon/Dropbox/Math/MyPapers/K3_automorphisms_catalogue/code
-dire = "sage/code"
+dire = "code"
 magma.attach_spec(dire+"/unit_quotients/lat.spec")
 # G.ChangeRing(E).sage()
 from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
-attach("lattice_with_isometry.sage")
+attach(dire+"/lattice_with_isometry.sage")
 
 #E0.<a> = CyclotomicField(4)
 #K0.<b>, phi0 = E0.subfield(a + a**-1)
@@ -76,7 +76,7 @@ def inverseNorm(phi,d):
     return ideals
 
 
-def all_lattice_with_isometry(n, rk, det, max_scale, min_scale=1, min_norm=1, signatures=None, even=True,return_genera=False):
+def all_lattice_with_isometry(n, rk, det, max_scale, min_scale=1, min_norm=1, signatures=None, even=True,return_genera=False,max_classes=Infinity):
     r"""
     Return all lattices with an isometry of order `n` with minimal polynomial
     the `n`-th cyclotomic polynomial.
@@ -135,7 +135,7 @@ def all_lattice_with_isometry(n, rk, det, max_scale, min_scale=1, min_norm=1, si
             if genus.dim()>12:
                 print("computing representatives of ")
                 print(genus)
-            rep += [LatticeWithIsometry(IntegralLattice(g),f,order=n) for g in genus.representatives()]
+            rep += [LatticeWithIsometry(IntegralLattice(g),f,order=n) for g in genus.representatives(max_classes=max_classes)]
         return rep
 
     E.<a> = CyclotomicField(n)
@@ -164,7 +164,7 @@ def all_lattice_with_isometry(n, rk, det, max_scale, min_scale=1, min_norm=1, si
     if return_genera:
         return genera
     for g in genera:
-        for gramE in g.representatives():
+        for gramE in g.representatives(max_classes=max_classes):
             gramZ, iso = trace_lattice(gramE)
             assert gramZ.det() == det
             L = IntegralLattice(gramZ)
@@ -561,7 +561,7 @@ class GenusHermitian(object):
         return M
 
 
-    def representatives(self):
+    def representatives(self, max_classes=Infinity):
         r"""
         Return a list of representatives of this genus.
 
@@ -572,7 +572,10 @@ class GenusHermitian(object):
         if self._rank == 1:
             reps = [self.representative()]
         else:
-            reps = self.representative().GenusRepresentatives()
+            if max_classes == Infinity:
+              reps = self.representative().GenusRepresentatives()
+            else:
+              reps = self.representative().GenusRepresentatives(Max=max_classes)
         output = []
         for rep in reps:
             rep = rep.my_gram().ChangeRing(E).sage()
