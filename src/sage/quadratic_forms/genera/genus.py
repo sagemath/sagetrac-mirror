@@ -3287,7 +3287,7 @@ class GenusSymbol_global_ring(object):
             self._compute_representative()
         return self._representative
 
-    def representatives(self, backend=None, algorithm=None):
+    def representatives(self, backend=None, algorithm=None, max_classes=50):
         r"""
         Return a list of representatives for the classes in this genus
 
@@ -3420,7 +3420,7 @@ class GenusSymbol_global_ring(object):
                     det = self.determinant()
                     while p.divides(det):
                         p = P.next(p)
-                    representatives = neighbor_iteration(seeds, p, mass=Q.conway_mass(), algorithm=algorithm)
+                    representatives = neighbor_iteration(seeds, p, mass=Q.conway_mass(), algorithm=algorithm, complete=False, max_classes=max_classes)
                 representatives = [g.Hessian_matrix() for g in representatives]
                 representatives = [(g/e).change_ring(ZZ) for g in representatives]
         else:
