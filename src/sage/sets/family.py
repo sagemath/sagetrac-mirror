@@ -49,7 +49,7 @@ from sage.rings.integer import Integer
 from sage.misc.call import AttrCallObject
 lazy_import('sage.combinat.combinat', 'CombinatorialClass')
 
-def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=False, name=None):
+def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=False, name=None, start_index=None):
     r"""
     A Family is an associative container which models a family
     `(f_i)_{i \in I}`. Then, ``f[i]`` returns the element of the family
@@ -389,14 +389,14 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
             if isinstance(indices, dict):
                 return FiniteFamily(indices)
             if isinstance(indices, (list, tuple) ):
-                return TrivialFamily(indices)
+                return TrivialFamily(indices, start_index=start_index)
             if isinstance(indices, (FiniteFamily, LazyFamily, TrivialFamily) ):
                 return indices
             if (indices in EnumeratedSets()
                 or isinstance(indices, CombinatorialClass)):
                 return EnumeratedFamily(indices)
             if isinstance(indices, Iterable):
-                return TrivialFamily(indices)
+                return TrivialFamily(indices, start_index=start_index)
 
             raise NotImplementedError
         if (isinstance(indices, (list, tuple, FiniteEnumeratedSet))
@@ -1190,7 +1190,7 @@ class TrivialFamily(AbstractFamily):
     Instances should be created via the :func:`Family` factory. See its
     documentation for examples and tests.
     """
-    def __init__(self, enumeration):
+    def __init__(self, enumeration, start_index=0):
         """
         EXAMPLES::
 
@@ -1203,6 +1203,7 @@ class TrivialFamily(AbstractFamily):
         """
         Parent.__init__(self, category = FiniteEnumeratedSets())
         self._enumeration = tuple(enumeration)
+        self._sindex = start_index
 
     def __bool__(self):
         r"""
@@ -1230,7 +1231,8 @@ class TrivialFamily(AbstractFamily):
             True
         """
         return (isinstance(other, self.__class__) and
-                self._enumeration == other._enumeration)
+                self._enumeration == other._enumeration and
+                self._sindex == other._sindex)
 
     def __hash__(self):
         """
@@ -1253,6 +1255,8 @@ class TrivialFamily(AbstractFamily):
             sage: f = TrivialFamily([3,4,7]); f # indirect doctest
             Family (3, 4, 7)
         """
+        if self._sindex:
+            return f"Family({self.enumeration}, start_index={self._sindex})"
         return "Family %s"%((self._enumeration),)
 
     def keys(self):
@@ -1266,6 +1270,8 @@ class TrivialFamily(AbstractFamily):
             sage: f.keys()
             [0, 1, 2]
         """
+        if self._sindex:
+            return range(self._sindex, self._sindex + len(self._enumeration))
         return list(range(len(self._enumeration)))
 
     def cardinality(self):
@@ -1314,7 +1320,7 @@ class TrivialFamily(AbstractFamily):
             sage: f[1]
             4
         """
-        return self._enumeration[i]
+        return self._enumeration[i - self._sindex]
 
     def __getstate__(self):
         """
@@ -1325,7 +1331,10 @@ class TrivialFamily(AbstractFamily):
             sage: f.__getstate__()
             {'_enumeration': (3, 4, 7)}
         """
-        return {'_enumeration': self._enumeration}
+        d = {'_enumeration': self._enumeration}
+        if self._sindex:
+            d['_sindex'] = self._sindex
+        return d
 
     def __setstate__(self, state):
         """
@@ -1337,7 +1346,7 @@ class TrivialFamily(AbstractFamily):
             sage: f
             Family (2, 4, 8)
         """
-        self.__init__(state['_enumeration'])
+        self.__init__(state['_enumeration'], start_index=state.get('_sindex', 0))
 
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
