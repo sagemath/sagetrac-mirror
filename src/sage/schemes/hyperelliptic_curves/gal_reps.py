@@ -75,6 +75,19 @@ AUTHORS:
 - Barinder S. Banwait, Armand Brumer, Hyun Jong Kim, Zev Klagsbrun,
   Jacob Mayle, Padmavathi Srinivasan, Isabel Vogt
 
+Acknowledgements
+----------------
+
+This material is based upon work supported by the National Science Foundation
+under Grant No. DMS-1929284 while the authors were in residence at the
+Institute for Computational and Experimental Research in Mathematics in
+Providence, RI, during a Collaborate@ICERM project.
+
+This work was supported by a grant from the Simons Foundation (546235)
+for the collaboration 'Arithmetic Geometry, Number Theory, and
+Computation', through a workshop held at ICERM.
+
+
 """
 
 ######################################################################
@@ -1028,7 +1041,7 @@ class GaloisRepresentation(SageObject):
             sage: rho.non_surjective()  # long time
             [2, 7]
 
-        The curve 743.a.743.1 on the LMFDB has non-surjective mod-`\ell`
+        The curve 743.a.743.1 on the LMFDB has surjective mod-`\ell`
         representations for all primes `\ell`. ::
 
             sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, 1, 0, -1]), R([1, 1, 0, 1]));
@@ -1051,8 +1064,8 @@ class GaloisRepresentation(SageObject):
             sage: rho.is_surjective(29)  # long time
             False
 
-        In constrast, the curve 8450.a.8450.1 on the LMFDB has Mordell-Weil
-        group isomorphic to `\Z`. It has non-surjective mod-`2` and mod-`13`
+        In constrast, the curve 8450.a.8450.1 on the LMFDB has trivial rational
+        torsion subgroup. It has non-surjective mod-`2` and mod-`13`
         representations. ::
 
             sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 21, -5, -9, 1, 1]), R([1, 1]));
