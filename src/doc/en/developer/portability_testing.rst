@@ -1190,7 +1190,7 @@ application, then in the command palette of VS Code, enter "Remote-Containers:
 Open Folder in Container", and hit :kbd:`Enter`, and choose the directory
 ``$SAGE_ROOT`` of your local Sage repository.
 
-Once VS Code starts running the dev container, by clicking on "show log",
+Once VS Code starts configuring the dev container, by clicking on "show log",
 you can see what it does:
 
 - It pulls the prebuilt image from ghcr.io (via
@@ -1198,18 +1198,21 @@ you can see what it does:
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/portability-Dockerfile>`_);
   note that these are multi-gigabyte images, so it may take a while.
 
-- As part of the "postCreateCommand", it installs additional system packages to
+- As part of the "onCreateCommand", it installs additional system packages to
   support VS Code and for development.
 
-- Then, as part of the "postStartCommand", it bootstraps and
+- Then, as part of the "updateContentCommand", it bootstraps and
   configures the source tree and starts to build Sage from source,
   reusing the installation (:envvar:`SAGE_LOCAL`, :envvar:`SAGE_VENV`)
   from the prebuilt image.
 
-After VS Code finished configuring the dev container, your local Sage
-repository at ``$SAGE_ROOT`` is available in the container at the directory
-``/workspaces/<repository name>``. You may need to open a new Terminal to start
-working from the directory.
+After VS Code finished configuring the dev container (when the message "Done.
+Press any key to close the terminal." appears in the terminal named
+"Configuring"), your local Sage repository at ``$SAGE_ROOT`` is available in
+the container at the directory ``/workspaces/<repository name>``. To use Sage
+in a terminal, `open a new terminal in VS Code
+<https://code.visualstudio.com/docs/terminal/basics>`_, type ``./sage`` and hit
+:kbd:`Enter`.
 
 .. NOTE::
 
@@ -1218,7 +1221,7 @@ working from the directory.
    (possibly) ``$SAGE_ROOT/logs`` will be symbolic links that work inside the dev
    container, but not in your local file system; and also the script
    ``$SAGE_ROOT/sage`` will not work. Hence after working with the dev container,
-   you will want to remove ``logs`` if it is a symbolic link, and to re-run the
+   you will want to remove ``logs`` if it is a symbolic link, and rerun the
    ``configure`` script.
 
 You can edit a copy of the configuration file to change to a different platform, another
@@ -1235,6 +1238,22 @@ In addition to the
 provides several other sample ``devcontainer.json`` configuration files in the
 directory ``$SAGE_ROOT/.devcontainer``.
 
+Files named ``$SAGE_ROOT/.devcontainer/develop-.../devcontainer.json`` configure
+containers from a public Docker image that provides SageMath and then updates the
+installation of SageMath in this container by building from the current source tree.
+
+- `develop-docker-computop/devcontainer.json
+  <https://github.com/sagemath/sage/tree/develop/.devcontainer/develop-docker-computop/devcontainer.json>`_
+  configures a container with the `Docker image from the 3-manifolds
+  project <https://hub.docker.com/r/computop/sage/>`_, providing
+  SnapPy, Regina, PHCPack, etc.
+
+If you want to use one of these ``devcontainer.json`` files, symlink (or copy)
+it and start VS Code as explained above. After VS Code finished configuring the
+dev container, to use Sage in a terminal, `open a new terminal in VS Code
+<https://code.visualstudio.com/docs/terminal/basics>`_, type ``./sage`` and hit
+:kbd:`Enter`.
+
 Files named ``$SAGE_ROOT/.devcontainer/downstream-.../devcontainer.json`` configure
 containers with an installation of downstream packages providing SageMath from a
 package manager (``downstream-archlinux-...``, ``downstream-conda-forge``;
@@ -1247,36 +1266,17 @@ work without change) or to adapt them to your needs.
 
 - `downstream-archlinux-latest/devcontainer.json
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/downstream-archlinux-latest/devcontainer.json>`_
-  configures a container with an installation of `Arch Linux <https://archlinux.org/>`_
-  and its SageMath package. (Arch Linux packaging is downstream from the Sage project,
-  hence the prefix ``downstream-...``; the suffix ``latest`` indicates
-  the most recent version of Arch Linux as available on Docker Hub.)
-
-  When the message "Done. Press any key to close the terminal." appears in the terminal
-  named "Configuring", Sage is ready for use. To use Sage in a terminal, `open a new
-  terminal in VS Code <https://code.visualstudio.com/docs/terminal/basics>`_, type ``sage``
-  and hit :kbd:`Enter`. (Do not use ``./sage``; this will not work because the source tree is
-  not configured.)
+  configures a container with an installation of `Arch Linux
+  <https://archlinux.org/>`_ and its SageMath package. (The suffix ``latest``
+  indicates the most recent version of Arch Linux as available on Docker Hub.)
 
 - `downstream-conda-forge-latest/devcontainer.json
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/downstream-conda-forge-latest/devcontainer.json>`_
-  similarly configures a container with an installation of conda-forge and its SageMath package.
-
-  When the message "Done. Press any key to close the terminal." appears in the terminal
-  named "Configuring", Sage is ready for use. To use Sage in a terminal, `open a new
-  terminal in VS Code <https://code.visualstudio.com/docs/terminal/basics>`_, type ``sage``
-  and hit :kbd:`Enter`. (Do not use ``./sage``; this will not work because the source tree is
-  not configured.)
+  configures a container with an installation of conda-forge and its SageMath package.
 
 - `downstream-docker-cocalc/devcontainer.json
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/downstream-docker-cocalc/devcontainer.json>`_
   configures a container with `the CoCalc Docker image <https://doc.cocalc.com/docker-image.html>`_.
-
-  When the message "Done. Press any key to close the terminal." appears in the terminal
-  named "Configuring", Sage is ready for use. To use Sage in a terminal, `open a new
-  terminal in VS Code <https://code.visualstudio.com/docs/terminal/basics>`_, type ``sage``
-  and hit :kbd:`Enter`. (Do not use ``./sage``; this will not work because the source tree is
-  not configured.)
 
 - `downstream-docker-computop/devcontainer.json
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/develop-docker-computop/devcontainer.json>`_
@@ -1284,19 +1284,10 @@ work without change) or to adapt them to your needs.
   project <https://hub.docker.com/r/computop/sage/>`_, providing
   SnapPy, Regina, PHCPack, etc.
 
-  When the message "Done. Press any key to close the terminal." appears in the terminal
-  named "Configuring", Sage is ready for use. To use Sage in a terminal, `open a new
-  terminal in VS Code <https://code.visualstudio.com/docs/terminal/basics>`_, type ``sage``
-  and hit :kbd:`Enter`. (Do not use ``./sage``; this will not work because the source tree is
-  not configured.)
+If you want to use one of these ``devcontainer.json`` files, symlink (or copy)
+it and start VS Code as explained above. After VS Code finished configuring the
+dev container, to use Sage in a terminal, `open a new terminal in VS Code
+<https://code.visualstudio.com/docs/terminal/basics>`_, type ``sage`` and hit
+:kbd:`Enter`. (Do not use ``./sage``; this will not work because the source
+tree is not configured.)
 
-Files named ``$SAGE_ROOT/.devcontainer/develop-.../devcontainer.json`` configure
-containers from a public Docker image that provides SageMath and then updates the
-installation of SageMath in this container by building from the current source tree.
-
-- `develop-docker-computop/devcontainer.json
-  <https://github.com/sagemath/sage/tree/develop/.devcontainer/develop-docker-computop/devcontainer.json>`_
-  configures a container with the `Docker image from the 3-manifolds
-  project <https://hub.docker.com/r/computop/sage/>`_, providing
-  SnapPy, Regina, PHCPack, etc. It then updates the installation of
-  SageMath in this container by building from the current source tree.
