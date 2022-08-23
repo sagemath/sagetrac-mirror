@@ -455,7 +455,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
         return FullTensorProductOfRegularCrystals(tuple(x.kirillov_reshetikhin_crystal() for x in self.crystals),
                                            cartan_type=self.cartan_type())
 
-    def tensor(self, *crystals, **options):
+    def tensor_product(self, *crystals, **options):
         """
         Return the tensor product of ``self`` with ``crystals``.
 
@@ -489,6 +489,6 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
                 elif isinstance(B, KirillovReshetikhinTableaux):
                     dims.append([B._r, B._s])
             return TensorProductOfKirillovReshetikhinTableaux(ct, dims)
-        return super(TensorProductOfKirillovReshetikhinTableaux, self).tensor(*crystals, **options)
+        return super().tensor_product(*crystals, **options)
 
 TensorProductOfKirillovReshetikhinTableaux.Element = TensorProductOfKirillovReshetikhinTableauxElement

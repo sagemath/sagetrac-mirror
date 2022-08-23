@@ -1459,7 +1459,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                         sage: S2 = SymmetricGroupAlgebra(QQ, 2)
                         sage: S3 = SymmetricGroupAlgebra(QQ, 3)
-                        sage: T = S2.tensor(S3)
+                        sage: T = S2.tensor_product(S3)
                         sage: T.cell_poset()
                         Finite poset containing 6 elements
                     """
@@ -1479,7 +1479,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                         sage: S2 = SymmetricGroupAlgebra(QQ, 2)
                         sage: S3 = SymmetricGroupAlgebra(QQ, 3)
-                        sage: T = S2.tensor(S3)
+                        sage: T = S2.tensor_product(S3)
                         sage: T.cell_module_indices(([1,1], [2,1]))
                         The Cartesian product of (Standard tableaux of shape [1, 1],
                                                   Standard tableaux of shape [2, 1])
@@ -1498,7 +1498,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                         sage: S2 = SymmetricGroupAlgebra(QQ, 2)
                         sage: S3 = SymmetricGroupAlgebra(QQ, 3)
-                        sage: T = S2.tensor(S3)
+                        sage: T = S2.tensor_product(S3)
                         sage: for b in T.basis(): b, T.cellular_involution(b)
                         ([1, 2] # [1, 2, 3], [1, 2] # [1, 2, 3])
                         ([1, 2] # [1, 3, 2],
@@ -1551,7 +1551,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                         sage: S2 = SymmetricGroupAlgebra(QQ, 2)
                         sage: S3 = SymmetricGroupAlgebra(QQ, 3)
-                        sage: T = S2.tensor(S3)
+                        sage: T = S2.tensor_product(S3)
                         sage: all(T(T._to_cellular_element(k)).leading_support() == k
                         ....:     for k in T.basis().keys())
                         True
@@ -1587,7 +1587,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                         sage: S2 = SymmetricGroupAlgebra(QQ, 2)
                         sage: S3 = SymmetricGroupAlgebra(QQ, 3)
-                        sage: T = S2.tensor(S3)
+                        sage: T = S2.tensor_product(S3)
                         sage: C = T.cellular_basis()
                         sage: all(C(T._from_cellular_index(k)).leading_support() == k
                         ....:     for k in C.basis().keys())

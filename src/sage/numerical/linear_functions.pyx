@@ -604,7 +604,7 @@ cdef class LinearFunctionsParent_class(Parent):
         """
         return self._multiplication_symbol
 
-    def tensor(self, free_module):
+    def tensor_product(self, free_module):
         """
         Return the tensor product with ``free_module``.
 

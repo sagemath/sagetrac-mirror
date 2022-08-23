@@ -23,6 +23,7 @@ Catch warnings produced by :func:`check_tkz_graph`::
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
+from sage.misc.superseded import deprecation
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.tensor import TensorProductsCategory
@@ -188,7 +189,7 @@ class Crystals(Category_singleton):
                 sage: B = crystals.infinity.Tableaux(['A',2])
                 sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
                 sage: W = crystals.elementary.T(['A',2], La[1]+La[2])
-                sage: T = W.tensor(B)
+                sage: T = W.tensor_product(B)
                 sage: mg = T(W.module_generators[0], B.module_generators[0])
                 sage: psi = Hom(C,T)([mg])
                 sage: psi.is_embedding()
@@ -712,7 +713,7 @@ class Crystals(Category_singleton):
                 sage: B = crystals.Tableaux(['A',2], shape=[1])
                 sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
                 sage: T = crystals.elementary.T(['A',2], La[2])
-                sage: Bp = T.tensor(B)
+                sage: Bp = T.tensor_product(B)
                 sage: C = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: x = C.module_generators[0].f_string([1,2])
                 sage: psi = Bp.crystal_morphism([x], generators=Bp.lowest_weight_vectors())
@@ -1181,7 +1182,7 @@ class Crystals(Category_singleton):
             G = self.digraph(**options)
             return G.plot3d()
 
-        def tensor(self, *crystals, **options):
+        def tensor_product(self, *crystals, **options):
             """
             Return the tensor product of ``self`` with the crystals ``B``.
 
@@ -1189,7 +1190,7 @@ class Crystals(Category_singleton):
 
                 sage: C = crystals.Letters(['A', 3])
                 sage: B = crystals.infinity.Tableaux(['A', 3])
-                sage: T = C.tensor(C, B); T
+                sage: T = C.tensor_product(C, B); T
                 Full tensor product of the crystals
                  [The crystal of letters for type ['A', 3],
                   The crystal of letters for type ['A', 3],
@@ -1198,7 +1199,7 @@ class Crystals(Category_singleton):
                 True
 
                 sage: C = crystals.Letters(['A',2])
-                sage: T = C.tensor(C, C, generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]]); T
+                sage: T = C.tensor_product(C, C, generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]]); T
                 The tensor product of the crystals
                  [The crystal of letters for type ['A', 2],
                   The crystal of letters for type ['A', 2],
@@ -1208,6 +1209,15 @@ class Crystals(Category_singleton):
             """
             from sage.combinat.crystals.tensor_product import TensorProductOfCrystals
             return TensorProductOfCrystals(self, *crystals, **options)
+
+        def tensor(self, *crystals, **options):
+            """
+            Return the tensor product of ``self`` with the crystals ``B``.
+
+            This method is deprecated. Use :meth:`tensor_product` instead.
+            """
+            deprecation(30373, "method 'tensor' is deprecated; use 'tensor_product' instead")
+            return self.tensor_product(*crystals, **options)
 
         def direct_sum(self, X):
             """
@@ -1766,7 +1776,7 @@ class Crystals(Category_singleton):
                   2  2    #   2  2    # 1
                   3           3
             """
-            T = self.parent().tensor(*[b.parent() for b in elts])
+            T = self.parent().tensor_product(*[b.parent() for b in elts])
             return T(self, *elts)
 
     class SubcategoryMethods:
@@ -1942,7 +1952,7 @@ class CrystalMorphism(Morphism):
             sage: B = crystals.infinity.Tableaux(['A',2])
             sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
             sage: W = crystals.elementary.T(['A',2], La[1]+La[2])
-            sage: T = W.tensor(B)
+            sage: T = W.tensor_product(B)
             sage: mg = T(W.module_generators[0], B.module_generators[0])
             sage: psi = Hom(C,T)([mg])
             sage: psi.is_surjective()

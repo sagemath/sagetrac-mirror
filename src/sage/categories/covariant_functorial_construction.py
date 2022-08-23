@@ -196,7 +196,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: tensor                       # indirect doctest
-            The tensor functorial construction
+            The tensor_product functorial construction
         """
         return "The %s functorial construction"%self._functor_name
 

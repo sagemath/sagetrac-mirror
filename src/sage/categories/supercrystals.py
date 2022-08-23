@@ -33,7 +33,7 @@ class SuperCrystals(Category_singleton):
         return [Crystals()]
 
     class ParentMethods:
-        def tensor(self, *crystals, **options):
+        def tensor_product(self, *crystals, **options):
             """
             Return the tensor product of ``self`` with the crystals ``B``.
 
@@ -41,10 +41,10 @@ class SuperCrystals(Category_singleton):
 
                 sage: B = crystals.Letters(['A',[1,2]])
                 sage: C = crystals.Tableaux(['A',[1,2]], shape = [2,1])
-                sage: T = C.tensor(B); T
+                sage: T = C.tensor_product(B); T
                 Full tensor product of the crystals [Crystal of BKK tableaux of shape [2, 1] of gl(2|3),
                 The crystal of letters for type ['A', [1, 2]]]
-                sage: S = B.tensor(C); S
+                sage: S = B.tensor_product(C); S
                 Full tensor product of the crystals [The crystal of letters for type ['A', [1, 2]],
                 Crystal of BKK tableaux of shape [2, 1] of gl(2|3)]
                 sage: G = T.digraph()
@@ -129,7 +129,7 @@ class SuperCrystals(Category_singleton):
                     sage: B.genuine_highest_weight_vectors()
                     (-2,)
 
-                    sage: T = B.tensor(B)
+                    sage: T = B.tensor_product(B)
                     sage: T.genuine_highest_weight_vectors()
                     ([-2, -1], [-2, -2])
                     sage: s1, s2 = T.connected_components()
@@ -151,7 +151,7 @@ class SuperCrystals(Category_singleton):
                     sage: B.connected_components()
                     [Subcrystal of The crystal of letters for type ['A', [1, 2]]]
 
-                    sage: T = B.tensor(B)
+                    sage: T = B.tensor_product(B)
                     sage: T.connected_components()
                     [Subcrystal of Full tensor product of the crystals
                       [The crystal of letters for type ['A', [1, 2]],
@@ -189,7 +189,7 @@ class SuperCrystals(Category_singleton):
                     sage: B.genuine_lowest_weight_vectors()
                     (3,)
 
-                    sage: T = B.tensor(B)
+                    sage: T = B.tensor_product(B)
                     sage: T.genuine_lowest_weight_vectors()
                     ([3, 3], [3, 2])
                     sage: s1, s2 = T.connected_components()
@@ -210,7 +210,7 @@ class SuperCrystals(Category_singleton):
                     sage: B._genuine_highest_lowest_weight_vectors()
                     ((-2, 3),)
 
-                    sage: T = B.tensor(B)
+                    sage: T = B.tensor_product(B)
                     sage: T._genuine_highest_lowest_weight_vectors()
                     (([-2, -1], [3, 3]), ([-2, -2], [3, 2]))
                     sage: s1, s2 = T.connected_components()
@@ -272,7 +272,7 @@ class SuperCrystals(Category_singleton):
                     sage: B.highest_weight_vectors()
                     (-2,)
 
-                    sage: T = B.tensor(B)
+                    sage: T = B.tensor_product(B)
                     sage: T.highest_weight_vectors()
                     ([-2, -2], [-2, -1])
 
@@ -300,7 +300,7 @@ class SuperCrystals(Category_singleton):
                     sage: B.lowest_weight_vectors()
                     (3,)
 
-                    sage: T = B.tensor(B)
+                    sage: T = B.tensor_product(B)
                     sage: sorted(T.lowest_weight_vectors())
                     [[3, 2], [3, 3]]
 

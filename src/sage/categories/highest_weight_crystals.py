@@ -435,7 +435,7 @@ class HighestWeightCrystals(Category_singleton):
 
                 sage: Binf = crystals.infinity.Tableaux(['A',2])
                 sage: Bi = crystals.elementary.Elementary(Binf.cartan_type(), 1)
-                sage: tens = Bi.tensor(Binf)
+                sage: tens = Bi.tensor_product(Binf)
                 sage: Hom(Binf, tens)
                 Set of Crystal Morphisms from ...
             """
@@ -921,7 +921,7 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
             sage: B = crystals.Tableaux(['A',2], shape=[1])
             sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
             sage: T = crystals.elementary.T(['A',2], La[2])
-            sage: Bp = T.tensor(B)
+            sage: Bp = T.tensor_product(B)
             sage: C = crystals.Tableaux(['A',2], shape=[2,1])
             sage: H = Hom(Bp, C)
             sage: x = C.module_generators[0].f_string([1,2])

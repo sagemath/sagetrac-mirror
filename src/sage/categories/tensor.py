@@ -48,7 +48,7 @@ class TensorProductFunctor(CovariantFunctorialConstruction):
 
         sage: TestSuite(tensor).run()
     """
-    _functor_name = "tensor"
+    _functor_name = "tensor_product"
     _functor_category = "TensorProducts"
     symbol = " # "
     unicode_symbol = f" {unicode_otimes} "
@@ -65,7 +65,7 @@ See :class:`TensorProductFunctor` for more information
 EXAMPLES::
 
     sage: tensor
-    The tensor functorial construction
+    The tensor_product functorial construction
 """
 
 

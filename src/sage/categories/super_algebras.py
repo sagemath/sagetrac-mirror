@@ -70,14 +70,14 @@ class SuperAlgebras(SuperModulesCategory):
             """
             raise NotImplementedError
 
-        def tensor(*parents, **kwargs):
+        def tensor_product(*parents, **kwargs):
             """
             Return the tensor product of the parents.
 
             EXAMPLES::
 
                 sage: A.<x,y,z> = ExteriorAlgebra(ZZ); A.rename("A")
-                sage: T = A.tensor(A,A); T
+                sage: T = A.tensor_product(A,A); T
                 A # A # A
                 sage: T in Algebras(ZZ).Graded().SignedTensorProducts()
                 True

@@ -234,7 +234,7 @@ class QuantumGroupRepresentations(Category_module):
                                for k,elt in enumerate(b)])
 
         class ParentMethods:
-            def tensor(*factors):
+            def tensor_product(*factors):
                 """
                 Return the tensor product of ``self`` with the
                 representations ``factors``.
@@ -247,10 +247,10 @@ class QuantumGroupRepresentations(Category_module):
                     sage: CM = crystals.Tableaux(['D',4], shape=[1])
                     sage: CA = crystals.Tableaux(['D',4], shape=[1,1])
                     sage: V = MinusculeRepresentation(R, CM)
-                    sage: V.tensor(V, V)
+                    sage: V.tensor_product(V, V)
                     V((1, 0, 0, 0)) # V((1, 0, 0, 0)) # V((1, 0, 0, 0))
                     sage: A = MinusculeRepresentation(R, CA)
-                    sage: V.tensor(A)
+                    sage: V.tensor_product(A)
                     V((1, 0, 0, 0)) # V((1, 1, 0, 0))
                     sage: B = crystals.Tableaux(['A',2], shape=[1])
                     sage: W = MinusculeRepresentation(R, B)

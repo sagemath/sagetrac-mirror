@@ -697,7 +697,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
             """
             B = self.parent()
             bsharp = B.b_sharp()
-            T = B.tensor(B)
+            T = B.tensor_product(B)
             H = B.local_energy_function(B)
             return H(T(self, bsharp)) - H(T(B.maximal_vector(), bsharp))
 
@@ -1183,7 +1183,7 @@ class LocalEnergyFunction(Map):
         self._B = B
         self._Bp = Bp
         self._R_matrix = self._B.R_matrix(self._Bp)
-        T = B.tensor(Bp)
+        T = B.tensor_product(Bp)
         self._known_values = {T(*[K.maximal_vector() for K in T.crystals]):
                               ZZ(normalization)}
         self._I0 = T.cartan_type().classical().index_set()

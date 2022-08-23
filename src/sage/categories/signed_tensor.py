@@ -53,7 +53,7 @@ class SignedTensorProductFunctor(CovariantFunctorialConstruction):
 
         sage: TestSuite(tensor_signed).run()
     """
-    _functor_name = "tensor"
+    _functor_name = "tensor_product"
     _functor_category = "SignedTensorProducts"
     symbol = " # "
     unicode_symbol = f" {unicode_otimes} "

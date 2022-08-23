@@ -1034,7 +1034,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         if rejects:
             return rejects
 
-    def tensor(self, *crystals, **options):
+    def tensor_product(self, *crystals, **options):
         """
         Return the tensor product of ``self`` with ``crystals``.
 
@@ -1061,7 +1061,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
             for B in crystals:
                 dims += B.dims
             return RiggedConfigurations(ct, dims)
-        return super(RiggedConfigurations, self).tensor(*crystals, **options)
+        return super().tensor_product(*crystals, **options)
 
     Element = KRRCSimplyLacedElement
 

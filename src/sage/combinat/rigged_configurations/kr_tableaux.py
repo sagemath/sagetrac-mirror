@@ -518,7 +518,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         """
         return self.kirillov_reshetikhin_crystal().classical_decomposition()
 
-    def tensor(self, *crystals, **options):
+    def tensor_product(self, *crystals, **options):
         """
         Return the tensor product of ``self`` with ``crystals``.
 
@@ -553,7 +553,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
                 elif isinstance(B, KirillovReshetikhinTableaux):
                     dims.append([B._r, B._s])
             return TensorProductOfKirillovReshetikhinTableaux(ct, dims)
-        return super(KirillovReshetikhinTableaux, self).tensor(*crystals, **options)
+        return super().tensor_product(*crystals, **options)
 
     @lazy_attribute
     def _tableau_height(self):
