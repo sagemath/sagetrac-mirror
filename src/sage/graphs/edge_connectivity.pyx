@@ -169,6 +169,19 @@ cdef class GabowEdgeConnectivity:
     cdef queue[pair[int, int]] joining_edges  # queue of tuples (edge id, edge state)
     cdef queue[int] incident_edges_Q  # queue of edges
 
+    # to store packed arborescences
+    cdef vector[vector[int]] arborescences # list of found arborescences
+    cdef vector[int] marked_edges 
+    cdef int *Arbor_edge
+    cdef int *dfs_edges
+    cdef int *A 
+    cdef int *inA
+    cdef int *inX
+    cdef int *marked_edge
+    cdef int* to
+    cdef int nexti = 1
+
+
     def __init__(self, G):
         r"""
         Initialize this object.
@@ -421,6 +434,59 @@ cdef class GabowEdgeConnectivity:
 
         self.L_roots[tree] = self.UNUSED
         self.tree_flag[tree] = False
+
+    cdef void compute_dfs_tree(self):
+        """
+        Find a DFS spanning forest of G \ T
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(5)
+            sage: GabowEdgeConnectivity(D).edge_connectivity()
+            4
+        """
+        # Mark all vertices as unvisited
+        for i in range(self.n):
+            self.visited[i] = False
+
+        for r in range(self.n):
+            if not self.visited[r]:
+                # Make this vertex the root of the following dfs tree
+                self.root[r] = r
+                # Make the f_tree rooted at this vertex active
+                self.forests[r] = True
+                # Find connected vertices of the f-tree rooted at r
+                self.find_dfs_tree(r, r)
+                # Each call of find_dfs_tree creates an f-tree
+                self.num_start_f_trees += 1
+    
+    cdef void find_dfs_tree(self, u, r):
+        """
+        Find more vertices of the f-tree rooted at r
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(5)
+            sage: GabowEdgeConnectivity(D).edge_connectivity()
+            4
+        """
+        # Mark vertex u as visited to avoid visiting it multiple times
+        self.visited[u] = True
+
+        # Visit outgoing arcs of current vertex
+        for e_id in self.g_out[u]:
+            v = self.my_to[e_id]
+            # Ensure a vertex is not visited, is not a proven k-intersection edge
+            # and root_vertex remains deficient
+            if not self.visited[v] and not self.T[e_id] and v != self.root_vertex:
+                # Make current vertex belong to the f_tree rooted at r
+                self.root[v] = r
+                self.forests[v] = False
+                self.my_edge_state[e_id] = self.current_tree
+                # recursively find more vertices and grow the subtree rooted at r
+                self.find_dfs_tree(v, r)
 
     cdef int choose_root(self):
         """
@@ -1011,29 +1077,107 @@ cdef class GabowEdgeConnectivity:
     #
 
 
-    cdef remove_unused_edges_from_G(self):
-
-        # just set all edges to nodes unused probably
+    cdef void remove_unused_edges_from_G(self):
 
         return
 
-    cdef release_used_edges(self):
+    cdef void release_used_edges(self):
+        for j in range(self.m):
+            self.my_edge_state[j] = self.UNUSED
         return
 
-    cdef G_minus_A(self):
+    cdef void G_minus_A(self):
+        for i in self.A_path:
+            print(i)
+
         return
+
+    cdef int period_step(self):
+        # if the arborescence is ready halt, else return a vertex v from A
+
+        cdef int v
+        cdef int i = 1
+   
+        self.init_set() # NOT IMPLEMENTED
+
+        if A[self.n] == 0:	# not all nodes in A
+  
+		    v = A[i]
+		    while self.inX[v] != 0:
+                i += 1
+			    v = A[i]
+		
+    		if v != 0:
+			    return v
+		
+		    else:
+	
+			    for i in range(self.m):
+				    if self.my_edge_state[i] == -1 and self.to[i] == 3:
+                        print("{} {}".format(from[i], to[i]))
+			
+			    exit(-1)
+		
+        else{
+  
+		    self.nexti = 2;	
+		    return 0;		 
+}
+
+    cdef int search_step(self, int edge):
+        return 1
 
     cdef find_tree(self):
+        cdef int v
+        cdef int found
+        cdef int e
+        cdef int success
         # this is where choose edge and period steps are
+        # fundamental cycle step and whatnot
+
+        #pseudocode, we need to empty A_path
+        for i in self.A_path:
+            i = 0 # empty
+
+        for i in range(self.m):
+            self.marked_edges[i] = self.UNUSED
+
+        self.A_path[0] = self.root
+
+        v = self.root
+        self.nexti = 2
+
+        while v != 0:
+            found = choose_edge_step(v)
+
+            if found == -2:
+                v = self.period_step() # success return we raised A
+            elif found == -1:
+                # inX[v] = 1 # the v node has all its edges marked, so we choose the first node in the period step
+                v = period_step()
+            else:
+                e = found # an edge at the T intersection is returned
+                success = self.search_step(e) # going to look for joining even to keep the T
+                if success == 0:
+				    merge_sets()
+				    self.marked_edge[e] = 1	  
+                else: # otherwise we add it to A
+                    self.Arbor_edge[e] = 1
+				    self.A[self.nexti] = to[e]
+                    self.nexti += 1
+				    self.inA[to[e]] = 1
+				    v = period_step()
+
         return
 
-    cdef packing_arboresences(self):
+    cdef void packing_arboresences(self):
         cdef int ntrees
         cdef int temp
         self.pa_checked = False
 
-        ntrees = self.construct_trees(False, 0) # find the value of K - intersection # not sure if this should be True or False
-        K = ntrees - 1
+        ntrees = self.construct_trees(False, 0) # find the value of K - intersection # check true or false based on reverse logic
+        print(ntrees)
+        K = ntrees - 1 # maybe just self.ec since should be same number
         if ntrees == 0:
             self.num_arborescences = 0
             self.pa_checked = True
@@ -1054,10 +1198,9 @@ cdef class GabowEdgeConnectivity:
             if temp < ntrees - 1:
                 print("Bad Case: Temp is {}".format(temp))
 
-                # pseudocode
-                for edge in edges:
+                for i in range(self.m):
                     # turn back edges
-                    e = self.UNUSED
+                    self.my_edge_state[i] = self.UNUSED
 
                 self.G_minus_A()
                 temp = construct_trees(False, 1)
@@ -1065,10 +1208,9 @@ cdef class GabowEdgeConnectivity:
                 self.G_minus_A()
             else:
                 print("Good Case.")
-                for edge in edges:
+                for i in range(self.m):
                     # reset dfs edges
-                    e = self.UNUSED
-
+                    self.my_edge_state[i] = self.UNUSED
             if K == 0:
                 print("packing done")
                 break
@@ -1076,10 +1218,8 @@ cdef class GabowEdgeConnectivity:
                 K -= 1
                 ntrees -= 1
 
-
         return
-
-
+        
     def edge_disjoint_spanning_trees(self):
         self.packing_arboresences()
         return
