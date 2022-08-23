@@ -1525,7 +1525,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: S.has_coerce_map_from(S2)
                 False
                 sage: S.an_element()
-                2*B[0] # B[1] + 3*B[0] # B[-2] + 2*B[0] # B[0]
+                3*B[0] # B[-2] + 2*B[0] # B[0] + 2*B[0] # B[1]
                 sage: S2(S.an_element())
                 2*B[0] # B[0] + 2*B[0] # B[1] + 3*B[0] # B[2]
 
