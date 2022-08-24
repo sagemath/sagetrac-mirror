@@ -1,1 +1,1 @@
-_bootstrap git pytest pytest_xdist
+_bootstrap git pytest pytest_xdist git_trac_command
