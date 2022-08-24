@@ -645,6 +645,19 @@ class Animation(WithEqualityById, SageObject):
             sage: td = tmp_dir()
             sage: a._gif_from_imagemagick(savefile=td + 'new.gif') # optional -- imagemagick
 
+        Check that :trac:`34204` is fixed (raise an error message when
+        the pathname head of the savefile does not exists)::
+
+            sage: sines = [plot(c*sin(x), (-2*pi,2*pi), color=Color(c,0,0),
+            ....:          ymin=-1, ymax=1) for c in srange(0,1,.1)]
+            sage: a = animate(sines)
+            sage: a._gif_from_imagemagick(savefile='animations/sines.gif')
+            Traceback (most recent call last):
+            ...
+            ValueError: The head (='.../animations') of the
+            pathname of the savefile (='.../animations/sines.gif')
+            does not exists. Please create that repository before.
+
         .. NOTE::
 
            If imagemagick is not installed, you will get an error message
@@ -664,6 +677,13 @@ class Animation(WithEqualityById, SageObject):
         if not savefile.endswith('.gif'):
             savefile += '.gif'
         savefile = os.path.abspath(savefile)
+
+        # Check existence of the pathname head of the savefile
+        head,tail = os.path.split(savefile)
+        if not os.path.exists(head):
+            raise ValueError("The head (='{}') of the pathname of the"
+                    " savefile (='{}') does not exists. Please create that"
+                    " repository before.".format(head, savefile))
 
         # running the command
         directory = self.png()
@@ -915,6 +935,19 @@ class Animation(WithEqualityById, SageObject):
             sage: a.ffmpeg(savefile=td + 'new.mpg', show_path=True) # optional -- ffmpeg
             Animation saved to .../new.mpg.
 
+        Check that :trac:`34204` is fixed (raise an error message when
+        the pathname head of the savefile does not exists)::
+
+            sage: sines = [plot(c*sin(x), (-2*pi,2*pi), color=Color(c,0,0),
+            ....:          ymin=-1, ymax=1) for c in srange(0,1,.1)]
+            sage: a = animate(sines)
+            sage: a.ffmpeg(savefile='animations/sines.gif')
+            Traceback (most recent call last):
+            ...
+            ValueError: The head (='.../animations') of the
+            pathname of the savefile (='.../animations/sines.gif')
+            does not exists. Please create that repository before.
+
         .. NOTE::
 
            If ffmpeg is not installed, you will get an error message
@@ -947,6 +980,15 @@ class Animation(WithEqualityById, SageObject):
                     output_format = '.mpg'
         if not savefile.endswith(output_format):
             savefile += output_format
+        savefile = os.path.abspath(savefile)
+
+        # Check existence of the pathname head of the savefile
+        head,tail = os.path.split(savefile)
+        if not os.path.exists(head):
+            raise ValueError("The head (='{}') of the pathname of the"
+                    " savefile (='{}') does not exists. Please create that"
+                    " repository before.".format(head, savefile))
+
         early_options = ''
         if output_format == '.gif':
             # We try to set reasonable options for gif output.
@@ -972,7 +1014,6 @@ class Animation(WithEqualityById, SageObject):
             ffmpeg_options += ' {0}{1}'.format(pix_fmt_cmd,loop_cmd)
         if delay is not None and output_format != '.mpeg' and output_format != '.mpg':
             early_options += ' -r %s ' % int(100/delay)
-        savefile = os.path.abspath(savefile)
         pngdir = self.png()
         pngs = os.path.join(pngdir, "%08d.png")
         # For ffmpeg, it seems that some options, like '-g ... -r
