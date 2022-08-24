@@ -73,18 +73,17 @@ Arithmetic with a point over an extension of a finite field::
     sage: P*(n+1)-P*n == P
     True
 
-Arithmetic over `\ZZ/N\ZZ` with composite `N` is supported.  When an
-operation tries to invert a non-invertible element, a
-ZeroDivisionError is raised and a factorization of the modulus appears
-in the error message::
+Arithmetic over `\ZZ/N\ZZ` with composite `N` is supported.
+This can be used to factor `N` using ECM-like techniques:
 
     sage: N = 1715761513
     sage: E = EllipticCurve(Integers(N),[3,-13])
     sage: P = E(2,1)
-    sage: LCM([2..60])*P
-    Traceback (most recent call last):
-    ...
-    ZeroDivisionError: Inverse of 1520944668 does not exist (characteristic = 1715761513 = 26927*63719)
+    sage: Q = LCM([2..60])*P
+    sage: ZZ(Q[2]).gcd(N)
+    26927
+    sage: N == 26927 * (N // 26927)
+    True
 
 AUTHORS:
 
@@ -772,34 +771,14 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field, Ellip
             return E(0)  # point at infinity
 
         if x1 == x2 and y1 == y2:
-            try:
-                m = (3*x1*x1 + 2*a2*x1 + a4 - a1*y1) / (2*y1 + a1*x1 + a3)
-            except ZeroDivisionError:
-                R = E.base_ring()
-                if R.is_finite():
-                    N = R.characteristic()
-                    N1 = N.gcd(Integer(2*y1 + a1*x1 + a3))
-                    N2 = N//N1
-                    raise ZeroDivisionError("Inverse of %s does not exist (characteristic = %s = %s*%s)" % (2*y1 + a1*x1 + a3, N, N1, N2))
-                else:
-                    raise ZeroDivisionError("Inverse of %s does not exist" % (2*y1 + a1*x1 + a3))
+            m = (3*x1*x1 + 2*a2*x1 + a4 - a1*y1) / (2*y1 + a1*x1 + a3)
         else:
-            try:
-                m = (y1-y2)/(x1-x2)
-            except ZeroDivisionError:
-                R = E.base_ring()
-                if R.is_finite():
-                    N = R.characteristic()
-                    N1 = N.gcd(Integer(x1-x2))
-                    N2 = N//N1
-                    raise ZeroDivisionError("Inverse of %s does not exist (characteristic = %s = %s*%s)" % (x1-x2, N, N1, N2))
-                else:
-                    raise ZeroDivisionError("Inverse of %s does not exist" % (x1-x2))
+            m = (y1 - y2) / (x1 - x2)
 
         x3 = -x1 - x2 - a2 + m*(m+a1)
         y3 = -y1 - a3 - a1*x3 + m*(x1-x3)
         # See trac #4820 for why we need to coerce 1 into the base ring here:
-        return E.point([x3, y3, E.base_ring()(1)], check=False)
+        return E.point([x3, y3, E.base_ring().one()], check=False)
 
     _sub_ = EllipticCurvePoint._sub_
     _neg_ = EllipticCurvePoint._neg_
