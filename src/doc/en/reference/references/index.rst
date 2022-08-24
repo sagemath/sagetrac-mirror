@@ -328,6 +328,11 @@ REFERENCES:
              Math., Combinatorics (T. S. Motzkin, ed.), vol. 19, AMS,
              Providence 1971
 
+.. [AS2019] \P. Alexandersson and M. Sawhney, "Properties of
+            Non-Symmetric Macdonald Polynomials at q = 1 and
+            q = 0", Ann. Comb. **23**, 219–239 (2019).
+            :doi:`10.1007/s00026-019-00432-z`
+
 .. [At1990] \M. D. Atkinson. *On computing the number of linear extensions of a
             tree.* Order 7 (1990) 20-25.
 

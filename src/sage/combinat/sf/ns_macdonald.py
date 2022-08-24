@@ -520,6 +520,33 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.coinv()
             2
+
+        Examples from [AS2019]_ Example 2.4::
+
+            sage: a = AugmentedLatticeDiagramFilling([[4, 3], [], [1], [2]], PermutationGroupElement([4, 2, 1, 3]))
+            sage: a.coinv()
+            0
+            sage: a = AugmentedLatticeDiagramFilling([[4, 4], [], [1], [2]], PermutationGroupElement([4, 2, 1, 3]))
+            sage: a.coinv()
+            0
+            sage: a = AugmentedLatticeDiagramFilling([[4, 2], [], [1], [3]], PermutationGroupElement([4, 2, 1, 3]))
+            sage: a.coinv()
+            1
+            sage: a = AugmentedLatticeDiagramFilling([[4, 4], [], [1], [3]], PermutationGroupElement([4, 2, 1, 3]))
+            sage: a.coinv()
+            0
+            sage: a = AugmentedLatticeDiagramFilling([[4, 3], [], [2], [1]], PermutationGroupElement([4, 2, 1, 3]))
+            sage: a.coinv()
+            1
+            sage: a = AugmentedLatticeDiagramFilling([[4, 4], [], [2], [1]], PermutationGroupElement([4, 2, 1, 3]))
+            sage: a.coinv()
+            1
+            sage: a = AugmentedLatticeDiagramFilling([[4, 1], [], [2], [3]], PermutationGroupElement([4, 2, 1, 3]))
+            sage: a.coinv()
+            2
+            sage: a = AugmentedLatticeDiagramFilling([[4, 4], [], [2], [3]], PermutationGroupElement([4, 2, 1, 3]))
+            sage: a.coinv()
+            0
         """
         shape = self.shape()
         return sum(shape.a(i, j) for i, j in shape.boxes()) - self.inv()
