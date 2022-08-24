@@ -669,9 +669,6 @@ class Animation(WithEqualityById, SageObject):
               https://www.imagemagick.org/.
 
         """
-        from sage.features.imagemagick import ImageMagick
-        ImageMagick().require()
-
         if not savefile:
             savefile = tmp_filename(ext='.gif')
         if not savefile.endswith('.gif'):
@@ -684,6 +681,9 @@ class Animation(WithEqualityById, SageObject):
             raise ValueError("The head (='{}') of the pathname of the"
                     " savefile (='{}') does not exists. Please create that"
                     " repository before.".format(head, savefile))
+
+        from sage.features.imagemagick import ImageMagick
+        ImageMagick().require()
 
         # running the command
         directory = self.png()
@@ -961,9 +961,6 @@ class Animation(WithEqualityById, SageObject):
 
             sage: a.ffmpeg(output_format='gif',delay=30,iterations=5)     # optional -- ffmpeg
         """
-        from sage.features.ffmpeg import FFmpeg
-        FFmpeg().require()
-
         if savefile is None:
             if output_format is None:
                 output_format = '.mpg'
@@ -1023,6 +1020,9 @@ class Animation(WithEqualityById, SageObject):
         # The `-nostdin` is needed to avoid the command to hang, see
         # https://stackoverflow.com/questions/16523746/ffmpeg-hangs-when-run-in-background
         cmd = 'cd "%s"; ffmpeg -nostdin -y -f image2 %s -i %s %s %s' % (pngdir, early_options, pngs, ffmpeg_options, savefile)
+
+        from sage.features.ffmpeg import FFmpeg
+        FFmpeg().require()
         from subprocess import check_call, CalledProcessError, PIPE
         try:
             if sage.misc.verbose.get_verbose() > 0:
