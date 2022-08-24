@@ -103,6 +103,7 @@ AUTHORS:
 - Mariah Lenox (March 2011) -- Added ``tate_pairing`` and ``ate_pairing``
   functions to ``EllipticCurvePoint_finite_field`` class
 
+- Lorenz Panny (2022): point addition over general rings
 """
 
 # ****************************************************************************
