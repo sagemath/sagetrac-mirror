@@ -3,7 +3,7 @@ cd src
 if [ "$CONDA_PREFIX" != "" ]; then
     # Quoted quotes so that whitespace in CONDA_PREFIX works correctly.
     # Below we run the command line through eval.
-    PILLOW_BUILD_EXT="$PILLOW_BUILD_EXT --disable-platform-guessing -I\"$CONDA_PREFIX/include\" -L\"$CONDA_PREFIX/lib\""
+    PILLOW_BUILD_EXT="$PILLOW_BUILD_EXT --disable-platform-guessing"
 fi
 
 PILLOW_BUILD_EXT="--debug --disable-jpeg $PILLOW_BUILD_EXT"
