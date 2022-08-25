@@ -1687,7 +1687,7 @@ class FreeQuadraticModule_submodule_field(
 #class RealDoubleQuadraticSpace_class(free_module.RealDoubleVectorSpace_class, FreeQuadraticModule_ambient_field):
 #    def __init__(self, dimension, inner_product_matrix, sparse=False):
 #        if sparse:
-#            raise NotImplementedError, "Sparse matrices over RDF not implemented yet"
+#            raise NotImplementedError("sparse matrices over RDF not implemented yet")
 #        free_module.RealDoubleVectorSpace_class.__init__(self, dimension=dimension, sparse=False)
 #        self._inner_product_matrix = inner_product_matrix
 
@@ -1695,7 +1695,7 @@ class FreeQuadraticModule_submodule_field(
 #    free_module.ComplexDoubleVectorSpace_class, FreeQuadraticModule_generic): #FreeQuadraticModule_ambient_field):
 #    def __init__(self, dimension, inner_product_matrix, sparse=False):
 #        if sparse:
-#            raise NotImplementedError, "Sparse matrices over CDF not implemented yet"
+#            raise NotImplementedError("sparse matrices over CDF not implemented yet")
 #        free_module.ComplexDoubleVectorSpace_class.__init__(self, dimension=dimension, sparse=False)
 #        self._inner_product_matrix = inner_product_matrix
 

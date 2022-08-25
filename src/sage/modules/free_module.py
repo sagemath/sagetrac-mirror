@@ -252,7 +252,7 @@ class FreeModuleFactory(UniqueFactory):
                  "of left/right and both sided modules, so be careful.\n"
                  "It's also not guaranteed that all multiplications are\n"
                  "done from the right side.")
-            #raise TypeError, "The base_ring must be a commutative ring."
+            # raise TypeError("the base_ring must be a commutative ring")
 
         try:
             if not sparse and isinstance(base_ring, sage.rings.abc.RealDoubleField):

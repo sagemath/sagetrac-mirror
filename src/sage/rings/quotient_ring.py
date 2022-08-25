@@ -276,8 +276,8 @@ def QuotientRing(R, I, names=None, **kwds):
     """
     # 1. Not all rings inherit from the base class of rings.
     # 2. We want to support quotients of free algebras by homogeneous two-sided ideals.
-    #if not isinstance(R, commutative_ring.CommutativeRing):
-    #    raise TypeError, "R must be a commutative ring."
+    # if not isinstance(R, commutative_ring.CommutativeRing):
+    #     raise TypeError("R must be a commutative ring")
     from sage.rings.finite_rings.integer_mod_ring import Integers
     from sage.rings.integer_ring import ZZ
     if R not in Rings():

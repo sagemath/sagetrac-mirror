@@ -175,7 +175,7 @@ def theta_by_cholesky(self, q_prec):
 
     """
     # RAISE AN ERROR -- This routine is deprecated!
-    #raise NotImplementedError, "This routine is deprecated.  Try theta_series(), which uses theta_by_pari()."
+    # raise NotImplementedError("this routine is deprecated")
 
     n = self.dim()
     theta = [0 for i in range(q_prec+1)]

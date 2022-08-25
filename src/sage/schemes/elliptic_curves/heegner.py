@@ -1368,17 +1368,17 @@ class GaloisAutomorphismComplexConjugation(GaloisAutomorphism):
         """
         return "Complex conjugation automorphism of %s"%self.domain()
 
-##     def __mul__(self, right):
-##         """
-##         Return the composition of two automorphisms.
+#     def __mul__(self, right):
+#         """
+#         Return the composition of two automorphisms.
 
-##         EXAMPLES::
+#         EXAMPLES::
 
-##             sage: ?
-##         """
-##         if self.parent() != right.__parent():
-##             raise TypeError, "automorphisms must be of the same class field"
-##         raise NotImplementedError
+#             sage: ?
+#         """
+#         if self.parent() != right.__parent():
+#             raise TypeError("automorphisms must be of the same class field")
+#         raise NotImplementedError
 
     def __invert__(self):
         """
@@ -1681,7 +1681,7 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
 ##         """
 ##         if isinstance(z, HeegnerPointOnX0N):
 ##             if z.ring_class_field() != self.domain():
-##                 raise NotImplementedError, "class fields must be the same"
+##                 raise NotImplementedError("class fields must be the same")
 ##             # TODO -- check more compatibilities?
 ##             # TODO -- this is surely backwards -- something must be inverted?
 ##             f = z.quadratic_form() * self.quadratic_form()

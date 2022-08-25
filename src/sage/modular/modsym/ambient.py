@@ -447,11 +447,11 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         if isinstance(x, free_module_element.FreeModuleElement):
             if x.degree() != self.dimension():
                 raise TypeError("Incompatible degrees: x has degree %s\
-                    but modular symbols space has dimension %s"%(
+                    but modular symbols space has dimension %s" % (
                     x.degree(), self.dimension()))
-            #if x.parent().base_ring() != self.base_ring():
-            #    raise TypeError, "Vector x is over %s, but modular symbols space is over %s."%(
-            #        x.parent().base_ring(), self.base_ring())
+            # if x.parent().base_ring() != self.base_ring():
+            #    raise TypeError("Vector x is over %s, but modular symbols space is over %s" % (
+            #        x.parent().base_ring(), self.base_ring()))
             return self.element_class(self, x)
 
         elif isinstance(x, (ManinSymbol, element.ModularSymbolsElement)):

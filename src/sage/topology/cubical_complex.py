@@ -1434,7 +1434,7 @@ class CubicalComplex(GenericCellComplex):
             NotImplementedError: suspensions are not implemented for cubical complexes
         """
 #         if n<0:
-#             raise ValueError, "n must be non-negative."
+#             raise ValueError("n must be non-negative")
 #         if n==0:
 #             return self
 #         if n==1:

@@ -11134,10 +11134,10 @@ class NumberField_cyclotomic(NumberField_absolute, sage.rings.abc.NumberField_cy
 ##             self_gen = -self_gen
 
 ##         if only_canonical and m % n:
-##             raise TypeError, "no canonical coercion"
+##             raise TypeError("no canonical coercion")
 
 ##         if not is_CyclotomicField(K):
-##             raise TypeError, "x must be in a cyclotomic field"
+##             raise TypeError("x must be in a cyclotomic field")
 
 ##         v = x.list()
 
@@ -11160,7 +11160,7 @@ class NumberField_cyclotomic(NumberField_absolute, sage.rings.abc.NumberField_cy
 ##         for i in range(len(v)):
 ##             if i%r:
 ##                 if v[i]:
-##                     raise TypeError, "element does not belong to cyclotomic field"
+##                     raise TypeError("element does not belong to cyclotomic field")
 ##             else:
 ##                 a += w*v[i]
 ##                 w *= z

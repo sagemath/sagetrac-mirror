@@ -3170,7 +3170,7 @@ cdef class CommutativeRingElement(RingElement):
         from sage.rings.ideal import is_Ideal
         if not is_Ideal(I) or not I.ring() is self._parent:
             I = self._parent.ideal(I)
-            #raise TypeError, "I = %s must be an ideal in %s"%(I, self.parent())
+            # raise TypeError(f"I = {I} must be an ideal in {self.parent()}")
         return I.reduce(self)
 
     ##################################################

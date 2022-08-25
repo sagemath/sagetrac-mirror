@@ -160,8 +160,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
         """
         if i in self:
             return self.from_integer(i)
-        else:
-            raise ValueError("Value %s in not in %s."%(i, self))
+        raise ValueError("Value %s in not in %s." % (i, self))
 
     from_integer = Integer
 
@@ -180,9 +179,10 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
         while True:
             yield self.from_integer(i)
             i += 1
-            # Uncomment the following two lines to catch infinite loops when debugging
-            #if i > 200:
-            #    raise ValueError, "Infinite loop during DEBUG! TODO: remove me"
+            # Uncomment the following two lines to catch infinite
+            # loops when debugging
+            # if i > 200:
+            #     raise ValueError("Infinite loop during DEBUG!")
 
     def an_element(self):
         """

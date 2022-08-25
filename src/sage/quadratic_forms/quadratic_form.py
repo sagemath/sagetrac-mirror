@@ -906,7 +906,7 @@ class QuadraticForm(SageObject):
 #        try:
 #            c = self.base_ring()(right)
 #        except Exception:
-#            raise TypeError, "Oh no! The multiplier cannot be coerced into the base ring of the quadratic form. =("
+#            raise TypeError("the multiplier cannot be coerced into the base ring of the quadratic form")
 #
 #        return QuadraticForm(self.base_ring(), self.dim(), [c * self.__coeffs[i]  for i in range(len(self.__coeffs))])
 # =========================================================================================================================
@@ -1539,8 +1539,7 @@ class QuadraticForm(SageObject):
             # Warn the user if the form is defined over a field!
             if self.base_ring().is_field():
                 warn("Warning -- The level of a quadratic form over a field is always 1.  Do you really want to do this?!?")
-                #raise RuntimeError, "Warning -- The level of a quadratic form over a field is always 1.  Do you really want to do this?!?"
-
+                # raise RuntimeError("Warning -- The level of a quadratic form over a field is always 1.  Do you really want to do this?!?")
 
             # Check invertibility and find the inverse
             try:

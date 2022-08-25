@@ -81,7 +81,7 @@ class AbelianGroupMorphism(Morphism):
 #Traceback (most recent call last):
 #  File "<ipython console>", line 1, in ?
 #  File ".abeliangp_hom.sage.py", line 737, in __init__
-#    raise TypeError, "Sorry, the orders of the corresponding elements in %s, %s must be equal."%(genss,imgss)
+#    raise TypeError("Sorry, the orders of the corresponding elements in %s, %s must be equal."%(genss,imgss))
 #TypeError: Sorry, the orders of the corresponding elements in [a*b, a*c], [x, y] must be equal.
 #
 #        sage: phi = AbelianGroupMorphism_im_gens(G,H,[a*b,(a*c)^2],[x*y,y])
@@ -89,8 +89,8 @@ class AbelianGroupMorphism(Morphism):
 #Traceback (most recent call last):
 #  File "<ipython console>", line 1, in ?
 #  File ".abeliangp_hom.sage.py", line 730, in __init__
-#    raise TypeError, "Sorry, the list %s must generate G."%genss
-#TypeError: Sorry, the list [a*b, c^2] must generate G.
+#    raise TypeError("Sorry, the list %s must generate G" % genss)
+#TypeError: Sorry, the list [a*b, c^2] must generate G
 
     def __init__(self, G, H, genss, imgss):
         from sage.categories.homset import Hom

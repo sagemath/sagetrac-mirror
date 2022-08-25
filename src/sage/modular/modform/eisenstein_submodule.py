@@ -566,12 +566,12 @@ class EisensteinSubmodule_eps(EisensteinSubmodule_params):
 
     """
     # TODO
-    #def _compute_q_expansion_basis(self, prec):
-        #B = EisensteinSubmodule_params._compute_q_expansion_basis(self, prec)
-        #raise NotImplementedError, "must restrict scalars down correctly."
+    # def _compute_q_expansion_basis(self, prec):
+    # B = EisensteinSubmodule_params._compute_q_expansion_basis(self, prec)
+    # raise NotImplementedError("must restrict scalars down correctly")
 
 
-def cyclotomic_restriction(L,K):
+def cyclotomic_restriction(L, K):
     r"""
     Given two cyclotomic fields L and K, compute the compositum
     M of K and L, and return a function and the index [M:K]. The
