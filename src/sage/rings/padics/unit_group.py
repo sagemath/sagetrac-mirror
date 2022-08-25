@@ -1,4 +1,14 @@
+r"""
+Unit groups of p-adic fields
 
+EXAMPLES::
+
+   sage: x = polygen(QQ)
+   sage: f = x^6 + 3*x^3 + 3
+   sage: K.<a> = Qp(3).ext(f)
+   sage: U = pAdicUnitGroup(K)
+   sage: 
+"""
 
 from sage.groups.abelian_gps.values import AbelianGroupWithValues_class, AbelianGroupWithValuesElement
 from sage.misc.cachefunc import cached_method
@@ -461,6 +471,22 @@ class pAdicUnitGroup(AbelianGroupWithValues_class, UniqueRepresentation):
         return level, s1, s2, s3
 
     def _additive_reducer(self, level):
+        """
+        Returns various data used in computing discrete logs
+
+        INPUT:
+
+        - ``level`` -- a positive integer
+
+        OUTPUT:
+
+        - ``reducer`` -- a change of basis matrix between the standard basis
+           of ``(1+P^v)/(1+P^(v+1))`` and the appropriate power of the
+           fundamental level.
+        - ``flevel`` -- the fundamental level corresponding to ``level``
+        - ``s1`` -- the number of `p`th powers needed to go from the fundamental level to the cutoff.
+        - ``s2`` -- `0` or 
+        """
         k, V = self.k, self.V
         p, eps = self.p, k(self.eps)
         flevel, s1, s2, s3 = self._fundamental_level(level)
@@ -481,13 +507,47 @@ class pAdicUnitGroup(AbelianGroupWithValues_class, UniqueRepresentation):
 
     def _index(self, level, i=0):
         """
+        Returns the index in the list of generators given a fundamental level and a shift (corresponding to fixing one of the `f` generators at that level).
+
         INPUT:
 
         - ``level`` -- a fundamental level
+        - ``i`` -- an integer between `0` and `f-1`
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: f = x^6 + 3*x^3 + 3
+            sage: K.<w> = Qp(3).ext(f)
+            sage: U = pAdicUnitGroup(K)
+            sage: [U._index(level) for level in [1,2,4,5,7,8]]
+            [0, 1, 2, 3, 4, 5]
         """
         return ((level-1) - (level-1) // self.p) * self.f + i
 
     def _compute_order(self, level, prec, max_s1=None, extra_pi=0):
+        """
+        Compute the order of a generator `u` of specified level at a given precision.
+
+        INPUT:
+
+        - ``level`` -- The valuation of `u-1`
+        - ``prec`` -- The precision at which a power of `u` is considered `1`.
+        - ``max_s1`` -- ``log_p(floor(cutoff/level))``, computed if not provided.
+        - ``extra_pi`` -- Extra valuation obtained when pth powering past the cutoff.
+          Can only be nonzero for fundamental level `e_0`.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: f = x^6 + 3*x^3 + 3
+            sage: K.<w> = Qp(3).ext(f)
+            sage: U = pAdicUnitGroup(K)
+            sage: U._compute_order(2, 12)
+            9
+            sage: (1 + w^2)^9
+            1 + 2*w^12 + ...
+        """
         p, e, cutoff = self.p, self.e, self.cutoff_floor
         if level >= prec:
             return ZZ(1)
@@ -501,8 +561,43 @@ class pAdicUnitGroup(AbelianGroupWithValues_class, UniqueRepresentation):
             return p**(1 + max_s1 + (prec - 1 - extra_pi - level * p**max_s1)//e)
 
     def gens_orders(self, prec=None):
+        """
+        Returns the orders of the generators.
+
+        INPUT:
+
+        - ``prec`` -- Non-negative integer or ``None``.  If given,
+          will return the order of the generators modulo the ``prec``
+          power of the uniformizer.
+
+        OUTPUT:
+
+        A tuple of integers, each giving the order of the corresponding
+        entry of the :meth:`gens` method.  As usual, zero indicates
+        infinite order.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: f = x^6 + 3*x^3 + 3
+            sage: K.<w> = Qp(3).ext(f)
+            sage: U = pAdicUnitGroup(K)
+
+        If no precision given, returns the mathematical orders of the elements::
+
+            sage: U.gens_orders()
+            (2, 3, 0, 0, 0, 0, 0, 0, 0)
+
+        When a precision is given, the order of each generator
+        up to that precision is returned::
+
+            sage: U.gens_orders(9)
+            (2, 3, 9, 9, 9, 3, 3, 3, 0)
+            sage: U.gen(2)^9
+            1 + 2*w^13 + ...
+        """
         if prec is None:
-            # We're modeling a group that has infinite order elements, but every element has
+            # We're modeling a group that has infinite order elements, but elements have
             # finite order at finite precision.  When no precision is specified, we return
             # the mathematical orders
             return self._gens_orders
@@ -525,16 +620,54 @@ class pAdicUnitGroup(AbelianGroupWithValues_class, UniqueRepresentation):
             orders = [resorder] + orders
         if self._field:
             orders = orders + [ZZ(0)]
-        return orders
+        return tuple(orders)
 
     @property
     def _pbasis_gens(self):
+        """
+        Stores the generators in the basis of 1+P as elements of this group.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: f = x^6 + 3*x^3 + 3
+            sage: K.<w> = Qp(3).ext(f)
+            sage: U = pAdicUnitGroup(K)
+            sage: B = U._pbasis_gens; B
+            [1 + 2*w + O(w^120),
+             1 + w^2 + O(w^120),
+             1 + w^4 + O(w^120),
+             1 + w^5 + O(w^120),
+             1 + w^7 + O(w^120),
+             1 + w^8 + O(w^120),
+             1 + w^9 + O(w^120)]
+            sage: all(b.parent() is U for b in B)
+            True
+        """
         return [self(u) for u in self._pbasis]
 
     def gens_level(self, level):
         """
         Returns a list of generators for the group of units ``u`` with
         ``(u-1).valuation() >= level``.
+
+        INPUT:
+
+        - ``level`` -- a non-negative integer
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: f = x^6 + 3*x^3 + 3
+            sage: K.<w> = Qp(3).ext(f)
+            sage: U = pAdicUnitGroup(K)
+            sage: U.gens_level(5)
+            [1 + w^6 + 2*w^8 + 2*w^10 + w^11 + w^13 + O(w^120),
+             1 + 2*w^10 + w^12 + w^13 + 2*w^14 + w^17 + O(w^120),
+             1 + w^5 + O(w^120),
+             1 + w^7 + O(w^120),
+             1 + w^8 + O(w^120),
+             1 + w^9 + O(w^120)]
         """
         if level < 0:
             raise ValueError("level must be non-negative")
@@ -552,8 +685,33 @@ class pAdicUnitGroup(AbelianGroupWithValues_class, UniqueRepresentation):
             gens = [u**a for u,a in zip(self._pbasis_gens, exponents) if a is not None]
         return gens
 
-class pAdicUnitSubgroup(AbelianGroupWithValues_class, UniqueRepresentation):
-    def __classcall__(cls, U, gens=[], level=None, names=None, check=True):
-        gens = [U(gen) for gen in gens]
-        if level is not None:
-            gens.extend(U.gens_level(level))
+    def _repr_(self):
+        """
+        Print representation.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: f = x^6 + 3*x^3 + 3
+            sage: K.<w> = Qp(3).ext(f)
+            sage: U = pAdicUnitGroup(K)
+            sage: U # indirect doctest
+            Unit group with structure Z/2 x Z/3 x Z x Z3^6 of 3-adic Eisenstein Extension Field in w defined by x^6 + 3*x^3 + 3
+        """
+        structure = ""
+        if self.q != 2:
+            structure += ' x Z/%d' % (self.q-1)
+            ps = self._gens_orders[1]
+        else:
+            ps = self._gens_orders[0]
+        if ps > 1:
+            structure += ' x Z/%d' % ps
+        if self._field:
+            structure += ' x Z'
+            ring = self.K
+        else:
+            ring = self.OK
+        structure += ' x Z%d^%d' % (self.p, self.n)
+        structure = structure[3:]
+        return "Unit group with structure %s of %s" % (structure, ring)
+
