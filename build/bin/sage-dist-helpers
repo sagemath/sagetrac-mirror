@@ -70,8 +70,9 @@
 #    Runs `pip uninstall` with the given arguments.  If unsuccessful, it displays a warning.
 #
 # - eval sdh_prefix_args PREFIX [...]
+# - eval sdh_prefix_args_equals_unquoted PREFIX [...]
 #
-#    Helper function for transforming build options so that they can be passed
+#    Helper functions for transforming build options so that they can be passed
 #    through "pip".
 #
 # - sdh_cmake [...]
@@ -233,6 +234,15 @@ sdh_prefix_args () {
     while [ $# -gt 0 ]; do
         # Quoted quotes because the result is to be run through eval
         echo "$prefix" \"$1\"
+        shift
+    done
+}
+
+sdh_prefix_args_equals_unquoted () {
+    prefix="$1"
+    shift
+    while [ $# -gt 0 ]; do
+        echo "$prefix=$1"
         shift
     done
 }
