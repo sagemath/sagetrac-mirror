@@ -74,7 +74,7 @@ def solid_angle_simplicial_2d(A):
         1/3
 
         sage: solid_angle_simplicial_2d([[1.0, 0.0], [0.0, 1.0]])
-        0.25
+        0.250000000000000
 
         sage: RDF(solid_angle_simplicial_2d([[2, 13], [-1, 7]]))  # abs tol 1e-15
         0.04687851282419763
@@ -84,7 +84,7 @@ def solid_angle_simplicial_2d(A):
     between the two rays::
 
         sage: solid_angle_simplicial_2d([[1.0, 0.0], [-1.0, -1.0]])
-        0.375
+        0.375000000000000
 
     TESTS:
 
@@ -155,10 +155,11 @@ def solid_angle_simplicial_2d(A):
     b = v.norm()
     cs = p/(a*b)
     final_calc = arccos(cs) / (2*pi)
-        if P.is_exact():
+    if P.is_exact():
         return SymbolicSubring(no_variables=True)(final_calc)
     else:
         return P(final_calc)
+
 
 def solid_angle_2d(A):
     r"""
@@ -221,10 +222,6 @@ def solid_angle_2d(A):
     The following examples illustrate how the solid angle measure can equal
     `1`. That is, the span of the rays is all of space.::
 
-        sage: A = matrix([[1,1],[0,-1],[-1,-1],[-3,0]])
-        sage: solid_angle_2d(A)
-        1
-
         sage: A = matrix([[0.2,0.2],[0,-1],[-1,-1],[-3,0]])
         sage: solid_angle_2d(A)
         1.00000000000000
@@ -251,30 +248,32 @@ def solid_angle_2d(A):
         A = matrix(A)
     P = A.base_ring()
     if A.rank() < 2:
-        import sage.rings.abc
         if P.is_exact():
-            return SymbolicSubring(no_variables=True)(ZZ(0))
+            return SymbolicSubring(no_variables=True)(0)
         else:
             return P.zero()
     if A.nrows() == 2:
         return solid_angle_simplicial_2d(A)
     else:
+        # check if half-plane
         d = A.nrows()
         v = matrix([A[i]/A[i].norm() for i in range(d)])
         for i in range(d-1):
             for j in range(i+1, d):
                 if v[i] == -v[j]:
-                    ab = vector([-v[i][1], v[i][0]])
-                    if all(A[k] * ab >= 0 for k in range(d)) or \
-                       all(A[k] * ab <= 0 for k in range(d)):
-                        import sage.rings.abc
-                        from sage.rings.rational_field import QQ
-                        if P.is_exact() or isinstance(P, sage.rings.abc.SymbolicRing):
-                            return SymbolicSubring(no_variables=True)(QQ(1/2))
+                    normal_vec = vector([-v[i][1], v[i][0]])
+                    if all(A[k] * normal_vec >= 0 for k in range(d)) or \
+                       all(A[k] * normal_vec <= 0 for k in range(d)):
+                        if P.is_exact():
+                            return SymbolicSubring(no_variables=True)(1/2)
                         else:
-                            return P.one()/2.
+                            return P.one()/2
                     else:
-                        return P.one()
+                        if P.is_exact():
+                            return SymbolicSubring(no_variables=True)(1)
+                        else:
+                            return P.one()
+        # check if whole plane
         for k in range(1, d):
             if v[0] * v[k] < 0:
                 for j in range(1, d):
@@ -283,8 +282,11 @@ def solid_angle_2d(A):
                            -a * v[0][1] - b * v[k][1] - v[j][1] == 0,
                            a >= 0,
                            b >= 0)
-                    if len(solve(eqn, (a, b))) != 0:
-                        return P.one()
+                    if solve(eqn, (a, b)):
+                        if P.is_exact():
+                            return SymbolicSubring(no_variables=True)(1)
+                        else:
+                            return P.one()
         A_list = simplicial_subcones_decomposition(A)
         logging.info('Decompose into simplicial subcones\n' +
                      ',\n'.join('{}'.format(Ai) for Ai in A_list))
