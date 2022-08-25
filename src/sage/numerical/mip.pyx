@@ -1031,8 +1031,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         OUTPUT:
 
-        A :func:`Polyhedron` object whose `i`-th variable represents the `i`-th
-        variable of ``self``.
+        A :func:`Polyhedron` object whose `i`-th coordinate represents the `i`-th
+        backend variable of ``self``. The attribute ``_names`` contains the names of
+        the variables.
 
         .. warning::
 
@@ -1060,6 +1061,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(0 <= 3*p['y'] + p['x'] <= 2)
             sage: P = p.polyhedron(); P
             A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 4 vertices
+            sage: P._names
+            ['x_0', 'x_1']
 
         3-D Polyhedron::
 
@@ -1069,6 +1072,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(0 <= 2*p['z'] + p['x'] + 3*p['y'] <= 1)
             sage: P = p.polyhedron(); P
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 8 vertices
+            sage: P._names
+            ['x_0', 'x_1', 'x_2']
 
         An empty polyhedron::
 
@@ -1079,6 +1084,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(2*v['z'] + v['x'] + 3*v['y'] >= 2)
             sage: P = p.polyhedron(); P
             The empty polyhedron in RDF^3
+            sage: P._names
+            ['x_0', 'x_1', 'x_2']
 
         An unbounded polyhedron::
 
@@ -1086,6 +1093,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(2*p['x'] + p['y'] - p['z'] <= 1)
             sage: P = p.polyhedron(); P
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 1 vertex, 1 ray, 2 lines
+            sage: P._names
+            ['x_0', 'x_1', 'x_2']
 
         A square (see :trac:`14395`) ::
 
@@ -1097,6 +1106,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint( y >= -1 )
             sage: p.polyhedron()
             A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 4 vertices
+            sage: P._names
+            ['x_0', 'x_1', 'x_2']
 
         We can also use a backend that supports exact arithmetic::
 
@@ -1108,6 +1119,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint( y >= -1 )
             sage: p.polyhedron()
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+            sage: P._names
+            ['x_0', 'x_1', 'x_2']
 
         TESTS:
 
@@ -1152,9 +1165,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 linear_function.insert(0,ub)
                 inequalities.append(linear_function)
 
-        # Variable bounds
+        # Variable bounds and names
         zero = [0] * nvar
-        for 0<= i < nvar:
+        names = []
+        for 0 <= i < nvar:
             lb, ub = b.col_bounds(i)
             # Fixed variable
             if (not lb is None) and lb == ub:
@@ -1175,7 +1189,15 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 linear_function[i] = -1
                 linear_function.insert(0,ub)
                 inequalities.append(linear_function)
-        return Polyhedron(ieqs = inequalities, eqns = equalities, **kwds)
+            name = b.col_name(i)
+            if not name:
+                # same default as used in "show"
+                name = str(self.linear_functions_parent()({i: 1}))
+            names.append(name)
+
+        polyhedron = Polyhedron(ieqs=inequalities, eqns=equalities, **kwds)
+        polyhedron._names = names
+        return polyhedron
 
     def show(self):
         r"""
@@ -1247,7 +1269,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         # varid_name associates variables id to names
         varid_name = {}
         varid_explainer = {}
-        for 0<= i < b.ncols():
+        for 0 <= i < b.ncols():
             s = b.col_name(i)
             default_name = str(self.linear_functions_parent()({i: 1}))
             if s and s != default_name:
@@ -1260,7 +1282,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         print("Maximization:" if b.is_maximization() else "Minimization:")
         print(" ", end=" ")
         first = True
-        for 0<= i< b.ncols():
+        for 0 <= i< b.ncols():
             c = b.objective_coefficient(i)
             if c == 0:
                 continue

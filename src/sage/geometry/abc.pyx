@@ -79,3 +79,29 @@ class Polyhedron:
     """
 
     pass
+
+
+class PolyhedronFace:
+    r"""
+    Abstract base class for :class:`~sage.geometry.polyhedron.base.Polyhedron_base`
+
+    This class is defined for the purpose of ``isinstance`` tests.  It should not be
+    instantiated.
+
+    EXAMPLES::
+
+        sage: import sage.geometry.abc
+        sage: P = polytopes.cube()                                            # optional - sage.geometry.polyhedron
+        sage: isinstance(P, sage.geometry.abc.Polyhedron)                     # optional - sage.geometry.polyhedron
+        True
+
+    By design, there is a unique direct subclass::
+
+        sage: sage.geometry.abc.Polyhedron.__subclasses__()                   # optional - sage.geometry.polyhedron
+        [<class 'sage.geometry.polyhedron.base0.Polyhedron_base0'>]
+
+        sage: len(sage.geometry.abc.Polyhedron.__subclasses__()) <= 1
+        True
+    """
+
+    pass
