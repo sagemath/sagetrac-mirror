@@ -97,6 +97,24 @@ cdef class GBElement:
             return rich_to_bool(op, 0)
         return richcmp(self.elt, (<GBElement> other).elt, op)
 
+    def __len__(self):
+        """
+        Return the length of ``self``, which is the number of terms in the
+        underlying element.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.exterior_algebra_groebner import GBElement
+            sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
+            sage: X = GBElement(a, a.leading_support(), 1)
+            sage: len(X)
+            1
+            sage: Y = GBElement(a*b + b + a + 2, (a*b).leading_support(), 3)
+            sage: len(Y)
+            4
+        """
+        return len(self.elt)
+
 cdef class GroebnerStrategy:
     """
     A strategy for computing a Gröbner basis.
@@ -223,6 +241,7 @@ cdef class GroebnerStrategy:
         """
         Perform the preprocessing step.
         """
+        print("starting preprocessing")
         cdef GBElement f, g, f0, f1
         cdef set additions
 
@@ -244,6 +263,8 @@ cdef class GroebnerStrategy:
             additions = set((<GBElement> f).elt._mul_self_term(t, one) for t in self.E._indices for f in L)
             L.update(self.build_elt(f) for f in additions if f)
 
+        print("finished S-polynomial computation")
+
         cdef set done = set((<GBElement> f).ls for f in L)
         cdef set monL = set()
         for f in L:
@@ -263,27 +284,129 @@ cdef class GroebnerStrategy:
                     monL.update(set(f.elt._monomial_coefficients) - done)
                     L.add(f)
                     break
+        print("finished preprocessing")
         return L
 
     cdef inline list reduction(self, list P, list G):
         """
         Perform the reduction of ``P`` mod ``G`` in ``E``.
         """
+        print("starting reduction")
         cdef set L = self.preprocessing(P, G)
+        cdef set lead_supports = set((<GBElement> f).lsi for f in L)
         cdef Py_ssize_t i
-        from sage.matrix.constructor import matrix
-        cdef Integer r = Integer(2) ** self.rank - Integer(1) # r for "rank" or "reverso"
-        M = matrix({(i, r - self.bitset_to_int(<FrozenBitset> m)): c
-                    for i,f in enumerate(L)
-                    for m,c in (<GBElement> f).elt._monomial_coefficients.items()},
-                   sparse=True)
-        M.echelonize()  # Do this in place
-        lead_supports = set((<GBElement> f).lsi for f in L)
-        return [GBElement(self.E.element_class(self.E, {self.int_to_bitset(r - Integer(j)): c for j,c in M[i].iteritems()}),
-                          self.int_to_bitset(Integer(r - p)),
-                          Integer(r - p))
-                for i, p in enumerate(M.pivots())
-                if r - Integer(p) not in lead_supports]
+        cdef GBElement f, g
+        cdef list modified
+        cdef Integer ind, k
+
+        # Perform the echelonization
+        # Here we are assuming the base ring is a field
+        print(f"echelonizing a matrix with {len(L)} nonzero entries")
+
+        #from sage.matrix.constructor import matrix
+        #mat = matrix({(i, r - self.bitset_to_int(<FrozenBitset> m)): c
+        #             for i,f in enumerate(sorted(L, key=lambda f: (<GBElement> f).lsi, reverse=True))
+        #             for m,c in (<GBElement> f).elt._monomial_coefficients.items()},
+        #             sparse=True)
+        #print(mat)
+        #from sage.repl.rich_output.pretty_print import show
+        #suppM = matrix({c: 1 for c in mat.support()})
+        #show(suppM.plot(figsize=20, aspect_ratio=1))
+
+        cdef dict M = {}
+        for f in L:
+            if f.lsi in M:
+                M[f.lsi].append(f)
+            else:
+                M[f.lsi] = [f]
+        modified = list(M)
+        cdef set new_mod
+        cdef dict mc, Mp, temp
+        cdef list cur
+        while modified:
+            sig_check()
+
+            # We first take care of everything that we know is a pivot
+            #   by getting rid of all other entries in the column.
+            # There are likely to be many such pivots relative to the
+            #   number of columns to reduce during each pass.
+            modified.sort()
+            new_mod = set()
+            print("  echelon: going back up on {} columns".format(sum(1 for k in modified if len(M[k]) == 1)))
+            for i, ind in enumerate(modified):
+                sig_check()
+                if len(M[ind]) != 1:
+                    new_mod.add(ind)
+                    continue
+                f = <GBElement> (M[ind][0])
+                f.elt *= ~f.elt._monomial_coefficients[f.ls]
+                mc = f.elt._monomial_coefficients
+                #assert mc[f.ls] == 1
+                for k in modified[i+1:]:
+                    for g in M[k]:
+                        cp = g.elt[f.ls]
+                        if cp:
+                            # TODO: Make it so we can just modify g.elt directly
+                            temp = dict(g.elt._monomial_coefficients)
+                            iaxpy(-cp, mc, temp)
+                            g.elt = self.E.element_class(self.E, temp)
+
+            modified = list(new_mod)
+            new_mod = set()
+            Mp = {}
+            print(f"  echelon: performing pass on {modified}")
+
+            # TODO: This could likely be amde so some computations are done in parallel
+            for ind in modified:
+                sig_check()
+                # We row reduce by the entry with the most number of non-zero entries
+                # We check and remove any poential duplicate entries
+                cur = sorted(set(M[ind]), key=len)
+                f = cur.pop()
+                f.elt *= ~f.elt._monomial_coefficients[f.ls]
+                mc = f.elt._monomial_coefficients
+                M[ind] = [f]
+                for f in cur:
+                    # We shouldn't need to make a copy, but somehow data is being shared unexpectedly
+                    temp = dict(f.elt._monomial_coefficients)
+                    f = GBElement(self.E.element_class(self.E, temp), f.ls, f.lsi)
+                    iaxpy(-f.elt[f.ls], mc, f.elt._monomial_coefficients)
+                    if not f.elt._monomial_coefficients:
+                        continue
+                    k = <Integer> max(self.bitset_to_int(k) for k in f.elt._monomial_coefficients)
+                    f.lsi = k
+                    f.ls = self.int_to_bitset(k)
+                    c = f.elt._monomial_coefficients[f.ls]
+                    for X in f.elt._monomial_coefficients:
+                        f.elt._monomial_coefficients[X] /= c
+                    if f.lsi in Mp:
+                        Mp[f.lsi].append(f)
+                    else:
+                        Mp[f.lsi] = [f]
+                    new_mod.add(f.lsi)
+            for ind in Mp:
+                if ind in M:
+                    M[ind].extend(Mp[ind])
+                else:
+                    M[ind] = Mp[ind]
+            new_mod.difference_update(modified)
+            modified.extend(new_mod)
+
+            print(f"  echelon: one pass completed; {len(modified)} remaining")
+
+        #assert all(len(M[k]) == 1 for k in M)
+
+        #mat = matrix({(i, r - self.bitset_to_int(<FrozenBitset> m)): c
+        #             for i,f in enumerate(sorted(sum(M.values(), []), key=lambda f: (<GBElement> f).lsi, reverse=True))
+        #             for m,c in (<GBElement> f).elt._monomial_coefficients.items()},
+        #             sparse=True)
+        #from sage.repl.rich_output.pretty_print import show
+        #suppM = matrix({c: 1 for c in mat.support()})
+        #show(suppM.plot(figsize=20, aspect_ratio=1))
+
+
+        return sum((M[k] for k in M if k not in lead_supports), [])
+
 
     def compute_groebner(self, reduced=True):
         r"""
@@ -315,6 +438,8 @@ cdef class GroebnerStrategy:
         cdef list G = [], Gp
         cdef dict constructed = {}
         cdef CliffordAlgebraElement f
+
+        print("starting computation")
 
         for f in self.ideal.gens():
             if not f:  # Remove 0s
@@ -362,9 +487,11 @@ cdef class GroebnerStrategy:
 
         while P:
             sig_check()
+            print("selection")
             Pp = P.pop(min(P))  # The selection: lowest lcm degree
             Gp = self.reduction(Pp, G)
             # Add the elements Gp to G when a new element is found
+            print("finished reduction; adding to G")
             for f0 in Gp:
                 if f0.lsi in constructed:
                     if f0 in constructed[f0.lsi]: # Already there
@@ -450,7 +577,7 @@ cdef class GroebnerStrategy:
             sage: I._groebner_strategy.groebner_basis
             (x*y, x*z, y*z + x)
         """
-        if self.groebner_basis == [(None,)]:
+        if self.groebner_basis == (None,):
             raise ValueError("Gröbner basis not yet computed")
         cdef list G = [self.build_elt(f) for f in self.groebner_basis]
         self.reduced_gb(G)
