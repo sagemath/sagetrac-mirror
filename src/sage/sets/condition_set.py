@@ -3,7 +3,7 @@ Subsets of a Universe Defined by Predicates
 """
 
 # ****************************************************************************
-#       Copyright (C) 2021 Matthias Koeppe
+#       Copyright (C) 2021-2022 Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -509,3 +509,23 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
         for x in self._universe:
             if x in self:
                 yield x
+
+    @cached_method
+    def _polyhedron_and_predicates(self, **kwds):
+        r"""
+
+        """
+        try:
+            universe_polyhedron = self._universe.as_polyhedron()
+        except (AttributeError, NotImplementedError):
+            raise ValueError(f'{self} has a non-polyhedral universe')
+        nonlinear_predicates = []
+        if self._predicates:
+            raise NotImplementedError
+        return universe_polyhedron, nonlinear_predicates
+
+    def as_polyhedron(self, **kwds):
+        polyhedron, predicates = self._polyhedron_and_predicates(**kwds)
+        if predicates:
+            raise ValueError(f'{self} has predicates that are not symbolic linear: {predicates}')
+        return polyhedron
