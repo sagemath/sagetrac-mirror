@@ -875,7 +875,7 @@ class MathematicaElement(ExpectElement):
         # (locals takes priority)
         lsymbols = symbol_table['mathematica'].copy()
         lsymbols.update(locals)
-
+        lsymbols_names_only = [s[0] for s in lsymbols]
         # Strategies for translating unknown functions/constants:
         autotrans = [str.lower,      # Try it in lower case
                      _un_camel,    # Convert `CamelCase` to `camel_case`
@@ -887,7 +887,7 @@ class MathematicaElement(ExpectElement):
         for m in p.finditer(res):
             # If the function, variable or constant is already in the
             # translation dictionary, then just move on.
-            if m.group() in lsymbols:
+            if m.group() in lsymbols_names_only:
                 pass
             # Now try to translate all other functions -- try each strategy
             # in `autotrans` and check if the function exists in Sage
@@ -905,7 +905,7 @@ class MathematicaElement(ExpectElement):
             else:
                 for t in autotrans:
                     if t(m.group()) in constants:
-                        lsymbols[m.group()] = constants[t(m.group())]
+                        lsymbols[(m.group(), 0)] = constants[t(m.group())]
                         break
             # If Sage has never heard of the variable, then
             # symbolic_expression_from_string will automatically create it
