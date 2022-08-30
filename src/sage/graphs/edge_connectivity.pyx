@@ -170,16 +170,18 @@ cdef class GabowEdgeConnectivity:
     cdef queue[int] incident_edges_Q  # queue of edges
 
     # to store packed arborescences
-    cdef vector[vector[int]] arborescences # list of found arborescences
-    cdef vector[int] marked_edges 
+    cdef search_mode
     cdef int *Arbor_edge
     cdef int *dfs_edges
     cdef int *A 
     cdef int *inA
     cdef int *inX
     cdef int *marked_edge
-    cdef int* to
-    cdef int nexti = 1
+    cdef int *to
+    cdef int nexti
+    cdef int **root_set
+    cdef int sets
+
 
 
     def __init__(self, G):
@@ -245,6 +247,20 @@ cdef class GabowEdgeConnectivity:
         self.stack = <int*>self.mem.calloc(self.n, sizeof(int))
         self.tree_edges.resize(self.max_ec)
         self.tree_edges_incident.resize(self.n)
+        
+        # for packing arborescences
+        self.search_mode = False
+        self.A = <int*>self.mem.calloc(self.n, sizeof(int))
+        self.inA = <int*>self.mem.calloc(self.n, sizeof(int))
+        self.inX = <int*>self.mem.calloc(self.n, sizeof(int))
+        self.marked_edge = <int*>self.mem.calloc(self.m, sizeof(int))
+        self.myset = <int*>self.mem.calloc(self.n, sizeof(int))
+        self.set_seen = <int*>self.mem.calloc(self.n, sizeof(int))
+        self.nexti = 0
+        self.sets = 0
+        self.root_set = <int*>self.mem.calloc(self.n, sizeof(int))
+
+
 
         # Set some constants
         self.UNUSED = INT_MAX
@@ -1076,8 +1092,8 @@ cdef class GabowEdgeConnectivity:
     # Packing arborescences
     #
 
-
-    cdef void remove_unused_edges_from_G(self):
+    cdef void remove_unused_edges_from_G(self): #NOT DONE
+        cdef int x, y
 
         return
 
@@ -1086,11 +1102,92 @@ cdef class GabowEdgeConnectivity:
             self.my_edge_state[j] = self.UNUSED
         return
 
-    cdef void G_minus_A(self):
+    cdef void G_minus_A(self): #NOT DONE
         for i in self.A_path:
             print(i)
 
         return
+
+    cdef int search_packing_joining(self, int x, int tree):
+        return 1
+
+    cdef void init_set(self):
+        if self.sets != 0:
+            for i in range(sets): # clearing previous sets
+                self.root_set[i].clear() 
+                self.sets = 0
+
+            for i in range(self.K):
+                self.root_set[self.sets][i] = -1
+            
+            for i in range(self.n):
+	            self.[i] = -1
+                self.set_seen[i] = 0
+
+        return
+
+    cdef void merge_sets(self):
+        cdef int s
+        if self.sets != 0:
+            for i in range(self.n):
+                s = self.myset[i]
+                if s != -1 and self.set_seen[s] == 1:
+                    self.mysets[i] = self.sets
+
+
+        for i in range(self.K):
+            self.root_set[self.sets][i] = self.L_roots[i]
+
+        for i in range(self.n):
+            self.set_seen[i] = 0
+
+        self.sets += 1
+
+        for i in range(self.K):
+            self.root_set[self.sets][i] = -1 # if this is out of range or segfault we may need more mem for new sets
+
+        return 
+
+    cdef int choose_edge_step(self, int v):
+
+        # find an edge to augment A if it is possible 
+
+        cdef int e
+        cdef int flag
+        cdef int x
+        flag = 0
+        cdef queue[int] du_da
+
+        for i in self.my_g: # for all outgoing edges in g
+            # e = positionOut[j]
+            x = self.my_to[e]
+
+            if self.inA[x] == 0:
+                du_da.push(e)
+
+        while not du_da.empty():
+            flag = 1
+            e = du_da.front()
+            du_da.pop()
+
+            if self.marked_edge[e] == self.UNUSED:
+                flag = 2
+                break
+        
+        if flag == 1 or flag == 0: # what are 1 and 0?
+            return -1
+        elif flag == 2:
+            if self.my_edge_state[e] == self.UNUSED:
+                self.Arbor_edge[e] = 1
+                self.A[self.nexti] = self.my_to[e]
+                self.nexti += 1
+                self.inA[self.my_to[e]] = 1
+                return -2
+            else:
+                return e
+
+        print("undefined flag")
+        return -1
 
     cdef int period_step(self):
         # if the arborescence is ready halt, else return a vertex v from A
@@ -1100,73 +1197,108 @@ cdef class GabowEdgeConnectivity:
    
         self.init_set() # NOT IMPLEMENTED
 
-        if A[self.n] == 0:	# not all nodes in A
+        if self.A[self.n] == 0:	# not all nodes in A
   
-		    v = A[i]
-		    while self.inX[v] != 0:
+            v = self.A[i]
+            while self.inX[v] != 0:
                 i += 1
-			    v = A[i]
-		
-    		if v != 0:
-			    return v
-		
-		    else:
-	
-			    for i in range(self.m):
-				    if self.my_edge_state[i] == -1 and self.to[i] == 3:
-                        print("{} {}".format(from[i], to[i]))
-			
-			    exit(-1)
-		
-        else{
-  
-		    self.nexti = 2;	
-		    return 0;		 
-}
+                v = self.A[i]
+        
+            if v != 0:
+                return v
+        
+            else:
+    
+                for i in range(self.m):
+                    if self.my_edge_state[i] == -1 and self.my_to[i] == 3:
+                        print(f'{self.my_from[i]} {self.my_to[i]}') #maybe i is e_id?
+            
+                return -1
+        else:
+            self.nexti = 2;	
+            return 0	 
 
-    cdef int search_step(self, int edge):
-        return 1
+    cdef int search_step(self, int e):
 
-    cdef find_tree(self):
+        # ALL THE TREES HERE SHOULD BE SELF.CURRENT_TREE I THINK
+
+        cdef int x
+        cdef int y
+        cdef int tree
+        cdef int found
+
+        cdef int *myparent # new int[n+1]
+        cdef int *mydepth # new int[n+1]
+
+        x = self.my_from[e]
+        y = self.my_to[e]
+        tree = self.my_edge_state[e]
+        self.tree_flag[tree] = 1
+
+        for i in range(self.n):
+            myparent[i] = self.my_parent[tree][i]
+            mydepth[i] = self.my_depth[tree][i]
+
+        self.my_edge_state[e] = self.UNUSED # temporarily unused (-2)
+
+        self.update_mytree(tree, x, y)
+
+        found = self.search_joining(y,tree) 
+
+        if found == 1:
+            self.augmentation_algorithm()
+            self.re_init()
+            return 1
+        else:
+            my_edge_state[e] = tree
+            print("unsuccessful search")
+            for i in range(self.n):
+                self.my_parent[i] = myparent[i]
+                self.my_depth[i] = mydepth[i]
+
+            # CLEAR ALL THE DATA STRUCTURES HERE (not implemented)
+
+            for i in range(self.n):
+                if self.root[i] != self.root_vertex:
+                    self.root[i] = self.root_vertex
+            return 0
+
+    cdef void find_tree(self):
         cdef int v
         cdef int found
         cdef int e
         cdef int success
-        # this is where choose edge and period steps are
-        # fundamental cycle step and whatnot
 
-        #pseudocode, we need to empty A_path
-        for i in self.A_path:
-            i = 0 # empty
+        self.A_path.empty()
 
         for i in range(self.m):
-            self.marked_edges[i] = self.UNUSED
+            self.marked_edge[i] = self.UNUSED
 
-        self.A_path[0] = self.root
+        self.A_path[0] = self.root_vertex
 
-        v = self.root
+        v = self.root_vertex
         self.nexti = 2
 
         while v != 0:
-            found = choose_edge_step(v)
+            found = self.choose_edge_step(v)
 
             if found == -2:
                 v = self.period_step() # success return we raised A
             elif found == -1:
                 # inX[v] = 1 # the v node has all its edges marked, so we choose the first node in the period step
-                v = period_step()
+                v = self.period_step()
             else:
                 e = found # an edge at the T intersection is returned
                 success = self.search_step(e) # going to look for joining even to keep the T
                 if success == 0:
-				    merge_sets()
-				    self.marked_edge[e] = 1	  
+                    self.merge_sets()
+                    self.marked_edge[e] = 1	  
                 else: # otherwise we add it to A
                     self.Arbor_edge[e] = 1
-				    self.A[self.nexti] = to[e]
+                    self.A[self.nexti] = self.my_to[e]
                     self.nexti += 1
-				    self.inA[to[e]] = 1
-				    v = period_step()
+                    self.inA[self.my_to[e]] = 1
+                    v = self.period_step()
 
         return
 
@@ -1203,7 +1335,7 @@ cdef class GabowEdgeConnectivity:
                     self.my_edge_state[i] = self.UNUSED
 
                 self.G_minus_A()
-                temp = construct_trees(False, 1)
+                temp = self.construct_trees(False, 1)
                 self.find_tree()
                 self.G_minus_A()
             else:
@@ -1219,7 +1351,7 @@ cdef class GabowEdgeConnectivity:
                 ntrees -= 1
 
         return
-        
+
     def edge_disjoint_spanning_trees(self):
         self.packing_arboresences()
         return
