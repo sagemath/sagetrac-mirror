@@ -717,6 +717,9 @@ class Set_object(Set_parent):
             sage: Set(GF(5^2,'a')).cardinality()
             25
         """
+        if self in Sets().Infinite():
+            return sage.rings.infinity.infinity
+
         if not self.is_finite():
             return Infinity
 
@@ -731,7 +734,7 @@ class Set_object(Set_parent):
             except TypeError:
                 pass
 
-        raise NotImplementedError("computation of cardinality of %s not yet implemented" % self.__object)
+        return super().cardinality()
 
     def is_empty(self):
         """
@@ -784,6 +787,10 @@ class Set_object(Set_parent):
             sage: Set([1,'a',ZZ]).is_finite()
             True
         """
+        if self in Sets().Finite():
+            return True
+        if self in Sets().Infinite():
+            return False
         obj = self.__object
         try:
             is_finite = obj.is_finite
@@ -1567,8 +1574,15 @@ class Set_object_intersection(Set_object_binary):
             sage: X = Set(IntegerRange(100)).intersection(Primes())
             sage: X.is_finite()
             True
+            sage: X.cardinality()
+            25
             sage: X.category()
             Category of facade finite enumerated sets
+            sage: TestSuite(X).run()
+
+            sage: X = Set(Primes(), category=Sets()).intersection(Set(IntegerRange(200)))
+            sage: X.cardinality()
+            46
             sage: TestSuite(X).run()
         """
         if category is None:
@@ -1578,27 +1592,6 @@ class Set_object_intersection(Set_object_binary):
         if any(S in Sets().Enumerated() for S in (X, Y)):
             category = category.Enumerated()
         Set_object_binary.__init__(self, X, Y, "intersection", "\\cap", category=category, facade=facade)
-
-    def cardinality(self):
-        r"""
-        Return the cardinality of this set.
-
-        EXAMPLES::
-
-            sage: X = Set(IntegerRange(100)).intersection(Primes())
-            sage: X.cardinality()
-            25
-
-            sage: X = Set(Primes(), category=Sets()).intersection(Set(IntegerRange(200)))
-            sage: X.cardinality()
-            46
-        """
-        if self in Sets().Infinite():
-            return Infinity
-        if self in Sets().Finite():
-            from sage.rings.integer import Integer
-            return Integer(len(list(iter(self))))
-        return super().cardinality()
 
     def is_finite(self):
         r"""
