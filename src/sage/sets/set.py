@@ -36,6 +36,8 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from collections.abc import Iterator
+
 from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -252,6 +254,21 @@ def Set(X=None, category=None, universe=None, facade=None):
 
         sage: Set()
         {}
+
+    Check that :trac:`33932` (input is a generator of unhashable elements) is fixed::
+
+        sage: S = Set([i] for i in (1..5)); S
+        Set of elements of ([1], [2], [3], [4], [5])
+        sage: list(S)
+        [[1], [2], [3], [4], [5]]
+        sage: list(S)
+        [[1], [2], [3], [4], [5]]
+        sage: S = Set(zip((i for i in (1..5)), ([i] for i in (1..5)))); S
+        Set of elements of ((1, [1]), (2, [2]), (3, [3]), (4, [4]), (5, [5]))
+        sage: list(S)
+        [(1, [1]), (2, [2]), (3, [3]), (4, [4]), (5, [5])]
+        sage: list(S)
+        [(1, [1]), (2, [2]), (3, [3]), (4, [4]), (5, [5])]
     """
     if isinstance(X, Set_parent):
         if category is None:
@@ -274,7 +291,12 @@ def Set(X=None, category=None, universe=None, facade=None):
         else:
             return Set_object(X, category=category, facade=facade)
 
+    if isinstance(X, Iterator):
+        # Preserve as a tuple when a generator expression or similar is passed
+        X = tuple(X)
+
     try:
+        # Try to make it hashable. This can fail if the elements are not hashable.
         X = frozenset(X)
     except TypeError:
         return Set_object(X, category=category, facade=facade)
