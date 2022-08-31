@@ -1342,8 +1342,13 @@ class RealSet(UniqueRepresentation, Set_parent):
                 if all(i.lower_closed() and i.upper_closed()
                        for i in intervals):
                     category = category.Compact()
-        Parent.__init__(self, category=category)
+        Parent.__init__(self, category=category, facade=True)
         self._intervals = intervals
+
+    def _element_constructor_(self, x):
+        if self.contains(x):
+            return x
+        raise TypeError(f'{x} is not an element of {self}')
 
     def __richcmp__(self, other, op):
         r"""
