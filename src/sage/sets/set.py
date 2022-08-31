@@ -225,8 +225,11 @@ def Set(X=None, category=None, universe=None, facade=None):
         sage: Set()
         {}
     """
-    if isinstance(X, Set_parent) and category is None:
-        return X
+    if isinstance(X, Set_parent):
+        if category is None:
+            category = Sets()
+        if X.category().is_full_subcategory(category):
+            return X
 
     if universe is not None:
         if facade is False:
