@@ -99,6 +99,8 @@ AUTHORS:
 from sage.structure.richcmp import richcmp, richcmp_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.homset import Hom
+from sage.categories.morphism import FacadeInclusionMorphism
 from sage.categories.topological_spaces import TopologicalSpaces
 from sage.categories.sets_cat import EmptySetError
 from sage.sets.set import Set_parent
@@ -1015,22 +1017,26 @@ class RealSet(UniqueRepresentation, Set_parent):
         sage: RealSet().category()
         Join of
          Category of finite sets and
+         Category of facade sets and
          Category of subobjects of sets and
          Category of connected topological spaces
         sage: RealSet.point(1).category()
         Join of
          Category of finite sets and
+         Category of facade sets and
          Category of subobjects of sets and
          Category of connected topological spaces
         sage: RealSet([1, 2]).category()
         Join of
          Category of infinite sets and
+         Category of facade sets and
          Category of compact topological spaces and
          Category of subobjects of sets and
          Category of connected topological spaces
         sage: RealSet((1, 2), (3, 4)).category()
         Join of
          Category of infinite sets and
+         Category of facade sets and
          Category of subobjects of sets and
          Category of topological spaces
 
@@ -1342,8 +1348,27 @@ class RealSet(UniqueRepresentation, Set_parent):
                 if all(i.lower_closed() and i.upper_closed()
                        for i in intervals):
                     category = category.Compact()
+        # We use facade=True here because we do not have a "real" RealField.
         Parent.__init__(self, category=category, facade=True)
+        # Workaround as in DisjointUnionEnumeratedSets.__init__:
+        # This allows the test suite to pass its tests by essentially
+        # stating that this is a facade for any parent.
+        self._facade_for = True
+
         self._intervals = intervals
+
+    def _coerce_map_from_(self, X):
+        r"""
+        EXAMPLES::
+
+            sage: RealSet.real_line().coerce_map_from(RealSet([1,2]))
+            Facade inclusion morphism:
+            From: [1, 2]
+            To:   (-oo, +oo)
+        """
+        if isinstance(X, RealSet):
+            if X.is_subset(self):
+                return FacadeInclusionMorphism(Hom(X, self))
 
     def _element_constructor_(self, x):
         if self.contains(x):
