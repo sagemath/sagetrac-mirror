@@ -195,6 +195,34 @@ def Set(X=None, category=None, universe=None, facade=None):
         From: Set of elements of Rational Field
         To:   Rational Field
 
+    A :class:`RealSet` is a facade parent in the category of topological subspaces.
+    When we use :func:`Set` with a ``category`` parameter that is the same category,
+    it just returns the input::
+
+        sage: I = RealSet.open_closed(0, 1); I
+        (0, 1]
+        sage: I.category()
+        Join of
+         Category of infinite sets and
+         Category of facade sets and
+         Category of subobjects of sets and
+         Category of connected topological spaces
+        sage: from sage.categories.topological_spaces import TopologicalSpaces
+        sage: tsI = Set(I, category=TopologicalSpaces().Subobjects()); tsI
+        (0, 1]
+        sage: tsI is I
+        True
+
+    Without the ``category`` parameter, we get again the action of the forgetful
+    functor fo :class:`~sage.categories.sets_cat.Sets`.
+
+        sage: sI = Set(I); sI
+        Set of elements of (0, 1]
+        sage: sI.category()
+        Category of facade infinite sets
+        sage: sI is I
+        False
+
     Using the parameter ``universe``, the same behavior can also be obtained for subsets::
 
         sage: s123 = Set([1, 2, 3], universe=QQ)
