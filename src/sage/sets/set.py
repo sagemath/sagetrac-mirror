@@ -972,7 +972,10 @@ class Set_object_enumerated(Set_object):
             (Integer Ring,)
 
         """
-        Set_object.__init__(self, X, category=FiniteEnumeratedSets().or_subcategory(category), facade=facade)
+        if category is None:
+            category = Sets()
+        category &= FiniteEnumeratedSets()
+        Set_object.__init__(self, X, category=category, facade=facade)
 
     def random_element(self):
         r"""
