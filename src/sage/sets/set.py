@@ -180,6 +180,33 @@ def Set(X=None, category=None, universe=None, facade=None):
         sage: type(B)
         <class 'sage.sets.set.Set_object_with_category'>
 
+    The constructor :func:`Set` implements the forgetful functor to the category
+    :class:`~sage.categories.sets_cat.Sets` for parents ``X``. The result ``Set(X)``
+    is a facade parent with an inclusion morphism into ``X``.
+
+        sage: sQQ = Set(QQ); sQQ
+        Set of elements of Rational Field
+        sage: sQQ.category()
+        Category of facade infinite sets
+        sage: sQQ.facade_for()
+        (Rational Field,)
+        sage: QQ.coerce_map_from(Set(QQ))
+        Facade inclusion morphism:
+        From: Set of elements of Rational Field
+        To:   Rational Field
+
+    Using the parameter ``universe``, the same behavior can also be obtained for subsets::
+
+        sage: s123 = Set([1, 2, 3], universe=QQ)
+        sage: s123.category()
+        Category of facade finite enumerated sets
+        sage: s123.facade_for()
+        (Rational Field,)
+        sage: QQ.coerce_map_from(s123)
+        Facade inclusion morphism:
+        From: {1, 2, 3}
+        To:   Rational Field
+
     TESTS::
 
         sage: Set(Primes())
@@ -720,7 +747,7 @@ class Set_object(Set_parent):
             25
         """
         if self in Sets().Infinite():
-            return sage.rings.infinity.infinity
+            return Infinity
 
         if not self.is_finite():
             return Infinity
@@ -905,10 +932,13 @@ class Set_object_enumerated(Set_object):
             sage: TestSuite(S).run()
 
             sage: S = Set([1, 2, 3]); S
+            {1, 2, 3}
             sage: S.facade_for()
+            True
 
             sage: S = Set([1.0, 2.0, 3.0], universe=ZZ)
             sage: S.facade_for()
+            (Integer Ring,)
 
         """
         Set_object.__init__(self, X, category=FiniteEnumeratedSets().or_subcategory(category), facade=facade)
