@@ -1371,6 +1371,17 @@ class RealSet(UniqueRepresentation, Set_parent):
                 return FacadeInclusionMorphism(Hom(X, self))
 
     def _element_constructor_(self, x):
+        r"""
+        EXAMPLES::
+
+            sage: S = RealSet.open(1, 3)
+            sage: S(2)
+            2
+            sage: S(3)
+            Traceback (most recent call last):
+            ...
+            TypeError: 3 is not an element of (1, 3)
+        """
         if self.contains(x):
             return x
         raise TypeError(f'{x} is not an element of {self}')
