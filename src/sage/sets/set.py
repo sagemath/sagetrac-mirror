@@ -603,6 +603,22 @@ class Set_object(Set_parent):
             iota = FacadeInclusionMorphism(Hom(self, facade))
             iota.register_as_coercion()
 
+    def _element_constructor_(self, x):
+        r"""
+        EXAMPLES::
+
+            sage: S = Set([1, 2, 3])
+            sage: S(1)
+            1
+            sage: S(5)
+            Traceback (most recent call last):
+            ...
+            TypeError: 5 is not an element of {1, 2, 3}
+        """
+        if x in self.__object:
+            return x
+        raise TypeError(f'{x} is not an element of {self}')
+
     def __hash__(self):
         """
         Return the hash value of ``self``.
