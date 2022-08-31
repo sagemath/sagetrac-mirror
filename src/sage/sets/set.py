@@ -614,9 +614,31 @@ class Set_object(Set_parent):
             Traceback (most recent call last):
             ...
             TypeError: 5 is not an element of {1, 2, 3}
+
+        TESTS::
+
+            sage: Set([1r, 2r, 3r])(1r)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot construct elements of {1, 2, 3}
+            sage: Set([1, 2, 3])(1r)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot construct elements of {1, 2, 3}
+            sage: Set([1, 2, 3], universe=ZZ)(1r)
+            1
+            sage: _.parent()
+            Integer Ring
         """
+        # TOOD: Try self.__object(x) first
         if x in self.__object:
-            return x
+            if self._facade_for and self._facade_for is not True:
+                # Delegate to Parent
+                return super()._element_constructor_(x)
+            if isinstance(x, Element):
+                return x
+            # Not an Element, so not allowed to return it from _element_constructor_.
+            raise NotImplementedError(f'cannot construct elements of {self}')
         raise TypeError(f'{x} is not an element of {self}')
 
     def __hash__(self):
