@@ -209,6 +209,8 @@ def Set(X=None, category=None, universe=None, facade=None):
     if X is None:
         X = []
     elif isinstance(X, CategoryObject):
+        if facade is None:
+            facade = X
         if X in Sets().Finite():
             return Set_object_enumerated(X, category=category, facade=facade)
         else:
