@@ -126,7 +126,7 @@ processor. On Linux, this means you need a recent version of
 Python for venv
 ^^^^^^^^^^^^^^^
 
-By default, Sage will try to use system's `python3` to set up a virtual
+By default, Sage will try to use system's ``python3`` to set up a virtual
 environment, a.k.a. `venv <https://docs.python.org/3.10/library/venv.html>`_
 rather than building a Python 3 installation from scratch.
 Use the ``configure`` option ``--without-system-python3`` in case you want Python 3
@@ -168,6 +168,22 @@ On Redhat-derived systems not all perl components are installed by
 default and you might have to install the ``perl-ExtUtils-MakeMaker``
 package.
 
+On Linux systems (e.g., Ubuntu, Redhat, etc), ``ar`` and ``ranlib`` are in the
+`binutils <https://www.gnu.org/software/binutils/>`_ package.
+The other programs are usually located in packages with their respective names.
+Assuming you have sufficient privileges, you can install the ``binutils`` and
+other necessary/standard components. The lists provided below are longer than
+the minimal prerequisites, which are basically ``binutils``, ``gcc``/``clang``, ``make``,
+``tar``, but there is no real need to build compilers and other standard tools
+and libraries on a modern Linux system, in order to be able to build Sage.
+If you do not have the privileges to do this, ask your system administrator to
+do this, or build the components from source code.
+The method of installing additional software varies from distribution to
+distribution, but on a `Debian <https://www.debian.org/>`_ based system (e.g.
+`Ubuntu <https://www.ubuntu.com/>`_ or `Mint <https://www.linuxmint.com/>`_),
+you would use
+:wikipedia:`apt-get <Advanced_Packaging_Tool>`.
+
 Installing prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -186,55 +202,83 @@ either ``perl`` is not installed, or it is installed but not in your
 
 .. _sec-installation-from-sources-linux-recommended-installation:
 
-Linux recommended installation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-On Linux systems (e.g., Ubuntu, Redhat, etc), ``ar`` and ``ranlib`` are in the
-`binutils <https://www.gnu.org/software/binutils/>`_ package.
-The other programs are usually located in packages with their respective names.
-Assuming you have sufficient privileges, you can install the ``binutils`` and
-other necessary/standard components. The lists provided below are longer than
-the minimal prerequisites, which are basically ``binutils``, ``gcc``/``clang``, ``make``,
-``tar``, but there is no real need to build compilers and other standard tools
-and libraries on a modern Linux system, in order to be able to build Sage.
-If you do not have the privileges to do this, ask your system administrator to
-do this, or build the components from source code.
-The method of installing additional software varies from distribution to
-distribution, but on a `Debian <https://www.debian.org/>`_ based system (e.g.
-`Ubuntu <https://www.ubuntu.com/>`_ or `Mint <https://www.linuxmint.com/>`_),
-you would use
-:wikipedia:`apt-get <Advanced_Packaging_Tool>`.
+Debian/Ubuntu prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 On Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
 
 .. literalinclude:: debian.txt
 
-On Fedora / Redhat / CentOS:
+If you wish to do Sage development, additionally install the following:
 
-.. literalinclude:: fedora.txt
+.. literalinclude:: debian-develop.txt
 
-On Arch Linux:
+For all users, we recommend the following:
 
-.. literalinclude:: arch.txt
+.. literalinclude:: debian-recommended.txt
 
 In addition to these, if you don't want Sage to build optional packages that might
 be available from your OS, cf. the growing list of such packages on :trac:`27330`,
-install on Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
+install:
 
 .. literalinclude:: debian-optional.txt
 
-On Fedora / Redhat / CentOS:
+Fedora/Redhat/CentOS prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: fedora.txt
+
+If you wish to do Sage development, additionally install the following:
+
+.. literalinclude:: fedora-develop.txt
+
+For all users, we recommend the following:
+
+.. literalinclude:: fedora-recommended.txt
+
+In addition to these, if you don't want Sage to build optional packages that might
+be available from your OS, cf. the growing list of such packages on :trac:`27330`,
+install:
 
 .. literalinclude:: fedora-optional.txt
 
-On Arch Linux:
+Arch Linux prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: arch.txt
+
+If you wish to do Sage development, additionally install the following:
+
+.. literalinclude:: arch-develop.txt
+
+For all users, we recommend the following:
+
+.. literalinclude:: arch-recommended.txt
+
+In addition to these, if you don't want Sage to build optional packages that might
+be available from your OS, cf. the growing list of such packages on :trac:`27330`,
+install:
 
 .. literalinclude:: arch-optional.txt
 
-On other Linux systems, you might use
-:wikipedia:`rpm <RPM_Package_Manager>`,
-:wikipedia:`yum <Yellowdog_Updater,_Modified>`,
-or other package managers.
+OpenSUSE prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: opensuse.txt
+
+If you wish to do Sage development, additionally install the following:
+
+.. literalinclude:: opensuse-develop.txt
+
+For all users, we recommend the following:
+
+.. literalinclude:: opensuse-recommended.txt
+
+In addition to these, if you don't want Sage to build optional packages that might
+be available from your OS, cf. the growing list of such packages on :trac:`27330`,
+install:
+
+.. literalinclude:: opensuse-optional.txt
 
 .. _section_macprereqs:
 
@@ -299,6 +343,14 @@ Sage, run ::
 (replacing ``SAGE_ROOT`` by Sage's home directory). You can add a
 command like this to your shell profile if you want the settings to
 persist between shell sessions.
+
+If you wish to do Sage development, additionally install the following:
+
+.. literalinclude:: homebrew-develop.txt
+
+For all users, we recommend the following:
+
+.. literalinclude:: homebrew-recommended.txt
 
 Some additional optional packages are taken care of by:
 
@@ -380,29 +432,29 @@ Use the following instructions to get started.
     By default, your username in Cygwin is the same as your username in
     Windows.  This might contain spaces and other traditionally
     non-UNIX-friendly characters, e.g., if it is your full name.  You
-    can check this as follows:
+    can check this as follows::
 
         $ whoami
         Erik M. Bray
 
     This means your default home directory on Cygwin contains this
-    username verbatim; in the above example, `/home/Erik M. Bray`.
+    username verbatim; in the above example, ``/home/Erik M. Bray``.
     It will save some potential trouble if you change your Cygwin home
     directory to contain only alphanumeric characters, for example,
-    `/home/embray`.  The easiest way to do this is to first create
+    ``/home/embray``.  The easiest way to do this is to first create
     the home directory you want to use instead, then create an
-    `/etc/passwd` file specifying that directory as your home, as follows:
+    ``/etc/passwd`` file specifying that directory as your home, as follows::
 
         $ whocanibe=embray
         $ mkdir /home/$whocanibe
         $ mkpasswd.exe -l -u "$(whoami)" | sed -r 's,/home/[^:]+,/home/'$whocanibe, > /etc/passwd
 
     After this, close all Cygwin terminals (ensure nothing in
-    `C:\cygwin64` is running), then start a new Cygwin terminal and
+    ``C:\cygwin64`` is running), then start a new Cygwin terminal and
     your home directory should have moved.
 
-    There are [other ways to do
-    this](https://stackoverflow.com/questions/1494658/how-can-i-change-my-cygwin-home-folder-after-installation),
+    There are `other ways to do
+    this <https://stackoverflow.com/questions/1494658/how-can-i-change-my-cygwin-home-folder-after-installation>`_,
     but the above seems to be the simplest that's still supported.
 
 5.  (Optional) Although it is possible to install Sage's dependencies using the
