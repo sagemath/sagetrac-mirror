@@ -36,22 +36,22 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.categories.sets_cat import Sets
+from sage.categories.enumerated_sets import EnumeratedSets
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.homset import Hom
+from sage.categories.morphism import FacadeInclusionMorphism
+from sage.misc.cachefunc import cached_method
+from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.latex import latex
 from sage.misc.prandom import choice
-from sage.misc.cachefunc import cached_method
-
+from sage.rings.infinity import Infinity
 from sage.structure.category_object import CategoryObject
 from sage.structure.element import Element
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent, Set_generic
 from sage.structure.richcmp import richcmp_method, richcmp, rich_to_bool
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 
-from sage.categories.sets_cat import Sets
-from sage.categories.enumerated_sets import EnumeratedSets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-
-import sage.rings.infinity
 
 
 def has_finite_length(obj):
@@ -87,7 +87,7 @@ def has_finite_length(obj):
         return True
 
 
-def Set(X=None, category=None, facade=None):
+def Set(X=None, category=None, universe=None, facade=None):
     r"""
     Create the underlying set of ``X``.
 
@@ -200,6 +200,11 @@ def Set(X=None, category=None, facade=None):
     """
     if isinstance(X, Set_parent) and category is None:
         return X
+
+    if universe is not None:
+        if facade is False:
+            raise NotImplementedError
+        facade = universe
 
     if X is None:
         X = []
@@ -534,6 +539,10 @@ class Set_object(Set_parent):
 
         self.__object = X
 
+        if isinstance(facade, Parent):
+            iota = FacadeInclusionMorphism(Hom(self, facade))
+            iota.register_as_coercion()
+
     def __hash__(self):
         """
         Return the hash value of ``self``.
@@ -709,7 +718,7 @@ class Set_object(Set_parent):
             25
         """
         if not self.is_finite():
-            return sage.rings.infinity.infinity
+            return Infinity
 
         if self is not self.__object:
             try:
@@ -885,8 +894,15 @@ class Set_object_enumerated(Set_object):
             sage: print(latex(S))
             \left\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\right\}
             sage: TestSuite(S).run()
+
+            sage: S = Set([1, 2, 3]); S
+            sage: S.facade_for()
+
+            sage: S = Set([1.0, 2.0, 3.0], universe=ZZ)
+            sage: S.facade_for()
+
         """
-        Set_object.__init__(self, X, category=FiniteEnumeratedSets().or_subcategory(category))
+        Set_object.__init__(self, X, category=FiniteEnumeratedSets().or_subcategory(category), facade=facade)
 
     def random_element(self):
         r"""
