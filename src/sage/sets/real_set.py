@@ -101,7 +101,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.topological_spaces import TopologicalSpaces
 from sage.categories.sets_cat import EmptySetError
-from sage.sets.set import Set_base, Set_boolean_operators, Set_add_sub_operators
+from sage.sets.set import Set_parent
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_lazy import LazyFieldElement, RLF
 from sage.rings.infinity import infinity, minus_infinity
@@ -920,8 +920,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
 
 @richcmp_method
-class RealSet(UniqueRepresentation, Parent, Set_base,
-              Set_boolean_operators, Set_add_sub_operators):
+class RealSet(UniqueRepresentation, Set_parent):
     r"""
     A subset of the real line, a finite union of intervals
 
