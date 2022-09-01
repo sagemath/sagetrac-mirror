@@ -176,11 +176,9 @@ def Set(X=None, category=None, universe=None, facade=None):
         <class 'sage.sets.set.Set_object_enumerated_with_category'>
         sage: B = Set([QQ, [3, 1], 5])  # unhashable
         sage: sorted(B.list(), key=repr)
-        Traceback (most recent call last):
-        ...
-        AttributeError: 'Set_object_with_category' object has no attribute 'list'
+        [5, Rational Field, [3, 1]]
         sage: type(B)
-        <class 'sage.sets.set.Set_object_with_category'>
+        <class 'sage.sets.set.Set_object_enumerated_with_category'>
 
     The constructor :func:`Set` implements the forgetful functor to the category
     :class:`~sage.categories.sets_cat.Sets` for parents ``X``. The result ``Set(X)``
@@ -258,13 +256,14 @@ def Set(X=None, category=None, universe=None, facade=None):
     Check that :trac:`33932` (input is a generator of unhashable elements) is fixed::
 
         sage: S = Set([i] for i in (1..5)); S
-        Set of elements of ([1], [2], [3], [4], [5])
+        {[1], [2], [3], [4], [5]}
         sage: list(S)
         [[1], [2], [3], [4], [5]]
         sage: list(S)
         [[1], [2], [3], [4], [5]]
+
         sage: S = Set(zip((i for i in (1..5)), ([i] for i in (1..5)))); S
-        Set of elements of ((1, [1]), (2, [2]), (3, [3]), (4, [4]), (5, [5]))
+        {(1, [1]), (2, [2]), (3, [3]), (4, [4]), (5, [5])}
         sage: list(S)
         [(1, [1]), (2, [2]), (3, [3]), (4, [4]), (5, [5])]
         sage: list(S)
@@ -292,16 +291,23 @@ def Set(X=None, category=None, universe=None, facade=None):
             return Set_object(X, category=category, facade=facade)
 
     if isinstance(X, Iterator):
-        # Preserve as a tuple when a generator expression or similar is passed
+        # Preserve as a tuple when a generator expression or similar is passed.
+        # This needs to be done before trying to hash any elements.
         X = tuple(X)
 
+    # Try to eliminate duplicates. This will fail if not all elements are hashable.
     try:
-        # Try to make it hashable. This can fail if the elements are not hashable.
         X = frozenset(X)
-    except TypeError:
-        return Set_object(X, category=category, facade=facade)
-    else:
-        return Set_object_enumerated(X, category=category, facade=facade)
+        # Alternatively we could use the keys of a dict, which would preserve insertion order
+        # X = {x: 1 for x in X}
+    except Exception:
+        try:
+            X = tuple(X)
+        except Exception:
+            # Mystery Python object, let's just wrap it
+            return Set_object(X, category=category, facade=facade)
+
+    return Set_object_enumerated(X, category=category, facade=facade)
 
 
 class Set_base():
@@ -1031,64 +1037,16 @@ class Set_object_enumerated(Set_object):
             sage: S.facade_for()
             (Integer Ring,)
 
-        """
-        if category is None:
-            category = Sets()
-        category &= FiniteEnumeratedSets()
-        Set_object.__init__(self, X, category=category, facade=facade)
-
-    def random_element(self):
-        r"""
-        Return a random element in this set.
-
-        EXAMPLES::
+        TESTS::
 
             sage: Set([1,2,3]).random_element() # random
             2
-        """
-        try:
-            return self.object().random_element()
-        except AttributeError:
-            # TODO: this very slow!
-            return choice(self.list())
-
-    def is_finite(self):
-        r"""
-        Return ``True`` as this is a finite set.
-
-        EXAMPLES::
-
             sage: Set(GF(19)).is_finite()
             True
-        """
-        return True
-
-    def cardinality(self):
-        """
-        Return the cardinality of ``self``.
-
-        EXAMPLES::
-
             sage: Set([1,1]).cardinality()
             1
-        """
-        from sage.rings.integer import Integer
-        return Integer(len(self.set()))
-
-    def __len__(self):
-        """
-        EXAMPLES::
-
             sage: len(Set([1,1]))
             1
-        """
-        return len(self.set())
-
-    def __iter__(self):
-        r"""
-        Iterating through the elements of ``self``.
-
-        EXAMPLES::
 
             sage: S = Set(GF(19))
             sage: I = iter(S)
@@ -1100,8 +1058,24 @@ class Set_object_enumerated(Set_object):
             2
             sage: next(I)
             3
+
+            sage: X = Set(GF(8,'c'))
+            sage: X
+            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
+            sage: X.list()
+            [0, c, c^2, c + 1, c^2 + c, c^2 + c + 1, c^2 + 1, 1]
+            sage: type(X.list())
+            <class 'list'>
         """
-        return iter(self.set())
+        if category is None:
+            category = Sets()
+        category &= FiniteEnumeratedSets()
+        Set_object.__init__(self, X, category=category, facade=facade)
+        try:
+            # Initialize store used by EnumeratedSets.ParentMethods
+            self._list = tuple(X)
+        except Exception:
+            pass
 
     def _latex_(self):
         r"""
@@ -1113,7 +1087,7 @@ class Set_object_enumerated(Set_object):
             sage: latex(S)
             \left\{0, 1\right\}
         """
-        return '\\left\\{' + ', '.join(latex(x) for x in self.set()) + '\\right\\}'
+        return r'\left\{' + ', '.join(latex(x) for x in self) + r'\right\}'
 
     def _repr_(self):
         r"""
@@ -1130,34 +1104,13 @@ class Set_object_enumerated(Set_object):
             sage: Set()
             {}
         """
-        py_set = self.set()
+        try:
+            py_set = self.set()
+        except Exception:
+            return '{' + ', '.join(repr(x) for x in self) + '}'
         if not py_set:
             return "{}"
         return repr(py_set)
-
-    def list(self):
-        """
-        Return the elements of ``self``, as a list.
-
-        EXAMPLES::
-
-            sage: X = Set(GF(8,'c'))
-            sage: X
-            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
-            sage: X.list()
-            [0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1]
-            sage: type(X.list())
-            <... 'list'>
-
-        .. TODO::
-
-            FIXME: What should be the order of the result?
-            That of ``self.object()``? Or the order given by
-            ``set(self.object())``? Note that :meth:`__getitem__` is
-            currently implemented in term of this list method, which
-            is really inefficient ...
-        """
-        return list(set(self.object()))
 
     def set(self):
         """
