@@ -38,6 +38,7 @@ from sage.calculus.var import var
 from sage.symbolic.relation import solve
 from sage.symbolic.subring import SymbolicSubring
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.geometry.polyhedron.constructor import Polyhedron
 import logging
 
@@ -257,7 +258,7 @@ def solid_angle_2d(A):
                 return B.one()
         else:
             if B.is_exact():
-                return SymbolicSubring(no_variables=True)(1/2)
+                return SymbolicSubring(no_variables=True)(QQ(1/2))
             else:
                 return B.one()/2
     else:
