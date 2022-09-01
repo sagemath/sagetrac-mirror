@@ -88,6 +88,14 @@ AUTHORS:
 
 # ****************************************************************************
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
+#                     2014      Volker Braun
+#                     2015      Travis Scrimshaw
+#                     2015-2017 Ralf Stephan
+#                     2016-2022 Matthias Koeppe
+#                     2017      Jeroen Demeyer
+#                     2017-2021 Frédéric Chapoton
+#                     2022      Yuan Zhou
+#                     2022      Yueqi Li
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

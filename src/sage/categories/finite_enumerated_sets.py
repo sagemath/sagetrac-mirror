@@ -2,9 +2,20 @@ r"""
 Finite Enumerated Sets
 """
 # ****************************************************************************
-#  Copyright (C) 2009 Florent Hivert <Florent.Hivert@univ-rouen.fr>
+#  Copyright (C) 2009-2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>
+#                2009      Mike Hansen
+#                2010-2015 Nicolas M. Thiery
+#                2014-2016 Travis Scrimshaw
+#                2015      Vincent Delecroix
+#                2016      Darij Grinberg
+#                2016      Jori Mäntysalo
+#                2016      Kwankyu Lee
+#                2022      Matthias Koeppe
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 

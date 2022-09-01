@@ -21,20 +21,31 @@ AUTHORS:
 """
 
 # ****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
-#                     2013 Julian Rueth <julian.rueth@fsfe.org>
+#       Copyright (C) 2005-2007 William Stein <wstein@gmail.com>
+#                     2006      Gonzalo Tornaria
+#                     2007      Carl Witty
+#                     2007-2009 Mike Hansen
+#                     2008      Robert Bradshaw
+#                     2009      Minh Van Nguyen
+#                     2009-2010 Florent Hivert
+#                     2011      Nicolas M. Thiery
+#                     2012-2014 Travis Scrimshaw
+#                     2013      Davis Shurbert
+#                     2013      Volker Braun
+#                     2013      Julian Rueth <julian.rueth@fsfe.org>
+#                     2015      Vincent Delecroix
+#                     2017      Frédéric Chapoton
+#                     2017      Jeroen Demeyer
+#                     2018      Vincent Klein
+#                     2019      Julian Ritter
+#                     2021-2022 Matthias Koeppe
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-# ****************************************************************************
+# *****************************************************************************
 
 from collections.abc import Iterator
 

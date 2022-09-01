@@ -7,7 +7,7 @@ Image Sets
 #                     2012      Christian Stump
 #                     2020-2021 Frédéric Chapoton
 #                     2021      Travis Scrimshaw
-#                     2021      Matthias Koeppe
+#                     2021-2022 Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
