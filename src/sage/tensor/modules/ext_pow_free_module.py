@@ -436,6 +436,18 @@ class ExtPowerFreeModule(FiniteRankFreeModule_abstract):
         """
         return self._degree
 
+    def tensor_type(self):
+        r"""
+        Return the tensor type of ``self``.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M.exterior_power(2).tensor_type()
+            (2, 0)
+
+        """
+        return (self._degree, 0)
 
 #***********************************************************************
 
@@ -919,3 +931,18 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
 
         """
         return self._degree
+
+    def tensor_type(self):
+        r"""
+        Return the tensor type of ``self``.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M.dual().tensor_type()
+            (0, 1)
+            sage: M.dual_exterior_power(2).tensor_type()
+            (0, 2)
+
+        """
+        return (0, self._degree)
