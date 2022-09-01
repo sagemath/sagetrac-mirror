@@ -55,7 +55,7 @@ AUTHORS:
 from sage.structure.list_clone cimport ClonableIntArray
 from sage.structure.parent cimport Parent
 from sage.arith.power cimport generic_power
-from sage.sets.set import Set_object_enumerated
+from sage.sets.set import Set
 
 
 cpdef fibers(f, domain):
@@ -92,7 +92,7 @@ cpdef fibers(f, domain):
         y = f(x)
         result.setdefault(y, set()).add(x)
     for x, v in result.iteritems():
-        result[x] = Set_object_enumerated(v)
+        result[x] = Set(v)
     return result
 
 
@@ -297,7 +297,7 @@ cdef class FiniteSetMap_MN(ClonableIntArray):
             sage: FiniteSetMaps(4, 3)([1, 0, 0, 1]).image_set()
             {0, 1}
         """
-        return Set_object_enumerated(self)
+        return Set(self)
 
     cpdef fibers(self):
         """
@@ -505,7 +505,7 @@ cdef class FiniteSetMap_Set(FiniteSetMap_MN):
             {'c'}
         """
         image_i = self._parent._unrank_codomain
-        return Set_object_enumerated([image_i(i) for i in self])
+        return Set([image_i(i) for i in self])
 
     cpdef setimage(self, i, j):
         """
