@@ -618,14 +618,11 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
                                          self._fmodule is other.domain()
             else:
                 return False
-        if isinstance(other, ExtPowerFreeModule):
-            # Coercion of an alternating contravariant tensor to a
-            # type-(p,0) tensor:
-            return self._tensor_type == (other.degree(), 0) and \
-                                    self._fmodule is other.base_module()
-        if isinstance(other, ExtPowerDualFreeModule):
-            # Coercion of an alternating form to a type-(0,p) tensor:
-            return self._tensor_type == (0, other.degree()) and \
+        if isinstance(other, (ExtPowerFreeModule, ExtPowerDualFreeModule)):
+            # Coercion of
+            # - an alternating contravariant tensor to a type-(p,0) tensor
+            # - an alternating form to a type-(0,p) tensor
+            return self._tensor_type == other.tensor_type() and \
                                     self._fmodule is other.base_module()
         if isinstance(other, FreeModuleLinearGroup):
             # Coercion of an automorphism to a type-(1,1) tensor:
