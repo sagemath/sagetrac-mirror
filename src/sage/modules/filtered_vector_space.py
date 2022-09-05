@@ -1060,6 +1060,8 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             sage: F1 * F2
             RDF^4 >= RDF^3 >= RDF^1 >= 0
         """
+        if not isinstance(other, FilteredVectorSpace_class):
+            return super().tensor_product(other)
         V = self
         W = other
         from sage.structure.element import get_coercion_model
