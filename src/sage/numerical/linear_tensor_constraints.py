@@ -312,7 +312,7 @@ class LinearTensorConstraintsParent_class(Parent):
     EXAMPLES::
 
         sage: p = MixedIntegerLinearProgram()
-        sage: LT = p.linear_functions_parent().tensor(RDF^2);  LT
+        sage: LT = p.linear_functions_parent().tensor_product(RDF^2);  LT
         Tensor product of Vector space of dimension 2 over Real Double 
         Field and Linear functions over Real Double Field
         sage: from sage.numerical.linear_tensor_constraints import LinearTensorConstraintsParent

@@ -1757,7 +1757,7 @@ class Crystals(Category_singleton):
                 sage: B = crystals.infinity.Tableaux(['A', 3])
                 sage: c = C[0]
                 sage: b = B.highest_weight_vector()
-                sage: t = c.tensor(c, b)
+                sage: t = c.tensor_product(c, b)
                 sage: ascii_art(t)
                           1  1  1
                 1 # 1 #   2  2

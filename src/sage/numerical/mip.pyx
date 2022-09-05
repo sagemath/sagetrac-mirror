@@ -3569,7 +3569,7 @@ cdef class MIPVariable(SageObject):
             result[x_index] = row
         from sage.modules.free_module import FreeModule
         V = FreeModule(self._p.base_ring(), m.ncols())
-        T = self._p.linear_functions_parent().tensor(V)
+        T = self._p.linear_functions_parent().tensor_product(V)
         return T(result)
 
     cdef _matrix_lmul_impl(self, m):
@@ -3583,6 +3583,6 @@ cdef class MIPVariable(SageObject):
             result[x_index] = col
         from sage.modules.free_module import FreeModule
         V = FreeModule(self._p.base_ring(), m.nrows())
-        T = self._p.linear_functions_parent().tensor(V)
+        T = self._p.linear_functions_parent().tensor_product(V)
         return T(result)
 

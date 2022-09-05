@@ -75,7 +75,7 @@ class Bialgebras(Category_over_base_ring):
                 True
             """
             one = self.parent().one()
-            return self.coproduct() == one.tensor(self) + self.tensor(one)
+            return self.coproduct() == one.tensor_product(self) + self.tensor(one)
 
         def is_grouplike(self):
             """
@@ -89,7 +89,7 @@ class Bialgebras(Category_over_base_ring):
                 sage: s([]).is_grouplike()
                 True
             """
-            return self.coproduct() == self.tensor(self)
+            return self.coproduct() == self.tensor_product(self)
 
     class Super(SuperModulesCategory):
         pass

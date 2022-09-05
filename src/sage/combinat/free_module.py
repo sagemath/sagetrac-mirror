@@ -1535,8 +1535,8 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 B[3]
                 sage: C2(C.basis()[3] + C.basis()[-3])
                 2*B[3]
-                sage: S = C.tensor(C)
-                sage: S2 = C2.tensor(C2)
+                sage: S = C.tensor_product(C)
+                sage: S2 = C2.tensor_product(C2)
                 sage: S2.has_coerce_map_from(S)
                 True
                 sage: S.has_coerce_map_from(S2)

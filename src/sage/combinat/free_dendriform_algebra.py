@@ -610,15 +610,15 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
         B = self.basis()
         Trees = B.keys()
         if not x.node_number():
-            return self.one().tensor(self.one())
+            return self.one().tensor_product(self.one())
         L, R = list(x)
         try:
             root = x.label()
         except AttributeError:
             root = '@'
-        resu = self.one().tensor(self.monomial(x))
+        resu = self.one().tensor_product(self.monomial(x))
         resu += sum(cL * cR *
-                    self.monomial(Trees([LL[0], RR[0]], root)).tensor(
+                    self.monomial(Trees([LL[0], RR[0]], root)).tensor_product(
                         self.monomial(LL[1]) * self.monomial(RR[1]))
                     for LL, cL in self.coproduct_on_basis(L)
                     for RR, cR in self.coproduct_on_basis(R))

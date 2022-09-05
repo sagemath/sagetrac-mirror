@@ -489,7 +489,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         subtrees = list(x)
         num_subtrees = len(subtrees)
         indx = list(range(num_subtrees))
-        return sum(B[Trees([subtrees[i] for i in S], ROOT)].tensor(
+        return sum(B[Trees([subtrees[i] for i in S], ROOT)].tensor_product(
                    B[Trees([subtrees[i] for i in indx if i not in S], ROOT)])
                    for k in range(num_subtrees + 1)
                    for S in combinations(indx, k))

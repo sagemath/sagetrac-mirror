@@ -102,7 +102,7 @@ class StarCrystal(UniqueRepresentation, Parent):
         self.module_generators = (self(self._Binf.module_generators[0]),)
         t0 = Binf.highest_weight_vector()
         B = {i: ElementaryCrystal(Binf.cartan_type(),i) for i in self.index_set()}
-        self._tens = {i: B[i].tensor(Binf) for i in self.index_set()}
+        self._tens = {i: B[i].tensor_product(Binf) for i in self.index_set()}
         gens = {i: self._tens[i](B[i](0), t0) for i in self.index_set()}
         self._embedding = {i: Binf.crystal_morphism({t0: gens[i]}) for i in self.index_set()}
         self._pullback = {i: self._tens[i].crystal_morphism({gens[i]: t0}) for i in self.index_set()}

@@ -139,7 +139,7 @@ class VirtualCrystal(Subcrystal):
 
         sage: C1 = crystals.Tableaux(['A',3], shape=[1])
         sage: C2 = crystals.Tableaux(['A',3], shape=[1,1,1])
-        sage: T = C1.tensor(C2)
+        sage: T = C1.tensor_product(C2)
         sage: mg = T(C1.module_generators[0], C2.module_generators[0])
         sage: V = VirtualCrystal(A, {1:(1,3), 2:(2,)}, {1:1, 2:2},
         ....:                    cartan_type=['C',2], generators=[mg])

@@ -647,7 +647,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 M[] # M[{1}, {2}] + M[{1}] # M[{1}] + M[{1}, {2}] # M[]
             """
             if not x:
-                return self.one().tensor(self.one())
+                return self.one().tensor_product(self.one())
             K = self.indices()
 
             def standardize(P):  # standardize an ordered set partition
@@ -1213,7 +1213,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             # as on the M basis. This is easily derived from the
             # formula on the M basis.
             if not x:
-                return self.one().tensor(self.one())
+                return self.one().tensor_product(self.one())
             K = self.indices()
 
             def standardize(P):  # standardize an ordered set partition
@@ -1719,12 +1719,12 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: M = algebras.WQSym(QQ).M()
                 sage: x = Phi[[2, 4], [6], [1, 3], [5, 7]]
-                sage: MM = M.tensor(M); AA = Phi.tensor(Phi)
+                sage: MM = M.tensor_product(M); AA = Phi.tensor(Phi)
                 sage: AA(M(x).coproduct()) == x.coproduct()
                 True
             """
             if not x:
-                return self.one().tensor(self.one())
+                return self.one().tensor_product(self.one())
             K = self.indices()
 
             def standardize(P):  # standardize an ordered set partition

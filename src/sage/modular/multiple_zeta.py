@@ -1655,7 +1655,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
 
         resu = self.tensor_square().zero()
         for indices in terms:
-            resu += split_word(indices).tensor(
+            resu += split_word(indices).tensor_product(
                 M_all(Word(seq[i] for i in indices)).regularise().simplify())
         return resu
 
@@ -1800,7 +1800,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             left = Im(it[p: p + k + 2])
             right = Im(it[:p + 1] + it[p + k + 1:])
             if left and right:
-                coprod += left.regularise().tensor(right.regularise())
+                coprod += left.regularise().tensor_product(right.regularise())
         return coprod
 
     def D(self, k):

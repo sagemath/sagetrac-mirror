@@ -961,7 +961,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     ....:     #        (not quasi-symmetric function)
                     ....:     # OUTPUT: interior coproduct of M_I
                     ....:     M = QuasiSymmetricFunctions(ZZ).M()
-                    ....:     M2 = M.tensor(M)
+                    ....:     M2 = M.tensor_product(M)
                     ....:     res = M2.zero()
                     ....:     l = len(I)
                     ....:     n = I.size()
@@ -2532,7 +2532,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                      + F[2, 1] # F[1, 1, 1] + F[2, 1] # F[2, 1] + F[3] # F[1, 2]
                 """
                 F = self.parent()
-                F2 = F.tensor(F)
+                F2 = F.tensor_product(F)
                 result = F2.zero()
                 from sage.categories.tensor import tensor
                 from sage.combinat.permutation import Permutation

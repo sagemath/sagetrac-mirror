@@ -640,8 +640,8 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 + F[3, 2, 1] # F[]
             """
             if not x:
-                return self.one().tensor(self.one())
-            return sum(self(Word(x[:i]).standard_permutation()).tensor(
+                return self.one().tensor_product(self.one())
+            return sum(self(Word(x[:i]).standard_permutation()).tensor_product(
                 self(Word(x[i:]).standard_permutation()))
                 for i in range(len(x) + 1))
 
@@ -1185,8 +1185,8 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             """
             n = len(x)
             if not n:
-                return self.one().tensor(self.one())
-            return sum(self(Word(x[:i]).standard_permutation()).tensor(
+                return self.one().tensor_product(self.one())
+            return sum(self(Word(x[:i]).standard_permutation()).tensor_product(
                 self(Word(x[i:]).standard_permutation()))
                 for i in range(n + 1)
                 if (i == 0 or i == n or min(x[:i]) > max(x[i:])))

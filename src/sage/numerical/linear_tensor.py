@@ -220,7 +220,7 @@ class LinearTensorParent_class(Parent):
         TESTS::
 
             sage: from sage.numerical.linear_functions import LinearFunctionsParent
-            sage: LinearFunctionsParent(RDF).tensor(RDF^2)
+            sage: LinearFunctionsParent(RDF).tensor_product(RDF^2)
             Tensor product of Vector space of dimension 2 over Real Double
             Field and Linear functions over Real Double Field
         """
@@ -265,9 +265,9 @@ class LinearTensorParent_class(Parent):
 
             sage: mip = MixedIntegerLinearProgram()
             sage: LF = mip.linear_functions_parent()
-            sage: LF.tensor(RDF^2).is_vector_space()
+            sage: LF.tensor_product(RDF^2).is_vector_space()
             True
-            sage: LF.tensor(RDF^(2,2)).is_vector_space()       
+            sage: LF.tensor_product(RDF^(2,2)).is_vector_space()       
             False
         """
         from sage.modules.free_module import is_FreeModule
@@ -286,9 +286,9 @@ class LinearTensorParent_class(Parent):
 
             sage: mip = MixedIntegerLinearProgram()
             sage: LF = mip.linear_functions_parent()
-            sage: LF.tensor(RDF^2).is_matrix_space()
+            sage: LF.tensor_product(RDF^2).is_matrix_space()
             False
-            sage: LF.tensor(RDF^(2,2)).is_matrix_space()
+            sage: LF.tensor_product(RDF^(2,2)).is_matrix_space()
             True
         """
         from sage.matrix.matrix_space import is_MatrixSpace
@@ -343,9 +343,9 @@ class LinearTensorParent_class(Parent):
 
             sage: mip = MixedIntegerLinearProgram()
             sage: LF = mip.linear_functions_parent()
-            sage: LF.tensor(RDF^2)._convert_constant(42)
+            sage: LF.tensor_product(RDF^2)._convert_constant(42)
             (42.0, 42.0)
-            sage: LF.tensor(RDF^(2,2))._convert_constant(42)
+            sage: LF.tensor_product(RDF^(2,2))._convert_constant(42)
             [42.0  0.0]
             [ 0.0 42.0]
         """
@@ -378,7 +378,7 @@ class LinearTensorParent_class(Parent):
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: LT = p.linear_functions_parent().tensor(RDF^2)
+            sage: LT = p.linear_functions_parent().tensor_product(RDF^2)
             sage: LT._element_constructor_(123)
             (123.0, 123.0)
 
@@ -397,7 +397,7 @@ class LinearTensorParent_class(Parent):
         Similar, over ``QQ`` and with matrices instead of vectors::
 
             sage: p_QQ = MixedIntegerLinearProgram(solver='ppl')
-            sage: LT_QQ = p_QQ.linear_functions_parent().tensor(QQ^(2, 2))
+            sage: LT_QQ = p_QQ.linear_functions_parent().tensor_product(QQ^(2, 2))
             sage: LT_QQ({-1:[[1/2, 1/3], [2, 3]], 2:[[3/4, 1/4], [0, 0]]})
             [1/2 + 3/4*x_2 1/3 + 1/4*x_2]
             [2             3            ]
@@ -451,7 +451,7 @@ class LinearTensorParent_class(Parent):
 
             sage: mip.<x> = MixedIntegerLinearProgram()
             sage: LF = mip.linear_functions_parent()
-            sage: LT = LF.tensor(RDF^3)
+            sage: LT = LF.tensor_product(RDF^3)
             sage: LT.has_coerce_map_from(LF)
             True
         """
@@ -471,7 +471,7 @@ class LinearTensorParent_class(Parent):
 
         EXAMPLES::
 
-            sage: p = MixedIntegerLinearProgram().linear_functions_parent().tensor(RDF^2)
+            sage: p = MixedIntegerLinearProgram().linear_functions_parent().tensor_product(RDF^2)
             sage: p._an_element_()
             (1.0, 0.0) + (5.0, 0.0)*x_2 + (7.0, 0.0)*x_5
             sage: p.an_element()   # indirect doctest

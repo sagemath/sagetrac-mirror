@@ -44,7 +44,7 @@ cdef class LinearTensor(ModuleElement):
 
     EXAMPLES::
 
-        sage: parent = MixedIntegerLinearProgram().linear_functions_parent().tensor(RDF^2)
+        sage: parent = MixedIntegerLinearProgram().linear_functions_parent().tensor_product(RDF^2)
         sage: parent({0: [1,2], 3: [-7,-8]})
         (1.0, 2.0)*x_0 + (-7.0, -8.0)*x_3
     """
@@ -67,7 +67,7 @@ cdef class LinearTensor(ModuleElement):
 
         With a dictionary::
 
-            sage: LT = MixedIntegerLinearProgram().linear_functions_parent().tensor(RDF^2)
+            sage: LT = MixedIntegerLinearProgram().linear_functions_parent().tensor_product(RDF^2)
             sage: LT({0: [1,2], 3: [-7,-8]})
             (1.0, 2.0)*x_0 + (-7.0, -8.0)*x_3
         
@@ -92,7 +92,7 @@ cdef class LinearTensor(ModuleElement):
 
         EXAMPLES::
 
-            sage: p = MixedIntegerLinearProgram().linear_functions_parent().tensor(RDF^2)
+            sage: p = MixedIntegerLinearProgram().linear_functions_parent().tensor_product(RDF^2)
             sage: lt = p({0:[1,2], 3:[4,5]});  lt
             (1.0, 2.0)*x_0 + (4.0, 5.0)*x_3
             sage: lt[0]
@@ -117,7 +117,7 @@ cdef class LinearTensor(ModuleElement):
 
         EXAMPLES::
 
-            sage: p = MixedIntegerLinearProgram().linear_functions_parent().tensor(RDF^2)
+            sage: p = MixedIntegerLinearProgram().linear_functions_parent().tensor_product(RDF^2)
             sage: lt = p({0:[1,2], 3:[4,5]})
             sage: lt.dict()
             {0: (1.0, 2.0), 3: (4.0, 5.0)}
@@ -196,11 +196,11 @@ cdef class LinearTensor(ModuleElement):
 
             sage: from sage.numerical.linear_functions import LinearFunctionsParent
             sage: R.<s,t> = RDF[]
-            sage: LT = LinearFunctionsParent(RDF).tensor(R)
+            sage: LT = LinearFunctionsParent(RDF).tensor_product(R)
             sage: LT.an_element()  # indirect doctest
             (s) + (5.0*s)*x_2 + (7.0*s)*x_5
 
-            sage: LT = LinearFunctionsParent(RDF).tensor(RDF^2)
+            sage: LT = LinearFunctionsParent(RDF).tensor_product(RDF^2)
             sage: LT.an_element()  # indirect doctest
             (1.0, 0.0) + (5.0, 0.0)*x_2 + (7.0, 0.0)*x_5
         """
@@ -233,7 +233,7 @@ cdef class LinearTensor(ModuleElement):
         EXAMPLES::
 
             sage: from sage.numerical.linear_functions import LinearFunctionsParent
-            sage: LT = LinearFunctionsParent(RDF).tensor(RDF^(2,2))
+            sage: LT = LinearFunctionsParent(RDF).tensor_product(RDF^(2,2))
             sage: LT.an_element()  # indirect doctest
             [1 + 5*x_2 + 7*x_5 1 + 5*x_2 + 7*x_5]
             [1 + 5*x_2 + 7*x_5 1 + 5*x_2 + 7*x_5]
@@ -276,7 +276,7 @@ cdef class LinearTensor(ModuleElement):
         EXAMPLES::
 
             sage: from sage.numerical.linear_functions import LinearFunctionsParent
-            sage: LT = LinearFunctionsParent(RDF).tensor(RDF^2)
+            sage: LT = LinearFunctionsParent(RDF).tensor_product(RDF^2)
             sage: LT({0: [1,2], 3: [-7,-8]}) + LT({2: [5,6], 3: [2,-2]}) + 16
             (16.0, 16.0) + (1.0, 2.0)*x_0 + (5.0, 6.0)*x_2 + (-5.0, -10.0)*x_3
         """
@@ -296,7 +296,7 @@ cdef class LinearTensor(ModuleElement):
         EXAMPLES::
 
             sage: from sage.numerical.linear_functions import LinearFunctionsParent
-            sage: LT = LinearFunctionsParent(RDF).tensor(RDF^2)
+            sage: LT = LinearFunctionsParent(RDF).tensor_product(RDF^2)
             sage: -LT({0: [1,2], 3: [-7,-8]})
             (-1.0, -2.0)*x_0 + (7.0, 8.0)*x_3
         """
@@ -320,7 +320,7 @@ cdef class LinearTensor(ModuleElement):
         EXAMPLES::
 
             sage: from sage.numerical.linear_functions import LinearFunctionsParent
-            sage: LT = LinearFunctionsParent(RDF).tensor(RDF^2)
+            sage: LT = LinearFunctionsParent(RDF).tensor_product(RDF^2)
             sage: LT({0: [1,2], 3: [-7,-8]}) - LT({1: [1,2]})
             (1.0, 2.0)*x_0 + (-1.0, -2.0)*x_1 + (-7.0, -8.0)*x_3
             sage: LT({0: [1,2], 3: [-7,-8]}) - 16
@@ -346,7 +346,7 @@ cdef class LinearTensor(ModuleElement):
         EXAMPLES::
 
             sage: from sage.numerical.linear_functions import LinearFunctionsParent
-            sage: LT = LinearFunctionsParent(RDF).tensor(RDF^2)
+            sage: LT = LinearFunctionsParent(RDF).tensor_product(RDF^2)
             sage: 10 * LT({0: [1,2], 3: [-7,-8]})
             (10.0, 20.0)*x_0 + (-70.0, -80.0)*x_3
         """
