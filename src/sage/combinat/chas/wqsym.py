@@ -1719,7 +1719,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: M = algebras.WQSym(QQ).M()
                 sage: x = Phi[[2, 4], [6], [1, 3], [5, 7]]
-                sage: MM = M.tensor_product(M); AA = Phi.tensor(Phi)
+                sage: MM = M.tensor_product(M); AA = Phi.tensor_product(Phi)
                 sage: AA(M(x).coproduct()) == x.coproduct()
                 True
             """

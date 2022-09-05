@@ -75,7 +75,7 @@ class Bialgebras(Category_over_base_ring):
                 True
             """
             one = self.parent().one()
-            return self.coproduct() == one.tensor_product(self) + self.tensor(one)
+            return self.coproduct() == one.tensor_product(self) + self.tensor_product(one)
 
         def is_grouplike(self):
             """

@@ -2200,6 +2200,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A = C.example()
                 sage: (a,b,c) = A.algebra_generators()
                 sage: a.tensor(b, c)
+                doctest:warning...
+                DeprecationWarning: method 'tensor' is deprecated; use 'tensor_product' instead
+                See https://trac.sagemath.org/30373 for details.
                 B[word: a] # B[word: b] # B[word: c]
             """
             deprecation(30373, "method 'tensor' is deprecated; use 'tensor_product' instead")
