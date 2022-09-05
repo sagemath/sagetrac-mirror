@@ -23,7 +23,7 @@ Catch warnings produced by :func:`check_tkz_graph`::
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.tensor import TensorProductsCategory
@@ -1210,14 +1210,7 @@ class Crystals(Category_singleton):
             from sage.combinat.crystals.tensor_product import TensorProductOfCrystals
             return TensorProductOfCrystals(self, *crystals, **options)
 
-        def tensor(self, *crystals, **options):
-            """
-            Return the tensor product of ``self`` with the crystals ``B``.
-
-            This method is deprecated. Use :meth:`tensor_product` instead.
-            """
-            deprecation(30373, "method 'tensor' is deprecated; use 'tensor_product' instead")
-            return self.tensor_product(*crystals, **options)
+        tensor = deprecated_function_alias(30373, tensor_product)
 
         def direct_sum(self, X):
             """
@@ -1753,7 +1746,7 @@ class Crystals(Category_singleton):
                                             max_depth=max_depth, direction=direction,
                                             category=category)
 
-        def tensor(self, *elts):
+        def tensor_product(self, *elts):
             r"""
             Return the tensor product of ``self`` with the crystal
             elements ``elts``.
@@ -1778,6 +1771,8 @@ class Crystals(Category_singleton):
             """
             T = self.parent().tensor_product(*[b.parent() for b in elts])
             return T(self, *elts)
+
+        tensor = deprecated_function_alias(30373, tensor_product)
 
     class SubcategoryMethods:
         """

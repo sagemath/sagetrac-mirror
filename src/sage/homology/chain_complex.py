@@ -1640,7 +1640,7 @@ class ChainComplex_class(Parent):
         ``-n * deg``, if ``deg`` is the degree of the differential::
 
             sage: C = ChainComplex({-2: matrix(ZZ, 0, 1)})
-            sage: C.tensor(co_T).homology()
+            sage: C.tensor_product(co_T).homology()
             {-4: Z, -3: Z x Z, -2: Z}
         """
         deg = self.degree_of_differential()
@@ -2008,7 +2008,7 @@ class ChainComplex_class(Parent):
         return ChainComplex(ret, degree_of_differential=deg_diff,
                             grading_group=self._grading_group)
 
-    def tensor(self, *factors, **kwds):
+    def tensor_product(self, *factors, **kwds):
         r"""
         Return the tensor product of ``self`` with ``D``.
 
@@ -2051,11 +2051,11 @@ class ChainComplex_class(Parent):
             sage: C1 = ChainComplex({1:matrix([[x]])}, degree_of_differential=-1)
             sage: C2 = ChainComplex({1:matrix([[y]])}, degree_of_differential=-1)
             sage: C3 = ChainComplex({1:matrix([[z]])}, degree_of_differential=-1)
-            sage: ascii_art(C1.tensor(C2))
+            sage: ascii_art(C1.tensor_product(C2))
                                     [ x]
                         [y x]       [-y]
              0 <-- C_0 <------ C_1 <----- C_2 <-- 0
-            sage: ascii_art(C1.tensor(C2).tensor(C3))
+            sage: ascii_art(C1.tensor_product(C2).tensor_product(C3))
                                       [ y  x  0]       [ x]
                                       [-z  0  x]       [-y]
                         [z y x]       [ 0 -z -y]       [ z]
@@ -2068,7 +2068,7 @@ class ChainComplex_class(Parent):
                                     [-y]
                         [x y]       [ x]
              0 <-- C_0 <------ C_1 <----- C_2 <-- 0
-            sage: T = C.tensor(C)
+            sage: T = C.tensor_product(C)
             sage: T.differential(1)
             [x y x y]
             sage: T.differential(2)
@@ -2092,7 +2092,7 @@ class ChainComplex_class(Parent):
         The degrees of the differentials must agree::
 
             sage: C1p = ChainComplex({1:matrix([[x]])}, degree_of_differential=1)
-            sage: C1.tensor(C1p)
+            sage: C1.tensor_product(C1p)
             Traceback (most recent call last):
             ...
             ValueError: the degrees of the differentials must match
@@ -2117,7 +2117,7 @@ class ChainComplex_class(Parent):
             sage: C1 = ChainComplex(d1, grading_group=G, degree=G(vector([2,1])))
             sage: d2 = {G(vector([3,0])):matrix([[y]])}
             sage: C2 = ChainComplex(d2, grading_group=G, degree=G(vector([2,1])))
-            sage: ascii_art(C1.tensor(C2))
+            sage: ascii_art(C1.tensor_product(C2))
                                                 [y]
                              [ x -y]            [x]
              0 <-- C_(8, 3) <-------- C_(6, 2) <---- C_(4, 1) <-- 0
@@ -2127,7 +2127,7 @@ class ChainComplex_class(Parent):
             sage: C = ChainComplex({0: matrix(ZZ, 0, 2)}, degree=-1)
             sage: ascii_art(C)
              0 <-- C_0 <-- 0
-            sage: T = C.tensor(C)
+            sage: T = C.tensor_product(C)
             sage: ascii_art(T)
              0 <-- C_0 <-- 0
             sage: T.free_module_rank(0)
@@ -2235,6 +2235,9 @@ class ChainComplex_class(Parent):
                                grading_group=self._grading_group)
 
         return ret
+
+    tensor = deprecated_function_alias(30373, tensor_product)
+
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.homology.chain_complex', 'ChainComplex', ChainComplex_class)

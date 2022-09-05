@@ -2168,7 +2168,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return self.parent().sum_of_terms( f(m,c) for m,c in self )
 
-        def tensor(*elements):
+        def tensor_product(*elements):
             """
             Return the tensor product of its arguments, as an element of
             the tensor product of the parents of those elements.
@@ -2178,7 +2178,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: C = AlgebrasWithBasis(QQ)
                 sage: A = C.example()
                 sage: (a,b,c) = A.algebra_generators()
-                sage: a.tensor(b, c)
+                sage: a.tensor_product(b, c)
                 B[word: a] # B[word: b] # B[word: c]
 
             FIXME: is this a policy that we want to enforce on all parents?
@@ -2186,6 +2186,24 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             assert(all(isinstance(element, Element) for element in elements))
             parents = [parent(element) for element in elements]
             return tensor(parents)._tensor_of_elements(elements) # good name???
+
+        def tensor(*elements):
+            """
+            Return the tensor product of its arguments, as an element of
+            the tensor product of the parents of those elements.
+
+            This method is deprecated; use :meth:`tensor_product` instead.
+
+            EXAMPLES::
+
+                sage: C = AlgebrasWithBasis(QQ)
+                sage: A = C.example()
+                sage: (a,b,c) = A.algebra_generators()
+                sage: a.tensor(b, c)
+                B[word: a] # B[word: b] # B[word: c]
+            """
+            deprecation(30373, "method 'tensor' is deprecated; use 'tensor_product' instead")
+            return element[0].tensor_product(*elements[1:])
 
     class Homsets(HomsetsCategory):
         class ParentMethods:

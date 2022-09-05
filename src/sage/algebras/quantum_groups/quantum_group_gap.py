@@ -1781,7 +1781,7 @@ class HighestWeightModule(QuantumGroupModule):
 
     an_element = highest_weight_vector
 
-    def tensor(self, *V, **options):
+    def tensor_product(self, *V, **options):
         """
         Return the tensor product of ``self`` with ``V``.
 
@@ -1790,7 +1790,7 @@ class HighestWeightModule(QuantumGroupModule):
             sage: Q = QuantumGroup(['A',2])            # optional - gap_packages
             sage: V = Q.highest_weight_module([1,1])   # optional - gap_packages
             sage: Vp = Q.highest_weight_module([1,0])  # optional - gap_packages
-            sage: Vp.tensor(V)                         # optional - gap_packages
+            sage: Vp.tensor_product(V)                 # optional - gap_packages
             Highest weight module of weight Lambda[1] of Quantum Group of type ['A', 2] with q=q
              # Highest weight module of weight Lambda[1] + Lambda[2] of Quantum Group of type ['A', 2] with q=q
         """
