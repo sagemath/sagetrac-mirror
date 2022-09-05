@@ -61,7 +61,7 @@ from sage.modules.free_module_element import vector
 from sage.matrix.matrix0 import Matrix
 from sage.matrix.constructor import matrix
 from sage.misc.latex import latex
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.rings.all import GF, prime_range
 from sage.homology.homology_group import HomologyGroup
 
