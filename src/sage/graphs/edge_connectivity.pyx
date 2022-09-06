@@ -1282,7 +1282,7 @@ cdef class GabowEdgeConnectivity:
 
     cdef int search_step(self, int e):
 
-        # ALL THE TREES HERE SHOULD BE SELF.CURRENT_TREE I THINK
+        # ALL THE TREES HERE SHOULD BE SELF.CURRENT_TREE (I THINK?)
 
         cdef int x
         cdef int y
