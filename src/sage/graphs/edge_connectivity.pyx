@@ -25,7 +25,6 @@ from a `2k` edge-connected graph or a `k` edge-connected digraph.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from memory_allocator cimport MemoryAllocator
 from cysignals.signals cimport sig_check
 from sage.graphs.generic_graph_pyx cimport GenericGraph_pyx
 from libc.limits cimport INT_MAX
@@ -170,7 +169,7 @@ cdef class GabowEdgeConnectivity:
     cdef queue[int] incident_edges_Q  # queue of edges
 
     # to store packed arborescences
-    cdef search_mode
+    cdef bint search_mode
     cdef int *Arbor_edge
     cdef int *dfs_edges
     cdef int *A 
@@ -181,6 +180,11 @@ cdef class GabowEdgeConnectivity:
     cdef int nexti
     cdef int **root_set
     cdef int sets
+    cdef int *set_seen
+    cdef int *myset
+    cdef int *temp_parent
+    cdef int *temp_depth
+    cdef int ntrees
 
 
 
@@ -259,8 +263,9 @@ cdef class GabowEdgeConnectivity:
         self.nexti = 0
         self.sets = 0
         self.root_set = <int*>self.mem.calloc(self.n, sizeof(int))
-
-
+        self.temp_depth = <int*>self.mem.calloc(self.n, sizeof(int))
+        self.temp_parent = <int*>self.mem.calloc(self.n, sizeof(int))
+        self.ntrees = 0
 
         # Set some constants
         self.UNUSED = INT_MAX
@@ -588,6 +593,8 @@ cdef class GabowEdgeConnectivity:
             self.join(joining_edge)
             return True
         return False
+
+    
 
     cdef void join(self, int e_id):
         """
@@ -1094,6 +1101,15 @@ cdef class GabowEdgeConnectivity:
 
     cdef void remove_unused_edges_from_G(self): #NOT DONE
         cdef int x, y
+        cdef int e_id
+
+        for e_id in self.my_g[x]:
+
+            self.my_edge_state[e_id] = self.UNUSED
+            self.my_from[e_id] = self.UNUSED
+            self.my_to[e_id] = self.UNUSED
+
+        
 
         return
 
@@ -1108,20 +1124,75 @@ cdef class GabowEdgeConnectivity:
 
         return
 
+    cdef void init_Lroots(self, int x):
+        cdef int i
+        for i in range(self.current_tree + 1):
+            self.L_roots[i] = x
+            self.labeled[i][x] = True			
+        return
+
     cdef int search_packing_joining(self, int x, int tree):
-        return 1
+        cdef int y
+        cdef int joining_edge												
+        cdef int e_id, ep
+
+        # Store the vertex that is about to be augmented
+        self.augmenting_root = self.root[x]
+
+        # Consider the incoming arcs of x
+        for e_id in self.my_g[x]:
+            y = self.my_from[e_id]
+            # find the root of the f_tree
+            y = self.root[y]
+
+            if self.my_edge_state[e_id] == self.UNUSED and self.Arbor_edge[e_id] == -1:
+                # The edge is available
+                if self.root[x] != y:
+                    # ... and the f_trees have different roots. We set the
+                    # label of edges in the queue to UNUSED and clear the queue
+                    while not self.my_Q.empty():
+                        ep = self.my_Q.front()
+                        self.my_Q.pop()
+                        self.labels[ep] = self.UNUSED
+                    # We then assign the edge to the current_tree
+                    self.join(e_id)
+                    return True
+                else:
+                    # The f_trees have the same root (cycle).
+                    # We add the edge to the queue
+                    self.my_Q.push(e_id)
+                    # and indicate the first edge of the path
+                    self.labels[e_id] = self.FIRSTEDGE
+
+        # If we did not find a free joining edge, we check for a sequence of
+        # swaps in order to free a joining edge
+
+        # Initialize the L_i tree of every T_i with vertex x and make x labeled
+        self.init_Lroots(x)
+
+        # Start cycle_scanning algorithm
+        joining_edge = self.next_joining_edge_step()
+        sig_check()
+
+        if joining_edge != INT_MAX:
+            # We found a joining edge
+            self.joining_edges.push((joining_edge, self.my_edge_state[joining_edge]))
+            self.join(joining_edge)
+            return True
+
+        return False
 
     cdef void init_set(self):
         if self.sets != 0:
-            for i in range(sets): # clearing previous sets
-                self.root_set[i].clear() 
+            for i in range(self.sets): # clearing previous sets
+                # self.root_set[i].clear() 
                 self.sets = 0
 
             for i in range(self.K):
                 self.root_set[self.sets][i] = -1
             
             for i in range(self.n):
-	            self.[i] = -1
+                self.myset[i] = -1
                 self.set_seen[i] = 0
 
         return
@@ -1159,7 +1230,7 @@ cdef class GabowEdgeConnectivity:
         cdef queue[int] du_da
 
         for i in self.my_g: # for all outgoing edges in g
-            # e = positionOut[j]
+            e = 1 # e = positionOut[j]
             x = self.my_to[e]
 
             if self.inA[x] == 0:
@@ -1227,34 +1298,31 @@ cdef class GabowEdgeConnectivity:
         cdef int tree
         cdef int found
 
-        cdef int *myparent # new int[n+1]
-        cdef int *mydepth # new int[n+1]
-
         x = self.my_from[e]
         y = self.my_to[e]
         tree = self.my_edge_state[e]
         self.tree_flag[tree] = 1
 
         for i in range(self.n):
-            myparent[i] = self.my_parent[tree][i]
-            mydepth[i] = self.my_depth[tree][i]
+            self.temp_parent[i] = self.my_parent[tree][i]
+            self.temp_depth[i] = self.my_depth[tree][i]
 
-        self.my_edge_state[e] = self.UNUSED # temporarily unused (-2)
+        self.my_edge_state[e] = self.UNUSED # temporarily unused (-2), is this first edge?
 
         self.update_mytree(tree, x, y)
 
-        found = self.search_joining(y,tree) 
+        found = self.search_joining(y) #,tree) 
 
         if found == 1:
             self.augmentation_algorithm()
-            self.re_init()
+            # self.re_init()
             return 1
         else:
-            my_edge_state[e] = tree
+            self.my_edge_state[e] = tree
             print("unsuccessful search")
             for i in range(self.n):
-                self.my_parent[i] = myparent[i]
-                self.my_depth[i] = mydepth[i]
+                self.my_parent[tree][i] = self.temp_parent[i]
+                self.my_depth[tree][i] = self.temp_depth[i]
 
             # CLEAR ALL THE DATA STRUCTURES HERE (not implemented)
 
@@ -1303,14 +1371,13 @@ cdef class GabowEdgeConnectivity:
         return
 
     cdef void packing_arboresences(self):
-        cdef int ntrees
         cdef int temp
         self.pa_checked = False
 
-        ntrees = self.construct_trees(False, 0) # find the value of K - intersection # check true or false based on reverse logic
-        print(ntrees)
-        K = ntrees - 1 # maybe just self.ec since should be same number
-        if ntrees == 0:
+        self.ntrees = self.construct_trees(False, 0) # find the value of K - intersection # check true or false based on reverse logic
+        print(self.ntrees)
+        K = self.ntrees - 1 # maybe just self.ec since should be same number
+        if self.ntrees == 0:
             self.num_arborescences = 0
             self.pa_checked = True
             return
@@ -1320,14 +1387,14 @@ cdef class GabowEdgeConnectivity:
 
         while 1:
             # get dfs from r
-            dfs = self.G.DFS(self.root_vertex)
+            dfs = self.compute_dfs_tree()
 
             # remove edges in tree from G (aka G - A)
             self.G_minus_A()
 
             temp = self.construct_trees(False, 1)
 
-            if temp < ntrees - 1:
+            if temp < self.ntrees - 1:
                 print("Bad Case: Temp is {}".format(temp))
 
                 for i in range(self.m):
