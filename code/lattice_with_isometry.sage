@@ -56,9 +56,12 @@ class LatticeWithIsometry(FreeQuadraticModule_integer_symmetric):
             # gensG = [block_matrix(g.nrows(),g.ncols(),[i.polynomial().subs(x=a) for i in g.list() ]) for g in gensG]
             # G = self.L.orthogonal_group(gens=gensG)
             # Oq_equiv = Oq.subgroup([Oq(g) for g in G.gens()])
-            G = self.L.orthogonal_group()
-            f = G(self.iso)
-            G = [G(g) for g in G.gap().Centralizer(f.gap()).GeneratorsOfGroup()]
+            if self.order==13:
+                G = [self.L.orthogonal_group(gens=[self.iso]).gen(0)]
+            else:
+                G = self.L.orthogonal_group()
+                f = G(self.iso)
+                G = [G(g) for g in G.gap().Centralizer(f.gap()).GeneratorsOfGroup()]
             Oq = self.L.discriminant_group().orthogonal_group()
             Oq_equiv = Oq.subgroup([Oq(g) for g in G])
         elif self.L.rank() == euler_phi(self.order):

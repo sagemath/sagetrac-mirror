@@ -328,7 +328,7 @@ def prime_power_actions(genus, p, ranks, signatures, k3_unobstructed=True,verbos
             M = LatticeWithIsometry(IntegralLattice(M),fM,order=1)
             GM = M.Oq_equiv()
             yield [M.L, M.iso, GM]
-            return
+        return
     M_rank = ranks[-1]
     M_signature = signatures[-1]
     R_signatures = signatures[:-1]
