@@ -207,14 +207,14 @@ We check that :trac:`17990` is fixed::
     sage: m.rows()
     [(+Infinity)]
 """
-#*****************************************************************************
+# ****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import annotations
 from sys import maxsize
 from sage.rings.ring import Ring
 from sage.structure.element import RingElement, InfinityElement
@@ -628,16 +628,16 @@ class UnsignedInfinityRing_class(Singleton, Ring):
         else:
             raise IndexError("UnsignedInfinityRing only has one generator")
 
-    def gens(self):
+    def gens(self) -> tuple:
         """
         The "generator" of ``self`` is the infinity object.
 
         EXAMPLES::
 
             sage: UnsignedInfinityRing.gens()
-            [Infinity]
+            (Infinity,)
         """
-        return [self.gen()]
+        return (self.gen(),)
 
     def less_than_infinity(self):
         """
@@ -1071,16 +1071,16 @@ class InfinityRing_class(Singleton, Ring):
                 self._gen1 = MinusInfinity()
                 return self._gen1
 
-    def gens(self):
+    def gens(self) -> tuple:
         """
         The two generators are plus and minus infinity.
 
         EXAMPLES::
 
             sage: InfinityRing.gens()
-            [+Infinity, -Infinity]
+            (+Infinity, -Infinity)
         """
-        return [self.gen(0), self.gen(1)]
+        return (self.gen(0), self.gen(1))
 
     def is_zero(self):
         """

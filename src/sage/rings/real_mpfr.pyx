@@ -107,7 +107,7 @@ Make sure we don't have a new field for every new literal::
     True
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -115,8 +115,7 @@ Make sure we don't have a new field for every new literal::
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
-
+# ****************************************************************************
 import math # for log
 import sys
 import re
@@ -892,14 +891,14 @@ cdef class RealField_class(sage.rings.abc.RealField):
 
     def gens(self):
         """
-        Return a list of generators.
+        Return a tuple of generators.
 
         EXAMPLES::
 
             sage: RR.gens()
-            [1.00000000000000]
+            (1.00000000000000,)
         """
-        return [self.gen()]
+        return (self.gen(),)
 
     def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
