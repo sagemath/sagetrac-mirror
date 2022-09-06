@@ -172,8 +172,8 @@ cdef class GabowEdgeConnectivity:
     cdef bint search_mode
     cdef int *Arbor_edge
     cdef int *dfs_edges
-    cdef int *A 
-    cdef int *inA
+    cdef int *A # for edges
+    cdef int *inA # for nodes
     cdef int *inX
     cdef int *marked_edge
     cdef int *to
@@ -1099,28 +1099,18 @@ cdef class GabowEdgeConnectivity:
     # Packing arborescences
     #
 
-    cdef void remove_unused_edges_from_G(self): #NOT DONE
-        cdef int x, y
-        cdef int e_id
-
-        for e_id in self.my_g[x]:
-
-            self.my_edge_state[e_id] = self.UNUSED
-            self.my_from[e_id] = self.UNUSED
-            self.my_to[e_id] = self.UNUSED
-
-        
-
-        return
-
     cdef void release_used_edges(self):
         for j in range(self.m):
             self.my_edge_state[j] = self.UNUSED
         return
 
-    cdef void G_minus_A(self): #NOT DONE
-        for i in self.A_path:
-            print(i)
+    cdef void G_minus_A(self):
+        cdef int x = self.my_to[e_id]
+        cdef int y = self.my_from[e_id]
+
+        for e_id in self.A: 
+            if self.Arbor_edge[e_id] == -1:
+                self.my_edge_state = self.UNUSED
 
         return
 
@@ -1224,13 +1214,14 @@ cdef class GabowEdgeConnectivity:
         # find an edge to augment A if it is possible 
 
         cdef int e
+        cdef int i
         cdef int flag
         cdef int x
         flag = 0
         cdef queue[int] du_da
 
         for i in self.my_g: # for all outgoing edges in g
-            e = 1 # e = positionOut[j]
+            e = self.my_from[i] # e = positionOut[j]
             x = self.my_to[e]
 
             if self.inA[x] == 0:
@@ -1382,7 +1373,6 @@ cdef class GabowEdgeConnectivity:
             self.pa_checked = True
             return
         
-        self.remove_unused_edges_from_G()	# remove unused edges from the graph ( Include only E(T) )
         self.release_used_edges()
 
         while 1:
