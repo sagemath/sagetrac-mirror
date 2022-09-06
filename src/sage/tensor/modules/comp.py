@@ -254,6 +254,8 @@ from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
 from operator import itemgetter
 
+from .with_basis.tensor_free_module import TensorFreeModuleWithBasis
+
 
 class Components(SageObject):
     r"""
@@ -505,14 +507,21 @@ class Components(SageObject):
         """
         # For efficiency, no test is performed regarding the type and range of
         # the arguments:
+        parent = TensorFreeModuleWithBasis(ring,
+                                           (frame,) * nb_indices,
+                                           (start_index,) * nb_indices,
+                                           output_formatter)
+        self._parent = parent
         self._ring = ring
         self._frame = frame
         self._nid = nb_indices
         self._dim = len(frame)
         self._sindex = start_index
-        self._output_formatter = output_formatter
         self._comp = {} # the dictionary of components, with the index tuples
                         # as keys
+
+    def parent(self):
+        return self._parent
 
     def _repr_(self):
         r"""
@@ -551,7 +560,7 @@ class Components(SageObject):
 
         """
         return Components(self._ring, self._frame, self._nid, self._sindex,
-                          self._output_formatter)
+                          self.parent()._output_formatter)
 
     def copy(self):
         r"""
@@ -707,7 +716,8 @@ class Components(SageObject):
             [ 0  0  0]
 
         """
-        no_format = self._output_formatter is None
+        output_formatter = self.parent()._output_formatter
+        no_format = output_formatter is None
         format_type = None # default value, possibly redefined below
         if isinstance(args, list):  # case of [[...]] syntax
             no_format = True
@@ -738,17 +748,16 @@ class Components(SageObject):
                 if no_format:
                     return self._comp[ind]
                 elif format_type is None:
-                    return self._output_formatter(self._comp[ind])
+                    return output_formatter(self._comp[ind])
                 else:
-                    return self._output_formatter(self._comp[ind], format_type)
+                    return output_formatter(self._comp[ind], format_type)
             else:  # if the value is not stored in self._comp, it is zero:
                 if no_format:
                     return self._ring.zero()
                 elif format_type is None:
-                    return self._output_formatter(self._ring.zero())
+                    return output_formatter(self._ring.zero())
                 else:
-                    return self._output_formatter(self._ring.zero(),
-                                                 format_type)
+                    return output_formatter(self._ring.zero(), format_type)
 
     def _get_list(self, ind_slice, no_format=True, format_type=None):
         r"""
@@ -761,7 +770,7 @@ class Components(SageObject):
         - ``no_format`` -- (default: ``True``) determines whether some
           formatting of the components is to be performed
         - ``format_type`` -- (default: ``None``) argument to be passed
-          to the formatting function ``self._output_formatter``, as the
+          to the formatting function ``self.parent()._output_formatter``, as the
           second (optional) argument
 
         OUTPUT:
@@ -1418,7 +1427,7 @@ class Components(SageObject):
                 return False
             if other._sindex != self._sindex:
                 return False
-            if other._output_formatter != self._output_formatter:
+            if other.parent()._output_formatter != self.parent()._output_formatter:
                 return False
             return (self - other).is_zero()
 
@@ -1783,13 +1792,13 @@ class Components(SageObject):
                     ns = tuple(s[i]+self._nid for i in range(len(s)))
                     antisym.append(ns)
             result = CompWithSym(self._ring, self._frame, self._nid + other._nid,
-                                 self._sindex, self._output_formatter, sym,
+                                 self._sindex, self.parent()._output_formatter, sym,
                                  antisym)
         elif self._nid == 1 and other._nid == 1:
             if self is other:  # == would be dangerous here
                 # The result is symmetric:
                 result = CompFullySym(self._ring, self._frame, 2, self._sindex,
-                                      self._output_formatter)
+                                      self.parent()._output_formatter)
                 # The loop below on self._comp.items() and
                 # other._comp.items() cannot be used in the present case
                 # (it would not deal correctly with redundant indices)
@@ -1823,10 +1832,10 @@ class Components(SageObject):
                 return result
             else:
                 result = Components(self._ring, self._frame, 2, self._sindex,
-                                    self._output_formatter)
+                                    self.parent()._output_formatter)
         else:
             result = Components(self._ring, self._frame, self._nid + other._nid,
-                                self._sindex, self._output_formatter)
+                                self._sindex, self.parent()._output_formatter)
         nproc = Parallelism().get('tensor')
         if nproc != 1:
             # Parallel computation
@@ -1989,7 +1998,7 @@ class Components(SageObject):
         else:
             # More than 2 indices
             result = Components(self._ring, self._frame, self._nid - 2,
-                                self._sindex, self._output_formatter)
+                                self._sindex, self.parent()._output_formatter)
             if pos1 > pos2:
                 pos1, pos2 = (pos2, pos1)
             for ind, val in self._comp.items():
@@ -2301,19 +2310,19 @@ class Components(SageObject):
         if max_len_sym == 0 and max_len_antisym == 0:
             res = Components(self._ring, self._frame, res_nid,
                              start_index=self._sindex,
-                             output_formatter=self._output_formatter)
+                             output_formatter=self.parent()._output_formatter)
         elif max_len_sym == res_nid:
             res = CompFullySym(self._ring, self._frame, res_nid,
                                start_index=self._sindex,
-                               output_formatter=self._output_formatter)
+                               output_formatter=self.parent()._output_formatter)
         elif max_len_antisym == res_nid:
             res = CompFullyAntiSym(self._ring, self._frame, res_nid,
                                    start_index=self._sindex,
-                                   output_formatter=self._output_formatter)
+                                   output_formatter=self.parent()._output_formatter)
         else:
             res = CompWithSym(self._ring, self._frame, res_nid,
                               start_index=self._sindex,
-                              output_formatter=self._output_formatter,
+                              output_formatter=self.parent()._output_formatter,
                               sym=res_sym, antisym=res_antisym)
         #
         # Performing the contraction
@@ -2585,10 +2594,10 @@ class Components(SageObject):
         n_sym = len(pos) # number of indices involved in the symmetry
         if n_sym == self._nid:
             result = CompFullySym(self._ring, self._frame, self._nid, self._sindex,
-                                  self._output_formatter)
+                                  self.parent()._output_formatter)
         else:
             result = CompWithSym(self._ring, self._frame, self._nid, self._sindex,
-                                 self._output_formatter, sym=pos)
+                                 self.parent()._output_formatter, sym=pos)
         sym_group = SymmetricGroup(n_sym)
         for ind in result.non_redundant_index_generator():
             sum = 0
@@ -2736,10 +2745,10 @@ class Components(SageObject):
         n_sym = len(pos) # number of indices involved in the antisymmetry
         if n_sym == self._nid:
             result = CompFullyAntiSym(self._ring, self._frame, self._nid,
-                                      self._sindex, self._output_formatter)
+                                      self._sindex, self.parent()._output_formatter)
         else:
             result = CompWithSym(self._ring, self._frame, self._nid, self._sindex,
-                                 self._output_formatter, antisym=pos)
+                                 self.parent()._output_formatter, antisym=pos)
         sym_group = SymmetricGroup(n_sym)
         for ind in result.non_redundant_index_generator():
             sum = 0
@@ -3081,7 +3090,7 @@ class CompWithSym(Components):
 
         """
         return CompWithSym(self._ring, self._frame, self._nid, self._sindex,
-                          self._output_formatter, self._sym, self._antisym)
+                          self.parent()._output_formatter, self._sym, self._antisym)
 
     def _ordered_indices(self, indices):
         r"""
@@ -3186,7 +3195,8 @@ class CompWithSym(Components):
             -5
 
         """
-        no_format = self._output_formatter is None
+        output_formatter = self.parent()._output_formatter
+        no_format = output_formatter is None
         format_type = None # default value, possibly redefined below
         if isinstance(args, list):  # case of [[...]] syntax
             no_format = True
@@ -3217,10 +3227,9 @@ class CompWithSym(Components):
                 if no_format:
                     return self._ring.zero()
                 elif format_type is None:
-                    return self._output_formatter(self._ring.zero())
+                    return output_formatter(self._ring.zero())
                 else:
-                    return self._output_formatter(self._ring.zero(),
-                                                 format_type)
+                    return output_formatter(self._ring.zero(), format_type)
             else: # non zero value
                 if no_format:
                     if sign == 1:
@@ -3229,16 +3238,14 @@ class CompWithSym(Components):
                         return -self._comp[ind]
                 elif format_type is None:
                     if sign == 1:
-                        return self._output_formatter(self._comp[ind])
+                        return output_formatter(self._comp[ind])
                     else: # sign = -1
-                        return self._output_formatter(-self._comp[ind])
+                        return output_formatter(-self._comp[ind])
                 else:
                     if sign == 1:
-                        return self._output_formatter(
-                                                 self._comp[ind], format_type)
+                        return output_formatter(self._comp[ind], format_type)
                     else: # sign = -1
-                        return self._output_formatter(
-                                                -self._comp[ind], format_type)
+                        return output_formatter(-self._comp[ind], format_type)
 
     def __setitem__(self, args, value):
         r"""
@@ -3522,16 +3529,16 @@ class CompWithSym(Components):
                             common_antisym.append(com)
                 if common_sym != [] or common_antisym != []:
                     result = CompWithSym(self._ring, self._frame, self._nid,
-                                         self._sindex, self._output_formatter,
+                                         self._sindex, self.parent()._output_formatter,
                                          common_sym, common_antisym)
                 else:
                     # no common symmetry -> the result is a generic Components:
                     result = Components(self._ring, self._frame, self._nid,
-                                        self._sindex, self._output_formatter)
+                                        self._sindex, self.parent()._output_formatter)
         else:
             # other has no symmetry at all:
             result = Components(self._ring, self._frame, self._nid,
-                                self._sindex, self._output_formatter)
+                                self._sindex, self.parent()._output_formatter)
         nproc = Parallelism().get('tensor')
         if nproc != 1:
             # Parallel computation
@@ -3637,7 +3644,7 @@ class CompWithSym(Components):
                     ns = tuple(s[i]+self._nid for i in range(len(s)))
                     antisym.append(ns)
         result = CompWithSym(self._ring, self._frame, self._nid + other._nid,
-                             self._sindex, self._output_formatter, sym, antisym)
+                             self._sindex, self.parent()._output_formatter, sym, antisym)
         nproc = Parallelism().get('tensor')
         if nproc != 1:
             # Parallel computation
@@ -3852,16 +3859,16 @@ class CompWithSym(Components):
             nid_res = self._nid - 2
             if max_sym == 0 and max_antisym == 0:
                 result = Components(self._ring, self._frame, nid_res, self._sindex,
-                                    self._output_formatter)
+                                    self.parent()._output_formatter)
             elif max_sym == nid_res:
                 result = CompFullySym(self._ring, self._frame, nid_res,
-                                      self._sindex, self._output_formatter)
+                                      self._sindex, self.parent()._output_formatter)
             elif max_antisym == nid_res:
                 result = CompFullyAntiSym(self._ring, self._frame, nid_res,
-                                          self._sindex, self._output_formatter)
+                                          self._sindex, self.parent()._output_formatter)
             else:
                 result = CompWithSym(self._ring, self._frame, nid_res,
-                                     self._sindex, self._output_formatter,
+                                     self._sindex, self.parent()._output_formatter,
                                      sym=sym_res, antisym=antisym_res)
             # The contraction itself:
             for ind_res in result.non_redundant_index_generator():
@@ -4295,10 +4302,10 @@ class CompWithSym(Components):
             max_sym = max(max_sym, len(isym))
         if max_sym == self._nid:
             result = CompFullySym(self._ring, self._frame, self._nid, self._sindex,
-                                  self._output_formatter)
+                                  self.parent()._output_formatter)
         else:
             result = CompWithSym(self._ring, self._frame, self._nid, self._sindex,
-                                 self._output_formatter, sym=sym_res,
+                                 self.parent()._output_formatter, sym=sym_res,
                                  antisym=antisym_res)
         if zero_result:
             return result   # since a just created instance is zero
@@ -4559,10 +4566,10 @@ class CompWithSym(Components):
             max_sym = max(max_sym, len(isym))
         if max_sym == self._nid:
             result = CompFullyAntiSym(self._ring, self._frame, self._nid,
-                                      self._sindex, self._output_formatter)
+                                      self._sindex, self.parent()._output_formatter)
         else:
             result = CompWithSym(self._ring, self._frame, self._nid, self._sindex,
-                                 self._output_formatter, sym=sym_res,
+                                 self.parent()._output_formatter, sym=sym_res,
                                  antisym=antisym_res)
         if zero_result:
             return result   # since a just created instance is zero
@@ -4759,7 +4766,7 @@ class CompFullySym(CompWithSym):
 
         """
         return CompFullySym(self._ring, self._frame, self._nid, self._sindex,
-                            self._output_formatter)
+                            self.parent()._output_formatter)
 
     def __getitem__(self, args):
         r"""
@@ -4792,7 +4799,8 @@ class CompFullySym(CompWithSym):
             [0 0 0]
 
         """
-        no_format = self._output_formatter is None
+        output_formatter = self.parent()._output_formatter
+        no_format = output_formatter is None
         format_type = None # default value, possibly redefined below
         if isinstance(args, list):  # case of [[...]] syntax
             no_format = True
@@ -4824,18 +4832,17 @@ class CompFullySym(CompWithSym):
             if no_format:
                 return self._comp[ind]
             elif format_type is None:
-                return self._output_formatter(self._comp[ind])
+                return output_formatter(self._comp[ind])
             else:
-                return self._output_formatter(self._comp[ind], format_type)
+                return output_formatter(self._comp[ind], format_type)
 
         # the value is zero
         if no_format:
             return self._ring.zero()
         elif format_type is None:
-            return self._output_formatter(self._ring.zero())
+            return output_formatter(self._ring.zero())
         else:
-            return self._output_formatter(self._ring.zero(),
-                                             format_type)
+            return output_formatter(self._ring.zero(), format_type)
 
     def __setitem__(self, args, value):
         r"""
@@ -5218,7 +5225,7 @@ class CompFullyAntiSym(CompWithSym):
 
         """
         return CompFullyAntiSym(self._ring, self._frame, self._nid, self._sindex,
-                                self._output_formatter)
+                                self.parent()._output_formatter)
 
 
     def __add__(self, other):
@@ -5473,11 +5480,11 @@ class CompFullyAntiSym(CompWithSym):
         if res_nid == 1:
             res = Components(self._ring, self._frame, res_nid,
                              start_index=self._sindex,
-                             output_formatter=self._output_formatter)
+                             output_formatter=self.parent()._output_formatter)
         else:
             res = CompFullyAntiSym(self._ring, self._frame, res_nid,
                                    start_index=self._sindex,
-                                   output_formatter=self._output_formatter)
+                                   output_formatter=self.parent()._output_formatter)
         factorial_s = factorial(self._nid)
         for ind in res.non_redundant_index_generator():
             sm = 0
