@@ -4299,7 +4299,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         return self._pari_absolute_structure()[0].change_variable_name(name)
 
-    def pari_nf(self, important=True):
+    def pari_nf(self, important=True, prec=53):
         """
         Return the PARI number field corresponding to this field.
 
@@ -4310,6 +4310,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
           discriminant factorization.  This is useful when an integral
           basis is not strictly required, such as for factoring
           polynomials over this number field.
+
+        - ``prec`` (int, default 53) decimal precision passed to ``pari``.
 
         OUTPUT:
 
@@ -4370,10 +4372,10 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             f = self.pari_polynomial("y")
             if f.poldegree() > 1:
                 f = pari([f, self._pari_integral_basis(important=important)])
-            self._pari_nf = f.nfinit()
+            self._pari_nf = f.nfinit(precision=prec)
             return self._pari_nf
 
-    def pari_zk(self):
+    def pari_zk(self, prec=53):
         """
         Integral basis of the PARI number field corresponding to this field.
 
@@ -4387,9 +4389,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: k.pari_nf().getattr('zk')
             [1, 1/3*y^2 - 1/3*y + 1/3, y]
         """
-        return self.pari_nf().nf_get_zk()
+        return self.pari_nf(prec=prec).nf_get_zk()
 
-    def __pari__(self):
+    def __pari__(self, prec=53):
         """
         Return the PARI number field corresponding to this field.
 
@@ -4401,7 +4403,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: pari(k)
             [y^2 + y + 1, [0, 1], -3, 1, ...[1, y], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]
         """
-        return self.pari_nf()
+        return self.pari_nf(prec=prec)
 
     def _pari_init_(self):
         """
@@ -4417,7 +4419,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         return str(self.pari_nf())
 
-    def pari_bnf(self, proof=None, units=True):
+    def pari_bnf(self, proof=None, units=True, prec=53):
         """
         PARI big number field corresponding to this field.
 
@@ -4429,6 +4431,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         - ``units`` -- (default: ``True) If ``True``, insist on having
           fundamental units.  If ``False``, the units may or may not be
           computed.
+
+        - ``prec`` (int, default 53) decimal precision passed to ``pari``.
 
         OUTPUT:
 
@@ -4461,9 +4465,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         except AttributeError:
             f = self.pari_polynomial("y")
             if units:
-                self._pari_bnf = f.bnfinit(1)
+                self._pari_bnf = f.bnfinit(1, precision=prec)
             else:
-                self._pari_bnf = f.bnfinit()
+                self._pari_bnf = f.bnfinit(precision=prec)
             bnf = self._pari_bnf
         # Certify if needed
         if proof and not getattr(self, "_pari_bnf_certified", False):
@@ -4472,7 +4476,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             self._pari_bnf_certified = True
         return bnf
 
-    def pari_rnfnorm_data(self, L, proof=True):
+    def pari_rnfnorm_data(self, L, proof=True, prec=53):
         """
         Return the PARI :pari:`rnfisnorminit` data corresponding to the
         extension L/self.
@@ -4494,7 +4498,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if L.base_field() != self:
             raise ValueError("L must be an extension of self")
 
-        Kbnf = self.pari_bnf(proof=proof)
+        Kbnf = self.pari_bnf(proof=proof, prec=prec)
         return Kbnf.rnfisnorminit(L.pari_relative_polynomial())
 
     def _gap_init_(self):
@@ -7020,7 +7024,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         else:
             raise ValueError("others must be 'positive' or 'negative'")
 
-    def units(self, proof=None):
+    def units(self, proof=None, prec=53):
         """
         Return generators for the unit group modulo torsion.
 
@@ -7029,6 +7033,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         INPUT:
 
         - ``proof`` (bool, default True) flag passed to ``pari``.
+
+        - ``prec`` (int, default 53) decimal precision passed to ``pari``.
 
         .. note::
 
@@ -7091,7 +7097,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 pass
 
         # get PARI to compute the fundamental units
-        B = self.pari_bnf(proof).bnf_get_fu()
+        B = self.pari_bnf(proof, prec=prec).bnf_get_fu()
         B = tuple(self(b, check=False) for b in B)
         if proof:
             # cache the provable results and return them
@@ -7102,7 +7108,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             self.__units_no_proof = B
             return self.__units_no_proof
 
-    def unit_group(self, proof=None):
+    def unit_group(self, proof=None, prec=53):
         """
         Return the unit group (including torsion) of this number field.
 
@@ -7111,6 +7117,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         INPUT:
 
         - ``proof`` (bool, default True) flag passed to ``pari``.
+
+        - ``prec`` (int, default 53) decimal precision passed to ``pari``.
 
         .. note::
 
@@ -7167,14 +7175,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             except AttributeError:
                 pass
 
-        U = UnitGroup(self, proof)
+        U = UnitGroup(self,proof, prec=prec)
         if proof:
             self._unit_group = U
         else:
             self._unit_group_no_proof = U
         return U
 
-    def S_unit_group(self, proof=None, S=None):
+    def S_unit_group(self, proof=None, S=None, prec=53):
         """
         Return the S-unit group (including torsion) of this number field.
 
@@ -7189,6 +7197,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
           which case the support is used.  If None, the global unit
           group is constructed; otherwise, the S-unit group is
           constructed.
+
+        - ``prec`` (int, default 53) decimal precision passed to ``pari``.
 
         .. note::
 
@@ -7293,7 +7303,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             except KeyError:
                 pass
 
-        U = UnitGroup(self, proof, S=S)
+        U = UnitGroup(self,proof,S=S, prec=prec)
         if proof:
             self._S_unit_group_cache[S] = U
         else:

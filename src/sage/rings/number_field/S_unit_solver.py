@@ -1,7 +1,10 @@
+# -*- coding: utf-8 -*-
 r"""
-Solve S-unit equation x + y = 1
+Solution of S-unit equations
 
-Inspired by work of Tzanakis--de Weger, Baker--Wustholz and Smart, we use the LLL methods in Sage to implement an algorithm that returns all S-unit solutions to the equation `x + y = 1`.
+Inspired by work of Tzanakis--de Weger, Baker--Wustholz and Smart, we
+use the LLL methods in Sage to implement an algorithm that returns all
+S-unit solutions to the equation `x + y = 1`.
 
 REFERENCES:
 
@@ -35,6 +38,7 @@ EXAMPLES::
 .. TODO::
 
     - Use Cython to improve timings on the sieve
+
 """
 
 
