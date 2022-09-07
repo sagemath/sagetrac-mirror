@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Unit and S-unit groups of Number Fields
 
@@ -141,9 +142,15 @@ TESTS::
     sage: UL == loads(dumps(UL))
     True
 
-AUTHOR:
+AUTHORS:
 
-- John Cremona
+- John Cremona (original version 2009, S-unit extension 2013)
+
+- Antonio Rojas, David Loeffler, Erik M. Bray, Frédéric Chapoton,
+- Jeroen Demeyer, Joey van Langen, Jonathan Kliem, Matthias Koeppe,
+- Peter Bruin, Travis Scrimshaw, Vincent Delecroix, Volker Braun,
+- Wilfried Luebbe
+
 """
 # ****************************************************************************
 #       Copyright (C) 2009 William Stein, John Cremona
@@ -168,8 +175,24 @@ from sage.rings.integer_ring import ZZ
 
 
 class UnitGroup(AbelianGroupWithValues_class):
-    """
-    The unit group or an S-unit group of a number field.
+    """The unit group or an S-unit group of a number field.
+
+    INPUT:
+
+    - ``number_field`` - a number field.
+
+    - ``proof`` - boolean (default True): proof flag.
+
+    - ``S`` - tuple of prime ideals, or an ideal, or a single ideal or
+      element from which an ideal can be constructed, in which
+      case the support is used.  If None, the global unit group is
+      constructed; otherwise, the S-unit group is constructed.
+
+    - ``prec`` (int, default 53) decimal precision.
+
+    The proof flag and precision are passed to pari via the
+    ``pari_bnf()`` function which computes the unit group.  See the
+    documentation for the number_field module.
 
     TESTS::
 
@@ -217,29 +240,33 @@ class UnitGroup(AbelianGroupWithValues_class):
         26
         sage: SUK.log(21*z)
         (25, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
+
     """
     # This structure is not a parent in the usual sense. The
     # "elements" are NumberFieldElement_absolute. Instead, they should
     # derive from AbelianGroupElement and coerce into
     # NumberFieldElement_absolute.
 
-    def __init__(self, number_field, proof=True, S=None):
-        """
-        Create a unit group of a number field.
+    def __init__(self, number_field, proof=True, S=None, prec=53):
+        """Create a unit group of a number field.
 
         INPUT:
 
         - ``number_field`` - a number field
+
         - ``proof`` - boolean (default True): proof flag
+
         - ``S`` - tuple of prime ideals, or an ideal, or a single
           ideal or element from which an ideal can be constructed, in
           which case the support is used.  If None, the global unit
           group is constructed; otherwise, the S-unit group is
           constructed.
 
-        The proof flag is passed to pari via the ``pari_bnf()`` function
-        which computes the unit group.  See the documentation for the
-        number_field module.
+        - ``prec`` (int, default 53) decimal precision.
+
+        The proof flag and precision are passed to pari via the
+        ``pari_bnf()`` function which computes the unit group.  See
+        the documentation for the number_field module.
 
         EXAMPLES::
 
@@ -296,11 +323,11 @@ class UnitGroup(AbelianGroupWithValues_class):
             True
 
         """
+        self.__number_field = K = number_field
+        # use the ambient setting of the proof flag for number fields:
         proof = get_flag(proof, "number_field")
-        K = number_field
-        pK = K.pari_bnf(proof)
-        self.__number_field = K
-        self.__pari_number_field = pK
+        # by default, pari_bnf uses units=True, meaning that units will be computed
+        self.__pari_number_field = pK = K.pari_bnf(proof, prec=prec)
 
         # process the parameter S:
         if not S:
@@ -320,26 +347,30 @@ class UnitGroup(AbelianGroupWithValues_class):
                     raise ValueError("Cannot make a set of primes from %s"%(S,))
                 if not all(P.is_prime() for P in S):
                     raise ValueError("Not all elements of %s are prime ideals" % (S,))
-            self.__S = S
-            self.__pS = pS = [P.pari_prime() for P in S]
+        self.__S = S
 
-        # compute the fundamental units via pari:
-        fu = [K(u, check=False) for u in pK.bnf_get_fu()]
-        self.__nfu = len(fu)
+        # The unit rank:
+        r1, r2 = pK.nf_get_sign()
+        self.__nfu = ZZ(r1+r2-1)
 
-        # compute the additional S-unit generators:
-        if S:
-            self.__S_unit_data = pK.bnfunits(pS)
-        else:
-            self.__S_unit_data = pK.bnfunits()
-        # TODO: converting the factored matrix representation of bnfunits into polynomial
-        # form is a *big* waste of time
+        # The torsion unit generator and order:
+        t = pK.bnf_get_tu()
+        self.__ntu = ZZ(t[0])
+        self.__tu = K(t[1])
+
+        # The S-unit generators (nonunit S-units first, then
+        # fundamental units, then torsion unit):
+        self.__S_unit_data = pK.bnfunits([P.pari_prime() for P in S])
+
+        # TODO: converting the factored matrix representation of
+        # bnfunits into polynomial form can be very inefficient, but
+        # we need the generators as elements of K in order to
+        # initialize the AbelianGroupWithValues_class object.
+
         su_fu_tu = [pK.nfbasistoalg(pK.nffactorback(z)) for z in self.__S_unit_data[0]]
 
-        self.__nfu = len(pK.bnf_get_fu())           # number of fundamental units
-        self.__nsu = len(su_fu_tu) - self.__nfu - 1 # number of S-units
-        self.__ntu = pK.bnf_get_tu()[0]             # order of torsion
-        self.__rank = self.__nfu + self.__nsu
+        self.__rank = ZZ(len(su_fu_tu) - 1)   # number of non-torsion generators
+        self.__nsu = self.__rank - self.__nfu # number of non-unit S-unit generators
 
         # Move the torsion unit first, then fundamental units then S-units
         gens = [K(u, check=False) for u in su_fu_tu]
