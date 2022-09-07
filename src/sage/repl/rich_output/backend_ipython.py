@@ -331,10 +331,10 @@ class BackendIPythonCommandline(BackendIPython):
         """
         base, dot_ext = os.path.splitext(image_file)
         ext = dot_ext.lstrip(os.path.extsep)
-        from sage.misc.viewer import viewer
+        from sage.misc.image_viewer import image_viewer as viewer
         command = viewer(ext)
         if not command:
-            command = viewer.browser()
+            command = viewer.png_viewer()
         from sage.doctest import DOCTEST_MODE
         if not DOCTEST_MODE:
             os.system('{0} {1} 2>/dev/null 1>/dev/null &'

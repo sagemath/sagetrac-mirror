@@ -431,6 +431,7 @@ Methods
 # ****************************************************************************
 
 from copy import copy
+import webbrowser
 
 from sage.graphs.views import EdgesView
 from .generic_graph_pyx import GenericGraph_pyx, spring_layout_fast, layout_split
@@ -20546,9 +20547,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: C = graphs.CubeGraph(8)
-            sage: P = C.plot(vertex_labels=False, vertex_size=0, graph_border=True)
-            sage: P.show()  # long time (3s on sage.math, 2011)
-
+            sage: C.show(vertex_labels=False, vertex_size=0, graph_border=True)
         """
         if method == "js":
             from sage.graphs.graph_plot_js import gen_html_code
@@ -20557,9 +20556,7 @@ class GenericGraph(GenericGraph_pyx):
 
             if DOCTEST_MODE:
                 return
-            from sage.misc.viewer import browser
-            import os
-            os.system('%s %s 2>/dev/null 1>/dev/null &'% (browser(), filename))
+            webbrowser.open(r'file:///{}'.format(filename))
             return
 
         from .graph_plot import graphplot_options

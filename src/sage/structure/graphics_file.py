@@ -183,8 +183,8 @@ class GraphicsFile(SageObject):
             return
         if self.mime() == Mime.JMOL:
             return self._launch_jmol()
-        from sage.misc.viewer import viewer
-        command = viewer(preferred_filename_ext[self.mime()])
+        from sage.misc.image_viewer import image_viewer
+        command = image_viewer(preferred_filename_ext[self.mime()])
         os.system('{0} {1} 2>/dev/null 1>/dev/null &'
                   .format(command, self.filename()))
         # TODO: keep track of opened processes...

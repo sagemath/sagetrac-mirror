@@ -1859,7 +1859,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         sage: with NamedTemporaryFile(mode="w+t", suffix=".tex") as f:  # optional - latex latex_package_tkz_graph
         ....:     _ = f.write(_latex_file_(g))
         ....:     f.flush()
-        ....:     _run_latex_(file, engine="pdflatex")
+        ....:     _run_latex_(f.name, engine="pdflatex")
         'pdf'
 
         sage: view(4, margin=5, debug=True)     # not tested
@@ -1917,10 +1917,10 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         file.write(s)
     suffix = _run_latex_(tex_file, debug=debug, engine=engine, png=False)
     if suffix == "pdf":
-        from sage.misc.viewer import pdf_viewer
+        from sage.misc.image_viewer import pdf_viewer
         viewer = pdf_viewer()
     elif suffix == "dvi":
-        from sage.misc.viewer import dvi_viewer
+        from sage.misc.image_viewer import dvi_viewer
         viewer = dvi_viewer()
     else:
         print("Latex error")

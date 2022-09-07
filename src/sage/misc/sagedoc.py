@@ -43,8 +43,8 @@ import os
 import re
 import sys
 import pydoc
+import webbrowser
 from sage.misc.temporary_file import tmp_dir
-from .viewer import browser
 from . import sageinspect
 import sage.version
 from sage.env import SAGE_DOC, SAGE_SRC
@@ -1538,7 +1538,7 @@ class _sage_doc:
 
                 filed.write(html)
                 filed.close()
-                os.system(browser() + " " + path)
+                webbrowser.open(r'file:///{}'.format(path))
             else:
                 return html
         elif output == 'rst':
@@ -1583,7 +1583,7 @@ with 'sage -docbuild {0} html' and try again.""".format(name))
         if testing:
             return (url, path)
 
-        os.system(browser() + " " + path)
+        webbrowser.open(r'file:///{}'.format(path))
 
     def tutorial(self):
         """

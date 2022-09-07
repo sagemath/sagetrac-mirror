@@ -734,7 +734,7 @@ class Standalone(SageObject):
 
         # open the tmp pdf
         elif view:
-            from sage.misc.viewer import pdf_viewer
+            from sage.misc.image_viewer import pdf_viewer
             cmd = pdf_viewer().split()
             cmd.append(temp_filename_pdf)
             # we use check_call as opposed to run, because
@@ -823,7 +823,7 @@ class Standalone(SageObject):
 
         # open the tmp png
         elif view:
-            from sage.misc.viewer import png_viewer
+            from sage.misc.image_viewer import png_viewer
             cmd = png_viewer().split()
             cmd.append(temp_filename_png)
             # we use check_call as opposed to run, because
@@ -923,15 +923,8 @@ class Standalone(SageObject):
 
         # open the tmp svg
         elif view:
-            from sage.misc.viewer import browser
-            cmd = browser().split()
-            cmd.append(temp_filename_svg)
-            # we use check_call as opposed to run, because
-            # it gives the sage prompt back to the user
-            # see https://stackoverflow.com/a/71342967
-            # run(cmd, capture_output=True, check=True)
-            from subprocess import check_call, PIPE
-            check_call(cmd, stdout=PIPE, stderr=PIPE)
+            import webbrowser
+            webbrowser.open(r'file:///{}'.format(temp_filename_svg))
 
         return temp_filename_svg
 

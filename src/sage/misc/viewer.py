@@ -1,11 +1,17 @@
 r"""
 Determination of programs for viewing web pages, etc.
 
+This module is deprecated: see :trac:`33931`.
+
 The function :func:`default_viewer` defines reasonable defaults for
 these programs.  To use something else, use ``viewer``.  First
 import it::
 
     sage: from sage.misc.viewer import viewer
+    doctest:warning
+    ...
+    DeprecationWarning: the module sage.misc.viewer is deprecated; use sage.misc.image_viewer or Python's webbrowser module instead
+    See https://trac.sagemath.org/33931 for details.
 
 On OS X, PDFs are opened by default using the 'open' command, which
 runs whatever has been designated as the PDF viewer in the OS.  To
@@ -26,7 +32,10 @@ Functions and classes
 """
 
 from sage.structure.sage_object import SageObject
+from sage.misc.superseded import deprecation
 
+deprecation(33931, "the module sage.misc.viewer is deprecated; "
+                 "use sage.misc.image_viewer or Python's webbrowser module instead")
 
 VIEWERS = ['browser', 'dvi_viewer', 'pdf_viewer', 'png_viewer']
 
@@ -52,6 +61,9 @@ def default_viewer(viewer=None):
         ...
         ValueError: Unknown type of viewer: jpg.
     """
+    deprecation(33931, "this function is deprecated; "
+                     "use sage.misc.image_viewer or Python's webbrowser module instead")
+
     import os
     from sage.misc.sage_ostools import have_program
 
@@ -147,6 +159,10 @@ class Viewer(SageObject):
 
         sage: from sage.misc.viewer import viewer
         sage: old_browser = viewer.browser()  # indirect doctest
+        doctest:warning
+        ...
+        DeprecationWarning: this function is deprecated; use sage.misc.image_viewer or Python's webbrowser module instead
+        See https://trac.sagemath.org/33931 for details.
         sage: viewer.browser('open -a /Applications/Firefox.app')
         sage: viewer.browser()
         'open -a /Applications/Firefox.app'
@@ -167,6 +183,10 @@ class Viewer(SageObject):
 
             sage: from sage.misc.viewer import viewer
             sage: old_browser = viewer.browser()
+            doctest:warning
+            ...
+            DeprecationWarning: this function is deprecated; use sage.misc.image_viewer or Python's webbrowser module instead
+            See https://trac.sagemath.org/33931 for details.
             sage: viewer.browser('open -a /Applications/Firefox.app') # indirect doctest
             sage: viewer.browser()
             'open -a /Applications/Firefox.app'
@@ -201,11 +221,18 @@ class Viewer(SageObject):
 
             sage: from sage.misc.viewer import viewer
             sage: old_browser = viewer.browser()
+            doctest:warning
+            ...
+            DeprecationWarning: this function is deprecated; use sage.misc.image_viewer or Python's webbrowser module instead
+            See https://trac.sagemath.org/33931 for details.
             sage: viewer.browser('open -a /Applications/Firefox.app') # indirect doctest
             sage: viewer.browser()
             'open -a /Applications/Firefox.app'
             sage: viewer.browser(old_browser) # restore old value
         """
+        deprecation(33931, "this function is deprecated; "
+                         "use sage.misc.image_viewer or Python's webbrowser module instead")
+
         return self._set(app, TYPE='browser')
 
     def dvi_viewer(self, app=None):
@@ -241,11 +268,17 @@ class Viewer(SageObject):
 
             sage: from sage.misc.viewer import viewer
             sage: old_pdf_app = viewer.pdf_viewer()
+            doctest:warning
+            ...
+            DeprecationWarning: this function is deprecated; use sage.misc.image_viewer or Python's webbrowser module instead
+            See https://trac.sagemath.org/33931 for details.
             sage: viewer.pdf_viewer('/usr/bin/pdfopen') # indirect doctest
             sage: viewer.pdf_viewer()
             '/usr/bin/pdfopen'
             sage: viewer.pdf_viewer(old_pdf_app) # restore old value
         """
+        deprecation(33931, "this function is deprecated; "
+                         "use sage.misc.image_viewer or Python's webbrowser module instead")
         return self._set(app, TYPE='pdf_viewer')
 
     def png_viewer(self, app=None):
@@ -261,11 +294,17 @@ class Viewer(SageObject):
 
             sage: from sage.misc.viewer import viewer
             sage: old_png_app = viewer.png_viewer()
+            doctest:warning
+            ...
+            DeprecationWarning: this function is deprecated; use sage.misc.image_viewer or Python's webbrowser module instead
+            See https://trac.sagemath.org/33931 for details.
             sage: viewer.png_viewer('display') # indirect doctest
             sage: viewer.png_viewer()
             'display'
             sage: viewer.png_viewer(old_png_app) # restore old value
         """
+        deprecation(33931, "this function is deprecated; "
+                         "use sage.misc.image_viewer or Python's webbrowser module instead")
         return self._set(app, TYPE='png_viewer')
 
     def __call__(self, x=None):
@@ -287,8 +326,15 @@ class Viewer(SageObject):
             sage: viewer('pdf') # random -- depends on OS, etc.
             'mozilla'
             sage: viewer('browser') == viewer()
+            doctest:warning
+            ...
+            DeprecationWarning: this function is deprecated; use sage.misc.image_viewer or Python's webbrowser module instead
+            See https://trac.sagemath.org/33931 for details.
             True
         """
+        deprecation(33931, "this function is deprecated; "
+                         "use sage.misc.image_viewer or Python's webbrowser module instead")
+
         if isinstance(x, str):
             x = x.lower()
 
@@ -348,8 +394,16 @@ def pdf_viewer():
 
         sage: from sage.misc.viewer import pdf_viewer, viewer
         sage: old_pdf_app = viewer.pdf_viewer()
+        doctest:warning
+        ...
+        DeprecationWarning: this function is deprecated; use sage.misc.image_viewer or Python's webbrowser module instead
+        See https://trac.sagemath.org/33931 for details.
         sage: viewer.pdf_viewer('acroread')
         sage: pdf_viewer()
+        doctest:warning
+        ...
+        DeprecationWarning: this function is deprecated; use sage.misc.image_viewer or Python's webbrowser module instead
+        See https://trac.sagemath.org/33931 for details.
         'acroread'
         sage: viewer.pdf_viewer('old_pdf_app')
     """
@@ -368,6 +422,10 @@ def png_viewer():
 
         sage: from sage.misc.viewer import png_viewer
         sage: png_viewer() # random -- depends on OS, etc.
+        doctest:warning
+        ...
+        DeprecationWarning: this function is deprecated; use sage.misc.image_viewer or Python's webbrowser module instead
+        See https://trac.sagemath.org/33931 for details.
         'xdg-open'
     """
     viewer()
