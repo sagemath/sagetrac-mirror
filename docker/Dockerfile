@@ -46,7 +46,7 @@ ARG ARTIFACT_BASE=source-clean
 ################################################################################
 # Image containing the run-time dependencies for Sage                          #
 ################################################################################
-FROM ubuntu:impish as run-time-dependencies
+FROM ubuntu:jammy as run-time-dependencies
 LABEL maintainer="Erik M. Bray <erik.bray@lri.fr>, Julian Rüth <julian.rueth@fsfe.org>"
 # Set sane defaults for common environment variables.
 ENV LC_ALL C.UTF-8
@@ -82,7 +82,8 @@ WORKDIR $HOME
 FROM run-time-dependencies as build-time-dependencies
 # Install the build time dependencies & git & rdfind
 RUN sudo apt-get -qq update \
-    && sudo apt-get -qq install -y wget build-essential automake m4 dpkg-dev python libssl-dev git rdfind \
+    && sudo apt-get upgrade \
+    && sudo apt-get -qq install -y wget build-essential automake m4 dpkg-dev python3 libssl-dev git rdfind \
     && sudo apt-get -qq clean \
     && sudo rm -r /var/lib/apt/lists/*
 
