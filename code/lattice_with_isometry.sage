@@ -4,7 +4,7 @@ class LatticeWithIsometry(FreeQuadraticModule_integer_symmetric):
     r"""
     """
 
-    def __init__(self, Lattice, iso, order=None, gramE=None, magmaRep=None):
+    def __init__(self, Lattice, iso, order=None, gramE=None, magmaRep=None, basisE=None):
         r"""
         """
         self.L = Lattice
@@ -16,6 +16,7 @@ class LatticeWithIsometry(FreeQuadraticModule_integer_symmetric):
         self._gramE = gramE
         self._magmaRep = magmaRep
         self._Oq_equiv = None
+        self._basisE = basisE
 
 
     def __repr__(self):

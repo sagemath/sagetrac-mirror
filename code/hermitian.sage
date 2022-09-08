@@ -23,7 +23,9 @@ my_gram_str = """my_gram:=function(L)
         ok, x:= IsPrincipal(p[1]); assert ok;
         Append(~PP, x * p[2]);
     end for;
-    return Matrix(E, [[ InnerProduct(x,y): y in PP] : x in PP ] );
+    B:= Matrix([Vector(x) : x in PP]);
+    G:= Matrix(E, [[ InnerProduct(x,y): y in PP] : x in PP ] );
+    return [G, B];
     end function;"""
 
 magma.eval(my_gram_str)
@@ -578,10 +580,14 @@ class GenusHermitian(object):
               reps = self.representative().GenusRepresentatives(Max=max_classes)
         output = []
         for rep in reps:
-            rep = rep.my_gram().ChangeRing(E).sage()
-            conv = rep.base_ring().hom(E.gens())
-            rep = rep.apply_morphism(conv)
-            output.append(rep)
+            r = rep.Rank().sage()
+            rep = rep.my_gram()
+            G = rep[1].ChangeRing(E).sage()
+            B = rep[2].ChangeRing(E).sage()
+            conv = G.base_ring().hom(E.gens())
+            G = G.apply_morphism(conv)
+            B = B.apply_morphism(conv)
+            output.append([G,B])
         return output
 
 
