@@ -168,6 +168,10 @@ cdef class GabowEdgeConnectivity:
     cdef queue[pair[int, int]] joining_edges  # queue of tuples (edge id, edge state)
     cdef queue[int] incident_edges_Q  # queue of edges
 
+    cdef int num_start_f_trees # number of f-trees at the beginning of an iteration
+    cdef int* T # whether the an edge is in the proven k-intersection
+    cdef bint* visited  # for method find_dfs_tree
+
 
 
     def __init__(self, G):
@@ -233,6 +237,10 @@ cdef class GabowEdgeConnectivity:
         self.stack = <int*>self.mem.calloc(self.n, sizeof(int))
         self.tree_edges.resize(self.max_ec)
         self.tree_edges_incident.resize(self.n)
+
+        self.T = <int*>self.mem.calloc(self.m, sizeof(int))
+        self.visited = <bint*>self.mem.calloc(self.n, sizeof(bint))
+
         
 
         # Set some constants
@@ -244,6 +252,7 @@ cdef class GabowEdgeConnectivity:
             self.edge_state_1[i] = self.UNUSED  # edge i is unused
             self.edge_state_2[i] = self.UNUSED
             self.labels[i] = self.UNUSED  # edge i is unlabeled
+            self.T[i] = False # edge i doesn't belong to any k-intersection yet
 
         _ = self.compute_edge_connectivity()
         sig_check()
