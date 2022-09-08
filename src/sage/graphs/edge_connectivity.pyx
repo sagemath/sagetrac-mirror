@@ -168,6 +168,7 @@ cdef class GabowEdgeConnectivity:
     cdef queue[pair[int, int]] joining_edges  # queue of tuples (edge id, edge state)
     cdef queue[int] incident_edges_Q  # queue of edges
 
+    """
     # to store packed arborescences
     cdef bint search_mode
     cdef int *Arbor_edge
@@ -184,7 +185,7 @@ cdef class GabowEdgeConnectivity:
     cdef int *myset
     cdef int *temp_parent
     cdef int *temp_depth
-    cdef int ntrees
+    cdef int ntrees"""
 
 
 
@@ -251,7 +252,7 @@ cdef class GabowEdgeConnectivity:
         self.stack = <int*>self.mem.calloc(self.n, sizeof(int))
         self.tree_edges.resize(self.max_ec)
         self.tree_edges_incident.resize(self.n)
-        
+        """
         # for packing arborescences
         self.search_mode = False
         self.A = <int*>self.mem.calloc(self.n, sizeof(int))
@@ -265,7 +266,7 @@ cdef class GabowEdgeConnectivity:
         self.root_set = <int*>self.mem.calloc(self.n, sizeof(int))
         self.temp_depth = <int*>self.mem.calloc(self.n, sizeof(int))
         self.temp_parent = <int*>self.mem.calloc(self.n, sizeof(int))
-        self.ntrees = 0
+        self.ntrees = 0 """
 
         # Set some constants
         self.UNUSED = INT_MAX
@@ -1098,7 +1099,7 @@ cdef class GabowEdgeConnectivity:
     #
     # Packing arborescences
     #
-
+"""
     cdef void release_used_edges(self):
         for j in range(self.m):
             self.my_edge_state[j] = self.UNUSED
@@ -1110,7 +1111,7 @@ cdef class GabowEdgeConnectivity:
 
         for e_id in self.A: 
             if self.Arbor_edge[e_id] == -1:
-                self.my_edge_state = self.UNUSED
+                self.my_edge_state[e_id] = self.UNUSED
 
         return
 
@@ -1213,15 +1214,14 @@ cdef class GabowEdgeConnectivity:
 
         # find an edge to augment A if it is possible 
 
-        cdef int e
-        cdef int i
+        cdef int e, e_id
         cdef int flag
         cdef int x
         flag = 0
         cdef queue[int] du_da
 
-        for i in self.my_g: # for all outgoing edges in g
-            e = self.my_from[i] # e = positionOut[j]
+        for e_id in self.m: # for all outgoing edges in g
+            e = self.my_from[e_id] # e = positionOut[j]
             x = self.my_to[e]
 
             if self.inA[x] == 0:
@@ -1411,7 +1411,7 @@ cdef class GabowEdgeConnectivity:
 
     def edge_disjoint_spanning_trees(self):
         self.packing_arboresences()
-        return
+        return"""
 
 
 
