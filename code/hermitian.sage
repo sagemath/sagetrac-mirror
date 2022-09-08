@@ -166,11 +166,11 @@ def all_lattice_with_isometry(n, rk, det, max_scale, min_scale=1, min_norm=1, si
     if return_genera:
         return genera
     for g in genera:
-        for gramE in g.representatives(max_classes=max_classes):
+        for gramE,B,M in g.representatives(max_classes=max_classes):
             gramZ, iso = trace_lattice(gramE)
             assert gramZ.det() == det
             L = IntegralLattice(gramZ)
-            out.append(LatticeWithIsometry(L, iso, order=n,gramE=gramE, magmaRep=g.representative()))
+            out.append(LatticeWithIsometry(L, iso, order=n,gramE=gramE, magmaRep=M, basisE=B))
     if even:
         min_norm = lcm(min_norm, 2)
     if min_norm != 1:
@@ -581,13 +581,13 @@ class GenusHermitian(object):
         output = []
         for rep in reps:
             r = rep.Rank().sage()
-            rep = rep.my_gram()
-            G = rep[1].ChangeRing(E).sage()
-            B = rep[2].ChangeRing(E).sage()
+            tmp = rep.my_gram()
+            G = tmp[1].ChangeRing(E).sage()
+            B = tmp[2].ChangeRing(E).sage()
             conv = G.base_ring().hom(E.gens())
             G = G.apply_morphism(conv)
             B = B.apply_morphism(conv)
-            output.append([G,B])
+            output.append([G,B,rep])
         return output
 
 
