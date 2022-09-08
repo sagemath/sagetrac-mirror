@@ -886,38 +886,6 @@ cdef class WeakValueDictionary(dict):
         finally:
             self._exit_iter()
 
-    def values_list(self):
-        """
-        Return the list of values.
-
-        EXAMPLES::
-
-            sage: import sage.misc.weak_dict
-            sage: class Vals:
-            ....:     def __init__(self, n):
-            ....:         self.n = n
-            ....:     def __repr__(self):
-            ....:         return "<%s>" % self.n
-            ....:     def __lt__(self, other):
-            ....:         return self.n < other.n
-            ....:     def __eq__(self, other):
-            ....:         return self.n == other.n
-            ....:     def __ne__(self, other):
-            ....:         return self.val() != other.val()
-            sage: L = [Vals(n) for n in range(10)]
-            sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(L))
-
-        We delete one item from ``D`` and we delete one item from the list
-        ``L``. The latter implies that the corresponding item from ``D`` gets
-        deleted as well. Hence, there remain eight values::
-
-            sage: del D[2]
-            sage: del L[5]
-            sage: sorted(D.values_list())
-            [<0>, <1>, <3>, <4>, <6>, <7>, <8>, <9>]
-        """
-        return list(self.values())
-
     def iteritems(self):
         """
         EXAMPLES::
@@ -1004,60 +972,6 @@ cdef class WeakValueDictionary(dict):
                     yield <object>key, <object>out
         finally:
             self._exit_iter()
-
-    def items_list(self):
-        """
-        The key-value pairs of this dictionary.
-
-        EXAMPLES::
-
-            sage: import sage.misc.weak_dict
-            sage: class Vals:
-            ....:     def __init__(self, n):
-            ....:         self.n = n
-            ....:     def __repr__(self):
-            ....:         return "<%s>" % self.n
-            ....:     def __lt__(self, other):
-            ....:         return self.n < other.n
-            ....:     def __eq__(self, other):
-            ....:         return self.n == other.n
-            ....:     def __ne__(self, other):
-            ....:         return self.val() != other.val()
-            sage: class Keys():
-            ....:     def __init__(self, n):
-            ....:         self.n = n
-            ....:     def __hash__(self):
-            ....:         if self.n % 2:
-            ....:             return int(5)
-            ....:         return int(3)
-            ....:     def __repr__(self):
-            ....:         return "[%s]" % self.n
-            ....:     def __lt__(self, other):
-            ....:         return self.n < other.n
-            ....:     def __eq__(self, other):
-            ....:         return self.n == other.n
-            ....:     def __ne__(self, other):
-            ....:         return self.val() != other.val()
-            sage: L = [(Keys(n), Vals(n)) for n in range(10)]
-            sage: D = sage.misc.weak_dict.WeakValueDictionary(L)
-
-        We remove one dictionary item directly. Another item is removed by
-        means of garbage collection. By consequence, there remain eight
-        items in the dictionary::
-
-            sage: del D[Keys(2)]
-            sage: del L[5]
-            sage: sorted(D.items())
-            [([0], <0>),
-             ([1], <1>),
-             ([3], <3>),
-             ([4], <4>),
-             ([6], <6>),
-             ([7], <7>),
-             ([8], <8>),
-             ([9], <9>)]
-        """
-        return list(self.items())
 
     cdef int _enter_iter(self) except -1:
         """
