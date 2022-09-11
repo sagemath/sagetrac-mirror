@@ -273,13 +273,16 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None,
 algebraic_dependency = algdep
 
 
-def bernoulli(n, algorithm='default', num_threads=1):
+def bernoulli(n, plus=True, algorithm='default', num_threads=1):
     r"""
     Return the n-th Bernoulli number, as a rational number.
 
     INPUT:
 
     - ``n`` - an integer
+    - ``plus`` - if True, bernoulli(1) gives +1/2 instead of -1/2
+      regardless of algorithm; if False, the value of bernoulli(1)
+      is that of the chosen algorithm
     - ``algorithm``:
 
       - ``'default'`` -- use 'flint' for n <= 20000, then 'arb' for n <= 300000
@@ -346,6 +349,9 @@ def bernoulli(n, algorithm='default', num_threads=1):
     - David Joyner and William Stein
     """
     n = ZZ(n)
+
+    if plus and n == 1:
+        return Rational((1,2))
 
     if algorithm == 'default':
         if n <= 20000:
