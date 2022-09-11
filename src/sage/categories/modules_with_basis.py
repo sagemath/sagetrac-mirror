@@ -1389,7 +1389,11 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         def __getitem__(self, m):
             """
-            Return the coefficient of ``m`` in ``self``.
+            This default implementation returns the coefficient of ``m`` in ``self``.
+
+            Dense modules can override :meth:`__len__`, :meth:`__iter__`, and
+            :meth:`__getitem__` to instead return the sequence of all coefficients,
+            implementing the :class:`collections.abc.Sequence` protocol.
 
             EXAMPLES::
 
@@ -1457,7 +1461,12 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             assert m in C, "%s should be an element of %s"%(m, C)
             if hasattr(C, "element_class") and not isinstance(m, C.element_class):
                 m = C(m)
-            return self[m]
+            # Do not delegate to __getitem__ here; dense modules may override that.
+            result = self.monomial_coefficients(copy=False).get(m)
+            if result is None:
+                return self.base_ring().zero()
+            else:
+                return result
 
         def is_zero(self):
             """
@@ -1486,10 +1495,41 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             zero = self.parent().base_ring().zero()
             return all(v == zero for v in self.monomial_coefficients(copy=False).values())
 
+        def __iter__(self):
+            """
+            This default implementation yields ``(index, coefficient)`` pairs,
+            where ``coefficient`` is never zero.
+
+            Dense modules can override :meth:`__len__`, :meth:`__iter__`, and
+            :meth:`__getitem__` to instead return the sequence of all coefficients,
+            implementing the :class:`collections.abc.Sequence` protocol.
+
+            EXAMPLES::
+
+                sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+                sage: B = F.basis()
+                sage: f = B['a'] + 3*B['c']
+                sage: [i for i in sorted(f)]
+                [('a', 1), ('c', 3)]
+
+                sage: s = SymmetricFunctions(QQ).schur()
+                sage: a = s([2,1]) + s([3])
+                sage: [i for i in sorted(a)]
+                [([2, 1], 1), ([3], 1)]
+            """
+            return iter(self.monomial_coefficients().items())
+
         def __len__(self):
             """
-            Return the number of basis elements whose coefficients in
-            ``self`` are nonzero.
+            Return the length of ``self`` as an iterable.
+
+            This default implementation returns the same as the method
+            :meth:`length`: the number of basis elements whose coefficients
+            in ``self`` are nonzero.
+
+            Dense modules can override :meth:`__len__`, :meth:`__iter__`, and
+            :meth:`__getitem__` to instead return the sequence of all coefficients,
+            implementing the :class:`collections.abc.Sequence` protocol.
 
             EXAMPLES::
 
@@ -1506,7 +1546,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: len(z)
                 4
             """
-            return len(self.support())
+            return self.length()
 
         def length(self):
             """
@@ -1527,8 +1567,15 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
                 sage: z.length()
                 4
+
+            TESTS:
+
+            Test that :trac:`29218` is fixed::
+
+                sage: vector([-1, 0, 2, 0]).length()
+                2
             """
-            return len(self)
+            return len(self.support())
 
         def support(self):
             """
@@ -1738,7 +1785,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 ([3], -5)
             """
             k = self.leading_support(*args, **kwds)
-            return k, self[k]
+            return k, self.monomial_coefficients(copy=False)[k]
 
         def leading_monomial(self, *args, **kwds):
             r"""
@@ -1879,7 +1926,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 ([1], 2)
             """
             k = self.trailing_support(*args, **kwds)
-            return k, self[k]
+            return k, self.monomial_coefficients(copy=False)[k]
 
         def trailing_monomial(self, *args, **kwds):
             r"""

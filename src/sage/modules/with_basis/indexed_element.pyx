@@ -70,23 +70,6 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         self._monomial_coefficients = x
         self._hash_set = False
 
-    def __iter__(self):
-        """
-        EXAMPLES::
-
-            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
-            sage: B = F.basis()
-            sage: f = B['a'] + 3*B['c']
-            sage: [i for i in sorted(f)]
-            [('a', 1), ('c', 3)]
-
-            sage: s = SymmetricFunctions(QQ).schur()
-            sage: a = s([2,1]) + s([3])
-            sage: [i for i in sorted(a)]
-            [([2, 1], 1), ([3], 1)]
-        """
-        return iter(self._monomial_coefficients.items())
-
     def __contains__(self, x):
         """
         Return whether or not a combinatorial object ``x`` indexing a basis
