@@ -691,8 +691,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         if N == 1:
             # By definition, the first Bernoulli number of the trivial
-            # character is 1/2, in contrast to the value B_1 = -1/2.
-            ber = K.one() / 2 if k == 1 else K(bernoulli(k))
+            # character is 1/2.
+            ber = K(bernoulli(k, True))
         elif self(-1) != K((-1)**k):
             ber = K.zero()
         elif algorithm == "recurrence":
@@ -708,8 +708,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             def S(n):
                 return sum(v[r] * r**n for r in range(1, N))
-            ber = K(sum(binomial(k, j) * bernoulli(j, **opts) *
-                        N**(j - 1) * S(k - j) for j in range(k + 1)))
+            ber = K(sum(-binomial(k, j) * bernoulli(j, True, **opts) *
+                        (-N)**(j - 1) * S(k - j) for j in range(k + 1)))
         elif algorithm == "definition":
             # This is better since it computes the same thing, but requires
             # no arith in a poly ring over a number field.

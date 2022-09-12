@@ -251,8 +251,8 @@ void bern_rat(mpq_t res, long k, int num_threads)
 
    if (k == 1)
    {
-      // B_1 = -1/2
-      mpq_set_si(res, -1, 2);
+      // B_1 = 1/2
+      mpq_set_si(res, 1, 2);
       return;
    }
 

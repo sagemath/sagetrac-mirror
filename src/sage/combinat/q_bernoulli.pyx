@@ -13,7 +13,8 @@ def q_bernoulli(m, p=None):
 
     For every nonnegative integer `m`, the `q`-Bernoulli number
     `\beta_m` is a rational function of the indeterminate `q` whose
-    value at `q=1` is the usual Bernoulli number `B_m`.
+    value at `q=1` is the Bernoulli number `B_m`, but with
+    `B_1 = -\frac{1}{2}`.
 
     INPUT:
 
@@ -36,7 +37,7 @@ def q_bernoulli(m, p=None):
         -1/(q + 1)
         sage: q_bernoulli(2)
         q/(q^3 + 2*q^2 + 2*q + 1)
-        sage: all(q_bernoulli(i)(q=1) == bernoulli(i) for i in range(12))
+        sage: all(q_bernoulli(i)(q=1) == (-1)^i * bernoulli(i, True) for i in range(12))
         True
 
     One can evaluate the rational function by giving a second argument::

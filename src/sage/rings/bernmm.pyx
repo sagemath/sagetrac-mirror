@@ -62,7 +62,7 @@ def bernmm_bern_rat(long k, int num_threads = 1):
         sage: bernmm_bern_rat(0)
         1
         sage: bernmm_bern_rat(1)
-        -1/2
+        1/2
         sage: bernmm_bern_rat(2)
         1/6
         sage: bernmm_bern_rat(3)
@@ -117,8 +117,8 @@ def bernmm_bern_modp(long p, long k):
 
         sage: bernoulli(0) % 5, bernmm_bern_modp(5, 0)
         (1, 1)
-        sage: bernoulli(1) % 5, bernmm_bern_modp(5, 1)
-        (2, 2)
+        sage: bernoulli(1, True) % 5, bernmm_bern_modp(5, 1)
+        (3, 3)
         sage: bernoulli(2) % 5, bernmm_bern_modp(5, 2)
         (1, 1)
         sage: bernoulli(3) % 5, bernmm_bern_modp(5, 3)

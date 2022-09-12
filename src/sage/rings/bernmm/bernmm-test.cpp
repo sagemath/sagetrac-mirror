@@ -57,6 +57,9 @@ void bern_naive(mpq_t* res, long n)
       mpq_mul(res[j], res[j], t);
    }
 
+   if (n > 1)
+      mpq_neg(res[1], res[1]);
+
    mpq_clear(u);
    mpq_clear(t);
 }

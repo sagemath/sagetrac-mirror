@@ -744,12 +744,12 @@ long bern_modp(long p, long k)
    if (k == 0)
       return 1;
 
-   // B_1 = -1/2 mod p
+   // B_1 = 1/2 mod p
    if (k == 1)
    {
       if (p == 2)
          return -1;
-      return (p-1)/2;
+      return (p+1)/2;
    }
 
    // B_k = 0 for odd k >= 3

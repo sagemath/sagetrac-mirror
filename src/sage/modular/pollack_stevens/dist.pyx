@@ -1178,7 +1178,7 @@ cdef class Dist_vector(Dist):
         minhalf = ~K(-2)
         for m in range(1, M):
             scalar = K(self.moment(m) / m)
-            # bernoulli(1) = -1/2; the only nonzero odd Bernoulli number
+            # bernoulli(1) = 1/2; the only nonzero odd Bernoulli number
             v[m] += m * minhalf * scalar
             for j in range(m - 1, M, 2):
                 v[j] += binomial(j, m - 1) * bern[(j - m + 1) // 2] * scalar
