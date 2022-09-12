@@ -18,6 +18,7 @@ from collections.abc import Iterable
 
 from sage.misc.misc import powerset
 from sage.misc.misc_c import prod
+from sage.misc.superseded import deprecation
 
 from sage.structure.element import parent
 from sage.structure.coerce import py_scalar_to_element
@@ -273,16 +274,14 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None,
 algebraic_dependency = algdep
 
 
-def bernoulli(n, plus=True, algorithm='default', num_threads=1):
+def bernoulli(n, plus=False, algorithm='default', num_threads=1):
     r"""
     Return the n-th Bernoulli number, as a rational number.
 
     INPUT:
 
     - ``n`` - an integer
-    - ``plus`` - if True, bernoulli(1) gives +1/2 instead of -1/2
-      regardless of algorithm; if False, the value of bernoulli(1)
-      is that of the chosen algorithm
+    - ``plus`` - bernoulli(1) gives +1/2 if this is True and -1/2 otherwise
     - ``algorithm``:
 
       - ``'default'`` -- use 'flint' for n <= 20000, then 'arb' for n <= 300000
@@ -350,8 +349,12 @@ def bernoulli(n, plus=True, algorithm='default', num_threads=1):
     """
     n = ZZ(n)
 
-    if plus and n == 1:
-        return Rational((1,2))
+    if n == 1:
+        if plus:
+            return Rational((1,2))
+        else:
+            deprecation(34521, "bernoulli(1) will always return +1/2 in the future")
+            return Rational((-1,2))
 
     if algorithm == 'default':
         if n <= 20000:
