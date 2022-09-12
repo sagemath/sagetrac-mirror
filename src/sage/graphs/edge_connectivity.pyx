@@ -1119,11 +1119,31 @@ cdef class GabowEdgeConnectivity:
     #
 
     cdef void release_used_edges(self):
+        """
+        Release all previously used edges.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(4)
+            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
+            [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
+        """
         for j in range(self.m):
             self.my_edge_state[j] = self.UNUSED
         return
 
     cdef void G_minus_A(self):
+        """
+        Update current G to hold only the edges of T.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(4)
+            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
+            [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
+        """
         """cdef int x = self.my_to[e_id]
         cdef int y = self.my_from[e_id]
 
@@ -1136,6 +1156,16 @@ cdef class GabowEdgeConnectivity:
         return 
 
     cdef void init_Lroots(self, int x):
+        """
+        Return the packing trees of the graph G.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(4)
+            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
+            [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
+        """
         cdef int i
         for i in range(self.current_tree + 1):
             self.L_roots[i] = x
@@ -1143,6 +1173,16 @@ cdef class GabowEdgeConnectivity:
         return
 
     cdef int search_packing_joining(self, int x, int tree):
+        """
+        Carry out the joining step for packing.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(4)
+            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
+            [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
+        """
         cdef int y
         cdef int joining_edge												
         cdef int e_id, ep
@@ -1194,6 +1234,16 @@ cdef class GabowEdgeConnectivity:
         return False
 
     cdef void init_set(self):
+        """
+        Initialize sets of vertices in G.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(4)
+            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
+            [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
+        """
 
         if self.sets != 0:
             # clear and reset
@@ -1215,6 +1265,16 @@ cdef class GabowEdgeConnectivity:
         return
 
     cdef void merge_sets(self):
+        """
+        Merge sets of vertices in G.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(4)
+            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
+            [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
+        """
         cdef int s
         if self.sets != 0:
             for i in range(self.n):
@@ -1237,6 +1297,16 @@ cdef class GabowEdgeConnectivity:
         return 
 
     cdef int choose_edge_step(self, int v):
+        """
+        Execute choose_edge_step as described in Gabow1995.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(4)
+            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
+            [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
+        """
 
         # find an edge to augment A if it is possible 
 
@@ -1278,6 +1348,16 @@ cdef class GabowEdgeConnectivity:
         return -1
 
     cdef int period_step(self):
+        """
+        Execute period step as described in Gabow1995.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(4)
+            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
+            [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
+        """
         # if the arborescence is ready halt, else return a vertex v from A
 
         cdef int v
@@ -1307,6 +1387,16 @@ cdef class GabowEdgeConnectivity:
             return 0	 
 
     cdef int search_step(self, int e):
+        """
+        Execute search step as described in Gabow1995.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(4)
+            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
+            [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
+        """
 
         # ALL THE TREES HERE SHOULD BE SELF.CURRENT_TREE (I THINK?)
 
@@ -1349,6 +1439,16 @@ cdef class GabowEdgeConnectivity:
             return 0
 
     cdef void find_tree(self):
+        """
+        Find new tree in G.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(4)
+            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
+            [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
+        """
         cdef int v
         cdef int found
         cdef int e
@@ -1388,6 +1488,16 @@ cdef class GabowEdgeConnectivity:
         return
 
     cdef void packing_arboresences(self):
+        """
+        Return the packing trees of the graph G.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(4)
+            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
+            [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
+        """
         cdef int temp
         self.pa_checked = False
 
@@ -1436,5 +1546,15 @@ cdef class GabowEdgeConnectivity:
         return
 
     def edge_disjoint_spanning_trees(self):
+        """
+        Return the packing trees of the graph G.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(4)
+            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
+            [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
+        """
         self.packing_arboresences()
         return
