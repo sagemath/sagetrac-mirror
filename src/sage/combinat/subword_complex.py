@@ -10,7 +10,7 @@ expression for `w`.
 A subword complex is a shellable sphere if and only if the Demazure
 product of `Q` equals `w`, otherwise it is a shellable ball.
 
-The code is optimized to be used with ReflectionGroup, it works as well
+The code is optimized to be used with ReflectionGroup, most parts work as well
 with CoxeterGroup, but many methods fail for WeylGroup.
 
 EXAMPLES::
@@ -76,22 +76,22 @@ And the weight configuration also works::
     sage: F.extended_weight_configuration(coefficients=(1,2))
     [(4/3, 2/3), (4/3, 8/3), (-2/3, 2/3), (4/3, 8/3), (-2/3, 2/3)]
 
-One finally can compute the brick polytope, using all functionality
+One finally can compute the brick polyhedron, using all functionality
 on weight configurations, though it does not realize to live in
 real space::
 
-    sage: W = CoxeterGroup(['A',3]); I = list(W.index_set())
-    sage: Q = I + W.w0.coxeter_sorting_word(I)
-    sage: S = SubwordComplex(Q,W.w0)
-    sage: S.brick_polytope()
+    sage: W = ReflectionGroup(['A',3]); I = list(W.index_set())         # optional - gap3
+    sage: Q = I + W.w0.coxeter_sorting_word(I)                          # optional - gap3
+    sage: S = SubwordComplex(Q,W.w0)                                    # optional - gap3
+    sage: S.brick_polyhedron()                                          # optional - gap3
     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
 
-    sage: W = CoxeterGroup(['H',3]); I = list(W.index_set())
-    sage: Q = I + W.w0.coxeter_sorting_word(I)
-    sage: S = SubwordComplex(Q,W.w0)
-    sage: S.brick_polytope()
-    doctest:...: RuntimeWarning: the polytope is build with rational vertices
-    A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 32 vertices
+    sage: W = ReflectionGroup(['H',3]); I = list(W.index_set())         # optional - gap3
+    sage: Q = I + W.w0.coxeter_sorting_word(I)                          # optional - gap3
+    sage: S = SubwordComplex(Q,W.w0)                                    # optional - gap3
+    sage: S.brick_polyhedron()                                          # optional - gap3
+    doctest:...: UserWarning: Using floating point numbers for roots of unity. This might cause numerical errors!
+    A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 32 vertices
 
 AUTHORS:
 
