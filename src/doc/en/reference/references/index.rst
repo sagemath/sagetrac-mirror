@@ -3537,6 +3537,9 @@ REFERENCES:
             47:95-104, 1997.
             :doi:`10.1023/A:1022444205860`
 
+.. [KM2004] \A. Knutson, E. Miller. *Subword complexes in Coxeter 
+            groups*. Adv. Math., 184(1):161-176, 2004.
+
 .. [KMAUTOM2000] Masayuki Kanda, Shiho Moriai, Kazumaro Aoki, Hiroki Ueda,
                  Youichi Takashima, Kazuo Ohta, and Tsutomu Matsumoto,
                  *E2 - a new 128-bit block cipher*; in IEICE Transactions on
@@ -4876,6 +4879,9 @@ REFERENCES:
             symbols and p-adic L-functions.* Annales scientifiques de
             l'École normale supérieure.
             Vol. 44. No. 1. Elsevier, 2011.
+
+.. [PS2015] \V. Pilaud, C. Stump. *Brick polytopes of spherical subword 
+            complexes and generalized associahedra*. Adv. Math. 276:1-61, 2015.
 
 .. [PSW1996] Boris Pittel, Joel Spencer and Nicholas Wormald. *Sudden
              Emergence of a Giant k-Core in a Random
