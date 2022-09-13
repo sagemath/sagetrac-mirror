@@ -1726,10 +1726,9 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
         - ``sign`` -- (default: ``'positive'``) must be one of the following:
 
           * ``'positive'`` - entries of the extended weight configuration are summed up as they are.
-                             The Bruhat cone is taken with a negative sign.
+            The Bruhat cone is taken with a negative sign.
           * ``'negative'`` - entries of the extended weight configuration are summed up with a negative sign.
-                             The Bruhat cone is taken with a positive sign.
-
+            The Bruhat cone is taken with a positive sign.
         - ``backend`` -- string (default: ``'cdd'``); the backend to use to create the polyhedron
 
         .. SEEALSO::
