@@ -1,4 +1,4 @@
-Usainboltz: fast boltzmann random generation of tree-like structures
+Usainboltz: fast Boltzmann random generation of tree-like structures
 ====================================================================
 
 Description
