@@ -94,6 +94,17 @@ real space::
     doctest:...: UserWarning: This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.
     A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 32 vertices
 
+Brick polyhedra replace brick polytopes. Brick polytopes are marked as deprecated::
+
+    sage: W = ReflectionGroup(['A',2])                                  # optional - gap3
+    sage: Q = [1,2,1,2,1]                                               # optional - gap3
+    sage: w = W.w0                                                      # optional - gap3
+    sage: S = SubwordComplex(Q,w)                                       # optional - gap3
+    sage: S.brick_polytope()                                            # optional - gap3
+    doctest:...: DeprecationWarning: brick_polytope is deprecated. Please use brick_polyhedron instead.
+    See https://trac.sagemath.org/32681 for details.
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 5 vertices
+
 AUTHORS:
 
 - Christian Stump: initial version
@@ -1412,6 +1423,73 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
         """
         return self.element_class(self, _greedy_facet(self.word(),
                                                       self.pi(), side=side))
+
+    def f_anti_greedy_facet(self, f, backend='cdd'):
+        r"""
+        Return the anti-greedy facet with respect to the linear functional f of ``self``.
+
+        This is the lexicographically last (or first) facet of ``self``.
+
+        INPUT:
+
+        - ``f`` -- a linear functional (given as vector) that is non-negative on the
+            Bruhat cone associated to the interval `[w,demazure_product(Q)]`
+        - ``backend`` -- string (default: ``'cdd'``); the backend to use to create the polyhedron
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['C',2])                          # optional - gap3
+            sage: w = W.from_reduced_word([1,2])                        # optional - gap3
+            sage: Q = [2,1,1,2,2,1,1,2]                                 # optional - gap3
+            sage: SC = SubwordComplex(Q, w)                             # optional - gap3
+            sage: f = vector((-2,1))                                    # optional - gap3
+            sage: SC.f_anti_greedy_facet(f)                             # optional - gap3
+            (0, 2, 4, 5, 6, 7)
+
+            sage: W = ReflectionGroup(['A',2])                          # optional - gap3
+            sage: Q = [1,2,1]                                           # optional - gap3
+            sage: w = W.one()                                           # optional - gap3
+            sage: f = vector((-1,-1))                                   # optional - gap3
+            sage: S = SubwordComplex(Q,w)                               # optional - gap3
+            sage: S.f_anti_greedy_facet(f)                              # optional - gap3
+            Traceback (most recent call last):
+            ...
+            ValueError: The linear functional f is not non-negative on the Bruhat cone associated to [w,Q]
+
+        REFERENCES: [JS2021]_
+        """
+        Q = list(self.word())
+        w = self.pi()
+        W = w.parent()
+        S = W.simple_reflections()
+        Delta = W.simple_roots()
+        Phiplus = W.positive_roots()
+        BC = W.bruhat_cone(w, W.demazure_product(Q), backend=backend)
+
+        #test if f is non-negative for BC
+        gens = [item.vector() for item in BC.rays()]
+        for g in gens:
+            if f.inner_product(g) < 0:
+                raise ValueError("The linear functional f is not non-negative on the Bruhat cone associated to [w,Q]")
+
+        w_tmp = W.one()
+        I = []
+
+        for i,a in enumerate(Q):
+            beta = w_tmp * Delta[a]
+            f_val = f.inner_product(beta)
+            right_ascent = (w_tmp * S[a]).weak_le(w)
+            extendable = (w_tmp.inverse() * w).bruhat_le(W.demazure_product(Q[i + 1:]))
+
+            if f_val < 0 or (beta in Phiplus and right_ascent and (f_val == 0 or (f_val > 0 and not extendable))):
+                w_tmp = w_tmp * S[a]
+            else:
+                I.append(i)
+
+        for F in self.facets():
+            if tuple(F) == tuple(I):
+                return F
+        return I
 
     # topological properties
 
