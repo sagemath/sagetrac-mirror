@@ -91,6 +91,7 @@ real space::
     sage: S = SubwordComplex(Q,W.w0)                                    # optional - gap3
     sage: S.brick_polyhedron()                                          # optional - gap3
     doctest:...: UserWarning: Using floating point numbers for roots of unity. This might cause numerical errors!
+    doctest:...: UserWarning: This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.
     A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 32 vertices
 
 AUTHORS:
@@ -768,7 +769,7 @@ class SubwordComplexFacet(Simplex, Element):
             sage: Q = c.reduced_word()*2 + W.w0.coxeter_sorting_word(c) # optional - gap3
             sage: SC = SubwordComplex(Q, W.w0)                          # optional - gap3
             sage: F = SC[15]; F.plot()                                  # optional - gap3
-            Graphics object consisting of 52 graphics primitives
+            Graphics object consisting of 53 graphics primitives
 
         TESTS::
 
@@ -1753,6 +1754,8 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
             sage: Q = c + tuple(W.w0.coxeter_sorting_word(c))           # optional - gap3
             sage: SC = SubwordComplex(Q,W.w0)                           # optional - gap3
             sage: SC.brick_polyhedron()                                 # optional - gap3
+            doctest:...: UserWarning: Using floating point numbers for roots of unity. This might cause numerical errors!
+            doctest:...: UserWarning: This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 32 vertices
 
             sage: W = ReflectionGroup(['B',2])                          # optional - gap3
