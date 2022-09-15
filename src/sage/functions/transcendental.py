@@ -331,6 +331,125 @@ def hurwitz_zeta(s, x, **kwargs):
     return hurwitz_zeta_func(s, x, **kwargs)
 
 
+class Function_BernoulliGen(BuiltinFunction):
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: latex(bernoulli_gen(x, 2))
+            B\left(x, 2\right)
+        """
+        BuiltinFunction.__init__(self, 'bernoulli_gen', nargs=2,
+                                 latex_name='B')
+
+    def _eval_(self, s, x):
+        r"""
+        TESTS::
+
+            sage: bernoulli_gen(-3, 3)
+            1/30*pi^4 - 51/16
+            sage: bernoulli_gen(0, x)
+            1
+            sage: bernoulli_gen(1, x)
+            x - 1/2
+            sage: bernoulli_gen(5, x)
+            x^5 - 5/2*x^4 + 5/3*x^3 - 1/6*x
+            sage: bernoulli_gen(-2, 0.5)
+            16.8287966442343
+        """
+        if s in ZZ and s >= 0:
+            return bernoulli_polynomial(x, s)
+        elif s in ZZ and s < 0:
+            return ((-1) ** (1 - s)) * psi(-s, x) / factorial(-1 - s)
+        else:
+            return
+
+    def _evalf_(self, s, x, parent=None, algorithm=None):
+        r"""
+        TESTS::
+
+            sage: bernoulli_gen(11/10, 1/2).n()
+            -0.0307345651108645
+            sage: bernoulli_gen(11/10, 1/2).n(100)
+            -0.030734565110864468443588353826
+            sage: bernoulli_gen(11/10, 1 + 1j).n()
+            0.388361236837501 + 1.06434461972216*I
+        """
+        from mpmath import zeta
+        if s == 0:
+            return 1.0
+        return -s * mpmath_utils.call(zeta, 1-s, x, parent=parent)
+
+    def _derivative_(self, s, x, diff_param):
+        r"""
+        TESTS::
+
+            sage: y = var('y')
+            sage: diff(bernoulli_gen(x, y), y)
+            x*bernoulli_gen(x - 1, y)
+        """
+        if diff_param == 1:
+            return s * bernoulli_gen(s - 1, x)
+        else:
+            raise NotImplementedError('derivative with respect to first '
+                                      'argument')
+
+bernoulli_gen_func = Function_BernoulliGen()
+
+
+def bernoulli_gen(s, x, **kwargs):
+    r"""
+    The generalized Bernoulli function `B(s, x)`, where `s` and `x` are complex.
+
+    This is defined as
+
+    .. MATH::
+
+             B(s, x) = \begin{cases} -s \zeta(1-s, x) & s \ne 1 \\
+             1 & s = 1 \end{cases}
+
+
+    When `s` is a nonnegative integer, this function reproduces the
+    Bernoulli polynomials. When in addition `x = 1`, the Bernoulli numbers with
+    `B_1 = +\frac{1}{2}` are obtained.
+
+    EXAMPLES:
+
+    Symbolic evaluations::
+
+        sage: bernoulli_gen(-3, 3)
+        1/30*pi^4 - 51/16
+        sage: bernoulli_gen(0, x)
+        1
+        sage: bernoulli_gen(1, x)
+        x - 1/2
+        sage: bernoulli_gen(5, x)
+        x^5 - 5/2*x^4 + 5/3*x^3 - 1/6*x
+        sage: bernoulli_gen(-6, -1/2)
+        762*zeta(7) - 768
+        sage: bernoulli_gen(4, 1)
+        -1/30
+        sage: bernoulli_gen(1, 1)
+        1/2
+
+    Numerical evaluations::
+
+        sage: bernoulli_gen(-2, 1/2).n()
+        16.8287966442343
+        sage: bernoulli_gen(11/10, 1/2).n()
+        -0.0307345651108645
+        sage: bernoulli_gen(-2, x).series(x, 60).subs(x=0.5).n()
+        16.8287966442343
+        sage: bernoulli_gen(-2, 0.5)
+        16.8287966442343
+
+    REFERENCES:
+
+    - Peter Luschny, "An introduction to the Bernoulli function", :arxiv:`2009.06743`
+    """
+    return bernoulli_gen_func(s, x, **kwargs)
+
+
 class Function_zetaderiv(GinacFunction):
     def __init__(self):
         r"""

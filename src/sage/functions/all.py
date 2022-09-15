@@ -28,7 +28,7 @@ from .other import ( ceil, floor, abs_symbolic, sqrt, real_nth_root,
 from .log import (exp, exp_polar, log, ln, polylog, dilog, lambert_w, harmonic_number)
 
 from .transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
-                            dickman_rho, stieltjes)
+                            bernoulli_gen, dickman_rho, stieltjes)
 
 from .bessel import (bessel_I, bessel_J, bessel_K, bessel_Y,
                     Bessel, struve_H, struve_L, hankel1, hankel2,
