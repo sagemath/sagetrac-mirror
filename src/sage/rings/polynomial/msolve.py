@@ -10,7 +10,7 @@ This module provide implementations of some operations on polynomial ideals
 based on msolve. Currently the only supported operation is the computation of
 the variety of zero-dimensional ideal over the rationals.
 
-Note that msolve must be installed separately.
+Note that the `optional package msolve <../spkg/msolve.html>`_ must be installed.
 
 .. SEEALSO::
 
