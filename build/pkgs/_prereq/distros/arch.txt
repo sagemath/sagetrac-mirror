@@ -8,3 +8,6 @@ bc
 gcc
 # Needed for 4ti2:
 which
+# `make configure` needs automake (for the `aclocal` command) and autoconf
+automake
+autoconf
