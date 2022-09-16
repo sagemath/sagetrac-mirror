@@ -281,7 +281,8 @@ def bernoulli(n, plus=False, algorithm='default', num_threads=1):
     INPUT:
 
     - ``n`` - an integer
-    - ``plus`` - bernoulli(1) gives +1/2 if this is True and -1/2 otherwise
+    - ``plus`` (Boolean) - ``bernoulli(1)`` gives `1/2` if this is ``True``
+      and `-1/2` otherwise
     - ``algorithm``:
 
       - ``'default'`` -- use 'flint' for n <= 20000, then 'arb' for n <= 300000
@@ -353,7 +354,8 @@ def bernoulli(n, plus=False, algorithm='default', num_threads=1):
         if plus:
             return Rational((1,2))
         else:
-            deprecation(34521, "bernoulli(1) will always return +1/2 in the future")
+            deprecation(34521, "bernoulli(1) will return +1/2 by default in "
+            "the future. To keep the old behavior use ``plus=False``.")
             return Rational((-1,2))
 
     if algorithm == 'default':
