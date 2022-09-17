@@ -202,7 +202,8 @@ def _lrcalc_dict_to_sage(result):
         sage: mult([2,1],[3,2,1],3) # indirect doctest
         {[3, 3, 3]: 1, [4, 3, 2]: 2, [4, 4, 1]: 1, [5, 2, 2]: 1, [5, 3, 1]: 1}
     """
-    return {_Partitions(la): Integer(k) for la, k in result.items()}
+    return {_Partitions.element_class(_Partitions, la): Integer(k)
+            for la, k in result.items()}
 
 def lrcoef_unsafe(outer, inner1, inner2):
     r"""
@@ -517,4 +518,3 @@ def lrskew(outer, inner, weight=None, maxrows=-1):
                 w[j] += 1
             if w == wt:
                 yield ST.from_shape_and_word(shape, [i+1 for i in data])
-
