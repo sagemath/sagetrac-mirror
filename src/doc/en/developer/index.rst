@@ -132,7 +132,7 @@ a double role: When we build Sage from source, we can make use of packages that 
 these distributions, which makes Sage downstream from them.  But the distributions also provide
 a SageMath package; in this role, we are upstream.)
 
-You could:
+But even just within the SageMath library, you could:
 
 * Add examples to the documentation
 * Find bugs or typos
