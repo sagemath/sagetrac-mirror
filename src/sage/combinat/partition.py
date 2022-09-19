@@ -292,7 +292,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import var
 
-from sage.misc.lazy_import import lazy_import, LazyImport, attributes
+from sage.misc.lazy_import import lazy_import, LazyImport
 lazy_import('sage.combinat.skew_partition', 'SkewPartition')
 lazy_import('sage.combinat.partition_tuple', 'PartitionTuple')
 
@@ -5692,7 +5692,7 @@ class Partitions(UniqueRepresentation, Parent):
             raise ValueError("n cannot be infinite")
         # n is prone to being a LazyImport shim, so we have to unpack in that case
         if type(n) is LazyImport:
-            n = attributes(n)['_object']
+            n = n._get_object()
         if n is None or n is NonNegativeIntegerSemiring() or n is NonNegativeIntegers():
             if len(kwargs) > 0:
                 if len(kwargs) == 1:
