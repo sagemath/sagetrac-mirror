@@ -292,7 +292,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import var
 
-from sage.misc.lazy_import import lazy_import
+from sage.misc.lazy_import import lazy_import, LazyImport, attributes
 lazy_import('sage.combinat.skew_partition', 'SkewPartition')
 lazy_import('sage.combinat.partition_tuple', 'PartitionTuple')
 
@@ -307,7 +307,7 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.semirings.all import NN
+lazy_import('sage.rings.semirings.non_negative_integer_semiring','NonNegativeIntegerSemiring')
 from sage.arith.all import factorial, gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
@@ -5690,7 +5690,10 @@ class Partitions(UniqueRepresentation, Parent):
         """
         if n == infinity:
             raise ValueError("n cannot be infinite")
-        if n is None or n is NN or n is NonNegativeIntegers():
+        # n is prone to being a LazyImport shim, so we have to unpack in that case
+        if type(n) is LazyImport:
+            n = attributes(n)['_object']
+        if n is None or n is NonNegativeIntegerSemiring() or n is NonNegativeIntegers():
             if len(kwargs) > 0:
                 if len(kwargs) == 1:
                     if 'max_part' in kwargs:
