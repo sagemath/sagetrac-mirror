@@ -1427,3 +1427,21 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
         rel2 = rel + [CF]
         assert all(f in rel2 for f in CH.gens()), "did not find a principal generator"
         return alp(CF)
+
+    def global_height(self, prec=None):
+        """
+        TODO
+        """
+        return self.Chow_form().global_height(prec)
+
+    def local_height(self, prec=None):
+        """
+        TODO
+        """
+        return self.Chow_form().local_height(v, prec)
+
+    def local_height_arch(self, i, prec=None):
+        """
+        TODO
+        """
+        return self.Chow_form().local_height_arch(i, prec)
