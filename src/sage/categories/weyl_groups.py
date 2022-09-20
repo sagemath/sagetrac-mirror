@@ -569,21 +569,7 @@ class WeylGroups(Category_singleton):
             - [LSS2009]_
 
             - [Pon2010]_
-
-            .. ALGORITHM::
-
-                In type-A, utilize the peelable tableaux algorithm of [RS1995]_.
-                In other types, use induction on left Pieri factors.
             """
-            cartan_type = self.parent().cartan_type()
-            is_affine = cartan_type.is_affine()
-            if cartan_type == 'A' and not is_affine:
-                from sage.combinat.permutation import Permutation
-                try:  # handle WeylGroupElements
-                    return Permutation(list(self.to_permutation())).stanley_symmetric_function()
-                except AttributeError:  # handle SymmetricGroupElements
-                    return Permutation(self.domain).stanley_symmetric_function()
-
             # handle other types
             import sage.combinat.sf
             from sage.rings.rational_field import QQ

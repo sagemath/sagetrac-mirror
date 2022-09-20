@@ -993,6 +993,48 @@ class WeylGroupElement(MatrixGroupElement_gap):
         """
         return "".join(str(i) for i in self.to_permutation())
 
+    def stanley_symmetric_function(self):
+        r"""
+        Return the Stanley symmetric function associated to ``self``.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A', 3])
+            sage: W.from_reduced_word([3,2,3,1]).stanley_symmetric_function()
+            3*m[1, 1, 1, 1] + 2*m[2, 1, 1] + m[2, 2] + m[3, 1]
+
+            sage: W = WeylGroup(['A', 3, 1])
+            sage: W.from_reduced_word([3,1,2,0,3,1,0]).stanley_symmetric_function()
+            8*m[1, 1, 1, 1, 1, 1, 1] + 4*m[2, 1, 1, 1, 1, 1] + 2*m[2, 2, 1, 1, 1] + m[2, 2, 2, 1]
+            sage: A = AffinePermutationGroup(['A',3,1])
+            sage: A.from_reduced_word([3,1,2,0,3,1,0]).stanley_symmetric_function()
+            8*m[1, 1, 1, 1, 1, 1, 1] + 4*m[2, 1, 1, 1, 1, 1] + 2*m[2, 2, 1, 1, 1] + m[2, 2, 2, 1]
+
+            sage: W = WeylGroup(['C',3,1])
+            sage: W.from_reduced_word([0,2,1,0]).stanley_symmetric_function()
+            32*m[1, 1, 1, 1] + 16*m[2, 1, 1] + 8*m[2, 2] + 4*m[3, 1]
+
+            sage: W = WeylGroup(['B',3,1])
+            sage: W.from_reduced_word([3,2,1]).stanley_symmetric_function()
+            2*m[1, 1, 1] + m[2, 1] + 1/2*m[3]
+
+            sage: W = WeylGroup(['B',4])
+            sage: w = W.from_reduced_word([3,2,3,1])
+            sage: w.stanley_symmetric_function()  # long time (6s on sage.math, 2011)
+            48*m[1, 1, 1, 1] + 24*m[2, 1, 1] + 12*m[2, 2] + 8*m[3, 1] + 2*m[4]
+
+        ALGORITHM:
+
+        In type A, utilize the peelable tableaux algorithm of [RS1995]_.
+        In other types, use induction on left Pieri factors.
+        """
+        cartan_type = self.parent().cartan_type()
+        is_affine = cartan_type.is_affine()
+        if cartan_type == 'A' and not is_affine:
+            from sage.combinat.permutation import Permutation
+            return Permutation(list(self.to_permutation())).stanley_symmetric_function()
+        return WeylGroups.ElementMethods.stanley_symmetric_function(self)
+
 WeylGroup_gens.Element = WeylGroupElement
 
 
