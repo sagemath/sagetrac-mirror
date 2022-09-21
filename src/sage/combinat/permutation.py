@@ -222,6 +222,8 @@ AUTHORS:
 - Trevor K. Karn (2022-08-05): Add :meth:`Permutation.n_reduced_words` and
   :meth:`Permutation.stanley_symmetric_function`.
 
+- Amrutha P, Shriya M, Divya Aggarwal (2022-08-16): Added Multimajor Index.
+
 Classes and methods
 ===================
 """
