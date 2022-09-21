@@ -2998,6 +2998,15 @@ class Permutation(CombinatorialElement):
     def rothe_diagram(self):
         r"""
         Return the Rothe diagram of ``self``.
+
+        EXAMPLES::
+
+            sage: w = Permutation([1,4,3,2])
+            sage: w.rothe_diagram().pp()
+            . . . .
+            . O O .
+            . O . .
+            . . . .
         """
         from sage.combinat.diagram import RotheDiagram
         return RotheDiagram(self)
@@ -3006,9 +3015,14 @@ class Permutation(CombinatorialElement):
         r"""
         Return the number of reduced words of ``self`` without explicitly
         computing them all.
+
+        EXAMPLES::
+
+            sage: w = Permutation([1,4,3,2])
+            sage: w.n_reduced_words()
+            2
         """
         Tx = self.rothe_diagram().peelable_tableaux()
-
         return sum(map(_tableau_contribution, Tx))
 
     ################
@@ -5263,7 +5277,10 @@ def _tableau_contribution(T):
     r"""
     Get the number of SYT of shape(``T``).
     """
+    from sage.combinat.tableau import StandardTableaux
     return(StandardTableaux(T.shape()).cardinality())
+
+
 ################################################################
 # Parent classes
 ################################################################
