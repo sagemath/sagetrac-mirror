@@ -2073,6 +2073,29 @@ cdef class SymmetricGroupElement(PermutationGroupElement):
         """
         return self.has_descent(i, side='left')
 
+    def stanley_symmetric_function(self):
+        r"""
+        Return the Stanley symmetric function of self.
+
+        EXAMPLES::
+
+            sage: W = SymmetricGroup(4)
+            sage: w = W.from_reduced_word([1,3,2,3]); w
+            (1,4,2)
+            sage: w.stanley_symmetric_function()
+            3*m[1, 1, 1, 1] + 2*m[2, 1, 1] + m[2, 2] + m[3, 1]
+            sage: w = W.from_reduced_word([3,2,3]); w
+            (2,4)
+            sage: w.stanley_symmetric_function()
+            2*m[1, 1, 1] + m[2, 1]
+
+        ALGORITHM:
+
+        Utilize the peelable tableaux algorithm of [RS1995]_.
+        """
+        from sage.combinat.permutation import Permutation
+        return Permutation(self.domain()).stanley_symmetric_function()
+
 
 cdef bint is_valid_permutation(int* perm, int n):
     """
