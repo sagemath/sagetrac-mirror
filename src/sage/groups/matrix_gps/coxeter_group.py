@@ -853,15 +853,6 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             rt = w * roots[i]
             return roots.index(rt)
 
-        # def stanley_symmetric_function(self):
-        #     r"""
-        #     Return the Stanley symmetric function indexed by ``self``.
-
-        #     EXAMPLES::
-
-        #         sage:
-        #     """
-        #     if 'A' == data.coxeter_type().type(): 
 
 def _matrix_test_right_descent(M, i, n, zero):
     """
