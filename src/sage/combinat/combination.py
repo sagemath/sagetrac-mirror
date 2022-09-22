@@ -612,8 +612,9 @@ def from_rank(r, n, k):
     Return the combination of rank ``r`` in the subsets of
     ``range(n)`` of size ``k`` when listed in lexicographic order.
 
-    The algorithm used is based on factoradics and presented in [DGH2020]_.
-    It is there compared to the other from the literature.
+    The algorithm used is Algorithm 6 from [GP2021]_ based on factoradics.
+    The paper compares several Algorithms from the litterature and adds an
+    optimisation in the computation of the binomial coefficients.
 
     EXAMPLES::
 
@@ -660,67 +661,37 @@ def from_rank(r, n, k):
         ....:     for n in range(10) for k in range(n+1) for r in range(binomial(n,k)))
         True
     """
-    if k < 0:
-        raise ValueError("k must be > 0")
-    if k > n:
-        raise ValueError("k must be <= n")
-    if n == 0 or k == 0:
-        return ()
-    if n < 0:
-        raise ValueError("n must be >= 0")
+    if k < 0 or k > n:
+        raise ValueError("k and n must satisfy 0 <= k <= n")
     B = binomial(n, k)
     if r < 0 or r >= B:
         raise ValueError("r must satisfy  0 <= r < binomial(n, k)")
-    if k == 1:
-        return (r,)
 
-    n0 = n
+    if k == 0:
+        return ()
+
     D = [0] * k
-    inverse = False
-    if k < n0 / 2:
-        inverse = True
-        k = n - k
-        r = B - 1 - r
-
-    B = (B * k) // n0
+    B *= k
     m = 0
     i = 0
-    j = 0
-    m2 = 0
-    d = 0
-    while d < k - 1:
+
+    while i < k - 1:
+        # INVARIANT: at the beginning of the loop, we have:
+        # B = binomial(n - m - i - 1, k - i - 1) * (n - m - i)
+        # NOTE: updating the value of B at each iteration by
+        # multiplying/dividing it by small integers incurs a huge speedup
+        # compared to computing it using the binomial function.
+        B = B.divide_knowing_divisible_by(n - m - i)
         if B > r:
-            if i < k - 2:
-                if n0 - 1 - m == 0:
-                    B = 1
-                else:
-                    B = (B * (k - 1 - i)) // (n0 - 1 - m)
-            d += 1
-            if inverse:
-                for e in range(m2, m + i):
-                    D[j] = e
-                    j += 1
-                m2 = m + i + 1
-            else:
-                D[i] = m + i
+            D[i] = m + i
+            B = B * (k - i - 1)
             i += 1
-            n0 -= 1
         else:
             r -= B
-            if n0 - 1 - m == 0:
-                B = 1
-            else:
-                B = (B * (n0 - m - k + i)) // (n0 - 1 - m)
+            B = B * (n - m - k)
             m += 1
-    if inverse:
-        for e in range(m2, n0 + r + i - B):
-            D[j] = e
-            j += 1
-        for e in range(n0 + r + i + 1 - B, n):
-            D[j] = e
-            j += 1
-    else:
-        D[k - 1] = n0 + r + k - 1 - B
+    D[k - 1] = n + r - B
+
     return tuple(D)
 
 ##########################################################

@@ -1961,10 +1961,6 @@ REFERENCES:
             pp. 2008-2029.
             :doi:`10.1016/j.disc.2005.12.060`
 
-.. [DGH2020] \C. Donnot, A. Genitrini and Y. Herida. Unranking Combinations
-            Lexicographically: an efficient new strategy compared with others, 2020,
-            https://hal.archives-ouvertes.fr/hal-02462764v1
-
 .. [DGMPPS2019] \N. Datta, A. Ghoshal, D. Mukhopadhyay, S. Patranabis,
                 S. Picek, R. Sashukhan. "TRIFLE"
                 https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/trifle-spec.pdf
@@ -2684,6 +2680,10 @@ REFERENCES:
             Configuration spaces, CRM series. (2012) pp. 299--311.
             Edizioni della Normale, Pisa.
             :doi:`10.1007/978-88-7642-431-1_13`
+
+.. [GP2021] Antoine Genitrini and Martin Pépin. Lexicographic Unranking of
+            Combinations Revisited. Algorithms 2021, 14, 97.
+            :doi:`10.3390/a14030097`
 
 .. [GPV2008] Craig Gentry, Chris Peikert, Vinod Vaikuntanathan. *How
              to Use a Short Basis: Trapdoors for Hard Lattices and New
