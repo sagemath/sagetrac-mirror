@@ -1443,17 +1443,19 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
 
         EXAMPLES::
 
-            sage: P.<x0,x1,x2,x3> = ProjectiveSpace(GF(17), 3)
-            sage: X = P.subscheme([x1 + x3, x2 - x0, x2 - x3])
+            sage: R.<x> = QQ[]
+            sage: NF.<a> = NumberField(x^2 - 5)
+            sage: P.<x,y,z> = ProjectiveSpace(NF, 2)
+            sage: X = P.subscheme([x^2 + y*z, 2*y*z, 3*x*y])
             sage: X.global_height()
-            1
+            0.000000000000000
 
         ::
 
-            sage: P.<x0,x1,x2,x3> = ProjectiveSpace(QQ,3)
-            sage: X = P.subscheme([x3^2 - 101*x1^2 - 3*x0*x2])
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P.subscheme([z^2 - 101*y^2 - 3*x*z])
             sage: X.global_height()
-            1
+            4.61512051684126
         """
         return self.Chow_form().global_height(prec)
 
@@ -1474,21 +1476,20 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
 
         EXAMPLES::
 
-            sage: P.<x0,x1,x2,x3> = ProjectiveSpace(GF(17), 3)
-            sage: X = P.subscheme([x1 + x3, x2 - x0, x2 - x3])
-            sage: X.local_height(2)
-            1
-            sage: X.local_height(3)
-            1
+            sage: R.<x> = QQ[]
+            sage: NF.<a> = NumberField(x^2 - 5)
+            sage: I = NF.ideal(3)
+            sage: P.<x,y,z> = ProjectiveSpace(NF, 2)
+            sage: X = P.subscheme([3*x*y - 5*x*z, y^2])
+            sage: X.local_height(I)
+            0.000000000000000
 
         ::
 
-            sage: P.<x0,x1,x2,x3> = ProjectiveSpace(QQ,3)
-            sage: X = P.subscheme([x3^2 - 101*x1^2 - 3*x0*x2])
-            sage: X.local_height(3)
-            1
-            sage: X.local_height(7)
-            1
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P.subscheme([z^2 - 101*y^2 - 3*x*z])
+            sage: X.local_height(2)
+            0.000000000000000
         """
         return self.Chow_form().local_height(v, prec)
 
@@ -1509,16 +1510,18 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
 
         EXAMPLES::
 
-            sage: P.<x0,x1,x2,x3> = ProjectiveSpace(GF(17), 3)
-            sage: X = P.subscheme([x1 + x3, x2 - x0, x2 - x3])
-            sage: X.local_height_arch(3)
-            1
+            sage: R.<x> = QQ[]
+            sage: NF.<a> = NumberField(x^2 - 5)
+            sage: P.<x,y,z> = ProjectiveSpace(NF, 2)
+            sage: X = P.subscheme([x^2 + y*z, 3*x*y])
+            sage: X.local_height_arch(1)
+            0.0000000000000000000000000000000
 
         ::
 
-            sage: P.<x0,x1,x2,x3> = ProjectiveSpace(QQ,3)
-            sage: X = P.subscheme([x3^2 - 101*x1^2 - 3*x0*x2])
-            sage: X.local_height_arch3)
-            1
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P.subscheme([z^2 - 101*y^2 - 3*x*z])
+            sage: X.local_height_arch(1)
+            4.61512051684126
         """
         return self.Chow_form().local_height_arch(i, prec)
