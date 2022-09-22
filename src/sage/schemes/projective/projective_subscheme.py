@@ -1430,18 +1430,95 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
 
     def global_height(self, prec=None):
         """
-        TODO
+        Return the (projective) global height of the subscheme.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: P.<x0,x1,x2,x3> = ProjectiveSpace(GF(17), 3)
+            sage: X = P.subscheme([x1 + x3, x2 - x0, x2 - x3])
+            sage: X.global_height()
+            1
+
+        ::
+
+            sage: P.<x0,x1,x2,x3> = ProjectiveSpace(QQ,3)
+            sage: X = P.subscheme([x3^2 - 101*x1^2 - 3*x0*x2])
+            sage: X.global_height()
+            1
         """
         return self.Chow_form().global_height(prec)
 
-    def local_height(self, prec=None):
+    def local_height(self, v, prec=None):
         """
-        TODO
+        Return the (projective) local height of the subscheme.
+
+        INPUT:
+
+        - ``v`` -- a prime or prime ideal of the base ring.
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: P.<x0,x1,x2,x3> = ProjectiveSpace(GF(17), 3)
+            sage: X = P.subscheme([x1 + x3, x2 - x0, x2 - x3])
+            sage: X.local_height(2)
+            1
+            sage: X.local_height(3)
+            1
+
+        ::
+
+            sage: P.<x0,x1,x2,x3> = ProjectiveSpace(QQ,3)
+            sage: X = P.subscheme([x3^2 - 101*x1^2 - 3*x0*x2])
+            sage: X.local_height(3)
+            1
+            sage: X.local_height(7)
+            1
         """
         return self.Chow_form().local_height(v, prec)
 
     def local_height_arch(self, i, prec=None):
         """
-        TODO
+        Return the local height at the ``i``-th infinite place of the subscheme.
+
+        INPUT:
+
+        - ``i`` -- an integer.
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: P.<x0,x1,x2,x3> = ProjectiveSpace(GF(17), 3)
+            sage: X = P.subscheme([x1 + x3, x2 - x0, x2 - x3])
+            sage: X.local_height_arch(3)
+            1
+
+        ::
+
+            sage: P.<x0,x1,x2,x3> = ProjectiveSpace(QQ,3)
+            sage: X = P.subscheme([x3^2 - 101*x1^2 - 3*x0*x2])
+            sage: X.local_height_arch3)
+            1
         """
         return self.Chow_form().local_height_arch(i, prec)
