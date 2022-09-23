@@ -177,6 +177,7 @@ cdef class GabowEdgeConnectivity:
     cdef bint search_mode
     cdef int *Arbor_edge
     cdef int *dfs_edges
+    cdef int myc
     cdef int *A # for edges
     cdef int *inA # for nodes
     cdef int *inX
@@ -190,6 +191,7 @@ cdef class GabowEdgeConnectivity:
     cdef int *temp_parent
     cdef int *temp_depth
     cdef int ntrees
+    cdef bint pa_checked
 
     def __init__(self, G):
         r"""
@@ -259,6 +261,8 @@ cdef class GabowEdgeConnectivity:
 
         # for packing arborescences
         self.search_mode = False
+        self.dfs_edges = <int*>self.mem.calloc(self.n, sizeof(int))
+        self.Arbor_edge = <int*>self.mem.calloc(self.m, sizeof(int))
         self.A = <int*>self.mem.calloc(self.n, sizeof(int))
         self.inA = <int*>self.mem.calloc(self.n, sizeof(int))
         self.inX = <int*>self.mem.calloc(self.n, sizeof(int))
@@ -271,7 +275,8 @@ cdef class GabowEdgeConnectivity:
         self.temp_depth = <int*>self.mem.calloc(self.n, sizeof(int))
         self.temp_parent = <int*>self.mem.calloc(self.n, sizeof(int))
         self.ntrees = 0
-
+        self.pa_checked = False
+        self.myc = 0
 
         # Set some constants
         self.UNUSED = INT_MAX
@@ -1135,7 +1140,7 @@ cdef class GabowEdgeConnectivity:
 
     cdef void G_minus_A(self):
         """
-        Update current G to hold only the edges of T.
+        Update current G by removing arbor edges.
 
         EXAMPLES::
 
@@ -1144,14 +1149,7 @@ cdef class GabowEdgeConnectivity:
             sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
             [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
         """
-        """cdef int x = self.my_to[e_id]
-        cdef int y = self.my_from[e_id]
-
-        for e_id in range(self.A): 
-            if self.Arbor_edge[e_id] == -1:
-                self.my_edge_state[e_id] = self.UNUSED"""
-        cdef int i
-        i = 1
+        # problems here with temp
 
         return 
 
@@ -1487,6 +1485,46 @@ cdef class GabowEdgeConnectivity:
 
         return
 
+    cdef void propose_A(self):
+        """
+        Propose an A from DFS-search. If a good A is found, use arborescence A in the packing.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(4)
+            sage: GabowEdgeConnectivity(D).edge_disjoint_spanning_trees()
+            [[(1,4),(4,2),(2,3)],[(1,2),(1,3),(3,4)]]
+        """
+        # Mark all vertices as unvisited
+        for i in range(self.n):
+            self.visited[i] = False
+
+        self.myc = 0
+        self.find_A_path(self.root_vertex)
+
+        return
+
+
+    cdef void find_A_path(self, int u):
+
+        # Mark vertex u as visited to avoid visiting it multiple times
+        self.visited[u] = True
+
+        # Visit outgoing arcs of current vertex
+        for e_id in self.g_out[u]:
+            v = self.my_to[e_id]
+            # Ensure a vertex is not visited and is unused
+            if not self.visited[v] and self.my_edge_state[e_id] == self.UNUSED:
+                self.Arbor_edge[e_id] = 1
+                self.myc += 1
+                self.dfs_edges[self.myc] = e_id
+                # recursively find more vertices and grow the arborescence
+                self.find_A_path(v)
+
+
+        return
+
     cdef void packing_arboresences(self):
         """
         Return the packing trees of the graph G.
@@ -1501,8 +1539,7 @@ cdef class GabowEdgeConnectivity:
         cdef int temp
         self.pa_checked = False
 
-        self.ntrees = self.construct_trees(False, 0) # find the value of K - intersection # check true or false based on reverse logic
-        print(self.ntrees)
+        self.ntrees = self.edge_connectivity() 
         K = self.ntrees - 1 # maybe just self.ec since should be same number
         if self.ntrees == 0:
             self.num_arborescences = 0
@@ -1513,12 +1550,16 @@ cdef class GabowEdgeConnectivity:
 
         while 1:
             # get dfs from r
-            dfs = self.compute_dfs_tree()
+            # add all the edges in the DFS tree to S
+            # add nodes in path to inA (set of vertices in the arborescence A)
+            # print(self.root_vertex)
+            self.propose_A()
 
+            # remove from G all the arborescences in A
             # remove edges in tree from G (aka G - A)
-            self.G_minus_A()
+            self.G_minus_A() # THIS IS NOT DONE
 
-            temp = self.construct_trees(False, 1)
+            temp = self.edge_connectivity()
 
             if temp < self.ntrees - 1:
                 print("Bad Case: Temp is {}".format(temp))
@@ -1528,20 +1569,21 @@ cdef class GabowEdgeConnectivity:
                     self.my_edge_state[i] = self.UNUSED
 
                 self.G_minus_A()
-                temp = self.construct_trees(False, 1)
+                temp = self.edge_connectivity()
                 self.find_tree()
                 self.G_minus_A()
+                print("Found non-DFS arborescence.")
             else:
                 print("Good Case.")
-                for i in range(self.m):
+                for i in range(self.n):
                     # reset dfs edges
-                    self.my_edge_state[i] = self.UNUSED
+                    self.dfs_edges[i] = -1
             if K == 0:
                 print("packing done")
                 break
             else:
                 K -= 1
-                ntrees -= 1
+                self.ntrees -= 1
 
         return
 
