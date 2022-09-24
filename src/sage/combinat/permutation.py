@@ -3019,9 +3019,16 @@ class Permutation(CombinatorialElement):
         EXAMPLES::
 
             sage: w = Permutation([1,4,3,2])
-            sage: w.n_reduced_words()
+            sage: w.number_of_reduced_words()
             2
         """
+        from sage.combinat.tableau import StandardTableaux
+        def _tableau_contribution(T):
+            r"""
+            Get the number of SYT of shape(``T``).
+            """
+            return(StandardTableaux(T.shape()).cardinality())
+
         Tx = self.rothe_diagram().peelable_tableaux()
         return sum(map(_tableau_contribution, Tx))
 
@@ -5272,13 +5279,6 @@ class Permutation(CombinatorialElement):
         """
         return self.shifted_concatenation(other, "right").\
         right_permutohedron_interval(self.shifted_concatenation(other, "left"))
-
-def _tableau_contribution(T):
-    r"""
-    Get the number of SYT of shape(``T``).
-    """
-    from sage.combinat.tableau import StandardTableaux
-    return(StandardTableaux(T.shape()).cardinality())
 
 
 ################################################################
