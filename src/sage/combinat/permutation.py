@@ -219,7 +219,7 @@ AUTHORS:
 - Trevor K. Karn (2022-08-05): Add :meth:`Permutation.n_reduced_words`
 - Amrutha P, Shriya M, Divya Aggarwal (2022-08-16): Added Multimajor Index.
 
-- Trevor K. Karn (2022-08-05): Add :meth:`Permutation.n_reduced_words` and
+- Trevor K. Karn (2022-08-05): Add :meth:`Permutation.number_of_reduced_words` and
   :meth:`Permutation.stanley_symmetric_function`.
 
 - Amrutha P, Shriya M, Divya Aggarwal (2022-08-16): Added Multimajor Index.
@@ -3011,7 +3011,7 @@ class Permutation(CombinatorialElement):
         from sage.combinat.diagram import RotheDiagram
         return RotheDiagram(self)
 
-    def n_reduced_words(self):
+    def number_of_reduced_words(self):
         r"""
         Return the number of reduced words of ``self`` without explicitly
         computing them all.
