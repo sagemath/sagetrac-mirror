@@ -661,6 +661,8 @@ def from_rank(r, n, k):
         ....:     for n in range(10) for k in range(n+1) for r in range(binomial(n,k)))
         True
     """
+    n = ZZ(n)
+    k = ZZ(k)
     if k < 0 or k > n:
         raise ValueError("k and n must satisfy 0 <= k <= n")
     B = binomial(n, k)
