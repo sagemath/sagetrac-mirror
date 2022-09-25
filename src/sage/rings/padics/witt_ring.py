@@ -26,9 +26,6 @@ class WittRing_base(CommutativeRing, UniqueRepresentation):
     def _repr_(self):
         return f"Ring of Witt Vectors of length {self.prec} over {self.base()}"
     
-    def _algorithm(self):
-        return self._algorithm
-    
     def _coerce_map_from_(self, S):
         # Question: do we return True is S == self.base()?
         # We have the teichmuller lift, but I don't think that's
