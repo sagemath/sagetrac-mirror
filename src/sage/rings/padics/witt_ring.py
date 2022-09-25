@@ -69,8 +69,8 @@ class WittRing_base(CommutativeRing, UniqueRepresentation):
             # If p is invertible, W_n(R) is isomorphic to R^n.
             return self.base().characteristic()
         else:
-            # This is a conjecture.
-            return p^(n-1) * self.base().characteristic()
+            # This is a conjecture. It's known for char(R) == p.
+            return p**(n-1) * self.base().characteristic()
     
     def precision(self):
         return self.prec
