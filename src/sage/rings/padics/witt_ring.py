@@ -3,6 +3,7 @@ from sage.rings.ring import CommutativeRing
 from sage.rings.integer_ring import ZZ
 from sage.categories.commutative_rings import CommutativeRings
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 class WittRing_base(CommutativeRing, UniqueRepresentation):
     Element = WittVector
@@ -11,12 +12,12 @@ class WittRing_base(CommutativeRing, UniqueRepresentation):
         self.prime = prime
         
         self._algorithm = 'none'
-        self.sum_polys = None
-        self.prod_polys = None
+        self.sum_polynomials = None
+        self.prod_polynomials = None
         
         if generate_op_polys:
             self._algorithm = 'standard'
-            self.generate_sum_and_product_polynomials(base)
+            self._generate_sum_and_product_polynomials(base_ring)
         
         if category is None:
             category = CommutativeRings()
@@ -63,6 +64,62 @@ class WittRing_base(CommutativeRing, UniqueRepresentation):
                 vec_k = [-x for x in vec_k]
         
         return vec_k
+    
+    def _generate_sum_and_product_polynomials(self, base):
+        p = self.prime
+        prec = self.prec
+        x_var_names = ['X{}'.format(i) for i in range(prec)]
+        y_var_names = ['Y{}'.format(i) for i in range(prec)]
+        var_names = x_var_names + y_var_names
+        
+        # Okay, what's going on here? Sage, by default, relies on 
+        # Singular for Multivariate Polynomial Rings, but Singular uses
+        # only SIXTEEN bits (unsigned) to store its exponents. So if we 
+        # want exponents larger than 2^16 - 1, we have to use the 
+        # generic implementation. However, after some experimentation,
+        # it seems like the generic implementation is faster?
+        #
+        # After trying to compute S_4 for p=5, it looks like generic is
+        # faster for  very small polys, and MUCH slower for large polys.
+        # So we'll default to singular unless we can't use it.
+        # 
+        # Remark: Since when is SIXTEEN bits sufficient for anyone???
+        #
+        if p**(prec-1) >= 2**16:
+            implementation = 'generic'
+        else:
+            implementation = 'singular'
+            
+        # We first generate the "universal" polynomials and then project
+        # to the base ring.
+        R = PolynomialRing(ZZ, var_names, implementation=implementation)
+        x_y_vars = R.gens()
+        x_vars = x_y_vars[:prec]
+        y_vars = x_y_vars[prec:]
+        
+        self.sum_polynomials = [0]*(self.prec)
+        for n in range(prec):
+            s_n = x_vars[n] + y_vars[n]
+            for i in range(n):
+                s_n += (x_vars[i]**(p**(n-i)) + y_vars[i]**(p**(n-i)) - self.sum_polynomials[i]**(p**(n-i))) // p**(n-i)
+            self.sum_polynomials[n] = s_n
+        
+        self.prod_polynomials = [x_vars[0] * y_vars[0]] + [0]*(self.prec)
+        for n in range(1, prec):
+            x_poly = sum([p**i * x_vars[i]**(p**(n-i)) for i in range(n+1)])
+            y_poly = sum([p**i * y_vars[i]**(p**(n-i)) for i in range(n+1)])
+            p_poly = sum([p**i * self.prod_polynomials[i]**(p**(n-i)) for i in range(n)])
+            p_n = (x_poly*y_poly - p_poly) // p**n
+            self.prod_polynomials[n] = p_n
+        
+        # We have to use generic here, because Singular doesn't support
+        # Polynomial Rings over Polynomial Rings. For example, 
+        # ``PolynomialRing(GF(5)['x'], ['X', 'Y'], implementation='singular')``
+        # will fail.
+        S = PolynomialRing(base, x_y_vars, implementation='generic')
+        for n in range(prec):
+            self.sum_polynomials[n] = S(self.sum_polynomials[n])
+            self.prod_polynomials[n] = S(self.prod_polynomials[n])
     
     def characteristic(self):
         if self.base(p).is_unit():
