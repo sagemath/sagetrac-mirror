@@ -1,7 +1,7 @@
 from sage.structure.element import CommutativeRingElement
 
 class WittVector(CommutativeRingElement):
-   def __init__(self, parent, vec=None):
+    def __init__(self, parent, vec=None):
         self.prec = parent.precision()
         B = parent.base()
         if vec is not None:
@@ -22,4 +22,4 @@ class WittVector(CommutativeRingElement):
             return NotImplemented
     
     def _repr_(self):
-        return '(' + ', '.join(map(str, self.vec)) + ', ...)'
+        return '(' + ', '.join(map(str, self.vec)) + ')'
