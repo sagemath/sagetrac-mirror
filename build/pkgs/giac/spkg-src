@@ -14,7 +14,7 @@ fi
 set -e
 
 VERSION="1.9.0"
-VERSIONREV="15"
+VERSIONREV="21"
 PATCHSUFFIX="p0"
 
 # The upstream tarball name is: giac"$SOURCEORIG".tar.gz
@@ -57,7 +57,7 @@ sed -E -i.bak '/XCASHTML/s/[^ ]*[.](wasm|js)//g' src/doc/Makefile.am
 # it is freely redistributable only for non commercial purposes.
 cd src/doc/fr
 rm -rf [^Mkx]*
-rm -rf *.pdf *.eps *.pdf *.png *.cxx *.cas *.jpg *.tex *.stamp *html* cas* *.fig fig*
+find . -name "*.pdf" -o -name "*.eps" -o -name "*.pdf" -o -name "*.png" -o -name "*.cxx" -o -name "*.cas" -o -name "*.jpg" -o -name "*.tex" -o -name "*.stamp" -o -name "*html*" -o -name "cas*" -o -name "*.fig" -o -name "fig*" | xargs rm
 # repair the build procedure with a minimal Makefile.am
 echo -e "EXTRA_DIST = xcasmenu xcasex keywords\n\nlocaldocdir = \$(docdir)/fr \n\n\
 dist_localdoc_DATA = xcasmenu xcasex keywords html_mall html_mtt html_vall">Makefile.am
