@@ -201,4 +201,74 @@ class WittVector_p_typical(WittVector_base):
             return NotImplemented
 
 class WittVector_non_p_typical(WittVector_base):
-    pass
+    def _add_(self, other):
+        P = self.parent()
+        C = self.__class__
+        
+        # As a slight optimization, we'll check for zero ahead of time.
+        # This has the benefit of allowing us to create polynomials, 
+        # even if ``P._algorithm`` is 'none'.
+        if other == P.zero():
+            return self
+        elif self == P.zero():
+            return other
+        
+        alg = P._algorithm
+        if alg == 'standard':
+            s = P.sum_polynomials
+            # note here this is tuple addition, i.e. concatenation
+            sum_vec = tuple(s[i](*(self.vec + other.vec)) for i in range(self.prec))
+            return C(P, vec=sum_vec)
+        elif alg == 'standard_otf':
+            p = P.prime # we know p is a unit in this case!
+            x = self.vec
+            y = other.vec
+            
+            sum_vec = [x[0] + y[0]]
+            for n in range(1, self.prec):
+                next_sum = x[n] + y[n] + \
+                    sum((x[i]**(p**(n-i)) + y[i]**(p**(n-i)) - sum_vec[i]**(p**(n-i))) / p**(n-i) \
+                        for i in range(0, n))
+                sum_vec.append(next_sum)
+            
+            return C(P, vec=sum_vec)
+        else:
+            return NotImplemented
+    
+    def _mul_(self, other):
+        P = self.parent()
+        C = self.__class__
+        
+        # As a slight optimization, we'll check for zero or one ahead of time.
+        # This has the benefit of allowing us to create polynomials,
+        # even if ``P._algorithm`` is 'none'.
+        if self == P.zero() or other == P.zero():
+            return P.zero()
+        elif other == P.one():
+            return self
+        elif self == P.one():
+            return other
+        
+        alg = P._algorithm
+        if alg == 'standard':
+            p = P.prod_polynomials
+            # note here this is tuple addition, i.e. concatenation
+            prod_vec = tuple(p[i](*(self.vec + other.vec)) for i in range(self.prec))
+            return C(P, vec=prod_vec)
+        elif alg == 'standard_otf':
+            p = P.prime # we know p is a unit in this case!
+            x = self.vec
+            y = other.vec
+            
+            prod_vec = [x[0] * y[0]]
+            for n in range(1, self.prec):
+                next_prod = (
+                        sum(p**i * x[i]**(p**(n-i)) for i in range(0, n+1)) * \
+                        sum(p**i * y[i]**(p**(n-i)) for i in range(0, n+1)) - \
+                        sum(p**i * prod_vec[i]**(p**(n-i)) for i in range(0, n))
+                    ) / p**n
+                prod_vec.append(next_prod)
+            
+            return C(P, vec=prod_vec)
+        else:
+            return NotImplemented
