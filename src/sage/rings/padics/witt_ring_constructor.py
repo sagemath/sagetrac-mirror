@@ -5,9 +5,12 @@ _CommutativeRings = CommutativeRings()
 from sage.sets.primes import Primes
 _Primes = Primes()
 
-from sage.rings.padics.witt_ring import *
+from sage.rings.padics.witt_ring import WittRing_p_typical
+from sage.rings.padics.witt_ring import WittRing_finite_field
+from sage.rings.padics.witt_ring import WittRing_p_invertible
+from sage.rings.padics.witt_ring import WittRing_non_p_typical
 
-def WittRing(base_ring, prec=1, p=None, *args, **kwds):
+def WittRing(base_ring, prec=1, p=None, algorithm='auto'):
     
     if not ring.is_Ring(base_ring):
         raise TypeError(f'Base ring {base_ring} must be a ring.')
@@ -25,17 +28,30 @@ def WittRing(base_ring, prec=1, p=None, *args, **kwds):
     else:
         prime = p
     
-    # Look for 'algorithm' and 'category' in kwds?
-    
-    # Throw error if given a keyword that's not used.
+    if algorithm is None:
+        algorithm = 'none'
+    elif algorithm not in ['none', 'auto', 'standard', 'finotti']:
+        raise ValueError(f"'{algorithm}' is not a valid algorithm. It must be one of 'none', 'auto', 'standard', or 'finotti'.")
     
     if prime == char: # p-typical
         if base_ring.is_field() and base_ring.is_finite():
-            return WittRing_finite_field(base_ring, prec, prime, category=_CommutativeRings)
+            # TODO: document that this ignores the choice of algorithm
+            return WittRing_finite_field(base_ring, prec, prime,
+                       category=_CommutativeRings)
         else:
-            return WittRing_p_typical(base_ring, prec, prime, category=_CommutativeRings)
+            if algorithm == 'auto':
+                algorithm = 'finotti'
+            return WittRing_p_typical(base_ring, prec, prime, 
+                       algorithm=algorithm, category=_CommutativeRings)
     else: # non-p-typical
+        if algorithm == 'finotti':
+            raise ValueError(f"Algorithm choice 'finotti' only works for p-typical Witt Rings.")
         if base_ring(prime).is_unit():
-            return WittRing_p_invertible(base_ring, prec, prime, category=_CommutativeRings)
+            # TODO: document that this ignores the choice of algorithm
+            return WittRing_p_invertible(base_ring, prec, prime,
+                       category=_CommutativeRings)
         else:
-            return WittRing_non_p_typical(base_ring, prec, prime, category=_CommutativeRings)
+            if algorithm == 'auto':
+                algorithm = 'standard'
+            return WittRing_non_p_typical(base_ring, prec, prime, 
+                       algorithm=algorithm, category=_CommutativeRings)

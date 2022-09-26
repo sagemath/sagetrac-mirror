@@ -7,16 +7,15 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 class WittRing_base(CommutativeRing, UniqueRepresentation):
     Element = WittVector
-    def __init__(self, base_ring, prec, prime, generate_op_polys=False, category=None):
+    def __init__(self, base_ring, prec, prime, algorithm='none', category=None):
         self.prec = prec
         self.prime = prime
         
-        self._algorithm = 'none'
+        self._algorithm = algorithm
         self.sum_polynomials = None
         self.prod_polynomials = None
         
-        if generate_op_polys:
-            self._algorithm = 'standard'
+        if algorithm == 'standard':
             self._generate_sum_and_product_polynomials(base_ring)
         
         if category is None:
@@ -139,32 +138,21 @@ class WittRing_base(CommutativeRing, UniqueRepresentation):
             return self.element_class(self, (x,) + tuple(0 for _ in range(self.prec-1)))
 
 class WittRing_p_typical(WittRing_base):
-    def __init__(self, base_ring, prec, prime, algorithm='none', category=None):
-        if algorithm == 'none' or algorithm == 'finotti':
-            generate_op_polys = False
-        elif algorithm == 'standard':
-            generate_op_polys = True
-        else:
-            raise ValueError(f'Algorithm {algorithm} is not a valid option.')
-        
-        self._algorithm = algorithm
-        
+    def __init__(self, base_ring, prec, prime, algorithm=None, category=None):
         WittRing_base.__init__(self, base_ring, prec, prime, 
-            generate_op_polys=generate_op_polys, category=category)
+            algorithm=algorithm, category=category)
 
 class WittRing_finite_field(WittRing_p_typical):
     def __init__(self, base_ring, prec, prime, category=None):
-        self._algorithm = 'Zq_isomorphism'
         WittRing_p_typical.__init__(self, base_ring, prec, prime, 
-            algorithm='none', category=category)
+            algorithm='Zq_isomorphism', category=category)
 
 class WittRing_non_p_typical(WittRing_base):
-    def __init__(self, base_ring, prec, prime, generate_op_polys=False, category=None):
+    def __init__(self, base_ring, prec, prime, algorithm=None, category=None):
         WittRing_base.__init__(self, base_ring, prec, prime, 
-            generate_op_polys=generate_op_polys, category=category)
+            algorithm=algorithm, category=category)
 
 class WittRing_p_invertible(WittRing_non_p_typical):
     def __init__(self, base_ring, prec, prime, category=None):
-        self._algorithm = 'standard_otf'
         WittRing_non_p_typical.__init__(self, base_ring, prec, prime,
-            generate_op_polys=False, category=category)
+            algorithm='standard_otf', category=category)
