@@ -3,7 +3,7 @@ from sage.rings.integer_ring import ZZ
 from sage.categories.commutative_rings import CommutativeRings
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.padics.factory import Zp
+from sage.rings.padics.factory import Zp, Zq
 from sage.rings.finite_rings.finite_field_constructor import GF
 
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
@@ -306,6 +306,34 @@ class WittRing_finite_field(WittRing_p_typical):
     def __init__(self, base_ring, prec, prime, category=None):
         WittRing_p_typical.__init__(self, base_ring, prec, prime, 
             algorithm='Zq_isomorphism', category=category)
+    
+    def _series_to_vector(self, series):
+        F = self.base() # known to be finite
+        R = Zq(F.cardinality(), prec=self.prec, type='fixed-mod', modulus=F.polynomial(), names=['z'])
+        K = R.residue_field()
+        p = self.prime
+        
+        series = R(series)
+        witt_vector = []
+        for i in range(self.prec):
+            temp = K(series)
+            elem = temp.polynomial()(F.gen()) # hack to convert to F (K != F for some reason)
+            witt_vector.append(elem**(p**i))
+            series = (series - R.teichmuller(temp)) // p
+        return witt_vector
+    
+    def _vector_to_series(self, vec):
+        F = self.base()
+        R = Zq(F.cardinality(), prec=self.prec, type='fixed-mod', modulus=F.polynomial(), names=['z'])
+        K = R.residue_field()
+        p = self.prime
+        
+        series = R(0)
+        for i in range(0, self.prec):
+            temp = vec[i].nth_root(p**i)
+            elem = temp.polynomial()(K.gen()) # hack to convert to K (F != K for some reason)
+            series += p**i * R.teichmuller(elem)
+        return series
 
 class WittRing_non_p_typical(WittRing_base):
     

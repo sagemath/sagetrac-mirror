@@ -1,5 +1,6 @@
 from sage.structure.element import CommutativeRingElement
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.padics.factory import Zq
 
 class WittVector_base(CommutativeRingElement):
     def __init__(self, parent, vec=None):
@@ -155,7 +156,10 @@ class WittVector_p_typical(WittVector_base):
             sum_vec = tuple(sum(G[i]) for i in range(prec))
             return C(P, vec=sum_vec)
         elif alg == 'Zq_isomorphism':
-            return NotImplemented
+            x = P._vector_to_series(self.vec)
+            y = P._vector_to_series(other.vec)
+            sum_vec = P._series_to_vector(x+y)
+            return C(P, vec=sum_vec)
         else:
             return NotImplemented
     
@@ -196,7 +200,10 @@ class WittVector_p_typical(WittVector_base):
             prod_vec = tuple(sum(G[i]) for i in range(prec))
             return C(P, vec=prod_vec)
         elif alg == 'Zq_isomorphism':
-            return NotImplemented
+            x = P._vector_to_series(self.vec)
+            y = P._vector_to_series(other.vec)
+            sum_vec = P._series_to_vector(x*y)
+            return C(P, vec=sum_vec)
         else:
             return NotImplemented
 
