@@ -1,4 +1,3 @@
-from .witt_vector import WittVector
 from sage.rings.ring import CommutativeRing
 from sage.rings.integer_ring import ZZ
 from sage.categories.commutative_rings import CommutativeRings
@@ -8,6 +7,10 @@ from sage.rings.padics.factory import Zp
 
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.polynomial.polynomial_element import is_Polynomial
+
+from .witt_vector import WittVector_base
+from .witt_vector import WittVector_p_typical
+from .witt_vector import WittVector_non_p_typical
 
 def _fast_char_p_power(x, n, p=None):
     r"""
@@ -65,7 +68,9 @@ def _fast_char_p_power(x, n, p=None):
 _fcppow = _fast_char_p_power
 
 class WittRing_base(CommutativeRing, UniqueRepresentation):
-    Element = WittVector
+    
+    Element = WittVector_base
+    
     def __init__(self, base_ring, prec, prime, algorithm='none', category=None):
         self.prec = prec
         self.prime = prime
@@ -197,6 +202,9 @@ class WittRing_base(CommutativeRing, UniqueRepresentation):
             return self.element_class(self, (x,) + tuple(0 for _ in range(self.prec-1)))
 
 class WittRing_p_typical(WittRing_base):
+    
+    Element = WittVector_p_typical
+    
     def __init__(self, base_ring, prec, prime, algorithm=None, category=None):
         WittRing_base.__init__(self, base_ring, prec, prime, 
             algorithm=algorithm, category=category)
@@ -284,6 +292,9 @@ class WittRing_finite_field(WittRing_p_typical):
             algorithm='Zq_isomorphism', category=category)
 
 class WittRing_non_p_typical(WittRing_base):
+    
+    Element = WittVector_non_p_typical
+    
     def __init__(self, base_ring, prec, prime, algorithm=None, category=None):
         WittRing_base.__init__(self, base_ring, prec, prime, 
             algorithm=algorithm, category=category)
