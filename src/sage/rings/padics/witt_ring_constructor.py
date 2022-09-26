@@ -45,7 +45,7 @@ def WittRing(base_ring, prec=1, p=None, algorithm='auto'):
                        algorithm=algorithm, category=_CommutativeRings)
     else: # non-p-typical
         if algorithm == 'finotti':
-            raise ValueError(f"Algorithm choice 'finotti' only works for p-typical Witt Rings.")
+            raise ValueError(f"The 'finotti' algorithm only works for p-typical Witt Rings.")
         if base_ring(prime).is_unit():
             # TODO: document that this ignores the choice of algorithm
             return WittRing_p_invertible(base_ring, prec, prime,
