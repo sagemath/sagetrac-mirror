@@ -43,6 +43,21 @@ class WittVector(CommutativeRingElement):
             # note here this is tuple addition, i.e. concatenation
             sum_vec = tuple(s[i](*(self.vec + other.vec)) for i in range(self.prec))
             return C(P, vec=sum_vec)
+        elif alg == 'finotti':
+            x = self.vec
+            y = other.vec
+            prec = P.precision()
+            p = P.prime
+            bin_table = P.binomial_table
+            
+            G = []
+            for n in range(0, prec):
+                G_n = [x[n], y[n]]
+                for i in range(0, n):
+                    G_n.append(P.eta_bar(G[i], n-i))
+                G.append(G_n)
+            sum_vec = tuple(sum(G[i]) for i in range(prec))
+            return C(P, vec=sum_vec)
         else:
             return NotImplemented
     
@@ -65,6 +80,22 @@ class WittVector(CommutativeRingElement):
             p = P.prod_polynomials
             # note here this is tuple addition, i.e. concatenation
             prod_vec = tuple(p[i](*(self.vec + other.vec)) for i in range(self.prec))
+            return C(P, vec=prod_vec)
+        elif alg == 'finotti':
+            x = self.vec
+            y = other.vec
+            prec = P.precision()
+            p = P.prime
+            bin_table = P.binomial_table
+            
+            G = [[x[0] * y[0]]]
+            for n in range(1, prec):
+                G_n = [_fcppow(x[0], p**n) * y[n], _fcppow(y[0], p**n) * x[n]]
+                G_n.extend(_fcppow(x[i], p**(n-i)) * _fcppow(y[n-i], p**i) for i in range(1, n))
+                for i in range(0, n):
+                    G_n.append(P.eta_bar(G[i], n-i))
+                G.append(G_n)
+            prod_vec = tuple(sum(G[i]) for i in range(prec))
             return C(P, vec=prod_vec)
         else:
             return NotImplemented

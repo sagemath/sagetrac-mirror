@@ -4,6 +4,65 @@ from sage.rings.integer_ring import ZZ
 from sage.categories.commutative_rings import CommutativeRings
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.padics.factory import Zp
+
+from sage.rings.polynomial.multi_polynomial import is_MPolynomial
+from sage.rings.polynomial.polynomial_element import is_Polynomial
+
+def _fast_char_p_power(x, n, p=None):
+    r"""
+    Raise x^n power in characteristic p
+    
+    If x is not an element of a ring of characteristic p, throw an error.
+    If x is an element of GF(p^k), this is already fast.
+    However, is x is a polynomial, this seems to be slow?
+    """
+    if n not in ZZ:
+        raise ValueError(f'Exponent {n} is not an integer')
+    if n == 0 or x == 1:
+        return x.parent().one()
+    if x.parent().characteristic() not in Primes():
+        raise ValueError(f'{x} is not in a ring of prime characteristic')
+    
+    x_is_Polynomial  = is_Polynomial(x)
+    x_is_MPolynomial = is_MPolynomial(x)
+    
+    if not (x_is_Polynomial or x_is_MPolynomial):
+        return x^n
+    if (x_is_Polynomial and x.is_gen()) or (x_is_MPolynomial and x.is_generator()):
+        return x^n
+    if n < 0:
+        x = x^-1 # This may throw an error.
+        n = -n
+    
+    P = x.parent()
+    if p is None:
+        p = P.characteristic()
+    base_p_digits = ZZ(n).digits(base=p)
+    
+    x_to_the_n = 1
+    
+    for p_exp, digit in enumerate(base_p_digits):
+        if digit == 0:
+            continue
+        inner_term = x^digit
+        term_dict = {}
+        for e_int_or_tuple, c in inner_term.dict().items():
+            power = p^p_exp
+            new_c = _fast_char_p_power(c, power)
+            #new_e_tuple = e_tuple.emul(power)
+            new_e_tuple = None
+            if x_is_Polynomial: # Then the dict keys are ints
+                new_e_tuple = e_int_or_tuple * power
+            elif x_is_MPolynomial: # Then the dict keys are ETuples
+                new_e_tuple = e_int_or_tuple.emul(power)
+            term_dict[new_e_tuple] = new_c
+        term = P(term_dict)
+        x_to_the_n *= term
+    
+    return x_to_the_n
+
+_fcppow = _fast_char_p_power
 
 class WittRing_base(CommutativeRing, UniqueRepresentation):
     Element = WittVector
@@ -141,6 +200,83 @@ class WittRing_p_typical(WittRing_base):
     def __init__(self, base_ring, prec, prime, algorithm=None, category=None):
         WittRing_base.__init__(self, base_ring, prec, prime, 
             algorithm=algorithm, category=category)
+        
+        if algorithm == 'finotti':
+            self.generate_binomial_table()
+    
+    def generate_binomial_table(self):
+        import numpy as np
+        p = self.prime
+        R = Zp(p, prec=self.prec+1, type='fixed-mod')
+        v_p = ZZ.valuation(p)
+        table = [[0]]
+        for k in range(1, self.prec+1):
+            row = np.empty(p**k, dtype=int)
+            row[0] = 0
+            prev_bin = 1
+            for i in range(1, p**k // 2 + 1):
+                val = v_p(i)
+                # Instead of calling binomial each time, we compute the coefficients
+                # recursively. This is MUCH faster.
+                next_bin = prev_bin * (p**k - (i-1)) // i 
+                prev_bin = next_bin
+                series = R(-next_bin // p**(k-val))
+                for _ in range(val):
+                    temp = series % p
+                    series = (series - R.teichmuller(temp)) // p
+                row[i] = ZZ(series % p)
+                row[p**k - i] = row[i] # binomial coefficients are symmetric
+            table.append(row)
+        self.binomial_table = table
+    
+    def eta_bar(self, vec, eta_index):
+        vec = tuple(x for x in vec if x != 0) # strip zeroes
+        
+        # special cases
+        if len(vec) <= 1:
+            return 0
+        if eta_index == 0:
+            return sum(vec)
+        
+        # renaming to match notation in paper
+        k = eta_index
+        p = self.prime
+        # if vec = (x,y), we know what to do: Theorem 8.6
+        if len(vec) == 2:
+            # Here we have to check if we've pre-computed already
+            x, y = vec
+            scriptN = [[None] for _ in range(k+1)] # each list starts with None, so that indexing matches paper
+            # calculate first N_t scriptN's
+            for t in range(1, k+1):
+                for i in range(1, p**t):
+                    scriptN[t].append(self.binomial_table[t][i] * _fcppow(x, i) * _fcppow(y, p**t - i))
+            indexN = [p**i - 1 for i in range(k+1)]
+            for t in range(2, k+1):
+                for l in range(1, t):
+                    # append scriptN_{t, N_t+l}
+                    next_scriptN = self.eta_bar(scriptN[t-l][1:indexN[t-l]+t-l], l)
+                    scriptN[t].append(next_scriptN)
+            return sum(scriptN[k][1:])
+        
+        # if vec is longer, we split and recurse: Proposition 5.4
+        # This is where we need to using multiprocessing.
+        else:
+            m = len(vec) // 2
+            v_1 = vec[:m]
+            v_2 = vec[m:]
+            s_1 = sum(v_1)
+            s_2 = sum(v_2)
+            total = 0
+            scriptM = [[] for _ in range(k+1)]
+            for t in range(1, k+1):
+                scriptM[t].append(self.eta_bar(v_1,        t))
+                scriptM[t].append(self.eta_bar(v_2,        t))
+                scriptM[t].append(self.eta_bar((s_1, s_2), t))
+            for t in range(2, k+1):
+                for s in range(1, t):
+                    result = self.eta_bar(scriptM[t-s], s)
+                    scriptM[t].append(result)
+            return sum(scriptM[k])
 
 class WittRing_finite_field(WittRing_p_typical):
     def __init__(self, base_ring, prec, prime, category=None):
