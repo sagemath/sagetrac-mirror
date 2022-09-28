@@ -1378,6 +1378,18 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
             sage: A = matrix(CyclotomicField(1),2,[1,2,3,4]); A.charpoly()
             x^2 - 5*x - 2
+
+        Check that :trac:`34597` is fixed::
+
+            K.<z> = CyclotomicField(16)
+            L = [[-575*z^7 - 439*z^6 - 237*z^5 + 237*z^3 + 439*z^2 + 575*z + 623, 0],
+                [0,     -114*z^7 - 88*z^6 - 48*z^5 + 48*z^3 + 88*z^2 + 114*z + 123]]
+            U = [[-1926*z^7 - 1474*z^6 - 798*z^5 + 798*z^3 + 1474*z^2 + 1926*z + 2085, 0],
+                [0,   -1014*z^7 - 777*z^6 - 421*z^5 + 421*z^3 + 777*z^2 + 1014*z + 1097]]
+            L, U = matrix(K,L), matrix(K,U)
+            LU = matrix([[L[i].inner_product(U.transpose()[j])
+                            for j in range(2)] for i in range(2)])
+            assert(LU == L*U)
         """
         cdef Matrix_cyclo_dense A
         A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(),
@@ -1386,7 +1398,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         proof = get_proof_flag(proof, "linear_algebra")
 
         n = self._base_ring._n()
-        p = previous_prime(MAX_MODULUS)
+        p = previous_prime(MAX_MODULUS//2)
         prod = 1
         v = []
         #A, denom = self._matrix._clear_denom()
