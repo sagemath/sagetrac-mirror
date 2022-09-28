@@ -56,6 +56,8 @@ from sage.structure.sequence import Sequence
 from sage.structure.proof.proof import get_flag
 from sage.structure.richcmp import richcmp
 
+from sage.libs.pari.all import pari_gen, PariError, pari
+
 QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
 
@@ -115,7 +117,6 @@ class NumberFieldIdeal(Ideal_generic):
 
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
-        from sage.libs.pari.all import pari_gen
         if len(gens) == 1 and isinstance(gens[0], pari_gen):
             # Init from PARI
             gens = gens[0]
@@ -1007,26 +1008,39 @@ class NumberFieldIdeal(Ideal_generic):
            ....:       + 6477058*c - 2801449990/4002519)
            sage: t.is_prime()
            False
-
         """
         try:
             return self._pari_prime is not None
         except AttributeError:
-            K = self.number_field().pari_nf()
-            I = self.pari_hnf()
-            # This would be better, but it is broken in pari 2.13.3.
-            #   self._pari_prime = K.idealismaximal(I) or None
-            # Instead we factor I, but only if the norm is a prime power
-            n = K.idealnorm(I)
-            if n.denominator() > 1 or not n.isprimepower():
+            pass
+
+        K = self.number_field().pari_nf()
+        I = self.pari_hnf()
+
+        # The function idealismaximal() is broken prior to PARI 2.13.4.
+        if pari.version() >= (2, 13, 4):
+            self._pari_prime = K.idealismaximal(I) or None
+            # PARI uses probabilistic primality testing inside idealismaximal().
+            if self._pari_prime \
+                    and get_flag(None, 'arithmetic') \
+                    and not self._pari_prime[0].isprime():
                 self._pari_prime = None
+        else:
+            # For other PARI versions, we factor I, but only if the norm is a prime power.
+            #TODO This can be removed once support for PARI < 2.13.4 has been phased out.
+            self._pari_prime = None
+            n = self.norm()
+            try:
+                n = ZZ(n)
+            except TypeError:
+                return False
+            if not n.is_prime_power():
                 return False
             F = self.factor()  # factorization with caching
-            if len(F) != 1 or F[0][1] != 1:
-                self._pari_prime = None
-            else:
+            if len(F) == 1 and F[0][1] == 1:
                 self._pari_prime = F[0][0]._pari_prime
-            return self._pari_prime is not None
+
+        return self._pari_prime is not None
 
     def pari_prime(self):
         r"""
@@ -2563,7 +2577,6 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal, I
             sage: bid.getattr('clgp')
             [2, [2]]
         """
-        from sage.libs.pari.all import PariError
         try:
             bid = self._bid
             if flag == 2:
