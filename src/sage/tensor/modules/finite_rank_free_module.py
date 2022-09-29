@@ -3588,19 +3588,23 @@ class FiniteRankDualFreeModule(FiniteRankFreeModule_abstract):
         r"""
         Return the functorial construction of ``self``.
 
-        This implementation just returns ``None``, as no functorial construction is implemented.
-
         TESTS::
 
-            sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
             sage: A = M.dual()
-            sage: A.construction() is None
-            True
+            sage: A.construction()
+            (The dual functorial construction,
+            [Rank-3 free module M over the Integer Ring])
+
+            sage: from sage.categories.pushout import pushout
+            sage: pushout(A, QQ)
+            Traceback (most recent call last):
+            ...
+            sage.structure.coerce_exceptions.CoercionException: No common base ("join") found for BlackBoxConstructionFunctor(Rank-3 free module M over the Integer Ring) and FractionField(Integer Ring).
         """
-        # No construction until we extend VectorFunctor with a parameter 'dual'
-        return None
+        from sage.categories.dual import DualFunctor
+        return DualFunctor(), [self.base_module()]
 
     #### Parent methods
 
