@@ -3129,6 +3129,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
             raise TypeError("must be an integral domain")
         return P(self / other)
 
+
 class LazyLaurentSeries(LazyCauchyProductSeries):
     r"""
     A Laurent series where the coefficients are computed lazily.
@@ -4213,7 +4214,7 @@ class LazyPowerSeries(LazyCauchyProductSeries):
         Given a Taylor series `f` of arity `n` and a tuple of Taylor
         series `g = (g_1,\dots, g_n)` over the same base ring, the
         composition `f \circ g` is defined if and only if for each
-        `1\leq k\leq n`:
+        `1\leq i\leq n`:
 
         - `g_i` is zero, or
         - setting all variables except the `i`th in `f` to zero
@@ -5151,7 +5152,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         Given a lazy symmetric function `f` of arity `n` and a tuple
         of lazy symmetric functions `g = (g_1,\dots, g_n)` over the
         same base ring, the composition (or plethysm) `(f \circ g)`
-        is defined if and only if for each `1\leq k\leq n`:
+        is defined if and only if for each `1\leq i\leq n`:
 
         - `g_i = 0`, or
         - setting all alphabets except the `i`th in `f` to zero
