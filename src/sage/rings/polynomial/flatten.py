@@ -479,6 +479,17 @@ class SpecializationMorphism(Morphism):
             Scheme endomorphism of Affine Space of dimension 1 over Real Field with 53 bits of precision
               Defn: Defined on coordinates by sending (z) to
                     (z^2 + 1.00000000000000)
+
+        See :trac:`31105`::
+
+            sage: K.<t> = QQbar[]
+            sage: R.<x> = K[]
+            sage: phi = SpecializationMorphism(R, {t: 1})
+            sage: phi.domain()
+            Univariate Polynomial Ring in x over Univariate Polynomial Ring in t over Algebraic Field
+            sage: phi.codomain()
+            Univariate Polynomial Ring in x over Algebraic Field
+
         """
         if not is_PolynomialRing(domain) and not is_MPolynomialRing(domain):
             raise TypeError("domain should be a polynomial ring")
@@ -515,6 +526,7 @@ class SpecializationMorphism(Morphism):
         # Change domain of D to "flat" and ensure that the values lie
         # in the base ring.
         D = {phi(k): base(D[k]) for k in D}
+        gens_D = tuple(D.keys())
 
         # Construct unflattened codomain R
         new_vars = []
@@ -543,7 +555,7 @@ class SpecializationMorphism(Morphism):
                 break
             # We're still in the polynomials, so keep track of the tower
             old = R.gens()
-            new = [t for t in old if t not in D]
+            new = [t for t in old if t not in gens_D]
             force_multivariate = ((len(old) == 1) and is_MPolynomialRing(R))
             new_vars.append((new, force_multivariate, old))
             R = R.base_ring()
