@@ -370,10 +370,16 @@ class Combinations_set(Combinations_mset):
             5
         """
         x = [self.mset.index(i) for i in x]
-        r = 0
+        r = ZZ(0)
+        b = ZZ(1)
         n = len(self.mset)
-        for i in range(len(x)):
-            r += binomial(n, i)
+        # While loop because `for i in range(len(x))` yields Python ints and we
+        # want Sage Integers
+        i = ZZ(0)
+        while i < len(x):
+            r += b
+            b = (b * (n - i)).divide_knowing_divisible_by(i + 1)
+            i += 1
         r += rank(x, n)
         return r
 
