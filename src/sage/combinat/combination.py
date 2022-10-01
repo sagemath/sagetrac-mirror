@@ -590,8 +590,13 @@ def rank(comb, n, check=True):
     Return the rank of ``comb`` in the subsets of ``range(n)`` of size ``k``
     where ``k`` is the length of ``comb``.
 
-    The algorithm used is based on combinadics and James McCaffrey's
-    MSDN article. See: :wikipedia:`Combinadic`.
+    The algorithm used is based on combinadics and is adapted from James
+    *McCaffrey's MSDN article. It differs from McCaffrey's algorithm in the
+    computation of binomial coefficients. Instead of calling `binomial` every
+    time a binomial coefficientis needed, we use [GP2021]_'s trick of reusing
+    the previous coefficient.
+
+    See: :wikipedia:`Combinadic`.
 
     EXAMPLES::
 
@@ -642,10 +647,29 @@ def rank(comb, n, check=True):
 
     # Calculate the integer that is the dual of
     # the lexicographic index of the combination
-    r = k
+    n = ZZ(n)
+    r = ZZ(k)
     t = 0
-    for i in range(k):
-        t += binomial(n - 1 - comb[i], r)
+    c = ZZ(0)
+    b = binomial(n - 1 - c, r)
+    for i in range(k):  # Invariant: b == binomial(n - 1 - c, r)
+        # Using McCaffrey's algorithm, you would simply perform:
+        # t += binomial(n - 1 - comb[i], r)
+        # Here, we avoid calling `binomial` using the following loop:
+        while c < comb[i]:  # Invariant b == binomial(n - 1 - c, r)
+            b = (b * (n - 1 - c - r)).divide_knowing_divisible_by(n - 1 - c)
+            c += 1
+        # At this point we have: c == comb[i] and b == binomial(n - 1 - c, r)
+        # So we can simply:
+        t += b
+
+        # We decrement r so we need update the value of b.
+        # Note that it might be the case that r has become bigger
+        # than n - 1 - c, in that case binomial(n - 1 - c, r - 1) = 1.
+        if r > n - 1 - c:
+            b = ZZ(1)
+        else:
+            b = (b * r).divide_knowing_divisible_by(n - 1 - c - r + 1)
         r -= 1
 
     return binomial(n, k) - t - 1
