@@ -351,11 +351,23 @@ class Combinations_set(Combinations_mset):
 
     def rank(self, x):
         """
+        Compute the rank of a combination x among all combinations of the
+        current set.
+
         EXAMPLES::
 
             sage: c = Combinations([1,2,3])
             sage: list(range(c.cardinality())) == list(map(c.rank, c))
             True
+
+            sage: c.rank([])
+            0
+
+            sage: c.rank([3])
+            3
+
+            sage: c.rank([1, 3])
+            5
         """
         x = [self.mset.index(i) for i in x]
         r = 0
@@ -564,6 +576,9 @@ class Combinations_setk(Combinations_msetk):
 
     def rank(self, x):
         """
+        Compute the rank of a combination x among all combinations of the
+        current set.
+
         EXAMPLES::
 
             sage: c = Combinations([1,2,3], 2)
