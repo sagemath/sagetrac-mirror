@@ -7,7 +7,11 @@ AUTHORS:
 
 - Vincent Delecroix (2011): cleaning, bug corrections, doctests
 
-- Antoine Genitrini (2020) : new implementation of the lexicographic unranking of combinations
+- Antoine Genitrini (2020): new implementation of the lexicographic unranking
+  of combinations
+
+- Martin Pépin (2022): small enhancements of the from_rank function and faster
+  Combinations(set).unrank implementation.
 
 """
 # ****************************************************************************
@@ -291,19 +295,57 @@ class Combinations_set(Combinations_mset):
 
     def unrank(self, r):
         """
+        Compute the r-th combination of a set in lexicographic order.
+
         EXAMPLES::
 
             sage: c = Combinations([1,2,3])
             sage: c.list() == list(map(c.unrank, range(c.cardinality())))
             True
+
+        A few special cases:
+
+        EXAMPLES::
+
+            sage: c = Combinations([1, 2, 3])
+
+            # The first combination is the empty set
+            sage: c.unrank(0)
+            []
+
+            # The last combination is the whole set:
+            sage: c.unrank(c.cardinality() - 1)
+            [1, 2, 3]
+
+            # A negative rank or a rank larger or equal to the total number of
+            # combinations is invalid.
+            sage: c.unrank(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
+
+            sage: c.unrank(c.cardinality())
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
         """
-        k = 0
-        n = len(self.mset)
-        b = binomial(n, k)
+        if r < 0 or r >= self.cardinality():
+            raise ValueError(
+                "the rank must be non-negative and smaller than the total"
+                "number of elements"
+            )
+
+        k = ZZ(0)
+        n = ZZ(len(self.mset))
+        b = n.binomial(k)
+
         while r >= b:
             r -= b
             k += 1
-            b = binomial(n, k)
+            # b = binomial(n, k) = binomial(n, k - 1) * (n - k + 1) // k
+            # It is much faster to compute the new binimial coefficient from
+            # the previous one than to compute it using `binomial(n, k)`.
+            b = (b * (n - k + 1)).divide_knowing_divisible_by(k)
 
         return [self.mset[i] for i in from_rank(r, n, k)]
 
@@ -510,6 +552,8 @@ class Combinations_setk(Combinations_msetk):
 
     def unrank(self, r):
         """
+        Compute the r-th combination of set of size k in lexicographic order.
+
         EXAMPLES::
 
             sage: c = Combinations([1,2,3], 2)
