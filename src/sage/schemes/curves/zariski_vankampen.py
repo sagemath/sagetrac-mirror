@@ -784,7 +784,7 @@ def braid_in_segment(glist, x0, x1, precision = {}):
     return initialbraid * centralbraid * finalbraid
 
 
-def orient_circuit(circuit, convex = True):
+def orient_circuit(circuit, convex = False):
     r"""
     Reverse a circuit if it goes clockwise; otherwise leave it unchanged.
 
@@ -934,7 +934,7 @@ def geometric_basis(G, E, p, regions):
     for reg in regions:
         g = Graph(reg)
         region_graphs.append(g)
-    EC = [v[0] for v in orient_circuit(E.eulerian_circuit(), convex = True)]
+    EC = [v[0] for v in orient_circuit(E.eulerian_circuit())]
     i = EC.index(p)
     EC = EC[i:] + EC[:i + 1]   # A counterclockwise eulerian circuit on the boundary, based at p
     if G.size() == E.size():
@@ -1085,10 +1085,10 @@ def braid_monodromy(f, arrangement = (), computebm = True, holdstrand = False):
         sage: R.<x, y> = QQ[]
         sage: f = (x^2 - y^3) * (x + 3 * y - 5)
         sage: braid_monodromy(f)  # optional - sirocco
-        [s1*s2^-1*s0*s2^-1*(s1*s2)^2*s2*s1^-1*s2^-1*s1^-1*s2*s0^-1*s2*s1^-1,
-        (s1*s2^-1*s0*s2^-1*s1*s2)^2,
-        s2^-1*s1^-1*s2^2*s1*s2,
-        s1*s0*s2*s0^-1*s2*s1^-1]
+        [s1*s0*(s1*s2)^2*s0*s2^2*s0^-1*(s2^-1*s1^-1)^2*s0^-1*s1^-1,
+         s1*s0*(s1*s2)^2*(s0*s2^-1*s1*s2*s1*s2^-1)^2*(s2^-1*s1^-1)^2*s0^-1*s1^-1,
+         s1*s0*(s1*s2)^2*s2*s1^-1*s2^-1*s1^-1*s0^-1*s1^-1,
+         s1*s0*s2*s0^-1*s2*s1^-1]
     """
     global roots_interval_cache
     if arrangement == ():
@@ -1440,10 +1440,10 @@ def braid_monodromy_arrangement(flist, nodic = False):
         sage: R.<x, y> = QQ[]
         sage: flist = [x^2 - y^3, x + 3 * y - 5]
         sage: braid_monodromy_arrangement(flist)  # optional - sirocco
-        ([s1*s2^-1*s0*s2^-1*(s1*s2)^2*s2*s1^-1*s2^-1*s1^-1*s2*s0^-1*s2*s1^-1,
-        (s1*s2^-1*s0*s2^-1*s1*s2)^2,
-        s2^-1*s1^-1*s2^2*s1*s2,
-        s1*s0*s2*s0^-1*s2*s1^-1],
+        ([s1*s0*(s1*s2)^2*s0*s2^2*s0^-1*(s2^-1*s1^-1)^2*s0^-1*s1^-1,
+         s1*s0*(s1*s2)^2*(s0*s2^-1*s1*s2*s1*s2^-1)^2*(s2^-1*s1^-1)^2*s0^-1*s1^-1,
+         s1*s0*(s1*s2)^2*s2*s1^-1*s2^-1*s1^-1*s0^-1*s1^-1,
+         s1*s0*s2*s0^-1*s2*s1^-1],
         {1: 1, 2: 2, 3: 1, 4: 1})
     """
     f = prod(flist)
