@@ -274,17 +274,17 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
             sage: -x + x # indirect doctest
             0
         """
-        return self*(-1)
+        return self * (-1)
 
 
 @richcmp_method
 class BoundarySpace(hecke.HeckeModule_generic):
     def __init__(self,
-                 group = arithgroup.Gamma0(1),
-                 weight = 2,
-                 sign = 0,
-                 base_ring = rings.QQ,
-                 character = None):
+                 group=arithgroup.Gamma0(1),
+                 weight=2,
+                 sign=0,
+                 base_ring=rings.QQ,
+                 character=None):
         """
         Space of boundary symbols for a congruence subgroup of SL_2(Z).
 
@@ -541,7 +541,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
             sage: B(7)
             Traceback (most recent call last):
             ...
-            TypeError: Coercion of 7 (of type <type 'sage.rings.integer.Integer'>) into Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(15) of weight 2 over Rational Field not (yet) defined.
+            TypeError: Coercion of 7 (of type <class 'sage.rings.integer.Integer'>) into Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(15) of weight 2 over Rational Field not (yet) defined.
         """
         from .ambient import ModularSymbolsAmbient
         if isinstance(x, int) and x == 0:

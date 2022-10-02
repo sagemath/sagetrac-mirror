@@ -10,6 +10,7 @@ Affine Permutations
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from itertools import repeat
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.misc.constant_function import ConstantFunction
@@ -160,20 +161,18 @@ class AffinePermutation(ClonableArray):
         return self.__rmul__(q)
 
     @cached_method
-    def inverse(self):
+    def __invert__(self):
         r"""
         Return the inverse affine permutation.
 
         EXAMPLES::
 
             sage: p = AffinePermutationGroup(['A',7,1])([3, -1, 0, 6, 5, 4, 10, 9])
-            sage: p.inverse()
+            sage: p.inverse()  # indirect doctest
             Type A affine permutation with window [0, -1, 1, 6, 5, 4, 10, 11]
         """
-        inv = [self.position(i) for i in range(1,len(self)+1)]
+        inv = [self.position(i) for i in range(1, len(self) + 1)]
         return type(self)(self.parent(), inv, check=False)
-
-    __invert__=inverse
 
     def apply_simple_reflection(self, i, side='right'):
         r"""
@@ -854,8 +853,8 @@ class AffinePermutationTypeA(AffinePermutation):
                 a=self(i)
                 for j in range(i-self.k, i):
                     b=self(j)
-                    #A small rotation is necessary for the reduced word from
-                    #the lehmer code to match the element.
+                    # A small rotation is necessary for the reduced word from
+                    # the Lehmer code to match the element.
                     if a < b:
                         code[i-1]+=((b-a)//(self.k+1)+1)
         elif typ[0] == 'i' and side[0] == 'l':
@@ -1038,7 +1037,7 @@ class AffinePermutationTypeA(AffinePermutation):
             alpha = Composition(alpha)
         # TODO: We should probably check that w is of type alpha! probably a different function.
         # Now we actually build the recording tableau.
-        tab = [[] for i in range(self.k+1)]
+        tab = [[] for _ in repeat(None, self.k + 1)]
         label = 1
         al_index = 0
         j = 0
@@ -1207,7 +1206,7 @@ class AffinePermutationTypeC(AffinePermutation):
                     l.append(self[m])
         elif i == 0:
             for m in range(self.k):
-                res = self[m]%self.N
+                res = self[m] % self.N
                 if res == 1:
                     l.append(self[m] - 2)
                 elif res == self.N - 1:
@@ -1400,7 +1399,7 @@ class AffinePermutationTypeB(AffinePermutationTypeC):
                     l.append(self[m])
         elif i == self.k:
             for m in range(self.k):
-                res = self[m]%self.N
+                res = self[m] % self.N
                 if res == i:
                     l.append(self[m] + 1)
                 elif res == j:
@@ -1707,7 +1706,7 @@ class AffinePermutationTypeG(AffinePermutation):
         EXAMPLES::
 
             sage: G = AffinePermutationGroup(['G',2,1])
-            sage: p=G([2, 10, -5, 12, -3, 5])
+            sage: p = G([2, 10, -5, 12, -3, 5])
             sage: p.apply_simple_reflection_right(0)
             Type G affine permutation with window [-9, -1, -5, 12, 8, 16]
             sage: p.apply_simple_reflection_right(1)
@@ -1715,7 +1714,7 @@ class AffinePermutationTypeG(AffinePermutation):
             sage: p.apply_simple_reflection_right(2)
             Type G affine permutation with window [2, -5, 10, -3, 12, 5]
         """
-        if not i in self.parent().index_set():
+        if i not in self.parent().index_set():
             raise ValueError('index not in index set')
         j = i
         l = self[:]
@@ -2047,26 +2046,6 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
         """
         return "The group of affine permutations of type "+str(self.cartan_type())
 
-    def _test_coxeter_relations(self, **options):
-        r"""
-        Tests whether the Coxeter relations hold for ``self``.
-        This should probably be implemented at the Coxeter groups level.
-
-        TESTS::
-
-            sage: A = AffinePermutationGroup(['A',7,1])
-            sage: A._test_coxeter_relations()
-        """
-        tester = self._tester(**options)
-        ct = self.cartan_type()
-        D = ct.coxeter_diagram()
-        s = self.simple_reflections()
-        for e in D.edges():
-            l = s[e[0]] * s[e[1]]
-            tester.assertEqual(l**e[2], self.one(), "Coxeter relation fails")
-            for p in range(1, e[2]):
-                tester.assertNotEqual(l**p, self.one(), "smaller relation found")
-
     def _test_enumeration(self, n=4, **options):
         r"""
         Test that ``self`` has same number of elements of length ``n`` as the
@@ -2349,6 +2328,7 @@ class AffinePermutationGroupTypeA(AffinePermutationGroupGeneric):
 
     Element = AffinePermutationTypeA
 
+
 class AffinePermutationGroupTypeC(AffinePermutationGroupGeneric):
     #------------------------
     #Type-specific methods.
@@ -2422,4 +2402,3 @@ class AffinePermutationGroupTypeG(AffinePermutationGroupGeneric):
         return self([1,2,3,4,5,6])
 
     Element = AffinePermutationTypeG
-

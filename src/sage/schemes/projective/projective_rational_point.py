@@ -56,10 +56,13 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.arith.all import gcd, srange, next_prime, previous_prime, crt
-from sage.rings.all import ZZ, RR
+from sage.arith.misc import gcd, next_prime, previous_prime, crt
+from sage.arith.srange import srange
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-from sage.misc.all import cartesian_product_iterator, prod
+from sage.misc.mrange import cartesian_product_iterator
+from sage.misc.misc_c import prod
 from sage.misc.mrange import xmrange
 from sage.schemes.generic.scheme import is_Scheme
 from sage.parallel.ncpus import ncpus

@@ -321,7 +321,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             if keep_initial_representation:
                 self._representation = A.copy()   # Deprecated Sage matrix operation
             P = gauss_jordan_reduce(A, xrange(A.ncols()))
-            self._A = A.matrix_from_rows_and_columns(range(len(P)), [c for c in xrange(matrix.ncols()) if not c in P])
+            self._A = A.matrix_from_rows_and_columns(range(len(P)), [c for c in xrange(matrix.ncols()) if c not in P])
         else:
             reduced = True
             if not isinstance(reduced_matrix, LeanMatrix):
@@ -578,11 +578,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             sage: R = GF(7)
             sage: A = Matrix(R, [[1, 0, 6, 1, 2],[6, 1, 0, 0, 1],[0, 6, 3, 6, 0]])
             sage: M = LinearMatroid(reduced_matrix = A)
-            sage: M.representation(lift_map=lift_map('sru')) # py2
-            [     1      0      0      1      0      1      1      1]
-            [     0      1      0 -z + 1      1      0      0      1]
-            [     0      0      1      0     -1      1 -z + 1      0]
-            sage: M.representation(lift_map=lift_map('sru')) # py3
+            sage: M.representation(lift_map=lift_map('sru'))
             [     1      0      0      1      0      1      1      1]
             [     0      1      0 -z + 1      1      0      0      1]
             [     0      0      1      0     -z      z      1      0]
@@ -765,7 +761,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         return {e: R[self._idx[e]] for e in self.groundset()}
 
     cpdef LeanMatrix _reduced_representation(self, B=None):
-        """
+        r"""
         Return a reduced representation of the matroid, i.e. a matrix `R` such
         that `[I\ \ R]` represents the matroid.
 
@@ -804,7 +800,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
     # (field) isomorphism
 
     cpdef bint _is_field_isomorphism(self, LinearMatroid other, morphism):  # not safe if self == other
-        """
+        r"""
         Version of :meth:`<LinearMatroid.is_field_isomorphism>` that does no
         type checking.
 
@@ -970,7 +966,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         return self._is_field_isomorphism(other, morphism)
 
     cpdef is_field_isomorphism(self, other, morphism):
-        """
+        r"""
         Test if a provided morphism induces a bijection between represented
         matroids.
 
@@ -1326,7 +1322,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         return type(self)(reduced_matrix=M, groundset=rows + cols)
 
     cpdef dual(self):
-        """
+        r"""
         Return the dual of the matroid.
 
         Let `M` be a matroid with ground set `E`. If `B` is the set of bases
@@ -1358,7 +1354,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         return type(self)(reduced_matrix=R, groundset=cols + rows)
 
     cpdef has_line_minor(self, k, hyperlines=None, certificate=False):
-        """
+        r"""
         Test if the matroid has a `U_{2, k}`-minor.
 
         The matroid `U_{2, k}` is a matroid on `k` elements in which every
@@ -2835,7 +2831,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             return True, None
         return True
 
-    def orlik_terao_algebra(self, R=None, ordering=None):
+    def orlik_terao_algebra(self, R=None, ordering=None, **kwargs):
         """
         Return the Orlik-Terao algebra of ``self``.
 
@@ -2860,9 +2856,40 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             Integer Ring
             sage: M.orlik_terao_algebra(QQ).base_ring()
             Rational Field
-        """
+
+            sage: G = SymmetricGroup(3);
+            sage: OTG = M.orlik_terao_algebra(QQ, invariant=G)
+
+            sage: G = SymmetricGroup(4)
+            sage: action = lambda g,x: g(x+1)-1
+            sage: OTG1 = M.orlik_terao_algebra(QQ, invariant=(G,action))
+            sage: OTG2 = M.orlik_terao_algebra(QQ, invariant=(action,G))
+            sage: OTG1 is OTG2
+            True
+
+         """
         if R is None:
             R = self.base_ring()
+
+        if 'invariant' in kwargs:
+            G_action = kwargs.pop('invariant')
+
+            from sage.categories.semigroups import Semigroups
+            if len(G_action) > 1 and G_action not in Semigroups:
+                G, action = G_action
+                if action in Semigroups:
+                    G, action = action, G
+            else:
+                G, action = G_action, None # the None action is g.__call__
+
+
+            from sage.algebras.orlik_terao import OrlikTeraoInvariantAlgebra
+
+            return OrlikTeraoInvariantAlgebra(R, self, G,
+                                              action_on_groundset=action,
+                                              ordering=ordering,
+                                              **kwargs)
+
         from sage.algebras.orlik_terao import OrlikTeraoAlgebra
         return OrlikTeraoAlgebra(R, self, ordering)
 
@@ -3103,7 +3130,7 @@ cdef class BinaryMatroid(LinearMatroid):
         self._one = GF2_one
 
     cpdef base_ring(self):
-        """
+        r"""
         Return the base ring of the matrix representing the matroid,
         in this case `\GF{2}`.
 
@@ -3281,7 +3308,7 @@ cdef class BinaryMatroid(LinearMatroid):
         return self._A.copy()   # Deprecated Sage matrix operation
 
     cpdef LeanMatrix _reduced_representation(self, B=None):
-        """
+        r"""
         Return a reduced representation of the matroid, i.e. a matrix `R` such
         that `[I\ \ R]` represents the matroid.
 
@@ -4170,7 +4197,7 @@ cdef class TernaryMatroid(LinearMatroid):
         self._two = GF3_minus_one
 
     cpdef base_ring(self):
-        """
+        r"""
         Return the base ring of the matrix representing the matroid, in this
         case `\GF{3}`.
 
@@ -4354,7 +4381,7 @@ cdef class TernaryMatroid(LinearMatroid):
         return self._A.copy()   # Deprecated Sage matrix operation
 
     cpdef LeanMatrix _reduced_representation(self, B=None):
-        """
+        r"""
         Return a reduced representation of the matroid, i.e. a matrix `R`
         such that `[I\ \ R]` represents the matroid.
 
@@ -4536,7 +4563,7 @@ cdef class TernaryMatroid(LinearMatroid):
         return self._t_invariant
 
     cpdef bicycle_dimension(self):
-        """
+        r"""
         Return the bicycle dimension of the ternary matroid.
 
         The bicycle dimension of a linear subspace `V` is
@@ -5069,7 +5096,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
         self._x_one = (<QuaternaryMatrix>self._A)._x_one
 
     cpdef base_ring(self):
-        """
+        r"""
         Return the base ring of the matrix representing the matroid, in this
         case `\GF{4}`.
 
@@ -5246,7 +5273,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
         return self._A.copy()   # Deprecated Sage matrix operation
 
     cpdef LeanMatrix _reduced_representation(self, B=None):
-        """
+        r"""
         Return a reduced representation of the matroid, i.e. a matrix `R` such
         that `[I\ \ R]` represents the matroid.
 
@@ -5386,7 +5413,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
         return self._q_invariant
 
     cpdef bicycle_dimension(self):
-        """
+        r"""
         Return the bicycle dimension of the quaternary matroid.
 
         The bicycle dimension of a linear subspace `V` is
@@ -5758,7 +5785,7 @@ cdef class RegularMatroid(LinearMatroid):
             if keep_initial_representation:
                 self._representation = A.copy()   # Deprecated Sage matrix operation
             P = gauss_jordan_reduce(A, xrange(A.ncols()))
-            self._A = A.matrix_from_rows_and_columns(range(len(P)), [c for c in xrange(matrix.ncols()) if not c in P])
+            self._A = A.matrix_from_rows_and_columns(range(len(P)), [c for c in xrange(matrix.ncols()) if c not in P])
         else:
             reduced = True
             if not isinstance(reduced_matrix, PlusMinusOneMatrix):
@@ -5783,7 +5810,7 @@ cdef class RegularMatroid(LinearMatroid):
         return P
 
     cpdef base_ring(self):
-        """
+        r"""
         Return the base ring of the matrix representing the matroid, in this
         case `\ZZ`.
 
@@ -6005,7 +6032,8 @@ cdef class RegularMatroid(LinearMatroid):
             Digraph on 55 vertices
         """
         # NEW VERSION, Uses Sage'S Graph Isomorphism
-        from sage.graphs.all import Graph, DiGraph
+        from sage.graphs.graph import Graph
+        from sage.graphs.digraph import DiGraph
         if self._r_hypergraph is not None:
             return (self._hypergraph_vertex_partition, self._hypergraph_tuples, self._r_hypergraph)
         cdef Matrix P = self._projection()
@@ -6202,7 +6230,7 @@ cdef class RegularMatroid(LinearMatroid):
             return {e:idx[m[str(e)]] for e in self.groundset() if str(e) in m}
 
     cpdef has_line_minor(self, k, hyperlines=None, certificate=False):
-        """
+        r"""
         Test if the matroid has a `U_{2, k}`-minor.
 
         The matroid `U_{2, k}` is a matroid on `k` elements in which every
