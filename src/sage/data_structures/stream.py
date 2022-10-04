@@ -1547,14 +1547,24 @@ class Stream_cauchy_mul_DAC():
         if phi is None:
             self._phi = [0]*(2*N)
             self._lo = None
+            self._n = ZZ.zero()
         else:
-            self._phi = [phi[k] for k in range(2*N)]
+            self._phi = [phi[k] for k in range(N)] + [0]*N
             self._lo = phi
+            self._n = ZZ(N / 2)
         self._N = N
         self._mid = self._hi = None
         self._threshold = threshold
 
     def __getitem__(self, n):
+        while n >= self._n:
+            v = self._compute_next()
+            self._phi[self._n] = v
+            self._n += 1
+        return self._phi[n]
+
+    def _compute_next(self):
+        n = self._n
         N = self._N
         threshold = self._threshold
         if N <= threshold:
@@ -1598,22 +1608,24 @@ class Stream_cauchy_mul_DAC():
 
 class Stream_cauchy_mul_fast(Stream_binary):
     """
-        sage: from sage.data_structures.stream import (Stream_cauchy_mul_fast, Stream_function)
+        sage: from sage.data_structures.stream import (Stream_cauchy_mul, Stream_cauchy_mul_fast, Stream_function)
         sage: f = Stream_function(lambda n: n, True, 0)
         sage: g = Stream_function(lambda n: 1, True, 0)
-        sage: h = Stream_cauchy_mul_fast(f, g)
-        sage: [h[i] for i in range(17)]
-        [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
+        sage: h1 = Stream_cauchy_mul_fast(f, g, threshold=2^5)
+        sage: l1 = [h1[i] for i in range(2000)]
+        sage: h2 = Stream_cauchy_mul(f, g)
+        sage: l2 = [h2[i] for i in range(2000)]
+        sage: l1 == l2
+        True
+
     """
-    def __init__(self, left, right):
+    def __init__(self, left, right, threshold=2 ** 1):
         """
         initialize ``self``.
 
         """
-        if left._is_sparse != right._is_sparse:
-            raise NotImplementedError
-        super().__init__(left, right, left._is_sparse)
-        self._threshold = 2 ** 1
+        super().__init__(left, right, False)
+        self._threshold = threshold
         self._h = Stream_cauchy_mul_DAC(left, right, None,
                                         self._threshold, self._threshold)
 
