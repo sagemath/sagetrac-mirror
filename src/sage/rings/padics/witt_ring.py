@@ -87,6 +87,11 @@ class WittRing_base(CommutativeRing, UniqueRepresentation):
             category = CommutativeRings()
         CommutativeRing.__init__(self, base_ring, category=category)
     
+    def __iter__(self):
+        from itertools import product, repeat
+        for t in product(self.base(), repeat=self.prec):
+            yield self(t)
+    
     def _repr_(self):
         return f"Ring of Witt Vectors of length {self.prec} over {self.base()}"
     
@@ -201,6 +206,12 @@ class WittRing_base(CommutativeRing, UniqueRepresentation):
             raise Exception(f'{x} not in {self.base()}')
         else:
             return self.element_class(self, (x,) + tuple(0 for _ in range(self.prec-1)))
+    
+    def is_finite(self):
+        return self.base().is_finite()
+    
+    def cardinality(self):
+        return self.base().cardinality()**(self.prec)
 
 class WittRing_p_typical(WittRing_base):
     
