@@ -188,12 +188,13 @@ class WittRing_base(CommutativeRing, UniqueRepresentation):
             self.prod_polynomials[n] = S(self.prod_polynomials[n])
     
     def characteristic(self):
-        if self.base(p).is_unit():
+        p = self.prime
+        if self.base()(p).is_unit():
             # If p is invertible, W_n(R) is isomorphic to R^n.
             return self.base().characteristic()
         else:
             # This is a conjecture. It's known for char(R) == p.
-            return p**(n-1) * self.base().characteristic()
+            return p**(self.prec-1) * self.base().characteristic()
     
     def precision(self):
         return self.prec
