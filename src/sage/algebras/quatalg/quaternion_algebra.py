@@ -1415,7 +1415,7 @@ class QuaternionOrder(Parent):
                         raise ValueError("lattice must contain 1")
 
                     # check if multiplicatively closed
-                    Y = matrix(QQ, 16, 4, [(x*y).coefficient_tuple()
+                    Y = matrix(A.base_ring(), 16, 4, [(x*y).coefficient_tuple()
                                            for x in basis for y in basis])
                     X = M.solve_left(Y)
                     if any(a not in O for x in X for a in x):
