@@ -80,18 +80,6 @@ download:
 dist: build/make/Makefile
 	./sage --sdist
 
-pypi-sdists: sage_setup
-	./sage --sh build/pkgs/sage_conf/spkg-src
-	./sage --sh build/pkgs/sage_sws2rst/spkg-src
-	./sage --sh build/pkgs/sage_docbuild/spkg-src
-	./sage --sh build/pkgs/sage_setup/spkg-src
-	./sage --sh build/pkgs/sagelib/spkg-src
-	./sage --sh build/pkgs/sagemath_objects/spkg-src
-	./sage --sh build/pkgs/sagemath_categories/spkg-src
-	./sage --sh build/pkgs/sagemath_environment/spkg-src
-	./sage --sh build/pkgs/sagemath_repl/spkg-src
-	@echo "Built sdists are in upstream/"
-
 # Ensuring wheels are present, even for packages that may have been installed
 # as editable. Until we have better uninstallation of script packages, we
 # just remove the timestamps, which will lead to rebuilds of the packages.
@@ -106,7 +94,7 @@ pypi-wheels:
 	@echo "Built wheels are in venv/var/lib/sage/wheels/"
 
 # sage_docbuild is here, not in PYPI_WHEEL_PACKAGES, because it depends on sagelib
-WHEEL_PACKAGES = $(PYPI_WHEEL_PACKAGES) sage_conf sagelib sage_docbuild
+WHEEL_PACKAGES = $(PYPI_WHEEL_PACKAGES) sage_conf sagelib sage_docbuild sagemath_bliss
 wheels:
 	for a in $(WHEEL_PACKAGES); do \
 	    rm -f venv/var/lib/sage/installed/$$a-*; \
@@ -115,6 +103,13 @@ wheels:
 	    $(MAKE) SAGE_EDITABLE=no SAGE_WHEELS=yes $$a; \
 	done
 	@echo "Built wheels are in venv/var/lib/sage/wheels/"
+
+SDIST_PACKAGES = $(WHEEL_PACKAGES)
+pypi-sdists: sage_setup
+	for a in $(SDIST_PACKAGES); do \
+	    ./sage --sh build/pkgs/$a/spkg-src
+	done
+	@echo "Built sdists are in upstream/"
 
 ###############################################################################
 # Cleaning up
