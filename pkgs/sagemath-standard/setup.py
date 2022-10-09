@@ -92,8 +92,7 @@ else:
     t = time.time()
     from sage.misc.package import is_package_installed_and_updated
     distributions = ['']
-    optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib',
-                                         'coxeter3', 'fes', 'sirocco', 'meataxe']
+    optional_packages_with_extensions = os.environ.get('SAGE_OPTIONAL_PACKAGES_WITH_EXTENSIONS', '').split(',')
     distributions += ['sagemath-{}'.format(pkg)
                       for pkg in optional_packages_with_extensions
                       if is_package_installed_and_updated(pkg)]
