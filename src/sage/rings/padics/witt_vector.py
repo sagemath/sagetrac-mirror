@@ -14,6 +14,9 @@ class WittVector_base(CommutativeRingElement):
             self.vec = (B(0) for i in range(self.prec))
         CommutativeRingElement.__init__(self, parent)
     
+    def __hash__(self):
+        return hash(self.vec)
+    
     def _richcmp_(self, other, op):
         from sage.structure.richcmp import op_EQ, op_NE
         if op == op_EQ:
