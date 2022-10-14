@@ -76,10 +76,10 @@ class WittVector_base(CommutativeRingElement):
     def _neg_(self):
         P = self.parent()
         C = self.__class__
-        # If p == 2, -1 == (1, 1, 1, ...)
+        # If p == 2, -1 == (-1, -1, -1, ...)
         # Otherwise, -1 == (-1, 0, 0, ...)
         if P.prime == 2:
-            all_ones = P(tuple(1 for _ in range(self.prec)))
+            all_ones = P(tuple(-1 for _ in range(self.prec)))
             return all_ones*self
         neg_vec = tuple(-self.vec[i] for i in range(self.prec))
         return C(P, vec=neg_vec)
