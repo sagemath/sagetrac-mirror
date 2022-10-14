@@ -167,8 +167,8 @@ class WittRing_base(CommutativeRing, UniqueRepresentation):
         for n in range(prec):
             s_n = x_vars[n] + y_vars[n]
             for i in range(n):
-                s_n += (x_vars[i]**(p**(n-i)) + y_vars[i]**(p**(n-i)) - self.sum_polynomials[i]**(p**(n-i))) // p**(n-i)
-            self.sum_polynomials[n] = s_n
+                s_n += (x_vars[i]**(p**(n-i)) + y_vars[i]**(p**(n-i)) - self.sum_polynomials[i]**(p**(n-i))) / p**(n-i)
+            self.sum_polynomials[n] = R(s_n)
         
         self.prod_polynomials = [x_vars[0] * y_vars[0]] + [0]*(self.prec)
         for n in range(1, prec):
@@ -354,6 +354,9 @@ class WittRing_non_p_typical(WittRing_base):
     def __init__(self, base_ring, prec, prime, algorithm=None, category=None):
         WittRing_base.__init__(self, base_ring, prec, prime, 
             algorithm=algorithm, category=category)
+    
+    def _repr_(self):
+        return f"Ring of {self.prime}-Witt Vectors of length {self.prec} over {self.base()}"
 
 class WittRing_p_invertible(WittRing_non_p_typical):
     def __init__(self, base_ring, prec, prime, category=None):
