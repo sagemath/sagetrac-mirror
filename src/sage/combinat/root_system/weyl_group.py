@@ -993,7 +993,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
         """
         return "".join(str(i) for i in self.to_permutation())
 
-    def stanley_symmetric_function(self):
+    def stanley_symmetric_function(self, algorithm=None):
         r"""
         Return the Stanley symmetric function associated to ``self``.
 
@@ -1023,16 +1023,33 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: w.stanley_symmetric_function()  # long time (6s on sage.math, 2011)
             48*m[1, 1, 1, 1] + 24*m[2, 1, 1] + 12*m[2, 2] + 8*m[3, 1] + 2*m[4]
 
+        In non-affine type A the default algorithm uses peelable tableaux.
+        In other types, the default algorithm is induction on left Pieri
+        factors. By passing ``algorithm='pieri'`` in type A, we can use left
+        Pieri factorization to confirm that the results are the same:
+
+            sage: W = WeylGroup(['A',4])
+            sage: w = W.from_reduced_word([3,2,1,2,4])
+            sage: w.stanley_symmetric_function() # algorithm='peelable'
+            11*m[1, 1, 1, 1, 1] + 6*m[2, 1, 1, 1] + 3*m[2, 2, 1] + 2*m[3, 1, 1] + m[3, 2]
+            sage: w.stanley_symmetric_function(algorithm='pieri')
+            11*m[1, 1, 1, 1, 1] + 6*m[2, 1, 1, 1] + 3*m[2, 2, 1] + 2*m[3, 1, 1] + m[3, 2]
+
         ALGORITHM:
 
-        In type A, utilize the peelable tableaux algorithm of [RS1995]_.
+        In type A, default to the peelable tableaux algorithm of [RS1995]_.
         In other types, use induction on left Pieri factors.
         """
         cartan_type = self.parent().cartan_type()
         is_affine = cartan_type.is_affine()
         if cartan_type == 'A' and not is_affine:
-            from sage.combinat.permutation import Permutation
-            return Permutation(list(self.to_permutation())).stanley_symmetric_function()
+            if algorithm is None:
+                algorithm = "peelable"
+            if algorithm == "peelable":
+                from sage.combinat.permutation import Permutation
+                return Permutation(list(self.to_permutation())).stanley_symmetric_function()
+            if algorithm == "pieri":
+                return WeylGroups.ElementMethods.stanley_symmetric_function(self)
         return WeylGroups.ElementMethods.stanley_symmetric_function(self)
 
 WeylGroup_gens.Element = WeylGroupElement
