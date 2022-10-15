@@ -62,30 +62,30 @@ AUTHORS:
 - Miguel Marco (06-2014) - Tides desolvers
 
 """
-
-##########################################################################
+# ########################################################################
 #  Copyright (C) 2006 David Joyner <wdjoyner@gmail.com>, Marshall Hampton,
 #  Robert Marik <marik@mendelu.cz>
 #
-#  Distributed under the terms of the GNU General Public License (GPL):
+#   Distributed under the terms of the GNU General Public License (GPL):
 #
-#                  https://www.gnu.org/licenses/
-##########################################################################
-
+#                     https://www.gnu.org/licenses/
+# ########################################################################
 import shutil
 import os
+from pathlib import Path
 
 from sage.interfaces.maxima import Maxima
 from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.all", "line")
 from sage.symbolic.expression import is_SymbolicEquation
 from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.calculus.functional import diff
 from sage.misc.functional import N
 from sage.rings.real_mpfr import RealField
+lazy_import("sage.plot.all", "line")
 
 
 maxima = Maxima()
+
 
 def fricas_desolve(de, dvar, ics, ivar):
     r"""
@@ -119,9 +119,10 @@ def fricas_desolve(de, dvar, ics, ivar):
     if isinstance(y, dict):
         basis = y["basis"]
         particular = y["particular"]
-        return particular + sum(SR.var("_C"+str(i))*v for i, v in enumerate(basis))
-    else:
-        return y
+        return particular + sum(SR.var(f"_C{i}") * v
+                                for i, v in enumerate(basis))
+    return y
+
 
 def fricas_desolve_system(des, dvars, ics, ivar):
     r"""
@@ -164,8 +165,8 @@ def fricas_desolve_system(des, dvars, ics, ivar):
     y = fricas(des).solve(ops, ivar).sage()
     basis = y["basis"]
     particular = y["particular"]
-    pars = [SR.var("_C"+str(i)) for i in range(len(basis))]
-    solv = particular + sum(p*v for p, v in zip(pars, basis))
+    pars = [SR.var(f"_C{i}") for i in range(len(basis))]
+    solv = particular + sum(p * v for p, v in zip(pars, basis))
 
     if ics is None:
         sols = solv
@@ -176,6 +177,7 @@ def fricas_desolve_system(des, dvars, ics, ivar):
         sols = [sol.subs(pars_values[0]) for sol in solv]
 
     return [dvar == sol for dvar, sol in zip(dvars, sols)]
+
 
 def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
             algorithm="maxima"):
@@ -571,12 +573,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
 
     de00 = de._maxima_()
     P = de00.parent()
-    dvar_str=P(dvar.operator()).str()
-    ivar_str=P(ivar).str()
+    dvar_str = P(dvar.operator()).str()
+    ivar_str = P(ivar).str()
     de00 = de00.str()
 
     def sanitize_var(exprs):
-        return exprs.replace("'"+dvar_str+"("+ivar_str+")",dvar_str)
+        return exprs.replace("'"+dvar_str+"("+ivar_str+")", dvar_str)
     de0 = sanitize_var(de00)
     ode_solver="ode2"
     cmd="(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))"%(ode_solver,de0,dvar_str,ivar_str,dvar_str,dvar_str,ivar_str)
@@ -957,7 +959,7 @@ def desolve_system(des, vars, ics=None, ivar=None, algorithm="maxima"):
 
     if len(des) == 1 and algorithm == "maxima":
         return desolve_laplace(des[0], vars[0], ics=ics, ivar=ivar)
-    ivars = set([])
+    ivars = set()
     for i, de in enumerate(des):
         if not is_SymbolicEquation(de):
             des[i] = de == 0
@@ -1181,6 +1183,7 @@ def eulers_method_2x2(f,g, t0, x0, y0, h, t1,algorithm="table"):
     if algorithm!="table":
         return soln
 
+
 def eulers_method_2x2_plot(f,g, t0, x0, y0, h, t1):
     r"""
     Plot solution of ODE.
@@ -1222,7 +1225,7 @@ def eulers_method_2x2_plot(f,g, t0, x0, y0, h, t1):
     return [Q1, Q2]
 
 
-def desolve_rk4_determine_bounds(ics,end_points=None):
+def desolve_rk4_determine_bounds(ics, end_points=None):
     """
     Used to determine bounds for numerical integration.
 
@@ -1424,6 +1427,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
     else:
         return desolve_rk4_inner(de, dvar)
 
+
 def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1):
     r"""
     Solve numerically a system of first-order ordinary differential
@@ -1490,7 +1494,7 @@ def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1
     if ics is None:
         raise ValueError("No initial conditions, specify with ics=[x0,y01,y02,...].")
 
-    ivars = set([])
+    ivars = set()
 
     for de in des:
         ivars = ivars.union(set(de.variables()))
@@ -1520,7 +1524,7 @@ def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1
         sol_1.reverse()
     if upper_bound>ics[0]:
         cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-        "%(desstr,varstr,icstr,'_SAGE_VAR_'+str(ivar),str(x0),upper_bound,step)
+        " % (desstr,varstr,icstr,'_SAGE_VAR_'+str(ivar),str(x0),upper_bound,step)
         sol_2=maxima(cmd).sage()
         sol_2.pop(0)
     sol=sol_1
@@ -1529,9 +1533,8 @@ def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1
 
     return sol
 
-def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
-, rtol=None, atol=None, tcrit=None, h0=0.0, hmax=0.0, hmin=0.0, ixpr=0
-, mxstep=0, mxhnil=0, mxordn=12, mxords=5, printmessg=0):
+
+def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=(), rtol=None, atol=None, tcrit=None, h0=0.0, hmax=0.0, hmin=0.0, ixpr=0, mxstep=0, mxhnil=0, mxordn=12, mxords=5, printmessg=0):
     r"""
     Solve numerically a system of first-order ordinary differential equations
     using ``odeint`` from scipy.integrate module.
@@ -1685,7 +1688,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
                 desc.append(fast_float(de, *variabs))
 
             def func(y, t):
-                v = list(y[:])
+                v = list(y)
                 v.append(t)
                 return [dec(*v) for dec in desc]
 
@@ -1697,7 +1700,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
                 J = fast_float(J, *variabs)
 
                 def Dfun(y, t):
-                    v = list(y[:])
+                    v = list(y)
                     v.append(t)
                     return [[element(*v) for element in row] for row in J]
 
@@ -1725,7 +1728,8 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
             raise ValueError("Unable to determine independent variable, please specify.")
     return desolve_odeint_inner(ivar)
 
-def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16):
+
+def desolve_mintides(f, ics, initial, final, delta, tolrel=1e-16, tolabs=1e-16):
     r"""
     Solve numerically a system of first order differential equations using the
     taylor series integrator implemented in mintides.
@@ -1794,29 +1798,28 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
         raise RuntimeError('Unable to run because gcc cannot be found')
     from sage.interfaces.tides import genfiles_mintides
     from sage.misc.temporary_file import tmp_dir
-    tempdir = tmp_dir()
-    intfile = os.path.join(tempdir, 'integrator.c')
-    drfile = os.path.join(tempdir ,'driver.c')
-    fileoutput = os.path.join(tempdir, 'output')
-    runmefile = os.path.join(tempdir, 'runme')
+    tempdir = Path(tmp_dir())
+    intfile = tempdir / 'integrator.c'
+    drfile = tempdir / 'driver.c'
+    fileoutput = tempdir / 'output'
+    runmefile = tempdir / 'runme'
     genfiles_mintides(intfile, drfile, f, [N(_) for _ in ics], N(initial), N(final), N(delta), N(tolrel),
-                     N(tolabs), fileoutput)
-    subprocess.check_call('gcc -o ' + runmefile + ' ' + os.path.join(tempdir, '*.c ') +
-                          os.path.join('$SAGE_LOCAL','lib','libTIDES.a') + ' $LDFLAGS '
-                          + os.path.join('-L$SAGE_LOCAL','lib ') +' -lm  -O2 ' +
-                          os.path.join('-I$SAGE_LOCAL','include '),
-                          shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    subprocess.check_call(os.path.join(tempdir, 'runme'), shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    outfile = open(fileoutput)
-    res = outfile.readlines()
-    outfile.close()
+                      N(tolabs), fileoutput)
+    subprocess.check_call(f'gcc -o {runmefile} ' + os.path.join(tempdir, '*.c ') +
+                          os.path.join('$SAGE_LOCAL', 'lib', 'libTIDES.a') + ' $LDFLAGS ' +
+                          os.path.join('-L$SAGE_LOCAL', 'lib ') + ' -lm  -O2 ' +
+                          os.path.join('-I$SAGE_LOCAL', 'include '),
+                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.check_call(tempdir / 'runme', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    with open(fileoutput) as outfile:
+        res = outfile.readlines()
     for i in range(len(res)):
         res[i] = [RealField()(_) for _ in res[i].split(' ') if len(_) > 2]
     shutil.rmtree(tempdir)
     return res
 
 
-def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16, digits=50):
+def desolve_tides_mpfr(f, ics, initial, final, delta, tolrel=1e-16, tolabs=1e-16, digits=50):
     r"""
     Solve numerically a system of first order differential equations using the
     taylor series integrator in arbitrary precision implemented in tides.
@@ -1894,23 +1897,22 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     from sage.functions.other import ceil
     from sage.functions.log import log
     from sage.misc.temporary_file import tmp_dir
-    tempdir = tmp_dir()
-    intfile = os.path.join(tempdir, 'integrator.c')
-    drfile = os.path.join(tempdir, 'driver.c')
-    fileoutput = os.path.join(tempdir, 'output')
-    runmefile = os.path.join(tempdir, 'runme')
+    tempdir = Path(tmp_dir())
+    intfile = tempdir / 'integrator.c'
+    drfile = tempdir / 'driver.c'
+    fileoutput = tempdir / 'output'
+    runmefile = tempdir / 'runme'
     genfiles_mpfr(intfile, drfile, f, ics, initial, final, delta, [], [],
-                      digits, tolrel, tolabs, fileoutput)
-    subprocess.check_call('gcc -o ' + runmefile + ' ' + os.path.join(tempdir, '*.c ') +
-                          os.path.join('$SAGE_LOCAL','lib','libTIDES.a') + ' $LDFLAGS '
-                          + os.path.join('-L$SAGE_LOCAL','lib ') + '-lmpfr -lgmp -lm  -O2 -w ' +
-                          os.path.join('-I$SAGE_LOCAL','include ') ,
-                          shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    subprocess.check_call(os.path.join(tempdir, 'runme'), shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    outfile = open(fileoutput)
-    res = outfile.readlines()
-    outfile.close()
+                  digits, tolrel, tolabs, fileoutput)
+    subprocess.check_call(f'gcc -o {runmefile} ' + os.path.join(tempdir, '*.c ') +
+                          os.path.join('$SAGE_LOCAL', 'lib', 'libTIDES.a') + ' $LDFLAGS ' +
+                          os.path.join('-L$SAGE_LOCAL', 'lib ') + '-lmpfr -lgmp -lm  -O2 -w ' +
+                          os.path.join('-I$SAGE_LOCAL', 'include '),
+                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.check_call(tempdir / 'runme', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    with open(fileoutput) as outfile:
+        res = outfile.readlines()
     for i in range(len(res)):
-        res[i] = [RealField(ceil(digits*log(10,2)))(_) for _ in res[i].split(' ') if len(_) > 2]
+        res[i] = [RealField(ceil(digits * log(10, 2)))(_) for _ in res[i].split(' ') if len(_) > 2]
     shutil.rmtree(tempdir)
     return res
