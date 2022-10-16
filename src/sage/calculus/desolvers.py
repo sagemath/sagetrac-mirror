@@ -73,6 +73,7 @@ AUTHORS:
 import shutil
 import os
 from pathlib import Path
+from shlex import quote
 
 from sage.interfaces.maxima import Maxima
 from sage.misc.lazy_import import lazy_import
@@ -581,7 +582,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
         return exprs.replace("'"+dvar_str+"("+ivar_str+")", dvar_str)
     de0 = sanitize_var(de00)
     ode_solver="ode2"
-    cmd="(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))"%(ode_solver,de0,dvar_str,ivar_str,dvar_str,dvar_str,ivar_str)
+    cmd="(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))" % (ode_solver,de0,dvar_str,ivar_str,dvar_str,dvar_str,ivar_str)
     # we produce string like this
     # ode2('diff(y,x,2)+2*'diff(y,x,1)+y-cos(x),y(x),x)
     soln = P(cmd)
@@ -590,7 +591,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
         if contrib_ode:
             ode_solver="contrib_ode"
             P("load('contrib_ode)")
-            cmd="(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))"%(ode_solver,de0,dvar_str,ivar_str,dvar_str,dvar_str,ivar_str)
+            cmd="(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))" % (ode_solver,de0,dvar_str,ivar_str,dvar_str,dvar_str,ivar_str)
             # we produce string like this
             # (TEMP:contrib_ode(x*('diff(y,x,1))^2-(x*y+1)*'diff(y,x,1)+y,y,x), if TEMP=false then TEMP else substitute(y=y(x),TEMP))
             soln = P(cmd)
@@ -606,11 +607,11 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
         if not is_SymbolicEquation(soln.sage()):
             if not show_method:
                 maxima_method=P("method")
-            raise NotImplementedError("Unable to use initial condition for this equation (%s)."%(str(maxima_method).strip()))
+            raise NotImplementedError("Unable to use initial condition for this equation (%s)." % (str(maxima_method).strip()))
         if len(ics) == 2:
             tempic=(ivar==ics[0])._maxima_().str()
             tempic=tempic+","+(dvar==ics[1])._maxima_().str()
-            cmd="(TEMP:ic1(%s(%s,%s,%s),%s),substitute(%s=%s(%s),TEMP))"%(ode_solver,de00,dvar_str,ivar_str,tempic,dvar_str,dvar_str,ivar_str)
+            cmd="(TEMP:ic1(%s(%s,%s,%s),%s),substitute(%s=%s(%s),TEMP))" % (ode_solver,de00,dvar_str,ivar_str,tempic,dvar_str,dvar_str,ivar_str)
             cmd=sanitize_var(cmd)
             # we produce string like this
             # (TEMP:ic2(ode2('diff(y,x,2)+2*'diff(y,x,1)+y-cos(x),y,x),x=0,y=3,'diff(y,x)=1),substitute(y=y(x),TEMP))
@@ -627,7 +628,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
             tempic=P(ivar==ics[0]).str()
             tempic=tempic+","+P(dvar==ics[1]).str()
             tempic=tempic+",'diff("+dvar_str+","+ivar_str+")="+P(ics[2]).str()
-            cmd="(TEMP:ic2_sage(%s(%s,%s,%s),%s),substitute(%s=%s(%s),TEMP))"%(ode_solver,de00,dvar_str,ivar_str,tempic,dvar_str,dvar_str,ivar_str)
+            cmd="(TEMP:ic2_sage(%s(%s,%s,%s),%s),substitute(%s=%s(%s),TEMP))" % (ode_solver,de00,dvar_str,ivar_str,tempic,dvar_str,dvar_str,ivar_str)
             cmd=sanitize_var(cmd)
             # we produce string like this
             # (TEMP:ic2(ode2('diff(y,x,2)+2*'diff(y,x,1)+y-cos(x),y,x),x=0,y=3,'diff(y,x)=1),substitute(y=y(x),TEMP))
@@ -642,8 +643,8 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
                 if not freeof(lhs(ya),TEMP_k) or not freeof(lhs(xa),TEMP_k) then return (false), \
                 temp: maplist(lambda([zz], subst(zz,soln)),TEMP_k), \
                 if length(temp)=1 then return(first(temp)) else return(temp))")
-            cmd="bc2_sage(%s(%s,%s,%s),%s,%s=%s,%s,%s=%s)"%(ode_solver,de00,dvar_str,ivar_str,P(ivar==ics[0]).str(),dvar_str,P(ics[1]).str(),P(ivar==ics[2]).str(),dvar_str,P(ics[3]).str())
-            cmd="(TEMP:%s,substitute(%s=%s(%s),TEMP))"%(cmd,dvar_str,dvar_str,ivar_str)
+            cmd="bc2_sage(%s(%s,%s,%s),%s,%s=%s,%s,%s=%s)" % (ode_solver,de00,dvar_str,ivar_str,P(ivar==ics[0]).str(),dvar_str,P(ics[1]).str(),P(ivar==ics[2]).str(),dvar_str,P(ics[3]).str())
+            cmd="(TEMP:%s,substitute(%s=%s(%s),TEMP))" % (cmd,dvar_str,dvar_str,ivar_str)
             cmd=sanitize_var(cmd)
             # we produce string like this
             # (TEMP:bc2(ode2('diff(y,x,2)+2*'diff(y,x,1)+y-cos(x),y,x),x=0,y=3,x=%pi/2,y=2),substitute(y=y(x),TEMP))
@@ -1066,14 +1067,14 @@ def eulers_method(f,x0,y0,h,x1,algorithm="table"):
     - David Joyner
     """
     if algorithm=="table":
-        print("%10s %20s %25s"%("x","y","h*f(x,y)"))
+        print("%10s %20s %25s" % ("x","y","h*f(x,y)"))
     n=int((1.0)*(x1-x0)/h)
     x00 = x0
     y00 = y0
     soln = [[x00,y00]]
     for i in range(n+1):
         if algorithm=="table":
-            print("%10r %20r %20r"%(x00,y00,h*f(x00,y00)))
+            print("%10r %20r %20r" % (x00,y00,h*f(x00,y00)))
         y00 = y00+h*f(x00,y00)
         x00=x00+h
         soln.append([x00,y00])
@@ -1166,7 +1167,7 @@ def eulers_method_2x2(f,g, t0, x0, y0, h, t1,algorithm="table"):
     - David Joyner
     """
     if algorithm=="table":
-        print("%10s %20s %25s %20s %20s"%("t", "x","h*f(t,x,y)","y", "h*g(t,x,y)"))
+        print("%10s %20s %25s %20s %20s" % ("t", "x","h*f(t,x,y)","y", "h*g(t,x,y)"))
     n = int((1.0)*(t1-t0)/h)
     t00 = t0
     x00 = x0
@@ -1174,7 +1175,7 @@ def eulers_method_2x2(f,g, t0, x0, y0, h, t1,algorithm="table"):
     soln = [[t00, x00, y00]]
     for i in range(n+1):
         if algorithm=="table":
-            print("%10r %20r %25r %20r %20r"%(t00,x00,h*f(t00,x00,y00),y00,h*g(t00,x00,y00)))
+            print("%10r %20r %25r %20r %20r" % (t00,x00,h*f(t00,x00,y00),y00,h*g(t00,x00,y00)))
         x01 = x00 + h*f(t00,x00,y00)
         y00 = y00 + h*g(t00,x00,y00)
         x00 = x01
@@ -1376,13 +1377,13 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
         sol_1, sol_2 = [],[]
         if lower_bound<ics[0]:
             cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-            "%(de0.str(),'_SAGE_VAR_'+str(dvar),str(ics[1]),'_SAGE_VAR_'+str(ivar),str(ics[0]),lower_bound,-step)
+            " % (de0.str(),'_SAGE_VAR_'+str(dvar),str(ics[1]),'_SAGE_VAR_'+str(ivar),str(ics[0]),lower_bound,-step)
             sol_1=maxima(cmd).sage()
             sol_1.pop(0)
             sol_1.reverse()
         if upper_bound>ics[0]:
             cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-            "%(de0.str(),'_SAGE_VAR_'+str(dvar),str(ics[1]),'_SAGE_VAR_'+str(ivar),str(ics[0]),upper_bound,step)
+            " % (de0.str(),'_SAGE_VAR_'+str(dvar),str(ics[1]),'_SAGE_VAR_'+str(ivar),str(ics[0]),upper_bound,step)
             sol_2=maxima(cmd).sage()
             sol_2.pop(0)
         sol=sol_1
@@ -1518,7 +1519,7 @@ def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1
     sol_1, sol_2 = [],[]
     if lower_bound<ics[0]:
         cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-        "%(desstr,varstr,icstr,'_SAGE_VAR_'+str(ivar),str(x0),lower_bound,-step)
+        " % (desstr,varstr,icstr,'_SAGE_VAR_'+str(ivar),str(x0),lower_bound,-step)
         sol_1=maxima(cmd).sage()
         sol_1.pop(0)
         sol_1.reverse()
@@ -1805,12 +1806,12 @@ def desolve_mintides(f, ics, initial, final, delta, tolrel=1e-16, tolabs=1e-16):
     runmefile = tempdir / 'runme'
     genfiles_mintides(intfile, drfile, f, [N(_) for _ in ics], N(initial), N(final), N(delta), N(tolrel),
                       N(tolabs), fileoutput)
-    subprocess.check_call(f'gcc -o {runmefile} ' + os.path.join(tempdir, '*.c ') +
+    subprocess.check_call(f'gcc -o {quote(runmefile)} ' + os.path.join(tempdir, '*.c ') +
                           os.path.join('$SAGE_LOCAL', 'lib', 'libTIDES.a') + ' $LDFLAGS ' +
                           os.path.join('-L$SAGE_LOCAL', 'lib ') + ' -lm  -O2 ' +
                           os.path.join('-I$SAGE_LOCAL', 'include '),
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    subprocess.check_call(tempdir / 'runme', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.check_call(runmefile, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     with open(fileoutput) as outfile:
         res = outfile.readlines()
     for i in range(len(res)):
@@ -1904,12 +1905,12 @@ def desolve_tides_mpfr(f, ics, initial, final, delta, tolrel=1e-16, tolabs=1e-16
     runmefile = tempdir / 'runme'
     genfiles_mpfr(intfile, drfile, f, ics, initial, final, delta, [], [],
                   digits, tolrel, tolabs, fileoutput)
-    subprocess.check_call(f'gcc -o {runmefile} ' + os.path.join(tempdir, '*.c ') +
+    subprocess.check_call(f'gcc -o {quote(runmefile)} ' + os.path.join(tempdir, '*.c ') +
                           os.path.join('$SAGE_LOCAL', 'lib', 'libTIDES.a') + ' $LDFLAGS ' +
                           os.path.join('-L$SAGE_LOCAL', 'lib ') + '-lmpfr -lgmp -lm  -O2 -w ' +
                           os.path.join('-I$SAGE_LOCAL', 'include '),
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    subprocess.check_call(tempdir / 'runme', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.check_call(runmefile, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     with open(fileoutput) as outfile:
         res = outfile.readlines()
     for i in range(len(res)):
