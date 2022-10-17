@@ -1809,7 +1809,7 @@ def desolve_mintides(f, ics, initial, final, delta, tolrel=1e-16, tolabs=1e-16):
     subprocess.check_call(f'gcc -o {quote(str(runmefile))} ' + os.path.join(quote(str(tempdir)), '*.c ') +
                           os.path.join('$SAGE_LOCAL', 'lib', 'libTIDES.a') + ' $LDFLAGS ' +
                           os.path.join('-L$SAGE_LOCAL', 'lib') + ' -lm  -O2 ' +
-                          os.path.join('-I$SAGE_LOCAL', 'include '),
+                          os.path.join('-I$SAGE_LOCAL', 'include'),
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     subprocess.check_call(runmefile, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     with open(fileoutput) as outfile:
@@ -1908,7 +1908,7 @@ def desolve_tides_mpfr(f, ics, initial, final, delta, tolrel=1e-16, tolabs=1e-16
     subprocess.check_call(f'gcc -o {quote(str(runmefile))} ' + os.path.join(quote(str(tempdir)), '*.c ') +
                           os.path.join('$SAGE_LOCAL', 'lib', 'libTIDES.a') + ' $LDFLAGS ' +
                           os.path.join('-L$SAGE_LOCAL', 'lib') + '-lmpfr -lgmp -lm  -O2 -w ' +
-                          os.path.join('-I$SAGE_LOCAL', 'include '),
+                          os.path.join('-I$SAGE_LOCAL', 'include'),
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     subprocess.check_call(runmefile, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     with open(fileoutput) as outfile:
