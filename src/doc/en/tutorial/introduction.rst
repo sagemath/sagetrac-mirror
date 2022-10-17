@@ -10,9 +10,9 @@ work through the tutorial from within Sage.
 Though much of Sage is implemented using Python, no Python
 background is needed to read this tutorial. You will want to learn
 Python (a very fun language!) at some point, and there are many
-excellent free resources for doing so including [PyT]_ and [Dive]_.
-If you just want to quickly try out Sage, this tutorial is the
-place to start. For example:
+excellent free resources for doing so: the Python Beginner's Guide [PyB]_
+lists many options.  If you just want to quickly try out Sage, this
+tutorial is the place to start. For example:
 
 ::
 
@@ -89,9 +89,9 @@ computer. Here we merely make a few comments.
    will search.
 
    The documentation for using SageTeX is located in
-   ``$SAGE_ROOT/local/share/texmf/tex/latex/sagetex/``, where
+   ``$SAGE_ROOT/venv/share/texmf/tex/latex/sagetex/``, where
    "``$SAGE_ROOT``" refers to the directory where you installed Sage --
-   for example, ``/opt/sage-4.2.1``.
+   for example, ``/opt/sage-9.6``.
 
 Ways to Use Sage
 ================

@@ -169,16 +169,16 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
         assert(R in Rings())
         self._base = R # Won't be needed when CategoryObject won't override anymore base_ring
         self._S = S
-        Parent.__init__(self, category = Algebras(R).Commutative().WithRealizations())
+        Parent.__init__(self, category=Algebras(R).Commutative().WithRealizations())
 
         # Initializes the bases and change of bases of ``self``
 
-        F   = self.F()
-        In  = self.In()
+        F = self.F()
+        In = self.In()
         Out = self.Out()
 
         category = self.Bases()
-        key = lambda x: self.indices_key(x)
+        key = self.indices_key
         In_to_F = In.module_morphism(F.sum_of_monomials * Subsets,
                                      codomain=F, category=category,
                                      triangular='upper', unitriangular=True,

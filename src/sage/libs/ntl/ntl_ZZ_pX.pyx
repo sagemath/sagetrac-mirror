@@ -63,7 +63,7 @@ cdef make_ZZ_pX(ZZ_pX_c* x, ntl_ZZ_pContext_class ctx):
 #
 ##############################################################################
 
-cdef class ntl_ZZ_pX(object):
+cdef class ntl_ZZ_pX():
     r"""
     The class \class{ZZ_pX} implements polynomial arithmetic modulo `p`.
 
@@ -207,11 +207,13 @@ cdef class ntl_ZZ_pX(object):
 
     def __setitem__(self, long i, a):
         r"""
-        sage: c = ntl.ZZ_pContext(23)
-        sage: x = ntl.ZZ_pX([2, 3, 4], c)
-        sage: x[1] = 5
-        sage: x
-        [2 5 4]
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pContext(23)
+            sage: x = ntl.ZZ_pX([2, 3, 4], c)
+            sage: x[1] = 5
+            sage: x
+            [2 5 4]
         """
         if i < 0:
             raise IndexError("index (i=%s) must be >= 0" % i)
@@ -312,7 +314,7 @@ cdef class ntl_ZZ_pX(object):
             sage: x.list()
             [1, 3, 5]
             sage: type(x.list()[0])
-            <type 'sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p'>
+            <class 'sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p'>
         """
         # could be sped up.
         self.c.restore_c()
@@ -596,7 +598,7 @@ cdef class ntl_ZZ_pX(object):
         """
         self.c.restore_c()
         if ZZ_pX_IsZero(self.x):
-             return False
+            return False
         return bool(ZZ_p_IsOne(ZZ_pX_LeadCoeff(self.x)))
 
     def __neg__(self):
@@ -1203,7 +1205,7 @@ cdef class ntl_ZZ_pX(object):
     def trace_mod(self, ntl_ZZ_pX modulus):
         """
         Return the trace of this polynomial modulus the modulus.
-        The modulus must be monic, and of positive degree degree bigger
+        The modulus must be monic, and of positive degree bigger
         than the degree of self.
 
         EXAMPLES::
@@ -1415,7 +1417,7 @@ cdef class ntl_ZZ_pX(object):
         #ZZ_pX_preallocate_space(&self.x, n)
         sig_off()
 
-cdef class ntl_ZZ_pX_Modulus(object):
+cdef class ntl_ZZ_pX_Modulus():
     """
     Thin holder for ZZ_pX_Moduli.
     """

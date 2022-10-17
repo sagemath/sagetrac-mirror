@@ -193,7 +193,7 @@ class Rings(CategoryWithAxiom):
             .. NOTE::
 
                 We can not override ``is_zero()`` from the category framework
-                and we can not implement ``__nonzero__`` because it is a
+                and we can not implement ``__bool__`` because it is a
                 special method. That this is why this has a cumbersome name.
 
             EXAMPLES::
@@ -202,7 +202,6 @@ class Rings(CategoryWithAxiom):
                 True
                 sage: ZZ.hom(Zmod(1))._is_nonzero()
                 False
-
             """
             return bool(self.codomain().one())
 
@@ -387,12 +386,13 @@ class Rings(CategoryWithAxiom):
             INPUT:
 
             - ``Y`` -- a ring
-            - ``category`` -- a subcategory of :class:`Rings`() or None
+            - ``category`` -- a subcategory of :class:`Rings()
+              <Rings>` or ``None``
 
             The sole purpose of this method is to construct the homset
             as a :class:`~sage.rings.homset.RingHomset`. If
             ``category`` is specified and is not a subcategory of
-            :class:`Rings`, a ``TypeError`` is raised instead
+            :class:`Rings() <Rings>`, a ``TypeError`` is raised instead
 
             This method is not meant to be called directly. Please use
             :func:`sage.categories.homset.Hom` instead.
@@ -413,14 +413,13 @@ class Rings(CategoryWithAxiom):
                 <class 'sage.rings.number_field.homset.CyclotomicFieldHomset_with_category'>
 
                 sage: TestSuite(Hom(QQ, QQ, category = Rings())).run() # indirect doctest
-
             """
             if category is not None and not category.is_subcategory(Rings()):
                 raise TypeError("%s is not a subcategory of Rings()"%category)
             if Y not in Rings():
-                raise TypeError("%s is not a ring"%Y)
+                raise TypeError("%s is not a ring" % Y)
             from sage.rings.homset import RingHomset
-            return RingHomset(self, Y, category = category)
+            return RingHomset(self, Y, category=category)
 
         # this is already in sage.rings.ring.Ring,
         # but not all rings descend from that class,
@@ -782,16 +781,16 @@ class Rings(CategoryWithAxiom):
 
         ##
         # Quotient rings
-        # Again, this is defined in sage.rings.ring.pyx
         def quotient(self, I, names=None, **kwds):
             """
             Quotient of a ring by a two-sided ideal.
 
             INPUT:
 
-            - ``I``: A twosided ideal of this ring.
-            - ``names``: a list of strings to be used as names
-              for the variables in the quotient ring.
+            - ``I`` -- A twosided ideal of this ring.
+            - ``names`` -- (optional) names of the generators of the quotient (if
+              there are multiple generators, you can specify a single character
+              string and the generators are named in sequence starting with 0).
             - further named arguments that may be passed to the
               quotient ring constructor.
 
@@ -824,6 +823,23 @@ class Rings(CategoryWithAxiom):
                 xbar*ybar
                 sage: Q.0*Q.1*Q.0
                 0
+
+            An example with polynomial rings::
+
+                sage: R.<x> = PolynomialRing(ZZ)
+                sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
+                sage: S = R.quotient(I, 'a')
+                sage: S.gens()
+                (a,)
+
+                sage: R.<x,y> = PolynomialRing(QQ,2)
+                sage: S.<a,b> = R.quotient((x^2, y))
+                sage: S
+                Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2, y)
+                sage: S.gens()
+                (a, 0)
+                sage: a == b
+                False
             """
             from sage.rings.quotient_ring import QuotientRing
             return QuotientRing(self, I, names=names, **kwds)
@@ -867,6 +883,16 @@ class Rings(CategoryWithAxiom):
                   [0 1]
                 )
 
+            A test with a subclass of :class:`~sage.rings.ring.Ring`::
+
+                sage: R.<x,y> = PolynomialRing(QQ,2)
+                sage: S.<a,b> = R.quo((x^2, y))
+                sage: S
+                Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2, y)
+                sage: S.gens()
+                (a, 0)
+                sage: a == b
+                False
             """
             return self.quotient(I,names=names,**kwds)
 
@@ -876,7 +902,22 @@ class Rings(CategoryWithAxiom):
 
             NOTE:
 
-            This is a synonyme for :meth:`quotient`.
+            This is a synonym for :meth:`quotient`.
+
+            INPUT:
+
+            - ``I`` -- an ideal of `R`
+
+            - ``names`` -- (optional) names of the generators of the quotient. (If
+              there are multiple generators, you can specify a single character
+              string and the generators are named in sequence starting with 0.)
+
+            - further named arguments that may be passed to the quotient ring
+              constructor.
+
+            OUTPUT:
+
+            - ``R/I`` -- the quotient ring of `R` by the ideal `I`
 
             EXAMPLES::
 
@@ -907,8 +948,24 @@ class Rings(CategoryWithAxiom):
                   [0 1]
                 )
 
+            A test with a subclass of :class:`~sage.rings.ring.Ring`::
+
+                sage: R.<x> = PolynomialRing(ZZ)
+                sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
+                sage: S = R.quotient_ring(I, 'a')
+                sage: S.gens()
+                (a,)
+
+                sage: R.<x,y> = PolynomialRing(QQ,2)
+                sage: S.<a,b> = R.quotient_ring((x^2, y))
+                sage: S
+                Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2, y)
+                sage: S.gens()
+                (a, 0)
+                sage: a == b
+                False
             """
-            return self.quotient(I,names=names, **kwds)
+            return self.quotient(I, names=names, **kwds)
 
         def __truediv__(self, I):
             """
@@ -921,6 +978,11 @@ class Rings(CategoryWithAxiom):
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
                 sage: MS/I
+                Traceback (most recent call last):
+                ...
+                TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
+
+                sage: QQ['x'] / ZZ
                 Traceback (most recent call last):
                 ...
                 TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
@@ -1006,9 +1068,9 @@ class Rings(CategoryWithAxiom):
 
             ::
 
-                sage: QQ[sqrt(2)]
+                sage: QQ[sqrt(2)]                               # optional - sage.symbolic
                 Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
-                sage: QQ[sqrt(2)].coerce_embedding()
+                sage: QQ[sqrt(2)].coerce_embedding()            # optional - sage.symbolic
                 Generic morphism:
                   From: Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
                   To:   Real Lazy Field
@@ -1016,16 +1078,16 @@ class Rings(CategoryWithAxiom):
 
             ::
 
-                sage: QQ[sqrt(2),sqrt(3)]
+                sage: QQ[sqrt(2), sqrt(3)]                      # optional - sage.symbolic
                 Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
 
             and orders in number fields::
 
                 sage: ZZ[I]
                 Order in Number Field in I0 with defining polynomial x^2 + 1 with I0 = 1*I
-                sage: ZZ[sqrt(5)]
+                sage: ZZ[sqrt(5)]                               # optional - sage.symbolic
                 Order in Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
-                sage: ZZ[sqrt(2)+sqrt(3)]
+                sage: ZZ[sqrt(2) + sqrt(3)]                     # optional - sage.symbolic
                 Order in Number Field in a with defining polynomial x^4 - 10*x^2 + 1 with a = 3.146264369941973?
 
             Embeddings are found for simple extensions (when that makes sense)::
@@ -1077,13 +1139,13 @@ class Rings(CategoryWithAxiom):
 
             Embeddings::
 
-                sage: a = 10^100; expr = (2*a + sqrt(2))/(2*a^2-1)
-                sage: QQ[expr].coerce_embedding() is None
+                sage: a = 10^100; expr = (2*a + sqrt(2))/(2*a^2-1)              # optional - sage.symbolic
+                sage: QQ[expr].coerce_embedding() is None                       # optional - sage.symbolic
                 False
-                sage: QQ[sqrt(5)].gen() > 0
+                sage: QQ[sqrt(5)].gen() > 0                                     # optional - sage.symbolic
                 True
-                sage: expr = sqrt(2) + I*(cos(pi/4, hold=True) - sqrt(2)/2)
-                sage: QQ[expr].coerce_embedding()
+                sage: expr = sqrt(2) + I*(cos(pi/4, hold=True) - sqrt(2)/2)     # optional - sage.symbolic
+                sage: QQ[expr].coerce_embedding()                               # optional - sage.symbolic
                 Generic morphism:
                   From: Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?
                   To:   Real Lazy Field
@@ -1135,7 +1197,7 @@ class Rings(CategoryWithAxiom):
                 # how to pass in names?
                 names = tuple(_gen_names(elts))
                 if len(elts) == 1:
-                    from sage.rings.all import CIF, CLF, RLF
+                    from sage.rings.cif import CIF
                     elt = elts[0]
                     try:
                         iv = CIF(elt)
@@ -1157,6 +1219,7 @@ class Rings(CategoryWithAxiom):
                             pass
                         # Force a real embedding when possible, to get the
                         # right ordered ring structure.
+                        from sage.rings.real_lazy import CLF, RLF
                         if (iv.imag().is_zero() or iv.imag().contains_zero()
                                                    and elt.imag().is_zero()):
                             emb = RLF(elt)
@@ -1356,9 +1419,9 @@ def _gen_names(elts):
     EXAMPLES::
 
         sage: from sage.categories.rings import _gen_names
-        sage: list(_gen_names([sqrt(5)]))
+        sage: list(_gen_names([sqrt(5)]))                               # optional - sage.symbolic
         ['sqrt5']
-        sage: list(_gen_names([sqrt(-17), 2^(1/3)]))
+        sage: list(_gen_names([sqrt(-17), 2^(1/3)]))                    # optional - sage.symbolic
         ['a', 'b']
         sage: list(_gen_names((1..27)))[-1]
         'aa'

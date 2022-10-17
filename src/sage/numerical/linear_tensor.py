@@ -387,7 +387,7 @@ class LinearTensorParent_class(Parent):
             sage: LT({1:[1, 2]})    # indirect doctest
             (1.0, 2.0)*x_1
             sage: type(_)
-            <type 'sage.numerical.linear_tensor_element.LinearTensor'>
+            <class 'sage.numerical.linear_tensor_element.LinearTensor'>
 
         Construct from scalar:
 
@@ -478,7 +478,4 @@ class LinearTensorParent_class(Parent):
             (1.0, 0.0) + (5.0, 0.0)*x_2 + (7.0, 0.0)*x_5
         """
         m = self.free_module().an_element()
-        return self._element_constructor_({-1:m, 2:5*m, 5:7*m})
-
-
-
+        return self._element_constructor_({-1: m, 2: 5 * m, 5: 7 * m})

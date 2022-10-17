@@ -17,7 +17,7 @@ from sage.rings.all import (PowerSeriesRing, PolynomialRing, ZZ, QQ,
 from sage.functions.log import log
 from sage.modules.free_module import VectorSpace
 from sage.matrix.constructor import matrix
-from sage.modules.all import vector
+from sage.modules.free_module_element import vector
 
 from sage.schemes.curves.projective_curve import ProjectivePlaneCurve_field
 
@@ -702,9 +702,9 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 #        MW = monsky_washnitzer.MonskyWashnitzerDifferentialRing(S)
 #        return MW.invariant_differential()
 
-    def coleman_integral(self, w, P, Q, algorithm = 'None'):
+    def coleman_integral(self, w, P, Q, algorithm='None'):
         r"""
-        Returns the Coleman integral `\int_P^Q w`
+        Return the Coleman integral `\int_P^Q w`.
 
         INPUT:
 

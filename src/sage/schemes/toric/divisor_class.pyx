@@ -33,7 +33,7 @@ They behave much like ordinary vectors::
     sage: D * E
     Traceback (most recent call last):
     ...
-    TypeError: cannot multiply two divisor classes!
+    TypeError: cannot multiply two divisor classes
 
 The only special method is :meth:`~ToricRationalDivisorClass.lift` to get a
 divisor representing a divisor class::
@@ -57,10 +57,10 @@ divisor representing a divisor class::
 
 from sage.libs.gmp.mpq cimport *
 
-from sage.misc.all import latex
-from sage.modules.all import vector
+from sage.misc.latex import latex
+from sage.modules.free_module_element import vector
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
-from sage.rings.all import QQ
+from sage.rings.rational_field import QQ
 from sage.rings.rational cimport Rational
 from sage.structure.element cimport Element, Vector
 from sage.structure.element import is_Vector
@@ -163,7 +163,7 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
             sage: D * D
             Traceback (most recent call last):
             ...
-            TypeError: cannot multiply two divisor classes!
+            TypeError: cannot multiply two divisor classes
 
         We test standard behaviour::
 
@@ -223,13 +223,13 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
             sage: c[0]._dot_product_(c[1])
             Traceback (most recent call last):
             ...
-            TypeError: cannot multiply two divisor classes!
+            TypeError: cannot multiply two divisor classes
             sage: c[0] * c[1]      # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: cannot multiply two divisor classes!
+            TypeError: cannot multiply two divisor classes
         """
-        raise TypeError("cannot multiply two divisor classes!")
+        raise TypeError("cannot multiply two divisor classes")
 
     def _latex_(self):
         r"""
