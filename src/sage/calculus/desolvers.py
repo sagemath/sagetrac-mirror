@@ -1806,9 +1806,9 @@ def desolve_mintides(f, ics, initial, final, delta, tolrel=1e-16, tolabs=1e-16):
     runmefile = tempdir / 'runme'
     genfiles_mintides(intfile, drfile, f, [N(_) for _ in ics], N(initial), N(final), N(delta), N(tolrel),
                       N(tolabs), fileoutput)
-    subprocess.check_call(f'gcc -o {quote(runmefile)} ' + os.path.join(tempdir, '*.c ') +
+    subprocess.check_call(f'gcc -o {quote(str(runmefile))} ' + os.path.join(quote(str(tempdir)), '*.c ') +
                           os.path.join('$SAGE_LOCAL', 'lib', 'libTIDES.a') + ' $LDFLAGS ' +
-                          os.path.join('-L$SAGE_LOCAL', 'lib ') + ' -lm  -O2 ' +
+                          os.path.join('-L$SAGE_LOCAL', 'lib') + ' -lm  -O2 ' +
                           os.path.join('-I$SAGE_LOCAL', 'include '),
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     subprocess.check_call(runmefile, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -1905,9 +1905,9 @@ def desolve_tides_mpfr(f, ics, initial, final, delta, tolrel=1e-16, tolabs=1e-16
     runmefile = tempdir / 'runme'
     genfiles_mpfr(intfile, drfile, f, ics, initial, final, delta, [], [],
                   digits, tolrel, tolabs, fileoutput)
-    subprocess.check_call(f'gcc -o {quote(runmefile)} ' + os.path.join(tempdir, '*.c ') +
+    subprocess.check_call(f'gcc -o {quote(str(runmefile))} ' + os.path.join(quote(str(tempdir)), '*.c ') +
                           os.path.join('$SAGE_LOCAL', 'lib', 'libTIDES.a') + ' $LDFLAGS ' +
-                          os.path.join('-L$SAGE_LOCAL', 'lib ') + '-lmpfr -lgmp -lm  -O2 -w ' +
+                          os.path.join('-L$SAGE_LOCAL', 'lib') + '-lmpfr -lgmp -lm  -O2 -w ' +
                           os.path.join('-I$SAGE_LOCAL', 'include '),
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     subprocess.check_call(runmefile, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
