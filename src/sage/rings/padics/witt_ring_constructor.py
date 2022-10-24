@@ -36,7 +36,7 @@ def WittRing(base_ring, prec=1, p=None, algorithm='auto'):
     if prime == char: # p-typical
         if base_ring.is_field() and base_ring.is_finite():
             # TODO: document that this ignores the choice of algorithm
-            return WittRing_finite_field(base_ring, prec, prime,
+            return WittRing_finite_field(base_ring.field(), prec, prime,
                        category=_CommutativeRings)
         else:
             if algorithm == 'auto':
