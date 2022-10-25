@@ -1454,7 +1454,7 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: X = P.subscheme([z^2 - 101*y^2 - 3*x*z])
-            sage: X.global_height()
+            sage: X.global_height() # long time
             4.61512051684126
         """
         return self.Chow_form().global_height(prec)
