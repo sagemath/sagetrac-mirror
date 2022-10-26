@@ -9,6 +9,9 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
+from sage.sets.primes import Primes
+_Primes = Primes()
+
 from .witt_vector import WittVector_base
 from .witt_vector import WittVector_p_typical
 from .witt_vector import WittVector_non_p_typical
@@ -25,18 +28,18 @@ def _fast_char_p_power(x, n, p=None):
         raise ValueError(f'Exponent {n} is not an integer')
     if n == 0 or x == 1:
         return x.parent().one()
-    if x.parent().characteristic() not in Primes():
+    if x.parent().characteristic() not in _Primes:
         raise ValueError(f'{x} is not in a ring of prime characteristic')
     
     x_is_Polynomial  = is_Polynomial(x)
     x_is_MPolynomial = is_MPolynomial(x)
     
     if not (x_is_Polynomial or x_is_MPolynomial):
-        return x^n
+        return x**n
     if (x_is_Polynomial and x.is_gen()) or (x_is_MPolynomial and x.is_generator()):
-        return x^n
+        return x**n
     if n < 0:
-        x = x^-1 # This may throw an error.
+        x = x**-1 # This may throw an error.
         n = -n
     
     P = x.parent()
@@ -49,10 +52,10 @@ def _fast_char_p_power(x, n, p=None):
     for p_exp, digit in enumerate(base_p_digits):
         if digit == 0:
             continue
-        inner_term = x^digit
+        inner_term = x**digit
         term_dict = {}
         for e_int_or_tuple, c in inner_term.dict().items():
-            power = p^p_exp
+            power = p**p_exp
             new_c = _fast_char_p_power(c, power)
             #new_e_tuple = e_tuple.emul(power)
             new_e_tuple = None
