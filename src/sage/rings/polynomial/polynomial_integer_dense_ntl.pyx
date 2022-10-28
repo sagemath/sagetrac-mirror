@@ -433,7 +433,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             name = self.parent().latex_variable_names()[0]
         return self._repr(name, latex=True)
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         r"""
         Returns self plus right.
 
@@ -451,7 +451,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         r"""
         Return self minus right.
 
@@ -469,7 +469,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         r"""
         Returns negative of self.
 
@@ -685,7 +685,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             return S(rr), ss, tt
 
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         r"""
         Returns self multiplied by right.
 
@@ -700,7 +700,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
                 (<Polynomial_integer_dense_ntl>right).__poly)
         return x
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -719,7 +719,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         ZZX_mul_ZZ(x.__poly, self.__poly, _right)
         return x
 
-    cpdef _rmul_(self, Element right):
+    cdef _rmul_(self, Element right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -1092,7 +1092,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         from sage.rings.polynomial.padics.polynomial_padic import _pari_padic_factorization_to_sage
         return _pari_padic_factorization_to_sage(G, R, self.leading_coefficient())
 
-    cpdef list list(self, bint copy=True):
+    cdef list list(self, bint copy=True):
         """
         Return a new copy of the list of the underlying
         elements of ``self``.

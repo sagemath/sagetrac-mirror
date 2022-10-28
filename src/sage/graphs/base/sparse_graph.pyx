@@ -370,7 +370,7 @@ cdef class SparseGraph(CGraph):
         sig_free(self.out_degrees)
         bitset_free(self.active_vertices)
 
-    cpdef realloc(self, int total):
+    cdef realloc(self, int total):
         """
         Reallocate the number of vertices to use, without actually adding any.
 
@@ -459,7 +459,7 @@ cdef class SparseGraph(CGraph):
         # self.active_vertices
         bitset_realloc(self.active_vertices, s_total)
 
-    cpdef inline bint is_directed(self):
+    cdef inline bint is_directed(self):
         r"""
         Return whether the graph is directed.
 
@@ -710,7 +710,7 @@ cdef class SparseGraph(CGraph):
             return temp
         return NULL
 
-    cpdef int out_degree(self, int u):
+    cdef int out_degree(self, int u):
         """
         Returns the out-degree of ``v``
 
@@ -789,7 +789,7 @@ cdef class SparseGraph(CGraph):
         else:
             return -1
 
-    cpdef int in_degree(self, int v):
+    cdef int in_degree(self, int v):
         """
         Returns the in-degree of ``v``
 

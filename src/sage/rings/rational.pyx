@@ -187,7 +187,7 @@ cdef set_zero_one_elements():
 
 set_zero_one_elements()
 
-cpdef Integer integer_rational_power(Integer a, Rational b):
+cdef Integer integer_rational_power(Integer a, Rational b):
     """
     Compute `a^b` as an integer, if it is integral, or return ``None``.
 
@@ -269,7 +269,7 @@ cpdef Integer integer_rational_power(Integer a, Rational b):
     return z
 
 
-cpdef rational_power_parts(a, Rational b, factor_limit=10**5):
+cdef rational_power_parts(a, Rational b, factor_limit=10**5):
     """
     Compute rationals or integers `c` and `d` such that `a^b = c*d^b`
     with `d` small. This is used for simplifying radicals.
@@ -830,7 +830,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         l = self.continued_fraction_list()
         return ContinuedFraction_periodic(l)
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Compare two rational numbers.
 
@@ -2308,7 +2308,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         return coercion_model.bin_op(left, right, operator.add)
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Return ``right`` plus ``self``.
 
@@ -2360,7 +2360,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         return coercion_model.bin_op(left, right, operator.sub)
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Return ``self`` minus ``right``.
 
@@ -2374,7 +2374,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_sub(x.value, self.value, (<Rational>right).value)
         return x
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         Negate ``self``.
 
@@ -2413,7 +2413,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         return coercion_model.bin_op(left, right, operator.mul)
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Return ``self`` times ``right``.
 
@@ -2470,7 +2470,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         return coercion_model.bin_op(left, right, operator.truediv)
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         Return ``self`` divided by ``right``.
 
@@ -2514,7 +2514,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_inv(x.value, self.value)
         return x
 
-    cpdef _pow_(self, other):
+    cdef _pow_(self, other):
         """
         Raise ``self`` to the rational power ``other``.
 
@@ -2609,7 +2609,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         from sage.symbolic.ring import SR
         return SR(c) * SR(d).power(n, hold=True)
 
-    cpdef _pow_int(self, n):
+    cdef _pow_int(self, n):
         """
         Raise ``self`` to the integer power ``n``.
 
@@ -4091,7 +4091,7 @@ cdef class Z_to_Q(Morphism):
         import sage.categories.homset
         Morphism.__init__(self, sage.categories.homset.Hom(integer_ring.ZZ, rational_field.QQ))
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Return the image of the morphism on ``x``.
 
@@ -4157,7 +4157,7 @@ cdef class Q_to_Z(Map):
         sage: type(ZZ.convert_map_from(QQ))
         <class 'sage.rings.rational.Q_to_Z'>
     """
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         A fast map from the rationals to the integers.
 
@@ -4211,7 +4211,7 @@ cdef class int_to_Q(Morphism):
         from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), rational_field.QQ))
 
-    cpdef Element _call_(self, a):
+    cdef Element _call_(self, a):
         """
         Return the image of the morphism on ``a``.
 
@@ -4263,7 +4263,7 @@ cdef class long_to_Q(Morphism):
         Morphism.__init__(self, sage.categories.homset.Hom(
             Set_PythonType(long), rational_field.QQ))
 
-    cpdef Element _call_(self, a):
+    cdef Element _call_(self, a):
         """
         Return the image of the morphism on ``a``.
 

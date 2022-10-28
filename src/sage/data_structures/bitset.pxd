@@ -13,28 +13,28 @@ from .bitset_base cimport bitset_t
 cdef class FrozenBitset:
     cdef bitset_t _bitset
     cdef FrozenBitset _new(self,long int capacity)
-    cpdef FrozenBitset _larger_capacity_(self, long size)
-    cpdef long capacity(self)
-    cpdef bint isempty(self)
-    cpdef bint issubset(self, FrozenBitset other) except -1
-    cpdef bint issuperset(self, FrozenBitset other) except -1
-    cpdef bint isdisjoint(self, FrozenBitset other) except -1
-    cpdef _union(self, FrozenBitset other)
-    cpdef intersection(self, FrozenBitset other)
-    cpdef difference(self, FrozenBitset other)
-    cpdef symmetric_difference(self, FrozenBitset other)
-    cpdef complement(self)
-    cpdef __copy__(self)
+    cdef FrozenBitset _larger_capacity_(self, long size)
+    cdef long capacity(self)
+    cdef bint isempty(self)
+    cdef bint issubset(self, FrozenBitset other) except -1
+    cdef bint issuperset(self, FrozenBitset other) except -1
+    cdef bint isdisjoint(self, FrozenBitset other) except -1
+    cdef _union(self, FrozenBitset other)
+    cdef intersection(self, FrozenBitset other)
+    cdef difference(self, FrozenBitset other)
+    cdef symmetric_difference(self, FrozenBitset other)
+    cdef complement(self)
+    cdef __copy__(self)
 
 cdef class Bitset(FrozenBitset):
-    cpdef __copy__(self)
-    cpdef update(self, FrozenBitset other)
-    cpdef intersection_update(self, FrozenBitset other)
-    cpdef difference_update(self, FrozenBitset other)
-    cpdef symmetric_difference_update(self, FrozenBitset other)
-    cpdef add(self, unsigned long n)
-    cpdef remove(self, unsigned long n)
-    cpdef discard(self, unsigned long n)
-    cpdef pop(self)
-    cpdef clear(self)
+    cdef __copy__(self)
+    cdef update(self, FrozenBitset other)
+    cdef intersection_update(self, FrozenBitset other)
+    cdef difference_update(self, FrozenBitset other)
+    cdef symmetric_difference_update(self, FrozenBitset other)
+    cdef add(self, unsigned long n)
+    cdef remove(self, unsigned long n)
+    cdef discard(self, unsigned long n)
+    cdef pop(self)
+    cdef clear(self)
 

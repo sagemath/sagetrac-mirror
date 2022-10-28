@@ -6,30 +6,30 @@ cdef class MatrixWindow:
     cdef object _cached_zero
 
     # YOU *REALLY SHOULD* OVERRIDE THESE:
-    cpdef add(MatrixWindow self, MatrixWindow A)
-    cpdef subtract(MatrixWindow self, MatrixWindow A)
-    cpdef set_to_sum(MatrixWindow self, MatrixWindow A, MatrixWindow B)
-    cpdef set_to_diff(MatrixWindow self, MatrixWindow A, MatrixWindow B)
-    cpdef set_to_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B)
-    cpdef add_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B)
-    cpdef subtract_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B)
+    cdef add(MatrixWindow self, MatrixWindow A)
+    cdef subtract(MatrixWindow self, MatrixWindow A)
+    cdef set_to_sum(MatrixWindow self, MatrixWindow A, MatrixWindow B)
+    cdef set_to_diff(MatrixWindow self, MatrixWindow A, MatrixWindow B)
+    cdef set_to_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B)
+    cdef add_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B)
+    cdef subtract_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B)
 
-    cpdef bint element_is_zero(MatrixWindow self, Py_ssize_t i, Py_ssize_t j)
-    cpdef set_to(MatrixWindow self, MatrixWindow A)
-    cpdef set_to_zero(MatrixWindow self)
+    cdef bint element_is_zero(MatrixWindow self, Py_ssize_t i, Py_ssize_t j)
+    cdef set_to(MatrixWindow self, MatrixWindow A)
+    cdef set_to_zero(MatrixWindow self)
 
     # FOR BETTER SPEED, OVERRIDE ANY SUBSET OF THESE (OPTIONAL):
-    cpdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, x)
-    cpdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j)
-    cpdef to_matrix(MatrixWindow self)
-    cpdef new_empty_window(MatrixWindow self, Py_ssize_t nrows, Py_ssize_t ncols)
+    cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, x)
+    cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j)
+    cdef to_matrix(MatrixWindow self)
+    cdef new_empty_window(MatrixWindow self, Py_ssize_t nrows, Py_ssize_t ncols)
 
     # NO BENEFIT TO OVERRIDING THESE:
-    cpdef MatrixWindow matrix_window(MatrixWindow self, Py_ssize_t row, Py_ssize_t col,
+    cdef MatrixWindow matrix_window(MatrixWindow self, Py_ssize_t row, Py_ssize_t col,
                                      Py_ssize_t n_rows, Py_ssize_t n_cols)
-    cpdef MatrixWindow new_matrix_window(MatrixWindow self, Matrix matrix,
+    cdef MatrixWindow new_matrix_window(MatrixWindow self, Matrix matrix,
                                         Py_ssize_t row, Py_ssize_t col,
                                          Py_ssize_t n_rows, Py_ssize_t n_cols)
-    cpdef matrix(MatrixWindow self)
-    cpdef swap_rows(MatrixWindow self, Py_ssize_t a, Py_ssize_t b)
+    cdef matrix(MatrixWindow self)
+    cdef swap_rows(MatrixWindow self, Py_ssize_t a, Py_ssize_t b)
     cdef object _zero(self)

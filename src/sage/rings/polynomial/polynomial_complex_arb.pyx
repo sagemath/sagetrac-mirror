@@ -227,7 +227,7 @@ cdef class Polynomial_complex_arb(Polynomial):
         acb_poly_get_coeff_acb(res.value, self.__poly, n)
         return res
 
-    cpdef list list(self, bint copy=True):
+    cdef list list(self, bint copy=True):
         r"""
         Return the coefficient list of this polynomial.
 
@@ -261,7 +261,7 @@ cdef class Polynomial_complex_arb(Polynomial):
 
     # Ring and Euclidean arithmetic
 
-    cpdef _add_(self, other):
+    cdef _add_(self, other):
         r"""
         Return the sum of two polynomials.
 
@@ -281,7 +281,7 @@ cdef class Polynomial_complex_arb(Polynomial):
         sig_off()
         return res
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         r"""
         Return the opposite of this polynomial.
 
@@ -297,7 +297,7 @@ cdef class Polynomial_complex_arb(Polynomial):
         sig_off()
         return res
 
-    cpdef _sub_(self, other):
+    cdef _sub_(self, other):
         r"""
         Return the difference of two polynomials.
 
@@ -317,7 +317,7 @@ cdef class Polynomial_complex_arb(Polynomial):
         sig_off()
         return res
 
-    cpdef _mul_(self, other):
+    cdef _mul_(self, other):
         r"""
         Return the product of two polynomials.
 
@@ -338,7 +338,7 @@ cdef class Polynomial_complex_arb(Polynomial):
         sig_off()
         return res
 
-    cpdef _lmul_(self, Element a):
+    cdef _lmul_(self, Element a):
         r"""
         TESTS::
 
@@ -358,7 +358,7 @@ cdef class Polynomial_complex_arb(Polynomial):
         sig_off()
         return res
 
-    cpdef _rmul_(self, Element a):
+    cdef _rmul_(self, Element a):
         r"""
         TESTS::
 
@@ -416,7 +416,7 @@ cdef class Polynomial_complex_arb(Polynomial):
 
     # Syntactic transformations
 
-    cpdef Polynomial truncate(self, long n):
+    cdef Polynomial truncate(self, long n):
         r"""
         Return the truncation to degree `n - 1` of this polynomial.
 
@@ -521,7 +521,7 @@ cdef class Polynomial_complex_arb(Polynomial):
 
     # Truncated and power series arithmetic
 
-    cpdef Polynomial _mul_trunc_(self, Polynomial other, long n):
+    cdef Polynomial _mul_trunc_(self, Polynomial other, long n):
         r"""
         Return the product of ``self`` and ``other``, truncated before degree `n`.
 
@@ -549,7 +549,7 @@ cdef class Polynomial_complex_arb(Polynomial):
         sig_off()
         return res
 
-    cpdef Polynomial inverse_series_trunc(self, long n):
+    cdef Polynomial inverse_series_trunc(self, long n):
         r"""
         Return the power series expansion at 0 of the inverse of this
         polynomial, truncated before degree `n`.
@@ -577,7 +577,7 @@ cdef class Polynomial_complex_arb(Polynomial):
         sig_off()
         return res
 
-    cpdef Polynomial _power_trunc(self, unsigned long expo, long n):
+    cdef Polynomial _power_trunc(self, unsigned long expo, long n):
         r"""
         Return a power of this polynomial, truncated before degree `n`.
 

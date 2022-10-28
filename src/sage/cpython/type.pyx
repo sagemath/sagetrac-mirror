@@ -12,7 +12,7 @@ except ImportError:
     pass
 
 
-cpdef bint can_assign_class(obj):
+cdef bint can_assign_class(obj):
     """
     Can we assign ``obj.__class__``?
 

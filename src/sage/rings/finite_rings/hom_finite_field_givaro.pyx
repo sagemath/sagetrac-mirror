@@ -97,7 +97,7 @@ cdef class SectionFiniteFieldHomomorphism_givaro(SectionFiniteFieldHomomorphism_
         self._codomain_cache = (<FiniteField_givaroElement>(self._codomain.gen()))._cache
 
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         TESTS::
 
@@ -175,7 +175,7 @@ cdef class FiniteFieldHomomorphism_givaro(FiniteFieldHomomorphism_generic):
         self._order_codomain = codomain.cardinality() - 1
 
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         TESTS::
 

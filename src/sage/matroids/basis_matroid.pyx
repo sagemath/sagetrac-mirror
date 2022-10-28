@@ -301,7 +301,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
 
     # a function that is very efficient for this class
 
-    cpdef _is_basis(self, X):
+    cdef _is_basis(self, X):
         """
         Test if input is a basis.
 
@@ -333,7 +333,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
 
     # dual and minors
 
-    cpdef dual(self):
+    cdef dual(self):
         r"""
         Return the dual of the matroid.
 
@@ -374,7 +374,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         D._bcount = self._bcount
         return D
 
-    cpdef _minor(self, contractions, deletions):
+    cdef _minor(self, contractions, deletions):
         """
         Return a minor.
 
@@ -411,7 +411,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         NB = [frozenset(B) for B in combinations(E, mr) if not self._is_basis(contractions | frozenset(B))]
         return BasisMatroid(groundset=E, nonbases=NB, rank=mr)
 
-    cpdef truncation(self):
+    cdef truncation(self):
         r"""
         Return a rank-1 truncation of the matroid.
 
@@ -444,7 +444,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             return None
         return BasisMatroid(groundset=self._E, nonbases=self.dependent_r_sets(self.full_rank() - 1), rank=self.full_rank() - 1)
 
-    cpdef _extension(self, e, H):
+    cdef _extension(self, e, H):
         r"""
         Extend the matroid by a new element.
 
@@ -496,7 +496,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         BE += BB
         return BasisMatroid(groundset=self._E + (e,), bases=BE)
 
-    cpdef _with_coloop(self, e):
+    cdef _with_coloop(self, e):
         r"""
         Return the matroid that arises by adding an element `e` to the
         groundset, that is a coloop of the resulting matroid.
@@ -523,7 +523,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         cdef frozenset se = frozenset([e])
         return BasisMatroid(groundset=self._E + (e,), bases=[B | se for B in self.bases()])
 
-    cpdef relabel(self, l):
+    cdef relabel(self, l):
         """
         Return an isomorphic matroid with relabeled groundset.
 
@@ -564,7 +564,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
 
     # enumeration
 
-    cpdef bases_count(self):
+    cdef bases_count(self):
         r"""
         Return the number of bases of the matroid.
 
@@ -584,7 +584,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             self._bcount = bitset_len(self._bb)
         return self._bcount
 
-    cpdef bases(self):
+    cdef bases(self):
         r"""
         Return the list of bases of the matroid.
 
@@ -615,7 +615,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             b = bitset_next(self._bb, b + 1)
         return BB
 
-    cpdef nonbases(self):
+    cdef nonbases(self):
         r"""
         Return the list of nonbases of the matroid.
 
@@ -660,7 +660,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
 
     # isomorphism test
 
-    cpdef _bases_invariant(self):
+    cdef _bases_invariant(self):
         """
         Return an isomorphism invariant based on the incidences of groundset
         elements with bases.
@@ -705,7 +705,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         self._bases_partition_var = SetSystem(self._E, [[self._E[e] for e in bi[c]] for c in sorted(bi)])
         return self._bases_invariant_var
 
-    cpdef _bases_partition(self):
+    cdef _bases_partition(self):
         """
         Return an ordered partition based on the incidences of groundset
         elements with bases.
@@ -720,7 +720,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         self._bases_invariant()
         return self._bases_partition_var
 
-    cpdef _bases_invariant2(self):
+    cdef _bases_invariant2(self):
         """
         Return an isomorphism invariant of the matroid.
 
@@ -747,7 +747,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             self._bases_invariant2_var = CP[2]
         return self._bases_invariant2_var
 
-    cpdef _bases_partition2(self):
+    cdef _bases_partition2(self):
         """
         Return an equitable partition which refines
         :meth:`<BasisMatroid._bases_partition2>`.
@@ -762,7 +762,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         self._bases_invariant2()
         return self._bases_partition2_var
 
-    cpdef _bases_invariant3(self):
+    cdef _bases_invariant3(self):
         """
         Return a number characteristic for the construction of
         :meth:`<BasisMatroid._bases_partition3>`.
@@ -781,7 +781,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             self._bases_invariant3_var = CP[2]
         return self._bases_invariant3_var
 
-    cpdef _bases_partition3(self):
+    cdef _bases_partition3(self):
         """
         Return an ordered partition into singletons which refines an equitable
         partition of the matroid.
@@ -819,7 +819,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         self._bases_partition3_var = None
         self._flush()
 
-    cpdef bint is_distinguished(self, e):
+    cdef bint is_distinguished(self, e):
         """
         Return whether ``e`` is a 'distinguished' element of the groundset.
 
@@ -866,7 +866,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
                 q = q2
         return e in q
 
-    cpdef _is_relaxation(self, other, morphism):
+    cdef _is_relaxation(self, other, morphism):
         """
         Return if the application of a groundset morphism to this matroid
         yields a relaxation of the given matroid.
@@ -923,7 +923,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         bitset_free(bb_comp)
         return True
 
-    cpdef _is_isomorphism(self, other, morphism):
+    cdef _is_isomorphism(self, other, morphism):
         """
         Version of is_isomorphism() that does no type checking.
 
@@ -958,7 +958,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             ot = other
         return self.bases_count() == (<BasisMatroid>ot).bases_count() and self._is_relaxation(ot, morphism)
 
-    cpdef _isomorphism(self, other):
+    cdef _isomorphism(self, other):
         """
         Return isomorphism from ``self`` to ``other``, if one exists.
 
@@ -1037,7 +1037,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
 
         return self.nonbases()._isomorphism(other.nonbases(), PS, PO)
 
-    cpdef _is_isomorphic(self, other, certificate=False):
+    cdef _is_isomorphic(self, other, certificate=False):
         """
         Return if this matroid is isomorphic to the given matroid.
 

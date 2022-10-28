@@ -89,14 +89,14 @@ cdef class PPLBackend(GenericBackend):
         else:
             self.set_sense(-1)
 
-    cpdef base_ring(self):
+    cdef base_ring(self):
         from sage.rings.rational_field import QQ
         return QQ
 
-    cpdef zero(self):
+    cdef zero(self):
         return self.base_ring()(0)
 
-    cpdef __copy__(self):
+    cdef __copy__(self):
         """
         Returns a copy of self.
 
@@ -240,7 +240,7 @@ cdef class PPLBackend(GenericBackend):
                 rhs = Rational(upper * denom)
                 self.mip.add_constraint(e * rhs.denominator() <= rhs.numerator())
 
-    cpdef int add_variable(self, lower_bound=0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0, name=None) except -1:
+    cdef int add_variable(self, lower_bound=0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0, name=None) except -1:
         """
         Add a variable.
 
@@ -309,7 +309,7 @@ cdef class PPLBackend(GenericBackend):
 
         return n
 
-    cpdef int add_variables(self, int n, lower_bound=0, upper_bound=None, binary=False, continuous=True, integer=False, obj=0, names=None) except -1:
+    cdef int add_variables(self, int n, lower_bound=0, upper_bound=None, binary=False, continuous=True, integer=False, obj=0, names=None) except -1:
         """
         Add ``n`` variables.
 
@@ -376,7 +376,7 @@ cdef class PPLBackend(GenericBackend):
                 self.col_name_var.append(None)
         return len(self.objective_function) - 1
 
-    cpdef  set_variable_type(self, int variable, int vtype):
+    cdef  set_variable_type(self, int variable, int vtype):
         """
         Set the type of a variable.
 
@@ -429,7 +429,7 @@ cdef class PPLBackend(GenericBackend):
         else:
             raise ValueError("Invalid variable type: {}".format(vtype))
 
-    cpdef set_sense(self, int sense):
+    cdef set_sense(self, int sense):
         """
         Set the direction (maximization/minimization).
 
@@ -455,7 +455,7 @@ cdef class PPLBackend(GenericBackend):
         else:
             self.is_maximize = 0
 
-    cpdef objective_coefficient(self, int variable, coeff=None):
+    cdef objective_coefficient(self, int variable, coeff=None):
         """
         Set or get the coefficient of a variable in the objective
         function
@@ -483,7 +483,7 @@ cdef class PPLBackend(GenericBackend):
         else:
             return self.objective_function[variable]
 
-    cpdef set_objective(self, list coeff, d=0):
+    cdef set_objective(self, list coeff, d=0):
         """
         Set the objective function.
 
@@ -525,7 +525,7 @@ cdef class PPLBackend(GenericBackend):
             self.objective_function[i] = coeff[i]
         self.obj_constant_term = Rational(d)
 
-    cpdef set_verbosity(self, int level):
+    cdef set_verbosity(self, int level):
         """
         Set the log (verbosity) level. Not Implemented.
 
@@ -536,7 +536,7 @@ cdef class PPLBackend(GenericBackend):
             sage: p.set_verbosity(0)
         """
 
-    cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
+    cdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """
         Add a linear constraint.
 
@@ -592,7 +592,7 @@ cdef class PPLBackend(GenericBackend):
         self.row_upper_bound.append(upper_bound)
         self.row_name_var.append(name)
 
-    cpdef add_col(self, indices, coeffs):
+    cdef add_col(self, indices, coeffs):
         """
         Add a column.
 
@@ -636,7 +636,7 @@ cdef class PPLBackend(GenericBackend):
         self.objective_function.append(0)
         self.col_name_var.append(None)
 
-    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
+    cdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
         """
         Add constraints.
 
@@ -673,7 +673,7 @@ cdef class PPLBackend(GenericBackend):
             else:
                 self.row_name_var.append(None)
 
-    cpdef int solve(self) except -1:
+    cdef int solve(self) except -1:
         # integer example copied from cplex_backend.pyx
         """
         Solve the problem.
@@ -726,7 +726,7 @@ cdef class PPLBackend(GenericBackend):
 
         return 0
 
-    cpdef get_objective_value(self):
+    cdef get_objective_value(self):
         """
         Return the exact value of the objective function.
 
@@ -761,7 +761,7 @@ cdef class PPLBackend(GenericBackend):
         ans = Rational(self.mip.optimal_value())
         return ans / self.obj_denominator + self.obj_constant_term
 
-    cpdef get_variable_value(self, int variable):
+    cdef get_variable_value(self, int variable):
         """
         Return the value of a variable given by the solver.
 
@@ -789,7 +789,7 @@ cdef class PPLBackend(GenericBackend):
         g = self.mip.optimizing_point()
         return Integer(g.coefficient(Variable(variable))) / Integer(g.divisor())
 
-    cpdef int ncols(self):
+    cdef int ncols(self):
         """
         Return the number of columns/variables.
 
@@ -806,7 +806,7 @@ cdef class PPLBackend(GenericBackend):
         """
         return len(self.objective_function)
 
-    cpdef int nrows(self):
+    cdef int nrows(self):
         """
         Return the number of rows/constraints.
 
@@ -822,7 +822,7 @@ cdef class PPLBackend(GenericBackend):
         """
         return len(self.Matrix)
 
-    cpdef bint is_maximization(self):
+    cdef bint is_maximization(self):
         """
         Test whether the problem is a maximization
 
@@ -841,7 +841,7 @@ cdef class PPLBackend(GenericBackend):
         else:
             return 0
 
-    cpdef problem_name(self, name=None):
+    cdef problem_name(self, name=None):
         """
         Return or define the problem's name
 
@@ -862,7 +862,7 @@ cdef class PPLBackend(GenericBackend):
             return self.name
         self.name = name
 
-    cpdef row(self, int i):
+    cdef row(self, int i):
         """
         Return a row
 
@@ -897,7 +897,7 @@ cdef class PPLBackend(GenericBackend):
                 coef.append(self.Matrix[i][j])
         return (idx, coef)
 
-    cpdef row_bounds(self, int index):
+    cdef row_bounds(self, int index):
         """
         Return the bounds of a specific constraint.
 
@@ -925,7 +925,7 @@ cdef class PPLBackend(GenericBackend):
         """
         return (self.row_lower_bound[index], self.row_upper_bound[index])
 
-    cpdef col_bounds(self, int index):
+    cdef col_bounds(self, int index):
         """
         Return the bounds of a specific variable.
 
@@ -954,7 +954,7 @@ cdef class PPLBackend(GenericBackend):
         return (self.col_lower_bound[index], self.col_upper_bound[index])
 
 
-    cpdef bint is_variable_binary(self, int index):
+    cdef bint is_variable_binary(self, int index):
         """
         Test whether the given variable is of binary type.
 
@@ -975,7 +975,7 @@ cdef class PPLBackend(GenericBackend):
         """
         return index in self.integer_variables and self.col_bounds(index) == (0, 1)
 
-    cpdef bint is_variable_integer(self, int index):
+    cdef bint is_variable_integer(self, int index):
         """
         Test whether the given variable is of integer type.
 
@@ -996,7 +996,7 @@ cdef class PPLBackend(GenericBackend):
         """
         return index in self.integer_variables and self.col_bounds(index) != (0, 1)
 
-    cpdef bint is_variable_continuous(self, int index):
+    cdef bint is_variable_continuous(self, int index):
         """
         Test whether the given variable is of continuous/real type.
 
@@ -1017,7 +1017,7 @@ cdef class PPLBackend(GenericBackend):
         """
         return index not in self.integer_variables
 
-    cpdef row_name(self, int index):
+    cdef row_name(self, int index):
         """
         Return the ``index`` th row name
 
@@ -1037,7 +1037,7 @@ cdef class PPLBackend(GenericBackend):
             return self.row_name_var[index]
         return "constraint_" + repr(index)
 
-    cpdef col_name(self, int index):
+    cdef col_name(self, int index):
         """
         Return the ``index`` th col name
 
@@ -1061,7 +1061,7 @@ cdef class PPLBackend(GenericBackend):
             return self.col_name_var[index]
         return "x_" + repr(index)
 
-    cpdef variable_upper_bound(self, int index, value = False):
+    cdef variable_upper_bound(self, int index, value = False):
         """
         Return or define the upper bound on a variable
 
@@ -1093,7 +1093,7 @@ cdef class PPLBackend(GenericBackend):
         else:
             return self.col_upper_bound[index]
 
-    cpdef variable_lower_bound(self, int index, value = False):
+    cdef variable_lower_bound(self, int index, value = False):
         """
         Return or define the lower bound on a variable
 

@@ -1,1 +1,1 @@
-cpdef search(object v, object x)
+cdef search(object v, object x)

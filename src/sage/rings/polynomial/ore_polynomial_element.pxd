@@ -9,13 +9,13 @@ cdef class OrePolynomial(AlgebraElement):
 
     cdef long _hash_c(self)
     cdef OrePolynomial _new_c(self, list coeffs, Parent P, char check=*)
-    cpdef OrePolynomial _new_constant_poly(self, RingElement a, Parent P, char check=*)
-    cpdef _neg_(self)
-    cpdef _floordiv_(self, right)
-    cpdef _mod_(self, right)
+    cdef OrePolynomial _new_constant_poly(self, RingElement a, Parent P, char check=*)
+    cdef _neg_(self)
+    cdef _floordiv_(self, right)
+    cdef _mod_(self, right)
 
-    cpdef bint is_zero(self)
-    cpdef bint is_one(self)
+    cdef bint is_zero(self)
+    cdef bint is_one(self)
  
     cdef _left_quo_rem(self, OrePolynomial other)
     cdef _right_quo_rem(self, OrePolynomial other)
@@ -23,8 +23,8 @@ cdef class OrePolynomial(AlgebraElement):
     cdef OrePolynomial _right_lcm_cofactor(self, OrePolynomial other)
 
     # Abstract methods
-    cpdef int degree(self)
-    cpdef list coefficients(self, sparse=*)
+    cdef int degree(self)
+    cdef list coefficients(self, sparse=*)
 
 
 cdef void lmul_gen(list A, Morphism m, d)
@@ -33,12 +33,12 @@ cdef class OrePolynomial_generic_dense(OrePolynomial):
     cdef list _coeffs
 
     cdef void __normalize(self)
-    cpdef _add_(self, other)
+    cdef _add_(self, other)
     cdef list _mul_list(self, list A)
-    cpdef _mul_(self, other)
+    cdef _mul_(self, other)
 
-    cpdef dict dict(self)
-    cpdef list list(self, bint copy=*)
+    cdef dict dict(self)
+    cdef list list(self, bint copy=*)
 
 
 cdef class OrePolynomialBaseringInjection(Morphism):

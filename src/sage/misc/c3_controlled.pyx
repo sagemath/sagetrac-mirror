@@ -654,7 +654,7 @@ def C3_merge(list lists):
             raise ValueError("Cannot merge the items %s."%', '.join(repr(head) for head in heads))
     return out
 
-cpdef identity(x):
+cdef identity(x):
     r"""
     EXAMPLES::
 
@@ -664,7 +664,7 @@ cpdef identity(x):
     """
     return x
 
-cpdef tuple C3_sorted_merge(list lists, key=identity):
+cdef tuple C3_sorted_merge(list lists, key=identity):
     r"""
     Return the sorted input lists merged using the ``C3`` algorithm, with a twist.
 

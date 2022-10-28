@@ -154,7 +154,7 @@ cdef class Dist(ModuleElement):
         """
         return self.parent().prime() ** (self.ordp) * self._moments
 
-    cpdef normalize(self, include_zeroth_moment=True):
+    cdef normalize(self, include_zeroth_moment=True):
         r"""
         Normalize so that the precision of the `i`-th moment is `n-i`,
         where `n` is the number of moments.
@@ -180,7 +180,7 @@ cdef class Dist(ModuleElement):
     cdef _unscaled_moment(self, long i):
         raise NotImplementedError
 
-    cpdef long _ord_p(self):
+    cdef long _ord_p(self):
         r"""
         Return power of `p` by which the moments are shifted.
 
@@ -499,7 +499,7 @@ cdef class Dist(ModuleElement):
                 pass
         return alpha
 
-    cpdef _richcmp_(_left, _right, int op):
+    cdef _richcmp_(_left, _right, int op):
         r"""
         Comparison.
 
@@ -952,7 +952,7 @@ cdef class Dist_vector(Dist):
         ans._moments = smoments + rmoments
         return ans
 
-    cpdef _add_(self, _right):
+    cdef _add_(self, _right):
         r"""
         Sum of two distributions.
 
@@ -965,7 +965,7 @@ cdef class Dist_vector(Dist):
         """
         return self._addsub(<Dist_vector>_right, False)
 
-    cpdef _sub_(self, _right):
+    cdef _sub_(self, _right):
         r"""
         Difference of two distributions.
 
@@ -978,7 +978,7 @@ cdef class Dist_vector(Dist):
         """
         return self._addsub(<Dist_vector>_right, True)
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         r"""
         Scalar product of a distribution with a ring element that coerces into the base ring.
 
@@ -1062,7 +1062,7 @@ cdef class Dist_vector(Dist):
         """
         return Integer(len(self._moments) + self.ordp)
 
-    cpdef normalize(self, include_zeroth_moment=True):
+    cdef normalize(self, include_zeroth_moment=True):
         r"""
         Normalize by reducing modulo `Fil^N`, where `N` is the number of moments.
 
@@ -1288,7 +1288,7 @@ cdef class WeightKAction(Action):
         self._actmat = {}
         self._maxprecs = {}
 
-    cpdef acting_matrix(self, g, M):
+    cdef acting_matrix(self, g, M):
         r"""
         The matrix defining the action of ``g`` at precision ``M``.
 
@@ -1346,7 +1346,7 @@ cdef class WeightKAction(Action):
             mats[M] = A
             return A
 
-    cpdef _compute_acting_matrix(self, g, M):
+    cdef _compute_acting_matrix(self, g, M):
         r"""
         Compute the matrix defining the action of ``g`` at precision ``M``.
 
@@ -1375,7 +1375,7 @@ cdef class WeightKAction(Action):
 
 
 cdef class WeightKAction_vector(WeightKAction):
-    cpdef _compute_acting_matrix(self, g, M):
+    cdef _compute_acting_matrix(self, g, M):
         r"""
         Compute the matrix defining the action of ``g`` at precision ``M``.
 
@@ -1437,7 +1437,7 @@ cdef class WeightKAction_vector(WeightKAction):
             B *= (a * d - b * c) ** (self._dettwist)
         return B
 
-    cpdef _act_(self, g, _v):
+    cdef _act_(self, g, _v):
         r"""
         The right action of ``g`` on a distribution.
 

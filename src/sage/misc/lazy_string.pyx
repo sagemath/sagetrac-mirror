@@ -503,7 +503,7 @@ cdef class _LazyString():
         except Exception:
             return '<%s broken>' % self.__class__.__name__
 
-    cpdef update_lazy_string(self, args, kwds):
+    cdef update_lazy_string(self, args, kwds):
         """
         Change this lazy string in-place.
 

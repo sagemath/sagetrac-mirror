@@ -499,7 +499,7 @@ cdef class Context:
 
     _prec_rounding = property(_get_prec_rounding)
 
-    cpdef mpf make_mpf(ctx, tuple v):
+    cdef mpf make_mpf(ctx, tuple v):
         """
         Creates an mpf from tuple data ::
 
@@ -512,7 +512,7 @@ cdef class Context:
         MPF_set_tuple(&x.value, v)
         return x
 
-    cpdef mpc make_mpc(ctx, tuple v):
+    cdef mpc make_mpc(ctx, tuple v):
         """
         Creates an mpc from tuple data ::
 

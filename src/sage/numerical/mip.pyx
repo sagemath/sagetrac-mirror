@@ -873,7 +873,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         return tuple(self.new_variable() for i in range(n))
 
-    cpdef int number_of_constraints(self):
+    cdef int number_of_constraints(self):
         r"""
         Return the number of constraints assigned so far.
 
@@ -887,7 +887,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         return self._backend.nrows()
 
-    cpdef int number_of_variables(self):
+    cdef int number_of_variables(self):
         r"""
         Returns the number of variables used so far.
 
@@ -2779,7 +2779,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         else:
             self._backend.solver_parameter(name, value)
 
-    cpdef sum(self, L):
+    cdef sum(self, L):
         r"""
         Efficiently computes the sum of a sequence of
         :class:`~sage.numerical.linear_functions.LinearFunction` elements

@@ -34,8 +34,8 @@ cdef object si2sa_intvec(intvec *v)
 cdef object si2sa(number *n, ring *_ring, object base)
 
 cdef list singular_monomial_exponents(poly *p, ring *r)
-cpdef list si2sa_resolution(Resolution res)
-cpdef tuple si2sa_resolution_graded(Resolution res, tuple degrees)
+cdef list si2sa_resolution(Resolution res)
+cdef tuple si2sa_resolution_graded(Resolution res, tuple degrees)
 
 # ======================================
 # Conversion from Sage to Singular types

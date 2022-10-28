@@ -46,7 +46,7 @@ the name that the wrapped method or function should have,
 since otherwise the name of the original function would
 be used::
 
-    sage: cython('''cpdef test_funct(x): return -x''')                          # optional - sage.misc.cython
+    sage: cython('''cdef test_funct(x): return -x''')                          # optional - sage.misc.cython
     sage: wrapped_funct = cached_function(test_funct, name='wrapped_funct')     # optional - sage.misc.cython
     sage: wrapped_funct                                                         # optional - sage.misc.cython
     Cached version of <built-in function test_funct>
@@ -64,9 +64,9 @@ attribute ``__cached_methods`` of type ``<dict>``. Since
 :class:`~sage.structure.parent.Parent`. See below for a more explicit
 example. By :trac:`12951`, cached methods of extension classes can
 be defined by simply using the decorator. However, an indirect
-approach is still needed for cpdef methods::
+approach is still needed for cdef methods::
 
-    sage: cython_code = ['cpdef test_meth(self,x):',
+    sage: cython_code = ['cdef test_meth(self,x):',
     ....: '    "some doc for a wrapped cython method"',
     ....: '    return -x',
     ....: 'from sage.all import cached_method',
@@ -156,7 +156,7 @@ hardly by used.
     ....: "        return '<%s>'%self.x",
     ....: "    def __hash__(self):",
     ....: "        return hash(self.x)",
-    ....: "    cpdef _richcmp_(left, right, int op):",
+    ....: "    cdef _richcmp_(left, right, int op):",
     ....: "        return PyObject_RichCompare(left.x, right.x, op)",
     ....: "    def raw_test(self):",
     ....: "        return -self",
@@ -171,7 +171,7 @@ hardly by used.
     ....: "        return '<%s>'%self.x",
     ....: "    def __hash__(self):",
     ....: "        return hash(self.x)",
-    ....: "    cpdef _richcmp_(left, right, int op):",
+    ....: "    cdef _richcmp_(left, right, int op):",
     ....: "        return PyObject_RichCompare(left.x, right.x, op)",
     ....: "    def raw_test(self):",
     ....: "        return -self",
@@ -256,7 +256,7 @@ Introspection works::
     Some doc for direct method
     <BLANKLINE>
     sage: print(sage_getsource(O.wrapped_method))                               # optional - sage.misc.cython
-    cpdef test_meth(self,x):
+    cdef test_meth(self,x):
         "some doc for a wrapped cython method"
         return -x
     sage: print(sage_getsource(O.direct_method))                                # optional - sage.misc.cython
@@ -520,7 +520,7 @@ cdef class NonpicklingDict(dict):
 
 cdef unhashable_key = object()
 
-cpdef inline dict_key(o):
+cdef inline dict_key(o):
     """
     Return a key to cache object ``o`` in a dict.
 
@@ -545,7 +545,7 @@ cpdef inline dict_key(o):
     return o
 
 
-cpdef inline cache_key(o):
+cdef inline cache_key(o):
     r"""
     Helper function to return a hashable key for ``o`` which can be used for
     caching.
@@ -2714,7 +2714,7 @@ cdef class CachedMethod():
         """
         return self.__get__(inst)(*args, **kwds)
 
-    cpdef _get_instance_cache(self, inst):
+    cdef _get_instance_cache(self, inst):
         """
         Return the cache dictionary.
 
@@ -3204,7 +3204,7 @@ cdef class CachedInParentMethod(CachedMethod):
         self._cache_name = '_cache__' + 'element_' + (name or f.__name__)
         self._cachedfunc = CachedFunction(f, classmethod=True, name=name, key=key, do_pickle=do_pickle)
 
-    cpdef _get_instance_cache(self, inst):
+    cdef _get_instance_cache(self, inst):
         """
         Return the cache dictionary, which is stored in the parent.
 

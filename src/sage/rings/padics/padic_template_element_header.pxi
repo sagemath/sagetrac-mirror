@@ -43,7 +43,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
     cdef int _get_unit(self, celement value) except -1
     cdef pAdicTemplateElement _lshift_c(self, long shift)
     cdef pAdicTemplateElement _rshift_c(self, long shift)
-    #cpdef RingElement _floordiv_c_impl(self, RingElement right)
+    #cdef RingElement _floordiv_c_impl(self, RingElement right)
     cdef int check_preccap(self) except -1
     cdef pAdicTemplateElement lift_to_precision_c(self, long absprec)
-    cpdef pAdicTemplateElement unit_part(self)
+    cdef pAdicTemplateElement unit_part(self)

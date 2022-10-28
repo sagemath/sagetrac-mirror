@@ -865,7 +865,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         else:
             return self._viterbi(obs)
 
-    cpdef _viterbi(self, IntList obs):
+    cdef _viterbi(self, IntList obs):
         """
         Used internally to compute the viterbi path, without
         rescaling.  This can be useful for short sequences.
@@ -945,7 +945,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         return state_sequence, log(mx)
 
 
-    cpdef _viterbi_scale(self, IntList obs):
+    cdef _viterbi_scale(self, IntList obs):
         """
         Used internally to compute the viterbi path with rescaling.
 

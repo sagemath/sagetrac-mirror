@@ -172,7 +172,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         """
         return hash(self.v) + hash(self.perm) + hash(self.get_autom())
 
-    cpdef _mul_(left, _right):
+    cdef _mul_(left, _right):
         r"""
         Multiplication of elements.
 
@@ -246,7 +246,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         return "(%s; %s, %s)"%(self.v, self.perm.cycle_string(),
                                self.get_autom())
 
-    cpdef _richcmp_(left, _right, int op):
+    cdef _richcmp_(left, _right, int op):
         """
         Compare group elements ``self`` and ``right``.
 

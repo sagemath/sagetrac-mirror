@@ -376,7 +376,7 @@ cdef class NumberField(Field):
             self._gen_approx = []
             self._embedded_real = 1
 
-    cpdef _get_embedding_approx(self, size_t i):
+    cdef _get_embedding_approx(self, size_t i):
         r"""
         Return an interval approximation of the generator of this number field.
 

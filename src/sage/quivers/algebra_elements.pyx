@@ -330,7 +330,7 @@ cdef class PathAlgebraElement(RingElement):
             H = H.nxt
         return l
 
-    cpdef ssize_t degree(self) except -2:
+    cdef ssize_t degree(self) except -2:
         """
         Return the degree, provided the element is homogeneous.
 
@@ -402,7 +402,7 @@ cdef class PathAlgebraElement(RingElement):
             H = H.nxt
         return True
 
-    cpdef dict monomial_coefficients(self):
+    cdef dict monomial_coefficients(self):
         """
         Return the dictionary keyed by the monomials appearing
         in this element, the values being the coefficients.
@@ -451,7 +451,7 @@ cdef class PathAlgebraElement(RingElement):
             H = H.nxt
         return D
 
-    cpdef list coefficients(self):
+    cdef list coefficients(self):
         """
         Return the list of coefficients.
 
@@ -485,7 +485,7 @@ cdef class PathAlgebraElement(RingElement):
             H = H.nxt
         return L
 
-    cpdef list monomials(self):
+    cdef list monomials(self):
         """
         Return the list of monomials appearing in this element.
 
@@ -547,7 +547,7 @@ cdef class PathAlgebraElement(RingElement):
             H = H.nxt
         return L
 
-    cpdef list terms(self):
+    cdef list terms(self):
         """
         Return the list of terms.
 
@@ -601,7 +601,7 @@ cdef class PathAlgebraElement(RingElement):
             H = H.nxt
         return L
 
-    cpdef list support(self):
+    cdef list support(self):
         """
         Return the list of monomials, as elements of the underlying partial semigroup.
 
@@ -686,7 +686,7 @@ cdef class PathAlgebraElement(RingElement):
                 return tmp
         raise ValueError("{} is not a single term".format(self))
 
-    cpdef object coefficient(self, QuiverPath P):
+    cdef object coefficient(self, QuiverPath P):
         """
         Return the coefficient of a monomial.
 
@@ -942,7 +942,7 @@ cdef class PathAlgebraElement(RingElement):
             self._hash = hash(frozenset(self.monomial_coefficients().items()))
         return self._hash
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Helper for comparison of path algebra elements.
 
@@ -1001,7 +1001,7 @@ cdef class PathAlgebraElement(RingElement):
         return rich_to_bool(op, 1)
 
     # negation
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         EXAMPLES::
 
@@ -1015,7 +1015,7 @@ cdef class PathAlgebraElement(RingElement):
         return self._new_(homog_poly_neg(self.data))
 
     # addition
-    cpdef _add_(self, other):
+    cdef _add_(self, other):
         """
         EXAMPLES::
 
@@ -1091,7 +1091,7 @@ cdef class PathAlgebraElement(RingElement):
                     H1 = H1.nxt
                     H2 = H2.nxt
 
-    cpdef _sub_(self, other):
+    cdef _sub_(self, other):
         """
         EXAMPLES::
 
@@ -1180,7 +1180,7 @@ cdef class PathAlgebraElement(RingElement):
 
 # (scalar) multiplication
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -1210,7 +1210,7 @@ cdef class PathAlgebraElement(RingElement):
             return self._new_(outnxt)
         return self._new_(out)
 
-    cpdef _rmul_(self, Element left):
+    cdef _rmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -1277,7 +1277,7 @@ cdef class PathAlgebraElement(RingElement):
 
 # Multiplication in the algebra
 
-    cpdef _mul_(self, other):
+    cdef _mul_(self, other):
         """
         EXAMPLES::
 
@@ -1385,7 +1385,7 @@ cdef class PathAlgebraElement(RingElement):
                 tmp = tmp.nxt
         return self._new_(out_orig)
 
-cpdef PathAlgebraElement path_algebra_element_unpickle(P, list data):
+cdef PathAlgebraElement path_algebra_element_unpickle(P, list data):
     """
     Auxiliary function for unpickling.
 

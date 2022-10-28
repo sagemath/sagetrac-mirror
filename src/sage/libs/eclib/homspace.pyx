@@ -77,7 +77,7 @@ cdef class ModularSymbols:
             'Cuspidal ' if self.is_cuspidal() else '',
             self.dimension(), self.level(), self.sign())
 
-    #cpdef long level(self):
+    #cdef long level(self):
     def level(self):
         """
         Return the level of this modular symbols space.
@@ -90,7 +90,7 @@ cdef class ModularSymbols:
         """
         return self.H.modulus
 
-    #cpdef int dimension(self):
+    #cdef int dimension(self):
     def dimension(self):
         """
         Return the dimension of this modular symbols space.
@@ -119,7 +119,7 @@ cdef class ModularSymbols:
         """
         return self.H.h1ncusps()
 
-    #cpdef int sign(self):
+    #cdef int sign(self):
     def sign(self):
         """
         Return the sign of this Cremona modular symbols space.  The sign is either 0, +1 or -1.
@@ -141,7 +141,7 @@ cdef class ModularSymbols:
         """
         return self.H.plusflag
 
-    #cpdef bint is_cuspidal(self):
+    #cdef bint is_cuspidal(self):
     def is_cuspidal(self):
         """
         Return whether or not this space is cuspidal.

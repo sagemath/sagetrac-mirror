@@ -84,7 +84,7 @@ cdef class LeftZeroSemigroupElement(Element):
         """
         return LeftZeroSemigroupElement, (self._parent, self._value)
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         EXAMPLES::
 
@@ -99,7 +99,7 @@ cdef class LeftZeroSemigroupElement(Element):
         right = (<LeftZeroSemigroupElement>other)._value
         return PyObject_RichCompare(left, right, op)
 
-    cpdef _mul_(self, other):
+    cdef _mul_(self, other):
         """
         EXAMPLES::
 

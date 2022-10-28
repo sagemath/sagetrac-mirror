@@ -391,7 +391,7 @@ cdef inline linbox_charpoly(celement modulus, Py_ssize_t nrows, celement* entrie
     return l
 
 
-cpdef __matrix_from_rows_of_matrices(X):
+cdef __matrix_from_rows_of_matrices(X):
     """
     Return a matrix whose row ``i`` is constructed from the entries of
     matrix ``X[i]``.
@@ -792,7 +792,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         sig_off()
         return M
 
-    cpdef _lmul_(self, Element left):
+    cdef _lmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -846,7 +846,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         return A
 
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Add two dense matrices over `\Z/n\Z`
 
@@ -890,7 +890,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         return M
 
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         r"""
         Subtract two dense matrices over `\Z/n\Z`
 
@@ -926,7 +926,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         sig_off()
         return M
 
-    cpdef _richcmp_(self, right, int op):
+    cdef _richcmp_(self, right, int op):
         r"""
         Compare two dense matrices over `\Z/n\Z`.
 
@@ -2656,7 +2656,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         return 'Matrix(%s,%s,%s,StringToIntegerSequence("%s"))'%(
             s, self._nrows, self._ncols, self._export_as_string())
 
-    cpdef _export_as_string(self):
+    cdef _export_as_string(self):
         """
         Return space separated string of the entries in this matrix.
 

@@ -312,7 +312,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         """
         return self._exponent
 
-    cpdef _mul_(self, other):
+    cdef _mul_(self, other):
         r"""
         Return the product of this Tate algebra term with ``other``.
 
@@ -388,7 +388,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             c = (ks > ko) - (ks < ko)
         return c
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         r"""
         Compare the Tate algebra term with ``other`` according to
         the rich comparison operator ``op``.
@@ -449,7 +449,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         c = (<TateAlgebraTerm>self)._cmp_c(<TateAlgebraTerm>other)
         return rich_to_bool_sgn(op, c)
 
-    cpdef TateAlgebraTerm monomial(self):
+    cdef TateAlgebraTerm monomial(self):
         r"""
         Return this term divided by its coefficient.
 
@@ -469,7 +469,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         ans._exponent = self._exponent
         return ans
 
-    cpdef TateAlgebraTerm monic(self):
+    cdef TateAlgebraTerm monic(self):
         r"""
         Return this term normalized so that it has valuation 0
         and its coefficient is a power of the uniformizer.
@@ -983,7 +983,7 @@ cdef class TateAlgebraTerm(MonoidElement):
                 return False
         return True
 
-    cpdef _floordiv_(self, other):
+    cdef _floordiv_(self, other):
         r"""
         Return the result of the exact division of this term by ``other``.
 
@@ -1284,7 +1284,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 s += "O\\left(%s^{%s} %s\\right)" % (self._parent._uniformizer_latex, self._prec, self._parent.integer_ring()._latex_())
         return s
 
-    cpdef _add_(self, other):
+    cdef _add_(self, other):
         r"""
         Return the sum of this series and ``other``.
 
@@ -1319,7 +1319,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ans._normalize()
         return ans
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         r"""
         Return the opposite of this series.
 
@@ -1339,7 +1339,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ans._prec = self._prec
         return ans
 
-    cpdef _sub_(self, other):
+    cdef _sub_(self, other):
         r"""
         Return the difference of this series and ``other``.
 
@@ -1372,7 +1372,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ans._normalize()
         return ans
 
-    cpdef _mul_(self, other):
+    cdef _mul_(self, other):
         r"""
         Return the product of this series with ``other``.
 
@@ -1407,7 +1407,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ans._normalize()
         return ans
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         r"""
         Return the product of this series by ``right``.
 
@@ -1788,7 +1788,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return root
 
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         r"""
         Compare this series with ``other`` according to
         the rich comparison operator ``op``.
@@ -2457,7 +2457,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         return self._prec
 
-    cpdef valuation(self):
+    cdef valuation(self):
         r"""
         Return the valuation of this series.
 
@@ -2945,7 +2945,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         return self.leading_term(secure=secure).monomial()
 
-    cpdef TateAlgebraElement monic(self):
+    cdef TateAlgebraElement monic(self):
         r"""
         Return this series normalized so that it has valuation 0
         and its leading coefficient is a power of the uniformizer.

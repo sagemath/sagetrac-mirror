@@ -24,9 +24,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
     cdef int _normalize(self) except -1
     cdef pAdicZZpXCRElement _lshift_c(self, long n)
     cdef pAdicZZpXCRElement _rshift_c(self, long n)
-    cpdef pAdicZZpXCRElement unit_part(self)
-    cpdef ntl_ZZ_pX _ntl_rep_unnormalized(self)
-    cpdef _ntl_rep_abs(self)
-    cpdef ntl_ZZ_pX _ntl_rep(self)
+    cdef pAdicZZpXCRElement unit_part(self)
+    cdef ntl_ZZ_pX _ntl_rep_unnormalized(self)
+    cdef _ntl_rep_abs(self)
+    cdef ntl_ZZ_pX _ntl_rep(self)
 
-    cpdef pAdicZZpXCRElement lift_to_precision(self, absprec=*)
+    cdef pAdicZZpXCRElement lift_to_precision(self, absprec=*)

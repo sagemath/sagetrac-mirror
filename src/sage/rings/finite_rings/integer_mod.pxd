@@ -27,9 +27,9 @@ cdef class IntegerMod_abstract(FiniteRingElement):
     cdef void set_from_long(self, long value)
     cdef void set_from_ulong_fast(self, unsigned long value)
     cdef bint is_square_c(self) except -2
-    cpdef bint is_one(self)
-    cpdef bint is_unit(self)
-    cpdef _floordiv_(self, other)
+    cdef bint is_one(self)
+    cdef bint is_unit(self)
+    cdef _floordiv_(self, other)
 
 cdef class IntegerMod_gmp(IntegerMod_abstract):
     cdef mpz_t value

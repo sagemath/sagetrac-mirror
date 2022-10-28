@@ -304,7 +304,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
     cdef _pickle_version0(self):
         return self._export_as_string(32)
 
-    cpdef _export_as_string(self, int base=10):
+    cdef _export_as_string(self, int base=10):
         """
         Return space separated string of the entries in this matrix, in the
         given base. This is optimized for speed.
@@ -393,7 +393,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
     # x * cdef _add_
     # x * cdef _mul_
     # x * cdef _vector_times_matrix_
-    # x * cpdef _richcmp_
+    # x * cdef _richcmp_
     # x * __neg__
     #   * __invert__
     # x * __copy__
@@ -402,7 +402,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -421,7 +421,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         fmpq_clear(x)
         return M
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Add two dense matrices over QQ.
 
@@ -444,7 +444,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         sig_off()
         return ans
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Subtract two dense matrices over QQ.
 
@@ -465,7 +465,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         sig_off()
         return ans
 
-    cpdef _richcmp_(self, right, int op):
+    cdef _richcmp_(self, right, int op):
         r"""
         TESTS::
 

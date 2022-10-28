@@ -11,8 +11,8 @@ cdef class Map(Element):
     cdef dict _extra_slots(self)
 
     # these methods require x is an element of domain, and returns an element with parent codomain
-    cpdef Element _call_(self, x)
-    cpdef Element _call_with_args(self, x, args=*, kwds=*)
+    cdef Element _call_(self, x)
+    cdef Element _call_with_args(self, x, args=*, kwds=*)
 
     cdef public domain    # will be either a weakref or a constant map
     cdef public codomain  # will be a constant map
@@ -22,7 +22,7 @@ cdef class Map(Element):
     cdef public _repr_type_str
     cdef public bint _is_coercion
 
-    cpdef _pow_int(self, n)
+    cdef _pow_int(self, n)
 
 
 cdef class Section(Map):

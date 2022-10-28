@@ -566,7 +566,7 @@ cdef class SemidefiniteProgram(SageObject):
         """
         return self.linear_functions_parent().gen(i)
 
-    cpdef int number_of_constraints(self):
+    cdef int number_of_constraints(self):
         r"""
         Returns the number of constraints assigned so far.
 
@@ -588,7 +588,7 @@ cdef class SemidefiniteProgram(SageObject):
         """
         return self._backend.nrows()
 
-    cpdef int number_of_variables(self):
+    cdef int number_of_variables(self):
         r"""
         Returns the number of variables used so far.
 
@@ -960,7 +960,7 @@ cdef class SemidefiniteProgram(SageObject):
         return self._backend.get_objective_value()
 
 
-    cpdef dual_variable(self, int i, sparse=False):
+    cdef dual_variable(self, int i, sparse=False):
         """
         The `i`-th dual variable.
 
@@ -1009,7 +1009,7 @@ cdef class SemidefiniteProgram(SageObject):
         """
         return self._backend.dual_variable(i, sparse=sparse)
 
-    cpdef slack(self, int i, sparse=False):
+    cdef slack(self, int i, sparse=False):
         """
         Slack of the `i`-th constraint
 
@@ -1102,7 +1102,7 @@ cdef class SemidefiniteProgram(SageObject):
         else:
             self._backend.solver_parameter(name, value)
 
-    cpdef sum(self, L):
+    cdef sum(self, L):
         r"""
         Efficiently computes the sum of a sequence of
         :class:`~sage.numerical.linear_functions.LinearFunction` elements.
@@ -1353,7 +1353,7 @@ cdef class SDPVariable(Element):
         T = self._p.linear_functions_parent().tensor(V)
         return T(result)
 
-    cpdef _acted_upon_(self, mat, bint self_on_left):
+    cdef _acted_upon_(self, mat, bint self_on_left):
         """
         Act with matrices on SDPVariables.
 

@@ -1537,7 +1537,7 @@ cdef class ComplexBall(RingElement):
 
     # Conversions
 
-    cpdef ComplexIntervalFieldElement _complex_mpfi_(self, parent):
+    cdef ComplexIntervalFieldElement _complex_mpfi_(self, parent):
         """
         Return :class:`ComplexIntervalFieldElement` of the same value.
 
@@ -1796,7 +1796,7 @@ cdef class ComplexBall(RingElement):
 
     # Real and imaginary part, midpoint, radius
 
-    cpdef RealBall real(self):
+    cdef RealBall real(self):
         """
         Return the real part of this ball.
 
@@ -1817,7 +1817,7 @@ cdef class ComplexBall(RingElement):
         arb_set(r.value, acb_realref(self.value))
         return r
 
-    cpdef RealBall imag(self):
+    cdef RealBall imag(self):
         """
         Return the imaginary part of this ball.
 
@@ -2322,7 +2322,7 @@ cdef class ComplexBall(RingElement):
         """
         return acb_is_real(self.value)
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Compare ``left`` and ``right``.
 
@@ -2611,7 +2611,7 @@ cdef class ComplexBall(RingElement):
         acb_conj(res.value, self.value)
         return res
 
-    cpdef _add_(self, other):
+    cdef _add_(self, other):
         """
         Return the sum of two balls, rounded to the ambient field's precision.
 
@@ -2629,7 +2629,7 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    cpdef _sub_(self, other):
+    cdef _sub_(self, other):
         """
         Return the difference of two balls, rounded to the ambient field's
         precision.
@@ -2670,7 +2670,7 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    cpdef _mul_(self, other):
+    cdef _mul_(self, other):
         """
         Return the product of two balls, rounded to the ambient field's
         precision.
@@ -2770,7 +2770,7 @@ cdef class ComplexBall(RingElement):
             raise TypeError("unsupported operand type(s) for >>: '{}' and '{}'"
                             .format(type(val).__name__, type(shift).__name__))
 
-    cpdef _div_(self, other):
+    cdef _div_(self, other):
         """
         Return the quotient of two balls, rounded to the ambient field's
         precision.
@@ -2837,7 +2837,7 @@ cdef class ComplexBall(RingElement):
         else:
             return sage.structure.element.bin_op(base, expo, operator.pow)
 
-    cpdef pow(self, expo, analytic=False):
+    cdef pow(self, expo, analytic=False):
         r"""
         Raise this ball to the power of ``expo``.
 

@@ -30,14 +30,14 @@ cdef class SparseGraph(CGraph):
     cdef SparseGraphBTNode **vertices
     cdef SparseGraphBTNode **vertices_rev
     cdef bint _directed
-    cpdef bint is_directed(self)
+    cdef bint is_directed(self)
 
     cdef int _del_arc_unsafe(self, int, int, SparseGraphBTNode **) except -1
     cdef int _add_arc_label_unsafe(self, int, int, int, SparseGraphBTNode **) except -1
     cdef int _del_arc_label_unsafe(self, int, int, int, SparseGraphBTNode **)
     cdef SparseGraphLLNode* arc_labels_unsafe(self, int u, int v)
-    cpdef int out_degree(self, int u)
-    cpdef int in_degree(self, int u)
+    cdef int out_degree(self, int u)
+    cdef int in_degree(self, int u)
 
     cdef int out_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers)
     cdef int in_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers)

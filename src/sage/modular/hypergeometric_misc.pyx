@@ -5,7 +5,7 @@ significantly from Cythonization.
 from cpython cimport array
 from cysignals.signals cimport sig_check
 
-cpdef hgm_coeffs(long long p, int f, int prec, gamma, m, int D,
+cdef hgm_coeffs(long long p, int f, int prec, gamma, m, int D,
                  gtable, int gtable_prec, bint use_longs):
     r"""
     Compute coefficients for the hypergeometric trace formula.

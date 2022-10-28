@@ -535,7 +535,7 @@ cdef class CoxGroup(SageObject):
         """
         return isFiniteType(self.x)
 
-    cpdef full_context(self):
+    cdef full_context(self):
         """
         Make all of the elements of a finite Coxeter group available.
 
@@ -736,7 +736,7 @@ cdef class CoxGroupElement:
 
     inverse = __invert__
 
-    cpdef CoxGroup parent_group(self):
+    cdef CoxGroup parent_group(self):
         """
         Return the parent Coxeter group for this element.
 

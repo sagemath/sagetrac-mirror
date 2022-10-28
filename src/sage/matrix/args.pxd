@@ -53,9 +53,9 @@ cdef class MatrixArgs:
     cdef public dict kwds     # **kwds for MatrixSpace()
     cdef bint is_finalized
 
-    cpdef Matrix matrix(self, bint convert=?)
-    cpdef list list(self, bint convert=?)
-    cpdef dict dict(self, bint convert=?)
+    cdef Matrix matrix(self, bint convert=?)
+    cdef list list(self, bint convert=?)
+    cdef dict dict(self, bint convert=?)
 
     cdef inline bint ref_safe(self):
         """
@@ -104,7 +104,7 @@ cdef class MatrixArgs:
             raise ValueError(f"inconsistent number of rows: should be {p} but got {n}")
         self.nrows = n
 
-    cpdef int set_space(self, space) except -1
+    cdef int set_space(self, space) except -1
 
     cdef int finalize(self) except -1
     cdef int process_mapping(self) except -1
@@ -119,4 +119,4 @@ cdef class MatrixArgs:
     cdef int set_seq_flat(self, entries) except -1
 
 
-cpdef MatrixArgs MatrixArgs_init(space, entries)
+cdef MatrixArgs MatrixArgs_init(space, entries)

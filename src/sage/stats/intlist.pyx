@@ -322,7 +322,7 @@ cdef class IntList:
         cdef Py_ssize_t i
         return [self._values[i] for i in range(self._length)]
 
-    cpdef int sum(self):
+    cdef int sum(self):
         """
         Return the sum of the entries of self.
 
@@ -346,7 +346,7 @@ cdef class IntList:
         sig_off()
         return s
 
-    cpdef int prod(self):
+    cdef int prod(self):
         """
         Return the product of the entries of self.
 

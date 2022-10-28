@@ -458,7 +458,7 @@ cdef int first_descent_in_parabolic(PermutationGroupElement w, list parabolic,
     return -1
 
 
-cpdef PermutationGroupElement reduce_in_coset(PermutationGroupElement w, tuple S,
+cdef PermutationGroupElement reduce_in_coset(PermutationGroupElement w, tuple S,
                                               list parabolic, int N, bint right):
     r"""
     Return the minimal length coset representative of ``w`` of the parabolic
@@ -560,7 +560,7 @@ def parabolic_iteration_application(W, f):
 
     parabolic_recursive(W.one(), coset_reps, f)
 
-cpdef list reduced_word_c(W, PermutationGroupElement w):
+cdef list reduced_word_c(W, PermutationGroupElement w):
     r"""
     Computes a reduced word for the element ``w`` in the
     reflection group ``W`` in the positions ``range(n)``.

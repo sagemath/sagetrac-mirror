@@ -20,14 +20,14 @@ cdef class CGraph:
     # Vertex Functions
     ###################################
 
-    cpdef bint has_vertex(self, int n) except -1
-    cpdef check_vertex(self, int n)
-    cpdef del_vertex(self, int v)
-    cpdef int current_allocation(self)
-    cpdef list verts(self)
-    cpdef add_vertices(self, verts)
+    cdef bint has_vertex(self, int n) except -1
+    cdef check_vertex(self, int n)
+    cdef del_vertex(self, int v)
+    cdef int current_allocation(self)
+    cdef list verts(self)
+    cdef add_vertices(self, verts)
     cdef int del_vertex_unsafe(self, int) except -1
-    cpdef realloc(self, int)
+    cdef realloc(self, int)
     cdef int add_vertex_unsafe(self, int) except -1
 
     ###################################
@@ -42,9 +42,9 @@ cdef class CGraph:
 
     cdef int del_arc_unsafe(self, int, int) except -1
 
-    cpdef add_arc(self, int u, int v)
-    cpdef bint has_arc(self, int u, int v) except -1
-    cpdef del_all_arcs(self, int u, int v)
+    cdef add_arc(self, int u, int v)
+    cdef bint has_arc(self, int u, int v) except -1
+    cdef del_all_arcs(self, int u, int v)
 
     ###################################
     # Labeled Edge Functions
@@ -56,10 +56,10 @@ cdef class CGraph:
     cdef int arc_label_unsafe(self, int, int) except -1
     cdef int all_arcs_unsafe(self, int, int, int *, int) except -1
 
-    cpdef int arc_label(self, int u, int v)
-    cpdef list all_arcs(self, int u, int v)
-    cpdef del_arc_label(self, int u, int v, int l)
-    cpdef bint has_arc_label(self, int u, int v, int l)
+    cdef int arc_label(self, int u, int v)
+    cdef list all_arcs(self, int u, int v)
+    cdef del_arc_label(self, int u, int v, int l)
+    cdef bint has_arc_label(self, int u, int v, int l)
 
     ###################################
     # Neighbor Functions
@@ -78,8 +78,8 @@ cdef class CGraph:
     cdef int next_in_neighbor_unsafe(self, int, int, int*) except -2
     cdef adjacency_sequence_out(self, int n, int *vertices, int v, int* sequence)
     cdef adjacency_sequence_in(self, int n, int *vertices, int v, int* sequence)
-    cpdef list in_neighbors(self, int v)
-    cpdef list out_neighbors(self, int u)
+    cdef list in_neighbors(self, int v)
+    cdef list out_neighbors(self, int u)
 
 
 cdef class CGraphBackend(GenericGraphBackend):
@@ -95,8 +95,8 @@ cdef class CGraphBackend(GenericGraphBackend):
     cdef bint _loops
     cdef bint _multiple_edges
     cdef CGraph cg(self)
-    cpdef add_edge(self, object u, object v, object l, bint directed)
-    cpdef del_edge(self, object u, object v, object l, bint directed)
+    cdef add_edge(self, object u, object v, object l, bint directed)
+    cdef del_edge(self, object u, object v, object l, bint directed)
     cdef bint _has_labeled_edge_unsafe(self, int, int, object) except -1
     cdef bint _delete_edge_before_adding(self)
     cdef int new_edge_label(self, object l) except -1

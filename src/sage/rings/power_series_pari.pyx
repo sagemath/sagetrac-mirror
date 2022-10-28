@@ -561,7 +561,7 @@ cdef class PowerSeries_pari(PowerSeries):
             return self._parent.laurent_series_ring()(h)
         return construct_from_pari(self._parent, h)
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Addition of power series.
 
@@ -578,7 +578,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, self.g + (<PowerSeries_pari>right).g)
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Subtraction of power series.
 
@@ -592,7 +592,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, self.g - (<PowerSeries_pari>right).g)
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Multiplication of power series.
 
@@ -605,7 +605,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, self.g * (<PowerSeries_pari>right).g)
 
-    cpdef _rmul_(self, Element c):
+    cdef _rmul_(self, Element c):
         """
         Right multiplication by a scalar.
 
@@ -619,7 +619,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, self.g * c)
 
-    cpdef _lmul_(self, Element c):
+    cdef _lmul_(self, Element c):
         """
         Left multiplication by a scalar.
 
@@ -633,7 +633,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, c * self.g)
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         Division of power series.
 

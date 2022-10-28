@@ -46,4 +46,4 @@ cdef class RealIntervalFieldElement(RingElement):
         return (<RealIntervalField_class>self._parent)._new()
     cdef RealIntervalFieldElement abs(RealIntervalFieldElement self)
     cdef Rational _simplest_rational_helper(self)
-    cpdef _str_question_style(self, int base, int error_digits, e, bint prefer_sci)
+    cdef _str_question_style(self, int base, int error_digits, e, bint prefer_sci)

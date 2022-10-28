@@ -1349,7 +1349,7 @@ cdef EclObject ecl_wrap(cl_object o):
     return obj
 
 #convenience routine to more easily evaluate strings
-cpdef EclObject ecl_eval(str s):
+cdef EclObject ecl_eval(str s):
     r"""
     Read and evaluate string in Lisp and return the result
 

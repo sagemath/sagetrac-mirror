@@ -54,8 +54,8 @@ cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop
 
 cdef class BoundedIntegerSequence:
     cdef biseq_t data
-    cpdef bint startswith(self, BoundedIntegerSequence other)
-    cpdef list list(self)
-    cpdef BoundedIntegerSequence maximal_overlap(self, BoundedIntegerSequence other)
+    cdef bint startswith(self, BoundedIntegerSequence other)
+    cdef list list(self)
+    cdef BoundedIntegerSequence maximal_overlap(self, BoundedIntegerSequence other)
 
-cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize, mp_size_t length)
+cdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize, mp_size_t length)

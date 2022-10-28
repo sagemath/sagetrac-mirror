@@ -32,14 +32,14 @@ cdef class ExteriorAlgebra_plural(NCPolynomialRing_plural):
 
 cdef class NCPolynomial_plural(RingElement):
     cdef poly *_poly
-    cpdef _add_(self, other)
-    cpdef _mul_(self, other)
-    cpdef _repr_short_(self)
+    cdef _add_(self, other)
+    cdef _mul_(self, other)
+    cdef _repr_short_(self)
     cdef long _hash_c(self)
-    cpdef is_constant(self)
-#    cpdef _homogenize(self, int var)
+    cdef is_constant(self)
+#    cdef _homogenize(self, int var)
 
 cdef NCPolynomial_plural new_NCP(NCPolynomialRing_plural parent, poly *juice)
 
-cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring)
-cpdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring)
+cdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring)
+cdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring)

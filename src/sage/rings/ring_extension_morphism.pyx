@@ -231,7 +231,7 @@ cdef class RingExtensionHomomorphism(RingMap):
         """
         return "Ring"
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         r"""
         Return the image of ``x`` under this morphism.
 
@@ -321,7 +321,7 @@ cdef class RingExtensionHomomorphism(RingMap):
             base_map = base_map.extend_codomain(self.codomain())
         return base_map
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         r"""
         Compare this element with ``other`` according to
         the rich comparison operator ``op``.
@@ -603,7 +603,7 @@ cdef class RingExtensionBackendIsomorphism(RingExtensionHomomorphism):
         """
         return ""
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         r"""
         Return the image of ``x`` under this morphism.
 
@@ -695,7 +695,7 @@ cdef class RingExtensionBackendReverseIsomorphism(RingExtensionHomomorphism):
         """
         return ""
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         r"""
         Return the image of ``x`` under this morphism.
 
@@ -778,7 +778,7 @@ cdef class MapFreeModuleToRelativeRing(Map):
         """
         return True
 
-    cpdef Element _call_(self, v):
+    cdef Element _call_(self, v):
         r"""
         Return the image of ``x`` under this morphism.
 
@@ -887,7 +887,7 @@ cdef class MapRelativeRingToFreeModule(Map):
         """
         return True
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         r"""
         Return the image of ``x`` under this morphism.
 

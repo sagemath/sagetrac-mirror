@@ -261,7 +261,7 @@ cdef class FreeAbelianMonoidElement(MonoidElement):
             s = "1"
         return s
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Rich comparison.
 

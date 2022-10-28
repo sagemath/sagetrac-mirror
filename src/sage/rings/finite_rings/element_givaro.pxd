@@ -74,14 +74,14 @@ cdef class Cache_givaro(Cache_base):
     cdef bint _is_conway
     cdef Parent parent
     cdef gen_array(self)
-    cpdef int exponent(self)
-    cpdef int order_c(self)
-    cpdef int characteristic(self)
-    cpdef FiniteField_givaroElement gen(self)
-    cpdef FiniteField_givaroElement element_from_data(self, e)
+    cdef int exponent(self)
+    cdef int order_c(self)
+    cdef int characteristic(self)
+    cdef FiniteField_givaroElement gen(self)
+    cdef FiniteField_givaroElement element_from_data(self, e)
     cdef FiniteField_givaroElement _new_c(self, int value)
-    cpdef int int_to_log(self, int i) except -1
-    cpdef int log_to_int(self, int i) except -1
+    cdef int int_to_log(self, int i) except -1
+    cdef int log_to_int(self, int i) except -1
 
 cdef class FiniteField_givaro_iterator:
     cdef int iterator

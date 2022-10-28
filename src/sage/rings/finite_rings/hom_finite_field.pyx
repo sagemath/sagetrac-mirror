@@ -120,7 +120,7 @@ cdef class SectionFiniteFieldHomomorphism_generic(Section):
     """
     A class implementing sections of embeddings between finite fields.
     """
-    cpdef Element _call_(self, x):  # Not optimized
+    cdef Element _call_(self, x):  # Not optimized
         """
         TESTS::
 
@@ -290,7 +290,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
         """
         return self.domain()._latex_() + " \\hookrightarrow " + self.codomain()._latex_()
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         TESTS::
 
@@ -608,7 +608,7 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
         return s
 
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         TESTS::
 

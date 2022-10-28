@@ -747,7 +747,7 @@ cdef void singular_ring_delete(ring *doomed):
 #############################################################################
 # helpers for debugging
 
-cpdef poison_currRing(frame, event, arg):
+cdef poison_currRing(frame, event, arg):
     """
     Poison the ``currRing`` pointer.
 
@@ -780,7 +780,7 @@ cpdef poison_currRing(frame, event, arg):
     return poison_currRing
 
 
-cpdef print_currRing():
+cdef print_currRing():
     """
     Print the ``currRing`` pointer.
 

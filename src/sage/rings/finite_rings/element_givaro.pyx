@@ -243,7 +243,7 @@ cdef class Cache_givaro(Cache_base):
         """
         delete(self.objectptr)
 
-    cpdef int characteristic(self):
+    cdef int characteristic(self):
         """
         Return the characteristic of this field.
 
@@ -266,7 +266,7 @@ cdef class Cache_givaro(Cache_base):
         """
         return Integer(self.order_c())
 
-    cpdef int order_c(self):
+    cdef int order_c(self):
         """
         Return the order of this field.
 
@@ -278,7 +278,7 @@ cdef class Cache_givaro(Cache_base):
         """
         return self.objectptr.cardinality()
 
-    cpdef int exponent(self):
+    cdef int exponent(self):
         r"""
         Return the degree of this field over `\GF{p}`.
 
@@ -312,7 +312,7 @@ cdef class Cache_givaro(Cache_base):
         self.objectptr.random(generator, res)
         return make_FiniteField_givaroElement(self, res)
 
-    cpdef FiniteField_givaroElement element_from_data(self, e):
+    cdef FiniteField_givaroElement element_from_data(self, e):
         """
         Coerces several data types to ``self``.
 
@@ -480,7 +480,7 @@ cdef class Cache_givaro(Cache_base):
 
         return make_FiniteField_givaroElement(self, res)
 
-    cpdef FiniteField_givaroElement gen(self):
+    cdef FiniteField_givaroElement gen(self):
         """
         Return a generator of the field.
 
@@ -497,7 +497,7 @@ cdef class Cache_givaro(Cache_base):
             g = self.objectptr.indeterminate()
         return make_FiniteField_givaroElement(self, g)
 
-    cpdef int log_to_int(self, int n) except -1:
+    cdef int log_to_int(self, int n) except -1:
         r"""
         Given an integer `n` this method returns `i` where `i`
         satisfies `g^n = i` where `g` is the generator of ``self``; the
@@ -530,7 +530,7 @@ cdef class Cache_givaro(Cache_base):
         sig_off()
         return r
 
-    cpdef int int_to_log(self, int n) except -1:
+    cdef int int_to_log(self, int n) except -1:
         r"""
         Given an integer `n` this method returns `i` where `i` satisfies
         `g^i = n \mod p` where `g` is the generator and `p` is the
@@ -560,7 +560,7 @@ cdef class Cache_givaro(Cache_base):
         sig_off()
         return r
 
-    cpdef FiniteField_givaroElement fetch_int(self, number):
+    cdef FiniteField_givaroElement fetch_int(self, number):
         r"""
         Given an integer ``n`` return a finite field element in ``self``
         which equals ``n`` under the condition that :meth:`gen()` is set to
@@ -1090,7 +1090,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         else:
             raise ValueError("must be a perfect square.")
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Add two elements.
 
@@ -1105,7 +1105,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
                                   (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache, r)
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Multiply two elements.
 
@@ -1122,7 +1122,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
                                   (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache, r)
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         Divide two elements
 
@@ -1144,7 +1144,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
                                   (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache, r)
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Subtract two elements.
 
@@ -1295,7 +1295,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             return make_FiniteField_givaroElement(cache, cache.objectptr.one)
         return make_FiniteField_givaroElement(cache, r)
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Comparison of finite field elements is correct or equality
         tests and somewhat random for ``<`` and ``>`` type of

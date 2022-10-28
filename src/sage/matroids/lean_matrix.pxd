@@ -11,10 +11,10 @@ cdef class LeanMatrix:
     cdef LeanMatrix augment(self, LeanMatrix M)
     cdef LeanMatrix prepend_identity(self)   # Not a Sage matrix operation
 
-    cpdef long ncols(self) except -1
-    cpdef long nrows(self) except -1
-    cpdef base_ring(self)
-    cpdef characteristic(self)   # Not a Sage matrix operation
+    cdef long ncols(self) except -1
+    cdef long nrows(self) except -1
+    cdef base_ring(self)
+    cdef characteristic(self)   # Not a Sage matrix operation
 
     cdef get_unsafe(self, long r, long c)
     cdef int set_unsafe(self, long r, long c, x) except -1
@@ -122,4 +122,4 @@ cdef class RationalMatrix(LeanMatrix):
     cdef int rescale_row_mpq(self, long x, mpq_t s, bint col_start) except -1
     cdef int rescale_column_mpq(self, long y, mpq_t s, bint start_row) except -1
 
-cpdef GenericMatrix generic_identity(n, ring)
+cdef GenericMatrix generic_identity(n, ring)

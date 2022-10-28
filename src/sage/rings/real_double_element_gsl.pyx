@@ -84,7 +84,7 @@ cdef class RealDoubleElement_gsl(RealDoubleElement):
             v = -v
         return self._new_c(sign * gsl_sf_exp(gsl_sf_log(v) * exponent))
 
-    cpdef _pow_(self, other):
+    cdef _pow_(self, other):
         """
         Return ``self`` raised to the real double power ``other``.
 
@@ -117,7 +117,7 @@ cdef class RealDoubleElement_gsl(RealDoubleElement):
         """
         return self.__pow_double((<RealDoubleElement>other)._value, 1)
 
-    cpdef _pow_int(self, n):
+    cdef _pow_int(self, n):
         """
         Return ``self`` raised to the integer power ``n``.
 

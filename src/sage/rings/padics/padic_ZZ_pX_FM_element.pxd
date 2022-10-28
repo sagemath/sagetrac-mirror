@@ -8,4 +8,4 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
     cdef pAdicZZpXFMElement _lshift_c(self, long n)
     cdef pAdicZZpXFMElement _rshift_c(self, long n)
 
-    cpdef pAdicZZpXFMElement unit_part(self)
+    cdef pAdicZZpXFMElement unit_part(self)

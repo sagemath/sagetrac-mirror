@@ -228,7 +228,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         if self._entries:
             mzd_free(self._entries)
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         EXAMPLES::
 
@@ -303,7 +303,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         return unpickle_v0, (self._parent, self.list(), self._degree,
                              self._is_immutable)
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         EXAMPLES::
 
@@ -318,7 +318,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             mzd_add(z._entries, self._entries, (<Vector_mod2_dense>right)._entries)
         return z
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         EXAMPLES::
 
@@ -333,7 +333,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             mzd_add(z._entries, self._entries, (<Vector_mod2_dense>right)._entries)
         return z
 
-    cpdef int hamming_weight(self):
+    cdef int hamming_weight(self):
         """
         Return the number of positions ``i`` such that ``self[i] != 0``.
 
@@ -350,7 +350,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         return res
 
 
-    cpdef _dot_product_(self, Vector right):
+    cdef _dot_product_(self, Vector right):
         """
         EXAMPLES::
 
@@ -398,7 +398,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
         return n
 
-    cpdef _pairwise_product_(self, Vector right):
+    cdef _pairwise_product_(self, Vector right):
         """
         EXAMPLES::
 
@@ -420,7 +420,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             zrow[i] = (lrow[i] & rrow[i])
         return z
 
-    cpdef _lmul_(self, Element left):
+    cdef _lmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -451,7 +451,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         else:
             return self._new_c()
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         EXAMPLES::
 

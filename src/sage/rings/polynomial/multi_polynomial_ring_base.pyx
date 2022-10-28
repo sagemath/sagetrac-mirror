@@ -637,7 +637,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
         return 'PolynomialRing(%s,[%s])' % (self.base_ring()._gap_init_(),
                                             ','.join(L))
 
-    cpdef bint is_exact(self) except -2:
+    cdef bint is_exact(self) except -2:
         """
         Test whether this multivariate polynomial ring is defined over an exact
         base ring.

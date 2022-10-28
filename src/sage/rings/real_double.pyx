@@ -174,7 +174,7 @@ cdef class RealDoubleField_class(sage.rings.abc.RealDoubleField):
         """
         return RealDoubleField, ()
 
-    cpdef bint is_exact(self) except -2:
+    cdef bint is_exact(self) except -2:
         """
         Returns ``False``, because doubles are not exact.
 
@@ -303,7 +303,7 @@ cdef class RealDoubleField_class(sage.rings.abc.RealDoubleField):
         from sage.rings.complex_double import CDF
         return CDF
 
-    cpdef _coerce_map_from_(self, S):
+    cdef _coerce_map_from_(self, S):
         """
         Canonical coercion of ``S`` to the real double field.
 
@@ -1329,7 +1329,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = 1.0 / self._value
         return x
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Add two real numbers with the same parent.
 
@@ -1342,7 +1342,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value + (<RealDoubleElement>right)._value
         return x
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Subtract two real numbers with the same parent.
 
@@ -1355,7 +1355,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value - (<RealDoubleElement>right)._value
         return x
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Multiply two real numbers with the same parent.
 
@@ -1368,7 +1368,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value * (<RealDoubleElement>right)._value
         return x
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         Divide ``self`` by ``right``.
 
@@ -1429,7 +1429,7 @@ cdef class RealDoubleElement(FieldElement):
         else:
             return self._new_c(-self._value)
 
-    cpdef RealDoubleElement abs(RealDoubleElement self):
+    cdef RealDoubleElement abs(RealDoubleElement self):
         """
         Returns the absolute value of ``self``.
 
@@ -1755,7 +1755,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return bool(libc.math.isinf(self._value))
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Rich comparison of ``left`` and ``right``.
 
@@ -2014,7 +2014,7 @@ cdef class ToRDF(Morphism):
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, RDF))
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Send ``x`` to the image under this map.
 

@@ -400,7 +400,7 @@ cdef class Cache_ntl_gf2e(Cache_base):
 
         raise ValueError("Cannot coerce element %s to this field." % e)
 
-    cpdef FiniteField_ntl_gf2eElement fetch_int(self, number):
+    cdef FiniteField_ntl_gf2eElement fetch_int(self, number):
         r"""
         Given an integer less than `p^n` with base `2`
         representation `a_0 + a_1 \cdot 2 + \cdots + a_k 2^k`, this returns
@@ -680,7 +680,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         else:
             return a
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Add two elements.
 
@@ -696,7 +696,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         GF2E_add(r.x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
         return r
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Multiply two elements.
 
@@ -712,7 +712,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         GF2E_mul(r.x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
         return r
 
-    cpdef _div_(self, other):
+    cdef _div_(self, other):
         """
         Divide two elements.
 
@@ -735,7 +735,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         GF2E_div(r.x, self.x, o.x)
         return r
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Subtract two elements.
 
@@ -823,7 +823,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         GF2E_power(r.x, self.x, n)
         return r
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Comparison of finite field elements.
 

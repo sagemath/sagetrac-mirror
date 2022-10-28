@@ -259,11 +259,11 @@ def _extract_embedded_position(docstring):
 
     The following has been fixed in :trac:`13916`::
 
-        sage: cython('''cpdef test_funct(x,y): return''')                           # optional - sage.misc.cython
+        sage: cython('''cdef test_funct(x,y): return''')                           # optional - sage.misc.cython
         sage: func_doc = inspect.getdoc(test_funct)                                 # optional - sage.misc.cython
         sage: with open(_extract_embedded_position(func_doc)[1]) as f:              # optional - sage.misc.cython
         ....:     print(f.read())
-        cpdef test_funct(x,y): return
+        cdef test_funct(x,y): return
 
     Ensure that the embedded filename of the compiled function is
     correct.  In particular it should be relative to ``spyx_tmp()`` in
@@ -273,11 +273,11 @@ def _extract_embedded_position(docstring):
         sage: from sage.env import DOT_SAGE
         sage: from sage.misc.sage_ostools import restore_cwd
         sage: with restore_cwd(DOT_SAGE):                                           # optional - sage.misc.cython
-        ....:     cython('''cpdef test_funct(x,y): return''')
+        ....:     cython('''cdef test_funct(x,y): return''')
         sage: func_doc = inspect.getdoc(test_funct)                                 # optional - sage.misc.cython
         sage: with open(_extract_embedded_position(func_doc)[1]) as f:              # optional - sage.misc.cython
         ....:     print(f.read())
-        cpdef test_funct(x,y): return
+        cdef test_funct(x,y): return
 
     AUTHORS:
 
@@ -1157,13 +1157,13 @@ def _sage_getargspec_cython(source):
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import _sage_getargspec_cython as sgc
-        sage: sgc("cpdef double abc(self, Element x=None, Parent base=0):")
+        sage: sgc("cdef double abc(self, Element x=None, Parent base=0):")
         ArgSpec(args=['self', 'x', 'base'], varargs=None, keywords=None, defaults=(None, 0))
         sage: sgc("def __init__(self, x=None, unsigned int base=0):")
         ArgSpec(args=['self', 'x', 'base'], varargs=None, keywords=None, defaults=(None, 0))
         sage: sgc('def o(p, r={}, *q, **s) except? -1:')
         ArgSpec(args=['p', 'r'], varargs='q', keywords='s', defaults=({},))
-        sage: sgc('cpdef how(r=(None, "u:doing?")):')
+        sage: sgc('cdef how(r=(None, "u:doing?")):')
         ArgSpec(args=['r'], varargs=None, keywords=None, defaults=((None, 'u:doing?'),))
         sage: sgc('def _(x="):"):')
         ArgSpec(args=['x'], varargs=None, keywords=None, defaults=('):',))
@@ -1189,7 +1189,7 @@ def _sage_getargspec_cython(source):
         sage: sgc('def f(int *x = 5, z = {(1,2,3): True}): pass')
         Traceback (most recent call last):
         ...
-        SyntaxError: Pointer types not allowed in def or cpdef functions
+        SyntaxError: Pointer types not allowed in def or cdef functions
         sage: sgc('def f(x = , z = {(1,2,3): True}): pass')
         Traceback (most recent call last):
         ...
@@ -1277,7 +1277,7 @@ def _sage_getargspec_cython(source):
         if unit == '*':
             if name:
                 if name != 'char':
-                    raise SyntaxError("Pointer types not allowed in def or cpdef functions")
+                    raise SyntaxError("Pointer types not allowed in def or cdef functions")
                 else:
                     continue
             else:
@@ -1533,7 +1533,7 @@ def sage_getargspec(obj):
         sage: sage_getargspec(I.groebner_basis)
         ArgSpec(args=['self', 'algorithm', 'deg_bound', 'mult_bound', 'prot'],
         varargs='args', keywords='kwds', defaults=('', None, None, False))
-        sage: cython("cpdef int foo(x,y) except -1: return 1")
+        sage: cython("cdef int foo(x,y) except -1: return 1")
         sage: sage_getargspec(foo)
         ArgSpec(args=['x', 'y'], varargs=None, keywords=None, defaults=None)
 
@@ -1604,7 +1604,7 @@ def sage_getargspec(obj):
         ....: cdef class Bar:
         ....:     @staticmethod
         ....:     def join(categories, bint as_list = False, tuple ignore_axioms=(), tuple axioms=()): pass
-        ....:     cpdef meet(categories, bint as_list = False, tuple ignore_axioms=(), tuple axioms=()): pass
+        ....:     cdef meet(categories, bint as_list = False, tuple ignore_axioms=(), tuple axioms=()): pass
         ....: ''')
         sage: sage_getargspec(Foo.join)
         ArgSpec(args=['categories', 'as_list', 'ignore_axioms', 'axioms'], varargs=None, keywords=None, defaults=(False, (), ()))
@@ -2330,9 +2330,9 @@ def sage_getsourcelines(obj):
 
     TESTS::
 
-        sage: cython('''cpdef test_funct(x,y): return''')                           # optional - sage.misc.cython
+        sage: cython('''cdef test_funct(x,y): return''')                           # optional - sage.misc.cython
         sage: sage_getsourcelines(test_funct)                                       # optional - sage.misc.cython
-        (['cpdef test_funct(x,y): return\n'], 1)
+        (['cdef test_funct(x,y): return\n'], 1)
 
     The following tests that an instance of ``functools.partial`` is correctly
     dealt with (see :trac:`9976`)::
@@ -2363,7 +2363,7 @@ def sage_getsourcelines(obj):
          '\n',
          '    cdef GEx _gobj\n',
          '\n',
-         '    cpdef object pyobject(self):\n']
+         '    cdef object pyobject(self):\n']
         sage: lines[-1]    # last line
         '        return S\n'
 

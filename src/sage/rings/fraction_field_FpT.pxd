@@ -11,14 +11,14 @@ cdef class FpTElement(FieldElement):
     cdef long p
 
     cdef FpTElement _new_c(self)
-    cpdef _add_(self, other)
-    cpdef _mul_(self, other)
+    cdef _add_(self, other)
+    cdef _mul_(self, other)
     cdef FpTElement _copy_c(self)
-    cpdef numerator(self)
-    cpdef denominator(self)
-    cpdef FpTElement next(self)
-    cpdef _sqrt_or_None(self)
-    cpdef bint is_square(self)
+    cdef numerator(self)
+    cdef denominator(self)
+    cdef FpTElement next(self)
+    cdef _sqrt_or_None(self)
+    cdef bint is_square(self)
 
 cdef class FpT_iter:
     cdef parent

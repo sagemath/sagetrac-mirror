@@ -623,7 +623,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         self.ordp = maxordp
         self.relprec = 0
 
-    cpdef bint _is_exact_zero(self) except -1:
+    cdef bint _is_exact_zero(self) except -1:
         """
         Tests if ``self`` is an exact zero.
 
@@ -658,7 +658,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         else:
             return 0
 
-    cpdef bint _is_inexact_zero(self) except -1:
+    cdef bint _is_inexact_zero(self) except -1:
         """
         Tests if ``self`` is an inexact zero.
 
@@ -1773,7 +1773,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 return ans
         return self._rshift_c(mpz_get_si((<Integer>shift).value))
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         Negation
 
@@ -2054,7 +2054,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         sig_off()
         return ans
 
-    cpdef _add_(self, _right):
+    cdef _add_(self, _right):
         """
         Computes the sum of ``self`` and ``right``.
 
@@ -2171,7 +2171,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 ans.relprec = -ans.relprec
         return ans
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Return the difference of two elements
 
@@ -2197,7 +2197,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         # For now, a simple implementation
         return self + (-right)
 
-    cpdef _mul_(self, _right):
+    cdef _mul_(self, _right):
         """
         Return the product of two elements
 
@@ -2251,7 +2251,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sig_off()
         return ans
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         Return the quotient of two elements
 
@@ -2395,7 +2395,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                     ans = (self.ordp >= aprec)
         return ans
 
-    cpdef ntl_ZZ_pX _ntl_rep_unnormalized(self):
+    cdef ntl_ZZ_pX _ntl_rep_unnormalized(self):
         """
         Return an ``ntl_ZZ_pX`` holding the current unit part of this element
 
@@ -2424,7 +2424,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         ans.x = self.unit
         return ans
 
-    cpdef ntl_ZZ_pX _ntl_rep(self):
+    cdef ntl_ZZ_pX _ntl_rep(self):
         """
         Return an ``ntl_ZZ_pX`` that holds the unit part of this element
 
@@ -2445,7 +2445,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         self._normalize()
         return self._ntl_rep_unnormalized()
 
-    cpdef _ntl_rep_abs(self):
+    cdef _ntl_rep_abs(self):
         """
         Return a pair ``(f, k)`` where ``f`` is an ``ntl_ZZ_pX`` and ``k`` is a
         non-positive integer such that ``self = f(self.parent.gen())*p^k``
@@ -2631,7 +2631,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 #        """
 #        raise NotImplementedError
 
-    cpdef pAdicZZpXCRElement lift_to_precision(self, absprec=None):
+    cdef pAdicZZpXCRElement lift_to_precision(self, absprec=None):
         """
         Return a ``pAdicZZpXCRElement`` congruent to this element but with
         absolute precision at least ``absprec``.
@@ -3171,7 +3171,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         self._normalize()
         return self.ordp
 
-    cpdef pAdicZZpXCRElement unit_part(self):
+    cdef pAdicZZpXCRElement unit_part(self):
         """
         Return the unit part of this element, ie ``self / uniformizer^(self.valuation())``
 

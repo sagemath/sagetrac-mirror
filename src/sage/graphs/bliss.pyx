@@ -382,7 +382,7 @@ cdef canonical_form_from_edge_list(int Vnr, list Vout, list Vin, int Lnr=1, list
         return new_edges
 
 
-cpdef canonical_form(G, partition=None, return_graph=False, use_edge_labels=True, certificate=False):
+cdef canonical_form(G, partition=None, return_graph=False, use_edge_labels=True, certificate=False):
     r"""
     Return a canonical label for the given (di)graph.
 
@@ -652,7 +652,7 @@ cdef automorphism_group_gens_from_edge_list(int Vnr, Vout, Vin, int Lnr=1, label
 
     return [[cyc for cyc in gen if cyc[0] is not None] for gen in gens]
 
-cpdef automorphism_group(G, partition=None, use_edge_labels=True):
+cdef automorphism_group(G, partition=None, use_edge_labels=True):
     """
     Return the automorphism group of the given (di)graph.
 

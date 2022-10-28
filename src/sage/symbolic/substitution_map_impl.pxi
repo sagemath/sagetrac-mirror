@@ -24,7 +24,7 @@ cdef class SubstitutionMap(SageObject):
 
     cdef GExMap _gmapobj
 
-    cpdef Expression apply_to(self, Expression expr, unsigned options):
+    cdef Expression apply_to(self, Expression expr, unsigned options):
         """
         Apply the substitution to a symbolic expression
 
@@ -75,7 +75,7 @@ cdef SubstitutionMap new_SubstitutionMap_from_GExMap(const GExMap& smap):
     return result
 
 
-cpdef SubstitutionMap make_map(subs_dict):
+cdef SubstitutionMap make_map(subs_dict):
     """
     Construct a new substitution map
 

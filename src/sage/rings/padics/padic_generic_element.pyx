@@ -45,7 +45,7 @@ from sage.structure.richcmp cimport rich_to_bool
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 cdef class pAdicGenericElement(LocalGenericElement):
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         First compare valuations, then compare normalized
         residue of unit part.
@@ -171,7 +171,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef int _set_exact_zero(self) except -1:
         raise TypeError("this type of p-adic does not support exact zeros")
 
-    cpdef bint _is_exact_zero(self) except -1:
+    cdef bint _is_exact_zero(self) except -1:
         """
         Returns True if self is exactly zero.  Since
         non-capped-relative elements cannot be exact, this function
@@ -184,7 +184,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         return False
 
-    cpdef bint _is_inexact_zero(self) except -1:
+    cdef bint _is_inexact_zero(self) except -1:
         """
         Returns True if self is indistinguishable from zero, but not
         exactly zero.
@@ -196,7 +196,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         raise NotImplementedError
 
-    cpdef bint _is_zero_rep(self) except -1:
+    cdef bint _is_zero_rep(self) except -1:
         """
         Returns True is self is indistinguishable from zero.
 
@@ -356,7 +356,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             raise ZeroDivisionError("cannot divide by zero")
         return self._floordiv_(right)
 
-    cpdef _floordiv_(self, right):
+    cdef _floordiv_(self, right):
         """
         Implements floor division.
 
@@ -466,7 +466,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         return ~self.parent().fraction_field()(self, relprec = self.precision_relative())
 
-    cpdef _mod_(self, right):
+    cdef _mod_(self, right):
         """
         If self is in a field, returns 0.  If in a ring, returns a
         p-adic integer such that
@@ -2106,7 +2106,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         raise NotImplementedError
 
-    cpdef val_unit(self):
+    cdef val_unit(self):
         """
         Return ``(self.valuation(), self.unit_part())``. To be overridden in
         derived classes.
@@ -3976,7 +3976,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         return self.abs()
 
-    cpdef abs(self, prec=None):
+    cdef abs(self, prec=None):
         """
         Return the `p`-adic absolute value of ``self``.
 
@@ -4031,7 +4031,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 return Rational(0)
             return Rational(K.prime())**(-self.valuation())
 
-    cpdef bint _is_base_elt(self, p) except -1:
+    cdef bint _is_base_elt(self, p) except -1:
         """
         Return ``True`` if this element is an element of Zp or Qp (rather than
         an extension).
@@ -4463,7 +4463,7 @@ def _compute_g(p, n, prec, terms):
         g[i+1] = -(g[i]/(v-v**2)).integral()
     return [x.truncate(terms) for x in g]
 
-cpdef dwork_mahler_coeffs(R, int bd=20):
+cdef dwork_mahler_coeffs(R, int bd=20):
     r"""
     Compute Dwork's formula for Mahler coefficients of `p`-adic Gamma.
 
@@ -4509,7 +4509,7 @@ cpdef dwork_mahler_coeffs(R, int bd=20):
                 v.append(R(x << i))
     return v
 
-cpdef evaluate_dwork_mahler(v, x, long long p, int bd, long long a):
+cdef evaluate_dwork_mahler(v, x, long long p, int bd, long long a):
     """
     Evaluate Dwork's Mahler series for `p`-adic Gamma.
 
@@ -4551,7 +4551,7 @@ cdef long long evaluate_dwork_mahler_long(array.array v, long long x, long long 
         s = s % q
     return -s
 
-cpdef gauss_table(long long p, int f, int prec, bint use_longs):
+cdef gauss_table(long long p, int f, int prec, bint use_longs):
     r"""
     Compute a table of Gauss sums using the Gross-Koblitz formula.
 

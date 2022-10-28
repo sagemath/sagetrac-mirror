@@ -89,7 +89,7 @@ cdef class DefaultConvertMap(Map):
         """
         return self._repr_type_str or ("Coercion" if self._is_coercion else "Conversion")
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Create an element of the codomain from a single element of the domain.
 
@@ -108,7 +108,7 @@ cdef class DefaultConvertMap(Map):
                 print(type(C._element_constructor), C._element_constructor)
             raise
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cdef Element _call_with_args(self, x, args=(), kwds={}):
         """
         Create an element of the codomain from an element of the domain, with extra arguments.
 
@@ -150,7 +150,7 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
     used when the element_constructor is a bound method (whose self
     argument is assumed to be bound to the codomain).
     """
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         cdef Parent C = self._codomain
         try:
             return C._element_constructor(x)
@@ -160,7 +160,7 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
                 print(type(C._element_constructor), C._element_constructor)
             raise
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cdef Element _call_with_args(self, x, args=(), kwds={}):
         cdef Parent C = self._codomain
         try:
             if len(args) == 0:
@@ -260,7 +260,7 @@ cdef class NamedConvertMap(Map):
         self.method_name = _slots['method_name']
         Map._update_slots(self, _slots)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         EXAMPLES::
 
@@ -294,7 +294,7 @@ cdef class NamedConvertMap(Map):
             e = m._call_(e)
         return e
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cdef Element _call_with_args(self, x, args=(), kwds={}):
         """
         EXAMPLES::
 
@@ -399,7 +399,7 @@ cdef class CallableConvertMap(Map):
         self._parent_as_first_arg = _slots['_parent_as_first_arg']
         Map._update_slots(self, _slots)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Because self._func may be anything we do a little bit of sanity
         checking (the return value must be an element with the correct parent).
@@ -441,7 +441,7 @@ cdef class CallableConvertMap(Map):
             raise RuntimeError("BUG in coercion model: {} returned element with wrong parent (expected {} got {})".format(self._func, C, y._parent))
         return y
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cdef Element _call_with_args(self, x, args=(), kwds={}):
         """
         TESTS::
 
@@ -489,7 +489,7 @@ cdef class CCallableConvertMap_class(Map):
         self._coerce_cost = 10
         self._name = name
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         TESTS::
 
@@ -534,7 +534,7 @@ cdef Map CCallableConvertMap(domain, codomain, void* func, name):
     map._func = <Element (*)(Parent, object)>func
     return map
 
-cpdef Element _ccall_test_function(codomain, x):
+cdef Element _ccall_test_function(codomain, x):
     """
     For testing CCallableConvertMap_class. Returns x*x*x-x in the codomain.
 
@@ -590,14 +590,14 @@ cdef class ListMorphism(Map):
         self._real_morphism = _slots['_real_morphism']
         Map._update_slots(self, _slots)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         try:
             x = x._data
         except AttributeError:
             x = list(x)
         return self._real_morphism._call_(x)
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cdef Element _call_with_args(self, x, args=(), kwds={}):
         try:
             x = x._data
         except AttributeError:
@@ -671,7 +671,7 @@ cdef class TryMap(Map):
         self._error_types = _slots['_error_types']
         Map._update_slots(self, _slots)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         EXAMPLES::
 
@@ -690,7 +690,7 @@ cdef class TryMap(Map):
         except self._error_types:
             return self._map_b._call_(x)
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cdef Element _call_with_args(self, x, args=(), kwds={}):
         """
         EXAMPLES::
 

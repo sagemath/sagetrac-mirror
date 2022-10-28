@@ -621,7 +621,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         else:
             return trim_zeros(list(self.unit_part().expansion(lift_mode='smallest')))
 
-    cpdef pAdicTemplateElement unit_part(self):
+    cdef pAdicTemplateElement unit_part(self):
         """
         Returns the unit part of this element.
 
@@ -637,7 +637,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         raise NotImplementedError
 
-    cpdef bint _is_base_elt(self, p) except -1:
+    cdef bint _is_base_elt(self, p) except -1:
         """
         Return ``True`` if this element is an element of Zp or Qp (rather than
         an extension).

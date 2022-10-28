@@ -29,8 +29,8 @@ cdef class InnerGroup:
     cdef SemimonomialTransformation get_transporter(self)
 
     cdef bint has_semilinear_action(self)
-    cpdef int get_frob_pow(self)
-    cpdef column_blocks(self, mat)
+    cdef int get_frob_pow(self)
+    cdef column_blocks(self, mat)
 
 cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
     cdef int _k, _q

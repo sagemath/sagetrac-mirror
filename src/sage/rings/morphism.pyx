@@ -549,7 +549,7 @@ cdef class RingMap_lift(RingMap):
         slots['to_S'] = self.to_S
         return slots
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         Compare a ring lifting maps ``self`` to ``other``.
 
@@ -613,7 +613,7 @@ cdef class RingMap_lift(RingMap):
         """
         return "Choice of lifting map"
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Evaluate this function at ``x``.
 
@@ -1695,7 +1695,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         """
         return "Ring Coercion"
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         Compare a ring coercion morphism ``self`` to ``other``.
 
@@ -1735,7 +1735,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         """
         return hash((self.domain(), self.codomain()))
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Evaluate this coercion morphism at ``x``.
 
@@ -1935,7 +1935,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         slots['_base_map'] = self._base_map
         return slots
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         r"""
         EXAMPLES:
 
@@ -2041,7 +2041,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             s += '\nwith map of base ring'
         return s
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Evaluate this homomorphism at ``x``.
 
@@ -2248,7 +2248,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         slots['__underlying'] = self._underlying
         return slots
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         r"""
         EXAMPLES:
 
@@ -2329,7 +2329,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         U = repr(self._underlying).split('\n')
         return 'Induced from base ring by\n'+'\n'.join(U)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Evaluate this homomorphism at ``x``.
 
@@ -2431,7 +2431,7 @@ cdef class RingHomomorphism_from_fraction_field(RingHomomorphism):
         """
         return self._morphism._repr_defn()
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         r"""
         Return the value of this morphism at ``x``.
 
@@ -2534,7 +2534,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
         """
         RingHomomorphism.__init__(self, parent)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Evaluate this covering homomorphism at ``x``, which just involves
         coercing ``x`` into the domain, then codomain.
@@ -2592,7 +2592,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
         """
         return self.codomain().defining_ideal()
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         Compare ``self`` to ``other``.
 
@@ -2824,7 +2824,7 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
         """
         return self.phi
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         Compare ``self`` to ``other``.
 
@@ -2882,7 +2882,7 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
         return '\n'.join(['%s |--> %s'%(D.gen(i), ig[i]) for\
                           i in range(D.ngens())])
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Evaluate this function at ``x``.
 
@@ -3001,7 +3001,7 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
             s = '\\verb"Frob"^{%s}' % self._power
         return s
 
-    cpdef Element _call_ (self, x):
+    cdef Element _call_ (self, x):
         """
         TESTS::
 

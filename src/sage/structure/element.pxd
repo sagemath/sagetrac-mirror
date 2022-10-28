@@ -3,7 +3,7 @@ from .parent cimport Parent
 from sage.misc.inherit_comparison cimport InheritComparisonMetaclass
 
 
-cpdef inline parent(x):
+cdef inline parent(x):
     """
     Return the parent of the element ``x``.
 
@@ -108,7 +108,7 @@ cdef inline bint HAVE_SAME_PARENT(int cl):
     return cl & 0o20
 
 
-cpdef inline bint have_same_parent(left, right):
+cdef inline bint have_same_parent(left, right):
     """
     Return ``True`` if and only if ``left`` and ``right`` have the
     same parent.
@@ -149,14 +149,14 @@ cdef bin_op_exception(op, x, y)
 
 cdef class Element(SageObject):
     cdef Parent _parent
-    cpdef _richcmp_(left, right, int op)
-    cpdef int _cmp_(left, right) except -2
-    cpdef base_extend(self, R)
+    cdef _richcmp_(left, right, int op)
+    cdef int _cmp_(left, right) except -2
+    cdef base_extend(self, R)
 
     cdef getattr_from_category(self, name)
 
-    cpdef _act_on_(self, x, bint self_on_left)
-    cpdef _acted_upon_(self, x, bint self_on_left)
+    cdef _act_on_(self, x, bint self_on_left)
+    cdef _acted_upon_(self, x, bint self_on_left)
 
     cdef _add_(self, other)
     cdef _sub_(self, other)
@@ -183,33 +183,33 @@ cdef class ModuleElement(Element)       # forward declaration
 cdef class RingElement(ModuleElement)   # forward declaration
 
 cdef class ModuleElement(Element):
-    cpdef _add_(self, other)
-    cpdef _sub_(self, other)
-    cpdef _neg_(self)
+    cdef _add_(self, other)
+    cdef _sub_(self, other)
+    cdef _neg_(self)
 
     # self._rmul_(x) is x * self
-    cpdef _lmul_(self, Element right)
+    cdef _lmul_(self, Element right)
     # self._lmul_(x) is self * x
-    cpdef _rmul_(self, Element left)
+    cdef _rmul_(self, Element left)
 
 cdef class ModuleElementWithMutability(ModuleElement):
     cdef bint _is_immutable
-    cpdef bint is_immutable(self)
-    cpdef bint is_mutable(self)
+    cdef bint is_immutable(self)
+    cdef bint is_mutable(self)
 
 cdef class MonoidElement(Element):
-    cpdef _pow_int(self, n)
+    cdef _pow_int(self, n)
 
 cdef class MultiplicativeGroupElement(MonoidElement):
-    cpdef _div_(self, other)
+    cdef _div_(self, other)
 
 cdef class AdditiveGroupElement(ModuleElement):
     pass
 
 cdef class RingElement(ModuleElement):
-    cpdef _mul_(self, other)
-    cpdef _div_(self, other)
-    cpdef _pow_int(self, n)
+    cdef _mul_(self, other)
+    cdef _div_(self, other)
+    cdef _pow_int(self, n)
 
 cdef class CommutativeRingElement(RingElement):
     pass
@@ -224,11 +224,11 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
     pass
 
 cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
-    cpdef _floordiv_(self, other)
-    cpdef _mod_(self, other)
+    cdef _floordiv_(self, other)
+    cdef _mod_(self, other)
 
 cdef class FieldElement(CommutativeRingElement):
-    cpdef _floordiv_(self, other)
+    cdef _floordiv_(self, other)
 
 cdef class AlgebraElement(RingElement):
     pass
@@ -248,10 +248,10 @@ cdef class Vector(ModuleElementWithMutability):
     # Return the dot product using the simple metric
     # $e_i \cdot e_j = \delta_{ij}$. The first assumes that the parents
     # are equal, both assume that the degrees are equal.
-    cpdef _dot_product_(Vector left, Vector right)
-    cpdef _dot_product_coerce_(Vector left, Vector right)
+    cdef _dot_product_(Vector left, Vector right)
+    cdef _dot_product_coerce_(Vector left, Vector right)
 
-    cpdef _pairwise_product_(Vector left, Vector right) # override, call if parents the same
+    cdef _pairwise_product_(Vector left, Vector right) # override, call if parents the same
 
     cdef bint is_sparse_c(self)
     cdef bint is_dense_c(self)

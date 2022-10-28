@@ -182,7 +182,7 @@ cdef class Parent(parent.Parent):
         check_old_coerce(self)
         return self._coerce_c(x)
 
-    cpdef _coerce_c(self, x):          # DO NOT OVERRIDE THIS (call it)
+    cdef _coerce_c(self, x):          # DO NOT OVERRIDE THIS (call it)
         if self._element_constructor is not None:
             from sage.misc.superseded import deprecation
             deprecation(33497, "_coerce_c is deprecated, use coerce instead")
@@ -287,7 +287,7 @@ cdef class Parent(parent.Parent):
     ###############################################################
     # Coercion Compatibility Layer
     ###############################################################
-    cpdef _coerce_map_from_(self, S):
+    cdef _coerce_map_from_(self, S):
         if self._element_constructor is None:
             return self.__coerce_map_from_c(S)
         else:
@@ -301,7 +301,7 @@ cdef class Parent(parent.Parent):
         self._cache_an_element = self._an_element_impl()
         return self._cache_an_element
 
-    cpdef _generic_convert_map(self, S, category=None):
+    cdef _generic_convert_map(self, S, category=None):
         r"""
         Return a default conversion from ``S``.
 

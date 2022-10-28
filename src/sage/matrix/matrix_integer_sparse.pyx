@@ -139,7 +139,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
     #   * cdef _add_
     #   * cdef _sub_
     #   * cdef _mul_
-    #   * cpdef _richcmp_
+    #   * cdef _richcmp_
     #   * __neg__
     #   * __invert__
     #   * __copy__
@@ -150,16 +150,16 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
     ########################################################################
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
-    # cpdef _add_(self, right):
+    # cdef _add_(self, right):
     # cdef _mul_(self, Matrix right):
-    # cpdef _richcmp_(self, Matrix right, int op):
+    # cdef _richcmp_(self, Matrix right, int op):
     # def __neg__(self):
     # def __invert__(self):
     # def __copy__(self):
     # def _multiply_classical(left, matrix.Matrix _right):
     # def _list(self):
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -181,7 +181,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             mpz_vector_scalar_multiply(M_row, self_row, _x.value)
         return M
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         cdef Py_ssize_t i, j
         cdef mpz_vector *self_row
         cdef mpz_vector *M_row
@@ -196,7 +196,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         mpz_clear(mul)
         return M
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         cdef Py_ssize_t i, j
         cdef mpz_vector *self_row
         cdef mpz_vector *M_row

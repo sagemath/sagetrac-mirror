@@ -20,7 +20,7 @@ cdef class BinaryCode:
 
     cdef int is_one(self, int, int)
     cdef int is_automorphism(self, int *, int *)
-    cpdef int put_in_std_form(self)
+    cdef int put_in_std_form(self)
     cdef void _apply_permutation_to_basis(self, object labeling)
     cdef void _update_words_from_basis(self)
 
@@ -84,7 +84,7 @@ cdef class PartitionStack:
     cdef int sort_wds(self, int, int)
     cdef int refine(self, int, int *, int, BinaryCode, int *)
     cdef void clear(self, int)
-    cpdef int cmp(self, PartitionStack, BinaryCode)
+    cdef int cmp(self, PartitionStack, BinaryCode)
     cdef int find_basis(self, int *)
     cdef void get_permutation(self, PartitionStack, int *, int *)
 

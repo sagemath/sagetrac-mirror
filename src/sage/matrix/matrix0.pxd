@@ -21,8 +21,8 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef public object _base_ring
     cdef bint _is_immutable
 
-    cpdef _add_(self, other)
-    cpdef _sub_(self, other)
+    cdef _add_(self, other)
+    cdef _sub_(self, other)
 
     cdef bint _will_use_strassen(self, Matrix right) except -2
     cdef bint _will_use_strassen_echelon(self) except -2

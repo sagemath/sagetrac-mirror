@@ -22,7 +22,7 @@ from sage.rings.rational_field import QQ
 cdef Integer zero = Integer(0)
 cdef Integer one = Integer(1)
 
-cpdef inline Integer shift_floor(Integer x, long shift):
+cdef inline Integer shift_floor(Integer x, long shift):
     r"""
     Return `x / 2^s` where `s` is the value of ``shift``, rounded towards
     `-\infty`. For internal use.
@@ -39,7 +39,7 @@ cpdef inline Integer shift_floor(Integer x, long shift):
     mpz_fdiv_q_2exp(z.value, x.value, shift)
     return z
 
-cpdef inline Integer shift_ceil(Integer x, long shift):
+cdef inline Integer shift_ceil(Integer x, long shift):
     r"""
     Return `x / 2^s` where `s` is the value of ``shift``, rounded towards
     `+\infty`. For internal use.
@@ -160,7 +160,7 @@ cdef class RealIntervalAbsoluteField_class(Field):
         """
         return RealIntervalAbsoluteElement(self, x)
 
-    cpdef _coerce_map_from_(self, R):
+    cdef _coerce_map_from_(self, R):
         """
         Anything that coerces into the reals coerces into this ring.
 
@@ -326,7 +326,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         x._diameter = _diameter
         return x
 
-    cpdef lower(self):
+    cdef lower(self):
         """
         Return the lower bound of ``self``.
 
@@ -339,7 +339,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         """
         return QQ(self._mantissa) >> (<RealIntervalAbsoluteField_class>self._parent)._absprec
 
-    cpdef midpoint(self):
+    cdef midpoint(self):
         """
         Return the midpoint of ``self``.
 
@@ -356,7 +356,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         """
         return (self._mantissa + self._diameter / 2) >> (<RealIntervalAbsoluteField_class>self._parent)._absprec
 
-    cpdef upper(self):
+    cdef upper(self):
         """
         Return the upper bound of ``self``.
 
@@ -369,7 +369,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         """
         return QQ(self._mantissa + self._diameter) >> (<RealIntervalAbsoluteField_class>self._parent)._absprec
 
-    cpdef absolute_diameter(self):
+    cdef absolute_diameter(self):
         """
         Return the diameter ``self``.
 
@@ -389,7 +389,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     diameter = absolute_diameter
 
-    cpdef endpoints(self):
+    cdef endpoints(self):
         """
         Return the left and right endpoints of ``self``, as a tuple.
 
@@ -421,7 +421,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         """
         return R(self._mantissa, self._mantissa+self._diameter) >> (<RealIntervalAbsoluteField_class>self._parent)._absprec
 
-    cpdef long mpfi_prec(self):
+    cdef long mpfi_prec(self):
         """
         Return the precision needed to represent this value as an mpfi interval.
 
@@ -494,7 +494,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         x *= (one << self._parent.absprec())
         return self._mantissa <= x <= self._mantissa + self._diameter
 
-    cpdef bint is_positive(self):
+    cdef bint is_positive(self):
         """
         Return whether ``self`` is definitely positive.
 
@@ -517,7 +517,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         """
         return mpz_sgn(self._mantissa.value) == 1
 
-    cpdef bint contains_zero(self):
+    cdef bint contains_zero(self):
         """
         Return whether ``self`` contains zero.
 
@@ -543,7 +543,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         return (mpz_sgn(self._mantissa.value) == 0
                 or (mpz_sgn(self._mantissa.value) == -1 and mpz_cmpabs(self._mantissa.value, self._diameter.value) <= 0))
 
-    cpdef bint is_negative(self):
+    cdef bint is_negative(self):
         """
         Return whether ``self`` is definitely negative.
 
@@ -611,7 +611,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         """
         return self.abs()
 
-    cpdef abs(self):
+    cdef abs(self):
         """
         Return the absolute value of ``self``.
 
@@ -637,7 +637,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         else:
             return self._new_c(zero, max(-self._mantissa, self._mantissa + self._diameter))
 
-    cpdef _add_(self, _other):
+    cdef _add_(self, _other):
         """
         TESTS::
 
@@ -655,7 +655,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         cdef RealIntervalAbsoluteElement other = <RealIntervalAbsoluteElement>_other
         return self._new_c(self._mantissa + other._mantissa, self._diameter + other._diameter)
 
-    cpdef _sub_(self, _other):
+    cdef _sub_(self, _other):
         """
         TESTS::
 
@@ -675,7 +675,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         cdef RealIntervalAbsoluteElement other = <RealIntervalAbsoluteElement>_other
         return self._new_c(self._mantissa - other._mantissa - other._diameter, self._diameter + other._diameter)
 
-    cpdef _mul_(self, _other):
+    cdef _mul_(self, _other):
         """
         TESTS::
 
@@ -730,7 +730,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
             res = -res
         return res
 
-    cpdef _acted_upon_(self, x, bint self_on_left):
+    cdef _acted_upon_(self, x, bint self_on_left):
         """
         ``Absprec * relprec -> absprec`` works better than coercing both
         operands to absolute precision first.
@@ -835,7 +835,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
             res = -res
         return res
 
-    cpdef _div_(self, _other):
+    cdef _div_(self, _other):
         """
         TESTS::
 

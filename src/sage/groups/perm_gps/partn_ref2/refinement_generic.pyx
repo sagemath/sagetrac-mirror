@@ -356,7 +356,7 @@ cdef class LabelledBranching:
         sig_free(self.father)
         sig_free(self.act_perm)
 
-    cpdef add_gen(self, GapElement_Permutation gen):
+    cdef add_gen(self, GapElement_Permutation gen):
         r"""
         Add a further generator to the group and
         update the complete labeled branching.

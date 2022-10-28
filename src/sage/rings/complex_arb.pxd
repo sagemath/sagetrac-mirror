@@ -15,12 +15,12 @@ cdef int acb_to_ComplexIntervalFieldElement(
 cdef class ComplexBall(RingElement):
     cdef acb_t value
     cdef ComplexBall _new(self)
-    cpdef _add_(self, other)
-    cpdef _mul_(self, other)
-    cpdef ComplexIntervalFieldElement _complex_mpfi_(self, parent)
-    cpdef RealBall real(self)
-    cpdef RealBall imag(self)
-    cpdef pow(self, expo, analytic=?)
+    cdef _add_(self, other)
+    cdef _mul_(self, other)
+    cdef ComplexIntervalFieldElement _complex_mpfi_(self, parent)
+    cdef RealBall real(self)
+    cdef RealBall imag(self)
+    cdef pow(self, expo, analytic=?)
 
     cdef inline ComplexBall _new(self):
         cdef ComplexBall res = ComplexBall.__new__(ComplexBall)

@@ -1204,7 +1204,7 @@ cdef class BinaryCode:
                 word ^= self.basis[j]
 
 
-    cpdef int put_in_std_form(self):
+    cdef int put_in_std_form(self):
         """
         Put the code in binary form, which is defined by an identity matrix on
         the left, augmented by a matrix of data.
@@ -2872,7 +2872,7 @@ cdef class PartitionStack:
                 self.col_percolate(j, i)
                 j = i + 1
 
-    cpdef int cmp(self, PartitionStack other, BinaryCode CG):
+    cdef int cmp(self, PartitionStack other, BinaryCode CG):
         """
         EXAMPLES::
 

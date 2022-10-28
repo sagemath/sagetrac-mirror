@@ -268,7 +268,7 @@ cdef class SBox(SageObject):
         """
         return not self.__eq__(other)
 
-    cpdef list to_bits(self, x, n=None):
+    cdef list to_bits(self, x, n=None):
         """
         Return bitstring of length ``n`` for integer ``x``. The
         returned bitstring is guaranteed to have length ``n``.

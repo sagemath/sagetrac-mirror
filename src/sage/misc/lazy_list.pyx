@@ -549,7 +549,7 @@ cdef class lazy_list_generic():
             raise NotImplementedError
         return slice_unpickle, (self.master, self.start, self.stop, self.step)
 
-    cpdef int _fit(self, Py_ssize_t n) except -1:
+    cdef int _fit(self, Py_ssize_t n) except -1:
         r"""
         Fill the cache making the term at index ``n`` available.
 
@@ -608,7 +608,7 @@ cdef class lazy_list_generic():
             return 1
         return 0
 
-    cpdef get(self, Py_ssize_t i):
+    cdef get(self, Py_ssize_t i):
         r"""
         Return the element at position ``i``.
 
@@ -840,7 +840,7 @@ cdef class lazy_list_generic():
 
         return l
 
-    cpdef int _update_cache_up_to(self, Py_ssize_t i) except -1:
+    cdef int _update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
 
@@ -878,7 +878,7 @@ cdef class lazy_list_generic():
             self.cache.extend(l)
         return 0
 
-    cpdef list _get_cache_(self):
+    cdef list _get_cache_(self):
         r"""
         Return the internal cache.
 
@@ -948,7 +948,7 @@ cdef class lazy_list_from_iterator(lazy_list_generic):
         self.iterator = iterator
         lazy_list_generic.__init__(self, cache, None, stop, None)
 
-    cpdef int _update_cache_up_to(self, Py_ssize_t i) except -1:
+    cdef int _update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
 
@@ -1031,7 +1031,7 @@ cdef class lazy_list_from_function(lazy_list_generic):
         self.callable = function
         lazy_list_generic.__init__(self, cache)
 
-    cpdef int _update_cache_up_to(self, Py_ssize_t i) except -1:
+    cdef int _update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
 
@@ -1106,7 +1106,7 @@ cdef class lazy_list_from_update_function(lazy_list_generic):
         self.update_function = function
         lazy_list_generic.__init__(self, cache, None, stop, None)
 
-    cpdef int _update_cache_up_to(self, Py_ssize_t i) except -1:
+    cdef int _update_cache_up_to(self, Py_ssize_t i) except -1:
         r"""
         Update the cache up to ``i``.
 

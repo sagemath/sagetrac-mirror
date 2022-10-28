@@ -164,7 +164,7 @@ cdef class Matrix_gap(Matrix_dense):
         """
         return self._parent, (self.list(),)
 
-    cpdef GapElement gap(self):
+    cdef GapElement gap(self):
         r"""
         Return the underlying gap object.
 
@@ -202,7 +202,7 @@ cdef class Matrix_gap(Matrix_dense):
         """
         self._libgap[i,j] = x
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         r"""
         Compare ``self`` and ``right``.
 
@@ -281,7 +281,7 @@ cdef class Matrix_gap(Matrix_dense):
         else:
             return Matrix_dense.__invert__(self)
 
-    cpdef _add_(left, right):
+    cdef _add_(left, right):
         r"""
         TESTS::
 
@@ -294,7 +294,7 @@ cdef class Matrix_gap(Matrix_dense):
         ans._libgap = left._libgap + (<Matrix_gap> right)._libgap
         return ans
 
-    cpdef _sub_(left, right):
+    cdef _sub_(left, right):
         r"""
         TESTS::
 

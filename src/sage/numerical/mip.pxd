@@ -19,11 +19,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
     cdef int __INTEGER
     cdef object _linear_functions_parent
     cdef object _linear_constraints_parent
-    cpdef int number_of_constraints(self)
-    cpdef int number_of_variables(self)
+    cdef int number_of_constraints(self)
+    cdef int number_of_variables(self)
     cdef int _check_redundant
     cdef list _constraints
-    cpdef sum(self, L)
+    cdef sum(self, L)
 
 
 cdef class MIPVariable(SageObject):

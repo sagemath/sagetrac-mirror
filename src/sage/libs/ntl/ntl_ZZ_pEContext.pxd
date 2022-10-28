@@ -15,7 +15,7 @@ cdef class ntl_ZZ_pEContext_class():
     cdef ntl_ZZ_pContext_class pc
     cdef void restore_c(self)
     cdef ntl_ZZ_pX f
-    cpdef void _assert_is_current_modulus(self) except *
+    cdef void _assert_is_current_modulus(self) except *
 
 
 cdef extern from "ntlwrap.h":

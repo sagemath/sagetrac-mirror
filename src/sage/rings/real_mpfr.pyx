@@ -377,7 +377,7 @@ cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate 
 
 cdef object RealField_cache = sage.misc.weak_dict.WeakValueDictionary()
 
-cpdef RealField(mpfr_prec_t prec=53, int sci_not=0, rnd=MPFR_RNDN):
+cdef RealField(mpfr_prec_t prec=53, int sci_not=0, rnd=MPFR_RNDN):
     """
     RealField(prec, sci_not, rnd):
 
@@ -621,7 +621,7 @@ cdef class RealField_class(sage.rings.abc.RealField):
         sib.cache(self, v, name)
         return v
 
-    cpdef bint is_exact(self) except -2:
+    cdef bint is_exact(self) except -2:
         """
         Return ``False``, since a real field (represented using finite
         precision) is not exact.
@@ -670,7 +670,7 @@ cdef class RealField_class(sage.rings.abc.RealField):
         z._set(x, base)
         return z
 
-    cpdef _coerce_map_from_(self, S):
+    cdef _coerce_map_from_(self, S):
         """
         Canonical coercion of x to this MPFR real field.
 
@@ -2456,7 +2456,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         else:
             return Element.__rtruediv__(right, left)
 
-    cpdef _add_(self, other):
+    cdef _add_(self, other):
         """
         Add two real numbers with the same parent.
 
@@ -2485,7 +2485,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self._parent(1) / self
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Subtract two real numbers with the same parent.
 
@@ -2526,7 +2526,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         import sympy
         return sympy.Float(self, precision=self._parent.precision())
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Multiply two real numbers with the same parent.
 
@@ -2559,7 +2559,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return x
 
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         Divide ``self`` by other, where both are real numbers with the same
         parent.
@@ -2579,7 +2579,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
                  (<RealNumber>right).value, (<RealField_class>self._parent).rnd)
         return x
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         Return the negative of ``self``.
 
@@ -2966,7 +2966,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
     # Rounding etc
     ###################
 
-    cpdef _mod_(left, right):
+    cdef _mod_(left, right):
         """
         Return the value of ``left - n*right``, rounded according to the
         rounding mode of the parent, where ``n`` is the integer quotient of
@@ -4122,7 +4122,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return not mpfr_zero_p(self.value)
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         Compare ``self`` and ``other`` according to the rich
         comparison operator ``op``.
@@ -5949,7 +5949,7 @@ def __create__RealNumber_version0(parent, x, base=10):
 
 
 cdef class RRtoRR(Map):
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         EXAMPLES::
 
@@ -5998,7 +5998,7 @@ cdef class RRtoRR(Map):
         return RRtoRR(self._codomain, self.domain())
 
 cdef class ZZtoRR(Map):
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         EXAMPLES::
 
@@ -6013,7 +6013,7 @@ cdef class ZZtoRR(Map):
         return y
 
 cdef class QQtoRR(Map):
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         EXAMPLES::
 
@@ -6028,7 +6028,7 @@ cdef class QQtoRR(Map):
         return y
 
 cdef class double_toRR(Map):
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Takes anything that can be converted to a double.
 
@@ -6048,7 +6048,7 @@ cdef class double_toRR(Map):
         return y
 
 cdef class int_toRR(Map):
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Takes Python int/long instances.
 

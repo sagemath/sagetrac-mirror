@@ -124,7 +124,7 @@ def lcm(a, b=None):
     raise TypeError(f"unable to find lcm of {a!r} and {b!r}")
 
 
-cpdef LCM_list(v):
+cdef LCM_list(v):
     """
     Return the LCM of an iterable ``v``.
 

@@ -409,7 +409,7 @@ include "pynac.pxi"
 include "pynac_impl.pxi"
 
 
-cpdef bint is_Expression(x):
+cdef bint is_Expression(x):
     """
     Return True if ``x`` is a symbolic expression.
 
@@ -435,7 +435,7 @@ cpdef bint is_Expression(x):
     return isinstance(x, Expression)
 
 
-cpdef bint is_SymbolicEquation(x):
+cdef bint is_SymbolicEquation(x):
     """
     Return True if *x* is a symbolic equation.
 
@@ -468,7 +468,7 @@ cpdef bint is_SymbolicEquation(x):
 
 
 # Defined here but exported by sage.symbolic.ring
-cpdef bint _is_SymbolicVariable(x):
+cdef bint _is_SymbolicVariable(x):
     """
     Return ``True`` if ``x`` is a variable.
 
@@ -712,7 +712,7 @@ cdef class Expression(Expression_abc):
 
     cdef GEx _gobj
 
-    cpdef object pyobject(self):
+    cdef object pyobject(self):
         """
         Get the underlying Python object.
 
@@ -1585,7 +1585,7 @@ cdef class Expression(Expression_abc):
             return n
         return sage.rings.rational.Rational(n)
 
-    cpdef _eval_self(self, R):
+    cdef _eval_self(self, R):
         """
         Evaluate this expression numerically.
 
@@ -1646,7 +1646,7 @@ cdef class Expression(Expression_abc):
         else:
             raise TypeError("Cannot evaluate symbolic expression to a numeric value.")
 
-    cpdef _convert(self, kwds):
+    cdef _convert(self, kwds):
         """
         Convert all the numeric coefficients and constants in this expression
         to the given ring ``R``. This results in an expression which contains
@@ -2185,7 +2185,7 @@ cdef class Expression(Expression_abc):
         finally:
             sig_off()
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Create a formal symbolic inequality or equality.
 
@@ -2949,7 +2949,7 @@ cdef class Expression(Expression_abc):
         """
         return False
 
-    cpdef bint is_polynomial(self, var):
+    cdef bint is_polynomial(self, var):
         """
         Return True if self is a polynomial in the given variable.
 
@@ -3002,7 +3002,7 @@ cdef class Expression(Expression_abc):
         finally:
             sig_off()
 
-    cpdef bint is_relational(self):
+    cdef bint is_relational(self):
         """
         Return True if self is a relational expression.
 
@@ -3072,7 +3072,7 @@ cdef class Expression(Expression_abc):
                 return False
         return True
 
-    cpdef bint is_infinity(self):
+    cdef bint is_infinity(self):
         """
         Return True if self is an infinite expression.
 
@@ -3085,7 +3085,7 @@ cdef class Expression(Expression_abc):
         """
         return is_a_infinity(self._gobj)
 
-    cpdef bint is_positive_infinity(self):
+    cdef bint is_positive_infinity(self):
         """
         Return True if self is a positive infinite expression.
 
@@ -3100,7 +3100,7 @@ cdef class Expression(Expression_abc):
         """
         return is_a_infinity(self._gobj) and self._gobj.info(info_positive)
 
-    cpdef bint is_negative_infinity(self):
+    cdef bint is_negative_infinity(self):
         """
         Return True if self is a negative infinite expression.
 
@@ -3805,7 +3805,7 @@ cdef class Expression(Expression_abc):
         except TypeError:
             return self._parent.coerce(z)
 
-    cpdef _add_(left, right):
+    cdef _add_(left, right):
         """
         Add left and right.
 
@@ -3900,7 +3900,7 @@ cdef class Expression(Expression_abc):
             x = left._gobj + _right._gobj
         return new_Expression_from_GEx(left._parent, x)
 
-    cpdef _sub_(left, right):
+    cdef _sub_(left, right):
         """
         EXAMPLES::
 
@@ -3952,7 +3952,7 @@ cdef class Expression(Expression_abc):
             x = left._gobj - _right._gobj
         return new_Expression_from_GEx(left._parent, x)
 
-    cpdef _mul_(left, right):
+    cdef _mul_(left, right):
         """
         Multiply left and right.
 
@@ -4118,7 +4118,7 @@ cdef class Expression(Expression_abc):
             x = left._gobj * _right._gobj
         return new_Expression_from_GEx(left._parent, x)
 
-    cpdef _div_(left, right):
+    cdef _div_(left, right):
         """
         Divide left and right.
 
@@ -4243,7 +4243,7 @@ cdef class Expression(Expression_abc):
         """
         return 1/self
 
-    cpdef int _cmp_add(Expression left, Expression right) except -2:
+    cdef int _cmp_add(Expression left, Expression right) except -2:
         """
         Compare ``left`` and ``right`` in the print order.
 
@@ -4271,7 +4271,7 @@ cdef class Expression(Expression_abc):
         """
         return print_order_compare(left._gobj, right._gobj)
 
-    cpdef int _cmp_mul(Expression left, Expression right) except -2:
+    cdef int _cmp_mul(Expression left, Expression right) except -2:
         """
         Compare ``left`` and ``right`` in the print order for products.
 
@@ -4299,7 +4299,7 @@ cdef class Expression(Expression_abc):
         """
         return print_order_compare_mul(left._gobj, right._gobj)
 
-    cpdef _pow_(self, other):
+    cdef _pow_(self, other):
         r"""
         Return ``self`` raised to the power ``other``.
 
@@ -4513,7 +4513,7 @@ cdef class Expression(Expression_abc):
             x = g_pow(self._gobj, nexp._gobj)
         return new_Expression_from_GEx(self._parent, x)
 
-    cpdef _pow_int(self, other):
+    cdef _pow_int(self, other):
         """
         TESTS::
 
@@ -5894,7 +5894,7 @@ cdef class Expression(Expression_abc):
 
     subs = substitute
 
-    cpdef Expression _subs_expr(self, expr):
+    cdef Expression _subs_expr(self, expr):
         """
         EXAMPLES::
 
@@ -13469,7 +13469,7 @@ cdef class Expression(Expression_abc):
                 return S
 
 
-cpdef _repr_Expression(x):
+cdef _repr_Expression(x):
     r"""
     Return the string representation of the expression ``x``.
 
@@ -13481,7 +13481,7 @@ cpdef _repr_Expression(x):
     return ccrepr((<Expression>x)._gobj)
 
 
-cpdef _latex_Expression(x):
+cdef _latex_Expression(x):
     r"""
     Return the standard LaTeX version of the expression `x`.
 
@@ -13669,7 +13669,7 @@ cdef Expression new_Expression_from_GEx(parent, GEx juice):
     return nex
 
 
-cpdef new_Expression(parent, x):
+cdef new_Expression(parent, x):
     r"""
     Convert ``x`` into the symbolic expression ring ``parent``.
 
@@ -13756,7 +13756,7 @@ cpdef new_Expression(parent, x):
     return new_Expression_from_GEx(parent, exp)
 
 
-cpdef new_Expression_from_pyobject(parent, x, bint force=True, bint recursive=True):
+cdef new_Expression_from_pyobject(parent, x, bint force=True, bint recursive=True):
     r"""
     Wrap the given Python object in a symbolic expression even if it
     cannot be coerced to the Symbolic Ring.
@@ -13826,7 +13826,7 @@ cpdef new_Expression_from_pyobject(parent, x, bint force=True, bint recursive=Tr
     return new_Expression_from_GEx(parent, exp)
 
 
-cpdef new_Expression_wild(parent, unsigned int n=0):
+cdef new_Expression_wild(parent, unsigned int n=0):
     r"""
     Return the n-th wild-card for pattern matching and substitution.
 
@@ -13856,7 +13856,7 @@ cpdef new_Expression_wild(parent, unsigned int n=0):
     return new_Expression_from_GEx(parent, g_wild(n))
 
 
-cpdef new_Expression_symbol(parent, name=None, latex_name=None, domain=None):
+cdef new_Expression_symbol(parent, name=None, latex_name=None, domain=None):
     r"""
     Look up or create a symbol.
 

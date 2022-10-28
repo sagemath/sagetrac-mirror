@@ -13,12 +13,12 @@ cdef class SemidefiniteProgram(SageObject):
     cdef dict _variables
     cdef object _linear_functions_parent
     cdef object _linear_constraints_parent
-    cpdef int number_of_constraints(self)
-    cpdef int number_of_variables(self)
+    cdef int number_of_constraints(self)
+    cdef int number_of_variables(self)
     cdef list _constraints
-    cpdef sum(self, L)
-    cpdef dual_variable(self, int i, sparse=*)
-    cpdef slack(self, int i, sparse=*)
+    cdef sum(self, L)
+    cdef dual_variable(self, int i, sparse=*)
+    cdef slack(self, int i, sparse=*)
 
 
 cdef class SDPVariable(Element):
@@ -28,7 +28,7 @@ cdef class SDPVariable(Element):
     cdef bint _hasname
     cdef _matrix_rmul_impl(self, m)
     cdef _matrix_lmul_impl(self, m)
-    cpdef _acted_upon_(self, mat, bint self_on_left)
+    cdef _acted_upon_(self, mat, bint self_on_left)
 
 
 cdef class SDPVariableParent(Parent):

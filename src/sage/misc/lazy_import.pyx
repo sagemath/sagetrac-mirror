@@ -92,7 +92,7 @@ cdef bint startup_guard = True
 cdef bint finish_startup_called = False
 
 
-cpdef finish_startup():
+cdef finish_startup():
     """
     Finish the startup phase.
 
@@ -113,7 +113,7 @@ cpdef finish_startup():
     finish_startup_called = True
 
 
-cpdef ensure_startup_finished():
+cdef ensure_startup_finished():
     """
     Make sure that the startup phase is finished.
 
@@ -129,7 +129,7 @@ cpdef ensure_startup_finished():
     startup_guard = False
 
 
-cpdef bint is_during_startup():
+cdef bint is_during_startup():
     """
     Return whether Sage is currently starting up.
 
@@ -147,7 +147,7 @@ cpdef bint is_during_startup():
     return startup_guard
 
 
-cpdef test_fake_startup():
+cdef test_fake_startup():
     """
     For testing purposes only.
 
@@ -224,7 +224,7 @@ cdef class LazyImport():
             return self._object
         return self._get_object()
 
-    cpdef _get_object(self):
+    cdef _get_object(self):
         """
         Return the wrapped object, importing it if necessary.
 

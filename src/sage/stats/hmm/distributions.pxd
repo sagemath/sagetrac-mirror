@@ -23,9 +23,9 @@ cdef class GaussianMixtureDistribution(Distribution):
     cdef IntList fixed
 
     cdef double _sample(self, randstate rstate)
-    cpdef double prob(self, double x)
-    cpdef double prob_m(self, double x, int m)
-    cpdef is_fixed(self, i=?)
+    cdef double prob(self, double x)
+    cdef double prob_m(self, double x, int m)
+    cdef is_fixed(self, i=?)
 
 
 

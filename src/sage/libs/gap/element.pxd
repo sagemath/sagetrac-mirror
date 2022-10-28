@@ -43,18 +43,18 @@ cdef class GapElement(RingElement):
     cdef bint _compare_by_id
     cdef bint _compare_equal(self, Element other) except -2
     cdef bint _compare_less(self, Element other) except -2
-    cpdef _set_compare_by_id(self)
-    cpdef _assert_compare_by_id(self)
+    cdef _set_compare_by_id(self)
+    cdef _assert_compare_by_id(self)
 
     cdef _initialize(self, parent, Obj obj)
-    cpdef _type_number(self)
-    cpdef is_bool(self)
-    cpdef _add_(self, other)
-    cpdef _mul_(self, other)
-    cpdef _mod_(self, other)
-    cpdef _pow_(self, other)
+    cdef _type_number(self)
+    cdef is_bool(self)
+    cdef _add_(self, other)
+    cdef _mul_(self, other)
+    cdef _mod_(self, other)
+    cdef _pow_(self, other)
 
-    cpdef GapElement deepcopy(self, bint mut)
+    cdef GapElement deepcopy(self, bint mut)
 
 cdef class GapElement_Integer(GapElement):
     pass
@@ -63,10 +63,10 @@ cdef class GapElement_Rational(GapElement):
     pass
 
 cdef class GapElement_IntegerMod(GapElement):
-    cpdef GapElement_Integer lift(self)
+    cdef GapElement_Integer lift(self)
 
 cdef class GapElement_FiniteField(GapElement):
-    cpdef GapElement_Integer lift(self)
+    cdef GapElement_Integer lift(self)
 
 cdef class GapElement_Cyclotomic(GapElement):
     pass
@@ -87,7 +87,7 @@ cdef class GapElement_MethodProxy(GapElement_Function):
     cdef GapElement first_argument
 
 cdef class GapElement_Record(GapElement):
-    cpdef UInt record_name_to_index(self, name)
+    cdef UInt record_name_to_index(self, name)
 
 cdef class GapElement_RecordIterator():
     cdef GapElement_Record rec

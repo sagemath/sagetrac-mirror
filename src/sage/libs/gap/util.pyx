@@ -120,7 +120,7 @@ cdef dict owned_objects_refcount = dict()
 #
 # used in Sage's libgap.Gap.count_GAP_objects
 #
-cpdef get_owned_objects():
+cdef get_owned_objects():
     """
     Helper to access the refcount dictionary from Python code
     """

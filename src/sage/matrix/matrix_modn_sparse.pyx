@@ -414,7 +414,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         self.rows[n1] = self.rows[n2]
         self.rows[n2] = tmp
 
-    cpdef _echelon_in_place(self, str algorithm):
+    cdef _echelon_in_place(self, str algorithm):
         """
         Replace self by its reduction to reduced row echelon form.
 

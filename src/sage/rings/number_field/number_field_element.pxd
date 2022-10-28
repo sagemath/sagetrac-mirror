@@ -21,13 +21,13 @@ cdef class NumberFieldElement(FieldElement):
     cdef object __matrix
 
     cdef _new(self)
-    cpdef _add_(self, other)
-    cpdef _mul_(self, other)
+    cdef _add_(self, other)
+    cdef _mul_(self, other)
 
-    cpdef _add_(self, other)
-    cpdef _mul_(self, other)
+    cdef _add_(self, other)
+    cdef _mul_(self, other)
 
-    cpdef _copy_for_parent(self, Parent parent)
+    cdef _copy_for_parent(self, Parent parent)
 
     cdef number_field(self)
 
@@ -36,10 +36,10 @@ cdef class NumberFieldElement(FieldElement):
 
     cdef void _reduce_c_(self)
 
-    cpdef list _coefficients(self)
+    cdef list _coefficients(self)
 
-    cpdef bint is_rational(self)
-    cpdef bint is_one(self)
+    cdef bint is_rational(self)
+    cdef bint is_one(self)
     cdef int _randomize(self, num_bound, den_bound, distribution) except -1
 
 

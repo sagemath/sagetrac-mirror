@@ -241,7 +241,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     # LEVEL 2 functionality
     # x  * cdef _add_
     #    * cdef _mul_
-    #    * cpdef _richcmp_
+    #    * cdef _richcmp_
     #    * __neg__
     #    * __invert__
     # x  * __copy__
@@ -250,7 +250,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     # x  * _dict -- copy of the sparse dictionary of underlying elements
     ########################################################################
 
-    cpdef _add_(self, _other):
+    cdef _add_(self, _other):
         """
         EXAMPLES::
 

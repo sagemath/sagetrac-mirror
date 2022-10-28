@@ -803,7 +803,7 @@ cdef class NumberFieldElement(FieldElement):
             return QQ.zero()
         return coeffs[n]
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         r"""
         EXAMPLES::
 
@@ -2410,7 +2410,7 @@ cdef class NumberFieldElement(FieldElement):
         self.__numerator = t2
         self.__denominator = t1
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         r"""
         EXAMPLES::
 
@@ -2436,7 +2436,7 @@ cdef class NumberFieldElement(FieldElement):
         x._reduce_c_()
         return x
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         r"""
         EXAMPLES::
 
@@ -2460,7 +2460,7 @@ cdef class NumberFieldElement(FieldElement):
         x._reduce_c_()
         return x
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Returns the product of self and other as elements of a number
         field.
@@ -2507,7 +2507,7 @@ cdef class NumberFieldElement(FieldElement):
         # but asymptotically fast poly multiplication means it's
         # actually faster to *not* build a table!?!
 
-    cpdef _div_(self, other):
+    cdef _div_(self, other):
         """
         Returns the quotient of self and other as elements of a number
         field.
@@ -2618,7 +2618,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         return not IsZero_ZZX(self.__numerator)
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         r"""
         EXAMPLES::
 
@@ -2632,7 +2632,7 @@ cdef class NumberFieldElement(FieldElement):
         x.__denominator = self.__denominator
         return x
 
-    cpdef _copy_for_parent(self, Parent parent):
+    cdef _copy_for_parent(self, Parent parent):
         r"""
         Return a copy of ``self`` with the parent replaced by ``parent``.
 
@@ -3184,7 +3184,7 @@ cdef class NumberFieldElement(FieldElement):
 
         return h
 
-    cpdef list _coefficients(self):
+    cdef list _coefficients(self):
         """
         Return the coefficients of the underlying polynomial corresponding
         to this number field element.
@@ -3353,7 +3353,7 @@ cdef class NumberFieldElement(FieldElement):
         if not self: return ZZ.one()
         else: return sage.rings.infinity.infinity
 
-    cpdef bint is_one(self):
+    cdef bint is_one(self):
         r"""
         Test whether this number field element is `1`.
 
@@ -3374,7 +3374,7 @@ cdef class NumberFieldElement(FieldElement):
         return ZZX_IsOne(self.__numerator) == 1 and \
                ZZ_IsOne(self.__denominator) == 1
 
-    cpdef bint is_rational(self):
+    cdef bint is_rational(self):
         r"""
         Test whether this number field element is a rational number
 

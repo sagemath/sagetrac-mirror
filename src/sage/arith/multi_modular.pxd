@@ -34,5 +34,5 @@ cdef class MultiModularBasis(MultiModularBasis_base):
 
 cdef class MutableMultiModularBasis(MultiModularBasis):
     cdef mod_int __last_prime
-    cpdef mod_int next_prime(self) except -1
-    cpdef mod_int replace_prime(self, int ix) except -1
+    cdef mod_int next_prime(self) except -1
+    cdef mod_int replace_prime(self, int ix) except -1

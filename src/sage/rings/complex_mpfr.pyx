@@ -1486,7 +1486,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         import sympy
         return self.real()._sympy_() + self.imag()._sympy_() * sympy.I
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Add ``self`` to ``right``.
 
@@ -1501,7 +1501,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_add(x.__im, self.__im, (<ComplexNumber>right).__im, rnd)
         return x
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Subtract ``right`` from ``self``.
 
@@ -1516,7 +1516,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_sub(x.__im, self.__im, (<ComplexNumber>right).__im, rnd)
         return x
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Multiply ``self`` by ``right``.
 
@@ -1620,7 +1620,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_clear(t1)
         return x
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         Divide ``self`` by ``right``.
 
@@ -1999,7 +1999,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         return complex(mpfr_get_d(self.__re, rnd),
                        mpfr_get_d(self.__im, rnd))
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Compare ``left`` and ``right``.
 
@@ -3433,7 +3433,7 @@ cdef class RRtoCC(Map):
         Map._update_slots(self, _slots)
         self._zero = _slots['_zero']
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         EXAMPLES::
 
@@ -3464,7 +3464,7 @@ cdef inline mp_exp_t max_exp(ComplexNumber z):
         return mpfr_get_exp(z.__im)
     return max_exp_t(mpfr_get_exp(z.__re), mpfr_get_exp(z.__im))
 
-cpdef int cmp_abs(ComplexNumber a, ComplexNumber b):
+cdef int cmp_abs(ComplexNumber a, ComplexNumber b):
     """
     Return -1, 0, or 1 according to whether `|a|` is less than, equal to, or
     greater than `|b|`.

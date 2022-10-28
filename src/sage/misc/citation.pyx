@@ -144,7 +144,7 @@ cdef extern from *:
         """
 
 
-cpdef inline bint cython_profile_enabled():
+cdef inline bint cython_profile_enabled():
     """
     Return whether Cython profiling is enabled.
 

@@ -444,7 +444,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
                 return True
         return False
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         Implement comparisons, using the Cython richcmp convention.
 
@@ -461,7 +461,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
     ################################
     # Arithmetic
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         TESTS::
 
@@ -477,7 +477,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         return FreeAlgebraElement_letterplace(self._parent, -self._poly,
                                               check=False)
 
-    cpdef _add_(self, other):
+    cdef _add_(self, other):
         """
         Addition, under the side condition that either one summand
         is zero, or both summands have the same degree.
@@ -511,7 +511,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
                                               self._poly + right._poly,
                                               check=False)
 
-    cpdef _sub_(self, other):
+    cdef _sub_(self, other):
         """
         Difference, under the side condition that either one summand
         is zero or both have the same weighted degree.
@@ -551,7 +551,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
                                               self._poly - right._poly,
                                               check=False)
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         Multiplication from the right with an element of the base ring.
 
@@ -566,7 +566,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
                                               self._poly._lmul_(right),
                                               check=False)
 
-    cpdef _rmul_(self, Element left):
+    cdef _rmul_(self, Element left):
         """
         Multiplication from the left with an element of the base ring.
 
@@ -581,7 +581,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
                                               self._poly._rmul_(left),
                                               check=False)
 
-    cpdef _mul_(self, other):
+    cdef _mul_(self, other):
         """
         Product of two free algebra elements in letterplace implementation.
 

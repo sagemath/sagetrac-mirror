@@ -156,7 +156,7 @@ cdef class StaticSparseCGraph(CGraph):
         if self._directed:
             free_short_digraph(self.g_rev)
 
-    cpdef bint has_vertex(self, int v) except -1:
+    cdef bint has_vertex(self, int v) except -1:
         r"""
         Test if a vertex belongs to the graph
 
@@ -196,7 +196,7 @@ cdef class StaticSparseCGraph(CGraph):
         """
         self.add_vertex_unsafe(k)
 
-    cpdef del_vertex(self, int k):
+    cdef del_vertex(self, int k):
         r"""
         Remove a vertex from the graph. No way.
 
@@ -211,7 +211,7 @@ cdef class StaticSparseCGraph(CGraph):
         """
         self.del_vertex_unsafe(k)
 
-    cpdef list verts(self):
+    cdef list verts(self):
         r"""
         Returns the list of vertices
 
@@ -234,7 +234,7 @@ cdef class StaticSparseCGraph(CGraph):
                 (v < self.g.n) and
                 has_edge(self.g, u, v) != NULL)
 
-    cpdef bint has_arc(self, int u, int v) except -1:
+    cdef bint has_arc(self, int u, int v) except -1:
         r"""
         Test if `uv` is an edge of the graph
 
@@ -318,7 +318,7 @@ cdef class StaticSparseCGraph(CGraph):
             neighbors[i] = self.g_rev.neighbors[u][i]
         return -1 if size < degree else degree
 
-    cpdef list out_neighbors(self, int u):
+    cdef list out_neighbors(self, int u):
         r"""
         List the out-neighbors of a vertex
 
@@ -343,7 +343,7 @@ cdef class StaticSparseCGraph(CGraph):
         cdef int i
         return [<int> self.g.neighbors[u][i] for i in range(out_degree(self.g, u))]
 
-    cpdef list in_neighbors(self, int u):
+    cdef list in_neighbors(self, int u):
         r"""
         Return the in-neighbors of a vertex
 
@@ -371,7 +371,7 @@ cdef class StaticSparseCGraph(CGraph):
         cdef int i
         return [<int> self.g_rev.neighbors[u][i] for i in range(out_degree(self.g_rev, u))]
 
-    cpdef int out_degree(self, int u) except -1:
+    cdef int out_degree(self, int u) except -1:
         r"""
         Return the out-degree of a vertex
 
@@ -395,7 +395,7 @@ cdef class StaticSparseCGraph(CGraph):
 
         return self.g.neighbors[u+1] - self.g.neighbors[u]
 
-    cpdef int in_degree(self, int u) except -1:
+    cdef int in_degree(self, int u) except -1:
         r"""
         Return the in-degree of a vertex
 
@@ -555,7 +555,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         """
         return v in self._vertex_to_int
 
-    cpdef add_edge(self, object u, object v, object l, bint directed):
+    cdef add_edge(self, object u, object v, object l, bint directed):
         r"""
         Set edge label. No way.
 
@@ -600,7 +600,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         """
         raise ValueError("graph is immutable; please change a copy instead (use function copy())")
 
-    cpdef del_edge(self, object u, object v, object l, bint directed):
+    cdef del_edge(self, object u, object v, object l, bint directed):
         r"""
         Set edge label. No way.
 

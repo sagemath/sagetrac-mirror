@@ -7737,7 +7737,7 @@ cdef class Matrix(Matrix1):
         else:
             return E
 
-    cpdef _echelon(self, str algorithm):
+    cdef _echelon(self, str algorithm):
         """
         Return the echelon form of ``self`` using ``algorithm``.
 
@@ -7816,7 +7816,7 @@ cdef class Matrix(Matrix1):
         """
         return self._echelon('classical')
 
-    cpdef _echelon_in_place(self, str algorithm):
+    cdef _echelon_in_place(self, str algorithm):
         """
         Transform ``self`` into echelon form and return the pivots of ``self``.
 
@@ -8637,7 +8637,7 @@ cdef class Matrix(Matrix1):
         self.cache('pivots', pivots)
         verbose('done with strassen', tm)
 
-    cpdef matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
+    cdef matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
                       Py_ssize_t nrows=-1, Py_ssize_t ncols=-1,
                       bint check=1):
         """

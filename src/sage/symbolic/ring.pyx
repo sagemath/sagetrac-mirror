@@ -122,7 +122,7 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
         """
         return r'\text{SR}'
 
-    cpdef _coerce_map_from_(self, R):
+    cdef _coerce_map_from_(self, R):
         """
         EXAMPLES::
 
@@ -565,7 +565,7 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
         """
         return False
 
-    cpdef bint is_exact(self) except -2:
+    cdef bint is_exact(self) except -2:
         """
         Return False, because there are approximate elements in the
         symbolic ring.
@@ -1228,7 +1228,7 @@ cdef class NumpyToSRMorphism(Morphism):
         else:
             raise TypeError("{} is not a numpy number type".format(numpy_type))
 
-    cpdef Element _call_(self, a):
+    cdef Element _call_(self, a):
         """
         EXAMPLES:
 
@@ -1275,7 +1275,7 @@ cdef class UnderscoreSageMorphism(Morphism):
         from sage.interfaces.sympy import sympy_init
         sympy_init()
 
-    cpdef Element _call_(self, a):
+    cdef Element _call_(self, a):
         """
         EXAMPLES:
 

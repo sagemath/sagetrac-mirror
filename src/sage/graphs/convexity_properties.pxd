@@ -10,6 +10,6 @@ cdef class ConvexityProperties:
     cdef list _vertices_to_integers(self, vertices)
     cdef list _integers_to_vertices(self, list integers)
     cdef _bitset_convex_hull(self, bitset_t hull)
-    cpdef hull(self, list vertices)
+    cdef hull(self, list vertices)
     cdef _greedy_increase(self, bitset_t bs)
-    cpdef hull_number(self, value_only = *, verbose = *)
+    cdef hull_number(self, value_only = *, verbose = *)

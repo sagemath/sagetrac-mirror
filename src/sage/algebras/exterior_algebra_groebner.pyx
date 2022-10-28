@@ -455,7 +455,7 @@ cdef class GroebnerStrategy:
         cdef list G = [self.build_elt(f) for f in self.groebner_basis]
         self.reduced_gb(G)
 
-    cpdef CliffordAlgebraElement reduce(self, CliffordAlgebraElement f):
+    cdef CliffordAlgebraElement reduce(self, CliffordAlgebraElement f):
         """
         Reduce ``f`` modulo the ideal with Gröbner basis ``G``.
 

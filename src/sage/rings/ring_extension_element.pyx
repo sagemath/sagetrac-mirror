@@ -267,7 +267,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         """
         return latex(self._backend)
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         r"""
         Compare this element with ``right`` according to
         the rich comparison operator ``op``.
@@ -294,7 +294,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         """
         return left._backend._richcmp_(backend_element(right), op)
 
-    cpdef _add_(self,other):
+    cdef _add_(self,other):
         r"""
         Return the sum of this element and ``other``.
 
@@ -314,7 +314,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         ans._backend = self._backend + (<RingExtensionElement>other)._backend
         return ans
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         r"""
         Return the opposite of this element.
 
@@ -334,7 +334,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         ans._backend = -self._backend
         return ans
 
-    cpdef _sub_(self,other):
+    cdef _sub_(self,other):
         r"""
         Return the difference of this element and ``other``.
 
@@ -354,7 +354,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         ans._backend = self._backend - (<RingExtensionElement>other)._backend
         return ans
 
-    cpdef _mul_(self,other):
+    cdef _mul_(self,other):
         r"""
         Return the product of this element and ``other``.
 
@@ -374,7 +374,7 @@ cdef class RingExtensionElement(CommutativeAlgebraElement):
         ans._backend = self._backend * (<RingExtensionElement>other)._backend
         return ans
 
-    cpdef _div_(self,other):
+    cdef _div_(self,other):
         r"""
         Return the quotient of this element by ``other``,
         considered as an element of the fraction field.
@@ -1387,7 +1387,7 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
         """
         return self.matrix(base).charpoly(var)
 
-    cpdef minpoly(self, base=None, var='x'):
+    cdef minpoly(self, base=None, var='x'):
         r"""
         Return the minimal polynomial of this element over ``base``.
 

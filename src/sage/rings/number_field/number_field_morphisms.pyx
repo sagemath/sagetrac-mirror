@@ -120,7 +120,7 @@ cdef class NumberFieldEmbedding(Morphism):
         Morphism._update_slots(self, _slots)
         self._gen_image = _slots['_gen_image']
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         EXAMPLES::
 
@@ -316,7 +316,7 @@ cdef class EmbeddedNumberFieldConversion(Map):
         self.ambient_field = ambient_field
         Map.__init__(self, K, L)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         EXAMPLES::
 
@@ -338,7 +338,7 @@ cdef class EmbeddedNumberFieldConversion(Map):
         return gen_image
 
 
-cpdef matching_root(poly, target, ambient_field=None, margin=1, max_prec=None):
+cdef matching_root(poly, target, ambient_field=None, margin=1, max_prec=None):
     """
     Given a polynomial and a target, this function chooses the root that
     target best approximates as compared in ambient_field.
@@ -401,7 +401,7 @@ cpdef matching_root(poly, target, ambient_field=None, margin=1, max_prec=None):
             ambient_field = ambient_field.to_prec(ambient_field.prec() * 2)
 
 
-cpdef closest(target, values, margin=1):
+cdef closest(target, values, margin=1):
     """
     This is a utility function that returns the item in values closest to
     target (with respect to the ``abs`` function). If margin is greater
@@ -677,7 +677,7 @@ cdef class CyclotomicFieldEmbedding(NumberFieldEmbedding):
         self._gen_image = _slots['_gen_image']
         self.ratio = _slots['ratio']
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         EXAMPLES::
 
@@ -758,7 +758,7 @@ cdef class CyclotomicFieldConversion(Map):
         self.phi = L.hom([M.gen()**(n3//n2)])
         Map.__init__(self, K, L)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Call a conversion map between cyclotomic fields.
 

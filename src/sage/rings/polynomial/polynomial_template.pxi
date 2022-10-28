@@ -189,7 +189,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return make_element, ((<Polynomial_template>self)._parent, (self.list(), False, self.is_gen()))
 
-    cpdef list list(self, bint copy=True):
+    cdef list list(self, bint copy=True):
         """
         EXAMPLES::
 
@@ -223,7 +223,7 @@ cdef class Polynomial_template(Polynomial):
         """
         celement_destruct(&self.x, (<Polynomial_template>self)._cparent)
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         EXAMPLES::
 
@@ -241,7 +241,7 @@ cdef class Polynomial_template(Polynomial):
         #assert(r._parent(pari(self) + pari(right)) == r)
         return r
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         EXAMPLES::
 
@@ -275,7 +275,7 @@ cdef class Polynomial_template(Polynomial):
         #assert(r._parent(-pari(self)) == r)
         return r
 
-    cpdef _lmul_(self, Element left):
+    cdef _lmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -321,7 +321,7 @@ cdef class Polynomial_template(Polynomial):
         celement_mul_scalar(&r.x, &(<Polynomial_template>self).x, left, (<Polynomial_template>self)._cparent)
         return r
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         EXAMPLES::
 
@@ -408,7 +408,7 @@ cdef class Polynomial_template(Polynomial):
         #assert(t._parent(tp) == t)
         return r,s,t
 
-    cpdef _floordiv_(self, right):
+    cdef _floordiv_(self, right):
         """
         EXAMPLES::
 
@@ -443,7 +443,7 @@ cdef class Polynomial_template(Polynomial):
         celement_floordiv(&r.x, &(<Polynomial_template>self).x, &(<Polynomial_template>right).x, (<Polynomial_template>self)._cparent)
         return r
 
-    cpdef _mod_(self, other):
+    cdef _mod_(self, other):
         """
         EXAMPLES::
 
@@ -512,7 +512,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return not celement_is_zero(&self.x, (<Polynomial_template>self)._cparent)
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         EXAMPLES::
 
@@ -696,7 +696,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return element_shift(self, -n)
 
-    cpdef bint is_zero(self) except -1:
+    cdef bint is_zero(self) except -1:
         """
         EXAMPLES::
 
@@ -706,7 +706,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return celement_is_zero(&self.x, (<Polynomial_template>self)._cparent)
 
-    cpdef bint is_one(self) except -1:
+    cdef bint is_one(self) except -1:
         """
         EXAMPLES::
 
@@ -730,7 +730,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return Integer(celement_len(&self.x, (<Polynomial_template>self)._cparent)-1)
 
-    cpdef Polynomial truncate(self, long n):
+    cdef Polynomial truncate(self, long n):
         r"""
         Returns this polynomial mod `x^n`.
 

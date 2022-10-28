@@ -129,7 +129,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         res._is_gen = 0
         return res
 
-    cpdef Polynomial _new_constant_poly(self, x, Parent P):
+    cdef Polynomial _new_constant_poly(self, x, Parent P):
         r"""
         Quickly creates a new constant polynomial with value x in parent P
 
@@ -350,7 +350,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         self._parent._singular_(singular).set_ring()  # Expensive!
         return singular(self._singular_init_())
 
-    cpdef list list(self, bint copy=True):
+    cdef list list(self, bint copy=True):
         """
         Return a list with the coefficients of ``self``.
 
@@ -416,7 +416,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         fmpq_poly_get_coeff_mpq(z.value, self.__poly, n)
         return z
 
-    cpdef _unsafe_mutate(self, unsigned long n, value):
+    cdef _unsafe_mutate(self, unsigned long n, value):
         """
         Sets the `n`-th coefficient of self to value.
 
@@ -551,7 +551,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         return Polynomial.__call__(self, *x, **kwds)
 
-    cpdef Polynomial truncate(self, long n):
+    cdef Polynomial truncate(self, long n):
         """
         Return self truncated modulo `t^n`.
 
@@ -719,7 +719,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     # Comparisons                                                             #
     ###########################################################################
 
-    cpdef bint is_zero(self) except -1:
+    cdef bint is_zero(self) except -1:
         """
         Return whether or not self is the zero polynomial.
 
@@ -734,7 +734,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         return fmpq_poly_is_zero(self.__poly)
 
-    cpdef bint is_one(self) except -1:
+    cdef bint is_one(self) except -1:
         r"""
         Return whether or not this polynomial is one.
 
@@ -838,7 +838,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     # Arithmetic                                                              #
     ###########################################################################
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Return the sum of two rational polynomials.
 
@@ -866,7 +866,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Return the difference of two rational polynomials.
 
@@ -894,7 +894,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         Return the difference of two rational polynomials.
 
@@ -1048,7 +1048,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         sig_off()
         return d, s, t
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Return the product of self and right.
 
@@ -1077,7 +1077,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef Polynomial _mul_trunc_(self, Polynomial right, long n):
+    cdef Polynomial _mul_trunc_(self, Polynomial right, long n):
         r"""
         Truncated multiplication.
 
@@ -1114,7 +1114,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef _rmul_(self, Element left):
+    cdef _rmul_(self, Element left):
         r"""
         Return left * self, where left is a rational number.
 
@@ -1134,7 +1134,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         r"""
         Return self * right, where right is a rational number.
 
@@ -1346,7 +1346,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         sig_off()
         return res
 
-    cpdef Polynomial inverse_series_trunc(self, long prec):
+    cdef Polynomial inverse_series_trunc(self, long prec):
         r"""
         Return a polynomial approximation of precision ``prec`` of the inverse
         series of this polynomial.
@@ -1394,7 +1394,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         sig_off()
         return res
 
-    cpdef _mod_(self, right):
+    cdef _mod_(self, right):
         """
         Return the remainder of self and right obtain by Euclidean division.
 

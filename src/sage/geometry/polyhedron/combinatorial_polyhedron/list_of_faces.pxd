@@ -7,9 +7,9 @@ cdef class ListOfFaces:
     # It will be of "type" ``uint64_t[n_faces][face_length]``
     cdef face_list_t data
 
-    cpdef ListOfFaces __copy__(self)
+    cdef ListOfFaces __copy__(self)
 
-    cpdef int compute_dimension(self) except -2
+    cdef int compute_dimension(self) except -2
 
     cdef inline size_t n_faces(self):
         return self.data.n_faces
@@ -18,7 +18,7 @@ cdef class ListOfFaces:
     cdef inline size_t n_coatoms(self):
         return self.data.n_coatoms
 
-    cpdef ListOfFaces pyramid(self)
+    cdef ListOfFaces pyramid(self)
 
     cdef ListOfFaces delete_atoms_unsafe(self, bint* delete, face_t face)  # not in place
     cdef void delete_faces_unsafe(self, bint* delete, face_t face)  # in place

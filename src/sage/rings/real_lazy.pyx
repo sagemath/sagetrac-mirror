@@ -125,7 +125,7 @@ cdef class LazyField(Field):
         else:
             raise AttributeError(name)
 
-    cpdef _coerce_map_from_(self, R):
+    cdef _coerce_map_from_(self, R):
         r"""
         The only things that coerce into this ring are exact rings that
         embed into `\RR` or `\CC` (depending on whether this field
@@ -197,7 +197,7 @@ cdef class LazyField(Field):
         """
         return CLF
 
-    cpdef interval_field(self, prec=None):
+    cdef interval_field(self, prec=None):
         """
         Abstract method to create the corresponding interval field.
 
@@ -532,7 +532,7 @@ cdef int get_new_prec(R, int depth) except -1:
 
 cdef class LazyFieldElement(FieldElement):
 
-    cpdef _add_(left, right):
+    cdef _add_(left, right):
         """
         Add ``left`` with ``right``.
 
@@ -548,7 +548,7 @@ cdef class LazyFieldElement(FieldElement):
                 pass
         return left._new_binop(left, right, add)
 
-    cpdef _sub_(left, right):
+    cdef _sub_(left, right):
         """
         Subtract ``right`` from ``left``.
 
@@ -564,7 +564,7 @@ cdef class LazyFieldElement(FieldElement):
                 pass
         return left._new_binop(left, right, sub)
 
-    cpdef _mul_(left, right):
+    cdef _mul_(left, right):
         """
         Multiply ``left`` with ``right``.
 
@@ -580,7 +580,7 @@ cdef class LazyFieldElement(FieldElement):
                 pass
         return left._new_binop(left, right, mul)
 
-    cpdef _div_(left, right):
+    cdef _div_(left, right):
         """
         Divide ``left`` by ``right``.
 
@@ -644,7 +644,7 @@ cdef class LazyFieldElement(FieldElement):
         """
         return self._new_unop(self, inv)
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         If things are being wrapped, tries to compare values. That failing, it
         tries to compare intervals, which may return a false negative.
@@ -815,7 +815,7 @@ cdef class LazyFieldElement(FieldElement):
             from .complex_mpfr import ComplexField
             return complex(self.eval(ComplexField(53)))
 
-    cpdef eval(self, R):
+    cdef eval(self, R):
         """
         Abstract method for converting ``self`` into an element of ``R``.
 
@@ -827,7 +827,7 @@ cdef class LazyFieldElement(FieldElement):
         """
         raise NotImplementedError("Subclasses must override this method.")
 
-    cpdef int depth(self):
+    cdef int depth(self):
         """
         Abstract method for returning the depth of ``self`` as an arithmetic
         expression.
@@ -909,7 +909,7 @@ def make_element(parent, *args):
 
 cdef class LazyWrapper(LazyFieldElement):
 
-    cpdef int depth(self):
+    cdef int depth(self):
         """
         Returns the depth of ``self`` as an expression, which is always 0.
 
@@ -1002,7 +1002,7 @@ cdef class LazyWrapper(LazyFieldElement):
         """
         return hash(self._value)
 
-    cpdef eval(self, R):
+    cdef eval(self, R):
         """
         Convert ``self`` into an element of ``R``.
 
@@ -1076,7 +1076,7 @@ cdef class LazyBinop(LazyFieldElement):
         self._right = right
         self._op = op
 
-    cpdef int depth(self):
+    cdef int depth(self):
         """
         Return the depth of ``self`` as an arithmetic expression.
 
@@ -1100,7 +1100,7 @@ cdef class LazyBinop(LazyFieldElement):
         cdef int right = self._right.depth()
         return 1 + (left if left > right else right)
 
-    cpdef eval(self, R):
+    cdef eval(self, R):
         """
         Convert the operands to elements of ``R``, then perform the operation
         on them.
@@ -1214,7 +1214,7 @@ cdef class LazyUnop(LazyFieldElement):
         self._op = op
         self._arg = arg
 
-    cpdef int depth(self):
+    cdef int depth(self):
         """
         Return the depth of ``self`` as an arithmetic expression.
 
@@ -1236,7 +1236,7 @@ cdef class LazyUnop(LazyFieldElement):
         """
         return 1 + self._arg.depth()
 
-    cpdef eval(self, R):
+    cdef eval(self, R):
         """
         Convert ``self`` into an element of ``R``.
 
@@ -1315,7 +1315,7 @@ cdef class LazyNamedUnop(LazyUnop):
             raise TypeError("extra args must be a tuple")
         self._extra_args = extra_args
 
-    cpdef eval(self, R):
+    cdef eval(self, R):
         """
         Convert ``self`` into an element of ``R``.
 
@@ -1458,7 +1458,7 @@ cdef class LazyConstant(LazyFieldElement):
         self._name = name
         self._extra_args = extra_args
 
-    cpdef eval(self, R):
+    cdef eval(self, R):
         """
         Convert ``self`` into an element of ``R``.
 
@@ -1613,7 +1613,7 @@ cdef class LazyAlgebraic(LazyFieldElement):
             approx = (CC if prec == 0 else ComplexField(prec))(approx)
         self._root_approx = approx
 
-    cpdef eval(self, R):
+    cdef eval(self, R):
         """
         Convert ``self`` into an element of ``R``.
 
@@ -1719,7 +1719,7 @@ cdef class LazyWrapperMorphism(Morphism):
         from sage.categories.homset import Hom
         Morphism.__init__(self, Hom(domain, codomain))
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         EXAMPLES::
 

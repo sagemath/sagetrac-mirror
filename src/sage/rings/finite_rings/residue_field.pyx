@@ -931,7 +931,7 @@ cdef class ReductionMap(Map):
         self._PB = _slots['_PB']
         self._section = _slots['_section']
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Apply this reduction map to an element that coerces into the global
         field.
@@ -1218,7 +1218,7 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
         self._PB = _slots['_PB']
         self._section = _slots['_section']
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Applies this morphism to an element.
 
@@ -1446,7 +1446,7 @@ cdef class LiftingMap(Section):
         self._to_order = _slots['_to_order']
         self._PB = _slots['_PB']
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Lift from this residue class field to the number field.
 

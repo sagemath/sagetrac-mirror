@@ -756,7 +756,7 @@ cdef class ParametricSurface(IndexFaceSet):
     # derived classes.
 
     cdef int eval_c(self, point_c *res, double u, double v) except -1:
-        # can't do a cpdef because of the point_c* argument
+        # can't do a cdef because of the point_c* argument
         res.x, res.y, res.z = self.eval(u, v)
 
     def eval(self, double u, double v):

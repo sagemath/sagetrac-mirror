@@ -20,7 +20,7 @@ from cysignals.signals cimport sig_check
 from .long cimport integer_check_long
 
 
-cpdef generic_power(a, n):
+cdef generic_power(a, n):
     """
     Return `a^n`.
 

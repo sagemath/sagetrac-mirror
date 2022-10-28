@@ -643,7 +643,7 @@ cdef list singular_monomial_exponents(poly *p, ring *r):
         ml[v-1] = p_GetExp(p, v, r)
     return ml
 
-cpdef list si2sa_resolution(Resolution res):
+cdef list si2sa_resolution(Resolution res):
     r"""
     Pull the data from Singular resolution ``res`` to construct a Sage
     resolution.
@@ -760,7 +760,7 @@ cpdef list si2sa_resolution(Resolution res):
 
     return res_mats
 
-cpdef tuple si2sa_resolution_graded(Resolution res, tuple degrees):
+cdef tuple si2sa_resolution_graded(Resolution res, tuple degrees):
     """
     Pull the data from Singular resolution ``res`` to construct a Sage
     resolution.

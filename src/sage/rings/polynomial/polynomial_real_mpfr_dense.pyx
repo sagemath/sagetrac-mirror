@@ -252,7 +252,7 @@ cdef class PolynomialRealDense(Polynomial):
         """
         return smallInteger(self._degree)
 
-    cpdef Polynomial truncate(self, long n):
+    cdef Polynomial truncate(self, long n):
         r"""
         Returns the polynomial of degree `< n` which is equivalent to self
         modulo `x^n`.
@@ -304,7 +304,7 @@ cdef class PolynomialRealDense(Polynomial):
                 return self.truncate(i+1)
         return self._new(-1)
 
-    cpdef shift(self, Py_ssize_t n):
+    cdef shift(self, Py_ssize_t n):
         r"""
         Returns this polynomial multiplied by the power `x^n`. If `n`
         is negative, terms below `x^n` will be discarded. Does not
@@ -345,7 +345,7 @@ cdef class PolynomialRealDense(Polynomial):
                 mpfr_set(f._coeffs[i], self._coeffs[i-n], self._base_ring.rnd)
         return f
 
-    cpdef list list(self, bint copy=True):
+    cdef list list(self, bint copy=True):
         """
         EXAMPLES::
 
@@ -380,7 +380,7 @@ cdef class PolynomialRealDense(Polynomial):
             mpfr_neg(f._coeffs[i], self._coeffs[i], rnd)
         return f
 
-    cpdef _add_(left, _right):
+    cdef _add_(left, _right):
         """
         EXAMPLES::
 
@@ -413,7 +413,7 @@ cdef class PolynomialRealDense(Polynomial):
         f._normalize()
         return f
 
-    cpdef _sub_(left, _right):
+    cdef _sub_(left, _right):
         """
         EXAMPLES::
 
@@ -444,7 +444,7 @@ cdef class PolynomialRealDense(Polynomial):
         f._normalize()
         return f
 
-    cpdef _lmul_(self, Element c):
+    cdef _lmul_(self, Element c):
         """
         EXAMPLES::
 
@@ -466,7 +466,7 @@ cdef class PolynomialRealDense(Polynomial):
             mpfr_mul(f._coeffs[i], self._coeffs[i], a.value, rnd)
         return f
 
-    cpdef _mul_(left, _right):
+    cdef _mul_(left, _right):
         """
         Here we use the naive `O(n^2)` algorithm, as asymptotically faster algorithms such
         as Karatsuba can have very inaccurate results due to intermediate rounding errors.

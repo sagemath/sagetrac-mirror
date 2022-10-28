@@ -27,29 +27,29 @@ ctypedef struct c_a_data:
 
 cdef class GLPKGraphBackend():
     cdef glp_graph * graph
-    cpdef add_vertex(self, name = ?)
-    cpdef list add_vertices(self, vertices)
-    cpdef __add_vertices_sage(self, g)
-    cpdef dict get_vertex(self, vertex)
-    cpdef dict get_vertices(self, verts)
-    cpdef set_vertex_demand(self, vertex, param)
-    cpdef set_vertices_demand(self, list pairs)
-    cpdef list vertices(self)
-    cpdef add_edge(self, u, v, dict params = ?)
-    cpdef __add_edges_sage(self, g)
-    cpdef list add_edges(self, edges)
-    cpdef delete_edge(self, u, v, dict params = ?)
-    cpdef tuple get_edge(self, u, v)
-    cpdef list edges(self)
-    cpdef delete_vertex(self, vert)
-    cpdef delete_vertices(self, list verts)
-    cpdef int _find_vertex(self, vert)
-    cpdef int write_graph(self, fname)
-    cpdef int write_ccdata(self, fname)
-    cpdef int write_mincost(self, fname)
-    cpdef double mincost_okalg(self) except -1
+    cdef add_vertex(self, name = ?)
+    cdef list add_vertices(self, vertices)
+    cdef __add_vertices_sage(self, g)
+    cdef dict get_vertex(self, vertex)
+    cdef dict get_vertices(self, verts)
+    cdef set_vertex_demand(self, vertex, param)
+    cdef set_vertices_demand(self, list pairs)
+    cdef list vertices(self)
+    cdef add_edge(self, u, v, dict params = ?)
+    cdef __add_edges_sage(self, g)
+    cdef list add_edges(self, edges)
+    cdef delete_edge(self, u, v, dict params = ?)
+    cdef tuple get_edge(self, u, v)
+    cdef list edges(self)
+    cdef delete_vertex(self, vert)
+    cdef delete_vertices(self, list verts)
+    cdef int _find_vertex(self, vert)
+    cdef int write_graph(self, fname)
+    cdef int write_ccdata(self, fname)
+    cdef int write_mincost(self, fname)
+    cdef double mincost_okalg(self) except -1
     cdef int s
     cdef int t
-    cpdef int write_maxflow(self, fname) except -1
-    cpdef double maxflow_ffalg(self, u = ?, v = ?) except -1
-    cpdef double cpp(self)
+    cdef int write_maxflow(self, fname) except -1
+    cdef double maxflow_ffalg(self, u = ?, v = ?) except -1
+    cdef double cpp(self)

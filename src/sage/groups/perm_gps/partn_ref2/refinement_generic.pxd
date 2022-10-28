@@ -38,7 +38,7 @@ cdef class LabelledBranching:
     cdef GapElement group, ClosureGroup
     cdef Parent sym_gp
     cdef bint has_empty_intersection(self, PartitionStack * part)
-    cpdef add_gen(self, GapElement_Permutation gen)
+    cdef add_gen(self, GapElement_Permutation gen)
 
 cdef class PartitionRefinement_generic:
     cdef PartitionStack * _part

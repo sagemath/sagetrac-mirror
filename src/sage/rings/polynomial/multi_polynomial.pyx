@@ -425,7 +425,7 @@ cdef class MPolynomial(CommutativeRingElement):
             z *= var
         return ring(v)
 
-    cpdef dict _mpoly_dict_recursive(self, tuple vars=None, base_ring=None):
+    cdef dict _mpoly_dict_recursive(self, tuple vars=None, base_ring=None):
         r"""
         Return a ``dict`` of coefficient entries suitable for construction
         of a ``MPolynomial_polydict`` with the given variables.
@@ -803,7 +803,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 d[e.unweighted_degree()][e] = c
         return {k: self._parent(d[k]) for k in d}
 
-    cpdef _mod_(self, other):
+    cdef _mod_(self, other):
         """
         EXAMPLES::
 

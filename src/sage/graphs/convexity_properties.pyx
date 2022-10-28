@@ -294,7 +294,7 @@ cdef class ConvexityProperties:
             # Otherwise, update and back to the loop
             count = tmp_count
 
-    cpdef hull(self, list vertices):
+    cdef hull(self, list vertices):
         r"""
         Return the convex hull of a set of vertices.
 
@@ -347,7 +347,7 @@ cdef class ConvexityProperties:
 
         bitset_free(tmp)
 
-    cpdef hull_number(self, value_only=True, verbose=False):
+    cdef hull_number(self, value_only=True, verbose=False):
         r"""
         Compute the hull number and a corresponding generating set.
 

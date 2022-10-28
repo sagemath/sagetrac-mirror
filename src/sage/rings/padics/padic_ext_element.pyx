@@ -390,7 +390,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
             ans += ppow * L[m]**exp
         return ans
 
-    cpdef bint _is_base_elt(self, p) except -1:
+    cdef bint _is_base_elt(self, p) except -1:
         r"""
         Return ``True`` if this element is an element of Zp or Qp (rather than
         an extension).

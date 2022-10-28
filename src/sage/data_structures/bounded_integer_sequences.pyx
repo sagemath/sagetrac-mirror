@@ -1042,7 +1042,7 @@ cdef class BoundedIntegerSequence:
             return False
         return biseq_contains(self.data, right.data, 0) >= 0
 
-    cpdef list list(self):
+    cdef list list(self):
         """
         Converts this bounded integer sequence to a list
 
@@ -1068,7 +1068,7 @@ cdef class BoundedIntegerSequence:
         cdef mp_size_t i
         return [biseq_getitem_py(self.data, i) for i in range(self.data.length)]
 
-    cpdef bint startswith(self, BoundedIntegerSequence other):
+    cdef bint startswith(self, BoundedIntegerSequence other):
         """
         Tells whether ``self`` starts with a given bounded integer sequence
 
@@ -1237,7 +1237,7 @@ cdef class BoundedIntegerSequence:
         biseq_init_concat(out.data, myself.data, right.data)
         return out
 
-    cpdef BoundedIntegerSequence maximal_overlap(self, BoundedIntegerSequence other):
+    cdef BoundedIntegerSequence maximal_overlap(self, BoundedIntegerSequence other):
         """
         Return ``self``'s maximal trailing sub-sequence that ``other`` starts with.
 
@@ -1356,7 +1356,7 @@ cdef class BoundedIntegerSequence:
             return 0
         return h
 
-cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize, mp_size_t length):
+cdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize, mp_size_t length):
     """
     Helper function for unpickling of :class:`BoundedIntegerSequence`.
 

@@ -8,7 +8,7 @@
 from sage.structure.element cimport Element
 
 
-# Cython-0.17.2 disallows inline cpdef in non-final classes
+# Cython-0.17.2 disallows inline cdef in non-final classes
 # This restriction will be lifted at one point, then we can set
 # some of the methods to be inline again, that is,
 # revert the patch form http://trac.sagemath.org/13740
@@ -18,47 +18,47 @@ cdef class ClonableElement(Element):
     cdef bint _needs_check
     cdef long int  _hash
 
-    cpdef bint _require_mutable(self) except -2
-    cpdef bint is_mutable(self)
-    cpdef bint is_immutable(self)
-    cpdef set_immutable(self)
+    cdef bint _require_mutable(self) except -2
+    cdef bint is_mutable(self)
+    cdef bint is_immutable(self)
+    cdef set_immutable(self)
 
-    cpdef _set_mutable(self)
+    cdef _set_mutable(self)
 
-    cpdef ClonableElement clone(self, bint check=?)
+    cdef ClonableElement clone(self, bint check=?)
 
 cdef class ClonableArray(ClonableElement):
     cdef list _list
 
-    cpdef list _get_list(self)
-    cpdef _set_list(self, list lst)
-    cpdef ClonableArray __copy__(self)
-    cpdef check(self)
-    cpdef object _getitem(self, int key)
-    cpdef _setitem(self, int key, value)
-    cpdef int index(self, key, start=*, stop=*) except -1
-    cpdef int count(self, key) except -1
-    cpdef long int _hash_(self) except? -1
+    cdef list _get_list(self)
+    cdef _set_list(self, list lst)
+    cdef ClonableArray __copy__(self)
+    cdef check(self)
+    cdef object _getitem(self, int key)
+    cdef _setitem(self, int key, value)
+    cdef int index(self, key, start=*, stop=*) except -1
+    cdef int count(self, key) except -1
+    cdef long int _hash_(self) except? -1
 
 cdef class ClonableList(ClonableArray):
-    cpdef append(self, el)
-    cpdef extend(self, it)
-    cpdef insert(self, int index, el)
-    cpdef pop(self, int index=*)
-    cpdef remove(self, el)
+    cdef append(self, el)
+    cdef extend(self, it)
+    cdef insert(self, int index, el)
+    cdef pop(self, int index=*)
+    cdef remove(self, el)
 
 cdef class NormalizedClonableList(ClonableList):
-    cpdef normalize(self)
+    cdef normalize(self)
 
 cdef class ClonableIntArray(ClonableElement):
     cdef int _len
     cdef int* _list
 
-    cpdef _alloc_(self, int size)
-    cpdef ClonableIntArray __copy__(self)
-    cpdef check(self)
-    cpdef object _getitem(self, int key)
-    cpdef _setitem(self, int item, value)
-    cpdef int index(self, int item) except -1
-    cpdef long int _hash_(self) except? -1
-    cpdef list list(self)
+    cdef _alloc_(self, int size)
+    cdef ClonableIntArray __copy__(self)
+    cdef check(self)
+    cdef object _getitem(self, int key)
+    cdef _setitem(self, int item, value)
+    cdef int index(self, int item) except -1
+    cdef long int _hash_(self) except? -1
+    cdef list list(self)

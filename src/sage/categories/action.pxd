@@ -11,7 +11,7 @@ cdef class Action(Functor):
     cdef underlying_set(self)
 
     cdef _act_convert(self, g, x)
-    cpdef _act_(self, g, x)
+    cdef _act_(self, g, x)
 
 
 cdef class InverseAction(Action):

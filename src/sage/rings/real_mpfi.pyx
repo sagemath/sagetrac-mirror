@@ -307,7 +307,7 @@ printing_error_digits = 0
 #*****************************************************************************
 
 cdef dict RealIntervalField_cache = {}
-cpdef RealIntervalField_class RealIntervalField(prec=53, sci_not=False):
+cdef RealIntervalField_class RealIntervalField(prec=53, sci_not=False):
     r"""
     Construct a :class:`RealIntervalField_class`, with caching.
 
@@ -662,7 +662,7 @@ cdef class RealIntervalField_class(sage.rings.abc.RealIntervalField):
         sib.cache(self, v, name)
         return v
 
-    cpdef bint is_exact(self) except -2:
+    cdef bint is_exact(self) except -2:
         """
         Returns whether or not this field is exact, which is always ``False``.
 
@@ -751,7 +751,7 @@ cdef class RealIntervalField_class(sage.rings.abc.RealIntervalField):
                                   {'sci_not': self.scientific_notation(), 'type': 'Interval'}),
                sage.rings.rational_field.QQ)
 
-    cpdef _coerce_map_from_(self, S):
+    cdef _coerce_map_from_(self, S):
         """
         Canonical coercion from ``S`` to this real interval field.
 
@@ -1694,7 +1694,7 @@ cdef class RealIntervalFieldElement(RingElement):
         else:
             raise ValueError('Illegal interval printing style %s' % printing_style)
 
-    cpdef _str_question_style(self, int base, int error_digits, e, bint prefer_sci):
+    cdef _str_question_style(self, int base, int error_digits, e, bint prefer_sci):
         r"""
         Compute the "question-style print representation" of this value,
         with the given base and error_digits. See the documentation for
@@ -2680,7 +2680,7 @@ cdef class RealIntervalFieldElement(RingElement):
         else:
             return Element.__rtruediv__(right, left)
 
-    cpdef _add_(self, other):
+    cdef _add_(self, other):
         """
         Add two real intervals with the same parent.
 
@@ -2724,7 +2724,7 @@ cdef class RealIntervalFieldElement(RingElement):
         mpfi_inv(x.value, self.value)
         return x
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Subtract two real intervals with the same parent.
 
@@ -2742,7 +2742,7 @@ cdef class RealIntervalFieldElement(RingElement):
         mpfi_sub(x.value, self.value, (<RealIntervalFieldElement>right).value)
         return x
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Multiply two real intervals with the same parent.
 
@@ -2779,7 +2779,7 @@ cdef class RealIntervalFieldElement(RingElement):
         return x
 
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         Divide ``self`` by ``right``, where both are real intervals with the
         same parent.
@@ -2806,7 +2806,7 @@ cdef class RealIntervalFieldElement(RingElement):
                  (<RealIntervalFieldElement>right).value)
         return x
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         Return the additive "inverse" of this interval. (Technically,
         non-precise intervals don't have additive inverses.)
@@ -3689,7 +3689,7 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         return mpfi_nan_p(self.value)
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Implement comparisons between intervals.
 

@@ -346,7 +346,7 @@ cdef class Spin(Element):
         tup = tuple([-1 if self._value[i] else 1 for i in range(self._n)])
         return (self._parent, (tup,))
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Return ``True`` if ``left`` compares with ``right`` based on ``op``.
 
@@ -531,7 +531,7 @@ cdef class Spin_crystal_type_B_element(Spin):
     r"""
     Type B spin representation crystal element
     """
-    cpdef Spin e(self, int i):
+    cdef Spin e(self, int i):
         r"""
         Return the action of `e_i` on ``self``.
 
@@ -564,7 +564,7 @@ cdef class Spin_crystal_type_B_element(Spin):
             return self._new_c(ret)
         return None
 
-    cpdef Spin f(self, int i):
+    cdef Spin f(self, int i):
         r"""
         Return the action of `f_i` on ``self``.
 
@@ -597,7 +597,7 @@ cdef class Spin_crystal_type_B_element(Spin):
             return self._new_c(ret)
         return None
 
-    cpdef int epsilon(self, int i):
+    cdef int epsilon(self, int i):
         r"""
         Return `\varepsilon_i` of ``self``.
 
@@ -614,7 +614,7 @@ cdef class Spin_crystal_type_B_element(Spin):
             return self._value[i-1]
         return self._value[i-1] and not self._value[i]
 
-    cpdef int phi(self, int i):
+    cdef int phi(self, int i):
         r"""
         Return `\varphi_i` of ``self``.
 
@@ -635,7 +635,7 @@ cdef class Spin_crystal_type_D_element(Spin):
     r"""
     Type D spin representation crystal element
     """
-    cpdef Spin e(self, int i):
+    cdef Spin e(self, int i):
         r"""
         Return the action of `e_i` on ``self``.
 
@@ -676,7 +676,7 @@ cdef class Spin_crystal_type_D_element(Spin):
             return self._new_c(ret)
         return None
 
-    cpdef Spin f(self, int i):
+    cdef Spin f(self, int i):
         r"""
         Return the action of `f_i` on ``self``.
 
@@ -717,7 +717,7 @@ cdef class Spin_crystal_type_D_element(Spin):
             return self._new_c(ret)
         return None
 
-    cpdef int epsilon(self, int i):
+    cdef int epsilon(self, int i):
         r"""
         Return `\varepsilon_i` of ``self``.
 
@@ -734,7 +734,7 @@ cdef class Spin_crystal_type_D_element(Spin):
             return self._value[i-1] and self._value[i-2]
         return self._value[i-1] and not self._value[i]
 
-    cpdef int phi(self, int i):
+    cdef int phi(self, int i):
         r"""
         Return `\varphi_i` of ``self``.
 

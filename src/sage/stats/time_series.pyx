@@ -891,7 +891,7 @@ cdef class TimeSeries:
             t._values[i] = self._values[i*k]
         return t
 
-    cpdef rescale(self, double s):
+    cdef rescale(self, double s):
         """
         Change ``self`` by multiplying every value in the series by ``s``.
 
@@ -1215,7 +1215,7 @@ cdef class TimeSeries:
             t._values[i] = s
         return t
 
-    cpdef double sum(self):
+    cdef double sum(self):
         """
         Return the sum of all the entries of ``self``.  If ``self`` has
         length 0, returns 0.

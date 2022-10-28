@@ -176,7 +176,7 @@ def permutation_iterator_transposition_list(int n):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cpdef bint next_perm(array l):
+cdef bint next_perm(array l):
     """
     Obtain the next permutation under lex order of ``l``
     by mutating ``l``.
@@ -257,7 +257,7 @@ cpdef bint next_perm(array l):
 
 
 @cython.boundscheck(False)
-cpdef map_to_list(array l, tuple values, int n):
+cdef map_to_list(array l, tuple values, int n):
     """
     Build a list by mapping the array ``l`` using ``values``.
 
@@ -293,7 +293,7 @@ cpdef map_to_list(array l, tuple values, int n):
 #####################################################################
 ## Multiplication functions for permutations
 
-cpdef list left_action_same_n(list S, list lp):
+cdef list left_action_same_n(list S, list lp):
     r"""
     Return the permutation obtained by composing a permutation
     ``S`` with a permutation ``lp`` in such an order that ``lp``
@@ -320,7 +320,7 @@ cpdef list left_action_same_n(list S, list lp):
         ret.append(S[i-1])
     return ret
 
-cpdef list right_action_same_n(list S, list rp):
+cdef list right_action_same_n(list S, list rp):
     """
     Return the permutation obtained by composing a permutation
     ``S`` with a permutation ``rp`` in such an order that ``S`` is
@@ -347,7 +347,7 @@ cpdef list right_action_same_n(list S, list rp):
         ret.append(rp[i-1])
     return ret
 
-cpdef list left_action_product(list S, list lp):
+cdef list left_action_product(list S, list lp):
     r"""
     Return the permutation obtained by composing a permutation
     ``S`` with a permutation ``lp`` in such an order that ``lp`` is
@@ -381,7 +381,7 @@ cpdef list left_action_product(list S, list lp):
         lp.append(i)
     return left_action_same_n(S, lp)
 
-cpdef list right_action_product(list S, list rp):
+cdef list right_action_product(list S, list rp):
     """
     Return the permutation obtained by composing a permutation
     ``S`` with a permutation ``rp`` in such an order that ``S`` is

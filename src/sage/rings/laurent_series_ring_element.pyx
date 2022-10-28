@@ -720,7 +720,7 @@ cdef class LaurentSeries(AlgebraElement):
                 self.__u = self.__u._parent(coeffs)
         self.__normalize()
 
-    cpdef _add_(self, right_m):
+    cdef _add_(self, right_m):
         """
         Add two power series with the same parent.
 
@@ -770,7 +770,7 @@ cdef class LaurentSeries(AlgebraElement):
         # 3. Add
         return type(self)(self._parent, f1 + f2, m)
 
-    cpdef _sub_(self, right_m):
+    cdef _sub_(self, right_m):
         """
         Subtract two power series with the same parent.
 
@@ -898,7 +898,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return type(self)(self._parent, -self.__u, self.__n)
 
-    cpdef _mul_(self, right_r):
+    cdef _mul_(self, right_r):
         """
         EXAMPLES::
 
@@ -913,10 +913,10 @@ cdef class LaurentSeries(AlgebraElement):
                           self.__u * right.__u,
                           self.__n + right.__n)
 
-    cpdef _rmul_(self, Element c):
+    cdef _rmul_(self, Element c):
         return type(self)(self._parent, self.__u._rmul_(c), self.__n)
 
-    cpdef _lmul_(self, Element c):
+    cdef _lmul_(self, Element c):
         return type(self)(self._parent, self.__u._lmul_(c), self.__n)
 
     def __pow__(_self, r, dummy):
@@ -1063,7 +1063,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return type(self)(self._parent, self.__u >> (n - self.__n), n)
 
-    cpdef _div_(self, right_r):
+    cdef _div_(self, right_r):
         """
         EXAMPLES::
 
@@ -1184,7 +1184,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return min(self.valuation(), other.valuation())
 
-    cpdef _richcmp_(self, right_r, int op):
+    cdef _richcmp_(self, right_r, int op):
         r"""
         Comparison of ``self`` and ``right``.
 

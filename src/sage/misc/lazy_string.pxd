@@ -3,4 +3,4 @@ cdef class _LazyString():
     cdef args
     cdef kwargs
     cdef val(self)
-    cpdef update_lazy_string(self, args, kwds)
+    cdef update_lazy_string(self, args, kwds)

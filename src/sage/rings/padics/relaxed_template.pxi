@@ -104,7 +104,7 @@ cdef class RelaxedElement(pAdicGenericElement):
         """
         raise NotImplementedError("must be implemented in subclasses")
 
-    cpdef bint _is_base_elt(self, p) except -1:
+    cdef bint _is_base_elt(self, p) except -1:
         r"""
         Return ``True`` if this element is an element of Zp or Qp (rather than
         an extension).
@@ -840,7 +840,7 @@ cdef class RelaxedElement(pAdicGenericElement):
             error = self._next_c()
         return bool(self._precrel)
 
-    cpdef bint _is_exact_zero(self) except -1:
+    cdef bint _is_exact_zero(self) except -1:
         r"""
         Return ``True`` if this element is an exact zero.
 
@@ -861,7 +861,7 @@ cdef class RelaxedElement(pAdicGenericElement):
         """
         return self._valuation >= maxordp
 
-    cpdef bint _is_inexact_zero(self) except -1:
+    cdef bint _is_inexact_zero(self) except -1:
         r"""
         Return ``True`` if, at the current stage of computations, this
         number cannot be distinguished from zero.
@@ -1708,7 +1708,7 @@ cdef class RelaxedElement(pAdicGenericElement):
         """
         return self.__rshift__(-s)
 
-    cpdef _add_(self, other):
+    cdef _add_(self, other):
         r"""
         Return the sum of this element with ``other``.
 
@@ -1727,7 +1727,7 @@ cdef class RelaxedElement(pAdicGenericElement):
             return self
         return element_class_add(self._parent, self, <RelaxedElement>other)
 
-    cpdef _sub_(self, other):
+    cdef _sub_(self, other):
         r"""
         Return the difference of this element and ``other``.
 
@@ -1749,7 +1749,7 @@ cdef class RelaxedElement(pAdicGenericElement):
             return self
         return element_class_sub(self._parent, self, <RelaxedElement>other)
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         r"""
         Return the opposite of this element.
 
@@ -1766,7 +1766,7 @@ cdef class RelaxedElement(pAdicGenericElement):
             return self
         return element_class_sub(self._parent, self._parent.zero(), self)
 
-    cpdef _mul_(self, other):
+    cdef _mul_(self, other):
         r"""
         Return the product of this element with ``other``.
 
@@ -1788,7 +1788,7 @@ cdef class RelaxedElement(pAdicGenericElement):
             return other
         return element_class_mul(self._parent, self, <RelaxedElement>other)
 
-    cpdef _div_(self, other):
+    cdef _div_(self, other):
         r"""
         Return the quotient if this element by ``other``.
 
@@ -3837,7 +3837,7 @@ cdef class RelaxedElement_unknown(RelaxedElementWithDigits):
             definition = self._definition
         return unpickle_unknown, (id(self), self.__class__, self._parent, self._initialvaluation, digits, definition)
 
-    cpdef set(self, RelaxedElement definition):
+    cdef set(self, RelaxedElement definition):
         r"""
         Set the recursive definition of this self-referent number.
 

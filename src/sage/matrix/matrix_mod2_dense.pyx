@@ -517,14 +517,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #   * def _pickle
     #   * def _unpickle
     #   * cdef _mul_
-    #   * cpdef _richcmp_
+    #   * cdef _richcmp_
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Matrix addition.
 
@@ -562,7 +562,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         return A
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Matrix addition.
 
@@ -636,7 +636,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         return self._multiply_strassen(right, 0)
 
-    cpdef Matrix_mod2_dense _multiply_m4rm(Matrix_mod2_dense self, Matrix_mod2_dense right, int k):
+    cdef Matrix_mod2_dense _multiply_m4rm(Matrix_mod2_dense self, Matrix_mod2_dense right, int k):
         """
         Multiply matrices using the 'Method of the Four Russians
         Multiplication' (M4RM) or Konrod's method.
@@ -765,7 +765,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         A._entries = mzd_mul_naive(A._entries, self._entries,(<Matrix_mod2_dense>right)._entries)
         return A
 
-    cpdef Matrix_mod2_dense _multiply_strassen(Matrix_mod2_dense self, Matrix_mod2_dense right, int cutoff):
+    cdef Matrix_mod2_dense _multiply_strassen(Matrix_mod2_dense self, Matrix_mod2_dense right, int cutoff):
         r"""
         Strassen-Winograd `O(n^{2.807})` multiplication [Str1969]_.
 
@@ -1412,7 +1412,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             A.subdivide(*self.subdivisions())
         return A
 
-    cpdef _richcmp_(self, right, int op):
+    cdef _richcmp_(self, right, int op):
         """
         Compare ``self`` with ``right``.
 
@@ -1748,7 +1748,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         gdImageDestroy(im)
         return unpickle_matrix_mod2_dense_v2, (r,c, data, size, self._is_immutable)
 
-    cpdef _export_as_string(self):
+    cdef _export_as_string(self):
         """
         Return space separated string of the entries in this matrix.
 
@@ -1958,7 +1958,7 @@ for i from 0 <= i < 256:
 
 # gmp's ULONG_PARITY may use special
 # assembly instructions, could be faster
-cpdef inline unsigned long parity(m4ri_word a):
+cdef inline unsigned long parity(m4ri_word a):
     """
     Return the parity of the number of bits in a.
 

@@ -169,7 +169,7 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
             s = "Frob^%s" % self._power
         return s
 
-    cpdef Element _call_ (self, x):
+    cdef Element _call_ (self, x):
         """
         TESTS::
 
@@ -333,7 +333,7 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
         codomain = self.codomain()
         return hash((domain, codomain, ('Frob', self._power)))
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Compare ``left'' and ``right''
 

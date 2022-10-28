@@ -302,7 +302,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         Left scalar multiplication. Internal usage only.
 
@@ -371,7 +371,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         else:
             raise RuntimeError("unknown matrix version (=%s)" % version)
 
-    cpdef _richcmp_(self, right, int op):
+    cdef _richcmp_(self, right, int op):
         """
         Rich comparison.
 

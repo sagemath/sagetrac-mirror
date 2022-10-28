@@ -26,15 +26,15 @@ cdef class GLPKBackend(GenericBackend):
     cdef glp_smcp * smcp
     cdef int simplex_or_intopt
     cdef search_tree_data_t search_tree_data
-    cpdef __copy__(self)
-    cpdef int print_ranges(self, filename = *) except -1
-    cpdef double get_row_dual(self, int variable)
-    cpdef double get_col_dual(self, int variable) except? -1
-    cpdef int get_row_stat(self, int variable) except? -1
-    cpdef int get_col_stat(self, int variable) except? -1
-    cpdef eval_tab_row(self, int k)
-    cpdef eval_tab_col(self, int k)
-    cpdef get_row_prim(self, int i)
-    cpdef set_row_stat(self, int i, int stat)
-    cpdef set_col_stat(self, int j, int stat)
-    cpdef int warm_up(self)
+    cdef __copy__(self)
+    cdef int print_ranges(self, filename = *) except -1
+    cdef double get_row_dual(self, int variable)
+    cdef double get_col_dual(self, int variable) except? -1
+    cdef int get_row_stat(self, int variable) except? -1
+    cdef int get_col_stat(self, int variable) except? -1
+    cdef eval_tab_row(self, int k)
+    cdef eval_tab_col(self, int k)
+    cdef get_row_prim(self, int i)
+    cdef set_row_stat(self, int i, int stat)
+    cdef set_col_stat(self, int j, int stat)
+    cdef int warm_up(self)

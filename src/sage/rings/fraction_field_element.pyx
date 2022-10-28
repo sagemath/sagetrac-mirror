@@ -161,7 +161,7 @@ cdef class FractionFieldElement(FieldElement):
         nden = codomain.coerce(self.__denominator._im_gens_(codomain, im_gens, base_map=base_map))
         return codomain.coerce(nnum/nden)
 
-    cpdef reduce(self):
+    cdef reduce(self):
         """
         Reduce this fraction.
 
@@ -550,7 +550,7 @@ cdef class FractionFieldElement(FieldElement):
 
         return s
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Compute the sum of ``self`` and ``right``.
 
@@ -635,7 +635,7 @@ cdef class FractionFieldElement(FieldElement):
         return self.__class__(self._parent, rnum*sden + rden*snum, rden*sden,
             coerce=False, reduce=False)
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Computes the product of ``self`` and ``right``.
 
@@ -700,7 +700,7 @@ cdef class FractionFieldElement(FieldElement):
         return self.__class__(self._parent, rnum * snum, rden * sden,
             coerce=False, reduce=False)
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         Computes the quotient of ``self`` and ``right``.
 
@@ -934,7 +934,7 @@ cdef class FractionFieldElement(FieldElement):
         return self.__class__(self._parent,
             self.__denominator, self.__numerator, coerce=False, reduce=False)
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         EXAMPLES::
 
@@ -1213,7 +1213,7 @@ cdef class FractionFieldElement_1poly_field(FractionFieldElement):
         L.sort()
         return L
 
-    cpdef reduce(self):
+    cdef reduce(self):
         """
         Pick a normalized representation of self.
 

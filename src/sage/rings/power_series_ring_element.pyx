@@ -263,7 +263,7 @@ cdef class PowerSeries(AlgebraElement):
         else:
             raise NotImplementedError
 
-    cpdef base_extend(self, R):
+    cdef base_extend(self, R):
         """
         Return a copy of this power series but with coefficients in R.
 
@@ -320,7 +320,7 @@ cdef class PowerSeries(AlgebraElement):
         S = self._parent.change_ring(R)
         return S(self)
 
-    cpdef _richcmp_(self, right, int op):
+    cdef _richcmp_(self, right, int op):
         r"""
         Comparison of self and ``right``.
 
@@ -1054,7 +1054,7 @@ cdef class PowerSeries(AlgebraElement):
                     v[k-n] = x
         return self._parent(v, self.prec()-n)
 
-    cpdef _div_(self, denom_r):
+    cdef _div_(self, denom_r):
         """
         EXAMPLES::
 

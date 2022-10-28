@@ -680,7 +680,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         return mpfi_has_zero(self.__re) and mpfi_has_zero(self.__im)
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Add ``self`` and ``right``.
 
@@ -694,7 +694,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_add(x.__im, self.__im, (<ComplexIntervalFieldElement>right).__im)
         return x
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Subtract ``self`` by ``right``.
 
@@ -708,7 +708,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_sub(x.__im, self.__im, (<ComplexIntervalFieldElement>right).__im)
         return x
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Multiply ``self`` and ``right``.
 
@@ -778,7 +778,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_clear(t)
         return x
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         Divide ``self`` by ``right``.
 
@@ -1511,7 +1511,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         return bool(self.real()) or bool(self.imag())
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         r"""
         As with the real interval fields this never returns false positives.
 

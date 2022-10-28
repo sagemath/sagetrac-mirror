@@ -98,8 +98,8 @@ Within ``_add_(self, other)``, you may assume that ``self`` and
 If the implementation is generic across all elements in a given
 category `C`, then this method can be put in ``C.ElementMethods``.
 
-When writing *Cython* code, ``_add_`` should be a cpdef method:
-``cpdef _add_(self, other)``.
+When writing *Cython* code, ``_add_`` should be a cdef method:
+``cdef _add_(self, other)``.
 
 When doing arithmetic with two elements having different parents,
 the :mod:`coercion model <sage.structure.coerce>` is responsible for
@@ -144,7 +144,7 @@ There are two relevant functions, with differing names
    parent**, but not necessarily the same Python type.
 
    When implementing ``_add_`` in a Cython extension type, use
-   ``cpdef _add_`` instead of ``def _add_``.
+   ``cdef _add_`` instead of ``def _add_``.
 
    In Cython code, if you want to add two elements and you know that
    their parents are identical, you are encouraged to call this
@@ -641,7 +641,7 @@ cdef class Element(SageObject):
         """
         raise NotImplementedError
 
-    cpdef base_extend(self, R):
+    cdef base_extend(self, R):
         cdef Parent V
         V = self._parent.base_extend(R)
         return V.coerce(self)
@@ -942,7 +942,7 @@ cdef class Element(SageObject):
          """
         return self.subs(in_dict,**kwds)
 
-    cpdef _act_on_(self, x, bint self_on_left):
+    cdef _act_on_(self, x, bint self_on_left):
         """
         Use this method to implement ``self`` acting on ``x``.
 
@@ -951,7 +951,7 @@ cdef class Element(SageObject):
         """
         return None
 
-    cpdef _acted_upon_(self, x, bint self_on_left):
+    cdef _acted_upon_(self, x, bint self_on_left):
         """
         Use this method to implement ``self`` acted on by x.
 
@@ -1111,7 +1111,7 @@ cdef class Element(SageObject):
         else:
             return coercion_model.richcmp(self, other, op)
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         r"""
         Basic default implementation of rich comparisons for elements with
         equal parents.
@@ -1145,7 +1145,7 @@ cdef class Element(SageObject):
             ....:     cdef float x
             ....:     def __init__(self, float v):
             ....:         self.x = v
-            ....:     cpdef _richcmp_(self, other, int op):
+            ....:     cdef _richcmp_(self, other, int op):
             ....:         cdef float x1 = (<FloatCmp>self).x
             ....:         cdef float x2 = (<FloatCmp>other).x
             ....:         return rich_to_bool(op, (x1 > x2) - (x1 < x2))
@@ -1165,7 +1165,7 @@ cdef class Element(SageObject):
             return True
         return NotImplemented
 
-    cpdef int _cmp_(left, right) except -2:
+    cdef int _cmp_(left, right) except -2:
         """
         This was the old comparison framework. Now deprecated. Do not use.
         """
@@ -2203,7 +2203,7 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "        return '<%s>' % self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    cpdef _richcmp_(left, right, int op):",
+        ....:     "    cdef _richcmp_(left, right, int op):",
         ....:     "        return richcmp(left.x, right.x, op)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
@@ -2218,7 +2218,7 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "        return '<%s>' % self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    cpdef _richcmp_(left, right, int op):",
+        ....:     "    cdef _richcmp_(left, right, int op):",
         ....:     "        return richcmp(left.x, right.x, op)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
@@ -2364,7 +2364,7 @@ cdef class ModuleElement(Element):
     """
     Generic element of a module.
     """
-    cpdef _add_(self, other):
+    cdef _add_(self, other):
         """
         Abstract addition method
 
@@ -2387,14 +2387,14 @@ cdef class ModuleElement(Element):
             return self
         return coercion_model.bin_op(self, n, add)
 
-    cpdef _sub_(self, other):
+    cdef _sub_(self, other):
         """
         Default implementation of subtraction using addition and
         negation.
         """
         return self + (-other)
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         Default implementation of negation using multiplication
         with -1.
@@ -2410,7 +2410,7 @@ cdef class ModuleElement(Element):
         return coercion_model.bin_op(self, n, mul)
 
     # rmul -- left * self
-    cpdef _rmul_(self, Element left):
+    cdef _rmul_(self, Element left):
         """
         Reversed scalar multiplication for module elements with the
         module element on the right and the scalar on the left.
@@ -2420,7 +2420,7 @@ cdef class ModuleElement(Element):
         return self._lmul_(left)
 
     # lmul -- self * right
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         Scalar multiplication for module elements with the module
         element on the left and the scalar on the right.
@@ -2477,7 +2477,7 @@ cdef class ModuleElementWithMutability(ModuleElement):
         """
         self._is_immutable = 1
 
-    cpdef bint is_mutable(self):
+    cdef bint is_mutable(self):
         """
         Return True if this vector is mutable, i.e., the entries can be
         changed.
@@ -2492,7 +2492,7 @@ cdef class ModuleElementWithMutability(ModuleElement):
         """
         return not self._is_immutable
 
-    cpdef bint is_immutable(self):
+    cdef bint is_immutable(self):
         """
         Return True if this vector is immutable, i.e., the entries cannot
         be changed.
@@ -2538,7 +2538,7 @@ cdef class MonoidElement(Element):
         """
         raise NotImplementedError
 
-    cpdef _pow_int(self, n):
+    cdef _pow_int(self, n):
         """
         Return the (integral) power of self.
         """
@@ -2606,7 +2606,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         """
         return self.multiplicative_order()
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         Default implementation of division using multiplication by
         the inverse.
@@ -2631,7 +2631,7 @@ def is_RingElement(x):
 
 
 cdef class RingElement(ModuleElement):
-    cpdef _mul_(self, other):
+    cdef _mul_(self, other):
         """
         Abstract multiplication method
 
@@ -2649,7 +2649,7 @@ cdef class RingElement(ModuleElement):
     def is_one(self):
         return self == self._parent.one()
 
-    cpdef _pow_int(self, n):
+    cdef _pow_int(self, n):
         """
         Return the (integral) power of self.
 
@@ -2732,7 +2732,7 @@ cdef class RingElement(ModuleElement):
             l.append(x)
         return l
 
-    cpdef _div_(self, other):
+    cdef _div_(self, other):
         """
         Default implementation of division using the fraction field.
         """
@@ -3578,13 +3578,13 @@ cdef class Vector(ModuleElementWithMutability):
             return (<Vector>left)._dot_product_(<Vector>right)
         return coercion_model.bin_op(left, right, mul)
 
-    cpdef _dot_product_(Vector left, Vector right):
+    cdef _dot_product_(Vector left, Vector right):
         return left._dot_product_coerce_(right)
 
-    cpdef _dot_product_coerce_(Vector left, Vector right):
+    cdef _dot_product_coerce_(Vector left, Vector right):
         raise bin_op_exception('*', left, right)
 
-    cpdef _pairwise_product_(Vector left, Vector right):
+    cdef _pairwise_product_(Vector left, Vector right):
         raise TypeError("unsupported operation for '%s' and '%s'"%(parent(left), parent(right)))
 
     def __truediv__(self, right):
@@ -4109,7 +4109,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
     def quo_rem(self, other):
         raise NotImplementedError
 
-    cpdef _floordiv_(self, right):
+    cdef _floordiv_(self, right):
         """
         Quotient of division of ``self`` by other.  This is denoted //.
 
@@ -4131,7 +4131,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
         Q, _ = self.quo_rem(right)
         return Q
 
-    cpdef _mod_(self, other):
+    cdef _mod_(self, other):
         """
         Remainder of division of ``self`` by other.
 
@@ -4169,7 +4169,7 @@ def is_FieldElement(x):
     return isinstance(x, FieldElement)
 
 cdef class FieldElement(CommutativeRingElement):
-    cpdef _floordiv_(self, right):
+    cdef _floordiv_(self, right):
         """
         Return the quotient of self and other. Since these are field
         elements, the floor division is exactly the same as usual division.
@@ -4319,7 +4319,7 @@ cdef class InfinityElement(RingElement):
 #
 #################################################################################
 
-cpdef canonical_coercion(x, y):
+cdef canonical_coercion(x, y):
     """
     ``canonical_coercion(x,y)`` is what is called before doing an
     arithmetic operation between ``x`` and ``y``.  It returns a pair ``(z,w)``
@@ -4338,7 +4338,7 @@ cpdef canonical_coercion(x, y):
     return coercion_model.canonical_coercion(x,y)
 
 
-cpdef bin_op(x, y, op):
+cdef bin_op(x, y, op):
     return coercion_model.bin_op(x, y, op)
 
 

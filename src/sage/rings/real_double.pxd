@@ -8,8 +8,8 @@ cdef class RealDoubleField_class(sage.rings.abc.RealDoubleField):
 cdef class RealDoubleElement(FieldElement):
     cdef double _value
     cdef _new_c(self, double value)
-    cpdef _add_(self, other)
-    cpdef _mul_(self, other)
-    cpdef RealDoubleElement abs(RealDoubleElement self)
+    cdef _add_(self, other)
+    cdef _mul_(self, other)
+    cdef RealDoubleElement abs(RealDoubleElement self)
 
 cdef double_repr(double x)

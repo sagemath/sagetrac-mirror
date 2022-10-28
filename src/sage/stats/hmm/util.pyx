@@ -21,7 +21,7 @@ cdef class HMM_Util:
     """
     A class used in order to share cdef's methods between different files.
     """
-    cpdef normalize_probability_TimeSeries(self, TimeSeries T, Py_ssize_t i, Py_ssize_t j):
+    cdef normalize_probability_TimeSeries(self, TimeSeries T, Py_ssize_t i, Py_ssize_t j):
         """
         This function is used internally by the Hidden Markov Models code.
 
@@ -85,7 +85,7 @@ cdef class HMM_Util:
 
 
 
-    cpdef TimeSeries initial_probs_to_TimeSeries(self, pi, bint normalize):
+    cdef TimeSeries initial_probs_to_TimeSeries(self, pi, bint normalize):
         """
         This function is used internally by the __init__ methods of
         various Hidden Markov Models.
@@ -123,7 +123,7 @@ cdef class HMM_Util:
         return T
 
 
-    cpdef TimeSeries state_matrix_to_TimeSeries(self, A, int N, bint normalize):
+    cdef TimeSeries state_matrix_to_TimeSeries(self, A, int N, bint normalize):
         """
         This function is used internally by the __init__ methods of
         Hidden Markov Models to make a transition matrix from A.

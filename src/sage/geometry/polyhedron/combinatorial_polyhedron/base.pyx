@@ -3356,7 +3356,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     # Methods to obtain a different combinatorial polyhedron.
 
-    cpdef CombinatorialPolyhedron dual(self):
+    cdef CombinatorialPolyhedron dual(self):
         r"""
         Return the dual/polar of self.
 
@@ -3399,7 +3399,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     polar = dual
 
-    cpdef CombinatorialPolyhedron pyramid(self, new_vertex=None, new_facet=None):
+    cdef CombinatorialPolyhedron pyramid(self, new_vertex=None, new_facet=None):
         r"""
         Return the pyramid of ``self``.
 
@@ -3475,7 +3475,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             if self.facet_names() is not None:
                 new_facet_names = self.facet_names() + (new_facet,)
             else:
-                # Closures inside cpdef functions not yet supported
+                # Closures inside cdef functions not yet supported
                 new_facet_names = self.Hrepresentation()[:self.n_facets()] + (new_facet,)
         else:
             new_facet_names = None

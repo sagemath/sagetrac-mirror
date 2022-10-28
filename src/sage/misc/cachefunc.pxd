@@ -1,7 +1,7 @@
 from .function_mangling cimport ArgumentFixer
 
-cpdef dict_key(o)
-cpdef cache_key(o)
+cdef dict_key(o)
+cdef cache_key(o)
 
 cdef class CachedFunction():
     cdef public str __name__
@@ -23,7 +23,7 @@ cdef class CachedMethod():
     cdef public str __module__
     cdef CachedFunction _cachedfunc
     cdef Py_ssize_t nargs
-    cpdef _get_instance_cache(self, inst)
+    cdef _get_instance_cache(self, inst)
 
 cdef class CacheDict(dict):
     pass

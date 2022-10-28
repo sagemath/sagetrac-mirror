@@ -141,7 +141,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     # LEVEL 2 functionality
     # X  * cdef _add_
     #    * cdef _mul_
-    #    * cpdef _richcmp_
+    #    * cdef _richcmp_
     #    * __neg__
     #    * __invert__
     # x  * __copy__
@@ -209,7 +209,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Add two generic dense matrices with the same parent.
 
@@ -232,7 +232,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Subtract two generic dense matrices with the same parent.
 

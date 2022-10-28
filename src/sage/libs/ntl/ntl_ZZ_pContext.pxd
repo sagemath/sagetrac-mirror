@@ -9,7 +9,7 @@ cdef class ntl_ZZ_pContext_class():
     cdef ntl_ZZ p
     cdef double p_bits
     cdef object __weakref__
-    cpdef void _assert_is_current_modulus(self) except *
+    cdef void _assert_is_current_modulus(self) except *
 
 
 cdef class ntl_ZZ_pContext_factory():

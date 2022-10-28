@@ -235,7 +235,7 @@ cdef class SetSystem:
         for i in xrange(self._groundset_size):
             self._idx[self._groundset[i]] = i
 
-    cpdef _complements(self):
+    cdef _complements(self):
         """
         Return a SetSystem containing the complements of each element in the
         groundset.
@@ -313,7 +313,7 @@ cdef class SetSystem:
             i = bitset_next(self._subsets[k], i + 1)
         return frozenset(F)
 
-    cpdef _get_groundset(self):
+    cdef _get_groundset(self):
         """
         Return the ground set of this SetSystem.
 
@@ -326,7 +326,7 @@ cdef class SetSystem:
         """
         return frozenset(self._groundset)
 
-    cpdef is_connected(self):
+    cdef is_connected(self):
         """
         Test if the :class:`SetSystem` is connected.
 
@@ -509,7 +509,7 @@ cdef class SetSystem:
         self._groundset_partition(P, cnt)
         return P
 
-    cpdef _equitable_partition(self, SetSystem P=None, EP=None):
+    cdef _equitable_partition(self, SetSystem P=None, EP=None):
         r"""
         Return an equitable ordered partition of the ground set of the
         hypergraph whose edges are the subsets in this SetSystem.
@@ -590,7 +590,7 @@ cdef class SetSystem:
 
         return P, EP, h
 
-    cpdef _heuristic_partition(self, SetSystem P=None, EP=None):
+    cdef _heuristic_partition(self, SetSystem P=None, EP=None):
         """
         Return an heuristic ordered partition into singletons of the ground
         set of the hypergraph whose edges are the subsets in this SetSystem.
@@ -638,7 +638,7 @@ cdef class SetSystem:
                 return self._heuristic_partition(P._distinguish(bitset_first(P._subsets[i])), EP)
         return P, EP, h
 
-    cpdef _isomorphism(self, SetSystem other, SetSystem SP=None, SetSystem OP=None):
+    cdef _isomorphism(self, SetSystem other, SetSystem SP=None, SetSystem OP=None):
         """
         Return a groundset isomorphism between this SetSystem and an other.
 
@@ -698,7 +698,7 @@ cdef class SetSystem:
             return None
         return dict([(self._groundset[bitset_first(SP._subsets[i])], other._groundset[bitset_first(OP._subsets[i])]) for i in xrange(len(SP))])
 
-    cpdef _equivalence(self, is_equiv, SetSystem other, SetSystem SP=None, SetSystem OP=None):
+    cdef _equivalence(self, is_equiv, SetSystem other, SetSystem SP=None, SetSystem OP=None):
         """
         Return a groundset isomorphism that is an equivalence between this
         SetSystem and an other.

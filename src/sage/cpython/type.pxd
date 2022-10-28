@@ -1,1 +1,1 @@
-cpdef bint can_assign_class(obj)
+cdef bint can_assign_class(obj)

@@ -502,7 +502,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         return str_to_bytes(self._export_as_string(32), 'ascii')
 
-    cpdef _export_as_string(self, int base=10):
+    cdef _export_as_string(self, int base=10):
         """
         Return space separated string of the entries in this matrix, in the
         given base. This is optimized for speed.
@@ -632,7 +632,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
     # x * cdef _add_
     # x * cdef _sub_
     # x * cdef _mul_
-    # x * cpdef _richcmp_
+    # x * cdef _richcmp_
     # x * __neg__
     # x * __invert__  -> SEE LEVEL 3 FUNCTIONALITIES
     # x * __copy__
@@ -836,7 +836,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         return M
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -856,7 +856,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         return M
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Add two dense matrices over ZZ.
 
@@ -881,7 +881,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         return M
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Subtract two dense matrices over ZZ.
 
@@ -1021,7 +1021,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         return M
 
-    cpdef _richcmp_(self, right, int op):
+    cdef _richcmp_(self, right, int op):
         r"""
         Compare ``self`` with ``right``, examining entries in
         lexicographic (row major) ordering.
@@ -1688,7 +1688,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_free(entry_list)
         return res
 
-    cpdef _echelon_in_place(self, str algorithm):
+    cdef _echelon_in_place(self, str algorithm):
         cdef Matrix_integer_dense E
         E = self.echelon_form()
         sig_on()
@@ -6020,7 +6020,7 @@ cdef _clear_columns(Matrix_integer_dense A, pivots, Py_ssize_t n):
     sig_off()
 
 
-cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
+cdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     """
     INPUT:
 

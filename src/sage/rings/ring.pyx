@@ -729,7 +729,7 @@ cdef class Ring(ParentWithGens):
         else:
             return False
 
-    cpdef bint is_exact(self) except -2:
+    cdef bint is_exact(self) except -2:
         """
         Return ``True`` if elements of this ring are represented exactly, i.e.,
         there is no precision loss when doing arithmetic.
@@ -2055,7 +2055,7 @@ cdef class EuclideanDomain(PrincipalIdealDomain):
        """
         raise NotImplementedError
 
-cpdef bint _is_Field(x) except -2:
+cdef bint _is_Field(x) except -2:
     """
     Return ``True`` if ``x`` is a field.
 

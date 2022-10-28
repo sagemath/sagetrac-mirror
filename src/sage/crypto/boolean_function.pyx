@@ -689,7 +689,7 @@ cdef class BooleanFunction(SageObject):
         """
         return self._walsh_hadamard_transform
 
-    cpdef tuple walsh_hadamard_transform(self):
+    cdef tuple walsh_hadamard_transform(self):
         r"""
         Compute the Walsh Hadamard transform `W` of the function `f`.
 

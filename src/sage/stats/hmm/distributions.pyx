@@ -281,7 +281,7 @@ cdef class GaussianMixtureDistribution(Distribution):
         """
         return self.c0._length
 
-    cpdef is_fixed(self, i=None):
+    cdef is_fixed(self, i=None):
         """
         Return whether or not this GaussianMixtureDistribution is
         fixed when using Baum-Welch to update the corresponding HMM.
@@ -458,7 +458,7 @@ cdef class GaussianMixtureDistribution(Distribution):
                 return random_normal(self.param._values[3*n+1], self.param._values[3*n+2], rstate)
         raise RuntimeError("invalid probability distribution")
 
-    cpdef double prob(self, double x):
+    cdef double prob(self, double x):
         """
         Return the probability of x.
 
@@ -494,7 +494,7 @@ cdef class GaussianMixtureDistribution(Distribution):
             s += self.c0._values[n]*exp((x-mu)*(x-mu)*self.c1._values[n])
         return s
 
-    cpdef double prob_m(self, double x, int m):
+    cdef double prob_m(self, double x, int m):
         """
         Return the probability of x using just the m-th summand.
 

@@ -178,7 +178,7 @@ cdef class ListOfFaces:
         """
         assert face_list_check_alignment(self.data)
 
-    cpdef ListOfFaces __copy__(self):
+    cdef ListOfFaces __copy__(self):
         r"""
         Return a copy of self.
 
@@ -210,7 +210,7 @@ cdef class ListOfFaces:
         face_list_copy(copy.data, self.data)
         return copy
 
-    cpdef int compute_dimension(self) except -2:
+    cdef int compute_dimension(self) except -2:
         r"""
         Compute the dimension of a polyhedron by its facets.
 
@@ -303,7 +303,7 @@ cdef class ListOfFaces:
         # by calculating dimension of one of its faces.
         return new_faces.compute_dimension() + 1
 
-    cpdef ListOfFaces pyramid(self):
+    cdef ListOfFaces pyramid(self):
         r"""
         Return the list of faces of the pyramid.
 

@@ -221,7 +221,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             h = ((h+34125L)*51125L) ^ hash(x)
         return h
 
-    cpdef bint is_constant(self):
+    cdef bint is_constant(self):
         """
         Return True if this quaternion is constant, i.e., has no i, j, or k term.
 
@@ -386,7 +386,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return self._do_print(self[0], self[1], self[2], self[3])
 
-    cpdef _richcmp_(self, right, int op):
+    cdef _richcmp_(self, right, int op):
         """
         Comparing elements.
 
@@ -414,7 +414,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
                 return res
         return rich_to_bool(op, 0)
 
-    cpdef conjugate(self):
+    cdef conjugate(self):
         """
         Return the conjugate of the quaternion: if `\\theta = x + yi + zj + wk`,
         return `x - yi - zj - wk`; that is, return theta.reduced_trace() - theta.
@@ -438,7 +438,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return self.__class__(self._parent, (self[0], -self[1], -self[2], -self[3]), check=False)
 
-    cpdef reduced_trace(self):
+    cdef reduced_trace(self):
         """
         Return the reduced trace of self: if `\\theta = x + yi + zj +
         wk`, then `\\theta` has reduced trace `2x`.
@@ -453,7 +453,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return 2*self[0]
 
-    cpdef reduced_norm(self):
+    cdef reduced_norm(self):
         """
         Return the reduced norm of self: if `\\theta = x + yi + zj +
         wk`, then `\\theta` has reduced norm `x^2 - ay^2 - bz^2 +
@@ -509,7 +509,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return ~self.reduced_norm() * self.conjugate()
 
-    cpdef _rmul_(self, Element left):
+    cdef _rmul_(self, Element left):
         """
         Return left*self, where left is in the base ring.
 
@@ -523,7 +523,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return self.__class__(self._parent, (left*self[0], left*self[1], left*self[2], left*self[3]), check=False)
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         Return self*right, where right is in the base ring.
 
@@ -537,7 +537,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return self.__class__(self._parent, (self[0]*right, self[1]*right, self[2]*right, self[3]*right), check=False)
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         Return quotient of self by right.
 
@@ -768,7 +768,7 @@ cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
         return (unpickle_QuaternionAlgebraElement_generic_v0,
                 (self._parent, (self.x, self.y, self.z, self.w)))
 
-    cpdef _add_(self, _right):
+    cdef _add_(self, _right):
         """
         Return the sum of self and _right.
 
@@ -784,7 +784,7 @@ cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
         # TODO -- make this, etc. use __new__
         return QuaternionAlgebraElement_generic(self._parent, (self.x + right.x, self.y + right.y, self.z + right.z, self.w + right.w), check=False)
 
-    cpdef _sub_(self, _right):
+    cdef _sub_(self, _right):
         """
         Return the difference of self and _right.
 
@@ -799,7 +799,7 @@ cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
         cdef QuaternionAlgebraElement_generic right = _right
         return QuaternionAlgebraElement_generic(self._parent, (self.x - right.x, self.y - right.y, self.z - right.z, self.w - right.w), check=False)
 
-    cpdef _mul_(self, _right):
+    cdef _mul_(self, _right):
         """
         Return the product of self and _right.
 
@@ -927,7 +927,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
             return x
         raise TypeError
 
-    cpdef bint is_constant(self):
+    cdef bint is_constant(self):
         """
         Return True if this quaternion is constant, i.e., has no i, j, or k term.
 
@@ -963,7 +963,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         """
         return bool(mpz_sgn(self.x) or mpz_sgn(self.y) or mpz_sgn(self.z) or mpz_sgn(self.w))
 
-    cpdef _richcmp_(self, _right, int op):
+    cdef _richcmp_(self, _right, int op):
         """
         Compare two quaternions.
 
@@ -1124,7 +1124,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         return (unpickle_QuaternionAlgebraElement_rational_field_v0,
                 (self._parent, (self[0], self[1], self[2], self[3])))
 
-    cpdef _add_(self, _right):
+    cdef _add_(self, _right):
         """
         EXAMPLES::
 
@@ -1180,7 +1180,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         mpz_set(result.b, self.b)
         return result
 
-    cpdef _sub_(self, _right):
+    cdef _sub_(self, _right):
         """
         EXAMPLES::
 
@@ -1221,7 +1221,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         mpz_set(result.b, self.b)
         return result
 
-    cpdef _mul_(self, _right):
+    cdef _mul_(self, _right):
         """
         EXAMPLES::
 
@@ -1336,7 +1336,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
 
         return result
 
-    cpdef reduced_norm(self):
+    cdef reduced_norm(self):
         """
         Return the reduced norm of ``self``.
 
@@ -1377,7 +1377,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
 
         return result
 
-    cpdef conjugate(self):
+    cdef conjugate(self):
         """
         Return the conjugate of this quaternion.
 
@@ -1408,7 +1408,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
 
         return result
 
-    cpdef reduced_trace(self):
+    cdef reduced_trace(self):
         """
         Return the reduced trace of ``self``.
 
@@ -1791,7 +1791,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         return (unpickle_QuaternionAlgebraElement_number_field_v0,
                 (self._parent, (self[0], self[1], self[2], self[3])))
 
-    cpdef _add_(self, _right):
+    cdef _add_(self, _right):
         """
         Add self and _right:
 
@@ -1862,7 +1862,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
 
         return result
 
-    cpdef _sub_(self, _right):
+    cdef _sub_(self, _right):
         """
         Subtract _right from self.
 
@@ -1912,7 +1912,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
 
         return result
 
-    cpdef _mul_(self, _right):
+    cdef _mul_(self, _right):
         """
         Multiply self and _right.
 

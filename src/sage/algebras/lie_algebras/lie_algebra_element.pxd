@@ -4,25 +4,25 @@ from sage.structure.sage_object cimport SageObject
 from sage.modules.with_basis.indexed_element cimport IndexedFreeModuleElement
 
 cdef class LieAlgebraElement(IndexedFreeModuleElement):
-    cpdef lift(self)
+    cdef lift(self)
 
 cdef class LieAlgebraElementWrapper(ElementWrapper):
-    cpdef _add_(self, right)
-    cpdef _sub_(self, right)
+    cdef _add_(self, right)
+    cdef _sub_(self, right)
 
 cdef class LieAlgebraMatrixWrapper(LieAlgebraElementWrapper):
     pass
 
 cdef class LieSubalgebraElementWrapper(LieAlgebraElementWrapper):
     cdef dict _monomial_coefficients
-    cpdef dict monomial_coefficients(self, bint copy=*)
+    cdef dict monomial_coefficients(self, bint copy=*)
 
 cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
-    cpdef bracket(self, right)
-    cpdef _bracket_(self, right)
-    cpdef to_vector(self, bint sparse=*)
-    cpdef dict monomial_coefficients(self, bint copy=*)
-    #cpdef lift(self)
+    cdef bracket(self, right)
+    cdef _bracket_(self, right)
+    cdef to_vector(self, bint sparse=*)
+    cdef dict monomial_coefficients(self, bint copy=*)
+    #cdef lift(self)
 
 cdef class UntwistedAffineLieAlgebraElement(Element):
     cdef dict _t_dict
@@ -30,23 +30,23 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
     cdef _d_coeff
     cdef long _hash
 
-    cpdef _add_(self, other)
-    cpdef _sub_(self, other)
-    cpdef _neg_(self)
+    cdef _add_(self, other)
+    cdef _sub_(self, other)
+    cdef _neg_(self)
 
-    cpdef dict t_dict(self)
-    cpdef c_coefficient(self)
-    cpdef d_coefficient(self)
+    cdef dict t_dict(self)
+    cdef c_coefficient(self)
+    cdef d_coefficient(self)
 
-    cpdef bracket(self, y)
-    cpdef _bracket_(self, y)
-    cpdef canonical_derivation(self)
-    cpdef monomial_coefficients(self, bint copy=*)
+    cdef bracket(self, y)
+    cdef _bracket_(self, y)
+    cdef canonical_derivation(self)
+    cdef monomial_coefficients(self, bint copy=*)
 
 cdef class LieObject(SageObject):
     cdef tuple _word
     cdef public tuple _index_word
-    cpdef tuple to_word(self)
+    cdef tuple to_word(self)
 
 cdef class LieGenerator(LieObject):
     cdef public str _name
@@ -56,7 +56,7 @@ cdef class LieBracket(LieObject):
     cdef public LieObject _right
     cdef long _hash
 
-    cpdef lift(self, dict UEA_gens_dict)
+    cdef lift(self, dict UEA_gens_dict)
 
 cdef class GradedLieBracket(LieBracket):
     cdef public _grade

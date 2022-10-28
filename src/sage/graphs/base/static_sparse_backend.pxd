@@ -9,8 +9,8 @@ cdef class StaticSparseCGraph(CGraph):
     cdef bint _directed
     cdef int * number_of_loops
 
-    cpdef int out_degree(self, int u) except -1
-    cpdef int in_degree(self, int u) except -1
+    cdef int out_degree(self, int u) except -1
+    cdef int in_degree(self, int u) except -1
 
 cdef class StaticSparseBackend(CGraphBackend):
     cdef int _order

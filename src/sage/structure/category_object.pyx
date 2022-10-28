@@ -63,7 +63,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.dynamic_class import DynamicMetaclass
 
 
-cpdef inline check_default_category(default_category, category):
+cdef inline check_default_category(default_category, category):
     ## The resulting category is guaranteed to be
     ## a sub-category of the default.
     if category is None:
@@ -897,7 +897,7 @@ cdef class CategoryObject(SageObject):
         """
         return dir_with_other_class(self, self.category().parent_class)
 
-cpdef normalize_names(Py_ssize_t ngens, names):
+cdef normalize_names(Py_ssize_t ngens, names):
     r"""
     Return a tuple of strings of variable names of length ngens given
     the input names.
@@ -1017,7 +1017,7 @@ cpdef normalize_names(Py_ssize_t ngens, names):
     return tuple(names)
 
 
-cpdef bint certify_names(names) except -1:
+cdef bint certify_names(names) except -1:
     """
     Check that ``names`` are valid variable names.
 

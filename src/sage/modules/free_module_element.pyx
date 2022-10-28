@@ -1728,7 +1728,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         s = sum(a ** p for a in abs_self)
         return s**(__one__/p)
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         EXAMPLES::
 
@@ -2446,7 +2446,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         else:
             return points(v, **kwds)
 
-    cpdef _dot_product_coerce_(left, Vector right):
+    cdef _dot_product_coerce_(left, Vector right):
         """
         Return the dot product of left and right.
 
@@ -3696,7 +3696,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         return self.nonzero_positions()
 
-    cpdef int hamming_weight(self):
+    cdef int hamming_weight(self):
         """
         Return the number of positions ``i`` such that ``self[i] != 0``.
 
@@ -4293,7 +4293,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef _add_(left, right):
+    cdef _add_(left, right):
         """
         Add left and right.
 
@@ -4310,7 +4310,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef _sub_(left, right):
+    cdef _sub_(left, right):
         """
         Subtract right from left.
 
@@ -4328,7 +4328,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         v = [(<RingElement> a[i])._sub_(<RingElement> b[i]) for i in range(left._degree)]
         return left._new_c(v)
 
-    cpdef _rmul_(self, Element left):
+    cdef _rmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -4342,7 +4342,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             v = [left * x for x in self._entries]
         return self._new_c(v)
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -4360,7 +4360,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef _pairwise_product_(left, Vector right):
+    cdef _pairwise_product_(left, Vector right):
         """
         EXAMPLES::
 
@@ -4742,7 +4742,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 entries_dict = dict(entries_dict)  # make a copy/convert to dict
         self._entries = entries_dict
 
-    cpdef _add_(left, right):
+    cdef _add_(left, right):
         """
         Add left and right.
 
@@ -4764,7 +4764,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 v[i] = a
         return left._new_c(v)
 
-    cpdef _sub_(left, right):
+    cdef _sub_(left, right):
         """
         EXAMPLES::
 
@@ -4784,7 +4784,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 v[i] = -a
         return left._new_c(v)
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -4800,7 +4800,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return self._new_c(v)
 
-    cpdef _rmul_(self, Element left):
+    cdef _rmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -4816,7 +4816,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return self._new_c(v)
 
-    cpdef _dot_product_coerce_(left, Vector right):
+    cdef _dot_product_coerce_(left, Vector right):
         """
         Return the dot product of left and right.
 
@@ -4868,7 +4868,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 z += a * e[i]
         return z
 
-    cpdef _pairwise_product_(left, Vector right):
+    cdef _pairwise_product_(left, Vector right):
         """
         EXAMPLES::
 
@@ -4886,7 +4886,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return left._new_c(v)
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Compare two sparse free module elements.
 
@@ -5179,7 +5179,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         return sorted(self._entries)
 
-    cpdef int hamming_weight(self):
+    cdef int hamming_weight(self):
         """
         Returns the number of positions ``i`` such that ``self[i] != 0``.
 

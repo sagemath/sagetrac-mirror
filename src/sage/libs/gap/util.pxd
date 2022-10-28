@@ -20,7 +20,7 @@ cdef class ObjWrapper():
 cdef ObjWrapper wrap_obj(Obj obj)
 
 # returns the refcount dictionary for debugging purposes
-cpdef get_owned_objects()
+cdef get_owned_objects()
 
 # Reference count GAP objects that you want to prevent from being
 # garbage collected

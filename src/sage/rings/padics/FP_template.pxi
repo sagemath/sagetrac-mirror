@@ -312,7 +312,7 @@ cdef class FPElement(pAdicTemplateElement):
 #        """
 #        return (<Element>self)._richcmp(right, op)
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         r"""
         Return the additive inverse of this element.
 
@@ -331,7 +331,7 @@ cdef class FPElement(pAdicTemplateElement):
             creduce_small(ans.unit, ans.unit, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
 
-    cpdef _add_(self, _right):
+    cdef _add_(self, _right):
         r"""
         Return the sum of this element and ``_right``.
 
@@ -375,7 +375,7 @@ cdef class FPElement(pAdicTemplateElement):
                 creduce(ans.unit, ans.unit, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
 
-    cpdef _sub_(self, _right):
+    cdef _sub_(self, _right):
         r"""
         Return the difference of this element and ``_right``.
 
@@ -454,7 +454,7 @@ cdef class FPElement(pAdicTemplateElement):
             cinvert(ans.unit, self.unit, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
 
-    cpdef _mul_(self, _right):
+    cdef _mul_(self, _right):
         r"""
         Return the product of this element and ``_right``.
 
@@ -487,7 +487,7 @@ cdef class FPElement(pAdicTemplateElement):
         creduce(ans.unit, ans.unit, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
 
-    cpdef _div_(self, _right):
+    cdef _div_(self, _right):
         r"""
         Return the quotient of this element and ``right``.
 
@@ -836,7 +836,7 @@ cdef class FPElement(pAdicTemplateElement):
             creduce(ans.unit, self.unit, aprec - self.ordp, ans.prime_pow)
         return ans
 
-    cpdef bint _is_exact_zero(self) except -1:
+    cdef bint _is_exact_zero(self) except -1:
         """
         Tests whether this element is exactly zero.
 
@@ -849,7 +849,7 @@ cdef class FPElement(pAdicTemplateElement):
         """
         return very_pos_val(self.ordp)
 
-    cpdef bint _is_inexact_zero(self) except -1:
+    cdef bint _is_inexact_zero(self) except -1:
         """
         Returns True if self is indistinguishable from zero.
 
@@ -1135,7 +1135,7 @@ cdef class FPElement(pAdicTemplateElement):
             mpz_set_si(ans.value, self.prime_pow.ram_prec_cap)
         return ans
 
-    cpdef pAdicTemplateElement unit_part(FPElement self):
+    cdef pAdicTemplateElement unit_part(FPElement self):
         r"""
         Returns the unit part of this element.
 
@@ -1202,7 +1202,7 @@ cdef class FPElement(pAdicTemplateElement):
         """
         return self.ordp
 
-    cpdef val_unit(self, p=None):
+    cdef val_unit(self, p=None):
         """
         Returns a 2-tuple, the first element set to the valuation of
         this element, and the second to the unit part.
@@ -1315,7 +1315,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism):
         self._section = _slots['_section']
         RingHomomorphism._update_slots(self, _slots)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Evaluation.
 
@@ -1333,7 +1333,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism):
         ans.ordp = cconv_mpz_t(ans.unit, (<Integer>x).value, ans.prime_pow.ram_prec_cap, False, ans.prime_pow)
         return ans
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cdef Element _call_with_args(self, x, args=(), kwds={}):
         """
         This function is used when some precision cap is passed in (relative or absolute or both).
 
@@ -1427,7 +1427,7 @@ cdef class pAdicConvert_FP_ZZ(RingMap):
         else:
             RingMap.__init__(self, Hom(R, ZZ, Sets()))
 
-    cpdef Element _call_(self, _x):
+    cdef Element _call_(self, _x):
         """
         Evaluation.
 
@@ -1539,7 +1539,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism):
         self._section = _slots['_section']
         RingHomomorphism._update_slots(self, _slots)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Evaluation.
 
@@ -1561,7 +1561,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism):
         ans.ordp = cconv_mpq_t(ans.unit, (<Rational>x).value, ans.prime_pow.ram_prec_cap, False, self._zero.prime_pow)
         return ans
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cdef Element _call_with_args(self, x, args=(), kwds={}):
         """
         This function is used when some precision cap is passed in
         (relative or absolute or both).
@@ -1644,7 +1644,7 @@ cdef class pAdicConvert_FP_QQ(RingMap):
         """
         RingMap.__init__(self, Hom(R, QQ, SetsWithPartialMaps()))
 
-    cpdef Element _call_(self, _x):
+    cdef Element _call_(self, _x):
         """
         Evaluation.
 
@@ -1728,7 +1728,7 @@ cdef class pAdicConvert_QQ_FP(Morphism):
         self._zero = _slots['_zero']
         Morphism._update_slots(self, _slots)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Evaluation.
 
@@ -1748,7 +1748,7 @@ cdef class pAdicConvert_QQ_FP(Morphism):
             raise ValueError("p divides the denominator")
         return ans
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cdef Element _call_with_args(self, x, args=(), kwds={}):
         """
         This function is used when some precision cap is passed in (relative or absolute or both).
 
@@ -1828,7 +1828,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
         self._zero = K(0)
         self._section = pAdicConvert_FP_frac_field(K, R)
 
-    cpdef Element _call_(self, _x):
+    cdef Element _call_(self, _x):
         r"""
         Evaluation.
 
@@ -1852,7 +1852,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
             ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
-    cpdef Element _call_with_args(self, _x, args=(), kwds={}):
+    cdef Element _call_with_args(self, _x, args=(), kwds={}):
         r"""
         This function is used when some precision cap is passed in
         (relative or absolute or both).
@@ -2004,7 +2004,7 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
         Morphism.__init__(self, Hom(K, R, SetsWithPartialMaps()))
         self._zero = R(0)
 
-    cpdef Element _call_(self, _x):
+    cdef Element _call_(self, _x):
         r"""
         Evaluation.
 
@@ -2028,7 +2028,7 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
             ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
-    cpdef Element _call_with_args(self, _x, args=(), kwds={}):
+    cdef Element _call_with_args(self, _x, args=(), kwds={}):
         r"""
         This function is used when some precision cap is passed in
         (relative or absolute or both).

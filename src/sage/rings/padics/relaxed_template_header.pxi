@@ -130,7 +130,7 @@ cdef class RelaxedElement_teichmuller(RelaxedElementWithDigits):
 cdef class RelaxedElement_unknown(RelaxedElementWithDigits):
     cdef RelaxedElement _definition
     cdef long _next
-    cpdef set(self, RelaxedElement definition)
+    cdef set(self, RelaxedElement definition)
     # for pickling
     cdef long _initialvaluation
     cdef long _initialprecrel

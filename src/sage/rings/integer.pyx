@@ -920,7 +920,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return rich_to_bool_sgn(op, c)
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         r"""
         EXAMPLES::
 
@@ -1768,7 +1768,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return coercion_model.bin_op(left, right, operator.add)
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Integer addition.
 
@@ -1855,7 +1855,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return coercion_model.bin_op(left, right, operator.sub)
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Integer subtraction.
 
@@ -1893,12 +1893,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_neg(x.value, self.value)
         return x
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         cdef Integer x = <Integer>PY_NEW(Integer)
         mpz_neg(x.value, self.value)
         return x
 
-    cpdef _act_on_(self, s, bint self_on_left):
+    cdef _act_on_(self, s, bint self_on_left):
         """
         EXAMPLES::
 
@@ -1963,7 +1963,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return coercion_model.bin_op(left, right, operator.mul)
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Integer multiplication.
 
@@ -2036,7 +2036,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return coercion_model.bin_op(left, right, operator.truediv)
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         r"""
         Computes `\frac{a}{b}`
 
@@ -2053,7 +2053,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpq_div_zz(x.value, self.value, (<Integer>right).value)
         return x
 
-    cpdef _floordiv_(self, right):
+    cdef _floordiv_(self, right):
         r"""
         Computes the whole part of `\frac{x}{y}`.
 
@@ -2194,7 +2194,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # left is a non-Element: do the powering with a Python int
         return left ** int(right)
 
-    cpdef _pow_(self, other):
+    cdef _pow_(self, other):
         """
         Integer powering.
 
@@ -2304,7 +2304,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sig_off()
             return q
 
-    cpdef _pow_int(self, n):
+    cdef _pow_int(self, n):
         """
         Integer powering to an integer exponent.
 
@@ -2433,7 +2433,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 raise ValueError("%s is not a %s power" % (self,
                                                            integer_ring.ZZ(n).ordinal_str()))
 
-    cpdef size_t _exact_log_log2_iter(self,Integer m):
+    cdef size_t _exact_log_log2_iter(self,Integer m):
         """
         This is only for internal use only.  You should expect it to crash
         and burn for negative or other malformed input.  In particular, if
@@ -2512,7 +2512,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sig_off()
         return l_min
 
-    cpdef size_t _exact_log_mpfi_log(self,m):
+    cdef size_t _exact_log_mpfi_log(self,m):
         """
         This is only for internal use only.  You should expect it to crash
         and burn for negative or other malformed input.
@@ -4132,7 +4132,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sig_off()
         return t
 
-    cpdef RingElement _valuation(Integer self, Integer p):
+    cdef RingElement _valuation(Integer self, Integer p):
         r"""
         Return the p-adic valuation of self.
 
@@ -6014,7 +6014,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self.__pari__().issquarefree()
 
-    cpdef __pari__(self):
+    cdef __pari__(self):
         """
         Returns the PARI version of this integer.
 
@@ -6480,7 +6480,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return g, s, t
 
-    cpdef _shift_helper(Integer self, y, int sign):
+    cdef _shift_helper(Integer self, y, int sign):
         """
         Function used to compute left and right shifts of integers.
         Shifts self y bits to the left if sign is 1, and to the right
@@ -7253,7 +7253,7 @@ cdef class int_to_Z(Morphism):
         from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), integer_ring.ZZ))
 
-    cpdef Element _call_(self, a):
+    cdef Element _call_(self, a):
         """
         Returns a new integer with the same value as a.
 
@@ -7298,7 +7298,7 @@ cdef class long_to_Z(Morphism):
         from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(long), integer_ring.ZZ))
 
-    cpdef Element _call_(self, a):
+    cdef Element _call_(self, a):
         cdef Integer r
         cdef long l
         cdef int err = 0

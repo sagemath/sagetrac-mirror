@@ -111,7 +111,7 @@ cdef class Point(SageObject):
         """
         return hash(self._point_configuration) ^ (<long>self._index)
 
-    cpdef point_configuration(self):
+    cdef point_configuration(self):
         r"""
         Return the point configuration to which the point belongs.
 
@@ -162,7 +162,7 @@ cdef class Point(SageObject):
         return len(self._affine)
 
 
-    cpdef index(self):
+    cdef index(self):
         """
         Return the index of the point in the point configuration.
 
@@ -177,7 +177,7 @@ cdef class Point(SageObject):
         return self._index
 
 
-    cpdef projective(self):
+    cdef projective(self):
         r"""
         Return the projective coordinates of the point in the ambient space.
 
@@ -204,7 +204,7 @@ cdef class Point(SageObject):
         return self._projective
 
 
-    cpdef affine(self):
+    cdef affine(self):
         r"""
         Return the affine coordinates of the point in the ambient space.
 
@@ -231,7 +231,7 @@ cdef class Point(SageObject):
         return self._affine
 
 
-    cpdef reduced_affine(self):
+    cdef reduced_affine(self):
         r"""
         Return the affine coordinates of the point on the hyperplane
         spanned by the point configuration.
@@ -259,7 +259,7 @@ cdef class Point(SageObject):
         return self._reduced_affine
 
 
-    cpdef reduced_projective(self):
+    cdef reduced_projective(self):
         r"""
         Return the projective coordinates of the point on the hyperplane
         spanned by the point configuration.
@@ -287,7 +287,7 @@ cdef class Point(SageObject):
         return tuple(self._reduced_affine)+(1,)
 
 
-    cpdef reduced_affine_vector(self):
+    cdef reduced_affine_vector(self):
         """
         Return the affine coordinates of the point on the hyperplane
         spanned by the point configuration.
@@ -315,7 +315,7 @@ cdef class Point(SageObject):
         return self._reduced_affine_vector
 
 
-    cpdef reduced_projective_vector(self):
+    cdef reduced_projective_vector(self):
         """
         Return the affine coordinates of the point on the hyperplane
         spanned by the point configuration.
@@ -344,7 +344,7 @@ cdef class Point(SageObject):
         """
         return self._reduced_projective_vector
 
-    cpdef _repr_(self):
+    cdef _repr_(self):
         """
         Return a string representation of the point.
 
@@ -478,7 +478,7 @@ cdef class PointConfiguration_base(Parent):
         """
         return hash_by_id(<void *> self)
 
-    cpdef reduced_affine_vector_space(self):
+    cdef reduced_affine_vector_space(self):
         """
         Return the vector space that contains the affine points.
 
@@ -499,7 +499,7 @@ cdef class PointConfiguration_base(Parent):
         return self._reduced_affine_vector_space
 
 
-    cpdef reduced_projective_vector_space(self):
+    cdef reduced_projective_vector_space(self):
         """
         Return the vector space that is spanned by the homogeneous
         coordinates.
@@ -521,7 +521,7 @@ cdef class PointConfiguration_base(Parent):
         return self._reduced_projective_vector_space
 
 
-    cpdef ambient_dim(self):
+    cdef ambient_dim(self):
         """
         Return the dimension of the ambient space of the point
         configuration.
@@ -539,7 +539,7 @@ cdef class PointConfiguration_base(Parent):
         return self._ambient_dim
 
 
-    cpdef dim(self):
+    cdef dim(self):
         """
         Return the actual dimension of the point
         configuration.
@@ -557,7 +557,7 @@ cdef class PointConfiguration_base(Parent):
         return self._dim
 
 
-    cpdef base_ring(self):
+    cdef base_ring(self):
         r"""
         Return the base ring, that is, the ring containing the
         coordinates of the points.
@@ -583,7 +583,7 @@ cdef class PointConfiguration_base(Parent):
         return self._base_ring
 
 
-    cpdef bint is_affine(self):
+    cdef bint is_affine(self):
         """
         Whether the configuration is defined by affine points.
 
@@ -653,7 +653,7 @@ cdef class PointConfiguration_base(Parent):
         return self._pts[i]
 
 
-    cpdef n_points(self):
+    cdef n_points(self):
         """
         Return the number of points.
 
@@ -675,7 +675,7 @@ cdef class PointConfiguration_base(Parent):
         return len(self._pts)
 
 
-    cpdef points(self):
+    cdef points(self):
         """
         Return a list of the points.
 
@@ -755,7 +755,7 @@ cdef class PointConfiguration_base(Parent):
         return len(self._pts)
 
 
-    cpdef simplex_to_int(self, simplex):
+    cdef simplex_to_int(self, simplex):
         r"""
         Returns an integer that uniquely identifies the given simplex.
 
@@ -801,7 +801,7 @@ cdef class PointConfiguration_base(Parent):
         return s
 
 
-    cpdef int_to_simplex(self, int s):
+    cdef int_to_simplex(self, int s):
         r"""
         Reverses the enumeration of possible simplices in
         :meth:`simplex_to_int`.

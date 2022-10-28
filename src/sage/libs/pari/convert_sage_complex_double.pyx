@@ -6,7 +6,7 @@ from cypari2.paridecl cimport *
 from cypari2.convert cimport new_gen_from_double, new_t_COMPLEX_from_double
 
 
-cpdef ComplexDoubleElement pari_to_cdf(Gen g):
+cdef ComplexDoubleElement pari_to_cdf(Gen g):
     """
     Create a CDF element from a PARI ``gen``.
 
@@ -40,7 +40,7 @@ cpdef ComplexDoubleElement pari_to_cdf(Gen g):
     return z
 
 
-cpdef Gen new_gen_from_complex_double_element(ComplexDoubleElement self):
+cdef Gen new_gen_from_complex_double_element(ComplexDoubleElement self):
     """
     Return PARI version of ``self``, as ``t_COMPLEX`` or ``t_REAL``.
 
@@ -60,7 +60,7 @@ cpdef Gen new_gen_from_complex_double_element(ComplexDoubleElement self):
         return new_t_COMPLEX_from_double(GSL_REAL(self._complex), GSL_IMAG(self._complex))
 
 
-cpdef ComplexDoubleElement complex_double_element_eta(ComplexDoubleElement self, int flag):
+cdef ComplexDoubleElement complex_double_element_eta(ComplexDoubleElement self, int flag):
     """
     TESTS::
 
@@ -74,7 +74,7 @@ cpdef ComplexDoubleElement complex_double_element_eta(ComplexDoubleElement self,
     return pari_to_cdf(new_gen_from_complex_double_element(self).eta(flag))
 
 
-cpdef ComplexDoubleElement complex_double_element_agm(ComplexDoubleElement self, right):
+cdef ComplexDoubleElement complex_double_element_agm(ComplexDoubleElement self, right):
     """
     TESTS::
 
@@ -85,7 +85,7 @@ cpdef ComplexDoubleElement complex_double_element_agm(ComplexDoubleElement self,
     return pari_to_cdf(new_gen_from_complex_double_element(self).agm(right))
 
 
-cpdef ComplexDoubleElement complex_double_element_dilog(ComplexDoubleElement self):
+cdef ComplexDoubleElement complex_double_element_dilog(ComplexDoubleElement self):
     """
     TESTS::
 
@@ -96,7 +96,7 @@ cpdef ComplexDoubleElement complex_double_element_dilog(ComplexDoubleElement sel
     return pari_to_cdf(new_gen_from_complex_double_element(self).dilog())
 
 
-cpdef ComplexDoubleElement complex_double_element_gamma(ComplexDoubleElement self):
+cdef ComplexDoubleElement complex_double_element_gamma(ComplexDoubleElement self):
     """
     TESTS::
 
@@ -107,7 +107,7 @@ cpdef ComplexDoubleElement complex_double_element_gamma(ComplexDoubleElement sel
     return pari_to_cdf(new_gen_from_complex_double_element(self).gamma())
 
 
-cpdef ComplexDoubleElement complex_double_element_gamma_inc(ComplexDoubleElement self, t):
+cdef ComplexDoubleElement complex_double_element_gamma_inc(ComplexDoubleElement self, t):
     """
     TESTS::
 
@@ -118,7 +118,7 @@ cpdef ComplexDoubleElement complex_double_element_gamma_inc(ComplexDoubleElement
     return pari_to_cdf(new_gen_from_complex_double_element(self).incgam(t))
 
 
-cpdef ComplexDoubleElement complex_double_element_zeta(ComplexDoubleElement self):
+cdef ComplexDoubleElement complex_double_element_zeta(ComplexDoubleElement self):
     """
     TESTS::
 

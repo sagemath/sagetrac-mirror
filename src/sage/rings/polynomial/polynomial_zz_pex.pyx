@@ -178,7 +178,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         cdef ZZ_pE_c c_pE = ZZ_pEX_coeff(self.x, i)
         return self._parent._base(ZZ_pE_c_to_list(c_pE))
 
-    cpdef list list(self, bint copy=True):
+    cdef list list(self, bint copy=True):
         """
         Return the list of coefficients.
 
@@ -200,7 +200,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i)))
                 for i in range(celement_len(&self.x, (<Polynomial_template>self)._cparent))]
 
-    cpdef _lmul_(self, Element left):
+    cdef _lmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -367,7 +367,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             raise ValueError("unknown algorithm")
         return res != 0
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         EXAMPLES::
 

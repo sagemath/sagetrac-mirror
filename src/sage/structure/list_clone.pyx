@@ -290,7 +290,7 @@ cdef class ClonableElement(Element):
         self._is_immutable = False
         self._hash = 0
 
-    cpdef bint _require_mutable(self) except -2:
+    cdef bint _require_mutable(self) except -2:
         """
         Check that ``self`` is mutable.
 
@@ -308,7 +308,7 @@ cdef class ClonableElement(Element):
         if self._is_immutable:
             raise ValueError("object is immutable; please change a copy instead.")
 
-    cpdef bint is_mutable(self):
+    cdef bint is_mutable(self):
         """
         Return ``True`` if ``self`` is mutable (can be changed) and ``False``
         if it is not.
@@ -329,7 +329,7 @@ cdef class ClonableElement(Element):
         """
         return not self._is_immutable
 
-    cpdef bint is_immutable(self):
+    cdef bint is_immutable(self):
         """
         Return ``True`` if ``self`` is immutable (cannot be changed)
         and ``False`` if it is not.
@@ -350,7 +350,7 @@ cdef class ClonableElement(Element):
         """
         return self._is_immutable
 
-    cpdef set_immutable(self):
+    cdef set_immutable(self):
         """
         Makes ``self`` immutable, so it can never again be changed.
 
@@ -369,7 +369,7 @@ cdef class ClonableElement(Element):
         """
         self._is_immutable = True
 
-    cpdef _set_mutable(self):
+    cdef _set_mutable(self):
         """
         Makes ``self`` mutable, so it can be changed.
 
@@ -415,7 +415,7 @@ cdef class ClonableElement(Element):
                 self._hash = self._hash_()
         return self._hash
 
-    cpdef ClonableElement clone(self, bint check=True):
+    cdef ClonableElement clone(self, bint check=True):
         """
         Return a clone that is mutable copy of ``self``.
 
@@ -578,7 +578,7 @@ cdef class ClonableArray(ClonableElement):
         """
         return bool(self._list)
 
-    cpdef list _get_list(self):
+    cdef list _get_list(self):
         """
         Return the list embedded in ``self``.
 
@@ -594,7 +594,7 @@ cdef class ClonableArray(ClonableElement):
         """
         return self._list
 
-    cpdef _set_list(self, list lst):
+    cdef _set_list(self, list lst):
         """
         Set the list embedded in ``self``.
 
@@ -676,7 +676,7 @@ cdef class ClonableArray(ClonableElement):
         self._require_mutable()
         self._list[key] = value
 
-    cpdef object _getitem(self, int key):
+    cdef object _getitem(self, int key):
         """
         Same as :meth:`__getitem__`
 
@@ -695,7 +695,7 @@ cdef class ClonableArray(ClonableElement):
         """
         return self._list[key]
 
-    cpdef _setitem(self, int key, value):
+    cdef _setitem(self, int key, value):
         """
         Same as :meth:`__setitem__`
 
@@ -758,7 +758,7 @@ cdef class ClonableArray(ClonableElement):
         """
         return item in self._list
 
-    cpdef int index(self, x, start=None, stop=None) except -1:
+    cdef int index(self, x, start=None, stop=None) except -1:
         """
         Return the smallest ``k`` such that ``s[k] == x`` and ``i <= k < j``
 
@@ -782,7 +782,7 @@ cdef class ClonableArray(ClonableElement):
         else:
             return self._list.index(x, start, stop)
 
-    cpdef int count(self, key) except -1:
+    cdef int count(self, key) except -1:
         """
         Return number of ``i``'s for which ``s[i] == key``
 
@@ -822,7 +822,7 @@ cdef class ClonableArray(ClonableElement):
         return self._hash
 
     # See protocol in comment in sage/structure/element.pyx
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         TESTS::
 
@@ -845,7 +845,7 @@ cdef class ClonableArray(ClonableElement):
         cdef ClonableArray rgt = <ClonableArray>right
         return richcmp(left._list, rgt._list, op)
 
-    cpdef ClonableArray __copy__(self):
+    cdef ClonableArray __copy__(self):
         """
         Return a copy of ``self``
 
@@ -889,7 +889,7 @@ cdef class ClonableArray(ClonableElement):
             res.__dict__ = self.__dict__.copy()
         return res
 
-    cpdef check(self):
+    cdef check(self):
         """
         Check that ``self`` fulfill the invariants
 
@@ -908,7 +908,7 @@ cdef class ClonableArray(ClonableElement):
         """
         raise NotImplementedError("this should never be called, please overload the check method")
 
-    cpdef long _hash_(self) except? -1:
+    cdef long _hash_(self) except? -1:
         """
         Return the hash value of ``self``.
 
@@ -1008,7 +1008,7 @@ cdef class ClonableList(ClonableArray):
     .. SEEALSO:: :class:`~sage.structure.list_clone_demo.IncreasingList` for
                  an example of usage.
     """
-    cpdef append(self, el):
+    cdef append(self, el):
         """
         Appends ``el`` to ``self``
 
@@ -1037,7 +1037,7 @@ cdef class ClonableList(ClonableArray):
         self._require_mutable()
         self._list.append(el)
 
-    cpdef extend(self, it):
+    cdef extend(self, it):
         """
         Extends ``self`` by the content of the iterable ``it``
 
@@ -1072,7 +1072,7 @@ cdef class ClonableList(ClonableArray):
         self._require_mutable()
         self._list.extend(it)
 
-    cpdef insert(self, int index, el):
+    cdef insert(self, int index, el):
         """
         Inserts ``el`` in ``self`` at position ``index``
 
@@ -1102,7 +1102,7 @@ cdef class ClonableList(ClonableArray):
         self._require_mutable()
         self._list.insert(index, el)
 
-    cpdef pop(self, int index=-1):
+    cdef pop(self, int index=-1):
         """
         Remove ``self[index]`` from ``self`` and returns it
 
@@ -1130,7 +1130,7 @@ cdef class ClonableList(ClonableArray):
         self._require_mutable()
         return self._list.pop(index)
 
-    cpdef remove(self, el):
+    cdef remove(self, el):
         """
         Remove the first occurrence of ``el`` from ``self``
 
@@ -1287,7 +1287,7 @@ cdef class ClonableIntArray(ClonableElement):
         if check:
             self.check()
 
-    cpdef _alloc_(self, int size):
+    cdef _alloc_(self, int size):
         """
         Allocate the array part of ``self`` for a given size
 
@@ -1373,7 +1373,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         return iter(self.list())
 
-    cpdef list list(self):
+    cdef list list(self):
         """
         Convert self into a Python list.
 
@@ -1471,7 +1471,7 @@ cdef class ClonableIntArray(ClonableElement):
         else:
             raise IndexError("list index out of range")
 
-    cpdef object _getitem(self, int key):
+    cdef object _getitem(self, int key):
         """
         Same as :meth:`__getitem__`
 
@@ -1489,7 +1489,7 @@ cdef class ClonableIntArray(ClonableElement):
         else:
             raise IndexError("list index out of range")
 
-    cpdef _setitem(self, int key, value):
+    cdef _setitem(self, int key, value):
         """
         Same as :meth:`__setitem__`
 
@@ -1531,7 +1531,7 @@ cdef class ClonableIntArray(ClonableElement):
                 return True
         return False
 
-    cpdef int index(self, int item) except -1:
+    cdef int index(self, int item) except -1:
         """
         EXAMPLES::
 
@@ -1577,7 +1577,7 @@ cdef class ClonableIntArray(ClonableElement):
         return self._hash
 
     # See protocol in comment in sage/structure/element.pyx
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         TESTS::
 
@@ -1625,7 +1625,7 @@ cdef class ClonableIntArray(ClonableElement):
                     return rich_to_bool(op, 1)
         return rich_to_bool(op, reslen)
 
-    cpdef ClonableIntArray __copy__(self):
+    cdef ClonableIntArray __copy__(self):
         """
         Return a copy of ``self``
 
@@ -1672,7 +1672,7 @@ cdef class ClonableIntArray(ClonableElement):
             res.__dict__ = self.__dict__.copy()
         return res
 
-    cpdef check(self):
+    cdef check(self):
         """
         Check that ``self`` fulfill the invariants
 
@@ -1691,7 +1691,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         raise NotImplementedError("this should never be called, please overload the check method")
 
-    cpdef long _hash_(self) except? -1:
+    cdef long _hash_(self) except? -1:
         """
         Return the hash value of ``self``.
 
@@ -1834,7 +1834,7 @@ cdef class NormalizedClonableList(ClonableList):
         self.normalize()
         return ClonableList.__exit__(self, typ, value, tracback)
 
-    cpdef normalize(self):
+    cdef normalize(self):
         """
         Normalize ``self``
 

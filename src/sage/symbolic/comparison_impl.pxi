@@ -47,7 +47,7 @@ cdef int print_order_c(Expression lhs, Expression rhs):
     return print_order_compare((<Expression>lhs)._gobj, (<Expression>rhs)._gobj)
 
 
-cpdef int print_order(lhs, rhs) except -2:
+cdef int print_order(lhs, rhs) except -2:
     """
     Comparison in the print order
 
@@ -132,7 +132,7 @@ class _print_key():
         return print_order_c(self.ex, other.ex) < 0
 
 
-cpdef print_sorted(expressions):
+cdef print_sorted(expressions):
     """
     Sort a list in print order
 
@@ -213,7 +213,7 @@ class _math_key():
                 raise ValueError('cannot compare {0} and {1}'.format(self.ex, other.ex))
 
 
-cpdef math_sorted(expressions):
+cdef math_sorted(expressions):
     """
     Sort a list of symbolic numbers in the "Mathematics" order
 
@@ -237,7 +237,7 @@ cpdef math_sorted(expressions):
     return sorted(expressions, key=_math_key)
 
 
-cpdef int mixed_order(lhs, rhs) except -2:
+cdef int mixed_order(lhs, rhs) except -2:
     """
     Comparison in the mixed order
 
@@ -398,7 +398,7 @@ class _mixed_key():
             return num < 0
 
 
-cpdef mixed_sorted(expressions):
+cdef mixed_sorted(expressions):
     """
     Sort a list of symbolic numbers in the "Mixed" order
 

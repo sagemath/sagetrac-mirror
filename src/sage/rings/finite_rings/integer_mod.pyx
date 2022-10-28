@@ -994,10 +994,10 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         else:
             return x - n
 
-    cpdef bint is_one(self):
+    cdef bint is_one(self):
         raise NotImplementedError
 
-    cpdef bint is_unit(self):
+    cdef bint is_unit(self):
         raise NotImplementedError
 
     @coerce_binop
@@ -1900,7 +1900,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 return infinity
         return r
 
-    cpdef _floordiv_(self, right):
+    cdef _floordiv_(self, right):
         """
         Exact division for prime moduli, for compatibility with other fields.
 
@@ -2058,7 +2058,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
                 mpz_fdiv_q_2exp(x.value, self.value, -k)
             return x
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         EXAMPLES::
 
@@ -2073,7 +2073,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         i = mpz_cmp((<IntegerMod_gmp>left).value, (<IntegerMod_gmp>right).value)
         return rich_to_bool_sgn(op, i)
 
-    cpdef bint is_one(IntegerMod_gmp self):
+    cdef bint is_one(IntegerMod_gmp self):
         """
         Returns ``True`` if this is `1`, otherwise
         ``False``.
@@ -2101,7 +2101,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         """
         return mpz_cmp_si(self.value, 0) != 0
 
-    cpdef bint is_unit(self):
+    cdef bint is_unit(self):
         """
         Return True iff this element is a unit.
 
@@ -2159,7 +2159,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         # immutable
         return self
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         EXAMPLES::
 
@@ -2174,7 +2174,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             mpz_sub(x.value, x.value, self.__modulus.sageInteger.value)
         return x
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         EXAMPLES::
 
@@ -2189,7 +2189,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             mpz_add(x.value, x.value, self.__modulus.sageInteger.value)
         return x
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         EXAMPLES::
 
@@ -2205,7 +2205,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         mpz_sub(x.value, self.__modulus.sageInteger.value, self.value)
         return x
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         EXAMPLES::
 
@@ -2219,7 +2219,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         mpz_fdiv_r(x.value, x.value, self.__modulus.sageInteger.value)
         return x
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         EXAMPLES::
 
@@ -2434,7 +2434,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
     cdef int_fast32_t get_int_value(IntegerMod_int self):
         return self.ivalue
 
-    cpdef _richcmp_(self, right, int op):
+    cdef _richcmp_(self, right, int op):
         """
         EXAMPLES::
 
@@ -2456,7 +2456,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         else:
             return rich_to_bool(op, 1)
 
-    cpdef bint is_one(IntegerMod_int self):
+    cdef bint is_one(IntegerMod_int self):
         """
         Returns ``True`` if this is `1`, otherwise
         ``False``.
@@ -2488,7 +2488,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         return self.ivalue != 0
 
-    cpdef bint is_unit(IntegerMod_int self):
+    cdef bint is_unit(IntegerMod_int self):
         """
         Return True iff this element is a unit
 
@@ -2558,7 +2558,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         # immutable
         return self
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         EXAMPLES::
 
@@ -2572,7 +2572,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             x = x - self.__modulus.int32
         return self._new_c(x)
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         EXAMPLES::
 
@@ -2586,7 +2586,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             x = x + self.__modulus.int32
         return self._new_c(x)
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         EXAMPLES::
 
@@ -2599,7 +2599,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             return self
         return self._new_c(self.__modulus.int32 - self.ivalue)
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         EXAMPLES::
 
@@ -2609,7 +2609,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         return self._new_c((self.ivalue * (<IntegerMod_int>right).ivalue) % self.__modulus.int32)
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         EXAMPLES::
 
@@ -3261,7 +3261,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
     cdef int_fast64_t get_int_value(IntegerMod_int64 self):
         return self.ivalue
 
-    cpdef _richcmp_(self, right, int op):
+    cdef _richcmp_(self, right, int op):
         """
         EXAMPLES::
 
@@ -3283,7 +3283,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         else:
             return rich_to_bool(op, 1)
 
-    cpdef bint is_one(IntegerMod_int64 self):
+    cdef bint is_one(IntegerMod_int64 self):
         """
         Returns ``True`` if this is `1`, otherwise
         ``False``.
@@ -3311,7 +3311,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         """
         return self.ivalue != 0
 
-    cpdef bint is_unit(IntegerMod_int64 self):
+    cdef bint is_unit(IntegerMod_int64 self):
         """
         Return True iff this element is a unit.
 
@@ -3390,7 +3390,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         # immutable
         return self
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         EXAMPLES::
 
@@ -3404,7 +3404,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             x = x - self.__modulus.int64
         return self._new_c(x)
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         EXAMPLES::
 
@@ -3418,7 +3418,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             x = x + self.__modulus.int64
         return self._new_c(x)
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         EXAMPLES::
 
@@ -3431,7 +3431,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             return self
         return self._new_c(self.__modulus.int64 - self.ivalue)
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         EXAMPLES::
 
@@ -3442,7 +3442,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         return self._new_c((self.ivalue * (<IntegerMod_int64>right).ivalue) % self.__modulus.int64)
 
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         EXAMPLES::
 
@@ -3974,7 +3974,7 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
         x *= p**(val//2)
     return x
 
-cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
+cdef square_root_mod_prime(IntegerMod_abstract a, p=None):
     r"""
     Calculates the square root of `a`, where `a` is an
     integer mod `p`; if `a` is not a perfect square,
@@ -4306,7 +4306,7 @@ cdef class IntegerMod_hom(Morphism):
         self.zero = _slots['zero']
         self.modulus = _slots['modulus']
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         return IntegerMod(self._codomain, x)
 
 cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
@@ -4331,7 +4331,7 @@ cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
         import sage.categories.homset
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(R, S))
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         cdef IntegerMod_abstract a
         zero = <IntegerMod_abstract>self.zero
         cdef unsigned long value
@@ -4397,7 +4397,7 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
         import sage.categories.homset
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(integer_ring.ZZ, R))
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         cdef IntegerMod_abstract a
         cdef Py_ssize_t res
         if self.modulus.table is not None:
@@ -4469,7 +4469,7 @@ cdef class IntegerMod_to_Integer(Map):
         from sage.categories.all import Sets
         Morphism.__init__(self, sage.categories.homset.Hom(R, integer_ring.ZZ, Sets()))
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         cdef Integer ans = Integer.__new__(Integer)
         if isinstance(x, IntegerMod_gmp):
             mpz_set(ans.value, (<IntegerMod_gmp>x).value)
@@ -4504,7 +4504,7 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
         from sage.sets.pythonclass import Set_PythonType
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), R))
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         cdef IntegerMod_abstract a
         zero = <IntegerMod_abstract>self.zero
 

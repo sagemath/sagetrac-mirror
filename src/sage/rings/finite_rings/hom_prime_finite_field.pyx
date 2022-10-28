@@ -38,7 +38,7 @@ from sage.rings.morphism cimport RingHomomorphism_im_gens
 
 
 cdef class SectionFiniteFieldHomomorphism_prime(SectionFiniteFieldHomomorphism_generic):
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         try:
             return self._codomain._element_constructor(x)
         except TypeError:
@@ -78,7 +78,7 @@ cdef class FiniteFieldHomomorphism_prime(FiniteFieldHomomorphism_generic):
         FiniteFieldHomomorphism_generic.__init__(self, parent, im_gens, base_map=base_map,
                                                  check=check, section_class=section_class)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         TESTS::
 
@@ -106,7 +106,7 @@ cdef class FrobeniusEndomorphism_prime(FrobeniusEndomorphism_finite_field):
         self._order = 1
         self._power = 0
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         TESTS::
 

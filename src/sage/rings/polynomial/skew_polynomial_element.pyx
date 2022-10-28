@@ -76,7 +76,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
     Generic implementation of dense skew polynomial supporting any valid base
     ring and twisting morphism.
     """
-    cpdef left_power_mod(self, exp, modulus):
+    cdef left_power_mod(self, exp, modulus):
         r"""
         Return the remainder of ``self**exp`` in the left euclidean division
         by ``modulus``.
@@ -138,7 +138,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
             _, r = r._left_quo_rem(modulus)
         return r
 
-    cpdef right_power_mod(self, exp, modulus):
+    cdef right_power_mod(self, exp, modulus):
         r"""
         Return the remainder of ``self**exp`` in the right euclidean division
         by ``modulus``.
@@ -339,7 +339,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
         """
         return self.operator_eval(eval_pt)
 
-    cpdef operator_eval(self, eval_pt):
+    cdef operator_eval(self, eval_pt):
         r"""
         Evaluate ``self`` at ``eval_pt`` by the operator evaluation
         method.
@@ -466,7 +466,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
         """
         return [ self(e) for e in eval_pts ]
 
-    cpdef ModuleElement _lmul_(self, Element right):
+    cdef ModuleElement _lmul_(self, Element right):
         r"""
         Return the product ``self * right``.
 
@@ -495,7 +495,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
                         self._parent, 0)
         return r
 
-    cpdef ModuleElement _rmul_(self, Element left):
+    cdef ModuleElement _rmul_(self, Element left):
         r"""
         Return the product ``left * self``.
 
@@ -522,7 +522,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
         r = self._new_c([ left*x[i] for i from 0 <= i < len(x) ], self._parent, 0)
         return r
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         r"""
         Return the product ``self * right``.
 

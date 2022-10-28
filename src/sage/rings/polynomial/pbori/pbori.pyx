@@ -611,7 +611,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         return self._repr
 
     # Coercion
-    cpdef _coerce_map_from_(self, S):
+    cdef _coerce_map_from_(self, S):
         """
         There is coercion from the base ring, from any boolean
         polynomial ring with compatible variable names,
@@ -2290,7 +2290,7 @@ cdef class BooleanMonomial(MonoidElement):
         gens = self._parent.gens()
         return self._parent, (tuple(gens.index(x) for x in self.variables()),)
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Compare BooleanMonomial objects.
 
@@ -2655,7 +2655,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         return new_BMI_from_BooleanMonomial(self)
 
-    cpdef _mul_(left, right):
+    cdef _mul_(left, right):
         """
         Multiply this boolean monomial with another boolean monomial.
 
@@ -3036,7 +3036,7 @@ cdef class BooleanPolynomial(MPolynomial):
         R = self.parent().cover_ring()
         return R(self)._latex_()
 
-    cpdef _add_(left, right):
+    cdef _add_(left, right):
         """
         EXAMPLES::
 
@@ -3051,7 +3051,7 @@ cdef class BooleanPolynomial(MPolynomial):
         p._pbpoly.iadd((<BooleanPolynomial>right)._pbpoly)
         return p
 
-    cpdef _sub_(left, right):
+    cdef _sub_(left, right):
         """
         EXAMPLES::
 
@@ -3063,7 +3063,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return left._add_(right)
 
-    cpdef _lmul_(self, Element left):
+    cdef _lmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -3086,7 +3086,7 @@ cdef class BooleanPolynomial(MPolynomial):
         else:
             return self._parent.zero()
 
-    cpdef _mul_(left, right):
+    cdef _mul_(left, right):
         """
         EXAMPLES::
 
@@ -3101,7 +3101,7 @@ cdef class BooleanPolynomial(MPolynomial):
         p._pbpoly.imul((<BooleanPolynomial>right)._pbpoly)
         return p
 
-    cpdef _div_(left, right):
+    cdef _div_(left, right):
         """
         EXAMPLES::
 
@@ -3137,7 +3137,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return self._pbpoly == right._pbpoly
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Compare left and right.
 
@@ -7036,7 +7036,7 @@ cdef class GroebnerStrategy:
 
 
 cdef class BooleanMulAction(Action):
-    cpdef _act_(self, g, x):
+    cdef _act_(self, g, x):
         """
         EXAMPLES::
 
@@ -7947,7 +7947,7 @@ cdef object pb_block_order(n, order_str, blocks):
     return order_str
 
 
-cpdef object TermOrder_from_pb_order(int n, order, blocks):
+cdef object TermOrder_from_pb_order(int n, order, blocks):
     if not isinstance(order, str):
         if order == pbblock_dlex:
             order_str = pb_block_order(n, "deglex", blocks)

@@ -523,7 +523,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             yield -n
             n += 1
 
-    cpdef _coerce_map_from_(self, S):
+    cdef _coerce_map_from_(self, S):
         r"""
         ``x`` canonically coerces to the integers `\ZZ` only if ``x``
         is an int, long or already an element of `\ZZ`.

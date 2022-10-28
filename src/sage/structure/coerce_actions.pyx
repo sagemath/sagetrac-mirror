@@ -114,7 +114,7 @@ cdef class ActOnAction(GenericAction):
     """
     Class for actions defined via the _act_on_ method.
     """
-    cpdef _act_(self, g, x):
+    cdef _act_(self, g, x):
         """
         TESTS::
 
@@ -136,7 +136,7 @@ cdef class ActedUponAction(GenericAction):
     """
     Class for actions defined via the _acted_upon_ method.
     """
-    cpdef _act_(self, g, x):
+    cdef _act_(self, g, x):
         """
         TESTS::
 
@@ -576,7 +576,7 @@ cdef class ModuleAction(Action):
 
 
 cdef class LeftModuleAction(ModuleAction):
-    cpdef _act_(self, g, a):
+    cdef _act_(self, g, a):
         """
         A left module action is an action that takes the ring element as the
         first argument (the left side) and the module element as the second
@@ -613,7 +613,7 @@ cdef class LeftModuleAction(ModuleAction):
 
 
 cdef class RightModuleAction(ModuleAction):
-    cpdef _act_(self, g, a):
+    cdef _act_(self, g, a):
         """
         A right module action is an action that takes the module element as the
         first argument (the left side) and the ring element as the second
@@ -733,7 +733,7 @@ cdef class IntegerMulAction(IntegerAction):
         test = m + (-m)  # make sure addition and negation is allowed
         super().__init__(Z, M, is_left, operator.mul)
 
-    cpdef _act_(self, nn, a):
+    cdef _act_(self, nn, a):
         """
         EXAMPLES:
 
@@ -866,7 +866,7 @@ cdef class IntegerPowAction(IntegerAction):
             raise TypeError(f"no integer powering action defined on {M}")
         super().__init__(Z, M, False, operator.pow)
 
-    cpdef _act_(self, n, a):
+    cdef _act_(self, n, a):
         """
         EXAMPLES:
 

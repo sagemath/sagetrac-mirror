@@ -358,7 +358,7 @@ cdef class PuiseuxSeries(AlgebraElement):
         n = g / n
         return g, m, n
 
-    cpdef _add_(self, right_m):
+    cdef _add_(self, right_m):
         """
         Return the sum.
 
@@ -380,7 +380,7 @@ cdef class PuiseuxSeries(AlgebraElement):
         l = l1 + l2
         return type(self)(self._parent, l, g)
 
-    cpdef _sub_(self, right_m):
+    cdef _sub_(self, right_m):
         """
         Return the difference.
 
@@ -402,7 +402,7 @@ cdef class PuiseuxSeries(AlgebraElement):
         l = l1 - l2
         return type(self)(self._parent, l, g)
 
-    cpdef _mul_(self, right_r):
+    cdef _mul_(self, right_r):
         """
         Return the product.
 
@@ -424,7 +424,7 @@ cdef class PuiseuxSeries(AlgebraElement):
         l = l1 * l2
         return type(self)(self._parent, l, g)
 
-    cpdef _rmul_(self, Element c):
+    cdef _rmul_(self, Element c):
         """
         Return the right scalar multiplication.
 
@@ -437,7 +437,7 @@ cdef class PuiseuxSeries(AlgebraElement):
         """
         return type(self)(self._parent, self._l._rmul_(c), self._e)
 
-    cpdef _lmul_(self, Element c):
+    cdef _lmul_(self, Element c):
         """
         Return the left scalar multiplication.
 
@@ -450,7 +450,7 @@ cdef class PuiseuxSeries(AlgebraElement):
         """
         return type(self)(self._parent, self._l._lmul_(c), self._e)
 
-    cpdef _div_(self, right_r):
+    cdef _div_(self, right_r):
         """
         Return the quotient.
 
@@ -512,7 +512,7 @@ cdef class PuiseuxSeries(AlgebraElement):
             e = self._e * int(denom)
         return type(self)(self._parent, l, e)
 
-    cpdef _richcmp_(self, right_r, int op):
+    cdef _richcmp_(self, right_r, int op):
         r"""
         Comparison of ``self`` and ``right``.
 

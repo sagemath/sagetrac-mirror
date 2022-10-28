@@ -9,10 +9,10 @@ cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -
 
 cdef class RealBall(RingElement):
     cdef arb_t value
-    cpdef _add_(self, other)
-    cpdef _mul_(self, other)
-    cpdef RealIntervalFieldElement _real_mpfi_(self, RealIntervalField_class parent)
-    cpdef RealBall psi(self)
+    cdef _add_(self, other)
+    cdef _mul_(self, other)
+    cdef RealIntervalFieldElement _real_mpfi_(self, RealIntervalField_class parent)
+    cdef RealBall psi(self)
 
     cdef inline RealBall _new(self):
         cdef RealBall res = RealBall.__new__(RealBall)

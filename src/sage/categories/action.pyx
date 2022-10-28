@@ -191,7 +191,7 @@ cdef class Action(Functor):
             x = U(x)
         return self._act_(g, x)
 
-    cpdef _act_(self, g, x):
+    cdef _act_(self, g, x):
         """
         Let ``g`` act on ``x`` under this action.
 
@@ -401,7 +401,7 @@ cdef class InverseAction(Action):
         """
         return (type(self), (self._action,))
 
-    cpdef _act_(self, g, x):
+    cdef _act_(self, g, x):
         if self.S_precomposition is not None:
             x = self.S_precomposition(x)
         return self._action._act_(~g, x)
@@ -486,7 +486,7 @@ cdef class PrecomposedAction(Action):
         """
         return (type(self), (self._action, self.G_precomposition, self.S_precomposition))
 
-    cpdef _act_(self, g, x):
+    cdef _act_(self, g, x):
         if self.G_precomposition is not None:
             g = self.G_precomposition._call_(g)
         if self.S_precomposition is not None:
@@ -600,7 +600,7 @@ cdef class ActionEndomorphism(Morphism):
         self._g = _slots['_g']
         Morphism._update_slots(self, _slots)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         return self._action._act_(self._g, x)
 
     def _repr_(self):

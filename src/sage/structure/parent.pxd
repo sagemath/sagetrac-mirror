@@ -23,44 +23,44 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     cdef inline bint get_flag(self, int flag):
         return self.flags & flag
 
-    cpdef register_coercion(self, mor)
-    cpdef register_action(self, action)
-    cpdef register_conversion(self, mor)
-    cpdef register_embedding(self, embedding)
+    cdef register_coercion(self, mor)
+    cdef register_action(self, action)
+    cdef register_conversion(self, mor)
+    cdef register_embedding(self, embedding)
 
-    cpdef bint is_exact(self) except -2
+    cdef bint is_exact(self) except -2
 
     # Called from the __init__ method to set up coercion.
     cdef int init_coerce(self, bint warn=*) except -1
 
     # returns whether or not there is a Morphism from S to self
-    cpdef bint has_coerce_map_from(self, S) except -2
+    cdef bint has_coerce_map_from(self, S) except -2
 
     # returns a Morphism from S to self, or None
-    cpdef coerce_map_from(self, S)
-    cpdef _internal_coerce_map_from(self, S)
-    cpdef _coerce_map_from_(self, S)
+    cdef coerce_map_from(self, S)
+    cdef _internal_coerce_map_from(self, S)
+    cdef _coerce_map_from_(self, S)
 
     # returns a Map from S to self, or None
-    cpdef convert_map_from(self, S)
-    cpdef _internal_convert_map_from(self, S)
-    cpdef _convert_map_from_(self, S)
+    cdef convert_map_from(self, S)
+    cdef _internal_convert_map_from(self, S)
+    cdef _convert_map_from_(self, S)
     cdef convert_method_map(self, S, method_name)
 
     # returns the Action by/on self on/by S
     # corresponding to op and self_on_left
-    cpdef get_action(self, S, op=*, bint self_on_left=*, self_el=*, S_el=*)
-    cpdef _get_action_(self, S, op, bint self_on_left)
+    cdef get_action(self, S, op=*, bint self_on_left=*, self_el=*, S_el=*)
+    cdef _get_action_(self, S, op, bint self_on_left)
 
     # coerce x into self
-    cpdef coerce(self, x)
+    cdef coerce(self, x)
 
-    cpdef an_element(self)
+    cdef an_element(self)
     cdef public object _cache_an_element
 
     # For internal use
-    cpdef _generic_convert_map(self, S, category=*)
-    cpdef _generic_coerce_map(self, S)
+    cdef _generic_convert_map(self, S, category=*)
+    cdef _generic_coerce_map(self, S)
     cdef discover_coerce_map_from(self, S)
     cdef discover_convert_map_from(self, S)
     cdef discover_action(self, S, op, bint self_on_left, self_el=*, S_el=*)

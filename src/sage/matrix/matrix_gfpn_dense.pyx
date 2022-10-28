@@ -128,7 +128,7 @@ cdef class FieldConverter_class:
         self.field = field._cache.fetch_int
         self.zero_FEL = self.field_to_fel(field.zero())
 
-    cpdef fel_to_field(self, FEL x):
+    cdef fel_to_field(self, FEL x):
         """
         Fetch a python int into the field.
 
@@ -144,7 +144,7 @@ cdef class FieldConverter_class:
         """
         return self.field(FfToInt(x))
 
-    cpdef FEL field_to_fel(self, x) except 255:
+    cdef FEL field_to_fel(self, x) except 255:
         """
         Represent a field element by a python int.
 
@@ -220,7 +220,7 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
         """
         self.field = field
 
-    cpdef fel_to_field(self, FEL x):
+    cdef fel_to_field(self, FEL x):
         """
         Fetch a python int into the field.
 
@@ -234,7 +234,7 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
         """
         return IntegerMod_int(self.field, FfToInt(x))
 
-    cpdef FEL field_to_fel(self, x) except 255:
+    cdef FEL field_to_fel(self, x) except 255:
         """
         Represent a field element by a python int.
 
@@ -599,7 +599,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         FfSetField(self.Data.Field)
         return FfExtract(MatGetPtr(self.Data,i), j) == self._converter.zero_FEL
 
-    cpdef Matrix_gfpn_dense get_slice(self, Py_ssize_t i, Py_ssize_t j):
+    cdef Matrix_gfpn_dense get_slice(self, Py_ssize_t i, Py_ssize_t j):
         """
         Return a horizontal slice of this matrix.
 
@@ -813,7 +813,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
 ##################
 ## comparison
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Compare two :class:`Matrix_gfpn_dense` matrices.
 
@@ -872,7 +872,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             return rich_to_bool(op, -1)
         return rich_to_bool(op, 0)
 
-    cpdef list _rowlist_(self, i, j=-1):
+    cdef list _rowlist_(self, i, j=-1):
         """
         Return rows as a flat list of python ints.
 
@@ -1203,7 +1203,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sig_off()
         return new_mtx(mat, self)
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         TESTS::
 
@@ -1230,7 +1230,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sig_off()
         return new_mtx(mat, self)
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         TESTS::
 
@@ -1279,7 +1279,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             raise ValueError("The matrix must not be empty")
         return self._lmul_(self._base_ring(-1))
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -1322,7 +1322,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         # asymptotically faster. So, we used it by default.
         return 0
 
-    cpdef Matrix_gfpn_dense _multiply_classical(Matrix_gfpn_dense self, Matrix_gfpn_dense right):
+    cdef Matrix_gfpn_dense _multiply_classical(Matrix_gfpn_dense self, Matrix_gfpn_dense right):
         """
         Multiplication using the cubic school book multiplication algorithm.
 
@@ -1351,7 +1351,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sig_off()
         return new_mtx(mat, self)
 
-    cpdef Matrix_gfpn_dense _multiply_strassen(Matrix_gfpn_dense self, Matrix_gfpn_dense right, cutoff=0):
+    cdef Matrix_gfpn_dense _multiply_strassen(Matrix_gfpn_dense self, Matrix_gfpn_dense right, cutoff=0):
         """
         Matrix multiplication using the asymptotically fast Strassen-Winograd algorithm.
 
@@ -1607,7 +1607,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         self.cache("left_kernel_matrix", OUT)
         return OUT
 
-    cpdef _echelon_in_place(self, str algorithm):
+    cdef _echelon_in_place(self, str algorithm):
         """
         Change this matrix into echelon form, using classical
         Gaussian elimination, and return the pivots.

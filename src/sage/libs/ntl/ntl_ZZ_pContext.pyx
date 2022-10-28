@@ -117,7 +117,7 @@ cdef class ntl_ZZ_pContext_class():
     cdef void restore_c(self):
         self.x.restore()
 
-    cpdef void _assert_is_current_modulus(self) except *:
+    cdef void _assert_is_current_modulus(self) except *:
         """
         Assert that is currently-set NTL modulus.
 

@@ -568,7 +568,7 @@ cdef class Riemann_Map:
         cdef np.ndarray[double complex, ndim=1] pq = self.cps[:,list(range(N))+[0]].flatten()
         self.pre_q_vector = pq
 
-    cpdef riemann_map(self, COMPLEX_T pt):
+    cdef riemann_map(self, COMPLEX_T pt):
         """
         Return the Riemann mapping of a point.
 
@@ -656,7 +656,7 @@ cdef class Riemann_Map:
             for i in xrange(N):
                 self.cosalpha[k, i] = cos(-theta_array[k, i])
 
-    cpdef inverse_riemann_map(self, COMPLEX_T pt):
+    cdef inverse_riemann_map(self, COMPLEX_T pt):
         """
         Return the inverse Riemann mapping of a point.
 
@@ -764,7 +764,7 @@ cdef class Riemann_Map:
                     pointsize=thickness)
         return sum(plots)
 
-    cpdef compute_on_grid(self, plot_range, int x_points):
+    cdef compute_on_grid(self, plot_range, int x_points):
         """
         Compute the Riemann map on a grid of points.
 
@@ -1089,7 +1089,7 @@ cdef comp_pt(clist, loop=True):
         list2.append(list2[0])
     return list2
 
-cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2] z_values, FLOAT_T xstep,
+cdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2] z_values, FLOAT_T xstep,
     FLOAT_T ystep):
     """
     Computes the r*e^(I*theta) form of derivatives from the grid of points. The
@@ -1144,7 +1144,7 @@ cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2] z_values, FLOAT_T xstep,
     dtheta = np.divide(dr,zabs)
     return dr, dtheta
 
-cpdef complex_to_spiderweb(np.ndarray[COMPLEX_T, ndim = 2] z_values,
+cdef complex_to_spiderweb(np.ndarray[COMPLEX_T, ndim = 2] z_values,
     np.ndarray[FLOAT_T, ndim = 2] dr, np.ndarray[FLOAT_T, ndim = 2] dtheta,
     spokes, circles, rgbcolor, thickness, withcolor, min_mag):
     """
@@ -1262,7 +1262,7 @@ cpdef complex_to_spiderweb(np.ndarray[COMPLEX_T, ndim = 2] z_values,
     return rgb
 
 
-cpdef complex_to_rgb(np.ndarray[COMPLEX_T, ndim = 2] z_values):
+cdef complex_to_rgb(np.ndarray[COMPLEX_T, ndim = 2] z_values):
     r"""
     Convert from a (Numpy) array of complex numbers to its corresponding
     matrix of RGB values.  For internal use of :meth:`~Riemann_Map.plot_colored`
@@ -1367,7 +1367,7 @@ cpdef complex_to_rgb(np.ndarray[COMPLEX_T, ndim = 2] z_values):
     sig_off()
     return rgb
 
-cpdef analytic_boundary(FLOAT_T t, int n, FLOAT_T epsilon):
+cdef analytic_boundary(FLOAT_T t, int n, FLOAT_T epsilon):
     """
     Provides an exact (for n = infinity) Riemann boundary
     correspondence for the ellipse with axes 1 + epsilon and 1 - epsilon. The
@@ -1416,7 +1416,7 @@ cpdef analytic_boundary(FLOAT_T t, int n, FLOAT_T epsilon):
     return result
 
 
-cpdef cauchy_kernel(t, args):
+cdef cauchy_kernel(t, args):
     """
     Intermediate function for the integration in :meth:`~Riemann_Map.analytic_interior`.
 
@@ -1462,7 +1462,7 @@ cpdef cauchy_kernel(t, args):
         return None
 
 
-cpdef analytic_interior(COMPLEX_T z, int n, FLOAT_T epsilon):
+cdef analytic_interior(COMPLEX_T z, int n, FLOAT_T epsilon):
     """
     Provides a nearly exact computation of the Riemann Map of an interior
     point of the ellipse with axes 1 + epsilon and 1 - epsilon. It is

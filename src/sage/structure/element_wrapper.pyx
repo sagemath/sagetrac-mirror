@@ -293,7 +293,7 @@ cdef class ElementWrapper(Element):
             return left._richcmp_(right, op)
         return coercion_model.richcmp(left, right, op)
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Return ``True`` if ``left`` compares with ``right`` based on ``op``.
 
@@ -357,7 +357,7 @@ cdef class ElementWrapper(Element):
             return self.value != (<ElementWrapper>right).value
         return False
 
-    cpdef bint _lt_by_value(self, other):
+    cdef bint _lt_by_value(self, other):
         """
         Return whether ``self`` is strictly smaller than ``other``.
 

@@ -75,7 +75,7 @@ from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 #      existing lattice point and then copy it!
 
 
-cpdef tuple parallelotope_points(spanning_points, lattice):
+cdef tuple parallelotope_points(spanning_points, lattice):
     r"""
     Return integral points in the parallelotope starting at the origin
     and spanned by the ``spanning_points``.
@@ -148,7 +148,7 @@ cpdef tuple parallelotope_points(spanning_points, lattice):
     return points
 
 
-cpdef tuple ray_matrix_normal_form(R):
+cdef tuple ray_matrix_normal_form(R):
     r"""
     Compute the Smith normal form of the ray matrix for
     :func:`parallelotope_points`.
@@ -182,7 +182,7 @@ cpdef tuple ray_matrix_normal_form(R):
 
 
 # The optimized version avoids constructing new matrices, vectors, and lattice points
-cpdef tuple loop_over_parallelotope_points(e, d, Matrix_integer_dense VDinv,
+cdef tuple loop_over_parallelotope_points(e, d, Matrix_integer_dense VDinv,
                                            Matrix_integer_dense R, lattice,
                                            A=None, b=None):
     r"""
@@ -249,7 +249,7 @@ cpdef tuple loop_over_parallelotope_points(e, d, Matrix_integer_dense VDinv,
 
 
 ##############################################################################
-cpdef tuple simplex_points(vertices):
+cdef tuple simplex_points(vertices):
     r"""
     Return the integral points in a lattice simplex.
 
@@ -351,7 +351,7 @@ cdef translate_points(v_list, Vector_integer_dense delta):
 # rectangular bounding box) it is faster to naively enumerate the
 # points. This saves the overhead of triangulating the polytope etc.
 
-cpdef rectangular_box_points(list box_min, list box_max,
+cdef rectangular_box_points(list box_min, list box_max,
                              polyhedron=None, count_only=False,
                              return_saturated=False):
     r"""
@@ -1058,7 +1058,7 @@ cdef class InequalityCollection:
             s += str(<Inequality_generic>ineq) + '\n'
         return s.strip()
 
-    cpdef tuple _make_A_b(self, Hrep_obj, list permutation):
+    cdef tuple _make_A_b(self, Hrep_obj, list permutation):
         r"""
         Return the coefficients and constant of the H-representation
         object.
@@ -1228,7 +1228,7 @@ cdef class InequalityCollection:
                 H = Inequality_generic(A, b, Hrep_obj.index())
                 self.ineqs_generic.append(H)
 
-    cpdef prepare_next_to_inner_loop(self, p):
+    cdef prepare_next_to_inner_loop(self, p):
         r"""
         Peel off the next-to-inner loop.
 
@@ -1266,7 +1266,7 @@ cdef class InequalityCollection:
         for ineq in self.ineqs_generic:
             (<Inequality_generic>ineq).prepare_next_to_inner_loop(p)
 
-    cpdef prepare_inner_loop(self, p):
+    cdef prepare_inner_loop(self, p):
         r"""
         Peel off the inner loop.
 
@@ -1305,7 +1305,7 @@ cdef class InequalityCollection:
         for ineq in self.ineqs_generic:
             (<Inequality_generic>ineq).prepare_inner_loop(p)
 
-    cpdef swap_ineq_to_front(self, int i):
+    cdef swap_ineq_to_front(self, int i):
         r"""
         Swap the ``i``-th entry of the list to the front of the list of inequalities.
 
@@ -1339,7 +1339,7 @@ cdef class InequalityCollection:
             self.ineqs_int[j+1] = self.ineqs_int[j]
         self.ineqs_int[0] = i_th_entry
 
-    cpdef bint are_satisfied(self, inner_loop_variable) except -1:
+    cdef bint are_satisfied(self, inner_loop_variable) except -1:
         r"""
         Return whether all inequalities are satisfied.
 
@@ -1380,7 +1380,7 @@ cdef class InequalityCollection:
                 return False
         return True
 
-    cpdef frozenset satisfied_as_equalities(self, inner_loop_variable):
+    cdef frozenset satisfied_as_equalities(self, inner_loop_variable):
         """
         Return the inequalities (by their index) that are satisfied as
         equalities.
@@ -1426,7 +1426,7 @@ cdef class InequalityCollection:
 
 
 
-cpdef print_cache(InequalityCollection inequality_collection):
+cdef print_cache(InequalityCollection inequality_collection):
     r"""
     Print the cached values in :class:`Inequality_int` (for
     debugging/doctesting only).

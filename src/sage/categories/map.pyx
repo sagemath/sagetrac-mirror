@@ -785,7 +785,7 @@ cdef class Map(Element):
             return self._call_(x)
         return self._call_with_args(x, args, kwds)
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Call method with a single argument, not implemented in the base class.
 
@@ -800,7 +800,7 @@ cdef class Map(Element):
         """
         raise NotImplementedError(type(self))
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cdef Element _call_with_args(self, x, args=(), kwds={}):
         """
         Call method with multiple arguments, not implemented in the base class.
 
@@ -1189,7 +1189,7 @@ cdef class Map(Element):
         """
         raise NotImplementedError(type(self))
 
-    cpdef _pow_int(self, n):
+    cdef _pow_int(self, n):
         """
         TESTS::
 
@@ -1674,7 +1674,7 @@ cdef class FormalCompositeMap(Map):
         """
         return self.__list[i]
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Call with a single argument
 
@@ -1692,7 +1692,7 @@ cdef class FormalCompositeMap(Map):
             x = f._call_(x)
         return x
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cdef Element _call_with_args(self, x, args=(), kwds={}):
         """
         Additional arguments are only passed to the last applied map.
 

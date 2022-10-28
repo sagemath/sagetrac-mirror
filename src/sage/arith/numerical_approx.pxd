@@ -1,4 +1,4 @@
-cpdef inline long digits_to_bits(d) except -1:
+cdef inline long digits_to_bits(d) except -1:
     """
     EXAMPLES::
 

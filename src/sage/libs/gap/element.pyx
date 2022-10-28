@@ -395,7 +395,7 @@ cdef GapElement make_GapElement(parent, Obj obj):
     return r
 
 
-cpdef _from_sage(elem):
+cdef _from_sage(elem):
     """
     Currently just used for unpickling; equivalent to calling ``libgap(elem)``
     to convert a Sage object to a `GapElement` where possible.
@@ -552,7 +552,7 @@ cdef class GapElement(RingElement):
         else:
             return self
 
-    cpdef GapElement deepcopy(self, bint mut):
+    cdef GapElement deepcopy(self, bint mut):
         r"""
         Return a deepcopy of this Gap object
 
@@ -655,7 +655,7 @@ cdef class GapElement(RingElement):
         GAP_IN = libgap.eval(r'\in')
         return GAP_IN(other, self).sage()
 
-    cpdef _type_number(self):
+    cdef _type_number(self):
         """
         Return the GAP internal type number.
 
@@ -785,7 +785,7 @@ cdef class GapElement(RingElement):
         s = char_to_str(gap_element_repr(self.value))
         return s.strip()
 
-    cpdef _set_compare_by_id(self):
+    cdef _set_compare_by_id(self):
         """
         Set comparison to compare by ``id``
 
@@ -823,7 +823,7 @@ cdef class GapElement(RingElement):
         """
         self._compare_by_id = True
 
-    cpdef _assert_compare_by_id(self):
+    cdef _assert_compare_by_id(self):
         """
         Ensure that comparison is by ``id``
 
@@ -860,7 +860,7 @@ cdef class GapElement(RingElement):
         """
         return hash(str(self))
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         Compare ``self`` with ``other``.
 
@@ -982,7 +982,7 @@ cdef class GapElement(RingElement):
             GAP_Leave()
             sig_off()
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         r"""
         Add two GapElement objects.
 
@@ -1011,7 +1011,7 @@ cdef class GapElement(RingElement):
             GAP_Leave()
         return make_any_gap_element(self.parent(), result)
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         r"""
         Subtract two GapElement objects.
 
@@ -1040,7 +1040,7 @@ cdef class GapElement(RingElement):
         return make_any_gap_element(self.parent(), result)
 
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         r"""
         Multiply two GapElement objects.
 
@@ -1069,7 +1069,7 @@ cdef class GapElement(RingElement):
             GAP_Leave()
         return make_any_gap_element(self.parent(), result)
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         r"""
         Divide two GapElement objects.
 
@@ -1103,7 +1103,7 @@ cdef class GapElement(RingElement):
             GAP_Leave()
         return make_any_gap_element(self.parent(), result)
 
-    cpdef _mod_(self, right):
+    cdef _mod_(self, right):
         r"""
         Modulus of two GapElement objects.
 
@@ -1130,7 +1130,7 @@ cdef class GapElement(RingElement):
             GAP_Leave()
         return make_any_gap_element(self.parent(), result)
 
-    cpdef _pow_(self, other):
+    cdef _pow_(self, other):
         r"""
         Exponentiation of two GapElement objects.
 
@@ -1179,7 +1179,7 @@ cdef class GapElement(RingElement):
             GAP_Leave()
         return make_any_gap_element(self._parent, result)
 
-    cpdef _pow_int(self, other):
+    cdef _pow_int(self, other):
         """
         TESTS::
 
@@ -1241,7 +1241,7 @@ cdef class GapElement(RingElement):
         """
         return IS_REC(self.value)
 
-    cpdef is_bool(self):
+    cdef is_bool(self):
         r"""
         Return whether the wrapped GAP object is a GAP boolean.
 
@@ -1665,7 +1665,7 @@ cdef class GapElement_IntegerMod(GapElement):
         <class 'sage.libs.gap.element.GapElement_IntegerMod'>
     """
 
-    cpdef GapElement_Integer lift(self):
+    cdef GapElement_Integer lift(self):
         """
         Return an integer lift.
 
@@ -1746,7 +1746,7 @@ cdef class GapElement_FiniteField(GapElement):
         <class 'sage.libs.gap.element.GapElement_FiniteField'>
     """
 
-    cpdef GapElement_Integer lift(self):
+    cdef GapElement_Integer lift(self):
         """
         Return an integer lift.
 
@@ -3165,7 +3165,7 @@ cdef class GapElement_Record(GapElement):
         """
         return GapElement_RecordIterator(self)
 
-    cpdef UInt record_name_to_index(self, name):
+    cdef UInt record_name_to_index(self, name):
         r"""
         Convert string to GAP record index.
 

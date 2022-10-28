@@ -419,7 +419,7 @@ cdef class InnerGroup:
                 stab_pow[0] = 0
                 break  # for
 
-    cpdef int get_frob_pow(self):
+    cdef int get_frob_pow(self):
         r"""
         Return the power of the Frobenius automorphism which generates
         the corresponding component of ``self``.
@@ -433,7 +433,7 @@ cdef class InnerGroup:
         """
         return self.frob_pow
 
-    cpdef column_blocks(self, mat):
+    cdef column_blocks(self, mat):
         r"""
         Let ``mat`` be a matrix which is stabilized by ``self`` having no zero
         columns. We know that for each column of ``mat`` there is a uniquely

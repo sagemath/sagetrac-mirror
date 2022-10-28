@@ -25,7 +25,7 @@ cdef inline str char_to_str(const char* c, encoding=None, errors=None):
     return _cstr_to_str(c, encoding, errors)
 
 
-cpdef inline str bytes_to_str(b, encoding=None, errors=None):
+cdef inline str bytes_to_str(b, encoding=None, errors=None):
     r"""
     Convert ``bytes`` to ``str``.
 
@@ -51,7 +51,7 @@ cpdef inline str bytes_to_str(b, encoding=None, errors=None):
     return _cstr_to_str(<bytes>b, encoding, errors)
 
 
-cpdef inline bytes str_to_bytes(s, encoding=None, errors=None):
+cdef inline bytes str_to_bytes(s, encoding=None, errors=None):
     r"""
     Convert ``str`` or ``unicode`` to ``bytes``.
 

@@ -3,7 +3,7 @@ from sage.structure.element cimport Vector
 cdef class FreeModuleElement(Vector):
     cdef int set_unsafe(self, Py_ssize_t i, value) except -1
     cdef get_unsafe(self, Py_ssize_t i)
-    cpdef int hamming_weight(self)
+    cdef int hamming_weight(self)
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     # data

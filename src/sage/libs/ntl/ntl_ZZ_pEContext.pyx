@@ -166,7 +166,7 @@ cdef class ntl_ZZ_pEContext_class():
         from .ntl_ZZ_pEX import ntl_ZZ_pEX
         return ntl_ZZ_pEX(v, modulus=self)
 
-    cpdef void _assert_is_current_modulus(self) except *:
+    cdef void _assert_is_current_modulus(self) except *:
         """
         Assert that this is currently-set NTL modulus.
 

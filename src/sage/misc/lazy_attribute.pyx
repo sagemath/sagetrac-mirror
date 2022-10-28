@@ -335,7 +335,7 @@ class lazy_attribute(_lazy_attribute):
     .. rubric:: Lazy attributes and Cython
 
     This attempts to check that lazy attributes work with built-in
-    functions like cpdef methods::
+    functions like cdef methods::
 
         sage: class A:
         ....:     def __len__(x):

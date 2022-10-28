@@ -67,7 +67,7 @@ cdef class CGraph:
     # Vertex Functions
     ###################################
 
-    cpdef bint has_vertex(self, int n) except -1:
+    cdef bint has_vertex(self, int n) except -1:
         """
         Determine whether the vertex ``n`` is in ``self``.
 
@@ -126,7 +126,7 @@ cdef class CGraph:
                 <mp_bitcnt_t>n < self.active_vertices.size and
                 bitset_in(self.active_vertices, n))
 
-    cpdef check_vertex(self, int n):
+    cdef check_vertex(self, int n):
         """
         Check that ``n`` is a vertex of ``self``.
 
@@ -333,7 +333,7 @@ cdef class CGraph:
             self.realloc(2 * self.active_vertices.size)
         return self.add_vertex_unsafe(k)
 
-    cpdef add_vertices(self, verts):
+    cdef add_vertices(self, verts):
         """
         Add vertices from the iterable ``verts``.
 
@@ -433,7 +433,7 @@ cdef class CGraph:
         self.num_verts -= 1
         bitset_remove(self.active_vertices, v)
 
-    cpdef del_vertex(self, int v):
+    cdef del_vertex(self, int v):
         """
         Delete the vertex ``v``, along with all edges incident to it.
 
@@ -523,7 +523,7 @@ cdef class CGraph:
         if self.has_vertex(v):
             self.del_vertex_unsafe(v)
 
-    cpdef int current_allocation(self):
+    cdef int current_allocation(self):
         r"""
         Report the number of vertices allocated.
 
@@ -581,7 +581,7 @@ cdef class CGraph:
         """
         return self.active_vertices.size
 
-    cpdef list verts(self):
+    cdef list verts(self):
         """
         Return a list of the vertices in ``self``.
 
@@ -614,7 +614,7 @@ cdef class CGraph:
         """
         return bitset_list(self.active_vertices)
 
-    cpdef realloc(self, int total):
+    cdef realloc(self, int total):
         """
         Reallocate the number of vertices to use, without actually adding any.
 
@@ -725,7 +725,7 @@ cdef class CGraph:
     cdef int del_arc_unsafe(self, int u, int v) except -1:
         raise NotImplementedError()
 
-    cpdef add_arc(self, int u, int v):
+    cdef add_arc(self, int u, int v):
         """
         Add arc ``(u, v)`` to the graph.
 
@@ -774,7 +774,7 @@ cdef class CGraph:
         self.check_vertex(v)
         self.add_arc_unsafe(u, v)
 
-    cpdef bint has_arc(self, int u, int v) except -1:
+    cdef bint has_arc(self, int u, int v) except -1:
         """
         Check if the arc ``(u, v)`` is in this graph.
 
@@ -823,7 +823,7 @@ cdef class CGraph:
             return False
         return self.has_arc_unsafe(u, v) == 1
 
-    cpdef del_all_arcs(self, int u, int v):
+    cdef del_all_arcs(self, int u, int v):
         """
         Delete all arcs from ``u`` to ``v``.
 
@@ -891,7 +891,7 @@ cdef class CGraph:
     cdef int all_arcs_unsafe(self, int u, int v, int* arc_labels, int size) except -1:
         raise NotImplementedError()
 
-    cpdef int arc_label(self, int u, int v):
+    cdef int arc_label(self, int u, int v):
         """
         Retrieves the first label found associated with ``(u, v)``.
 
@@ -933,7 +933,7 @@ cdef class CGraph:
         self.check_vertex(v)
         return self.arc_label_unsafe(u, v)
 
-    cpdef list all_arcs(self, int u, int v):
+    cdef list all_arcs(self, int u, int v):
         """
         Gives the labels of all arcs ``(u, v)``. An unlabeled arc is interpreted as
         having label 0.
@@ -973,7 +973,7 @@ cdef class CGraph:
         sig_free(arc_labels)
         return output
 
-    cpdef del_arc_label(self, int u, int v, int l):
+    cdef del_arc_label(self, int u, int v, int l):
         """
         Delete an arc ``(u, v)`` with label ``l``.
 
@@ -1006,7 +1006,7 @@ cdef class CGraph:
             raise ValueError("Label ({0}) must be a nonnegative integer.".format(l))
         self.del_arc_label_unsafe(u, v, l)
 
-    cpdef bint has_arc_label(self, int u, int v, int l):
+    cdef bint has_arc_label(self, int u, int v, int l):
         """
         Indicates whether there is an arc ``(u, v)`` with label ``l``.
 
@@ -1203,7 +1203,7 @@ cdef class CGraph:
         for i in range(n):
             sequence[i] = self.has_arc_unsafe(vertices[i], v)
 
-    cpdef list out_neighbors(self, int u):
+    cdef list out_neighbors(self, int u):
         """
         Return the list of out-neighbors of the vertex ``u``.
 
@@ -1257,7 +1257,7 @@ cdef class CGraph:
         sig_free(neighbors)
         return output
 
-    cpdef list in_neighbors(self, int v):
+    cdef list in_neighbors(self, int v):
         """
         Return the list of in-neighbors of the vertex ``v``.
 
@@ -2356,7 +2356,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                 continue
             self.add_edge(u, v, l, directed)
 
-    cpdef add_edge(self, object u, object v, object l, bint directed):
+    cdef add_edge(self, object u, object v, object l, bint directed):
         """
         Add the edge ``(u,v)`` to self.
 
@@ -2488,7 +2488,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                 l = None
             self.del_edge(u, v, l, directed)
 
-    cpdef del_edge(self, object u, object v, object l, bint directed):
+    cdef del_edge(self, object u, object v, object l, bint directed):
         """
         Delete edge ``(u, v, l)``.
 

@@ -1,4 +1,4 @@
-cpdef int _flip_c(W, set positions, list extended_root_conf_indices,
+cdef int _flip_c(W, set positions, list extended_root_conf_indices,
                   int i, side="both"):
     r"""
     Flip a facet.
@@ -58,7 +58,7 @@ cpdef int _flip_c(W, set positions, list extended_root_conf_indices,
             extended_root_conf_indices[k] = t.action_on_root_indices(extended_root_conf_indices[k],side="left")
     return j
 
-cpdef list _construct_facets_c(tuple Q, w, int n=-1, int pos=0, int l=-1):
+cdef list _construct_facets_c(tuple Q, w, int n=-1, int pos=0, int l=-1):
     r"""
     Return the list of facets of the subword complex associated to the
     word `Q` and the element `w` in a Coxeter group `W`.

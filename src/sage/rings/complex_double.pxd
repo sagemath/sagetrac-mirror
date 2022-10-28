@@ -12,9 +12,9 @@ cdef class ComplexDoubleField_class(sage.rings.abc.ComplexDoubleField):
 cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     cdef gsl_complex _complex
     cdef ComplexDoubleElement _new_c(self, gsl_complex x)
-    cpdef _add_(self, other)
-    cpdef _mul_(self, other)
-    cpdef _pow_(self, other)
+    cdef _add_(self, other)
+    cdef _mul_(self, other)
+    cdef _pow_(self, other)
 
 
 cdef ComplexDoubleElement new_ComplexDoubleElement()

@@ -481,7 +481,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
     # x * cdef _sub_
     #   * cdef _mul_
     # x * cdef _lmul_    -- scalar multiplication
-    # x * cpdef _richcmp_
+    # x * cdef _richcmp_
     # x * __neg__
     #   * __invert__
     # x * __copy__
@@ -490,7 +490,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Return the sum of two dense cyclotomic matrices.
 
@@ -518,7 +518,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         A._matrix = self._matrix + (<Matrix_cyclo_dense>right)._matrix
         return A
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Return the difference of two dense cyclotomic matrices.
 
@@ -545,7 +545,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         A._matrix = self._matrix - (<Matrix_cyclo_dense>right)._matrix
         return A
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         Multiply a dense cyclotomic matrix by a scalar.
 
@@ -720,7 +720,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         """
         return hash(self._matrix)
 
-    cpdef _richcmp_(self, right, int op):
+    cdef _richcmp_(self, right, int op):
         """
         Implement comparison of two cyclotomic matrices with
         identical parents.

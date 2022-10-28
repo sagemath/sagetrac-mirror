@@ -1,4 +1,4 @@
-cpdef call_registered_function(unsigned serial,
+cdef call_registered_function(unsigned serial,
                                int nargs,
                                list args,
                                bint hold,
@@ -62,7 +62,7 @@ cpdef call_registered_function(unsigned serial,
     return new_Expression_from_GEx(result_parent, res)
 
 
-cpdef unsigned find_registered_function(name, int nargs) except -1:
+cdef unsigned find_registered_function(name, int nargs) except -1:
     r"""
     Look up a function registered with Pynac (GiNaC).
 
@@ -88,7 +88,7 @@ cpdef unsigned find_registered_function(name, int nargs) except -1:
         raise ValueError("cannot find GiNaC function with name %s and %s arguments" % (name, nargs))
 
 
-cpdef unsigned register_or_update_function(self, name, latex_name, int nargs,
+cdef unsigned register_or_update_function(self, name, latex_name, int nargs,
                                            evalf_params_first, bint update) except -1:
     r"""
     Register the function ``self`` with Pynac (GiNaC).
@@ -173,7 +173,7 @@ cpdef unsigned register_or_update_function(self, name, latex_name, int nargs,
 cdef dict sfunction_serial_dict = {}
 
 
-cpdef get_sfunction_from_serial(unsigned int serial):
+cdef get_sfunction_from_serial(unsigned int serial):
     """
     Return an already created :class:`SymbolicFunction` given the serial.
 
@@ -189,7 +189,7 @@ cpdef get_sfunction_from_serial(unsigned int serial):
     return sfunction_serial_dict.get(serial)
 
 
-cpdef get_sfunction_from_hash(long myhash):
+cdef get_sfunction_from_hash(long myhash):
     """
     Return an already created :class:`SymbolicFunction` given the hash.
 

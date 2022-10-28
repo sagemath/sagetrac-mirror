@@ -37,7 +37,7 @@ cdef class GLPKExactBackend(GLPKBackend):
         import sage.numerical.backends.glpk_backend as glpk_backend
         self.solver_parameter(glpk_backend.glp_simplex_or_intopt, glpk_backend.glp_exact_simplex_only)
 
-    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
+    cdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         """
         Add a variable.
 
@@ -103,7 +103,7 @@ cdef class GLPKExactBackend(GLPKBackend):
         return GLPKBackend.add_variable(self, lower_bound, upper_bound, binary, continuous,
                                         integer, obj, name)
 
-    cpdef int add_variables(self, int number, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, names=None) except -1:
+    cdef int add_variables(self, int number, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, names=None) except -1:
         """
         Add ``number`` variables.
 
@@ -152,7 +152,7 @@ cdef class GLPKExactBackend(GLPKBackend):
         return GLPKBackend.add_variables(self, number, lower_bound, upper_bound, binary, continuous,
                                         integer, obj, names)
 
-    cpdef set_variable_type(self, int variable, int vtype):
+    cdef set_variable_type(self, int variable, int vtype):
         """
         Set the type of a variable.
 

@@ -16,14 +16,14 @@ cdef class randstate:
 
     cdef object _gp_saved_seeds
 
-    cpdef set_seed_libc(self, bint force)
-    cpdef set_seed_ntl(self, bint force)
+    cdef set_seed_libc(self, bint force)
+    cdef set_seed_ntl(self, bint force)
 
-    cpdef int c_random(self)
-    cpdef double c_rand_double(self)
+    cdef int c_random(self)
+    cdef double c_rand_double(self)
 
-    cpdef ZZ_seed(self)
-    cpdef long_seed(self)
+    cdef ZZ_seed(self)
+    cdef long_seed(self)
 
-cpdef randstate current_randstate()
-cpdef int random()
+cdef randstate current_randstate()
+cdef int random()

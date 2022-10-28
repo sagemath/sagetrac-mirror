@@ -313,7 +313,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         acb_set(z.value, acb_mat_entry(self.value, i, j))
         return z
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         r"""
         EXAMPLES::
 
@@ -407,7 +407,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         sig_off()
         return res
 
-    cpdef _add_(self, other):
+    cdef _add_(self, other):
         r"""
         TESTS::
 
@@ -420,7 +420,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         sig_off()
         return res
 
-    cpdef _sub_(self, other):
+    cdef _sub_(self, other):
         r"""
         TESTS::
 
@@ -433,7 +433,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         sig_off()
         return res
 
-    cpdef _lmul_(self, Element a):
+    cdef _lmul_(self, Element a):
         r"""
         TESTS::
 
@@ -446,7 +446,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         sig_off()
         return res
 
-    cpdef _rmul_(self, Element a):
+    cdef _rmul_(self, Element a):
         r"""
         TESTS::
 
@@ -468,7 +468,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         sig_off()
         return res
 
-    cpdef _pow_int(self, n):
+    cdef _pow_int(self, n):
         r"""
         Return the ``n``-th power of this matrix.
 

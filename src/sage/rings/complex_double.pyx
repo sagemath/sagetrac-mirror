@@ -188,7 +188,7 @@ cdef class ComplexDoubleField_class(sage.rings.abc.ComplexDoubleField):
         """
         return ComplexDoubleField, ()
 
-    cpdef bint is_exact(self) except -2:
+    cdef bint is_exact(self) except -2:
         """
         Returns whether or not this field is exact, which is always ``False``.
 
@@ -401,7 +401,7 @@ cdef class ComplexDoubleField_class(sage.rings.abc.ComplexDoubleField):
         else:
             return ComplexDoubleElement(x, 0)
 
-    cpdef _coerce_map_from_(self, S):
+    cdef _coerce_map_from_(self, S):
         """
         Return the canonical coerce of `x` into the complex double field, if
         it is defined, otherwise raise a ``TypeError``.
@@ -809,7 +809,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return hash(complex(self))
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         We order the complex numbers in dictionary order by real parts then
         imaginary parts.
@@ -1179,7 +1179,7 @@ cdef class ComplexDoubleElement(FieldElement):
     # Arithmetic
     #######################################################################
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Add ``self`` and ``right``.
 
@@ -1191,7 +1191,7 @@ cdef class ComplexDoubleElement(FieldElement):
         return self._new_c(gsl_complex_add(self._complex,
                                            (<ComplexDoubleElement>right)._complex))
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         Subtract ``self`` and ``right``.
 
@@ -1203,7 +1203,7 @@ cdef class ComplexDoubleElement(FieldElement):
         return self._new_c(gsl_complex_sub(self._complex,
                                 (<ComplexDoubleElement>right)._complex))
 
-    cpdef _mul_(self, right):
+    cdef _mul_(self, right):
         """
         Multiply ``self`` and ``right``.
 
@@ -1215,7 +1215,7 @@ cdef class ComplexDoubleElement(FieldElement):
         return self._new_c(gsl_complex_mul(self._complex,
                        (<ComplexDoubleElement>right)._complex))
 
-    cpdef _div_(self, right):
+    cdef _div_(self, right):
         """
         Divide ``self`` by ``right``.
 
@@ -1249,7 +1249,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return self._new_c(gsl_complex_inverse(self._complex))
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         This function returns the negative of the complex number `z`:
 
@@ -1636,7 +1636,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return self.real().is_NaN() or self.imag().is_NaN()
 
-    cpdef _pow_(self, other):
+    cdef _pow_(self, other):
         """
         The complex number ``self`` raised to the power ``other``.
 
@@ -1718,7 +1718,7 @@ cdef class ComplexDoubleElement(FieldElement):
             res = gsl_complex_pow_real(self._complex, other)
         return self._new_c(res)
 
-    cpdef _pow_int(self, other):
+    cdef _pow_int(self, other):
         if not GSL_IMAG(self._complex):
             # If self is real, the result should be real too
             real = GSL_REAL(self._complex) ** <double>other
@@ -2534,7 +2534,7 @@ cdef class FloatToCDF(Morphism):
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, CDF))
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Create an :class:`ComplexDoubleElement`.
 
@@ -2584,7 +2584,7 @@ cdef class ComplexToCDF(Morphism):
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, CDF))
 
-    cpdef Element _call_(self, x):
+    cdef Element _call_(self, x):
         """
         Create an :class:`ComplexDoubleElement`.
 

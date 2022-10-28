@@ -693,7 +693,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
     ###########################
     # Coercion
-    cpdef _coerce_map_from_(self, S):
+    cdef _coerce_map_from_(self, S):
         """
         A ring ``R`` coerces into self, if
 

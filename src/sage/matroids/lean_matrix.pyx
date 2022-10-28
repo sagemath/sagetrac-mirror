@@ -170,7 +170,7 @@ cdef class LeanMatrix:
                 A.set_unsafe(i, self.nrows() + j, self.get_unsafe(i, j))
         return A
 
-    cpdef long ncols(self) except -1:
+    cdef long ncols(self) except -1:
         """
         Return the number of columns.
 
@@ -183,7 +183,7 @@ cdef class LeanMatrix:
         """
         return self._ncols
 
-    cpdef long nrows(self) except -1:
+    cdef long nrows(self) except -1:
         """
         Return the number of rows.
 
@@ -196,7 +196,7 @@ cdef class LeanMatrix:
         """
         return self._nrows
 
-    cpdef base_ring(self):
+    cdef base_ring(self):
         """
         Return the base ring.
 
@@ -211,7 +211,7 @@ cdef class LeanMatrix:
         """
         raise NotImplementedError("subclasses need to implement this.")
 
-    cpdef characteristic(self):
+    cdef characteristic(self):
         """
         Return the characteristic of ``self.base_ring()``.
 
@@ -806,7 +806,7 @@ cdef class GenericMatrix(LeanMatrix):
             A._entries[i * A._ncols + self._nrows:(i + 1) * A._ncols]=self._entries[i * self._ncols:(i + 1) * self._ncols]
         return A
 
-    cpdef base_ring(self):
+    cdef base_ring(self):
         """
         Return the base ring of ``self``.
 
@@ -819,7 +819,7 @@ cdef class GenericMatrix(LeanMatrix):
         """
         return self._base_ring
 
-    cpdef characteristic(self):
+    cdef characteristic(self):
         """
         Return the characteristic of ``self.base_ring()``.
 
@@ -1149,7 +1149,7 @@ cdef class BinaryMatrix(LeanMatrix):
             A.set(i, i)
         return A
 
-    cpdef base_ring(self):
+    cdef base_ring(self):
         """
         Return `GF(2)`.
 
@@ -1163,7 +1163,7 @@ cdef class BinaryMatrix(LeanMatrix):
         global GF2
         return GF2
 
-    cpdef characteristic(self):
+    cdef characteristic(self):
         """
         Return the characteristic of ``self.base_ring()``.
 
@@ -1800,7 +1800,7 @@ cdef class TernaryMatrix(LeanMatrix):
             A.set(i, i, 1)
         return A
 
-    cpdef base_ring(self):
+    cdef base_ring(self):
         """
         Return GF(3).
 
@@ -1814,7 +1814,7 @@ cdef class TernaryMatrix(LeanMatrix):
         global GF3
         return GF3
 
-    cpdef characteristic(self):
+    cdef characteristic(self):
         """
         Return the characteristic of ``self.base_ring()``.
 
@@ -2401,7 +2401,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
             A.set(i, i, 1)
         return A
 
-    cpdef base_ring(self):
+    cdef base_ring(self):
         """
         Return copy of `GF(4)` with appropriate generator.
 
@@ -2414,7 +2414,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
         """
         return self._gf4
 
-    cpdef characteristic(self):
+    cdef characteristic(self):
         """
         Return the characteristic of ``self.base_ring()``.
 
@@ -2725,7 +2725,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
         data = (self.nrows(), self.ncols(), ring, versionB, size, limbs, longsize, M0, M1)
         return sage.matroids.unpickling.unpickle_quaternary_matrix, (version, data)
 
-cpdef GenericMatrix generic_identity(n, ring):
+cdef GenericMatrix generic_identity(n, ring):
     """
     Return a GenericMatrix instance containing the `n \times n` identity
     matrix over ``ring``.
@@ -2932,7 +2932,7 @@ cdef class PlusMinusOneMatrix(LeanMatrix):
             memcpy(A._entries + (i * A._ncols + self._nrows), self._entries + i * self._ncols, self._ncols * sizeof(int))
         return A
 
-    cpdef base_ring(self):
+    cdef base_ring(self):
         """
         Return the base ring of ``self``.
 
@@ -2945,7 +2945,7 @@ cdef class PlusMinusOneMatrix(LeanMatrix):
         """
         return ZZ
 
-    cpdef characteristic(self):
+    cdef characteristic(self):
         """
         Return the characteristic of ``self.base_ring()``.
 
@@ -3395,7 +3395,7 @@ cdef class RationalMatrix(LeanMatrix):
                 mpq_set(A._entries[A.index(i,self._nrows+j)], self._entries[self.index(i,j)])
         return A
 
-    cpdef base_ring(self):
+    cdef base_ring(self):
         """
         Return the base ring of ``self``.
 
@@ -3408,7 +3408,7 @@ cdef class RationalMatrix(LeanMatrix):
         """
         return QQ
 
-    cpdef characteristic(self):
+    cdef characteristic(self):
         """
         Return the characteristic of ``self.base_ring()``.
 

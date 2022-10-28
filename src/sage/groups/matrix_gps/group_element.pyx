@@ -87,7 +87,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ
 
 
-cpdef is_MatrixGroupElement(x):
+cdef is_MatrixGroupElement(x):
     """
     Test whether ``x`` is a matrix group element
 
@@ -223,7 +223,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         """
         return self._matrix._latex_()
 
-    cpdef _act_on_(self, x, bint self_on_left):
+    cdef _act_on_(self, x, bint self_on_left):
         """
         EXAMPLES::
 
@@ -245,7 +245,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
             except TypeError:
                 return None
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         EXAMPLES::
 
@@ -265,7 +265,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         cdef MatrixGroupElement_generic y = <MatrixGroupElement_generic>other
         return richcmp(x._matrix, y._matrix, op)
 
-    cpdef list list(self):
+    cdef list list(self):
         """
         Return list representation of this matrix.
 
@@ -324,7 +324,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         """
         return self.matrix()
 
-    cpdef _mul_(self, other):
+    cdef _mul_(self, other):
         """
         Return the product of ``self`` and`` other``, which must
         have identical parents.
@@ -526,7 +526,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         """
         return self.matrix()._latex_()
 
-    cpdef _act_on_(self, x, bint self_on_left):
+    cdef _act_on_(self, x, bint self_on_left):
         """
         EXAMPLES::
 
@@ -547,7 +547,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             except TypeError:
                 return None
 
-    cpdef _richcmp_(self, other, int op):
+    cdef _richcmp_(self, other, int op):
         """
         EXAMPLES::
 
@@ -620,7 +620,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         """
         return self.matrix()
 
-    cpdef list list(self):
+    cdef list list(self):
         """
         Return list representation of this matrix.
 

@@ -5185,7 +5185,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             MS = self.matrix_space(n, m)
             return MS(X).transpose()
 
-    cpdef _add_(self, _right):
+    cdef _add_(self, _right):
         """
         Add two matrices with the same parent.
 
@@ -5208,7 +5208,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 A.set_unsafe(i,j,self.get_unsafe(i,j)._add_(right.get_unsafe(i,j)))
         return A
 
-    cpdef _sub_(self, _right):
+    cdef _sub_(self, _right):
         """
         Subtract two matrices with the same parent.
 
@@ -5273,7 +5273,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         return self.change_ring(self._base_ring.quotient_ring(p))
 
-    cpdef _rmul_(self, Element left):
+    cdef _rmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -5310,7 +5310,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 ans.set_unsafe(r, c, x * self.get_unsafe(r, c))
         return ans
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         EXAMPLES:
 
@@ -6040,7 +6040,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         # C[0] = (1 - m * (m - 1)/2) * C[2] - (m - 1) * C[1]
         C[0] = (1 - mm) * C[2] - (m - 1) * C[1]
 
-    cpdef _richcmp_(left, right, int op):
+    cdef _richcmp_(left, right, int op):
         """
         Compare two matrices.
 

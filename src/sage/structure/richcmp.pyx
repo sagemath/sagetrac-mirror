@@ -68,7 +68,7 @@ richcmp_slotdef[Py_LE] = get_slotdef(bytes.__le__)
 richcmp_slotdef[Py_GE] = get_slotdef(bytes.__ge__)
 
 
-cpdef richcmp_item(x, y, int op):
+cdef richcmp_item(x, y, int op):
     """
     This function is meant to implement lexicographic rich comparison
     of sequences (lists, vectors, polynomials, ...).

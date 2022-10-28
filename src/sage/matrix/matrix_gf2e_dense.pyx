@@ -298,7 +298,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         """
         return mzed_read_elem(self._entries, i, j) == self._zero_word
 
-    cpdef _add_(self, right):
+    cdef _add_(self, right):
         """
         Return A+B
 
@@ -324,7 +324,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
         return A
 
-    cpdef _sub_(self, right):
+    cdef _sub_(self, right):
         """
         EXAMPLES::
 
@@ -428,7 +428,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         sig_off()
         return ans
 
-    cpdef Matrix_gf2e_dense _multiply_newton_john(Matrix_gf2e_dense self, Matrix_gf2e_dense right):
+    cdef Matrix_gf2e_dense _multiply_newton_john(Matrix_gf2e_dense self, Matrix_gf2e_dense right):
         """
         Return A*B using Newton-John tables.
 
@@ -490,7 +490,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         sig_off()
         return ans
 
-    cpdef Matrix_gf2e_dense _multiply_karatsuba(Matrix_gf2e_dense self, Matrix_gf2e_dense right):
+    cdef Matrix_gf2e_dense _multiply_karatsuba(Matrix_gf2e_dense self, Matrix_gf2e_dense right):
         r"""
         Matrix multiplication using Karatsuba over polynomials with
         matrix coefficients over GF(2).
@@ -538,7 +538,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         sig_off()
         return ans
 
-    cpdef Matrix_gf2e_dense _multiply_strassen(Matrix_gf2e_dense self, Matrix_gf2e_dense right, cutoff=0):
+    cdef Matrix_gf2e_dense _multiply_strassen(Matrix_gf2e_dense self, Matrix_gf2e_dense right, cutoff=0):
         """
         Winograd-Strassen matrix multiplication with Newton-John
         multiplication as base case.
@@ -592,7 +592,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         sig_off()
         return ans
 
-    cpdef _lmul_(self, Element right):
+    cdef _lmul_(self, Element right):
         """
         Return ``a*B`` for ``a`` an element of the base field.
 
@@ -625,7 +625,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         """
         return self.__copy__()
 
-    cpdef _richcmp_(self, right, int op):
+    cdef _richcmp_(self, right, int op):
         """
         EXAMPLES::
 

@@ -1,7 +1,7 @@
 cdef double eval_seq_as_poly(int *f, int n, double x)
 cdef double newton(int *f, int *df, int n, double x0, double eps)
 cdef void newton_in_intervals(int *f, int *df, int n, double *beta, double eps, double *rts)
-cpdef lagrange_degree_3(int n, int an1, int an2, int an3)
+cdef lagrange_degree_3(int n, int an1, int an2, int an3)
 
 cimport sage.rings.integer
 

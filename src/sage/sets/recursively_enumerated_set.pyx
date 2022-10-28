@@ -694,7 +694,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             L.append("with max_depth={}".format(self._max_depth))
         return " ".join(L)
 
-    cpdef seeds(self):
+    cdef seeds(self):
         r"""
         Return an iterable over the seeds of ``self``.
 
@@ -744,7 +744,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
         raise NotImplementedError("graded_component_iterator method currently"
                                   " implemented only for graded or symmetric structure")
 
-    cpdef graded_component(self, depth):
+    cdef graded_component(self, depth):
         r"""
         Return the graded component of given depth.
 
@@ -1170,7 +1170,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
             yield B
             A, B = B, self._get_next_graded_component(A, B)
 
-    cpdef graded_component(self, depth):
+    cdef graded_component(self, depth):
         r"""
         Return the graded component of given depth.
 
@@ -1393,7 +1393,7 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
             yield B
             B = self._get_next_graded_component(B)
 
-    cpdef graded_component(self, depth):
+    cdef graded_component(self, depth):
         r"""
         Return the graded component of given depth.
 

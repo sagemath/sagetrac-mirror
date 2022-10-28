@@ -927,7 +927,7 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
     Class used for performing multi-modular methods,
     with the possibility of removing bad primes.
     """
-    cpdef mod_int next_prime(self) except -1:
+    cdef mod_int next_prime(self) except -1:
         """
         Pick a new random prime between the bounds given during the
         initialization of this object, update the precomputed data,
@@ -948,7 +948,7 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
         self._extend_moduli(1)
         return self.moduli[self.n-1]
 
-    cpdef mod_int replace_prime(self, int ix) except -1:
+    cdef mod_int replace_prime(self, int ix) except -1:
         """
         Replace the prime moduli at the given index with a different one,
         update the precomputed data accordingly, and return the new prime.

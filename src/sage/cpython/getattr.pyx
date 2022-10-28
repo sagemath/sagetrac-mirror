@@ -110,7 +110,7 @@ cdef class AttributeErrorMessage:
 cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage()
 
 
-cpdef raw_getattr(obj, name):
+cdef raw_getattr(obj, name):
     """
     Like ``getattr(obj, name)`` but without invoking the binding
     behavior of descriptors under normal attribute access.
@@ -226,7 +226,7 @@ cpdef raw_getattr(obj, name):
     raise AttributeError(dummy_error_message)
 
 
-cpdef getattr_from_other_class(self, cls, name):
+cdef getattr_from_other_class(self, cls, name):
     """
     Emulate ``getattr(self, name)``, as if ``self`` was an instance of
     ``cls``.
