@@ -591,12 +591,13 @@ class FusionRing(WeylCharacterRing):
             [1, -1, zeta24^4 - 1, zeta24^6, None, zeta24^4, None]
         """
         n = 2 * r * self._cyclotomic_order
-        if n not in ZZ:
-            raise ValueError("not an integer root of unity")
-        ret = self.field().gen() ** n
-        if (not base_coercion) or (self._basecoer is None):
-            return ret
-        return self._basecoer(ret)
+        if n in ZZ:
+            ret = self.field().gen() ** n
+            if (not base_coercion) or (self._basecoer is None):
+                return ret
+            return self._basecoer(ret)
+        else:
+            return None
 
     def get_order(self):
         r"""
