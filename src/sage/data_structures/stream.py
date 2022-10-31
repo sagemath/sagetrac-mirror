@@ -392,7 +392,7 @@ class Stream_inexact(Stream):
                 # It is important to extend by generator:
                 # self._iter might recurse, and thereby extend the
                 # cache itself, too.
-                self._cache.extend(next(self._iter) for _ in range(a, n+1))
+                self._cache.extend(next(self._iter) for _ in range(a, n + 1))
             c = self._cache[i]
 
         return c
@@ -552,12 +552,12 @@ class Stream_inexact(Stream):
             ooffset = other._offset
             end = min(oaorder, soffset + len(self._cache))
             for i in range(saorder, end):
-                if self._cache[i-soffset]:
+                if self._cache[i - soffset]:
                     return True
             # now check all known values
             end = min(soffset + len(self._cache), ooffset + len(other._cache))
             for i in range(oaorder, end):
-                if self._cache[i-soffset] != other._cache[i-ooffset]:
+                if self._cache[i - soffset] != other._cache[i - ooffset]:
                     return True
 
         return False
@@ -1346,7 +1346,7 @@ class Stream_zero(Stream):
             sage: s.order()
             +Infinity
         """
-        return self._approximate_order # == infinity
+        return self._approximate_order  # == infinity
 
     def __eq__(self, other):
         """
@@ -1615,7 +1615,7 @@ class Stream_cauchy_mul(Stream_binary):
                        n - self._right._approximate_order + 1):
             val = self._left[k]
             if val:
-                c += val * self._right[n-k]
+                c += val * self._right[n - k]
         return c
 
     def is_nonzero(self):
@@ -1706,7 +1706,7 @@ class Stream_dirichlet_convolve(Stream_binary):
         """
         # this is not the true order, unless we have an integral domain
         if (self._left._approximate_order <= 0
-            or self._right._approximate_order <= 0):
+                or self._right._approximate_order <= 0):
             raise ValueError("Dirichlet convolution is only defined for "
                              "coefficient streams with minimal index of "
                              "nonzero coefficient at least 1")
@@ -1737,7 +1737,7 @@ class Stream_dirichlet_convolve(Stream_binary):
                 continue
             val = self._left[k]
             if val:
-                c += val * self._right[n//k]
+                c += val * self._right[n // k]
         return c
 
 
@@ -1844,7 +1844,7 @@ class Stream_dirichlet_invert(Stream_unary):
         c = self._zero
         for k in divisors(n):
             if k < n:
-                val = self._series[n//k]
+                val = self._series[n // k]
                 if val:
                     c += self[k] * val
         return -c * self._ainv
@@ -1954,7 +1954,7 @@ class Stream_cauchy_compose(Stream_binary):
         ret = sum(self._left[i] * self._neg_powers[-i][n] for i in range(fv, 0))
         if n == 0:
             ret += self._left[0]
-        return ret + sum(self._left[i] * self._pos_powers[i][n] for i in range(1, n // gv+1))
+        return ret + sum(self._left[i] * self._pos_powers[i][n] for i in range(1, n // gv + 1))
 
 
 class Stream_plethysm(Stream_binary):
@@ -2107,7 +2107,6 @@ class Stream_plethysm(Stream_binary):
 #                             " support")
         return self._left._approximate_order * self._right._approximate_order
 
-
     def get_coefficient(self, n):
         r"""
         Return the ``n``-th coefficient of ``self``.
@@ -2145,7 +2144,7 @@ class Stream_plethysm(Stream_binary):
                            self._basis.zero())
 
         res = sum((c * self.compute_product(n, la)
-                   for k in range(self._left._approximate_order, n+1)
+                   for k in range(self._left._approximate_order, n + 1)
                    if self._left[k]
                    for la, c in self._left[k]),
                   self._basis.zero())
@@ -2204,7 +2203,7 @@ class Stream_plethysm(Stream_binary):
             # TODO: it may make a big difference here if the
             #   approximate order would be updated.
             # The test below is based on not removing the fixed block
-            #if any(d < self._right._approximate_order * m
+            # if any(d < self._right._approximate_order * m
             #       for m, d in zip(exp, k)):
             #    continue
             ret += prod(self.stretched_power_restrict_degree(i, m, rao * m + d)
@@ -2239,7 +2238,7 @@ class Stream_plethysm(Stream_binary):
         """
         while len(self._powers) < m:
             self._powers.append(Stream_cauchy_mul(self._powers[-1], self._powers[0]))
-        power_d = self._powers[m-1][d]
+        power_d = self._powers[m - 1][d]
         # we have to check power_d for zero because it might be an
         # integer and not a symmetric function
         if power_d:
@@ -2682,7 +2681,7 @@ class Stream_cauchy_invert(Stream_unary):
                 l = self._cache[k]
                 if l:
                     c += l * self._series[n - v - k]
-            for k in range(v+m, v+n):
+            for k in range(v + m, v + n):
                 l = self[k]
                 if l:
                     c += l * self._series[n - k]
@@ -2885,7 +2884,7 @@ class Stream_shift(Stream_inexact):
             sage: [M[i] for i in range(6)]
             [0, 0, 0, 1, 2, 3]
         """
-        return self._series[n-self._shift]
+        return self._series[n - self._shift]
 
     def __hash__(self):
         """
@@ -3009,7 +3008,7 @@ class Stream_derivative(Stream_inexact):
             sage: [f2[i] for i in range(-1, 4)]
             [0, 2, 6, 12, 20]
         """
-        return (prod(n+k for k in range(1, self._shift + 1))
+        return (prod(n + k for k in range(1, self._shift + 1))
                 * self._series[n + self._shift])
 
     def __hash__(self):
