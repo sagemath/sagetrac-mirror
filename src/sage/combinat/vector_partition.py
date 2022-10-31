@@ -200,7 +200,7 @@ class VectorPartitions(UniqueRepresentation, Parent):
         [[2, 2]]
     """
     @staticmethod
-    def __classcall_private__(cls, vec, min=None):
+    def __classcall_private__(cls, vec, min=None, parts=None, distinct=False, is_repeatable=None):
         r"""
         Create the class of vector partitions of ``vec`` where all parts
         are greater than or equal to the vector ``min``.
@@ -214,11 +214,19 @@ class VectorPartitions(UniqueRepresentation, Parent):
         """
         if min is None:
             min = find_min(vec)  # tuple([0 for v in vec[:-1]]+[1])
+        if parts is None:
+            parts = list(IntegerVectorsIterator(vec, min=min))
+        if [0]*len(vec) in parts:
+            parts.remove([0]*len(vec))
+        if min in parts:
+            min_index = parts.index(min)
+            parts = parts[min_index:]
+        parts = tuple(parts)
         min = tuple(min)
         vec = tuple(vec)
-        return super().__classcall__(cls, tuple(vec), min)
+        return super().__classcall__(cls, tuple(vec), tuple(min), tuple(parts), distinct, is_repeatable)
 
-    def __init__(self, vec, min):
+    def __init__(self, vec, min=None, parts=None, distinct=False, is_repeatable=None):
         r"""
         Initialize ``self``.
 
@@ -230,6 +238,9 @@ class VectorPartitions(UniqueRepresentation, Parent):
         Parent.__init__(self, category=FiniteEnumeratedSets())
         self._vec = vec
         self._min = min
+        self._parts = parts
+        self._distinct = distinct
+        self._is_repeatable = is_repeatable
 
     def _element_constructor_(self, vecpar):
         """
@@ -260,9 +271,24 @@ class VectorPartitions(UniqueRepresentation, Parent):
         if all(coord == 0 for coord in self._vec):
             yield self.element_class(self, []) # the zero vector has only the empty partition
         else:
-            for vec in IntegerVectorsIterator(list(self._vec), min = list(self._min)): # choose the first part
-                if tuple(vec) == self._vec:
-                    yield self.element_class(self, [vec])
+            for part in self._parts: # choose the first part
+                if tuple(part) == self._vec:
+                    yield self.element_class(self, [part])
+                elif any(part[i]>self._vec[i] for i in range(len(self._vec))):
+                    pass
                 else:# recursively find all possibilities for the rest of the vector partition
-                    for smaller_partition in VectorPartitions([x-vec[i] for i,x in enumerate(self._vec)], min = vec):
-                        yield self.element_class(self, [vec] + list(smaller_partition))
+                    new_vec = tuple(self._vec[i]-part[i] for i in range(len(self._vec)))
+                    i = self._parts.index(part)
+                    if self._is_repeatable is None:
+                        if self._distinct:
+                            new_parts = self._parts[i+1:]
+                        else:
+                            new_parts = self._parts[i:]
+                    else:
+                        if self._is_repeatable(part):
+                            new_parts = self._parts[i:]
+                        else:
+                            new_parts = self._parts[i+1:]
+                    for vecpar in VectorPartitions(new_vec, min=self._min, parts=new_parts, distinct=self._distinct, is_repeatable=self._is_repeatable):
+                        yield self.element_class(self, [part] + list(vecpar))
+
