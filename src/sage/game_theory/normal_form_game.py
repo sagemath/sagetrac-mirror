@@ -327,7 +327,7 @@ Here we populate the missing utilities::
     [3 4]  [1 4]
     [2 5], [1 3]
     )
-    sage: f.obtain_nash()
+    sage: f.obtain_nash()  # optional - lrsnash
     [[(0, 0, 1), (0, 1)]]
 
 We can use the same syntax as above to create games with
@@ -502,7 +502,7 @@ For example::
     ....:      (0, 0): [-2, -2], (1, 1): [-4, -4]}
     sage: g == d
     True
-    sage: g.obtain_nash()
+    sage: g.obtain_nash()  # optional - lrsnash
     [[(0, 1), (0, 1)]]
 
 We can easily obtain the best response for a player to a given strategy.  In

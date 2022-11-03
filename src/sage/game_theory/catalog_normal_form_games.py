@@ -9,7 +9,7 @@ This allows us to construct common games directly::
 
 We can then immediately obtain the Nash equilibrium for this game::
 
-    sage: g.obtain_nash()
+    sage: g.obtain_nash()  # optional - lrsnash
     [[(0, 1), (0, 1)]]
 
 When we test whether the game is actually the one in question, sometimes we will
@@ -105,7 +105,7 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
         ....:      (1, 1): [-4, -4]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(0, 1), (0, 1)]]
 
     Note that we can pass other values of R, P, S, T::
@@ -117,7 +117,7 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
         ....:      (0, 0): [-1, -1], (1, 1): [-2, -2]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(0, 1), (0, 1)]]
 
     If we pass values that fail the defining requirement: `T > R > P > S`
@@ -190,7 +190,7 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
 
     There are two pure Nash equilibria and one mixed::
 
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(0, 1), (0, 1)], [(2/3, 1/3), (1/3, 2/3)], [(1, 0), (1, 0)]]
 
     We can also pass different values of the input parameters::
@@ -203,7 +203,7 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
         ....:     (0, 0): [9, 6], (1, 1): [4, 11]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(0, 1), (0, 1)], [(2/3, 1/3), (4/11, 7/11)], [(1, 0), (1, 0)]]
 
     Note that an error is returned if the defining inequalities are
@@ -266,7 +266,7 @@ def BattleOfTheSexes():
         sage: d = {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(0, 1), (0, 1)], [(3/4, 1/4), (1/4, 3/4)], [(1, 0), (1, 0)]]
     """
     g = CoordinationGame(A=3, a=2, B=0, b=0, C=1, c=1, D=2, d=3)
@@ -317,7 +317,7 @@ def StagHunt():
         ....:      (0, 0): [5, 5], (1, 1): [2, 2]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(0, 1), (0, 1)], [(2/3, 1/3), (2/3, 1/3)], [(1, 0), (1, 0)]]
 
     """
@@ -377,7 +377,7 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
 
     There are two pure Nash equilibria and one mixed::
 
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(0, 1), (1, 0)], [(1/3, 2/3), (1/3, 2/3)], [(1, 0), (0, 1)]]
 
     We can also pass different values of the input parameters::
@@ -390,7 +390,7 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
         ....:     (0, 0): [2, 3], (1, 1): [1, 0]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(0, 1), (1, 0)], [(2/7, 5/7), (1/3, 2/3)], [(1, 0), (0, 1)]]
 
     Note that an error is returned if the defining inequality is
@@ -472,7 +472,7 @@ def HawkDove(v=2, c=3):
         ....:     (0, 0): [-2, -2], (1, 1): [1, 1]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(0, 1), (1, 0)], [(1/3, 2/3), (1/3, 2/3)], [(1, 0), (0, 1)]]
 
         sage: g = game_theory.normal_form_games.HawkDove(v=1, c=3)
@@ -483,7 +483,7 @@ def HawkDove(v=2, c=3):
         ....:     (0, 0): [-5/2, -5/2], (1, 1): [1/2, 1/2]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(0, 1), (1, 0)], [(1/6, 5/6), (1/6, 5/6)], [(1, 0), (0, 1)]]
 
     Note that an error is returned if the defining inequality is not obeyed
@@ -548,7 +548,7 @@ def Pigs():
         ....:     (0, 0): [3, 1], (1, 1): [0, 0]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(1, 0), (0, 1)]]
 
     """
@@ -771,7 +771,7 @@ def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
         ....:      (0, 0): [0, 0], (1, 1): [-10, -10]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(0, 1), (1, 0)], [(9/10, 1/10), (9/10, 1/10)], [(1, 0), (0, 1)]]
 
     Non default values can be passed::
@@ -785,7 +785,7 @@ def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
         ....:      (0, 0): [0, 0], (1, 1): [-100, -100]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(0, 1), (1, 0)], [(99/101, 2/101), (99/101, 2/101)],
          [(1, 0), (0, 1)]]
 
@@ -913,7 +913,7 @@ def TravellersDilemma(max_value=10):
         ....:      (1, 1): [4, 4]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash()  # optional - lrsnash
         [[(0, 0, 0, 1), (0, 0, 0, 1)]]
 
     """
