@@ -114,6 +114,7 @@ def _eval_factored_isogeny(phis, P):
         P = phi(P)
     return P
 
+
 def _compute_factored_isogeny_prime_power(P, l, n, split=.8):
     r"""
     This method takes a point `P` of order `\ell^n` and returns
@@ -204,6 +205,7 @@ def _compute_factored_isogeny_prime_power(P, l, n, split=.8):
 
     return rec(P, n)
 
+
 def _compute_factored_isogeny_single_generator(P):
     """
     This method takes a point `P` and returns a sequence of
@@ -230,6 +232,7 @@ def _compute_factored_isogeny_single_generator(P):
         phis += psis
     return phis
 
+
 def _compute_factored_isogeny(kernel):
     """
     This method takes a set of points on an elliptic curve
@@ -255,6 +258,7 @@ def _compute_factored_isogeny(kernel):
         ker = [_eval_factored_isogeny(psis, P) for P in ker]
         phis += psis
     return phis
+
 
 class EllipticCurveHom_composite(EllipticCurveHom):
 
@@ -573,14 +577,14 @@ class EllipticCurveHom_composite(EllipticCurveHom):
               To:   Elliptic Curve defined by y^2 + (I+1)*x*y = x^3 + I*x^2 + (-4)*x + (-6*I) over Number Field in I with defining polynomial x^2 + 1 with I = 1*I
         """
         if isinstance(left, EllipticCurveHom_composite):
-            if isinstance(right, WeierstrassIsomorphism) and hasattr(left.factors()[0], '_set_pre_isomorphism'):    #XXX bit of a hack
+            if isinstance(right, WeierstrassIsomorphism) and hasattr(left.factors()[0], '_set_pre_isomorphism'):    # XXX bit of a hack
                 return EllipticCurveHom_composite.from_factors((left.factors()[0] * right,) + left.factors()[1:], strict=False)
             if isinstance(right, EllipticCurveHom_composite):
                 return EllipticCurveHom_composite.from_factors(right.factors() + left.factors())
             if isinstance(right, EllipticCurveHom):
                 return EllipticCurveHom_composite.from_factors((right,) + left.factors())
         if isinstance(right, EllipticCurveHom_composite):
-            if isinstance(left, WeierstrassIsomorphism) and hasattr(right.factors()[-1], '_set_post_isomorphism'):  #XXX bit of a hack
+            if isinstance(left, WeierstrassIsomorphism) and hasattr(right.factors()[-1], '_set_post_isomorphism'):  # XXX bit of a hack
                 return EllipticCurveHom_composite.from_factors(right.factors()[:-1] + (left * right.factors()[-1],), strict=False)
             if isinstance(left, EllipticCurveHom):
                 return EllipticCurveHom_composite.from_factors(right.factors() + (left,))
@@ -848,4 +852,3 @@ class EllipticCurveHom_composite(EllipticCurveHom):
         """
         from sage.misc.superseded import deprecation
         deprecation(34410, 'calling EllipticCurveHom_composite.make_default() is no longer necessary')
-
