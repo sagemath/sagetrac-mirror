@@ -3864,7 +3864,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return [self.diff()]
 
-    def integral(self,var=None):
+    def integral(self, var=None, start=None, end=None):
         """
         Return the integral of this polynomial.
 
@@ -3875,7 +3875,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         .. NOTE::
 
-            The integral is always chosen so that the constant term is 0.
+            The indefinite integral is always chosen so that
+            the constant term is 0.
 
         EXAMPLES::
 
@@ -3898,6 +3899,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1/4*x^4 + 1/2*x^2 - 2*x
             sage: g.parent()
             Univariate Polynomial Ring in x over Rational Field
+
+        Now this works also for definite integrals::
+
+            sage: f = x^3 + x - 2
+            sage: x = f.parent().gen()
+            sage: f.integral(x,0,1)
+            -5/4
 
         This shows that the issue at :trac:`7711` is resolved::
 
@@ -3977,6 +3985,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x^5 + x
             sage: p.integral().derivative() == p
             True
+        """
+        prim = self._indefinite_integral_(var)
+        if start is None and end is None:
+            return prim
+        if start is None or end is None:
+            raise ValueError("you must specify both start and end")
+        return prim(end) - prim(start)
+
+    def _indefinite_integral_(self, var=None):
+        """
+        Return the indefinite integral of ``self``.
+
+        This is an auxiliary method for :meth:`integral`, do not use directly.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: R([1,2,3])._indefinite_integral_()
+            x^3 + x^2 + x
         """
         R = self._parent
 
