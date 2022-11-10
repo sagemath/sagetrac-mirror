@@ -3985,13 +3985,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x^5 + x
             sage: p.integral().derivative() == p
             True
+
+        TESTS::
+
+            sage: x,y = polygens(QQ, 'x,y')
+            sage: f = x**4+5*y
+            sage: f.integral(x,0,2)
+            ?
+            sage: f.integral(y,1,3)
+            ?
+            sage: f.integral(start=1, end=3)
+            ?
         """
         prim = self._indefinite_integral_(var)
         if start is None and end is None:
             return prim
         if start is None or end is None:
             raise ValueError("you must specify both start and end")
-        return prim(end) - prim(start)
+        if var is None:
+            raise ValueError("you must specify the integration variable")
+        return prim.subs({var: end}) - prim.subs({var: start})
 
     def _indefinite_integral_(self, var=None):
         """
@@ -4019,8 +4032,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Q = (R.base_ring().one() / ZZ.one()).parent()
             S = R.change_ring(Q)
         if var is not None and var != R.gen():
-            # call integral() recursively on coefficients
-            return S([coeff.integral(var) for coeff in self])
+            # call _indefinite_integral_ recursively on coefficients
+            return S([coeff._indefinite_integral_(var) for coeff in self])
         cdef Py_ssize_t n
         zero = Q.zero()
         p = [zero] + [cm.bin_op(Q(self.get_unsafe(n)), n + 1, operator.truediv)
