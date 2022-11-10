@@ -997,10 +997,10 @@ class NumberFieldIdeal(Ideal_generic):
             sage: K.ideal(17).is_prime()  # ramified
             False
 
-        TESTS::
+        TESTS:
 
         Check that we do not factor the norm of the ideal, this used
-        to take half an hour, see :trac:`33360`
+        to take half an hour, see :trac:`33360`::
 
            sage: K.<a,b,c> = NumberField([x^2-2,x^2-3,x^2-5])
            sage: t = (((-2611940*c + 1925290/7653)*b - 1537130/7653*c
