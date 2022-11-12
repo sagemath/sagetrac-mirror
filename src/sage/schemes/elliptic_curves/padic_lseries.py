@@ -72,7 +72,7 @@ from sage.rings.power_series_ring import PowerSeriesRing
 
 from sage.rings.integer import Integer
 from sage.arith.misc import valuation, binomial, kronecker_symbol, gcd, prime_divisors
-from sage.arith.functions import LCM
+from sage.arith.functions import lcm as LCM
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
