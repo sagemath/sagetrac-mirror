@@ -479,6 +479,7 @@ usage_advanced() {
         echo "                         Sage documentation for \"string\"."
         echo "  --search_src ...    -- same as --grep"
         echo "  --search_doc ...    -- same as --grepdoc"
+        echo "  --worktree list     -- same as \"git worktree list\" plus more info"
     fi
     echo "  --sh [...]         -- run a shell with Sage environment variables"
     echo "                        as they are set in the runtime of Sage"
@@ -1007,6 +1008,29 @@ if [ "$1" = '-pytest' -o "$1" = '--pytest' ]; then
         echo >&2 "error: Sage source directory or tox.ini not available"
         exit 1
     fi
+fi
+
+if [ "$1" = '-worktree' -o "$1" = '--worktree' ]; then
+    shift
+    case "$1" in
+        list)
+            git worktree list --porcelain | while read line
+            do
+                echo $line
+                set -- $line
+                case "$1" in
+                    worktree)
+                        worktree=$2
+                        (cd $worktree && ls -l venv && ./sage -c 'from sage.misc.banner import banner_text; print(banner_text(False))' 2>&1 | tail -n 1)
+                        ;;
+                esac
+            done
+            ;;
+        *)
+            echo >&2 "usage: sage --worktree list"
+            exit 1
+            ;;
+    esac
 fi
 
 #####################################################################
