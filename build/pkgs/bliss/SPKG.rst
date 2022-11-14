@@ -18,9 +18,4 @@ Upstream Contact
 
 Bliss is currently being maintained by Tommi Junttila and Petteri Kaski.
 
-http://www.tcs.tkk.fi/Software/bliss/index.html
-
-We apply patches generated from https://github.com/mkoeppe/bliss (branch
-apply_debian_patches) as our upstream. This tracks the patches from the
-Debian package, adding an autotools build system and adjusting the
-include file locations.
+We use the fork https://github.com/ds4dm/Bliss
