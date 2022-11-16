@@ -107,7 +107,7 @@ wheels:
 SDIST_PACKAGES = $(WHEEL_PACKAGES)
 pypi-sdists: sage_setup
 	for a in $(SDIST_PACKAGES); do \
-	    ./sage --sh build/pkgs/$a/spkg-src
+	    ./sage --sh build/pkgs/$$a/spkg-src; \
 	done
 	@echo "Built sdists are in upstream/"
 
