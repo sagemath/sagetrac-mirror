@@ -94,7 +94,9 @@ pypi-wheels:
 	@echo "Built wheels are in venv/var/lib/sage/wheels/"
 
 # sage_docbuild is here, not in PYPI_WHEEL_PACKAGES, because it depends on sagelib
-WHEEL_PACKAGES = $(PYPI_WHEEL_PACKAGES) sage_conf sagelib sage_docbuild sagemath_bliss
+WHEEL_PACKAGES = $(PYPI_WHEEL_PACKAGES) sage_conf sagelib sage_docbuild \
+		sagemath_bliss sagemath_mcqd sagemath_tdlib sagemath_coxeter3 \
+		sagemath_sirocco sagemath_meataxe
 wheels:
 	for a in $(WHEEL_PACKAGES); do \
 	    rm -f venv/var/lib/sage/installed/$$a-*; \
