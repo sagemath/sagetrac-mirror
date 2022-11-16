@@ -37,6 +37,9 @@ include sage/stats/distributions/dgs_gauss_dp.c
 include sage/stats/distributions/dgs_gauss_mp.c
 include sage/symbolic/ginac/*.cpp
 
+# Exclude extension modules shipped by optional packages
+exclude sage/graphs/bliss.pyx
+
 global-exclude __pycache__
 global-exclude *.py[co]
 global-exclude *.bak
