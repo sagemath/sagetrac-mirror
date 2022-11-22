@@ -442,10 +442,11 @@ $(foreach pkgname, $(NORMAL_PACKAGES) $(SCRIPT_PACKAGES),\
 # dependencies and the Makefile rules.
 #
 # Since Python's self-tests seem to fail on all platforms, we disable
-# its test suite by default.
+# its test suite by default. The same goes for several other packages:
+# Cython, Giac, gp2c, rpy2, and ppl.
 # meson_python 0.10.0 fails on some platforms, so we reduce it to warnings.
 # However, if SAGE_CHECK=warn, we do not do that.
-SAGE_CHECK_PACKAGES_DEFAULT_yes := !python3,?meson_python
+SAGE_CHECK_PACKAGES_DEFAULT_yes := !python3,!cython,!giac,!rpy2,!gp2c,!ppl,?meson_python
 SAGE_CHECK_PACKAGES_DEFAULT_warn :=
 SAGE_CHECK_PACKAGES_DEFAULT_no :=
 comma := ,
