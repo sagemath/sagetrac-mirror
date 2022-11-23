@@ -37,9 +37,12 @@ for PKG_BASE in $(sage-package list --has-file distros/conda.txt); do
                     ;;
             esac
         else
-            case "$PKG_TYPE" in
-                standard)
+            case "$PKG_BASE:$PKG_TYPE" in
+                *:standard)
                     SAGELIB_SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
+                    ;;
+                _*:*)
+                    # Skip underscore packages such as _python3.10, _gcc10, _sagemath
                     ;;
                 *)
                     SAGELIB_OPTIONAL_SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
@@ -98,7 +101,7 @@ echo >&2 $0:$LINENO: generate conda environment files
 (
     echo >&4 "  - pip:"
     echo >&5 "  - pip:"
-    for PKG_BASE in $((sage-package list :standard: :optional: --has-file requirements.txt --no-file distros/conda.txt --no-file src; sage-package list :standard: :optional: --has-file install-requires.txt --no-file requirements.txt --no-file distros/conda.txt --no-file src) | sort); do
+    for PKG_BASE in $((sage-package list :standard: :optional: --has-file requirements.txt --no-file distros/conda.txt --no-file src; sage-package list :standard: :optional: --has-file install-requires.txt --no-file requirements.txt --no-file distros/conda.txt --no-file src) | grep -v '^_' | sort); do
         PKG_SCRIPTS=build/pkgs/$PKG_BASE
         SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/requirements.txt
         if [ ! -f $SYSTEM_PACKAGES_FILE ]; then
