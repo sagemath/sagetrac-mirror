@@ -7,11 +7,16 @@ import ast
 import argparse
 import logging
 import textwrap
+
+from contextlib import contextmanager
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from threading import Thread
+
 logging.basicConfig()
 logger = logging.getLogger()
 
 from sage.misc.banner import banner
-
 
 _system_jupyter_url = "https://doc.sagemath.org/html/en/installation/launching.html#setting-up-sagemath-as-a-jupyter-kernel-in-an-existing-jupyter-notebook-or-jupyterlab-installation"
 
@@ -19,7 +24,6 @@ _system_jupyter_url = "https://doc.sagemath.org/html/en/installation/launching.h
 class NotebookJupyter():
 
     def print_banner(self):
-        banner()
         print('Please wait while the Sage Jupyter Notebook server starts...')
 
     @classmethod
@@ -45,7 +49,6 @@ class NotebookJupyter():
 
 class NotebookJupyterlab():
     def print_banner(self):
-        banner()
         print('Please wait while the Jupyterlab server starts...')
 
     @classmethod
@@ -71,7 +74,6 @@ class NotebookJupyterlab():
 
 class NotebookNbclassic():
     def print_banner(self):
-        banner()
         print('Please wait while the Jupyterlab server starts...')
 
     @classmethod
@@ -94,7 +96,6 @@ class NotebookNbclassic():
 
 class NotebookRetrolab():
     def print_banner(self):
-        banner()
         print('Please wait while the Jupyterlab server starts...')
 
     @classmethod
@@ -118,7 +119,6 @@ class NotebookRetrolab():
 class SageNBExport(NotebookJupyter):
 
     def print_banner(self):
-        banner()
         print('Please wait while the SageNB export server starts...')
 
     @classmethod
@@ -172,7 +172,6 @@ EXAMPLES:
 
 """
 
-
 notebook_launcher = {
     'default': NotebookJupyter,   # change this to change the default
     'ipython': NotebookJupyter,
@@ -182,7 +181,6 @@ notebook_launcher = {
     'retrolab': NotebookRetrolab,
     'export': SageNBExport,
 }
-
 
 notebook_names = ', '.join(notebook_launcher.keys())
 
@@ -230,6 +228,23 @@ def trac_23428_browser_workaround():
         os.environ['BROWSER'] = 'open'
 
 
+@contextmanager
+def sage_doc_server(host, port):
+    from sage.env import SAGE_DOC
+    server = ThreadingHTTPServer((host, port),
+        partial(SimpleHTTPRequestHandler, directory=SAGE_DOC))
+    server_thread = Thread(target=server.serve_forever, name="sage_doc_server")
+    server_thread.start()
+    print(f'Sage doc server started at http://{host}:{port}')
+
+    try:
+        yield
+    finally:
+        server.shutdown()
+        server_thread.join()
+        print(f'Sage doc server at http://{host}:{port} stopped')
+
+
 if __name__ == '__main__':
     parser = make_parser()
     args, unknown = parser.parse_known_args(sys.argv[1:])
@@ -270,4 +285,9 @@ if __name__ == '__main__':
             launcher.print_help()
         sys.exit(0)
 
-    launcher(unknown)
+    banner()
+
+    from sage.env import SAGE_DOC_SERVER_PORT as port
+
+    with sage_doc_server('localhost', port):
+        launcher(unknown)

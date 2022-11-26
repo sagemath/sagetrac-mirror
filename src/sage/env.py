@@ -184,6 +184,9 @@ SAGE_DOC_SRC = var("SAGE_DOC_SRC", join(SAGE_ROOT, "src", "doc"), SAGE_DOC)
 SAGE_PKGS = var("SAGE_PKGS", join(SAGE_ROOT, "build", "pkgs"))
 SAGE_ROOT_GIT = var("SAGE_ROOT_GIT", join(SAGE_ROOT, ".git"))
 
+# port of Sage doc server (local http server)
+SAGE_DOC_SERVER_PORT = var("SAGE_DOC_SERVER_PORT", 8000)
+
 # ~/.sage
 DOT_SAGE = var("DOT_SAGE", join(os.environ.get("HOME"), ".sage"))
 SAGE_STARTUP_FILE = var("SAGE_STARTUP_FILE", join(DOT_SAGE, "init.sage"))
