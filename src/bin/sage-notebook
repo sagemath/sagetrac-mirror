@@ -235,14 +235,14 @@ def sage_doc_server(host, port):
         partial(SimpleHTTPRequestHandler, directory=SAGE_DOC))
     server_thread = Thread(target=server.serve_forever, name="sage_doc_server")
     server_thread.start()
-    print(f'Sage doc server started at http://{host}:{port}')
+    print(f'Sage doc server started running at http://{host}:{port}')
 
     try:
         yield
     finally:
         server.shutdown()
         server_thread.join()
-        print(f'Sage doc server at http://{host}:{port} stopped')
+        print(f'Sage doc server stopped runnning at http://{host}:{port}')
 
 
 if __name__ == '__main__':
