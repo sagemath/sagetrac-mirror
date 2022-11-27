@@ -9,9 +9,6 @@ import logging
 import textwrap
 
 from contextlib import contextmanager
-from functools import partial
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from threading import Thread
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -229,20 +226,31 @@ def trac_23428_browser_workaround():
 
 
 @contextmanager
-def sage_doc_server(host, port):
-    from sage.env import SAGE_DOC
-    server = ThreadingHTTPServer((host, port),
-        partial(SimpleHTTPRequestHandler, directory=SAGE_DOC))
-    server_thread = Thread(target=server.serve_forever, name="sage_doc_server")
-    server_thread.start()
-    print(f'Sage doc server started running at http://{host}:{port}')
+def sage_doc_server():
+    from sage.env import SAGE_DOC_SERVER_URL
 
-    try:
+    if SAGE_DOC_SERVER_URL:
+        print(f'Sage doc server running at {SAGE_DOC_SERVER_URL}')
         yield
-    finally:
-        server.shutdown()
-        server_thread.join()
-        print(f'Sage doc server stopped runnning at http://{host}:{port}')
+    else:
+        from functools import partial
+        from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+        from threading import Thread
+
+        from sage.env import SAGE_DOC, SAGE_DOC_LOCAL_PORT as port
+
+        server = ThreadingHTTPServer(('localhost', int(port)),
+            partial(SimpleHTTPRequestHandler, directory=SAGE_DOC))
+        server_thread = Thread(target=server.serve_forever, name="sage_doc_server")
+        server_thread.start()
+        print(f'Sage doc server started running at http://localhost:{port}')
+
+        try:
+            yield
+        finally:
+            server.shutdown()
+            server_thread.join()
+            print(f'Sage doc server stopped runnning at http://localhost:{port}')
 
 
 if __name__ == '__main__':
@@ -287,7 +295,5 @@ if __name__ == '__main__':
 
     banner()
 
-    from sage.env import SAGE_DOC_SERVER_PORT as port
-
-    with sage_doc_server('localhost', port):
+    with sage_doc_server():
         launcher(unknown)

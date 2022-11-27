@@ -96,10 +96,15 @@ class SageKernel(IPythonKernel):
               'url': 'kernelspecs/sagemath/doc/html/en/index.html'},
              ...]
         """
-        from sage.env import SAGE_DOC_SERVER_PORT as port
+        from sage.env import SAGE_DOC_SERVER_URL as url
 
-        def doc_url(path):
-            return 'http://localhost:{}/{}'.format(port, path)
+        if url:
+            def doc_url(path):
+                return '{}/{}'.format(url, path)
+        else:
+            from sage.env import SAGE_DOC_LOCAL_PORT as port
+            def doc_url(path):
+                return 'http://localhost:{}/{}'.format(port, path)
 
         return [
             {
