@@ -9,12 +9,13 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
-from sage.sets.primes import Primes
-_Primes = Primes()
-
 from .witt_vector import WittVector_base
 from .witt_vector import WittVector_p_typical
 from .witt_vector import WittVector_non_p_typical
+
+from sage.sets.primes import Primes
+_Primes = Primes()
+
 
 def _fast_char_p_power(x, n, p=None):
     r"""
@@ -31,7 +32,7 @@ def _fast_char_p_power(x, n, p=None):
     if x.parent().characteristic() not in _Primes:
         raise ValueError(f'{x} is not in a ring of prime characteristic')
     
-    x_is_Polynomial  = is_Polynomial(x)
+    x_is_Polynomial = is_Polynomial(x)
     x_is_MPolynomial = is_MPolynomial(x)
     
     if not (x_is_Polynomial or x_is_MPolynomial):
@@ -39,7 +40,7 @@ def _fast_char_p_power(x, n, p=None):
     if (x_is_Polynomial and x.is_gen()) or (x_is_MPolynomial and x.is_generator()):
         return x**n
     if n < 0:
-        x = x**-1 # This may throw an error.
+        x = x**-1  # This may throw an error.
         n = -n
     
     P = x.parent()
@@ -57,11 +58,10 @@ def _fast_char_p_power(x, n, p=None):
         for e_int_or_tuple, c in inner_term.dict().items():
             power = p**p_exp
             new_c = _fast_char_p_power(c, power)
-            #new_e_tuple = e_tuple.emul(power)
             new_e_tuple = None
-            if x_is_Polynomial: # Then the dict keys are ints
+            if x_is_Polynomial:  # Then the dict keys are ints
                 new_e_tuple = e_int_or_tuple * power
-            elif x_is_MPolynomial: # Then the dict keys are ETuples
+            elif x_is_MPolynomial:  # Then the dict keys are ETuples
                 new_e_tuple = e_int_or_tuple.emul(power)
             term_dict[new_e_tuple] = new_c
         term = P(term_dict)
@@ -69,7 +69,9 @@ def _fast_char_p_power(x, n, p=None):
     
     return x_to_the_n
 
+
 _fcppow = _fast_char_p_power
+
 
 class WittRing_base(CommutativeRing, UniqueRepresentation):
     
@@ -217,13 +219,14 @@ class WittRing_base(CommutativeRing, UniqueRepresentation):
     def cardinality(self):
         return self.base().cardinality()**(self.prec)
 
+
 class WittRing_p_typical(WittRing_base):
     
     Element = WittVector_p_typical
     
     def __init__(self, base_ring, prec, prime, algorithm=None, category=None):
         WittRing_base.__init__(self, base_ring, prec, prime, 
-            algorithm=algorithm, category=category)
+                               algorithm=algorithm, category=category)
         
         if algorithm == 'finotti':
             self.generate_binomial_table()
@@ -320,7 +323,8 @@ class WittRing_p_typical(WittRing_base):
 class WittRing_finite_field(WittRing_p_typical):
     def __init__(self, base_ring, prec, prime, category=None):
         WittRing_p_typical.__init__(self, base_ring, prec, prime, 
-            algorithm='Zq_isomorphism', category=category)
+                                    algorithm='Zq_isomorphism',
+                                    category=category)
     
     def _series_to_vector(self, series):
         F = self.base() # known to be finite
@@ -356,7 +360,7 @@ class WittRing_non_p_typical(WittRing_base):
     
     def __init__(self, base_ring, prec, prime, algorithm=None, category=None):
         WittRing_base.__init__(self, base_ring, prec, prime, 
-            algorithm=algorithm, category=category)
+                               algorithm=algorithm, category=category)
     
     def _repr_(self):
         return f"Ring of {self.prime}-Witt Vectors of length {self.prec} over {self.base()}"
@@ -364,4 +368,5 @@ class WittRing_non_p_typical(WittRing_base):
 class WittRing_p_invertible(WittRing_non_p_typical):
     def __init__(self, base_ring, prec, prime, category=None):
         WittRing_non_p_typical.__init__(self, base_ring, prec, prime,
-            algorithm='standard_otf', category=category)
+                                        algorithm='standard_otf',
+                                        category=category)

@@ -37,21 +37,23 @@ def WittRing(base_ring, prec=1, p=None, algorithm='auto'):
         if base_ring.is_field() and base_ring.is_finite():
             # TODO: document that this ignores the choice of algorithm
             return WittRing_finite_field(base_ring.field(), prec, prime,
-                       category=_CommutativeRings)
+                                         category=_CommutativeRings)
         else:
             if algorithm == 'auto':
                 algorithm = 'finotti'
             return WittRing_p_typical(base_ring, prec, prime, 
-                       algorithm=algorithm, category=_CommutativeRings)
+                                      algorithm=algorithm,
+                                      category=_CommutativeRings)
     else: # non-p-typical
         if algorithm == 'finotti':
             raise ValueError(f"The 'finotti' algorithm only works for p-typical Witt Rings.")
         if base_ring(prime).is_unit():
             # TODO: document that this ignores the choice of algorithm
             return WittRing_p_invertible(base_ring, prec, prime,
-                       category=_CommutativeRings)
+                                         category=_CommutativeRings)
         else:
             if algorithm == 'auto':
                 algorithm = 'standard'
             return WittRing_non_p_typical(base_ring, prec, prime, 
-                       algorithm=algorithm, category=_CommutativeRings)
+                                          algorithm=algorithm,
+                                          category=_CommutativeRings)

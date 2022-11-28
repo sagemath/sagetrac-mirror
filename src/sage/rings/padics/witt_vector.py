@@ -273,10 +273,10 @@ class WittVector_non_p_typical(WittVector_base):
             prod_vec = [x[0] * y[0]]
             for n in range(1, self.prec):
                 next_prod = (
-                        sum(p**i * x[i]**(p**(n-i)) for i in range(0, n+1)) * \
-                        sum(p**i * y[i]**(p**(n-i)) for i in range(0, n+1)) - \
-                        sum(p**i * prod_vec[i]**(p**(n-i)) for i in range(0, n))
-                    ) / p**n
+                    sum(p**i * x[i]**(p**(n-i)) for i in range(0, n+1)) * \
+                    sum(p**i * y[i]**(p**(n-i)) for i in range(0, n+1)) - \
+                    sum(p**i * prod_vec[i]**(p**(n-i)) for i in range(0, n))
+                ) / p**n
                 prod_vec.append(next_prod)
             
             return C(P, vec=prod_vec)
