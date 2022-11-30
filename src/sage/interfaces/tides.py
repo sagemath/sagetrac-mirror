@@ -37,10 +37,7 @@ REFERENCES:
 
 - [TIDES]_
 """
-
-
-
-from  sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import RealField
 from sage.calculus.all import symbolic_expression
 from sage.misc.flatten import flatten
 from sage.ext.fast_callable import fast_callable
@@ -48,8 +45,6 @@ from sage.rings.semirings.non_negative_integer_semiring import NN
 from sage.functions.log import log, exp
 from sage.functions.other import floor, ceil
 from sage.misc.functional import sqrt
-
-
 
 
 def subexpressions_list(f, pars=None):
@@ -76,7 +71,6 @@ def subexpressions_list(f, pars=None):
 
     For the trigonometric functions, some extra expressions will be added.
     These extra expressions will be used later to compute their derivatives.
-
 
     EXAMPLES::
 
@@ -148,8 +142,6 @@ def subexpressions_list(f, pars=None):
         ('cos', y),
         ('add', sin(y), x^2),
         ('exp', x^2 + sin(y))])
-
-
     """
     from sage.functions.trig import sin, cos, arcsin, arctan, arccos
     variables = f[0].arguments()
@@ -161,9 +153,9 @@ def subexpressions_list(f, pars=None):
     F = symbolic_expression([i(*variables) for i in f]).function(*varpar)
     lis = flatten([fast_callable(i,vars=varpar).op_list() for i in F], max_level=1)
     stack = []
-    const =[]
-    stackcomp=[]
-    detail=[]
+    const = []
+    stackcomp = []
+    detail = []
     for i in lis:
         if i[0] == 'load_arg':
             stack.append(varpar[i[1]])
@@ -376,7 +368,6 @@ def remove_constants(l1,l2):
             i+=1
 
 
-
 def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
                       tolrel=1e-16, tolabs=1e-16, output=''):
     r"""
@@ -402,7 +393,7 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
 
     - ``tolabs`` -- the absolute tolerance.
 
-    -  ``output`` -- the name of the file that the compiled integrator will write to
+    -  ``output`` -- the name (string or PosixPath) of the file that the compiled integrator will write to
 
     This function creates two files, integrator and driver, that can be used
     later with the min_tides library [TIDES]_.
@@ -622,7 +613,7 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
     double tolrel, tolabs, tini, tend, dt;
     double v[VARS], p[PARS];
 
-    """%(n-1)
+    """ % (n - 1)
     outfile.write(auxstring)
     for i in range(len(ics)):
         outfile.write('\tv[{}] = {} ; \n'.format(i, RR(ics[i]).str()))
@@ -632,7 +623,7 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
     outfile.write('\ttolrel = {} ;\n'.format(RR(tolrel).str()))
     outfile.write('\ttolabs = {} ;\n'.format(RR(tolabs).str()))
     outfile.write('\textern char ofname[500];')
-    outfile.write('\tstrcpy(ofname, "'+ output +'");\n')
+    outfile.write('\tstrcpy(ofname, "' + str(output) + '");\n')
     outfile.write('\tminc_tides(v,VARS,p,PARS,tini,tend,dt,tolrel,tolabs);\n')
     outfile.write('\treturn 0; \n }')
     outfile.close()
@@ -642,7 +633,7 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
                   parameters=None, parameter_values=None, dig=20, tolrel=1e-16,
                   tolabs=1e-16, output=''):
     r"""
-        Generate the needed files for the mpfr module of the tides library.
+    Generate the needed files for the mpfr module of the tides library.
 
     INPUT:
 
@@ -672,7 +663,7 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
 
     - ``tolabs`` -- the absolute tolerance.
 
-    -  ``output`` -- the name of the file that the compiled integrator will write to
+    -  ``output`` -- the name (string or PosixPath) of the file that the compiled integrator will write to
 
     This function creates two files, integrator and driver, that can be used
     later with the tides library ([TIDES]_).
@@ -946,11 +937,10 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     outfile.write('\tmpfr_init2(tini, TIDES_PREC); \n')
     outfile.write('\tmpfr_init2(dt, TIDES_PREC); \n')
 
-
     outfile.write('\tmpfr_set_str(tini, "{}", 10, TIDES_RND);;\n'.format(RR(initial).str()))
     outfile.write('\tmpfr_set_str(dt, "{}", 10, TIDES_RND);\n'.format(RR(delta).str()))
-    outfile.write('\tint nipt = {};\n'.format(floor((final-initial)/delta)))
-    outfile.write('\tFILE* fd = fopen("' + output + '", "w");\n')
+    outfile.write('\tint nipt = {};\n'.format(floor((final - initial) / delta)))
+    outfile.write('\tFILE* fd = fopen("' + str(output) + '", "w");\n')
     outfile.write('\tmp_tides_delta(function_iteration, NULL, nvar, npar, nfun, v, p, tini, dt, nipt, tolrel, tolabs, NULL, fd);\n')
     outfile.write('\tfclose(fd);\n\treturn 0;\n}')
     outfile.close()
