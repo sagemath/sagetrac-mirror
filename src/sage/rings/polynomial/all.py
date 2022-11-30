@@ -51,3 +51,6 @@ SkewPolynomialRing = OrePolynomialRing
 
 # Evaluation of cyclotomic polynomials
 from sage.rings.polynomial.cyclotomic import cyclotomic_value
+
+# Integer-valued Univariate Polynomial Ring
+lazy_import('sage.rings.polynomial.integer_valued_polynomials', ['IntegerValuedPolynomialRing', 'PositiveBasis'])
