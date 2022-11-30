@@ -511,17 +511,15 @@ class IntegerValuedPolynomialRing(CombinatorialFreeModule):
 
                 sage: F = IntegerValuedPolynomialRing(ZZ)
                 sage: B = F.gen()
-                sage: (B+1).ombre()
+                sage: (B+1).umbra()
                 3/2
 
             TESTS::
 
-                sage: [(B**n).ombre() for n in range(1, 13)]
+                sage: [(B**n).umbra() for n in range(1, 13)]
                 [1/2, 1/6, 0, -1/30, 0, 1/42, 0, -1/30, 0, 5/66, 0, -691/2730]
             """
             return self.shift().derivative_at_minus_one()
-
-        ombre = umbra
 
         def delta(self):
             r"""
@@ -1144,38 +1142,3 @@ class PositiveBasis(CombinatorialFreeModule):
             """
             x = polygen(QQ, 'x')
             return sum(c * binomial(x, i) for i, c in self)
-
-
-# def produ(D, j, d, i):
-#     """
-#     Compute the product of monomials `H^(D)_j` and `H^(d)_i`.
-
-#     This means binomial(x+j,D) and binomial(x+i,d).
-
-#     The result is given by coordinates in the basis `H^(D+d)`.
-
-#     EXAMPLES::
-
-#         sage: produ(5,1,4,1)
-#         (0, 1, 20, 60, 40, 5, 0, 0, 0, 0)
-#     """
-#     return vector(ZZ, [0] * i + [binomial(D + i - j, D - k) *
-#                                  binomial(d + j - i, k)
-#                                  for k in range(d + D + 1 - i)])
-
-
-# def produ_ok(D, j, d, i):
-#     """
-#     EXAMPLES::
-
-#         sage: produ_ok(5,1,4,1)
-#         (0, 1, 20, 60, 40, 5, 0, 0, 0, 0)
-#         sage: all(produ_ok(7,7,6,i) == produ(7,7,6,i) for i in range(6))
-#         True
-#         sage: all(produ_ok(7,i,6,2) == produ(7,i,6,2) for i in range(6))
-#         True
-#     """
-#     A = IntegerValuedPolynomialRing(ZZ)
-#     x = polygen(QQ, 'x')
-#     return A.from_polynomial(binomial(i + x, d) *
-#                              binomial(x + j, D)).h_vector()
