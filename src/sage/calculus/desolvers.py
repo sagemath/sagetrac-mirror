@@ -579,19 +579,19 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
     de00 = de00.str()
 
     def sanitize_var(exprs):
-        return exprs.replace("'"+dvar_str+"("+ivar_str+")", dvar_str)
+        return exprs.replace("'" + dvar_str + "(" + ivar_str + ")", dvar_str)
     de0 = sanitize_var(de00)
-    ode_solver="ode2"
-    cmd="(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))" % (ode_solver,de0,dvar_str,ivar_str,dvar_str,dvar_str,ivar_str)
+    ode_solver = "ode2"
+    cmd = "(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))" % (ode_solver, de0, dvar_str, ivar_str, dvar_str, dvar_str, ivar_str)
     # we produce string like this
     # ode2('diff(y,x,2)+2*'diff(y,x,1)+y-cos(x),y(x),x)
     soln = P(cmd)
 
     if str(soln).strip() == 'false':
         if contrib_ode:
-            ode_solver="contrib_ode"
+            ode_solver = "contrib_ode"
             P("load('contrib_ode)")
-            cmd="(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))" % (ode_solver,de0,dvar_str,ivar_str,dvar_str,dvar_str,ivar_str)
+            cmd = "(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))" % (ode_solver, de0, dvar_str, ivar_str, dvar_str, dvar_str, ivar_str)
             # we produce string like this
             # (TEMP:contrib_ode(x*('diff(y,x,1))^2-(x*y+1)*'diff(y,x,1)+y,y,x), if TEMP=false then TEMP else substitute(y=y(x),TEMP))
             soln = P(cmd)
@@ -1720,7 +1720,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
         all_vars = set().union(*[de.variables() for de in des])
         ivars = all_vars - set(dvars)
 
-        if len(ivars)==1:
+        if len(ivars) == 1:
             return desolve_odeint_inner(next(iter(ivars)))
         elif not ivars:
             with SR.temp_var() as ivar:
@@ -1803,10 +1803,10 @@ def desolve_mintides(f, ics, initial, final, delta, tolrel=1e-16, tolabs=1e-16):
     intfile = tempdir / 'integrator.c'
     drfile = tempdir / 'driver.c'
     fileoutput = tempdir / 'output'
-    runmefile = tempdir / 'runme'
+    runmefile = str(tempdir / 'runme')
     genfiles_mintides(intfile, drfile, f, [N(_) for _ in ics], N(initial), N(final), N(delta), N(tolrel),
                       N(tolabs), fileoutput)
-    subprocess.check_call(f'gcc -o {quote(str(runmefile))} ' + os.path.join(quote(str(tempdir)), '*.c ') +
+    subprocess.check_call(f'gcc -o {quote(runmefile)} ' + os.path.join(quote(str(tempdir)), '*.c ') +
                           os.path.join('$SAGE_LOCAL', 'lib', 'libTIDES.a') + ' $LDFLAGS ' +
                           os.path.join('-L$SAGE_LOCAL', 'lib') + ' -lm  -O2 ' +
                           os.path.join('-I$SAGE_LOCAL', 'include'),
@@ -1902,10 +1902,10 @@ def desolve_tides_mpfr(f, ics, initial, final, delta, tolrel=1e-16, tolabs=1e-16
     intfile = tempdir / 'integrator.c'
     drfile = tempdir / 'driver.c'
     fileoutput = tempdir / 'output'
-    runmefile = tempdir / 'runme'
+    runmefile = str(tempdir / 'runme')
     genfiles_mpfr(intfile, drfile, f, ics, initial, final, delta, [], [],
                   digits, tolrel, tolabs, fileoutput)
-    subprocess.check_call(f'gcc -o {quote(str(runmefile))} ' + os.path.join(quote(str(tempdir)), '*.c ') +
+    subprocess.check_call(f'gcc -o {quote(runmefile)} ' + os.path.join(quote(str(tempdir)), '*.c ') +
                           os.path.join('$SAGE_LOCAL', 'lib', 'libTIDES.a') + ' $LDFLAGS ' +
                           os.path.join('-L$SAGE_LOCAL', 'lib') + '-lmpfr -lgmp -lm  -O2 -w ' +
                           os.path.join('-I$SAGE_LOCAL', 'include'),
