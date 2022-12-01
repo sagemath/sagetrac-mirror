@@ -43,10 +43,10 @@ def find_min(vect):
     EXAMPLES::
 
         sage: from sage.combinat.vector_partition import find_min
-        sage: find_min((2, 1))
-        (0, 1)
-        sage: find_min((2, 1, 0))
-        (0, 1, 0)
+        sage: find_min([2, 1])
+        [0, 1]
+        sage: find_min([2, 1, 0])
+        [0, 1, 0]
     """
     i = len(vect)
     while vect[i-1]==0 and i>0:
@@ -54,49 +54,48 @@ def find_min(vect):
     min = [0]*len(vect)
     if i>0:
         min[i-1]=1
-    return tuple(min)
+    return min
 
 def IntegerVectorsIterator(vect, min = None):
     """
-    Return an iterator over the tuple of integer vectors which are componentwise
+    Return an iterator over the list of integer vectors which are componentwise
     less than or equal to ``vect``, and lexicographically greater than or equal
     to ``min``.
 
     INPUT:
 
-    - ``vect`` -- A tuple of non-negative integers
-    - ``min`` -- A tuple of non-negative integers dominated elementwise by ``vect``
+    - ``vect`` -- A list of non-negative integers
+    - ``min`` -- A list of non-negative integers dominated elementwise by ``vect``
 
     OUTPUT:
 
-    A tuple in lexicographic order of all integer vectors (as tuples) which are
+    A list in lexicographic order of all integer vectors (as lists) which are
     dominated elementwise by ``vect`` and are greater than or equal to ``min`` in
     lexicographic order.
 
     EXAMPLES::
 
         sage: from sage.combinat.vector_partition import IntegerVectorsIterator
-        sage: tuple(IntegerVectorsIterator((1, 1)))
-        ((0, 0), (0, 1), (1, 0), (1, 1))
+        sage: list(IntegerVectorsIterator([1, 1]))
+        [[0, 0], [0, 1], [1, 0], [1, 1]]
 
-        sage: tuple(IntegerVectorsIterator((1, 1), min = (1, 0)))
-        ((1, 0), (1, 1))
+        sage: list(IntegerVectorsIterator([1, 1], min = [1, 0]))
+        [[1, 0], [1, 1]]
     """
-    vect = tuple(vect)
     if not vect:
-        yield tuple()
+        yield []
     else:
         if min is None:
-            min = tuple([0] * len(vect))
-        min = tuple(min)
+            min = [0] * len(vect)
         if vect < min:
             return
         else:
             for vec in IntegerVectorsIterator(vect[1:], min=min[1:]):
-                yield (min[0],) + vec
+                yield [min[0]] + vec
             for j in range(min[0] + 1, vect[0] + 1):
                 for vec in IntegerVectorsIterator(vect[1:]):
-                    yield (j,) + vec
+                    yield [j] + vec
+
 
 
 class VectorPartition(CombinatorialElement):
@@ -110,17 +109,17 @@ class VectorPartition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: VectorPartition(((3, 2, 1), (2, 2, 1)))
-            [(2, 2, 1), (3, 2, 1)]
+            sage: VectorPartition([[3, 2, 1], [2, 2, 1]])
+            [[2, 2, 1], [3, 2, 1]]
 
         The parent class is the class of vector partitions of the sum of the
         vectors in ``vecpar``::
 
-            sage: V = VectorPartition(((3, 2, 1), (2, 2, 1)))
+            sage: V = VectorPartition([[3, 2, 1], [2, 2, 1]])
             sage: V.parent()._vec
             (5, 4, 2)
         """
-        vec = tuple(sum([vec[i] for vec in vecpar]) for i in range(len(vecpar[0])))
+        vec = list(sum([vec[i] for vec in vecpar]) for i in range(len(vecpar[0])))
         P = VectorPartitions(vec)
         return P(vecpar)
 
@@ -130,7 +129,7 @@ class VectorPartition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: elt =  VectorPartition(((3, 2, 1), (2, 2, 1)))
+            sage: elt =  VectorPartition([[3, 2, 1], [2, 2, 1]])
             sage: TestSuite(elt).run()
         """
         CombinatorialElement.__init__(self, parent, sorted(vecpar))
@@ -141,7 +140,7 @@ class VectorPartition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: V = VectorPartition(((3, 2, 1), (2, 2, 1)))
+            sage: V = VectorPartition([[3, 2, 1], [2, 2, 1]])
             sage: V.sum()
             (5, 4, 2)
         """
@@ -154,7 +153,7 @@ class VectorPartition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: V = VectorPartition(((1, 2, 1), (2, 4, 1)))
+            sage: V = VectorPartition([[1, 2, 1], [2, 4, 1]])
             sage: V.partition_at_vertex(1)
             [4, 2]
         """
@@ -180,58 +179,58 @@ class VectorPartitions(UniqueRepresentation, Parent):
     If ``min`` is not specified, then the class of all vector partitions of
     ``vec`` is created::
 
-        sage: VP = VectorPartitions((2, 2))
+        sage: VP = VectorPartitions([2, 2])
         sage: for vecpar in VP:
         ....:     print(vecpar)
-        [(0, 1), (0, 1), (1, 0), (1, 0)]
-        [(0, 1), (0, 1), (2, 0)]
-        [(0, 1), (1, 0), (1, 1)]
-        [(0, 1), (2, 1)]
-        [(0, 2), (1, 0), (1, 0)]
-        [(0, 2), (2, 0)]
-        [(1, 0), (1, 2)]
-        [(1, 1), (1, 1)]
-        [(2, 2)]
+        [[0, 1], [0, 1], [1, 0], [1, 0]]
+        [[0, 1], [0, 1], [2, 0]]
+        [[0, 1], [1, 0], [1, 1]]
+        [[0, 1], [2, 1]]
+        [[0, 2], [1, 0], [1, 0]]
+        [[0, 2], [2, 0]]
+        [[1, 0], [1, 2]]
+        [[1, 1], [1, 1]]
+        [[2, 2]]
 
     If ``distinct`` is set to be True, then distinct part partitions are created::
 
-        sage: VP = VectorPartitions((2,2), distinct = True)
-        sage: tuple(VP)
-        ([(0, 1), (1, 0), (1, 1)],
-         [(0, 1), (2, 1)],
-         [(0, 2), (2, 0)],
-         [(1, 0), (1, 2)],
-         [(2, 2)])
+        sage: VP = VectorPartitions([2,2], distinct = True)
+        sage: list(VP)
+        [[[0, 1], [1, 0], [1, 1]],
+         [[0, 1], [2, 1]],
+         [[0, 2], [2, 0]],
+         [[1, 0], [1, 2]],
+         [[2, 2]]]
 
     If ``min`` is specified, then the class consists of only those vector
     partitions whose parts are all greater than or equal to ``min`` in
     lexicographic order::
 
-        sage: VP = VectorPartitions((2, 2), min = (1, 0))
+        sage: VP = VectorPartitions([2, 2], min = [1, 0])
         sage: for vecpar in VP:
         ....:     print(vecpar)
-        [(1, 0), (1, 2)]
-        [(1, 1), (1, 1)]
-        [(2, 2)]
-        sage: VP = VectorPartitions((2, 2), min = (1, 0), distinct = True)
+        [[1, 0], [1, 2]]
+        [[1, 1], [1, 1]]
+        [[2, 2]]
+        sage: VP = VectorPartitions([2, 2], min = [1, 0], distinct = True)
         sage: for vecpar in VP:
         ....:     print(vecpar)
-        [(1, 0), (1, 2)]
-        [(2, 2)]
+        [[1, 0], [1, 2]]
+        [[2, 2]]
 
     If ``parts`` is specified, then the class consists only of those vector partitions
     whose parts are from ``parts``::
 
-        sage: Vec_Par = VectorPartitions((2,2), parts=((0,1),(1,0),(1,1)))
-        sage: tuple(Vec_Par)
-        ([(0, 1), (0, 1), (1, 0), (1, 0)], [(0, 1), (1, 0), (1, 1)], [(1, 1), (1, 1)])
+        sage: Vec_Par = VectorPartitions([2,2], parts=[[0,1],[1,0],[1,1]])
+        sage: list(Vec_Par)
+        [[[0, 1], [0, 1], [1, 0], [1, 0]], [[0, 1], [1, 0], [1, 1]], [[1, 1], [1, 1]]]
 
     If ``is_repeatable`` is specified, then the parts which satisfy the boolean function
     ``is_repeatable`` is allowed to be repeated.
 
-        sage: Vector_Partitions = VectorPartitions((2,2), parts=((0,1),(1,0),(1,1)), is_repeatable=lambda vec: sum(vec)%2!=0)
-        sage: tuple(Vector_Partitions)
-        ([(0, 1), (0, 1), (1, 0), (1, 0)], [(0, 1), (1, 0), (1, 1)])
+        sage: Vector_Partitions = VectorPartitions([2,2], parts=[[0,1],[1,0],[1,1]], is_repeatable=lambda vec: sum(vec)%2!=0)
+        sage: list(Vector_Partitions)
+        [[[0, 1], [0, 1], [1, 0], [1, 0]], [[0, 1], [1, 0], [1, 1]]]
 
     """
     @staticmethod
@@ -242,8 +241,8 @@ class VectorPartitions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: VP1 = VectorPartitions((2, 1))
-            sage: VP2 = VectorPartitions((2, 1), min = (0, 1))
+            sage: VP1 = VectorPartitions([2, 1])
+            sage: VP2 = VectorPartitions([2, 1], min = [0, 1])
             sage: VP1 is VP2
             True
         """
@@ -256,6 +255,9 @@ class VectorPartitions(UniqueRepresentation, Parent):
         if min in parts:
             min_index = parts.index(min)
             parts = parts[min_index:]
+        parts = list(parts)
+        for part_index in range(len(parts)):
+            parts[part_index] = tuple(parts[part_index])
         return super().__classcall__(cls, tuple(vec), tuple(min), tuple(parts), distinct, is_repeatable)
 
     def __init__(self, vec, min=None, parts=None, distinct=False, is_repeatable=None):
@@ -264,7 +266,7 @@ class VectorPartitions(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: VP = VectorPartitions((2, 2))
+            sage: VP = VectorPartitions([2, 2])
             sage: TestSuite(VP).run()
         """
         Parent.__init__(self, category=FiniteEnumeratedSets())
@@ -280,9 +282,9 @@ class VectorPartitions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: VP = VectorPartitions((2, 2))
-            sage: elt = VP(((1, 0), (1, 2))); elt
-            [(1, 0), (1, 2)]
+            sage: VP = VectorPartitions([2, 2])
+            sage: elt = VP([[1, 0], [1, 2]]); elt
+            [[1, 0], [1, 2]]
             sage: elt.parent() is VP
             True
         """
@@ -296,7 +298,7 @@ class VectorPartitions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: VP = VectorPartitions((2, 2))
+            sage: VP = VectorPartitions([2, 2])
             sage: VP.cardinality()
             9
         """
@@ -305,7 +307,7 @@ class VectorPartitions(UniqueRepresentation, Parent):
         else:
             for part in self._parts: # choose the first part
                 if tuple(part) == self._vec:
-                    yield self.element_class(self, [part])
+                    yield self.element_class(self, [list(part)])
                 elif any(part[i]>self._vec[i] for i in range(len(self._vec))):
                     pass
                 else:# recursively find all possibilities for the rest of the vector partition
@@ -322,5 +324,5 @@ class VectorPartitions(UniqueRepresentation, Parent):
                         else:
                             new_parts = self._parts[i+1:]
                     for vecpar in VectorPartitions(new_vec, min=self._min, parts=new_parts, distinct=self._distinct, is_repeatable=self._is_repeatable):
-                        yield self.element_class(self, [part] + list(vecpar))
+                        yield self.element_class(self, [list(part)] + list(vecpar))
 
