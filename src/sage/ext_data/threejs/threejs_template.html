@@ -214,15 +214,17 @@ SAGE_SCRIPTS
     camera.up.set( 0, 0, 1 );
     camera.position.set( a[0]*xMid, a[1]*yMid, a[2]*zMid );
 
-    // camera is positioned by the rule of 45 degrees, which means
-    // that the line from the camera to the center of the bounding sphere of the objects
-    // makes 45 degree angles with (x,y,z)-axes and the field of view of the camera
-    // looking at the center has 45 degree angle.
+    // camera is positioned so that the line from the camera to the center
+    // of the bounding sphere of the objects makes 60 degree angle with x-axis,
+    // 30 degree angle with z-axis and the field of view of the camera looking
+    // at the center has 45 degree angle.
     const sin8 = Math.sin(Math.PI / 8);
-    const sin4 = Math.sin(Math.PI / 4);
-    const cos4 = Math.cos(Math.PI / 4);
+    const sin5 = Math.sin(Math.PI / 5);
+    const cos5 = Math.cos(Math.PI / 5);
+    const sin3 = Math.sin(Math.PI / 3);
+    const cos3 = Math.cos(Math.PI / 3);
     var r = midToCorner / sin8;
-    var offset = new THREE.Vector3( r * sin4 * cos4, r * sin4 * sin4, r * cos4 );
+    var offset = new THREE.Vector3( r * sin3 * cos5, r * sin3 * sin5, r * cos3 );
 
     if ( options.viewpoint ) {
 
