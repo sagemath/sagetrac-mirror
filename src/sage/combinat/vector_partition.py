@@ -7,6 +7,7 @@ AUTHORS:
 """
 #*****************************************************************************
 #       Copyright (C) 2013 Amritanshu Prasad <amri@imsc.res.in>
+#                     2022 Shriya M <25shriya@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
