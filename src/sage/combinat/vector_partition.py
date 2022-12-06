@@ -33,11 +33,11 @@ def find_min(vect):
 
     INPUT:
 
-    - ``vec`` -- A tuple of integers
+    - ``vec`` -- A list of integers
 
     OUTPUT:
 
-    A tuple of the same length with ``0``'s everywhere, except for a ``1``
+    A list of the same length with ``0``'s everywhere, except for a ``1``
     at the last position where ``vec`` has an entry not equal to ``0``.
 
     EXAMPLES::
@@ -142,9 +142,9 @@ class VectorPartition(CombinatorialElement):
 
             sage: V = VectorPartition([[3, 2, 1], [2, 2, 1]])
             sage: V.sum()
-            (5, 4, 2)
+            [5, 4, 2]
         """
-        return tuple(self.parent()._vec)
+        return list(self.parent()._vec)
 
     def partition_at_vertex(self, i):
         """
@@ -157,14 +157,14 @@ class VectorPartition(CombinatorialElement):
             sage: V.partition_at_vertex(1)
             [4, 2]
         """
-        return Partition(sorted(tuple(vec[i] for vec in self._list), reverse = True))
+        return Partition(sorted(list(vec[i] for vec in self._list), reverse = True))
 
 class VectorPartitions(UniqueRepresentation, Parent):
     r"""
     Class of all vector partitions of ``vec`` with all parts greater than
     or equal to ``min`` in lexicographic order, with parts from ``parts``.
 
-    A vector partition of ``vec`` is a tuple of vectors with non-negative
+    A vector partition of ``vec`` is a list of vectors with non-negative
     integer entries whose sum is ``vec``.
 
     INPUT:
