@@ -1,9 +1,8 @@
 r"""
 Abstract base classes for interface elements
 """
-from functools import wraps
-def _add_doc():
-    def wrapped(c):
+from functools import update_wrapper
+def _add_doc(c):
         c.__doc__ = "\n Abstract base class for :class:`~sage.interfaces.gap." + c.__name__
         c.__doc__ += """
     
@@ -17,14 +16,13 @@ def _add_doc():
   """
         c.__doc__ += "    sage: len(sage.interfaces.abc."+c.__name__+".__subclasses__()) <= 1\n      True"
         return c
-    return wrapped
 
 
-@_add_doc()
+@_add_doc
 class GapElement: pass
 
 
-@_add_doc()
+@_add_doc
 class GpElement: pass
 
 
