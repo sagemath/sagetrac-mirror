@@ -3240,8 +3240,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
     lt = leading_term
     lm = leading_monomial
     lc = leading_coefficient
-
-    
+        
     cpdef TateAlgebraElement monic(self):
         r"""
         Return this series normalized so that it has valuation 0
