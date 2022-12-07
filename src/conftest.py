@@ -29,7 +29,10 @@ from _pytest.pathlib import import_path, ImportMode
 # - inject it into globals namespace for doctests
 import sage.all
 from sage.doctest.parsing import SageDocTestParser, SageOutputChecker
+from sage.doctest.forker import showwarning_with_traceback
+import warnings
 
+warnings.showwarning = showwarning_with_traceback
 
 class SageDoctestModule(DoctestModule):
     """
