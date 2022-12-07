@@ -326,20 +326,23 @@ class TateAlgebraFactory(UniqueFactory):
             log_radii = [log_radii] * ngens
         elif len(log_radii) != ngens:
             raise ValueError("the number of radii does not match the number of variables")
-        if Infinity in log_radii:
-            if any(not r is Infinity for r in log_radii):
-                raise NotImplementedError("the log radii must all be rational numbers or all infinity")
-            log_radii_den = Infinity
+        infinity_vars = [i for i,r in enumerate(log_radii) if r is Infinity]
+        for i in infinity_vars:
+            log_radii[i] = 0
+            # giving a numeric value, the log radii should never be used if the
+            # infinity variables appear in the monomial
+        if len(infinity_vars) == ngens:
+            log_radii_den = 0
         else:
             try:
-                log_radii_den = lcm([r.denominator() for r in log_radii])
+                log_radii_den = lcm([r.denominator() for r in log_radii if r is not Infinity])
                 log_radii = [(r*log_radii_den).numerator() for r in log_radii]
             except AttributeError:
                 raise ValueError("the log radii must be rational numbers or infinity")
         order = TermOrder(order, ngens)
         if prec is None:
             prec = base.precision_cap()
-        key = (base, prec, tuple(log_radii), log_radii_den, names, order)
+        key = (base, prec, tuple(log_radii), log_radii_den, infinity_vars, names, order)
         return key
 
     def create_object(self, version, key):
@@ -353,8 +356,8 @@ class TateAlgebraFactory(UniqueFactory):
             Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 20
 
         """
-        (base, prec, log_radii, log_radii_den, names, order) = key
-        return TateAlgebra_generic(base, prec, log_radii, log_radii_den, names, order)
+        (base, prec, log_radii, log_radii_den, infinity_vars, names, order) = key
+        return TateAlgebra_generic(base, prec, log_radii, log_radii_den, infinity_vars, names, order)
 
 TateAlgebra = TateAlgebraFactory("TateAlgebra")
 
@@ -406,6 +409,7 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
         self._names = names
         self._latex_names = A._latex_names
         self._ngens = len(names)
+        self._infinity_vars = A._infinity_vars
         self._is_polynomial_ring = A._is_polynomial_ring
         if not self._is_polynomial_ring:
             self._log_radii_num = ETuple(A._log_radii_num)
@@ -720,7 +724,10 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
 ###############
 
 class TateAlgebra_generic(CommutativeAlgebra):
-    def __init__(self, field, prec, log_radii_num, log_radii_den, names, order, integral=False):
+    def __init__(self, field, prec,
+                 log_radii_num, log_radii_den, infinity_vars,
+                 names, order,
+                 integral=False):
         """
         Initialize the Tate algebra
 
@@ -739,8 +746,9 @@ class TateAlgebra_generic(CommutativeAlgebra):
         self.element_class = TateAlgebraElement
         self._field = field
         self._log_radii_den = log_radii_den
+        self._infinity_vars = infinity_vars
         self._cap = prec
-        if log_radii_num[0] is Infinity: # TODO: Allow mixed infinity/number log radii
+        if log_radii_den == 0: 
             self._is_polynomial_ring = True
         else:
             self._is_polynomial_ring = False
