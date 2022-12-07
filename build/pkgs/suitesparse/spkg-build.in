@@ -5,6 +5,7 @@ pkg_list="SuiteSparse_config AMD CAMD COLAMD CCOLAMD CHOLMOD UMFPACK"
 
 for pkg in ${pkg_list}; do
       pushd "${pkg}/build"
-      sdh_make_install
+      sdh_cmake -DNSTATIC=ON -DCMAKE_VERBOSE_MAKEFILE=1 ..
+      sdh_make
       popd
 done
