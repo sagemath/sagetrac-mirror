@@ -277,8 +277,13 @@ class DrinfeldModules(Category_over_base_ring):
         if K.is_finite():
             #FIXME: This minpoly is over Fp, not Fq
             self._characteristic = FqX(K(base_morphism(X)).minpoly())
-        elif FqX.is_subring(K):
-            self._characteristic = Integer(0)
+        else:
+            try:
+                if base_morphism.is_injective():
+                    self._characteristic = Integer(0)
+            except NotImplementedError:
+                # See https://trac.sagemath.org/ticket/34752
+                pass
         super().__init__(base=base_field)
 
     def _latex_(self):
@@ -408,8 +413,7 @@ class DrinfeldModules(Category_over_base_ring):
             0
         """
         if self._characteristic is None:
-            raise NotImplementedError('function ring characteristic not' \
-                                      'implemented in this case')
+            raise NotImplementedError('unable to compute the characteristic')
         return self._characteristic
 
     def constant_coefficient(self):
