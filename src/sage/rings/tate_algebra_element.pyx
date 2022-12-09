@@ -147,7 +147,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             if self._coeff.is_zero():
                 raise TypeError("a term cannot be zero")
             self._exponent = ETuple([0] * parent.ngens())
-        self._initial_exponent = initial_exponent
+        self._initial_exponent = 0 # was: initial_exponent (probably FIXME!)
         if exponent is not None:
             if not isinstance(exponent, ETuple):
                 exponent = ETuple(exponent)
@@ -187,7 +187,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             True
 
         """
-        return hash((self._coeff, self._exponent, self._virtual_val)
+        return hash((self._coeff, self._exponent, self._virtual_val))
 
     cdef TateAlgebraTerm _new_c(self):
         r"""
@@ -304,7 +304,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             s_new = self._coeff._latex_()
             if s_new == "1": s_new = ""
         else:
-            s_new += "\\left(%s\\right)" % self._coeff._latex_()
+            s_new = "\\left(%s\\right)" % self._coeff._latex_()
         s += s_new
         for i in range(parent._ngens):
             if self._exponent[i] == 1:
@@ -681,9 +681,9 @@ cdef class TateAlgebraTerm(MonoidElement):
         if self._parent._is_polynomial_ring:
             return (<pAdicGenericElement>self._coeff).valuation_c()
         else:
-            return (<pAdicGenericElement>self._coeff).valuation_c()
+            return ((<pAdicGenericElement>self._coeff).valuation_c()
                     + self._virtual_val
-                    - <long>self._exponent.dotprod(self._parent._log_radii_num)
+                    - <long>self._exponent.dotprod(self._parent._log_radii_num))
 
     cdef Element _call_c(self, list arg):
         """
@@ -1423,7 +1423,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         vars = self._parent.variable_names()
         s_fact = self._parent._initial_exponent_repr(self._initial_exponent)
         s = ""
-        for t in self._terms_c(include_zero=True,distribute_virtual_val=False):
+        for t in self._terms_c(include_zero=True,distribute_initial_exponent=False):
             if t.valuation() >= self._prec:
                 continue
             st = repr(t)
@@ -2445,7 +2445,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return self._terms_c(include_zero=include_zero,
                              distribute_initial_exponent=distribute_initial_exponent)
 
-    cdef list _terms_c(self, bint include_zero=True, distribute_virtual_val=True):
+    cdef list _terms_c(self, bint include_zero=True, bint distribute_initial_exponent=True):
         r"""
         Return a list of the terms of this series sorted in descending order.
 
