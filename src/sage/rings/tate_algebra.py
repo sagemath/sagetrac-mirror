@@ -302,10 +302,6 @@ class TateAlgebraFactory(UniqueFactory):
             Traceback (most recent call last):
             ...
             ValueError: unknown term order 'myorder'
-            sage: TateAlgebra.create_key(Zp(2), names=['x','y'], log_radii=[Infinity,2])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: the log radii must all be rational numbers or all infinity
             sage: TateAlgebra.create_key(Zp(2), names=['x','y'], log_radii=[exp,2])
             Traceback (most recent call last):
             ...
@@ -342,7 +338,7 @@ class TateAlgebraFactory(UniqueFactory):
         order = TermOrder(order, ngens)
         if prec is None:
             prec = base.precision_cap()
-        key = (base, prec, tuple(log_radii), log_radii_den, infinity_vars, names, order)
+        key = (base, prec, tuple(log_radii), log_radii_den, tuple(infinity_vars), names, order)
         return key
 
     def create_object(self, version, key):
@@ -785,7 +781,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             self._integer_ring = self
         else:
             self._gens = [ self(g) for g in self._polynomial_ring.gens() ]
-            self._integer_ring = TateAlgebra_generic(field, prec, log_radii_num, log_radii_den, names, order, integral=True)
+            self._integer_ring = TateAlgebra_generic(field, prec, log_radii_num, log_radii_den, infinity_vars, names, order, integral=True)
             self._integer_ring._rational_ring = self._rational_ring = self
 
     def _an_element_(self):

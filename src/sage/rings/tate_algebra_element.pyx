@@ -400,7 +400,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         cdef TateAlgebraTerm ans = self._new_c()
         ans._exponent = self._exponent.eadd((<TateAlgebraTerm>other)._exponent)
         ans._coeff = self._coeff * (<TateAlgebraTerm>other)._coeff
-        ans._add_initial_exponent(self._initial_exponent + (<TateAlgebraTerm>other)._initial_exponent)
+        ans._add_virtual_val(self._initial_exponent + (<TateAlgebraTerm>other)._initial_exponent) 
         return ans
 
     #def _div_(self, other):
@@ -1041,7 +1041,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         #ans._coeff = (self._coeff.unit_part() * other._coeff.unit_part()) <<
         #val
         ans._coeff = (self._coeff.unit_part() * other._coeff.unit_part())
-        ans._add_initial_exponent(val)
+        ans._add_virtual_val(val) 
         return ans
 
     @coerce_binop
@@ -1643,7 +1643,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         b = self.valuation() + (<TateAlgebraElement>other)._prec
         ans._poly = self._poly * (<TateAlgebraElement>other)._poly
         ans._prec = min(a, b)
-        ans._add_initial_exponent(self._initial_exponent + (<TateAlgebraElement>other)._initial_exponent)
+        ans._add_virtual_val(self._initial_exponent + (<TateAlgebraElement>other)._initial_exponent)
         ans._normalize()
         return ans
 
@@ -2188,7 +2188,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly.term_lmult(term._exponent, term._coeff)
         ans._prec = self._prec + term._valuation_c()
-        ans._add_initial_exponent(self._initial_exponent + (<TateAlgebraTerm>term)._initial_exponent)
+        ans._add_virtual_val(self._initial_exponent + (<TateAlgebraTerm>term)._initial_exponent)
         return ans
 
     cdef TateAlgebraElement _positive_lshift_c(self, n):
