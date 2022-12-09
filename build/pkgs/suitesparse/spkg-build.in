@@ -1,11 +1,18 @@
 # -*- shell-script -*-
 cd src
 
+# This is the minimum list of subpackages needed for cvxopt
+# The order is important since there are dependencies.
 pkg_list="SuiteSparse_config AMD CAMD COLAMD CCOLAMD CHOLMOD UMFPACK"
 
 for pkg in ${pkg_list}; do
-      pushd "${pkg}/build"
-      sdh_cmake -DNSTATIC=ON -DCMAKE_VERBOSE_MAKEFILE=1 ..
-      sdh_make
-      popd
+	pushd "${pkg}/build"
+	# configuring with cmake to:
+	# Enforce usage of OpenBlas
+	# No static libraries
+	# Verbose builds
+	sdh_cmake -DBLA_VENDOR=OpenBLAS -DNSTATIC=ON -DCMAKE_VERBOSE_MAKEFILE=1 ..
+	# Build
+	sdh_make
+	popd
 done
