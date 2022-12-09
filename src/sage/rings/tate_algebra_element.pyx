@@ -108,7 +108,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         TypeError: a term cannot be zero
 
     """
-    def __init__(self, parent, coeff, exponent=None# , add_val=0
+    def __init__(self, parent, coeff, exponent=None, initial_exponent=0 #, add_val=0
                  ):
         """
         Initialize a Tate algebra term
@@ -147,7 +147,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             if self._coeff.is_zero():
                 raise TypeError("a term cannot be zero")
             self._exponent = ETuple([0] * parent.ngens())
-        self._initial_exponent = 0 # was: initial_exponent (probably FIXME!)
+        self._virtual_val = initial_exponent # was: initial_exponent (probably FIXME!)
+        self._initial_exponent = initial_exponent # temporary
         if exponent is not None:
             if not isinstance(exponent, ETuple):
                 exponent = ETuple(exponent)
@@ -161,7 +162,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             raise ValueError("this term is not in the ring of integers")
 
     def _add_virtual_val(self, add_val):
-        q,r = add_val.quo_rem(self._parent._log_radii_den)
+        q = add_val // self._parent._log_radii_den
+        r = add_val % self._parent._log_radii_den
         self._virtual_val = r
         self._coeff = self._coeff.__lshift__(q)
         
@@ -400,7 +402,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         cdef TateAlgebraTerm ans = self._new_c()
         ans._exponent = self._exponent.eadd((<TateAlgebraTerm>other)._exponent)
         ans._coeff = self._coeff * (<TateAlgebraTerm>other)._coeff
-        ans._add_virtual_val(self._initial_exponent + (<TateAlgebraTerm>other)._initial_exponent) 
+        ans._add_virtual_val(self._virtual_val + (<TateAlgebraTerm>other)._virtual_val) 
         return ans
 
     #def _div_(self, other):
@@ -1328,7 +1330,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                     raise
         if prec is not None:
             self._prec = min(self._prec, prec)
-        self._initial_exponent = initial_exponent 
+        self._initial_exponent = initial_exponent
+        self._virtual_val = initial_exponent # FIXME (temporary)
         self._normalize()
         self._terms = self._terms_nonzero = None
         if not parent.base_ring().is_field() and self.valuation() < 0:
@@ -1381,7 +1384,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 self._poly.__repn[e] = coeff
 
     def _add_virtual_val(self, add_val):
-        q,r = add_val.quo_rem(self._parent._log_radii_den)
+        q = add_val // self._parent._log_radii_den
+        r = add_val % self._parent._log_radii_den
         self._virtual_val = r
         coefdict = self._poly.__repn
         for (e,c) in coefdict.items():
@@ -1489,7 +1493,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         s_fact = self._parent._initial_exponent_repr(self._initial_exponent)
         s = ""
         # FIXME: Why terms here and terms_c in repr?
-        for t in self.terms(distribute_virtual_val=False):
+        for t in self.terms(distribute_initial_exponent=False):
             if t.valuation() >= self._prec:
                 continue
             st = t._latex_()

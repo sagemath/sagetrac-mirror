@@ -267,13 +267,15 @@ class TateAlgebraFactory(UniqueFactory):
              20,
              (0, 0),
              1,
+             (),
              ('x', 'y'),
              Degree reverse lexicographic term order)
             sage: TateAlgebra.create_key(Zp(2), names=['x','y'], log_radii=Infinity)
             (2-adic Field with capped relative precision 20,
              20,
-             (+Infinity, +Infinity),
-             +Infinity,
+             (0, 0),
+             0,
+             (0, 1),
              ('x', 'y'),
              Degree reverse lexicographic term order)
             sage: TateAlgebra.create_key(Zp(2), names=['x','y'], log_radii=[1/2,-1/3])
@@ -281,6 +283,7 @@ class TateAlgebraFactory(UniqueFactory):
              20,
              (3, -2),
              6,
+             (),
              ('x', 'y'),
              Degree reverse lexicographic term order)
 
