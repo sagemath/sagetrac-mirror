@@ -344,8 +344,6 @@ cdef class CombinatorialPolyhedron(SageObject):
         # In particular, ``__dealloc__`` will not do harm in this case.
 
         self._dimension = -2  # a "NULL" value
-        self._equations = ()
-        self._all_faces = None
         self._n_facets = -1
 
     def __init__(self, data, Vrep=None, facets=None, unbounded=False, far_face=None):
@@ -361,6 +359,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron).run()
         """
+        self._equations = ()
         data_modified = None
 
         if isinstance(data, Polyhedron_base):
@@ -1450,7 +1449,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         self._compute_ridges(self._algorithm_to_dual(algorithm))
         cdef size_t n_ridges = self._ridges.length
 
-        # Mapping the indices of the Vepr to the names, if requested.
+        # Mapping the indices of the Hrepr to the names, if requested.
         if self.facet_names() is not None and names is True:
             def f(size_t i):
                 return self.facet_names()[i]
@@ -3506,7 +3505,10 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         parallel_f_vector(structs, num_threads, parallelization_depth, f_vector)
 
-        # Copy ``f_vector``.
+        self._copy_f_vector(f_vector, dual)
+
+    cdef int _copy_f_vector(self, size_t* f_vector, bint dual) except -1:
+        cdef int dim = self.dimension()
         if dual:
             if dim > 1 and f_vector[1] < self.n_facets():
                 # The input seemed to be wrong.
@@ -3544,33 +3546,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             # Determine whether to use dual mode or not.
             if not self.is_bounded():
                 dual = 0
-
             else:
-                if self.is_simple():
-                    per_face_primal = self.n_Vrepresentation() * self.n_facets()
-                else:
-                    per_face_primal = self.n_Vrepresentation() * self.n_facets() ** 2
-
-                if self.is_simplicial():
-                    per_face_dual = self.n_Vrepresentation() * self.n_facets()
-                else:
-                    per_face_dual = self.n_Vrepresentation() ** 2 * self.n_facets()
-
-                from sage.arith.misc import binomial
-                estimate_n_faces = self.dimension() * binomial(min(self.n_facets(), self.n_Vrepresentation()),
-                                                             self.dimension() // 2)
-
-                # Note that the runtime per face already computes the coatoms of the next level, i.e.
-                # the runtime for each facet suffices to compute all ridges in primal,
-                # the runtime for each vertex suffices to compute all edges in dual.
-                if do_edges:
-                    estimate_primal = estimate_n_faces * per_face_primal
-                    estimate_dual = self.n_Vrepresentation() * per_face_dual
-                else:
-                    estimate_primal = self.n_facets() * per_face_primal
-                    estimate_dual = estimate_n_faces * per_face_dual
-
-                dual = int(estimate_dual < estimate_primal)
+                dual = self._is_dual_faster_to_compute_edges_or_ridges(do_edges)
 
         cdef FaceIterator face_iter
         cdef int dim = self.dimension()
@@ -3604,30 +3581,13 @@ cdef class CombinatorialPolyhedron(SageObject):
                 else:
                     do_f_vector = False
                     face_iter = self._face_iter(dual, output_dim_init)
-                self._compute_edges_or_ridges_with_iterator(face_iter, (dual ^ do_edges), do_f_vector,
-                                                            edges, f_vector)
+                self._compute_edges_or_ridges_with_iterator(face_iter, (dual ^ do_edges), edges, f_vector)
 
             # Success, copy the data to ``CombinatorialPolyhedron``.
 
             # Copy ``f_vector``.
             if do_f_vector:
-                if dual:
-                    if dim > 1 and f_vector[1] < self.n_facets():
-                        # The input seemed to be wrong.
-                        raise ValueError("not all facets are joins of vertices")
-
-                    # We have computed the ``f_vector`` of the dual.
-                    # Reverse it:
-                    self._f_vector = \
-                        tuple(smallInteger(f_vector[dim+1-i]) for i in range(dim+2))
-
-                else:
-                    if self.is_bounded() and dim > 1 \
-                            and f_vector[1] < self.n_Vrepresentation() - len(self.far_face_tuple()):
-                        # The input seemed to be wrong.
-                        raise ValueError("not all vertices are intersections of facets")
-
-                    self._f_vector = tuple(smallInteger(f_vector[i]) for i in range(dim+2))
+                self._copy_f_vector(f_vector, dual)
 
             # Copy the edge or ridges.
             if do_edges:
@@ -3642,14 +3602,45 @@ cdef class CombinatorialPolyhedron(SageObject):
         elif not do_edges and self._ridges is None:
             raise ValueError('could not determine ridges')
 
+    cdef int _is_dual_faster_to_compute_edges_or_ridges(self, bint do_edges) except -1:
+        """
+        Heuristics whether edges or ridges can be computer faster using the dual approach or the primal.
+        """
+        if self.is_simple():
+            per_face_primal = self.n_Vrepresentation() * self.n_facets()
+        else:
+            per_face_primal = self.n_Vrepresentation() * self.n_facets() ** 2
+
+        if self.is_simplicial():
+            per_face_dual = self.n_Vrepresentation() * self.n_facets()
+        else:
+            per_face_dual = self.n_Vrepresentation() ** 2 * self.n_facets()
+
+        from sage.arith.misc import binomial
+        estimate_n_faces = self.dimension() * binomial(min(self.n_facets(), self.n_Vrepresentation()),
+                                                     self.dimension() // 2)
+
+        # Note that the runtime per face already computes the coatoms of the next level, i.e.
+        # the runtime for each facet suffices to compute all ridges in primal,
+        # the runtime for each vertex suffices to compute all edges in dual.
+        if do_edges:
+            estimate_primal = estimate_n_faces * per_face_primal
+            estimate_dual = self.n_Vrepresentation() * per_face_dual
+        else:
+            estimate_primal = self.n_facets() * per_face_primal
+            estimate_dual = estimate_n_faces * per_face_dual
+
+        return int(estimate_dual < estimate_primal)
+
     cdef size_t _compute_edges_or_ridges_with_iterator(
-            self, FaceIterator face_iter, const bint do_atom_rep, const bint do_f_vector,
+            self, FaceIterator face_iter, const bint do_atom_rep,
             BinaryList edges, size_t* f_vector) except -1:
         r"""
         See :meth:`CombinatorialPolyhedron._compute_edges`.
         """
         cdef size_t a, b                # facets of an edge
         cdef int dim = self.dimension()
+        cdef bint do_f_vector = f_vector is not NULL
 
         # The dimension in which to record the edges or ridges.
         cdef output_dimension = 1 if do_atom_rep else dim - 2
