@@ -162,8 +162,9 @@ cdef class TateAlgebraTerm(MonoidElement):
             raise ValueError("this term is not in the ring of integers")
 
     def _add_virtual_val(self, add_val):
-        q = add_val // self._parent._log_radii_den
-        r = add_val % self._parent._log_radii_den
+        new_val = self._virtual_val + add_val
+        q = new_val // self._parent._log_radii_den
+        r = new_val % self._parent._log_radii_den
         self._virtual_val = r
         self._coeff = self._coeff.__lshift__(q)
         
@@ -184,7 +185,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
             sage: A.<x,y> = TateAlgebra(R, log_radii=1/3);
             sage: t = T(3*x^2)
-            sage: t._set_initial_exponent(1)
+            sage: t._add_virtual_val(1)
             sage: hash(t) == hash((t.coefficient(), t.exponent(), t.initial_exponent()))
             True
 
@@ -261,7 +262,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         parent = self._parent
-        s = parent._parent_algebra._initial_exponent_repr(self._initial_exponent)
+        s = parent._parent_algebra._initial_exponent_repr(self._virtual_val)
         if self._coeff._is_atomic() or (-self._coeff)._is_atomic():
             s_new = repr(self._coeff)
             if s_new == "1": s_new = ""
@@ -367,7 +368,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             3
 
         """
-        return self._initial_exponent
+        return self._virtual_val
     
     cpdef _mul_(self, other):
         r"""
@@ -683,7 +684,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         if self._parent._is_polynomial_ring:
             return (<pAdicGenericElement>self._coeff).valuation_c()
         else:
-            return ((<pAdicGenericElement>self._coeff).valuation_c()
+            return ((<pAdicGenericElement>self._coeff).valuation_c()*(self._parent._log_radii_den)
                     + self._virtual_val
                     - <long>self._exponent.dotprod(self._parent._log_radii_num))
 
@@ -882,7 +883,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         res = self._gcd_c(other)
-        if res._initial_exponent == 0:
+        if allow_extension or res._virtual_val == 0:
             return res
         else:
             raise ValueError("Gcd does not exist in the Tate algebra")
@@ -932,7 +933,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             val = min(self._valuation_c(), other._valuation_c())
         else:
             val = min(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)/self._parent._log_radii_den
-        #ans._coeff = self._parent._field.uniformizer_pow(val)
+        ans._coeff = self._parent._field.one()
         ans._add_virtual_val(val)
         return ans
 
@@ -990,7 +991,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         res = self._lcm_c(other)
-        if res._initial_exponent == 0:
+        if allow_extension or res._virtual_val == 0:
             return res
         else:
             raise ValueError("Lcm does not exist in the Tate algebra")
@@ -1039,7 +1040,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         if self._parent._is_polynomial_ring:
             val = max(self._valuation_c(), other._valuation_c())
         else:
-            val = max(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)/self._parent._log_radii_den
+            val = max(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num) #/self._parent._log_radii_den
         #ans._coeff = (self._coeff.unit_part() * other._coeff.unit_part()) <<
         #val
         ans._coeff = (self._coeff.unit_part() * other._coeff.unit_part())
