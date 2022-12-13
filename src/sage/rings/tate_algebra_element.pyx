@@ -108,8 +108,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         TypeError: a term cannot be zero
 
     """
-    def __init__(self, parent, coeff, exponent=None, initial_exponent=0 #, add_val=0
-                 ):
+    def __init__(self, parent, coeff, exponent=None, virtual_val=0):
         """
         Initialize a Tate algebra term
 
@@ -119,9 +118,9 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         - ``exponent`` -- a tuple
 
-        # - ``virtual_val`` -- (default: 0) an integer. This allows to construct
-        #   terms living in a scalar extension of the Tate algebra, of the form
-        #   $\pi^{a/d} t$ where $t$ is a term of the Tate algebra.
+        - ``virtual_val`` -- (default: 0) an integer. This allows to construct
+          terms living in a scalar extension of the Tate algebra, of the form
+          $\pi^{a/d} t$ where $t$ is a term of the Tate algebra.
 
         TESTS::
 
@@ -147,8 +146,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             if self._coeff.is_zero():
                 raise TypeError("a term cannot be zero")
             self._exponent = ETuple([0] * parent.ngens())
-        self._virtual_val = initial_exponent # was: initial_exponent (probably FIXME!)
-        self._initial_exponent = initial_exponent # temporary
+        self._virtual_val = virtual_val
         if exponent is not None:
             if not isinstance(exponent, ETuple):
                 exponent = ETuple(exponent)
@@ -186,7 +184,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: A.<x,y> = TateAlgebra(R, log_radii=1/3);
             sage: t = T(3*x^2)
             sage: t._add_virtual_val(1)
-            sage: hash(t) == hash((t.coefficient(), t.exponent(), t.initial_exponent()))
+            sage: hash(t) == hash((t.coefficient(), t.exponent(), t.virtual_val()))
             True
 
         """
@@ -225,7 +223,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             True
 
         """
-        return TateAlgebraTerm, (self.parent(), self._coeff, self._exponent, self._initial_exponent)
+        return TateAlgebraTerm, (self.parent(), self._coeff, self._exponent, self._virtual_val)
 
     def __bool__(self):
         r"""
@@ -251,18 +249,18 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: T = A.monoid_of_terms()
             sage: T(2*x*y)
             ...00000000010*x*y
-            sage: T(2*x*y, initial_exponent=1) # indirect doctest
+            sage: T(2*x*y, virtual_val=1) # indirect doctest
             2^(1/6)*...00000000010*x*y
         
             sage: R = Zp(2, prec=10)
             sage: A.<x,y> = TateAlgebra(R, log_radii=[1/2,1/3])
             sage: T = A.monoid_of_terms()
-            sage: T(2*x*y, initial_exponent=1) # indirect doctest
+            sage: T(2*x*y, virtual_val=1) # indirect doctest
             2^(1/6)*(2 + O(2^11))*x*y
 
         """
         parent = self._parent
-        s = parent._parent_algebra._initial_exponent_repr(self._virtual_val)
+        s = parent._parent_algebra._virtual_val_repr(self._virtual_val)
         if self._coeff._is_atomic() or (-self._coeff)._is_atomic():
             s_new = repr(self._coeff)
             if s_new == "1": s_new = ""
@@ -290,19 +288,19 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: T = A.monoid_of_terms()
             sage: T(2*x*y)._latex_()
             '...00000000010xy'
-            sage: T(2*x*y, initial_exponent=1)._latex_()
+            sage: T(2*x*y, virtual_val=1)._latex_()
             '2^(1/6)...00000000010xy'
         
             sage: R = Zp(2, prec=10)
             sage: A.<x,y> = TateAlgebra(R, log_radii=[1/2,1/3])
             sage: T = A.monoid_of_terms()
-            sage: T(2*x*y, initial_exponent=1)._latex_()
+            sage: T(2*x*y, virtual_val=1)._latex_()
             '2^(1/6)\\left(2 + O(2^{11})\\right)xy'
             
         """
         from sage.misc.latex import latex
         parent = self._parent
-        s = parent._parent_algebra._initial_exponent_latex(self._initial_exponent)
+        s = parent._parent_algebra._virtual_val_latex(self._virtual_val)
         if self._coeff._is_atomic() or (-self._coeff)._is_atomic():
             s_new = self._coeff._latex_()
             if s_new == "1": s_new = ""
@@ -353,7 +351,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         """
         return self._exponent
 
-    def initial_exponent(self):
+    def virtual_val(self):
         r"""
         Return the initial exponent of this Tate algebra term.
 
@@ -362,9 +360,9 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: R = Zp(2,prec=10)
             sage: A.<x,y> = TateAlgebra(R, log_radii=[1/2,1/3])
             sage: T = A.monoid_of_terms()
-            sage: t = T(2*x*y, initial_exponent=3); t
+            sage: t = T(2*x*y, virtual_val=3); t
             2^(1/2)*(2 + O(2^11))*x*y
-            sage: t.initial_exponent()
+            sage: t.virtual_val()
             3
 
         """
@@ -392,9 +390,9 @@ cdef class TateAlgebraTerm(MonoidElement):
 
             sage: A.<x,y> = TateAlgebra(R, log_radii=[1/2,1/3])
             sage: T = A.monoid_of_terms()
-            sage: s = T(2*x*y, initial_exponent=1); s
+            sage: s = T(2*x*y, virtual_val=1); s
             2^(1/6)*...00000000010*x*y
-            sage: t = T(3*x^2*y, initial_exponent=2); t
+            sage: t = T(3*x^2*y, virtual_val=2); t
             2^(1/3)*...0000000011*x^2*y
             sage: s*t  # indirect doctest
             2^(1/2)*...00000000110*x^3*y^2
@@ -459,8 +457,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s > t  # indirect doctest
             True
 
-            sage: s = T(x, initial_exponent=2)
-            sage: t = T(y, initial_exponent=0)
+            sage: s = T(x, virtual_val=2)
+            sage: t = T(y, virtual_val=0)
             sage: s < t  # indirect doctest
             True
 
@@ -546,7 +544,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s >= t  # indirect doctest
             True
 
-            sage: ss = T(x, initial_exponent=2); ss
+            sage: ss = T(x, virtual_val=2); ss
             2^(1/3)*...0000000001*x
             sage: ss < t  # indirect doctest
             True
@@ -561,12 +559,12 @@ cdef class TateAlgebraTerm(MonoidElement):
         if op == Py_EQ:
             return ((<TateAlgebraTerm>self)._coeff == (<TateAlgebraTerm>other)._coeff
                 and (<TateAlgebraTerm>self)._exponent == (<TateAlgebraTerm>other)._exponent
-                and (<TateAlgebraTerm>self)._initial_exponent == (<TateAlgebraTerm>other)._initial_exponent)
+                and (<TateAlgebraTerm>self)._virtual_val == (<TateAlgebraTerm>other)._virtual_val)
                     
         if op == Py_NE:
             return ((<TateAlgebraTerm>self)._coeff != (<TateAlgebraTerm>other)._coeff
                  or (<TateAlgebraTerm>self)._exponent != (<TateAlgebraTerm>other)._exponent
-                 or (<TateAlgebraTerm>self)._initial_exponent != (<TateAlgebraTerm>other)._initial_exponent)
+                 or (<TateAlgebraTerm>self)._virtual_val != (<TateAlgebraTerm>other)._virtual_val)
         c = (<TateAlgebraTerm>self)._cmp_c(<TateAlgebraTerm>other)
         return rich_to_bool_sgn(op, c)
 
@@ -588,7 +586,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         cdef TateAlgebraTerm ans = self._new_c()
         ans._coeff = self._parent._field(1)
         ans._exponent = self._exponent
-        ans._initial_exponent = 0
+        ans._virtual_val = 0
         return ans
 
     cpdef TateAlgebraTerm monic(self):
@@ -636,7 +634,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         cdef long v = self._exponent.dotprod(self._parent._log_radii_num)
         ans._coeff = self._parent._field.uniformizer_pow(v)
         ans._exponent = self._exponent
-        # TODO: Do we want to keep initial_exponent here?
+        # TODO: Do we want to keep virtual_val here?
         return ans
 
     def valuation(self):
@@ -752,7 +750,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         parent = self._parent
-        if self._initial_exponent != 0:
+        if self._virtual_val != 0:
             raise ValueError("this term is not in the Tate algebra")
         if len(args) != parent._ngens:
             raise TypeError("wrong number of arguments")
@@ -1008,7 +1006,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         If the convergence log radii are rational, the lcm need not live in the
         Tate algebra. If that is the case, a term with a non-zero
-        initial_exponent is returned.
+        virtual_val is returned.
 
         INPUT:
 
@@ -1040,9 +1038,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         if self._parent._is_polynomial_ring:
             val = max(self._valuation_c(), other._valuation_c())
         else:
-            val = max(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num) #/self._parent._log_radii_den
-        #ans._coeff = (self._coeff.unit_part() * other._coeff.unit_part()) <<
-        #val
+            val = max(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii_num)
         ans._coeff = (self._coeff.unit_part() * other._coeff.unit_part())
         ans._add_virtual_val(val) 
         return ans
@@ -1279,7 +1275,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ...0000000001 + ...00000000010*x + O(2^20 * <x, y>)
 
     """
-    def __init__(self, parent, x, prec=None, reduce=True, initial_exponent=0):
+    def __init__(self, parent, x, prec=None, reduce=True, virtual_val=0):
         r"""
         Initialize a Tate algebra series.
 
@@ -1331,8 +1327,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                     raise
         if prec is not None:
             self._prec = min(self._prec, prec)
-        self._initial_exponent = initial_exponent
-        self._virtual_val = initial_exponent # FIXME (temporary)
+        self._virtual_val = virtual_val
         self._normalize()
         self._terms = self._terms_nonzero = None
         if not parent.base_ring().is_field() and self.valuation() < 0:
@@ -1403,7 +1398,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: loads(dumps(x)) == x  # indirect doctest
             True
         """
-        return TateAlgebraElement, (self.parent(), self._poly, self._prec, self._initial_exponent)
+        return TateAlgebraElement, (self.parent(), self._poly, self._prec, self._virtual_val)
 
     def _repr_(self):
         r"""
@@ -1426,9 +1421,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         base = self._parent.base_ring()
         nvars = self._parent.ngens()
         vars = self._parent.variable_names()
-        s_fact = self._parent._initial_exponent_repr(self._initial_exponent)
+        s_fact = self._parent._virtual_val_repr(self._virtual_val)
         s = ""
-        for t in self._terms_c(include_zero=True,distribute_initial_exponent=False):
+        for t in self._terms_c(include_zero=True,distribute_virtual_val=False):
             if t.valuation() >= self._prec:
                 continue
             st = repr(t)
@@ -1491,10 +1486,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         base = self._parent.base_ring()
         nvars = self._parent.ngens()
         vars = self._parent.variable_names()
-        s_fact = self._parent._initial_exponent_repr(self._initial_exponent)
+        s_fact = self._parent._virtual_val_repr(self._virtual_val)
         s = ""
         # FIXME: Why terms here and terms_c in repr?
-        for t in self.terms(distribute_initial_exponent=False):
+        for t in self.terms(distribute_virtual_val=False):
             if t.valuation() >= self._prec:
                 continue
             st = t._latex_()
@@ -1550,12 +1545,12 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             5
 
         """
-        if self._initial_exponent != (<TateAlgebraElement>other)._initial_exponent:
+        if self._virtual_val != (<TateAlgebraElement>other)._virtual_val:
             raise ValueError("the two series do not live in the same Tate algebra")
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly + (<TateAlgebraElement>other)._poly
         ans._prec = min(self._prec, (<TateAlgebraElement>other)._prec)
-        ans._initial_exponent = self._initial_exponent
+        ans._virtual_val = self._virtual_val
         ans._normalize()
         return ans
 
@@ -1577,7 +1572,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef Element s = self._parent.base_ring()(-1)
         ans._poly = self._poly.scalar_lmult(s)
         ans._prec = self._prec
-        ans._initial_exponent = self._initial_exponent
+        ans._virtual_val = self._virtual_val
         return ans
 
     cpdef _sub_(self, other):
@@ -1607,12 +1602,12 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             5
 
         """
-        if self._initial_exponent != (<TateAlgebraElement>other)._initial_exponent:
+        if self._virtual_val != (<TateAlgebraElement>other)._virtual_val:
             raise ValueError("the two series do not live in the same Tate algebra")
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly - (<TateAlgebraElement>other)._poly
         ans._prec = min(self._prec, (<TateAlgebraElement>other)._prec)
-        ans._initial_exponent = self._initial_exponent
+        ans._virtual_val = self._virtual_val
         ans._normalize()
         return ans
 
@@ -1648,7 +1643,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         b = self.valuation() + (<TateAlgebraElement>other)._prec
         ans._poly = self._poly * (<TateAlgebraElement>other)._poly
         ans._prec = min(a, b)
-        ans._add_virtual_val(self._initial_exponent + (<TateAlgebraElement>other)._initial_exponent)
+        ans._add_virtual_val(self._virtual_val + (<TateAlgebraElement>other)._virtual_val)
         ans._normalize()
         return ans
 
@@ -1672,7 +1667,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly.scalar_lmult(right)
         ans._prec = self._prec + (<pAdicGenericElement>self._parent._base(right)).valuation_c()
-        ans._initial_exponent = self._initial_exponent
+        ans._virtual_val = self._virtual_val
         return ans
 
     def inverse_of_unit(self, prec=None):
@@ -1772,7 +1767,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         if self.is_zero():
             return False
-        if self._initial_exponent != 0:
+        if self._virtual_val != 0:
             return False
         t = self.leading_term()
         if max(t.exponent()) != 0:
@@ -2193,7 +2188,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly.term_lmult(term._exponent, term._coeff)
         ans._prec = self._prec + term._valuation_c()
-        ans._add_virtual_val(self._initial_exponent + (<TateAlgebraTerm>term)._initial_exponent)
+        ans._add_virtual_val(self._virtual_val + (<TateAlgebraTerm>term)._virtual_val)
         return ans
 
     cdef TateAlgebraElement _positive_lshift_c(self, n):
@@ -2223,8 +2218,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             coeffs[e] = c << n
         ans._poly = PolyDict(coeffs, None)
         ans._prec = self._prec + n
-        ans._initial_exponent = self._initial_exponent
-        # FIXME: Note: we could allow n to be rational and delegate to _add_initial_exponent
+        ans._virtual_val = self._virtual_val
+        # FIXME: Note: we could allow n to be rational and delegate to _add_virtual_val
         return ans
 
     cdef TateAlgebraElement _lshift_c(self, n):
@@ -2272,7 +2267,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 coeffs[e] = field(base(c) >> (minval-n)) << minval
             ans._prec = max(ZZ(0), self._prec + n)
         ans._poly = PolyDict(coeffs, None)
-        ans._initial_exponent = self._initial_exponent
+        ans._virtual_val = self._virtual_val
         return ans
 
     def __lshift__(self, n):
@@ -2424,7 +2419,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                            prec=parent.precision_cap(), order=parent.term_order())
         return ring(self)
 
-    def terms(self, include_zero=True, distribute_initial_exponent=True):
+    def terms(self, include_zero=True, distribute_virtual_val=True):
         r"""
         Return a list of the terms of this series sorted in descending order.
 
@@ -2448,9 +2443,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             self._normalize()
             self._terms = None
         return self._terms_c(include_zero=include_zero,
-                             distribute_initial_exponent=distribute_initial_exponent)
+                             distribute_virtual_val=distribute_virtual_val)
 
-    cdef list _terms_c(self, bint include_zero=True, bint distribute_initial_exponent=True):
+    cdef list _terms_c(self, bint include_zero=True, bint distribute_virtual_val=True):
         r"""
         Return a list of the terms of this series sorted in descending order.
 
@@ -2478,8 +2473,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 term = oneterm._new_c()
                 term._coeff = c
                 term._exponent = e
-                if distribute_initial_exponent:
-                    term._initial_exponent = self._initial_exponent
+                if distribute_virtual_val:
+                    term._virtual_val = self._virtual_val
                 if term._valuation_c() < self._prec:
                     self._terms.append(term)
             self._terms.sort(reverse=True)

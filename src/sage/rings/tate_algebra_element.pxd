@@ -13,7 +13,6 @@ cdef class TateAlgebraTerm(MonoidElement):
     cdef pAdicGenericElement _coeff
     cdef ETuple _exponent
     cdef long _virtual_val
-    cdef long _initial_exponent # temporary
 
     cpdef _mul_(self, other)
     cdef TateAlgebraTerm _floordiv_c(self, TateAlgebraTerm other)
@@ -37,11 +36,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
     cdef list _terms_nonzero
     cdef bint _is_normalized
     cdef long _virtual_val
-    cdef long _initial_exponent # temporary
 
     cdef _normalize(self)
     cdef TateAlgebraElement _new_c(self)
-    cdef list _terms_c(self, bint include_zero=*, bint distribute_initial_exponent=*)
+    cdef list _terms_c(self, bint include_zero=*, bint distribute_virtual_val=*)
     cpdef valuation(self)
     cdef TateAlgebraElement _term_mul_c(self, TateAlgebraTerm term)
     cdef TateAlgebraElement _positive_lshift_c(self, n)
