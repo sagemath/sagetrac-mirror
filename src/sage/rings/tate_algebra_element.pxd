@@ -20,6 +20,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
     cdef TateAlgebraTerm _new_c(self)
     cdef long _valuation_c(self)
+    cdef bint _has_infinity_vars_c(self)
     cdef long _cmp_c(self, TateAlgebraTerm other) except? 300
     cdef Element _call_c(self, list arg)
     cpdef TateAlgebraTerm monomial(self)

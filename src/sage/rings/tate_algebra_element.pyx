@@ -427,6 +427,10 @@ cdef class TateAlgebraTerm(MonoidElement):
     #    """
     #    raise NotImplementedError("fraction fields of Tate algebras are not implemented; try inverse_of_unit()")
 
+    cdef bint _has_infinity_vars_c(self):
+        # TODO
+        return any(self._exponent[i] for i in self._parent._infinity_vars)
+    
     cdef long _cmp_c(self, TateAlgebraTerm other) except? 300:
         r"""
         Compare the Tate algebra term with ``other``.
@@ -462,9 +466,33 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s < t  # indirect doctest
             True
 
+            # If infinity is involved, always fall back on the monomial order
+            sage: A.<x,y> = TateAlgebra(R, log_radii=[Infinity, 0])
+            sage: T = A.monoid_of_terms()
+            sage: s = T(x)
+            sage: t = T(2*x^2)
+            sage: s < t  # indirect doctest
+            True
+            sage: s = T(y)
+            sage: t = T(2*x^2)
+            sage: s < t  # indirect doctest
+            True
+            sage: s = T(y^4)
+            sage: t = T(2*x^2)
+            sage: s > t  # indirect doctest
+            True
+            sage: s = T(y)
+            sage: t = T(2*y^2)
+            sage: s > t  # indirect doctest
+            True
+            
+
         """
-        cdef long c
+        cdef long c, selfinf, otherinf
         if self._parent._is_polynomial_ring:
+            c = 0
+        elif self._has_infinity_vars_c() or other._has_infinity_vars_c():
+            # If the infinite variables are involved, fall back on the tie break
             c = 0
         else:
             c = other._valuation_c() - self._valuation_c()

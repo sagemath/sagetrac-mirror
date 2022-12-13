@@ -312,7 +312,8 @@ class TateAlgebraFactory(UniqueFactory):
             Traceback (most recent call last):
             ...
             ValueError: the log radii must be rational numbers or infinity
-        
+
+        TODO: Examples with mixed finite/infinite radii
 
         """
         if not isinstance(base, pAdicGeneric):
@@ -331,14 +332,17 @@ class TateAlgebraFactory(UniqueFactory):
         log_radii_raw = log_radii[:]
         infinity_vars = [i for i,r in enumerate(log_radii) if r is Infinity]
         for i in infinity_vars:
-            log_radii[i] = 0
-            # giving a numeric value which should ensure that those variables
-            # are ignored by all functions which otherwise consider the log radii
+            log_radii[i] = ZZ(0)
+            # Giving a numeric value which should ensure that those variables
+            # are ignored by all functions which otherwise consider the log
+            # radii
+            # Casting to ZZ so that denominator and numerator are methods and
+            # not attributes
         if len(infinity_vars) == ngens:
             log_radii_den = 0
         else:
             try:
-                log_radii_den = lcm([r.denominator() for r in log_radii if r is not Infinity])
+                log_radii_den = lcm([r.denominator() for r in log_radii])
                 log_radii = [(r*log_radii_den).numerator() for r in log_radii]
             except AttributeError:
                 raise ValueError("the log radii must be rational numbers or infinity")
@@ -415,10 +419,7 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
         self._log_radii_raw = A._log_radii_raw
         self._infinity_vars = A._infinity_vars
         self._is_polynomial_ring = A._is_polynomial_ring
-        if not self._is_polynomial_ring:
-            self._log_radii_num = ETuple(A._log_radii_num)
-        else:
-            self._log_radii_num = tuple(A._log_radii_num)
+        self._log_radii_num = ETuple(A._log_radii_num)
         self._log_radii_den = A._log_radii_den
         self._order = A.term_order()
         self._sortkey = self._order.sortkey
@@ -436,6 +437,8 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
             sage: A.monoid_of_terms()  # indirect doctest
             Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Field with capped relative precision 10
 
+        TODO: Add tests for rational and infinite log radii
+        
         """
         if self._ngens == 0:
             return "Monoid of terms over %s" % self._base
@@ -758,10 +761,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             self._is_polynomial_ring = True
         else:
             self._is_polynomial_ring = False
-        if not self._is_polynomial_ring:
-            self._log_radii_num = ETuple(log_radii_num)
-        else: 
-            self._log_radii_num = tuple(log_radii_num)
+        self._log_radii_num = ETuple(log_radii_num)
                         
         self._names = names
         self._latex_names = [ latex_variable_name(var) for var in names ]
