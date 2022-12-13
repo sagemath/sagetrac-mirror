@@ -907,6 +907,18 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: d.valuation()
             -1
 
+        TESTS::
+
+            sage: A.<x,y> = TateAlgebra(R,log_radii=[Infinity, 0])
+            sage: T = A.monoid_of_terms()
+            sage: t = T(x*y); t
+            ...0000000001*x*y
+            sage: s = T(2*x^3); s
+            ...00000000010*x^3
+            sage: t.gcd(s)
+            ...0000000001*x
+
+        
         """
         res = self._gcd_c(other)
         if allow_extension or res._virtual_val == 0:

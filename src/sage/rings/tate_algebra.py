@@ -325,9 +325,11 @@ class TateAlgebraFactory(UniqueFactory):
         names = normalize_names(-1, names)
         ngens = len(names)
         log_radii_den = 1
-        if not isinstance(log_radii, (list, tuple)):
+        try:
+            log_radii = list(log_radii)
+        except TypeError:
             log_radii = [log_radii] * ngens
-        elif len(log_radii) != ngens:
+        if len(log_radii) != ngens:
             raise ValueError("the number of radii does not match the number of variables")
         log_radii_raw = log_radii[:]
         infinity_vars = [i for i,r in enumerate(log_radii) if r is Infinity]
