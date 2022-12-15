@@ -179,13 +179,20 @@ def loadable_module_extension():
 
     It is '.dll' on cygwin, '.so' otherwise.
 
+    This function is deprecated.
+
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import loadable_module_extension
         sage: from importlib.machinery import EXTENSION_SUFFIXES
         sage: loadable_module_extension() in EXTENSION_SUFFIXES
+        doctest:warning...
+        DeprecationWarning: loadable_module_extension is deprecated; use importlib.machinery.EXTENSION_SUFFIXES instead
+        See https://trac.sagemath.org/33636 for details.
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(33636, "loadable_module_extension is deprecated; use importlib.machinery.EXTENSION_SUFFIXES instead")
     # Return the full platform-specific extension module suffix
     return import_machinery.EXTENSION_SUFFIXES[0]
 
@@ -1011,14 +1018,14 @@ def _split_syntactical_unit(s):
             if s[i] == '\\':
                 escaped = not escaped
                 continue
-            if not escaped and s[i:i+l] == quot:
-                return s[:i], s[i+l:]
+            if not escaped and s[i:i + l] == quot:
+                return s[:i], s[i + l:]
             escaped = False
         raise SyntaxError("EOF while scanning string literal")
     # 1. s is a triple-quoted string
     if s.startswith('"""'):
         a, b = split_string(s[3:], '"""')
-        return '"""'+a+'"""', b.strip()
+        return '"""' + a + '"""', b.strip()
     if s.startswith('r"""'):
         a, b = split_string(s[4:], '"""')
         return 'r"""'+a+'"""', b.strip()
@@ -1306,7 +1313,7 @@ def _sage_getargspec_cython(source):
                         name = None
                         nb_stars = 0
                     else:
-                        raise SyntaxError("varargs can't be defined twice")
+                        raise SyntaxError("varargs cannot be defined twice")
                 elif nb_stars == 2:
                     if keywords is None:
                         keywords = name
@@ -1316,7 +1323,7 @@ def _sage_getargspec_cython(source):
                         name = None
                         nb_stars = 0
                     else:
-                        raise SyntaxError("varargs can't be defined twice")
+                        raise SyntaxError("varargs cannot be defined twice")
                 else:
                     raise SyntaxError("variable declaration comprises at most two '*'")
         else:
@@ -2137,11 +2144,11 @@ def sage_getsource(obj):
     - William Stein
     - extensions by Nick Alexander
     """
-    #First we should check if the object has a _sage_src_
-    #method.  If it does, we just return the output from
-    #that.  This is useful for getting pexpect interface
-    #elements to behave similar to regular Python objects
-    #with respect to introspection.
+    # First we should check if the object has a _sage_src_
+    # method.  If it does, we just return the output from
+    # that.  This is useful for getting pexpect interface
+    # elements to behave similar to regular Python objects
+    # with respect to introspection.
     try:
         return obj._sage_src_()
     except (AttributeError, TypeError):
@@ -2167,7 +2174,7 @@ def _sage_getsourcelines_name_with_dot(obj):
         sage: print(sage_getsource(C.parent_class))  #indirect doctest
         class ParentMethods:
         ...
-                Returns the Lie bracket `[x, y] = x y - y x` of `x` and `y`.
+                Return the Lie bracket `[x, y] = x y - y x` of `x` and `y`.
         ...
 
     TESTS:
@@ -2599,7 +2606,8 @@ def __internal_tests():
         sage: sage_getdoc(None)
         ''
 
-        sage: sage_getsource(sage)
+        sage: import sage.all__sagemath_objects
+        sage: sage_getsource(sage.all__sagemath_objects)
         '...all...'
 
     A cython function with default arguments (one of which is a string)::

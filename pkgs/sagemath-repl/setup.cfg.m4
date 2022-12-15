@@ -18,14 +18,14 @@ classifiers =
     Operating System :: POSIX
     Operating System :: MacOS :: MacOS X
     Programming Language :: Python :: 3 :: Only
-    Programming Language :: Python :: 3.7
     Programming Language :: Python :: 3.8
     Programming Language :: Python :: 3.9
+    Programming Language :: Python :: 3.10
     Programming Language :: Python :: Implementation :: CPython
     Topic :: Scientific/Engineering :: Mathematics
 
 [options]
-python_requires = >=3.7, <3.11
+python_requires = >=3.8, <3.11
 install_requires =
     esyscmd(`sage-get-system-packages install-requires \
         sagemath_objects \
@@ -65,7 +65,6 @@ scripts =
     bin/sage-valgrind
     bin/sage-cleaner
     # Uncategorized scripts in alphabetical order
-    bin/sage-gdb-commands
     bin/sage-inline-fortran
     bin/sage-ipynb2rst
     bin/sage-ipython

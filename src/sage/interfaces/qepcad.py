@@ -595,16 +595,15 @@ AUTHORS:
 - Carl Witty (2008-03): initial version
 - Thierry Monteil (2015-07) repackaging + noncommutative doctests.
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Carl Witty <Carl.Witty@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+import os
 from sage.env import SAGE_LOCAL
 import pexpect
 import re
@@ -628,14 +627,16 @@ def _qepcad_atoms(formula):
 
     - `formula` (string) - a quantifier-free formula.
 
-    .. note:: this function is pis-aller used for doctesting, not a complete
-    parser, which should be written in a further ticket.
+    .. NOTE::
+
+        This function is pis-aller used for doctesting, not a complete
+        parser, which should be written in a further ticket.
 
     EXAMPLES::
 
-    sage: from sage.interfaces.qepcad import _qepcad_atoms
-    sage: _qepcad_atoms('y^5 + 4 y + 8 >= 0 /\\ y <= 0 /\\ [ y = 0 \\/ y^5 + 4 y + 8 = 0 ]')
-    {'y <= 0', 'y = 0', 'y^5 + 4 y + 8 = 0', 'y^5 + 4 y + 8 >= 0'}
+        sage: from sage.interfaces.qepcad import _qepcad_atoms
+        sage: _qepcad_atoms('y^5 + 4 y + 8 >= 0 /\\ y <= 0 /\\ [ y = 0 \\/ y^5 + 4 y + 8 = 0 ]')
+        {'y <= 0', 'y = 0', 'y^5 + 4 y + 8 = 0', 'y^5 + 4 y + 8 >= 0'}
     """
     return set(i.strip() for i in flatten([i.split('\\/') for i in formula.replace('[','').replace(']','').split('/\\')]))
 
@@ -685,7 +686,7 @@ def _update_command_info():
     cache = {}
 
     with open(os.path.join(SAGE_LOCAL, 'share/qepcad', 'qepcad.help')) as help:
-        assert(help.readline().strip() == '@')
+        assert help.readline().strip() == '@'
 
         while True:
             cmd_line = help.readline()
@@ -696,7 +697,7 @@ def _update_command_info():
                 break
 
             (cmd, id, phases, kind) = cmd_line.split()
-            assert(help.readline().strip() == '@')
+            assert help.readline().strip() == '@'
 
             help_text = ''
             help_line = help.readline()
@@ -1674,10 +1675,9 @@ def qepcad(formula, assume=None, interact=False, solution=None,
             raise ValueError("Unknown solution type ({})".format(solution))
 
 
-import os
 def qepcad_console(memcells=None):
     r"""
-    Run QEPCAD directly.  To exit early, press Control-C.
+    Run QEPCAD directly.  To exit early, press :kbd:`Control` + :kbd:`C`.
 
     EXAMPLES::
 
@@ -2449,8 +2449,8 @@ class QepcadCell:
                 saw_signs = True
             if saw_signs and 'Level' in line:
                 (lev, n, colon, signs) = line.split()
-                assert(lev == 'Level' and colon == ':')
-                assert(int(n) == len(all_signs) + 1)
+                assert lev == 'Level' and colon == ':'
+                assert int(n) == len(all_signs) + 1
                 signs = signs.replace('+','1').replace('-','-1').replace(')',',)')
                 all_signs.append(sage_eval(signs))
             if 'PRIMITIVE' in line:
@@ -2463,13 +2463,13 @@ class QepcadCell:
             if 'Coordinate ' in line:
                 (coord_n, val) = line.split('=')
                 n = int(coord_n.split()[1])
-                assert(n == len(all_coordinates) + 1)
+                assert n == len(all_coordinates) + 1
                 if n == self._level and saw_extended:
                     grab_extended = True
                 else:
                     all_coordinates.append(val)
             elif grab_extended:
-                assert('=' in line)
+                assert '=' in line
                 grab_extended = False
                 all_coordinates.append(line.split('=')[1])
 
@@ -2750,6 +2750,4 @@ class QepcadCell:
         """
         points = self.sample_point()
         vars = self._parent._varlist
-
         return dict([(vars[i], points[i]) for i in range(len(points))])
-

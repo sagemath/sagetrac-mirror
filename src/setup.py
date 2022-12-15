@@ -50,7 +50,7 @@ setenv()
 # ## Configuration
 # ########################################################
 
-if len(sys.argv) > 1 and (sys.argv[1] == "sdist" or sys.argv[1] == "egg_info"):
+if len(sys.argv) > 1 and (sys.argv[1] in ["sdist", "egg_info", "dist_info"]):
     sdist = True
 else:
     sdist = False
@@ -80,7 +80,7 @@ else:
 
     # Exclude a few files if the corresponding distribution is not loaded
     optional_packages = ['mcqd', 'bliss', 'tdlib',
-                         'coxeter3', 'fes', 'sirocco', 'meataxe']
+                         'coxeter3', 'sirocco', 'meataxe']
     not_installed_packages = [package for package in optional_packages
                               if not is_package_installed_and_updated(package)]
 

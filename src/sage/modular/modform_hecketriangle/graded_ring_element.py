@@ -16,23 +16,21 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.integer_ring import ZZ
-from sage.rings.infinity import infinity
-from sage.rings.all import LaurentSeries, O
-from sage.functions.all import exp
-from sage.rings.number_field.number_field import QuadraticField
-from sage.symbolic.all import pi
-
-from sage.structure.parent_gens import localvars
-from sage.structure.richcmp import op_NE, op_EQ
-from sage.structure.element import CommutativeAlgebraElement
-from sage.structure.unique_representation import UniqueRepresentation
-
-from sage.modules.free_module_element import vector
+from sage.functions.log import exp
 from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
-
 from sage.misc.cachefunc import cached_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.modules.free_module_element import vector
+from sage.rings.big_oh import O
+from sage.rings.infinity import infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.laurent_series_ring_element import LaurentSeries
+from sage.rings.number_field.number_field import QuadraticField
+from sage.structure.element import CommutativeAlgebraElement
+from sage.structure.parent_gens import localvars
+from sage.structure.richcmp import op_NE, op_EQ
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.symbolic.constants import pi
 
 from .constructor import rational_type, FormsSpace, FormsRing
 from .series_constructor import MFSeriesConstructor
@@ -2169,12 +2167,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
             pass
 
         # The general case
-        num_prec = max(\
-            ZZ(getattr(tau,'prec',lambda: num_prec)()),\
-            num_prec\
-        )
+        num_prec = max(ZZ(getattr(tau, 'prec', lambda: num_prec)()), num_prec)
+
         tau = tau.n(num_prec)
-        (x,y,z,d) = self.parent().rat_field().gens()
+        (x, y, z, d) = self.parent().rat_field().gens()
 
         if (self.is_homogeneous() and self.is_modular()):
             q_exp = self.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec)

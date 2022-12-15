@@ -308,7 +308,7 @@ cdef class NumberFieldElement(FieldElement):
         self.__fld_numerator, self.__fld_denominator = parent.absolute_polynomial_ntl()
 
         cdef ZZ_c coeff
-        if isinstance(f, (int, long, Integer_sage)):
+        if isinstance(f, (int, Integer_sage)):
             # set it up and exit immediately
             # fast pathway
             mpz_to_ZZ(&coeff, (<Integer>ZZ(f)).value)
@@ -493,7 +493,7 @@ cdef class NumberFieldElement(FieldElement):
         return codomain(f(im_gens[0]))
 
     def _latex_(self):
-        """
+        r"""
         Returns the latex representation for this element.
 
         EXAMPLES::
@@ -2948,7 +2948,11 @@ cdef class NumberFieldElement(FieldElement):
         from .number_field import NumberField_cyclotomic
         if isinstance(K, NumberField_cyclotomic):
             # solution by radicals may be difficult, but we have a closed form
-            from sage.all import exp, I, pi, ComplexField, RR
+            from sage.functions.log import exp
+            from sage.rings.complex_mpfr import ComplexField
+            from sage.rings.imaginary_unit import I
+            from sage.rings.real_mpfr import RR
+            from sage.symbolic.constants import pi
             CC = ComplexField(53)
             two_pi_i = 2 * pi * I
             k = ( K._n()*CC(K.gen()).log() / CC(two_pi_i) ).real().round() # n ln z / (2 pi i)
@@ -3984,8 +3988,8 @@ cdef class NumberFieldElement(FieldElement):
         return ht
 
     def global_height_non_arch(self, prec=None):
-        """
-        Returns the total non-archimedean component of the height of self.
+        r"""
+        Return the total non-archimedean component of the height of ``self``.
 
         INPUT:
 

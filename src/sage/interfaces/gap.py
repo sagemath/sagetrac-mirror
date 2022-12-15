@@ -952,8 +952,6 @@ class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
         P = self._check_valid()
         return self != P(0) and repr(self) != 'false'
 
-    
-
     def __len__(self):
         """
         EXAMPLES::
@@ -1814,4 +1812,3 @@ def gap_console():
     cmd, _ = gap_command(use_workspace_cache=False)
     cmd += ' ' + os.path.join(SAGE_EXTCODE,'gap','console.g')
     os.system(cmd)
-

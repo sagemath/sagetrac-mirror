@@ -84,7 +84,7 @@ coordinates where the codomain is not implemented as a toric variety::
       From: Projective Space of dimension 2 over Rational Field
       To:   2-d CPR-Fano toric variety covered by 3 affine patches
     sage: type(native_to_toric)
-    <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category'>
+    <class 'sage.schemes.projective.projective_homset.SchemeHomset_polynomial_projective_space_with_category'>
     sage: native_to_toric([u^2, v^2, w^2])
     Scheme morphism:
       From: Projective Space of dimension 2 over Rational Field
@@ -250,7 +250,7 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
             return SchemeMorphism_polynomial_toric_variety(self, x, check=check)
 
         from sage.categories.map import Map
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
         if isinstance(x, Map) and x.category_for().is_subcategory(Rings()):
             # x is a morphism of Rings
             assert x.domain() is self.codomain().coordinate_ring()

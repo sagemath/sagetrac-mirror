@@ -1705,11 +1705,11 @@ cdef class OrePolynomial(AlgebraElement):
                     var = "|%s"%name
                 else:
                     var = ""
-                s += "%s %s"%(x,var)
+                s += "%s %s" % (x, var)
         s = s.replace(" + -", " - ")
-        s = re.sub(" 1(\.0+)? \|"," ", s)
-        s = re.sub(" -1(\.0+)? \|", " -", s)
-        s = s.replace("|","")
+        s = re.sub(r" 1(\.0+)? \|", " ", s)
+        s = re.sub(r" -1(\.0+)? \|", " -", s)
+        s = s.replace("|", "")
         if s == " ":
             return "0"
         return s[1:].lstrip().rstrip()
@@ -2735,7 +2735,7 @@ cdef class OrePolynomial_generic_dense(OrePolynomial):
             sage: P * Q == Q * P
             False
 
-        TESTS::
+        TESTS:
 
         We check associativity and distributivity::
 

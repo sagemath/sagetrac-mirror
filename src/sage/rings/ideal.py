@@ -11,7 +11,7 @@ A more convenient notation may be ``R*[a,b,...]`` or ``[a,b,...]*R``.
 If `R` is non-commutative, the former creates a left and the latter
 a right ideal, and ``R*[a,b,...]*R`` creates a two-sided ideal.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -23,15 +23,22 @@ a right ideal, and ``R*[a,b,...]*R`` creates a two-sided ideal.
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from types import GeneratorType
 
-import sage.rings.ring
+from sage.categories.rings import Rings
+from sage.categories.fields import Fields
 from sage.structure.element import MonoidElement
 from sage.structure.richcmp import rich_to_bool, richcmp
 from sage.structure.sequence import Sequence
+
+
+# for efficiency
+_Rings = Rings()
+_Fields = Fields()
+
 
 def Ideal(*args, **kwds):
     r"""
@@ -171,7 +178,7 @@ def Ideal(*args, **kwds):
     first = args[0]
 
     inferred_field = False
-    if not isinstance(first, sage.rings.ring.Ring):
+    if first not in _Rings:
         if isinstance(first, Ideal_generic) and len(args) == 1:
             R = first.ring()
             gens = first.gens()
@@ -182,12 +189,12 @@ def Ideal(*args, **kwds):
                 gens = args
             gens = Sequence(gens)
             R = gens.universe()
-            inferred_field = isinstance(R, sage.rings.ring.Field)
+            inferred_field = R in _Fields
     else:
         R = first
         gens = args[1:]
 
-    if not isinstance(R, sage.rings.ring.CommutativeRing):
+    if R not in _Rings.Commutative():
         raise TypeError("R must be a commutative ring")
 
     I = R.ideal(*gens, **kwds)
@@ -199,6 +206,7 @@ def Ideal(*args, **kwds):
                       ' This warning can be muted by passing the base ring to Ideal() explicitly.')
 
     return I
+
 
 def is_Ideal(x):
     r"""
@@ -298,8 +306,6 @@ class Ideal_generic(MonoidElement):
               [0 2]
             )
              of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
-
-
         """
         L = []
         has_return = False
@@ -338,7 +344,6 @@ class Ideal_generic(MonoidElement):
 
         """
         return sum(self.__ring.random_element(*args, **kwds) * g for g in self.__gens)
-
 
     def _richcmp_(self, other, op):
         """
@@ -440,8 +445,6 @@ class Ideal_generic(MonoidElement):
             if not g.is_zero():
                 return True
         return False
-
-    
 
     def base_ring(self):
         r"""
@@ -772,7 +775,6 @@ class Ideal_generic(MonoidElement):
         else:
             return (len(ass) == 1) and (ass[0] == P)
 
-
     def primary_decomposition(self):
         r"""
         Return a decomposition of this ideal into primary ideals.
@@ -962,7 +964,7 @@ class Ideal_generic(MonoidElement):
             True
 
         This test addresses ticket :trac:`20514`::
-        
+
             sage: R = QQ['x', 'y']
             sage: I = R.ideal(R.gens())
             sage: I.is_trivial()
@@ -1209,6 +1211,42 @@ class Ideal_generic(MonoidElement):
             gens = ['0']
         return macaulay2.ideal(gens)
 
+    def free_resolution(self, *args, **kwds):
+        r"""
+        Return a free resolution of ``self``.
+
+        For input options, see
+        :class:`~sage.homology.free_resolution.FreeResolution`.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: I = R.ideal([x^4 + 3*x^2 + 2])
+            sage: I.free_resolution()
+            S^1 <-- S^1 <-- 0
+        """
+        if not self.is_principal():
+            raise NotImplementedError("the ideal must be a principal ideal")
+        from sage.homology.free_resolution import FiniteFreeResolution_free_module
+        return FiniteFreeResolution_free_module(self, *args, **kwds)
+
+    def graded_free_resolution(self, *args, **kwds):
+        r"""
+        Return a graded free resolution of ``self``.
+
+        For input options, see
+        :class:`~sage.homology.graded_resolution.GradedFiniteFreeResolution`.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: I = R.ideal([x^3])
+            sage: I.graded_free_resolution()
+            S(0) <-- S(-3) <-- 0
+        """
+        from sage.homology.graded_resolution import GradedFiniteFreeResolution_free_module
+        return GradedFiniteFreeResolution_free_module(self, *args, **kwds)
+
 
 class Ideal_principal(Ideal_generic):
     """
@@ -1263,10 +1301,11 @@ class Ideal_principal(Ideal_generic):
         """
         return True
 
-    def gen(self):
+    def gen(self, i=0):
         r"""
-        Returns the generator of the principal ideal. The generators are
-        elements of the ring containing the ideal.
+        Return the generator of the principal ideal.
+
+        The generator is an element of the ring containing the ideal.
 
         EXAMPLES:
 
@@ -1294,6 +1333,8 @@ class Ideal_principal(Ideal_generic):
             sage: b.base_ring()
             Rational Field
         """
+        if i:
+            raise ValueError(f"i (={i}) must be 0")
         return self.gens()[0]
 
     def __contains__(self, x):
@@ -1814,11 +1855,8 @@ def FieldIdeal(R):
         Multivariate Polynomial Ring in x1, x2, x3, x4 over Finite
         Field in alpha of size 2^4
     """
-
     q = R.base_ring().order()
-
     import sage.rings.infinity
     if q is sage.rings.infinity.infinity:
         raise TypeError("Cannot construct field ideal for R.base_ring().order()==infinity")
-
-    return R.ideal([x**q - x for x in R.gens() ])
+    return R.ideal([x**q - x for x in R.gens()])

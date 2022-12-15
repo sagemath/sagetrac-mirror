@@ -116,8 +116,9 @@ from sage.groups.generic import discrete_log
 
 cdef Integer one_Z = Integer(1)
 
+
 def Mod(n, m, parent=None):
-    """
+    r"""
     Return the equivalence class of `n` modulo `m` as
     an element of `\ZZ/m\ZZ`.
 
@@ -674,7 +675,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         An example with a highly composite modulus::
 
             sage: m = 2^99 * 77^7 * 123456789 * 13712923537615486607^2
-            sage: pow(5, 5735816763073854953388147237921, m).log(5)
+            sage: (Mod(5,m)^5735816763073854953388147237921).log(5)
             5735816763073854953388147237921
 
         Errors are generated if the logarithm doesn't exist
@@ -716,7 +717,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
         Examples like this took extremely long before :trac:`32375`::
 
-            sage: pow(5, 10^50-1, 123337052926643**4).log(5)
+            sage: (Mod(5, 123337052926643**4) ^ (10^50-1)).log(5)
             99999999999999999999999999999999999999999999999999
 
         We check that non-existence of solutions is detected:
@@ -1598,7 +1599,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         return [a for a in self.parent() if a**n == self]
 
     def _balanced_abs(self):
-        """
+        r"""
         This function returns `x` or `-x`, whichever has a
         positive representative in `-n/2 < x \leq n/2`.
 
@@ -1608,8 +1609,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         if self.lift() > self.__modulus.sageInteger >> 1:
             return -self
-        else:
-            return self
+        return self
 
     def rational_reconstruction(self):
         """
@@ -1947,7 +1947,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
 
 cdef class IntegerMod_gmp(IntegerMod_abstract):
-    """
+    r"""
     Elements of `\ZZ/n\ZZ` for n not small enough
     to be operated on in word size.
 
@@ -2354,7 +2354,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     @coerce_binop
     def gcd(self, IntegerMod_gmp other):
-        """
+        r"""
         Greatest common divisor
 
         Returns the "smallest" generator in `\ZZ / N\ZZ` of the ideal
@@ -2387,7 +2387,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
 
 cdef class IntegerMod_int(IntegerMod_abstract):
-    """
+    r"""
     Elements of `\ZZ/n\ZZ` for n small enough to
     be operated on in 32 bits
 
@@ -3022,20 +3022,18 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         # Either it failed but extend was True, or the generic algorithm is better
         return IntegerMod_abstract.sqrt(self, extend=extend, all=all)
 
-
     def _balanced_abs(self):
-        """
+        r"""
         This function returns `x` or `-x`, whichever has a
         positive representative in `-n/2 < x \leq n/2`.
         """
         if self.ivalue > self.__modulus.int32 / 2:
             return -self
-        else:
-            return self
+        return self
 
     @coerce_binop
     def gcd(self, IntegerMod_int other):
-        """
+        r"""
         Greatest common divisor
 
         Returns the "smallest" generator in `\ZZ / N\ZZ` of the ideal
@@ -3213,7 +3211,7 @@ cdef int jacobi_int(int_fast32_t a, int_fast32_t m) except -2:
 ######################################################################
 
 cdef class IntegerMod_int64(IntegerMod_abstract):
-    """
+    r"""
     Elements of `\ZZ/n\ZZ` for n small enough to
     be operated on in 64 bits
 
@@ -3688,22 +3686,20 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: hash(a)
             8943
         """
-
         return hash(self.ivalue)
 
     def _balanced_abs(self):
-        """
+        r"""
         This function returns `x` or `-x`, whichever has a
         positive representative in `-n/2 < x \leq n/2`.
         """
         if self.ivalue > self.__modulus.int64 / 2:
             return -self
-        else:
-            return self
+        return self
 
     @coerce_binop
     def gcd(self, IntegerMod_int64 other):
-        """
+        r"""
         Greatest common divisor
 
         Returns the "smallest" generator in `\ZZ / N\ZZ` of the ideal

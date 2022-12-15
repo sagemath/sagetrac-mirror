@@ -1,5 +1,5 @@
 r"""
-2D Plotting
+2D plotting
 
 Sage provides extensive 2D plotting functionality. The underlying
 rendering is done using the matplotlib Python library.
@@ -517,6 +517,11 @@ Verify that a clean sage startup does *not* import matplotlib::
 
     sage: os.system("sage -c \"if 'matplotlib' in sys.modules: sys.exit(1)\"") # long time
     0
+
+Verify that :trac:`10980` is fixed::
+
+    sage: plot(x,0,2,gridlines=([sqrt(2)],[]))
+    Graphics object consisting of 1 graphics primitive
 
 AUTHORS:
 
@@ -1736,15 +1741,15 @@ def plot(funcs, *args, **kwds):
 
     ::
 
-        sage: plot(2*x+1,(x,0,5),ticks=[[0,1,e,pi,sqrt(20)],2],tick_formatter="latex")
+        sage: plot(2*x + 1, (x, 0, 5), ticks=[[0, 1, e, pi, sqrt(20)], [1, 3, 2*e + 1, 2*pi + 1, 2*sqrt(20) + 1]], tick_formatter="latex")
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-        g = plot(2*x+1,(x,0,5),ticks=[[0,1,e,pi,sqrt(20)],2],tick_formatter="latex")
+        g = plot(2*x + 1, (x, 0, 5), ticks=[[0, 1, e, pi, sqrt(20)], [1, 3, 2*e + 1, 2*pi + 1, 2*sqrt(20) + 1]], tick_formatter="latex")
         sphinx_plot(g)
 
-    This is particularly useful when setting custom ticks in multiples of `pi`.
+    This is particularly useful when setting custom ticks in multiples of `\pi`.
 
     ::
 

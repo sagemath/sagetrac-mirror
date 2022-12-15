@@ -250,10 +250,9 @@ cdef class NCPolynomialRing_plural(Ring):
         sage: H.<x,y,z> = A.g_algebra({z*x:x*z+2*x, z*y:y*z-2*y})
         sage: x*y == y*x
         True
-
     """
     def __init__(self, base_ring, names, c, d, order, category, check=True):
-        """
+        r"""
         Construct a noncommutative polynomial G-algebra subject to the following conditions:
 
         INPUT:
@@ -570,19 +569,10 @@ cdef class NCPolynomialRing_plural(Ring):
                 _n = sa2si(base_ring(element), _ring)
                 _p = p_NSet(_n, _ring)
 
-        # and longs
-        elif isinstance(element, long):
-            if isinstance(base_ring, FiniteField_prime_modn):
-                element = element % self.base_ring().characteristic()
-                _p = p_ISet(int(element),_ring)
-            else:
-                _n = sa2si(base_ring(element),_ring)
-                _p = p_NSet(_n, _ring)
-
         else:
-            raise NotImplementedError("not able to interpret "+repr(element) +
-                                      " of type "+ repr(type(element)) +
-                                      " as noncommutative polynomial")  ### ??????
+            raise NotImplementedError(f"not able to interpret {element}"
+                                      f" of type {type(element)}"
+                                      " as noncommutative polynomial")  # ???
         return new_NCP(self, _p)
 
     cpdef _coerce_map_from_(self, S):

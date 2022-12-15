@@ -105,7 +105,6 @@ scripts =
     bin/sage-env
     # sage-env-config -- installed by sage_conf
     # sage-env-config.in -- not to be installed
-    bin/sage-gdb-commands
     bin/sage-grep
     bin/sage-grepdoc
     bin/sage-inline-fortran
@@ -161,3 +160,8 @@ sage =
     ext_data/magma/sage/*
     ext_data/valgrind/*
     ext_data/threejs/*
+
+[options.extras_require]
+R = esyscmd(`sage-get-system-packages install-requires \
+        rpy2           \
+        | sed "2,\$s/^/    /;"')dnl'

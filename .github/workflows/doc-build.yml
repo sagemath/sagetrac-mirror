@@ -17,11 +17,11 @@ jobs:
     if: github.repository == 'sagemath/sagetrac-mirror'
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Prepare
         run: |
-          # Reuse built SAGE_LOCAL contained in the Docker image 
+          # Reuse built SAGE_LOCAL contained in the Docker image
           ./bootstrap
           ./configure --enable-build-as-root --prefix=/sage/local --with-sage-venv --enable-download-from-upstream-url
 

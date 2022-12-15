@@ -165,6 +165,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.polynomial_ring import polygens
 from sage.sets.set import Set
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -1521,6 +1522,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
         The `f`-triangle is given by `f_{i,j}` being the number of
         faces `F` of size `j` such that `i = \max_{G \subseteq F} |G|`.
 
+        .. SEEALSO::
+
+            Not to be confused with :meth:`F_triangle` .
+
         EXAMPLES::
 
             sage: X = SimplicialComplex([[1,2,3], [3,4,5], [1,4], [1,5], [2,4], [2,5]])
@@ -1577,6 +1582,48 @@ class SimplicialComplex(Parent, GenericCellComplex):
                              for k in range(j+1))
         return ret
 
+    def F_triangle(self, S):
+        """
+        Return the F-triangle of ``self`` with respect
+        to one maximal simplex ``S``.
+
+        This is the bivariate generating polynomial of all faces,
+        according to the number of elements in ``S`` and outside ``S``.
+
+        OUTPUT:
+
+        an :class:`~sage.combinat.triangles_FHM.F_triangle`
+
+        .. SEEALSO::
+
+            Not to be confused with :meth:`f_triangle` .
+
+        EXAMPLES::
+
+            sage: cs = simplicial_complexes.Torus()
+            sage: cs.F_triangle(cs.facets()[0])
+            F: x^3 + 9*x^2*y + 3*x*y^2 + y^3 + 6*x^2 + 12*x*y
+            + 3*y^2 + 4*x + 3*y + 1
+
+        TESTS::
+
+            sage: S = SimplicialComplex([])
+            sage: S.F_triangle(S.facets()[0])
+            F: 1
+        """
+        x, y = polygens(ZZ, 'x, y')
+        from sage.combinat.triangles_FHM import F_triangle
+
+        def nega(f):
+            return sum(1 for v in f if v in S)
+
+        def posi(f):
+            return f.dimension() + 1 - nega(f)
+
+        poly = sum(x**posi(fa) * y**nega(fa)
+                   for fa in self.face_iterator())
+        return F_triangle(poly)
+
     def flip_graph(self):
         """
         If ``self`` is pure, then it returns the flip graph of ``self``,
@@ -1592,28 +1639,28 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S0 = simplicial_complexes.Sphere(0)
             sage: G = S0.flip_graph()
-            sage: G.vertices(); G.edges(labels=False)
+            sage: G.vertices(sort=True); G.edges(sort=True, labels=False)
             [(0,), (1,)]
             [((0,), (1,))]
 
             sage: G = (S0.wedge(S0)).flip_graph()
-            sage: G.vertices(); G.edges(labels=False)
+            sage: G.vertices(sort=True); G.edges(sort=True, labels=False)
             [(0,), ('L1',), ('R1',)]
             [((0,), ('L1',)), ((0,), ('R1',)), (('L1',), ('R1',))]
 
             sage: S1 = simplicial_complexes.Sphere(1)
             sage: S2 = simplicial_complexes.Sphere(2)
             sage: G = (S1.wedge(S1)).flip_graph()
-            sage: len(G.vertices())
+            sage: len(G.vertices(sort=False))
             6
-            sage: len(G.edges())
+            sage: len(G.edges(sort=False))
             10
 
             sage: (S1.wedge(S2)).flip_graph() is None
             True
 
             sage: G = S2.flip_graph()
-            sage: G.vertices(); G.edges(labels=False)
+            sage: G.vertices(sort=True); G.edges(sort=True, labels=False)
             [(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)]
             [((0, 1, 2), (0, 1, 3)),
              ((0, 1, 2), (0, 2, 3)),
@@ -1624,7 +1671,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: T = simplicial_complexes.Torus()
             sage: G = T.suspension(4).flip_graph()
-            sage: len(G.vertices()); len(G.edges(labels=False))
+            sage: len(G.vertices(sort=False)); len(G.edges(sort=False, labels=False))
             46
             161
         """
@@ -2785,6 +2832,35 @@ class SimplicialComplex(Parent, GenericCellComplex):
         for f in faces:
             self.remove_face(f, check=check)
 
+    def is_subcomplex(self, other):
+        """
+        Return ``True`` if this is a subcomplex of ``other``.
+
+        :param other: another simplicial complex
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_complexes.Sphere(1)
+            sage: S1.is_subcomplex(S1)
+            True
+            sage: Empty = SimplicialComplex()
+            sage: Empty.is_subcomplex(S1)
+            True
+            sage: S1.is_subcomplex(Empty)
+            False
+
+            sage: sorted(S1.facets())
+            [(0, 1), (0, 2), (1, 2)]
+            sage: T = S1.product(S1)
+            sage: sorted(T.facets())[0] # typical facet in T
+            ('L0R0', 'L0R1', 'L1R1')
+            sage: S1.is_subcomplex(T)
+            False
+            sage: T._contractible_subcomplex().is_subcomplex(T)
+            True
+        """
+        return all(f in other for f in self.facets())
+
     def connected_sum(self, other, is_mutable=True):
         """
         The connected sum of this simplicial complex with another one.
@@ -3625,7 +3701,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S = SimplicialComplex([[0,1,2,3]])
             sage: G = S.graph(); G
             Graph on 4 vertices
-            sage: G.edges()
+            sage: G.edges(sort=True)
             [(0, 1, None), (0, 2, None), (0, 3, None), (1, 2, None), (1, 3, None), (2, 3, None)]
         """
         if self._graph is None:
@@ -4052,7 +4128,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             return self.connected_component(Simplex([base_point])).fundamental_group(simplify=simplify)
 
         from sage.groups.free_group import FreeGroup
-        from sage.interfaces.gap import gap
+        from sage.libs.gap.libgap import libgap as gap
         G = self.graph()
         # If the vertices and edges of G are not sortable, e.g., a mix
         # of str and int, Sage+Python 3 may raise a TypeError when
@@ -4065,7 +4141,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         G2 = G.copy(immutable=False)
         G2.relabel(v_to_int)
         spanning_tree = G2.min_spanning_tree()
-        gens = [(int_to_v[e[0]], int_to_v[e[1]]) for e in G2.edges()
+        gens = [(int_to_v[e[0]], int_to_v[e[1]])
+                for e in G2.edges(sort=True)
                 if e not in spanning_tree]
         if len(gens) == 0:
             return gap.TrivialGroup()

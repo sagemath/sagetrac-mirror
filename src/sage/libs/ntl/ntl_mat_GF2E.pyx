@@ -78,7 +78,7 @@ cdef class ntl_mat_GF2E():
             [0x0 0x0 0x0 0x0 0x0]
             [0x0 0x0 0x0 0x0 0x0]
             ]
-            sage: A= matrix(k,5,5,[k.fetch_int(_%(2^4)) for _ in range(25)])
+            sage: A = matrix(k, 5, 5, [k.from_integer(i % 2^4) for i in range(25)])
             sage: ntl.mat_GF2E(ctx, A)
             [[0x0 0x1 0x2 0x3 0x4]
             [0x5 0x6 0x7 0x8 0x9]
@@ -445,17 +445,18 @@ cdef class ntl_mat_GF2E():
         sig_off()
         return r
 
-    def gauss(self,ncols=-1):
-        """
-        Performs unitary row operations so as to bring this matrix
-        into row echelon form.  If the optional argument \code{ncols}
-        is supplied, stops when first ncols columns are in echelon
-        form.  The return value is the rank (or the rank of the first
-        ncols columns).
+    def gauss(self, ncols=-1):
+        r"""
+        Perform unitary row operations so as to bring this matrix
+        into row echelon form.
+
+        If the optional argument ``ncols`` is supplied, stops when
+        first ``ncols`` columns are in echelon form.  The return value
+        is the rank (or the rank of the first ``ncols`` columns).
 
         INPUT:
 
-        - ``ncols`` - number of columns to process (default: all)
+        - ``ncols`` -- number of columns to process (default: all)
 
         EXAMPLES::
 
