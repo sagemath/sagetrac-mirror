@@ -1031,6 +1031,13 @@ cdef class StaticSparseBackend(CGraphBackend):
 
             sage: Graph(immutable=True).edges(sort=False)
             []
+
+         Consistent vertex ordering (:trac:`24989`)::
+
+            sage: G = (graphs.PathGraph(4)).relabel(immutable=True, inplace=False)
+            sage: set(G.edges(labels=False, sort=False))==set( G.edges_incident([1,2], labels=False))
+            True
+
         """
         cdef FrozenBitset b_vertices
 
@@ -1053,14 +1060,21 @@ cdef class StaticSparseBackend(CGraphBackend):
             vi = self._vertex_to_labels[i]
             for tmp in range(out_degree(cg.g, i)):
                 j = cg.g.neighbors[i][tmp]
-                if j < i and j in b_vertices:
-                    continue
+
+                # Guarantees that vertex ordering is consistent
+                if j < i:
+                    if j in b_vertices:
+                        continue
+                    else:
+                        v1, v2 = self._vertex_to_labels[j], vi
+                else:
+                    v1, v2 = vi, self._vertex_to_labels[j]
+
                 if labels:
-                    yield (vi,
-                           self._vertex_to_labels[j],
+                    yield (v1, v2,
                            edge_label(cg.g, cg.g.neighbors[i] + tmp))
                 else:
-                    yield vi, self._vertex_to_labels[j]
+                    yield v1, v2
 
     iterator_unsorted_edges = iterator_edges
 
