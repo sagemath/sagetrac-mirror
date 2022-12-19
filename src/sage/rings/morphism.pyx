@@ -391,6 +391,7 @@ from . import ideal
 import sage.structure.all
 from sage.structure.richcmp cimport (richcmp, rich_to_bool, richcmp_not_equal)
 from sage.misc.cachefunc import cached_method
+from sage.categories.facade_sets import FacadeSets
 
 
 def is_RingHomomorphism(phi):
@@ -2034,6 +2035,8 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             y |--> x + y
         """
         D = self.domain()
+        if D in FacadeSets():
+            D, = D.facade_for()
         ig = self._im_gens
         s = '\n'.join(['%s |--> %s'%(D.gen(i), ig[i]) for\
                        i in range(D.ngens())])
