@@ -3,8 +3,7 @@
 requires = [
     esyscmd(`sage-get-system-packages install-requires-toml \
         setuptools     \
-        wheel          \
-                    ')]
+    ')]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -29,7 +28,13 @@ classifiers = [
 ]
 urls = {Homepage = "https://www.sagemath.org"}
 requires-python = ">=3.8, <3.12"
-dependencies = [esyscmd(`sage-get-system-packages install-requires-toml sagemath_objects')]
+dependencies = [
+    esyscmd(`sage-get-system-packages install-requires-toml \
+        sagemath_objects              \
+        sagemath_environment          \
+        ipython                       \
+        ipywidgets                    \
+    ')]
 dynamic = ["version"]
 
 [project.readme]
