@@ -1,9 +1,6 @@
 [build-system]
 # Minimum requirements for the build system to execute.
-requires = [
-    esyscmd(`sage-get-system-packages install-requires-toml \
-        setuptools_wheel     \
-                    ')]
+requires = [esyscmd(`sage-get-system-packages install-requires-toml setuptools')]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -28,7 +25,7 @@ classifiers = [
 ]
 urls = {Homepage = "https://www.sagemath.org"}
 requires-python = ">=3.8, <3.12"
-dependencies = ["esyscmd(`sage-get-system-packages install-requires | sed \"2,\\$s/^/    /;\"')dnl"]
+dependencies = [esyscmd(`sage-get-system-packages install-requires-toml ')]
 dynamic = ["version"]
 
 [project.readme]
@@ -37,19 +34,19 @@ content-type = "text/x-rst"
 
 [project.optional-dependencies]
 # sage.env can optionally use sage_conf
-conf = ["esyscmd(`sage-get-system-packages install-requires sage_conf')"]
+conf = [esyscmd(`sage-get-system-packages install-requires-toml sage_conf')]
 # For "sage --docbuild"
-docbuild = ["esyscmd(`sage-get-system-packages install-requires sage_docbuild')"]
+docbuild = [esyscmd(`sage-get-system-packages install-requires-toml sage_docbuild')]
 # For "sage", "sage -t", ...
-sage = ["esyscmd(`sage-get-system-packages install-requires sagelib')"]
+sage = [esyscmd(`sage-get-system-packages install-requires-toml sagelib')]
 # For "sage --cython"
-cython = ["esyscmd(`sage-get-system-packages install-requires cython')"]
+cython = [esyscmd(`sage-get-system-packages install-requires-toml cython')]
 # For "sage --pytest"
-pytest = ["esyscmd(`sage-get-system-packages install-requires pytest')"]
+pytest = [esyscmd(`sage-get-system-packages install-requires-toml pytest')]
 # For "sage --rst2ipynb"
-rst2ipynb = ["esyscmd(`sage-get-system-packages install-requires rst2ipynb')"]
+rst2ipynb = [esyscmd(`sage-get-system-packages install-requires-toml rst2ipynb')]
 # For "sage --sws2rst"
-sws2rst = ["esyscmd(`sage-get-system-packages install-requires sage_sws2rst')"]
+sws2rst = [esyscmd(`sage-get-system-packages install-requires-toml sage_sws2rst')]
 
 [tool.setuptools]
 py-modules = [
