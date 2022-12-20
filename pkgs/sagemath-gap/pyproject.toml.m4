@@ -3,7 +3,6 @@
 requires = [
     esyscmd(`sage-get-system-packages install-requires-toml \
         setuptools     \
-        wheel          \
         sage_setup     \
         sagemath_environment \
         sagemath_categories \
@@ -37,7 +36,14 @@ classifiers = [
 ]
 urls = {Homepage = "https://www.sagemath.org"}
 requires-python = ">=3.8, <3.12"
-dependencies = [esyscmd(`sage-get-system-packages install-requires-toml cypari')]
+dependencies = [
+    esyscmd(`sage-get-system-packages install-requires-toml \
+        cypari                        \
+        cysignals                     \
+        memory_allocator              \
+        sagemath_environment          \
+        sagemath_categories           \
+    ')]
 dynamic = ["version"]
 
 [project.readme]
