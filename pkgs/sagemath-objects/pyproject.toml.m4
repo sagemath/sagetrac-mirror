@@ -34,7 +34,11 @@ classifiers = [
 ]
 urls = {Homepage = "https://www.sagemath.org"}
 requires-python = ">=3.8, <3.12"
-dependencies = [esyscmd(`sage-get-system-packages install-requires-toml gmpy2')]
+dependencies = [
+    esyscmd(`sage-get-system-packages install-requires-toml \
+        gmpy2                         \
+        cysignals                     \
+    ')]
 dynamic = ["version"]
 
 [project.readme]
