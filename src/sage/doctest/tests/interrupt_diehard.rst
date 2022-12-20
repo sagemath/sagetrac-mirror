@@ -1,4 +1,4 @@
-Save the current PID to the file given by :envvar:DOCTEST_TEST_PID_FILE::
+Save the current PID to the file given by :envvar:`DOCTEST_TEST_PID_FILE`::
 
     sage: with open(os.environ['DOCTEST_TEST_PID_FILE'], "w") as file:
     ....:     file.write(str(os.getpid()))
