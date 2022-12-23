@@ -2018,7 +2018,7 @@ def GS_skew_hadamard_smallcases(n, existence=False, check=True):
     
     Additional data is obtained from skew supplementary difference sets contained in 
     :func:`sage.combinat.designs.difference_family.skew_supplementary_difference_set`, using the 
-    construction described in [Djo1992]_.
+    construction described in [Djo1992a]_.
 
     INPUT:
 
