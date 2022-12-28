@@ -104,7 +104,9 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver = "CVXOPT")  # optional - cvxopt
             sage: b = p.new_variable()                              # optional - cvxopt
             sage: p.add_constraint(b[1] + b[2] <= 6)                # optional - cvxopt
+            0
             sage: p.add_constraint(b[2] <= 5)                       # optional - cvxopt
+            1
             sage: p.set_objective(b[1] + b[2])                      # optional - cvxopt
             sage: cp = copy(p.get_backend())                        # optional - cvxopt
             sage: cp.solve()                                        # optional - cvxopt
@@ -416,17 +418,24 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: x=p.new_variable(nonnegative=True)                # optional - cvxopt
             sage: p.set_objective(-4*x[0] - 5*x[1])                 # optional - cvxopt
             sage: p.add_constraint(2*x[0] + x[1] <= 3)              # optional - cvxopt
+            0
             sage: p.add_constraint(2*x[1] + x[0] <= 3)              # optional - cvxopt
+            1
             sage: N(p.solve(), digits=2)                            # optional - cvxopt
             -9.0
             sage: p = MixedIntegerLinearProgram(solver = "cvxopt", maximization=False)  # optional - cvxopt
             sage: x=p.new_variable(nonnegative=True)                # optional - cvxopt
             sage: p.set_objective(x[0] + 2*x[1])                    # optional - cvxopt
             sage: p.add_constraint(-5*x[0] + x[1]  <=   7)          # optional - cvxopt
+            0
             sage: p.add_constraint(-5*x[0] + x[1]  >=   7)          # optional - cvxopt
+            1
             sage: p.add_constraint(x[0] + x[1] >= 26  )             # optional - cvxopt
+            2
             sage: p.add_constraint( x[0] >= 3)                      # optional - cvxopt
+            3
             sage: p.add_constraint( x[1] >= 4)                      # optional - cvxopt
+            4
             sage: N(p.solve(),digits=4)                             # optional - cvxopt
             48.83
             sage: p = MixedIntegerLinearProgram(solver = "cvxopt")  # optional - cvxopt
@@ -434,7 +443,9 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: p.set_objective(x[0] + x[1] + 3*x[2])             # optional - cvxopt
             sage: p.solver_parameter("show_progress",True)          # optional - cvxopt
             sage: p.add_constraint(x[0] + 2*x[1] <= 4)              # optional - cvxopt
+            0
             sage: p.add_constraint(5*x[2] - x[1] <= 8)              # optional - cvxopt
+            1
             sage: N(p.solve(), digits=2)                            # optional - cvxopt
                      pcost       dcost       gap    pres   dres   k/t
                  ...
@@ -451,14 +462,23 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: g.set_objective(xg[2])                            # optional - cvxopt
             sage: #we create a cube for all three solvers
             sage: c.add_constraint(xc[0] <= 100)                    # optional - cvxopt
+            0
             sage: c.add_constraint(xc[1] <= 100)                    # optional - cvxopt
+            1
             sage: c.add_constraint(xc[2] <= 100)                    # optional - cvxopt
+            2
             sage: p.add_constraint(xp[0] <= 100)                    # optional - cvxopt
+            0
             sage: p.add_constraint(xp[1] <= 100)                    # optional - cvxopt
+            1
             sage: p.add_constraint(xp[2] <= 100)                    # optional - cvxopt
+            2
             sage: g.add_constraint(xg[0] <= 100)                    # optional - cvxopt
+            0
             sage: g.add_constraint(xg[1] <= 100)                    # optional - cvxopt
+            1
             sage: g.add_constraint(xg[2] <= 100)                    # optional - cvxopt
+            2
             sage: N(c.solve(),digits=4)                             # optional - cvxopt
             100.0
             sage: N(c.get_values(xc[0]),digits=3)                   # optional - cvxopt
