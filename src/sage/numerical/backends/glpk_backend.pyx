@@ -421,7 +421,9 @@ cdef class GLPKBackend(GenericBackend):
 
             sage: p.<x> = MixedIntegerLinearProgram(solver="GLPK")
             sage: p.add_constraint(10 * x[0] <= 1)
+            0
             sage: p.add_constraint(5 * x[1] <= 1)
+            1
             sage: p.set_objective(x[0] + x[1])
             sage: p.solve()
             0.30000000000000004
@@ -440,7 +442,9 @@ cdef class GLPKBackend(GenericBackend):
 
             sage: p.<x> = MixedIntegerLinearProgram(solver="GLPK/exact")
             sage: p.add_constraint(10 * x[0] <= 1)
+            0
             sage: p.add_constraint(5 * x[1] <= 1)
+            1
             sage: p.set_objective(x[0] + x[1])
             sage: p.solve() # tol 1e-14
             0.3
@@ -484,8 +488,11 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x, y = p['x'], p['y']
             sage: p.add_constraint(2*x + 3*y <= 6)
+            0
             sage: p.add_constraint(3*x + 2*y <= 6)
+            1
             sage: p.add_constraint(x >= 0)
+            2
             sage: p.set_objective(x + y + 7)
             sage: p.set_integer(x); p.set_integer(y)
             sage: p.solve()
@@ -523,8 +530,11 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x, y = p['x'], p['y']
             sage: p.add_constraint(2*x + 3*y <= 6)
+            0
             sage: p.add_constraint(3*x + 2*y <= 6)
+            1
             sage: p.add_constraint(x >= 0)
+            2
             sage: p.set_objective(x + y + 7)
             sage: p.set_integer(x); p.set_integer(y)
             sage: p.solve()
@@ -933,8 +943,11 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
             sage: x, y = lp[0], lp[1]
             sage: lp.add_constraint(-2*x + y <= 1)
+            0
             sage: lp.add_constraint(x - y <= 1)
+            1
             sage: lp.add_constraint(x + y >= 2)
+            2
             sage: lp.set_objective(x + y)
             sage: lp.set_integer(x)
             sage: lp.set_integer(y)
@@ -979,11 +992,15 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp = MixedIntegerLinearProgram(solver = "GLPK")
             sage: v = lp.new_variable(nonnegative=True)
             sage: lp.add_constraint(v[1] +v[2] -2.0 *v[3], max=-1.0)
+            0
             sage: lp.add_constraint(v[0] -4.0/3 *v[1] +1.0/3 *v[2], max=-1.0/3)
+            1
             sage: lp.add_constraint(v[0] +0.5 *v[1] -0.5 *v[2] +0.25 *v[3], max=-0.25)
+            2
             sage: lp.solve()
             0.0
             sage: lp.add_constraint(v[0] +4.0 *v[1] -v[2] +v[3], max=-1.0)
+            3
             sage: lp.solve()
             Traceback (most recent call last):
             ...
@@ -997,8 +1014,11 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
             sage: x, y = lp[0], lp[1]
             sage: lp.add_constraint(-2*x + y <= 1)
+            0
             sage: lp.add_constraint(x - y <= 1)
+            1
             sage: lp.add_constraint(x + y >= 2)
+            2
             sage: lp.set_objective(x + y)
             sage: lp.set_integer(x)
             sage: lp.set_integer(y)
@@ -1051,6 +1071,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.solver_parameter("simplex_or_intopt", "exact_simplex_only") # use exact simplex only
             sage: x = lp[0]
             sage: lp.add_constraint(x <= test)
+            0
             sage: lp.set_objective(x)
             sage: lp.solve() == test # yes, we want an exact comparison here
             True
@@ -1099,8 +1120,9 @@ cdef class GLPKBackend(GenericBackend):
             sage: b = p.new_variable(binary=True)
             sage: p.set_objective(p.sum(b[v] for v in g))
             sage: for v in g:
-            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
-            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            ....:     index = p.add_constraint(b[v] + p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1)  # Force an easy non-0 solution
+            512
             sage: p.solve() # rel tol 100
             1
 
@@ -1199,12 +1221,13 @@ cdef class GLPKBackend(GenericBackend):
             sage: b = p.new_variable(binary=True)
             sage: p.set_objective(p.sum(b[v] for v in g))
             sage: for v in g:
-            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
-            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            ....:     index = p.add_constraint(b[v] + p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1)  # Force an easy non-0 solution
+            512
             sage: p.solve() # rel tol 100
             1.0
             sage: backend = p.get_backend()
-            sage: backend.best_known_objective_bound() # random
+            sage: backend.best_known_objective_bound()  # random
             48.0
         """
         return self.search_tree_data.best_bound
@@ -1233,12 +1256,13 @@ cdef class GLPKBackend(GenericBackend):
             sage: b = p.new_variable(binary=True)
             sage: p.set_objective(p.sum(b[v] for v in g))
             sage: for v in g:
-            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
-            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
-            sage: p.solve() # rel tol 100
+            ....:     index = p.add_constraint(b[v] + p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1)  # Force an easy non-0 solution
+            512
+            sage: p.solve()  # rel tol 100
             1.0
             sage: backend = p.get_backend()
-            sage: backend.get_relative_objective_gap() # random
+            sage: backend.get_relative_objective_gap()  # random
             46.99999999999999
 
         TESTS:
@@ -1855,6 +1879,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver = "GLPK")
             sage: b = p.new_variable()
             sage: p.add_constraint(b[1] + b[2] <= 6)
+            0
             sage: p.set_objective(b[1] + b[2])
             sage: copy(p).solve()
             6.0
@@ -2105,8 +2130,11 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
             sage: x, y = lp[0], lp[1]
             sage: lp.add_constraint(-2*x + y <= 1)
+            0
             sage: lp.add_constraint(x - y <= 1)
+            1
             sage: lp.add_constraint(x + y >= 2)
+            2
             sage: lp.set_integer(x); lp.set_integer(y)
             sage: lp.set_objective(x + y)
             sage: lp.solve()
@@ -2332,7 +2360,9 @@ cdef class GLPKBackend(GenericBackend):
                                                 solver="GLPK")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
+            0
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            1
             sage: p.set_objective(5.5 * x[0] - 3 * x[1])
             sage: b = p.get_backend()
             sage: import sage.numerical.backends.glpk_backend as backend
@@ -2362,7 +2392,9 @@ cdef class GLPKBackend(GenericBackend):
                                                 solver="GLPK")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
+            0
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            1
             sage: p.set_objective(5.5 * x[0] - 3 * x[1])
             sage: b = p.get_backend()
             sage: import sage.numerical.backends.glpk_backend as backend
@@ -2393,7 +2425,9 @@ cdef class GLPKBackend(GenericBackend):
                                                 solver="GLPK")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
+            0
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            1
             sage: p.set_objective(5.5 * x[0] - 3 * x[1])
             sage: b = p.get_backend()
             sage: import sage.numerical.backends.glpk_backend as backend
@@ -2424,7 +2458,9 @@ cdef class GLPKBackend(GenericBackend):
                                                 solver="GLPK")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
+            0
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            1
             sage: p.set_objective(5.5 * x[0] - 3 * x[1])
             sage: b = p.get_backend()
             sage: import sage.numerical.backends.glpk_backend as backend

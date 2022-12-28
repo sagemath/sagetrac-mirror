@@ -91,6 +91,7 @@ cdef class InteractiveLPBackend:
             sage: p = MixedIntegerLinearProgram(solver = "InteractiveLP")
             sage: b = p.new_variable()
             sage: p.add_constraint(b[1] + b[2] <= 6)
+            0
             sage: p.set_objective(b[1] + b[2])
             sage: cp = copy(p.get_backend())
             sage: cp.solve()
@@ -420,8 +421,10 @@ cdef class InteractiveLPBackend:
 
             sage: p = MixedIntegerLinearProgram(solver='InteractiveLP')
             sage: x,y = p[0], p[1]
-            sage: p.add_constraint(2*x + 3*y, max = 6)
-            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: p.add_constraint(2*x + 3*y, max=6)
+            0
+            sage: p.add_constraint(3*x + 2*y, max=6)
+            1
             sage: p.set_objective(x + y + 7)
             sage: p.solve()
             47/5
@@ -432,8 +435,10 @@ cdef class InteractiveLPBackend:
 
             sage: p = MixedIntegerLinearProgram(solver='InteractiveLP', maximization=False)
             sage: x,y = p[0], p[1]
-            sage: p.add_constraint(2*x + 3*y, max = 6)
-            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: p.add_constraint(2*x + 3*y, max=6)
+            0
+            sage: p.add_constraint(3*x + 2*y, max=6)
+            1
             sage: p.set_objective(-x - y - 7)
             sage: p.solve()
             -47/5
@@ -474,8 +479,10 @@ cdef class InteractiveLPBackend:
             sage: p = MixedIntegerLinearProgram(solver="InteractiveLP")
             sage: v = p.new_variable(nonnegative=True)
             sage: x,y = v[0], v[1]
-            sage: p.add_constraint(2*x + 3*y, max = 6)
-            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: p.add_constraint(2*x + 3*y, max=6)
+            0
+            sage: p.add_constraint(3*x + 2*y, max=6)
+            1
             sage: p.set_objective(x + y + 7)
             sage: p.solve()
             47/5
@@ -1081,7 +1088,9 @@ cdef class InteractiveLPBackend:
                                                 solver="InteractiveLP")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
+            0
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            1
             sage: p.set_objective(11/2 * x[0] - 3 * x[1])
             sage: b = p.get_backend()
             sage: # Backend-specific commands to instruct solver to use simplex method here
@@ -1111,7 +1120,9 @@ cdef class InteractiveLPBackend:
                                                 solver="InteractiveLP")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
+            0
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            1
             sage: p.set_objective(11/2 * x[0] - 3 * x[1])
             sage: b = p.get_backend()
             sage: # Backend-specific commands to instruct solver to use simplex method here
@@ -1141,7 +1152,9 @@ cdef class InteractiveLPBackend:
                                                 solver="InteractiveLP")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
+            0
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            1
             sage: p.set_objective(11/2 * x[0] - 3 * x[1])
             sage: b = p.get_backend()
             sage: # Backend-specific commands to instruct solver to use simplex method here
@@ -1171,7 +1184,9 @@ cdef class InteractiveLPBackend:
                                                 solver="InteractiveLP")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
+            0
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            1
             sage: p.set_objective(11/2 * x[0] - 3 * x[1])
             sage: b = p.get_backend()
             sage: # Backend-specific commands to instruct solver to use simplex method here
@@ -1196,7 +1211,9 @@ cdef class InteractiveLPBackend:
                                                 solver="InteractiveLP")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
+            0
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            1
             sage: p.set_objective(11/2 * x[0] - 3 * x[1])
             sage: b = p.get_backend()
             sage: # Backend-specific commands to instruct solver to use simplex method here
@@ -1231,7 +1248,9 @@ cdef class InteractiveLPBackend:
                                                 solver="InteractiveLP")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
+            0
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            1
             sage: p.set_objective(11/2 * x[0] - 3 * x[1])
             sage: b = p.get_backend()
             sage: b.interactive_lp_problem()

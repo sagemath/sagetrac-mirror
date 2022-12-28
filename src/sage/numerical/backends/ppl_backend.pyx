@@ -106,6 +106,7 @@ cdef class PPLBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver = "PPL")
             sage: b = p.new_variable()
             sage: p.add_constraint(b[1] + b[2] <= 6)
+            0
             sage: p.set_objective(b[1] + b[2])
             sage: cp = copy(p.get_backend())
             sage: cp.solve()
@@ -223,7 +224,7 @@ cdef class PPLBackend(GenericBackend):
             sage: for j in range(2*n):  # indirect doctest
             ....:     lhs = p.sum(M[j,i]*x[i] for i in range(n))
             ....:     rhs = M.row(j).inner_product(v)
-            ....:     p.add_constraint(lhs == rhs)
+            ....:     index = p.add_constraint(lhs == rhs)
             sage: p.solve()  # long time
             0
 
@@ -497,6 +498,7 @@ cdef class PPLBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver="PPL")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(x[0]*5 + x[1]/11 <= 6)
+            0
             sage: p.set_objective(x[0])
             sage: p.solve()
             6/5
@@ -557,10 +559,12 @@ cdef class PPLBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver="PPL")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(x[0]/2 + x[1]/3 <= 2/5)
+            0
             sage: p.set_objective(x[1])
             sage: p.solve()
             6/5
             sage: p.add_constraint(x[0] - x[1] >= 1/10)
+            1
             sage: p.solve()
             21/50
             sage: p.set_max(x[0], 1/2)
@@ -708,7 +712,9 @@ cdef class PPLBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver='PPL')
             sage: x = p.new_variable(integer=True, nonnegative=True)
             sage: p.add_constraint(2*x[0] + 3*x[1], max = 6)
+            0
             sage: p.add_constraint(3*x[0] + 2*x[1], max = 6)
+            1
             sage: p.set_objective(x[0] + x[1] + 7)
             sage: p.solve()
             9
@@ -739,6 +745,7 @@ cdef class PPLBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver="PPL")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(5/13*x[0] + x[1]/2 == 8/7)
+            0
             sage: p.set_objective(5/13*x[0] + x[1]/2)
             sage: p.solve()
             8/7
