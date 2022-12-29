@@ -83,9 +83,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.structure.element import Element
-from sage.categories.map import Map
 from sage.categories.all import Rings
+_Rings = Rings() # type: ignore
+from sage.categories.map import Map
+from sage.structure.element import Element
 from sage.arith.power import generic_power
 
 
@@ -150,7 +151,7 @@ class ChowSchemeMorphism(Element):
         self._domain, self._codomain = X, Y
         self._category = parent.category()
         self._is_endomorphism_set = parent.is_endomorphism_set()
-        if isinstance(phi, Map) and phi.category_for().is_subcategory(Rings()):
+        if isinstance(phi, Map) and phi.category_for().is_subcategory(_Rings):
             msg = "Expect a ring morphism from %s to %s" % (str(AY), str(AX))
             if not (phi.domain() == AY and phi.codomain() == AX):
                 raise TypeError(msg)
@@ -523,7 +524,7 @@ class ChowSchemeMorphism(Element):
         (e.g. the alternating sum of `R^{i}f_{*}v`).
 
         If the normal bundle is specified, `f` is supposed to be an embedding
-        and Riemann-Roch without denominateurs is used for the computation. In
+        and Riemann-Roch without denominators is used for the computation. In
         this case no need for the tangent bundles on `X` and `Y` and the result
         is not virtual.
 

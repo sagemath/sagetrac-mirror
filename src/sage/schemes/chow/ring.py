@@ -239,6 +239,9 @@ def ChowRingFromRing(S, names=None, name=None, latex_name=None):
     else:
         err = "Expected (Quotient of) Multivariate Polynomial Ring."
         raise TypeError(err)
+    if not(is_MPolynomialRing(R)):
+        err = "Expected (Quotient of) Multivariate Polynomial Ring."
+        raise TypeError(err)
     # Get names and check that numbers correspond
     names = R.variable_names() if names is None else names
     if len(names) != R.ngens():
@@ -321,10 +324,15 @@ def ChowRing(generators=None, degrees=None, relations=None,
         ...
         TypeError: Expect list of integers for degrees.
 
-        sage: A = ChowRing('h', 0)
+        sage: A = ChowRing('h', -1)
         Traceback (most recent call last):
         ...
         ValueError: Expect positive integers for degrees.
+
+        sage: A = ChowRing('h', 0)
+        Traceback (most recent call last):
+        ...
+        ValueError: Except a positive degree for every generator.
 
         sage: A = ChowRing('h', [1,2])
         Traceback (most recent call last):
@@ -347,25 +355,28 @@ def ChowRing(generators=None, degrees=None, relations=None,
         for gen in generators:
             if not isinstance(gen, str):
                 raise TypeError("Expect list of strings for generators.")
-        if is_Integer(degrees) or isinstance(degrees, int):
-            degrees = [int(degrees)]
-        for deg in degrees:
-            deg = int(deg) if is_Integer(deg) else deg
-            if not isinstance(deg, int):
-                raise TypeError("Expect list of integers for degrees.")
-            if deg <= 0:
-                raise ValueError("Expect positive integers for degrees.")
-        if len(generators) != len(degrees):
-            raise ValueError("Number of generators and degrees differ.")
+        if degrees:
+            if is_Integer(degrees) or isinstance(degrees, int):
+                degrees = [int(degrees)]
+            for deg in degrees:
+                deg = int(deg) if is_Integer(deg) else deg
+                if not isinstance(deg, int):
+                    raise TypeError("Expect list of integers for degrees.")
+                if deg <= 0:
+                    raise ValueError("Expect positive integers for degrees.")
+            if len(generators) != len(degrees):
+                raise ValueError("Number of generators and degrees differ.")
+        else:
+            raise ValueError("Except a positive degree for every generator.")
         R = PolynomialRing(QQ, len(generators), names=tuple(generators),
-                           order=TermOrder('wdegrevlex', tuple(degrees)))
+                           order=TermOrder('wdegrevlex', tuple(degrees))) # type: ignore
         I = R.ideal(0)
         if relations:
             if isinstance(relations, str):
                 relations = [relations]
             if not all(isinstance(r, str) for r in relations):
                 raise TypeError("Expect list of strings as relations")
-            I = R.ideal([R(rel) for rel in relations])
+            I = R.ideal([R(rel) for rel in relations]) # type: ignore
     else:
         # The ChowRing of the point: QQ[]/(0). This might seem artificial but
         # permits us not to distinguish between QQ as a rational field
@@ -650,7 +661,7 @@ class ChowRing_generic(QuotientRing_generic):
         # Check point_class
         try:
             self(point_class)
-        except:
+        except Exception as e:
             raise TypeError("Can't coerce pointclass to ring element.")
         pc = self(point_class)
         # Check in max degree
@@ -1085,7 +1096,7 @@ class ChowRing_generic(QuotientRing_generic):
         matrix in order to invert several smaller matrices instead of one large
         matrix as in :meth:`dual_basis_slow`. This method is mainly needed to
         compute `f_*` for morphisms `f:X\rightarrow Y` hence
-        especially while computing a blowup and its tangentbundle.
+        especially while computing a blowup and its tangent bundle.
 
         Remark: This requires quite some computational time for large examples,
         so we print out which block we compute if verbose is True.
@@ -1117,7 +1128,7 @@ class ChowRing_generic(QuotientRing_generic):
         dual_basis_dict = {}
         if self.point_class() is None:
             raise ValueError("Need a point_class before calling dual_basis.")
-        R, pc = self.cover_ring(), self.point_class().lift()
+        R, pc = self.cover_ring(), self.point_class().lift() # type: ignore
         if pc.degree() < self.max_degree():
             raise ValueError("Expect the point_class in at least in max degree")
         if self.ngens() == 0:
@@ -1143,7 +1154,7 @@ class ChowRing_generic(QuotientRing_generic):
             if not ((d == maxdeg / 2) and (maxdeg % 2 == 1)):
                 # Compute the dual basis for elements of rbdc
                 # This is not needed if maxdeg is odd and d is maximal
-                # as then rdb = rdbc.
+                # as then rdb = rbdc.
                 dbdc = list(QMd_inverse * vector(rbd))
                 dbc_dict = dict([(rbdc[i], dbdc[i]) for i in range(n)])
                 dual_basis_dict.update(dbc_dict)
@@ -1308,7 +1319,7 @@ def Kernel(f):
         g = R.hom(BI.gens() + ff.im_gens(), BB)
         kern = sing_alg_kernel(BB.ideal(g.im_gens()), R, ring=BB).split(',')
         kern_g = R.ideal(kern)
-        subs_dict = dict([(R(t), R(0)) for t in t_vars])
+        subs_dict = dict([(R(t), R(0)) for t in t_vars]) # type: ignore
         kern_ff = AA.ideal(kern_g.subs(subs_dict).gens())
     else:
         # The codomain is a Multivariate Polynomial ring.

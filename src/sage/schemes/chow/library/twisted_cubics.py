@@ -25,7 +25,7 @@ The open subset `U^{ss}\subset U` of semistable points for the action of `G` on
 `\dim(E')/\dim(F')< \dim(E_0)/\dim(F_0)`. Let `b:X_W\to S` denote the
 GIT-quotient of `U^{ss}` by the action of `G`.
 
-The cohomology ring of `X_W` can be described as follows: The stabiliser
+The cohomology ring of `X_W` can be described as follows: The stabilizer
 subgroup of any point in `U^{ss}` is the diagonal group `\Delta`. Since this
 group acts trivially on `{\mathcal O}_U\otimes  (E_0\otimes  L^*)` and
 `{\mathcal O}_U\otimes  (F_0\otimes  L^*)`, these bundles descend to vector
@@ -58,7 +58,7 @@ The composite homomorphism
     B_1\to t^*F\to t^*E\otimes  W\to (t^*E/A_1)\otimes  W\text{ and }t^*F\to
     t^*E\otimes  W\to (t^*E/A_2)\otimes  W
 
-cannot vanish anywhere on `T` due to the semistability of the points on
+cannot vanish anywhere on `T` due to the semi-stability of the points on
 in `X_W`. This implies that the top Chern class of the corresponding SHom-bundles
 must vanish, which yields the relations
 

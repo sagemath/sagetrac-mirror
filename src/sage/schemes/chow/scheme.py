@@ -45,7 +45,7 @@ AUTHORS:
 """
 # ****************************************************************************
 #       Copyright (C) 2013 Manfred Lehn <lehn@mathematik.uni-mainz.de>
-#       Copyright (C) 2013 Christoph Sorger <christoph.sorger@univ-nantes.fr>
+#       Copyright (C) 2023 Christoph Sorger <christoph.sorger@univ-nantes.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -53,11 +53,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.rings.integer import is_Integer
-from sage.misc.cachefunc import cached_method
-from sage.categories.map import Map
 from sage.categories.all import Rings
-from sage.schemes.chow.ring import ChowRing, is_chowRing, PointChowRing
+_Rings = Rings() # type: ignore
+from sage.categories.map import Map
+from sage.misc.cachefunc import cached_method
+from sage.rings.integer import is_Integer
+from sage.schemes.chow.ring import ChowRing, PointChowRing, is_chowRing
 from sage.schemes.chow.schemes import ChowSchemes
 from sage.schemes.chow.sheaf import Sheaf
 from sage.structure.parent import Parent
@@ -176,7 +177,7 @@ class ChowScheme_generic(Parent):
 
         OUTPUT:
 
-        - :class:`ChowRing <ChowRing_generic>`.
+        - :class:`ChowScheme <ChowScheme_generic>`.
 
         TESTS::
 
@@ -200,7 +201,7 @@ class ChowScheme_generic(Parent):
             self._chowring = R
             self._base_chowring = PointChowRing
             self._base_chowring_morphism = self._base_chowring.hom([], R)
-        elif isinstance(R, Map) and R.category_for().is_subcategory(Rings()):
+        elif isinstance(R, Map) and R.category_for().is_subcategory(_Rings):
             self._chowring = R.codomain()
             self._base_chowring = R.domain()
             self._base_chowring_morphism = R
@@ -387,7 +388,7 @@ class ChowScheme_generic(Parent):
             Recall that there is no Künneth formula for the Chow ring of a
             product of varieties. Already for the product of two smooth curves
             with genus `geq 1`, there is no algorithm for calculating `A^1`,
-            and we do not know what A^2 is, except that it can’t be
+            and we do not know what A^2 is, except that it can't be
             finite-dimensional. There is however, a Künneth formula for
             varieties with affine stratification as projective spaces
             or more generally Grassmannians. This what this method returns.
@@ -1079,7 +1080,8 @@ class ChowScheme_generic(Parent):
         try:
             return self._base_morphism
         except AttributeError:
-            from sage.schemes.chow.morphism import ChowSchemeMorphism_structure_map
+            from sage.schemes.chow.morphism import \
+                ChowSchemeMorphism_structure_map
             bcs = self.base_chowscheme()
             bcm = self.base_chowring_morphism()
             sm = ChowSchemeMorphism_structure_map(self.Hom(bcs), bcm)
@@ -1100,7 +1102,10 @@ class ChowScheme_generic(Parent):
             sage: ProjG.relative_dimension()
             5
         """
-        return self.chowring().dimension() - self.base_chowring().dimension()
+        self_dim, base_dim = self.chowring().dimension(), self.base_chowring().dimension()
+        if not (isinstance(self_dim, int) and isinstance(base_dim, int)):
+            raise ValueError("The dimensions of the Chow scheme and its base have to be defined before computing its relative dimension.")
+        return self_dim - base_dim
 
     @cached_method
     def betti_numbers(self):
@@ -1124,6 +1129,8 @@ class ChowScheme_generic(Parent):
         """
         R = self.chowring()
         dim, rbbd = R.dimension(), R.basis_by_degree()
+        if not isinstance(dim, int):
+            raise ValueError("The dimension of the Chow scheme has to be defined before computing its Betti numbers.")
         return [len(rbbd[i]) for i in range(dim + 1)]
 
     @cached_method

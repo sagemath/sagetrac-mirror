@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-The set of morphismes between ChowSchemes
+The set of morphisms between ChowSchemes
 
 AUTHORS:
 
@@ -24,6 +24,7 @@ from sage.schemes.chow.morphism import ChowSchemeMorphism
 from sage.schemes.chow.scheme import is_chowScheme
 from sage.categories.map import Map
 from sage.categories.all import Rings
+_Rings = Rings() # type: ignore
 
 
 def is_ChowSchemeHomset(H):
@@ -170,7 +171,7 @@ class ChowSchemeHomset_generic(HomsetWithBase):
         if isinstance(x, str):
             return self.domain()._morphism(self, x)
 
-        if isinstance(x, Map) and x.category_for().is_subcategory(Rings()):
+        if isinstance(x, Map) and x.category_for().is_subcategory(_Rings):
             return ChowSchemeMorphism(self, x)
 
         raise TypeError("x must be a ring homomorphism, list or tuple")

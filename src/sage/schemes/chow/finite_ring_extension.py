@@ -82,8 +82,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.polynomial.term_order import TermOrder
 from sage.libs.singular.function_factory import singular_function, lib as singular_lib
-from sage.rings.polynomial.multi_polynomial_ring_generic import \
-    is_MPolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 
 from sage.schemes.chow.ring import Kernel2
 
