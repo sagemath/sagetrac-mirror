@@ -798,9 +798,11 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         ModuleElement.__init__(self, parent)
         R = self.base_ring()
         if isinstance(f, dict):
-            self._f = dict( (int(key), R(value)) for key, value in f.iteritems() )
-        else:
+            self._f = {int(key): R(value) for key, value in f.items() if value}
+        elif f:
             self._f = {-1: R(f)}
+        else:
+            self._f = {}
 
     cpdef iteritems(self):
         """
@@ -1321,16 +1323,13 @@ cdef class LinearConstraintsParent_class(Parent):
         if right is None and is_LinearConstraint(left):
             if (left.parent() is self) and (left.is_equation() == equality):
                 return left
-            else:
-                return LinearConstraint(self, (<LinearConstraint>left).constraints,
-                                        equality=equality)
+            return LinearConstraint(self, (<LinearConstraint>left).constraints,
+                                    equality=equality)
         if right is None:
-            if isinstance(left, (list,tuple)):
+            if isinstance(left, (list, tuple)):
                 return LinearConstraint(self, left, equality=equality)
-            else:
-                return LinearConstraint(self, [left], equality=equality)
-        else:
-            return LinearConstraint(self, [left, right], equality=equality)
+            return LinearConstraint(self, [left], equality=equality)
+        return LinearConstraint(self, [left, right], equality=equality)
 
     cpdef _coerce_map_from_(self, R):
         """
@@ -1430,7 +1429,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
         super().__init__(parent)
         self.equality = equality
         LF = parent.linear_functions_parent()
-        self.constraints = [ LF(term) for term in terms ]
+        self.constraints = [LF(term) for term in terms]
 
     cpdef equals(LinearConstraint left, LinearConstraint right):
         """
