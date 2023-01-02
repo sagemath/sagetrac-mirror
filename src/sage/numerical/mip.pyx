@@ -2164,7 +2164,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         assert -1 not in constraint, 'no constant term allowed'
         i0 = min([i for i, c in constraint.items() if c != 0])
         rescale = constraint[i0]
-        constraint = tuple((i, c/rescale) for i, c in constraint.items())
+        constraint = tuple((i, c/rescale) for i, c in constraint.items() if c)
         if rescale > 0:
             min_scaled = min_bound/rescale if min_bound is not None else None
             max_scaled = max_bound/rescale if max_bound is not None else None
