@@ -18,9 +18,10 @@ import numbers
 
 from sage.misc.call import attrcall
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_import import lazy_import
 
 from sage.categories.sets_cat import Sets
-
+lazy_import('sage.sets.family', 'Family')
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapperCheckWrappedClass
@@ -76,7 +77,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             ...
             TypeError: ...__init__() got an unexpected keyword argument 'blub'
         """
-        self._sets = tuple(sets)
+        self._sets = Family(sets)
         Parent.__init__(self, category=category)
 
     def _element_constructor_(self,x):
@@ -179,23 +180,6 @@ class CartesianProduct(UniqueRepresentation, Parent):
         """
         return self._sets
 
-    def _sets_keys(self):
-        """
-        Return the indices of the Cartesian factors of ``self``
-        as per
-        :meth:`Sets.CartesianProducts.ParentMethods._sets_keys()
-        <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods._sets_keys>`.
-
-        EXAMPLES::
-
-            sage: cartesian_product([QQ, ZZ, ZZ])._sets_keys()
-            {0, 1, 2}
-            sage: cartesian_product([ZZ]*100)._sets_keys()
-            {0, ..., 99}
-        """
-        from sage.sets.integer_range import IntegerRange
-        return IntegerRange(len(self._sets))
-
     @cached_method
     def cartesian_projection(self, i):
         """
@@ -223,8 +207,8 @@ class CartesianProduct(UniqueRepresentation, Parent):
             ...
             ValueError: i (=hey) must be in {0, 1, 2}
         """
-        if i not in self._sets_keys():
-            raise ValueError("i (={}) must be in {}".format(i, self._sets_keys()))
+        if i not in self._sets.keys():
+            raise ValueError("i (={}) must be in {}".format(i, self._sets.keys()))
         return attrcall("cartesian_projection", i)
 
     def _cartesian_product_of_elements(self, elements):

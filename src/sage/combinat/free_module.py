@@ -27,6 +27,7 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.all import Category, Sets, ModulesWithBasis, GradedAlgebrasWithBasis
 from sage.categories.tensor import tensor
 import sage.data_structures.blas_dict as blas
+from sage.sets.family import Family
 from sage.typeset.ascii_art import AsciiArt, ascii_art
 from sage.typeset.unicode_art import UnicodeArt, unicode_art
 
@@ -1693,25 +1694,11 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         R = modules[0].base_ring()
         assert(all(module in ModulesWithBasis(R)) for module in modules)
         # should check the base ring
-        self._sets = modules
+        self._sets = Family(modules)
         CombinatorialFreeModule.__init__(self, R,
             DisjointUnionEnumeratedSets(
                 [module.basis().keys() for module in modules], keepkey=True),
             **options)
-
-    def _sets_keys(self):
-        """
-        In waiting for self._sets.keys()
-
-        TESTS::
-
-            sage: F = CombinatorialFreeModule(ZZ, [2,4,5])
-            sage: G = CombinatorialFreeModule(ZZ, [2,4,7])
-            sage: CP = cartesian_product([F, G])
-            sage: CP._sets_keys()
-            [0, 1]
-        """
-        return list(range(len(self._sets)))
 
     def _repr_(self):
         """
@@ -1725,7 +1712,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         """
         from sage.categories.cartesian_product import cartesian_product
         return cartesian_product.symbol.join("%s" % module
-                                             for module in self._sets)
+                                             for module in self.cartesian_factors())
         # TODO: make this overridable by setting _name
 
     @cached_method
@@ -1756,7 +1743,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             ...
             AssertionError
         """
-        assert i in self._sets_keys()
+        assert i in self._sets.keys()
         return self._sets[i]._module_morphism(lambda t: self.monomial((i, t)),
                                               codomain=self)
 
@@ -1787,7 +1774,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             sage: S.cartesian_projection(1)(x).parent() == G
             True
         """
-        assert i in self._sets_keys()
+        assert i in self._sets.keys()
         module = self._sets[i]
         return self._module_morphism(lambda j_t: module.monomial(j_t[1]) if i == j_t[0] else module.zero(), codomain=module)
 
@@ -1834,7 +1821,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             B[(0, 0)] + B[(1, 0)]
         """
         return self.sum(self.summand_embedding(i)(element_i)
-                        for (i, element_i) in zip(self._sets_keys(),
+                        for (i, element_i) in zip(self._sets.keys(),
                                                   elements))
 
     def cartesian_factors(self):

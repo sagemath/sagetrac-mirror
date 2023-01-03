@@ -49,6 +49,7 @@ from sage.categories.realizations import RealizationsCategory, Category_realizat
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom
 lazy_import('sage.sets.cartesian_product', 'CartesianProduct')
+lazy_import('sage.sets.family', 'Family')
 
 
 def print_compare(x, y):
@@ -2475,20 +2476,9 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                         c.random_element(*args) for c in self.cartesian_factors())
 
             @abstract_method
-            def _sets_keys(self):
-                """
-                Return the indices of the Cartesian factors of ``self``.
-
-                EXAMPLES::
-
-                    sage: cartesian_product([QQ, ZZ, ZZ])._sets_keys()
-                    {0, 1, 2}
-                """
-
-            @abstract_method
             def cartesian_factors(self):
                 """
-                Return the Cartesian factors of ``self``.
+                Return the family of Cartesian factors of ``self``.
 
                 EXAMPLES::
 
@@ -2599,7 +2589,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
             def cartesian_factors(self):
                 """
-                Return the Cartesian factors of ``self``.
+                Return the family of Cartesian factors of ``self``.
 
                 EXAMPLES::
 
@@ -2617,10 +2607,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     sage: [s.parent() for s in S.zero().cartesian_factors()]
                     [F, G, H]
                 """
-                # TODO: optimize
-                return tuple(self.cartesian_projection(i)
-                             for i in self.parent()._sets_keys())
-                #return Family(self._sets.keys(), self.projection)
+                return Family(self.parent().keys(), self.cartesian_projection)
 
     class Algebras(AlgebrasCategory):
 

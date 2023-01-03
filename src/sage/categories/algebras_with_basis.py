@@ -251,7 +251,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: cartesian_product([SymmetricGroupAlgebra(QQ, 3), SymmetricGroupAlgebra(QQ, 4)]).one()
                     B[(0, [1, 2, 3])] + B[(1, [1, 2, 3, 4])]
                 """
-                return self.sum_of_monomials( zip( self._sets_keys(), (set.one_basis() for set in self._sets)) )
+                return self.sum_of_monomials((key, set.one_basis()) for key, set in self.cartesian_factors())
 
             @lazy_attribute
             def one(self):

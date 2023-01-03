@@ -4234,11 +4234,11 @@ def pushout(R, S):
         ....:             if s_vars == o_vars:
         ....:                 return
         ....:             return pushout(CartesianProductPoly(
-        ....:                     self.cartesian_factors() +
+        ....:                     tuple(self.cartesian_factors()) +
         ....:                     tuple(f for f in other.cartesian_factors()
         ....:                           if f.variable_name() not in s_vars)),
         ....:                 CartesianProductPoly(
-        ....:                     other.cartesian_factors() +
+        ....:                     tuple(other.cartesian_factors()) +
         ....:                     tuple(f for f in self.cartesian_factors()
         ....:                           if f.variable_name() not in o_vars)))
         ....:         C = other.construction()
