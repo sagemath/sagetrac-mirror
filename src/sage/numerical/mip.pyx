@@ -458,7 +458,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         if check_redundant:
             self._constraints = list()
 
-    def linear_functions_parent(self):
+    def linear_functions_parent(self, base_ring=None):
         """
         Return the parent for all linear functions
 
@@ -468,11 +468,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
              sage: p.linear_functions_parent()
              Linear functions over Real Double Field
         """
-        if self._linear_functions_parent is None:
-            base_ring = self._backend.base_ring()
-            from sage.numerical.linear_functions import LinearFunctionsParent
-            self._linear_functions_parent = LinearFunctionsParent(base_ring)
-        return self._linear_functions_parent
+        if base_ring is None:
+            if self._linear_functions_parent is None:
+                base_ring = self._backend.base_ring()
+                from sage.numerical.linear_functions import LinearFunctionsParent
+                self._linear_functions_parent = LinearFunctionsParent(base_ring)
+            return self._linear_functions_parent
+        from sage.numerical.linear_functions import LinearFunctionsParent
+        return LinearFunctionsParent(base_ring)
 
     def linear_constraints_parent(self):
         """
@@ -3114,10 +3117,29 @@ cdef class MixedIntegerLinearProgram(SageObject):
     def ambient_projection(self, variables=None, base_ring=None, **kwds):
         r"""
         Return the linear map from the backend space
-        """
 
+        EXAMPLES::
+
+            sage: LP.<x> = MixedIntegerLinearProgram()
+            sage: y = LP.new_variable(name='y')
+            sage: x[1], x[5], y["why"]
+            (x_0, x_1, x_2)
+            sage: projection = LP.ambient_projection(x); projection
+            sage: projection.parent().linear_functions()
+            sage: projection.parent().free_module()
+        """
+        ## Why *is* a MIPVariable not just a linear map from BackendSpace to CombinatorialFreeModule(base_ring, indices)? ..... so an element of LinearTensorParent!!!
+        from sage.modules.free_module import FreeModule
+        if base_ring is None:
+            base_ring = self.base_ring()
+        if isinstance(variables, MIPVariable):
+            codomain = FreeModule(base_ring, list(variables.keys()))
+            parent = self.linear_functions_parent(base_ring).tensor(codomain)
+            return sum(parent(basis_element) * parent(linear_form)
+                       for basis_element, linear_form in zip(codomain.basis(), variables))
+
+        raise NotImplementedError
         
-        ## Why *is* a MIPVariable not just a linear map from BackendSpace to CombinatorialFreeModule(base_ring, indices)?
 
     def ambient_space(self, variables=None, base_ring=None, **kwds):
         r"""
