@@ -3111,6 +3111,50 @@ cdef class MixedIntegerLinearProgram(SageObject):
         from sage.manifolds.differentiable.examples.euclidean import EuclideanSpace
         return EuclideanSpace(names=self._backend_variable_names())
 
+    def ambient_projection(self, variables=None, base_ring=None, **kwds):
+        r"""
+        Return the linear map from the backend space
+        """
+
+        
+        ## Why *is* a MIPVariable not just a linear map from BackendSpace to CombinatorialFreeModule(base_ring, indices)?
+
+    def ambient_space(self, variables=None, base_ring=None, **kwds):
+        r"""
+        Return the vector space that is the ambient space of the problem or a projection thereof.
+
+        INPUT:
+
+        - ``variables`` -- (default: ``None``) the variables in which to set up the ambient space.
+          This can be an iterable of:
+          - :class:`MIPVariable` components,
+          - more generally, any elements of :meth:`linear_functions_parent`,
+          - a :class:`MIPVariable`,
+          - more generally, a :func:`~sage.sets.family.Family` or :class:`~collections.abc.Mapping`
+            from indices to elements of :meth:`linear_functions_parent`.
+          If ``None``, use all backend variables, indexed by column indices.
+
+        OUTPUT:
+
+        - ``space``
+        - ``values_getter`` (a ``space``-valued thunk)
+
+        EXAMPLES::
+
+            sage: LP.<x> = MixedIntegerLinearProgram()
+            sage: y = LP.new_variable(name='y')
+            sage: x[1], x[5], y["why"]
+            sage: LP.ambient_space()
+
+            sage: LP.ambient_space([x[1], x[5], y["why"]])
+
+            sage: LP.ambient_space({1: x[1], 5: x[5], "why": y["why"]})
+
+            sage: LP.ambient_space([x])
+            sage: LP.ambient_space({"x": x, "y": y})
+            sage: LP.ambient_space([x, {"y": y}])
+        """
+        return self.ambient_projection(variables=variables, base_ring=base_ring, **kwds).codomain()
 
 class MIPSolverException(RuntimeError):
     r"""
