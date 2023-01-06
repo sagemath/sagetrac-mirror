@@ -1795,7 +1795,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
                     c = {k: get_backend_variable_value(self, v, tolerance)
                          for (k,v) in l.items()}
                 else:
-                    c = l._backend_variable_value_method(
+                    get = l._backend_variable_value_method
+                    c = sum(get(self, v, l._tolerance) * l._generators[k]
+                            for (k,v) in l.items())   ### parent's zero?
+
                 val.append(c)
             elif isinstance(l, list):
                 if len(l) == 1:
@@ -3337,7 +3340,8 @@ cdef class MIPVariable(FiniteFamily_base):
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
         self._name = name
-        self._backend_variable_value_method = mip._backend_variable_value_method
+        self._backend_variable_value_method = mip._backend_variable_value_method(convert, tolerance)
+        self._tolerance = tolerance
         if components is not None:
             if indices is not None:
                 self._dict = dict(zip(indices, components))
@@ -3348,6 +3352,9 @@ cdef class MIPVariable(FiniteFamily_base):
             for i in indices:
                 self[i]                   # creates component
         self._keys = indices
+        if generators is not None:
+            generators = Family(generators)
+        self._generators = generators
 
     def __copy__(self):
         r"""

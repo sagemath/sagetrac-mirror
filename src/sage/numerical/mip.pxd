@@ -36,6 +36,8 @@ cdef class MIPVariable(FiniteFamily_base):
     cdef object _lower_bound
     cdef object _upper_bound
     cdef object _backend_variable_value_method
+    cdef object _tolerance
+    cdef object _generators
     cdef _matrix_rmul_impl(self, m)
     cdef _matrix_lmul_impl(self, m)
 
