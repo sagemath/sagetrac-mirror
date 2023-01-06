@@ -1413,7 +1413,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         Return the value of a variable component in the backend as an integer.
 
         The value is rounded to an integer, and if the difference to the
-        original value is greater than ``tolerance``, raise a ``RuntimeError``.
+        original value is greater than ``tolerance``, raise a :class:`RuntimeError`.
 
         INPUT:
 
@@ -1458,10 +1458,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
         Return the value of a variable component in the backend as a boolean.
 
         The value is rounded to an integer, and if the difference to the
-        original value is greater than ``tolerance``, raise a ``RuntimeError``.
+        original value is greater than ``tolerance``, raise a :class:`RuntimeError`.
 
         If the rounded value is anything other than 0 or 1, also a
-        ``RuntimeError`` is raised.
+        :class:`RuntimeError` is raised.
 
         INPUT:
 
@@ -1471,7 +1471,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         OUTPUT:
 
-        A ``bool``.
+        A :class:`bool`.
 
         EXAMPLES::
 
@@ -1535,28 +1535,59 @@ cdef class MixedIntegerLinearProgram(SageObject):
             return self._backend_variable_value_ZZ(v, tolerance)
         return self.base_ring()(self._backend_variable_value(v, tolerance))
 
+    def _backend_variable_value_method(self, convert, tolerance):
+        if convert is None or convert is False:
+            if tolerance is not None:
+                raise TypeError('cannot use tolerance if convert is None')
+            return self.__class__._backend_variable_value
+        else:
+            if tolerance is not None:
+                if self.base_ring().is_exact():
+                    if tolerance < 0:
+                        raise ValueError('for an exact base_ring, tolerance must be nonnegative')
+                else:
+                    if tolerance <= 0:
+                        raise ValueError('for an inexact base_ring, tolerance must be positive')
+            if convert is ZZ:
+                return self.__class__._backend_variable_value_ZZ
+            elif convert is bool:
+                return self.__class__._backend_variable_value_bool
+            elif convert is True:
+                return self.__class__._backend_variable_value_True
+            else:
+                raise ValueError('convert should be one of None, ZZ, bool, True')
+
     def get_values(self, *lists, convert=None, tolerance=None):
         r"""
         Return values found by the previous call to ``solve()``.
 
         INPUT:
 
-        - ``*lists`` -- any instance of ``MIPVariable`` (or one of its
-          elements), or lists of them.
+        - ``*lists`` -- any instance of :class:`MIPVariable` (or one of its
+          components), or lists of them.
 
         - ``convert`` -- ``None`` (default), ``ZZ``, ``bool``, or ``True``.
 
-          - if ``convert=None`` (default), return all variable values as the
-            backend provides them, i.e., as an element of :meth:`base_ring` or a
-            ``float``.
+          - if ``convert=None`` (default), convert any :class:`MIPVariable`
+            according to its ``convert`` parameter and any component
+            as the backend provides them, i.e., as an element of :meth:`base_ring`
+            or a :class:`float`.
 
-          - if ``convert=ZZ``, convert all variable values from the
+          - if ``convert=False``, override the ``convert`` parameter of any
+            :class:`MIPVariable` and return all variable values as the backend
+            provides them, i.e., as an element of :meth:`base_ring` or a
+            :class:`float`.
+
+          - if ``convert=ZZ``, override the ``convert`` parameter of any
+            :class:`MIPVariable` and convert all variable values from the
             :meth:`base_ring` by rounding to the nearest integer.
 
-          - if ``convert=bool``, convert all variable values from the
-            :meth:`base_ring` by rounding to 0/1 and converting to ``bool``.
+          - if ``convert=bool``, override the ``convert`` parameter of any
+            :class:`MIPVariable` and convert all variable values from the
+            :meth:`base_ring` by rounding to 0/1 and converting to :class:`bool`.
 
-          - if ``convert=True``, use ``ZZ`` for MIP variables declared integer
+          - if ``convert=True``, override the ``convert`` parameter of any
+            :class:`MIPVariable` and use ``ZZ`` for MIP variables declared integer
             or binary, and convert the values of all other variables to the
             :meth:`base_ring`.
 
@@ -1564,24 +1595,26 @@ cdef class MixedIntegerLinearProgram(SageObject):
           :meth:`base_ring` is an exact ring).  Required if ``convert`` is not
           ``None`` and any integer conversion is to be done.  If the variable
           value differs from the nearest integer by more than ``tolerance``,
-          raise a ``RuntimeError``.
+          raise a :class:`RuntimeError`.
 
         OUTPUT:
 
-        - Each instance of ``MIPVariable`` is replaced by a dictionary
-          containing the numerical values found for each
-          corresponding variable in the instance.
-        - Each element of an instance of a ``MIPVariable`` is replaced
+        - Each instance of :class:`MIPVariable` is replaced by
+          - either a dictionary containing the numerical values found for each
+            corresponding variable in the instance.
+          - or a module element.
+
+        - Each component of an instance of a :class:`MIPVariable` is replaced
           by its corresponding numerical value.
 
         .. NOTE::
 
             While a variable may be declared as binary or integer, its value is
             an element of the :meth:`base_ring`, or for the numerical solvers,
-            a ``float``.
+            a :class:`float`.
 
             For the numerical solvers, :meth:`base_ring` is ``RDF``, an inexact
-            ring.  Code using ``get_values`` should always account for possible
+            ring.  Code using :meth:`get_values` should always account for possible
             numerical errors.
 
             Even for variables declared as binary or integer, or known to be an
@@ -1751,35 +1784,18 @@ cdef class MixedIntegerLinearProgram(SageObject):
             ...
             ValueError: for an exact base_ring, tolerance must be nonnegative
         """
-        if convert is None:
-            if tolerance is not None:
-                raise TypeError('cannot use tolerance if convert is None')
-            get_backend_variable_value = self._backend_variable_value
-        else:
-            if tolerance is not None:
-                if self.base_ring().is_exact():
-                    if tolerance < 0:
-                        raise ValueError('for an exact base_ring, tolerance must be nonnegative')
-                else:
-                    if tolerance <= 0:
-                        raise ValueError('for an inexact base_ring, tolerance must be positive')
-            if convert is ZZ:
-                get_backend_variable_value = self._backend_variable_value_ZZ
-            elif convert is bool:
-                get_backend_variable_value = self._backend_variable_value_bool
-            elif convert is True:
-                get_backend_variable_value = self._backend_variable_value_True
-            else:
-                raise ValueError('convert should be one of None, ZZ, bool, True')
-
+        get_backend_variable_value = self._backend_variable_value_method(convert, tolerance)
         val = []
         for l in lists:
             if isinstance(l, MIPVariable):
                 if self != l.mip():
                     raise ValueError("Variable {!r} is a variable from a different problem".format(l))
-                c = {}
-                for (k,v) in l.items():
-                    c[k] = get_backend_variable_value(v, tolerance)
+                if convert is False:
+                    # override convert parameter stored in MIPVariable
+                    c = {k: get_backend_variable_value(self, v, tolerance)
+                         for (k,v) in l.items()}
+                else:
+                    c = l._backend_variable_value_method(
                 val.append(c)
             elif isinstance(l, list):
                 if len(l) == 1:
@@ -1789,7 +1805,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
                     [c.append(self.get_values(ll, convert=convert, tolerance=tolerance)) for ll in l]
                     val.append(c)
             elif l in self._variables:
-                val.append(get_backend_variable_value(l, tolerance))
+                val.append(get_backend_variable_value(self, l, tolerance))
             else:
                 raise TypeError("Not a MIPVariable: {!r}".format(l))
 
@@ -3229,8 +3245,10 @@ class MIPSolverException(RuntimeError):
 
 cdef class MIPVariable(FiniteFamily_base):
     r"""
-    ``MIPVariable`` is a variable used by the class
+    A ``MIPVariable`` is a :func:`Family` of variable components used by the class
     ``MixedIntegerLinearProgram``.
+
+    Each variable component is a linear function on the backend solution space.
 
     .. WARNING::
 
@@ -3238,7 +3256,8 @@ cdef class MIPVariable(FiniteFamily_base):
         :meth:`MixedIntegerLinearProgram.new_variable`.
     """
     def __init__(self, mip, vtype, name="", lower_bound=0, upper_bound=None,
-                 indices=None):
+                 indices=None, generators=None, components=None,
+                 convert=None, tolerance=None):
         r"""
         Constructor for ``MIPVariable``.
 
@@ -3260,14 +3279,51 @@ cdef class MIPVariable(FiniteFamily_base):
           variable is unbounded.
 
         - ``indices`` -- (optional) an iterable of keys; components
-           corresponding to these keys are created in order,
-           and access to components with other keys will raise an
-           error; otherwise components of this variable can be
-           indexed by arbitrary keys and are created dynamically
-           on access
+          corresponding to these keys are created in order,
+          and access to components with other keys will raise an error.
 
-        For more informations, see the method
-        ``MixedIntegerLinearProgram.new_variable``.
+          If ``None``, the components of this variable can be
+          indexed by arbitrary keys and are created dynamically
+          on access.
+
+        - ``generators`` -- (optional) a :func:`Family` or iterable
+          of module elements. Its keys are taken as variable indices
+          (unless ``indices`` is also provided); the values (module elements)
+          are taken as generators of the (front-end) solution space.
+          Solutions are mapped to linear combinations of these generators.
+
+          If ``None``, solutions are represented as dictionaries
+          indexed by ``indices``.
+
+        - ``components`` -- (optional) a :func:`Family` of linear
+          functions on the backend solution space, indexed by ``indices``.
+
+          If ``None``, the components are created dynamically in the
+          backend.
+
+        - ``convert`` -- ``None`` (default), ``ZZ``, ``bool``, or ``True``.
+
+          - if ``convert=None`` (default), return all variable values as the
+            backend provides them, i.e., as an element of :meth:`base_ring` or a
+            ``float``.
+
+          - if ``convert=ZZ``, convert all variable values from the
+            :meth:`base_ring` by rounding to the nearest integer.
+
+          - if ``convert=bool``, convert all variable values from the
+            :meth:`base_ring` by rounding to 0/1 and converting to ``bool``.
+
+          - if ``convert=True``, use ``ZZ`` for MIP variables declared integer
+            or binary, and convert the values of all other variables to the
+            :meth:`base_ring`.
+
+        - ``tolerance`` -- ``None``, a positive real number, or ``0`` (if
+          :meth:`base_ring` is an exact ring).  Required if ``convert`` is not
+          ``None`` and any integer conversion is to be done.  If the variable
+          value differs from the nearest integer by more than ``tolerance``,
+          raise a ``RuntimeError``.
+
+        For more information, see :meth:`MixedIntegerLinearProgram.new_variable`.
 
         EXAMPLES::
 
@@ -3281,7 +3337,14 @@ cdef class MIPVariable(FiniteFamily_base):
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
         self._name = name
-        if indices is not None:
+        self._backend_variable_value_method = mip._backend_variable_value_method
+        if components is not None:
+            if indices is not None:
+                self._dict = dict(zip(indices, components))
+            else:
+                self._dict = Family(components)
+                indices = self._dict.keys()
+        elif indices is not None:
             for i in indices:
                 self[i]                   # creates component
         self._keys = indices
