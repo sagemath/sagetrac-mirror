@@ -23,9 +23,15 @@ Check :trac:`12482` (shall be run in a fresh session)::
 """
 
 #*****************************************************************************
-#       Copyright (C) 2008 Nicolas Thiery <nthiery at users.sf.net>,
-#                          Mike Hansen <mhansen@gmail.com>,
-#                          Florent Hivert <Florent.Hivert@univ-rouen.fr>
+#       Copyright (C) 2008-2017 Nicolas Thiery <nthiery at users.sf.net>
+#                     2008-2009 Mike Hansen <mhansen@gmail.com>
+#                     2008-2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>
+#                     2013-2021 Travis Scrimshaw
+#                     2014      Nathann Cohen
+#                     2017      Erik M. Bray
+#                     2018      Frédéric Chapoton
+#                     2019      Markus Wageringel
+#                     2022-2023 Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -38,9 +44,7 @@ from copy import copy
 from pprint import pformat, saferepr
 from collections.abc import Iterable
 
-from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -48,7 +52,8 @@ from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.misc.lazy_import import lazy_import
 from sage.rings.integer import Integer
 from sage.misc.call import AttrCallObject
-lazy_import('sage.combinat.combinat', 'CombinatorialClass')
+from sage.combinat.combinat import CombinatorialClass
+
 
 def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=False, name=None):
     r"""
@@ -393,8 +398,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
                 return TrivialFamily(indices)
             if isinstance(indices, (FiniteFamily, LazyFamily, TrivialFamily) ):
                 return indices
-            if (indices in EnumeratedSets()
-                or isinstance(indices, CombinatorialClass)):
+            if indices in EnumeratedSets():
                 return EnumeratedFamily(indices)
             if isinstance(indices, Iterable):
                 return TrivialFamily(indices)
@@ -415,7 +419,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
                                       keys=indices)
 
 
-class AbstractFamily(Parent):
+cdef class AbstractFamily(Parent):
     """
     The abstract class for family
 
@@ -433,7 +437,6 @@ class AbstractFamily(Parent):
         """
         return []
 
-    @abstract_method
     def keys(self):
         """
         Return the keys of the family.
@@ -444,8 +447,8 @@ class AbstractFamily(Parent):
             sage: sorted(f.keys())
             [3, 4, 7]
         """
+        raise NotImplementedError
 
-    @abstract_method(optional=True)
     def values(self):
         """
         Return the elements (values) of this family.
@@ -456,6 +459,7 @@ class AbstractFamily(Parent):
             sage: sorted(f.values())
             ['aa', 'bb', 'cc']
         """
+        raise NotImplementedError
 
     def items(self):
         """
@@ -531,48 +535,11 @@ class AbstractFamily(Parent):
         """
         return Family( dict( (self[k], k) for k in self.keys()) )
 
-class FiniteFamily(AbstractFamily):
+
+cdef class FiniteFamily_base(AbstractFamily):
     r"""
-    A :class:`FiniteFamily` is an associative container which models a finite
-    family `(f_i)_{i \in I}`. Its elements `f_i` are therefore its
-    values. Instances should be created via the :func:`Family` factory. See its
-    documentation for examples and tests.
-
-    EXAMPLES:
-
-    We define the family `(f_i)_{i \in \{3,4,7\}}` with `f_3=a`,
-    `f_4=b`, and `f_7=d`::
-
-        sage: from sage.sets.family import FiniteFamily
-        sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
-
-    Individual elements are accessible as in a usual dictionary::
-
-        sage: f[7]
-        'd'
-
-    And the other usual dictionary operations are also available::
-
-        sage: len(f)
-        3
-        sage: f.keys()
-        [3, 4, 7]
-
-    However f behaves as a container for the `f_i`'s::
-
-        sage: list(f)
-        ['a', 'b', 'd']
-        sage: [ x for x in f ]
-        ['a', 'b', 'd']
-
-    The order of the elements can be specified using the ``keys`` optional argument::
-
-        sage: f = FiniteFamily({"a": "aa", "b": "bb", "c" : "cc" }, keys = ["c", "a", "b"])
-        sage: list(f)
-        ['cc', 'aa', 'bb']
-
+    Cython base class for :class:`FiniteFamily`.
     """
-
     def __init__(self, dictionary, keys=None):
         """
         TESTS::
@@ -708,8 +675,8 @@ class FiniteFamily(AbstractFamily):
             False
         """
         return (isinstance(other, self.__class__) and
-                self._keys       == other._keys and
-                self._dictionary == other._dictionary)
+                self._keys       == (<FiniteFamily_base> other)._keys and
+                self._dictionary == (<FiniteFamily_base> other)._dictionary)
 
     def _repr_(self):
         """
@@ -822,7 +789,51 @@ class FiniteFamily(AbstractFamily):
             sage: f
             Finite family {4: 'b'}
         """
-        self.__init__(state['dictionary'], keys = state.get("keys"))
+        self.__init__(state['dictionary'], keys=state.get("keys"))
+
+
+class FiniteFamily(FiniteFamily_base):
+    r"""
+    A :class:`FiniteFamily` is an associative container which models a finite
+    family `(f_i)_{i \in I}`. Its elements `f_i` are therefore its
+    values. Instances should be created via the :func:`Family` factory. See its
+    documentation for examples and tests.
+
+    EXAMPLES:
+
+    We define the family `(f_i)_{i \in \{3,4,7\}}` with `f_3=a`,
+    `f_4=b`, and `f_7=d`::
+
+        sage: from sage.sets.family import FiniteFamily
+        sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
+
+    Individual elements are accessible as in a usual dictionary::
+
+        sage: f[7]
+        'd'
+
+    And the other usual dictionary operations are also available::
+
+        sage: len(f)
+        3
+        sage: f.keys()
+        [3, 4, 7]
+
+    However f behaves as a container for the `f_i`'s::
+
+        sage: list(f)
+        ['a', 'b', 'd']
+        sage: [ x for x in f ]
+        ['a', 'b', 'd']
+
+    The order of the elements can be specified using the ``keys`` optional argument::
+
+        sage: f = FiniteFamily({"a": "aa", "b": "bb", "c" : "cc" }, keys = ["c", "a", "b"])
+        sage: list(f)
+        ['cc', 'aa', 'bb']
+
+    """
+    pass
 
 class FiniteFamilyWithHiddenKeys(FiniteFamily):
     r"""
@@ -864,15 +875,17 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
             ...
             KeyError
         """
-        if i in self._dictionary:
-            return self._dictionary[i]
-
-        if i not in self.hidden_dictionary:
-            if i not in self._hidden_keys:
-                raise KeyError
-            self.hidden_dictionary[i] = self.hidden_function(i)
-
-        return self.hidden_dictionary[i]
+        try:
+            return FiniteFamily.__getitem__(self, i)
+        except KeyError:
+            try:
+                return self.hidden_dictionary[i]
+            except KeyError:
+                if i not in self._hidden_keys:
+                    raise KeyError
+                v = self.hidden_function(i)
+                self.hidden_dictionary[i] = v
+                return v
 
     def hidden_keys(self):
         """
@@ -897,11 +910,11 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
         """
         from sage.misc.fpickle import pickle_function
         f = pickle_function(self.hidden_function)
-        return {'dictionary': self._dictionary,
-                'hidden_keys': self._hidden_keys,
-                'hidden_dictionary': self.hidden_dictionary,
-                'hidden_function': f,
-                'keys': self._keys}
+        state = super().__getstate__()
+        state.update({'hidden_keys': self._hidden_keys,
+                      'hidden_dictionary': self.hidden_dictionary,
+                      'hidden_function': f})
+        return state
 
     def __setstate__(self, d):
         """
@@ -917,7 +930,7 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
             6
         """
         hidden_function = d['hidden_function']
-        if isinstance(hidden_function, str):
+        if isinstance(hidden_function, (str, bytes)):
         # Let's assume that hidden_function is an unpickled function.
             from sage.misc.fpickle import unpickle_function
             hidden_function = unpickle_function(hidden_function)
@@ -1069,7 +1082,7 @@ class LazyFamily(AbstractFamily):
         """
         if self.function_name is not None:
             name = self.function_name + "(i)"
-        elif isinstance(self.function, type(lambda x:1)):
+        elif isinstance(self.function, types.LambdaType):
             name = self.function.__name__
             name = name+"(i)"
         else:
