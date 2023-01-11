@@ -281,7 +281,6 @@ cdef class Polynomial_GF2X(Polynomial_template):
         """
         return 0 != GF2X_IterIrredTest(self.x)
 
-
 # The three functions below are used in polynomial_ring.py, but are in
 # this Cython file since they call C++ functions.  They return
 # polynomials as lists so that no variable has to be specified.
