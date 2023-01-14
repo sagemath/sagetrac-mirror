@@ -436,16 +436,14 @@ cdef class CombinatorialPolyhedron(SageObject):
         else:
             self._facet_names = None
 
-        if data == [] or data == ():
-            # Handling the empty polyhedron.
-            data = -1
-
         if not self._bounded:
             self._far_face_tuple = tuple(far_face)
         else:
             self._far_face_tuple = ()
 
-        if isinstance(data, Matrix):
+        if data == [] or data == ():
+            self._init_as_trivial_polyhedron(-1)
+        elif isinstance(data, Matrix):
             self._init_from_incidence_matrix(data, data_without_equations)
         elif isinstance(data, numbers.Integral):
             self._init_as_trivial_polyhedron(data)
