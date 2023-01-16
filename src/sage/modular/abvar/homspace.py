@@ -235,10 +235,11 @@ class Homspace(HomsetWithBase):
     def __eq__(self, other):
         if not isinstance(other, Homspace):
             return False
-        equal_domain_codomain = (self.domain() == other.domain()) and \
-            (self.codomain() == other.codomain())
-        equal_free_module = self.free_module() == other.free_module()
-        return equal_domain_codomain and equal_free_module
+        if self.domain() != other.domain():
+            return False
+        if self.codomain() != other.codomain():
+            return False
+        return self.free_module() == other.free_module()
 
     def identity(self):
         """
