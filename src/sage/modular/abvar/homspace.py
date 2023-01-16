@@ -232,6 +232,22 @@ class Homspace(HomsetWithBase):
         HomsetWithBase.__init__(self, domain, codomain, category=cat)
 
     def __eq__(self, other):
+        """
+        Return whether ``self`` is equal to ``other``.
+
+        EXAMPLES::
+
+            sage: E = End(J0(11))
+            sage: E.identity() == E.one()
+            True
+
+            sage: E = J0(22).endomorphism_ring(); E.free_module().rank()
+            4
+            sage: T = E.image_of_hecke_algebra(); T.free_module().rank()
+            2
+            sage: E == T
+            False
+        """
         if not isinstance(other, Homspace):
             return False
         if self.domain() != other.domain():
