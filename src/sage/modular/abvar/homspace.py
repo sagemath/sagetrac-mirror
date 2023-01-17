@@ -233,7 +233,7 @@ class Homspace(HomsetWithBase):
 
     def __eq__(self, other):
         """
-        Return whether ``self`` is equal to ``other``.
+        Return whether ``self`` equals ``other``.
 
         EXAMPLES::
 
@@ -255,6 +255,21 @@ class Homspace(HomsetWithBase):
         if self.codomain() != other.codomain():
             return False
         return self.free_module() == other.free_module()
+
+    def _cache_key(self):
+        """
+        Return a cacheable key for ``self``.
+
+        EXAMPLES::
+            sage: E = J0(22).endomorphism_ring(); E.free_module().rank()
+            4
+            sage: T = E.image_of_hecke_algebra(); T.free_module().rank()
+            2
+            sage: E._cache_key() == T._cache_key()
+            False
+        """
+        return (self.parent(), self.domain(), self.codomain(),
+                self.free_module())
 
     def identity(self):
         """
