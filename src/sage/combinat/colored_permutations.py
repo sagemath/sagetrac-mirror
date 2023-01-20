@@ -15,6 +15,7 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.arith.functions import lcm
+from sage.misc.prandom import choice
 
 from sage.combinat.permutation import Permutations
 from sage.matrix.constructor import diagonal_matrix
@@ -565,6 +566,23 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         """
         return self.element_class(self, [self._C.zero()] * self._n,
                                   self._P.identity())
+
+    def random_element(self):
+        """
+        Return an element drawn uniformly at random.
+
+        EXAMPLES::
+
+            sage: C = ColoredPermutations(4, 3)
+            sage: s = C.random_element(); s # random
+            [[0, 2, 1], [2, 1, 3]]
+            sage: s in C
+            True
+        """
+        return self.element_class(self,
+                                  [self._C.random_element()
+                                   for _ in range(self._n)],
+                                  self._P.random_element())
 
     def simple_reflection(self, i):
         r"""
@@ -1313,6 +1331,23 @@ class SignedPermutations(ColoredPermutations):
         """
         return self.element_class(self, [ZZ.one()] * self._n,
                                   self._P.identity())
+
+    def random_element(self):
+        """
+        Return an element drawn uniformly at random.
+
+        EXAMPLES::
+
+            sage: C = SignedPermutations(7)
+            sage: s = C.random_element(); s # random
+            [7, 6, -4, -5, 2, 3, -1]
+            sage: s in C
+            True
+        """
+        return self.element_class(self,
+                                  [choice([ZZ.one(), -ZZ.one()])
+                                   for _ in range(self._n)],
+                                  self._P.random_element())
 
     def simple_reflection(self, i):
         r"""
