@@ -1344,7 +1344,7 @@ def _create_m_sequence(q, n, check=True):
         raise ValueError('n cannot be negative')
 
     K = GF(q, 'a')
-    
+
     T = PolynomialRing(K, 'x')
     primitive = T.irreducible_element(n, algorithm='random')
     while not primitive.is_primitive():
@@ -1769,7 +1769,7 @@ def supplementary_difference_set(q, existence=False, check=True):
     for i in range(s):
         psi3 = (alfa3(P.monomial(2)) + P.monomial(1)*alfa4(P.monomial(2))).mod(P.monomial(4*m)-1)
         psi4 = (alfa3(P.monomial(2)) + P.monomial(1)*(T_2m(P.monomial(2)) - alfa4(P.monomial(2)))).mod(P.monomial(4*m)-1)
-    
+
     # Construction of psi1, psi2
     set2 = relative_difference_set_from_m_sequence(q, 2, check=False)
     s3 = get_fixed_relative_difference_set(set2)
@@ -1869,7 +1869,7 @@ def get_fixed_relative_difference_set(rel_diff_set, as_elements=False):
     """
     G = rel_diff_set[0].parent()
     q = len(rel_diff_set)
-    
+
     s2 = None
     for el in G:
         fixed_set = [el+x for x in rel_diff_set]
