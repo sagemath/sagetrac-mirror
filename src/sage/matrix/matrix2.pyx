@@ -5204,17 +5204,17 @@ cdef class Matrix(Matrix1):
             sage: image(A)
             Free module of degree 4 and rank 4 over Integer Ring
             Echelon basis matrix:
-            [  1   0   0 430]
-            [  0   1   0 232]
-            [  0   0   1 479]
+            [  1   0   0 426]
+            [  0   1   0 518]
+            [  0   0   1 293]
             [  0   0   0 687]
 
         ::
 
-            sage: image(B) == B.column_module()
+            sage: image(B) == B.row_module()
             True
         """
-        return self.column_module()
+        return self.row_module()
 
     def row_module(self, base_ring=None):
         """
