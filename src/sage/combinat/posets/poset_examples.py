@@ -101,7 +101,8 @@ from sage.combinat.posets.posets import Poset, FinitePoset, FinitePosets_n
 from sage.combinat.posets.d_complete import DCompletePoset
 from sage.combinat.posets.mobile import MobilePoset as Mobile
 from sage.combinat.posets.lattices import (LatticePoset, MeetSemilattice,
-                                           JoinSemilattice, FiniteLatticePoset)
+                                           JoinSemilattice, FiniteLatticePoset,
+                                           FiniteLatticePosets_n)
 from sage.categories.finite_posets import FinitePosets
 from sage.categories.finite_lattice_posets import FiniteLatticePosets
 from sage.graphs.digraph import DiGraph
@@ -2184,3 +2185,28 @@ def _random_stone_lattice(n):
 
 
 posets = Posets
+
+class LatticePosets(metaclass=ClasscallMetaclass):
+    @staticmethod
+    def __classcall__(cls, n=None):
+        r"""
+        Return either the category of all posets, or the finite
+        enumerated set of all finite posets on ``n`` elements up to an
+        isomorphism.
+
+        EXAMPLES::
+
+            sage: Posets()
+            Category of posets
+            sage: Posets(4)
+            Posets containing 4 elements
+        """
+        if n is None:
+            return sage.categories.lattice_posets.LatticePosets()
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
+        return FiniteLatticePosets_n(n)

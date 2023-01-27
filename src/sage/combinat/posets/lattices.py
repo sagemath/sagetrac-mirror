@@ -147,8 +147,12 @@ List of (semi)lattice methods
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 from itertools import repeat
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.finite_lattice_posets import FiniteLatticePosets
-from sage.combinat.posets.posets import Poset, FinitePoset
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
+from sage.rings.integer import Integer
+from sage.combinat.posets.posets import Poset, FinitePoset, FinitePosets_n
 from sage.combinat.posets.elements import (LatticePosetElement,
                                            MeetSemilatticeElement,
                                            JoinSemilatticeElement)
@@ -4944,6 +4948,111 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         return L.relabel(lambda e: SetPartition([[self._vertex_to_element(v)
                                                   for v in p] for p in C[e]]))
+
+
+class FiniteLatticePosets_n(UniqueRepresentation, Parent):
+    r"""
+    The finite enumerated set of all lattice posets on `n` elements, up to an isomorphism.
+
+    EXAMPLES::
+
+        sage: P = LatticePosets(5)
+        sage: P.cardinality()
+        5
+        sage: for p in P: print(p.cover_relations())
+        [['bottom', 0], ['bottom', 1], ['bottom', 2], [0, 'top'], [1, 'top'], [2, 'top']]
+        [['bottom', 0], ['bottom', 1], [0, 'top'], [1, 2], [2, 'top']]
+        [['bottom', 0], [0, 1], [0, 2], [1, 'top'], [2, 'top']]
+        [['bottom', 0], [0, 1], [1, 2], [2, 'top']]
+        [['bottom', 0], ['bottom', 1], [0, 2], [1, 2], [2, 'top']]
+    """
+
+    def __init__(self, n):
+        r"""
+        EXAMPLES::
+
+            sage: P = LatticePosets(5); P
+            Lattice posets containing 5 elements
+            sage: P.category()
+            Category of finite enumerated sets
+            sage: TestSuite(P).run()
+        """
+        Parent.__init__(self, category=FiniteEnumeratedSets())
+        self._n = n
+
+    def _repr_(self):
+        r"""
+        EXAMPLES::
+
+            sage: P = LatticePosets(5)
+            sage: P._repr_()
+            'Lattice posets containing 5 elements'
+        """
+        return "Lattice posets containing %s elements" % self._n
+
+    def __contains__(self, P):
+        """
+        EXAMPLES::
+
+            sage: posets.PentagonPoset() in LatticePosets(5)
+            True
+            sage: posets.PentagonPoset() in LatticePosets(3)
+            False
+            sage: posets.AntichainPoset(3) in LatticePosets(3)
+            False
+            sage: 1 in LatticePosets(3)
+            False
+        """
+        return P in FiniteLatticePosets() and P.cardinality() == self._n
+
+    def __iter__(self):
+        """
+        Return an iterator of representatives of the isomorphism classes
+        of finite posets of a given size.
+
+        EXAMPLES::
+
+            sage: P = LatticePosets(2)
+            sage: list(P)
+            [Finite lattice containing 2 elements]
+        """
+        if self._n <= 2:
+            for P in FinitePosets_n(self._n):
+                if P.is_lattice():
+                    yield LatticePoset(P)
+        else:
+            for P in FinitePosets_n(self._n-2):
+                Q = P.with_bounds()
+                if Q.is_lattice():
+                    yield LatticePoset(Q)
+
+    def cardinality(self, from_iterator=False):
+        r"""
+        Return the cardinality of this object.
+
+        .. note::
+
+            By default, this returns pre-computed values obtained from
+            the On-Line Encyclopedia of Integer Sequences (:oeis:`A006966`).
+            To override this, pass the argument ``from_iterator=True``.
+
+        EXAMPLES::
+
+            sage: P = LatticePosets(5)
+            sage: P.cardinality()
+            5
+            sage: P.cardinality(from_iterator=True)
+            5
+        """
+        # Obtained from The On-Line Encyclopedia of Integer Sequences;
+        # this is sequence number A006966.
+        known_values = [1, 1, 1, 1, 2, 5, 15, 53, 222, 1078, 5994,
+                        37622, 262776, 2018305, 16873364, 152233518, 1471613387,
+                        15150569446, 165269824761, 1901910625578, 23003059864006]
+        if not from_iterator and self._n < len(known_values):
+            return Integer(known_values[self._n])
+        else:
+            return super(FiniteLatticePosets_n, self).cardinality()
 
 
 def _log_2(n):

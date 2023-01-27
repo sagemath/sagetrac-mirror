@@ -40,4 +40,4 @@ from .posets import Poset
 
 from .lattices import LatticePoset, MeetSemilattice, JoinSemilattice
 
-from .poset_examples import posets, Posets
+from .poset_examples import posets, Posets, LatticePosets
