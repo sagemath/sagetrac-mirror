@@ -1,7 +1,7 @@
 
 from sage.misc.lazy_import import lazy_import
 
-lazy_import("sage.graphs.graph_generators", "graphs")
+lazy_import("sage.graphs.graph_generators", ["graphs", "Graphs"])
 lazy_import("sage.graphs.digraph_generators", "digraphs")
 lazy_import("sage.graphs.hypergraph_generators", "hypergraphs")
 from .graph_database import GraphDatabase, GenericGraphQuery, GraphQuery

@@ -17,7 +17,10 @@ build by typing ``graphs.`` in Sage and then hitting :kbd:`Tab`.
 """
 
 import subprocess
-
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
+from sage.rings.integer import Integer
 
 # This method appends a list of methods to the doc as a 3xN table.
 
@@ -3053,3 +3056,100 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
 
 # Easy access to the graph generators from the command line:
 graphs = GraphGenerators()
+
+class Graphs(UniqueRepresentation, Parent):
+    r"""
+    The finite enumerated set of all graphs on `n` elements, up to an isomorphism.
+
+    EXAMPLES::
+
+        sage: G = Graphs(3)
+        sage: G.cardinality()
+        4
+        sage: for g in G: print(g.edges(labels=False, sort=False))
+        []
+        [(0, 2)]
+        [(0, 2), (1, 2)]
+        [(0, 1), (0, 2), (1, 2)]
+
+    """
+    def __init__(self, n):
+        r"""
+        EXAMPLES::
+
+            sage: G = Graphs(3); G
+            Graphs with 3 vertices
+            sage: G.category()
+            Category of finite enumerated sets
+            sage: TestSuite(G).run()
+        """
+        Parent.__init__(self, category=FiniteEnumeratedSets())
+        self._n = n
+
+    def _repr_(self):
+        r"""
+        EXAMPLES::
+
+            sage: G = Graphs(3)
+            sage: G._repr_()
+            'Graphs with 3 vertices'
+        """
+        return "Graphs with %s vertices" % self._n
+
+    def __contains__(self, G):
+        """
+        EXAMPLES::
+
+            sage: graphs.CycleGraph(4) in Graphs(4)
+            True
+            sage: graphs.CycleGraph(4) in Graphs(3)
+            False
+            sage: 1 in Graphs(3)
+            False
+        """
+        from sage.graphs.graph import Graph
+        return isinstance(G, Graph) and G.num_verts() == self._n
+
+    def __iter__(self):
+        """
+        Return an iterator of representatives of the isomorphism classes
+        of finite graphs of a given size.
+
+        EXAMPLES::
+
+            sage: G = Graphs(2)
+            sage: list(G)
+            [Graph on 2 vertices, Graph on 2 vertices]
+        """
+        yield from graphs(self._n)
+
+    def cardinality(self, from_iterator=False):
+        r"""
+        Return the cardinality of this object.
+
+        .. NOTE::
+
+            By default, this returns pre-computed values obtained from
+            the On-Line Encyclopedia of Integer Sequences (:oeis:`A000088`).
+            To override this, pass the argument ``from_iterator=True``.
+
+        EXAMPLES::
+
+            sage: G = Graphs(3)
+            sage: G.cardinality()
+            4
+            sage: G.cardinality(from_iterator=True)
+            4
+        """
+        # Obtained from The On-Line Encyclopedia of Integer Sequences;
+        # this is sequence number A000088.
+        known_values = [1, 1, 2, 4, 11, 34, 156, 1044, 12346, 274668,
+                        12005168, 1018997864, 165091172592, 50502031367952,
+                        29054155657235488, 31426485969804308768,
+                        64001015704527557894928, 245935864153532932683719776,
+                        1787577725145611700547878190848,
+                        24637809253125004524383007491432768]
+        if not from_iterator and self._n < len(known_values):
+            return Integer(known_values[self._n])
+        else:
+            return sum(1 for _ in graphs(self._n))
